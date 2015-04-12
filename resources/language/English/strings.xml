@@ -243,6 +243,7 @@
     <string id="30241">DB Sync Indication:</string>
     <string id="30242">Play Count Sync Indication:</string>
     <string id="30243">Enable HTTPS</string>
+	<string id="30244">Force Transcoding Codecs</string>
     
     
 	<!-- Default views -->
