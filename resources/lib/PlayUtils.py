@@ -25,6 +25,8 @@ class PlayUtils():
     def getPlayUrl(self, server, id, result):
     
       addonSettings = xbmcaddon.Addon(id='plugin.video.emby')
+      https = addonSettings.getSetting('https')
+      httpProtocol = "https" if https == 'true' else "http"
       # if the path is local and depending on the video quality play we can direct play it do so-
       if self.isDirectPlay(result) == True:
           playurl = result.get("Path")
@@ -47,7 +49,7 @@ class PlayUtils():
             if ("apple.com" in playurl):
               playurl += '?|User-Agent=%s' % USER_AGENT
             if addonSettings.getSetting('playFromStream') == "true":
-              playurl = 'http://' + server + '/mediabrowser/Videos/' + id + '/stream?static=true'
+              playurl = httpProtocol + '://' + server + '/mediabrowser/Videos/' + id + '/stream?static=true'
               mediaSources = result.get("MediaSources")
               if(mediaSources != None):
                 if mediaSources[0].get('DefaultAudioStreamIndex') != None:
@@ -58,10 +60,10 @@ class PlayUtils():
       else:
           #No path or has a path but not sufficient network so transcode
           if result.get("Type") == "Audio":
-            playurl = 'http://' + server + '/mediabrowser/Audio/' + id + '/stream.mp3'
+            playurl = httpProtocol + '://' + server + '/mediabrowser/Audio/' + id + '/stream.mp3'
           else:
             txt_mac = clientInfo.getMachineId()
-            playurl = 'http://' + server + '/mediabrowser/Videos/' + id + '/master.m3u8?mediaSourceId=' + id
+            playurl = httpProtocol + '://' + server + '/mediabrowser/Videos/' + id + '/master.m3u8?mediaSourceId=' + id
             playurl = playurl + '&videoCodec=h264'
             playurl = playurl + '&AudioCodec=aac,ac3'
             playurl = playurl + '&deviceId=' + txt_mac
