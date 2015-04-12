@@ -331,13 +331,15 @@ class API():
         port = addonSettings.getSetting('port')
         host = addonSettings.getSetting('ipaddress')
         server = host + ":" + port
+        https = addonSettings.getSetting('https')
+        httpProtocol = "https" if https == 'true' else "http"
         
         if addonSettings.getSetting('compressArt')=='true':
             query = query + "&Quality=90"
         
         if imageTag == None:
             imageTag = "e3ab56fe27d389446754d0fb04910a34"
-        artwork = "http://" + server + "/mediabrowser/Items/" + str(id) + "/Images/" + type + "/" + index + "/" + imageTag + "/original/" + width + "/" + height + "/" + played + "?" + query
+        artwork = httpProtocol + "://" + server + "/mediabrowser/Items/" + str(id) + "/Images/" + type + "/" + index + "/" + imageTag + "/original/" + width + "/" + height + "/" + played + "?" + query
         if addonSettings.getSetting('disableCoverArt')=='true':
             artwork = artwork + "&EnableImageEnhancers=false"
         
@@ -358,7 +360,9 @@ class API():
         port = addonSettings.getSetting('port')
         host = addonSettings.getSetting('ipaddress')
         server = host + ":" + port
-        artwork = "http://" + server + "/mediabrowser/Users/" + str(id) + "/Images/" + type  + "?Format=original"
+        https = addonSettings.getSetting('https')
+        httpProtocol = "https" if https == 'true' else "http"
+        artwork = httpProtocol + "://" + server + "/mediabrowser/Users/" + str(id) + "/Images/" + type  + "?Format=original"
        
         return artwork                  
         

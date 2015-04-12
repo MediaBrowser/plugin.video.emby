@@ -277,6 +277,8 @@ class WebSocketThread(threading.Thread):
         addonSettings = xbmcaddon.Addon(id='plugin.video.emby')
         mb3Host = addonSettings.getSetting('ipaddress')
         mb3Port = addonSettings.getSetting('port')
+        https = addonSettings.getSetting('https')
+        protocol = "wss" if https == 'true' else "ws"
         
         if(self.logLevel >= 1):
             websocket.enableTrace(True)        
@@ -288,7 +290,7 @@ class WebSocketThread(threading.Thread):
             return
         '''
         # Make a call to /System/Info. WebSocketPortNumber is the port hosting the web socket.
-        webSocketUrl = "ws://" +  mb3Host + ":" + mb3Port + "/mediabrowser"
+        webSocketUrl = protocol + "://" +  mb3Host + ":" + mb3Port + "/mediabrowser"
         self.logMsg("WebSocket URL : " + webSocketUrl)
         self.client = websocket.WebSocketApp(webSocketUrl,
                                     on_message = self.on_message,
