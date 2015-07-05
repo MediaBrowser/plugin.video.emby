@@ -168,6 +168,10 @@ class Service():
                         if (self.newLibraryThread == None):
                             self.newLibraryThread = "Started"
                             library.start()
+                        elif self.newLibraryThread == "Paused":
+                            # If the thread was paused, because the server went offline
+                            self.newLibraryThread = "Started"
+                            library.resumeClient()
                             
                 else:
                     
@@ -195,6 +199,11 @@ class Service():
                 # Wait until Emby server is online
                 # or Kodi is shut down.
                 while not self.KodiMonitor.abortRequested():
+
+                    # If library thread running already, pause it.
+                    if self.newLibraryThread == "Started":
+                        self.newLibraryThread = "Paused"
+                        library.suspendClient()
                     
                     if user.getServer() == "":
                         # No server info set in add-on settings

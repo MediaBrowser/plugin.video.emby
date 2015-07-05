@@ -770,6 +770,14 @@ class LibrarySync(threading.Thread):
 
         while not self.KodiMonitor.abortRequested():
 
+            # In the event the server goes offline after
+            # the thread has already been started.
+            while self.suspendClient == True:
+                # The service.py will change self.suspendClient to False
+                if self.KodiMonitor.waitForAbort(5):
+                    # Abort was requested while waiting. We should exit
+                    break
+
             # Library sync
             if not startupComplete:
                 # Run full sync
@@ -780,12 +788,13 @@ class LibrarySync(threading.Thread):
                 if libSync:
                     startupComplete = True
 
+            # Set via Kodi Monitor event
             if WINDOW.getProperty("OnWakeSync") == "true":
                 WINDOW.clearProperty("OnWakeSync")
                 if WINDOW.getProperty("SyncDatabaseRunning") != "true":
-                    utils.logMsg("Doing_Db_Sync Post Resume: syncDatabase (Started)",0)
+                    self.logMsg("Doing_Db_Sync Post Resume: syncDatabase (Started)",0)
                     libSync = self.FullLibrarySync()
-                    utils.logMsg("Doing_Db_Sync Post Resume: syncDatabase (Finished) " + str(libSync),0)
+                    self.logMsg("Doing_Db_Sync Post Resume: syncDatabase (Finished) " + str(libSync),0)
 
             if self.doIncrementalSync:
                 # Add or update item to Kodi library
@@ -805,3 +814,11 @@ class LibrarySync(threading.Thread):
                 break
 
         self.logMsg("--- Library Sync Thread stopped ---", 0)
+
+    def suspendClient(self):
+        self.suspendClient = True
+        self.logMsg("--- Library Sync Thread paused ---", 0)
+
+    def resumeClient(self):
+        self.suspendClient = False
+        self.logMsg("--- Library Sync Thread resumed ---", 0)
