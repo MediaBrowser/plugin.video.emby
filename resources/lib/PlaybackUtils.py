@@ -124,7 +124,8 @@ class PlaybackUtils():
                 reasonableTicks = int(userData.get("PlaybackPositionTicks")) / 1000
                 seekTime = reasonableTicks / 10000
             if seekTime != 0:
-                displayTime = str(datetime.timedelta(seconds=seekTime))
+                jumpBackSec = int(addon.getSetting("resumeJumpBack"))
+                displayTime = str(datetime.timedelta(seconds=(seekTime-jumpBackSec)))
                 display_list = [ self.language(30106) + ' ' + displayTime, self.language(30107)]
                 resumeScreen = xbmcgui.Dialog()
                 resume_result = resumeScreen.select(self.language(30105), display_list)
@@ -255,7 +256,7 @@ class PlaybackUtils():
                 xbmc.sleep(500)
             
         #Jump to resume point
-        jumpBackSec = 10#int(self.settings.getSetting("resumeJumpBack"))
+        jumpBackSec = int(addon.getSetting("resumeJumpBack"))
         seekToTime = seekTo - jumpBackSec
         count = 0
         while xbmc.Player().getTime() < (seekToTime - 5) and count < 11: # only try 10 times

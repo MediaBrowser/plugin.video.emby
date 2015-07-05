@@ -40,14 +40,14 @@ class API():
         PlaybackPositionTicks = '100'
         if userData.get("PlaybackPositionTicks") != None:
             PlaybackPositionTicks = str(userData.get("PlaybackPositionTicks"))
-            reasonableTicks = int(userData.get("PlaybackPositionTicks")) / 1000
-            resumeTime = reasonableTicks / 10000    
+            reasonableTicks = int(userData.get("PlaybackPositionTicks")) / 1000.0
+            resumeTime = reasonableTicks / 10000.0
 
         try:
-            tempDuration = str(int(item.get("RunTimeTicks", "0"))/(10000000*60))
+            tempDuration = item.get("RunTimeTicks", 0)/(10000000.0*60.0)
         except TypeError:
             try:
-                tempDuration = str(int(item.get("CumulativeRunTimeTicks"))/(10000000*60))
+                tempDuration = item.get("CumulativeRunTimeTicks", 0)/(10000000.0*60.0)
             except TypeError:
                 tempDuration = "0"
         cappedPercentage = None
@@ -56,7 +56,7 @@ class API():
         if (resumeTime != "" and int(resumeTime) > 0):
             duration = float(tempDuration)
             if(duration > 0):
-                resume = float(resumeTime) / 60
+                resume = float(resumeTime) / 60.0
                 percentage = int((resume / duration) * 100.0)
         return {'Duration'      : tempDuration, 
                 'TotalTime'     : tempDuration,

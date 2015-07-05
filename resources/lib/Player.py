@@ -87,9 +87,6 @@ class Player( xbmc.Player ):
                 currentFile = data.get("currentfile")
                 type = data.get("Type")
 
-                # Prevent websocket feedback
-                self.WINDOW.setProperty("played_itemId", item_id)
-
                 if(currentPosition != None and self.hasData(runtime)):
                     runtimeTicks = int(runtime)
                     self.logMsg("emby Service -> runtimeticks:" + str(runtimeTicks))
@@ -385,6 +382,7 @@ class Player( xbmc.Player ):
             
             if seekTime:
                 PlaybackUtils().seekToPosition(int(seekTime))
+                seekTime = xbmc.Player().getTime()
             else:
                 seekTime = 0
 

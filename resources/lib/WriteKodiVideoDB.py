@@ -158,6 +158,22 @@ class WriteKodiVideoDB():
         else:
             path = "plugin://plugin.video.emby/movies/%s/" % MBitem["Id"]
             filename = "plugin://plugin.video.emby/movies/%s/?id=%s&mode=play" % (MBitem["Id"],MBitem["Id"])
+
+            playurl = PlayUtils().directPlay(MBitem)
+            if playurl == False:
+                pass
+            else:
+                if "\\" in playurl:
+                    realfilename = playurl.rsplit("\\",1)[-1]
+                elif "/" in playurl:
+                    realfilename = playurl.rsplit("/",1)[-1]
+
+                # Remove Kodi set bookmark - otherwise it messes with the resume
+                cursor.execute("SELECT idFile as fileid FROM files WHERE strFilename = ?", (realfilename,))
+                result = cursor.fetchone()
+                if result != None:
+                    realfileid = result[0]
+                    self.setKodiResumePoint(realfileid, 0, 0, cursor)
                  
         #create the path
         cursor.execute("SELECT idPath as pathid FROM path WHERE strPath = ?",(path,))
@@ -245,9 +261,13 @@ class WriteKodiVideoDB():
         else:
             self.AddTagToMedia(movieid, "Favorite movies", "movie", cursor, True)
         
-        #set resume point
-        resume = int(round(float(timeInfo.get("ResumeTime"))))*60
-        total = int(round(float(timeInfo.get("TotalTime"))))*60
+        #set resume point and round to 6th decimal
+        resume = round(float(timeInfo.get("ResumeTime"))*60.0,6)
+        total = round(float(timeInfo.get("TotalTime"))*60.0,6)
+        jumpback = int(addon.getSetting("resumeJumpBack"))
+        if resume > jumpback:
+            # To avoid negative bookmark
+            resume = resume - jumpback
         self.setKodiResumePoint(fileid, resume, total, cursor)
         
     def addOrUpdateMusicVideoToKodiLibrary( self, embyId ,connection, cursor):
@@ -322,6 +342,22 @@ class WriteKodiVideoDB():
         else:
             path = "plugin://plugin.video.emby/musicvideos/%s/" % MBitem["Id"]
             filename = "plugin://plugin.video.emby/musicvideos/%s/?id=%s&mode=play" % (MBitem["Id"], MBitem["Id"])
+
+            playurl = PlayUtils().directPlay(MBitem)
+            if playurl == False:
+                pass
+            else:
+                if "\\" in playurl:
+                    realfilename = playurl.rsplit("\\",1)[-1]
+                elif "/" in playurl:
+                    realfilename = playurl.rsplit("/",1)[-1]
+
+                # Remove Kodi set bookmark - otherwise it messes with the resume
+                cursor.execute("SELECT idFile as fileid FROM files WHERE strFilename = ?", (realfilename,))
+                result = cursor.fetchone()
+                if result != None:
+                    realfileid = result[0]
+                    self.setKodiResumePoint(realfileid, 0, 0, cursor)
         
         #create the path
         cursor.execute("SELECT idPath as pathid FROM path WHERE strPath = ?",(path,))
@@ -397,9 +433,13 @@ class WriteKodiVideoDB():
         #add streamdetails
         self.AddStreamDetailsToMedia(API().getMediaStreams(MBitem), fileid, cursor)
         
-        #set resume point
-        resume = int(round(float(timeInfo.get("ResumeTime"))))*60
-        total = int(round(float(timeInfo.get("TotalTime"))))*60
+        #set resume point and round to 6th decimal
+        resume = round(float(timeInfo.get("ResumeTime"))*60.0,6)
+        total = round(float(timeInfo.get("TotalTime"))*60.0,6)
+        jumpback = int(addon.getSetting("resumeJumpBack"))
+        if resume > jumpback:
+            # To avoid negative bookmark
+            resume = resume - jumpback
         self.setKodiResumePoint(fileid, resume, total, cursor)
     
     def addOrUpdateTvShowToKodiLibrary( self, embyId, connection, cursor, viewTag ):
@@ -628,6 +668,22 @@ class WriteKodiVideoDB():
             path = "plugin://plugin.video.emby/tvshows/" + MBitem["SeriesId"] + "/"
             filename = "plugin://plugin.video.emby/tvshows/" + MBitem["SeriesId"] + "/?id=" + MBitem["Id"] + "&mode=play"
             
+            playurl = PlayUtils().directPlay(MBitem)
+            if playurl == False:
+                pass
+            else:
+                if "\\" in playurl:
+                    realfilename = playurl.rsplit("\\",1)[-1]
+                elif "/" in playurl:
+                    realfilename = playurl.rsplit("/",1)[-1]
+
+                # Remove Kodi set bookmark - otherwise it messes with the resume
+                cursor.execute("SELECT idFile as fileid FROM files WHERE strFilename = ?", (realfilename,))
+                result = cursor.fetchone()
+                if result != None:
+                    realfileid = result[0]
+                    self.setKodiResumePoint(realfileid, 0, 0, cursor)
+            
         #create the new path - return id if already exists  
         cursor.execute("SELECT idPath as pathid FROM path WHERE strPath = ?",(path,))
         result = cursor.fetchone()
@@ -695,10 +751,14 @@ class WriteKodiVideoDB():
         
         #update or insert actors
         self.AddPeopleToMedia(episodeid,MBitem.get("People"),"episode", connection, cursor)
-        
-        #set resume point
-        resume = int(round(float(timeInfo.get("ResumeTime"))))*60
-        total = int(round(float(timeInfo.get("TotalTime"))))*60
+
+        #set resume point and round to 6th decimal
+        resume = round(float(timeInfo.get("ResumeTime"))*60.0,6)
+        total = round(float(timeInfo.get("TotalTime"))*60.0,6)
+        jumpback = int(addon.getSetting("resumeJumpBack"))
+        if resume > jumpback:
+            # To avoid negative bookmark
+            resume = resume - jumpback
         self.setKodiResumePoint(fileid, resume, total, cursor)
         
         #add streamdetails
@@ -789,7 +849,6 @@ class WriteKodiVideoDB():
                     
             #cache fanart and poster in Kodi texture cache
             if "fanart" in imageType or "poster" in imageType:
-                utils.logMsg("ArtworkSync", "Adding or Updating Fanart: %s" % imageUrl)
                 self.textureCache.CacheTexture(imageUrl)
         
     def setKodiResumePoint(self, fileid, resume_seconds, total_seconds, cursor):
