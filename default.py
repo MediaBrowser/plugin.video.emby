@@ -18,6 +18,7 @@ import Entrypoint as entrypoint
 base_url = sys.argv[0]
 addon_handle = int(sys.argv[1])
 params = urlparse.parse_qs(sys.argv[2][1:])
+xbmc.log("Parameter string: %s" % sys.argv[2])
 
 try:
     mode = params['mode']
