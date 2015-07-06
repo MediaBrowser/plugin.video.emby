@@ -11,28 +11,34 @@ class API():
     
     def getPeople(self, item):
         # Process People
-        director=[]
-        writer=[]
-        cast=[]
-        people = item.get("People")
-        if(people != None):
+        director = []
+        writer = []
+        cast = []
+
+        try:
+            people = item['People']
+            
             for person in people:
-                if(person.get("Type") == "Director"):
-                    director.append(person.get("Name")) 
-                if(person.get("Type") == "Writing"):
-                    writer.append(person.get("Name"))
-                if(person.get("Type") == "Writer"):
-                    writer.append(person.get("Name"))                 
-                if(person.get("Type") == "Actor"):
-                    Name = person.get("Name")
-                    Role = person.get("Role")
-                    if Role == None:
-                        Role = ''
+
+                type = person['Type']
+                Name = person['Name']
+
+                if "Director" in type:
+                    director.append(Name)
+                elif "Writing" in type:
+                    writer.append(Name)
+                elif "Writer" in type:
+                    writer.append(Name)
+                elif "Actor" in type:
                     cast.append(Name)
-        return  {'Director'  : director, 
-                'Writer'    : writer,
-                'Cast'      : cast
-                }
+        except: pass
+        
+        return {
+
+            'Director': director,
+            'Writer': writer,
+            'Cast': cast
+        }
 
     def getTimeInfo(self, item):
         resumeTime = ''
