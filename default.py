@@ -72,21 +72,25 @@ elif "channels" in mode:
 ##### BROWSE EMBY CHANNELS FOLDER #####    
 elif "channelsfolder" in mode:
     folderid = params['folderid']
+    folderid = ''.join(folderid)
     entrypoint.BrowseChannels(id,folderid)    
     
 ##### GET NEXTUP EPISODES FOR TAGNAME #####    
 elif "nextup" in mode:
-    limit = int(params['limit'])
+    limit = params['limit']
+    limit = int(''.join(limit))
     entrypoint.getNextUpEpisodes(id, limit)
 
 ##### GET INPROGRESS EPISODES FOR TAGNAME #####    
 elif "inprogressepisodes" in mode:
-    limit = int(params['limit'])
+    limit = params['limit']
+    limit = int(''.join(limit))
     entrypoint.getInProgressEpisodes(id, limit)
 
 ##### GET RECENT EPISODES FOR TAGNAME #####    
 elif "recentepisodes" in mode:
-    limit = int(params['limit'])
+    limit = params['limit']
+    limit = int(''.join(limit))
     entrypoint.getRecentEpisodes(id, limit)
     
 ##### GET EXTRAFANART FOR LISTITEM #####
