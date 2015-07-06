@@ -559,7 +559,7 @@ class WriteKodiVideoDB():
             utils.logMsg("UPDATE tvshow to Kodi library","Id: %s - Title: %s" % (embyId, title))
             
             pathsql="UPDATE tvshow SET c00 = ?, c01 = ?, c04 = ?, c05 = ?, c08 = ?, c09 = ?, c12 = ?, c13 = ?, c14 = ?, c15 = ? WHERE idShow = ?"
-            cursor.execute(pathsql, (title, plot, rating, premieredate, title, genre, tvdb, mpaa, studio, sorttitle, showid))
+            cursor.execute(pathsql, (title, plot, rating, premieredate, genre, title, tvdb, mpaa, studio, sorttitle, showid))
             
             #update the checksum in emby table
             cursor.execute("UPDATE emby SET checksum = ? WHERE emby_id = ?", (API().getChecksum(MBitem), MBitem["Id"]))
