@@ -191,20 +191,23 @@ class PlayUtils():
     def directStream(self, result, server, id, type="Video"):
         
         try:
-            if type == "Video":
-                # Play with Direct Stream
+            if "Video" in type:
                 playurl = "%s/mediabrowser/Videos/%s/stream?static=true" % (server, id)
-            elif type == "Audio":
+                # Verify audio and subtitles
+                mediaSources = result[u'MediaSources']
+                if mediaSources[0].get('DefaultAudioStreamIndex') != None:
+                    playurl = "%s&AudioStreamIndex=%s" % (playurl, mediaSources[0].get('DefaultAudioStreamIndex'))
+                if mediaSources[0].get('DefaultSubtitleStreamIndex') != None:
+                    playurl = "%s&SubtitleStreamIndex=%s" % (playurl, mediaSources[0].get('DefaultSubtitleStreamIndex'))
+
+                self.logMsg("Playurl: %s" % playurl)
+            
+            elif "ThemeVideo" in type:
+                playurl ="%s/mediabrowser/Videos/%s/stream?static=true" % (server, id)
+            
+            elif "Audio" in type:
                 playurl = "%s/mediabrowser/Audio/%s/stream.mp3" % (server, id)
-                return playurl
-
-            mediaSources = result[u'MediaSources']
-            if mediaSources[0].get('DefaultAudioStreamIndex') != None:
-                playurl = "%s&AudioStreamIndex=%s" % (playurl, mediaSources[0].get('DefaultAudioStreamIndex'))
-            if mediaSources[0].get('DefaultSubtitleStreamIndex') != None:
-                playurl = "%s&SubtitleStreamIndex=%s" % (playurl, mediaSources[0].get('DefaultSubtitleStreamIndex'))
-
-            self.logMsg("Playurl: %s" % playurl)
+            
             return playurl
                 
         except:

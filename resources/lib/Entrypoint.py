@@ -132,7 +132,7 @@ def getThemeMedia():
     server = WINDOW.getProperty('server%s' % currUser)
     playback = None
 
-    library = xbmc.translatePath("special://profile/addon_data/plugin.video.emby/library/")
+    library = xbmc.translatePath("special://profile/addon_data/plugin.video.emby/library/").decode('utf-8')
 
     # Choose playback method
     resp = xbmcgui.Dialog().select("Choose playback method for your themes", ["Direct Play", "Direct Stream"])
@@ -145,7 +145,7 @@ def getThemeMedia():
     else:return
 
     # Set custom path for user
-    tvtunes_path = xbmc.translatePath("special://profile/addon_data/script.tvtunes/")
+    tvtunes_path = xbmc.translatePath("special://profile/addon_data/script.tvtunes/").decode('utf-8')
     if xbmcvfs.exists(tvtunes_path):
         tvtunes = xbmcaddon.Addon(id="script.tvtunes")
         tvtunes.setSetting('custom_path_enable', "true")
@@ -154,7 +154,8 @@ def getThemeMedia():
     else:
         # if it does not exist this will not work so warn user, often they need to edit the settings first for it to be created.
         dialog = xbmcgui.Dialog()
-        dialog.ok('Warning', 'The settings file does not exist in tvtunes. Go to the tvtunes addon and change a setting, then come back and re-run')
+        dialog.ok('Warning', 'The settings file for TV Tunes does not exist. Change a setting in TV Tunes, then come back and re-run.')
+        xbmc.executebuiltin('Addon.OpenSettings(script.tvtunes)')
         return
         
 
@@ -204,7 +205,7 @@ def getThemeMedia():
             if playback == "DirectPlay":
                 playurl = playUtils.directPlay(theme)
             else:
-                playurl = playUtils.directStream(result, server, theme[u'Id'])
+                playurl = playUtils.directStream(result, server, theme[u'Id'], "ThemeVideo")
             pathstowrite += ('<file>%s</file>' % playurl.encode('utf-8'))
         
         # Check if the item has theme songs and add them   
