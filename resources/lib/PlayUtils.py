@@ -40,68 +40,31 @@ class PlayUtils():
         username = WINDOW.getProperty('currUser')
         server = WINDOW.getProperty('server%s' % username)
 
-        if self.isDirectPlay(result):
-            try:
-                # Try direct play
-                playurl = self.directPlay(result)
-                if not playurl:
-                    # Let user know that direct play failed
-                    resp = xbmcgui.Dialog().select('Warning: Unable to direct play.', ['Play from HTTP', 'Play from HTTP and remember next time.'])
-                    if resp > -1:
-                        # Play from HTTP
-                        playurl = self.directStream(result, server, id)
-                        if resp == 1:
-                            # Remember next time
-                            addon.setSetting('playFromStream', "true")
-                        if not playurl:
-                            # Try transcoding
-                            playurl = self.transcoding(result, server, id)
-                            WINDOW.setProperty("transcoding%s" % id, "true")
-                            self.logMsg("File is transcoding.", 1)
-                            WINDOW.setProperty("%splaymethod" % playurl, "Transcode")
-                        else:
-                            self.logMsg("File is direct streaming.", 1)
-                            WINDOW.setProperty("%splaymethod" % playurl, "DirectStream")
-                    else:
-                        # User decided not to proceed.
-                        self.logMsg("Unable to direct play. Verify the following path is accessible by the device: %s. You might also need to add SMB credentials in the addon settings." % result[u'MediaSources'][0][u'Path'])
-                        return False
-                else:
-                    self.logMsg("File is direct playing.", 1)
-                    WINDOW.setProperty("%splaymethod" % playurl.encode('utf-8'), "DirectPlay")
-            except:
-                return False
+        if self.isDirectPlay(result,True):
+            # Try direct play
+            playurl = self.directPlay(result)
+            if playurl:
+                self.logMsg("File is direct playing.", 1)
+                WINDOW.setProperty("%splaymethod" % playurl.encode('utf-8'), "DirectPlay")
 
         elif self.isDirectStream(result):
-            try:
-                # Try direct stream
-                playurl = self.directStream(result, server, id)
-                if not playurl:
-                    # Try transcoding
-                    playurl = self.transcoding(result, server, id)
-                    WINDOW.setProperty("transcoding%s" % id, "true")
-                    self.logMsg("File is transcoding.", 1)
-                    WINDOW.setProperty("%splaymethod" % playurl, "Transcode")
-                else:
-                    self.logMsg("File is direct streaming.", 1)
-                    WINDOW.setProperty("%splaymethod" % playurl, "DirectStream")
-            except:
-                return False
+            # Try direct stream
+            playurl = self.directStream(result, server, id)
+            if playurl:
+                self.logMsg("File is direct streaming.", 1)
+                WINDOW.setProperty("%splaymethod" % playurl, "DirectStream")
 
-        elif self.isTranscoding(result):
-            try:
-                # Try transcoding
-                playurl = self.transcoding(result, server, id)
-                WINDOW.setProperty("transcoding%s" % id, "true")
+        else:
+            # Try transcoding
+            playurl = self.transcoding(result, server, id)
+            if playurl:
                 self.logMsg("File is transcoding.", 1)
                 WINDOW.setProperty("%splaymethod" % playurl, "Transcode")
-            except:
-                return False
 
         return playurl.encode('utf-8')
 
 
-    def isDirectPlay(self, result):
+    def isDirectPlay(self, result, dialog=False):
         # Requirements for Direct play:
         # FileSystem, Accessible path
         self.addon = xbmcaddon.Addon(id=self.addonId)
@@ -126,8 +89,16 @@ class PlayUtils():
                 return True
             else:
                 self.logMsg("Can't direct play: Unable to locate the content.", 1)
+                if dialog:
+                    # Let user know that direct play failed
+                    resp = xbmcgui.Dialog().select('Warning: Unable to direct play.', ['Play from HTTP', 'Play from HTTP and remember next time.'])
+                    if resp == 1:
+                        # Remember next time
+                        addon.setSetting('playFromStream', "true")
+                    else:
+                        # User decided not to proceed.
+                        self.logMsg("Unable to direct play. Verify the following path is accessible by the device: %s. You might also need to add SMB credentials in the addon settings." % result[u'MediaSources'][0][u'Path'])
                 return False
-
 
     def directPlay(self, result):
 
@@ -332,7 +303,7 @@ class PlayUtils():
             # Local or Network path
             self.logMsg("Path exists.", 2)
             return True
-        elif ":\\" not in path:
+        elif "nfs:" in path.lower():
             # Give benefit of the doubt.
             self.logMsg("Can't verify path. Still try direct play.", 2)
             return True
