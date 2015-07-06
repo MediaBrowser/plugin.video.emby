@@ -976,6 +976,17 @@ class WriteKodiVideoDB():
             kodiVersion = 14
             if xbmc.getInfoLabel("System.BuildVersion").startswith("15"):
                 kodiVersion = 15
+
+            # Delete current genres for clean slate
+            if kodiVersion == 14:
+                if "movie" in mediatype:
+                    cursor.execute("DELETE FROM genrelinkmovie WHERE idMovie = ?",(id,))
+                elif "tvshow" in mediatype:
+                    cursor.execute("DELETE FROM genrelinktvshow WHERE idShow = ?",(id,))
+                elif "musicvideo" in mediatype:
+                    cursor.execute("DELETE FROM genrelinkmusicvideo WHERE idMVideo = ?",(id,))
+            else:
+                cursor.execute("DELETE FROM genre_link WHERE media_id = ? AND media_type = ?",(id,mediatype,))
             
             for genre in genres:
 
