@@ -21,11 +21,10 @@ params = urlparse.parse_qs(sys.argv[2][1:])
 xbmc.log("Parameter string: %s" % sys.argv[2])
 
 try:
-    mode = params['mode']
+    mode = params['mode'][0]
     id = params.get('id', None)
     if id:
-        # Convert list to string
-        id = ''.join(id)
+        id = id[0]
 except:
     params = {}
     mode = ''
@@ -71,26 +70,22 @@ elif "channels" in mode:
 
 ##### BROWSE EMBY CHANNELS FOLDER #####    
 elif "channelsfolder" in mode:
-    folderid = params['folderid']
-    folderid = ''.join(folderid)
+    folderid = params['folderid'][0]
     entrypoint.BrowseChannels(id,folderid)    
     
 ##### GET NEXTUP EPISODES FOR TAGNAME #####    
 elif "nextup" in mode:
-    limit = params['limit']
-    limit = int(''.join(limit))
+    limit = params['limit'][0]
     entrypoint.getNextUpEpisodes(id, limit)
 
 ##### GET INPROGRESS EPISODES FOR TAGNAME #####    
 elif "inprogressepisodes" in mode:
-    limit = params['limit']
-    limit = int(''.join(limit))
+    limit = params['limit'][0]
     entrypoint.getInProgressEpisodes(id, limit)
 
 ##### GET RECENT EPISODES FOR TAGNAME #####    
 elif "recentepisodes" in mode:
-    limit = params['limit']
-    limit = int(''.join(limit))
+    limit = params['limit'][0]
     entrypoint.getRecentEpisodes(id, limit)
     
 ##### GET EXTRAFANART FOR LISTITEM #####
