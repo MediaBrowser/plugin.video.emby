@@ -1194,14 +1194,22 @@ class WriteKodiVideoDB():
     def AddStreamDetailsToMedia(self, streamdetails, fileid, cursor):
         
         #first remove any existing entries
-        cursor.execute("delete FROM streamdetails WHERE idFile = ?", (fileid,))
+        cursor.execute("DELETE FROM streamdetails WHERE idFile = ?", (fileid,))
         if streamdetails:
-            #video details
-            sql="insert into streamdetails(idFile, iStreamType, strVideoCodec, fVideoAspect, iVideoWidth, iVideoHeight, strStereoMode) values(?, ?, ?, ?, ?, ?, ?)"
-            cursor.execute(sql, (fileid,0,streamdetails.get("videocodec"),streamdetails.get("aspectratio"),streamdetails.get("width"),streamdetails.get("height"),streamdetails.get("3dformat")))
-            #audio details
-            sql="insert into streamdetails(idFile, iStreamType, strAudioCodec, iAudioChannels, strAudioLanguage, strSubtitleLanguage) values(?, ?, ?, ?, ?, ?)"
-            cursor.execute(sql, (fileid,1,streamdetails.get("audiocodec"),streamdetails.get("channels"),streamdetails.get("audiolanguage"),streamdetails.get("subtitlelanguage")))
+            # Video details
+            for videotrack in streamdetails['videocodec']:
+                query = "INSERT INTO streamdetails(idFile, iStreamType, strVideoCodec, fVideoAspect, iVideoWidth, iVideoHeight, strStereoMode) values(?, ?, ?, ?, ?, ?, ?)"
+                cursor.execute(query, (fileid, 0, videotrack.get('videocodec'), videotrack.get('aspectratio'), videotrack.get('width'), videotrack.get('height'), videotrack.get('Video3DFormat')))
+            
+            # Audio details
+            for audiotrack in streamdetails['audiocodec']:
+                query = "INSERT INTO streamdetails(idFile, iStreamType, strAudioCodec, iAudioChannels, strAudioLanguage) values(?, ?, ?, ?, ?)"
+                cursor.execute(query, (fileid, 1, audiotrack.get('audiocodec'), audiotrack.get('channels'), audiotrack.get('audiolanguage')))
+
+            # Subtitles details
+            for subtitletrack in streamdetails['subtitlelanguage']:
+                query = "INSERT INTO streamdetails(idFile, iStreamType, strSubtitleLanguage) values(?, ?, ?)"
+                cursor.execute(query, (fileid, 2, subtitletrack))
   
     def addBoxsetToKodiLibrary(self, boxset, connection, cursor):
         

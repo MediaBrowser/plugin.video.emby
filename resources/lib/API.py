@@ -82,77 +82,60 @@ class API():
                     studios.append(temp)
         return studios
 
-    def getMediaStreams(self, item, mediaSources=False):    
-        # Process MediaStreams
-        channels = ''
-        videocodec = ''
-        audiocodec = ''
-        audiolanguage = ''
-        subtitlelanguage = ''
-        height = ''
-        width = ''
-        aspectratio = '1:1'
-        aspectfloat = 1.85
-        Video3DFormat = ''
+    def getMediaStreams(self, item, mediaSources = False):
 
-        if mediaSources == True:
-            mediaSources = item.get("MediaSources")
-            if(mediaSources != None):
-                MediaStreams = mediaSources[0].get("MediaStreams")
-            else:
+        videotracks = [] # Height, Width, Codec, AspectRatio, AspectFloat, 3D 
+        audiotracks = [] # Codec, Channels, language
+        subtitlelanguages = [] # Language
+
+        if mediaSources:
+            try:
+                MediaStreams = item['MediaSources'][0]['MediaStreams']
+            except:
                 MediaStreams = None
         else:
             MediaStreams = item.get("MediaStreams")
-        if(MediaStreams != None):
-            #mediaStreams = MediaStreams[0].get("MediaStreams")
-            if(MediaStreams != None):
-                for mediaStream in MediaStreams:
-                    if(mediaStream.get("Type") == "Video"):
-                        videocodec = mediaStream.get("Codec")
-                        if mediaStream.get("Height"):
-                            height = int(mediaStream.get("Height"))
-                        if mediaStream.get("Width"):
-                            width = int(mediaStream.get("Width"))
-                        aspectratio = mediaStream.get("AspectRatio")
-                        Video3DFormat = item.get("Video3DFormat")
-                        if aspectratio != None and len(aspectratio) >= 3:
-                            try:
-                                aspectwidth,aspectheight = aspectratio.split(':')
-                                aspectfloat = float(aspectwidth) / float(aspectheight)
-                            except:
-                                aspectfloat = 1.85
-                    if(mediaStream.get("Type") == "Audio"):
-                        isdefault = mediaStream.get("IsDefault") == "true"
-                        if audiocodec == '':
-                            audiocodec = mediaStream.get("Codec")
-                        if channels == '':
-                            channels = mediaStream.get("Channels")
-                        if audiolanguage == '':
-                            audiolanguage = mediaStream.get("Language")
-                        # only overwrite if default
-                        if isdefault:
-                            audiocodec = mediaStream.get("Codec")
-                            channels = mediaStream.get("Channels")
-                            audiolanguage = mediaStream.get("Language")
-                    if(mediaStream.get("Type") == "Subtitle"):
-                        isdefault = mediaStream.get("IsDefault") == "true"
-                        if subtitlelanguage == '':
-                            subtitlelanguage = mediaStream.get("Language")
-                        # only overwrite if default
-                        if isdefault:
-                            subtitlelanguage = mediaStream.get("Language")
-                            
-                    
-        return {'channels'         : str(channels), 
-                'videocodec'       : videocodec, 
-                'audiocodec'       : audiocodec,
-                'audiolanguage'    : audiolanguage,
-                'subtitlelanguage' : subtitlelanguage, 
-                'height'           : height,
-                'width'            : width,
-                'aspectratio'      : aspectfloat,
-                '3dformat'         : Video3DFormat
-                }
+
+        if MediaStreams:
+            # Sort through the Video, Audio, Subtitle tracks
+            for mediaStream in MediaStreams:
+
+                type = mediaStream.get("Type", "")
+
+                if "Video" in type:
+                    videotrack = {}
+                    videotrack['videocodec'] = mediaStream.get('Codec')
+                    videotrack['height'] = mediaStream.get('Height')
+                    videotrack['width'] = mediaStream.get('Width')
+                    videotrack['aspectratio'] = mediaStream.get('AspectRatio')
+                    videotrack['Video3DFormat'] = item.get('Video3DFormat')
+                    if len(videotrack['aspectratio']) >= 3:
+                        try:
+                            aspectwidth, aspectheight = aspectratio.split(':')
+                            videotrack['aspectfloat'] = float(aspectwidth) / float(aspectheight)
+                        except:
+                            videotrack['aspectfloat'] = 1.85
+                    videotracks.append(videotrack)
+
+                elif "Audio" in type:
+                    audiotrack = {}
+                    audiotrack['audiocodec'] = mediaStream.get("Codec")
+                    audiotrack['channels'] = mediaStream.get("Channels")
+                    audiotrack['audiolanguage'] = mediaStream.get("Language")
+                    audiotracks.append(audiotrack)
+
+                elif "Subtitle" in type:
+                    try:
+                        subtitlelanguages.append(mediaStream['Language'])
+                    except:
+                        subtitlelanguages.append("Unknown")
+
+        return {
+
+            'videocodec'       : videotracks, 
+            'audiocodec'       : audiotracks,
+            'subtitlelanguage' : subtitlelanguages
+        }
     
     def getChecksum(self, item):
         # use the etags checksum for this if available
