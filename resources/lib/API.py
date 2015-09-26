@@ -164,8 +164,11 @@ class API():
                 elif "Audio" in type:
                     audiotrack = {}
                     audiotrack['audiocodec'] = mediaStream.get('Codec', "").lower()
-                    if "dts-hd ma" in audiotrack['audiocodec']:
-                        audiotrack['audiocodec'] = "dts"
+                    if "dca" in audiotrack['audiocodec']:
+                        tempProfile = ""
+                        tempProfile = mediaStream.get('Profile', "").lower()
+                        if "dts-hd ma" in tempProfile:
+                            audiotrack['audiocodec'] = "dtshd_ma"
                     audiotrack['channels'] = mediaStream.get('Channels')
                     audiotrack['audiolanguage'] = mediaStream.get('Language')
                     audiotracks.append(audiotrack)
