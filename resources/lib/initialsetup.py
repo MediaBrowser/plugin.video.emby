@@ -179,32 +179,8 @@ class InitialSetup():
         else:
             self.addon.setSetting('https', 'false')
 
-        ##### USER INFO #####
-        self.logMsg("Getting user list.", 1)
-        # Get list of Plex home users
-        users = self.plx.MyPlexListHomeUsers(plexToken)
-        # Download users failed. Set username to Plex login
-        if not users:
-            utils.settings('username', value=plexLogin)
-            self.logMsg("User download failed. Set username = plexlogin", 1)
-        else:
-            userlist = []
-            for user in users:
-                username = user['title']
-                userlist.append(username)
-            dialog = xbmcgui.Dialog()
-            user_select = dialog.select(string(30200), userlist)
-            if user_select > -1:
-                selected_user = userlist[user_select]
-                self.logMsg("Selected user: %s" % selected_user, 1)
-                utils.settings('username', value=selected_user)
-            else:
-                self.logMsg("No user selected.", 1)
-                xbmc.executebuiltin('Addon.OpenSettings(%s)' % addonId)
-
         ##### ADDITIONAL PROMPTS #####
         dialog = xbmcgui.Dialog()
-
         directPaths = dialog.yesno(
                             heading="%s: Playback Mode" % self.addonName,
                             line1=(
@@ -235,34 +211,26 @@ class InitialSetup():
                 if musicAccess:
                     self.logMsg("User opted to direct stream music.", 1)
                     utils.settings('streamMusic', value="true")
-                
-    def getServerDetails(self):
 
-        self.logMsg("Getting Server Details from Network", 1)
-        
-        MULTI_GROUP = ("<broadcast>", 7359)
-        MESSAGE = "who is EmbyServer?"
-        
-        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        sock.settimeout(6.0)
-
-        sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 20)
-        
-        sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-        sock.setsockopt(socket.SOL_IP, socket.IP_MULTICAST_LOOP, 1)
-        sock.setsockopt(socket.IPPROTO_IP, socket.SO_REUSEADDR, 1)
-        
-        self.logMsg("MultiGroup      : %s" % str(MULTI_GROUP), 2);
-        self.logMsg("Sending UDP Data: %s" % MESSAGE, 2);
-        sock.sendto(MESSAGE, MULTI_GROUP)
-    
-        try:
-            data, addr = sock.recvfrom(1024) # buffer size is 1024 bytes
-            self.logMsg("Received Response: %s" % data)
-        except:
-            self.logMsg("No UDP Response")
-            return None
+        ##### USER INFO #####
+        self.logMsg("Getting user list.", 1)
+        # Get list of Plex home users
+        users = self.plx.MyPlexListHomeUsers(plexToken)
+        # Download users failed. Set username to Plex login
+        if not users:
+            utils.settings('username', value=plexLogin)
+            self.logMsg("User download failed. Set username = plexlogin", 1)
         else:
-            # Get the address
-            data = json.loads(data)
-            return data['Address']
+            userlist = []
+            for user in users:
+                username = user['title']
+                userlist.append(username)
+            dialog = xbmcgui.Dialog()
+            user_select = dialog.select(string(30200), userlist)
+            if user_select > -1:
+                selected_user = userlist[user_select]
+                self.logMsg("Selected user: %s" % selected_user, 1)
+                utils.settings('username', value=selected_user)
+            else:
+                self.logMsg("No user selected.", 1)
+                xbmc.executebuiltin('Addon.OpenSettings(%s)' % addonId)
