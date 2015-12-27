@@ -191,8 +191,6 @@ class InitialSetup():
             userlist = []
             for user in users:
                 username = user['title']
-                if user['admin'] == '1':
-                    username = username + " (admin)"
                 userlist.append(username)
             dialog = xbmcgui.Dialog()
             user_select = dialog.select(string(30200), userlist)
