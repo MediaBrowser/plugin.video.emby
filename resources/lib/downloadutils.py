@@ -12,6 +12,8 @@ import xbmcgui
 import utils
 import clientinfo
 
+import PlexAPI
+
 ##################################################################################################
 
 # Disable requests logging
@@ -177,48 +179,17 @@ class DownloadUtils():
         except:
             self.logMsg("Requests session could not be terminated.", 1)
 
-    def getHeader(self, authenticate=True):
-
-        clientInfo = self.clientInfo
-
-        deviceName = clientInfo.getDeviceName()
-        deviceId = clientInfo.getDeviceId()
-        version = clientInfo.getVersion()
-
-        if not authenticate:
-            # If user is not authenticated
-            auth = (
-                'MediaBrowser Client="Kodi", Device="%s", DeviceId="%s", Version="%s"'
-                % (deviceName, deviceId, version))
-            header = {
-
-                'Content-type': 'application/json',
-                'Accept-encoding': 'gzip',
-                'Accept-Charset': 'UTF-8,*',
-                'Authorization': auth
-            }      
-            self.logMsg("Header: %s" % header, 2)
-        
+    def getHeader(self, authenticate=True, options={}):
+        plx = PlexAPI.PlexAPI()
+        if authenticate:
+            options['X-Plex-Token'] = self.token
+            header = plx.getXArgsDeviceInfo(options=options, JSON=True)
         else:
-            userId = self.userId
-            token = self.token
-            # Attached to the requests session
-            auth = (
-                'MediaBrowser UserId="%s", Client="Kodi", Device="%s", DeviceId="%s", Version="%s"'
-                % (userId, deviceName, deviceId, version))
-            header = {
-
-                'Content-type': 'application/json',
-                'Accept-encoding': 'gzip',
-                'Accept-Charset': 'UTF-8,*',
-                'Authorization': auth,
-                'X-MediaBrowser-Token': token
-            }        
-            self.logMsg("Header: %s" % header, 2)
-        
+            header = plx.getXArgsDeviceInfo(options=options, JSON=True)
+        self.logMsg("Header: %s" % header, 2)
         return header
 
-    def downloadUrl(self, url, postBody=None, type="GET", parameters=None, authenticate=True):
+    def downloadUrl(self, url, postBody=None, type="GET", parameters=None, authenticate=True, headerOptions={}):
         
         self.logMsg("=== ENTER downloadUrl ===", 2)
 
@@ -249,7 +220,7 @@ class DownloadUtils():
                     self.userId = utils.window('emby_currUser')
                     self.server = utils.window('emby_server%s' % self.userId)
                     self.token = utils.window('emby_accessToken%s' % self.userId)
-                    header = self.getHeader()
+                    header = self.getHeader(options=headerOptions)
                     verifyssl = False
                     cert = None
 
@@ -292,7 +263,7 @@ class DownloadUtils():
             # If user is not authenticated
             elif not authenticate:
 
-                header = self.getHeader(authenticate=False)
+                header = self.getHeader(authenticate=False, options=headerOptions)
                 verifyssl = False
 
                 # If user enables ssl verification
@@ -333,7 +304,11 @@ class DownloadUtils():
                     return r
 
                 except:
-                    if r.headers.get('content-type') != "text/html":
+                    # Allow for xml responses, but do not process them
+                    if 'xml' in r.headers.get('content-type'):
+                        self.logMsg("Received an XML response for: %s" % url, 1)
+                        return 'xml'
+                    elif r.headers.get('content-type') != "text/html":
                         self.logMsg("Unable to convert the response for: %s" % url, 1)
             else:
                 r.raise_for_status()
