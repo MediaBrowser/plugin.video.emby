@@ -14,6 +14,8 @@ import clientinfo
 import downloadutils
 import userclient
 
+import PlexAPI
+
 #################################################################################################
 
 
@@ -30,12 +32,24 @@ class InitialSetup():
         self.addonId = self.clientInfo.getAddonId()
         self.doUtils = downloadutils.DownloadUtils()
         self.userClient = userclient.UserClient()
+        self.plx = PlexAPI.PlexAPI()
     
     def logMsg(self, msg, lvl=1):
 
         className = self.__class__.__name__
         utils.logMsg("%s %s" % (self.addonName, className), msg, lvl)
 
+    def GetPlexLogin(self):
+        """
+        Returns (myplexlogin, plexLogin, plexToken) from the Kodi file
+        settings. Returns empty strings if not found.
+
+        myplexlogin is 'true' if user opted to log into plex.tv
+        """
+        plexLogin = utils.settings('plexLogin')
+        plexToken = utils.settings('plexToken')
+        myplexlogin = utils.settings('myplexlogin')
+        return (myplexlogin, plexLogin, plexToken)
 
     def setup(self):
         # Check server, user, direct paths, music, direct stream if not direct path.
@@ -46,38 +60,114 @@ class InitialSetup():
         
         self.logMsg("Initial setup called.", 2)
         server = self.userClient.getServer()
+        clientId = self.clientInfo.getDeviceId()
+        serverid = self.userClient.getServerId()
+        myplexlogin, plexLogin, plexToken = self.GetPlexLogin()
 
+        # Optionally sign into plex.tv. Will not be called on very first run
+        if plexToken and myplexlogin == 'true':
+            chk = self.plx.CheckConnection('plex.tv', plexToken)
+            # HTTP Error: unauthorized
+            if chk == 401:
+                dialog = xbmcgui.Dialog()
+                dialog.ok(
+                    self.addonName,
+                    'Could not login to plex.tv.',
+                    'Please try signing in again.'
+                )
+                plexLogin, plexToken = self.plx.GetPlexLoginAndPassword()
+            elif chk == "":
+                dialog = xbmcgui.Dialog()
+                dialog.ok(
+                    self.addonName,
+                    'Problems connecting to plex.tv.',
+                    'Network or internet issue?'
+                )
+        # If a Plex server IP has already been set, return.
         if server:
             self.logMsg("Server is already set.", 2)
+            self.logMsg(
+                "url: %s, Plex machineIdentifier: %s"
+                % (server, serverid),
+                2
+            )
             return
-        
-        self.logMsg("Looking for server...", 2)
-        server = self.getServerDetails()
-        self.logMsg("Found: %s" % server, 2)
-        try:
-            prefix, ip, port = server.replace("/", "").split(":")
-        except: # Failed to retrieve server information
-            self.logMsg("getServerDetails failed.", 1)
+
+        # If not already retrieved myplex info, optionally let user sign in
+        # to plex.tv.
+        if not plexToken and myplexlogin == 'true':
+            plexLogin, plexToken = self.plx.GetPlexLoginAndPassword()
+        # Get g_PMS list of servers (saved to plx.g_PMS)
+        serverNum = 1
+        while serverNum > 0:
+            if plexToken:
+                tokenDict = {'MyPlexToken': plexToken}
+            else:
+                tokenDict = {}
+            # Populate g_PMS variable with the found Plex servers
+            self.plx.discoverPMS(
+                clientId,
+                None,
+                xbmc.getIPAddress(),
+                tokenDict=tokenDict
+            )
+            self.logMsg("Result of setting g_PMS variable: %s" % self.plx.g_PMS, 2)
+            isconnected = False
+            serverlist = self.plx.returnServerList(clientId, self.plx.g_PMS)
+            serverNum = len(serverlist)
+            # Let user pick server from a list
+            # Get a nicer list
+            dialoglist = []
+            for server in serverlist:
+                dialoglist.append(str(server['name']) + ' (IP: ' + str(server['ip']) + ')')
+            dialog = xbmcgui.Dialog()
+            resp = dialog.select(
+                'What Plex server would you like to connect to?',
+                dialoglist)
+            server = serverlist[resp]
+            activeServer = server['machineIdentifier']
+            url = server['scheme'] + '://' + server['ip'] + ':' + \
+                server['port']
+            chk = self.plx.CheckConnection(url, server['accesstoken'])
+            # Unauthorized
+            if chk == 401:
+                dialog = xbmcgui.Dialog()
+                dialog.ok(
+                    self.addonName,
+                    'Not yet authorized for Plex server %s' % str(server['name']),
+                    'Please sign in to plex.tv.'
+                )
+                plexLogin, plexToken = self.plx.GetPlexLoginAndPassword()
+                # Exit while loop if user cancels
+                if plexLogin == '':
+                    break
+            # Problems connecting
+            elif chk == '':
+                dialog = xbmcgui.Dialog()
+                resp = dialog.yesno(
+                    self.addonName,
+                    'Problems connecting to server.',
+                    'Pick another server?'
+                )
+                # Exit while loop if user chooses No
+                if not resp:
+                    break
+            # Otherwise: connection worked!
+            else:
+                isconnected = True
+                break
+        if not isconnected:
+            # Enter Kodi settings instead
             xbmc.executebuiltin('Addon.OpenSettings(%s)' % addonId)
             return
+        # Write to Kodi settings file
+        self.addon.setSetting('serverid', activeServer)
+        self.addon.setSetting('ipaddress', server['ip'])
+        self.addon.setSetting('port', server['port'])
+        if server['scheme'] == 'https':
+            self.addon.setSetting('https', 'true')
         else:
-            server_confirm = xbmcgui.Dialog().yesno(
-                                            heading="Emby for Kodi",
-                                            line1="Proceed with the following server?",
-                                            line2="%s %s" % (string(30169), server))
-            if server_confirm:
-                # Correct server found
-                self.logMsg("Server is selected. Saving the information.", 1)
-                utils.settings('ipaddress', value=ip)
-                utils.settings('port', value=port)
-
-                if prefix == "https":
-                    utils.settings('https', value="true")
-            else:
-                # User selected no or cancelled the dialog
-                self.logMsg("No server selected.", 1)
-                xbmc.executebuiltin('Addon.OpenSettings(%s)' % addonId)
-                return
+            self.addon.setSetting('https', 'false')
 
         ##### USER INFO #####
         
