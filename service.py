@@ -31,6 +31,8 @@ import utils
 import videonodes
 import websocket_client as wsc
 
+import PlexAPI
+
 #################################################################################################
 
 
@@ -96,6 +98,8 @@ class Service():
 
         # Server auto-detect
         initialsetup.InitialSetup().setup()
+        # Choose Plex user login
+        PlexAPI.PlexAPI().ChoosePlexHomeUser()
 
         # Initialize important threads
         user = userclient.UserClient()
@@ -213,11 +217,16 @@ class Service():
                 # or Kodi is shut down.
                 while not monitor.abortRequested():
                     
-                    if user.getServer() == False:
+                    server = user.getServer()
+                    plexToken = utils.settings('plexToken')
+                    if server == False:
                         # No server info set in add-on settings
                         pass
                     
-                    elif user.getPublicUsers() == False:
+                    elif PlexAPI.PlexAPI().CheckConnection(
+                        server,
+                        plexToken
+                    ) != 200:
                         # Server is offline.
                         # Alert the user and suppress future warning
                         if self.server_online:

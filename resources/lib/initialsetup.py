@@ -211,26 +211,3 @@ class InitialSetup():
                 if musicAccess:
                     self.logMsg("User opted to direct stream music.", 1)
                     utils.settings('streamMusic', value="true")
-
-        ##### USER INFO #####
-        self.logMsg("Getting user list.", 1)
-        # Get list of Plex home users
-        users = self.plx.MyPlexListHomeUsers(plexToken)
-        # Download users failed. Set username to Plex login
-        if not users:
-            utils.settings('username', value=plexLogin)
-            self.logMsg("User download failed. Set username = plexlogin", 1)
-        else:
-            userlist = []
-            for user in users:
-                username = user['title']
-                userlist.append(username)
-            dialog = xbmcgui.Dialog()
-            user_select = dialog.select(string(30200), userlist)
-            if user_select > -1:
-                selected_user = userlist[user_select]
-                self.logMsg("Selected user: %s" % selected_user, 1)
-                utils.settings('username', value=selected_user)
-            else:
-                self.logMsg("No user selected.", 1)
-                xbmc.executebuiltin('Addon.OpenSettings(%s)' % addonId)

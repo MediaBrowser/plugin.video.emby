@@ -351,7 +351,7 @@ class DownloadUtils():
                         # Parental control - access restricted
                         utils.window('emby_serverStatus', value="restricted")
                         xbmcgui.Dialog().notification(
-                                                heading="Emby server",
+                                                heading=self.addonName,
                                                 message="Access restricted.",
                                                 icon=xbmcgui.NOTIFICATION_ERROR,
                                                 time=5000)
@@ -366,8 +366,8 @@ class DownloadUtils():
                     utils.window('emby_serverStatus', value="401")
                     self.logMsg("HTTP Error: %s" % e, 0)
                     xbmcgui.Dialog().notification(
-                                            heading="Error connecting",
-                                            message="Unauthorized.",
+                                            heading=self.addonName,
+                                            message="Error connecting: Unauthorized.",
                                             icon=xbmcgui.NOTIFICATION_ERROR)
                     return 401
 

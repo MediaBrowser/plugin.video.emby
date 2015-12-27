@@ -37,6 +37,7 @@ import utils
 import downloadutils
 import xbmcaddon
 import xbmcgui
+import xbmc
 
 import struct
 import time
@@ -74,6 +75,7 @@ class PlexAPI():
     # VARIABLES
 
     def __init__(self):
+        self.__language__ = xbmcaddon.Addon().getLocalizedString
         self.g_PMS = {}
         client = clientinfo.ClientInfo()
         self.addonName = client.getAddonName()
@@ -814,39 +816,111 @@ class PlexAPI():
         dprint(__name__, 1, "====== MyPlex sign out XML finished ======")
         dprint(__name__, 0, 'MyPlex Sign Out done')
 
-    def MyPlexSwitchHomeUser(self, id, pin, options, authtoken):
+    def ChoosePlexHomeUser(self):
+        """
+        Let's user choose from a list of Plex home users. Will switch to that
+        user accordingly.
+
+        Output:
+            username
+            authtoken
+        """
+        string = self.__language__
+        plexToken = utils.settings('plexToken')
+        plexLogin = utils.settings('plexLogin')
+        self.logMsg("Getting user list.", 1)
+        # Get list of Plex home users self
+        users = self.MyPlexListHomeUsers(plexToken)
+        # Download users failed. Set username to Plex login
+        if not users:
+            utils.settings('username', value=plexLogin)
+            self.logMsg("User download failed. Set username = plexlogin", 1)
+            return
+
+        userlist = []
+        for user in users:
+            username = user['title']
+            userlist.append(username)
+        usertoken = ''
+        while not usertoken:
+            dialog = xbmcgui.Dialog()
+            user_select = dialog.select(string(30200), userlist)
+            if user_select > -1:
+                selected_user = userlist[user_select]
+                self.logMsg("Selected user: %s" % selected_user, 1)
+                utils.settings('username', value=selected_user)
+            else:
+                self.logMsg("No user selected.", 1)
+                xbmc.executebuiltin('Addon.OpenSettings(%s)' % self.addonId)
+                return
+            # Ask for PIN, if protected:
+            if user['protected'] == '1':
+                dialog = xbmcgui.Dialog()
+                pin = dialog.input(
+                    'Enter PIN for user %s' % selected_user,
+                    type=xbmcgui.INPUT_NUMERIC,
+                    option=xbmcgui.ALPHANUM_HIDE_INPUT
+                )
+            # Switch to this Plex Home user, if applicable
+            username, usertoken = self.MyPlexSwitchHomeUser(
+                user['User id'],
+                pin,
+                plexToken
+            )
+            if not username:
+                dialog = xbmcgui.Dialog()
+                dialog.ok(
+                    self.addonName,
+                    'Could not log in user %s' % selected_user,
+                    'Please try again.'
+                )
+
+    def MyPlexSwitchHomeUser(self, id, pin, authtoken, options={}):
+        """
+        Retrieves Plex home token for a Plex home user.
+
+        Input:
+            id              id of the Plex home user
+            pin             PIN of the Plex home user, if protected
+            authtoken       token for plex.tv
+            options={}      optional additional header options
+
+        Output:
+            username        Plex home username
+            authtoken       token for Plex home user
+
+        Returns empty strings if unsuccessful
+        """
         MyPlexHost = 'https://plex.tv'
         MyPlexURL = MyPlexHost + '/api/home/users/' + id + '/switch'
-        
+
         if pin:
             MyPlexURL += '?pin=' + pin
-        
+
         xargs = {}
-        if options:
-            xargs = getXArgsDeviceInfo(options)
+        xargs = self.getXArgsDeviceInfo(options)
         xargs['X-Plex-Token'] = authtoken
-        
+
         request = urllib2.Request(MyPlexURL, None, xargs)
-        request.get_method = lambda: 'POST'  # turn into 'POST' - done automatically with data!=None. But we don't have data.
-        
+        request.get_method = lambda: 'POST'
+
         response = urllib2.urlopen(request).read()
-        
-        dprint(__name__, 1, "====== MyPlexHomeUser XML ======")
-        dprint(__name__, 1, response)
-        dprint(__name__, 1, "====== MyPlexHomeUser XML finished ======")
-        
+
+        self.logMsg("====== MyPlexHomeUser XML ======", 1)
+        self.logMsg(response, 1)
+        self.logMsg("====== MyPlexHomeUser XML finished ======", 1)
+
         # analyse response
         XMLTree = etree.ElementTree(etree.fromstring(response))
-        
+
         el_user = XMLTree.getroot()  # root=<user>. double check?
         username = el_user.attrib.get('title', '')
         authtoken = el_user.attrib.get('authenticationToken', '')
-        
+
         if username and authtoken:
-            dprint(__name__, 0, 'MyPlex switch HomeUser change successfull')
+            self.logMsg('MyPlex switch HomeUser change successfull', 0)
         else:
-            dprint(__name__, 0, 'MyPlex switch HomeUser change failed')
-        
+            self.logMsg('MyPlex switch HomeUser change failed', 0)
         return (username, authtoken)
 
     def MyPlexListHomeUsers(self, authtoken):
