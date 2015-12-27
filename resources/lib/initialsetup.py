@@ -182,7 +182,10 @@ class InitialSetup():
         ##### USER INFO #####
         
         self.logMsg("Getting user list.", 1)
-        
+        # If not multiple users, set username to Plex login name.
+        # If multiple users, get user list.
+
+
         url = "%s/emby/Users/Public?format=json" % server
         result = self.doUtils.downloadUrl(url, authenticate=False)
         if result == "":

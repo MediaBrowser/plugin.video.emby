@@ -213,6 +213,8 @@ class DownloadUtils():
                         r = s.post(url, json=postBody, timeout=timeout)
                     elif type == "DELETE":
                         r = s.delete(url, json=postBody, timeout=timeout)
+                    elif type == "OPTIONS":
+                        r = s.options(url, json=postBody, timeout=timeout)
                 
                 except AttributeError:
                     # request session does not exists
@@ -254,6 +256,14 @@ class DownloadUtils():
 
                     elif type == "DELETE":
                         r = requests.delete(url,
+                                        json=postBody,
+                                        headers=header,
+                                        timeout=timeout,
+                                        cert=cert,
+                                        verify=verifyssl)
+
+                    elif type == "OPTIONS":
+                        r = requests.options(url,
                                         json=postBody,
                                         headers=header,
                                         timeout=timeout,
