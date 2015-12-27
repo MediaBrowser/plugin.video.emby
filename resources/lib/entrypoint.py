@@ -46,13 +46,13 @@ def resetAuth():
         utils.logMsg("EMBY", "Reset login attempts.", 1)
         utils.window('emby_serverStatus', value="Auth")
     else:
-        xbmc.executebuiltin('Addon.OpenSettings(plugin.video.emby)')
+        xbmc.executebuiltin('Addon.OpenSettings(plugin.video.plexkodiconnect)')
 
 def addDirectoryItem(label, path, folder=True):
     li = xbmcgui.ListItem(label, path=path)
-    li.setThumbnailImage("special://home/addons/plugin.video.emby/icon.png")
-    li.setArt({"fanart":"special://home/addons/plugin.video.emby/fanart.jpg"})
-    li.setArt({"landscape":"special://home/addons/plugin.video.emby/fanart.jpg"})
+    li.setThumbnailImage("special://home/addons/plugin.video.plexkodiconnect/icon.png")
+    li.setArt({"fanart":"special://home/addons/plugin.video.plexkodiconnect/fanart.jpg"})
+    li.setArt({"landscape":"special://home/addons/plugin.video.plexkodiconnect/fanart.jpg"})
     xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=path, listitem=li, isFolder=folder)
 
 def doMainListing():
@@ -71,26 +71,26 @@ def doMainListing():
                 addDirectoryItem(label, path)
     
     # some extra entries for settings and stuff. TODO --> localize the labels
-    addDirectoryItem("Network credentials", "plugin://plugin.video.emby/?mode=passwords", False)
-    addDirectoryItem("Settings", "plugin://plugin.video.emby/?mode=settings", False)
-    addDirectoryItem("Add user to session", "plugin://plugin.video.emby/?mode=adduser", False)
-    #addDirectoryItem("Cache all images to Kodi texture cache (advanced)", "plugin://plugin.video.emby/?mode=texturecache")
+    addDirectoryItem("Network credentials", "plugin://plugin.video.plexkodiconnect/?mode=passwords", False)
+    addDirectoryItem("Settings", "plugin://plugin.video.plexkodiconnect/?mode=settings", False)
+    addDirectoryItem("Add user to session", "plugin://plugin.video.plexkodiconnect/?mode=adduser", False)
+    #addDirectoryItem("Cache all images to Kodi texture cache (advanced)", "plugin://plugin.video.plexkodiconnect/?mode=texturecache")
     addDirectoryItem(
         label="Refresh Emby playlists",
-        path="plugin://plugin.video.emby/?mode=refreshplaylist",
+        path="plugin://plugin.video.plexkodiconnect/?mode=refreshplaylist",
         folder=False)
-    addDirectoryItem("Perform manual sync", "plugin://plugin.video.emby/?mode=manualsync", False)
+    addDirectoryItem("Perform manual sync", "plugin://plugin.video.plexkodiconnect/?mode=manualsync", False)
     addDirectoryItem(
         label="Repair local database (force update all content)",
-        path="plugin://plugin.video.emby/?mode=repair",
+        path="plugin://plugin.video.plexkodiconnect/?mode=repair",
         folder=False)
     addDirectoryItem(
         label="Perform local database reset (full resync)",
-        path="plugin://plugin.video.emby/?mode=reset",
+        path="plugin://plugin.video.plexkodiconnect/?mode=reset",
         folder=False)
     addDirectoryItem(
         label="Sync Emby Theme Media to Kodi",
-        path="plugin://plugin.video.emby/?mode=thememedia",
+        path="plugin://plugin.video.plexkodiconnect/?mode=thememedia",
         folder=False)
     
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
@@ -152,7 +152,7 @@ def addUser():
                     dialog.notification(
                             heading="Success!",
                             message="%s removed from viewing session" % selected,
-                            icon="special://home/addons/plugin.video.emby/icon.png",
+                            icon="special://home/addons/plugin.video.plexkodiconnect/icon.png",
                             time=1000)
 
                     # clear picture
@@ -185,7 +185,7 @@ def addUser():
             dialog.notification(
                     heading="Success!",
                     message="%s added to viewing session" % selected,
-                    icon="special://home/addons/plugin.video.emby/icon.png",
+                    icon="special://home/addons/plugin.video.plexkodiconnect/icon.png",
                     time=1000)
 
     except:
@@ -233,7 +233,7 @@ def getThemeMedia():
         return
 
     library = xbmc.translatePath(
-                "special://profile/addon_data/plugin.video.emby/library/").decode('utf-8')
+                "special://profile/addon_data/plugin.video.plexkodiconnect/library/").decode('utf-8')
     # Create library directory
     if not xbmcvfs.exists(library):
         xbmcvfs.mkdir(library)
@@ -279,7 +279,7 @@ def getThemeMedia():
     # Get paths for theme videos
     for itemId in itemIds:
         nfo_path = xbmc.translatePath(
-            "special://profile/addon_data/plugin.video.emby/library/%s/" % itemIds[itemId])
+            "special://profile/addon_data/plugin.video.plexkodiconnect/library/%s/" % itemIds[itemId])
         # Create folders for each content
         if not xbmcvfs.exists(nfo_path):
             xbmcvfs.mkdir(nfo_path)
@@ -340,7 +340,7 @@ def getThemeMedia():
             continue
         
         nfo_path = xbmc.translatePath(
-            "special://profile/addon_data/plugin.video.emby/library/%s/" % musicitemIds[itemId])
+            "special://profile/addon_data/plugin.video.plexkodiconnect/library/%s/" % musicitemIds[itemId])
         # Create folders for each content
         if not xbmcvfs.exists(nfo_path):
             xbmcvfs.mkdir(nfo_path)
@@ -371,7 +371,7 @@ def getThemeMedia():
     dialog.notification(
             heading="Emby for Kodi",
             message="Themes added!",
-            icon="special://home/addons/plugin.video.emby/icon.png",
+            icon="special://home/addons/plugin.video.plexkodiconnect/icon.png",
             time=1000,
             sound=False)
 
@@ -388,7 +388,7 @@ def refreshPlaylist():
         dialog.notification(
                 heading="Emby for Kodi",
                 message="Emby playlist refreshed!",
-                icon="special://home/addons/plugin.video.emby/icon.png",
+                icon="special://home/addons/plugin.video.plexkodiconnect/icon.png",
                 time=1000,
                 sound=False)
     except Exception as e:
@@ -396,7 +396,7 @@ def refreshPlaylist():
         dialog.notification(
             heading="Emby for Kodi",
             message="Emby playlist refresh failed!",
-            icon="special://home/addons/plugin.video.emby/icon.png",
+            icon="special://home/addons/plugin.video.plexkodiconnect/icon.png",
             time=1000,
             sound=False)
 

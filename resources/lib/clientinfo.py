@@ -33,7 +33,7 @@ class ClientInfo():
 
     def getAddonId(self):
 
-        return "plugin.video.emby"
+        return "plugin.video.plexkodiconnect"
 
     def getVersion(self):
 

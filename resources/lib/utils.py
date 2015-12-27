@@ -52,7 +52,7 @@ def window(property, value=None, clear=False, windowid=10000):
 
 def settings(setting, value=None):
     # Get or add addon setting
-    addon = xbmcaddon.Addon(id='plugin.video.emby')
+    addon = xbmcaddon.Addon(id='plugin.video.plexkodiconnect')
     
     if value is not None:
         addon.setSetting(setting, value)
@@ -61,7 +61,7 @@ def settings(setting, value=None):
 
 def language(stringid):
     # Central string retrieval
-    addon = xbmcaddon.Addon(id='plugin.video.emby')
+    addon = xbmcaddon.Addon(id='plugin.video.plexkodiconnect')
     string = addon.getLocalizedString(stringid)
 
     return string
@@ -377,7 +377,7 @@ def passwordsXML():
             xbmcgui.Dialog().notification(
                                 heading="Emby for Kodi",
                                 message="%s removed from passwords.xml!" % credentials,
-                                icon="special://home/addons/plugin.video.emby/icon.png",
+                                icon="special://home/addons/plugin.video.plexkodiconnect/icon.png",
                                 time=1000,
                                 sound=False)
             return
@@ -436,7 +436,7 @@ def passwordsXML():
     dialog.notification(
             heading="Emby for Kodi",
             message="%s added to passwords.xml!" % server,
-            icon="special://home/addons/plugin.video.emby/icon.png",
+            icon="special://home/addons/plugin.video.plexkodiconnect/icon.png",
             time=1000,
             sound=False)
 

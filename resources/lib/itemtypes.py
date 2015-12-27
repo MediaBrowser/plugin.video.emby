@@ -222,7 +222,7 @@ class Items(object):
         xbmcgui.Dialog().notification(
                 heading="Emby for Kodi",
                 message="Added: %s" % name,
-                icon="special://home/addons/plugin.video.emby/icon.png",
+                icon="special://home/addons/plugin.video.plexkodiconnect/icon.png",
                 sound=False)
 
 
@@ -333,7 +333,7 @@ class Movies(Items):
                 % itemid
             )
             result = self.doUtils.downloadUrl(url)
-            trailer = "plugin://plugin.video.emby/trailer/?id=%s&mode=play" % result[0]['Id']
+            trailer = "plugin://plugin.video.plexkodiconnect/trailer/?id=%s&mode=play" % result[0]['Id']
         else:
             # Try to get the youtube trailer
             try:
@@ -379,7 +379,7 @@ class Movies(Items):
             utils.window('emby_pathverified', value="true")
         else:
             # Set plugin path and media flags using real filename
-            path = "plugin://plugin.video.emby.movies/"
+            path = "plugin://plugin.video.plexkodiconnect.movies/"
             params = {
 
                 'filename': filename.encode('utf-8'),
@@ -723,7 +723,7 @@ class HomeVideos(Items):
             utils.window('emby_pathverified', value="true")
         else:
             # Set plugin path and media flags using real filename
-            path = "plugin://plugin.video.emby.movies/"
+            path = "plugin://plugin.video.plexkodiconnect.movies/"
             params = {
 
                 'filename': filename.encode('utf-8'),
@@ -980,7 +980,7 @@ class MusicVideos(Items):
             utils.window('emby_pathverified', value="true")
         else:
             # Set plugin path and media flags using real filename
-            path = "plugin://plugin.video.emby.musicvideos/"
+            path = "plugin://plugin.video.plexkodiconnect.musicvideos/"
             params = {
 
                 'filename': filename.encode('utf-8'),
@@ -1317,7 +1317,7 @@ class TVShows(Items):
             utils.window('emby_pathverified', value="true")
         else:
             # Set plugin path
-            toplevelpath = "plugin://plugin.video.emby.tvshows/"
+            toplevelpath = "plugin://plugin.video.plexkodiconnect.tvshows/"
             path = "%s%s/" % (toplevelpath, itemid)
 
 
@@ -1558,7 +1558,7 @@ class TVShows(Items):
             utils.window('emby_pathverified', value="true")
         else:
             # Set plugin path and media flags using real filename
-            path = "plugin://plugin.video.emby.tvshows/%s/" % seriesId
+            path = "plugin://plugin.video.plexkodiconnect.tvshows/%s/" % seriesId
             params = {
 
                 'filename': filename.encode('utf-8'),
@@ -1678,7 +1678,7 @@ class TVShows(Items):
         kodi_db.addPlaystate(fileid, resume, total, playcount, dateplayed)
         if not self.directpath and resume:
             # Create additional entry for widgets. This is only required for plugin/episode.
-            temppathid = kodi_db.getPath("plugin://plugin.video.emby.tvshows/")
+            temppathid = kodi_db.getPath("plugin://plugin.video.plexkodiconnect.tvshows/")
             tempfileid = kodi_db.addFile(filename, temppathid)
             query = ' '.join((
 
@@ -1732,7 +1732,7 @@ class TVShows(Items):
             if not self.directpath and not resume:
                 # Make sure there's no other bookmarks created by widget.
                 filename = kodi_db.getFile(fileid)
-                kodi_db.removeFile("plugin://plugin.video.emby.tvshows/", filename)
+                kodi_db.removeFile("plugin://plugin.video.plexkodiconnect.tvshows/", filename)
         emby_db.updateReference(itemid, checksum)
 
     def remove(self, itemid):

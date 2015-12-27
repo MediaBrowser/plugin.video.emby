@@ -12,7 +12,7 @@ import xbmcgui
 
 #################################################################################################
 
-addon_ = xbmcaddon.Addon(id='plugin.video.emby')
+addon_ = xbmcaddon.Addon(id='plugin.video.plexkodiconnect')
 addon_path = addon_.getAddonInfo('path').decode('utf-8')
 base_resource = xbmc.translatePath(os.path.join(addon_path, 'resources', 'lib')).decode('utf-8')
 sys.path.append(base_resource)
@@ -86,7 +86,7 @@ class Main:
         else:
             # Other functions
             if mode == "settings":
-                xbmc.executebuiltin('Addon.OpenSettings(plugin.video.emby)')
+                xbmc.executebuiltin('Addon.OpenSettings(plugin.video.plexkodiconnect)')
             elif mode in ("manualsync", "repair"):
                 if utils.window('emby_dbScan') != "true":
                     import librarysync
@@ -108,7 +108,7 @@ class Main:
 
                       
 if ( __name__ == "__main__" ):
-    xbmc.log('plugin.video.emby started')
+    xbmc.log('plugin.video.plexkodiconnect started')
 
     if enableProfiling:
         import cProfile
@@ -129,4 +129,4 @@ if ( __name__ == "__main__" ):
     else:
         Main()
     
-    xbmc.log('plugin.video.emby stopped')
+    xbmc.log('plugin.video.plexkodiconnect stopped')

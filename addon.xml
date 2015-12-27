@@ -1,14 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon  id="plugin.video.emby"
-        name="Emby" 
+<addon  id="plugin.video.plexkodiconnect"
+        name="PlexKodiConnect" 
         version="1.1.67"
-        provider-name="Emby.media">
+        provider-name="tomkat83">
   <requires>
     <import addon="xbmc.python" version="2.1.0"/>
     <import addon="script.module.requests" version="2.3.0" />
-    <import addon="plugin.video.emby.movies" version="0.01" />
-    <import addon="plugin.video.emby.tvshows" version="0.01" />
-    <import addon="plugin.video.emby.musicvideos" version="0.01" />
   </requires>
   <extension    point="xbmc.python.pluginsource"
                 library="default.py">
@@ -21,9 +18,9 @@
     <language>en</language>
     <license>GNU GENERAL PUBLIC LICENSE. Version 2, June 1991</license>
     <forum></forum>
-    <website>http://mediabrowser.tv/</website>
+    <website>https://github.com/tomkat83/PlexKodiConnect</website>
     <source></source>
     <summary lang="en"></summary>
-    <description lang="en">Welcome to Emby for Kodi A whole new way to manage and view your media library. The Emby addon for Kodi combines the best of Kodi - ultra smooth navigation, beautiful UIs and playback of any file under the sun, and Emby - the most powerful fully open source multi-client media metadata indexer and server.&#10;&#10;Emby for Kodi is the absolute best way to enjoy the incredible Kodi playback engine combined with the power of Emby's centralized database. Features: Direct integration with the Kodi library for native Kodi speed Instant synchronization with the Emby server Full support for Movie, TV and Music collections Emby Server direct stream and transcoding support - use Kodi when you are away from home!</description>
+    <description lang="en">To be done</description>
   </extension>
 </addon>

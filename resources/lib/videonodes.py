@@ -48,7 +48,7 @@ class VideoNodes(object):
             root = etree.Element('node', attrib={'order': "%s" % order, 'type': "folder"})
 
         etree.SubElement(root, 'label').text = label
-        etree.SubElement(root, 'icon').text = "special://home/addons/plugin.video.emby/icon.png"
+        etree.SubElement(root, 'icon').text = "special://home/addons/plugin.video.plexkodiconnect/icon.png"
 
         return root
 
@@ -164,13 +164,13 @@ class VideoNodes(object):
             # Set window properties
             if nodetype == "nextupepisodes":
                 # Custom query
-                path = "plugin://plugin.video.emby/?id=%s&mode=nextup&limit=25" % tagname
+                path = "plugin://plugin.video.plexkodiconnect/?id=%s&mode=nextup&limit=25" % tagname
             elif kodiversion == 14 and nodetype == "recentepisodes":
                 # Custom query
-                path = "plugin://plugin.video.emby/?id=%s&mode=recentepisodes&limit=25" % tagname
+                path = "plugin://plugin.video.plexkodiconnect/?id=%s&mode=recentepisodes&limit=25" % tagname
             elif kodiversion == 14 and nodetype == "inprogressepisodes":
                 # Custom query
-                path = "plugin://plugin.video.emby/?id=%s&mode=inprogressepisodes&limit=25"% tagname
+                path = "plugin://plugin.video.plexkodiconnect/?id=%s&mode=inprogressepisodes&limit=25"% tagname
             else:
                 path = "library://video/Emby - %s/%s_%s.xml" % (dirname, cleantagname, nodetype)
             windowpath = "ActivateWindow(Video, %s, return)" % path
@@ -307,7 +307,7 @@ class VideoNodes(object):
 
         if itemtype == "channels":
             root = self.commonRoot(order=1, label=label, tagname=tagname, roottype=2)
-            etree.SubElement(root, 'path').text = "plugin://plugin.video.emby/?id=0&mode=channels"
+            etree.SubElement(root, 'path').text = "plugin://plugin.video.plexkodiconnect/?id=0&mode=channels"
         else:
             root = self.commonRoot(order=1, label=label, tagname=tagname)
             etree.SubElement(root, 'order', {'direction': "ascending"}).text = "sorttitle"

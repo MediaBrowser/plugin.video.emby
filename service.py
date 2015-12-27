@@ -14,7 +14,7 @@ import xbmcvfs
 
 #################################################################################################
 
-_addon = xbmcaddon.Addon(id='plugin.video.emby')
+_addon = xbmcaddon.Addon(id='plugin.video.plexkodiconnect')
 addon_path = _addon.getAddonInfo('path').decode('utf-8')
 base_resource = xbmc.translatePath(os.path.join(addon_path, 'resources', 'lib')).decode('utf-8')
 sys.path.append(base_resource)
@@ -171,7 +171,7 @@ class Service():
                             xbmcgui.Dialog().notification(
                                         heading="Emby server",
                                         message="Welcome %s%s!" % (user.currUser, add),
-                                        icon="special://home/addons/plugin.video.emby/icon.png",
+                                        icon="special://home/addons/plugin.video.plexkodiconnect/icon.png",
                                         time=2000,
                                         sound=False)
 
@@ -227,7 +227,7 @@ class Service():
                             xbmcgui.Dialog().notification(
                                         heading="Error connecting",
                                         message="%s Server is unreachable." % self.addonName,
-                                        icon="special://home/addons/plugin.video.emby/icon.png",
+                                        icon="special://home/addons/plugin.video.plexkodiconnect/icon.png",
                                         sound=False)
                         
                         self.server_online = False
@@ -244,7 +244,7 @@ class Service():
                             xbmcgui.Dialog().notification(
                                         heading="Emby server",
                                         message="Server is online.",
-                                        icon="special://home/addons/plugin.video.emby/icon.png",
+                                        icon="special://home/addons/plugin.video.plexkodiconnect/icon.png",
                                         time=2000,
                                         sound=False)
                         

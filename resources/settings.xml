@@ -19,7 +19,7 @@
 		<setting type="sep" />
 		<setting id="deviceNameOpt" label="Use altername Device Name" type="bool" default="false" />
 		<setting id="deviceName" label="30016" type="text" visible="eq(-1,true)" default="Kodi" />
-		<setting label="[COLOR yellow]Reset login attempts[/COLOR]" type="action" visible="eq(1,) + !eq(-15,)" action="RunPlugin(plugin://plugin.video.emby?mode=resetauth)" option="close" />
+		<setting label="[COLOR yellow]Reset login attempts[/COLOR]" type="action" visible="eq(1,) + !eq(-15,)" action="RunPlugin(plugin://plugin.video.plexkodiconnect?mode=resetauth)" option="close" />
 		<setting id="accessToken" type="text" visible="false" default="" />
 		<setting id="pathsub" type="bool" visible="false" default="false" />
 	</category>
@@ -36,7 +36,7 @@
 	</category>
 	
 	<category label="Playback"> <!-- Extra Sync options -->
-		<setting label="Network credentials" type="action" action="RunPlugin(plugin://plugin.video.emby?mode=passwords)" option="close" />
+		<setting label="Network credentials" type="action" action="RunPlugin(plugin://plugin.video.plexkodiconnect?mode=passwords)" option="close" />
 		<setting type="sep" />
 		<setting id="enableCinema" type="bool" label="Enable Emby cinema mode" default="true" />
 		<setting id="askCinema" type="bool" label="Ask to play trailers" default="false" visible="eq(-1,true)" subsetting="true" />
@@ -65,6 +65,6 @@
         <setting id="connectMsg" type="bool" label="30249" default="true" />
         <setting id="restartMsg" type="bool" label="Enable server message when it's restarting" default="false" />
         <setting id="newContent" type="bool" label="Enable new content notification" default="false" />
-		<setting label="30239" type="action" action="RunPlugin(plugin://plugin.video.emby?mode=reset)" option="close" />
+		<setting label="30239" type="action" action="RunPlugin(plugin://plugin.video.plexkodiconnect?mode=reset)" option="close" />
 	</category>
 </settings>

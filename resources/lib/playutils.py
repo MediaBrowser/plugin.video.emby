@@ -120,7 +120,7 @@ class PlayUtils():
                     xbmcgui.Dialog().notification(
                                         heading="Emby server",
                                         message="Unable to direct play.",
-                                        icon="special://home/addons/plugin.video.emby/icon.png",
+                                        icon="special://home/addons/plugin.video.plexkodiconnect/icon.png",
                                         sound=False)
                 elif utils.settings('playFromStream') != "true":
                     # Permanently set direct stream as true
@@ -130,7 +130,7 @@ class PlayUtils():
                                         heading="Emby server",
                                         message=("Direct play failed 3 times. Enabled play "
                                                  "from HTTP in the add-on settings."),
-                                        icon="special://home/addons/plugin.video.emby/icon.png",
+                                        icon="special://home/addons/plugin.video.plexkodiconnect/icon.png",
                                         sound=False)
                 return False
 

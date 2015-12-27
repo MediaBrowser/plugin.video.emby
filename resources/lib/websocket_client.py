@@ -87,7 +87,7 @@ class WebSocket_Client(threading.Thread):
                 dialog.notification(
                         heading="Emby for Kodi",
                         message="Adding %s items to playlist." % len(itemIds),
-                        icon="special://home/addons/plugin.video.emby/icon.png",
+                        icon="special://home/addons/plugin.video.plexkodiconnect/icon.png",
                         sound=False)
                 startat = data.get('StartPositionTicks', 0)
                 pl.playAll(itemIds, startat)
@@ -96,7 +96,7 @@ class WebSocket_Client(threading.Thread):
                 dialog.notification(
                         heading="Emby for Kodi",
                         message="Queueing %s items to playlist." % len(itemIds),
-                        icon="special://home/addons/plugin.video.emby/icon.png",
+                        icon="special://home/addons/plugin.video.plexkodiconnect/icon.png",
                         sound=False)
                 newplaylist = pl.modifyPlaylist(itemIds)
                 player = xbmc.Player()
@@ -199,7 +199,7 @@ class WebSocket_Client(threading.Thread):
                 xbmcgui.Dialog().notification(
                                     heading=header,
                                     message=text,
-                                    icon="special://home/addons/plugin.video.emby/icon.png",
+                                    icon="special://home/addons/plugin.video.plexkodiconnect/icon.png",
                                     time=4000)
 
             elif command == "SendString":
@@ -251,7 +251,7 @@ class WebSocket_Client(threading.Thread):
                 xbmcgui.Dialog().notification(
                                     heading="Emby server",
                                     message="Server is restarting.",
-                                    icon="special://home/addons/plugin.video.emby/icon.png")
+                                    icon="special://home/addons/plugin.video.plexkodiconnect/icon.png")
 
         elif messageType == "UserConfigurationUpdated":
             # Update user data set in userclient

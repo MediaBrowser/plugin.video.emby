@@ -297,7 +297,7 @@ class LibrarySync(threading.Thread):
                         heading="Emby for Kodi",
                         message="%s completed in: %s!" % 
                                 (message, str(elapsedtotal).split('.')[0]),
-                        icon="special://home/addons/plugin.video.emby/icon.png",
+                        icon="special://home/addons/plugin.video.plexkodiconnect/icon.png",
                         sound=False)
         return True
 
