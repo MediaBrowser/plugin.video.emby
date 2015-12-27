@@ -180,81 +180,56 @@ class InitialSetup():
             self.addon.setSetting('https', 'false')
 
         ##### USER INFO #####
-        
         self.logMsg("Getting user list.", 1)
-        # If not multiple users, set username to Plex login name.
-        # If multiple users, get user list.
-
-
-        url = "%s/emby/Users/Public?format=json" % server
-        result = self.doUtils.downloadUrl(url, authenticate=False)
-        if result == "":
-            self.logMsg("Unable to connect to %s" % server, 1)
-            return
-
-        self.logMsg("Response: %s" % result, 2)
-        # Process the list of users
-        usernames = []
-        users_hasPassword = []
-
-        for user in result:
-            # Username
-            name = user['Name']
-            usernames.append(name)
-            # Password
-            if user['HasPassword']:
-                name = "%s (secure)" % name
-            users_hasPassword.append(name)
-
-        self.logMsg("Presenting user list: %s" % users_hasPassword, 1)
-        user_select = xbmcgui.Dialog().select(string(30200), users_hasPassword)
-        if user_select > -1:
-            selected_user = usernames[user_select]
-            self.logMsg("Selected user: %s" % selected_user, 1)
-            utils.settings('username', value=selected_user)
+        # Get list of Plex home users
+        users = self.plx.MyPlexListHomeUsers(plexToken)
+        # Download users failed. Set username to Plex login
+        if not users:
+            utils.settings('username', value=plexLogin)
+            self.logMsg("User download failed. Set username = plexlogin", 1)
         else:
-            self.logMsg("No user selected.", 1)
-            xbmc.executebuiltin('Addon.OpenSettings(%s)' % addonId)
+            userlist = []
+            for user in users:
+                username = user['title']
+                if user['admin'] == '1':
+                    username = username + " (admin)"
+                userlist.append(username)
+            dialog = xbmcgui.Dialog()
+            user_select = dialog.select(string(30200), userlist)
+            if user_select > -1:
+                selected_user = userlist[user_select]
+                self.logMsg("Selected user: %s" % selected_user, 1)
+                utils.settings('username', value=selected_user)
+            else:
+                self.logMsg("No user selected.", 1)
+                xbmc.executebuiltin('Addon.OpenSettings(%s)' % addonId)
 
         ##### ADDITIONAL PROMPTS #####
         dialog = xbmcgui.Dialog()
 
         directPaths = dialog.yesno(
-                            heading="Playback Mode",
+                            heading="%s: Playback Mode" % self.addonName,
                             line1=(
                                 "Caution! If you choose Native mode, you "
-                                "will lose access to certain Emby features such as: "
-                                "Emby cinema mode, direct stream/transcode options, "
-                                "parental access schedule."),
+                                "will probably lose access to certain Plex "
+                                "features."),
                             nolabel="Addon (Default)",
                             yeslabel="Native (Direct Paths)")
         if directPaths:
             self.logMsg("User opted to use direct paths.", 1)
             utils.settings('useDirectPaths', value="1")
 
-            # ask for credentials
-            credentials = dialog.yesno(
-                                heading="Network credentials",
-                                line1= (
-                                    "Add network credentials to allow Kodi access to your "
-                                    "content? Note: Skipping this step may generate a message "
-                                    "during the initial scan of your content if Kodi can't "
-                                    "locate your content."))
-            if credentials:
-                self.logMsg("Presenting network credentials dialog.", 1)
-                utils.passwordsXML()
-        
         musicDisabled = dialog.yesno(
-                            heading="Music Library",
-                            line1="Disable Emby music library?")
+                            heading="%s: Music Library" % self.addonName,
+                            line1="Disable Plex music library?")
         if musicDisabled:
-            self.logMsg("User opted to disable Emby music library.", 1)
+            self.logMsg("User opted to disable Plex music library.", 1)
             utils.settings('enableMusic', value="false")
         else:
             # Only prompt if the user didn't select direct paths for videos
             if not directPaths:
                 musicAccess = dialog.yesno(
-                                    heading="Music Library",
+                                    heading="%s: Music Library" % self.addonName,
                                     line1=(
                                         "Direct stream the music library? Select "
                                         "this option only if you plan on listening "

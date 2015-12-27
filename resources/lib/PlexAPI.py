@@ -152,14 +152,14 @@ class PlexAPI():
             url = 'https://plex.tv/api/home/users'
         else:
             url = url + '/clients'
-        self.logMsg("CheckConnection called for url %s with a token" % url, 1)
+        self.logMsg("CheckConnection called for url %s with a token" % url, 2)
 
         r = downloadutils.DownloadUtils().downloadUrl(
             url,
             authenticate=False,
             headerOptions={'X-Plex-Token': token}
         )
-        self.logMsg("Response was: %s" % r, 1)
+        self.logMsg("Response was: %s" % r, 2)
         exceptionlist = [
             '',
             401
@@ -859,8 +859,8 @@ class PlexAPI():
         Output:
             List of users, where one entry is of the form:
             {
-                "User id": userId, "admin": True/False, "guest": True/False,
-                "restricted": True/False, "protected": True/False,
+                "User id": userId, "admin": '1'/'0', "guest": '1'/'0',
+                "restricted": '1'/'0', "protected": '1'/'0',
                 "email": email, "title": title, "username": username,
                 "thumb": thumb_url
             }
