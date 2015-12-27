@@ -137,6 +137,15 @@ class UserClient(threading.Thread):
         elif not prefix:
             return server
 
+    def getServerId(self):
+        alternate = utils.settings('altip') == "true"
+        if alternate:
+            # Alternate host
+            serverId = utils.settings('secondserverid')
+        else:
+            serverId = utils.settings('serverid')
+        return serverId
+
     def getToken(self):
 
         username = self.getUsername()
