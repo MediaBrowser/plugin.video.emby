@@ -114,10 +114,13 @@ class InitialSetup():
             self.logMsg("Result of setting g_PMS variable: %s" % self.plx.g_PMS, 2)
             isconnected = False
             serverlist = self.plx.returnServerList(clientId, self.plx.g_PMS)
-            serverNum = len(serverlist)
             # Let user pick server from a list
             # Get a nicer list
             dialoglist = []
+            # Exit if no servers found
+            serverNum = len(serverlist)
+            if serverNum == 0:
+                break
             for server in serverlist:
                 dialoglist.append(str(server['name']) + ' (IP: ' + str(server['ip']) + ')')
             dialog = xbmcgui.Dialog()
@@ -128,6 +131,13 @@ class InitialSetup():
             activeServer = server['machineIdentifier']
             url = server['scheme'] + '://' + server['ip'] + ':' + \
                 server['port']
+            # Deactive SSL verification if the server is local!
+            if server['local'] == '1':
+                self.addon.setSetting('sslverify', 'false')
+                self.logMsg("Setting SSL verify to false, because server is local", 1)
+            else:
+                self.addon.setSetting('sslverify', 'true')
+                self.logMsg("Setting SSL verify to true, because server is not local", 1)
             chk = self.plx.CheckConnection(url, server['accesstoken'])
             # Unauthorized
             if chk == 401:

@@ -152,11 +152,7 @@ class PlexAPI():
             url = 'https://plex.tv/api/home/users'
         else:
             url = url + '/clients'
-        self.logMsg(
-            "CheckConnection called for url %s with token %s"
-            % (url, token),
-            1
-        )
+        self.logMsg("CheckConnection called for url %s with a token" % url, 1)
 
         r = downloadutils.DownloadUtils().downloadUrl(
             url,

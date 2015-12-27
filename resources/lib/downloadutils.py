@@ -264,13 +264,16 @@ class DownloadUtils():
             elif not authenticate:
 
                 header = self.getHeader(authenticate=False, options=headerOptions)
-                verifyssl = False
 
                 # If user enables ssl verification
                 try:
                     verifyssl = self.sslverify
                 except AttributeError:
-                    pass
+                    if utils.settings('sslverify') == "true":
+                        verifyssl = True
+                    else:
+                        verifyssl = False
+                self.logMsg("Set SSL verification to: %s" % verifyssl, 2)
                 
                 # Prepare request
                 if type == "GET":
