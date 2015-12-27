@@ -3,19 +3,20 @@
 	<category label="30014"><!-- Emby -->
 		<!-- Primary address -->
 		<setting id="ipaddress" label="30000" type="text" default="" />
-		<setting id="port" label="30030" type="number" default="8096" />
+		<setting id="port" label="30030" type="number" default="32400" />
 		<setting id="https" label="30243" type="bool" default="false" />
 		<setting id="sslverify" subsetting="true" label="Verify Host SSL Certificate" type="bool" default="false" visible="eq(-1,true)" />
 		<setting id="sslcert" subsetting="true" label="Client SSL certificate" type="file" default="None" visible="eq(-2,true)" />
 		<!-- Secondary address -->
 		<setting id="altip" label="Use alternate address" type="bool" default="false" />
 		<setting id="secondipaddress" label="Secondary Server Address" type="text" default="" visible="eq(-1,true)" />
-		<setting id="secondport" label="30030" type="number" default="8096" visible="eq(-2,true)" />
+		<setting id="secondport" label="30030" type="number" default="32400" visible="eq(-2,true)" />true)" />
 		<setting id="secondhttps" label="30243" type="bool" default="false" visible="eq(-3,true)" />
 		<setting id="secondsslverify" subsetting="true" label="Verify Host SSL Certificate" type="bool" default="false" visible="eq(-1,true)" />
 		<setting id="secondsslcert" subsetting="true" label="Client SSL certificate" type="file" default="None" visible="eq(-2,true)" />
 		<!-- User settings -->
-		<setting id="username" label="30024" type="text" default="" />
+		<setting id="myplexlogin" label="Log into plex.tv?" type="bool" default="true" />
+		<setting id="plexLogin" label="30024" type="text" default="" visible="eq(-1,true)" />
 		<setting type="sep" />
 		<setting id="deviceNameOpt" label="Use altername Device Name" type="bool" default="false" />
 		<setting id="deviceName" label="30016" type="text" visible="eq(-1,true)" default="Kodi" />
