@@ -29,7 +29,7 @@ class ClientInfo():
 
     def getAddonName(self):
         # Used for logging
-        return self.addon.getAddonInfo('name').upper()
+        return self.addon.getAddonInfo('name')
 
     def getAddonId(self):
 
