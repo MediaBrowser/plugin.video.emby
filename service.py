@@ -98,8 +98,6 @@ class Service():
 
         # Server auto-detect
         initialsetup.InitialSetup().setup()
-        # Choose Plex user login
-        PlexAPI.PlexAPI().ChoosePlexHomeUser()
 
         # Initialize important threads
         user = userclient.UserClient()

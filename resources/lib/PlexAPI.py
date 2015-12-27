@@ -823,6 +823,7 @@ class PlexAPI():
 
         Output:
             username
+            userid
             authtoken
         """
         string = self.__language__
@@ -835,7 +836,7 @@ class PlexAPI():
         if not users:
             utils.settings('username', value=plexLogin)
             self.logMsg("User download failed. Set username = plexlogin", 1)
-            return
+            return ('', '', '')
 
         userlist = []
         for user in users:
@@ -852,7 +853,7 @@ class PlexAPI():
             else:
                 self.logMsg("No user selected.", 1)
                 xbmc.executebuiltin('Addon.OpenSettings(%s)' % self.addonId)
-                return
+                return ('', '', '')
             # Ask for PIN, if protected:
             if user['protected'] == '1':
                 dialog = xbmcgui.Dialog()
@@ -861,9 +862,11 @@ class PlexAPI():
                     type=xbmcgui.INPUT_NUMERIC,
                     option=xbmcgui.ALPHANUM_HIDE_INPUT
                 )
+            else:
+                pin = None
             # Switch to this Plex Home user, if applicable
             username, usertoken = self.MyPlexSwitchHomeUser(
-                user['User id'],
+                user['id'],
                 pin,
                 plexToken
             )
@@ -874,6 +877,7 @@ class PlexAPI():
                     'Could not log in user %s' % selected_user,
                     'Please try again.'
                 )
+        return (username, user['id'], usertoken)
 
     def MyPlexSwitchHomeUser(self, id, pin, authtoken, options={}):
         """
@@ -933,7 +937,7 @@ class PlexAPI():
         Output:
             List of users, where one entry is of the form:
             {
-                "User id": userId, "admin": '1'/'0', "guest": '1'/'0',
+                "id": userId, "admin": '1'/'0', "guest": '1'/'0',
                 "restricted": '1'/'0', "protected": '1'/'0',
                 "email": email, "title": title, "username": username,
                 "thumb": thumb_url

@@ -15,6 +15,8 @@ import utils
 import clientinfo
 import downloadutils
 
+import PlexAPI
+
 ##################################################################################################
 
 
@@ -325,53 +327,16 @@ class UserClient(threading.Thread):
         
         ##### AUTHENTICATE USER #####
 
-        users = self.getPublicUsers()
-        password = ""
-        
-        # Find user in list
-        for user in users:
-            name = user['Name']
-
-            if username.decode('utf-8') in name:
-                # If user has password
-                if user['HasPassword'] == True:
-                    password = xbmcgui.Dialog().input(
-                        heading="Enter password for user: %s" % username,
-                        option=xbmcgui.ALPHANUM_HIDE_INPUT)
-                    # If password dialog is cancelled
-                    if not password:
-                        self.logMsg("No password entered.", 0)
-                        utils.window('emby_serverStatus', value="Stop")
-                        self.auth = False
-                        return
-                break
-        else:
-            # Manual login, user is hidden
-            password = xbmcgui.Dialog().input(
-                                    heading="Enter password for user: %s" % username,
-                                    option=xbmcgui.ALPHANUM_HIDE_INPUT)
-        sha1 = hashlib.sha1(password)
-        sha1 = sha1.hexdigest()    
-
-        # Authenticate username and password
-        url = "%s/emby/Users/AuthenticateByName?format=json" % server
-        data = {'username': username, 'password': sha1}
-        self.logMsg(data, 2)
-
-        result = self.doUtils.downloadUrl(url, postBody=data, type="POST", authenticate=False)
-
+        # Choose Plex user login
         try:
-            self.logMsg("Auth response: %s" % result, 1)
-            accessToken = result['AccessToken']
-        
+            username, userId, accessToken = PlexAPI.PlexAPI().ChoosePlexHomeUser()
         except (KeyError, TypeError):
             self.logMsg("Failed to retrieve the api key.", 1)
             accessToken = None
 
         if accessToken is not None:
             self.currUser = username
-            xbmcgui.Dialog().notification("Emby server", "Welcome %s!" % self.currUser)
-            userId = result['User']['Id']
+            xbmcgui.Dialog().notification("Emby server", "Welcome %s!" % username)
             utils.settings('accessToken', value=accessToken)
             utils.settings('userId%s' % username, value=userId)
             self.logMsg("User Authenticated: %s" % accessToken, 1)
@@ -417,6 +382,7 @@ class UserClient(threading.Thread):
 
         monitor = xbmc.Monitor()
         self.logMsg("----===## Starting UserClient ##===----", 0)
+        self.logMsg("self.auth=%s, self.currUser=%s" % (self.auth, self.currUser), 0)
 
         while not monitor.abortRequested():
 
