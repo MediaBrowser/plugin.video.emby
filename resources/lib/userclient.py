@@ -201,18 +201,18 @@ class UserClient(threading.Thread):
         doUtils = self.doUtils
         art = artwork.Artwork()
 
-        url = "{server}/emby/Users/{UserId}?format=json"
-        result = doUtils.downloadUrl(url)
-        self.userSettings = result
-        # Set user image for skin display
-        if result.get('PrimaryImageTag'):
-            utils.window('EmbyUserImage', value=art.getUserArtwork(result['Id'], 'Primary'))
-
+        url = PlexAPI.PlexAPI().GetUserArtworkURL(self.currUser)
+        if url:
+            result = doUtils.downloadUrl(url, authenticate=False)
+            self.userSettings = result
+            # Set user image for skin display
+            if result.get('PrimaryImageTag'):
+                utils.window('EmbyUserImage', value=art.getUserArtwork(result['Id'], 'Primary'))
         # Set resume point max
-        url = "{server}/emby/System/Configuration?format=json"
-        result = doUtils.downloadUrl(url)
+        # url = "{server}/emby/System/Configuration?format=json"
+        # result = doUtils.downloadUrl(url)
 
-        utils.settings('markPlayed', value=str(result['MaxResumePct']))
+        # utils.settings('markPlayed', value=str(result['MaxResumePct']))
 
     def getPublicUsers(self):
 
@@ -286,7 +286,8 @@ class UserClient(threading.Thread):
         doUtils.setToken(self.currToken)
         doUtils.setSSL(self.ssl, self.sslcert)
         # parental control - let's verify if access is restricted
-        self.hasAccess()
+        # self.hasAccess()
+
         # Start DownloadUtils session
         doUtils.startSession()
         self.getAdditionalUsers()

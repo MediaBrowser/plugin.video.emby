@@ -816,6 +816,49 @@ class PlexAPI():
         dprint(__name__, 1, "====== MyPlex sign out XML finished ======")
         dprint(__name__, 0, 'MyPlex Sign Out done')
 
+    def UserAccessRestricted(self, username):
+        """
+        Returns True if the user's access is restricted (parental restrictions)
+        False otherwise.
+
+        Returns False also if access cannot be checked because plex.tv cannot
+        be reached.
+        """
+        plexToken = utils.settings('plexToken')
+        users = self.MyPlexListHomeUsers(plexToken)
+        # If an error is encountered, set to False
+        if not users:
+            self.logMsg("Could not check user access restrictions.", 1)
+            self.logMsg("Setting restrictions to False.", 1)
+            return False
+        for user in users:
+            if username in user['title']:
+                restricted = user['restricted']
+        if restricted == '1':
+            restricted = True
+        else:
+            restricted = False
+        self.logMsg("Successfully checked user parental access for %s: restricted access is set to %s" % (username, restricted), 1)
+        return restricted
+
+    def GetUserArtworkURL(self, username):
+        """
+        Returns the URL for the user's Avatar. Or False if something went
+        wrong.
+        """
+        plexToken = utils.settings('plexToken')
+        users = self.MyPlexListHomeUsers(plexToken)
+        # If an error is encountered, set to False
+        if not users:
+            self.logMsg("Could not get userlist from plex.tv.", 1)
+            self.logMsg("No URL for user avatar.", 1)
+            return False
+        for user in users:
+            if username in user['title']:
+                url = user['thumb']
+        self.logMsg("Avatar url for user %s is: %s" % (username, url), 1)
+        return url
+
     def ChoosePlexHomeUser(self):
         """
         Let's user choose from a list of Plex home users. Will switch to that
@@ -825,6 +868,8 @@ class PlexAPI():
             username
             userid
             authtoken
+
+        Will return empty strings if failed.
         """
         string = self.__language__
         plexToken = utils.settings('plexToken')
@@ -891,6 +936,7 @@ class PlexAPI():
             trials += trials
         if not username:
             xbmc.executebuiltin('Addon.OpenSettings(%s)' % self.addonId)
+            return ('', '', '', '')
         return (username, user['id'], usertoken)
 
     def MyPlexSwitchHomeUser(self, id, pin, authtoken, options={}):
@@ -956,8 +1002,8 @@ class PlexAPI():
                 "email": email, "title": title, "username": username,
                 "thumb": thumb_url
             }
-            If any value is missing, None is returned instead (or "" from plex.tv)
-            If an error is encountered, False is returned
+        If any value is missing, None is returned instead (or "" from plex.tv)
+        If an error is encountered, False is returned
         """
         XML = self.getXMLFromPMS('https://plex.tv', '/api/home/users/', {}, authtoken)
         if not XML:
