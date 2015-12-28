@@ -1233,64 +1233,33 @@ class PlexAPI():
             })
         return serverlist
 
+    def GetPlexCollections(self, type):
+        # Build a list of the user views
+        collections = []
 
-# Guess this stuff is not yet working
-if __name__ == '__main__':
-    testPlexGDM = 0
-    testLocalPMS = 0
-    testSectionXML = 1
-    testMyPlexXML = 0
-    testMyPlexSignIn = 0
-    testMyPlexSignOut = 0
-    
-    username = 'abc'
-    password = 'def'
-    token = 'xyz'
-    
-    
-    # test PlexGDM
-    if testPlexGDM:
-        dprint('', 0, "*** PlexGDM")
-        PMS_list = PlexGDM()
-        dprint('', 0, PMS_list)
-    
-    
-    # test XML from local PMS
-    if testLocalPMS:
-        dprint('', 0, "*** XML from local PMS")
-        XML = getXMLFromPMS('http://127.0.0.1:32400', '/library/sections')
-    
-    
-    # test local Server/Sections
-    if testSectionXML:
-        dprint('', 0, "*** local Server/Sections")
-        PMS_list = PlexGDM()
-        XML = getSectionXML(PMS_list, {}, '')
-    
-    
-    # test XML from MyPlex
-    if testMyPlexXML:
-        dprint('', 0, "*** XML from MyPlex")
-        XML = getXMLFromPMS('https://plex.tv', '/pms/servers', None, token)
-        XML = getXMLFromPMS('https://plex.tv', '/pms/system/library/sections', None, token)
-    
-    
-    # test MyPlex Sign In
-    if testMyPlexSignIn:
-        dprint('', 0, "*** MyPlex Sign In")
-        options = {'PlexConnectUDID':'007'}
-        
-        (user, token) = MyPlexSignIn(username, password, options)
-        if user=='' and token=='':
-            dprint('', 0, "Authentication failed")
+        url = "{server}/library/sections"
+        jsondata = self.doUtils.downloadUrl(url)
+        try:
+            result = jsondata['_children']
+        except:
+            pass
         else:
-            dprint('', 0, "logged in: {0}, {1}", user, token)
-    
-    
-    # test MyPlex Sign out
-    if testMyPlexSignOut:
-        dprint('', 0, "*** MyPlex Sign Out")
-        MyPlexSignOut(token)
-        dprint('', 0, "logged out")
-    
-    # test transcoder
+            for item in result:
+
+                # name = item['Name']
+                name = item['title']
+                # contentType = item['Type']
+                contentType = item['type']
+                itemtype = contentType
+                content = itemtype
+                contentID = item['key']
+
+                if itemtype == type and name not in ("Collections", "Trailers"):
+                    collections.append({
+
+                        'title': name,
+                        'type': itemtype,
+                        'id': contentID,
+                        'content': content
+                    })
+        return collections

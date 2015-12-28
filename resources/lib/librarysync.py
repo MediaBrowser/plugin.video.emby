@@ -222,8 +222,8 @@ class LibrarySync(threading.Thread):
         starttotal = datetime.now()
 
         # Set views
-        self.maintainViews(embycursor, kodicursor)
-        embyconn.commit()
+        # self.maintainViews(embycursor, kodicursor)
+        # embyconn.commit()
         
         # Sync video library
         process = {
@@ -232,6 +232,10 @@ class LibrarySync(threading.Thread):
             'musicvideos': self.musicvideos,
             'tvshows': self.tvshows,
             'homevideos': self.homevideos
+        }
+
+        process = {
+            'movies': self.movies,
         }
         for itemtype in process:
             startTime = datetime.now()
@@ -320,6 +324,17 @@ class LibrarySync(threading.Thread):
         embycursor.close()
 
     def maintainViews(self, embycursor, kodicursor):
+        """
+        Reverse engineering:
+
+        Input:
+            embycursor
+            kodicursor
+        Output:
+            vnodes.viewNode(totalnodes, foldername, mediatype, viewtype)
+            kodi_db.createTag(foldername)
+            kodi_db.updateTag(current_tagid, tagid, item[0],Current_viewtype[:-1])
+        """
         # Compare the views to emby
         emby_db = embydb.Embydb_Functions(embycursor)
         kodi_db = kodidb.Kodidb_Functions(kodicursor)
