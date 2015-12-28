@@ -830,7 +830,7 @@ class PlexAPI():
         plexToken = utils.settings('plexToken')
         plexLogin = utils.settings('plexLogin')
         self.logMsg("Getting user list.", 1)
-        # Get list of Plex home users self
+        # Get list of Plex home users
         users = self.MyPlexListHomeUsers(plexToken)
         # Download users failed. Set username to Plex login
         if not users:
@@ -842,10 +842,16 @@ class PlexAPI():
         for user in users:
             username = user['title']
             userlist.append(username)
+        usernumber = len(userlist)
         usertoken = ''
-        while not usertoken:
-            dialog = xbmcgui.Dialog()
-            user_select = dialog.select(string(30200), userlist)
+        # Plex home not in use: only 1 user returned
+        trials = 1
+        while trials < 4:
+            if usernumber > 1:
+                dialog = xbmcgui.Dialog()
+                user_select = dialog.select(string(30200), userlist)
+            else:
+                user_select = 0
             if user_select > -1:
                 selected_user = userlist[user_select]
                 self.logMsg("Selected user: %s" % selected_user, 1)
@@ -870,6 +876,7 @@ class PlexAPI():
                 pin,
                 plexToken
             )
+            # Couldn't get user auth
             if not username:
                 dialog = xbmcgui.Dialog()
                 dialog.ok(
@@ -877,6 +884,12 @@ class PlexAPI():
                     'Could not log in user %s' % selected_user,
                     'Please try again.'
                 )
+            # Successfully retrieved: break out of while loop
+            else:
+                break
+            trials += trials
+        if not username:
+            xbmc.executebuiltin('Addon.OpenSettings(%s)' % self.addonId)
         return (username, user['id'], usertoken)
 
     def MyPlexSwitchHomeUser(self, id, pin, authtoken, options={}):
