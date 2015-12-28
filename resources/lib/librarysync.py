@@ -216,6 +216,7 @@ class LibrarySync(threading.Thread):
             message = "Repair sync"
         else:
             message = "Initial sync"
+            utils.window('emby_initialScan', value="true")
         
         pDialog = self.progressDialog("%s" % message, forced=True)
         starttotal = datetime.now()
@@ -934,17 +935,14 @@ class LibrarySync(threading.Thread):
 
                         # Process individual episode
                         if self.shouldStop():
-                            return False
-
-                        if pdialog:
-                            percentage = int((float(count) / float(total))*100)
-                            pdialog.update(percentage, message=title)
-                            count += 1
+                            return False                          
 
                         title = episode['SeriesName']
                         episodetitle = episode['Name']
                         if pdialog:
+                            percentage = int((float(count) / float(total))*100)
                             pdialog.update(percentage, message="%s - %s" % (title, episodetitle))
+                            count += 1
                         tvshows.add_updateEpisode(episode)
         else:
             self.logMsg("TVShows finished.", 2)
@@ -1318,7 +1316,7 @@ class LibrarySync(threading.Thread):
                 if utils.window('emby_syncRunning') != "true":
                     self.logMsg("SyncDatabase onWake (started)", 0)
                     librarySync = self.startSync()
-                    self.logMsg("SyncDatabase onWake (finished) %s", librarySync, 0)
+                    self.logMsg("SyncDatabase onWake (finished) %s" % librarySync, 0)
 
             if self.stop_thread:
                 # Set in service.py
