@@ -850,16 +850,17 @@ class PlexAPI():
             if usernumber > 1:
                 dialog = xbmcgui.Dialog()
                 user_select = dialog.select(string(30200), userlist)
+                if user_select == -1:
+                    self.logMsg("No user selected.", 1)
+                    xbmc.executebuiltin('Addon.OpenSettings(%s)' % self.addonId)
+                    return ('', '', '')
+            # No Plex home in use - only 1 user
             else:
                 user_select = 0
-            if user_select > -1:
-                selected_user = userlist[user_select]
-                self.logMsg("Selected user: %s" % selected_user, 1)
-                utils.settings('username', value=selected_user)
-            else:
-                self.logMsg("No user selected.", 1)
-                xbmc.executebuiltin('Addon.OpenSettings(%s)' % self.addonId)
-                return ('', '', '')
+            selected_user = userlist[user_select]
+            self.logMsg("Selected user: %s" % selected_user, 1)
+            utils.settings('username', value=selected_user)
+            user = users[user_select]
             # Ask for PIN, if protected:
             if user['protected'] == '1':
                 dialog = xbmcgui.Dialog()

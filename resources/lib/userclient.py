@@ -382,7 +382,6 @@ class UserClient(threading.Thread):
 
         monitor = xbmc.Monitor()
         self.logMsg("----===## Starting UserClient ##===----", 0)
-        self.logMsg("self.auth=%s, self.currUser=%s" % (self.auth, self.currUser), 0)
 
         while not monitor.abortRequested():
 
