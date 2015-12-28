@@ -427,9 +427,7 @@ class Artwork():
 
         server = self.server
 
-        id = item['Id']
-        artworks = item['ImageTags']
-        backdrops = item['BackdropImageTags']
+        id = item['key']
 
         maxHeight = 10000
         maxWidth = 10000
@@ -453,26 +451,20 @@ class Artwork():
         }
         
         # Process backdrops
-        backdropIndex = 0
-        for backdroptag in backdrops:
-            artwork = (
-                "%s/emby/Items/%s/Images/Backdrop/%s?"
-                "MaxWidth=%s&MaxHeight=%s&Format=original&Tag=%s%s"
-                % (server, id, backdropIndex,
-                    maxWidth, maxHeight, backdroptag, customquery))
-            allartworks['Backdrop'].append(artwork)
-            backdropIndex += 1
-
-        # Process the rest of the artwork
-        for art in artworks:
-            # Filter backcover
-            if art != "BoxRear":
-                tag = artworks[art]
-                artwork = (
-                    "%s/emby/Items/%s/Images/%s/0?"
-                    "MaxWidth=%s&MaxHeight=%s&Format=original&Tag=%s%s"
-                    % (server, id, art, maxWidth, maxHeight, tag, customquery))
-                allartworks[art] = artwork
+        # Get background artwork URL
+        try:
+            background = item['art']
+            background = "%s%s" % (server, background)
+        except KeyError:
+            background = ""
+        allartworks['Backdrop'].append(background)
+        # Get primary "thumb" pictures:
+        try:
+            primary = item['thumb']
+            primary = "%s%s" % (server, primary)
+        except KeyError:
+            primary = ""
+        allartworks['Primary'] = primary
 
         # Process parent items if the main item is missing artwork
         if parentInfo:

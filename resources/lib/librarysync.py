@@ -21,6 +21,8 @@ import read_embyserver as embyserver
 import userclient
 import videonodes
 
+import PlexAPI
+
 ##################################################################################################
 
 
@@ -51,6 +53,7 @@ class LibrarySync(threading.Thread):
         self.user = userclient.UserClient()
         self.emby = embyserver.Read_EmbyServer()
         self.vnodes = videonodes.VideoNodes()
+        self.plx = PlexAPI.PlexAPI()
 
         threading.Thread.__init__(self)
 
@@ -76,7 +79,7 @@ class LibrarySync(threading.Thread):
         if utils.settings('SyncInstallRunDone') == "true":
             
             # Validate views
-            self.refreshViews()
+            # self.refreshViews()
             completed = False
             # Verify if server plugin is installed.
             if utils.settings('serverSync') == "true":
@@ -235,7 +238,7 @@ class LibrarySync(threading.Thread):
         }
 
         process = {
-            'movies': self.movies,
+            'movies': self.PlexMovies,
         }
         for itemtype in process:
             startTime = datetime.now()
@@ -459,6 +462,118 @@ class LibrarySync(threading.Thread):
             totalnodes += 1
             # Save total
             utils.window('Emby.nodes.total', str(totalnodes))
+
+
+
+    def PlexMovies(self, embycursor, kodicursor, pdialog, compare=False):
+        # Get movies from emby
+        emby = self.emby
+        emby_db = embydb.Embydb_Functions(embycursor)
+        movies = itemtypes.Movies(embycursor, kodicursor)
+
+        views = self.plx.GetPlexCollections('movies')
+        self.logMsg("Media folders: %s" % views, 1)
+
+        if compare:
+            # Pull the list of movies and boxsets in Kodi
+            try:
+                all_kodimovies = dict(emby_db.getChecksum('Movie'))
+            except ValueError:
+                all_kodimovies = {}
+
+            try:
+                all_kodisets = dict(emby_db.getChecksum('BoxSet'))
+            except ValueError:
+                all_kodisets = {}
+
+            all_embymoviesIds = set()
+            all_embyboxsetsIds = set()
+            updatelist = []
+
+        ##### PROCESS MOVIES #####
+        for view in views:
+            
+            if self.shouldStop():
+                return False
+
+            # Get items per view
+            viewId = view['id']
+            viewName = view['name']
+
+            if pdialog:
+                pdialog.update(
+                        heading=self.addonName,
+                        message="Gathering movies from view: %s..." % viewName)
+
+            if compare:
+                # Manual sync
+                if pdialog:
+                    pdialog.update(
+                            heading=self.addonName,
+                            message="Comparing movies from view: %s..." % viewName)
+
+                all_embymovies = self.plx.GetPlexSectionResults(viewId)
+                embymovies = []
+                for embymovie in all_embymovies:
+
+                    if self.shouldStop():
+                        return False
+
+                    API = PlexAPI.API(embymovie)
+                    itemid = embymovie['key']
+                    all_embymoviesIds.add(itemid)
+
+                    if all_kodimovies.get(itemid) != API.getChecksum():
+                        # Only update if movie is not in Kodi or checksum is different
+                        updatelist.append(itemid)
+                        embymovies.append(embymovie)
+
+                self.logMsg("Movies to update for %s: %s" % (viewName, updatelist), 1)
+                total = len(updatelist)
+                del updatelist[:]
+            else:
+                # Initial or repair sync
+                embymovies = self.plx.GetPlexMovies(viewId)
+                total = len(embymovies)
+
+            if pdialog:
+                pdialog.update(heading="Processing %s / %s items" % (viewName, total))
+
+            count = 0
+            for embymovie in embymovies:
+                # Process individual movies
+                if self.shouldStop():
+                    return False
+                
+                title = embymovie['title']
+                if pdialog:
+                    percentage = int((float(count) / float(total))*100)
+                    pdialog.update(percentage, message=title)
+                    count += 1
+                detailed = self.plx.GetPlexMetadata(embymovie['key'])
+                movies.add_update(detailed, viewName, viewId)
+        else:
+            self.logMsg("Movies finished.", 2)
+
+        ##### PROCESS DELETES #####
+        if compare:
+            # Manual sync, process deletes
+            for kodimovie in all_kodimovies:
+                if kodimovie not in all_embymoviesIds:
+                    movies.remove(kodimovie)
+            else:
+                self.logMsg("Movies compare finished.", 1)
+
+            for boxset in all_kodisets:
+                if boxset not in all_embyboxsetsIds:
+                    movies.remove(boxset)
+            else:
+                self.logMsg("Boxsets compare finished.", 1)
+
+        return True
+
+
+
 
 
     def movies(self, embycursor, kodicursor, pdialog, compare=False):

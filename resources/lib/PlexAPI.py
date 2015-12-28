@@ -50,6 +50,8 @@ from threading import Thread
 import Queue
 import traceback
 
+import re
+
 try:
     import xml.etree.cElementTree as etree
 except ImportError:
@@ -84,6 +86,8 @@ class PlexAPI():
         self.deviceName = client.getDeviceName()
         self.plexversion = client.getVersion()
         self.platform = client.getPlatform()
+
+        self.doUtils = downloadutils.DownloadUtils()
 
     def logMsg(self, msg, lvl=1):
         className = self.__class__.__name__
@@ -156,7 +160,7 @@ class PlexAPI():
             url = url + '/clients'
         self.logMsg("CheckConnection called for url %s with a token" % url, 2)
 
-        r = downloadutils.DownloadUtils().downloadUrl(
+        r = self.doUtils.downloadUrl(
             url,
             authenticate=False,
             headerOptions={'X-Plex-Token': token}
@@ -1233,33 +1237,467 @@ class PlexAPI():
             })
         return serverlist
 
-    def GetPlexCollections(self, type):
-        # Build a list of the user views
+    def GetPlexCollections(self, mediatype):
+        """
+        Input:
+            mediatype           String or list of strings with possible values
+                                'movie', 'show', 'artist', 'photo'
+        Output:
+            Collection containing only mediatype. List with entry of the form:
+            {
+            'name': xxx         Plex title for the media section
+            'type': xxx         Plex type: 'movie', 'show', 'artist', 'photo'
+            'id': xxx           Plex unique key for the section
+            }
+        """
         collections = []
-
         url = "{server}/library/sections"
         jsondata = self.doUtils.downloadUrl(url)
         try:
             result = jsondata['_children']
-        except:
+        except KeyError:
             pass
         else:
             for item in result:
-
-                # name = item['Name']
-                name = item['title']
-                # contentType = item['Type']
                 contentType = item['type']
-                itemtype = contentType
-                content = itemtype
-                contentID = item['key']
-
-                if itemtype == type and name not in ("Collections", "Trailers"):
+                if contentType in mediatype:
+                    name = item['title']
+                    contentId = item['key']
                     collections.append({
-
-                        'title': name,
-                        'type': itemtype,
-                        'id': contentID,
-                        'content': content
+                        'name': name,
+                        'type': contentType,
+                        'id': str(contentId)
                     })
         return collections
+
+    def GetPlexSectionResults(self, viewId):
+        """
+        Returns a list (raw API dump) of all Plex movies in the Plex section
+        with key = viewId.
+        """
+        result = []
+        url = "{server}/library/sections/%s/all" % viewId
+        jsondata = self.doUtils.downloadUrl(url)
+        try:
+            result = jsondata['_children']
+        except KeyError:
+            pass
+        return result
+
+    def GetPlexMetadata(self, key):
+        """
+        Returns raw API metadata for key.
+        """
+        result = []
+        url = "{server}" + key
+        jsondata = self.doUtils.downloadUrl(url)
+        try:
+            result = jsondata['_children'][0]
+        except KeyError:
+            self.logMsg("Error retrieving metadata for %s" % url, 1)
+            pass
+        return result
+
+
+class API():
+
+    def __init__(self, item):
+
+        self.item = item
+        self.clientinfo = clientinfo.ClientInfo()
+        self.addonName = self.clientinfo.getAddonName()
+
+    def logMsg(self, msg, lvl=1):
+
+        className = self.__class__.__name__
+        utils.logMsg("%s %s" % (self.addonName, className), msg, lvl)
+
+    def convert_date(self, stamp):
+        """
+        convert_date(stamp) converts a Unix time stamp (seconds passed since
+        January 1 1970) to a propper, human-readable time stamp
+        """
+        # DATEFORMAT = xbmc.getRegion('dateshort')
+        # TIMEFORMAT = xbmc.getRegion('meridiem')
+        # date_time = time.localtime(stamp)
+        # if DATEFORMAT[1] == 'd':
+        #     localdate = time.strftime('%d-%m-%Y', date_time)
+        # elif DATEFORMAT[1] == 'm':
+        #     localdate = time.strftime('%m-%d-%Y', date_time)
+        # else:
+        #     localdate = time.strftime('%Y-%m-%d', date_time)
+        # if TIMEFORMAT != '/':
+        #     localtime = time.strftime('%I:%M%p', date_time)
+        # else:
+        #     localtime = time.strftime('%H:%M', date_time)
+        # return localtime + '  ' + localdate
+        DATEFORMAT = xbmc.getRegion('dateshort')
+        TIMEFORMAT = xbmc.getRegion('meridiem')
+        date_time = time.localtime(stamp)
+        localdate = time.strftime('%Y-%m-%d', date_time)
+        return localdate
+
+    def getChecksum(self):
+        """
+        Maybe get rid of viewOffset = (resume point)?!?
+        """
+        item = self.item
+        checksum = "%s%s%s%s%s" % (
+            item['key'],
+            item['updatedAt'],
+            item.get('viewCount', ""),
+            item.get('lastViewedAt', ""),
+            item.get('viewOffset', "")
+        )
+        return checksum
+
+    def getDateCreated(self):
+        item = self.item
+        try:
+            dateadded = item['addedAt']
+            dateadded = self.convert_date(dateadded)
+        except KeyError:
+            dateadded = None
+        return dateadded
+
+    def getUserData(self):
+        item = self.item
+        # Default
+        favorite = False
+        playcount = None
+        played = False
+        lastPlayedDate = None
+        resume = 0
+        rating = 0
+
+        try:
+            playcount = int(item['viewCount'])
+        except KeyError:
+            playcount = None
+
+        if playcount:
+            played = True
+
+        try:
+            lastPlayedDate = int(item['lastViewedAt'])
+            lastPlayedDate = self.convert_date(lastPlayedDate)
+        except KeyError:
+            lastPlayedDate = None
+
+        try:
+            resume = int(item['viewOffset'])
+        except KeyError:
+            resume = 0
+
+        return {
+            'Favorite': favorite,
+            'PlayCount': playcount,
+            'Played': played,
+            'LastPlayedDate': lastPlayedDate,
+            'Resume': resume,
+            'Rating': rating
+        }
+
+    def getPeople(self):
+        """
+         returns a dictionary of lists of people found in item.
+
+        {
+        'Director': list,
+        'Writer': list,
+        'Cast': list,
+        'Producer': list
+        }
+        """
+        item = self.item
+        item = item['_children']
+        # Process People
+        director = []
+        writer = []
+        cast = []
+        producer = []
+        for entry in item:
+            if entry['_elementType'] == 'Director':
+                director.append(entry['tag'])
+            elif entry['_elementType'] == 'Writer':
+                writer.append(entry['tag'])
+            elif entry['_elementType'] == 'Role':
+                cast.append(entry['tag'])
+            elif entry['_elementType'] == 'Producer':
+                producer.append(entry['tag'])
+        return {
+            'Director': director,
+            'Writer': writer,
+            'Cast': cast,
+            'Producer': producer
+        }
+
+    def getPeopleList(self):
+        """
+        Returns a list of people from item, with a list item of the form
+        {
+        'Name': xxx,
+        'Type': xxx,
+        'Id': xxx
+        ('Role': xxx for cast/actors only)
+        }
+        """
+        item = self.item['_children']
+        people = []
+        # Key of library: Plex-identifier. Value represents the Kodi/emby side
+        people_of_interest = {
+            'Director': 'Director',
+            'Writer': 'Writer',
+            'Role': 'Actor',
+            'Producer': 'Producer'
+        }
+        for entry in item:
+            if entry['_elementType'] in people_of_interest.keys():
+                name = entry['tag']
+                name_id = entry['id']
+                Type = entry['_elementType']
+                Type = people_of_interest[Type]
+                if Type == 'Actor':
+                    Role = entry['role']
+                    people.append({
+                        'Name': name,
+                        'Type': Type,
+                        'Id': name_id,
+                        'Role': Role
+                    })
+                else:
+                    people.append({
+                        'Name': name,
+                        'Type': Type,
+                        'Id': name_id
+                    })
+        return people
+
+    def getGenres(self):
+        """
+        returns a list of genres found in item. (Not a string!!)
+        """
+        item = self.item
+        item = item['_children']
+        genre = []
+        for entry in item:
+            if entry['_elementType'] == 'Genre':
+                genre.append(entry['tag'])
+        return genre
+
+    def getProvider(self, providername):
+        """
+        provider = getProvider(self, item, providername)
+
+        providername: imdb, tvdb, musicBrainzArtist, musicBrainzAlbum,
+        musicBrainzTrackId
+
+        Return IMDB: "tt1234567"
+        """
+        item = self.item
+        imdb_regex = re.compile(r'''(
+            imdb://          # imdb tag, which will be followed be tt1234567
+            (tt\d{7})        # actual IMDB ID, e.g. tt1234567
+            \??              # zero or one ?
+            (.*)             # rest, e.g. language setting
+            )''', re.VERBOSE)
+        try:
+            if "Imdb" in providername:
+                provider = imdb_regex.findall(item['guid'])
+                provider = provider[0][1]
+            elif "tvdb" in providername:
+                provider = item['ProviderIds']['Tvdb']
+            elif "musicBrainzArtist" in providername:
+                provider = item['ProviderIds']['MusicBrainzArtist']
+            elif "musicBrainzAlbum" in providername:
+                provider = item['ProviderIds']['MusicBrainzAlbum']
+            elif "musicBrainzTrackId" in providername:
+                provider = item['ProviderIds']['MusicBrainzTrackId']
+        except:
+            provider = None
+        return provider
+
+    def GetTitle(self):
+        item = self.item
+        title = item['title']
+        try:
+            sorttitle = item['titleSort']
+        except KeyError:
+            sorttitle = title
+        return title, sorttitle
+
+    def getRuntime(self):
+        """
+        Resume point of time and runtime/totaltime. Rounded to 6th decimal.
+
+        Assumption: time for both resume and runtime is measured in
+        milliseconds on the Plex side and in seconds on the Kodi side.
+        """
+        item = self.item
+        time_factor = 1/1000
+        runtime = item['duration'] * time_factor
+        try:
+            resume = item['viewOffset'] * time_factor
+        except KeyError:
+            resume = 0
+        resume = round(float(resume), 6)
+        runtime = round(float(runtime), 6)
+        return resume, runtime
+
+    def getMpaa(self):
+        # Convert more complex cases
+        item = self.item
+        try:
+            mpaa = item['contentRating']
+        except KeyError:
+            mpaa = None
+        if mpaa in ("NR", "UR"):
+            # Kodi seems to not like NR, but will accept Rated Not Rated
+            mpaa = "Rated Not Rated"
+        return mpaa
+
+    def getCountry(self):
+        """
+        Returns a list of all countries found in item.
+        """
+        item = self.item
+        item = item['_children']
+        country = []
+        for entry in item:
+            if entry['_elementType'] == 'Country':
+                country.append(entry['tag'])
+        return country
+
+    def getStudios(self):
+        item = self.item
+        studio = []
+        try:
+            studio.append(self.getStudio(item['studio']))
+        except KeyError:
+            pass
+        return studio
+
+    def getStudio(self, studioName):
+        # Convert studio for Kodi to properly detect them
+        studios = {
+            'abc (us)': "ABC",
+            'fox (us)': "FOX",
+            'mtv (us)': "MTV",
+            'showcase (ca)': "Showcase",
+            'wgn america': "WGN"
+        }
+        return studios.get(studioName.lower(), studioName)
+
+    def joinList(self, listobject):
+        """
+        Smart-joins the list into a single string using a " / " separator.
+        If the list is empty, smart_join returns an empty string.
+        """
+        string = " / ".join(listobject)
+        return string
+
+    def getFilePath(self):
+        item = self.item
+        try:
+            filepath = item['key']
+
+        except KeyError:
+            filepath = ""
+
+        else:
+            if "\\\\" in filepath:
+                # append smb protocol
+                filepath = filepath.replace("\\\\", "smb://")
+                filepath = filepath.replace("\\", "/")
+
+            if item.get('VideoType'):
+                videotype = item['VideoType']
+                # Specific format modification
+                if 'Dvd'in videotype:
+                    filepath = "%s/VIDEO_TS/VIDEO_TS.IFO" % filepath
+                elif 'Bluray' in videotype:
+                    filepath = "%s/BDMV/index.bdmv" % filepath
+
+            if "\\" in filepath:
+                # Local path scenario, with special videotype
+                filepath = filepath.replace("/", "\\")
+
+        return filepath
+
+    def getMediaStreams(self):
+        item = self.item
+        item = item['_children']
+        videotracks = []
+        audiotracks = []
+        subtitlelanguages = []
+
+        MediaStreams = []
+        aspectratio = None
+        for entry in item:
+            if entry['_elementType'] == 'Media':
+                MediaStreams.append(entry)
+                try:
+                    aspectratio = entry['aspectRatio']
+                except KeyError:
+                    pass
+        # Abort if no Media found
+        if not MediaStreams:
+            return
+        # Loop over parts:
+        # TODO: what if several Media tags exist?!?
+        for part in MediaStreams[0]['_children']:
+            container = part['container'].lower()
+            for mediaStream in part['_children']:
+                try:
+                    type = mediaStream['streamType']
+                except KeyError:
+                    type = None
+                if type == 1:  # Video streams
+                    videotrack = {}
+                    videotrack['videocodec'] = mediaStream['codec'].lower()
+                    if "msmpeg4" in videotrack['videocodec']:
+                        videotrack['videocodec'] = "divx"
+                    elif "mpeg4" in videotrack['videocodec']:
+                        # if "simple profile" in profile or profile == "":
+                        #    videotrack['videocodec'] = "xvid"
+                        pass
+                    elif "h264" in videotrack['videocodec']:
+                        if container in ("mp4", "mov", "m4v"):
+                            videotrack['videocodec'] = "avc1"
+                    videotrack['height'] = mediaStream.get('height')
+                    videotrack['width'] = mediaStream.get('width')
+                    # TODO: 3d Movies?!?
+                    # videotrack['Video3DFormat'] = item.get('Video3DFormat')
+                    try:
+                        aspectratio = mediaStream['aspectRatio']
+                    except KeyError:
+                        if not aspectratio:
+                            aspectratio = round(float(videotrack['width'] / videotrack['height']), 6)
+                    videotrack['aspectratio'] = aspectratio
+                    # TODO: Video 3d format
+                    videotrack['video3DFormat'] = None
+                    videotracks.append(videotrack)
+
+                elif type == 2:  # Audio streams
+                    audiotrack = {}
+                    audiotrack['audiocodec'] = mediaStream['codec'].lower()
+                    profile = mediaStream['codecID'].lower()
+                    if "dca" in audiotrack['audiocodec'] and "dts-hd ma" in profile:
+                        audiotrack['audiocodec'] = "dtshd_ma"
+                    audiotrack['channels'] = mediaStream.get('channels')
+                    try:
+                        audiotrack['audiolanguage'] = mediaStream.get('language')
+                    except KeyError:
+                        audiotrack['audiolanguage'] = 'unknown'
+                    audiotracks.append(audiotrack)
+
+                elif type == 3:  # Subtitle streams
+                    try:
+                        subtitlelanguages.append(mediaStream['language'])
+                    except:
+                        subtitlelanguages.append("Unknown")
+        return {
+            'video': videotracks,
+            'audio': audiotracks,
+            'subtitle': subtitlelanguages
+        }

@@ -19,6 +19,8 @@ import embydb_functions as embydb
 import kodidb_functions as kodidb
 import read_embyserver as embyserver
 
+import PlexAPI
+
 ##################################################################################################
 
 
@@ -270,30 +272,25 @@ class Movies(Items):
         emby_db = self.emby_db
         kodi_db = self.kodi_db
         artwork = self.artwork
-        API = api.API(item)
+        API = PlexAPI.API(item)
 
         # If the item already exist in the local Kodi DB we'll perform a full item update
         # If the item doesn't exist, we'll add it to the database
         update_item = True
-        itemid = item['Id']
+        itemid = item['key']
         emby_dbitem = emby_db.getItem_byId(itemid)
         try:
             movieid = emby_dbitem[0]
             fileid = emby_dbitem[1]
             pathid = emby_dbitem[2]
             self.logMsg("movieid: %s fileid: %s pathid: %s" % (movieid, fileid, pathid), 1)
-        
+
         except TypeError:
             update_item = False
             self.logMsg("movieid: %s not found." % itemid, 2)
             # movieid
             kodicursor.execute("select coalesce(max(idMovie),0) from movie")
             movieid = kodicursor.fetchone()[0] + 1
-
-        if not viewtag or not viewid:
-            # Get view tag from emby
-            viewtag, viewid, mediatype = self.emby.getView_embyId(itemid)
-            self.logMsg("View tag found: %s" % viewtag, 2)
 
         # fileId information
         checksum = API.getChecksum()
@@ -304,52 +301,31 @@ class Movies(Items):
 
         # item details
         people = API.getPeople()
-        writer = " / ".join(people['Writer'])
-        director = " / ".join(people['Director'])
-        genres = item['Genres']
-        title = item['Name']
-        plot = API.getOverview()
-        shortplot = item.get('ShortOverview')
-        tagline = API.getTagline()
-        votecount = item.get('VoteCount')
-        rating = item.get('CommunityRating')
-        year = item.get('ProductionYear')
+        writer = API.joinList(people['Writer'])
+        director = API.joinList(people['Director'])
+        genres = API.getGenres()
+        title, sorttitle = API.GetTitle()
+        plot = item['summary']
+        shortplot = None
+        tagline = item.get('tagline', '')
+        votecount = 0
+        rating = item.get('audienceRating', None)
+        year = item.get('year', None)
         imdb = API.getProvider('Imdb')
-        sorttitle = item['SortName']
-        runtime = API.getRuntime()
+        resume, runtime = API.getRuntime()
         mpaa = API.getMpaa()
-        genre = " / ".join(genres)
-        country = API.getCountry()
+        genre = API.joinList(genres)
+        countries = API.getCountry()
+        country = API.joinList(countries)
         studios = API.getStudios()
         try:
             studio = studios[0]
         except IndexError:
             studio = None
 
-        if item.get('LocalTrailerCount'):
-            # There's a local trailer
-            url = (
-                "{server}/emby/Users/{UserId}/Items/%s/LocalTrailers?format=json"
-                % itemid
-            )
-            result = self.doUtils.downloadUrl(url)
-            trailer = "plugin://plugin.video.plexkodiconnect/trailer/?id=%s&mode=play" % result[0]['Id']
-        else:
-            # Try to get the youtube trailer
-            try:
-                trailer = item['RemoteTrailers'][0]['Url']
-            except (KeyError, IndexError):
-                trailer = None
-            else:    
-                try:
-                    trailerId = trailer.rsplit('=', 1)[1]
-                except IndexError:
-                    self.logMsg("Failed to process trailer: %s" % trailer)
-                    trailer = None
-                else:
-                    trailer = "plugin://plugin.video.youtube/play/?video_id=%s" % trailerId
+        # TODO: trailers
+        trailer = None
 
-        
         ##### GET THE FILE AND PATH #####
         playurl = API.getFilePath()
 
@@ -455,9 +431,11 @@ class Movies(Items):
         kodicursor.execute(query, (pathid, filename, dateadded, fileid))
         
         # Process countries
-        kodi_db.addCountries(movieid, item['ProductionLocations'], "movie")
+        kodi_db.addCountries(movieid, countries, "movie")
         # Process cast
-        people = artwork.getPeopleArtwork(item['People'])
+        people = API.getPeopleList()
+        # TODO: get IMDB pictures?
+        people = artwork.getPeopleArtwork(people)
         kodi_db.addPeople(movieid, people, "movie")
         # Process genres
         kodi_db.addGenres(movieid, genres, "movie")
@@ -469,13 +447,13 @@ class Movies(Items):
         # Process studios
         kodi_db.addStudios(movieid, studios, "movie")
         # Process tags: view, emby tags
-        tags = [viewtag]
-        tags.extend(item['Tags'])
-        if userdata['Favorite']:
-            tags.append("Favorite movies")
-        kodi_db.addTags(movieid, tags, "movie")
+        # tags = [viewtag]
+        # tags.extend(item['Tags'])
+        # if userdata['Favorite']:
+        #    tags.append("Favorite movies")
+        # kodi_db.addTags(movieid, tags, "movie")
         # Process playstates
-        resume = API.adjustResume(userdata['Resume'])
+        # resume = API.adjustResume(userdata['Resume'])
         total = round(float(runtime), 6)
         kodi_db.addPlaystate(fileid, resume, total, playcount, dateplayed)
 
