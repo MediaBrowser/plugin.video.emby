@@ -198,16 +198,9 @@ class UserClient(threading.Thread):
 
     def setUserPref(self):
 
-        doUtils = self.doUtils
-        art = artwork.Artwork()
-
         url = PlexAPI.PlexAPI().GetUserArtworkURL(self.currUser)
         if url:
-            result = doUtils.downloadUrl(url, authenticate=False)
-            self.userSettings = result
-            # Set user image for skin display
-            if result.get('PrimaryImageTag'):
-                utils.window('EmbyUserImage', value=art.getUserArtwork(result['Id'], 'Primary'))
+            utils.window('EmbyUserImage', value=url)
         # Set resume point max
         # url = "{server}/emby/System/Configuration?format=json"
         # result = doUtils.downloadUrl(url)
@@ -229,24 +222,7 @@ class UserClient(threading.Thread):
             return False
 
     def hasAccess(self):
-        # hasAccess is verified in service.py
-        url = "{server}/emby/Users?format=json"
-        result = self.doUtils.downloadUrl(url)
-        
-        if result == False:
-            # Access is restricted, set in downloadutils.py via exception
-            self.logMsg("Access is restricted.", 1)
-            self.HasAccess = False
-        
-        elif utils.window('emby_online') != "true":
-            # Server connection failed
-            pass
-
-        elif utils.window('emby_serverStatus') == "restricted":
-            self.logMsg("Access is granted.", 1)
-            self.HasAccess = True
-            utils.window('emby_serverStatus', clear=True)
-            xbmcgui.Dialog().notification("Emby server", "Access is enabled.")
+        return True
 
     def loadCurrUser(self, authenticated=False):
 
@@ -294,7 +270,7 @@ class UserClient(threading.Thread):
         # Set user preferences in settings
         self.currUser = username
         self.setUserPref()
-        
+        return True
 
     def authenticate(self):
         # Get /profile/addon_data
