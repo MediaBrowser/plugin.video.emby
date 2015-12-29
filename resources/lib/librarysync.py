@@ -540,6 +540,8 @@ class LibrarySync(threading.Thread):
                 pdialog.update(heading="Processing %s / %s items" % (viewName, total))
 
             count = 0
+            # DELETE ME WHEN DONE TESTING!!
+            embymovies = embymovies[0:10]
             for embymovie in embymovies:
                 # Process individual movies
                 if self.shouldStop():

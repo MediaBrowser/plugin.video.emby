@@ -305,9 +305,9 @@ class Movies(Items):
         director = API.joinList(people['Director'])
         genres = API.getGenres()
         title, sorttitle = API.GetTitle()
-        plot = item['summary']
+        plot = item.get('summary', None)
         shortplot = None
-        tagline = item.get('tagline', '')
+        tagline = item.get('tagline', None)
         votecount = 0
         rating = item.get('audienceRating', None)
         year = item.get('year', None)
