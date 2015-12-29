@@ -533,7 +533,7 @@ class LibrarySync(threading.Thread):
                 del updatelist[:]
             else:
                 # Initial or repair sync
-                embymovies = self.plx.GetPlexMovies(viewId)
+                embymovies = self.plx.GetPlexSectionResults(viewId)
                 total = len(embymovies)
 
             if pdialog:

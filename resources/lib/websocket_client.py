@@ -287,8 +287,9 @@ class WebSocket_Client(threading.Thread):
             server = server.replace('https', "wss")
         else:
             server = server.replace('http', "ws")
+            #EDIT: realized the ws url is at: ws://server.local:32400/:/websockets/notifications
 
-        websocket_url = "%s?api_key=%s&deviceId=%s" % (server, token, deviceId)
+        websocket_url = "%s/:/websockets/notifications/?X-Plex-Token=%s" % (server, token)
         self.logMsg("websocket url: %s" % websocket_url, 1)
 
         self.client = websocket.WebSocketApp(websocket_url,
