@@ -265,6 +265,7 @@ class Artwork():
                 # Process backdrops and extra fanart
                 index = ""
                 for backdrop in backdrops:
+                    self.logMsg("imageURL: %s, kodiId: %s, mediatype: %s, imagetype: %s, cursor: %s" % (backdrop, kodiId, mediaType, index, cursor), 2)
                     self.addOrUpdateArt(
                         imageUrl=backdrop,
                         kodiId=kodiId,

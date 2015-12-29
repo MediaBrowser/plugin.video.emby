@@ -1351,6 +1351,12 @@ class API():
         )
         return checksum
 
+    def getKey(self):
+        item = self.item
+        key_regex = re.compile(r'/(\d+)$')
+        key = key_regex.findall(item['key'])[0]
+        return int(key)
+
     def getDateCreated(self):
         item = self.item
         try:

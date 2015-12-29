@@ -277,20 +277,25 @@ class Movies(Items):
         # If the item already exist in the local Kodi DB we'll perform a full item update
         # If the item doesn't exist, we'll add it to the database
         update_item = True
-        itemid = item['key']
+        itemid = API.getKey()
         emby_dbitem = emby_db.getItem_byId(itemid)
         try:
             movieid = emby_dbitem[0]
             fileid = emby_dbitem[1]
             pathid = emby_dbitem[2]
             self.logMsg("movieid: %s fileid: %s pathid: %s" % (movieid, fileid, pathid), 1)
-
+        
         except TypeError:
             update_item = False
             self.logMsg("movieid: %s not found." % itemid, 2)
             # movieid
             kodicursor.execute("select coalesce(max(idMovie),0) from movie")
             movieid = kodicursor.fetchone()[0] + 1
+
+        # if not viewtag or not viewid:
+        #     # Get view tag from emby
+        #     viewtag, viewid, mediatype = self.emby.getView_embyId(itemid)
+        #     self.logMsg("View tag found: %s" % viewtag, 2)
 
         # fileId information
         checksum = API.getChecksum()
@@ -364,7 +369,6 @@ class Movies(Items):
                 'mode': "play"
             }
             filename = "%s?%s" % (path, urllib.urlencode(params))
-
 
         ##### UPDATE THE MOVIE #####
         if update_item:

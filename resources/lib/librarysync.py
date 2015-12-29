@@ -520,7 +520,7 @@ class LibrarySync(threading.Thread):
                         return False
 
                     API = PlexAPI.API(embymovie)
-                    itemid = embymovie['key']
+                    itemid = API.getKey()
                     all_embymoviesIds.add(itemid)
 
                     if all_kodimovies.get(itemid) != API.getChecksum():
@@ -559,6 +559,8 @@ class LibrarySync(threading.Thread):
 
         ##### PROCESS DELETES #####
         if compare:
+            self.logMsg("all_kodimovies: %s" % all_kodimovies, 1)
+            self.logMsg("all_embymovies: %s" % all_embymoviesIds, 1)
             # Manual sync, process deletes
             for kodimovie in all_kodimovies:
                 if kodimovie not in all_embymoviesIds:
