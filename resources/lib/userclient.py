@@ -286,7 +286,7 @@ class UserClient(threading.Thread):
             self.auth = False
             return
         # If no user information
-        elif not server or not username:
+        elif not server:
             self.logMsg("Missing server information.", 1)
             self.auth = False
             return
