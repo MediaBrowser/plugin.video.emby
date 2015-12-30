@@ -1486,8 +1486,12 @@ class TVShows(Items):
                 season = -1
 
         # Specials ordering within season
-        airsBeforeSeason = item.get('AirsBeforeSeasonNumber', "-1")
-        airsBeforeEpisode = item.get('AirsBeforeEpisodeNumber', "-1")
+        if item.get('AirsAfterSeasonNumber'):
+            airsBeforeSeason = item['AirsAfterSeasonNumber']
+            airsBeforeEpisode = 4096 # Kodi default number for afterseason ordering
+        else:
+            airsBeforeSeason = item.get('AirsBeforeSeasonNumber', "-1")
+            airsBeforeEpisode = item.get('AirsBeforeEpisodeNumber', "-1")
 
         # Append multi episodes to title
         if item.get('IndexNumberEnd'):              
@@ -1864,6 +1868,8 @@ class Music(Items):
 
     def added(self, items, pdialog):
         
+        total = len(items)
+        count = 0
         for artist in items:
 
             title = artist['Name']
@@ -1878,6 +1884,8 @@ class Music(Items):
 
     def added_album(self, items, pdialog):
         
+        total = len(items)
+        count = 0
         for album in items:
 
             title = album['Name']
@@ -1892,6 +1900,8 @@ class Music(Items):
 
     def added_song(self, items, pdialog):
         
+        total = len(items)
+        count = 0
         for song in items:
 
             title = song['Name']
