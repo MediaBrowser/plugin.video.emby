@@ -41,6 +41,7 @@ import xbmc
 
 import struct
 import time
+import urllib
 import urllib2
 import httplib
 import socket
@@ -1314,6 +1315,9 @@ class API():
         self.item = item
         self.clientinfo = clientinfo.ClientInfo()
         self.addonName = self.clientinfo.getAddonName()
+        self.userId = utils.window('emby_currUser')
+        self.server = utils.window('emby_server%s' % self.userId)
+        self.token = utils.window('emby_accessToken%s' % self.userId)
 
     def logMsg(self, msg, lvl=1):
 
@@ -1643,6 +1647,13 @@ class API():
 
         return filepath
 
+    def addPlexCredentialsToUrl(self, url, arguments={}):
+        token = {'X-Plex-Token': self.token}
+        xargs = PlexAPI().getXArgsDeviceInfo(options=token)
+        xargs.update(arguments)
+        url = "%s?%s" % (url, urllib.urlencode(xargs))
+        return url
+
     def getMediaStreams(self):
         item = self.item
         item = item['_children']
@@ -1721,9 +1732,10 @@ class API():
             'subtitle': subtitlelanguages
         }
 
-    def getAllArtwork(self, item, parentInfo=False):
+    def getAllArtwork(self, parentInfo=False):
 
         server = self.server
+        item = self.item
 
         id = item['key']
 
@@ -1753,6 +1765,7 @@ class API():
         try:
             background = item['art']
             background = "%s%s" % (server, background)
+            background = self.addPlexCredentialsToUrl(background)
         except KeyError:
             background = ""
         allartworks['Backdrop'].append(background)
@@ -1760,6 +1773,7 @@ class API():
         try:
             primary = item['thumb']
             primary = "%s%s" % (server, primary)
+            primary = self.addPlexCredentialsToUrl(primary)
         except KeyError:
             primary = ""
         allartworks['Primary'] = primary
