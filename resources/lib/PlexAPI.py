@@ -603,12 +603,12 @@ class PlexAPI():
         """
         # Get addon infos
         xargs = dict()
-        xargs['User-agent'] = 'PlexKodiConnect'
+        xargs['User-agent'] = self.addonName
         xargs['X-Plex-Device'] = self.deviceName
         # xargs['X-Plex-Model'] = ''
         xargs['X-Plex-Platform'] = self.platform
         xargs['X-Plex-Client-Platform'] = self.platform
-        xargs['X-Plex-Product'] = 'PlexKodiConnect'
+        xargs['X-Plex-Product'] = self.addonName
         xargs['X-Plex-Version'] = self.plexversion
         xargs['X-Plex-Client-Identifier'] = self.clientId
         if options:
@@ -1720,3 +1720,99 @@ class API():
             'audio': audiotracks,
             'subtitle': subtitlelanguages
         }
+
+    def getAllArtwork(self, item, parentInfo=False):
+
+        server = self.server
+
+        id = item['key']
+
+        maxHeight = 10000
+        maxWidth = 10000
+        customquery = ""
+
+        if utils.settings('compressArt') == "true":
+            customquery = "&Quality=90"
+
+        if utils.settings('enableCoverArt') == "false":
+            customquery += "&EnableImageEnhancers=false"
+
+        allartworks = {
+
+            'Primary': "",
+            'Art': "",
+            'Banner': "",
+            'Logo': "",
+            'Thumb': "",
+            'Disc': "",
+            'Backdrop': []
+        }
+        
+        # Process backdrops
+        # Get background artwork URL
+        try:
+            background = item['art']
+            background = "%s%s" % (server, background)
+        except KeyError:
+            background = ""
+        allartworks['Backdrop'].append(background)
+        # Get primary "thumb" pictures:
+        try:
+            primary = item['thumb']
+            primary = "%s%s" % (server, primary)
+        except KeyError:
+            primary = ""
+        allartworks['Primary'] = primary
+
+        # Process parent items if the main item is missing artwork
+        if parentInfo:
+            
+            # Process parent backdrops
+            if not allartworks['Backdrop']:
+                
+                parentId = item.get('ParentBackdropItemId')
+                if parentId:
+                    # If there is a parentId, go through the parent backdrop list
+                    parentbackdrops = item['ParentBackdropImageTags']
+
+                    backdropIndex = 0
+                    for parentbackdroptag in parentbackdrops:
+                        artwork = (
+                            "%s/emby/Items/%s/Images/Backdrop/%s?"
+                            "MaxWidth=%s&MaxHeight=%s&Format=original&Tag=%s%s"
+                            % (server, parentId, backdropIndex,
+                                maxWidth, maxHeight, parentbackdroptag, customquery))
+                        allartworks['Backdrop'].append(artwork)
+                        backdropIndex += 1
+
+            # Process the rest of the artwork
+            parentartwork = ['Logo', 'Art', 'Thumb']
+            for parentart in parentartwork:
+
+                if not allartworks[parentart]:
+                    
+                    parentId = item.get('Parent%sItemId' % parentart)
+                    if parentId:
+                        
+                        parentTag = item['Parent%sImageTag' % parentart]
+                        artwork = (
+                            "%s/emby/Items/%s/Images/%s/0?"
+                            "MaxWidth=%s&MaxHeight=%s&Format=original&Tag=%s%s"
+                            % (server, parentId, parentart,
+                                maxWidth, maxHeight, parentTag, customquery))
+                        allartworks[parentart] = artwork
+
+            # Parent album works a bit differently
+            if not allartworks['Primary']:
+
+                parentId = item.get('AlbumId')
+                if parentId and item.get('AlbumPrimaryImageTag'):
+                    
+                    parentTag = item['AlbumPrimaryImageTag']
+                    artwork = (
+                        "%s/emby/Items/%s/Images/Primary/0?"
+                        "MaxWidth=%s&MaxHeight=%s&Format=original&Tag=%s%s"
+                        % (server, parentId, maxWidth, maxHeight, parentTag, customquery))
+                    allartworks['Primary'] = artwork
+
+        return allartworks

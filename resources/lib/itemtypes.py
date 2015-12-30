@@ -444,7 +444,8 @@ class Movies(Items):
         # Process genres
         kodi_db.addGenres(movieid, genres, "movie")
         # Process artwork
-        artwork.addArtwork(artwork.getAllArtwork(item), movieid, "movie", kodicursor)
+        allartworks = API.getAllArtwork()
+        artwork.addArtwork(allartworks, movieid, "movie", kodicursor)
         # Process stream details
         streams = API.getMediaStreams()
         kodi_db.addStreams(fileid, streams, runtime)
