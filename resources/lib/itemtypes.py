@@ -313,7 +313,7 @@ class Movies(Items):
         plot = item.get('summary', None)
         shortplot = None
         tagline = item.get('tagline', None)
-        votecount = 0
+        votecount = None
         rating = item.get('audienceRating', None)
         year = item.get('year', None)
         imdb = API.getProvider('Imdb')

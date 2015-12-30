@@ -1281,15 +1281,23 @@ class PlexAPI():
         try:
             result = jsondata['_children']
         except KeyError:
+            self.logMsg("Error retrieving all movies for section %s" % viewId, 1)
             pass
         return result
 
     def GetPlexMetadata(self, key):
         """
         Returns raw API metadata for key.
+
+        Can be called with either Plex key '/library/metadata/xxxx'metadata
+        OR with the digits 'xxxx' only.
         """
         result = []
-        url = "{server}" + key
+        key = str(key)
+        if '/library/metadata/' in key:
+            url = "{server}" + key
+        else:
+            url = "{server}/library/metadata/" + key
         jsondata = self.doUtils.downloadUrl(url)
         try:
             result = jsondata['_children'][0]
@@ -1339,23 +1347,28 @@ class API():
 
     def getChecksum(self):
         """
+        Returns a string, not int!
         Maybe get rid of viewOffset = (resume point)?!?
         """
         item = self.item
-        checksum = "%s%s%s%s%s" % (
-            item['key'],
+        # Include a letter to prohibit saving as an int!
+        checksum = "K%s%s%s%s%s" % (
+            self.getKey(),
             item['updatedAt'],
             item.get('viewCount', ""),
             item.get('lastViewedAt', ""),
             item.get('viewOffset', "")
         )
-        return checksum
+        return str(checksum)
 
     def getKey(self):
+        """
+        Returns the Plex unique movie id as a str, not int
+        """
         item = self.item
         key_regex = re.compile(r'/(\d+)$')
         key = key_regex.findall(item['key'])[0]
-        return int(key)
+        return str(key)
 
     def getDateCreated(self):
         item = self.item
