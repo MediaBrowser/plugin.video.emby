@@ -1788,15 +1788,11 @@ class API():
         # TODO: what if several Media tags exist?!?
         # Loop over parts
         for child in item[0][0]:
-            part = child.attrib
-            container = part['container'].lower()
+            container = child.attrib['container'].lower()
             # Loop over Streams
             for grandchild in child:
                 mediaStream = grandchild.attrib
-                try:
-                    type = mediaStream['streamType']
-                except KeyError:
-                    type = None
+                type = int(mediaStream['streamType'])
                 if type == 1:  # Video streams
                     videotrack = {}
                     videotrack['videocodec'] = mediaStream['codec'].lower()
@@ -1841,11 +1837,12 @@ class API():
                         subtitlelanguages.append(mediaStream['language'])
                     except:
                         subtitlelanguages.append("Unknown")
-        return {
+        media = {
             'video': videotracks,
             'audio': audiotracks,
             'subtitle': subtitlelanguages
         }
+        return media
 
     def getAllArtwork(self, parentInfo=False):
 

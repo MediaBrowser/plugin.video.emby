@@ -472,7 +472,6 @@ class LibrarySync(threading.Thread):
         movies = itemtypes.Movies(embycursor, kodicursor)
 
         views = plx.GetPlexCollections('movie')
-        self.logMsg("Movie folders found: %s" % views, 1)
 
         if compare:
             # Pull the list of movies and boxsets in Kodi
@@ -480,7 +479,6 @@ class LibrarySync(threading.Thread):
                 all_kodimoviesId = dict(emby_db.getChecksum('Movie'))
             except ValueError:
                 all_kodimoviesId = {}
-            self.logMsg("all_kodimoviesId: %s " % (all_kodimoviesId), 1)
         all_plexmoviesIds = []
 
         ##### PROCESS MOVIES #####
@@ -525,7 +523,6 @@ class LibrarySync(threading.Thread):
                     plex_checksum = API.getChecksum()
                     all_plexmoviesIds.append(plex_checksum)
                     updatelist.append(itemid)
-            self.logMsg("Movies to update for %s: %s" % (viewName, updatelist), 1)
 
             total = len(updatelist)
             if pdialog:
