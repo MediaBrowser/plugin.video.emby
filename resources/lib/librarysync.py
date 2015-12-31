@@ -468,7 +468,6 @@ class LibrarySync(threading.Thread):
     def PlexMovies(self, embycursor, kodicursor, pdialog, compare=False):
         plx = PlexAPI.PlexAPI()
         # Get movies from Plex server
-        emby = self.emby
         emby_db = embydb.Embydb_Functions(embycursor)
         movies = itemtypes.Movies(embycursor, kodicursor)
 
@@ -483,11 +482,10 @@ class LibrarySync(threading.Thread):
                 all_kodimoviesId = {}
             self.logMsg("all_kodimoviesId: %s " % (all_kodimoviesId), 1)
         all_plexmoviesIds = []
-        updatelist = []
-        plexmovies = []
 
         ##### PROCESS MOVIES #####
         for view in views:
+            updatelist = []
             if self.shouldStop():
                 return False
             # Get items per view
@@ -507,7 +505,7 @@ class LibrarySync(threading.Thread):
                         heading=self.addonName,
                         message="Comparing movies from view: %s..." % viewName
                     )
-                for plexmovie in all_plexmovies[0:10]:
+                for plexmovie in all_plexmovies:
                     if self.shouldStop():
                         return False
                     API = PlexAPI.API(plexmovie)
@@ -521,34 +519,32 @@ class LibrarySync(threading.Thread):
                         updatelist.append(itemid)
             else:
                 # Initial or repair sync: get all Plex movies
-                for plexmovie in all_plexmovies[0:10]:
+                for plexmovie in all_plexmovies:
                     API = PlexAPI.API(plexmovie)
                     itemid = API.getKey()
                     plex_checksum = API.getChecksum()
                     all_plexmoviesIds.append(plex_checksum)
                     updatelist.append(itemid)
             self.logMsg("Movies to update for %s: %s" % (viewName, updatelist), 1)
-            # Get individual metadata for all movies that we need to sync
-            # This is possibly a huge list!
-            for itemid in updatelist:
-                plexmovie = plx.GetPlexMetadata(itemid)
-                plexmovies.append(plexmovie)
 
-            total = len(plexmovies)
+            total = len(updatelist)
             if pdialog:
                 pdialog.update(heading="Processing %s / %s items" % (viewName, total))
 
             count = 0
-            for plexmovie in plexmovies:
+            for itemid in updatelist:
                 # Process individual movies
                 if self.shouldStop():
                     return False
+                plexmovie = plx.GetPlexMetadata(itemid)
                 title = plexmovie[0].attrib['title']
                 if pdialog:
                     percentage = int((float(count) / float(total))*100)
                     pdialog.update(percentage, message=title)
                     count += 1
+                # Download individual metadata
                 movies.add_update(plexmovie, viewName, viewId)
+
         else:
             self.logMsg("Movies finished.", 2)
 
