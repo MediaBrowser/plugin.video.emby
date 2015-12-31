@@ -309,13 +309,13 @@ class Movies(Items):
         writer = API.joinList(people['Writer'])
         director = API.joinList(people['Director'])
         genres = API.getGenres()
-        title, sorttitle = API.GetTitle()
-        plot = item.get('summary', None)
+        title, sorttitle = API.getTitle()
+        plot = API.getPlot()
         shortplot = None
-        tagline = item.get('tagline', None)
+        tagline = API.getTagline()
         votecount = None
-        rating = item.get('audienceRating', None)
-        year = item.get('year', None)
+        rating = API.getAudienceRating()
+        year = API.getYear()
         imdb = API.getProvider('Imdb')
         resume, runtime = API.getRuntime()
         mpaa = API.getMpaa()
@@ -438,8 +438,6 @@ class Movies(Items):
         kodi_db.addCountries(movieid, countries, "movie")
         # Process cast
         people = API.getPeopleList()
-        # TODO: get IMDB pictures?
-        people = artwork.getPeopleArtwork(people)
         kodi_db.addPeople(movieid, people, "movie")
         # Process genres
         kodi_db.addGenres(movieid, genres, "movie")

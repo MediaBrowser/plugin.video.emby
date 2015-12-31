@@ -13,6 +13,10 @@ import utils
 import clientinfo
 
 import PlexAPI
+try:
+    import xml.etree.cElementTree as etree
+except ImportError:
+    import xml.etree.ElementTree as etree
 
 ##################################################################################################
 
@@ -205,16 +209,16 @@ class DownloadUtils():
                     # Replace for the real values
                     url = url.replace("{server}", self.server)
                     url = url.replace("{UserId}", self.userId)
-
+                    header = self.getHeader(options=headerOptions)
                     # Prepare request
                     if type == "GET":
-                        r = s.get(url, json=postBody, params=parameters, timeout=timeout)
+                        r = s.get(url, json=postBody, params=parameters, timeout=timeout, headers=header)
                     elif type == "POST":
-                        r = s.post(url, json=postBody, timeout=timeout)
+                        r = s.post(url, json=postBody, timeout=timeout, headers=header)
                     elif type == "DELETE":
-                        r = s.delete(url, json=postBody, timeout=timeout)
+                        r = s.delete(url, json=postBody, timeout=timeout, headers=header)
                     elif type == "OPTIONS":
-                        r = s.options(url, json=postBody, timeout=timeout)
+                        r = s.options(url, json=postBody, timeout=timeout, headers=header)
                 
                 except AttributeError:
                     # request session does not exists
@@ -317,12 +321,15 @@ class DownloadUtils():
                     return r
 
                 except:
-                    # Allow for xml responses, but do not process them
-                    if 'xml' in r.headers.get('content-type'):
-                        self.logMsg("Received an XML response for: %s" % url, 1)
-                        return 'xml'
-                    elif r.headers.get('content-type') != "text/html":
+                    # Allow for xml responses
+                    try:
+                        r = etree.fromstring(r.content)
+                        self.logMsg("====== 200 Success ======", 2)
+                        self.logMsg("Received an XML response for: %s" % url, 2)
+                        return r
+                    except:
                         self.logMsg("Unable to convert the response for: %s" % url, 1)
+                        self.logMsg("Content-type was: %s" % r.headers['content-type'], 1)
             else:
                 r.raise_for_status()
         

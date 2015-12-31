@@ -543,7 +543,7 @@ class LibrarySync(threading.Thread):
                 # Process individual movies
                 if self.shouldStop():
                     return False
-                title = plexmovie['title']
+                title = plexmovie[0].attrib['title']
                 if pdialog:
                     percentage = int((float(count) / float(total))*100)
                     pdialog.update(percentage, message=title)
