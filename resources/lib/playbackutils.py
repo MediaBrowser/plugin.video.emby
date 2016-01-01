@@ -105,7 +105,7 @@ class PlaybackUtils():
                 # Remove the original item from playlist 
                 self.pl.removefromPlaylist(startPos+1)
                 # Readd the original item to playlist - via jsonrpc so we have full metadata
-                self.pl.insertintoPlaylist(currentPosition+1, dbid, item['Type'].lower())
+                self.pl.insertintoPlaylist(currentPosition+1, dbid, item[0].attrib['type'].lower())
                 currentPosition += 1
             
             ############### -- CHECK FOR INTROS ################

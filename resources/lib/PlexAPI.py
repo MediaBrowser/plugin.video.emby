@@ -1258,6 +1258,38 @@ class PlexAPI():
             self.logMsg("Error retrieving metadata for %s" % url, 1)
         return xml
 
+    def GetPlexPlaylist(self, key):
+        """
+        Returns raw API metadata XML dump.
+
+        Can be called with either Plex key '/library/metadata/xxxx'metadata
+        OR with the digits 'xxxx' only.
+        """
+        xml = ''
+        key = str(key)
+        url = "{server}/playQueues"
+        if '/library/metadata/' in key:
+            # Cut of the slash!
+            item = key[1:]
+        else:
+            item = "library/metadata/" + key
+        arguments = {
+            'checkFiles': 1,            # No idea
+            'includeExtras': 1,         # Trailers and Extras => Extras
+            'includeRelated': 1,        # Similar movies => Video -> Related
+            'includeRelatedCount': 5,
+            'includeOnDeck': 1,
+            'includeChapters': 1,
+            'includePopularLeaves': 1,
+            'includeConcerts': 1
+        }
+        url = url + '?' + urlencode(arguments)
+        headerOptions = {'Accept': 'application/xml'}
+        xml = self.doUtils.downloadUrl(url, headerOptions=headerOptions)
+        if not xml:
+            self.logMsg("Error retrieving metadata for %s" % url, 1)
+        return xml
+
 
 class API():
 
@@ -1304,7 +1336,6 @@ class API():
     def getChecksum(self):
         """
         Returns a string, not int!
-        Maybe get rid of viewOffset = (resume point)?!?
         """
         item = self.item
         # Include a letter to prohibit saving as an int!
@@ -1321,7 +1352,7 @@ class API():
             item.get('lastViewedAt', ""),
             item.get('viewOffset', "")
         )
-        return str(checksum)
+        return checksum
 
     def getKey(self):
         """
@@ -1385,10 +1416,10 @@ class API():
             lastPlayedDate = None
 
         try:
-            resume = int(item['viewOffset'])
+            resume = float(item['viewOffset']) * 1.0/1000.0
+            resume = round(resume, 6)
         except KeyError:
-            resume = 0
-
+            resume = 0.0
         return {
             'Favorite': favorite,
             'PlayCount': playcount,
@@ -1595,24 +1626,26 @@ class API():
         """
         Resume point of time and runtime/totaltime. Rounded to 6th decimal.
 
-        Assumption: time for both resume and runtime is measured in
-        milliseconds on the Plex side and in seconds on the Kodi side.
+        Time from Plex server is measured in milliseconds.
+        Kodi: on the Plex side and in seconds on the Kodi side.
         """
         item = self.item
+        time_factor = 1.0 / 1000.0    # millisecond -> seconds
         # xml
         try:
             item = item[0].attrib
         # json
         except KeyError:
             pass
-        time_factor = 1/1000
-        runtime = int(item['duration']) * time_factor
+        runtime = float(item['duration'])
         try:
-            resume = int(item['viewOffset']) * time_factor
+            resume = float(item['viewOffset'])
         except KeyError:
-            resume = 0
-        resume = round(float(resume), 6)
-        runtime = round(float(runtime), 6)
+            resume = 0.0
+        runtime = runtime * time_factor
+        resume = resume * time_factor
+        resume = round(resume, 6)
+        runtime = round(runtime, 6)
         return resume, runtime
 
     def getMpaa(self):

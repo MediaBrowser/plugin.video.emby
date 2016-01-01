@@ -457,8 +457,7 @@ class Movies(Items):
         # kodi_db.addTags(movieid, tags, "movie")
         # Process playstates
         # resume = API.adjustResume(userdata['Resume'])
-        total = round(float(runtime), 6)
-        kodi_db.addPlaystate(fileid, resume, total, playcount, dateplayed)
+        kodi_db.addPlaystate(fileid, resume, runtime, playcount, dateplayed)
 
     def add_updateBoxset(self, boxset):
 
