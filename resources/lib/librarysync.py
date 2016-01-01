@@ -512,7 +512,6 @@ class LibrarySync(threading.Thread):
                     kodi_checksum = all_kodimoviesId.get(itemid)
                     all_plexmoviesIds.append(plex_checksum)
                     if kodi_checksum != plex_checksum:
-                        self.logMsg("Kodimovie unequal to Embymovie: %s %s" % (kodi_checksum, plex_checksum), 2)
                         # Only update if movie is not in Kodi or checksum is different
                         updatelist.append(itemid)
             else:
