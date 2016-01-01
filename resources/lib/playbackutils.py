@@ -18,6 +18,8 @@ import playlist
 import read_embyserver as embyserver
 import utils
 
+import PlexAPI
+
 #################################################################################################
 
 
@@ -27,7 +29,7 @@ class PlaybackUtils():
     def __init__(self, item):
 
         self.item = item
-        self.API = api.API(self.item)
+        self.API = PlexAPI.API(self.item)
 
         self.clientInfo = clientinfo.ClientInfo()
         self.addonName = self.clientInfo.getAddonName()
@@ -107,8 +109,9 @@ class PlaybackUtils():
                 currentPosition += 1
             
             ############### -- CHECK FOR INTROS ################
-
-            if utils.settings('enableCinema') == "true" and not seektime:
+            # PLEX: todo. Seems like Plex returns a playlist WITH trailers
+            # if utils.settings('enableCinema') == "true" and not seektime:
+            if False:
                 # if we have any play them when the movie/show is not being resumed
                 url = "{server}/emby/Users/{UserId}/Items/%s/Intros?format=json" % itemid    
                 intros = doUtils.downloadUrl(url)
@@ -145,14 +148,17 @@ class PlaybackUtils():
                 # Extend our current playlist with the actual item to play
                 # only if there's no playlist first
                 self.logMsg("Adding main item to playlist.", 1)
-                self.pl.addtoPlaylist(dbid, item['Type'].lower())
+                # self.pl.addtoPlaylist(dbid, item['Type'].lower())
+                self.pl.addtoPlaylist(dbid, item[0].attrib['type'].lower())
 
             # Ensure that additional parts are played after the main item
             currentPosition += 1
 
             ############### -- CHECK FOR ADDITIONAL PARTS ################
             
-            if item.get('PartCount'):
+            # Plex: TODO. Guess parts are sent back like trailers.
+            # if item.get('PartCount'):
+            if False:
                 # Only add to the playlist after intros have played
                 partcount = item['PartCount']
                 url = "{server}/emby/Videos/%s/AdditionalParts?format=json" % itemid
@@ -215,11 +221,14 @@ class PlaybackUtils():
     def setProperties(self, playurl, listitem):
         # Set all properties necessary for plugin path playback
         item = self.item
-        itemid = item['Id']
-        itemtype = item['Type']
+        # itemid = item['Id']
+        itemid = self.API.getKey()
+        # itemtype = item['Type']
+        itemtype = item[0].attrib['type']
+        resume, runtime = self.API.getRuntime()
 
         embyitem = "emby_%s" % playurl
-        utils.window('%s.runtime' % embyitem, value=str(item.get('RunTimeTicks')))
+        utils.window('%s.runtime' % embyitem, value=str(runtime))
         utils.window('%s.type' % embyitem, value=itemtype)
         utils.window('%s.itemid' % embyitem, value=itemid)
 
@@ -231,7 +240,8 @@ class PlaybackUtils():
         # Append external subtitles to stream
         playmethod = utils.window('%s.playmethod' % embyitem)
         # Only for direct play and direct stream
-        subtitles = self.externalSubs(playurl)
+        # subtitles = self.externalSubs(playurl)
+        subtitles = self.API.externalSubs(playurl)
         if playmethod in ("DirectStream", "Transcode"):
             # Direct play automatically appends external
             listitem.setSubtitles(subtitles)
@@ -278,7 +288,8 @@ class PlaybackUtils():
         item = self.item
         artwork = self.artwork
 
-        allartwork = artwork.getAllArtwork(item, parentInfo=True)
+        # allartwork = artwork.getAllArtwork(item, parentInfo=True)
+        allartwork = self.API.getAllArtwork(parentInfo=True)
         # Set artwork for listitem
         arttypes = {
 

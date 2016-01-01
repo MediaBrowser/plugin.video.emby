@@ -9,6 +9,8 @@ import xbmcvfs
 import clientinfo
 import utils
 
+import PlexAPI
+
 #################################################################################################
 
 
@@ -24,6 +26,9 @@ class PlayUtils():
 
         self.userid = utils.window('emby_currUser')
         self.server = utils.window('emby_server%s' % self.userid)
+        self.machineIdentifier = utils.window('plex_machineIdentifier')
+
+        self.plx = PlexAPI.API(item)
 
     def logMsg(self, msg, lvl=1):
 
@@ -36,34 +41,39 @@ class PlayUtils():
         item = self.item
         playurl = None
 
-        if item['MediaSources'][0]['Protocol'] == "Http":
-            # Only play as http
-            self.logMsg("File protocol is http.", 1)
-            playurl = self.httpPlay()
-            utils.window('emby_%s.playmethod' % playurl, value="DirectStream")
+        # if item['MediaSources'][0]['Protocol'] == "Http":
+        #     # Only play as http
+        #     self.logMsg("File protocol is http.", 1)
+        #     playurl = self.httpPlay()
+        #     utils.window('emby_%s.playmethod' % playurl, value="DirectStream")
 
-        elif self.isDirectPlay():
+        # elif self.isDirectPlay():
 
-            self.logMsg("File is direct playing.", 1)
-            playurl = self.directPlay()
-            playurl = playurl.encode('utf-8')
-            # Set playmethod property
-            utils.window('emby_%s.playmethod' % playurl, value="DirectPlay")
+        #     self.logMsg("File is direct playing.", 1)
+        #     playurl = self.directPlay()
+        #     playurl = playurl.encode('utf-8')
+        #     # Set playmethod property
+        #     utils.window('emby_%s.playmethod' % playurl, value="DirectPlay")
 
-        elif self.isDirectStream():
+        if self.isDirectStream():
             
             self.logMsg("File is direct streaming.", 1)
-            playurl = self.directStream()
+            playurl = self.plx.getTranscodeVideoPath('direct')
             # Set playmethod property
             utils.window('emby_%s.playmethod' % playurl, value="DirectStream")
 
         elif self.isTranscoding():
             
             self.logMsg("File is transcoding.", 1)
-            playurl = self.transcoding()
+            quality = {
+                'bitrate': self.getBitrate()
+            }
+            playurl = self.plx.getTranscodeVideoPath(
+                'Transcode', quality=quality
+            )
             # Set playmethod property
             utils.window('emby_%s.playmethod' % playurl, value="Transcode")
-
+        self.logMsg("The playurl is: %s" % playurl, 1)
         return playurl
 
     def httpPlay(self):
@@ -192,13 +202,16 @@ class PlayUtils():
         item = self.item
 
         if (utils.settings('transcodeH265') == "true" and 
-                item['MediaSources'][0]['Name'].startswith("1080P/H265")):
+                item[0][0].attrib('videoCodec').startswith("h265") and
+                item[0][0].attrib('videoResolution').startswith("1080")):
             # Avoid H265 1080p
             self.logMsg("Option to transcode 1080P/H265 enabled.", 1)
             return False
 
         # Requirement: BitRate, supported encoding
-        canDirectStream = item['MediaSources'][0]['SupportsDirectStream']
+        # canDirectStream = item['MediaSources'][0]['SupportsDirectStream']
+        # Plex: always able?!?
+        canDirectStream = True
         # Make sure the server supports it
         if not canDirectStream:
             return False
@@ -215,16 +228,18 @@ class PlayUtils():
         item = self.item
         server = self.server
 
-        itemid = item['Id']
-        type = item['Type']
+        itemid = self.plx.getKey()
+        type = item[0].tag
 
-        if 'Path' in item and item['Path'].endswith('.strm'):
-            # Allow strm loading when direct streaming
-            playurl = self.directPlay()
-        elif type == "Audio":
+        # if 'Path' in item and item['Path'].endswith('.strm'):
+        #     # Allow strm loading when direct streaming
+        #     playurl = self.directPlay()
+        if type == "Audio":
             playurl = "%s/emby/Audio/%s/stream.mp3" % (server, itemid)
         else:
             playurl = "%s/emby/Videos/%s/stream?static=true" % (server, itemid)
+            playurl = "{server}/player/playback/playMedia?key=%2Flibrary%2Fmetadata%2F%s&offset=0&X-Plex-Client-Identifier={clientId}&machineIdentifier={SERVER ID}&address={SERVER IP}&port={SERVER PORT}&protocol=http&path=http%3A%2F%2F{SERVER IP}%3A{SERVER PORT}%2Flibrary%2Fmetadata%2F{MEDIA ID}" % (itemid)
+            playurl = self.plx.replaceURLtags()
 
         return playurl
 
@@ -233,7 +248,7 @@ class PlayUtils():
         settings = self.getBitrate()*1000
 
         try:
-            sourceBitrate = int(self.item['MediaSources'][0]['Bitrate'])
+            sourceBitrate = int(self.item[0][0].attrib['bitrate'])
         except (KeyError, TypeError):
             self.logMsg("Bitrate value is missing.", 1)
         else:
@@ -245,7 +260,8 @@ class PlayUtils():
         return True
 
     def isTranscoding(self):
-
+        # I hope Plex transcodes everything
+        return True
         item = self.item
 
         canTranscode = item['MediaSources'][0]['SupportsTranscoding']

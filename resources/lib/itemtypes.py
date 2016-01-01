@@ -360,7 +360,7 @@ class Movies(Items):
             utils.window('emby_pathverified', value="true")
         else:
             # Set plugin path and media flags using real filename
-            path = "plugin://plugin.video.plexkodiconnect.movies/"
+            path = "plugin://plugin.video.emby.movies/"
             params = {
 
                 'filename': filename.encode('utf-8'),
@@ -704,7 +704,7 @@ class HomeVideos(Items):
             utils.window('emby_pathverified', value="true")
         else:
             # Set plugin path and media flags using real filename
-            path = "plugin://plugin.video.plexkodiconnect.movies/"
+            path = "plugin://plugin.video.emby.movies/"
             params = {
 
                 'filename': filename.encode('utf-8'),

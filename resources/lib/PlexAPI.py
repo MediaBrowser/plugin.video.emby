@@ -41,7 +41,6 @@ import xbmc
 
 import struct
 import time
-import urllib
 import urllib2
 import httplib
 import socket
@@ -52,6 +51,7 @@ import Queue
 import traceback
 
 import re
+import json
 
 try:
     import xml.etree.cElementTree as etree
@@ -87,6 +87,12 @@ class PlexAPI():
         self.deviceName = client.getDeviceName()
         self.plexversion = client.getVersion()
         self.platform = client.getPlatform()
+        self.userId = utils.window('emby_currUser')
+        self.token = utils.window('emby_accessToken%s' % self.userId)
+        self.server = utils.window('emby_server%s' % self.userId)
+        self.plexLogin = utils.settings('plexLogin')
+        self.plexToken = utils.settings('plexToken')
+        self.machineIdentifier = utils.window('plex_machineIdentifier')
 
         self.doUtils = downloadutils.DownloadUtils()
 
@@ -167,6 +173,7 @@ class PlexAPI():
             headerOptions={'X-Plex-Token': token}
         )
         self.logMsg("Response was: %s" % r, 2)
+        # List of exception returns, when connection failed
         exceptionlist = [
             '',
             401
@@ -596,22 +603,30 @@ class PlexAPI():
         requests. An authentication option is NOT yet added.
 
         Inputs:
+            JSON=True       will enforce a JSON answer
             options:        dictionary of options that will override the
                             standard header options otherwise set.
-            JSON=True       will enforce a JSON answer, never mind any options
         Output:
             header dictionary
         """
         # Get addon infos
-        xargs = dict()
-        xargs['User-agent'] = self.addonName
-        xargs['X-Plex-Device'] = self.deviceName
-        # xargs['X-Plex-Model'] = ''
-        xargs['X-Plex-Platform'] = self.platform
-        xargs['X-Plex-Client-Platform'] = self.platform
-        xargs['X-Plex-Product'] = self.addonName
-        xargs['X-Plex-Version'] = self.plexversion
-        xargs['X-Plex-Client-Identifier'] = self.clientId
+        xargs = {
+            'User-agent': self.addonName,
+            'X-Plex-Device': self.deviceName,
+            'X-Plex-Platform': self.platform,
+            'X-Plex-Client-Platform': self.platform,
+            'X-Plex-Product': self.addonName,
+            'X-Plex-Version': self.plexversion,
+            'X-Plex-Client-Identifier': self.clientId,
+            'machineIdentifier': self.machineIdentifier,
+            'Accept': 'application/xml'
+        }
+
+        try:
+            xargs['X-Plex-Token'] = self.token
+        except NameError:
+            # no token needed/saved yet
+            pass
         if JSON:
             xargs['Accept'] = 'application/json'
         if options:
@@ -821,31 +836,6 @@ class PlexAPI():
         dprint(__name__, 1, "====== MyPlex sign out XML finished ======")
         dprint(__name__, 0, 'MyPlex Sign Out done')
 
-    def UserAccessRestricted(self, username):
-        """
-        Returns True if the user's access is restricted (parental restrictions)
-        False otherwise.
-
-        Returns False also if access cannot be checked because plex.tv cannot
-        be reached.
-        """
-        plexToken = utils.settings('plexToken')
-        users = self.MyPlexListHomeUsers(plexToken)
-        # If an error is encountered, set to False
-        if not users:
-            self.logMsg("Could not check user access restrictions.", 1)
-            self.logMsg("Setting restrictions to False.", 1)
-            return False
-        for user in users:
-            if username in user['title']:
-                restricted = user['restricted']
-        if restricted == '1':
-            restricted = True
-        else:
-            restricted = False
-        self.logMsg("Successfully checked user parental access for %s: restricted access is set to %s" % (username, restricted), 1)
-        return restricted
-
     def GetUserArtworkURL(self, username):
         """
         Returns the URL for the user's Avatar. Or False if something went
@@ -877,8 +867,8 @@ class PlexAPI():
         Will return empty strings if failed.
         """
         string = self.__language__
-        plexToken = utils.settings('plexToken')
-        plexLogin = utils.settings('plexLogin')
+        plexLogin = self.plexLogin
+        plexToken = self.plexToken
         self.logMsg("Getting user list.", 1)
         # Get list of Plex home users
         users = self.MyPlexListHomeUsers(plexToken)
@@ -1020,54 +1010,6 @@ class PlexAPI():
         for user in root:
             users.append(user.attrib)
         return users
-
-    def getTranscodeVideoPath(self, path, AuthToken, options, action, quality, subtitle, audio, partIndex):
-        """
-        Transcode Video support
-
-        parameters:
-            path
-            AuthToken
-            options - dict() of PlexConnect-options as received from aTV
-            action - transcoder action: Auto, Directplay, Transcode
-            quality - (resolution, quality, bitrate)
-            subtitle - {'selected', 'dontBurnIn', 'size'}
-            audio - {'boost'}
-        result:
-            final path to pull in PMS transcoder
-        """
-        UDID = options['PlexConnectUDID']
-        
-        transcodePath = '/video/:/transcode/universal/start.m3u8?'
-        
-        vRes = quality[0]
-        vQ = quality[1]
-        mVB = quality[2]
-        dprint(__name__, 1, "Setting transcode quality Res:{0} Q:{1} {2}Mbps", vRes, vQ, mVB)
-        dprint(__name__, 1, "Subtitle: selected {0}, dontBurnIn {1}, size {2}", subtitle['selected'], subtitle['dontBurnIn'], subtitle['size'])
-        dprint(__name__, 1, "Audio: boost {0}", audio['boost'])
-        
-        args = dict()
-        args['session'] = UDID
-        args['protocol'] = 'hls'
-        args['videoResolution'] = vRes
-        args['maxVideoBitrate'] = mVB
-        args['videoQuality'] = vQ
-        args['directStream'] = '0' if action=='Transcode' else '1'
-        # 'directPlay' - handled by the client in MEDIARUL()
-        args['subtitleSize'] = subtitle['size']
-        args['skipSubtitles'] = subtitle['dontBurnIn']  #'1'  # shut off PMS subtitles. Todo: skip only for aTV native/SRT (or other supported)
-        args['audioBoost'] = audio['boost']
-        args['fastSeek'] = '1'
-        args['path'] = path
-        args['partIndex'] = partIndex
-        
-        xargs = getXArgsDeviceInfo(options)
-        xargs['X-Plex-Client-Capabilities'] = "protocols=http-live-streaming,http-mp4-streaming,http-streaming-video,http-streaming-video-720p,http-mp4-video,http-mp4-video-720p;videoDecoders=h264{profile:high&resolution:1080&level:41};audioDecoders=mp3,aac{bitrate:160000}"
-        if not AuthToken=='':
-            xargs['X-Plex-Token'] = AuthToken
-        
-        return transcodePath + urlencode(args) + '&' + urlencode(xargs)
 
     def getDirectVideoPath(self, key, AuthToken):
         """
@@ -1309,7 +1251,7 @@ class PlexAPI():
             'includePopularLeaves': 1,
             'includeConcerts': 1
         }
-        url = url + '?' + urllib.urlencode(arguments)
+        url = url + '?' + urlencode(arguments)
         headerOptions = {'Accept': 'application/xml'}
         xml = self.doUtils.downloadUrl(url, headerOptions=headerOptions)
         if not xml:
@@ -1324,6 +1266,7 @@ class API():
         self.item = item
         self.clientinfo = clientinfo.ClientInfo()
         self.addonName = self.clientinfo.getAddonName()
+        self.clientId = self.clientinfo.getDeviceId()
         self.userId = utils.window('emby_currUser')
         self.server = utils.window('emby_server%s' % self.userId)
         self.token = utils.window('emby_accessToken%s' % self.userId)
@@ -1771,7 +1714,7 @@ class API():
         token = {'X-Plex-Token': self.token}
         xargs = PlexAPI().getXArgsDeviceInfo(options=token)
         xargs.update(arguments)
-        url = "%s?%s" % (url, urllib.urlencode(xargs))
+        url = "%s?%s" % (url, urlencode(xargs))
         return url
 
     def getMediaStreams(self):
@@ -1939,5 +1882,141 @@ class API():
                         "MaxWidth=%s&MaxHeight=%s&Format=original&Tag=%s%s"
                         % (server, parentId, maxWidth, maxHeight, parentTag, customquery))
                     allartworks['Primary'] = artwork
-
         return allartworks
+
+    def getTranscodeVideoPath(self, action, quality={}, subtitle={}, audioboost=None, partIndex=None, options={}):
+        """
+        Transcode Video support
+
+        Input:
+            action      'Transcode' OR any other string
+            quality:    {'videoResolution': 'resolution',
+                         'videoQuality': 'quality',
+                         'maxVideoBitrate': 'bitrate'}
+            subtitle    {'selected', 'dontBurnIn', 'size'}
+            audioboost  Guess this takes an int as str
+            partIndex   No idea
+            options     dict() of PlexConnect-options as received from aTV
+        Output:
+            final path to pull in PMS transcoder
+        """
+        # path to item
+        transcodePath = self.server + \
+            '/video/:/transcode/universal/start.m3u8?'
+
+        ID = self.getKey()
+        path = self.server + '/library/metadata/' + ID
+        args = {
+            'session': self.clientId,
+            'protocol': 'hls',
+            'fastSeek': '1',
+            'path': path,
+            'X-Plex-Client-Capabilities': "protocols=http-live-streaming,"
+                "http-streaming-video,"
+                "http-streaming-video-720p,"
+                "http-streaming-video-1080p,"
+                "http-mp4-streaming,"
+                "http-mp4-video,"
+                "http-mp4-video-720p,"
+                "http-mp4-video-1080p;"
+                "videoDecoders="
+                    "h264{profile:high&resolution:1080&level:51};"
+                "audioDecoders="
+                    "mp3,"
+                    "aac{bitrate:160000},"
+                    "ac3{channels:6},"
+                    "dts{channels:6}"
+            # 'partIndex': partIndex        What do we do with this?!?
+        }
+        # All the settings
+        if subtitle:
+            args_update = {
+                'subtitleSize': subtitle['size'],
+                'skipSubtitles': subtitle['dontBurnIn']  # '1': shut off PMS
+            }
+            args.update(args_update)
+            self.logMsg(
+                "Subtitle: selected %s, dontBurnIn %s, size %s"
+                % (subtitle['selected'], subtitle['dontBurnIn'],
+                    subtitle['size']),
+                1
+            )
+        if audioboost:
+            args_update = {
+                'audioBoost': audioboost
+            }
+            args.update(args_update)
+            self.logMsg("audioboost: %s" % audioboost, 1)
+        if action == 'Transcode':
+            # Possible Plex settings:
+            # 'videoResolution': vRes,
+            # 'maxVideoBitrate': mVB,
+            # : vQ
+            self.logMsg("Setting transcode quality to: %s" % quality, 1)
+            args['directStream'] = '0'
+            args.update(quality)
+        else:
+            args['directStream'] = '1'
+
+        xargs = PlexAPI().getXArgsDeviceInfo(options=options)
+        return transcodePath + urlencode(args) + '&' + urlencode(xargs)
+
+    def adjustResume(self, resume_seconds):
+
+        resume = 0
+        if resume_seconds:
+            resume = round(float(resume_seconds), 6)
+            jumpback = int(utils.settings('resumeJumpBack'))
+            if resume > jumpback:
+                # To avoid negative bookmark
+                resume = resume - jumpback
+
+        return resume
+
+    def returnParts(self):
+        """
+            TODO
+        """
+        item = self.item
+        PartCount = 0
+        # Run through parts
+        for child in item[0][0]:
+            if child.tag == 'Part':
+                PartCount += PartCount
+
+    def externalSubs(self, playurl):
+
+        externalsubs = []
+        mapping = {}
+
+        item = self.item
+        itemid = self.getKey()
+        try:
+            mediastreams = item[0][0][0]
+        except (TypeError, KeyError, IndexError):
+            return
+
+        kodiindex = 0
+        for stream in mediastreams:
+
+            # index = stream['Index']
+            index = stream.attrib['id']
+            # Since Emby returns all possible tracks together, have to pull only external subtitles.
+            # IsTextSubtitleStream if true, is available to download from emby.
+            if (stream.attrib['streamType'] == "3" and
+                    stream.attrib['format']):
+
+                # Direct stream
+                # PLEX: TODO!!
+                url = ("%s/Videos/%s/%s/Subtitles/%s/Stream.srt"
+                        % (self.server, itemid, itemid, index))
+                
+                # map external subtitles for mapping
+                mapping[kodiindex] = index
+                externalsubs.append(url)
+                kodiindex += 1
+        
+        mapping = json.dumps(mapping)
+        utils.window('emby_%s.indexMapping' % playurl, value=mapping)
+
+        return externalsubs

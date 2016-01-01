@@ -25,13 +25,14 @@ import playbackutils as pbutils
 import playutils
 import api
 
+import PlexAPI
+
 #################################################################################################
 
 
 def doPlayback(itemid, dbid):
 
-    emby = embyserver.Read_EmbyServer()
-    item = emby.getItem(itemid)
+    item = PlexAPI.PlexAPI().GetPlexMetadata(itemid)    # Now xml, not json!
     pbutils.PlaybackUtils(item).play(itemid, dbid)
 
 ##### DO RESET AUTH #####

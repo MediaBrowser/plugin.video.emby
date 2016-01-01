@@ -234,12 +234,13 @@ class UserClient(threading.Thread):
         self.currUserId = userId
         self.currServer = self.getServer()
         self.currToken = self.getToken()
+        self.machineIdentifier = self.getServerId()
         self.ssl = self.getSSLverify()
         self.sslcert = self.getSSL()
 
         # Test the validity of current token
         if authenticated == False:
-            url = "%s/emby/Users/%s?format=json" % (self.currServer, userId)
+            url = "%s/clients" % (self.currServer)
             utils.window('emby_currUser', value=userId)
             utils.window('emby_accessToken%s' % userId, value=self.currToken)
             result = doUtils.downloadUrl(url)
@@ -254,6 +255,7 @@ class UserClient(threading.Thread):
         utils.window('emby_accessToken%s' % userId, value=self.currToken)
         utils.window('emby_server%s' % userId, value=self.currServer)
         utils.window('emby_server_%s' % userId, value=self.getServer(prefix=False))
+        utils.window('plex_machineIdentifier', value=self.machineIdentifier)
 
         # Set DownloadUtils values
         doUtils.setUsername(username)
@@ -279,6 +281,7 @@ class UserClient(threading.Thread):
 
         username = self.getUsername()
         server = self.getServer()
+        machineIdentifier = self.getServerId()
 
         # If there's no settings.xml
         if not hasSettings:
