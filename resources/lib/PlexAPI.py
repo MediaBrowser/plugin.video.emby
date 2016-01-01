@@ -889,7 +889,7 @@ class PlexAPI():
         while trials < 4:
             if usernumber > 1:
                 dialog = xbmcgui.Dialog()
-                user_select = dialog.select(string(30200), userlist)
+                user_select = dialog.select(self.addonName + ": Select User", userlist)
                 if user_select == -1:
                     self.logMsg("No user selected.", 1)
                     xbmc.executebuiltin('Addon.OpenSettings(%s)' % self.addonId)
