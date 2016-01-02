@@ -303,7 +303,7 @@ class LibrarySync(threading.Thread):
         utils.window('emby_dbScan', clear=True)
         xbmcgui.Dialog().notification(
                         heading="Emby for Kodi",
-                        message="%s completed in: %s!" % 
+                        message="%s completed in: %s" % 
                                 (message, str(elapsedtotal).split('.')[0]),
                         icon="special://home/addons/plugin.video.plexkodiconnect/icon.png",
                         sound=False)
@@ -376,7 +376,7 @@ class LibrarySync(threading.Thread):
                     # Media folders are grouped into userview
                     for grouped_view in grouped_views:
                         if (grouped_view['Type'] == "UserView" and 
-                            grouped_view['CollectionType'] == mediatype):
+                            grouped_view.get('CollectionType') == mediatype):
                             # Take the name of the userview
                             foldername = grouped_view['Name']
                             break

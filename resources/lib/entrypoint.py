@@ -388,7 +388,7 @@ def refreshPlaylist():
         lib.refreshViews()
         dialog.notification(
                 heading="Emby for Kodi",
-                message="Emby playlist refreshed!",
+                message="Emby playlist refreshed",
                 icon="special://home/addons/plugin.video.plexkodiconnect/icon.png",
                 time=1000,
                 sound=False)
@@ -396,8 +396,8 @@ def refreshPlaylist():
         utils.logMsg("EMBY", "Refresh playlist failed: %s" % e, 1)
         dialog.notification(
             heading="Emby for Kodi",
-            message="Emby playlist refresh failed!",
-            icon="special://home/addons/plugin.video.plexkodiconnect/icon.png",
+            message="Emby playlist refresh failed",
+            icon=xbmcgui.NOTIFICATION_ERROR,
             time=1000,
             sound=False)
 
