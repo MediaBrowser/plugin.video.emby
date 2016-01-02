@@ -327,24 +327,22 @@ class PlaybackUtils():
     def setListItem(self, listItem):
 
         item = self.item
-        type = item['Type']
         API = self.API
+        type = API.getType()
         people = API.getPeople()
-        studios = API.getStudios()
 
         metadata = {
-            
-            'title': item.get('Name', "Missing name"),
-            'year': item.get('ProductionYear'),
-            'plot': API.getOverview(),
-            'director': people.get('Director'),
-            'writer': people.get('Writer'),
+            'title': API.getTitle()[0],
+            'year': API.getYear(),
+            'plot': API.getPlot(),
+            'director': API.joinList(people.get('Director')),
+            'writer': API.joinList(people.get('Writer')),
             'mpaa': API.getMpaa(),
-            'genre': " / ".join(item['Genres']),
-            'studio': " / ".join(studios),
+            'genre': API.joinList(API.getGenres()),
+            'studio': API.joinList(API.getStudios()),
             'aired': API.getPremiereDate(),
-            'rating': item.get('CommunityRating'),
-            'votes': item.get('VoteCount')
+            'rating': API.getAudienceRating(),
+            'votes': None
         }
 
         if "Episode" in type:

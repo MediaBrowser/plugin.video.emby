@@ -1333,6 +1333,18 @@ class API():
         localdate = time.strftime('%Y-%m-%d', date_time)
         return localdate
 
+    def getType(self):
+        item = self.item
+        # Include a letter to prohibit saving as an int!
+        # xml
+        try:
+            item = item[0].attrib
+        # json
+        except KeyError:
+            pass
+        itemtype = item['type']
+        return itemtype
+
     def getChecksum(self):
         """
         Returns a string, not int!
@@ -1565,7 +1577,10 @@ class API():
         # json
         except KeyError:
             pass
-        title = item['title']
+        try:
+            title = item['title']
+        except:
+            title = 'Missing Title Name'
         try:
             sorttitle = item['titleSort']
         except KeyError:
@@ -1580,7 +1595,10 @@ class API():
         # json
         except KeyError:
             pass
-        plot = item['summary']
+        try:
+            plot = item['summary']
+        except:
+            plot = None
         return plot
 
     def getTagline(self):
@@ -1619,7 +1637,10 @@ class API():
         # json
         except KeyError:
             pass
-        year = item['year']
+        try:
+            year = item['year']
+        except:
+            year = None
         return year
 
     def getRuntime(self):
@@ -1676,6 +1697,19 @@ class API():
             if child.tag == 'Country':
                 country.append(child.attrib['tag'])
         return country
+
+    def getPremiereDate(self):
+        item = self.item
+        try:
+            item = item[0].attrib
+        # json
+        except KeyError:
+            pass
+        try:
+            premiere = item['originallyAvailableAt']
+        except:
+            premiere = None
+        return premiere
 
     def getStudios(self):
         item = self.item
