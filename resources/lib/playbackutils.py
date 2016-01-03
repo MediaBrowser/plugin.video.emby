@@ -9,7 +9,6 @@ import xbmc
 import xbmcgui
 import xbmcplugin
 
-import api
 import artwork
 import clientinfo
 import downloadutils
@@ -37,6 +36,7 @@ class PlaybackUtils():
 
         self.userid = utils.window('emby_currUser')
         self.server = utils.window('emby_server%s' % self.userid)
+        self.machineIdentifier = utils.window('plex_machineIdentifier')
 
         self.artwork = artwork.Artwork()
         self.emby = embyserver.Read_EmbyServer()
@@ -46,7 +46,6 @@ class PlaybackUtils():
 
         self.className = self.__class__.__name__
         utils.logMsg("%s %s" % (self.addonName, self.className), msg, lvl)
-
 
     def play(self, itemid, dbid=None):
 
@@ -58,7 +57,10 @@ class PlaybackUtils():
         listitem = xbmcgui.ListItem()
         playutils = putils.PlayUtils(item)
 
-        playurl = playutils.getPlayUrl()
+        # Set child number to the very last one, because that's what we want
+        # to play ultimately
+        API.setChildNumber(-1)
+        playurl = playutils.getPlayUrl(child=-1)
         if not playurl:
             return xbmcplugin.setResolvedUrl(int(sys.argv[1]), False, listitem)
 
@@ -105,21 +107,13 @@ class PlaybackUtils():
                 # Remove the original item from playlist 
                 self.pl.removefromPlaylist(startPos+1)
                 # Readd the original item to playlist - via jsonrpc so we have full metadata
-                self.pl.insertintoPlaylist(currentPosition+1, dbid, item[0].attrib['type'].lower())
+                self.pl.insertintoPlaylist(currentPosition+1, dbid, item[-1].attrib['type'].lower())
                 currentPosition += 1
             
             ############### -- CHECK FOR INTROS ################
-            # PLEX: todo. Seems like Plex returns a playlist WITH trailers
             if utils.settings('enableCinema') == "true" and not seektime:
                 # if we have any play them when the movie/show is not being resumed
-                # Download XML playlist associated with the picked movie
-                self.item = API.GetPlexPlaylist()
-                item = self.item
-                # And overwrite instances with new item
-                self.API = PlexAPI.API(item)
-                API = self.API
-                playutils = putils.PlayUtils(item)
-                playListSize = int(self.item.attrib['size'])
+                playListSize = int(item.attrib['size'])
                 if playListSize > 1:
                     getTrailers = True
                     if utils.settings('askCinema') == "true":
@@ -134,7 +128,7 @@ class PlaybackUtils():
                             # Set the child in XML Plex response to a trailer
                             API.setChildNumber(i)
                             introListItem = xbmcgui.ListItem()
-                            introPlayurl = playutils.getPlayUrl()
+                            introPlayurl = playutils.getPlayUrl(child=i)
                             self.logMsg("Adding Trailer: %s" % introPlayurl, 1)
                             # Set listitem and properties for intros
                             self.setProperties(introPlayurl, introListItem)
@@ -142,9 +136,10 @@ class PlaybackUtils():
                             self.pl.insertintoPlaylist(currentPosition, url=introPlayurl)
                             introsPlaylist = True
                             currentPosition += 1
+                            self.logMsg("Key: %s" % API.getKey(), 1)
                             self.logMsg("Successfally added trailer number %s" % i, 1)
                 # Set "working point" to the movie (last one in playlist)
-                API.setChildNumber(playListSize - 1)
+                API.setChildNumber(-1)
 
             ############### -- ADD MAIN ITEM ONLY FOR HOMESCREEN ###############
 
@@ -153,7 +148,7 @@ class PlaybackUtils():
                 # only if there's no playlist first
                 self.logMsg("Adding main item to playlist.", 1)
                 # self.pl.addtoPlaylist(dbid, item['Type'].lower())
-                self.pl.addtoPlaylist(dbid, item[0].attrib['type'].lower())
+                self.pl.addtoPlaylist(dbid, item[-1].attrib['type'].lower())
 
             # Ensure that additional parts are played after the main item
             currentPosition += 1
@@ -199,7 +194,7 @@ class PlaybackUtils():
 
         # For transcoding only, ask for audio/subs pref
         if utils.window('emby_%s.playmethod' % playurl) == "Transcode":
-            playurl = playutils.audioSubsPref(playurl)
+            playurl = playutils.audioSubsPref(playurl, child=self.API.getChild())
             utils.window('emby_%s.playmethod' % playurl, value="Transcode")
 
         listitem.setPath(playurl)

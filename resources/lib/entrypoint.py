@@ -31,8 +31,10 @@ import PlexAPI
 
 
 def doPlayback(itemid, dbid):
-
-    item = PlexAPI.PlexAPI().GetPlexMetadata(itemid)    # Now xml, not json!
+    # Get a first XML to get the librarySectionUUID
+    item = PlexAPI.PlexAPI().GetPlexMetadata(itemid)
+    # Use that to call the playlist
+    item = PlexAPI.API(item).GetPlexPlaylist()
     pbutils.PlaybackUtils(item).play(itemid, dbid)
 
 ##### DO RESET AUTH #####

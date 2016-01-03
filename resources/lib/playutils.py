@@ -36,9 +36,10 @@ class PlayUtils():
         utils.logMsg("%s %s" % (self.addonName, self.className), msg, lvl)
     
 
-    def getPlayUrl(self):
+    def getPlayUrl(self, child=0):
 
         item = self.item
+        self.API.setChildNumber(child)
         playurl = None
 
         # if item['MediaSources'][0]['Protocol'] == "Http":
@@ -318,7 +319,8 @@ class PlayUtils():
         # max bit rate supported by server (max signed 32bit integer)
         return bitrate.get(videoQuality, 2147483)
 
-    def audioSubsPref(self, url):
+    def audioSubsPref(self, url, child=0):
+        self.API.setChildNumber(child)
         # For transcoding only
         # Present the list of audio to select from
         audioStreamsList = {}

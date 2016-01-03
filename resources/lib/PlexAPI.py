@@ -1290,6 +1290,12 @@ class API():
         self.child = number
         self.logMsg("Set child number to %s" % number, 1)
 
+    def getChild(self):
+        """
+        Returns the child in the XML response that we're currently looking at
+        """
+        return self.child
+
     def convert_date(self, stamp):
         """
         convert_date(stamp) converts a Unix time stamp (seconds passed since
