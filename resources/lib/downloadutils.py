@@ -190,7 +190,6 @@ class DownloadUtils():
             header = plx.getXArgsDeviceInfo(options=options, JSON=True)
         else:
             header = plx.getXArgsDeviceInfo(options=options, JSON=True)
-        self.logMsg("Header: %s" % header, 2)
         return header
 
     def downloadUrl(self, url, postBody=None, type="GET", parameters=None, authenticate=True, headerOptions={}):

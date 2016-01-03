@@ -110,37 +110,41 @@ class PlaybackUtils():
             
             ############### -- CHECK FOR INTROS ################
             # PLEX: todo. Seems like Plex returns a playlist WITH trailers
-            # if utils.settings('enableCinema') == "true" and not seektime:
-            if False:
+            if utils.settings('enableCinema') == "true" and not seektime:
                 # if we have any play them when the movie/show is not being resumed
-                url = "{server}/emby/Users/{UserId}/Items/%s/Intros?format=json" % itemid    
-                intros = doUtils.downloadUrl(url)
-
-                if intros['TotalRecordCount'] != 0:
+                # Download XML playlist associated with the picked movie
+                self.item = API.GetPlexPlaylist()
+                item = self.item
+                # And overwrite instances with new item
+                self.API = PlexAPI.API(item)
+                API = self.API
+                playutils = putils.PlayUtils(item)
+                playListSize = int(self.item.attrib['size'])
+                if playListSize > 1:
                     getTrailers = True
-
                     if utils.settings('askCinema') == "true":
                         resp = xbmcgui.Dialog().yesno("Emby Cinema Mode", "Play trailers?")
                         if not resp:
                             # User selected to not play trailers
                             getTrailers = False
                             self.logMsg("Skip trailers.", 1)
-                    
                     if getTrailers:
-                        for intro in intros['Items']:
-                            # The server randomly returns intros, process them.
+                        for i in range(0, playListSize):
+                            # The server randomly returns intros, process them
+                            # Set the child in XML Plex response to a trailer
+                            API.setChildNumber(i)
                             introListItem = xbmcgui.ListItem()
-                            introPlayurl = putils.PlayUtils(intro).getPlayUrl()
-                            self.logMsg("Adding Intro: %s" % introPlayurl, 1)
-
+                            introPlayurl = playutils.getPlayUrl()
+                            self.logMsg("Adding Trailer: %s" % introPlayurl, 1)
                             # Set listitem and properties for intros
-                            pbutils = PlaybackUtils(intro)
-                            pbutils.setProperties(introPlayurl, introListItem)
+                            self.setProperties(introPlayurl, introListItem)
 
                             self.pl.insertintoPlaylist(currentPosition, url=introPlayurl)
                             introsPlaylist = True
                             currentPosition += 1
-
+                            self.logMsg("Successfally added trailer number %s" % i, 1)
+                # Set "working point" to the movie (last one in playlist)
+                API.setChildNumber(playListSize - 1)
 
             ############### -- ADD MAIN ITEM ONLY FOR HOMESCREEN ###############
 
@@ -224,7 +228,7 @@ class PlaybackUtils():
         # itemid = item['Id']
         itemid = self.API.getKey()
         # itemtype = item['Type']
-        itemtype = item[0].attrib['type']
+        itemtype = self.API.getType()
         resume, runtime = self.API.getRuntime()
 
         embyitem = "emby_%s" % playurl

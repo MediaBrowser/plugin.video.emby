@@ -278,6 +278,10 @@ class Movies(Items):
         # If the item doesn't exist, we'll add it to the database
         update_item = True
         itemid = API.getKey()
+        # Cannot parse XML, abort
+        if not itemid:
+            self.logMsg("Cannot parse XML data for movie", -1)
+            return
         emby_dbitem = emby_db.getItem_byId(itemid)
         try:
             movieid = emby_dbitem[0]

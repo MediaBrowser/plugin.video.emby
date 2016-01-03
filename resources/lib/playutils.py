@@ -28,7 +28,7 @@ class PlayUtils():
         self.server = utils.window('emby_server%s' % self.userid)
         self.machineIdentifier = utils.window('plex_machineIdentifier')
 
-        self.plx = PlexAPI.API(item)
+        self.API = PlexAPI.API(item)
 
     def logMsg(self, msg, lvl=1):
 
@@ -58,7 +58,7 @@ class PlayUtils():
         if self.isDirectStream():
             
             self.logMsg("File is direct streaming.", 1)
-            playurl = self.plx.getTranscodeVideoPath('direct')
+            playurl = self.API.getTranscodeVideoPath('direct')
             # Set playmethod property
             utils.window('emby_%s.playmethod' % playurl, value="DirectStream")
 
@@ -68,7 +68,7 @@ class PlayUtils():
             quality = {
                 'bitrate': self.getBitrate()
             }
-            playurl = self.plx.getTranscodeVideoPath(
+            playurl = self.API.getTranscodeVideoPath(
                 'Transcode', quality=quality
             )
             # Set playmethod property
@@ -225,11 +225,10 @@ class PlayUtils():
 
     def directStream(self):
 
-        item = self.item
         server = self.server
 
-        itemid = self.plx.getKey()
-        type = item[0].tag
+        itemid = self.API.getKey()
+        type = self.API.getType()
 
         # if 'Path' in item and item['Path'].endswith('.strm'):
         #     # Allow strm loading when direct streaming
@@ -239,24 +238,22 @@ class PlayUtils():
         else:
             playurl = "%s/emby/Videos/%s/stream?static=true" % (server, itemid)
             playurl = "{server}/player/playback/playMedia?key=%2Flibrary%2Fmetadata%2F%s&offset=0&X-Plex-Client-Identifier={clientId}&machineIdentifier={SERVER ID}&address={SERVER IP}&port={SERVER PORT}&protocol=http&path=http%3A%2F%2F{SERVER IP}%3A{SERVER PORT}%2Flibrary%2Fmetadata%2F{MEDIA ID}" % (itemid)
-            playurl = self.plx.replaceURLtags()
+            playurl = self.API.replaceURLtags()
 
         return playurl
 
     def isNetworkSufficient(self):
 
-        settings = self.getBitrate()*1000
+        settings = self.getBitrate()
 
-        try:
-            sourceBitrate = int(self.item[0][0].attrib['bitrate'])
-        except (KeyError, TypeError):
-            self.logMsg("Bitrate value is missing.", 1)
-        else:
-            self.logMsg("The add-on settings bitrate is: %s, the video bitrate required is: %s"
-                        % (settings, sourceBitrate), 1)
-            if settings < sourceBitrate:
-                return False
-
+        sourceBitrate = self.API.getBitrate()
+        if not sourceBitrate:
+            self.logMsg("Bitrate value is missing.", 0)
+            return True
+        self.logMsg("The add-on settings bitrate is: %s, the video bitrate required is: %s"
+                    % (settings, sourceBitrate), 1)
+        if settings < sourceBitrate:
+            return False
         return True
 
     def isTranscoding(self):

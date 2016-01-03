@@ -479,7 +479,7 @@ class LibrarySync(threading.Thread):
                 all_kodimoviesId = dict(emby_db.getChecksum('Movie'))
             except ValueError:
                 all_kodimoviesId = {}
-        all_plexmoviesIds = []
+        all_plexmoviesIds = {}
 
         ##### PROCESS MOVIES #####
         for view in views:
@@ -510,7 +510,7 @@ class LibrarySync(threading.Thread):
                     plex_checksum = API.getChecksum()
                     itemid = API.getKey()
                     kodi_checksum = all_kodimoviesId.get(itemid)
-                    all_plexmoviesIds.append(plex_checksum)
+                    all_plexmoviesIds[itemid] = plex_checksum
                     if kodi_checksum != plex_checksum:
                         # Only update if movie is not in Kodi or checksum is different
                         updatelist.append(itemid)
@@ -520,7 +520,7 @@ class LibrarySync(threading.Thread):
                     API = PlexAPI.API(plexmovie)
                     itemid = API.getKey()
                     plex_checksum = API.getChecksum()
-                    all_plexmoviesIds.append(plex_checksum)
+                    all_plexmoviesIds[itemid] = plex_checksum
                     updatelist.append(itemid)
 
             total = len(updatelist)
@@ -532,23 +532,28 @@ class LibrarySync(threading.Thread):
                 # Process individual movies
                 if self.shouldStop():
                     return False
+                # Download Metadata
                 plexmovie = plx.GetPlexMetadata(itemid)
+                # Check whether metadata is valid
                 title = plexmovie[0].attrib['title']
                 if pdialog:
                     percentage = int((float(count) / float(total))*100)
                     pdialog.update(percentage, message=title)
                     count += 1
                 # Download individual metadata
+                self.logMsg("Start parsing metadata for movie: %s" % title, 0)
                 movies.add_update(plexmovie, viewName, viewId)
 
         else:
             self.logMsg("Movies finished.", 2)
 
         ##### PROCESS DELETES #####
+        self.logMsg("all_plexmoviesIds: %s" % all_plexmoviesIds, 0)
+        self.logMsg("all_kodimoviesId: %s" % all_kodimoviesId, 0)
         if compare:
             # Manual sync, process deletes
-            for kodimovie, checksum in all_kodimoviesId.items():
-                if checksum not in all_plexmoviesIds:
+            for kodimovie in all_kodimoviesId:
+                if kodimovie not in all_plexmoviesIds:
                     movies.remove(kodimovie)
             else:
                 self.logMsg("Movies compare finished.", 1)
