@@ -36,10 +36,13 @@ class PlayUtils():
         utils.logMsg("%s %s" % (self.addonName, self.className), msg, lvl)
     
 
-    def getPlayUrl(self, child=0):
+    def getPlayUrl(self, child=0, partIndex=None):
 
         item = self.item
+        # NO, I am not very fond of this construct!
         self.API.setChildNumber(child)
+        if partIndex is not None:
+            self.API.setPartNumber(partIndex)
         playurl = None
 
         # if item['MediaSources'][0]['Protocol'] == "Http":
@@ -59,7 +62,10 @@ class PlayUtils():
         if self.isDirectStream():
             
             self.logMsg("File is direct streaming.", 1)
-            playurl = self.API.getTranscodeVideoPath('direct')
+            playurl = self.API.getTranscodeVideoPath(
+                'direct',
+                partIndex=partIndex
+            )
             # Set playmethod property
             utils.window('emby_%s.playmethod' % playurl, value="DirectStream")
 
@@ -70,7 +76,9 @@ class PlayUtils():
                 'bitrate': self.getBitrate()
             }
             playurl = self.API.getTranscodeVideoPath(
-                'Transcode', quality=quality
+                'Transcode',
+                quality=quality,
+                partIndex=partIndex
             )
             # Set playmethod property
             utils.window('emby_%s.playmethod' % playurl, value="Transcode")

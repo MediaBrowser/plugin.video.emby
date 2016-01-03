@@ -123,7 +123,7 @@ class PlaybackUtils():
                             getTrailers = False
                             self.logMsg("Skip trailers.", 1)
                     if getTrailers:
-                        for i in range(0, playListSize):
+                        for i in range(0, playListSize - 1):
                             # The server randomly returns intros, process them
                             # Set the child in XML Plex response to a trailer
                             API.setChildNumber(i)
@@ -154,28 +154,28 @@ class PlaybackUtils():
             currentPosition += 1
 
             ############### -- CHECK FOR ADDITIONAL PARTS ################
-            
-            # Plex: TODO. Guess parts are sent back like trailers.
-            # if item.get('PartCount'):
-            if False:
+            parts = API.GetParts()
+            partcount = len(parts)
+            if partcount > 1:
                 # Only add to the playlist after intros have played
-                partcount = item['PartCount']
-                url = "{server}/emby/Videos/%s/AdditionalParts?format=json" % itemid
-                parts = doUtils.downloadUrl(url)
-                for part in parts['Items']:
-
+                i = 0
+                for part in parts:
+                    API.setPartNumber(i)
                     additionalListItem = xbmcgui.ListItem()
-                    additionalPlayurl = putils.PlayUtils(part).getPlayUrl()
-                    self.logMsg("Adding additional part: %s" % partcount, 1)
+                    additionalPlayurl = playutils.getPlayUrl(
+                        child=-1,
+                        partIndex=i)
+                    self.logMsg("Adding additional part: %s" % i, 1)
 
                     # Set listitem and properties for each additional parts
-                    pbutils = PlaybackUtils(part)
+                    pbutils = PlaybackUtils(item)
                     pbutils.setProperties(additionalPlayurl, additionalListItem)
                     pbutils.setArtwork(additionalListItem)
 
                     playlist.add(additionalPlayurl, additionalListItem, index=currentPosition)
                     self.pl.verifyPlaylist()
                     currentPosition += 1
+                    i = i + 1
 
             if dummyPlaylist:
                 # Added a dummy file to the playlist,
@@ -194,7 +194,7 @@ class PlaybackUtils():
 
         # For transcoding only, ask for audio/subs pref
         if utils.window('emby_%s.playmethod' % playurl) == "Transcode":
-            playurl = playutils.audioSubsPref(playurl, child=self.API.getChild())
+            playurl = playutils.audioSubsPref(playurl, child=self.API.getChildNumber())
             utils.window('emby_%s.playmethod' % playurl, value="Transcode")
 
         listitem.setPath(playurl)

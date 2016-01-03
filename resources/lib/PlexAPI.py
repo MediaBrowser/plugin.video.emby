@@ -1272,6 +1272,8 @@ class API():
         self.item = item
         # which child in the XML response shall we look at?
         self.child = 0
+        # which media part in the XML response shall we look at?
+        self.part = 0
         self.clientinfo = clientinfo.ClientInfo()
         self.addonName = self.clientinfo.getAddonName()
         self.clientId = self.clientinfo.getDeviceId()
@@ -1287,14 +1289,27 @@ class API():
         """
         Which child in the XML response shall we look at and work with?
         """
-        self.child = number
+        self.child = int(number)
         self.logMsg("Set child number to %s" % number, 1)
 
-    def getChild(self):
+    def getChildNumber(self):
         """
         Returns the child in the XML response that we're currently looking at
         """
         return self.child
+
+    def setPartNumber(self, number=0):
+        """
+        Sets the part number to work with (used to deal with Movie with several
+        parts).
+        """
+        self.part = int(number)
+
+    def getPartNumber(self):
+        """
+        Returns the current media part number we're dealing with.
+        """
+        return self.part
 
     def convert_date(self, stamp):
         """
@@ -1630,9 +1645,10 @@ class API():
         Output:
             resume, runtime         as floats. 0.0 if not found
         """
-        item = self.item
         time_factor = 1.0 / 1000.0    # millisecond -> seconds
+        item = self.item
         item = item[self.child].attrib
+
         try:
             runtime = float(item['duration'])
         except KeyError:
@@ -1970,29 +1986,36 @@ class API():
 
         Input:
             action      'Transcode' OR any other string
+
             quality:    {
                             'videoResolution': 'resolution',
                             'videoQuality': 'quality',
                             'maxVideoBitrate': 'bitrate'
                         }
             subtitle    {'selected', 'dontBurnIn', 'size'}
-            audioboost  Guess this takes an int as str
-            partIndex   No idea
+            audioboost  e.g. 100
+            partIndex   Index number of media part, starting with 0
             options     dict() of PlexConnect-options as received from aTV
         Output:
             final path to pull in PMS transcoder
+
+        TODO: mediaIndex
         """
         # path to item
         transcodePath = self.server + \
             '/video/:/transcode/universal/start.m3u8?'
 
         ID = self.getKey()
-        path = self.server + '/library/metadata/' + ID
+        if partIndex is not None:
+            path = self.server + '/library/metadata/' + ID
+        else:
+            path = self.item[self.child][0][self.part].attrib['key']
         args = {
             'session': self.clientId,
-            'protocol': 'hls',
+            'protocol': 'hls',      # also seen: 'dash'
             'fastSeek': '1',
             'path': path,
+            'mediaIndex': 0,       # Probably refering to XML reply sheme
             'X-Plex-Client-Capabilities': "protocols=http-live-streaming,"
                 "http-streaming-video,"
                 "http-streaming-video-720p,"
@@ -2008,12 +2031,16 @@ class API():
                     "aac{bitrate:160000},"
                     "ac3{channels:6},"
                     "dts{channels:6}"
-            # 'partIndex': partIndex        What do we do with this?!?
+            # 'offset': 0           # Resume point
+            # 'directPlay': 0       # 1 if Kodi can also handle the container
         }
         # All the settings
+        if partIndex is not None:
+            args['partIndex'] = partIndex
         if subtitle:
             args_update = {
-                'subtitleSize': subtitle['size'],
+                'subtitles': 'burn',
+                'subtitleSize': subtitle['size'],        # E.g. 100
                 'skipSubtitles': subtitle['dontBurnIn']  # '1': shut off PMS
             }
             args.update(args_update)
@@ -2118,3 +2145,9 @@ class API():
         if not xml:
             self.logMsg("Error retrieving metadata for %s" % url, 1)
         return xml
+
+    def GetParts(self):
+        """
+        Returns the parts of the specified video child in the XML response
+        """
+        return self.item[self.child][0]
