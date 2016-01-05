@@ -619,6 +619,8 @@ class PlexAPI():
             'X-Plex-Version': self.plexversion,
             'X-Plex-Client-Identifier': self.clientId,
             'machineIdentifier': self.machineIdentifier,
+            'Connection': 'keep-alive',
+            'X-Plex-Provides': 'player',
             'Accept': 'application/xml'
         }
 
@@ -1781,15 +1783,72 @@ class API():
 
     def getBitrate(self):
         """
-        Returns the bitrate as an int or None
+        Returns the bitrate as an int. The Part bitrate is returned; if not
+        available in the Plex XML, the Media bitrate is returned
         """
         item = self.item
         try:
-            bitrate = item[self.child][0].attrib['bitrate']
-            bitrate = int(bitrate)
+            bitrate = item[self.child][0][self.part].attrib['bitrate']
         except KeyError:
-            bitrate = None
+            bitrate = item[self.child][0].attrib['bitrate']
+        bitrate = int(bitrate)
         return bitrate
+
+    def getDataFromPartOrMedia(self, key):
+        """
+        Retrieves XML data 'key' first from the active part. If unsuccessful,
+        tries to retrieve the data from the Media response part.
+
+        If all fails, None is returned.
+        """
+        media = self.item[self.child][0].attrib
+        part = self.item[self.child][0][self.part].attrib
+        try:
+            try:
+                value = part[key]
+            except KeyError:
+                value = media[key]
+        except KeyError:
+            value = None
+        return value
+
+    def getVideoCodec(self):
+        """
+        Returns the video codec and resolution for the child and part selected.
+        If any data is not found on a part-level, the Media-level data is
+        returned.
+        If that also fails (e.g. for old trailers, None is returned)
+
+        Output:
+            {
+                'videocodec': xxx,       e.g. 'h264'
+                'resolution': xxx,       e.g. '720' or '1080'
+                'height': xxx,           e.g. '816'
+                'width': xxx,            e.g. '1920'
+                'aspectratio': xxx,      e.g. '1.78'
+                'bitrate': xxx,          e.g. 10642 (an int!)
+                'container': xxx         e.g. 'mkv'
+            }
+        """
+
+        videocodec = self.getDataFromPartOrMedia('videoCodec')
+        resolution = self.getDataFromPartOrMedia('videoResolution')
+        height = self.getDataFromPartOrMedia('height')
+        width = self.getDataFromPartOrMedia('width')
+        aspectratio = self.getDataFromPartOrMedia('aspectratio')
+        bitrate = self.getDataFromPartOrMedia('bitrate')
+        container = self.getDataFromPartOrMedia('container')
+
+        videoCodec = {
+            'videocodec': videocodec,
+            'resolution': resolution,
+            'height': height,
+            'width': width,
+            'aspectratio': aspectratio,
+            'bitrate': bitrate,
+            'container': container
+        }
+        return videoCodec
 
     def getMediaStreams(self):
         """
@@ -1798,7 +1857,7 @@ class API():
         Output: each track contains a dictionaries
         {
             'video': videotrack-list,       'videocodec', 'height', 'width',
-                                            'aspectratio', video3DFormat'
+                                            'aspectratio', 'video3DFormat'
             'audio': audiotrack-list,       'audiocodec', 'channels',
                                             'audiolanguage'
             'subtitle': list of subtitle languages (or "Unknown")
@@ -1980,95 +2039,142 @@ class API():
                     allartworks['Primary'] = artwork
         return allartworks
 
-    def getTranscodeVideoPath(self, action, quality={}, subtitle={}, audioboost=None, partIndex=None, options={}):
+    def getTranscodeVideoPath(self, action, quality={}, subtitle={}, audioboost=None, options={}):
         """
         Transcode Video support; returns the URL to get a media started
 
         Input:
-            action      'Transcode' OR any other string
+            action      'DirectPlay', 'DirectStream' or 'Transcode'
 
             quality:    {
                             'videoResolution': 'resolution',
                             'videoQuality': 'quality',
                             'maxVideoBitrate': 'bitrate'
                         }
+                        (one or several of these options)
             subtitle    {'selected', 'dontBurnIn', 'size'}
             audioboost  e.g. 100
-            partIndex   Index number of media part, starting with 0
             options     dict() of PlexConnect-options as received from aTV
         Output:
-            final path to pull in PMS transcoder
+            final URL to pull in PMS transcoder
 
         TODO: mediaIndex
         """
-        # path to item
-        transcodePath = self.server + \
-            '/video/:/transcode/universal/start.m3u8?'
-
-        ID = self.getKey()
-        if partIndex is not None:
-            path = self.server + '/library/metadata/' + ID
-        else:
-            path = self.item[self.child][0][self.part].attrib['key']
-        args = {
-            'session': self.clientId,
-            'protocol': 'hls',      # also seen: 'dash'
-            'fastSeek': '1',
-            'path': path,
-            'mediaIndex': 0,       # Probably refering to XML reply sheme
-            'X-Plex-Client-Capabilities': "protocols=http-live-streaming,"
-                "http-streaming-video,"
-                "http-streaming-video-720p,"
-                "http-streaming-video-1080p,"
-                "http-mp4-streaming,"
-                "http-mp4-video,"
-                "http-mp4-video-720p,"
-                "http-mp4-video-1080p;"
+        # Set Client capabilities
+        clientArgs = {
+            'X-Plex-Client-Capabilities':
+                "protocols=shoutcast,"
+                    "http-live-streaming,"
+                    "http-streaming-video,"
+                    "http-streaming-video-720p,"
+                    "http-streaming-video-1080p,"
+                    "http-mp4-streaming,"
+                    "http-mp4-video,"
+                    "http-mp4-video-720p,"
+                    "http-mp4-video-1080p;"
                 "videoDecoders="
-                    "h264{profile:high&resolution:1080&level:51};"
+                    "h264{profile:high&resolution:1080&level:51},"
+                    "h265{profile:high&resolution:1080&level:51},"
+                    "mpeg1video,"
+                    "mpeg2video,"
+                    "mpeg4,"
+                    "msmpeg4,"
+                    "mjpeg,"
+                    "wmv2,"
+                    "wmv3,"
+                    "vc1,"
+                    "cinepak,"
+                    "h263;"
                 "audioDecoders="
                     "mp3,"
-                    "aac{bitrate:160000},"
-                    "ac3{channels:6},"
-                    "dts{channels:6}"
-            # 'offset': 0           # Resume point
-            # 'directPlay': 0       # 1 if Kodi can also handle the container
+                    "aac,"
+                    "ac3{bitrate:800000&channels:8},"
+                    "dts{bitrate:800000&channels:8},"
+                    "truehd,"
+                    "eac3,"
+                    "dca,"
+                    "mp2,"
+                    "pcm,"
+                    "wmapro,"
+                    "wmav2,"
+                    "wmavoice,"
+                    "wmalossless;"
+        }
+        xargs = PlexAPI().getXArgsDeviceInfo(options=options)
+        # For Direct Playing
+        if action == "DirectPlay":
+            path = self.item[self.child][0][self.part].attrib['key']
+            transcodePath = self.server + path
+            # Be sure to have exactly ONE '?' in the path (might already have
+            # been returned, e.g. trailers!)
+            if '?' not in path:
+                transcodePath = transcodePath + '?'
+            url = transcodePath + \
+                urlencode(clientArgs) + '&' + \
+                urlencode(xargs)
+            return url
+
+        # For Direct Streaming or Transcoding
+        transcodePath = self.server + \
+            '/video/:/transcode/universal/start.m3u8?'
+        partCount = 0
+        for parts in self.item[self.child][0]:
+            partCount = partCount + 1
+        # Movie consists of several parts; grap one part
+        if partCount > 1:
+            path = self.item[self.child][0][self.part].attrib['key']
+        # Movie consists of only one part
+        else:
+            path = self.item[self.child].attrib['key']
+        args = {
+            'path': path,
+            'mediaIndex': 0,       # Probably refering to XML reply sheme
+            'partIndex': self.part,
+            'protocol': 'hls',   # seen in the wild: 'dash', 'http', 'hls'
+            'offset': 0,           # Resume point
+            'fastSeek': 1
         }
         # All the settings
-        if partIndex is not None:
-            args['partIndex'] = partIndex
         if subtitle:
-            args_update = {
+            argsUpdate = {
                 'subtitles': 'burn',
                 'subtitleSize': subtitle['size'],        # E.g. 100
                 'skipSubtitles': subtitle['dontBurnIn']  # '1': shut off PMS
             }
-            args.update(args_update)
             self.logMsg(
                 "Subtitle: selected %s, dontBurnIn %s, size %s"
                 % (subtitle['selected'], subtitle['dontBurnIn'],
                     subtitle['size']),
                 1
             )
+            args.update(argsUpdate)
         if audioboost:
-            args_update = {
+            argsUpdate = {
                 'audioBoost': audioboost
             }
-            args.update(args_update)
             self.logMsg("audioboost: %s" % audioboost, 1)
-        if action == 'Transcode':
-            # Possible Plex settings:
-            # 'videoResolution': vRes,
-            # 'maxVideoBitrate': mVB,
-            # : vQ
-            self.logMsg("Setting transcode quality to: %s" % quality, 1)
-            args['directStream'] = '0'
-            args.update(quality)
-        else:
-            args['directStream'] = '1'
+            args.update(argsUpdate)
 
-        xargs = PlexAPI().getXArgsDeviceInfo(options=options)
-        return transcodePath + urlencode(args) + '&' + urlencode(xargs)
+        if action == "DirectStream":
+            argsUpdate = {
+                'directPlay': '0',
+                'directStream': '1',
+            }
+            args.update(argsUpdate)
+        elif action == 'Transcode':
+            argsUpdate = {
+                'directPlay': '0',
+                'directStream': '0'
+            }
+            self.logMsg("Setting transcode quality to: %s" % quality, 1)
+            args.update(quality)
+            args.update(argsUpdate)
+
+        url = transcodePath + \
+            urlencode(clientArgs) + '&' + \
+            urlencode(xargs) + '&' + \
+            urlencode(args)
+        return url
 
     def adjustResume(self, resume_seconds):
         resume = 0

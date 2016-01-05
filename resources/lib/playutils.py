@@ -38,7 +38,6 @@ class PlayUtils():
 
     def getPlayUrl(self, child=0, partIndex=None):
 
-        item = self.item
         # NO, I am not very fond of this construct!
         self.API.setChildNumber(child)
         if partIndex is not None:
@@ -51,34 +50,27 @@ class PlayUtils():
         #     playurl = self.httpPlay()
         #     utils.window('emby_%s.playmethod' % playurl, value="DirectStream")
 
-        # elif self.isDirectPlay():
+        if self.isDirectPlay():
+            self.logMsg("File is direct playing.", 1)
+            playurl = self.API.getTranscodeVideoPath('DirectPlay')
+            playurl = playurl.encode('utf-8')
+            # Set playmethod property
+            utils.window('emby_%s.playmethod' % playurl, value="DirectPlay")
 
-        #     self.logMsg("File is direct playing.", 1)
-        #     playurl = self.directPlay()
-        #     playurl = playurl.encode('utf-8')
-        #     # Set playmethod property
-        #     utils.window('emby_%s.playmethod' % playurl, value="DirectPlay")
-
-        if self.isDirectStream():
-            
+        elif self.isDirectStream():
             self.logMsg("File is direct streaming.", 1)
-            playurl = self.API.getTranscodeVideoPath(
-                'direct',
-                partIndex=partIndex
-            )
+            playurl = self.API.getTranscodeVideoPath('DirectStream')
             # Set playmethod property
             utils.window('emby_%s.playmethod' % playurl, value="DirectStream")
 
         elif self.isTranscoding():
-            
             self.logMsg("File is transcoding.", 1)
             quality = {
-                'bitrate': self.getBitrate()
+                'maxVideoBitrate': self.getBitrate()
             }
             playurl = self.API.getTranscodeVideoPath(
                 'Transcode',
-                quality=quality,
-                partIndex=partIndex
+                quality=quality
             )
             # Set playmethod property
             utils.window('emby_%s.playmethod' % playurl, value="Transcode")
@@ -102,56 +94,18 @@ class PlayUtils():
 
     def isDirectPlay(self):
 
-        item = self.item
-
         # Requirement: Filesystem, Accessible path
         if utils.settings('playFromStream') == "true":
             # User forcing to play via HTTP
-            self.logMsg("Can't direct play, play from HTTP enabled.", 1)
+            self.logMsg("Can't direct play, user enabled play from HTTP.", 1)
             return False
 
-        if (utils.settings('transcodeH265') == "true" and 
-                item['MediaSources'][0]['Name'].startswith("1080P/H265")):
-            # Avoid H265 1080p
-            self.logMsg("Option to transcode 1080P/H265 enabled.", 1)
+        if not self.h265enabled():
             return False
 
-        canDirectPlay = item['MediaSources'][0]['SupportsDirectPlay']
-        # Make sure direct play is supported by the server
-        if not canDirectPlay:
-            self.logMsg("Can't direct play, server doesn't allow/support it.", 1)
+        # Found with e.g. trailers
+        if self.API.getDataFromPartOrMedia('optimizedForStreaming') == '1':
             return False
-
-        location = item['LocationType']
-        if location == "FileSystem":
-            # Verify the path
-            if not self.fileExists():
-                self.logMsg("Unable to direct play.")
-                try:
-                    count = int(utils.settings('failCount'))
-                except ValueError:
-                    count = 0
-                self.logMsg("Direct play failed: %s times." % count, 1)
-
-                if count < 2:
-                    # Let the user know that direct play failed
-                    utils.settings('failCount', value=str(count+1))
-                    xbmcgui.Dialog().notification(
-                                        heading="Emby server",
-                                        message="Unable to direct play.",
-                                        icon="special://home/addons/plugin.video.plexkodiconnect/icon.png",
-                                        sound=False)
-                elif utils.settings('playFromStream') != "true":
-                    # Permanently set direct stream as true
-                    utils.settings('playFromStream', value="true")
-                    utils.settings('failCount', value="0")
-                    xbmcgui.Dialog().notification(
-                                        heading="Emby server",
-                                        message=("Direct play failed 3 times. Enabled play "
-                                                 "from HTTP in the add-on settings."),
-                                        icon="special://home/addons/plugin.video.plexkodiconnect/icon.png",
-                                        sound=False)
-                return False
 
         return True
 
@@ -163,15 +117,6 @@ class PlayUtils():
             playurl = item['MediaSources'][0]['Path']
         except (IndexError, KeyError):
             playurl = item['Path']
-
-        if item.get('VideoType'):
-            # Specific format modification
-            type = item['VideoType']
-
-            if type == "Dvd":
-                playurl = "%s/VIDEO_TS/VIDEO_TS.IFO" % playurl
-            elif type == "Bluray":
-                playurl = "%s/BDMV/index.bdmv" % playurl
 
         # Assign network protocol
         if playurl.startswith('\\\\'):
@@ -206,15 +151,21 @@ class PlayUtils():
             self.logMsg("Failed to find file.")
             return False
 
-    def isDirectStream(self):
-
-        item = self.item
-
-        if (utils.settings('transcodeH265') == "true" and 
-                item[0][0].attrib('videoCodec').startswith("h265") and
-                item[0][0].attrib('videoResolution').startswith("1080")):
+    def h265enabled(self):
+        videoCodec = self.API.getVideoCodec()
+        codec = videoCodec['videocodec']
+        resolution = videoCodec['resolution']
+        if ((utils.settings('transcodeH265') == "true") and
+                ("h265" in codec) and
+                (resolution == "1080")):
             # Avoid H265 1080p
-            self.logMsg("Option to transcode 1080P/H265 enabled.", 1)
+            self.logMsg("Option to transcode 1080P/H265 enabled.", 0)
+            return False
+        else:
+            return True
+
+    def isDirectStream(self):
+        if not self.h265enabled():
             return False
 
         # Requirement: BitRate, supported encoding
@@ -229,7 +180,6 @@ class PlayUtils():
         if not self.isNetworkSufficient():
             self.logMsg("The network speed is insufficient to direct stream file.", 1)
             return False
-
         return True
 
     def directStream(self):
@@ -256,11 +206,7 @@ class PlayUtils():
         settings = self.getBitrate()
 
         sourceBitrate = self.API.getBitrate()
-        if not sourceBitrate:
-            self.logMsg("Bitrate value is missing.", 0)
-            return True
-        self.logMsg("The add-on settings bitrate is: %s, the video bitrate required is: %s"
-                    % (settings, sourceBitrate), 1)
+        self.logMsg("The add-on settings bitrate is: %s, the video bitrate required is: %s" % (settings, sourceBitrate), 1)
         if settings < sourceBitrate:
             return False
         return True

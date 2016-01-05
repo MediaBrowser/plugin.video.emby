@@ -80,6 +80,7 @@ class PlaybackUtils():
 
         propertiesPlayback = utils.window('emby_playbackProps', windowid=10101) == "true"
         introsPlaylist = False
+        partsPlaylist = False
         dummyPlaylist = False
 
         self.logMsg("Playlist start position: %s" % startPos, 1)
@@ -117,7 +118,7 @@ class PlaybackUtils():
                 if playListSize > 1:
                     getTrailers = True
                     if utils.settings('askCinema') == "true":
-                        resp = xbmcgui.Dialog().yesno("Emby Cinema Mode", "Play trailers?")
+                        resp = xbmcgui.Dialog().yesno(self.addonName, "Play trailers?")
                         if not resp:
                             # User selected to not play trailers
                             getTrailers = False
@@ -158,6 +159,7 @@ class PlaybackUtils():
             partcount = len(parts)
             if partcount > 1:
                 # Only add to the playlist after intros have played
+                partsPlaylist = True
                 i = 0
                 for part in parts:
                     API.setPartNumber(i)
@@ -176,6 +178,7 @@ class PlaybackUtils():
                     self.pl.verifyPlaylist()
                     currentPosition += 1
                     i = i + 1
+                API.setPartNumber(0)
 
             if dummyPlaylist:
                 # Added a dummy file to the playlist,
@@ -201,14 +204,15 @@ class PlaybackUtils():
         self.setProperties(playurl, listitem)
 
         ############### PLAYBACK ################
-
+        customPlaylist = utils.window('emby_customPlaylist', windowid=10101)
         if homeScreen and seektime:
             self.logMsg("Play as a widget item.", 1)
             self.setListItem(listitem)
             xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, listitem)
 
-        elif ((introsPlaylist and utils.window('emby_customPlaylist', windowid=10101) == "true") or
-            (homeScreen and not sizePlaylist)):
+        elif ((introsPlaylist and customPlaylist == "true") or
+            (homeScreen and not sizePlaylist) or
+            (partsPlaylist and customPlaylist == "true")):
             # Playlist was created just now, play it.
             self.logMsg("Play playlist.", 1)
             xbmc.Player().play(playlist, startpos=startPos)
