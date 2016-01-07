@@ -37,7 +37,6 @@ class Main:
         addon_handle = int(sys.argv[1])
         params = urlparse.parse_qs(sys.argv[2][1:])
         xbmc.log("Parameter string: %s" % sys.argv[2])
-
         try:
             mode = params['mode'][0]
             itemid = params.get('id')
@@ -52,6 +51,7 @@ class Main:
 
             'reset': utils.reset,
             'resetauth': entrypoint.resetAuth,
+            'extrafanart': entrypoint.getExtraFanArt,
             'play': entrypoint.doPlayback,
             'passwords': utils.passwordsXML,
             'adduser': entrypoint.addUser,
@@ -63,6 +63,9 @@ class Main:
             'recentepisodes': entrypoint.getRecentEpisodes,
             'refreshplaylist': entrypoint.refreshPlaylist
         }
+        
+        if "extrafanart" in sys.argv[0]:
+            entrypoint.getExtraFanArt()
 
         if modes.get(mode):
             # Simple functions
@@ -101,8 +104,6 @@ class Main:
             elif mode == "texturecache":
                 import artwork
                 artwork.Artwork().FullTextureCacheSync()
-            elif "extrafanart" in sys.argv[0]:
-                entrypoint.getExtraFanArt()
             else:
                 entrypoint.doMainListing()
 

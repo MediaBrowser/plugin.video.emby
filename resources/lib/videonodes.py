@@ -116,7 +116,7 @@ class VideoNodes(object):
             '4': "inprogress",
             '5': "inprogressepisodes",
             '6': "unwatched",
-            '7': "nextupepisodes",
+            '7': "nextepisodes",
             '8': "sets",
             '9': "genres",
             '10': "random",
@@ -161,7 +161,7 @@ class VideoNodes(object):
                 label = stringid
 
             # Set window properties
-            if nodetype == "nextupepisodes":
+            if nodetype == "nextepisodes":
                 # Custom query
                 path = "plugin://plugin.video.plexkodiconnect/?id=%s&mode=nextup&limit=25" % tagname
             elif kodiversion == 14 and nodetype == "recentepisodes":
@@ -172,7 +172,7 @@ class VideoNodes(object):
                 path = "plugin://plugin.video.plexkodiconnect/?id=%s&mode=inprogressepisodes&limit=25"% tagname
             else:
                 path = "library://video/Emby - %s/%s_%s.xml" % (dirname, cleantagname, nodetype)
-            windowpath = "ActivateWindow(Video, %s, return)" % path
+            windowpath = "ActivateWindow(Video,%s,return)" % path
             
             if nodetype == "all":
 
@@ -198,7 +198,7 @@ class VideoNodes(object):
 
 
             # Create the root
-            if nodetype == "nextupepisodes" or (kodiversion == 14 and
+            if nodetype == "nextepisodes" or (kodiversion == 14 and
                                         nodetype in ('recentepisodes', 'inprogressepisodes')):
                 # Folder type with plugin path
                 root = self.commonRoot(order=node, label=label, tagname=tagname, roottype=2)
@@ -277,7 +277,7 @@ class VideoNodes(object):
         nodepath = xbmc.translatePath("special://profile/library/video/").decode('utf-8')
         nodeXML = "%semby_%s.xml" % (nodepath, cleantagname)
         path = "library://video/emby_%s.xml" % (cleantagname)
-        windowpath = "ActivateWindow(Video, %s, return)" % path
+        windowpath = "ActivateWindow(Video,%s,return)" % path
         
         # Create the video node directory
         if not xbmcvfs.exists(nodepath):
