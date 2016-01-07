@@ -26,12 +26,7 @@ import PlexAPI
 
 class Items(object):
 
-
-    def __init__(self, embycursor, kodicursor):
-
-        self.embycursor = embycursor
-        self.kodicursor = kodicursor
-
+    def __init__(self):
         self.clientInfo = clientinfo.ClientInfo()
         self.addonName = self.clientInfo.getAddonName()
         self.doUtils = downloadutils.DownloadUtils()
@@ -40,11 +35,28 @@ class Items(object):
         self.directpath = utils.settings('useDirectPaths') == "1"
         self.music_enabled = utils.settings('enableMusic') == "true"
         self.contentmsg = utils.settings('newContent') == "true"
-        
+
         self.artwork = artwork.Artwork()
         self.emby = embyserver.Read_EmbyServer()
-        self.emby_db = embydb.Embydb_Functions(embycursor)
-        self.kodi_db = kodidb.Kodidb_Functions(kodicursor)
+
+    def __enter__(self):
+        self.embyconn = utils.kodiSQL('emby')
+        self.embycursor = self.embyconn.cursor()
+        self.kodiconn = utils.kodiSQL('video')
+        self.kodicursor = self.kodiconn.cursor()
+        self.emby_db = embydb.Embydb_Functions(self.embycursor)
+        self.kodi_db = kodidb.Kodidb_Functions(self.kodicursor)
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """
+        Make sure DB changes are committed and connection to DB is closed.
+        """
+        self.embyconn.commit()
+        self.kodiconn.commit()
+        self.embyconn.close()
+        self.kodiconn.close()
+        return self
 
     def logMsg(self, msg, lvl=1):
 
@@ -230,10 +242,6 @@ class Items(object):
 
 class Movies(Items):
 
-    
-    def __init__(self, embycursor, kodicursor):
-        Items.__init__(self, embycursor, kodicursor)
-
     def added(self, items, pdialog):
 
         total = len(items)
@@ -265,7 +273,6 @@ class Movies(Items):
                 count += 1
             self.add_updateBoxset(boxset)
 
-
     def add_update(self, item, viewtag=None, viewid=None):
         # Process single movie
         kodicursor = self.kodicursor
@@ -295,6 +302,7 @@ class Movies(Items):
             # movieid
             kodicursor.execute("select coalesce(max(idMovie),0) from movie")
             movieid = kodicursor.fetchone()[0] + 1
+
 
         # if not viewtag or not viewid:
         #     # Get view tag from emby

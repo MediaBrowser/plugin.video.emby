@@ -2,9 +2,8 @@
 
 ##################################################################################################
 
-import sqlite3
 import threading
-from datetime import datetime, timedelta, time
+from datetime import datetime, timedelta
 
 import xbmc
 import xbmcgui
@@ -22,8 +21,169 @@ import userclient
 import videonodes
 
 import PlexAPI
+import Queue
+import time
 
 ##################################################################################################
+
+
+class ThreadedGetMetadata(threading.Thread):
+    """
+    Threaded download of Plex XML metadata for a certain library item.
+    Fills the out_queue with the downloaded etree XML objects
+
+    Input:
+        queue               Queue.Queue() object that you'll need to fill up
+                            with Plex itemIds
+        out_queue           Queue.Queue() object where this thread will store
+                            the downloaded metadata XMLs as etree objects
+        lock                threading.Lock(), used for counting where we are
+        userStop            Handle to a function where True is used to stop
+                            this Thread
+    """
+    def __init__(self, queue, out_queue, lock, userStop):
+        self.queue = queue
+        self.out_queue = out_queue
+        self.lock = lock
+        self.userStop = userStop
+        self._shouldstop = threading.Event()
+        threading.Thread.__init__(self)
+
+    def run(self):
+        plx = PlexAPI.PlexAPI()
+        global getMetadataCount
+        while self.stopped() is False:
+            # grabs Plex item from queue
+            try:
+                itemId = self.queue.get(block=False)
+            # Empty queue
+            except:
+                continue
+            # Download Metadata
+            plexElement = plx.GetPlexMetadata(itemId)
+            # place item into out queue
+            self.out_queue.put(plexElement)
+            # Keep track of where we are at
+            with self.lock:
+                getMetadataCount += 1
+            # signals to queue job is done
+            self.queue.task_done()
+
+    def stopThread(self):
+        self._shouldstop.set()
+
+    def stopped(self):
+        return self._shouldstop.isSet() or self.userStop()
+
+
+class ThreadedProcessMetadata(threading.Thread):
+    """
+    Not yet implemented - if ever. Only to be called by ONE thread!
+    Processes the XML metadata in the queue
+
+    Input:
+        queue:      Queue.Queue() object that you'll need to fill up with
+                    the downloaded XML eTree objects
+        data = {
+            'itemType':         as used to call functions in itemtypes.py
+                                e.g. 'Movies' => itemtypes.Movies()
+            'viewName'          Plex str for library view (e.g. 'Movies')
+            'viewId'            Plex Id to identifiy the library view
+        }
+        lock:       threading.Lock(), used for counting where we are
+        userStop    Handle to a function where True is used to stop this Thread
+    """
+    def __init__(self, queue, data, lock, userStop):
+        self.queue = queue
+        self.lock = lock
+        self.data = data
+        self.userStop = userStop
+        self._shouldstop = threading.Event()
+        threading.Thread.__init__(self)
+
+    def run(self):
+        # Constructs the method name, e.g. itemtypes.Movies
+        itemFkt = getattr(itemtypes, self.data['itemType'])
+        viewName = self.data['viewName']
+        viewId = self.data['viewId']
+        global processMetadataCount
+        with itemFkt() as item:
+            while self.stopped() is False:
+                # grabs item from queue
+                try:
+                    plexitem = self.queue.get(block=False)
+                # Empty queue
+                except:
+                    continue
+                # Do the work; lock to be sure we've only got 1 Thread
+                with self.lock:
+                    item.add_update(
+                        plexitem,
+                        viewtag=viewName,
+                        viewid=viewId
+                    )
+                    # Keep track of where we are at
+                    processMetadataCount += 1
+                # signals to queue job is done
+                self.queue.task_done()
+
+    def stopThread(self):
+        self._shouldstop.set()
+
+    def stopped(self):
+        return self._shouldstop.isSet() or self.userStop()
+
+
+class ThreadedShowSyncInfo(threading.Thread):
+    """
+    Threaded class to show the Kodi statusbar of the metadata download.
+
+    Input:
+        dialog       xbmcgui.DialogProgressBG() object to show progress
+        locks = [downloadLock, processLock]     Locks() to the other threads
+        total:       Total number of items to get
+        viewName:    Name of library we're getting
+    """
+    def __init__(self, dialog, locks, total, viewName):
+        self.locks = locks
+        self.total = total
+        self.viewName = viewName
+        self.addonName = clientinfo.ClientInfo().getAddonName()
+        self._shouldstop = threading.Event()
+        self.dialog = dialog
+        threading.Thread.__init__(self)
+
+    def run(self):
+        total = self.total
+        downloadLock = self.locks[0]
+        processLock = self.locks[1]
+        self.dialog.create(
+            self.addonName + ": Sync " + self.viewName,
+            "Starting"
+        )
+        global getMetadataCount
+        global processMetadataCount
+        total = 2 * total
+        totalProgress = 0
+        while self.stopped() is not True:
+            with downloadLock:
+                getMetadataProgress = getMetadataCount
+            with processLock:
+                processMetadataProgress = processMetadataCount
+            totalProgress = getMetadataProgress + processMetadataProgress
+            percentage = int(float(totalProgress) / float(total)*100.0)
+            self.dialog.update(
+                percentage,
+                message="Downloaded: %s, Processed: %s" %
+                    (getMetadataProgress, processMetadataProgress)
+            )
+            time.sleep(0.5)
+
+    def stopThread(self):
+        self._shouldstop.set()
+
+    def stopped(self):
+        return self._shouldstop.isSet()
 
 
 class LibrarySync(threading.Thread):
@@ -54,6 +214,7 @@ class LibrarySync(threading.Thread):
         self.emby = embyserver.Read_EmbyServer()
         self.vnodes = videonodes.VideoNodes()
         self.plx = PlexAPI.PlexAPI()
+        self.syncThreadNumber = int(utils.settings('syncThreadNumber'))
 
         threading.Thread.__init__(self)
 
@@ -84,14 +245,8 @@ class LibrarySync(threading.Thread):
             # Verify if server plugin is installed.
             if utils.settings('serverSync') == "true":
                 # Try to use fast start up
-                url = "{server}/emby/Plugins?format=json"
-                result = self.doUtils.downloadUrl(url)
+                completed = self.fastSync()
 
-                for plugin in result:
-                    if plugin['Name'] == "Emby.Kodi Sync Queue":
-                        self.logMsg("Found server plugin.", 2)
-                        completed = self.fastSync()
-            
             if not completed:
                 # Fast sync failed or server plugin is not found
                 completed = self.fullSync(manualrun=True)
@@ -186,15 +341,7 @@ class LibrarySync(threading.Thread):
             connection.commit()
             self.logMsg("Commit successful.", 1)
 
-    def fullSync(self, manualrun=False, repair=False):
-        # Only run once when first setting up. Can be run manually.
-        emby = self.emby
-        music_enabled = utils.settings('enableMusic') == "true"
-
-        utils.window('emby_dbScan', value="true")
-        # Add sources
-        utils.sourcesXML()
-
+    def initializeDBs(self):
         embyconn = utils.kodiSQL('emby')
         embycursor = embyconn.cursor()
         # Create the tables for the emby database
@@ -210,8 +357,17 @@ class LibrarySync(threading.Thread):
         embyconn.commit()
         
         # content sync: movies, tvshows, musicvideos, music
-        kodiconn = utils.kodiSQL('video')
-        kodicursor = kodiconn.cursor()
+        embyconn.close()
+        return
+
+    def fullSync(self, manualrun=False, repair=False):
+        # Only run once when first setting up. Can be run manually.
+        self.compare = manualrun
+        music_enabled = utils.settings('enableMusic') == "true"
+
+        utils.window('emby_dbScan', value="true")
+        # Add sources
+        utils.sourcesXML()
 
         if manualrun:
             message = "Manual sync"
@@ -220,14 +376,13 @@ class LibrarySync(threading.Thread):
         else:
             message = "Initial sync"
             utils.window('emby_initialScan', value="true")
-        
-        pDialog = self.progressDialog("%s" % message, forced=True)
+
         starttotal = datetime.now()
 
         # Set views
         # self.maintainViews(embycursor, kodicursor)
         # embyconn.commit()
-        
+        self.initializeDBs()
         # Sync video library
         process = {
 
@@ -238,60 +393,48 @@ class LibrarySync(threading.Thread):
         }
 
         process = {
-            'movies': self.PlexMovies,
+            'movies': self.PlexMovies
+            # 'tvshows': self.PlexTVShows
         }
+
         for itemtype in process:
             startTime = datetime.now()
-            completed = process[itemtype](embycursor, kodicursor, pDialog, compare=manualrun)
+            completed = process[itemtype]()
             if not completed:
                 
                 utils.window('emby_dbScan', clear=True)
-                if pDialog:
-                    pDialog.close()
 
-                embycursor.close()
-                kodicursor.close()
                 return False
             else:
-                self.dbCommit(kodiconn)
-                embyconn.commit()
                 elapsedTime = datetime.now() - startTime
                 self.logMsg(
                     "SyncDatabase (finished %s in: %s)"
-                    % (itemtype, str(elapsedTime).split('.')[0]), 1)
+                    % (itemtype, str(elapsedTime).split('.')[0]), 0)
 
-        # sync music
-        if music_enabled:
+        # # sync music
+        # if music_enabled:
             
-            musicconn = utils.kodiSQL('music')
-            musiccursor = musicconn.cursor()
+        #     musicconn = utils.kodiSQL('music')
+        #     musiccursor = musicconn.cursor()
             
-            startTime = datetime.now()
-            completed = self.music(embycursor, musiccursor, pDialog, compare=manualrun)
-            if not completed:
+        #     startTime = datetime.now()
+        #     completed = self.music(embycursor, musiccursor, pDialog, compare=manualrun)
+        #     if not completed:
 
-                utils.window('emby_dbScan', clear=True)
-                if pDialog:
-                    pDialog.close()
+        #         utils.window('emby_dbScan', clear=True)
 
-                embycursor.close()
-                musiccursor.close()
-                return False
-            else:
-                musicconn.commit()
-                embyconn.commit()
-                elapsedTime = datetime.now() - startTime
-                self.logMsg(
-                    "SyncDatabase (finished music in: %s)"
-                    % (str(elapsedTime).split('.')[0]), 1)
-            musiccursor.close()
+        #         embycursor.close()
+        #         musiccursor.close()
+        #         return False
+        #     else:
+        #         musicconn.commit()
+        #         embyconn.commit()
+        #         elapsedTime = datetime.now() - startTime
+        #         self.logMsg(
+        #             "SyncDatabase (finished music in: %s)"
+        #             % (str(elapsedTime).split('.')[0]), 1)
+        #     musiccursor.close()
 
-        if pDialog:
-            pDialog.close()
-        
-        embycursor.close()
-        kodicursor.close()
-        
         utils.settings('SyncInstallRunDone', value="true")
         utils.settings("dbCreatedWithVersion", self.clientInfo.getVersion())
         self.saveLastSync()
@@ -465,100 +608,176 @@ class LibrarySync(threading.Thread):
             # Save total
             utils.window('Emby.nodes.total', str(totalnodes))
 
+    def GetUpdatelist(self, elementList):
+        """
+        Adds items to self.updatelist as well as self.allPlexElementsId dict
 
+        Input:
+            elementList:           List of elements, e.g. a list of '_children'
+                                   movie elements as received via JSON from PMS
 
-    def PlexMovies(self, embycursor, kodicursor, pdialog, compare=False):
+        Output: self.updatelist, self.allPlexElementsId
+            self.updatelist             APPENDED(!!) list itemids (Plex Keys as
+                                        as received from API.getKey())
+            self.allPlexElementsId      APPENDED(!!) dic
+                = {itemid: checksum}
+        """
+        if self.compare:
+            # Manual sync
+            for plexmovie in elementList:
+                if self.shouldStop():
+                    return False
+                API = PlexAPI.API(plexmovie)
+                plex_checksum = API.getChecksum()
+                itemid = API.getKey()
+                self.allPlexElementsId[itemid] = plex_checksum
+                kodi_checksum = self.allKodiElementsId.get(itemid)
+                if kodi_checksum != plex_checksum:
+                    # Only update if movie is not in Kodi or checksum is
+                    # different
+                    self.updatelist.append(itemid)
+        else:
+            # Initial or repair sync: get all Plex movies
+            for plexmovie in elementList:
+                API = PlexAPI.API(plexmovie)
+                itemid = API.getKey()
+                plex_checksum = API.getChecksum()
+                self.allPlexElementsId[itemid] = plex_checksum
+                self.updatelist.append(itemid)
+        # Update the Kodi popup info
+        return self.updatelist, self.allPlexElementsId
+
+    def PlexMovies(self):
+        # Initialize
         plx = PlexAPI.PlexAPI()
+        compare = self.compare
+        self.updatelist = []
+        self.allPlexElementsId = {}
+        # Initialze DBs
+        embyconn = utils.kodiSQL('emby')
+        embycursor = embyconn.cursor()
+
         # Get movies from Plex server
         emby_db = embydb.Embydb_Functions(embycursor)
-        movies = itemtypes.Movies(embycursor, kodicursor)
 
         views = plx.GetPlexCollections('movie')
+        self.logMsg("Media folders: %s" % views, 1)
 
         if compare:
             # Pull the list of movies and boxsets in Kodi
             try:
-                all_kodimoviesId = dict(emby_db.getChecksum('Movie'))
+                self.allKodiElementsId = dict(emby_db.getChecksum('Movie'))
             except ValueError:
-                all_kodimoviesId = {}
-        all_plexmoviesIds = {}
+                self.allKodiElementsId = {}
+        else:
+            # Getting all metadata, hence set Kodi elements to {}
+            self.allKodiElementsId = {}
+        embyconn.close()
 
         ##### PROCESS MOVIES #####
         for view in views:
-            updatelist = []
+            self.updatelist = []
             if self.shouldStop():
                 return False
             # Get items per view
             viewId = view['id']
             viewName = view['name']
-            if pdialog:
-                pdialog.update(
-                    heading=self.addonName,
-                    message="Gathering movies from view: %s..." % viewName
-                )
             all_plexmovies = plx.GetPlexSectionResults(viewId)
+            # Populate self.updatelist and self.allPlexElementsId
+            self.GetUpdatelist(all_plexmovies)
+            self.logMsg("Processed view %s with ID %s" % (viewName, viewId), 1)
 
-            if compare:
-                # Manual sync
-                if pdialog:
-                    pdialog.update(
-                        heading=self.addonName,
-                        message="Comparing movies from view: %s..." % viewName
-                    )
-                for plexmovie in all_plexmovies:
-                    if self.shouldStop():
-                        return False
-                    API = PlexAPI.API(plexmovie)
-                    plex_checksum = API.getChecksum()
-                    itemid = API.getKey()
-                    kodi_checksum = all_kodimoviesId.get(itemid)
-                    all_plexmoviesIds[itemid] = plex_checksum
-                    if kodi_checksum != plex_checksum:
-                        # Only update if movie is not in Kodi or checksum is different
-                        updatelist.append(itemid)
-            else:
-                # Initial or repair sync: get all Plex movies
-                for plexmovie in all_plexmovies:
-                    API = PlexAPI.API(plexmovie)
-                    itemid = API.getKey()
-                    plex_checksum = API.getChecksum()
-                    all_plexmoviesIds[itemid] = plex_checksum
-                    updatelist.append(itemid)
+        self.logMsg("self.updatelist: %s" % self.updatelist, 2)
+        self.logMsg("self.allPlexElementsId: %s" % self.allPlexElementsId, 2)
+        self.logMsg("self.allKodiElementsId: %s" % self.allKodiElementsId, 2)
 
-            total = len(updatelist)
-            if pdialog:
-                pdialog.update(heading="Processing %s / %s items" % (viewName, total))
+        # Run through self.updatelist, get XML metadata per item
+        # Initiate threads
+        self.logMsg("=====================", 1)
+        self.logMsg("Starting sync threads", 1)
+        self.logMsg("=====================", 1)
+        getMetadataQueue = Queue.Queue()
+        processMetadataQueue = Queue.Queue()
+        getMetadataLock = threading.Lock()
+        processMetadataLock = threading.Lock()
+        # To keep track
+        global getMetadataCount
+        getMetadataCount = 0
+        global processMetadataCount
+        processMetadataCount = 0
+        # Spawn GetMetadata threads
+        threads = []
+        for i in range(self.syncThreadNumber):
+            t = ThreadedGetMetadata(
+                getMetadataQueue,
+                processMetadataQueue,
+                getMetadataLock,
+                self.shouldStop
+            )
+            t.setDaemon(True)
+            t.start()
+            threads.append(t)
+        self.logMsg("%s download threads spawned" % self.syncThreadNumber, 1)
+        # Populate queue: GetMetadata
+        for itemId in self.updatelist:
+            getMetadataQueue.put(itemId)
+        self.logMsg("Queue populated", 1)
+        # Spawn one more thread to process Metadata, once downloaded
+        data = {
+            'itemType': 'Movies',
+            'viewName': viewName,
+            'viewId': viewId
+        }
+        thread = ThreadedProcessMetadata(
+            processMetadataQueue,
+            data,
+            processMetadataLock,
+            self.shouldStop
+        )
+        thread.setDaemon(True)
+        thread.start()
+        threads.append(thread)
+        self.logMsg("Processing thread spawned", 1)
 
-            count = 0
-            for itemid in updatelist:
-                # Process individual movies
-                if self.shouldStop():
-                    return False
-                # Download Metadata
-                plexmovie = plx.GetPlexMetadata(itemid)
-                # Check whether metadata is valid
-                title = plexmovie[0].attrib['title']
-                if pdialog:
-                    percentage = int((float(count) / float(total))*100)
-                    pdialog.update(percentage, message=title)
-                    count += 1
-                # Download individual metadata
-                self.logMsg("Start parsing metadata for movie: %s" % title, 0)
-                movies.add_update(plexmovie, viewName, viewId)
-
-        else:
-            self.logMsg("Movies finished.", 2)
+        # Start one thread to show sync progress
+        dialog = xbmcgui.DialogProgressBG()
+        total = len(self.updatelist)
+        thread = ThreadedShowSyncInfo(
+            dialog,
+            [getMetadataLock, processMetadataLock],
+            total,
+            viewName
+        )
+        thread.setDaemon(True)
+        thread.start()
+        threads.append(thread)
+        self.logMsg("Kodi Infobox thread spawned", 1)
+        # Wait until finished
+        getMetadataQueue.join()
+        processMetadataQueue.join()
+        # Kill threads
+        self.logMsg("Waiting to kill threads", 1)
+        for thread in threads:
+            thread.stopThread()
+        self.logMsg("Stop sent to all threads", 1)
+        # Wait till threads are indeed dead
+        for thread in threads:
+            thread.join()
+        dialog.close()
+        self.logMsg("=====================", 1)
+        self.logMsg("Sync threads finished", 1)
+        self.logMsg("=====================", 1)
 
         ##### PROCESS DELETES #####
-        self.logMsg("all_plexmoviesIds: %s" % all_plexmoviesIds, 0)
-        self.logMsg("all_kodimoviesId: %s" % all_kodimoviesId, 0)
         if compare:
             # Manual sync, process deletes
-            for kodimovie in all_kodimoviesId:
-                if kodimovie not in all_plexmoviesIds:
-                    movies.remove(kodimovie)
-            else:
-                self.logMsg("Movies compare finished.", 1)
+            itemFkt = getattr(itemtypes, 'Movies')
+            with itemFkt() as item:
+                for kodimovie in self.allKodiElementsId:
+                    if kodimovie not in self.allPlexElementsId:
+                        item.remove(kodimovie)
+                else:
+                    self.logMsg("Movies compare finished.", 1)
         return True
 
     def movies(self, embycursor, kodicursor, pdialog, compare=False):
@@ -915,6 +1134,176 @@ class LibrarySync(threading.Thread):
         
         return True
 
+    def PlexTVShows(self, embycursor, kodicursor):
+        # Initialize
+        plx = PlexAPI.PlexAPI()
+        compare = self.compare
+        pdialog = self.pDialog
+        self.updatelist = []
+        self.allPlexElementsId = {}
+        # Get shows from emby
+        emby_db = embydb.Embydb_Functions(embycursor)
+        tvshows = itemtypes.TVShows(embycursor, kodicursor)
+
+        views = plx.GetPlexCollections('show')
+        self.logMsg("Media folders: %s" % views, 1)
+
+        self.allKodiElementsId = {}
+        if compare:
+            # Pull the list of TV shows already in Kodi
+            try:
+                all_koditvshows = dict(emby_db.getChecksum('Series'))
+                self.allKodiElementsId.update(all_koditvshows)
+            except ValueError:
+                pass
+            # Same for the episodes (sub-element of shows/series)
+            try:
+                all_kodiepisodes = dict(emby_db.getChecksum('Episode'))
+                self.allKodiElementsId.update(all_kodiepisodes)
+            except ValueError:
+                pass
+
+        for view in views:
+            self.updatelist = []
+            if self.shouldStop():
+                return False
+            # Get items per view
+            viewId = view['id']
+            viewName = view['name']
+            if pdialog:
+                pdialog.update(
+                    heading=self.addonName,
+                    message="Gathering TV Shows from view: %s..." % viewName)
+            all_plexTvShows = plx.GetPlexSectionResults(viewId)
+
+            # Populate self.updatelist with TV shows and self.allPlexElementsId
+            self.GetUpdatelist(all_plexTvShows, viewName)
+
+            # Run through self.updatelist, get XML metadata per item and safe
+            # to Kodi
+            self.ProcessUpdateList(tvshows, view)
+
+
+
+            if compare:
+                # Manual sync
+                for plexTvShow in all_plexTvShows:
+                    if self.shouldStop():
+                        return False
+                    API = plx(plexTvShow)
+                    plex_checksum = API.getChecksum()
+                    itemid = API.getKey()
+                    kodi_checksum = all_kodimoviesId.get(itemid)
+                    all_plextvshowsIds[itemid] = itemid
+                    kodi_checksum = all_koditvshows.get(itemid)
+                    #if kodi_checksum != plex_checksum:
+
+                    
+                    if all_koditvshows.get(itemid) != API.getChecksum():
+                        # Only update if movie is not in Kodi or checksum is different
+                        updatelist.append(itemid)
+
+                self.logMsg("TVShows to update for %s: %s" % (viewName, updatelist), 1)
+                embytvshows = emby.getFullItems(updatelist)
+                total = len(updatelist)
+                del updatelist[:]
+            else:
+                all_embytvshows = emby.getShows(viewId)
+                total = all_embytvshows['TotalRecordCount']
+                embytvshows = all_embytvshows['Items']
+
+
+            if pdialog:
+                pdialog.update(heading="Processing %s / %s items" % (viewName, total))
+
+            count = 0
+            for embytvshow in embytvshows:
+                # Process individual show
+                if self.shouldStop():
+                    return False
+                
+                itemid = embytvshow['Id']
+                title = embytvshow['Name']
+                if pdialog:
+                    percentage = int((float(count) / float(total))*100)
+                    pdialog.update(percentage, message=title)
+                    count += 1
+                tvshows.add_update(embytvshow, viewName, viewId)
+
+                if not compare:
+                    # Process episodes
+                    all_episodes = emby.getEpisodesbyShow(itemid)
+                    for episode in all_episodes['Items']:
+
+                        # Process individual show
+                        if self.shouldStop():
+                            return False
+
+                        episodetitle = episode['Name']
+                        if pdialog:
+                            pdialog.update(percentage, message="%s - %s" % (title, episodetitle))
+                        tvshows.add_updateEpisode(episode)
+            else:
+                if compare:
+                    # Get all episodes in view
+                    if pdialog:
+                        pdialog.update(
+                                heading="Emby for Kodi",
+                                message="Comparing episodes from view: %s..." % viewName)
+
+                    all_embyepisodes = emby.getEpisodes(viewId, basic=True)
+                    for embyepisode in all_embyepisodes['Items']:
+
+                        if self.shouldStop():
+                            return False
+
+                        API = api.API(embyepisode)
+                        itemid = embyepisode['Id']
+                        all_embyepisodesIds.add(itemid)
+
+                        if all_kodiepisodes.get(itemid) != API.getChecksum():
+                            # Only update if movie is not in Kodi or checksum is different
+                            updatelist.append(itemid)
+
+                    self.logMsg("Episodes to update for %s: %s" % (viewName, updatelist), 1)
+                    embyepisodes = emby.getFullItems(updatelist)
+                    total = len(updatelist)
+                    del updatelist[:]
+
+                    count = 0
+                    for episode in embyepisodes:
+
+                        # Process individual episode
+                        if self.shouldStop():
+                            return False                          
+
+                        title = episode['SeriesName']
+                        episodetitle = episode['Name']
+                        if pdialog:
+                            percentage = int((float(count) / float(total))*100)
+                            pdialog.update(percentage, message="%s - %s" % (title, episodetitle))
+                            count += 1
+                        tvshows.add_updateEpisode(episode)
+        else:
+            self.logMsg("TVShows finished.", 2)
+        
+        ##### PROCESS DELETES #####
+        if compare:
+            # Manual sync, process deletes
+            for koditvshow in all_koditvshows:
+                if koditvshow not in all_embytvshowsIds:
+                    tvshows.remove(koditvshow)
+            else:
+                self.logMsg("TVShows compare finished.", 1)
+
+            for kodiepisode in all_kodiepisodes:
+                if kodiepisode not in all_embyepisodesIds:
+                    tvshows.remove(kodiepisode)
+            else:
+                self.logMsg("Episodes compare finished.", 1)
+
+        return True
+
     def tvshows(self, embycursor, kodicursor, pdialog, compare=False):
         # Get shows from emby
         emby = self.emby
@@ -1117,16 +1506,11 @@ class LibrarySync(threading.Thread):
         for type in types:
 
             if pdialog:
-                pdialog.update(
-                    heading="Emby for Kodi",
-                    message="Gathering %s..." % type)
-
+                pass
             if compare:
                 # Manual Sync
                 if pdialog:
-                    pdialog.update(
-                            heading="Emby for Kodi",
-                            message="Comparing %s..." % type)
+                    pass
 
                 if type != "artists":
                     all_embyitems = process[type][0](basic=True)
@@ -1165,7 +1549,7 @@ class LibrarySync(threading.Thread):
                 embyitems = all_embyitems['Items']
 
             if pdialog:
-                pdialog.update(heading="Processing %s / %s items" % (type, total))
+                pass
 
             count = 0
             for embyitem in embyitems:

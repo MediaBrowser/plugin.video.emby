@@ -845,6 +845,7 @@ class PlexAPI():
         """
         plexToken = utils.settings('plexToken')
         users = self.MyPlexListHomeUsers(plexToken)
+        url = ''
         # If an error is encountered, set to False
         if not users:
             self.logMsg("Could not get userlist from plex.tv.", 1)
@@ -1188,12 +1189,15 @@ class PlexAPI():
             mediatype           String or list of strings with possible values
                                 'movie', 'show', 'artist', 'photo'
         Output:
-            Collection containing only mediatype. List with entry of the form:
+            List with an entry of the form:
             {
             'name': xxx         Plex title for the media section
             'type': xxx         Plex type: 'movie', 'show', 'artist', 'photo'
-            'id': xxx           Plex unique key for the section
+            'id': xxx           Plex unique key for the section (1, 2, 3...)
+            'uuid': xxx         Other unique Plex key, e.g.
+                                74aec9f2-a312-4723-9436-de2ea43843c1
             }
+        Returns an empty list if nothing is found.
         """
         collections = []
         url = "{server}/library/sections"
@@ -1208,17 +1212,19 @@ class PlexAPI():
                 if contentType in mediatype:
                     name = item['title']
                     contentId = item['key']
+                    uuid = item['uuid']
                     collections.append({
                         'name': name,
                         'type': contentType,
-                        'id': str(contentId)
+                        'id': str(contentId),
+                        'uuid': uuid
                     })
         return collections
 
     def GetPlexSectionResults(self, viewId):
         """
-        Returns a list (raw API dump) of all Plex movies in the Plex section
-        with key = viewId.
+        Returns a list (raw JSON API dump) of all Plex items in the Plex
+        section with key = viewId.
         """
         result = []
         url = "{server}/library/sections/%s/all" % viewId
@@ -1226,9 +1232,16 @@ class PlexAPI():
         try:
             result = jsondata['_children']
         except KeyError:
-            self.logMsg("Error retrieving all movies for section %s" % viewId, 1)
+            self.logMsg("Error retrieving all items for Plex section %s" % viewId, 1)
             pass
         return result
+
+    def GetPlexSubitems(self, key):
+        """
+        Returns a list (raw JSON API dump) of all Plex subitems for the key.
+        (e.g. key=/library/metadata/194853/children pointing to a season)
+        """
+
 
     def GetPlexMetadata(self, key):
         """

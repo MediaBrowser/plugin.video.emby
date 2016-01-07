@@ -68,5 +68,6 @@
         <setting id="restartMsg" type="bool" label="Enable server message when it's restarting" default="false" />
         <setting id="newContent" type="bool" label="Enable new content notification" default="false" />
 		<setting label="30239" type="action" action="RunPlugin(plugin://plugin.video.plexkodiconnect?mode=reset)" option="close" />
+		<setting id="syncThreadNumber" type="number" label="Number of parallel threads while syncing" default="20" option="int"/>
 	</category>
 </settings>
