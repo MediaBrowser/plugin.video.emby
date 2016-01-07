@@ -160,7 +160,7 @@ class ThreadedShowSyncInfo(threading.Thread):
         processLock = self.locks[1]
         self.dialog.create(
             self.addonName + ": Sync " + self.viewName +
-                ': ' + total + 'items',
+                ': ' + str(total) + 'items',
             "Starting"
         )
         global getMetadataCount
