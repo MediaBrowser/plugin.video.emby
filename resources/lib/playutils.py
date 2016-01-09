@@ -44,11 +44,11 @@ class PlayUtils():
             self.API.setPartNumber(partIndex)
         playurl = None
 
-        # if item['MediaSources'][0]['Protocol'] == "Http":
-        #     # Only play as http
-        #     self.logMsg("File protocol is http.", 1)
-        #     playurl = self.httpPlay()
-        #     utils.window('emby_%s.playmethod' % playurl, value="DirectStream")
+        if item.get('MediaSources') and item['MediaSources'][0]['Protocol'] == "Http":
+            # Only play as http
+            self.logMsg("File protocol is http.", 1)
+            playurl = self.httpPlay()
+            utils.window('emby_%s.playmethod' % playurl, value="DirectStream")
 
         if self.isDirectPlay():
             self.logMsg("File is direct playing.", 1)
@@ -85,7 +85,7 @@ class PlayUtils():
         itemid = item['Id']
         mediatype = item['MediaType']
 
-        if type == "Audio":
+        if mediatype == "Audio":
             playurl = "%s/emby/Audio/%s/stream" % (server, itemid)
         else:
             playurl = "%s/emby/Videos/%s/stream?static=true" % (server, itemid)
