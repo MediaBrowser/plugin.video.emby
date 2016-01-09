@@ -1173,12 +1173,8 @@ class MusicVideos(Items):
 
         self.logMsg("Deleted musicvideo %s from kodi database" % itemid, 1)
 
+
 class TVShows(Items):
-
-
-    def __init__(self, embycursor, kodicursor):
-        Items.__init__(self, embycursor, kodicursor)
-
     def added(self, items, pdialog):
         
         total = len(items)
@@ -1233,15 +1229,18 @@ class TVShows(Items):
         emby_db = self.emby_db
         kodi_db = self.kodi_db
         artwork = self.artwork
-        API = api.API(item)
+        API = PlexAPI.API(item)
 
-        if utils.settings('syncEmptyShows') == "false" and not item['RecursiveItemCount']:
-            self.logMsg("Skipping empty show: %s" % item['Name'], 1)
-            return
+        # if utils.settings('syncEmptyShows') == "false" and not item['RecursiveItemCount']:
+        #     self.logMsg("Skipping empty show: %s" % item['Name'], 1)
+        #     return
         # If the item already exist in the local Kodi DB we'll perform a full item update
         # If the item doesn't exist, we'll add it to the database
         update_item = True
-        itemid = item['Id']
+        itemid = API.getKey()
+        if not itemid:
+            self.logMsg("Cannot parse XML data for TV show", -1)
+            return
         emby_dbitem = emby_db.getItem_byId(itemid)
         try:
             showid = emby_dbitem[0]
@@ -1252,32 +1251,29 @@ class TVShows(Items):
             update_item = False
             self.logMsg("showid: %s not found." % itemid, 2)
 
-        if viewtag is None or viewid is None:
-            # Get view tag from emby
-            viewtag, viewid, mediatype = emby.getView_embyId(itemid)
-            self.logMsg("View tag found: %s" % viewtag, 2)
+        # if viewtag is None or viewid is None:
+        #     # Get view tag from emby
+        #     viewtag, viewid, mediatype = emby.getView_embyId(itemid)
+        #     self.logMsg("View tag found: %s" % viewtag, 2)
 
         # fileId information
         checksum = API.getChecksum()
-        dateadded = API.getDateCreated()
-        userdata = API.getUserData()
-        playcount = userdata['PlayCount']
-        dateplayed = userdata['LastPlayedDate']
 
         # item details
-        genres = item['Genres']
-        title = item['Name']
-        plot = API.getOverview()
-        rating = item.get('CommunityRating')
+        genres = API.getGenres()
+        title, sorttitle = API.getTitle()
+        plot = API.getPlot()
+        rating = API.getAudienceRating()
         premieredate = API.getPremiereDate()
         tvdb = API.getProvider('Tvdb')
-        sorttitle = item['SortName']
         mpaa = API.getMpaa()
-        genre = " / ".join(genres)
+        genre = API.joinList(genres)
         studios = API.getStudios()
-        studio = " / ".join(studios)
+        try:
+            studio = studios[0]
+        except IndexError:
+            studio = None
 
-        
         ##### GET THE FILE AND PATH #####
         playurl = API.getFilePath()
 
@@ -1380,76 +1376,78 @@ class TVShows(Items):
         kodicursor.execute(query, (path, None, None, 1, pathid))
         
         # Process cast
-        people = artwork.getPeopleArtwork(item['People'])
+        people = API.getPeopleList()
         kodi_db.addPeople(showid, people, "tvshow")
         # Process genres
         kodi_db.addGenres(showid, genres, "tvshow")
         # Process artwork
-        artwork.addArtwork(artwork.getAllArtwork(item), showid, "tvshow", kodicursor)
+        allartworks = API.getAllArtwork()
+        artwork.addArtwork(allartworks, showid, "tvshow", kodicursor)
         # Process studios
         kodi_db.addStudios(showid, studios, "tvshow")
         # Process tags: view, emby tags
-        tags = [viewtag]
-        tags.extend(item['Tags'])
-        if userdata['Favorite']:
-            tags.append("Favorite tvshows")
-        kodi_db.addTags(showid, tags, "tvshow")
+        # tags = [viewtag]
+        # tags.extend(item['Tags'])
+        # if userdata['Favorite']:
+        #     tags.append("Favorite tvshows")
+        # kodi_db.addTags(showid, tags, "tvshow")
         # Process seasons
-        all_seasons = emby.getSeasons(itemid)
-        for season in all_seasons['Items']:
-            self.add_updateSeason(season, showid=showid)
-        else:
-            # Finally, refresh the all season entry
-            seasonid = kodi_db.addSeason(showid, -1)
-            # Process artwork
-            artwork.addArtwork(artwork.getAllArtwork(item), seasonid, "season", kodicursor)
 
-    def add_updateSeason(self, item, showid=None):
+    def refreshSeasonEntry(self, item, showid):
+        API = PlexAPI.API(item)
+        kodicursor = self.kodicursor
+        kodi_db = self.kodi_db
+        # Finally, refresh the all season entry
+        seasonid = kodi_db.addSeason(showid, -1)
+        # Process artwork for season
+        allartworks = API.getAllArtwork()
+        artwork.addArtwork(allartworks, seasonid, "season", kodicursor)
 
+    def add_updateSeason(self, item, viewid=None, viewtag=None):
+        self.logMsg("add_updateSeason called with", 1)
+        self.logMsg("item: %s" % item, 1)
+        self.logMsg("viewid: %s" % viewid, 1)
+        self.logMsg("viewName: %s" % viewtag, 1)
+        showid = viewid
+        itemid = viewid
         kodicursor = self.kodicursor
         emby_db = self.emby_db
         kodi_db = self.kodi_db
         artwork = self.artwork
+        API = PlexAPI.API(item)
+        self.logMsg("add_updateSeason initialization done", 1)
 
-        if item['LocationType'] == "Virtual":
-            self.logMsg("Skipping virtual season.")
-            return
-
-        seasonnum = item.get('IndexNumber', 1)
-        itemid = item['Id']
-
-        if showid is None:
-            try:
-                seriesId = item['SeriesId']
-                showid = emby_db.getItem_byId(seriesId)[0]
-            except KeyError:
-                return
-            except TypeError:
-                # Show is missing, update show instead.
-                show = self.emby.getItem(seriesId)
-                self.add_update(show)
-                return
-            
+        seasonnum = API.getIndex()
+        self.logMsg("seasonnum: %s" % seasonnum, 1)
         seasonid = kodi_db.addSeason(showid, seasonnum)
+        self.logMsg("seasonid: %s" % seasonid, 1)
         # Create the reference in emby table
         emby_db.addReference(itemid, seasonid, "Season", "season", parentid=showid)
+        self.logMsg("Added db reference", 1)
 
         # Process artwork
-        artwork.addArtwork(artwork.getAllArtwork(item), seasonid, "season", kodicursor)
+        allartworks = API.getAllArtwork()
+        self.logMsg("Gotten allartworks: %s" % allartworks, 1)
+        artwork.addArtwork(allartworks, seasonid, "season", kodicursor)
+        self.logMsg("Added Artwork reference", 1)
 
-    def add_updateEpisode(self, item):
+    def add_updateEpisode(self, item, viewtag=None, viewid=None):
+        """
+        viewtag and viewid are irrelevant!
+        """
         # Process single episode
         kodiversion = self.kodiversion
         kodicursor = self.kodicursor
         emby_db = self.emby_db
         kodi_db = self.kodi_db
         artwork = self.artwork
-        API = api.API(item)
+        API = PlexAPI.API(item)
 
         # If the item already exist in the local Kodi DB we'll perform a full item update
         # If the item doesn't exist, we'll add it to the database
         update_item = True
-        itemid = item['Id']
+        itemid = API.getKey()
+        self.logMsg("itemid: %s" % itemid, 2)
         emby_dbitem = emby_db.getItem_byId(itemid)
         try:
             episodeid = emby_dbitem[0]
@@ -1472,21 +1470,20 @@ class TVShows(Items):
         dateplayed = userdata['LastPlayedDate']
 
         # item details
-        people = API.getPeople()
-        writer = " / ".join(people['Writer'])
-        director = " / ".join(people['Director'])
-        title = item['Name']
-        plot = API.getOverview()
-        rating = item.get('CommunityRating')
+        director, writer, cast, producer = API.getPeople()
+        director = API.joinList(director)
+        writer = API.joinList(writer)
+        cast = API.joinList(cast)
+        producer = API.joinList(producer)
+        title, sorttitle = API.getTitle()
+        plot = API.getPlot()
+        rating = API.getAudienceRating()
         runtime = API.getRuntime()
         premieredate = API.getPremiereDate()
 
         # episode details
-        seriesId = item['SeriesId']
-        seriesName = item['SeriesName']
-        season = item.get('ParentIndexNumber')
-        episode = item.get('IndexNumber', -1)
-       
+        seriesId, seriesName, season, episode = API.getEpisodeDetails()
+
         if season is None:
             if item.get('AbsoluteEpisodeNumber'):
                 # Anime scenario
@@ -1496,16 +1493,18 @@ class TVShows(Items):
                 season = -1
 
         # Specials ordering within season
-        if item.get('AirsAfterSeasonNumber'):
-            airsBeforeSeason = item['AirsAfterSeasonNumber']
-            airsBeforeEpisode = 4096 # Kodi default number for afterseason ordering
-        else:
-            airsBeforeSeason = item.get('AirsBeforeSeasonNumber', "-1")
-            airsBeforeEpisode = item.get('AirsBeforeEpisodeNumber', "-1")
+        # if item.get('AirsAfterSeasonNumber'):
+        #     airsBeforeSeason = item['AirsAfterSeasonNumber']
+        #     airsBeforeEpisode = 4096 # Kodi default number for afterseason ordering
+        # else:
+        #     airsBeforeSeason = item.get('AirsBeforeSeasonNumber', "-1")
+        #     airsBeforeEpisode = item.get('AirsBeforeEpisodeNumber', "-1")
 
+        airsBeforeSeason = "-1"
+        airsBeforeEpisode = "-1"
         # Append multi episodes to title
-        if item.get('IndexNumberEnd'):              
-            title = "| %02d | %s" % (item['IndexNumberEnd'], title)
+        # if item.get('IndexNumberEnd'):              
+        #     title = "| %02d | %s" % (item['IndexNumberEnd'], title)
 
         # Get season id
         show = emby_db.getItem_byId(seriesId)
@@ -1519,7 +1518,7 @@ class TVShows(Items):
             try:
                 showid = show[0]
             except TypeError:
-                self.logMsg("Skipping: %s. Unable to add series: %s." % (itemid, seriesId))
+                self.logMsg("Skipping: %s. Unable to add series: %s." % (itemid, seriesId), -1)
                 return False
 
         seasonid = kodi_db.addSeason(showid, season)
@@ -1658,12 +1657,13 @@ class TVShows(Items):
             "WHERE idFile = ?"
         ))
         kodicursor.execute(query, (pathid, filename, dateadded, fileid))
-        
+
+        self.logMsg("Start processing getPeopleList", 1)
         # Process cast
-        people = artwork.getPeopleArtwork(item['People'])
+        people = API.getPeopleList()
         kodi_db.addPeople(episodeid, people, "episode")
         # Process artwork
-        artworks = artwork.getAllArtwork(item)
+        artworks = API.getAllArtwork()
         artwork.addOrUpdateArt(artworks['Primary'], episodeid, "episode", "thumb", kodicursor)
         # Process stream details
         streams = API.getMediaStreams()

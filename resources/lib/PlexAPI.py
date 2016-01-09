@@ -1232,16 +1232,46 @@ class PlexAPI():
         try:
             result = jsondata['_children']
         except KeyError:
-            self.logMsg("Error retrieving all items for Plex section %s" % viewId, 1)
+            self.logMsg("Error retrieving all items for Plex section %s" % viewId, -1)
             pass
         return result
 
-    def GetPlexSubitems(self, key):
+    def GetAllPlexLeaves(self, key):
         """
         Returns a list (raw JSON API dump) of all Plex subitems for the key.
-        (e.g. key=/library/metadata/194853/children pointing to a season)
-        """
+        (e.g. /library/metadata/194853/allLeaves pointing to all episodes
+        of a TV show)
 
+        Input:
+            key             Key to a Plex item, e.g. 12345
+        """
+        result = []
+        url = "{server}/library/metadata/%s/allLeaves" % key
+        jsondata = self.doUtils.downloadUrl(url)
+        try:
+            result = jsondata['_children']
+        except KeyError:
+            self.logMsg("Error retrieving all children for Plex item %s" % key, -1)
+            pass
+        return result
+
+    def GetAllPlexChildren(self, key):
+        """
+        Returns a list (raw JSON API dump) of all Plex children for the key.
+        (e.g. /library/metadata/194853/children pointing to a season)
+
+        Input:
+            key             Key to a Plex item, e.g. 12345
+        """
+        result = []
+        url = "{server}/library/metadata/%s/children" % key
+        jsondata = self.doUtils.downloadUrl(url)
+        try:
+            result = jsondata['_children']
+        except KeyError:
+            self.logMsg("Error retrieving all children for Plex item %s" % key, -1)
+            pass
+        return result
 
     def GetPlexMetadata(self, key):
         """
@@ -1270,7 +1300,7 @@ class PlexAPI():
         headerOptions = {'Accept': 'application/xml'}
         xml = self.doUtils.downloadUrl(url, headerOptions=headerOptions)
         if not xml:
-            self.logMsg("Error retrieving metadata for %s" % url, 1)
+            self.logMsg("Error retrieving metadata for %s" % url, -1)
         return xml
 
 
@@ -1388,16 +1418,22 @@ class API():
         Returns the Plex unique movie id as a str, not int
         """
         item = self.item
-        key_regex = re.compile(r'/(\d+)$')
         # XML
         try:
             item = item[self.child].attrib
         # JSON
         except KeyError:
             pass
-        key = item['key']
-        key = key_regex.findall(key)[0]
+        key = item['ratingKey']
         return str(key)
+
+    def getIndex(self):
+        """
+        Returns the 'index' of an PMS XML reply. Depicts e.g. season number.
+        """
+        item = self.item[self.child].attrib
+        index = item['index']
+        return str(index)
 
     def getDateCreated(self):
         """
@@ -1550,33 +1586,19 @@ class API():
                 genre.append(child.attrib['tag'])
         return genre
 
-    def getProvider(self, providername):
+    def getProvider(self, providername=None):
         """
-        providername: imdb, tvdb, musicBrainzArtist, musicBrainzAlbum,
-        musicBrainzTrackId
+        providername: depricated
 
-        Return IMDB: "tt1234567". Returns None if not found
+        Return IMDB, e.g. "imdb://tt0903624?lang=en". Returns None if not found
         """
         item = self.item
         item = item[self.child].attrib
-        imdb_regex = re.compile(r'''(
-            imdb://          # imdb tag, which will be followed be tt1234567
-            (tt\d{7})        # actual IMDB ID, e.g. tt1234567
-            \??              # zero or one ?
-            (.*)             # rest, e.g. language setting
-            )''', re.VERBOSE)
+        regex = re.compile(r'''com.plexapp.agents.(.+)$''')
+
+        provider = regex.findall(item['guid'])
         try:
-            if "Imdb" in providername:
-                provider = imdb_regex.findall(item['guid'])
-                provider = provider[0][1]
-            elif "tvdb" in providername:
-                provider = item['ProviderIds']['Tvdb']
-            elif "musicBrainzArtist" in providername:
-                provider = item['ProviderIds']['MusicBrainzArtist']
-            elif "musicBrainzAlbum" in providername:
-                provider = item['ProviderIds']['MusicBrainzAlbum']
-            elif "musicBrainzTrackId" in providername:
-                provider = item['ProviderIds']['MusicBrainzTrackId']
+            provider = provider[0]
         except:
             provider = None
         return provider
@@ -1751,6 +1773,25 @@ class API():
         """
         string = " / ".join(listobject)
         return string
+
+    def getEpisodeDetails(self):
+        """
+        Call on a single episode.
+
+        Output: for the corresponding the TV show and season:
+            [
+                TV show key,        Plex: 'grandparentRatingKey'
+                TV show title,      Plex: 'grandparentTitle'
+                TV show season,     Plex: 'parentIndex'
+                Episode number,     Plex: 'index'
+            ]
+        """
+        item = self.item[self.child].attrib
+        key = item['grandparentRatingKey']
+        title = item['grandparentTitle']
+        season = item['parentIndex']
+        episode = item['index']
+        return key, title, season, episode
 
     def getFilePath(self):
         """
