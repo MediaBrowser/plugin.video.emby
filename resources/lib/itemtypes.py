@@ -25,6 +25,10 @@ import PlexAPI
 
 
 class Items(object):
+    """
+    Items to be called with "with Items as xxx:" to ensure that __enter__
+    method is called!
+    """
 
     def __init__(self):
         self.clientInfo = clientinfo.ClientInfo()
@@ -40,6 +44,9 @@ class Items(object):
         self.emby = embyserver.Read_EmbyServer()
 
     def __enter__(self):
+        """
+        Open DB connections and cursors
+        """
         self.embyconn = utils.kodiSQL('emby')
         self.embycursor = self.embyconn.cursor()
         self.kodiconn = utils.kodiSQL('video')
@@ -471,73 +478,6 @@ class Movies(Items):
         # resume = API.adjustResume(userdata['Resume'])
         kodi_db.addPlaystate(fileid, resume, runtime, playcount, dateplayed)
 
-    def add_updateBoxset(self, boxset):
-
-        emby = self.emby
-        emby_db = self.emby_db
-        kodi_db = self.kodi_db
-        artwork = self.artwork
-
-        boxsetid = boxset['Id']
-        title = boxset['Name']
-        checksum = boxset['Etag']
-        emby_dbitem = emby_db.getItem_byId(boxsetid)
-        try:
-            setid = emby_dbitem[0]
-
-        except TypeError:
-            setid = kodi_db.createBoxset(title)
-
-        # Process artwork
-        artwork.addArtwork(artwork.getAllArtwork(boxset), setid, "set", self.kodicursor)
-        
-        # Process movies inside boxset
-        current_movies = emby_db.getItemId_byParentId(setid, "movie")
-        process = []
-        try:
-            # Try to convert tuple to dictionary
-            current = dict(current_movies)
-        except ValueError:
-            current = {}
-
-        # Sort current titles
-        for current_movie in current:
-            process.append(current_movie)
-
-        # New list to compare
-        boxsetMovies = emby.getMovies_byBoxset(boxsetid)
-        for movie in boxsetMovies['Items']:
-
-            itemid = movie['Id']
-
-            if not current.get(itemid):
-                # Assign boxset to movie
-                emby_dbitem = emby_db.getItem_byId(itemid)
-                try:
-                    movieid = emby_dbitem[0]
-                except TypeError:
-                    self.logMsg("Failed to add: %s to boxset." % movie['Name'], 1)
-                    continue
-
-                self.logMsg("New addition to boxset %s: %s" % (title, movie['Name']), 1)
-                kodi_db.assignBoxset(setid, movieid)
-                # Update emby reference
-                emby_db.updateParentId(itemid, setid)
-            else:
-                # Remove from process, because the item still belongs
-                process.remove(itemid)
-
-        # Process removals from boxset
-        for movie in process:
-            movieid = current[movie]
-            self.logMsg("Remove from boxset %s: %s" % (title, movieid))
-            kodi_db.removefromBoxset(movieid)
-            # Update emby reference
-            emby_db.updateParentId(movie, None)
-
-        # Update the reference in the emby table
-        emby_db.addReference(boxsetid, setid, "BoxSet", mediatype="set", checksum=checksum)
-
     def updateUserdata(self, item):
         # This updates: Favorite, LastPlayedDate, Playcount, PlaybackPositionTicks
         # Poster with progress bar
@@ -616,9 +556,9 @@ class Movies(Items):
 
         self.logMsg("Deleted %s %s from kodi database" % (mediatype, itemid), 1)
 
+
 class HomeVideos(Items):
 
-    
     def __init__(self, embycursor, kodicursor):
         Items.__init__(self, embycursor, kodicursor)
 
@@ -1221,11 +1161,9 @@ class TVShows(Items):
             if not pdialog and self.contentmsg:
                 self.contentPop(title)
 
-
     def add_update(self, item, viewtag=None, viewid=None):
         # Process single tvshow
         kodicursor = self.kodicursor
-        emby = self.emby
         emby_db = self.emby_db
         kodi_db = self.kodi_db
         artwork = self.artwork
@@ -1246,7 +1184,6 @@ class TVShows(Items):
             showid = emby_dbitem[0]
             pathid = emby_dbitem[2]
             self.logMsg("showid: %s pathid: %s" % (showid, pathid), 1)
-        
         except TypeError:
             update_item = False
             self.logMsg("showid: %s not found." % itemid, 2)
@@ -1404,32 +1341,22 @@ class TVShows(Items):
         artwork.addArtwork(allartworks, seasonid, "season", kodicursor)
 
     def add_updateSeason(self, item, viewid=None, viewtag=None):
-        self.logMsg("add_updateSeason called with", 1)
-        self.logMsg("item: %s" % item, 1)
-        self.logMsg("viewid: %s" % viewid, 1)
-        self.logMsg("viewName: %s" % viewtag, 1)
+        API = PlexAPI.API(item)
         showid = viewid
-        itemid = viewid
+        itemid = API.getKey()
         kodicursor = self.kodicursor
         emby_db = self.emby_db
         kodi_db = self.kodi_db
         artwork = self.artwork
-        API = PlexAPI.API(item)
-        self.logMsg("add_updateSeason initialization done", 1)
-
         seasonnum = API.getIndex()
-        self.logMsg("seasonnum: %s" % seasonnum, 1)
         seasonid = kodi_db.addSeason(showid, seasonnum)
-        self.logMsg("seasonid: %s" % seasonid, 1)
         # Create the reference in emby table
         emby_db.addReference(itemid, seasonid, "Season", "season", parentid=showid)
-        self.logMsg("Added db reference", 1)
-
         # Process artwork
         allartworks = API.getAllArtwork()
-        self.logMsg("Gotten allartworks: %s" % allartworks, 1)
         artwork.addArtwork(allartworks, seasonid, "season", kodicursor)
-        self.logMsg("Added Artwork reference", 1)
+        self.logMsg("Updated season %s, Plex Id: %s of Plex show Id: %s" % (
+            seasonnum, itemid, showid), 2)
 
     def add_updateEpisode(self, item, viewtag=None, viewid=None):
         """
@@ -1447,13 +1374,12 @@ class TVShows(Items):
         # If the item doesn't exist, we'll add it to the database
         update_item = True
         itemid = API.getKey()
-        self.logMsg("itemid: %s" % itemid, 2)
         emby_dbitem = emby_db.getItem_byId(itemid)
+        self.logMsg("Processing episode with Plex Id: %s" % itemid, 2)
         try:
             episodeid = emby_dbitem[0]
             fileid = emby_dbitem[1]
             pathid = emby_dbitem[2]
-            self.logMsg("episodeid: %s fileid: %s pathid: %s" % (episodeid, fileid, pathid), 1)
         
         except TypeError:
             update_item = False
@@ -1470,15 +1396,15 @@ class TVShows(Items):
         dateplayed = userdata['LastPlayedDate']
 
         # item details
-        director, writer, cast, producer = API.getPeople()
-        director = API.joinList(director)
-        writer = API.joinList(writer)
-        cast = API.joinList(cast)
-        producer = API.joinList(producer)
+        peoples = API.getPeople()
+        director = API.joinList(peoples['Director'])
+        writer = API.joinList(peoples['Writer'])
+        cast = API.joinList(peoples['Cast'])
+        producer = API.joinList(peoples['Producer'])
         title, sorttitle = API.getTitle()
         plot = API.getPlot()
         rating = API.getAudienceRating()
-        runtime = API.getRuntime()
+        resume, runtime = API.getRuntime()
         premieredate = API.getPremiereDate()
 
         # episode details
@@ -1563,7 +1489,6 @@ class TVShows(Items):
             }
             filename = "%s?%s" % (path, urllib.urlencode(params))
 
-
         ##### UPDATE THE EPISODE #####
         if update_item:
             self.logMsg("UPDATE episode itemid: %s - Title: %s" % (itemid, title), 1)
@@ -1606,7 +1531,6 @@ class TVShows(Items):
             pathid = kodi_db.addPath(path)
             # Add the file
             fileid = kodi_db.addFile(filename, pathid)
-            
             # Create the episode entry
             if kodiversion == 16:
                 # Kodi Jarvis
@@ -1658,7 +1582,6 @@ class TVShows(Items):
         ))
         kodicursor.execute(query, (pathid, filename, dateadded, fileid))
 
-        self.logMsg("Start processing getPeopleList", 1)
         # Process cast
         people = API.getPeopleList()
         kodi_db.addPeople(episodeid, people, "episode")

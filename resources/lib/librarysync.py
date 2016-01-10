@@ -590,7 +590,7 @@ class LibrarySync(threading.Thread):
         if self.compare:
             # Manual sync
             for item in elementList:
-                # Only look at valid items = Plex library items
+                # Skipping XML item 'title=All episodes' without ratingKey
                 if item.get('ratingKey', False):
                     if self.shouldStop():
                         return False
@@ -713,16 +713,6 @@ class LibrarySync(threading.Thread):
         self.logMsg("=====================", 1)
         self.logMsg("Sync threads finished", 1)
         self.logMsg("=====================", 1)
-        ##### PROCESS DELETES #####
-        if self.compare:
-            # Manual sync, process deletes
-            itemFkt = getattr(itemtypes, itemType)
-            with itemFkt() as item:
-                for kodimovie in self.allKodiElementsId:
-                    if kodimovie not in self.allPlexElementsId:
-                        item.remove(kodimovie)
-                else:
-                    self.logMsg("%s compare finished." % itemType, 1)
         return True
 
     def PlexMovies(self):
@@ -761,13 +751,22 @@ class LibrarySync(threading.Thread):
             # Populate self.updatelist and self.allPlexElementsId
             self.GetUpdatelist(all_plexmovies)
             self.logMsg("Processed view %s with ID %s" % (viewName, viewId), 1)
-            result = self.GetAndProcessXMLs(
+            self.GetAndProcessXMLs(
                 'Movies',
                 viewName,
                 viewId,
                 'add_update'
             )
-        return result
+        ##### PROCESS DELETES #####
+        if self.compare:
+            # Manual sync, process deletes
+            with itemtypes.Movies() as Movie:
+                for kodimovie in self.allKodiElementsId:
+                    if kodimovie not in self.allPlexElementsId:
+                        Movie.remove(kodimovie)
+                else:
+                    self.logMsg("%s compare finished." % 'Movies', 1)
+        return True
 
     def musicvideos(self, embycursor, kodicursor, pdialog, compare=False):
         # Get musicvideos from emby
@@ -989,7 +988,6 @@ class LibrarySync(threading.Thread):
         ##### PROCESS TV Shows #####
         for view in views:
             self.updatelist = []
-            self.allPlexElementsId = {}
             if self.shouldStop():
                 return False
             # Get items per view
@@ -1005,14 +1003,13 @@ class LibrarySync(threading.Thread):
                                    'add_update')
             self.logMsg("Processed view %s with ID %s" % (viewName, viewId), 1)
 
-        # Save for later use
-        allPlexTvShowsId = self.allPlexElementsId
+        # COPY for later use
+        allPlexTvShowsId = self.allPlexElementsId.copy()
 
         ##### PROCESS TV Seasons #####
         # Cycle through tv shows
         for tvShowId in allPlexTvShowsId:
             self.updatelist = []
-            self.allPlexElementsId = {}
             # Grab all seasons to tvshow from PMS
             seasons = plx.GetAllPlexChildren(tvShowId)
             # Populate self.updatelist and self.allPlexElementsId
@@ -1031,7 +1028,6 @@ class LibrarySync(threading.Thread):
         # Cycle through tv shows
         for tvShowId in allPlexTvShowsId:
             self.updatelist = []
-            self.allPlexElementsId = {}
             # Grab all episodes to tvshow from PMS
             episodes = plx.GetAllPlexLeaves(tvShowId)
             # Populate self.updatelist and self.allPlexElementsId
@@ -1042,7 +1038,15 @@ class LibrarySync(threading.Thread):
                                    None,
                                    'add_updateEpisode')
             self.logMsg("Processed all episodes of TV show with Plex Id %s" % tvShowId, 1)
-
+        ##### PROCESS DELETES #####
+        if self.compare:
+            # Manual sync, process deletes
+            with itemtypes.TVShows() as TVShow:
+                for kodiTvElement in self.allKodiElementsId:
+                    if kodiTvElement not in self.allPlexElementsId:
+                        TVShow.remove(kodiTvElement)
+                else:
+                    self.logMsg("TV Shows compare finished.", 1)
         return True
 
     def tvshows(self, embycursor, kodicursor, pdialog, compare=False):
