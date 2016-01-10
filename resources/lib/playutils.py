@@ -101,6 +101,10 @@ class PlayUtils():
             return False
 
         if not self.h265enabled():
+        if (utils.settings('transcodeHEVC') == "true" and
+                item['MediaSources'][0]['Name'].startswith("1080P/HEVC")):
+            # Avoid HEVC(H265) 1080p
+            self.logMsg("Option to transcode 1080P/HEVC enabled.", 1)
             return False
 
         # Found with e.g. trailers
