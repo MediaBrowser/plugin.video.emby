@@ -68,7 +68,7 @@ class VideoNodes(object):
         
         path = xbmc.translatePath("special://profile/library/video/").decode('utf-8')
         nodepath = xbmc.translatePath(
-                    "special://profile/library/video/Emby - %s/" % dirname).decode('utf-8')
+                    "special://profile/library/video/plex-%s/" % dirname).decode('utf-8')
 
         # Verify the video directory
         if not xbmcvfs.exists(path):
@@ -93,7 +93,7 @@ class VideoNodes(object):
         # Create index entry
         nodeXML = "%sindex.xml" % nodepath
         # Set windows property
-        path = "library://video/plexkodiconnect - %s/" % dirname
+        path = "library://video/plex-%s/" % dirname
         for i in range(1, indexnumber):
             # Verify to make sure we don't create duplicates
             if utils.window('Emby.nodes.%s.index' % i) == path:
@@ -171,7 +171,7 @@ class VideoNodes(object):
                 # Custom query
                 path = "plugin://plugin.video.plexkodiconnect/?id=%s&mode=inprogressepisodes&limit=25"% tagname
             else:
-                path = "library://video/plexkodiconnect - %s/%s_%s.xml" % (dirname, cleantagname, nodetype)
+                path = "library://video/plex%s/%s_%s.xml" % (dirname, cleantagname, nodetype)
             windowpath = "ActivateWindow(Video,%s,return)" % path
             
             if nodetype == "all":
@@ -275,8 +275,8 @@ class VideoNodes(object):
         tagname = tagname.encode('utf-8')
         cleantagname = utils.normalize_nodes(tagname)
         nodepath = xbmc.translatePath("special://profile/library/video/").decode('utf-8')
-        nodeXML = "%semby_%s.xml" % (nodepath, cleantagname)
-        path = "library://video/plexkodiconnect_%s.xml" % (cleantagname)
+        nodeXML = "%splex_%s.xml" % (nodepath, cleantagname)
+        path = "library://video/plex%s.xml" % (cleantagname)
         windowpath = "ActivateWindow(Video,%s,return)" % path
         
         # Create the video node directory
