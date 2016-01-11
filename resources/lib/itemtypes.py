@@ -27,7 +27,7 @@ import PlexAPI
 class Items(object):
     """
     Items to be called with "with Items as xxx:" to ensure that __enter__
-    method is called!
+    method is called (opens db connections)
     """
 
     def __init__(self):

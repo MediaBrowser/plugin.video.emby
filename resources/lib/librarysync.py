@@ -118,7 +118,6 @@ class ThreadedProcessMetadata(threading.Thread):
                 viewId = updateItem['viewId']
                 title = updateItem['title']
                 itemSubFkt = getattr(item, method)
-
                 with self.lock:
                     itemSubFkt(
                         plexitem,
@@ -185,10 +184,10 @@ class ThreadedShowSyncInfo(threading.Thread):
                 percentage = 0
             self.dialog.update(
                 percentage,
-                message="Downloaded: %s, Processed: %s: %s" %
-                    (getMetadataProgress, processMetadataProgress, viewName)
+                message="Downloaded: %s, Processed: %s: %s" % (
+                    getMetadataProgress, processMetadataProgress, viewName)
             )
-            time.sleep(1)
+            time.sleep(0.5)
         self.dialog.close()
 
     def stopThread(self):
@@ -775,8 +774,7 @@ class LibrarySync(threading.Thread):
                 for kodimovie in self.allKodiElementsId:
                     if kodimovie not in self.allPlexElementsId:
                         Movie.remove(kodimovie)
-                else:
-                    self.logMsg("%s compare finished." % itemType, 1)
+        self.logMsg("%s sync is finished." % itemType, 1)
         return True
 
     def musicvideos(self, embycursor, kodicursor, pdialog, compare=False):
@@ -974,7 +972,7 @@ class LibrarySync(threading.Thread):
         itemType = 'TVShows'
 
         views = plx.GetPlexCollections('show')
-        self.logMsg("Media folders: %s" % views, 1)
+        self.logMsg("Media folders for %s: %s" % (itemType, views), 1)
 
         self.allKodiElementsId = {}
         if self.compare:
@@ -1011,7 +1009,7 @@ class LibrarySync(threading.Thread):
                                'add_update',
                                viewName,
                                viewId)
-            self.logMsg("Processed view %s with ID %s" % (viewName, viewId), 1)
+            self.logMsg("Analyzed view %s with ID %s" % (viewName, viewId), 1)
 
         # COPY for later use
         allPlexTvShowsId = self.allPlexElementsId.copy()
@@ -1029,7 +1027,7 @@ class LibrarySync(threading.Thread):
                                'add_updateSeason',
                                None,
                                tvShowId)  # send showId instead of viewid
-            self.logMsg("Processed all seasons of TV show with Plex Id %s" % tvShowId, 1)
+            self.logMsg("Analyzed all seasons of TV show with Plex Id %s" % tvShowId, 1)
 
         ##### PROCESS TV Episodes #####
         # Cycle through tv shows
@@ -1044,16 +1042,18 @@ class LibrarySync(threading.Thread):
                                'add_updateEpisode',
                                None,
                                None)
-            self.logMsg("Processed all episodes of TV show with Plex Id %s" % tvShowId, 1)
+            self.logMsg("Analyzed all episodes of TV show with Plex Id %s" % tvShowId, 1)
 
         # Process self.updatelist
         self.GetAndProcessXMLs(itemType)
+        self.logMsg("GetAndProcessXMLs completed", 1)
         # Refresh season info
         # Cycle through tv shows
         with itemtypes.TVShows() as TVshow:
             for tvShowId in allPlexTvShowsId:
                 XMLtvshow = plx.GetPlexMetadata(tvShowId)
                 TVshow.refreshSeasonEntry(XMLtvshow, tvShowId)
+        self.logMsg("Season info refreshed", 1)
 
         ##### PROCESS DELETES #####
         if self.compare:
@@ -1062,8 +1062,7 @@ class LibrarySync(threading.Thread):
                 for kodiTvElement in self.allKodiElementsId:
                     if kodiTvElement not in self.allPlexElementsId:
                         TVShow.remove(kodiTvElement)
-                else:
-                    self.logMsg("TV Shows compare finished.", 1)
+        self.logMsg("%s sync is finished." % itemType, 1)
         return True
 
     def tvshows(self, embycursor, kodicursor, pdialog, compare=False):
