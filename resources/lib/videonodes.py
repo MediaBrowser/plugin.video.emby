@@ -93,7 +93,7 @@ class VideoNodes(object):
         # Create index entry
         nodeXML = "%sindex.xml" % nodepath
         # Set windows property
-        path = "library://video/Emby - %s/" % dirname
+        path = "library://video/plexkodiconnect - %s/" % dirname
         for i in range(1, indexnumber):
             # Verify to make sure we don't create duplicates
             if utils.window('Emby.nodes.%s.index' % i) == path:
@@ -124,7 +124,7 @@ class VideoNodes(object):
         }
         mediatypes = {
             # label according to nodetype per mediatype
-            'movies': {
+            'movie': {
                 '1': tagname,
                 '2': 30174,
                 '4': 30177,
@@ -134,7 +134,7 @@ class VideoNodes(object):
                 '10': 30229,
                 '11': 30230},
 
-            'tvshows': {
+            'show': {
                 '1': tagname,
                 '2': 30170,
                 '3': 30175,
@@ -171,7 +171,7 @@ class VideoNodes(object):
                 # Custom query
                 path = "plugin://plugin.video.plexkodiconnect/?id=%s&mode=inprogressepisodes&limit=25"% tagname
             else:
-                path = "library://video/Emby - %s/%s_%s.xml" % (dirname, cleantagname, nodetype)
+                path = "library://video/plexkodiconnect - %s/%s_%s.xml" % (dirname, cleantagname, nodetype)
             windowpath = "ActivateWindow(Video,%s,return)" % path
             
             if nodetype == "all":
@@ -276,7 +276,7 @@ class VideoNodes(object):
         cleantagname = utils.normalize_nodes(tagname)
         nodepath = xbmc.translatePath("special://profile/library/video/").decode('utf-8')
         nodeXML = "%semby_%s.xml" % (nodepath, cleantagname)
-        path = "library://video/emby_%s.xml" % (cleantagname)
+        path = "library://video/plexkodiconnect_%s.xml" % (cleantagname)
         windowpath = "ActivateWindow(Video,%s,return)" % path
         
         # Create the video node directory

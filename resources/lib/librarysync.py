@@ -346,10 +346,11 @@ class LibrarySync(threading.Thread):
 
         starttotal = datetime.now()
 
-        # Set views
-        # self.maintainViews(embycursor, kodicursor)
-        # embyconn.commit()
+        # Ensure that DBs exist if called for very first time
         self.initializeDBs()
+        # Set views
+        self.maintainViews()
+
         # Sync video library
         # process = {
 
@@ -362,7 +363,6 @@ class LibrarySync(threading.Thread):
         process = {
             'movies': self.PlexMovies,
             'tvshows': self.PlexTVShows
-            # 'tvshows': self.PlexTVShows
         }
 
         for itemtype in process:
@@ -420,79 +420,46 @@ class LibrarySync(threading.Thread):
                         sound=False)
         return True
 
-
-    def refreshViews(self):
-
-        embyconn = utils.kodiSQL('emby')
-        embycursor = embyconn.cursor()
-        kodiconn = utils.kodiSQL('video')
-        kodicursor = kodiconn.cursor()
-
-        # Compare views, assign correct tags to items
-        self.maintainViews(embycursor, kodicursor)
-        
-        self.dbCommit(kodiconn)
-        kodicursor.close()
-
-        embyconn.commit()
-        embycursor.close()
-
-    def maintainViews(self, embycursor, kodicursor):
+    def maintainViews(self):
         """
-        Reverse engineering:
+        Compare the views to Plex
 
-        Input:
-            embycursor
-            kodicursor
         Output:
             vnodes.viewNode(totalnodes, foldername, mediatype, viewtype)
             kodi_db.createTag(foldername)
             kodi_db.updateTag(current_tagid, tagid, item[0],Current_viewtype[:-1])
         """
-        # Compare the views to emby
+        # Open DB links
+        embyconn = utils.kodiSQL('emby')
+        embycursor = embyconn.cursor()
+        kodiconn = utils.kodiSQL('video')
+        kodicursor = kodiconn.cursor()
+
         emby_db = embydb.Embydb_Functions(embycursor)
         kodi_db = kodidb.Kodidb_Functions(kodicursor)
         doUtils = self.doUtils
         vnodes = self.vnodes
-        
-        # Get views
-        url = "{server}/emby/Users/{UserId}/Views?format=json"
-        result = doUtils.downloadUrl(url)
-        grouped_views = result['Items']
 
-        try:
-            groupedFolders = self.user.userSettings['Configuration']['GroupedFolders']
-        except TypeError:
-            url = "{server}/emby/Users/{UserId}?format=json"
-            result = doUtils.downloadUrl(url)
-            groupedFolders = result['Configuration']['GroupedFolders']
+        # Get views
+        url = "{server}/library/sections"
+        result = doUtils.downloadUrl(url)
+        result = result['_children']
 
         # total nodes for window properties
         vnodes.clearProperties()
         totalnodes = 0
 
         # Set views for supported media type
-        mediatypes = ['movies', 'tvshows', 'musicvideos', 'homevideos', 'music']
-        for mediatype in mediatypes:
-
-            # Get media folders from server
-            folders = self.emby.getViews(mediatype, root=True)
-            for folder in folders:
-
-                folderid = folder['id']
-                foldername = folder['name']
+        mediatypes = [
+            'movie',
+            'show'
+        ]
+        for folder in result:
+            mediatype = folder['type']
+            if mediatype in mediatypes:
+                folderid = folder['key']
+                foldername = folder['title']
                 viewtype = folder['type']
-                
-                if folderid in groupedFolders:
-                    # Media folders are grouped into userview
-                    for grouped_view in grouped_views:
-                        # This is only reserved for the detection of grouped views
-                        if (grouped_view['Type'] == "UserView" and 
-                            grouped_view.get('CollectionType') == mediatype and
-                            grouped_view['Id'] not in grouped_view.get('Path', "")):
-                            # Take the name of the userview
-                            foldername = grouped_view['Name']
-                            break
 
                 # Get current media folders from emby database
                 view = emby_db.getView_byId(folderid)
@@ -567,14 +534,19 @@ class LibrarySync(threading.Thread):
                                 totalnodes += 1
         else:
             # Add video nodes listings
-            vnodes.singleNode(totalnodes, "Favorite movies", "movies", "favourites")
-            totalnodes += 1
-            vnodes.singleNode(totalnodes, "Favorite tvshows", "tvshows", "favourites")
-            totalnodes += 1
-            vnodes.singleNode(totalnodes, "channels", "movies", "channels")
-            totalnodes += 1
+            # vnodes.singleNode(totalnodes, "Favorite movies", "movies", "favourites")
+            # totalnodes += 1
+            # vnodes.singleNode(totalnodes, "Favorite tvshows", "tvshows", "favourites")
+            # totalnodes += 1
+            # vnodes.singleNode(totalnodes, "channels", "movies", "channels")
+            # totalnodes += 1
             # Save total
             utils.window('Emby.nodes.total', str(totalnodes))
+        # commit changes to DB
+        embyconn.commit()
+        kodiconn.commit()
+        embyconn.close()
+        kodiconn.close()
 
     def GetUpdatelist(self, elementList, itemType, method, viewName, viewId):
         """

@@ -333,6 +333,7 @@ class Movies(Items):
         shortplot = None
         tagline = API.getTagline()
         votecount = None
+
         rating = API.getAudienceRating()
         year = API.getYear()
         imdb = API.getProvider('Imdb')
@@ -346,9 +347,11 @@ class Movies(Items):
             studio = studios[0]
         except IndexError:
             studio = None
+        self.logMsg("Retrieved metadata for %s" % itemid, 2)
 
         # TODO: trailers
         trailer = None
+        self.logMsg("Retrieved trailer for %s" % itemid, 2)
 
         ##### GET THE FILE AND PATH #####
         playurl = API.getFilePath()

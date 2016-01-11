@@ -1594,12 +1594,16 @@ class API():
         """
         item = self.item
         item = item[self.child].attrib
-        regex = re.compile(r'''com.plexapp.agents.(.+)$''')
+        try:
+            item = item['guid']
+        except KeyError:
+            return None
 
-        provider = regex.findall(item['guid'])
+        regex = re.compile(r'''com\.plexapp\.agents\.(.+)$''')
+        provider = regex.findall(item)
         try:
             provider = provider[0]
-        except KeyError:
+        except IndexError:
             provider = None
         return provider
 
@@ -1662,7 +1666,7 @@ class API():
         item = item[self.child].attrib
         try:
             rating = item['audienceRating']
-        except:
+        except KeyError:
             rating = None
         return rating
 
@@ -1674,7 +1678,7 @@ class API():
         item = item[self.child].attrib
         try:
             year = item['year']
-        except:
+        except KeyError:
             year = None
         return year
 
