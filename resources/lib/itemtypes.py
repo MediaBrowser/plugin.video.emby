@@ -20,6 +20,7 @@ import kodidb_functions as kodidb
 import read_embyserver as embyserver
 
 import PlexAPI
+import sys
 
 ##################################################################################################
 
@@ -1345,13 +1346,29 @@ class TVShows(Items):
         artwork = self.artwork
         seasonnum = API.getIndex()
         seasonid = kodi_db.addSeason(showid, seasonnum)
-        # Create the reference in emby table
-        emby_db.addReference(itemid, seasonid, "Season", "season", parentid=showid)
+        checksum = API.getChecksum()
+        # Check whether Season already exists
+        update_item = True
+        emby_dbitem = emby_db.getItem_byId(itemid)
+        try:
+            embyDbItemId = emby_dbitem[0]
+            self.logMsg("Updating Season: %s" % itemid, 2)
+        except TypeError:
+            update_item = False
+            self.logMsg("Season: %s not found." % itemid, 2)
+
         # Process artwork
         allartworks = API.getAllArtwork()
         artwork.addArtwork(allartworks, seasonid, "season", kodicursor)
         self.logMsg("Updated season %s, Plex Id: %s of Plex show Id: %s" % (
             seasonnum, itemid, showid), 2)
+
+        if update_item:
+            # Update a reference: checksum in emby table
+            emby_db.updateReference(itemid, checksum)
+        else:
+            # Create the reference in emby table
+            emby_db.addReference(itemid, seasonid, "Season", "season", parentid=showid, checksum=checksum)
 
     def add_updateEpisode(self, item, viewtag=None, viewid=None):
         """

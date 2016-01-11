@@ -1378,7 +1378,7 @@ class API():
         DATEFORMAT = xbmc.getRegion('dateshort')
         TIMEFORMAT = xbmc.getRegion('meridiem')
         date_time = time.localtime(float(stamp))
-        localdate = time.strftime('%Y-%m-%d', date_time)
+        localdate = time.strftime('%Y-%m-%dT%H:%M:%SZ', date_time)
         return localdate
 
     def getType(self):

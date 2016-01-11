@@ -247,9 +247,54 @@ class LibrarySync(threading.Thread):
         return dialog
 
     def startSync(self):
-        # Always do a fullSync. It will be faster automatically.
-        completed = self.fullSync(manualrun=True)
+        # Run at start up - optional to use the server plugin
+        if utils.settings('SyncInstallRunDone') == "true":
+            
+            # Validate views
+            self.maintainViews()
+            completed = False
+
+            completed = self.fastSync()
+
+            if not completed:
+                # Fast sync failed or server plugin is not found
+                completed = self.fullSync(manualrun=True)
+        else:
+            # Install sync is not completed
+            completed = self.fullSync()
+
         return completed
+
+    def fastSync(self):
+
+            lastSync = utils.settings('LastIncrementalSync')
+            if not lastSync:
+                lastSync = "2010-01-01T00:00:00Z"
+            self.logMsg("Last sync run: %s" % lastSync, 1)
+
+            url = "{server}/emby/Emby.Kodi.SyncQueue/{UserId}/GetItems?format=json"
+            params = {'LastUpdateDT': lastSync}
+            result = self.doUtils.downloadUrl(url, parameters=params)
+
+            try:
+                processlist = {
+                    
+                    'added': result['ItemsAdded'],
+                    'update': result['ItemsUpdated'],
+                    'userdata': result['UserDataChanged'],
+                    'remove': result['ItemsRemoved']
+                }
+                
+            except (KeyError, TypeError):
+                self.logMsg("Failed to retrieve latest updates using fast sync.", 1)
+                return False
+            
+            else:
+                self.logMsg("Fast sync changes: %s" % result, 1)
+                for action in processlist:
+                    self.triage_items(action, processlist[action])
+
+                return True
 
     def saveLastSync(self):
         # Save last sync time
@@ -283,27 +328,6 @@ class LibrarySync(threading.Thread):
             return True
         else: # Keep going
             return False
-
-    def dbCommit(self, connection):
-        # Central commit, verifies if Kodi database update is running
-        kodidb_scan = utils.window('emby_kodiScan') == "true"
-
-        while kodidb_scan:
-
-            self.logMsg("Kodi scan is running. Waiting...", 1)
-            kodidb_scan = utils.window('emby_kodiScan') == "true"
-
-            if self.shouldStop():
-                self.logMsg("Commit unsuccessful. Sync terminated.", 1)
-                break
-
-            if self.monitor.waitForAbort(1):
-                # Abort was requested while waiting. We should exit
-                self.logMsg("Commit unsuccessful.", 1)
-                break
-        else:
-            connection.commit()
-            self.logMsg("Commit successful.", 1)
 
     def initializeDBs(self):
         """
@@ -423,11 +447,6 @@ class LibrarySync(threading.Thread):
     def maintainViews(self):
         """
         Compare the views to Plex
-
-        Output:
-            vnodes.viewNode(totalnodes, foldername, mediatype, viewtype)
-            kodi_db.createTag(foldername)
-            kodi_db.updateTag(current_tagid, tagid, item[0],Current_viewtype[:-1])
         """
         # Open DB links
         embyconn = utils.kodiSQL('emby')
@@ -960,6 +979,12 @@ class LibrarySync(threading.Thread):
             try:
                 all_koditvshows = dict(emby_db.getChecksum('Series'))
                 self.allKodiElementsId.update(all_koditvshows)
+            except ValueError:
+                pass
+            # Same for seasons
+            try:
+                all_kodiseasons = dict(emby_db.getChecksum('Season'))
+                self.allKodiElementsId.update(all_kodiseasons)
             except ValueError:
                 pass
             # Same for the episodes (sub-element of shows/series)
