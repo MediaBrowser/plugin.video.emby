@@ -22,7 +22,6 @@ import videonodes
 
 import PlexAPI
 import Queue
-import time
 
 ##################################################################################################
 
@@ -187,7 +186,7 @@ class ThreadedShowSyncInfo(threading.Thread):
                 message="Downloaded: %s, Processed: %s: %s" % (
                     getMetadataProgress, processMetadataProgress, viewName)
             )
-            time.sleep(0.5)
+            xbmc.sleep(500)
         self.dialog.close()
 
     def stopThread(self):
