@@ -643,6 +643,8 @@ class LibrarySync(threading.Thread):
         """
         # Some logging, just in case.
         self.logMsg("self.updatelist: %s" % self.updatelist, 2)
+        if not len(self.updatelist) > 0:
+            return True
 
         # Run through self.updatelist, get XML metadata per item
         # Initiate threads
