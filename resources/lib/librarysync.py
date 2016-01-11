@@ -506,10 +506,10 @@ class LibrarySync(threading.Thread):
                                 # Delete video node
                                 if mediatype != "musicvideos":
                                     vnodes.viewNode(
-                                        indexnumber=totalnodes,
-                                        tagname=current_viewname,
-                                        mediatype=mediatype,
-                                        viewtype=current_viewtype,
+                                        totalnodes,
+                                        current_viewname,
+                                        mediatype,
+                                        current_viewtype,
                                         delete=True)
                             # Added new playlist
                             utils.playlistXSP(mediatype, foldername, viewtype)
@@ -702,25 +702,28 @@ class LibrarySync(threading.Thread):
         # Initialize
         plx = PlexAPI.PlexAPI()
         self.allPlexElementsId = {}
+
+        embyconn = utils.kodiSQL('emby')
+        embycursor = embyconn.cursor()
+
+        emby_db = embydb.Embydb_Functions(embycursor)
         itemType = 'Movies'
 
-        views = plx.GetPlexCollections('movie')
+        views = emby_db.getView_byType('movie')
         self.logMsg("Processing Plex %s. Libraries: %s" % (itemType, views), 1)
 
         if self.compare:
             # Get movies from Plex server
-            embyconn = utils.kodiSQL('emby')
-            embycursor = embyconn.cursor()
             emby_db = embydb.Embydb_Functions(embycursor)
             # Pull the list of movies and boxsets in Kodi
             try:
                 self.allKodiElementsId = dict(emby_db.getChecksum('Movie'))
             except ValueError:
                 self.allKodiElementsId = {}
-            embyconn.close()
         else:
             # Getting all metadata, hence set Kodi elements to {}
             self.allKodiElementsId = {}
+        embyconn.close()
 
         ##### PROCESS MOVIES #####
         self.updatelist = []
@@ -942,16 +945,17 @@ class LibrarySync(threading.Thread):
         plx = PlexAPI.PlexAPI()
         self.allPlexElementsId = {}
         itemType = 'TVShows'
+        # Open DB connections
+        embyconn = utils.kodiSQL('emby')
+        embycursor = embyconn.cursor()
+        emby_db = embydb.Embydb_Functions(embycursor)
 
-        views = plx.GetPlexCollections('show')
+        views = emby_db.getView_byType('show')
         self.logMsg("Media folders for %s: %s" % (itemType, views), 1)
 
         self.allKodiElementsId = {}
         if self.compare:
             # Get movies from Plex server
-            embyconn = utils.kodiSQL('emby')
-            embycursor = embyconn.cursor()
-            emby_db = embydb.Embydb_Functions(embycursor)
             # Pull the list of TV shows already in Kodi
             try:
                 all_koditvshows = dict(emby_db.getChecksum('Series'))
@@ -964,7 +968,7 @@ class LibrarySync(threading.Thread):
                 self.allKodiElementsId.update(all_kodiepisodes)
             except ValueError:
                 pass
-            embyconn.close()
+        embyconn.close()
 
         ##### PROCESS TV Shows #####
         self.updatelist = []
