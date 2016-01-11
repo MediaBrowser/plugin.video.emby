@@ -2,7 +2,7 @@
 <addon  id="plugin.video.plexkodiconnect"
         name="PlexKodiConnect" 
         version="1.1.72"
-        provider-name="tomkat83">
+        provider-name="croneter">
   <requires>
     <import addon="xbmc.python" version="2.1.0"/>
     <import addon="script.module.requests" version="2.3.0" />
@@ -18,7 +18,7 @@
     <language>en</language>
     <license>GNU GENERAL PUBLIC LICENSE. Version 2, June 1991</license>
     <forum></forum>
-    <website>https://github.com/tomkat83/PlexKodiConnect</website>
+    <website>https://github.com/croneter/PlexKodiConnect</website>
     <source></source>
     <summary lang="en"></summary>
     <description lang="en">To be done</description>
