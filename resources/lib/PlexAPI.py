@@ -1599,13 +1599,14 @@ class API():
         provider = regex.findall(item['guid'])
         try:
             provider = provider[0]
-        except:
+        except KeyError:
             provider = None
         return provider
 
     def getTitle(self):
         """
-        Returns an item's name/title or "Missing Title Name"
+        Returns an item's name/title or "Missing Title Name" for both XML and
+        JSON PMS replies
 
         Output:
             title, sorttitle
@@ -1613,7 +1614,12 @@ class API():
         sorttitle = title, if no sorttitle is found
         """
         item = self.item
-        item = item[self.child].attrib
+        # XML
+        try:
+            item = item[self.child].attrib
+        # JSON
+        except KeyError:
+            pass
         try:
             title = item['title']
         except:
