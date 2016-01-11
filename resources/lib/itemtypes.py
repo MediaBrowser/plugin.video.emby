@@ -310,11 +310,10 @@ class Movies(Items):
             kodicursor.execute("select coalesce(max(idMovie),0) from movie")
             movieid = kodicursor.fetchone()[0] + 1
 
-
-        # if not viewtag or not viewid:
-        #     # Get view tag from emby
-        #     viewtag, viewid, mediatype = self.emby.getView_embyId(itemid)
-        #     self.logMsg("View tag found: %s" % viewtag, 2)
+        if not viewtag or not viewid:
+            # Get view tag from emby
+            viewtag, viewid, mediatype = self.emby.getView_embyId(itemid)
+        self.logMsg("View tag found: %s" % viewtag, 2)
 
         # fileId information
         checksum = API.getChecksum()
@@ -472,13 +471,13 @@ class Movies(Items):
         # Process studios
         kodi_db.addStudios(movieid, studios, "movie")
         # Process tags: view, emby tags
-        # tags = [viewtag]
+        tags = [viewtag]
         # tags.extend(item['Tags'])
         # if userdata['Favorite']:
-        #    tags.append("Favorite movies")
-        # kodi_db.addTags(movieid, tags, "movie")
+        #     tags.append("Favorite movies")
+        kodi_db.addTags(movieid, tags, "movie")
         # Process playstates
-        # resume = API.adjustResume(userdata['Resume'])
+        resume = API.adjustResume(userdata['Resume'])
         kodi_db.addPlaystate(fileid, resume, runtime, playcount, dateplayed)
 
     def updateUserdata(self, item):
@@ -1191,10 +1190,7 @@ class TVShows(Items):
             update_item = False
             self.logMsg("showid: %s not found." % itemid, 2)
 
-        # if viewtag is None or viewid is None:
-        #     # Get view tag from emby
-        #     viewtag, viewid, mediatype = emby.getView_embyId(itemid)
-        #     self.logMsg("View tag found: %s" % viewtag, 2)
+        self.logMsg("View tag found: %s" % viewtag, 2)
 
         # fileId information
         checksum = API.getChecksum()
@@ -1326,12 +1322,8 @@ class TVShows(Items):
         # Process studios
         kodi_db.addStudios(showid, studios, "tvshow")
         # Process tags: view, emby tags
-        # tags = [viewtag]
-        # tags.extend(item['Tags'])
-        # if userdata['Favorite']:
-        #     tags.append("Favorite tvshows")
-        # kodi_db.addTags(showid, tags, "tvshow")
-        # Process seasons
+        tags = [viewtag]
+        kodi_db.addTags(showid, tags, "tvshow")
 
     def refreshSeasonEntry(self, item, showid):
         API = PlexAPI.API(item)

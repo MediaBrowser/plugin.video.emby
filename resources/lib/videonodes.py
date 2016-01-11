@@ -56,6 +56,13 @@ class VideoNodes(object):
 
         kodiversion = self.kodiversion
 
+        # mediatype conversion
+        # LEFT: Plex wording, right: Kodi wording
+        mediaTypeConversion = {
+            'movie': 'movies',
+            'show': 'tvshows'
+        }
+        mediatype = mediaTypeConversion[mediatype]
         if mediatype == "homevideos":
             # Treat homevideos as movies
             mediatype = "movies"
@@ -68,7 +75,7 @@ class VideoNodes(object):
         
         path = xbmc.translatePath("special://profile/library/video/").decode('utf-8')
         nodepath = xbmc.translatePath(
-                    "special://profile/library/video/plex-%s/" % dirname).decode('utf-8')
+                    "special://profile/library/video/plex%s/" % dirname).decode('utf-8')
 
         # Verify the video directory
         if not xbmcvfs.exists(path):
@@ -93,7 +100,7 @@ class VideoNodes(object):
         # Create index entry
         nodeXML = "%sindex.xml" % nodepath
         # Set windows property
-        path = "library://video/plex-%s/" % dirname
+        path = "library://video/plex%s/" % dirname
         for i in range(1, indexnumber):
             # Verify to make sure we don't create duplicates
             if utils.window('Emby.nodes.%s.index' % i) == path:
@@ -124,7 +131,7 @@ class VideoNodes(object):
         }
         mediatypes = {
             # label according to nodetype per mediatype
-            'movie': {
+            'movies': {
                 '1': tagname,
                 '2': 30174,
                 '4': 30177,
@@ -134,7 +141,7 @@ class VideoNodes(object):
                 '10': 30229,
                 '11': 30230},
 
-            'show': {
+            'tvshows': {
                 '1': tagname,
                 '2': 30170,
                 '3': 30175,
