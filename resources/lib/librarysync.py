@@ -56,13 +56,16 @@ class ThreadedGetMetadata(threading.Thread):
             try:
                 updateItem = self.queue.get(block=False)
             # Empty queue
-            except:
+            except Queue.Empty:
                 continue
             # Download Metadata
-            plexElement = plx.GetPlexMetadata(updateItem['itemId'])
-            updateItem['XML'] = plexElement
+            try:
+                updateItem['XML'] = plx.GetPlexMetadata(updateItem['itemId'])
+            except:
+                raise
             # place item into out queue
             self.out_queue.put(updateItem)
+            del updateItem
             # Keep track of where we are at
             with self.lock:
                 getMetadataCount += 1
@@ -108,7 +111,7 @@ class ThreadedProcessMetadata(threading.Thread):
                 try:
                     updateItem = self.queue.get(block=False)
                 # Empty queue
-                except:
+                except Queue.Empty:
                     continue
                 # Do the work; lock to be sure we've only got 1 Thread
                 plexitem = updateItem['XML']
@@ -118,14 +121,17 @@ class ThreadedProcessMetadata(threading.Thread):
                 title = updateItem['title']
                 itemSubFkt = getattr(item, method)
                 with self.lock:
-                    itemSubFkt(
-                        plexitem,
-                        viewtag=viewName,
-                        viewid=viewId
-                    )
-                    # Keep track of where we are at
-                    processMetadataCount += 1
-                    processingViewName = title
+                    try:
+                        itemSubFkt(
+                            plexitem,
+                            viewtag=viewName,
+                            viewid=viewId
+                        )
+                        # Keep track of where we are at
+                        processMetadataCount += 1
+                        processingViewName = title
+                    except:
+                        raise
                 # signals to queue job is done
                 self.queue.task_done()
 
@@ -629,8 +635,7 @@ class LibrarySync(threading.Thread):
                         'method': method,
                         'viewName': viewName,
                         'viewId': viewId})
-        # Update the Kodi popup info
-        return self.updatelist, self.allPlexElementsId
+        return
 
     def GetAndProcessXMLs(self, itemType):
         """
@@ -651,7 +656,7 @@ class LibrarySync(threading.Thread):
         self.logMsg("Starting sync threads", 1)
         self.logMsg("=====================", 1)
         getMetadataQueue = Queue.Queue()
-        processMetadataQueue = Queue.Queue()
+        processMetadataQueue = Queue.Queue(maxsize=100)
         getMetadataLock = threading.Lock()
         processMetadataLock = threading.Lock()
         # To keep track
@@ -710,7 +715,9 @@ class LibrarySync(threading.Thread):
         self.logMsg("Stop sent to all threads", 1)
         # Wait till threads are indeed dead
         for thread in threads:
-            thread.join()
+            thread.join(15.0)
+            if thread.isAlive():
+                self.logMsg("Could not terminate thread", -1)
         if dialog:
             dialog.close()
         self.logMsg("=====================", 1)
