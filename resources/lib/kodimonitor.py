@@ -13,6 +13,8 @@ import embydb_functions as embydb
 import playbackutils as pbutils
 import utils
 
+from urllib import urlencode
+
 #################################################################################################
 
 
@@ -150,12 +152,15 @@ class KodiMonitor(xbmc.Monitor):
                         utils.window('emby_skipWatched%s' % itemid, clear=True)
                     else:
                         # notify the server
-                        url = "{server}/emby/Users/{UserId}/PlayedItems/%s?format=json" % itemid
+                        args = {'key': itemid,
+                                'identifier': 'com.plexapp.plugins.library'}
                         if playcount != 0:
-                            doUtils.downloadUrl(url, type="POST")
+                            url = "{server}/:/scrobble?" + urlencode(args)
+                            doUtils.downloadUrl(url, type="GET")
                             self.logMsg("Mark as watched for itemid: %s" % itemid, 1)
                         else:
-                            doUtils.downloadUrl(url, type="DELETE")
+                            url = "{server}/:/unscrobble?" + urlencode(args)
+                            doUtils.downloadUrl(url, type="GET")
                             self.logMsg("Mark as unwatched for itemid: %s" % itemid, 1)
                 finally:
                     embycursor.close()
