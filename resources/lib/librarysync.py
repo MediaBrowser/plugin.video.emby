@@ -60,12 +60,12 @@ class ThreadedGetMetadata(threading.Thread):
                 continue
             # Download Metadata
             try:
-                updateItem['XML'] = plx.GetPlexMetadata(updateItem['itemId'])
+                plexXML = plx.GetPlexMetadata(updateItem['itemId'])
             except:
                 raise
+            updateItem['XML'] = plexXML
             # place item into out queue
             self.out_queue.put(updateItem)
-            del updateItem
             # Keep track of where we are at
             with self.lock:
                 getMetadataCount += 1
@@ -121,7 +121,6 @@ class ThreadedProcessMetadata(threading.Thread):
                 title = updateItem['title']
                 itemSubFkt = getattr(item, method)
                 with self.lock:
-                    try:
                         itemSubFkt(
                             plexitem,
                             viewtag=viewName,
@@ -130,8 +129,6 @@ class ThreadedProcessMetadata(threading.Thread):
                         # Keep track of where we are at
                         processMetadataCount += 1
                         processingViewName = title
-                    except:
-                        raise
                 # signals to queue job is done
                 self.queue.task_done()
 
@@ -599,42 +596,44 @@ class LibrarySync(threading.Thread):
             # Manual sync
             for item in elementList:
                 # Skipping XML item 'title=All episodes' without a 'ratingKey'
-                if item.get('ratingKey', False):
-                    if self.shouldStop():
-                        return False
-                    API = PlexAPI.API(item)
-                    plex_checksum = API.getChecksum()
-                    itemId = API.getKey()
-                    title, sorttitle = API.getTitle()
-                    self.allPlexElementsId[itemId] = plex_checksum
-                    kodi_checksum = self.allKodiElementsId.get(itemId)
-                    if kodi_checksum != plex_checksum:
-                        # Only update if movie is not in Kodi or checksum is
-                        # different
-                        self.updatelist.append({
-                            'itemId': itemId,
-                            'itemType': itemType,
-                            'method': method,
-                            'viewName': viewName,
-                            'viewId': viewId,
-                            'title': title})
+                if not item.get('ratingKey', False):
+                    continue
+                if self.shouldStop():
+                    return False
+                API = PlexAPI.API(item)
+                plex_checksum = API.getChecksum()
+                itemId = API.getKey()
+                title, sorttitle = API.getTitle()
+                self.allPlexElementsId[itemId] = plex_checksum
+                kodi_checksum = self.allKodiElementsId.get(itemId)
+                if kodi_checksum != plex_checksum:
+                    # Only update if movie is not in Kodi or checksum is
+                    # different
+                    self.updatelist.append({'itemId': itemId,
+                                            'itemType': itemType,
+                                            'method': method,
+                                            'viewName': viewName,
+                                            'viewId': viewId,
+                                            'title': title})
         else:
             # Initial or repair sync: get all Plex movies
             for item in elementList:
                 # Only look at valid items = Plex library items
-                if item.get('ratingKey', False):
-                    if self.shouldStop():
-                        return False
-                    API = PlexAPI.API(item)
-                    itemId = API.getKey()
-                    plex_checksum = API.getChecksum()
-                    self.allPlexElementsId[itemId] = plex_checksum
-                    self.updatelist.append({
-                        'itemId': itemId,
-                        'itemType': itemType,
-                        'method': method,
-                        'viewName': viewName,
-                        'viewId': viewId})
+                if not item.get('ratingKey', False):
+                    continue
+                if self.shouldStop():
+                    return False
+                API = PlexAPI.API(item)
+                itemId = API.getKey()
+                title, sorttitle = API.getTitle()
+                plex_checksum = API.getChecksum()
+                self.allPlexElementsId[itemId] = plex_checksum
+                self.updatelist.append({'itemId': itemId,
+                                        'itemType': itemType,
+                                        'method': method,
+                                        'viewName': viewName,
+                                        'viewId': viewId,
+                                        'title': title})
         return
 
     def GetAndProcessXMLs(self, itemType):
