@@ -349,9 +349,17 @@ class Movies(Items):
             studio = None
         self.logMsg("Retrieved metadata for %s" % itemid, 2)
 
-        # TODO: trailers
+        # Find one trailer
         trailer = None
-        self.logMsg("Retrieved trailer for %s" % itemid, 2)
+        extras = API.getExtras()
+        if extras:
+            for item in extras:
+                # Only get 1st trailer element
+                if item['extraType'] == '1':
+                    trailer = item['key']
+                    trailer = "plugin://plugin.video.plexkodiconnect/trailer/?id=%s&mode=play" % trailer
+                    self.logMsg("Trailer for %s: %s" % (itemid, trailer), 2)
+                    break
 
         ##### GET THE FILE AND PATH #####
         playurl = API.getFilePath()

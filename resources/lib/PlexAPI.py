@@ -1914,6 +1914,45 @@ class API():
         }
         return videoCodec
 
+    def getExtras(self):
+        """
+        Returns a list of trailer and extras from PMS XML. Returns None if
+        no extras are found.
+        Extratypes:
+            '1':    Trailer
+            '5':    Behind the scenes
+
+        Output: list of dicts with one entry of the form:
+            'key':                     e.g. /library/metadata/xxxx
+            'title':
+            'thumb':                    artwork
+            'duration':
+            'extraType':
+            'originallyAvailableAt':
+            'year':
+        """
+        extras = self.item[0].find('Extras')
+        if not extras:
+            return None
+        elements = []
+        for extra in extras:
+            # Trailer:
+            key = extra.attrib['key']
+            title = extra.attrib['title']
+            thumb = extra.attrib['thumb']
+            duration = extra.attrib['duration']
+            year = extra.attrib['year']
+            extraType = extra.attrib['extraType']
+            originallyAvailableAt = extra.attrib['originallyAvailableAt']
+            elements.append({'key': key,
+                             'title': title,
+                             'thumb': thumb,
+                             'duration': duration,
+                             'extraType': extraType,
+                             'originallyAvailableAt': originallyAvailableAt,
+                             'year': year})
+        return elements
+
     def getMediaStreams(self):
         """
         Returns the media streams
@@ -2291,7 +2330,12 @@ class API():
         """
         item = self.item
         key = self.getKey()
-        uuid = item.attrib['librarySectionUUID']
+        try:
+            uuid = item.attrib['librarySectionUUID']
+        # if not found: probably trying to start a trailer directly
+        # Hence no playlist needed
+        except KeyError:
+            return None
         mediatype = item[self.child].tag.lower()
         trailerNumber = utils.settings('trailerNumber')
         if not trailerNumber:

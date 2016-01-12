@@ -121,14 +121,14 @@ class ThreadedProcessMetadata(threading.Thread):
                 title = updateItem['title']
                 itemSubFkt = getattr(item, method)
                 with self.lock:
-                        itemSubFkt(
-                            plexitem,
-                            viewtag=viewName,
-                            viewid=viewId
-                        )
-                        # Keep track of where we are at
-                        processMetadataCount += 1
-                        processingViewName = title
+                    itemSubFkt(
+                        plexitem,
+                        viewtag=viewName,
+                        viewid=viewId
+                    )
+                    # Keep track of where we are at
+                    processMetadataCount += 1
+                    processingViewName = title
                 # signals to queue job is done
                 self.queue.task_done()
 
