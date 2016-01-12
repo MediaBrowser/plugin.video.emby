@@ -46,8 +46,16 @@ class UserClient(threading.Thread):
 
         self.addonName = clientinfo.ClientInfo().getAddonName()
         self.doUtils = downloadutils.DownloadUtils()
-        
+
+        self.signoutUser = threading.Event()
+
         threading.Thread.__init__(self)
+
+    def signUserOut(self):
+        self.signoutUser.set()
+
+    def userSignedOut(self):
+        return self.signoutUser.isSet()
 
     def logMsg(self, msg, lvl=1):
         
@@ -307,18 +315,14 @@ class UserClient(threading.Thread):
         ##### AUTHENTICATE USER #####
 
         # Choose Plex user login
-        try:
-            username, userId, accessToken = PlexAPI.PlexAPI().ChoosePlexHomeUser()
-        except (KeyError, TypeError):
-            self.logMsg("Failed to retrieve the api key.", 1)
-            accessToken = None
+        username, userId, accessToken = PlexAPI.PlexAPI().ChoosePlexHomeUser()
 
-        if accessToken is not None:
+        if accessToken is not "":
             self.currUser = username
             xbmcgui.Dialog().notification("Emby server", "Welcome %s!" % username)
             utils.settings('accessToken', value=accessToken)
             utils.settings('userId%s' % username, value=userId)
-            self.logMsg("User Authenticated: %s" % accessToken, 1)
+            self.logMsg("User authenticated with an access token", 1)
             self.loadCurrUser(authenticated=True)
             utils.window('emby_serverStatus', clear=True)
             self.retry = 0
@@ -326,37 +330,22 @@ class UserClient(threading.Thread):
             self.logMsg("User authentication failed.", 1)
             utils.settings('accessToken', value="")
             utils.settings('userId%s' % username, value="")
-            xbmcgui.Dialog().ok("Error connecting", "Invalid username or password.")
-            
-            # Give two attempts at entering password
-            if self.retry == 2:
-                self.logMsg(
-                    """Too many retries. You can retry by resetting 
-                    attempts in the addon settings.""", 1)
-                utils.window('emby_serverStatus', value="Stop")
-                xbmcgui.Dialog().ok(
-                    heading="Error connecting",
-                    line1="Failed to authenticate too many times.",
-                    line2="You can retry by resetting attempts in the addon settings.")
-
-            self.retry += 1
+            self.retry = 0
             self.auth = False
 
     def resetClient(self):
 
         self.logMsg("Reset UserClient authentication.", 1)
         username = self.getUsername()
-        
-        if self.currToken is not None:
-            # In case of 401, removed saved token
-            utils.settings('accessToken', value="")
-            utils.window('emby_accessToken%s' % username, clear=True)
-            self.currToken = None
-            self.logMsg("User token has been removed.", 1)
-        
+
+        utils.settings('accessToken', value="")
+        utils.window('emby_accessToken%s' % username, clear=True)
+        self.currToken = None
+        self.logMsg("User token has been removed.", 1)
+
         self.auth = True
         self.currUser = None
-        
+
     def run(self):
 
         monitor = xbmc.Monitor()
@@ -375,6 +364,13 @@ class UserClient(threading.Thread):
                     # Unauthorized access, revoke token
                     utils.window('emby_serverStatus', value="Auth")
                     self.resetClient()
+
+            if self.userSignedOut():
+                # Check whether another thread wanted to sign out user
+                self.logMsg("User sign out requested", 0)
+                self.resetClient()
+                # Reset threading event
+                self.signoutUser.clear()
 
             if self.auth and (self.currUser is None):
                 # Try to authenticate user

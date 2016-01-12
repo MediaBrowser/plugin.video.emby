@@ -39,18 +39,6 @@ class InitialSetup():
         className = self.__class__.__name__
         utils.logMsg("%s %s" % (self.addonName, className), msg, lvl)
 
-    def GetPlexLogin(self):
-        """
-        Returns (myplexlogin, plexLogin, plexToken) from the Kodi file
-        settings. Returns empty strings if not found.
-
-        myplexlogin is 'true' if user opted to log into plex.tv
-        """
-        plexLogin = utils.settings('plexLogin')
-        plexToken = utils.settings('plexToken')
-        myplexlogin = utils.settings('myplexlogin')
-        return (myplexlogin, plexLogin, plexToken)
-
     def setup(self):
         # Check server, user, direct paths, music, direct stream if not direct path.
         string = self.__language__
@@ -62,7 +50,7 @@ class InitialSetup():
         server = self.userClient.getServer()
         clientId = self.clientInfo.getDeviceId()
         serverid = self.userClient.getServerId()
-        myplexlogin, plexLogin, plexToken = self.GetPlexLogin()
+        myplexlogin, plexLogin, plexToken = self.plx.GetPlexLoginFromSettings()
 
         # Optionally sign into plex.tv. Will not be called on very first run
         if plexToken and myplexlogin == 'true':

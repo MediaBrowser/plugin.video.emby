@@ -100,6 +100,25 @@ class PlexAPI():
         className = self.__class__.__name__
         utils.logMsg("%s %s" % (self.addonName, className), msg, lvl)
 
+    def SetPlexLoginToSettings(self, plexLogin, plexToken):
+        """
+        Saves retrieved Plex username and Plex token to Kodi settings file.
+        """
+        utils.settings('plexLogin', value=plexLogin)
+        utils.settings('plexToken', value=plexToken)
+
+    def GetPlexLoginFromSettings(self):
+        """
+        Returns (myplexlogin, plexLogin, plexToken) from the Kodi file
+        settings. Returns empty strings if not found.
+
+        myplexlogin is 'true' if user opted to log into plex.tv
+        """
+        plexLogin = utils.settings('plexLogin')
+        plexToken = utils.settings('plexToken')
+        myplexlogin = utils.settings('myplexlogin')
+        return (myplexlogin, plexLogin, plexToken)
+
     def GetPlexLoginAndPassword(self):
         """
         Signs in to plex.tv.
@@ -141,9 +160,7 @@ class PlexAPI():
                     dialog = xbmcgui.Dialog()
                     dialog.ok(self.addonName, 'Could not sign in user %s' % plexLogin)
         # Write to Kodi settings file
-        addon = xbmcaddon.Addon()
-        addon.setSetting('plexLogin', retrievedPlexLogin)
-        addon.setSetting('plexToken', authtoken)
+        self.SetPlexLoginToSettings(retrievedPlexLogin, authtoken)
         return (retrievedPlexLogin, authtoken)
 
     def CheckConnection(self, url, token):
@@ -888,8 +905,8 @@ class PlexAPI():
         usernumber = len(userlist)
         usertoken = ''
         # Plex home not in use: only 1 user returned
-        trials = 1
-        while trials < 4:
+        trials = 0
+        while trials < 3:
             if usernumber > 1:
                 dialog = xbmcgui.Dialog()
                 user_select = dialog.select(self.addonName + ": Select User", userlist)

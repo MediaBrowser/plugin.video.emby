@@ -22,6 +22,9 @@ sys.path.append(base_resource)
 import entrypoint
 import utils
 
+import PlexAPI
+import userclient
+
 #################################################################################################
 
 enableProfiling = False
@@ -31,7 +34,7 @@ class Main:
 
     # MAIN ENTRY POINT
     def __init__(self):
-
+        plx = PlexAPI.PlexAPI()
         # Parse parameters
         base_url = sys.argv[0]
         addon_handle = int(sys.argv[1])
@@ -90,6 +93,9 @@ class Main:
             # Other functions
             if mode == "settings":
                 xbmc.executebuiltin('Addon.OpenSettings(plugin.video.plexkodiconnect)')
+            if mode == "switchuser":
+                xbmc.log('Requesting user switch')
+                userclient.UserClient().signUserOut()
             elif mode in ("manualsync", "repair"):
                 if utils.window('emby_dbScan') != "true":
                     import librarysync

@@ -80,7 +80,7 @@ def doMainListing():
     # some extra entries for settings and stuff. TODO --> localize the labels
     addDirectoryItem("Network credentials", "plugin://plugin.video.plexkodiconnect/?mode=passwords", False)
     addDirectoryItem("Settings", "plugin://plugin.video.plexkodiconnect/?mode=settings", False)
-    addDirectoryItem("Add user to session", "plugin://plugin.video.plexkodiconnect/?mode=adduser", False)
+    addDirectoryItem("Switch Plex user", "plugin://plugin.video.plexkodiconnect/?mode=switchuser", False)
     #addDirectoryItem("Cache all images to Kodi texture cache (advanced)", "plugin://plugin.video.plexkodiconnect/?mode=texturecache")
     addDirectoryItem(
         label="Refresh Emby playlists",
