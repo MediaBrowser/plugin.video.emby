@@ -327,8 +327,13 @@ class DownloadUtils():
                         self.logMsg("Received an XML response for: %s" % url, 2)
                         return r
                     except:
-                        self.logMsg("Unable to convert the response for: %s" % url, 2)
-                        self.logMsg("Content-type was: %s" % r.headers['content-type'], 2)
+                        try:
+                            if r.text == '' and r.status_code == 200:
+                                self.logMsg("====== 200 Success ======", 2)
+                                self.logMsg("Answer from PMS does not contain a body", 2)
+                        except:
+                            self.logMsg("Unable to convert the response for: %s" % url, 2)
+                            self.logMsg("Content-type was: %s" % r.headers['content-type'], 2)
             else:
                 r.raise_for_status()
         
