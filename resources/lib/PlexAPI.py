@@ -1916,7 +1916,7 @@ class API():
 
     def getExtras(self):
         """
-        Returns a list of trailer and extras from PMS XML. Returns None if
+        Returns a list of trailer and extras from PMS XML. Returns [] if
         no extras are found.
         Extratypes:
             '1':    Trailer
@@ -1932,9 +1932,9 @@ class API():
             'year':
         """
         extras = self.item[0].find('Extras')
-        if not extras:
-            return None
         elements = []
+        if not extras:
+            return elements
         for extra in extras:
             # Trailer:
             key = extra.attrib['key']

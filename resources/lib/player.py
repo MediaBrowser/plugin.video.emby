@@ -13,6 +13,8 @@ import downloadutils
 import kodidb_functions as kodidb
 import websocket_client as wsc
 
+from urllib import urlencode
+
 #################################################################################################
 
 
@@ -260,6 +262,7 @@ class Player(xbmc.Player):
             playTime = data['currentPosition']
             playMethod = data['playmethod']
             paused = data.get('paused', False)
+            duration = data.get('runtime', '')
 
 
             # Get playback volume
@@ -281,17 +284,29 @@ class Player(xbmc.Player):
             muted = result.get('muted')
 
             # Postdata for the websocketclient report
-            postdata = {
+            # postdata = {
 
-                'QueueableMediaTypes': "Video",
-                'CanSeek': True,
-                'ItemId': itemId,
-                'MediaSourceId': itemId,
-                'PlayMethod': playMethod,
-                'PositionTicks': int(playTime * 10000000),
-                'IsPaused': paused,
-                'VolumeLevel': volume,
-                'IsMuted': muted
+            #     'QueueableMediaTypes': "Video",
+            #     'CanSeek': True,
+            #     'ItemId': itemId,
+            #     'MediaSourceId': itemId,
+            #     'PlayMethod': playMethod,
+            #     'PositionTicks': int(playTime * 10000000),
+            #     'IsPaused': paused,
+            #     'VolumeLevel': volume,
+            #     'IsMuted': muted
+            # }
+            if paused == 'stopped':
+                state = 'stopped'
+            elif paused == 'True':
+                state = 'paused'
+            else:
+                state = 'playing'
+            postdata = {
+                'ratingKey': itemId,
+                'state': state,   # 'stopped', 'paused', 'buffering', 'playing'
+                'time': int(playTime) * 1000,
+                'duration': int(duration) * 1000
             }
 
             if playMethod == "Transcode":
@@ -362,9 +377,11 @@ class Player(xbmc.Player):
                     data['SubtitleStreamIndex'], postdata['SubtitleStreamIndex'] = [""] * 2
 
             # Report progress via websocketclient
-            postdata = json.dumps(postdata)
+            # postdata = json.dumps(postdata)
             self.logMsg("Report: %s" % postdata, 2)
-            self.ws.sendProgressUpdate(postdata)
+            # self.ws.sendProgressUpdate(postdata)
+            url = "{server}/:/timeline?" + urlencode(postdata)
+            self.doUtils.downloadUrl(url, type="GET")
 
     def onPlayBackPaused( self ):
 
@@ -399,7 +416,12 @@ class Player(xbmc.Player):
     
     def onPlayBackStopped( self ):
         # Will be called when user stops xbmc playing a file
+        currentFile = self.currentFile
         self.logMsg("ONPLAYBACK_STOPPED", 2)
+        if self.played_info.get(currentFile):
+            self.played_info[currentFile]['paused'] = 'stopped'
+            self.reportPlayback()
+
         xbmcgui.Window(10101).clearProperties()
         self.logMsg("Clear playlist properties.")
         self.stopAll()

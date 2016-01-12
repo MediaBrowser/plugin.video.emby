@@ -352,14 +352,13 @@ class Movies(Items):
         # Find one trailer
         trailer = None
         extras = API.getExtras()
-        if extras:
-            for item in extras:
-                # Only get 1st trailer element
-                if item['extraType'] == '1':
-                    trailer = item['key']
-                    trailer = "plugin://plugin.video.plexkodiconnect/trailer/?id=%s&mode=play" % trailer
-                    self.logMsg("Trailer for %s: %s" % (itemid, trailer), 2)
-                    break
+        for item in extras:
+            # Only get 1st trailer element
+            if item['extraType'] == '1':
+                trailer = item['key']
+                trailer = "plugin://plugin.video.plexkodiconnect/trailer/?id=%s&mode=play" % trailer
+                self.logMsg("Trailer for %s: %s" % (itemid, trailer), 2)
+                break
 
         ##### GET THE FILE AND PATH #####
         playurl = API.getFilePath()
