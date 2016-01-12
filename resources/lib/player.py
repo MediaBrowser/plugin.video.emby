@@ -298,7 +298,7 @@ class Player(xbmc.Player):
             # }
             if paused == 'stopped':
                 state = 'stopped'
-            elif paused == 'True':
+            elif paused is True:
                 state = 'paused'
             else:
                 state = 'playing'
@@ -458,7 +458,7 @@ class Player(xbmc.Player):
 
                 if currentPosition and runtime:
                     try:
-                        percentComplete = (currentPosition * 10000000) / int(runtime)
+                        percentComplete = (currentPosition * 10000) / int(runtime)
                     except ZeroDivisionError:
                         # Runtime is 0.
                         percentComplete = 0
@@ -505,20 +505,20 @@ class Player(xbmc.Player):
                         doUtils.downloadUrl(url, type="DELETE")
     
         self.played_info.clear()
-    
-    def stopPlayback(self, data):
-        
-        self.logMsg("stopPlayback called", 2)
-        
-        itemId = data['item_id']
-        currentPosition = data['currentPosition']
-        positionTicks = int(currentPosition * 10000000)
 
-        url = "{server}/emby/Sessions/Playing/Stopped"
-        postdata = {
-            
-            'ItemId': itemId,
-            'MediaSourceId': itemId,
-            'PositionTicks': positionTicks
+    def stopPlayback(self, data):
+        self.logMsg("stopPlayback called", 2)
+
+        itemId = data['item_id']
+        playTime = data['currentPosition']
+        duration = data.get('runtime', '')
+
+        url = "{server}/:/timeline?"
+        args = {
+            'ratingKey': itemId,
+            'state': 'stopped',   # 'stopped', 'paused', 'buffering', 'playing'
+            'time': int(playTime) * 1000,
+            'duration': int(duration) * 1000
         }
-        self.doUtils.downloadUrl(url, postBody=postdata, type="POST")
+        url = url + urlencode(args)
+        self.doUtils.downloadUrl(url, type="GET")

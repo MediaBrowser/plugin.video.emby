@@ -34,10 +34,9 @@ def doPlayback(itemid, dbid):
     # Get a first XML to get the librarySectionUUID
     item = PlexAPI.PlexAPI().GetPlexMetadata(itemid)
     # Use that to call the playlist
-    playlist = PlexAPI.API(item).GetPlexPlaylist()
-    if playlist:
-        pbutils.PlaybackUtils(playlist).play(itemid, dbid)
-        
+    xmlPlaylist = PlexAPI.API(item).GetPlexPlaylist()
+    if xmlPlaylist:
+        pbutils.PlaybackUtils(xmlPlaylist).play(itemid, dbid)
     else:
         # No playlist received e.g. when directly playing trailers
         pbutils.PlaybackUtils(item).play(itemid, dbid)
@@ -48,7 +47,7 @@ def resetAuth():
     resp = xbmcgui.Dialog().yesno(
                 heading="Warning",
                 line1=(
-                    "Emby might lock your account if you fail to log in too many times. "
+                    "Plex might lock your account if you fail to log in too many times. "
                     "Proceed anyway?"))
     if resp == 1:
         utils.logMsg("EMBY", "Reset login attempts.", 1)
