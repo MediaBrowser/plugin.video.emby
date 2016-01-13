@@ -181,14 +181,21 @@ class PlexAPI():
         if 'plex.tv' in url:
             url = 'https://plex.tv/api/home/users'
         else:
-            url = url + '/clients'
-        self.logMsg("CheckConnection called for url %s with a token" % url, 2)
-
-        r = self.doUtils.downloadUrl(
-            url,
-            authenticate=False,
-            headerOptions={'X-Plex-Token': token}
-        )
+            url = url + '/library/onDeck'
+        
+        if token:
+            self.logMsg("CheckConnection for %s with a token" % url, 0)
+            r = self.doUtils.downloadUrl(
+                url,
+                authenticate=False,
+                headerOptions={'X-Plex-Token': token,
+                               'Accept': 'application/json'})
+        else:
+            self.logMsg("CheckConnection for %s without a token" % url, 0)
+            r = self.doUtils.downloadUrl(
+                url,
+                authenticate=False,
+                headerOptions={'Accept': 'application/json'})
         self.logMsg("Response was: %s" % r, 2)
         # List of exception returns, when connection failed
         exceptionlist = [
@@ -886,7 +893,6 @@ class PlexAPI():
 
         Will return empty strings if failed.
         """
-        string = self.__language__
         plexLogin = self.plexLogin
         plexToken = self.plexToken
         self.logMsg("Getting user list.", 1)

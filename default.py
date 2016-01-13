@@ -95,7 +95,7 @@ class Main:
                 xbmc.executebuiltin('Addon.OpenSettings(plugin.video.plexkodiconnect)')
             if mode == "switchuser":
                 xbmc.log('Requesting user switch')
-                userclient.UserClient().signUserOut()
+                utils.window('emby_serverStatus', value="401")
             elif mode in ("manualsync", "repair"):
                 if utils.window('emby_dbScan') != "true":
                     import librarysync
