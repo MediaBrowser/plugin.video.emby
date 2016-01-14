@@ -281,6 +281,26 @@ class Movies(Items):
                 count += 1
             self.add_updateBoxset(boxset)
 
+    def updateUserdata(self, itemList):
+        """
+        Updates the Kodi watched state of the item from PMS. Also retrieves
+        Plex resume points for movies in progress.
+        """
+        API = PlexAPI.API(itemList)
+        for itemNumber in range(0, len(itemList)):
+            API.setChildNumber(itemNumber)
+            itemid = API.getKey()
+            # Get key and db entry on the Kodi db side
+            fileid = self.emby_db.getItem_byId(itemid)[1]
+            # Grab the user's viewcount, resume points etc. from PMS' answer
+            userdata = API.getUserData()
+            # Write to Kodi DB
+            self.kodi_db.addPlaystate(fileid,
+                                      userdata['Resume'],
+                                      userdata['Runtime'],
+                                      userdata['PlayCount'],
+                                      userdata['LastPlayedDate'])
+
     def add_update(self, item, viewtag=None, viewid=None):
         # Process single movie
         kodicursor = self.kodicursor
@@ -485,47 +505,7 @@ class Movies(Items):
         #     tags.append("Favorite movies")
         kodi_db.addTags(movieid, tags, "movie")
         # Process playstates
-        resume = API.adjustResume(userdata['Resume'])
         kodi_db.addPlaystate(fileid, resume, runtime, playcount, dateplayed)
-
-    def updateUserdata(self, item):
-        # This updates: Favorite, LastPlayedDate, Playcount, PlaybackPositionTicks
-        # Poster with progress bar
-        emby_db = self.emby_db
-        kodi_db = self.kodi_db
-        API = api.API(item)
-        
-        # Get emby information
-        itemid = item['Id']
-        checksum = API.getChecksum()
-        userdata = API.getUserData()
-        runtime = API.getRuntime()
-
-        # Get Kodi information
-        emby_dbitem = emby_db.getItem_byId(itemid)
-        try:
-            movieid = emby_dbitem[0]
-            fileid = emby_dbitem[1]
-            self.logMsg(
-                "Update playstate for movie: %s fileid: %s"
-                % (item['Name'], fileid), 1)
-        except TypeError:
-            return
-
-        # Process favorite tags
-        if userdata['Favorite']:
-            kodi_db.addTag(movieid, "Favorite movies", "movie")
-        else:
-            kodi_db.removeTag(movieid, "Favorite movies", "movie")
-
-        # Process playstates
-        playcount = userdata['PlayCount']
-        dateplayed = userdata['LastPlayedDate']
-        resume = API.adjustResume(userdata['Resume'])
-        total = round(float(runtime), 6)
-
-        kodi_db.addPlaystate(fileid, resume, total, playcount, dateplayed)
-        emby_db.updateReference(itemid, checksum)
 
     def remove(self, itemid):
         # Remove movieid, fileid, emby reference
@@ -1171,6 +1151,26 @@ class TVShows(Items):
             if not pdialog and self.contentmsg:
                 self.contentPop(title)
 
+    def updateUserdata(self, itemList):
+        """
+        Updates the Kodi watched state of the item from PMS. Also retrieves
+        Plex resume points for movies in progress.
+        """
+        API = PlexAPI.API(itemList)
+        for itemNumber in range(0, len(itemList)):
+            API.setChildNumber(itemNumber)
+            itemid = API.getKey()
+            # Get key and db entry on the Kodi db side
+            fileid = self.emby_db.getItem_byId(itemid)[1]
+            # Grab the user's viewcount, resume points etc. from PMS' answer
+            userdata = API.getUserData()
+            # Write to Kodi DB
+            self.kodi_db.addPlaystate(fileid,
+                                      userdata['Resume'],
+                                      userdata['Runtime'],
+                                      userdata['PlayCount'],
+                                      userdata['LastPlayedDate'])
+
     def add_update(self, item, viewtag=None, viewid=None):
         # Process single tvshow
         kodicursor = self.kodicursor
@@ -1611,9 +1611,7 @@ class TVShows(Items):
         streams = API.getMediaStreams()
         kodi_db.addStreams(fileid, streams, runtime)
         # Process playstates
-        resume = API.adjustResume(userdata['Resume'])
-        total = round(float(runtime), 6)
-        kodi_db.addPlaystate(fileid, resume, total, playcount, dateplayed)
+        kodi_db.addPlaystate(fileid, resume, runtime, playcount, dateplayed)
         if not self.directpath and resume:
             # Create additional entry for widgets. This is only required for plugin/episode.
             temppathid = kodi_db.getPath("plugin://plugin.video.plexkodiconnect.tvshows/")
@@ -1625,53 +1623,7 @@ class TVShows(Items):
                 "WHERE idFile = ?"
             ))
             kodicursor.execute(query, (temppathid, filename, dateadded, tempfileid))
-            kodi_db.addPlaystate(tempfileid, resume, total, playcount, dateplayed)
-
-    def updateUserdata(self, item):
-        # This updates: Favorite, LastPlayedDate, Playcount, PlaybackPositionTicks
-        # Poster with progress bar
-        emby_db = self.emby_db
-        kodi_db = self.kodi_db
-        API = api.API(item)
-        
-        # Get emby information
-        itemid = item['Id']
-        checksum = API.getChecksum()
-        userdata = API.getUserData()
-        runtime = API.getRuntime()
-
-        # Get Kodi information
-        emby_dbitem = emby_db.getItem_byId(itemid)
-        try:
-            kodiid = emby_dbitem[0]
-            fileid = emby_dbitem[1]
-            mediatype = emby_dbitem[4]
-            self.logMsg(
-                "Update playstate for %s: %s fileid: %s"
-                % (mediatype, item['Name'], fileid), 1)
-        except TypeError:
-            return
-
-        # Process favorite tags
-        if mediatype == "tvshow":
-            if userdata['Favorite']:
-                kodi_db.addTag(kodiid, "Favorite tvshows", "tvshow")
-            else:
-                kodi_db.removeTag(kodiid, "Favorite tvshows", "tvshow")
-
-        # Process playstates
-        if mediatype == "episode":
-            playcount = userdata['PlayCount']
-            dateplayed = userdata['LastPlayedDate']
-            resume = API.adjustResume(userdata['Resume'])
-            total = round(float(runtime), 6)
-
-            kodi_db.addPlaystate(fileid, resume, total, playcount, dateplayed)
-            if not self.directpath and not resume:
-                # Make sure there's no other bookmarks created by widget.
-                filename = kodi_db.getFile(fileid)
-                kodi_db.removeFile("plugin://plugin.video.plexkodiconnect.tvshows/", filename)
-        emby_db.updateReference(itemid, checksum)
+            kodi_db.addPlaystate(tempfileid, resume, runtime, playcount, dateplayed)
 
     def remove(self, itemid):
         # Remove showid, fileid, pathid, emby reference

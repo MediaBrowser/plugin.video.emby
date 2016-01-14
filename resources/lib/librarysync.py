@@ -302,7 +302,6 @@ class LibrarySync(threading.Thread):
         # Save last sync time
         overlap = 2
 
-        self.logMsg("An exception occurred: %s" % e, 1)
         time_now = datetime.utcnow()-timedelta(minutes=overlap)
         lastSync = time_now.strftime('%Y-%m-%dT%H:%M:%SZ')
         self.logMsg("New sync time: client time -%s min: %s"
@@ -755,6 +754,10 @@ class LibrarySync(threading.Thread):
                                viewId)
         self.GetAndProcessXMLs(itemType)
         self.logMsg("Processed view %s with ID %s" % (viewName, viewId), 1)
+        # Update viewstate
+        for view in views:
+            self.PlexUpdateWatched(view['id'], itemType)
+
         ##### PROCESS DELETES #####
         if self.compare:
             # Manual sync, process deletes
@@ -764,6 +767,27 @@ class LibrarySync(threading.Thread):
                         Movie.remove(kodimovie)
         self.logMsg("%s sync is finished." % itemType, 1)
         return True
+
+    def PlexUpdateWatched(self, viewId, itemType):
+        """
+        Updates ALL plex elements' view status ('watched' or 'unwatched') and
+        also updates resume times.
+
+        This is done by downloading one XML for ALL elements with viewId
+        """
+        starttotal = datetime.now()
+        plx = PlexAPI.PlexAPI()
+        # Download XML, not JSON
+        headerOptions = {'Accept': 'application/xml'}
+        plexItems = plx.GetAllPlexLeaves(viewId,
+                                         headerOptions=headerOptions)
+        itemMth = getattr(itemtypes, itemType)
+        with itemMth() as method:
+            method.UpdateWatched(plexItems)
+
+        elapsedtotal = datetime.now() - starttotal
+        self.logMsg("Syncing userdata for itemtype %s and viewid %s took "
+                    "%s seconds" % (itemType, viewId, elapsedtotal), 0)
 
     def musicvideos(self, embycursor, kodicursor, pdialog, compare=False):
         # Get musicvideos from emby
@@ -1022,22 +1046,24 @@ class LibrarySync(threading.Thread):
                                'add_updateSeason',
                                None,
                                tvShowId)  # send showId instead of viewid
-            self.logMsg("Analyzed all seasons of TV show with Plex Id %s" % tvShowId, 1)
+            self.logMsg("Analyzed all seasons of TV show with Plex Id %s"
+                        % tvShowId, 1)
 
         ##### PROCESS TV Episodes #####
         # Cycle through tv shows
-        for tvShowId in allPlexTvShowsId:
+        for view in views:
             if self.shouldStop():
                 return False
             # Grab all episodes to tvshow from PMS
-            episodes = plx.GetAllPlexLeaves(tvShowId)
+            episodes = plx.GetAllPlexLeaves(view['id'])
             # Populate self.updatelist and self.allPlexElementsId
             self.GetUpdatelist(episodes,
                                itemType,
                                'add_updateEpisode',
                                None,
                                None)
-            self.logMsg("Analyzed all episodes of TV show with Plex Id %s" % tvShowId, 1)
+            self.logMsg("Analyzed all episodes of TV show with Plex Id %s"
+                        % tvShowId, 1)
 
         # Process self.updatelist
         self.GetAndProcessXMLs(itemType)
@@ -1049,6 +1075,10 @@ class LibrarySync(threading.Thread):
                 XMLtvshow = plx.GetPlexMetadata(tvShowId)
                 TVshow.refreshSeasonEntry(XMLtvshow, tvShowId)
         self.logMsg("Season info refreshed", 1)
+
+        # Update viewstate:
+        for view in views:
+            self.PlexUpdateWatched(view['id'], itemType)
 
         ##### PROCESS DELETES #####
         if self.compare:

@@ -1412,37 +1412,44 @@ class PlexAPI():
                     })
         return collections
 
-    def GetPlexSectionResults(self, viewId):
+    def GetPlexSectionResults(self, viewId, headerOptions={}):
         """
         Returns a list (raw JSON API dump) of all Plex items in the Plex
         section with key = viewId.
         """
         result = []
         url = "{server}/library/sections/%s/all" % viewId
-        jsondata = self.doUtils.downloadUrl(url)
+        jsondata = self.doUtils.downloadUrl(url, headerOptions=headerOptions)
         try:
             result = jsondata['_children']
-        except KeyError:
-            self.logMsg("Error retrieving all items for Plex section %s" % viewId, -1)
+        except TypeError:
+            # Received an XML
             pass
+        except:
+            self.logMsg("Error retrieving all items for Plex section %s"
+                        % viewId, -1)
+            return []
         return result
 
-    def GetAllPlexLeaves(self, key):
+    def GetAllPlexLeaves(self, viewId, headerOptions={}):
         """
         Returns a list (raw JSON API dump) of all Plex subitems for the key.
-        (e.g. /library/metadata/194853/allLeaves pointing to all episodes
-        of a TV show)
+        (e.g. /library/sections/2/allLeaves pointing to all TV shows)
 
         Input:
-            key             Key to a Plex item, e.g. 12345
+            viewId            Id of Plex library, e.g. '2'
         """
         result = []
-        url = "{server}/library/metadata/%s/allLeaves" % key
-        jsondata = self.doUtils.downloadUrl(url)
+        url = "{server}/library/sections/%s/allLeaves" % viewId
+        jsondata = self.doUtils.downloadUrl(url, headerOptions=headerOptions)
         try:
             result = jsondata['_children']
+        except TypeError:
+            # received an XMl
+            pass
         except KeyError:
-            self.logMsg("Error retrieving all children for Plex item %s" % key, -1)
+            self.logMsg("Error retrieving all children for Plex viewId %s"
+                        % viewId, -1)
             pass
         return result
 
@@ -1516,6 +1523,8 @@ class API():
         self.userId = utils.window('emby_currUser')
         self.server = utils.window('emby_server%s' % self.userId)
         self.token = utils.window('emby_accessToken%s' % self.userId)
+
+        self.jumpback = int(utils.settings('resumeJumpBack'))
 
     def logMsg(self, msg, lvl=1):
         className = self.__class__.__name__
@@ -1643,6 +1652,7 @@ class API():
             'Played': played,                      # True/False
             'LastPlayedDate': lastPlayedDate,
             'Resume': resume,                      # Resume time in seconds
+            'Runtime': runtime,
             'Rating': rating
         }
         """
@@ -1670,17 +1680,14 @@ class API():
         except KeyError:
             lastPlayedDate = None
 
-        try:
-            resume = float(item['viewOffset']) * 1.0/1000.0
-            resume = round(resume, 6)
-        except KeyError:
-            resume = 0.0
+        resume, runtime = self.getRuntime()
         return {
             'Favorite': favorite,
             'PlayCount': playcount,
             'Played': played,
             'LastPlayedDate': lastPlayedDate,
             'Resume': resume,
+            'Runtime': runtime,
             'Rating': rating
         }
 
@@ -1890,6 +1897,14 @@ class API():
             resume = float(item['viewOffset'])
         except KeyError:
             resume = 0.0
+
+        # Adjust the resume point by x seconds as chosen by the user in the
+        # settings
+        if resume:
+            # To avoid negative bookmark
+            if resume > self.jumpback:
+                resume = resume - self.jumpback
+
         runtime = runtime * time_factor
         resume = resume * time_factor
         resume = round(resume, 6)
@@ -2464,16 +2479,6 @@ class API():
             urlencode(xargs) + '&' + \
             urlencode(args)
         return url
-
-    def adjustResume(self, resume_seconds):
-        resume = 0
-        if resume_seconds:
-            resume = round(float(resume_seconds), 6)
-            jumpback = int(utils.settings('resumeJumpBack'))
-            if resume > jumpback:
-                # To avoid negative bookmark
-                resume = resume - jumpback
-        return resume
 
     def externalSubs(self, playurl):
         externalsubs = []
