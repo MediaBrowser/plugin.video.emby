@@ -15,14 +15,19 @@
 		<setting id="secondsslverify" subsetting="true" label="Verify Host SSL Certificate" type="bool" default="true" visible="eq(-1,true)" />
 		<setting id="secondsslcert" subsetting="true" label="Client SSL certificate" type="file" default="None" visible="eq(-2,true)" />
 		<!-- User settings -->
-		<setting id="myplexlogin" label="Log into plex.tv?" type="bool" default="true" />
-		<setting id="plexLogin" label="30024" type="text" default="" visible="eq(-1,true)" />
 		<setting type="sep" />
-		<setting id="deviceNameOpt" label="Use altername Device Name" type="bool" default="false" />
+		<setting id="deviceNameOpt" label="Change device name (friendly name)" type="bool" default="false" />
 		<setting id="deviceName" label="30016" type="text" visible="eq(-1,true)" default="Kodi" />
 		<setting label="[COLOR yellow]Reset login attempts[/COLOR]" type="action" visible="eq(1,) + !eq(-15,)" action="RunPlugin(plugin://plugin.video.plexkodiconnect?mode=resetauth)" option="close" />
 		<setting id="accessToken" type="text" visible="false" default="" />
 		<setting id="pathsub" type="bool" visible="false" default="false" />
+	</category>
+
+	<category label="plex.tv"><!-- plex.tv -->
+		<!-- Primary address -->
+		<setting id="myplexlogin" label="Log into plex.tv?" type="bool" default="true" />
+		<setting id="plexLogin" label="plex.tv username" type="text" default="" visible="eq(-1,true)" />
+		<setting id="plexhome" label="Plex home in use (don't change this)" type="bool" default="true" />
 	</category>
 
 	<category label="Sync Options">

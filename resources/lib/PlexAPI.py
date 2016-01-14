@@ -94,7 +94,6 @@ class PlexAPI():
         self.server = utils.window('emby_server%s' % self.userId)
         self.plexLogin = utils.settings('plexLogin')
         self.plexToken = utils.settings('plexToken')
-        self.machineIdentifier = utils.window('plex_machineIdentifier')
 
         self.doUtils = downloadutils.DownloadUtils()
 
@@ -102,24 +101,18 @@ class PlexAPI():
         className = self.__class__.__name__
         utils.logMsg("%s %s" % (self.addonName, className), msg, lvl)
 
-    def SetPlexLoginToSettings(self, plexLogin, plexToken):
-        """
-        Saves retrieved Plex username and Plex token to Kodi settings file.
-        """
-        utils.settings('plexLogin', value=plexLogin)
-        utils.settings('plexToken', value=plexToken)
-
     def GetPlexLoginFromSettings(self):
         """
-        Returns (myplexlogin, plexLogin, plexToken) from the Kodi file
-        settings. Returns empty strings if not found.
+        Returns empty strings if not found.
 
         myplexlogin is 'true' if user opted to log into plex.tv (the default)
+        plexhome is 'true' if plex home is used (the default)
         """
         plexLogin = utils.settings('plexLogin')
         plexToken = utils.settings('plexToken')
         myplexlogin = utils.settings('myplexlogin')
-        return (myplexlogin, plexLogin, plexToken)
+        plexhome = utils.settings('plexhome')
+        return (myplexlogin, plexhome, plexLogin, plexToken)
 
     def GetPlexLoginAndPassword(self):
         """
@@ -157,12 +150,15 @@ class PlexAPI():
                     plexPassword,
                     {'X-Plex-Client-Identifier': self.clientId}
                 )
-                self.logMsg("plex.tv username and token: %s, %s" % (plexLogin, authtoken), 1)
+                self.logMsg("plex.tv username and token: %s, %s"
+                            % (plexLogin, authtoken), 1)
                 if plexLogin == '':
                     dialog = xbmcgui.Dialog()
-                    dialog.ok(self.addonName, 'Could not sign in user %s' % plexLogin)
+                    dialog.ok(self.addonName, 'Could not sign in user %s'
+                              % plexLogin)
         # Write to Kodi settings file
-        self.SetPlexLoginToSettings(retrievedPlexLogin, authtoken)
+        utils.settings('plexLogin', value=retrievedPlexLogin)
+        utils.settings('plexToken', value=authtoken)
         return (retrievedPlexLogin, authtoken)
 
     def PlexTvSignInWithPin(self):
@@ -171,7 +167,7 @@ class PlexAPI():
 
         Writes username and token to Kodi settings file. Returns:
         {
-            'home':              '1' if Plex Home, '0' otherwise
+            'plexhome':          'true' if Plex Home, 'false' otherwise
             'username':
             'avatar':            URL to user avator
             'token':
@@ -207,16 +203,22 @@ class PlexAPI():
             return False
         # Parse xml
         home = xml.get('home', '0')
+        if home == '1':
+            home = 'true'
+        else:
+            home = 'false'
         username = xml.get('username', '')
         avatar = xml.get('thumb')
         token = xml.findtext('authentication-token')
         result = {
-            'home': home,
+            'plexhome': home,
             'username': username,
             'avatar': avatar,
             'token': token
         }
-        self.SetPlexLoginToSettings(username, token)
+        utils.settings('plexLogin', value=username)
+        utils.settings('plexToken', value=token)
+        utils.settings('plexhome', value=home)
         return result
 
     def CheckPlexTvSignin(self, identifier):
@@ -261,13 +263,17 @@ class PlexAPI():
         self.logMsg("plex.tv/pin: Identifier is: %s" % identifier, 2)
         return code, identifier
 
-    def TalkToPlexServer(self, url, talkType="GET", verify=True):
+    def TalkToPlexServer(self, url, talkType="GET", verify=True, token=None):
         """
         Start request with PMS with url.
 
-        Returns the parsed XML answer as an etree object. Or False.
+        Returns the parsed XML answer as an etree object.
+        False if the server could not be reached/timeout occured.
+        False if HTTP error code of >=400 was returned.
         """
         header = self.getXArgsDeviceInfo()
+        if token:
+            header['X-Plex-Token'] = token
         timeout = (3, 10)
         try:
             if talkType == "GET":
@@ -276,6 +282,7 @@ class PlexAPI():
                                       params=header,
                                       verify=verify,
                                       timeout=timeout)
+            # Only seems to be used for initial plex.tv sign in
             if talkType == "GET2":
                 answer = requests.get(url,
                                       headers=header,
@@ -315,46 +322,52 @@ class PlexAPI():
     def CheckConnection(self, url, token):
         """
         Checks connection to a Plex server, available at url. Can also be used
-        to check for connection with plex.tv!
+        to check for connection with plex.tv.
 
         Input:
             url         URL to Plex server (e.g. https://192.168.1.1:32400)
-            token       appropriate token to access server
+            token       appropriate token to access server. If None is passed,
+                        the current token is used
         Output:
-            200         if the connection was successfull
-            ''          empty string if connection failed for whatever reason
-            401         integer if token has been revoked
+            False       if server could not be reached or timeout occured
+            e.g. 200    if connection was successfull
+            int         or other HTML status codes as received from the server
         """
         # Add '/clients' to URL because then an authentication is necessary
         # If a plex.tv URL was passed, this does not work.
+        header = self.getXArgsDeviceInfo()
+        if token is not None:
+            header['X-Plex-Token'] = token
+        sslverify = utils.settings('sslverify')
+        if sslverify == "true":
+            sslverify = True
+        else:
+            sslverify = False
+        self.logMsg("Checking connection to server %s with header %s and "
+                    "sslverify=%s" % (url, header, sslverify), 1)
+        timeout = (3, 10)
         if 'plex.tv' in url:
             url = 'https://plex.tv/api/home/users'
         else:
             url = url + '/library/onDeck'
-        
-        if token:
-            self.logMsg("CheckConnection for %s with a token" % url, 0)
-            r = self.doUtils.downloadUrl(
-                url,
-                authenticate=False,
-                headerOptions={'X-Plex-Token': token,
-                               'Accept': 'application/json'})
-        else:
-            self.logMsg("CheckConnection for %s without a token" % url, 0)
-            r = self.doUtils.downloadUrl(
-                url,
-                authenticate=False,
-                headerOptions={'Accept': 'application/json'})
-        self.logMsg("Response was: %s" % r, 2)
-        # List of exception returns, when connection failed
-        exceptionlist = [
-            '',
-            401
-        ]
-        # To get rid of the stuff that was downloaded :-)
-        if r not in exceptionlist:
-            r = 200
-        return r
+        try:
+            answer = requests.get(url,
+                                  headers={},
+                                  params=header,
+                                  verify=sslverify,
+                                  timeout=timeout)
+        except requests.exceptions.ConnectionError as e:
+            self.logMsg("Server is offline or cannot be reached. Url: %s."
+                        "Header: %s. Error message: %s"
+                        % (url, header, e), -1)
+            return False
+        except requests.exceptions.ReadTimeout:
+            self.logMsg("Server timeout reached for Url %s with header %s"
+                        % (url, header), -1)
+            return False
+        result = answer.status_code
+        self.logMsg("Result was: %s" % result, 1)
+        return result
 
     def GetgPMSKeylist(self):
         """
@@ -593,7 +606,6 @@ class PlexAPI():
         result:
             self.g_PMS dictionary for ATV_udid
         """
-        # Plex: changed CSettings to new function getServerFromSettings()
         self.g_PMS[ATV_udid] = {}
 
         # install plex.tv "virtual" PMS - for myPlex, PlexHome
@@ -612,25 +624,27 @@ class PlexAPI():
             # local PMS
             # PlexGDM
             PMS_list = self.PlexGDM()
-            for uuid in PMS_list:
-                PMS = PMS_list[uuid]
+            for uuid_id in PMS_list:
+                PMS = PMS_list[uuid_id]
                 self.declarePMS(ATV_udid, PMS['uuid'], PMS['serverName'], 'http', PMS['ip'], PMS['port'])  # dflt: token='', local, owned
         else:
             # MyPlex servers
             self.getPMSListFromMyPlex(ATV_udid, authtoken)
         # all servers - update enableGzip
-        for uuid in self.g_PMS.get(ATV_udid, {}):
+        for uuid_id in self.g_PMS.get(ATV_udid, {}):
             # enable Gzip if not on same host, local&remote PMS depending
             # on setting
-            enableGzip = (not self.getPMSProperty(ATV_udid, uuid, 'ip') == IP_self) \
+            enableGzip = (not self.getPMSProperty(ATV_udid, uuid_id, 'ip') == IP_self) \
                 and (
-                    (self.getPMSProperty(ATV_udid, uuid, 'local') == '1'
+                    (self.getPMSProperty(ATV_udid, uuid_id, 'local') == '1'
                         and False)
                     or
-                    (self.getPMSProperty(ATV_udid, uuid, 'local') == '0'
+                    (self.getPMSProperty(ATV_udid, uuid_id, 'local') == '0'
                         and True) == 'True'
                 )
-            self.updatePMSProperty(ATV_udid, uuid, 'enableGzip', enableGzip)
+            self.updatePMSProperty(ATV_udid, uuid_id, 'enableGzip', enableGzip)
+        # Delete plex.tv again
+        del self.g_PMS[ATV_udid]['plex.tv']
 
     def getPMSListFromMyPlex(self, ATV_udid, authtoken):
         """
@@ -668,13 +682,14 @@ class PlexAPI():
                             uri = Con.get('uri')
                         # todo: handle unforeseen - like we get multiple suitable connections. how to choose one?
                     
-                    # check MyPlex data age - skip if >2 days
+                    # check MyPlex data age - skip if >1 days
                     infoAge = time.time() - int(Dir.get('lastSeenAt'))
                     oneDayInSec = 60*60*24
-                    if infoAge > 2*oneDayInSec:  # two days in seconds -> expiration in setting?
-                        dprint(__name__, 1, "Server {0} not updated for {1} days - skipping.", name, infoAge/oneDayInSec)
+                    if infoAge > 1*oneDayInSec:
+                        self.logMsg("Server %s not updated for 1 day - "
+                                    "skipping." % name, 0)
                         continue
-                    
+
                     # poke PMS, own thread for each poke
                     PMSInfo = { 'uuid': uuid, 'name': name, 'token': token, 'owned': owned, 'local': local, \
                             'protocol': protocol, 'ip': ip, 'port': port, 'uri': uri }
@@ -1041,13 +1056,14 @@ class PlexAPI():
         """
         plexLogin = self.plexLogin
         plexToken = self.plexToken
+        machineIdentifier = utils.settings('plex_machineIdentifier')
         self.logMsg("Getting user list.", 1)
         # Get list of Plex home users
         users = self.MyPlexListHomeUsers(plexToken)
         # Download users failed. Set username to Plex login
         if not users:
             utils.settings('username', value=plexLogin)
-            self.logMsg("User download failed. Set username = plexlogin", 1)
+            self.logMsg("User download failed. Set username = plexlogin", 0)
             return ('', '', '')
 
         userlist = []
@@ -1061,10 +1077,12 @@ class PlexAPI():
         while trials < 3:
             if usernumber > 1:
                 dialog = xbmcgui.Dialog()
-                user_select = dialog.select(self.addonName + ": Select User", userlist)
+                user_select = dialog.select(self.addonName + ": Select User",
+                                            userlist)
                 if user_select == -1:
                     self.logMsg("No user selected.", 1)
-                    xbmc.executebuiltin('Addon.OpenSettings(%s)' % self.addonId)
+                    xbmc.executebuiltin('Addon.OpenSettings(%s)'
+                                        % self.addonId)
                     return ('', '', '')
             # No Plex home in use - only 1 user
             else:
@@ -1084,10 +1102,11 @@ class PlexAPI():
             else:
                 pin = None
             # Switch to this Plex Home user, if applicable
-            username, usertoken = self.MyPlexSwitchHomeUser(
+            username, usertoken = self.PlexSwitchHomeUser(
                 user['id'],
                 pin,
-                plexToken
+                plexToken,
+                machineIdentifier
             )
             # Couldn't get user auth
             if not username:
@@ -1106,67 +1125,70 @@ class PlexAPI():
             return ('', '', '', '')
         return (username, user['id'], usertoken)
 
-    def MyPlexSwitchHomeUser(self, id, pin, authtoken, options={}):
+    def PlexSwitchHomeUser(self, userId, pin, token, machineId):
         """
         Retrieves Plex home token for a Plex home user.
 
         Input:
-            id              id of the Plex home user
+            userId          id of the Plex home user
             pin             PIN of the Plex home user, if protected
-            authtoken       token for plex.tv
-            options={}      optional additional header options
+            token           token for plex.tv
+            machineId       Plex PMS machineIdentifier
 
         Output:
-            username        Plex home username
-            authtoken       token for Plex home user
+            (username, token)
 
-        Returns empty strings if unsuccessful
+        Returns 2 empty strings if unsuccessful
         """
-        MyPlexHost = 'https://plex.tv'
-        MyPlexURL = MyPlexHost + '/api/home/users/' + id + '/switch'
-
+        url = 'https://plex.tv/api/home/users/' + userId + '/switch'
         if pin:
-            MyPlexURL += '?pin=' + pin
+            url += '?pin=' + pin
+        self.logMsg('Switching to user %s with url %s and machineId %s'
+                    % (userId, url, machineId), 0)
+        answer = self.TalkToPlexServer(url, talkType="POST", token=token)
+        if not answer:
+            self.logMsg('Error: plex.tv switch HomeUser change failed', -1)
+            return ('', '')
 
-        xargs = {}
-        xargs = self.getXArgsDeviceInfo(options)
-        xargs['X-Plex-Token'] = authtoken
+        username = answer.attrib.get('title', '')
+        token = answer.attrib.get('authenticationToken', '')
 
-        request = urllib2.Request(MyPlexURL, None, xargs)
-        request.get_method = lambda: 'POST'
+        # Get final token
+        url = 'https://plex.tv/pms/servers.xml'
+        answer = self.TalkToPlexServer(url, talkType="GET", token=token)
+        if not answer:
+            self.logMsg('Error: plex.tv switch HomeUser change failed', -1)
+            return ('', '')
 
-        response = urllib2.urlopen(request).read()
-
-        self.logMsg("====== MyPlexHomeUser XML ======", 1)
-        self.logMsg(response, 1)
-        self.logMsg("====== MyPlexHomeUser XML finished ======", 1)
-
-        # analyse response
-        XMLTree = etree.ElementTree(etree.fromstring(response))
-
-        el_user = XMLTree.getroot()  # root=<user>. double check?
-        username = el_user.attrib.get('title', '')
-        authtoken = el_user.attrib.get('authenticationToken', '')
-
-        if username and authtoken:
-            self.logMsg('MyPlex switch HomeUser change successfull', 0)
-        else:
-            self.logMsg('MyPlex switch HomeUser change failed', 0)
-        return (username, authtoken)
+        found = 0
+        for child in answer:
+            if child.attrib['machineIdentifier'] == machineId:
+                token = child.attrib['accessToken']
+                self.logMsg('Found a plex home user token', 1)
+                found += 1
+        if found == 0:
+            self.logMsg('Error: plex.tv switch HomeUser change failed', -1)
+            return ('', '')
+        self.logMsg('Plex.tv switch HomeUser change successfull', 0)
+        self.logMsg('username: %s, token: xxxx' % username, 0)
+        return (username, token)
 
     def MyPlexListHomeUsers(self, authtoken):
         """
-        Returns all myPlex home users for the currently signed in account.
+        Returns a list for myPlex home users for the current plex.tv account.
 
         Input:
             authtoken for plex.tv
-            options, optional
         Output:
             List of users, where one entry is of the form:
-            {
-                "id": userId, "admin": '1'/'0', "guest": '1'/'0',
-                "restricted": '1'/'0', "protected": '1'/'0',
-                "email": email, "title": title, "username": username,
+                "id": userId,
+                "admin": '1'/'0',
+                "guest": '1'/'0',
+                "restricted": '1'/'0',
+                "protected": '1'/'0',
+                "email": email,
+                "title": title,
+                "username": username,
                 "thumb": thumb_url
             }
         If any value is missing, None is returned instead (or "" from plex.tv)
@@ -1572,13 +1594,8 @@ class API():
         except KeyError:
             pass
         # Include a letter to prohibit saving as an int!
-        checksum = "K%s%s%s%s%s" % (
-            self.getKey(),
-            item['updatedAt'],
-            item.get('viewCount', ""),
-            item.get('lastViewedAt', ""),
-            item.get('viewOffset', "")
-        )
+        checksum = "K%s%s" % (self.getKey(),
+                              item.get('updatedAt', ''))
         return checksum
 
     def getKey(self):

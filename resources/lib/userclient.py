@@ -2,7 +2,6 @@
 
 ##################################################################################################
 
-import hashlib
 import threading
 
 import xbmc
@@ -10,7 +9,6 @@ import xbmcgui
 import xbmcaddon
 import xbmcvfs
 
-import artwork
 import utils
 import clientinfo
 import downloadutils
@@ -139,12 +137,7 @@ class UserClient(threading.Thread):
             return server
 
     def getServerId(self):
-        alternate = utils.settings('altip') == "true"
-        if alternate:
-            # Alternate host
-            serverId = utils.settings('secondserverid')
-        else:
-            serverId = utils.settings('serverid')
+        serverId = utils.settings('plex_machineIdentifier')
         return serverId
 
     def getToken(self):
@@ -280,17 +273,17 @@ class UserClient(threading.Thread):
         hasSettings = xbmcvfs.exists("%ssettings.xml" % addondir)
 
         username = self.getUsername()
+        userId = utils.settings('userId%s' % username)
         server = self.getServer()
-        machineIdentifier = self.getServerId()
 
         # If there's no settings.xml
         if not hasSettings:
-            self.logMsg("No settings.xml found.", 1)
+            self.logMsg("No settings.xml found.", 0)
             self.auth = False
             return
         # If no user information
         elif not server:
-            self.logMsg("Missing server information.", 1)
+            self.logMsg("Missing server information.", 0)
             self.auth = False
             return
         # If there's a token, load the user
@@ -302,44 +295,50 @@ class UserClient(threading.Thread):
             else:
                 self.logMsg("Current user: %s" % self.currUser, 1)
                 self.logMsg("Current userId: %s" % self.currUserId, 1)
-                self.logMsg("Current accessToken: %s" % self.currToken, 2)
+                self.logMsg("Current accessToken: xxxx", 1)
                 return
-        
-        ##### AUTHENTICATE USER #####
 
+        ##### AUTHENTICATE USER #####
         # Choose Plex user login
-        accessToken = ""
-        myplexlogin = utils.settings('myplexlogin')
-        if myplexlogin == "true":
+        myplexlogin, plexhome, plexLogin, dont_use_accessToken = \
+            plx.GetPlexLoginFromSettings()
+        self.logMsg("myplexlogin: %s, plexhome: %s, plexLogin: %s"
+                    % (myplexlogin, plexhome, plexLogin), 2)
+        if myplexlogin == "true" and plexhome == 'true':
             username, userId, accessToken = plx.ChoosePlexHomeUser()
         else:
-            # Try connecting without credentials
-            pass
+            self.logMsg("Trying to connect to PMS without a token", 0)
+            accessToken = ''
         # Check connection
         if plx.CheckConnection(server, accessToken) == 200:
             self.currUser = username
-            xbmcgui.Dialog().notification("Emby server", "Welcome %s!" % username)
+            if username:
+                xbmcgui.Dialog().notification(self.addonName, "Welcome %s"
+                                              % username)
+            else:
+                xbmcgui.Dialog().notification(self.addonName, "Welcome")
             utils.settings('accessToken', value=accessToken)
             utils.settings('userId%s' % username, value=userId)
             self.logMsg("User authenticated with an access token", 1)
             self.loadCurrUser(authenticated=True)
             utils.window('emby_serverStatus', clear=True)
+            # Write plex_machineIdentifier to window
+            plex_machineIdentifier = utils.settings('plex_machineIdentifier')
+            utils.windows('plex_machineIdentifier', plex_machineIdentifier)
             self.retry = 0
         else:
-            self.logMsg("User authentication failed.", 1)
+            self.logMsg("Error: user authentication failed.", -1)
             utils.settings('accessToken', value="")
             utils.settings('userId%s' % username, value="")
 
             # Give 3 attempts at entering password / selecting user
             if self.retry == 3:
-                self.logMsg("""Too many retries. You can retry by resetting
-                            attempts in the addon settings.""", 1)
                 utils.window('emby_serverStatus', value="Stop")
-                xbmcgui.Dialog().ok(
-                    heading=self.addonName,
-                    line1="Failed to authenticate too many times.",
-                    line2="You can retry by resetting attempts in the addon "
-                          "settings.")
+                xbmcgui.Dialog().ok(heading=self.addonName,
+                                    line1="Failed to authenticate too many"
+                                          "times.",
+                                    line2="You can retry by resetting attempts"
+                                          " in the addon settings.")
             self.retry += 1
             self.auth = False
 

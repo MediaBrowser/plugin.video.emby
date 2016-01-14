@@ -302,25 +302,12 @@ class LibrarySync(threading.Thread):
         # Save last sync time
         overlap = 2
 
-        url = "{server}/Emby.Kodi.SyncQueue/GetServerDateTime?format=json"
-        result = self.doUtils.downloadUrl(url)
-        try: # datetime fails when used more than once, TypeError
-            server_time = result['ServerDateTime']
-            server_time = datetime.strptime(server_time, "%Y-%m-%dT%H:%M:%SZ")
-        
-        except Exception as e:
-            # If the server plugin is not installed or an error happened.
-            self.logMsg("An exception occurred: %s" % e, 1)
-            time_now = datetime.utcnow()-timedelta(minutes=overlap)
-            lastSync = time_now.strftime('%Y-%m-%dT%H:%M:%SZ')
-            self.logMsg("New sync time: client time -%s min: %s" % (overlap, lastSync), 1)
-
-        else:
-            lastSync = (server_time - timedelta(minutes=overlap)).strftime('%Y-%m-%dT%H:%M:%SZ')
-            self.logMsg("New sync time: server time -%s min: %s" % (overlap, lastSync), 1)
-
-        finally:
-            utils.settings('LastIncrementalSync', value=lastSync)
+        self.logMsg("An exception occurred: %s" % e, 1)
+        time_now = datetime.utcnow()-timedelta(minutes=overlap)
+        lastSync = time_now.strftime('%Y-%m-%dT%H:%M:%SZ')
+        self.logMsg("New sync time: client time -%s min: %s"
+                    % (overlap, lastSync), 1)
+        utils.settings('LastIncrementalSync', value=lastSync)
 
     def shouldStop(self):
         # Checkpoint during the syncing process

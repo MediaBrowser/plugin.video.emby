@@ -2,9 +2,6 @@
 
 #################################################################################################
 
-import json
-import socket
-
 import xbmc
 import xbmcgui
 import xbmcaddon
@@ -20,7 +17,6 @@ import PlexAPI
 
 
 class InitialSetup():
-
 
     def __init__(self):
 
@@ -40,19 +36,20 @@ class InitialSetup():
         utils.logMsg("%s %s" % (self.addonName, className), msg, lvl)
 
     def setup(self):
-        # Check server, user, direct paths, music, direct stream if not direct path.
-        string = self.__language__
-        addonId = self.addonId
-
+        """
+        Initial setup. Run once upon startup.
+        Check server, user, direct paths, music, direct stream if not direct
+        path.
+        """
         ##### SERVER INFO #####
-        
         self.logMsg("Initial setup called.", 0)
         server = self.userClient.getServer()
         clientId = self.clientInfo.getDeviceId()
         serverid = self.userClient.getServerId()
-        myplexlogin, plexLogin, plexToken = self.plx.GetPlexLoginFromSettings()
+        myplexlogin, plexhome, plexLogin, plexToken = self.plx.GetPlexLoginFromSettings()
 
         # Optionally sign into plex.tv. Will not be called on very first run
+        # as plexToken will be ''
         if plexToken and myplexlogin == 'true':
             chk = self.plx.CheckConnection('plex.tv', plexToken)
             # HTTP Error: unauthorized
@@ -67,7 +64,7 @@ class InitialSetup():
                 if result:
                     plexLogin = result['username']
                     plexToken = result['token']
-            elif chk == "":
+            elif chk is False or chk >= 400:
                 dialog = xbmcgui.Dialog()
                 dialog.ok(
                     self.addonName,
@@ -77,10 +74,8 @@ class InitialSetup():
         # If a Plex server IP has already been set, return.
         if server:
             self.logMsg("Server is already set.", 0)
-            self.logMsg(
-                "url: %s, Plex machineIdentifier: %s"
-                % (server, serverid),
-                0)
+            self.logMsg("url: %s, Plex machineIdentifier: %s"
+                        % (server, serverid), 0)
             return
 
         # If not already retrieved myplex info, optionally let user sign in
@@ -98,13 +93,12 @@ class InitialSetup():
             else:
                 tokenDict = {}
             # Populate g_PMS variable with the found Plex servers
-            self.plx.discoverPMS(
-                clientId,
-                None,
-                xbmc.getIPAddress(),
-                tokenDict=tokenDict
-            )
-            self.logMsg("Result of setting g_PMS variable: %s" % self.plx.g_PMS, 2)
+            self.plx.discoverPMS(clientId,
+                                 None,
+                                 xbmc.getIPAddress(),
+                                 tokenDict=tokenDict)
+            self.logMsg("Result of setting g_PMS variable: %s"
+                        % self.plx.g_PMS, 2)
             isconnected = False
             serverlist = self.plx.returnServerList(clientId, self.plx.g_PMS)
             # Let user pick server from a list
@@ -122,7 +116,7 @@ class InitialSetup():
                     dialoglist.append(str(server['name']))
             dialog = xbmcgui.Dialog()
             resp = dialog.select(
-                'Plex server to connect to?',
+                'Choose your Plex server',
                 dialoglist)
             server = serverlist[resp]
             activeServer = server['machineIdentifier']
@@ -131,18 +125,19 @@ class InitialSetup():
             # Deactive SSL verification if the server is local!
             if server['local'] == '1':
                 self.addon.setSetting('sslverify', 'false')
-                self.logMsg("Setting SSL verify to false, because server is local", 1)
+                self.logMsg("Setting SSL verify to false, because server is "
+                            "local", 1)
             else:
                 self.addon.setSetting('sslverify', 'true')
-                self.logMsg("Setting SSL verify to true, because server is not local", 1)
+                self.logMsg("Setting SSL verify to true, because server is "
+                            "not local", 1)
             chk = self.plx.CheckConnection(url, server['accesstoken'])
             # Unauthorized
             if chk == 401:
-                dialog.ok(
-                    self.addonName,
-                    'Not yet authorized for Plex server %s' % str(server['name']),
-                    'Please sign in to plex.tv.'
-                )
+                dialog.ok(self.addonName,
+                          'Not yet authorized for Plex server %s'
+                          % str(server['name']),
+                          'Please sign in to plex.tv.')
                 result = self.plx.PlexTvSignInWithPin()
                 if result:
                     plexLogin = result['username']
@@ -151,13 +146,11 @@ class InitialSetup():
                     # Exit while loop if user cancels
                     break
             # Problems connecting
-            elif chk == '':
+            elif chk >= 400 or chk is False:
                 dialog = xbmcgui.Dialog()
-                resp = dialog.yesno(
-                    self.addonName,
-                    'Problems connecting to server.',
-                    'Pick another server?'
-                )
+                resp = dialog.yesno(self.addonName,
+                                    'Problems connecting to server.',
+                                    'Pick another server?')
                 # Exit while loop if user chooses No
                 if not resp:
                     break
@@ -167,16 +160,20 @@ class InitialSetup():
                 break
         if not isconnected:
             # Enter Kodi settings instead
-            xbmc.executebuiltin('Addon.OpenSettings(%s)' % addonId)
+            xbmc.executebuiltin('Addon.OpenSettings(%s)' % self.addonId)
             return
         # Write to Kodi settings file
-        self.addon.setSetting('serverid', activeServer)
+        self.addon.setSetting('plex_machineIdentifier', activeServer)
         self.addon.setSetting('ipaddress', server['ip'])
         self.addon.setSetting('port', server['port'])
         if server['scheme'] == 'https':
             self.addon.setSetting('https', 'true')
         else:
             self.addon.setSetting('https', 'false')
+        self.logMsg("Wrote to Kodi user settings file:", 0)
+        self.logMsg("PMS machineIdentifier: %s, ip: %s, port: %s, https: %s "
+                    % (activeServer, server['ip'], server['port'],
+                        server['scheme']), 0)
 
         ##### ADDITIONAL PROMPTS #####
         dialog = xbmcgui.Dialog()
