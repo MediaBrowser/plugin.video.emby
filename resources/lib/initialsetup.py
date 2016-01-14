@@ -46,7 +46,7 @@ class InitialSetup():
 
         ##### SERVER INFO #####
         
-        self.logMsg("Initial setup called.", 2)
+        self.logMsg("Initial setup called.", 0)
         server = self.userClient.getServer()
         clientId = self.clientInfo.getDeviceId()
         serverid = self.userClient.getServerId()
@@ -63,7 +63,10 @@ class InitialSetup():
                     'Could not login to plex.tv.',
                     'Please try signing in again.'
                 )
-                plexLogin, plexToken = self.plx.GetPlexLoginAndPassword()
+                result = self.plx.PlexTvSignInWithPin()
+                if result:
+                    plexLogin = result['username']
+                    plexToken = result['token']
             elif chk == "":
                 dialog = xbmcgui.Dialog()
                 dialog.ok(
@@ -73,18 +76,20 @@ class InitialSetup():
                 )
         # If a Plex server IP has already been set, return.
         if server:
-            self.logMsg("Server is already set.", 2)
+            self.logMsg("Server is already set.", 0)
             self.logMsg(
                 "url: %s, Plex machineIdentifier: %s"
                 % (server, serverid),
-                2
-            )
+                0)
             return
 
         # If not already retrieved myplex info, optionally let user sign in
         # to plex.tv.
         if not plexToken and myplexlogin == 'true':
-            plexLogin, plexToken = self.plx.GetPlexLoginAndPassword()
+            result = self.plx.PlexTvSignInWithPin()
+            if result:
+                plexLogin = result['username']
+                plexToken = result['token']
         # Get g_PMS list of servers (saved to plx.g_PMS)
         serverNum = 1
         while serverNum > 0:
@@ -110,10 +115,14 @@ class InitialSetup():
             if serverNum == 0:
                 break
             for server in serverlist:
-                dialoglist.append(str(server['name']) + ' (IP: ' + str(server['ip']) + ')')
+                if server['local'] == '1':
+                    # server is in the same network as client
+                    dialoglist.append(str(server['name']) + ' (nearby)')
+                else:
+                    dialoglist.append(str(server['name']))
             dialog = xbmcgui.Dialog()
             resp = dialog.select(
-                'What Plex server would you like to connect to?',
+                'Plex server to connect to?',
                 dialoglist)
             server = serverlist[resp]
             activeServer = server['machineIdentifier']
@@ -129,15 +138,17 @@ class InitialSetup():
             chk = self.plx.CheckConnection(url, server['accesstoken'])
             # Unauthorized
             if chk == 401:
-                dialog = xbmcgui.Dialog()
                 dialog.ok(
                     self.addonName,
                     'Not yet authorized for Plex server %s' % str(server['name']),
                     'Please sign in to plex.tv.'
                 )
-                plexLogin, plexToken = self.plx.GetPlexLoginAndPassword()
-                # Exit while loop if user cancels
-                if plexLogin == '':
+                result = self.plx.PlexTvSignInWithPin()
+                if result:
+                    plexLogin = result['username']
+                    plexToken = result['token']
+                else:
+                    # Exit while loop if user cancels
                     break
             # Problems connecting
             elif chk == '':

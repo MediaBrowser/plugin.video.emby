@@ -49,9 +49,11 @@ import gzip
 from threading import Thread
 import Queue
 import traceback
+import requests
 
 import re
 import json
+import uuid
 
 try:
     import xml.etree.cElementTree as etree
@@ -112,7 +114,7 @@ class PlexAPI():
         Returns (myplexlogin, plexLogin, plexToken) from the Kodi file
         settings. Returns empty strings if not found.
 
-        myplexlogin is 'true' if user opted to log into plex.tv
+        myplexlogin is 'true' if user opted to log into plex.tv (the default)
         """
         plexLogin = utils.settings('plexLogin')
         plexToken = utils.settings('plexToken')
@@ -162,6 +164,153 @@ class PlexAPI():
         # Write to Kodi settings file
         self.SetPlexLoginToSettings(retrievedPlexLogin, authtoken)
         return (retrievedPlexLogin, authtoken)
+
+    def PlexTvSignInWithPin(self):
+        """
+        Prompts user to sign in by visiting https://plex.tv/pin
+
+        Writes username and token to Kodi settings file. Returns:
+        {
+            'home':              '1' if Plex Home, '0' otherwise
+            'username':
+            'avatar':            URL to user avator
+            'token':
+        }
+        Returns False if authentication did not work.
+        """
+        code, identifier = self.GetPlexPin()
+        dialog = xbmcgui.Dialog()
+        if not code:
+            dialog.ok(self.addonName,
+                      'Problems trying to contact plex.tv',
+                      'Try again later')
+            return False
+        answer = dialog.yesno(self.addonName,
+                              'Go to https://plex.tv/pin and enter the code:',
+                              '',
+                              code)
+        if not answer:
+            return False
+        count = 0
+        # Wait for approx 30 seconds (since the PIN is not visible anymore :-))
+        while count < 6:
+            xml = self.CheckPlexTvSignin(identifier)
+            if xml:
+                break
+            # Wait for 5 seconds
+            xbmc.sleep(5000)
+            count += 1
+        if not xml:
+            dialog.ok(self.addonName,
+                      'Could not sign in to plex.tv',
+                      'Try again later')
+            return False
+        # Parse xml
+        home = xml.get('home', '0')
+        username = xml.get('username', '')
+        avatar = xml.get('thumb')
+        token = xml.findtext('authentication-token')
+        result = {
+            'home': home,
+            'username': username,
+            'avatar': avatar,
+            'token': token
+        }
+        self.SetPlexLoginToSettings(username, token)
+        return result
+
+    def CheckPlexTvSignin(self, identifier):
+        """
+        Checks with plex.tv whether user entered the correct PIN on plex.tv/pin
+
+        Returns False if not yet done so, or the XML response file as etree
+        """
+        # Try to get a temporary token
+        url = 'https://plex.tv/pins/%s.xml' % identifier
+        xml = self.TalkToPlexServer(url, talkType="GET2")
+        try:
+            temp_token = xml.find('auth_token').text
+        except:
+            self.logMsg("Error: Could not find token in plex.tv answer.", -1)
+            return False
+        self.logMsg("temp token from plex.tv is: %s" % temp_token, 2)
+        if not temp_token:
+            return False
+        # Use temp token to get the final plex credentials
+        url = 'https://plex.tv/users/account?X-Plex-Token=%s' % temp_token
+        xml = self.TalkToPlexServer(url, talkType="GET")
+        return xml
+
+    def GetPlexPin(self):
+        """
+        For plex.tv sign-in: returns 4-digit code and identifier as 2 str
+        """
+        url = 'https://plex.tv/pins.xml'
+        code = None
+        identifier = None
+        # Download
+        xml = self.TalkToPlexServer(url, talkType="POST")
+        if not xml:
+            return code, identifier
+        try:
+            code = xml.find('code').text
+            identifier = xml.find('id').text
+        except:
+            self.logMsg("Error, no PIN from plex.tv provided", -1)
+        self.logMsg("plex.tv/pin: Code is: %s" % code, 2)
+        self.logMsg("plex.tv/pin: Identifier is: %s" % identifier, 2)
+        return code, identifier
+
+    def TalkToPlexServer(self, url, talkType="GET", verify=True):
+        """
+        Start request with PMS with url.
+
+        Returns the parsed XML answer as an etree object. Or False.
+        """
+        header = self.getXArgsDeviceInfo()
+        timeout = (3, 10)
+        try:
+            if talkType == "GET":
+                answer = requests.get(url,
+                                      headers={},
+                                      params=header,
+                                      verify=verify,
+                                      timeout=timeout)
+            if talkType == "GET2":
+                answer = requests.get(url,
+                                      headers=header,
+                                      params={},
+                                      verify=verify,
+                                      timeout=timeout)
+            elif talkType == "POST":
+                answer = requests.post(url,
+                                       data='',
+                                       headers=header,
+                                       params={},
+                                       verify=verify,
+                                       timeout=timeout)
+        except requests.exceptions.ConnectionError as e:
+            self.logMsg("Server is offline or cannot be reached. Url: %s."
+                        "Header: %s. Error message: %s"
+                        % (url, header, e), -1)
+            return False
+        except requests.exceptions.ReadTimeout:
+            self.logMsg("Server timeout reached for Url %s with header %s"
+                        % (url, header), -1)
+            return False
+        # We received an answer from the server, but not as expected.
+        if answer.status_code >= 400:
+            self.logMsg("Error, answer from server %s was not as expected. "
+                        "HTTP status code: %s" % (url, answer.status_code), -1)
+            return False
+        xml = answer.text.encode('utf-8')
+        self.logMsg("xml received from server %s: %s" % (url, xml), 2)
+        try:
+            xml = etree.fromstring(xml)
+        except:
+            self.logMsg("Error parsing XML answer from %s" % url, -1)
+            return False
+        return xml
 
     def CheckConnection(self, url, token):
         """
@@ -635,24 +784,21 @@ class PlexAPI():
         """
         # Get addon infos
         xargs = {
-            'User-agent': self.addonName,
-            'X-Plex-Device': self.deviceName,
-            'X-Plex-Platform': self.platform,
+            'X-Plex-Language': 'en',
+            'X-Plex-Device': self.addonName,
             'X-Plex-Client-Platform': self.platform,
+            'X-Plex-Device-Name': self.deviceName,
+            'X-Plex-Platform': self.addonName,
+            'X-Plex-Platform-Version': 'no idea',
+            'X-Plex-Model': 'unknown',
             'X-Plex-Product': self.addonName,
             'X-Plex-Version': self.plexversion,
             'X-Plex-Client-Identifier': self.clientId,
-            'machineIdentifier': self.machineIdentifier,
-            'Connection': 'keep-alive',
             'X-Plex-Provides': 'player',
-            'Accept': 'application/xml'
         }
 
-        try:
+        if self.token:
             xargs['X-Plex-Token'] = self.token
-        except NameError:
-            # no token needed/saved yet
-            pass
         if JSON:
             xargs['Accept'] = 'application/json'
         if options:

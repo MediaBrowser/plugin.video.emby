@@ -69,30 +69,26 @@ class ClientInfo():
             return "Unknown"
 
     def getDeviceId(self):
+        """
+        Returns a unique Plex client id "X-Plex-Client-Identifier" from Kodi
+        settings file.
+        Also loads Kodi window property 'plex_client_Id'
 
-        clientId = utils.window('emby_deviceId')
+        If id does not exist, create one and save in Kodi settings file.
+        """
+        clientId = utils.window('plex_client_Id')
         if clientId:
             return clientId
 
-        addon_path = self.addon.getAddonInfo('path').decode('utf-8')
-        GUID_file = xbmc.translatePath(os.path.join(addon_path, "machine_guid")).decode('utf-8')
+        clientId = utils.settings('plex_client_Id')
+        if clientId:
+            utils.window('plex_client_Id', value=clientId)
+            self.logMsg("Unique device Id plex_client_Id loaded: %s" % clientId, 1)
+            return clientId
 
-        try:
-            GUID = open(GUID_file)
-        
-        except Exception as e: # machine_guid does not exists.
-            self.logMsg("Generating a new deviceid: %s" % e, 1)
-            clientId = str("%012X" % uuid4())
-            GUID = open(GUID_file, 'w')
-            GUID.write(clientId)
-
-        else: # machine_guid already exists. Get guid.
-            clientId = GUID.read()
-        
-        finally:
-            GUID.close()
-
-        self.logMsg("DeviceId loaded: %s" % clientId, 1)
-        utils.window('emby_deviceId', value=clientId)
-        
+        self.logMsg("Generating a new deviceid.", 0)
+        clientId = str(uuid4())
+        utils.settings('plex_client_Id', value=clientId)
+        utils.window('plex_client_Id', value=clientId)
+        self.logMsg("Unique device Id plex_client_Id loaded: %s" % clientId, 1)
         return clientId
