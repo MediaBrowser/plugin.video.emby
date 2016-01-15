@@ -124,7 +124,7 @@ class VideoNodes(object):
         }
         mediatypes = {
             # label according to nodetype per mediatype
-            'movies': 
+            'movie': 
                 {
                 '1': tagname,
                 '2': 30174,
@@ -136,7 +136,7 @@ class VideoNodes(object):
                 '11': 30230
                 },
 
-            'tvshows': 
+            'show': 
                 {
                 '1': tagname,
                 '2': 30170,

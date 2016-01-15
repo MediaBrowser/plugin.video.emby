@@ -49,6 +49,10 @@ class ThreadedGetMetadata(threading.Thread):
         self.addonName = clientinfo.ClientInfo().getAddonName()
         threading.Thread.__init__(self)
 
+    def logMsg(self, msg, lvl=1):
+        className = self.__class__.__name__
+        utils.logMsg("%s %s" % (self.addonName, className), msg, lvl)
+
     def run_internal(self):
         plx = PlexAPI.PlexAPI()
         global getMetadataCount
@@ -111,6 +115,10 @@ class ThreadedProcessMetadata(threading.Thread):
         self._shouldstop = threading.Event()
         self.addonName = clientinfo.ClientInfo().getAddonName()
         threading.Thread.__init__(self)
+
+    def logMsg(self, msg, lvl=1):
+        className = self.__class__.__name__
+        utils.logMsg("%s %s" % (self.addonName, className), msg, lvl)
 
     def run_internal(self):
         # Constructs the method name, e.g. itemtypes.Movies
@@ -386,12 +394,12 @@ class LibrarySync(threading.Thread):
         self.maintainViews()
 
         # Sync video library
-        process = {
+        # process = {
 
-            'movies': self.movies,
-            'musicvideos': self.musicvideos,
-            'tvshows': self.tvshows
-        }
+        #     'movies': self.movies,
+        #     'musicvideos': self.musicvideos,
+        #     'tvshows': self.tvshows
+        # }
 
         process = {
             'movies': self.PlexMovies,

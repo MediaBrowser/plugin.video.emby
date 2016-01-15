@@ -1258,6 +1258,7 @@ class TVShows(Items):
                 kodicursor.execute(query, (title, plot, rating, writer, premieredate,
                     runtime, director, season, episode, title, airsBeforeSeason,
                     airsBeforeEpisode, seasonid, episodeid))
+                self.logMsg("Checkpoint 1", 2)
             else:
                 query = ' '.join((
                     
@@ -1271,8 +1272,10 @@ class TVShows(Items):
                     airsBeforeEpisode, episodeid))
 
             # Update the checksum in emby table
+            self.logMsg("Checkpoint 2", 2)
             emby_db.updateReference(itemid, checksum)
             # Update parentid reference
+            self.logMsg("Checkpoint 3", 2)
             emby_db.updateParentId(itemid, seasonid)
         
         ##### OR ADD THE EPISODE #####
@@ -1324,7 +1327,7 @@ class TVShows(Items):
             "WHERE idPath = ?"
         ))
         kodicursor.execute(query, (path, None, None, 1, pathid))
-
+        self.logMsg("Checkpoint 4", 2)
         # Update the file
         query = ' '.join((
 
@@ -1333,18 +1336,24 @@ class TVShows(Items):
             "WHERE idFile = ?"
         ))
         kodicursor.execute(query, (pathid, filename, dateadded, fileid))
-
+        self.logMsg("Checkpoint 5", 2)
         # Process cast
         people = API.getPeopleList()
         kodi_db.addPeople(episodeid, people, "episode")
         # Process artwork
+        self.logMsg("Checkpoint 6", 2)
         artworks = API.getAllArtwork()
+        self.logMsg("Checkpoint 7", 2)
         artwork.addOrUpdateArt(artworks['Primary'], episodeid, "episode", "thumb", kodicursor)
+        self.logMsg("Checkpoint 8", 2)
         # Process stream details
         streams = API.getMediaStreams()
+        self.logMsg("Checkpoint 9", 2)
         kodi_db.addStreams(fileid, streams, runtime)
+        self.logMsg("Checkpoint 7", 2)
         # Process playstates
         kodi_db.addPlaystate(fileid, resume, runtime, playcount, dateplayed)
+        self.logMsg("Checkpoint 8", 2)
         if not self.directpath and resume:
             # Create additional entry for widgets. This is only required for plugin/episode.
             temppathid = kodi_db.getPath("plugin://plugin.video.plexkodiconnect.tvshows/")
@@ -1355,6 +1364,7 @@ class TVShows(Items):
                 "SET idPath = ?, strFilename = ?, dateAdded = ?",
                 "WHERE idFile = ?"
             ))
+            self.logMsg("Checkpoint 9", 2)
             kodicursor.execute(query, (temppathid, filename, dateadded, tempfileid))
             kodi_db.addPlaystate(tempfileid, resume, runtime, playcount, dateplayed)
 

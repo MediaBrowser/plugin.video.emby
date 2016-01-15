@@ -2160,10 +2160,10 @@ class API():
 
         Output: each track contains a dictionaries
         {
-            'video': videotrack-list,       'videocodec', 'height', 'width',
-                                            'aspectratio', 'video3DFormat'
-            'audio': audiotrack-list,       'audiocodec', 'channels',
-                                            'audiolanguage'
+            'video': videotrack-list,       'codec', 'height', 'width',
+                                            'aspect', 'video3DFormat'
+            'audio': audiotrack-list,       'codec', 'channels',
+                                            'language'
             'subtitle': list of subtitle languages (or "Unknown")
         }
         """
@@ -2186,16 +2186,16 @@ class API():
                 type = int(mediaStream['streamType'])
                 if type == 1:  # Video streams
                     videotrack = {}
-                    videotrack['videocodec'] = mediaStream['codec'].lower()
-                    if "msmpeg4" in videotrack['videocodec']:
-                        videotrack['videocodec'] = "divx"
-                    elif "mpeg4" in videotrack['videocodec']:
+                    videotrack['codec'] = mediaStream['codec'].lower()
+                    if "msmpeg4" in videotrack['codec']:
+                        videotrack['codec'] = "divx"
+                    elif "mpeg4" in videotrack['codec']:
                         # if "simple profile" in profile or profile == "":
-                        #    videotrack['videocodec'] = "xvid"
+                        #    videotrack['codec'] = "xvid"
                         pass
-                    elif "h264" in videotrack['videocodec']:
+                    elif "h264" in videotrack['codec']:
                         if container in ("mp4", "mov", "m4v"):
-                            videotrack['videocodec'] = "avc1"
+                            videotrack['codec'] = "avc1"
                     videotrack['height'] = mediaStream.get('height')
                     videotrack['width'] = mediaStream.get('width')
                     # TODO: 3d Movies?!?
@@ -2205,22 +2205,22 @@ class API():
                     except KeyError:
                         if not aspectratio:
                             aspectratio = round(float(videotrack['width'] / videotrack['height']), 6)
-                    videotrack['aspectratio'] = aspectratio
+                    videotrack['aspect'] = aspectratio
                     # TODO: Video 3d format
                     videotrack['video3DFormat'] = None
                     videotracks.append(videotrack)
 
                 elif type == 2:  # Audio streams
                     audiotrack = {}
-                    audiotrack['audiocodec'] = mediaStream['codec'].lower()
+                    audiotrack['codec'] = mediaStream['codec'].lower()
                     profile = mediaStream['codecID'].lower()
-                    if "dca" in audiotrack['audiocodec'] and "dts-hd ma" in profile:
-                        audiotrack['audiocodec'] = "dtshd_ma"
+                    if "dca" in audiotrack['codec'] and "dts-hd ma" in profile:
+                        audiotrack['codec'] = "dtshd_ma"
                     audiotrack['channels'] = mediaStream.get('channels')
                     try:
-                        audiotrack['audiolanguage'] = mediaStream.get('language')
+                        audiotrack['language'] = mediaStream.get('language')
                     except KeyError:
-                        audiotrack['audiolanguage'] = 'unknown'
+                        audiotrack['language'] = 'unknown'
                     audiotracks.append(audiotrack)
 
                 elif type == 3:  # Subtitle streams
