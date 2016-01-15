@@ -27,7 +27,7 @@ class WebSocket_Client(threading.Thread):
     _shared_state = {}
 
     client = None
-    stopClient = False
+    stopWebsocket = False
 
 
     def __init__(self):
@@ -303,8 +303,7 @@ class WebSocket_Client(threading.Thread):
         while not monitor.abortRequested():
 
             self.client.run_forever()
-
-            if self.stopClient:
+            if self.stopWebsocket:
                 break
 
             if monitor.waitForAbort(5):
@@ -315,6 +314,6 @@ class WebSocket_Client(threading.Thread):
 
     def stopClient(self):
 
-        self.stopClient = True
+        self.stopWebsocket = True
         self.client.close()
         self.logMsg("Stopping thread.")

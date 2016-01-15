@@ -18,7 +18,7 @@ import utils
 import embydb_functions as embydb
 import kodidb_functions as kodidb
 import read_embyserver as embyserver
-
+import musicutils as musicutils
 import PlexAPI
 import sys
 
@@ -83,15 +83,13 @@ class Items(object):
 
             'Movie': Movies,
             'BoxSet': Movies,
-            'MusicVideo': MusicVideos,
             'Series': TVShows,
             'Season': TVShows,
             'Episode': TVShows,
             'MusicAlbum': Music,
             'MusicArtist': Music,
             'AlbumArtist': Music,
-            'Audio': Music,
-            'Video': HomeVideos
+            'Audio': Music
         }
 
         total = 0
@@ -191,13 +189,6 @@ class Items(object):
                     'userdata': items_process.updateUserdata,
                     'remove': items_process.remove
                 }
-            elif itemtype == "Video":
-                actions = {
-                    'added': items_process.added,
-                    'update': items_process.add_update,
-                    'userdata': items_process.updateUserdata,
-                    'remove': items_process.remove
-                }
             else:
                 self.logMsg("Unsupported itemtype: %s." % itemtype, 1)
                 actions = {}
@@ -226,11 +217,6 @@ class Items(object):
                             count += 1
 
                         actions[process](item)
-                    else:
-                        if itemtype == "Movie" and process == "update":
-                            # Refresh boxsets
-                            boxsets = self.emby.getBoxset()
-                            items_process.added_boxset(boxsets['Items'], pdialog)
 
 
             if musicconn is not None:
@@ -264,9 +250,6 @@ class Movies(Items):
             self.add_update(movie)
             if not pdialog and self.contentmsg:
                 self.contentPop(title)
-        # Refresh boxsets
-        boxsets = self.emby.getBoxset()
-        self.added_boxset(boxsets['Items'], pdialog)
 
     def added_boxset(self, items, pdialog):
 
@@ -546,256 +529,6 @@ class Movies(Items):
 
         self.logMsg("Deleted %s %s from kodi database" % (mediatype, itemid), 1)
 
-
-class HomeVideos(Items):
-
-    def __init__(self, embycursor, kodicursor):
-        Items.__init__(self, embycursor, kodicursor)
-
-    def added(self, items, pdialog):
-
-        total = len(items)
-        count = 0
-        for hvideo in items:
-
-            title = hvideo['Name']
-            if pdialog:
-                percentage = int((float(count) / float(total))*100)
-                pdialog.update(percentage, message=title)
-                count += 1
-            self.add_update(hvideo)
-            if not pdialog and self.contentmsg:
-                self.contentPop(title)
-
-
-    def add_update(self, item, viewtag=None, viewid=None):
-        # Process single movie
-        kodicursor = self.kodicursor
-        emby_db = self.emby_db
-        kodi_db = self.kodi_db
-        artwork = self.artwork
-        API = api.API(item)
-
-        # If the item already exist in the local Kodi DB we'll perform a full item update
-        # If the item doesn't exist, we'll add it to the database
-        update_item = True
-        itemid = item['Id']
-        emby_dbitem = emby_db.getItem_byId(itemid)
-        try:
-            hmovieid = emby_dbitem[0]
-            fileid = emby_dbitem[1]
-            pathid = emby_dbitem[2]
-            self.logMsg("hmovieid: %s fileid: %s pathid: %s" % (hmovieid, fileid, pathid), 1)
-        
-        except TypeError:
-            update_item = False
-            self.logMsg("hmovieid: %s not found." % itemid, 2)
-            # movieid
-            kodicursor.execute("select coalesce(max(idMovie),0) from movie")
-            hmovieid = kodicursor.fetchone()[0] + 1
-
-        if not viewtag or not viewid:
-            # Get view tag from emby
-            viewtag, viewid, mediatype = self.emby.getView_embyId(itemid)
-            self.logMsg("View tag found: %s" % viewtag, 2)
-
-        # fileId information
-        checksum = API.getChecksum()
-        dateadded = API.getDateCreated()
-        userdata = API.getUserData()
-        playcount = userdata['PlayCount']
-        dateplayed = userdata['LastPlayedDate']
-
-        # item details
-        people = API.getPeople()
-        title = item['Name']
-        year = item.get('ProductionYear')
-        sorttitle = item['SortName']
-        runtime = API.getRuntime()
-        genre = "HomeVideos"
-
-        
-        ##### GET THE FILE AND PATH #####
-        playurl = API.getFilePath()
-
-        if "\\" in playurl:
-            # Local path
-            filename = playurl.rsplit("\\", 1)[1]
-        else: # Network share
-            filename = playurl.rsplit("/", 1)[1]
-
-        if self.directpath:
-            # Direct paths is set the Kodi way
-            if utils.window('emby_pathverified') != "true" and not xbmcvfs.exists(playurl):
-                # Validate the path is correct with user intervention
-                utils.window('emby_directPath', clear=True)
-                resp = xbmcgui.Dialog().yesno(
-                                        heading="Can't validate path",
-                                        line1=(
-                                            "Kodi can't locate file: %s. Verify the path. "
-                                            "You may to verify your network credentials in the "
-                                            "add-on settings or use the emby path substitution "
-                                            "to format your path correctly. Stop syncing?"
-                                            % playurl))
-                if resp:
-                    utils.window('emby_shouldStop', value="true")
-                    return False
-            
-            path = playurl.replace(filename, "")
-            utils.window('emby_pathverified', value="true")
-        else:
-            # Set plugin path and media flags using real filename
-            path = "plugin://plugin.video.plexkodiconnect.movies/"
-            params = {
-
-                'filename': filename.encode('utf-8'),
-                'id': itemid,
-                'dbid': hmovieid,
-                'mode': "play"
-            }
-            filename = "%s?%s" % (path, urllib.urlencode(params))
-
-
-        ##### UPDATE THE MOVIE #####
-        if update_item:
-            self.logMsg("UPDATE homemovie itemid: %s - Title: %s" % (itemid, title), 1)
-
-            # Update the movie entry
-            query = ' '.join((
-                
-                "UPDATE movie",
-                "SET c00 = ?, c07 = ?, c10 = ?, c11 = ?, c14 = ?, c16 = ?",
-                "WHERE idMovie = ?"
-            ))
-            kodicursor.execute(query, (title, year, sorttitle, runtime, genre, title, hmovieid))
-
-            # Update the checksum in emby table
-            emby_db.updateReference(itemid, checksum)
-        
-        ##### OR ADD THE MOVIE #####
-        else:
-            self.logMsg("ADD homemovie itemid: %s - Title: %s" % (itemid, title), 1)
-            
-            # Add path
-            pathid = kodi_db.addPath(path)
-            # Add the file
-            fileid = kodi_db.addFile(filename, pathid)
-            
-            # Create the movie entry
-            query = (
-                '''
-                INSERT INTO movie(
-                    idMovie, idFile, c00, c07, c10, c11, c14, c16)
-
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                '''
-            )
-            kodicursor.execute(query, (hmovieid, fileid, title, year, sorttitle, runtime,
-                genre, title))
-
-            # Create the reference in emby table
-            emby_db.addReference(itemid, hmovieid, "Video", "movie", fileid, pathid,
-                None, checksum, viewid)
-
-        # Update the path
-        query = ' '.join((
-
-            "UPDATE path",
-            "SET strPath = ?, strContent = ?, strScraper = ?, noUpdate = ?",
-            "WHERE idPath = ?"
-        ))
-        kodicursor.execute(query, (path, "movies", "metadata.local", 1, pathid))
-
-        # Update the file
-        query = ' '.join((
-
-            "UPDATE files",
-            "SET idPath = ?, strFilename = ?, dateAdded = ?",
-            "WHERE idFile = ?"
-        ))
-        kodicursor.execute(query, (pathid, filename, dateadded, fileid))
-        
-
-        # Process artwork
-        artwork.addArtwork(artwork.getAllArtwork(item), hmovieid, "movie", kodicursor)
-        # Process stream details
-        streams = API.getMediaStreams()
-        kodi_db.addStreams(fileid, streams, runtime)
-        # Process tags: view, emby tags
-        tags = [viewtag]
-        tags.extend(item['Tags'])
-        if userdata['Favorite']:
-            tags.append("Favorite homemovies")
-        kodi_db.addTags(hmovieid, tags, "movie")
-        # Process playstates
-        resume = API.adjustResume(userdata['Resume'])
-        total = round(float(runtime), 6)
-        kodi_db.addPlaystate(fileid, resume, total, playcount, dateplayed)
-
-    def updateUserdata(self, item):
-        # This updates: Favorite, LastPlayedDate, Playcount, PlaybackPositionTicks
-        # Poster with progress bar
-        emby_db = self.emby_db
-        kodi_db = self.kodi_db
-        API = api.API(item)
-        
-        # Get emby information
-        itemid = item['Id']
-        checksum = API.getChecksum()
-        userdata = API.getUserData()
-        runtime = API.getRuntime()
-
-        # Get Kodi information
-        emby_dbitem = emby_db.getItem_byId(itemid)
-        try:
-            movieid = emby_dbitem[0]
-            fileid = emby_dbitem[1]
-            self.logMsg(
-                "Update playstate for homemovie: %s fileid: %s"
-                % (item['Name'], fileid), 1)
-        except TypeError:
-            return
-
-        # Process favorite tags
-        if userdata['Favorite']:
-            kodi_db.addTag(movieid, "Favorite homemovies", "movie")
-        else:
-            kodi_db.removeTag(movieid, "Favorite homemovies", "movie")
-
-        # Process playstates
-        playcount = userdata['PlayCount']
-        dateplayed = userdata['LastPlayedDate']
-        resume = API.adjustResume(userdata['Resume'])
-        total = round(float(runtime), 6)
-
-        kodi_db.addPlaystate(fileid, resume, total, playcount, dateplayed)
-        emby_db.updateReference(itemid, checksum)
-
-    def remove(self, itemid):
-        # Remove movieid, fileid, emby reference
-        emby_db = self.emby_db
-        kodicursor = self.kodicursor
-        artwork = self.artwork
-
-        emby_dbitem = emby_db.getItem_byId(itemid)
-        try:
-            hmovieid = emby_dbitem[0]
-            fileid = emby_dbitem[1]
-            self.logMsg("Removing hmovieid: %s fileid: %s" % (hmovieid, fileid), 1)
-        except TypeError:
-            return
-
-        # Remove artwork
-        artwork.deleteArtwork(hmovieid, "movie", kodicursor)
-
-        # Delete kodi movie and file
-        kodicursor.execute("DELETE FROM movie WHERE idMovie = ?", (hmovieid,))
-        kodicursor.execute("DELETE FROM files WHERE idFile = ?", (fileid,))
-
-        # Remove the emby reference
-        emby_db.removeItem(itemid)
-
-        self.logMsg("Deleted homemovie %s from kodi database" % itemid, 1)
 
 class MusicVideos(Items):
 
@@ -1817,7 +1550,6 @@ class Music(Items):
             if not pdialog and self.contentmsg:
                 self.contentPop(title)
 
-
     def add_updateArtist(self, item, artisttype="MusicArtist"):
         # Process a single artist
         kodiversion = self.kodiversion
@@ -1931,7 +1663,7 @@ class Music(Items):
         genres = item.get('Genres')
         genre = " / ".join(genres)
         bio = API.getOverview()
-        rating = userdata['Rating']
+        rating = userdata['UserRating']
         artists = item['AlbumArtists']
         if not artists:
             artists = item['ArtistItems']
@@ -2099,11 +1831,18 @@ class Music(Items):
         else:
             track = disc*2**16 + tracknumber
         year = item.get('ProductionYear')
-        bio = API.getOverview()
         duration = API.getRuntime()
-        rating = userdata['Rating']
-
-
+        
+        #the server only returns the rating based on like/love and not the actual rating from the song
+        rating = userdata['UserRating']
+        
+        #the server doesn't support comment on songs so this will always be empty
+        comment = API.getOverview()
+        
+        #if enabled, try to get the rating and comment value from the file itself
+        if not self.directstream:
+            rating, comment = self.getSongRatingAndComment(itemid, rating, API)
+        
         ##### GET THE FILE AND PATH #####
         if self.directstream:
             path = "%s/emby/Audio/%s/" % (self.server, itemid)
@@ -2150,11 +1889,11 @@ class Music(Items):
                 "UPDATE song",
                 "SET idAlbum = ?, strArtists = ?, strGenres = ?, strTitle = ?, iTrack = ?,",
                     "iDuration = ?, iYear = ?, strFilename = ?, iTimesPlayed = ?, lastplayed = ?,",
-                    "rating = ?",
+                    "rating = ?, comment = ?",
                 "WHERE idSong = ?"
             ))
             kodicursor.execute(query, (albumid, artists, genre, title, track, duration, year,
-                filename, playcount, dateplayed, rating, songid))
+                filename, playcount, dateplayed, rating, comment, songid))
 
             # Update the checksum in emby table
             emby_db.updateReference(itemid, checksum)
@@ -2321,7 +2060,7 @@ class Music(Items):
         checksum = API.getChecksum()
         userdata = API.getUserData()
         runtime = API.getRuntime()
-        rating = userdata['Rating']
+        rating = userdata['UserRating']
 
         # Get Kodi information
         emby_dbitem = emby_db.getItem_byId(itemid)
@@ -2336,6 +2075,7 @@ class Music(Items):
             # Process playstates
             playcount = userdata['PlayCount']
             dateplayed = userdata['LastPlayedDate']
+            rating, comment = self.getSongRatingAndComment(itemid, rating, API)
             
             query = "UPDATE song SET iTimesPlayed = ?, lastplayed = ?, rating = ? WHERE idSong = ?"
             kodicursor.execute(query, (playcount, dateplayed, rating, kodiid))
@@ -2347,6 +2087,86 @@ class Music(Items):
 
         emby_db.updateReference(itemid, checksum)
 
+    def getSongRatingAndComment(self, embyid, emby_rating, API):
+        
+        kodicursor = self.kodicursor
+
+        previous_values = None
+        filename = API.getFilePath()
+        rating = 0
+        emby_rating = int(round(emby_rating, 0))
+        file_rating, comment = musicutils.getSongTags(filename)
+        
+
+        emby_dbitem = self.emby_db.getItem_byId(embyid)
+        try:
+            kodiid = emby_dbitem[0]
+        except TypeError:
+            # Item is not in database.
+            currentvalue = None
+        else:
+            query = "SELECT rating FROM song WHERE idSong = ?"
+            kodicursor.execute(query, (kodiid,))
+            currentvalue = int(round(float(kodicursor.fetchone()[0]),0))
+        
+        # Only proceed if we actually have a rating from the file
+        if file_rating is None and currentvalue:
+            return (currentvalue, comment)
+        elif file_rating is None and currentvalue is None:
+            return (emby_rating, comment)
+        
+        file_rating = int(round(file_rating,0))
+        self.logMsg("getSongRatingAndComment --> embyid: %s - emby_rating: %s - file_rating: %s - current rating in kodidb: %s" %(embyid, emby_rating, file_rating, currentvalue))
+        
+        updateFileRating = False
+        updateEmbyRating = False
+
+        if currentvalue != None:
+            # we need to translate the emby values...
+            if emby_rating == 1 and currentvalue == 2:
+                emby_rating = 2
+            if emby_rating == 3 and currentvalue == 4:
+                emby_rating = 4
+                
+            if (emby_rating == file_rating) and (file_rating != currentvalue):
+                #the rating has been updated from kodi itself, update change to both emby ands file
+                rating = currentvalue
+                updateFileRating = True
+                updateEmbyRating = True
+            elif (emby_rating != currentvalue) and (file_rating == currentvalue):
+                #emby rating changed - update the file
+                rating = emby_rating
+                updateFileRating = True  
+            elif (file_rating != currentvalue) and (emby_rating == currentvalue):
+                #file rating was updated, sync change to emby
+                rating = file_rating
+                updateEmbyRating = True
+            elif (emby_rating != currentvalue) and (file_rating != currentvalue):
+                #both ratings have changed (corner case) - the highest rating wins...
+                if emby_rating > file_rating:
+                    rating = emby_rating
+                    updateFileRating = True
+                else:
+                    rating = file_rating
+                    updateEmbyRating = True
+            else:
+                #nothing has changed, just return the current value
+                rating = currentvalue
+        else:      
+            # no rating yet in DB, always prefer file details...
+            rating = file_rating
+            updateEmbyRating = True
+            
+        if updateFileRating:
+            musicutils.updateRatingToFile(rating, filename)
+            
+        if updateEmbyRating:
+            # sync details to emby server. Translation needed between ID3 rating and emby likes/favourites:
+            like, favourite, deletelike = musicutils.getEmbyRatingFromKodiRating(rating)
+            API.updateUserRating(embyid, like, favourite, deletelike)
+        
+        return (rating, comment)
+        
     def remove(self, itemid):
         # Remove kodiid, fileid, pathid, emby reference
         emby_db = self.emby_db

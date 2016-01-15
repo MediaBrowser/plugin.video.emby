@@ -155,7 +155,7 @@ class PlayUtils():
         videoCodec = self.API.getVideoCodec()
         codec = videoCodec['videocodec']
         resolution = videoCodec['resolution']
-        if ((utils.settings('transcodeHEVC') == "true") and
+        if ((utils.settings('transcodeH265') == "true") and
                 ("hevc" in codec) and
                 (resolution == "1080")):
             # Avoid HEVC(H265) 1080p

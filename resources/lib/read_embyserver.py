@@ -80,8 +80,9 @@ class Read_EmbyServer():
                         "Path,Genres,SortName,Studios,Writer,ProductionYear,Taglines,"
                         "CommunityRating,OfficialRating,CumulativeRunTimeTicks,"
                         "Metascore,AirTime,DateCreated,MediaStreams,People,Overview,"
-                        "CriticRating,CriticRatingSummary,Etag,ProductionLocations,"
-                        "Tags,ProviderIds,RemoteTrailers,SpecialEpisodeNumbers"
+                        "CriticRating,CriticRatingSummary,Etag,ShortOverview,ProductionLocations,"
+                        "Tags,ProviderIds,ParentId,RemoteTrailers,SpecialEpisodeNumbers,"
+                        "MediaSources"
                 )
             }
             result = self.doUtils.downloadUrl(url, parameters=params)
@@ -124,7 +125,30 @@ class Read_EmbyServer():
         cursor_emby.close()
 
         return [viewName, viewId, mediatype]
+    
+    def getFilteredSection(self, parentid, itemtype=None, sortby="SortName", recursive=True, limit=None, sortorder="Ascending", filter=""):
+        doUtils = self.doUtils
+        url = "{server}/emby/Users/{UserId}/Items?format=json"
+        params = {
 
+            'ParentId': parentid,
+            'IncludeItemTypes': itemtype,
+            'CollapseBoxSetItems': False,
+            'IsVirtualUnaired': False,
+            'IsMissing': False,
+            'Recursive': recursive,
+            'Limit': limit,
+            'SortBy': sortby,
+            'SortOrder': sortorder,
+            'Filters': filter,
+            'Fields': ( "Path,Genres,SortName,Studios,Writer,ProductionYear,Taglines,"
+            "CommunityRating,OfficialRating,CumulativeRunTimeTicks,"
+            "Metascore,AirTime,DateCreated,MediaStreams,People,Overview,"
+            "CriticRating,CriticRatingSummary,Etag,ShortOverview,ProductionLocations,"
+            "Tags,ProviderIds,ParentId,RemoteTrailers,SpecialEpisodeNumbers")
+        }
+        return doUtils.downloadUrl(url, parameters=params)
+    
     def getSection(self, parentid, itemtype=None, sortby="SortName", basic=False):
 
         doUtils = self.doUtils
@@ -182,12 +206,19 @@ class Read_EmbyServer():
                         "CommunityRating,OfficialRating,CumulativeRunTimeTicks,"
                         "Metascore,AirTime,DateCreated,MediaStreams,People,Overview,"
                         "CriticRating,CriticRatingSummary,Etag,ShortOverview,ProductionLocations,"
-                        "Tags,ProviderIds,ParentId,RemoteTrailers,SpecialEpisodeNumbers"
+                        "Tags,ProviderIds,ParentId,RemoteTrailers,SpecialEpisodeNumbers,"
+                        "MediaSources"
                     )
                 result = doUtils.downloadUrl(url, parameters=params)
-                items['Items'].extend(result['Items'])
-
-                index += jump
+                try:
+                    items['Items'].extend(result['Items'])
+                except TypeError:
+                    # Connection timed out, reduce the number
+                    jump -= 50
+                    self.limitindex = jump
+                    self.logMsg("New throttle for items requested: %s" % jump, 1)
+                else:
+                    index += jump
 
         return items
 
@@ -366,9 +397,15 @@ class Read_EmbyServer():
                     )
                 }
                 result = doUtils.downloadUrl(url, parameters=params)
-                items['Items'].extend(result['Items'])
-
-                index += jump
+                try:
+                    items['Items'].extend(result['Items'])
+                except TypeError:
+                    # Connection timed out, reduce the number
+                    jump -= 50
+                    self.limitindex = jump
+                    self.logMsg("New throttle for items requested: %s" % jump, 1)
+                else:
+                    index += jump
 
         return items
 

@@ -242,6 +242,11 @@
     <string id="30249">Enable server connection message on start-up</string>
     <string id="30250">Use local paths instead of addon redirect for playback</string>
     
+    <string id="30251">Recently added Home Videos</string>
+    <string id="30252">Recently added Photos</string>
+    <string id="30253">Favourite Home Videos</string>
+    <string id="30254">Favourite Photos</string>
+    <string id="30255">Favourite Albums</string>
     
 	<!-- Default views -->
     <string id="30300">Active</string>              
@@ -258,8 +263,16 @@
     <string id="30311">Music Tracks</string>
     <string id="30312">Channels</string>  
 	
-	
-
+	<!-- contextmenu -->
+    <string id="30401">Emby options</string>
+    <string id="30402">Clear like for this item</string>
+    <string id="30403">Like this item</string>
+    <string id="30404">Dislike this item</string>
+    <string id="30405">Add to Emby favorites</string>
+    <string id="30406">Remove from Emby favorites</string>
+    <string id="30407">Set custom song rating</string>
+    <string id="30408">Emby addon settings</string>
+    <string id="30409">Delete item from the server</string>
     
 
 </strings>

@@ -56,17 +56,6 @@ class VideoNodes(object):
 
         kodiversion = self.kodiversion
 
-        # mediatype conversion
-        # LEFT: Plex wording, right: Kodi wording
-        mediaTypeConversion = {
-            'movie': 'movies',
-            'show': 'tvshows'
-        }
-        mediatype = mediaTypeConversion[mediatype]
-        if mediatype == "homevideos":
-            # Treat homevideos as movies
-            mediatype = "movies"
-
         cleantagname = utils.normalize_nodes(tagname.encode('utf-8'))
         if viewtype == "mixed":
             dirname = "%s - %s" % (cleantagname, mediatype)
@@ -85,7 +74,7 @@ class VideoNodes(object):
             xbmcvfs.exists(path)
 
         # Create the node directory
-        if not xbmcvfs.exists(nodepath):
+        if not xbmcvfs.exists(nodepath) and not mediatype=="photos":
             # We need to copy over the default items
             xbmcvfs.mkdirs(nodepath)
         else:
@@ -106,14 +95,18 @@ class VideoNodes(object):
             if utils.window('Emby.nodes.%s.index' % i) == path:
                 return
 
+        if mediatype=="photos":
+            path = "plugin://plugin.video.emby/?id=%s&mode=browsecontent&type=photos&filter=index" % tagname
+            
         utils.window('Emby.nodes.%s.index' % indexnumber, value=path)
+        
         # Root
-        root = self.commonRoot(order=0, label=tagname, tagname=tagname, roottype=0)
-        try:
-            utils.indent(root)
-        except: pass
-        etree.ElementTree(root).write(nodeXML)
-
+        if not mediatype=="photos":
+            root = self.commonRoot(order=0, label=tagname, tagname=tagname, roottype=0)
+            try:
+                utils.indent(root)
+            except: pass
+            etree.ElementTree(root).write(nodeXML)
 
         nodetypes = {
 
@@ -127,11 +120,12 @@ class VideoNodes(object):
             '8': "sets",
             '9': "genres",
             '10': "random",
-            '11': "recommended"
+            '11': "recommended",
         }
         mediatypes = {
             # label according to nodetype per mediatype
-            'movies': {
+            'movies': 
+                {
                 '1': tagname,
                 '2': 30174,
                 '4': 30177,
@@ -139,9 +133,11 @@ class VideoNodes(object):
                 '8': 20434,
                 '9': 135,
                 '10': 30229,
-                '11': 30230},
+                '11': 30230
+                },
 
-            'tvshows': {
+            'tvshows': 
+                {
                 '1': tagname,
                 '2': 30170,
                 '3': 30175,
@@ -150,7 +146,23 @@ class VideoNodes(object):
                 '7': 30179,
                 '9': 135,
                 '10': 30229,
-                '11': 30230},
+                '11': 30230
+                },
+                
+            'homevideos': 
+                {
+                '1': tagname,
+                '2': 30251,
+                '11': 30253
+                },
+                
+            'photos': 
+                {
+                '1': tagname,
+                '2': 30252,
+                '8': 30255,
+                '11': 30254
+                },
         }
 
         nodes = mediatypes[mediatype]
@@ -168,7 +180,13 @@ class VideoNodes(object):
                 label = stringid
 
             # Set window properties
-            if nodetype == "nextepisodes":
+            if (mediatype == "homevideos" or mediatype == "photos") and nodetype == "all":
+                # Custom query
+                path = "plugin://plugin.video.plexkodiconnect/?id=%s&mode=browsecontent&type=%s" %(tagname,mediatype)
+            elif (mediatype == "homevideos" or mediatype == "photos"):
+                # Custom query
+                path = "plugin://plugin.video.plexkodiconnect/?id=%s&mode=browsecontent&type=%s&filter=%s" %(tagname,mediatype,nodetype)
+            elif nodetype == "nextepisodes":
                 # Custom query
                 path = "plugin://plugin.video.plexkodiconnect/?id=%s&mode=nextup&limit=25" % tagname
             elif kodiversion == 14 and nodetype == "recentepisodes":
@@ -179,7 +197,11 @@ class VideoNodes(object):
                 path = "plugin://plugin.video.plexkodiconnect/?id=%s&mode=inprogressepisodes&limit=25"% tagname
             else:
                 path = "library://video/plex%s/%s_%s.xml" % (dirname, cleantagname, nodetype)
-            windowpath = "ActivateWindow(Video,%s,return)" % path
+            
+            if mediatype == "photos":
+                windowpath = "ActivateWindow(Pictures,%s,return)" % path
+            else:
+                windowpath = "ActivateWindow(Video,%s,return)" % path
             
             if nodetype == "all":
 
@@ -199,14 +221,17 @@ class VideoNodes(object):
                 utils.window('%s.path' % embynode, value=windowpath)
                 utils.window('%s.content' % embynode, value=path)
 
+            if mediatype=="photos":
+                #for photos we do not create a node in videos but we do want the window props to be created
+                #todo: add our photos nodes to kodi picture sources somehow
+                continue
+            
             if xbmcvfs.exists(nodeXML):
                 # Don't recreate xml if already exists
                 continue
 
-
             # Create the root
-            if nodetype == "nextepisodes" or (kodiversion == 14 and
-                                        nodetype in ('recentepisodes', 'inprogressepisodes')):
+            if nodetype == "nextepisodes" or (kodiversion == 14 and nodetype in ('recentepisodes', 'inprogressepisodes')) or mediatype=="homevideos":
                 # Folder type with plugin path
                 root = self.commonRoot(order=node, label=label, tagname=tagname, roottype=2)
                 etree.SubElement(root, 'path').text = path

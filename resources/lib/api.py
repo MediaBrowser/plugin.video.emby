@@ -25,11 +25,12 @@ class API():
     def getUserData(self):
         # Default
         favorite = False
+        likes = None
         playcount = None
         played = False
         lastPlayedDate = None
         resume = 0
-        rating = 0
+        userrating = 0
 
         try:
             userdata = self.item['UserData']
@@ -40,15 +41,15 @@ class API():
         else:
             favorite = userdata['IsFavorite']
             likes = userdata.get('Likes')
-            # Rating for album and songs
+            # Userrating is based on likes and favourite
             if favorite:
-                rating = 5
+                userrating = 5
             elif likes:
-                rating = 3
+                userrating = 3
             elif likes == False:
-                rating = 1
+                userrating = 0
             else:
-                rating = 0
+                userrating = 1
 
             lastPlayedDate = userdata.get('LastPlayedDate')
             if lastPlayedDate:
@@ -71,11 +72,12 @@ class API():
         return {
 
             'Favorite': favorite,
+            'Likes': likes,
             'PlayCount': playcount,
             'Played': played,
             'LastPlayedDate': lastPlayedDate,
             'Resume': resume,
-            'Rating': rating
+            'UserRating': userrating
         }
 
     def getPeople(self):
@@ -120,6 +122,7 @@ class API():
             media_streams = item['MediaSources'][0]['MediaStreams']
 
         except KeyError:
+            if not item.get("MediaStreams"): return None
             media_streams = item['MediaStreams']
 
         for media_stream in media_streams:
@@ -132,11 +135,11 @@ class API():
                 # Height, Width, Codec, AspectRatio, AspectFloat, 3D
                 track = {
 
-                    'videocodec': codec,
+                    'codec': codec,
                     'height': media_stream.get('Height'),
                     'width': media_stream.get('Width'),
                     'video3DFormat': item.get('Video3DFormat'),
-                    'aspectratio': 1.85
+                    'aspect': 1.85
                 }
 
                 try:
@@ -146,47 +149,50 @@ class API():
 
                 # Sort codec vs container/profile
                 if "msmpeg4" in codec:
-                    track['videocodec'] = "divx"
+                    track['codec'] = "divx"
                 elif "mpeg4" in codec:
                     if "simple profile" in profile or not profile:
-                        track['videocodec'] = "xvid"
+                        track['codec'] = "xvid"
                 elif "h264" in codec:
                     if container in ("mp4", "mov", "m4v"):
-                        track['videocodec'] = "avc1"
+                        track['codec'] = "avc1"
 
                 # Aspect ratio
                 if item.get('AspectRatio'):
                     # Metadata AR
-                    aspectratio = item['AspectRatio']
+                    aspect = item['AspectRatio']
                 else: # File AR
-                    aspectratio = media_stream.get('AspectRatio', "0")
+                    aspect = media_stream.get('AspectRatio', "0")
 
                 try:
-                    aspectwidth, aspectheight = aspectratio.split(':')
-                    track['aspectratio'] = round(float(aspectwidth) / float(aspectheight), 6)
+                    aspectwidth, aspectheight = aspect.split(':')
+                    track['aspect'] = round(float(aspectwidth) / float(aspectheight), 6)
                 
                 except (ValueError, ZeroDivisionError):
                     width = track.get('width')
                     height = track.get('height')
 
                     if width and height:
-                        track['aspectratio'] = round(float(width / height), 6)
+                        track['aspect'] = round(float(width / height), 6)
                     else:
-                        track['aspectratio'] = 1.85
-
+                        track['aspect'] = 1.85
+                
+                if item.get("RunTimeTicks"):
+                    track['duration'] = item.get("RunTimeTicks") / 10000000.0
+                
                 videotracks.append(track)
 
             elif stream_type == "Audio":
                 # Codec, Channels, language
                 track = {
                     
-                    'audiocodec': codec,
+                    'codec': codec,
                     'channels': media_stream.get('Channels'),
-                    'audiolanguage': media_stream.get('Language')
+                    'language': media_stream.get('Language')
                 }
 
                 if "dca" in codec and "dts-hd ma" in profile:
-                    track['audiocodec'] = "dtshd_ma"
+                    track['codec'] = "dtshd_ma"
 
                 audiotracks.append(track)
 
@@ -259,11 +265,12 @@ class API():
         item = self.item
         userdata = item['UserData']
 
-        checksum = "%s%s%s%s%s%s" % (
+        checksum = "%s%s%s%s%s%s%s" % (
             
             item['Etag'], 
             userdata['Played'],
             userdata['IsFavorite'],
+            userdata.get('Likes',''),
             userdata['PlaybackPositionTicks'],
             userdata.get('UnplayedItemCount', ""),
             userdata.get('LastPlayedDate', "")
@@ -378,3 +385,27 @@ class API():
                 filepath = filepath.replace("/", "\\")
 
         return filepath
+    
+    def updateUserRating(self, itemid, like=None, favourite=None, deletelike=False):
+        #updates the userrating to Emby
+        import downloadutils
+        doUtils = downloadutils.DownloadUtils()
+        
+        if favourite != None and favourite==True:
+            url = "{server}/emby/Users/{UserId}/FavoriteItems/%s?format=json" % itemid
+            doUtils.downloadUrl(url, type="POST")
+        elif favourite != None and favourite==False:
+            url = "{server}/emby/Users/{UserId}/FavoriteItems/%s?format=json" % itemid
+            doUtils.downloadUrl(url, type="DELETE")
+            
+        if not deletelike and like != None and like==True:
+            url = "{server}/emby/Users/{UserId}/Items/%s/Rating?Likes=true&format=json" % itemid
+            doUtils.downloadUrl(url, type="POST")
+        if not deletelike and like != None and like==False:
+            url = "{server}/emby/Users/{UserId}/Items/%s/Rating?Likes=false&format=json" % itemid
+            doUtils.downloadUrl(url, type="POST")
+        if deletelike:
+            url = "{server}/emby/Users/{UserId}/Items/%s/Rating?format=json" % itemid
+            doUtils.downloadUrl(url, type="DELETE")
+
+        self.logMsg( "updateUserRating on embyserver for embyId: %s - like: %s - favourite: %s - deletelike: %s" %(itemid, like, favourite, deletelike))
