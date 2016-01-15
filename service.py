@@ -103,7 +103,7 @@ class Service():
 
         # Initialize important threads
         user = userclient.UserClient()
-        ws = wsc.WebSocket_Client()
+        # ws = wsc.WebSocket_Client()
         library = librarysync.LibrarySync()
         kplayer = player.Player()
         # Sync and progress report
@@ -184,9 +184,9 @@ class Service():
                             self.kodimonitor_running = kodimonitor.KodiMonitor()
 
                         # Start the Websocket Client
-                        if not self.websocket_running:
-                            self.websocket_running = True
-                            ws.start()
+                        # if not self.websocket_running:
+                        #     self.websocket_running = True
+                        #     ws.start()
                         # Start the syncing thread
                         if not self.library_running:
                             self.library_running = True

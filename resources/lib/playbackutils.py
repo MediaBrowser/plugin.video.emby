@@ -90,7 +90,7 @@ class PlaybackUtils():
         ############### RESUME POINT ################
         
         userdata = API.getUserData()
-        seektime = API.adjustResume(userdata['Resume'])
+        seektime = userdata['Resume']
 
         # We need to ensure we add the intro and additional parts only once.
         # Otherwise we get a loop.
