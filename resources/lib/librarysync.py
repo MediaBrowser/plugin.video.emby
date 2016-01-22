@@ -250,7 +250,7 @@ class LibrarySync(threading.Thread):
 
         if utils.settings('dbSyncIndicator') == "true" or forced:
             dialog = xbmcgui.DialogProgressBG()
-            dialog.create("Emby for Kodi", title)
+            dialog.create(self.addonName, title)
             self.logMsg("Show progress dialog: %s" % title, 2)
 
         return dialog
@@ -429,7 +429,7 @@ class LibrarySync(threading.Thread):
 
         utils.window('emby_dbScan', clear=True)
         xbmcgui.Dialog().notification(
-                        heading="Emby for Kodi",
+                        heading=self.addonName,
                         message="%s completed in: %s" % 
                                 (message, str(elapsedtotal).split('.')[0]),
                         icon="special://home/addons/plugin.video.plexkodiconnect/icon.png",
@@ -1001,170 +1001,6 @@ class LibrarySync(threading.Thread):
                     if kodiTvElement not in self.allPlexElementsId:
                         TVShow.remove(kodiTvElement)
         self.logMsg("%s sync is finished." % itemType, 1)
-        return True
-
-    def tvshows(self, embycursor, kodicursor, pdialog, compare=False):
-        # Get shows from emby
-        emby = self.emby
-        emby_db = embydb.Embydb_Functions(embycursor)
-        tvshows = itemtypes.TVShows(embycursor, kodicursor)
-
-        views = emby_db.getView_byType('tvshows')
-        views += emby_db.getView_byType('mixed')
-        self.logMsg("Media folders: %s" % views, 1)
-
-        if compare:
-            # Pull the list of movies and boxsets in Kodi
-            try:
-                all_koditvshows = dict(emby_db.getChecksum('Series'))
-            except ValueError:
-                all_koditvshows = {}
-
-            try:
-                all_kodiepisodes = dict(emby_db.getChecksum('Episode'))
-            except ValueError:
-                all_kodiepisodes = {}
-
-            all_embytvshowsIds = set()
-            all_embyepisodesIds = set()
-            updatelist = []
-
-
-        for view in views:
-            
-            if self.shouldStop():
-                return False
-
-            # Get items per view
-            viewId = view['id']
-            viewName = view['name']
-
-            if pdialog:
-                pdialog.update(
-                        heading="Emby for Kodi",
-                        message="Gathering tvshows from view: %s..." % viewName)
-
-            if compare:
-                # Manual sync
-                if pdialog:
-                    pdialog.update(
-                            heading="Emby for Kodi",
-                            message="Comparing tvshows from view: %s..." % viewName)
-
-                all_embytvshows = emby.getShows(viewId, basic=True, dialog=pdialog)
-                for embytvshow in all_embytvshows['Items']:
-
-                    if self.shouldStop():
-                        return False
-
-                    API = api.API(embytvshow)
-                    itemid = embytvshow['Id']
-                    all_embytvshowsIds.add(itemid)
-
-                    
-                    if all_koditvshows.get(itemid) != API.getChecksum():
-                        # Only update if movie is not in Kodi or checksum is different
-                        updatelist.append(itemid)
-
-                self.logMsg("TVShows to update for %s: %s" % (viewName, updatelist), 1)
-                embytvshows = emby.getFullItems(updatelist)
-                total = len(updatelist)
-                del updatelist[:]
-            else:
-                all_embytvshows = emby.getShows(viewId, dialog=pdialog)
-                total = all_embytvshows['TotalRecordCount']
-                embytvshows = all_embytvshows['Items']
-
-
-            if pdialog:
-                pdialog.update(heading="Processing %s / %s items" % (viewName, total))
-
-            count = 0
-            for embytvshow in embytvshows:
-                # Process individual show
-                if self.shouldStop():
-                    return False
-                
-                itemid = embytvshow['Id']
-                title = embytvshow['Name']
-                if pdialog:
-                    percentage = int((float(count) / float(total))*100)
-                    pdialog.update(percentage, message=title)
-                    count += 1
-                tvshows.add_update(embytvshow, viewName, viewId)
-
-                if not compare:
-                    # Process episodes
-                    all_episodes = emby.getEpisodesbyShow(itemid)
-                    for episode in all_episodes['Items']:
-
-                        # Process individual show
-                        if self.shouldStop():
-                            return False
-
-                        episodetitle = episode['Name']
-                        if pdialog:
-                            pdialog.update(percentage, message="%s - %s" % (title, episodetitle))
-                        tvshows.add_updateEpisode(episode)
-            else:
-                if compare:
-                    # Get all episodes in view
-                    if pdialog:
-                        pdialog.update(
-                                heading="Emby for Kodi",
-                                message="Comparing episodes from view: %s..." % viewName)
-
-                    all_embyepisodes = emby.getEpisodes(viewId, basic=True, dialog=pdialog)
-                    for embyepisode in all_embyepisodes['Items']:
-
-                        if self.shouldStop():
-                            return False
-
-                        API = api.API(embyepisode)
-                        itemid = embyepisode['Id']
-                        all_embyepisodesIds.add(itemid)
-
-                        if all_kodiepisodes.get(itemid) != API.getChecksum():
-                            # Only update if movie is not in Kodi or checksum is different
-                            updatelist.append(itemid)
-
-                    self.logMsg("Episodes to update for %s: %s" % (viewName, updatelist), 1)
-                    embyepisodes = emby.getFullItems(updatelist)
-                    total = len(updatelist)
-                    del updatelist[:]
-
-                    count = 0
-                    for episode in embyepisodes:
-
-                        # Process individual episode
-                        if self.shouldStop():
-                            return False                          
-
-                        title = episode['SeriesName']
-                        episodetitle = episode['Name']
-                        if pdialog:
-                            percentage = int((float(count) / float(total))*100)
-                            pdialog.update(percentage, message="%s - %s" % (title, episodetitle))
-                            count += 1
-                        tvshows.add_updateEpisode(episode)
-        else:
-            self.logMsg("TVShows finished.", 2)
-        
-        ##### PROCESS DELETES #####
-        if compare:
-            # Manual sync, process deletes
-            for koditvshow in all_koditvshows:
-                if koditvshow not in all_embytvshowsIds:
-                    tvshows.remove(koditvshow)
-            else:
-                self.logMsg("TVShows compare finished.", 1)
-
-            for kodiepisode in all_kodiepisodes:
-                if kodiepisode not in all_embyepisodesIds:
-                    tvshows.remove(kodiepisode)
-            else:
-                self.logMsg("Episodes compare finished.", 1)
-
         return True
 
     def music(self, embycursor, kodicursor, pdialog, compare=False):
