@@ -2,6 +2,7 @@ import uuid
 import xbmc
 import xbmcaddon
 from xml.dom.minidom import parse
+import utils
 
 settings = {}
 try:
@@ -21,13 +22,8 @@ def getGUI(name):
 addon = xbmcaddon.Addon()
 plexbmc = xbmcaddon.Addon('plugin.video.plexkodiconnect')
 
-if plexbmc.getSetting('logLevel') == '2' or \
-        plexbmc.getSetting('logLevel') == '1':
-    settings['debug'] = 'true'
-    settings['gdm_debug'] = 'true'
-else:
-    settings['debug'] = 'false'
-    settings['gdm_debug'] = 'false'
+settings['debug'] = utils.settings('companionDebugging')
+settings['gdm_debug'] = utils.settings('companionGDMDebugging')
 
 settings['client_name'] = plexbmc.getSetting('deviceName')
 

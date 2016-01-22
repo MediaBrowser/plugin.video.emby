@@ -27,7 +27,7 @@
 		<!-- Primary address -->
 		<setting id="myplexlogin" label="Log into plex.tv?" type="bool" default="true" />
 		<setting id="plexLogin" label="plex.tv username" type="text" default="" visible="eq(-1,true)" />
-		<setting id="plexhome" label="Plex home in use (don't change this)" type="bool" default="true" />
+		<setting id="plexhome" label="Plex home in use" type="bool" default="true" visible="false" />
 	</category>
 
 	<category label="Sync Options">
@@ -84,5 +84,7 @@
 	<category label="Plex Companion">
 		<setting id="plexCompanion" label="Enable Plex Companion" type="bool" default="true" />
 		<setting id="companionPort" label="Plex Companion Port" type="number" default="3005" option="int" visible="eq(-1,true)"/>
+		<setting id="companionDebugging" label="Plex Companion Debugging" type="bool" default="false" visible="eq(-2,true)"/>
+		<setting id="companionGDMDebugging" label="Plex Companion GDM Debugging" type="bool" default="false" visible="eq(-3,true)"/>
 	</category>
 </settings>
