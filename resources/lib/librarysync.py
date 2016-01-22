@@ -395,7 +395,10 @@ class LibrarySync(threading.Thread):
                 elapsedTime = datetime.now() - startTime
                 self.logMsg(
                     "SyncDatabase (finished %s in: %s)"
-                    % (itemtype, str(elapsedTime).split('.')[0]), 0)
+                    % (itemtype, str(elapsedTime).split('.')[0]), 1)
+        else:
+            # Close the Kodi cursor
+            kodicursor.close()
 
         # # sync music
         # if music_enabled:
@@ -424,8 +427,6 @@ class LibrarySync(threading.Thread):
         utils.settings('SyncInstallRunDone', value="true")
         utils.settings("dbCreatedWithVersion", self.clientInfo.getVersion())
         self.saveLastSync()
-        # tell any widgets to refresh because the content has changed
-        utils.window('widgetreload', value=datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         xbmc.executebuiltin('UpdateLibrary(video)')
         elapsedtotal = datetime.now() - starttotal
 
@@ -485,12 +486,12 @@ class LibrarySync(threading.Thread):
                     self.logMsg("Creating viewid: %s in Emby database." % folderid, 1)
                     tagid = kodi_db.createTag(foldername)
                     # Create playlist for the video library
-                    if mediatype != "music":
+                    if mediatype in ['movies', 'tvshows', 'musicvideos']:
                         utils.playlistXSP(mediatype, foldername, viewtype)
-                        # Create the video node
-                        if mediatype != "musicvideos":
-                            vnodes.viewNode(totalnodes, foldername, mediatype, viewtype)
-                            totalnodes += 1
+                    # Create the video node
+                    if mediatype in ['movies', 'tvshows', 'musicvideos', 'homevideos']:
+                        vnodes.viewNode(totalnodes, foldername, mediatype, viewtype)
+                        totalnodes += 1
                     # Add view to emby database
                     emby_db.addView(folderid, foldername, viewtype, tagid)
 
@@ -525,7 +526,8 @@ class LibrarySync(threading.Thread):
                                         current_viewtype,
                                         delete=True)
                             # Added new playlist
-                            utils.playlistXSP(mediatype, foldername, viewtype)
+                            if mediatype in ['movies', 'tvshows', 'musicvideos']:
+                                utils.playlistXSP(mediatype, foldername, viewtype)
                             # Add new video node
                             if mediatype != "musicvideos":
                                 vnodes.viewNode(totalnodes, foldername, mediatype, viewtype)
@@ -540,7 +542,8 @@ class LibrarySync(threading.Thread):
                     else:
                         if mediatype != "music":
                             # Validate the playlist exists or recreate it
-                            utils.playlistXSP(mediatype, foldername, viewtype)
+                            if mediatype in ['movies', 'tvshows', 'musicvideos']:
+                                utils.playlistXSP(mediatype, foldername, viewtype)
                             # Create the video node if not already exists
                             if mediatype != "musicvideos":
                                 vnodes.viewNode(totalnodes, foldername, mediatype, viewtype)
@@ -835,7 +838,7 @@ class LibrarySync(threading.Thread):
                             heading="Emby for Kodi",
                             message="Comparing musicvideos from view: %s..." % viewName)
 
-                all_embymvideos = emby.getMusicVideos(viewId, basic=True)
+                all_embymvideos = emby.getMusicVideos(viewId, basic=True, dialog=pdialog)
                 for embymvideo in all_embymvideos['Items']:
 
                     if self.shouldStop():
@@ -856,7 +859,7 @@ class LibrarySync(threading.Thread):
                 del updatelist[:]
             else:
                 # Initial or repair sync
-                all_embymvideos = emby.getMusicVideos(viewId)
+                all_embymvideos = emby.getMusicVideos(viewId, dialog=pdialog)
                 total = all_embymvideos['TotalRecordCount']
                 embymvideos = all_embymvideos['Items']
 
@@ -1051,7 +1054,7 @@ class LibrarySync(threading.Thread):
                             heading="Emby for Kodi",
                             message="Comparing tvshows from view: %s..." % viewName)
 
-                all_embytvshows = emby.getShows(viewId, basic=True)
+                all_embytvshows = emby.getShows(viewId, basic=True, dialog=pdialog)
                 for embytvshow in all_embytvshows['Items']:
 
                     if self.shouldStop():
@@ -1071,7 +1074,7 @@ class LibrarySync(threading.Thread):
                 total = len(updatelist)
                 del updatelist[:]
             else:
-                all_embytvshows = emby.getShows(viewId)
+                all_embytvshows = emby.getShows(viewId, dialog=pdialog)
                 total = all_embytvshows['TotalRecordCount']
                 embytvshows = all_embytvshows['Items']
 
@@ -1114,7 +1117,7 @@ class LibrarySync(threading.Thread):
                                 heading="Emby for Kodi",
                                 message="Comparing episodes from view: %s..." % viewName)
 
-                    all_embyepisodes = emby.getEpisodes(viewId, basic=True)
+                    all_embyepisodes = emby.getEpisodes(viewId, basic=True, dialog=pdialog)
                     for embyepisode in all_embyepisodes['Items']:
 
                         if self.shouldStop():
@@ -1212,9 +1215,9 @@ class LibrarySync(threading.Thread):
                     pass
 
                 if type != "artists":
-                    all_embyitems = process[type][0](basic=True)
+                    all_embyitems = process[type][0](basic=True, dialog=pdialog)
                 else:
-                    all_embyitems = process[type][0]()
+                    all_embyitems = process[type][0](dialog=pdialog)
                 for embyitem in all_embyitems['Items']:
 
                     if self.shouldStop():
@@ -1243,7 +1246,7 @@ class LibrarySync(threading.Thread):
                 total = len(updatelist)
                 del updatelist[:]
             else:
-                all_embyitems = process[type][0]()
+                all_embyitems = process[type][0](dialog=pdialog)
                 total = all_embyitems['TotalRecordCount']
                 embyitems = all_embyitems['Items']
 
@@ -1378,9 +1381,6 @@ class LibrarySync(threading.Thread):
             self.dbCommit(kodiconn)
             embyconn.commit()
             self.saveLastSync()
-
-            # tell any widgets to refresh because the content has changed
-            utils.window('widgetreload', value=datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
 
             self.logMsg("Updating video library.", 1)
             utils.window('emby_kodiScan', value="true")

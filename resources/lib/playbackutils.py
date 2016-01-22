@@ -78,7 +78,7 @@ class PlaybackUtils():
         sizePlaylist = playlist.size()
         currentPosition = startPos
 
-        propertiesPlayback = utils.window('emby_playbackProps', windowid=10101) == "true"
+        propertiesPlayback = utils.window('emby_playbackProps') == "true"
         introsPlaylist = False
         partsPlaylist = False
         dummyPlaylist = False
@@ -96,11 +96,11 @@ class PlaybackUtils():
         # Otherwise we get a loop.
         if not propertiesPlayback:
 
-            utils.window('emby_playbackProps', value="true", windowid=10101)
+            utils.window('emby_playbackProps', value="true")
             self.logMsg("Setting up properties in playlist.", 1)
 
             if (not homeScreen and not seektime and 
-                    utils.window('emby_customPlaylist', windowid=10101) != "true"):
+                    utils.window('emby_customPlaylist') != "true"):
                 
                 self.logMsg("Adding dummy file to playlist.", 2)
                 dummyPlaylist = True
@@ -190,21 +190,21 @@ class PlaybackUtils():
         # We just skipped adding properties. Reset flag for next time.
         elif propertiesPlayback:
             self.logMsg("Resetting properties playback flag.", 2)
-            utils.window('emby_playbackProps', clear=True, windowid=10101)
+            utils.window('emby_playbackProps', clear=True)
 
         #self.pl.verifyPlaylist()
         ########## SETUP MAIN ITEM ##########
 
         # For transcoding only, ask for audio/subs pref
         if utils.window('emby_%s.playmethod' % playurl) == "Transcode":
-            playurl = playutils.audioSubsPref(playurl, child=self.API.getChildNumber())
+            playurl = playutils.audioSubsPref(playurl, listitem, child=self.API.getChildNumber())
             utils.window('emby_%s.playmethod' % playurl, value="Transcode")
 
         listitem.setPath(playurl)
         self.setProperties(playurl, listitem)
 
         ############### PLAYBACK ################
-        customPlaylist = utils.window('emby_customPlaylist', windowid=10101)
+        customPlaylist = utils.window('emby_customPlaylist')
         if homeScreen and seektime:
             self.logMsg("Play as a widget item.", 1)
             self.setListItem(listitem)
@@ -245,7 +245,7 @@ class PlaybackUtils():
         # Only for direct play and direct stream
         # subtitles = self.externalSubs(playurl)
         subtitles = self.API.externalSubs(playurl)
-        if playmethod in ("DirectStream", "Transcode"):
+        if playmethod != "Transcode":
             # Direct play automatically appends external
             listitem.setSubtitles(subtitles)
 

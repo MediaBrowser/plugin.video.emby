@@ -98,31 +98,29 @@ def doMainListing():
                 path = utils.window('Emby.nodes.%s.content' % i)
             label = utils.window('Emby.nodes.%s.title' % i)
             type = utils.window('Emby.nodes.%s.type' % i)
-            if path and ((xbmc.getCondVisibility("Window.IsActive(Pictures)") and type=="photos") or (xbmc.getCondVisibility("Window.IsActive(VideoLibrary)") and type != "photos")):
+            #because we do not use seperate entrypoints for each content type, we need to figure out which items to show in each listing.
+            #for now we just only show picture nodes in the picture library video nodes in the video library and all nodes in any other window
+            if path and xbmc.getCondVisibility("Window.IsActive(Pictures)") and type == "photos":
                 addDirectoryItem(label, path)
-    
+            elif path and xbmc.getCondVisibility("Window.IsActive(VideoLibrary)") and type != "photos":
+                addDirectoryItem(label, path)
+            elif path and not xbmc.getCondVisibility("Window.IsActive(VideoLibrary) | Window.IsActive(Pictures) | Window.IsActive(MusicLibrary)"):
+                addDirectoryItem(label, path)
+
+    #experimental live tv nodes
+    addDirectoryItem("Live Tv Channels (experimental)", "plugin://plugin.video.emby/?mode=browsecontent&type=tvchannels&folderid=root")
+    addDirectoryItem("Live Tv Recordings (experimental)", "plugin://plugin.video.emby/?mode=browsecontent&type=recordings&folderid=root")
+
     # some extra entries for settings and stuff. TODO --> localize the labels
-    addDirectoryItem("Network credentials", "plugin://plugin.video.plexkodiconnect/?mode=passwords", False)
-    addDirectoryItem("Settings", "plugin://plugin.video.plexkodiconnect/?mode=settings", False)
-    addDirectoryItem("Switch Plex user", "plugin://plugin.video.plexkodiconnect/?mode=switchuser", False)
-    #addDirectoryItem("Cache all images to Kodi texture cache (advanced)", "plugin://plugin.video.plexkodiconnect/?mode=texturecache")
-    addDirectoryItem(
-        label="Refresh Emby playlists",
-        path="plugin://plugin.video.plexkodiconnect/?mode=refreshplaylist",
-        folder=False)
-    addDirectoryItem("Perform manual sync", "plugin://plugin.video.plexkodiconnect/?mode=manualsync", False)
-    addDirectoryItem(
-        label="Repair local database (force update all content)",
-        path="plugin://plugin.video.plexkodiconnect/?mode=repair",
-        folder=False)
-    addDirectoryItem(
-        label="Perform local database reset (full resync)",
-        path="plugin://plugin.video.plexkodiconnect/?mode=reset",
-        folder=False)
-    addDirectoryItem(
-        label="Sync Emby Theme Media to Kodi",
-        path="plugin://plugin.video.plexkodiconnect/?mode=thememedia",
-        folder=False)
+    addDirectoryItem("Network credentials", "plugin://plugin.video.emby/?mode=passwords")
+    addDirectoryItem("Settings", "plugin://plugin.video.emby/?mode=settings")
+    addDirectoryItem("Add user to session", "plugin://plugin.video.emby/?mode=adduser")
+    addDirectoryItem("Refresh Emby playlists", "plugin://plugin.video.emby/?mode=refreshplaylist")
+    addDirectoryItem("Perform manual sync", "plugin://plugin.video.emby/?mode=manualsync")
+    addDirectoryItem("Repair local database (force update all content)", "plugin://plugin.video.emby/?mode=repair")
+    addDirectoryItem("Perform local database reset (full resync)", "plugin://plugin.video.emby/?mode=reset")
+    addDirectoryItem("Cache all images to Kodi texture cache", "plugin://plugin.video.emby/?mode=texturecache")
+    addDirectoryItem("Sync Emby Theme Media to Kodi", "plugin://plugin.video.emby/?mode=thememedia")
     
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
@@ -321,7 +319,7 @@ def getThemeMedia():
         result = doUtils.downloadUrl(url)
 
         # Create nfo and write themes to it
-        nfo_file = open(nfo_path, 'w')
+        nfo_file = xbmcvfs.File(nfo_path, 'w')
         pathstowrite = ""
         # May be more than one theme
         for theme in result['Items']:
@@ -382,7 +380,7 @@ def getThemeMedia():
         result = doUtils.downloadUrl(url)
 
         # Create nfo and write themes to it
-        nfo_file = open(nfo_path, 'w')
+        nfo_file = xbmcvfs.File(nfo_path, 'w')
         pathstowrite = ""
         # May be more than one theme
         for theme in result['Items']: 
@@ -431,11 +429,31 @@ def refreshPlaylist():
             time=1000,
             sound=False)
 
-##### BROWSE EMBY HOMEVIDEOS AND PICTURES #####    
-def BrowseContent(viewname, type="", folderid=None, filter=""):
+#### SHOW SUBFOLDERS FOR NODE #####
+def GetSubFolders(nodeindex):
+    nodetypes = ["",".recent",".recentepisodes",".inprogress",".inprogressepisodes",".unwatched",".nextepisodes",".sets",".genres",".random",".recommended"]
+    for node in nodetypes:
+        title = utils.window('Emby.nodes.%s%s.title' %(nodeindex,node))
+        if title:
+            path = utils.window('Emby.nodes.%s%s.content' %(nodeindex,node))
+            type = utils.window('Emby.nodes.%s%s.type' %(nodeindex,node))
+            addDirectoryItem(title, path)
+    xbmcplugin.endOfDirectory(int(sys.argv[1]))
+              
+##### BROWSE EMBY NODES DIRECTLY #####    
+def BrowseContent(viewname, type="", folderid=""):
     
     emby = embyserver.Read_EmbyServer()
-    utils.logMsg("BrowseHomeVideos","viewname: %s - type: %s - folderid: %s - filter: %s" %(viewname, type, folderid, filter))
+    art = artwork.Artwork()
+    doUtils = downloadutils.DownloadUtils()
+    
+    #folderid used as filter ?
+    if folderid in ["recent","recentepisodes","inprogress","inprogressepisodes","unwatched","nextepisodes","sets","genres","random","recommended"]:
+        filter = folderid
+        folderid = ""
+    else:
+        filter = ""
+    
     xbmcplugin.setPluginCategory(int(sys.argv[1]), viewname)
     #get views for root level
     if not folderid:
@@ -444,6 +462,7 @@ def BrowseContent(viewname, type="", folderid=None, filter=""):
             if view.get("name") == viewname:
                 folderid = view.get("id")
     
+    utils.logMsg("BrowseContent","viewname: %s - type: %s - folderid: %s - filter: %s" %(viewname, type, folderid, filter))
     #set the correct params for the content type
     #only proceed if we have a folderid
     if folderid:
@@ -457,21 +476,25 @@ def BrowseContent(viewname, type="", folderid=None, filter=""):
             itemtype = ""
         
         #get the actual listing
-        if filter == "recent":
-            listing = emby.getFilteredSection("", itemtype=itemtype.split(",")[0], sortby="DateCreated", recursive=True, limit=25, sortorder="Descending")
+        if type == "recordings":
+            listing = emby.getTvRecordings(folderid)
+        elif type == "tvchannels":
+            listing = emby.getTvChannels()
+        elif filter == "recent":
+            listing = emby.getFilteredSection(folderid, itemtype=itemtype.split(",")[0], sortby="DateCreated", recursive=True, limit=25, sortorder="Descending")
         elif filter == "random":
-            listing = emby.getFilteredSection("", itemtype=itemtype.split(",")[0], sortby="Random", recursive=True, limit=150, sortorder="Descending")
+            listing = emby.getFilteredSection(folderid, itemtype=itemtype.split(",")[0], sortby="Random", recursive=True, limit=150, sortorder="Descending")
         elif filter == "recommended":
-            listing = emby.getFilteredSection("", itemtype=itemtype.split(",")[0], sortby="SortName", recursive=True, limit=25, sortorder="Ascending", filter="IsFavorite")
+            listing = emby.getFilteredSection(folderid, itemtype=itemtype.split(",")[0], sortby="SortName", recursive=True, limit=25, sortorder="Ascending", filter="IsFavorite")
         elif filter == "sets":
-            listing = emby.getFilteredSection("", itemtype=itemtype.split(",")[1], sortby="SortName", recursive=True, limit=25, sortorder="Ascending", filter="IsFavorite")
+            listing = emby.getFilteredSection(folderid, itemtype=itemtype.split(",")[1], sortby="SortName", recursive=True, limit=25, sortorder="Ascending", filter="IsFavorite")
         else:
             listing = emby.getFilteredSection(folderid, itemtype=itemtype, recursive=False)
         
         #process the listing
         if listing:
             for item in listing.get("Items"):
-                li = createListItemFromEmbyItem(item)
+                li = createListItemFromEmbyItem(item,art,doUtils)
                 if item.get("IsFolder") == True:
                     #for folders we add an additional browse request, passing the folderId
                     path = "%s?id=%s&mode=browsecontent&type=%s&folderid=%s" % (sys.argv[0], viewname, type, item.get("Id"))
@@ -491,10 +514,8 @@ def BrowseContent(viewname, type="", folderid=None, filter=""):
         xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_RUNTIME)
 
 ##### CREATE LISTITEM FROM EMBY METADATA #####
-def createListItemFromEmbyItem(item):
+def createListItemFromEmbyItem(item,art=artwork.Artwork(),doUtils=downloadutils.DownloadUtils()):
     API = api.API(item)
-    art = artwork.Artwork()
-    doUtils = downloadutils.DownloadUtils()
     itemid = item['Id']
     
     title = item.get('Name')
@@ -531,10 +552,11 @@ def createListItemFromEmbyItem(item):
         genre = API.getGenres()
         overlay = 0
         userdata = API.getUserData()
+        runtime = item.get("RunTimeTicks",0)/ 10000000.0
         seektime = userdata['Resume']
         if seektime:
             li.setProperty("resumetime", seektime)
-            li.setProperty("totaltime", item.get("RunTimeTicks")/ 10000000.0)
+            li.setProperty("totaltime", str(runtime))
         
         played = userdata['Played']
         if played: overlay = 7
@@ -551,26 +573,35 @@ def createListItemFromEmbyItem(item):
             'id': itemid,
             'rating': rating,
             'year': item.get('ProductionYear'),
-            'premieredate': premieredate,
-            'date': premieredate,
             'genre': genre,
             'playcount': str(playcount),
             'title': title,
             'plot': API.getOverview(),
             'Overlay': str(overlay),
+            'duration': runtime
         }
+        if premieredate:
+            extradata["premieredate"] = premieredate
+            extradata["date"] = premieredate
         li.setInfo('video', infoLabels=extradata)
-        li.setThumbnailImage(allart.get('Primary'))
+        if allart.get('Primary'):
+            li.setThumbnailImage(allart.get('Primary'))
+        else: li.setThumbnailImage('DefaultTVShows.png')
         li.setIconImage('DefaultTVShows.png')
         if not allart.get('Background'): #add image as fanart for use with skinhelper auto thumb/backgrund creation
             li.setArt( {"fanart": allart.get('Primary') } )
         else:
             pbutils.PlaybackUtils(item).setArtwork(li)
-        
+
         mediastreams = API.getMediaStreams()
+        videostreamFound = False
         if mediastreams:
             for key, value in mediastreams.iteritems():
+                if key == "video" and value: videostreamFound = True
                 if value: li.addStreamInfo(key, value[0])
+        if not videostreamFound:
+            #just set empty streamdetails to prevent errors in the logs
+            li.addStreamInfo("video", {'duration': runtime})
         
     return li
     
@@ -594,84 +625,20 @@ def BrowseChannels(itemid, folderid=None):
         url = "{server}/emby/Channels/%s/Items?UserId={UserId}&format=json" % itemid
 
     result = doUtils.downloadUrl(url)
-    try:
-        channels = result['Items']
-    except TypeError:
-        pass
-    else:
-        for item in channels:
-
-            API = api.API(item)
+    if result and result.get("Items"):
+        for item in result.get("Items"):
             itemid = item['Id']
             itemtype = item['Type']
-            title = item.get('Name', "Missing Title")
-            li = xbmcgui.ListItem(title)
-
+            li = createListItemFromEmbyItem(item,art,doUtils)
             if itemtype == "ChannelFolderItem":
                 isFolder = True
             else:
                 isFolder = False
-
             channelId = item.get('ChannelId', "")
             channelName = item.get('ChannelName', "")
-
-            premieredate = API.getPremiereDate()
-            # Process Genres
-            genre = API.getGenres()
-            # Process UserData
-            overlay = 0
-
-            userdata = API.getUserData()
-            seektime = userdata['Resume']
-            played = userdata['Played']
-            if played:
-                overlay = 7
-            else:
-                overlay = 6
-
-            favorite = userdata['Favorite']
-            if favorite:
-                overlay = 5
-            
-            playcount = userdata['PlayCount']
-            if playcount is None:
-                playcount = 0
-
-            # Populate the details list
-            details = {
-
-                'title': title,
-                'channelname': channelName,
-                'plot': API.getOverview(),
-                'Overlay': str(overlay),
-                'playcount': str(playcount)
-            }
-
-            if itemtype == "ChannelVideoItem":
-                xbmcplugin.setContent(_addon_id, 'movies')
-            elif itemtype == "ChannelAudioItem":
-                xbmcplugin.setContent(_addon_id, 'songs')
-
-            # Populate the extradata list and artwork
-            pbutils.PlaybackUtils(item).setArtwork(li)
-            extradata = {
-
-                'id': itemid,
-                'rating': item.get('CommunityRating'),
-                'year': item.get('ProductionYear'),
-                'premieredate': premieredate,
-                'genre': genre,
-                'playcount': str(playcount),
-                'itemtype': itemtype
-            }
-            li.setInfo('video', infoLabels=extradata)
-            li.setThumbnailImage(art.getAllArtwork(item)['Primary'])
-            li.setIconImage('DefaultTVShows.png')
-
             if itemtype == "Channel":
                 path = "%s?id=%s&mode=channels" % (_addon_url, itemid)
                 xbmcplugin.addDirectoryItem(handle=_addon_id, url=path, listitem=li, isFolder=True)
-            
             elif isFolder:
                 path = "%s?id=%s&mode=channelsfolder&folderid=%s" % (_addon_url, channelId, itemid)
                 xbmcplugin.addDirectoryItem(handle=_addon_id, url=path, listitem=li, isFolder=True)
@@ -998,12 +965,12 @@ def getExtraFanArt():
     try:
         # for tvshows we get the embyid just from the path
         if xbmc.getCondVisibility("Container.Content(tvshows) | Container.Content(seasons) | Container.Content(episodes)"):
-            itemPath = xbmc.getInfoLabel("ListItem.Path")
+            itemPath = xbmc.getInfoLabel("ListItem.Path").decode('utf-8')
             if "plugin.video.emby" in itemPath:
                 embyId = itemPath.split("/")[-2]
         else:
             #for movies we grab the emby id from the params
-            itemPath = xbmc.getInfoLabel("ListItem.FileNameAndPath")
+            itemPath = xbmc.getInfoLabel("ListItem.FileNameAndPath").decode('utf-8')
             if "plugin.video.emby" in itemPath:
                 params = urlparse.parse_qs(itemPath)
                 embyId = params.get('id')
@@ -1028,7 +995,10 @@ def getExtraFanArt():
                     for backdrop in backdrops:
                         # Same ordering as in artwork
                         tag = tags[count]
-                        fanartFile = os.path.join(fanartDir, "fanart%s.jpg" % tag)
+                        if os.path.supports_unicode_filenames:
+                            fanartFile = os.path.join(fanartDir, "fanart%s.jpg" % tag)
+                        else:
+                            fanartFile = os.path.join(fanartDir.encode("utf-8"), "fanart%s.jpg" % tag.encode("utf-8"))
                         li = xbmcgui.ListItem(tag, path=fanartFile)
                         xbmcplugin.addDirectoryItem(
                                             handle=int(sys.argv[1]),
@@ -1041,7 +1011,7 @@ def getExtraFanArt():
                 # Use existing cached images
                 dirs, files = xbmcvfs.listdir(fanartDir)
                 for file in files:
-                    fanartFile = os.path.join(fanartDir, file)
+                    fanartFile = os.path.join(fanartDir, file.decode('utf-8'))
                     li = xbmcgui.ListItem(file, path=fanartFile)
                     xbmcplugin.addDirectoryItem(
                                             handle=int(sys.argv[1]),

@@ -73,12 +73,18 @@ def window(property, value=None, clear=False, windowid=10000):
     # Get or set window property
     WINDOW = xbmcgui.Window(windowid)
     
+    #setproperty accepts both string and unicode but utf-8 strings are adviced by kodi devs because some unicode can give issues
+    if isinstance(property, unicode):
+        property = property.encode("utf-8")
+    if isinstance(value, unicode):
+        value = value.encode("utf-8")
+    
     if clear:
         WINDOW.clearProperty(property)
     elif value is not None:
         WINDOW.setProperty(property, value)
-    else:
-        return WINDOW.getProperty(property)
+    else: #getproperty returns string so convert to unicode
+        return WINDOW.getProperty(property).decode("utf-8")
 
 def settings(setting, value=None):
     # Get or add addon setting
@@ -87,13 +93,12 @@ def settings(setting, value=None):
     if value is not None:
         addon.setSetting(setting, value)
     else:
-        return addon.getSetting(setting)
+        return addon.getSetting(setting) #returns unicode object
 
 def language(stringid):
     # Central string retrieval
     addon = xbmcaddon.Addon(id='plugin.video.plexkodiconnect')
-    string = addon.getLocalizedString(stringid).decode("utf-8")
-
+    string = addon.getLocalizedString(stringid) #returns unicode object
     return string
 
 def kodiSQL(type="video"):
@@ -169,11 +174,11 @@ def reset():
     path = xbmc.translatePath("special://profile/library/video/").decode('utf-8')
     dirs, files = xbmcvfs.listdir(path)
     for dir in dirs:
-        if dir.startswith('Emby'):
-            shutil.rmtree("%s%s" % (path, dir))
+        if dir.decode('utf-8').startswith('Emby'):
+            shutil.rmtree("%s%s" % (path, dir.decode('utf-8')))
     for file in files:
-        if file.startswith('emby'):
-            xbmcvfs.delete("%s%s" % (path, file))
+        if file.decode('utf-8').startswith('emby'):
+            xbmcvfs.delete("%s%s" % (path, file.decode('utf-8')))
 
     # Wipe the kodi databases
     logMsg("EMBY", "Resetting the Kodi video database.")
@@ -254,7 +259,7 @@ def stopProfiling(pr, profileName):
     timestamp = time.strftime("%Y-%m-%d %H-%M-%S")
     profile = "%s%s_profile_(%s).tab" % (profiles, profileName, timestamp)
     
-    f = open(profile, 'wb')
+    f = xbmcvfs.File(profile, 'w')
     f.write("NumbCalls\tTotalTime\tCumulativeTime\tFunctionName\tFileName\r\n")
     for (key, value) in ps.stats.items():
         (filename, count, func_name) = key
@@ -502,7 +507,7 @@ def playlistXSP(mediatype, tagname, viewtype="", delete=False):
     }
     logMsg("EMBY", "Writing playlist file to: %s" % xsppath, 1)
     try:
-        f = open(xsppath, 'w')
+        f = xbmcvfs.File(xsppath, 'w')
     except:
         logMsg("EMBY", "Failed to create playlist: %s" % xsppath, 1)
         return
@@ -526,5 +531,5 @@ def deletePlaylists():
     path = xbmc.translatePath("special://profile/playlists/video/").decode('utf-8')
     dirs, files = xbmcvfs.listdir(path)
     for file in files:
-        if file.startswith('Emby'):
+        if file.decode('utf-8').startswith('Emby'):
             xbmcvfs.delete("%s%s" % (path, file))

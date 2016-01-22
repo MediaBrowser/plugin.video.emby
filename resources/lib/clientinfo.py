@@ -7,6 +7,7 @@ from uuid import uuid4
 
 import xbmc
 import xbmcaddon
+import xbmcvfs
 
 import utils
 
@@ -43,7 +44,7 @@ class ClientInfo():
 
         if utils.settings('deviceNameOpt') == "false":
             # Use Kodi's deviceName
-            deviceName = xbmc.getInfoLabel('System.FriendlyName')
+            deviceName = xbmc.getInfoLabel('System.FriendlyName').decode('utf-8')
         else:
             deviceName = utils.settings('deviceName')
             deviceName = deviceName.replace("\"", "_")

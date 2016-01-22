@@ -1498,6 +1498,9 @@ class Music(Items):
         Items.__init__(self, embycursor, musiccursor)
 
         self.directstream = utils.settings('streamMusic') == "true"
+        self.enableimportsongrating = utils.settings('enableImportSongRating') == "true"
+        self.enableexportsongrating = utils.settings('enableExportSongRating') == "true"
+        self.enableupdatesongrating = utils.settings('enableUpdateSongRating') == "true"
         self.userid = utils.window('emby_currUser')
         self.server = utils.window('emby_server%s' % self.userid)
 
@@ -1830,17 +1833,16 @@ class Music(Items):
             track = disc*2**16 + tracknumber
         year = item.get('ProductionYear')
         duration = API.getRuntime()
-        
-        #the server only returns the rating based on like/love and not the actual rating from the song
-        rating = userdata['UserRating']
-        
-        #the server doesn't support comment on songs so this will always be empty
-        comment = API.getOverview()
-        
-        #if enabled, try to get the rating and comment value from the file itself
+
+        #if enabled, try to get the rating from file and/or emby
         if not self.directstream:
-            rating, comment = self.getSongRatingAndComment(itemid, rating, API)
-        
+            rating, comment, hasEmbeddedCover = musicutils.getAdditionalSongTags(itemid, rating, API, kodicursor, emby_db, self.enableimportsongrating, self.enableexportsongrating, self.enableupdatesongrating)
+        else:
+            hasEmbeddedCover = False
+            comment = API.getOverview()
+            rating = userdata['UserRating']
+            
+            
         ##### GET THE FILE AND PATH #####
         if self.directstream:
             path = "%s/emby/Audio/%s/" % (self.server, itemid)
@@ -2043,7 +2045,10 @@ class Music(Items):
         # Add genres
         kodi_db.addMusicGenres(songid, genres, "song")
         # Update artwork
-        artwork.addArtwork(artwork.getAllArtwork(item, parentInfo=True), songid, "song", kodicursor)
+        allart = artwork.getAllArtwork(item, parentInfo=True)
+        if hasEmbeddedCover:
+            allart["Primary"] = "image://music@" + artwork.single_urlencode( playurl )
+        artwork.addArtwork(allart, songid, "song", kodicursor)
 
     def updateUserdata(self, item):
         # This updates: Favorite, LastPlayedDate, Playcount, PlaybackPositionTicks
@@ -2070,10 +2075,19 @@ class Music(Items):
             return
 
         if mediatype == "song":
+            
+            #should we ignore this item ?
+            #happens when userdata updated by ratings method
+            if utils.window("ignore-update-%s" %itemid):
+                utils.window("ignore-update-%s" %itemid,clear=True)
+                return
+                
             # Process playstates
             playcount = userdata['PlayCount']
             dateplayed = userdata['LastPlayedDate']
-            rating, comment = self.getSongRatingAndComment(itemid, rating, API)
+            
+            #process item ratings
+            rating, comment, hasEmbeddedCover = musicutils.getAdditionalSongTags(itemid, rating, API, kodicursor, emby_db, self.enableimportsongrating, self.enableexportsongrating, self.enableupdatesongrating)
             
             query = "UPDATE song SET iTimesPlayed = ?, lastplayed = ?, rating = ? WHERE idSong = ?"
             kodicursor.execute(query, (playcount, dateplayed, rating, kodiid))
@@ -2085,86 +2099,6 @@ class Music(Items):
 
         emby_db.updateReference(itemid, checksum)
 
-    def getSongRatingAndComment(self, embyid, emby_rating, API):
-        
-        kodicursor = self.kodicursor
-
-        previous_values = None
-        filename = API.getFilePath()
-        rating = 0
-        emby_rating = int(round(emby_rating, 0))
-        file_rating, comment = musicutils.getSongTags(filename)
-        
-
-        emby_dbitem = self.emby_db.getItem_byId(embyid)
-        try:
-            kodiid = emby_dbitem[0]
-        except TypeError:
-            # Item is not in database.
-            currentvalue = None
-        else:
-            query = "SELECT rating FROM song WHERE idSong = ?"
-            kodicursor.execute(query, (kodiid,))
-            currentvalue = int(round(float(kodicursor.fetchone()[0]),0))
-        
-        # Only proceed if we actually have a rating from the file
-        if file_rating is None and currentvalue:
-            return (currentvalue, comment)
-        elif file_rating is None and currentvalue is None:
-            return (emby_rating, comment)
-        
-        file_rating = int(round(file_rating,0))
-        self.logMsg("getSongRatingAndComment --> embyid: %s - emby_rating: %s - file_rating: %s - current rating in kodidb: %s" %(embyid, emby_rating, file_rating, currentvalue))
-        
-        updateFileRating = False
-        updateEmbyRating = False
-
-        if currentvalue != None:
-            # we need to translate the emby values...
-            if emby_rating == 1 and currentvalue == 2:
-                emby_rating = 2
-            if emby_rating == 3 and currentvalue == 4:
-                emby_rating = 4
-                
-            if (emby_rating == file_rating) and (file_rating != currentvalue):
-                #the rating has been updated from kodi itself, update change to both emby ands file
-                rating = currentvalue
-                updateFileRating = True
-                updateEmbyRating = True
-            elif (emby_rating != currentvalue) and (file_rating == currentvalue):
-                #emby rating changed - update the file
-                rating = emby_rating
-                updateFileRating = True  
-            elif (file_rating != currentvalue) and (emby_rating == currentvalue):
-                #file rating was updated, sync change to emby
-                rating = file_rating
-                updateEmbyRating = True
-            elif (emby_rating != currentvalue) and (file_rating != currentvalue):
-                #both ratings have changed (corner case) - the highest rating wins...
-                if emby_rating > file_rating:
-                    rating = emby_rating
-                    updateFileRating = True
-                else:
-                    rating = file_rating
-                    updateEmbyRating = True
-            else:
-                #nothing has changed, just return the current value
-                rating = currentvalue
-        else:      
-            # no rating yet in DB, always prefer file details...
-            rating = file_rating
-            updateEmbyRating = True
-            
-        if updateFileRating:
-            musicutils.updateRatingToFile(rating, filename)
-            
-        if updateEmbyRating:
-            # sync details to emby server. Translation needed between ID3 rating and emby likes/favourites:
-            like, favourite, deletelike = musicutils.getEmbyRatingFromKodiRating(rating)
-            API.updateUserRating(embyid, like, favourite, deletelike)
-        
-        return (rating, comment)
-        
     def remove(self, itemid):
         # Remove kodiid, fileid, pathid, emby reference
         emby_db = self.emby_db

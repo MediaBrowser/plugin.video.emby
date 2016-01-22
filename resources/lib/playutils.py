@@ -43,6 +43,12 @@ class PlayUtils():
         if partIndex is not None:
             self.API.setPartNumber(partIndex)
         playurl = None
+        
+        if item.get('Type') in ["Recording","TvChannel"] and item.get('MediaSources') and item['MediaSources'][0]['Protocol'] == "Http":
+            #Is this the right way to play a Live TV or recordings ?
+            self.logMsg("File protocol is http (livetv).", 1)
+            playurl = "%s/emby/Videos/%s/live.m3u8?static=true" % (self.server, item['Id'])
+            utils.window('emby_%s.playmethod' % playurl, value="DirectPlay")
 
         # if item.get('MediaSources') and item['MediaSources'][0]['Protocol'] == "Http":
         #     # Only play as http
@@ -168,6 +174,12 @@ class PlayUtils():
         if not self.h265enabled():
             return False
 
+        elif (utils.settings('transcode720H265') == "true" and
+                item['MediaSources'][0]['Name'].startswith(("720P/HEVC","720P/H265"))):
+            # Avoid H265 720p
+            self.logMsg("Option to transcode 720P/H265 enabled.", 1)
+            return False
+
         # Requirement: BitRate, supported encoding
         # canDirectStream = item['MediaSources'][0]['SupportsDirectStream']
         # Plex: always able?!?
@@ -273,7 +285,7 @@ class PlayUtils():
         # max bit rate supported by server (max signed 32bit integer)
         return bitrate.get(videoQuality, 2147483)
 
-    def audioSubsPref(self, url, child=0):
+    def audioSubsPref(self, url, listitem, child=0):
         self.API.setChildNumber(child)
         # For transcoding only
         # Present the list of audio to select from
@@ -282,6 +294,7 @@ class PlayUtils():
         audioStreamsChannelsList = {}
         subtitleStreamsList = {}
         subtitleStreams = ['No subtitles']
+        downloadableStreams = []
         selectAudioIndex = ""
         selectSubsIndex = ""
         playurlprefs = "%s" % url
@@ -312,8 +325,8 @@ class PlayUtils():
                 audioStreams.append(track)
 
             elif 'Subtitle' in type:
-                if stream['IsExternal']:
-                    continue
+                '''if stream['IsExternal']:
+                    continue'''
                 try:
                     track = "%s - %s" % (index, stream['Language'])
                 except:
@@ -321,10 +334,14 @@ class PlayUtils():
 
                 default = stream['IsDefault']
                 forced = stream['IsForced']
+                downloadable = stream['IsTextSubtitleStream']
+
                 if default:
                     track = "%s - Default" % track
                 if forced:
                     track = "%s - Forced" % track
+                if downloadable:
+                    downloadableStreams.append(index)
 
                 subtitleStreamsList[track] = index
                 subtitleStreams.append(track)
@@ -352,7 +369,19 @@ class PlayUtils():
                 # User selected subtitles
                 selected = subtitleStreams[resp]
                 selectSubsIndex = subtitleStreamsList[selected]
-                playurlprefs += "&SubtitleStreamIndex=%s" % selectSubsIndex
+
+                # Load subtitles in the listitem if downloadable
+                if selectSubsIndex in downloadableStreams:
+
+                    itemid = item['Id']
+                    url = [("%s/Videos/%s/%s/Subtitles/%s/Stream.srt"
+                        % (self.server, itemid, itemid, selectSubsIndex))]
+                    self.logMsg("Set up subtitles: %s %s" % (selectSubsIndex, url), 1)
+                    listitem.setSubtitles(url)
+                else:
+                    # Burn subtitles
+                    playurlprefs += "&SubtitleStreamIndex=%s" % selectSubsIndex
+
             else: # User backed out of selection
                 playurlprefs += "&SubtitleStreamIndex=%s" % mediasources.get('DefaultSubtitleStreamIndex', "")
 

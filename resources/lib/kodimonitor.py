@@ -74,7 +74,7 @@ class KodiMonitor(xbmc.Monitor):
             self.logMsg("Method: %s Data: %s" % (method, data), 1)
             
         if data:
-            data = json.loads(data)
+            data = json.loads(data,'utf-8')
 
 
         if method == "Player.OnPlay":
@@ -205,6 +205,5 @@ class KodiMonitor(xbmc.Monitor):
             utils.window('emby_onWake', value="true")
 
         elif method == "Playlist.OnClear":
-            utils.window('emby_customPlaylist', clear=True, windowid=10101)
-            #xbmcgui.Window(10101).clearProperties()
+            utils.window('emby_customPlaylist', clear=True)
             self.logMsg("Clear playlist properties.")

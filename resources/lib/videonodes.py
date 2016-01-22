@@ -96,7 +96,7 @@ class VideoNodes(object):
                 return
 
         if mediatype=="photos":
-            path = "plugin://plugin.video.emby/?id=%s&mode=browsecontent&type=photos&filter=index" % tagname
+            path = "plugin://plugin.video.emby/?id=%s&mode=getsubfolders" % indexnumber
             
         utils.window('Emby.nodes.%s.index' % indexnumber, value=path)
         
@@ -163,6 +163,13 @@ class VideoNodes(object):
                 '8': 30255,
                 '11': 30254
                 },
+            'musicvideos': 
+                {
+                '1': tagname,
+                '2': 30256,
+                '4': 30257,
+                '6': 30258
+                },
         }
 
         nodes = mediatypes[mediatype]
@@ -185,7 +192,7 @@ class VideoNodes(object):
                 path = "plugin://plugin.video.plexkodiconnect/?id=%s&mode=browsecontent&type=%s" %(tagname,mediatype)
             elif (mediatype == "homevideos" or mediatype == "photos"):
                 # Custom query
-                path = "plugin://plugin.video.plexkodiconnect/?id=%s&mode=browsecontent&type=%s&filter=%s" %(tagname,mediatype,nodetype)
+                path = "plugin://plugin.video.plexkodiconnect/?id=%s&mode=browsecontent&type=%s&folderid=%s" %(tagname,mediatype,nodetype)
             elif nodetype == "nextepisodes":
                 # Custom query
                 path = "plugin://plugin.video.plexkodiconnect/?id=%s&mode=nextup&limit=25" % tagname
