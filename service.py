@@ -176,11 +176,13 @@ class Service():
                             else:
                                 add = ""
                             xbmcgui.Dialog().notification(
-                                        heading="Emby server",
-                                        message="Welcome %s%s!" % (user.currUser, add),
-                                        icon="special://home/addons/plugin.video.plexkodiconnect/icon.png",
-                                        time=2000,
-                                        sound=False)
+                                heading=self.addonName,
+                                message="Welcome %s%s"
+                                % (user.currUser, add),
+                                icon="special://home/addons/plugin.video."
+                                "plexkodiconnect/icon.png",
+                                time=2000,
+                                sound=False)
 
                         # Start monitoring kodi events
                         if not self.kodimonitor_running:
@@ -253,7 +255,7 @@ class Service():
                                 break
                             # Alert the user that server is online.
                             xbmcgui.Dialog().notification(
-                                heading="Emby server",
+                                heading=self.addonName,
                                 message="Server is online.",
                                 icon="special://home/addons/plugin.video."
                                      "plexkodiconnect/icon.png",
