@@ -37,7 +37,7 @@ class Main:
         xbmc.log("Parameter string: %s" % sys.argv[2])
         try:
             mode = params['mode'][0]
-            itemid = params.get('id')
+            itemid = params.get('id', '')
             if itemid:
                 try:
                     itemid = itemid[0]
@@ -46,8 +46,6 @@ class Main:
         except:
             params = {}
             mode = ""
-        xbmc.log("mode: %s, itemid: %s, base_url: %s, addon_handle: %s"
-                 % (mode, itemid, base_url, addon_handle), 2)
 
         modes = {
 

@@ -396,9 +396,6 @@ class LibrarySync(threading.Thread):
                 self.logMsg(
                     "SyncDatabase (finished %s in: %s)"
                     % (itemtype, str(elapsedTime).split('.')[0]), 1)
-        else:
-            # Close the Kodi cursor
-            kodicursor.close()
 
         # # sync music
         # if music_enabled:

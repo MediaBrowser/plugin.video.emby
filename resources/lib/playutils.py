@@ -37,7 +37,7 @@ class PlayUtils():
     
 
     def getPlayUrl(self, child=0, partIndex=None):
-
+        item = self.item
         # NO, I am not very fond of this construct!
         self.API.setChildNumber(child)
         if partIndex is not None:

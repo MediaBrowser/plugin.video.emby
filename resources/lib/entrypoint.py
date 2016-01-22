@@ -108,19 +108,19 @@ def doMainListing():
                 addDirectoryItem(label, path)
 
     #experimental live tv nodes
-    addDirectoryItem("Live Tv Channels (experimental)", "plugin://plugin.video.emby/?mode=browsecontent&type=tvchannels&folderid=root")
-    addDirectoryItem("Live Tv Recordings (experimental)", "plugin://plugin.video.emby/?mode=browsecontent&type=recordings&folderid=root")
+    addDirectoryItem("Live Tv Channels (experimental)", "plugin://plugin.video.plexkodiconnect/?mode=browsecontent&type=tvchannels&folderid=root")
+    addDirectoryItem("Live Tv Recordings (experimental)", "plugin://plugin.video.plexkodiconnect/?mode=browsecontent&type=recordings&folderid=root")
 
     # some extra entries for settings and stuff. TODO --> localize the labels
-    addDirectoryItem("Network credentials", "plugin://plugin.video.emby/?mode=passwords")
-    addDirectoryItem("Settings", "plugin://plugin.video.emby/?mode=settings")
-    addDirectoryItem("Add user to session", "plugin://plugin.video.emby/?mode=adduser")
-    addDirectoryItem("Refresh Emby playlists", "plugin://plugin.video.emby/?mode=refreshplaylist")
-    addDirectoryItem("Perform manual sync", "plugin://plugin.video.emby/?mode=manualsync")
-    addDirectoryItem("Repair local database (force update all content)", "plugin://plugin.video.emby/?mode=repair")
-    addDirectoryItem("Perform local database reset (full resync)", "plugin://plugin.video.emby/?mode=reset")
-    addDirectoryItem("Cache all images to Kodi texture cache", "plugin://plugin.video.emby/?mode=texturecache")
-    addDirectoryItem("Sync Emby Theme Media to Kodi", "plugin://plugin.video.emby/?mode=thememedia")
+    addDirectoryItem("Network credentials", "plugin://plugin.video.plexkodiconnect/?mode=passwords")
+    addDirectoryItem("Settings", "plugin://plugin.video.plexkodiconnect/?mode=settings")
+    addDirectoryItem("Add user to session", "plugin://plugin.video.plexkodiconnect/?mode=adduser")
+    addDirectoryItem("Refresh Emby playlists", "plugin://plugin.video.plexkodiconnect/?mode=refreshplaylist")
+    addDirectoryItem("Perform manual sync", "plugin://plugin.video.plexkodiconnect/?mode=manualsync")
+    addDirectoryItem("Repair local database (force update all content)", "plugin://plugin.video.plexkodiconnect/?mode=repair")
+    addDirectoryItem("Perform local database reset (full resync)", "plugin://plugin.video.plexkodiconnect/?mode=reset")
+    addDirectoryItem("Cache all images to Kodi texture cache", "plugin://plugin.video.plexkodiconnect/?mode=texturecache")
+    addDirectoryItem("Sync Emby Theme Media to Kodi", "plugin://plugin.video.plexkodiconnect/?mode=thememedia")
     
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
