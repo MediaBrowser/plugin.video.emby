@@ -218,6 +218,9 @@ class DownloadUtils():
                         r = s.delete(url, json=postBody, timeout=timeout, headers=header)
                     elif type == "OPTIONS":
                         r = s.options(url, json=postBody, timeout=timeout, headers=header)
+                    # For Plex Companion
+                    elif type == "POSTXML":
+                        r = s.post(url, postBody, timeout=timeout, headers=header)
                 
                 except AttributeError:
                     # request session does not exists

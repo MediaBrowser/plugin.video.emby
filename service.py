@@ -4,13 +4,13 @@
 
 import os
 import sys
-import time
+# import time
 from datetime import datetime
 
 import xbmc
 import xbmcaddon
 import xbmcgui
-import xbmcvfs
+# import xbmcvfs
 
 #################################################################################################
 
@@ -29,9 +29,10 @@ import librarysync
 import player
 import utils
 import videonodes
-import websocket_client as wsc
+# import websocket_client as wsc
 
 import PlexAPI
+import PlexCompanion
 
 #################################################################################################
 
@@ -46,6 +47,7 @@ class Service():
     websocket_running = False
     library_running = False
     kodimonitor_running = False
+    plexCompanion_running = False
 
 
     def __init__(self):
@@ -106,6 +108,9 @@ class Service():
         # ws = wsc.WebSocket_Client()
         library = librarysync.LibrarySync()
         kplayer = player.Player()
+        plx = PlexAPI.PlexAPI()
+        plexCompanion = PlexCompanion.PlexCompanion()
+        plexCompanionDesired = utils.settings('plexCompanion')
         # Sync and progress report
         lastProgressUpdate = datetime.today()
 
@@ -223,10 +228,7 @@ class Service():
                         # No server info set in add-on settings
                         pass
                     
-                    elif PlexAPI.PlexAPI().CheckConnection(
-                        server,
-                        plexToken
-                    ) != 200:
+                    elif plx.CheckConnection(server, plexToken) != 200:
                         # Server is offline.
                         # Alert the user and suppress future warning
                         if self.server_online:
@@ -234,10 +236,12 @@ class Service():
                             utils.window('emby_online', value="false")
 
                             xbmcgui.Dialog().notification(
-                                        heading="Error connecting",
-                                        message="%s Server is unreachable." % self.addonName,
-                                        icon="special://home/addons/plugin.video.plexkodiconnect/icon.png",
-                                        sound=False)
+                                heading="Error connecting",
+                                message="%s Server is unreachable."
+                                        % self.addonName,
+                                icon="special://home/addons/plugin.video."
+                                     "plexkodiconnect/icon.png",
+                                sound=False)
                         
                         self.server_online = False
                     
@@ -251,11 +255,12 @@ class Service():
                                 break
                             # Alert the user that server is online.
                             xbmcgui.Dialog().notification(
-                                        heading="Emby server",
-                                        message="Server is online.",
-                                        icon="special://home/addons/plugin.video.plexkodiconnect/icon.png",
-                                        time=2000,
-                                        sound=False)
+                                heading="Emby server",
+                                message="Server is online.",
+                                icon="special://home/addons/plugin.video."
+                                     "plexkodiconnect/icon.png",
+                                time=2000,
+                                sound=False)
                         
                         self.server_online = True
                         self.logMsg("Server is online and ready.", 1)
@@ -266,6 +271,12 @@ class Service():
                             self.userclient_running = True
                             user.start()
                         
+                        # Start the Plex Companion thread
+                        if not self.plexCompanion_running and \
+                                plexCompanionDesired == "true":
+                            self.plexCompanion_running = True
+                            plexCompanion.start()
+
                         break
 
                     if monitor.waitForAbort(1):
@@ -278,11 +289,14 @@ class Service():
 
         ##### Emby thread is terminating. #####
 
+        if self.plexCompanion_running:
+            plexCompanion.stopClient()
+
         if self.library_running:
             library.stopThread()
 
-        if self.websocket_running:
-            ws.stopClient()
+        # if self.websocket_running:
+        #     ws.stopClient()
         
         if self.userclient_running:
             user.stopClient()

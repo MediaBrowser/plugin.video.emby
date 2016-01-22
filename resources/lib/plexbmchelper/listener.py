@@ -74,7 +74,7 @@ class MyHandler(BaseHTTPRequestHandler):
                 resp += ' protocolVersion="1"'
                 resp += ' protocolCapabilities="navigation,playback,timeline"'
                 resp += ' machineIdentifier="%s"' % settings['uuid']
-                resp += ' product="PleXBMC"'
+                resp += ' product="PlexKodiConnect"'
                 resp += ' platform="%s"' % getPlatform()
                 resp += ' platformVersion="%s"' % settings['plexbmc_version']
                 resp += ' deviceClass="pc"'

@@ -31,6 +31,7 @@ import re
 import threading
 import time
 import urllib2
+import downloadutils
 
 class plexgdm:
 
@@ -140,9 +141,11 @@ class plexgdm:
                 media_port=self.server_list[0]['port']
 
                 self.__printDebug("Checking server [%s] on port [%s]" % (media_server, media_port) ,2)                    
-                f = urllib2.urlopen('http://%s:%s/clients' % (media_server, media_port))
-                client_result = f.read()
-                if self.client_id in client_result:
+                client_result = downloadutils.DownloadUtils().downloadUrl(
+                    'http://%s:%s/clients' % (media_server, media_port))
+                # f = urllib2.urlopen('http://%s:%s/clients' % (media_server, media_port))
+                # client_result = f.read()
+                if self.client_id in str(client_result):
                     self.__printDebug("Client registration successful",1)
                     self.__printDebug("Client data is: %s" % client_result, 3)
                     return True

@@ -53,14 +53,12 @@ import requests
 
 import re
 import json
-import uuid
+from urllib import urlencode, quote_plus
 
 try:
     import xml.etree.cElementTree as etree
 except ImportError:
     import xml.etree.ElementTree as etree
-
-from urllib import urlencode, quote_plus
 
 # from Version import __VERSION__
 # from Debug import *  # dprint(), prettyXML()
@@ -1499,6 +1497,7 @@ class PlexAPI():
         xml = self.doUtils.downloadUrl(url, headerOptions=headerOptions)
         if not xml:
             self.logMsg("Error retrieving metadata for %s" % url, -1)
+            xml = None
         return xml
 
 

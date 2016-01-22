@@ -73,7 +73,9 @@ def jsonrpc(action, arguments = {}):
     elif action.lower() == "playmedia":
         fullurl=arguments[0]
         resume=arguments[1]
-        xbmc.Player().play("plugin://plugin.video.plexbmc/?mode=5&force="+resume+"&url="+fullurl)
+        xbmc.Player().play("plugin://plugin.video.plexkodiconnect/"
+                           "?mode=companion&resume=%s&id=%s"
+                           % (resume, fullurl))
         return True
     elif arguments:
         request=json.dumps({ "id" : 1,
@@ -127,7 +129,7 @@ def getPlexHeaders():
       "X-Plex-Version": settings['version'],
       "X-Plex-Client-Identifier": settings['uuid'],
       "X-Plex-Provides": "player",
-      "X-Plex-Product": "PleXBMC",
+      "X-Plex-Product": "PlexKodiConnect",
       "X-Plex-Device-Name": settings['client_name'],
       "X-Plex-Platform": "XBMC",
       "X-Plex-Model": getPlatform(),

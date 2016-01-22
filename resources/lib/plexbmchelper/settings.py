@@ -7,7 +7,7 @@ settings = {}
 try:
     guidoc = parse(xbmc.translatePath('special://userdata/guisettings.xml'))
 except:
-    print "Unable to read XBMC's guisettings.xml"    
+    print "Unable to read XBMC's guisettings.xml"
 
 def getGUI(name):
     global guidoc
@@ -19,24 +19,28 @@ def getGUI(name):
         return ""
 
 addon = xbmcaddon.Addon()
-plexbmc = xbmcaddon.Addon('plugin.video.plexbmc')
+plexbmc = xbmcaddon.Addon('plugin.video.plexkodiconnect')
 
-settings['debug'] = addon.getSetting('debug') == "true"
-settings['gdm_debug'] = addon.getSetting('gdm_debug') == "true"
-if addon.getSetting('use_xbmc_name') == "true":
-    settings['client_name'] = getGUI('devicename')
+if plexbmc.getSetting('logLevel') == '2' or \
+        plexbmc.getSetting('logLevel') == '1':
+    settings['debug'] = 'true'
+    settings['gdm_debug'] = 'true'
 else:
-    settings['client_name'] = addon.getSetting('c_name')
+    settings['debug'] = 'false'
+    settings['gdm_debug'] = 'false'
+
+settings['client_name'] = plexbmc.getSetting('deviceName')
+
 # XBMC web server settings
 settings['webserver_enabled'] = (getGUI('webserver') == "true")
 settings['port'] = int(getGUI('webserverport'))
 settings['user'] = getGUI('webserverusername')
 settings['passwd'] = getGUI('webserverpassword')
 
-settings['uuid'] = str(addon.getSetting('uuid')) or str(uuid.uuid4())
-addon.setSetting('uuid', settings['uuid'])
-settings['version'] = addon.getAddonInfo('version')
+settings['uuid'] = plexbmc.getSetting('plex_client_Id')
+
+settings['version'] = plexbmc.getAddonInfo('version')
 settings['plexbmc_version'] = plexbmc.getAddonInfo('version')
-settings['myplex_user'] = plexbmc.getSetting('myplex_user')
+settings['myplex_user'] = plexbmc.getSetting('username')
 settings['serverList'] = []
-settings['myport'] = 3005
+settings['myport'] = addon.getSetting('companionPort')

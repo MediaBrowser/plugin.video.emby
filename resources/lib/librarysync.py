@@ -4,6 +4,7 @@
 
 import threading
 from datetime import datetime, timedelta
+import Queue
 
 import xbmc
 import xbmcgui
@@ -21,7 +22,6 @@ import userclient
 import videonodes
 
 import PlexAPI
-import Queue
 
 ##################################################################################################
 
@@ -46,14 +46,9 @@ class ThreadedGetMetadata(threading.Thread):
         self.lock = lock
         self.userStop = userStop
         self._shouldstop = threading.Event()
-        self.addonName = clientinfo.ClientInfo().getAddonName()
         threading.Thread.__init__(self)
 
-    def logMsg(self, msg, lvl=1):
-        className = self.__class__.__name__
-        utils.logMsg("%s %s" % (self.addonName, className), msg, lvl)
-
-    def run_internal(self):
+    def run(self):
         plx = PlexAPI.PlexAPI()
         global getMetadataCount
         while self.stopped() is False:
@@ -68,24 +63,21 @@ class ThreadedGetMetadata(threading.Thread):
                 plexXML = plx.GetPlexMetadata(updateItem['itemId'])
             except:
                 raise
-            updateItem['XML'] = plexXML
-            # place item into out queue
-            self.out_queue.put(updateItem)
+            # check whether valid XML
+            try:
+                # .tag works for XML
+                plexXML.tag
+                updateItem['XML'] = plexXML
+                # place item into out queue
+                self.out_queue.put(updateItem)
+            # If we don't have a valid XML, don't put that into the queue
+            except AttributeError:
+                pass
             # Keep track of where we are at
             with self.lock:
                 getMetadataCount += 1
             # signals to queue job is done
             self.queue.task_done()
-
-    def run(self):
-        try:
-            self.run_internal()
-        except Exception as e:
-            xbmcgui.Dialog().ok(self.addonName,
-                                "A sync thread has exited! "
-                                "You should restart Kodi now. "
-                                "Please report this on the forum.")
-            raise
 
     def stopThread(self):
         self._shouldstop.set()
@@ -113,14 +105,9 @@ class ThreadedProcessMetadata(threading.Thread):
         self.itemType = itemType
         self.userStop = userStop
         self._shouldstop = threading.Event()
-        self.addonName = clientinfo.ClientInfo().getAddonName()
         threading.Thread.__init__(self)
 
-    def logMsg(self, msg, lvl=1):
-        className = self.__class__.__name__
-        utils.logMsg("%s %s" % (self.addonName, className), msg, lvl)
-
-    def run_internal(self):
+    def run(self):
         # Constructs the method name, e.g. itemtypes.Movies
         itemFkt = getattr(itemtypes, self.itemType)
         global processMetadataCount
@@ -151,16 +138,6 @@ class ThreadedProcessMetadata(threading.Thread):
                     processingViewName = title
                 # signals to queue job is done
                 self.queue.task_done()
-
-    def run(self):
-        try:
-            self.run_internal()
-        except Exception as e:
-            xbmcgui.Dialog().ok(self.addonName,
-                                "A sync thread has exited! "
-                                "You should restart Kodi now. "
-                                "Please report this on the forum.")
-            raise
 
     def stopThread(self):
         self._shouldstop.set()

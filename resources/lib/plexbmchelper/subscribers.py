@@ -5,6 +5,7 @@ from xml.dom.minidom import parseString
 from functions import *
 from settings import settings
 from httppersist import requests
+import downloadutils
 
 class SubscriptionManager:
     def __init__(self):
@@ -19,6 +20,7 @@ class SubscriptionManager:
         self.port = ""
         self.playerprops = {}
         self.sentstopped = True
+        self.download = downloadutils.DownloadUtils()
         
     def getVolume(self):
         self.volume = getVolume()
@@ -113,7 +115,11 @@ class SubscriptionManager:
             params['time'] = info['time']
             params['duration'] = info['duration']
         serv = getServerByHost(self.server)
-        requests.getwithparams(serv.get('server', 'localhost'), serv.get('port', 32400), "/:/timeline", params, getPlexHeaders(), serv.get('protocol', 'http'))
+        url = serv.get('protocol', 'http') + '://' \
+            + serv.get('server', 'localhost') + ':' \
+            + serv.get('port', 32400) + "/:/timeline"
+        self.download.downloadUrl(url, type="GET", parameters=params)
+        # requests.getwithparams(serv.get('server', 'localhost'), serv.get('port', 32400), "/:/timeline", params, getPlexHeaders(), serv.get('protocol', 'http'))
         printDebug("sent server notification with state = %s" % params['state'])
         WINDOW = xbmcgui.Window(10000)
         WINDOW.setProperty('plexbmc.nowplaying.sent', '1')
@@ -175,6 +181,7 @@ class Subscriber:
         self.commandID = int(commandID) or 0
         self.navlocationsent = False
         self.age = 0
+        self.download = downloadutils.DownloadUtils()
     def __eq__(self, other):
         return self.uuid == other.uuid
     def tostr(self):
@@ -191,7 +198,14 @@ class Subscriber:
             self.navlocationsent = True
         msg = re.sub(r"INSERTCOMMANDID", str(self.commandID), msg)
         printDebug("sending xml to subscriber %s: %s" % (self.tostr(), msg))
-        if not requests.post(self.host, self.port, "/:/timeline", msg, getPlexHeaders(), self.protocol):
+        url = self.protocol + '://' + self.host + ':' + self.port \
+            + "/:/timeline"
+        response = self.download.downloadUrl(url,
+                                             postBody=msg,
+                                             type="POSTXML")
+        # if not requests.post(self.host, self.port, "/:/timeline", msg, getPlexHeaders(), self.protocol):
+        # subMgr.removeSubscriber(self.uuid)
+        if response in [False, 401]:
             subMgr.removeSubscriber(self.uuid)
 
 subMgr = SubscriptionManager()    

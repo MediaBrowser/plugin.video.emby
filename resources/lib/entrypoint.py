@@ -6,6 +6,7 @@ import json
 import os
 import sys
 import urlparse
+import re
 
 import xbmc
 import xbmcaddon
@@ -26,8 +27,31 @@ import playutils
 import api
 
 import PlexAPI
+import embydb_functions
 
 #################################################################################################
+
+
+def plexCompanion(fullurl, resume=""):
+    regex = re.compile(r'''/(\d+)$''')
+    itemid = regex.findall(fullurl)
+    try:
+        itemid = itemid[0]
+    except IndexError:
+        # No matches found, url not like:
+        # http://192.168.0.2:32400/library/metadata/243480
+        return False
+        # TODO: direct play an URL
+    # Initialize embydb
+    embyconn = utils.kodiSQL('emby')
+    embycursor = embyconn.cursor()
+    emby = embydb_functions.Embydb_Functions(embycursor)
+    # Get dbid using itemid
+    dbid = emby.getItem_byId(itemid)[0]
+    embyconn.close()
+    # Start playing
+    item = PlexAPI.PlexAPI().GetPlexMetadata(itemid)
+    pbutils.PlaybackUtils(item).play(itemid, dbid)
 
 
 def doPlayback(itemid, dbid):

@@ -15,7 +15,37 @@ import xbmcaddon
 import xbmcgui
 import xbmcvfs
 
+import clientinfo
+
 #################################################################################################
+
+
+class logDecor(object):
+    """
+    A decorator adding logging capabilities.
+
+    Syntax: self.logMsg(message, loglevel)
+
+    Loglevel: -2 (Error) to 2 (DB debug)
+    """
+    def __init__(self, f):
+        """
+        If there are no decorator arguments, the function to be decorated is
+        passed to the constructor.
+        """
+        self.f = f
+        self.addonName = clientinfo.ClientInfo().getAddonName()
+
+    def __call__(self, *args, **kwargs):
+        """
+        The __call__ method is not called until the
+        decorated function is called.
+        """
+        def decorLog(self, msg, lvl=1):
+            className = self.__class__.__name__
+            logMsg("%s %s" % (self.addonName, className), msg, lvl)
+        # The function itself:
+        self.f(*args, **kwargs)
 
 
 def logMsg(title, msg, level=1):

@@ -75,4 +75,8 @@
 		<setting label="30239" type="action" action="RunPlugin(plugin://plugin.video.plexkodiconnect?mode=reset)" option="close" />
 		<setting id="syncThreadNumber" type="number" label="Number of parallel threads while syncing" default="10" option="int"/>
 	</category>
+	<category label="Plex Companion">
+		<setting id="plexCompanion" label="Enable Plex Companion" type="bool" default="true" />
+		<setting id="companionPort" label="Plex Companion Port" type="number" default="3005" option="int" visible="eq(-1,true)"/>
+	</category>
 </settings>

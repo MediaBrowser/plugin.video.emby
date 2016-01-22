@@ -8,7 +8,6 @@ import urlparse
 
 import xbmc
 import xbmcaddon
-import xbmcgui
 
 #################################################################################################
 
@@ -22,9 +21,6 @@ sys.path.append(base_resource)
 import entrypoint
 import utils
 
-import PlexAPI
-import userclient
-
 #################################################################################################
 
 enableProfiling = False
@@ -34,8 +30,8 @@ class Main:
 
     # MAIN ENTRY POINT
     def __init__(self):
-        plx = PlexAPI.PlexAPI()
         # Parse parameters
+        xbmc.log("Full sys.argv received: %s" % sys.argv)
         base_url = sys.argv[0]
         addon_handle = int(sys.argv[1])
         params = urlparse.parse_qs(sys.argv[2][1:])
@@ -44,11 +40,15 @@ class Main:
             mode = params['mode'][0]
             itemid = params.get('id')
             if itemid:
-                itemid = itemid[0]
+                try:
+                    itemid = itemid[0]
+                except:
+                    pass
         except:
             params = {}
             mode = ""
-
+        xbmc.log("mode: %s, itemid: %s, base_url: %s, addon_handle: %s"
+                 % (mode, itemid, base_url, addon_handle), 2)
 
         modes = {
 
@@ -65,7 +65,8 @@ class Main:
             'nextup': entrypoint.getNextUpEpisodes,
             'inprogressepisodes': entrypoint.getInProgressEpisodes,
             'recentepisodes': entrypoint.getRecentEpisodes,
-            'refreshplaylist': entrypoint.refreshPlaylist
+            'refreshplaylist': entrypoint.refreshPlaylist,
+            'companion': entrypoint.plexCompanion
         }
         
         if "extrafanart" in sys.argv[0]:
@@ -90,7 +91,9 @@ class Main:
             elif mode == "channelsfolder":
                 folderid = params['folderid'][0]
                 modes[mode](itemid, folderid)
-            
+            elif mode == "companion":
+                resume = params.get('resume', '')
+                modes[mode](itemid, resume=resume)
             else:
                 modes[mode]()
         else:
