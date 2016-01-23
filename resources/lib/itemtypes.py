@@ -270,7 +270,7 @@ class Movies(Items):
         Plex resume points for movies in progress.
         """
         API = PlexAPI.API(itemList)
-        for itemNumber in range(0, len(itemList)):
+        for itemNumber in range(len(itemList)):
             API.setChildNumber(itemNumber)
             itemid = API.getKey()
             # Get key and db entry on the Kodi db side
@@ -890,7 +890,7 @@ class TVShows(Items):
         Plex resume points for movies in progress.
         """
         API = PlexAPI.API(itemList)
-        for itemNumber in range(0, len(itemList)):
+        for itemNumber in range(len(itemList)):
             API.setChildNumber(itemNumber)
             itemid = API.getKey()
             # Get key and db entry on the Kodi db side

@@ -200,12 +200,17 @@ class Subscriber:
         printDebug("sending xml to subscriber %s: %s" % (self.tostr(), msg))
         url = self.protocol + '://' + self.host + ':' + self.port \
             + "/:/timeline"
-        response = self.download.downloadUrl(url,
-                                             postBody=msg,
-                                             type="POSTXML")
+        # Override some headers
+        headerOptions = {
+            'Accept': '*/*'
+        }
+        response = self.download.downloadUrl(
+            url,
+            postBody=msg,
+            type="POSTXML",
+            headerOptions=headerOptions)
         # if not requests.post(self.host, self.port, "/:/timeline", msg, getPlexHeaders(), self.protocol):
         # subMgr.removeSubscriber(self.uuid)
         if response in [False, 401]:
             subMgr.removeSubscriber(self.uuid)
-
 subMgr = SubscriptionManager()    

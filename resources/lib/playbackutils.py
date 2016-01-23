@@ -47,7 +47,7 @@ class PlaybackUtils():
         self.className = self.__class__.__name__
         utils.logMsg("%s %s" % (self.addonName, self.className), msg, lvl)
 
-    def play(self, itemid, dbid=None):
+    def play(self, itemid, dbid=None, seektime=None):
 
         self.logMsg("Play called.", 1)
 
@@ -89,8 +89,9 @@ class PlaybackUtils():
 
         ############### RESUME POINT ################
         
-        userdata = API.getUserData()
-        seektime = userdata['Resume']
+        if seektime is None:
+            userdata = API.getUserData()
+            seektime = userdata['Resume']
 
         # We need to ensure we add the intro and additional parts only once.
         # Otherwise we get a loop.

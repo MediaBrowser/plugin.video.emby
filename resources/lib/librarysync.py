@@ -64,15 +64,12 @@ class ThreadedGetMetadata(threading.Thread):
             except:
                 raise
             # check whether valid XML
-            try:
-                # .tag works for XML
-                plexXML.tag
+            if plexXML:
                 updateItem['XML'] = plexXML
                 # place item into out queue
                 self.out_queue.put(updateItem)
             # If we don't have a valid XML, don't put that into the queue
-            except AttributeError:
-                pass
+            # but skip this item for now
             # Keep track of where we are at
             with self.lock:
                 getMetadataCount += 1
@@ -128,11 +125,9 @@ class ThreadedProcessMetadata(threading.Thread):
                 title = updateItem['title']
                 itemSubFkt = getattr(item, method)
                 with self.lock:
-                    itemSubFkt(
-                        plexitem,
-                        viewtag=viewName,
-                        viewid=viewId
-                    )
+                    itemSubFkt(plexitem,
+                               viewtag=viewName,
+                               viewid=viewId)
                     # Keep track of where we are at
                     processMetadataCount += 1
                     processingViewName = title
@@ -170,11 +165,9 @@ class ThreadedShowSyncInfo(threading.Thread):
         total = self.total
         downloadLock = self.locks[0]
         processLock = self.locks[1]
-        self.dialog.create(
-            "%s: Sync %s: %s items" % (self.addonName,
-                                       self.itemType,
-                                       str(total)),
-            "Starting")
+        self.dialog.create("%s: Sync %s: %s items"
+                           % (self.addonName, self.itemType, str(total)),
+                           "Starting")
         global getMetadataCount
         global processMetadataCount
         global processingViewName
@@ -191,11 +184,11 @@ class ThreadedShowSyncInfo(threading.Thread):
                 percentage = int(float(totalProgress) / float(total)*100.0)
             except ZeroDivisionError:
                 percentage = 0
-            self.dialog.update(
-                percentage,
-                message="Downloaded: %s, Processed: %s: %s" % (
-                    getMetadataProgress, processMetadataProgress, viewName)
-            )
+            self.dialog.update(percentage,
+                               message="Downloaded: %s, Processed: %s: %s"
+                               % (getMetadataProgress,
+                                  processMetadataProgress, viewName))
+            # Sleep for x milliseconds
             xbmc.sleep(500)
         self.dialog.close()
 
@@ -430,11 +423,11 @@ class LibrarySync(threading.Thread):
         utils.window('emby_dbScan', clear=True)
         utils.window('emby_initialScan', clear=True)
         xbmcgui.Dialog().notification(
-                        heading=self.addonName,
-                        message="%s completed in: %s" % 
-                                (message, str(elapsedtotal).split('.')[0]),
-                        icon="special://home/addons/plugin.video.plexkodiconnect/icon.png",
-                        sound=False)
+            heading=self.addonName,
+            message="%s completed in: %s"
+                    % (message, str(elapsedtotal).split('.')[0]),
+            icon="special://home/addons/plugin.video.plexkodiconnect/icon.png",
+            sound=False)
         return True
 
     def maintainViews(self):
@@ -567,22 +560,25 @@ class LibrarySync(threading.Thread):
         Adds items to self.updatelist as well as self.allPlexElementsId dict
 
         Input:
-            elementList:           List of elements, e.g. a list of '_children'
-                                   movie elements as received via JSON from PMS
+            elementList:            List of elements, e.g. list of '_children'
+                                    movie elements as received from PMS
+            itemType:               'Movies', 'TVShows', ...
+            method:                 Method name to be called with this itemtype
+                                    see itemtypes.py
+            viewName:               Name of the Plex view (e.g. 'My TV shows')
+            viewId:                 Id/Key of Plex library (e.g. '1')
 
         Output: self.updatelist, self.allPlexElementsId
-            self.updatelist             APPENDED(!!) list itemids (Plex Keys as
-                                        as received from API.getKey())
-              = [
-                    {
-                        'itemId': xxx,
-                        'itemType': 'Movies'/'TVShows'/...,
-                        'method': 'add_update', 'add_updateSeason', ...
-                        'viewName': xxx,
-                        'viewId': xxx
-                    }, ...
-                ]
-            self.allPlexElementsId      APPENDED(!!) dic
+            self.updatelist         APPENDED(!!) list itemids (Plex Keys as
+                                    as received from API.getKey())
+            One item in this list is of the form:
+                'itemId': xxx,
+                'itemType': 'Movies','TVShows', ...
+                'method': 'add_update', 'add_updateSeason', ...
+                'viewName': xxx,
+                'viewId': xxx
+
+            self.allPlexElementsId      APPENDED(!!) dict
                 = {itemid: checksum}
         """
         if self.compare:
@@ -635,6 +631,7 @@ class LibrarySync(threading.Thread):
         by then calling itemtypes.<itemType>()
 
         Input:
+            itemType:               'Movies', 'TVShows', ...
             self.updatelist
         """
         # Some logging, just in case.
@@ -672,7 +669,6 @@ class LibrarySync(threading.Thread):
             thread.start()
             threads.append(thread)
         self.logMsg("%s download threads spawned" % self.syncThreadNumber, 1)
-        self.logMsg("Queue populated", 1)
         # Spawn one more thread to process Metadata, once downloaded
         thread = ThreadedProcessMetadata(processMetadataQueue,
                                          itemType,
@@ -783,17 +779,17 @@ class LibrarySync(threading.Thread):
         """
         starttotal = datetime.now()
         plx = PlexAPI.PlexAPI()
-        # Download XML, not JSON
+        # Download XML, not JSON, because PMS JSON seems to be damaged
         headerOptions = {'Accept': 'application/xml'}
         plexItems = plx.GetAllPlexLeaves(viewId,
                                          headerOptions=headerOptions)
         itemMth = getattr(itemtypes, itemType)
         with itemMth() as method:
-            method.UpdateWatched(plexItems)
+            method.updateUserdata(plexItems)
 
         elapsedtotal = datetime.now() - starttotal
         self.logMsg("Syncing userdata for itemtype %s and viewid %s took "
-                    "%s seconds" % (itemType, viewId, elapsedtotal), 0)
+                    "%s seconds" % (itemType, viewId, elapsedtotal), 1)
 
     def musicvideos(self, embycursor, kodicursor, pdialog):
         # Get musicvideos from emby
@@ -877,6 +873,7 @@ class LibrarySync(threading.Thread):
                 self.allKodiElementsId.update(all_kodiepisodes)
             except ValueError:
                 pass
+        # Close DB connections
         embyconn.close()
 
         ##### PROCESS TV Shows #####

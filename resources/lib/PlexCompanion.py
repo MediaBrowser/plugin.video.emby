@@ -80,15 +80,12 @@ class PlexCompanion(threading.Thread):
                 message_count += 1
 
                 if message_count > 30:
-                    if self.stopped():
-                        break
                     if self.client.check_client_registration():
                         self.logMsg("Client is still registered", 1)
                     else:
-                        self.logMsg("Client is no longer registered",
-                                    1)
-                        self.logMsg("PlexBMC Helper still running on "
-                                    "port %s" % self.port, 1)
+                        self.logMsg("Client is no longer registered", 1)
+                        self.logMsg("PlexBMC Helper still running on port %s"
+                                    % self.port, 1)
                     message_count = 0
 
                 if not is_running:

@@ -90,7 +90,7 @@ class Main:
                 folderid = params['folderid'][0]
                 modes[mode](itemid, folderid)
             elif mode == "companion":
-                resume = params.get('resume', '')
+                resume = params.get('resume', '')[0]
                 modes[mode](itemid, resume=resume)
             else:
                 modes[mode]()

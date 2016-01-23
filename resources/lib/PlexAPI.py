@@ -90,8 +90,6 @@ class PlexAPI():
         self.userId = utils.window('emby_currUser')
         self.token = utils.window('emby_accessToken%s' % self.userId)
         self.server = utils.window('emby_server%s' % self.userId)
-        self.plexLogin = utils.settings('plexLogin')
-        self.plexToken = utils.settings('plexToken')
 
         self.doUtils = downloadutils.DownloadUtils()
 
@@ -797,6 +795,8 @@ class PlexAPI():
         """
         # Get addon infos
         xargs = {
+            "Content-type": "application/x-www-form-urlencoded",
+            "Access-Control-Allow-Origin": "*",
             'X-Plex-Language': 'en',
             'X-Plex-Device': self.addonName,
             'X-Plex-Client-Platform': self.platform,
@@ -1052,8 +1052,8 @@ class PlexAPI():
 
         Will return empty strings if failed.
         """
-        plexLogin = self.plexLogin
-        plexToken = self.plexToken
+        plexLogin = utils.settings('plexLogin')
+        plexToken = utils.settings('plexToken')
         machineIdentifier = utils.settings('plex_machineIdentifier')
         self.logMsg("Getting user list.", 1)
         # Get list of Plex home users
@@ -1412,7 +1412,7 @@ class PlexAPI():
 
     def GetPlexSectionResults(self, viewId, headerOptions={}):
         """
-        Returns a list (raw JSON API dump) of all Plex items in the Plex
+        Returns a list (raw JSON or XML API dump) of all Plex items in the Plex
         section with key = viewId.
         """
         result = []
@@ -1421,21 +1421,29 @@ class PlexAPI():
         try:
             result = jsondata['_children']
         except TypeError:
-            # Received an XML
-            pass
-        except:
+            # Maybe we received an XML, check for that with tag attribute
+            try:
+                jsondata.tag
+                result = jsondata
+            # Nope, not an XML, abort
+            except AttributeError:
+                self.logMsg("Error retrieving all items for Plex section %s"
+                            % viewId, -1)
+                return result
+        except KeyError:
             self.logMsg("Error retrieving all items for Plex section %s"
                         % viewId, -1)
-            return []
         return result
 
     def GetAllPlexLeaves(self, viewId, headerOptions={}):
         """
-        Returns a list (raw JSON API dump) of all Plex subitems for the key.
+        Returns a list (raw JSON or XML API dump) of all Plex subitems for the
+        key.
         (e.g. /library/sections/2/allLeaves pointing to all TV shows)
 
         Input:
             viewId            Id of Plex library, e.g. '2'
+            headerOptions     to override the download headers
         """
         result = []
         url = "{server}/library/sections/%s/allLeaves" % viewId
@@ -1443,12 +1451,18 @@ class PlexAPI():
         try:
             result = jsondata['_children']
         except TypeError:
-            # received an XMl
-            pass
+            # Maybe we received an XML, check for that with tag attribute
+            try:
+                jsondata.tag
+                result = jsondata
+            # Nope, not an XML, abort
+            except AttributeError:
+                self.logMsg("Error retrieving all leaves for Plex section %s"
+                            % viewId, -1)
+                return result
         except KeyError:
-            self.logMsg("Error retrieving all children for Plex viewId %s"
+            self.logMsg("Error retrieving all leaves for Plex viewId %s"
                         % viewId, -1)
-            pass
         return result
 
     def GetAllPlexChildren(self, key):
@@ -1471,10 +1485,12 @@ class PlexAPI():
 
     def GetPlexMetadata(self, key):
         """
-        Returns raw API metadata for key.
+        Returns raw API metadata for key as an etree XML.
 
         Can be called with either Plex key '/library/metadata/xxxx'metadata
         OR with the digits 'xxxx' only.
+
+        Returns an empty string '' if something went wrong
         """
         xml = ''
         key = str(key)
@@ -1495,9 +1511,13 @@ class PlexAPI():
         url = url + '?' + urlencode(arguments)
         headerOptions = {'Accept': 'application/xml'}
         xml = self.doUtils.downloadUrl(url, headerOptions=headerOptions)
-        if not xml:
+        # Did we receive a valid XML?
+        try:
+            xml.tag
+        # Nope we did not receive a valid XML
+        except AttributeError:
             self.logMsg("Error retrieving metadata for %s" % url, -1)
-            xml = None
+            xml = ''
         return xml
 
 
@@ -1534,7 +1554,6 @@ class API():
         Which child in the XML response shall we look at and work with?
         """
         self.child = int(number)
-        self.logMsg("Set child number to %s" % number, 1)
 
     def getChildNumber(self):
         """
@@ -1592,7 +1611,7 @@ class API():
     def getChecksum(self):
         """
         Can be used on both XML and JSON
-        Returns a string, not int!
+        Returns a string, not int
         """
         item = self.item
         # XML

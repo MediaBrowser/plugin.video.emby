@@ -32,7 +32,7 @@ import embydb_functions
 #################################################################################################
 
 
-def plexCompanion(fullurl, resume=""):
+def plexCompanion(fullurl, resume=None):
     regex = re.compile(r'''/(\d+)$''')
     itemid = regex.findall(fullurl)
     try:
@@ -49,9 +49,12 @@ def plexCompanion(fullurl, resume=""):
     # Get dbid using itemid
     dbid = emby.getItem_byId(itemid)[0]
     embyconn.close()
+    # Fix resume timing
+    if resume:
+        resume = round(float(resume) / 1000.0, 6)
     # Start playing
     item = PlexAPI.PlexAPI().GetPlexMetadata(itemid)
-    pbutils.PlaybackUtils(item).play(itemid, dbid)
+    pbutils.PlaybackUtils(item).play(itemid, dbid, seektime=resume)
 
 
 def doPlayback(itemid, dbid):
