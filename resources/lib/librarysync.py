@@ -971,12 +971,16 @@ class LibrarySync(threading.Thread):
         for type in types:
 
             if pdialog:
+                pdialog.update(
+                    heading="Emby for Kodi",
+                    message="Gathering %s..." % type)
+
             all_embyitems = process[type][0](dialog=pdialog)
             total = all_embyitems['TotalRecordCount']
             embyitems = all_embyitems['Items']
 
             if pdialog:
-                pass
+                pdialog.update(heading="Processing %s / %s items" % (type, total))
 
             count = 0
             for embyitem in embyitems:
@@ -1095,7 +1099,6 @@ class LibrarySync(threading.Thread):
 
         kodicursor.close()
         embycursor.close()
-
 
     def compareDBVersion(self, current, minimum):
         # It returns True is database is up to date. False otherwise.
