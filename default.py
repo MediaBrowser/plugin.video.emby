@@ -106,7 +106,7 @@ class Main:
                     import librarysync
                     lib = librarysync.LibrarySync()
                     if mode == "manualsync":
-                        lib.fullSync(manualrun=True)
+                        librarysync.ManualSync()
                     else:
                         lib.fullSync(repair=True)
                 else:
