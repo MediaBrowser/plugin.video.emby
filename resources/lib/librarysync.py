@@ -1248,11 +1248,10 @@ class LibrarySync(threading.Thread):
         except Exception as e:
             utils.window('emby_dbScan', clear=True)
             xbmcgui.Dialog().ok(
-                        heading="Emby for Kodi",
-                        line1=(
-                            "Library sync thread has exited! "
-                            "You should restart Kodi now. "
-                            "Please report this on the forum."))
+                heading=self.addonName,
+                line1=("Library sync thread has exited! "
+                       "You should restart Kodi now. "
+                       "Please report this on the forum."))
             raise
 
     def run_internal(self):
@@ -1285,18 +1284,16 @@ class LibrarySync(threading.Thread):
                         % (currentVersion, minVersion), 0)
                     
                     resp = xbmcgui.Dialog().yesno(
-                                            heading="Db Version",
-                                            line1=(
-                                                "Detected the database needs to be "
-                                                "recreated for this version of Emby for Kodi. "
-                                                "Proceed?"))
+                        heading="Db Version",
+                        line1=("Detected the database needs to be recreated "
+                               "for this version of " + self.addonName +
+                               "Proceed?"))
                     if not resp:
                         self.logMsg("Db version out of date! USER IGNORED!", 0)
                         xbmcgui.Dialog().ok(
-                                        heading="Emby for Kodi",
-                                        line1=(
-                                            "Emby for Kodi may not work correctly "
-                                            "until the database is reset."))
+                            heading=self.addonName,
+                            line1=(self.addonName + " may not work correctly "
+                                   "until the database is reset."))
                     else:
                         utils.reset()
 
@@ -1309,18 +1306,17 @@ class LibrarySync(threading.Thread):
                 if not xbmcvfs.exists(videoDb):
                     # Database does not exists
                     self.logMsg(
-                            "The current Kodi version is incompatible "
-                            "with the Emby for Kodi add-on. Please visit "
-                            "https://github.com/MediaBrowser/Emby.Kodi/wiki "
-                            "to know which Kodi versions are supported.", 0)
+                        "The current Kodi version is incompatible "
+                        "with the" + self.addonName + " add-on. Please visit "
+                        "https://github.com/croneter/PlexKodiConnect "
+                        "to know which Kodi versions are supported.", 0)
 
                     xbmcgui.Dialog().ok(
-                                    heading="Emby Warning",
-                                    line1=(
-                                        "Cancelling the database syncing process. "
-                                        "Current Kodi versoin: %s is unsupported. "
-                                        "Please verify your logs for more info."
-                                        % xbmc.getInfoLabel('System.BuildVersion')))
+                        heading=self.addonName,
+                        line1=("Cancelling the database syncing process. "
+                               "Current Kodi version: %s is unsupported. "
+                               "Please verify your logs for more info."
+                               % xbmc.getInfoLabel('System.BuildVersion')))
                     break
 
                 # Run start up sync
