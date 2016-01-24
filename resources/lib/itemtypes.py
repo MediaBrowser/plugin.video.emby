@@ -1246,8 +1246,8 @@ class TVShows(Items):
             self.logMsg("UPDATE episode itemid: %s - Title: %s" % (itemid, title), 1)
 
             # Update the movie entry
-            if kodiversion == 16:
-                # Kodi Jarvis
+            if kodiversion in (16, 17):
+                # Kodi Jarvis, Krypton
                 query = ' '.join((
                 
                     "UPDATE episode",
@@ -1284,8 +1284,8 @@ class TVShows(Items):
             # Add the file
             fileid = kodi_db.addFile(filename, pathid)
             # Create the episode entry
-            if kodiversion == 16:
-                # Kodi Jarvis
+            if kodiversion in (16, 17):
+                # Kodi Jarvis, Krypton
                 query = (
                     '''
                     INSERT INTO episode(
@@ -1609,7 +1609,7 @@ class Music(Items):
             
 
         # Process the artist
-        if kodiversion == 16:
+        if self.kodiversion in (16, 17):
             query = ' '.join((
 
                 "UPDATE artist",
@@ -1696,7 +1696,18 @@ class Music(Items):
 
 
         # Process the album info
-        if kodiversion == 16:
+        if kodiversion == 17:
+            # Kodi Krypton
+            query = ' '.join((
+
+                "UPDATE album",
+                "SET strArtists = ?, iYear = ?, strGenres = ?, strReview = ?, strImage = ?,",
+                    "iUserrating = ?, lastScraped = ?, strReleaseType = ?",
+                "WHERE idAlbum = ?"
+            ))
+            kodicursor.execute(query, (artistname, year, genre, bio, thumb, rating, lastScraped,
+                "album", albumid))
+        elif kodiversion == 16:
             # Kodi Jarvis
             query = ' '.join((
 
@@ -1917,8 +1928,8 @@ class Music(Items):
                 # No album found, create a single's album
                 kodicursor.execute("select coalesce(max(idAlbum),0) from album")
                 albumid = kodicursor.fetchone()[0] + 1
-                if kodiversion == 16:
-                    # Kodi Jarvis
+                if kodiversion in (16, 17):
+                    # Kodi Jarvis, Krypton
                     query = (
                         '''
                         INSERT INTO album(idAlbum, strGenres, iYear, strReleaseType)
@@ -2029,8 +2040,8 @@ class Music(Items):
         else:
             if addArtist:
                 artists_onalbum = " / ".join(artists_name)
-                if kodiversion == 16:
-                    # Kodi Jarvis
+                if kodiversion in (16, 17):
+                    # Kodi Jarvis, Krypton
                     query = "UPDATE album SET strArtists = ? WHERE idAlbum = ?"
                     kodicursor.execute(query, (artists_onalbum, albumid))
                 elif kodiversion == 15:
