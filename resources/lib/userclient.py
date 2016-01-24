@@ -151,15 +151,13 @@ class UserClient(threading.Thread):
             if not s_token:
                 # Save access token if it's missing from settings
                 utils.settings('accessToken', value=w_token)
-            self.logMsg(
-                "Returning accessToken from WINDOW for username: %s accessToken: %s"
-                % (username, w_token), 2)
+            self.logMsg("Returning accessToken from WINDOW for username: %s "
+                        "accessToken: xxxxx" % username, 2)
             return w_token
         # Verify the settings
         elif s_token:
-            self.logMsg(
-                "Returning accessToken from SETTINGS for username: %s accessToken: %s"
-                % (username, s_token), 2)
+            self.logMsg("Returning accessToken from SETTINGS for username: %s "
+                        "accessToken: xxxxx" % username, 2)
             utils.window('emby_accessToken%s' % username, value=s_token)
             return s_token
         else:

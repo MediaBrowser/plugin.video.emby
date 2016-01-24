@@ -178,7 +178,7 @@ class PlaybackUtils():
                     playlist.add(additionalPlayurl, additionalListItem, index=currentPosition)
                     self.pl.verifyPlaylist()
                     currentPosition += 1
-                    i = i + 1
+                    i += 1
                 API.setPartNumber(0)
 
             if dummyPlaylist:

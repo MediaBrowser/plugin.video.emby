@@ -802,7 +802,7 @@ class PlexAPI():
             'X-Plex-Client-Platform': self.platform,
             'X-Plex-Device-Name': self.deviceName,
             'X-Plex-Platform': self.addonName,
-            'X-Plex-Platform-Version': 'no idea',
+            'X-Plex-Platform-Version': 'unknown',
             'X-Plex-Model': 'unknown',
             'X-Plex-Product': self.addonName,
             'X-Plex-Version': self.plexversion,

@@ -25,6 +25,14 @@ plexbmc = xbmcaddon.Addon('plugin.video.plexkodiconnect')
 settings['debug'] = utils.settings('companionDebugging')
 settings['gdm_debug'] = utils.settings('companionGDMDebugging')
 
+# Transform 'true' into True because of the way Kodi's file settings work
+kodiSettingsList = ['debug', 'gdm_debug']
+for entry in kodiSettingsList:
+    if settings[entry] == 'true':
+        settings[entry] = True
+    else:
+        settings[entry] = False
+
 settings['client_name'] = plexbmc.getSetting('deviceName')
 
 # XBMC web server settings

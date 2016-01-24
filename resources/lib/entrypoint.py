@@ -40,6 +40,7 @@ def plexCompanion(fullurl, resume=None):
     except IndexError:
         # No matches found, url not like:
         # http://192.168.0.2:32400/library/metadata/243480
+        utils.logMsg("plexCompanion", "Could not parse url: %s" % fullurl, -1)
         return False
         # TODO: direct play an URL
     # Initialize embydb
@@ -47,11 +48,19 @@ def plexCompanion(fullurl, resume=None):
     embycursor = embyconn.cursor()
     emby = embydb_functions.Embydb_Functions(embycursor)
     # Get dbid using itemid
-    dbid = emby.getItem_byId(itemid)[0]
+    # Works only for library items, not e.g. for trailers
+    try:
+        dbid = emby.getItem_byId(itemid)[0]
+    except TypeError:
+        # Trailers and the like
+        dbid = None
     embyconn.close()
     # Fix resume timing
     if resume:
-        resume = round(float(resume) / 1000.0, 6)
+        if resume == '0':
+            resume = None
+        else:
+            resume = round(float(resume) / 1000.0, 6)
     # Start playing
     item = PlexAPI.PlexAPI().GetPlexMetadata(itemid)
     pbutils.PlaybackUtils(item).play(itemid, dbid, seektime=resume)
@@ -77,7 +86,7 @@ def resetAuth():
                     "Plex might lock your account if you fail to log in too many times. "
                     "Proceed anyway?"))
     if resp == 1:
-        utils.logMsg("EMBY", "Reset login attempts.", 1)
+        utils.logMsg("PLEX", "Reset login attempts.", 1)
         utils.window('emby_serverStatus', value="Auth")
     else:
         xbmc.executebuiltin('Addon.OpenSettings(plugin.video.plexkodiconnect)')

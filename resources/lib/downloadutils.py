@@ -68,7 +68,7 @@ class DownloadUtils():
     def setToken(self, token):
         # Reserved for userclient only
         self.token = token
-        self.logMsg("Set token: %s" % token, 2)
+        self.logMsg("Set token: xxxxxxx", 2)
 
     def setSSL(self, ssl, sslclient):
         # Reserved for userclient only
