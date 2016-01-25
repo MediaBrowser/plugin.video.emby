@@ -61,6 +61,8 @@ class Service():
         utils.window('emby_kodiProfile', value=xbmc.translatePath("special://profile"))
         utils.window('emby_pluginpath', value=utils.settings('useDirectPaths'))
 
+        self.runPlexCompanion = utils.settings('plexCompanion')
+
         # Initial logging
         self.logMsg("======== START %s ========" % self.addonName, 0)
         self.logMsg("Platform: %s" % (self.clientInfo.getPlatform()), 0)
@@ -75,7 +77,8 @@ class Service():
             "emby_online", "emby_serverStatus", "emby_onWake",
             "emby_syncRunning", "emby_dbCheck", "emby_kodiScan",
             "emby_shouldStop", "emby_currUser", "emby_dbScan", "emby_sessionId",
-            "emby_initialScan", "emby_customplaylist", "emby_playbackProps"
+            "emby_initialScan", "emby_customplaylist", "emby_playbackProps",
+            "plex_runLibScan"
         ]
         for prop in properties:
             utils.window(prop, clear=True)
@@ -108,7 +111,7 @@ class Service():
         kplayer = player.Player()
         plx = PlexAPI.PlexAPI()
         plexCompanion = PlexCompanion.PlexCompanion()
-        plexCompanionDesired = utils.settings('plexCompanion')
+
         # Sync and progress report
         lastProgressUpdate = datetime.today()
 
@@ -273,7 +276,7 @@ class Service():
                         
                         # Start the Plex Companion thread
                         if not self.plexCompanion_running and \
-                                plexCompanionDesired == "true":
+                                self.runPlexCompanion == "true":
                             self.plexCompanion_running = True
                             plexCompanion.start()
 

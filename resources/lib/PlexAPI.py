@@ -161,7 +161,7 @@ class PlexAPI():
         """
         Prompts user to sign in by visiting https://plex.tv/pin
 
-        Writes username and token to Kodi settings file. Returns:
+        Writes plexhome, username and token to Kodi settings file. Returns:
         {
             'plexhome':          'true' if Plex Home, 'false' otherwise
             'username':

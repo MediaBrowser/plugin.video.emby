@@ -64,7 +64,8 @@ class Main:
             'inprogressepisodes': entrypoint.getInProgressEpisodes,
             'recentepisodes': entrypoint.getRecentEpisodes,
             'refreshplaylist': entrypoint.refreshPlaylist,
-            'companion': entrypoint.plexCompanion
+            'companion': entrypoint.plexCompanion,
+            'switchuser': entrypoint.switchPlexUser
         }
         
         if "extrafanart" in sys.argv[0]:
@@ -98,9 +99,6 @@ class Main:
             # Other functions
             if mode == "settings":
                 xbmc.executebuiltin('Addon.OpenSettings(plugin.video.plexkodiconnect)')
-            if mode == "switchuser":
-                xbmc.log('Requesting user switch')
-                utils.window('emby_serverStatus', value="401")
             elif mode in ("manualsync", "repair"):
                 if utils.window('emby_dbScan') != "true":
                     import librarysync

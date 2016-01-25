@@ -119,6 +119,12 @@ def doMainListing():
             elif path and not xbmc.getCondVisibility("Window.IsActive(VideoLibrary) | Window.IsActive(Pictures) | Window.IsActive(MusicLibrary)"):
                 addDirectoryItem(label, path)
 
+    # Plex user switch, if Plex home is in use
+    if utils.settings('plexhome') == 'true':
+        addDirectoryItem("Switch Plex Home User",
+                         "plugin://plugin.video.plexkodiconnect/"
+                         "?mode=switchuser")
+
     #experimental live tv nodes
     addDirectoryItem("Live Tv Channels (experimental)", "plugin://plugin.video.plexkodiconnect/?mode=browsecontent&type=tvchannels&folderid=root")
     addDirectoryItem("Live Tv Recordings (experimental)", "plugin://plugin.video.plexkodiconnect/?mode=browsecontent&type=recordings&folderid=root")
@@ -256,6 +262,27 @@ def addUser():
             value=art.getUserArtwork(result['Id'], 'Primary'))
         utils.window('EmbyAdditionalUserPosition.%s' % userid, value=str(count))
         count +=1
+
+
+def switchPlexUser():
+    """
+    Signs out currently logged in user (if applicable). Triggers sign-in of a
+    new user
+    """
+    # Guess these user avatars are a future feature. Skipping for now
+    # Delete any userimages. Since there's always only 1 user: position = 0
+    # position = 0
+    # utils.window('EmbyAdditionalUserImage.%s' % position, clear=True)
+    utils.logMsg("PLEX", "Plex home user switch requested", 0)
+    # Pause library sync thread - user needs to be auth in order to sync
+    lib = librarysync.LibrarySync()
+    lib.suspendThread()
+    # Log out currently signed in user:
+    utils.window('emby_serverStatus', value="401")
+    # Request lib sync to get user view data (e.g. watched/unwatched)
+    utils.window('plex_runLibScan', value='true')
+    # Reset Plex userdata: resume points, watched/unwatched status
+
 
 ##### THEME MUSIC/VIDEOS #####
 def getThemeMedia():

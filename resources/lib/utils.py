@@ -20,6 +20,20 @@ import clientinfo
 #################################################################################################
 
 
+def borg(cls):
+    """
+    Dekorator to turn a class into a borg class with an added "@utils.borg"
+    """
+    cls._state = {}
+    orig_init = cls.__init__
+
+    def new_init(self, *args, **kwargs):
+        self.__dict__ = cls._state
+        orig_init(self, *args, **kwargs)
+    cls.__init__ = new_init
+    return cls
+
+
 class logDecor(object):
     """
     A decorator adding logging capabilities.
@@ -402,7 +416,7 @@ def passwordsXML():
             
             settings('networkCreds', value="")
             xbmcgui.Dialog().notification(
-                                heading="Emby for Kodi",
+                                heading='PlexKodiConnect',
                                 message="%s removed from passwords.xml" % credentials,
                                 icon="special://home/addons/plugin.video.plexkodiconnect/icon.png",
                                 time=1000,
@@ -419,7 +433,7 @@ def passwordsXML():
         dialog.ok(
             heading="Network credentials",
             line1= (
-                "Input the server name or IP address as indicated in your emby library paths. "
+                "Input the server name or IP address as indicated in your plex library paths. "
                 'For example, the server name: \\\\SERVER-PC\\path\\ is "SERVER-PC".'))
         server = dialog.input("Enter the server name or IP address")
         if not server:
@@ -461,7 +475,7 @@ def passwordsXML():
     etree.ElementTree(root).write(xmlpath)
     
     dialog.notification(
-            heading="Emby for Kodi",
+            heading="PlexKodiConnect",
             message="%s added to passwords.xml" % server,
             icon="special://home/addons/plugin.video.plexkodiconnect/icon.png",
             time=1000,

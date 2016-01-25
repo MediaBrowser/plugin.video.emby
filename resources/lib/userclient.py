@@ -14,6 +14,7 @@ import clientinfo
 import downloadutils
 
 import PlexAPI
+import librarysync
 
 ##################################################################################################
 
@@ -21,7 +22,7 @@ import PlexAPI
 class UserClient(threading.Thread):
 
     # Borg - multiple instances, shared state
-    _shared_state = {}
+    __shared_state = {}
 
     stopClient = False
     auth = True
@@ -39,7 +40,7 @@ class UserClient(threading.Thread):
 
     def __init__(self):
 
-        self.__dict__ = self._shared_state
+        self.__dict__ = self.__shared_state
         self.addon = xbmcaddon.Addon()
 
         self.addonName = clientinfo.ClientInfo().getAddonName()
@@ -267,6 +268,7 @@ class UserClient(threading.Thread):
     def authenticate(self):
         # Get /profile/addon_data
         plx = PlexAPI.PlexAPI()
+        lib = librarysync.LibrarySync()
         addondir = xbmc.translatePath(self.addon.getAddonInfo('profile')).decode('utf-8')
         hasSettings = xbmcvfs.exists("%ssettings.xml" % addondir)
 
@@ -294,6 +296,7 @@ class UserClient(threading.Thread):
                 self.logMsg("Current user: %s" % self.currUser, 1)
                 self.logMsg("Current userId: %s" % self.currUserId, 1)
                 self.logMsg("Current accessToken: xxxx", 1)
+                lib.resumeThread()
                 return
 
         ##### AUTHENTICATE USER #####
@@ -310,11 +313,17 @@ class UserClient(threading.Thread):
         # Check connection
         if plx.CheckConnection(server, accessToken) == 200:
             self.currUser = username
+            dialog = xbmcgui.Dialog()
             if username:
-                xbmcgui.Dialog().notification(self.addonName, "Welcome %s"
-                                              % username)
+                dialog.notification(self.addonName,
+                                    "Welcome %s" % username,
+                                    "special://home/addons/plugin.video."
+                                    "plexkodiconnect/icon.png")
             else:
-                xbmcgui.Dialog().notification(self.addonName, "Welcome")
+                dialog.notification(self.addonName,
+                                    "Welcome",
+                                    "special://home/addons/plugin.video."
+                                    "plexkodiconnect/icon.png")
             utils.settings('accessToken', value=accessToken)
             utils.settings('userId%s' % username, value=userId)
             self.logMsg("User authenticated with an access token", 1)
@@ -322,8 +331,10 @@ class UserClient(threading.Thread):
             utils.window('emby_serverStatus', clear=True)
             # Write plex_machineIdentifier to window
             plex_machineIdentifier = utils.settings('plex_machineIdentifier')
-            utils.windows('plex_machineIdentifier', plex_machineIdentifier)
+            utils.window('plex_machineIdentifier', plex_machineIdentifier)
             self.retry = 0
+            # Make sure that lib sync thread is not paused
+            lib.resumeThread()
         else:
             self.logMsg("Error: user authentication failed.", -1)
             utils.settings('accessToken', value="")
