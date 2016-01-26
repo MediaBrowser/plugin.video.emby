@@ -22,6 +22,7 @@ logging.basicConfig()
 #################################################################################################
 
 
+@utils.logging
 class WebSocket_Client(threading.Thread):
 
     _shared_state = {}
@@ -37,17 +38,10 @@ class WebSocket_Client(threading.Thread):
         
         self.doUtils = downloadutils.DownloadUtils()
         self.clientInfo = clientinfo.ClientInfo()
-        self.addonName = self.clientInfo.getAddonName()
         self.deviceId = self.clientInfo.getDeviceId()
         self.librarySync = librarysync.LibrarySync()
         
         threading.Thread.__init__(self)
-
-    def logMsg(self, msg, lvl=1):
-
-        self.className = self.__class__.__name__
-        utils.logMsg("%s %s" % (self.addonName, self.className), msg, lvl)
-
 
     def sendProgressUpdate(self, data):
         self.logMsg("sendProgressUpdate", 2)

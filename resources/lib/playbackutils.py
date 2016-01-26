@@ -10,7 +10,6 @@ import xbmcgui
 import xbmcplugin
 
 import artwork
-import clientinfo
 import downloadutils
 import playutils as putils
 import playlist
@@ -22,6 +21,7 @@ import PlexAPI
 #################################################################################################
 
 
+@utils.logging
 class PlaybackUtils():
     
     
@@ -30,8 +30,6 @@ class PlaybackUtils():
         self.item = item
         self.API = PlexAPI.API(self.item)
 
-        self.clientInfo = clientinfo.ClientInfo()
-        self.addonName = self.clientInfo.getAddonName()
         self.doUtils = downloadutils.DownloadUtils()
 
         self.userid = utils.window('emby_currUser')
@@ -41,11 +39,6 @@ class PlaybackUtils():
         self.artwork = artwork.Artwork()
         self.emby = embyserver.Read_EmbyServer()
         self.pl = playlist.Playlist()
-
-    def logMsg(self, msg, lvl=1):
-
-        self.className = self.__class__.__name__
-        utils.logMsg("%s %s" % (self.addonName, self.className), msg, lvl)
 
     def play(self, itemid, dbid=None, seektime=None):
 

@@ -12,12 +12,12 @@ import xbmcgui
 import xbmcvfs
 
 import utils
-import clientinfo
 import image_cache_thread
 
 #################################################################################################
 
 
+@utils.logging
 class Artwork():   
     
     xbmc_host = 'localhost'
@@ -29,8 +29,6 @@ class Artwork():
     imageCacheLimitThreads = 0
 
     def __init__(self):
-        self.clientinfo = clientinfo.ClientInfo()
-        self.addonName = self.clientinfo.getAddonName()
 
         self.enableTextureCache = utils.settings('enableTextureCache') == "true"
         self.imageCacheLimitThreads = int(utils.settings("imageCacheLimit"))
@@ -42,11 +40,6 @@ class Artwork():
 
         self.userId = utils.window('emby_currUser')
         self.server = utils.window('emby_server%s' % self.userId)
-
-    def logMsg(self, msg, lvl=1):
-        className = self.__class__.__name__
-        utils.logMsg("%s %s" % (self.addonName, className), msg, lvl)
-    
 
     def double_urlencode(self, text):
         text = self.single_urlencode(text)
@@ -502,6 +495,7 @@ class Artwork():
         image = ("%s/emby/Users/%s/Images/%s?Format=original"
                     % (self.server, itemid, itemtype))
         return image
+
 
 def getAllArtwork(self, item, parentInfo=False):
 

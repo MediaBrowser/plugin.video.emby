@@ -177,6 +177,7 @@ class ThreadedShowSyncInfo(threading.Thread):
         self.dialog.close()
 
 
+@utils.logging
 @utils.ThreadMethodsStopsync
 @utils.ThreadMethods
 class LibrarySync(threading.Thread):
@@ -196,7 +197,6 @@ class LibrarySync(threading.Thread):
         self.__dict__ = self._shared_state
 
         self.clientInfo = clientinfo.ClientInfo()
-        self.addonName = self.clientInfo.getAddonName()
         self.doUtils = downloadutils.DownloadUtils()
         self.user = userclient.UserClient()
         self.emby = embyserver.Read_EmbyServer()
@@ -205,12 +205,6 @@ class LibrarySync(threading.Thread):
         self.syncThreadNumber = int(utils.settings('syncThreadNumber'))
 
         threading.Thread.__init__(self)
-
-    def logMsg(self, msg, lvl=1):
-
-        className = self.__class__.__name__
-        utils.logMsg("%s %s" % (self.addonName, className), msg, lvl)
-
 
     def progressDialog(self, title, forced=False):
 

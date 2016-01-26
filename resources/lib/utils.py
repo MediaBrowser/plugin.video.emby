@@ -9,15 +9,17 @@ import sqlite3
 import time
 import unicodedata
 import xml.etree.ElementTree as etree
+from functools import wraps, update_wrapper
 
 import xbmc
 import xbmcaddon
 import xbmcgui
 import xbmcvfs
 
-import clientinfo
 
 #################################################################################################
+
+addonName = xbmcaddon.Addon().getAddonInfo('name')
 
 
 def ThreadMethodsStopsync(cls):
@@ -82,32 +84,29 @@ def ThreadMethods(cls):
     return cls
 
 
-class logDecor(object):
+def logging(cls):
     """
-    A decorator adding logging capabilities.
+    A decorator adding logging capabilities to classes. Also adds
+    self.addonName to the class
 
     Syntax: self.logMsg(message, loglevel)
 
     Loglevel: -2 (Error) to 2 (DB debug)
     """
-    def __init__(self, f):
-        """
-        If there are no decorator arguments, the function to be decorated is
-        passed to the constructor.
-        """
-        self.f = f
-        self.addonName = clientinfo.ClientInfo().getAddonName()
+    # Attach new attributes to class
+    cls.addonName = addonName
 
-    def __call__(self, *args, **kwargs):
-        """
-        The __call__ method is not called until the
-        decorated function is called.
-        """
-        def decorLog(self, msg, lvl=1):
-            className = self.__class__.__name__
-            logMsg("%s %s" % (self.addonName, className), msg, lvl)
-        # The function itself:
-        self.f(*args, **kwargs)
+    # Define new class methods and attach them to class
+    def newFunction(self, msg, lvl=0):
+        title = "%s %s" % (self.addonName, cls.__name__)
+        logMsg(title, msg, lvl)
+    cls.logMsg = newFunction
+
+    # Override the name, we don't want the decorators name showing up
+    __name__ = cls.__name__
+
+    # Return class to render this a decorator
+    return cls
 
 
 def logMsg(title, msg, level=1):
@@ -120,16 +119,20 @@ def logMsg(title, msg, level=1):
     
     if logLevel >= level:
         
-        if logLevel == 2: # inspect.stack() is expensive
+        if logLevel == 2:  # inspect is expensive
+            func = inspect.currentframe().f_back.f_back.f_code
             try:
-                xbmc.log("%s -> %s : %s" % (title, inspect.stack()[1][3], msg))
+                xbmc.log("%s -> %s : %s" % (
+                    title, func.co_name, msg))
             except UnicodeEncodeError:
-                xbmc.log("%s -> %s : %s" % (title, inspect.stack()[1][3], msg.encode('utf-8')))
+                xbmc.log("%s -> %s : %s" % (
+                    title, func.co_name, msg.encode('utf-8')))
         else:
             try:
                 xbmc.log("%s -> %s" % (title, msg))
             except UnicodeEncodeError:
                 xbmc.log("%s -> %s" % (title, msg.encode('utf-8')))
+
 
 def window(property, value=None, clear=False, windowid=10000):
     # Get or set window property

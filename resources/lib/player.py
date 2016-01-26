@@ -10,7 +10,6 @@ import xbmcgui
 import utils
 import clientinfo
 import downloadutils
-import kodidb_functions as kodidb
 import websocket_client as wsc
 
 from urllib import urlencode
@@ -18,6 +17,7 @@ from urllib import urlencode
 #################################################################################################
 
 
+@utils.logging
 class Player(xbmc.Player):
 
     # Borg - multiple instances, shared state
@@ -27,24 +27,16 @@ class Player(xbmc.Player):
     playStats = {}
     currentFile = None
 
-
     def __init__(self):
 
         self.__dict__ = self._shared_state
 
         self.clientInfo = clientinfo.ClientInfo()
-        self.addonName = self.clientInfo.getAddonName()
         self.doUtils = downloadutils.DownloadUtils()
         self.ws = wsc.WebSocket_Client()
         self.xbmcplayer = xbmc.Player()
 
         self.logMsg("Starting playback monitor.", 2)
-
-    def logMsg(self, msg, lvl=1):
-        
-        self.className = self.__class__.__name__
-        utils.logMsg("%s %s" % (self.addonName, self.className), msg, lvl)
-
 
     def GetPlayStats(self):
         return self.playStats

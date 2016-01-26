@@ -7,7 +7,6 @@ import json
 import xbmc
 import xbmcgui
 
-import clientinfo
 import downloadutils
 import embydb_functions as embydb
 import playbackutils as pbutils
@@ -18,22 +17,15 @@ from urllib import urlencode
 #################################################################################################
 
 
+@utils.logging
 class KodiMonitor(xbmc.Monitor):
 
 
     def __init__(self):
 
-        self.clientInfo = clientinfo.ClientInfo()
-        self.addonName = self.clientInfo.getAddonName()
         self.doUtils = downloadutils.DownloadUtils()
 
         self.logMsg("Kodi monitor started.", 1)
-
-    def logMsg(self, msg, lvl=1):
-
-        self.className = self.__class__.__name__
-        utils.logMsg("%s %s" % (self.addonName, self.className), msg, lvl)
-
 
     def onScanStarted(self, library):
         self.logMsg("Kodi library scan %s running." % library, 2)

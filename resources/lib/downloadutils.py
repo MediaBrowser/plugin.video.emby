@@ -2,11 +2,11 @@
 
 ##################################################################################################
 
-import json
+# import json
 import requests
-import logging
+# import logging
 
-import xbmc
+# import xbmc
 import xbmcgui
 
 import utils
@@ -28,27 +28,20 @@ requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 ##################################################################################################
 
 
+@utils.logging
 class DownloadUtils():
     
     # Borg - multiple instances, shared state
     _shared_state = {}
     clientInfo = clientinfo.ClientInfo()
-    addonName = clientInfo.getAddonName()
 
     # Requests session
     s = None
     timeout = 30
 
-
     def __init__(self):
 
         self.__dict__ = self._shared_state
-
-    def logMsg(self, msg, lvl=1):
-
-        className = self.__class__.__name__
-        utils.logMsg("%s %s" % (self.addonName, className), msg, lvl)
-
 
     def setUsername(self, username):
         # Reserved for userclient only

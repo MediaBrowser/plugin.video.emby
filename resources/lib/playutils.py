@@ -14,6 +14,7 @@ import PlexAPI
 #################################################################################################
 
 
+@utils.logging
 class PlayUtils():
     
     
@@ -22,19 +23,12 @@ class PlayUtils():
         self.item = item
 
         self.clientInfo = clientinfo.ClientInfo()
-        self.addonName = self.clientInfo.getAddonName()
 
         self.userid = utils.window('emby_currUser')
         self.server = utils.window('emby_server%s' % self.userid)
         self.machineIdentifier = utils.window('plex_machineIdentifier')
 
         self.API = PlexAPI.API(item)
-
-    def logMsg(self, msg, lvl=1):
-
-        self.className = self.__class__.__name__
-        utils.logMsg("%s %s" % (self.addonName, self.className), msg, lvl)
-    
 
     def getPlayUrl(self, child=0, partIndex=None):
         item = self.item

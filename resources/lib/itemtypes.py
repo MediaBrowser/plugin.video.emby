@@ -12,7 +12,6 @@ import xbmcvfs
 
 import api
 import artwork
-import clientinfo
 import downloadutils
 import utils
 import embydb_functions as embydb
@@ -20,11 +19,11 @@ import kodidb_functions as kodidb
 import read_embyserver as embyserver
 import musicutils as musicutils
 import PlexAPI
-import sys
 
 ##################################################################################################
 
 
+@utils.logging
 class Items(object):
     """
     Items to be called with "with Items as xxx:" to ensure that __enter__
@@ -32,8 +31,6 @@ class Items(object):
     """
 
     def __init__(self):
-        self.clientInfo = clientinfo.ClientInfo()
-        self.addonName = self.clientInfo.getAddonName()
         self.doUtils = downloadutils.DownloadUtils()
 
         self.kodiversion = int(xbmc.getInfoLabel("System.BuildVersion")[:2])
@@ -65,12 +62,6 @@ class Items(object):
         self.embyconn.close()
         self.kodiconn.close()
         return self
-
-    def logMsg(self, msg, lvl=1):
-
-        className = self.__class__.__name__
-        utils.logMsg("%s %s" % (self.addonName, className), msg, lvl)
-
 
     def itemsbyId(self, items, process, pdialog=None):
         # Process items by itemid. Process can be added, update, userdata, remove

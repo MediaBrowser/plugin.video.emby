@@ -6,30 +6,18 @@ import shutil
 import xml.etree.ElementTree as etree
 
 import xbmc
-import xbmcaddon
 import xbmcvfs
 
-import clientinfo
 import utils
 
 #################################################################################################
 
 
+@utils.logging
 class VideoNodes(object):
 
-
     def __init__(self):
-
-        clientInfo = clientinfo.ClientInfo()
-        self.addonName = clientInfo.getAddonName()
-
         self.kodiversion = int(xbmc.getInfoLabel("System.BuildVersion")[:2])
-
-    def logMsg(self, msg, lvl=1):
-
-        className = self.__class__.__name__
-        utils.logMsg("%s %s" % (self.addonName, className), msg, lvl)
-
 
     def commonRoot(self, order, label, tagname, roottype=1):
 

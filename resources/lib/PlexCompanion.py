@@ -12,12 +12,12 @@ from plexbmchelper import listener, plexgdm, subscribers
 from plexbmchelper.settings import settings
 
 
+@utils.logging
 @utils.ThreadMethods
 class PlexCompanion(threading.Thread):
     def __init__(self):
         self.port = int(utils.settings('companionPort'))
         ci = clientinfo.ClientInfo()
-        self.addonName = ci.getAddonName()
         self.clientId = ci.getDeviceId()
         self.deviceName = ci.getDeviceName()
         self.logMsg("----===## Starting PlexBMC Helper ##===----", 1)
@@ -33,10 +33,6 @@ class PlexCompanion(threading.Thread):
                     % self.client.getClientDetails(), 1)
 
         threading.Thread.__init__(self)
-
-    def logMsg(self, msg, lvl=1):
-        className = self.__class__.__name__
-        utils.logMsg("%s %s" % (self.addonName, className), msg, lvl)
 
     def run(self):
         start_count = 0

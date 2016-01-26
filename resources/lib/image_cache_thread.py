@@ -3,6 +3,8 @@ import utils
 import xbmc
 import requests
 
+
+@utils.logging
 class image_cache_thread(threading.Thread):
 
     urlToProcess = None
@@ -16,11 +18,7 @@ class image_cache_thread(threading.Thread):
     def __init__(self):
         self.monitor = xbmc.Monitor()
         threading.Thread.__init__(self)
-         
-    def logMsg(self, msg, lvl=1):
-        className = self.__class__.__name__
-        utils.logMsg("%s" % className, msg, lvl)
-        
+
     def setUrl(self, url):
         self.urlToProcess = url
         

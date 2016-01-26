@@ -14,19 +14,13 @@ import utils
 #################################################################################################
 
 
+@utils.logging
 class ClientInfo():
 
 
     def __init__(self):
 
         self.addon = xbmcaddon.Addon()
-        self.addonName = self.getAddonName()
-
-    def logMsg(self, msg, lvl=1):
-
-        className = self.__class__.__name__
-        utils.logMsg("%s %s" % (self.addonName, className), msg, lvl)
-
 
     def getAddonName(self):
         # Used for logging

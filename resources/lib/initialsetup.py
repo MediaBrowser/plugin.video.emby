@@ -16,6 +16,7 @@ import PlexAPI
 #################################################################################################
 
 
+@utils.logging
 class InitialSetup():
 
     def __init__(self):
@@ -24,16 +25,10 @@ class InitialSetup():
         self.__language__ = self.addon.getLocalizedString
 
         self.clientInfo = clientinfo.ClientInfo()
-        self.addonName = self.clientInfo.getAddonName()
         self.addonId = self.clientInfo.getAddonId()
         self.doUtils = downloadutils.DownloadUtils()
         self.userClient = userclient.UserClient()
         self.plx = PlexAPI.PlexAPI()
-    
-    def logMsg(self, msg, lvl=1):
-
-        className = self.__class__.__name__
-        utils.logMsg("%s %s" % (self.addonName, className), msg, lvl)
 
     def setup(self):
         """

@@ -4,7 +4,6 @@
 
 import xbmc
 
-import api
 import artwork
 import clientinfo
 import utils
@@ -12,24 +11,17 @@ import utils
 ##################################################################################################
 
 
+@utils.logging
 class Kodidb_Functions():
 
     kodiversion = int(xbmc.getInfoLabel("System.BuildVersion")[:2])
-    
 
     def __init__(self, cursor):
 
         self.cursor = cursor
         
         self.clientInfo = clientinfo.ClientInfo()
-        self.addonName = self.clientInfo.getAddonName()
         self.artwork = artwork.Artwork()
-
-    def logMsg(self, msg, lvl=1):
-
-        className = self.__class__.__name__
-        utils.logMsg("%s %s" % (self.addonName, className), msg, lvl)
-        
 
     def addPath(self, path):
 

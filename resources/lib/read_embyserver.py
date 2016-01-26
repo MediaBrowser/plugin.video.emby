@@ -3,31 +3,22 @@
 #################################################################################################
 
 import utils
-import clientinfo
 import downloadutils
 
 #################################################################################################
 
 
+@utils.logging
 class Read_EmbyServer():
 
     limitIndex = int(utils.settings('limitindex'))
 
-
     def __init__(self):
 
-        self.clientInfo = clientinfo.ClientInfo()
-        self.addonName = self.clientInfo.getAddonName()
         self.doUtils = downloadutils.DownloadUtils()
 
         self.userId = utils.window('emby_currUser')
         self.server = utils.window('emby_server%s' % self.userId)
-
-    def logMsg(self, msg, lvl=1):
-
-        className = self.__class__.__name__
-        utils.logMsg("%s %s" % (self.addonName, className), msg, lvl)
-
 
     def split_list(self, itemlist, size):
         # Split up list in pieces of size. Will generate a list of lists

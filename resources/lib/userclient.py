@@ -10,7 +10,6 @@ import xbmcaddon
 import xbmcvfs
 
 import utils
-import clientinfo
 import downloadutils
 
 import PlexAPI
@@ -19,6 +18,7 @@ import librarysync
 ##################################################################################################
 
 
+@utils.logging
 @utils.ThreadMethods
 class UserClient(threading.Thread):
 
@@ -37,22 +37,14 @@ class UserClient(threading.Thread):
 
     userSettings = None
 
-
     def __init__(self):
 
         self.__dict__ = self.__shared_state
         self.addon = xbmcaddon.Addon()
 
-        self.addonName = clientinfo.ClientInfo().getAddonName()
         self.doUtils = downloadutils.DownloadUtils()
 
         threading.Thread.__init__(self)
-
-    def logMsg(self, msg, lvl=1):
-        
-        className = self.__class__.__name__
-        utils.logMsg("%s %s" % (self.addonName, className), msg, lvl)
-
 
     def getAdditionalUsers(self):
 

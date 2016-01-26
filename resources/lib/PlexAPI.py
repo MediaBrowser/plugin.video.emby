@@ -60,17 +60,8 @@ try:
 except ImportError:
     import xml.etree.ElementTree as etree
 
-# from Version import __VERSION__
-# from Debug import *  # dprint(), prettyXML()
 
-
-"""
-storage for PMS addresses and additional information - now per aTV! (replaces global PMS_list)
-syntax: PMS[<ATV_UDID>][PMS_UUID][<data>]
-    data: name, ip, ...type (local, myplex)
-"""
-
-
+@utils.logging
 class PlexAPI():
     # CONSTANTS
     # Timeout for POST/GET commands, I guess in seconds
@@ -81,7 +72,6 @@ class PlexAPI():
         self.__language__ = xbmcaddon.Addon().getLocalizedString
         self.g_PMS = {}
         client = clientinfo.ClientInfo()
-        self.addonName = client.getAddonName()
         self.addonId = client.getAddonId()
         self.clientId = client.getDeviceId()
         self.deviceName = client.getDeviceName()
@@ -92,10 +82,6 @@ class PlexAPI():
         self.server = utils.window('emby_server%s' % self.userId)
 
         self.doUtils = downloadutils.DownloadUtils()
-
-    def logMsg(self, msg, lvl=1):
-        className = self.__class__.__name__
-        utils.logMsg("%s %s" % (self.addonName, className), msg, lvl)
 
     def GetPlexLoginFromSettings(self):
         """
@@ -1521,6 +1507,7 @@ class PlexAPI():
         return xml
 
 
+@utils.logging
 class API():
     """
     API(item)
@@ -1537,17 +1524,12 @@ class API():
         # which media part in the XML response shall we look at?
         self.part = 0
         self.clientinfo = clientinfo.ClientInfo()
-        self.addonName = self.clientinfo.getAddonName()
         self.clientId = self.clientinfo.getDeviceId()
         self.userId = utils.window('emby_currUser')
         self.server = utils.window('emby_server%s' % self.userId)
         self.token = utils.window('emby_accessToken%s' % self.userId)
 
         self.jumpback = int(utils.settings('resumeJumpBack'))
-
-    def logMsg(self, msg, lvl=1):
-        className = self.__class__.__name__
-        utils.logMsg("%s %s" % (self.addonName, className), msg, lvl)
 
     def setChildNumber(self, number=0):
         """

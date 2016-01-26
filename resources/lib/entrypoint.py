@@ -21,7 +21,6 @@ import downloadutils
 import librarysync
 import read_embyserver as embyserver
 import embydb_functions as embydb
-import playlist
 import playbackutils as pbutils
 import playutils
 import api

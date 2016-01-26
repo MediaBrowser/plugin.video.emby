@@ -6,9 +6,7 @@ import json
 
 import xbmc
 import xbmcgui
-import xbmcplugin
 
-import clientinfo
 import playutils
 import playbackutils
 import embydb_functions as embydb
@@ -18,24 +16,14 @@ import utils
 #################################################################################################
 
 
+@utils.logging
 class Playlist():
 
-
     def __init__(self):
-
-        self.clientInfo = clientinfo.ClientInfo()
-        self.addonName = self.clientInfo.getAddonName()
-
         self.userid = utils.window('emby_currUser')
         self.server = utils.window('emby_server%s' % self.userid)
 
         self.emby = embyserver.Read_EmbyServer()
-
-    def logMsg(self, msg, lvl=1):
-
-        self.className = self.__class__.__name__
-        utils.logMsg("%s %s" % (self.addonName, self.className), msg, lvl)
-
 
     def playAll(self, itemids, startat):
 

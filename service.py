@@ -37,6 +37,7 @@ import PlexCompanion
 #################################################################################################
 
 
+@utils.logging
 class Service():
 
     welcome_msg = True
@@ -53,7 +54,6 @@ class Service():
     def __init__(self):
 
         self.clientInfo = clientinfo.ClientInfo()
-        self.addonName = self.clientInfo.getAddonName()
         logLevel = userclient.UserClient().getLogLevel()
         self.monitor = xbmc.Monitor()
 
@@ -89,12 +89,6 @@ class Service():
         # Set the minimum database version
         utils.window('emby_minDBVersion', value="1.1.63")
 
-    def logMsg(self, msg, lvl=1):
-
-        className = self.__class__.__name__
-        utils.logMsg("%s %s" % (self.addonName, className), msg, lvl)
-
-       
     def ServiceEntryPoint(self):
         # Important: Threads depending on abortRequest will not trigger
         # if profile switch happens more than once.
