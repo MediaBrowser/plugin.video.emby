@@ -275,8 +275,7 @@ def switchPlexUser():
     # utils.window('EmbyAdditionalUserImage.%s' % position, clear=True)
     utils.logMsg("PLEX", "Plex home user switch requested", 0)
     # Pause library sync thread - user needs to be auth in order to sync
-    lib = librarysync.LibrarySync()
-    lib.suspendThread()
+    utils.window('suspend_LibraryThread', value='true')
     # Log out currently signed in user:
     utils.window('emby_serverStatus', value="401")
     # Request lib sync to get user view data (e.g. watched/unwatched)

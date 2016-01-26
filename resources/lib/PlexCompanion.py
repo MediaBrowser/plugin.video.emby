@@ -12,9 +12,9 @@ from plexbmchelper import listener, plexgdm, subscribers
 from plexbmchelper.settings import settings
 
 
+@utils.ThreadMethods
 class PlexCompanion(threading.Thread):
     def __init__(self):
-        self._shouldStop = threading.Event()
         self.port = int(utils.settings('companionPort'))
         ci = clientinfo.ClientInfo()
         self.addonName = ci.getAddonName()
@@ -37,13 +37,6 @@ class PlexCompanion(threading.Thread):
     def logMsg(self, msg, lvl=1):
         className = self.__class__.__name__
         utils.logMsg("%s %s" % (self.addonName, className), msg, lvl)
-
-    def stopClient(self):
-        # When emby for kodi terminates
-        self._shouldStop.set()
-
-    def stopped(self):
-        return self._shouldStop.isSet()
 
     def run(self):
         start_count = 0
@@ -73,7 +66,11 @@ class PlexCompanion(threading.Thread):
         self.client.start_all()
         message_count = 0
         is_running = False
-        while not self.stopped():
+        while not self.threadStopped():
+            while self.threadSuspended():
+                if self.threadStopped():
+                    break
+                xbmc.sleep(3000)
             try:
 
                 httpd.handle_request()

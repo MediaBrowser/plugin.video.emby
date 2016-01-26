@@ -26,6 +26,8 @@ import PlexAPI
 ##################################################################################################
 
 
+@utils.ThreadMethodsStopsync
+@utils.ThreadMethods
 class ThreadedGetMetadata(threading.Thread):
     """
     Threaded download of Plex XML metadata for a certain library item.
@@ -37,21 +39,17 @@ class ThreadedGetMetadata(threading.Thread):
         out_queue           Queue.Queue() object where this thread will store
                             the downloaded metadata XMLs as etree objects
         lock                threading.Lock(), used for counting where we are
-        userStop            Handle to a function where True is used to stop
-                            this Thread
     """
-    def __init__(self, queue, out_queue, lock, userStop):
+    def __init__(self, queue, out_queue, lock):
         self.queue = queue
         self.out_queue = out_queue
         self.lock = lock
-        self.userStop = userStop
-        self._shouldstop = threading.Event()
         threading.Thread.__init__(self)
 
     def run(self):
         plx = PlexAPI.PlexAPI()
         global getMetadataCount
-        while self.stopped() is False:
+        while self.threadStopped() is False:
             # grabs Plex item from queue
             try:
                 updateItem = self.queue.get(block=False)
@@ -76,13 +74,9 @@ class ThreadedGetMetadata(threading.Thread):
             # signals to queue job is done
             self.queue.task_done()
 
-    def stopThread(self):
-        self._shouldstop.set()
 
-    def stopped(self):
-        return self._shouldstop.isSet() or self.userStop()
-
-
+@utils.ThreadMethodsStopsync
+@utils.ThreadMethods
 class ThreadedProcessMetadata(threading.Thread):
     """
     Not yet implemented - if ever. Only to be called by ONE thread!
@@ -94,14 +88,11 @@ class ThreadedProcessMetadata(threading.Thread):
         itemType:   as used to call functions in itemtypes.py
                     e.g. 'Movies' => itemtypes.Movies()
         lock:       threading.Lock(), used for counting where we are
-        userStop    Handle to a function where True is used to stop this Thread
     """
-    def __init__(self, queue, itemType, lock, userStop):
+    def __init__(self, queue, itemType, lock):
         self.queue = queue
         self.lock = lock
         self.itemType = itemType
-        self.userStop = userStop
-        self._shouldstop = threading.Event()
         threading.Thread.__init__(self)
 
     def run(self):
@@ -110,7 +101,7 @@ class ThreadedProcessMetadata(threading.Thread):
         global processMetadataCount
         global processingViewName
         with itemFkt() as item:
-            while self.stopped() is False:
+            while self.threadStopped() is False:
                 # grabs item from queue
                 try:
                     updateItem = self.queue.get(block=False)
@@ -134,13 +125,9 @@ class ThreadedProcessMetadata(threading.Thread):
                 # signals to queue job is done
                 self.queue.task_done()
 
-    def stopThread(self):
-        self._shouldstop.set()
 
-    def stopped(self):
-        return self._shouldstop.isSet() or self.userStop()
-
-
+@utils.ThreadMethodsStopsync
+@utils.ThreadMethods
 class ThreadedShowSyncInfo(threading.Thread):
     """
     Threaded class to show the Kodi statusbar of the metadata download.
@@ -149,14 +136,11 @@ class ThreadedShowSyncInfo(threading.Thread):
         dialog       xbmcgui.DialogProgressBG() object to show progress
         locks = [downloadLock, processLock]     Locks() to the other threads
         total:       Total number of items to get
-        userStop:    function handle to stop thread
     """
-    def __init__(self, dialog, locks, total, itemType, userStop):
+    def __init__(self, dialog, locks, total, itemType):
         self.locks = locks
         self.total = total
-        self.userStop = userStop
         self.addonName = clientinfo.ClientInfo().getAddonName()
-        self._shouldstop = threading.Event()
         self.dialog = dialog
         self.itemType = itemType
         threading.Thread.__init__(self)
@@ -173,7 +157,7 @@ class ThreadedShowSyncInfo(threading.Thread):
         global processingViewName
         total = 2 * total
         totalProgress = 0
-        while self.stopped() is False:
+        while self.threadStopped() is False:
             with downloadLock:
                 getMetadataProgress = getMetadataCount
             with processLock:
@@ -192,19 +176,12 @@ class ThreadedShowSyncInfo(threading.Thread):
             xbmc.sleep(500)
         self.dialog.close()
 
-    def stopThread(self):
-        self._shouldstop.set()
 
-    def stopped(self):
-        return self._shouldstop.isSet() or self.userStop()
-
-
+@utils.ThreadMethodsStopsync
+@utils.ThreadMethods
 class LibrarySync(threading.Thread):
 
     _shared_state = {}
-
-    stop_thread = False
-    suspend_thread = False
 
     # Track websocketclient updates
     addedItems = []
@@ -214,11 +191,9 @@ class LibrarySync(threading.Thread):
     forceLibraryUpdate = False
     refresh_views = False
 
-
     def __init__(self):
 
         self.__dict__ = self._shared_state
-        self.monitor = xbmc.Monitor()
 
         self.clientInfo = clientinfo.ClientInfo()
         self.addonName = self.clientInfo.getAddonName()
@@ -307,15 +282,6 @@ class LibrarySync(threading.Thread):
         self.logMsg("New sync time: client time -%s min: %s"
                     % (overlap, lastSync), 1)
         utils.settings('LastIncrementalSync', value=lastSync)
-
-    def shouldStop(self):
-        # Checkpoint during the syncing process
-        if self.monitor.abortRequested():
-            return True
-        elif utils.window('emby_shouldStop') == "true":
-            return True
-        else: # Keep going
-            return False
 
     def initializeDBs(self):
         """
@@ -587,7 +553,7 @@ class LibrarySync(threading.Thread):
                 # Skipping XML item 'title=All episodes' without a 'ratingKey'
                 if not item.get('ratingKey', False):
                     continue
-                if self.shouldStop():
+                if self.threadStopped():
                     return False
                 API = PlexAPI.API(item)
                 plex_checksum = API.getChecksum()
@@ -610,7 +576,7 @@ class LibrarySync(threading.Thread):
                 # Only look at valid items = Plex library items
                 if not item.get('ratingKey', False):
                     continue
-                if self.shouldStop():
+                if self.threadStopped():
                     return False
                 API = PlexAPI.API(item)
                 itemId = API.getKey()
@@ -663,8 +629,7 @@ class LibrarySync(threading.Thread):
         for i in range(self.syncThreadNumber):
             thread = ThreadedGetMetadata(getMetadataQueue,
                                          processMetadataQueue,
-                                         getMetadataLock,
-                                         self.shouldStop)
+                                         getMetadataLock)
             thread.setDaemon(True)
             thread.start()
             threads.append(thread)
@@ -672,8 +637,7 @@ class LibrarySync(threading.Thread):
         # Spawn one more thread to process Metadata, once downloaded
         thread = ThreadedProcessMetadata(processMetadataQueue,
                                          itemType,
-                                         processMetadataLock,
-                                         self.shouldStop)
+                                         processMetadataLock)
         thread.setDaemon(True)
         thread.start()
         threads.append(thread)
@@ -682,13 +646,10 @@ class LibrarySync(threading.Thread):
         # Start one thread to show sync progress
         dialog = xbmcgui.DialogProgressBG()
         total = len(self.updatelist)
-        thread = ThreadedShowSyncInfo(
-            dialog,
-            [getMetadataLock, processMetadataLock],
-            total,
-            itemType,
-            self.shouldStop
-        )
+        thread = ThreadedShowSyncInfo(dialog,
+                                      [getMetadataLock, processMetadataLock],
+                                      total,
+                                      itemType)
         thread.setDaemon(True)
         thread.start()
         threads.append(thread)
@@ -703,9 +664,10 @@ class LibrarySync(threading.Thread):
         self.logMsg("Stop sent to all threads", 1)
         # Wait till threads are indeed dead
         for thread in threads:
-            thread.join(15.0)
+            thread.join(5.0)
             if thread.isAlive():
                 self.logMsg("Could not terminate thread", -1)
+        # Make sure dialog window is closed
         if dialog:
             dialog.close()
         self.logMsg("=====================", 1)
@@ -743,7 +705,7 @@ class LibrarySync(threading.Thread):
         ##### PROCESS MOVIES #####
         self.updatelist = []
         for view in views:
-            if self.shouldStop():
+            if self.threadStopped():
                 return False
             # Get items per view
             viewId = view['id']
@@ -802,7 +764,7 @@ class LibrarySync(threading.Thread):
 
         for view in views:
             
-            if self.shouldStop():
+            if self.threadStopped():
                 return False
 
             # Get items per view
@@ -825,7 +787,7 @@ class LibrarySync(threading.Thread):
             count = 0
             for embymvideo in embymvideos:
                 # Process individual musicvideo
-                if self.shouldStop():
+                if self.threadStopped():
                     return False
                 
                 title = embymvideo['Name']
@@ -879,7 +841,7 @@ class LibrarySync(threading.Thread):
         ##### PROCESS TV Shows #####
         self.updatelist = []
         for view in views:
-            if self.shouldStop():
+            if self.threadStopped():
                 return False
             # Get items per view
             viewId = view['id']
@@ -899,7 +861,7 @@ class LibrarySync(threading.Thread):
         ##### PROCESS TV Seasons #####
         # Cycle through tv shows
         for tvShowId in allPlexTvShowsId:
-            if self.shouldStop():
+            if self.threadStopped():
                 return False
             # Grab all seasons to tvshow from PMS
             seasons = plx.GetAllPlexChildren(tvShowId)
@@ -915,7 +877,7 @@ class LibrarySync(threading.Thread):
         ##### PROCESS TV Episodes #####
         # Cycle through tv shows
         for view in views:
-            if self.shouldStop():
+            if self.threadStopped():
                 return False
             # Grab all episodes to tvshow from PMS
             episodes = plx.GetAllPlexLeaves(view['id'])
@@ -982,7 +944,7 @@ class LibrarySync(threading.Thread):
             count = 0
             for embyitem in embyitems:
                 # Process individual item
-                if self.shouldStop():
+                if self.threadStopped():
                     return False
                 
                 title = embyitem['Name']
@@ -1128,18 +1090,17 @@ class LibrarySync(threading.Thread):
     def run_internal(self):
 
         startupComplete = False
-        monitor = self.monitor
 
         self.logMsg("---===### Starting LibrarySync ###===---", 0)
-
-        while not monitor.abortRequested():
+        while not self.threadStopped():
 
             # In the event the server goes offline
-            while self.suspend_thread:
+            while self.threadSuspended():
                 # Set in service.py
-                if monitor.waitForAbort(5):
+                if self.threadStopped():
                     # Abort was requested while waiting. We should exit
                     break
+                xbmc.sleep(3000)
 
             if (utils.window('emby_dbCheck') != "true" and
                     utils.settings('SyncInstallRunDone') == "true"):
@@ -1217,28 +1178,12 @@ class LibrarySync(threading.Thread):
                     librarySync = self.startSync()
                     self.logMsg("SyncDatabase onWake (finished) %s" % librarySync, 0)
 
-            if self.stop_thread:
+            if self.threadStopped():
                 # Set in service.py
                 self.logMsg("Service terminated thread.", 2)
                 break
 
-            if monitor.waitForAbort(1):
-                # Abort was requested while waiting. We should exit
-                break
-
         self.logMsg("###===--- LibrarySync Stopped ---===###", 0)
-
-    def stopThread(self):
-        self.stop_thread = True
-        self.logMsg("Ending thread...", 2)
-
-    def suspendThread(self):
-        self.suspend_thread = True
-        self.logMsg("Pausing thread...", 0)
-
-    def resumeThread(self):
-        self.suspend_thread = False
-        self.logMsg("Resuming thread...", 0)
 
 
 class ManualSync(LibrarySync):
@@ -1278,7 +1223,7 @@ class ManualSync(LibrarySync):
         ##### PROCESS MOVIES #####
         for view in views:
             
-            if self.shouldStop():
+            if self.threadStopped():
                 return False
 
             # Get items per view
@@ -1293,7 +1238,7 @@ class ManualSync(LibrarySync):
             all_embymovies = emby.getMovies(viewId, basic=True, dialog=pdialog)
             for embymovie in all_embymovies['Items']:
 
-                if self.shouldStop():
+                if self.threadStopped():
                     return False
 
                 API = api.API(embymovie)
@@ -1316,7 +1261,7 @@ class ManualSync(LibrarySync):
             count = 0
             for embymovie in embymovies:
                 # Process individual movies
-                if self.shouldStop():
+                if self.threadStopped():
                     return False
                 
                 title = embymovie['Name']
@@ -1338,7 +1283,7 @@ class ManualSync(LibrarySync):
 
         for boxset in boxsets['Items']:
 
-            if self.shouldStop():
+            if self.threadStopped():
                 return False
 
             # Boxset has no real userdata, so using etag to compare

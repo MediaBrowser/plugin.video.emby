@@ -293,7 +293,7 @@ class Service():
         ##### Emby thread is terminating. #####
 
         if self.plexCompanion_running:
-            plexCompanion.stopClient()
+            plexCompanion.stopThread()
 
         if self.library_running:
             library.stopThread()
@@ -302,7 +302,7 @@ class Service():
         #     ws.stopClient()
         
         if self.userclient_running:
-            user.stopClient()
+            user.stopThread()
 
         self.logMsg("======== STOP %s ========" % self.addonName, 0)
 

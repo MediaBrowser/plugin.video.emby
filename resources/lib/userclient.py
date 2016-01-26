@@ -19,12 +19,12 @@ import librarysync
 ##################################################################################################
 
 
+@utils.ThreadMethods
 class UserClient(threading.Thread):
 
     # Borg - multiple instances, shared state
     __shared_state = {}
 
-    stopClient = False
     auth = True
     retry = 0
 
@@ -366,10 +366,13 @@ class UserClient(threading.Thread):
 
     def run(self):
 
-        monitor = xbmc.Monitor()
         self.logMsg("----===## Starting UserClient ##===----", 0)
 
-        while not monitor.abortRequested():
+        while not self.threadStopped():
+            while self.threadSuspended():
+                if self.threadStopped():
+                    break
+                xbmc.sleep(3000)
 
             status = utils.window('emby_serverStatus')
             if status:
@@ -406,18 +409,5 @@ class UserClient(threading.Thread):
                     self.logMsg("Username found: %s" % username, 2)
                     self.auth = True
 
-
-            if self.stopClient == True:
-                # If stopping the client didn't work
-                break
-                
-            if monitor.waitForAbort(1):
-                # Abort was requested while waiting. We should exit
-                break
-        
-        self.doUtils.stopSession()    
+        self.doUtils.stopSession()
         self.logMsg("##===---- UserClient Stopped ----===##", 0)
-
-    def stopClient(self):
-        # When emby for kodi terminates
-        self.stopClient = True

@@ -20,17 +20,65 @@ import clientinfo
 #################################################################################################
 
 
-def borg(cls):
+def ThreadMethodsStopsync(cls):
     """
-    Dekorator to turn a class into a borg class with an added "@utils.borg"
-    """
-    cls._state = {}
-    orig_init = cls.__init__
+    Decorator to replace stopThread method to include the Kodi window property
+    'emby_shouldStop'
 
-    def new_init(self, *args, **kwargs):
-        self.__dict__ = cls._state
-        orig_init(self, *args, **kwargs)
-    cls.__init__ = new_init
+    Use with any library sync threads. @ThreadMethods still required FIRST
+    """
+    def threadStopped(self):
+        return (self._threadStopped or
+                self._abortMonitor.abortRequested() or
+                window('emby_shouldStop') == "true")
+    cls.threadStopped = threadStopped
+    return cls
+
+
+def ThreadMethods(cls):
+    """
+    Decorator to add the following methods to a threading class:
+
+    suspendThread():    pauses the thread
+    resumeThread():     resumes the thread
+    stopThread():       stopps the thread
+
+    threadSuspended():  returns True if thread is suspend_thread
+    threadStopped():    returns True if thread is stopped (or should stop ;-))
+                        ALSO stops if Kodi is exited
+
+    Also adds the following class attributes:
+        _threadStopped
+        _threadSuspended
+        _abortMonitor = xbmc.Monitor()      (to check for premature Kodi exit)
+    """
+    # Attach new attributes to class
+    cls._threadStopped = False
+    cls._threadSuspended = False
+    cls._abortMonitor = xbmc.Monitor()
+
+    # Define new class methods and attach them to class
+    def stopThread(self):
+        self._threadStopped = True
+    cls.stopThread = stopThread
+
+    def suspendThread(self):
+        self._threadSuspended = True
+    cls.suspendThread = suspendThread
+
+    def resumeThread(self):
+        self._threadSuspended = False
+    cls.resumeThread = resumeThread
+
+    def threadSuspended(self):
+        return self._threadSuspended
+    cls.threadSuspended = threadSuspended
+
+    def threadStopped(self):
+        return self._threadStopped or self._abortMonitor.abortRequested()
+    cls.threadStopped = threadStopped
+
+    # Return class to render this a decorator
     return cls
 
 
