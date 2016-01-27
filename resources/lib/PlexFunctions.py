@@ -11,6 +11,24 @@ addonName = Addon().getAddonInfo('name')
 title = "%s %s" % (addonName, __name__)
 
 
+def GetItemClassFromType(itemType):
+    classes = {
+        'movie': 'Movies',
+        'episodes': 'TVShows',
+        'episode': 'TVShows',
+        'show': 'TVShows'
+    }
+    return classes[itemType]
+
+
+def GetMethodFromPlexType(plexType):
+    methods = {
+        'movie': 'add_update',
+        'episode': 'add_updateEpisode'
+    }
+    return methods[plexType]
+
+
 def XbmcItemtypes():
     return ['photo', 'video', 'audio']
 
@@ -125,6 +143,24 @@ def GetPlexSectionResults(viewId, headerOptions={}):
         logMsg(title,
                "Error retrieving all items for Plex section %s"
                % viewId, -1)
+    return result
+
+
+def GetPlexUpdatedItems(viewId, unixTime, headerOptions={}):
+    """
+    Returns a list (raw JSON or XML API dump) of all Plex items in the Plex
+    section with key = viewId AFTER the unixTime
+    """
+    result = []
+    url = "{server}/library/sections/%s/allLeaves?updatedAt>=%s" \
+          % (viewId, unixTime)
+    jsondata = DownloadUtils().downloadUrl(url, headerOptions=headerOptions)
+    try:
+        result = jsondata['_children']
+    except KeyError:
+        logMsg(title,
+               "Error retrieving all items for Plex section %s and time %s"
+               % (viewId, unixTime), -1)
     return result
 
 

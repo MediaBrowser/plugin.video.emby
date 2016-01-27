@@ -31,6 +31,25 @@ class Embydb_Functions():
         
         return views
 
+    def getAllViewInfo(self):
+
+        embycursor = self.embycursor
+        views = []
+
+        query = ' '.join((
+
+            "SELECT view_id, view_name, media_type",
+            "FROM view"
+        ))
+        embycursor.execute(query)
+        rows = embycursor.fetchall()
+        for row in rows:
+            views.append({'id': row[0],
+                          'name': row[1],
+                          'itemtype': row[2]})
+        
+        return views
+
     def getView_byId(self, viewid):
 
         embycursor = self.embycursor
@@ -53,7 +72,7 @@ class Embydb_Functions():
 
         query = ' '.join((
 
-            "SELECT view_id, view_name",
+            "SELECT view_id, view_name, media_type",
             "FROM view",
             "WHERE media_type = ?"
         ))
@@ -63,7 +82,8 @@ class Embydb_Functions():
             views.append({
 
                 'id': row[0],
-                'name': row[1]
+                'name': row[1],
+                'itemtype': row[2]
             })
 
         return views
