@@ -60,6 +60,29 @@ try:
 except ImportError:
     import xml.etree.ElementTree as etree
 
+def XbmcItemtypes():
+    return ['photo', 'video', 'audio']
+
+def PlexItemtypes():
+    return ['photo', 'video', 'audio']
+
+def PlexLibraryItemtypes():
+    return ['movie', 'show']
+    # later add: 'artist', 'photo'
+
+def XbmcPhoto():
+    return "photo"
+def XbmcVideo():
+    return "video"
+def XbmcAudio():
+    return "audio"
+def PlexPhoto():
+    return "photo"
+def PlexVideo():
+    return "video"
+def PlexAudio():
+    return "music"
+
 
 @utils.logging
 class PlexAPI():

@@ -48,11 +48,16 @@ class ThreadedGetMetadata(threading.Thread):
 
     def run(self):
         plx = PlexAPI.PlexAPI()
+        # cache local variables because it's faster
+        queue = self.queue
+        out_queue = self.out_queue
+        lock = self.lock
+        threadStopped = self.threadStopped
         global getMetadataCount
-        while self.threadStopped() is False:
+        while threadStopped() is False:
             # grabs Plex item from queue
             try:
-                updateItem = self.queue.get(block=False)
+                updateItem = queue.get(block=False)
             # Empty queue
             except Queue.Empty:
                 continue
@@ -65,14 +70,16 @@ class ThreadedGetMetadata(threading.Thread):
             if plexXML:
                 updateItem['XML'] = plexXML
                 # place item into out queue
-                self.out_queue.put(updateItem)
+                out_queue.put(updateItem)
+                del plexXML
+            del updateItem
             # If we don't have a valid XML, don't put that into the queue
             # but skip this item for now
             # Keep track of where we are at
-            with self.lock:
+            with lock:
                 getMetadataCount += 1
             # signals to queue job is done
-            self.queue.task_done()
+            queue.task_done()
 
 
 @utils.ThreadMethodsStopsync
@@ -98,13 +105,17 @@ class ThreadedProcessMetadata(threading.Thread):
     def run(self):
         # Constructs the method name, e.g. itemtypes.Movies
         itemFkt = getattr(itemtypes, self.itemType)
+        # cache local variables because it's faster
+        queue = self.queue
+        lock = self.lock
+        threadStopped = self.threadStopped
         global processMetadataCount
         global processingViewName
         with itemFkt() as item:
-            while self.threadStopped() is False:
+            while threadStopped() is False:
                 # grabs item from queue
                 try:
-                    updateItem = self.queue.get(block=False)
+                    updateItem = queue.get(block=False)
                 # Empty queue
                 except Queue.Empty:
                     continue
@@ -115,13 +126,15 @@ class ThreadedProcessMetadata(threading.Thread):
                 viewId = updateItem['viewId']
                 title = updateItem['title']
                 itemSubFkt = getattr(item, method)
-                with self.lock:
+                with lock:
                     itemSubFkt(plexitem,
                                viewtag=viewName,
                                viewid=viewId)
                     # Keep track of where we are at
                     processMetadataCount += 1
                     processingViewName = title
+                del plexitem
+                del updateItem
                 # signals to queue job is done
                 self.queue.task_done()
 
@@ -146,18 +159,21 @@ class ThreadedShowSyncInfo(threading.Thread):
         threading.Thread.__init__(self)
 
     def run(self):
+        # cache local variables because it's faster
         total = self.total
+        dialog = self.dialog
+        threadStopped = self.threadStopped
         downloadLock = self.locks[0]
         processLock = self.locks[1]
-        self.dialog.create("%s: Sync %s: %s items"
-                           % (self.addonName, self.itemType, str(total)),
-                           "Starting")
+        dialog.create("%s: Sync %s: %s items"
+                      % (self.addonName, self.itemType, str(total)),
+                      "Starting")
         global getMetadataCount
         global processMetadataCount
         global processingViewName
         total = 2 * total
         totalProgress = 0
-        while self.threadStopped() is False:
+        while threadStopped() is False:
             with downloadLock:
                 getMetadataProgress = getMetadataCount
             with processLock:
@@ -168,13 +184,13 @@ class ThreadedShowSyncInfo(threading.Thread):
                 percentage = int(float(totalProgress) / float(total)*100.0)
             except ZeroDivisionError:
                 percentage = 0
-            self.dialog.update(percentage,
-                               message="Downloaded: %s, Processed: %s: %s"
-                               % (getMetadataProgress,
-                                  processMetadataProgress, viewName))
+            dialog.update(percentage,
+                          message="Downloaded: %s, Processed: %s: %s"
+                          % (getMetadataProgress,
+                             processMetadataProgress, viewName))
             # Sleep for x milliseconds
             xbmc.sleep(500)
-        self.dialog.close()
+        dialog.close()
 
 
 @utils.logging
@@ -238,35 +254,71 @@ class LibrarySync(threading.Thread):
         return completed
 
     def fastSync(self):
+        """
+        Fast incremential lib sync
 
-            lastSync = utils.settings('LastIncrementalSync')
-            if not lastSync:
-                lastSync = "2010-01-01T00:00:00Z"
-            self.logMsg("Last sync run: %s" % lastSync, 1)
+        Using /library/recentlyAdded is NOT working as changes to lib items are
+        not reflected
+        """
+        # Get last sync time
+        lastSync = utils.window('LastIncrementalSync')
+        if not lastSync:
+            lastSync = "2016-01-01T00:00:00Z"
+        self.logMsg("Last sync run: %s" % lastSync, 1)
 
-            url = "{server}/emby/Emby.Kodi.SyncQueue/{UserId}/GetItems?format=json"
-            params = {'LastUpdateDT': lastSync}
-            result = self.doUtils.downloadUrl(url, parameters=params)
+        # Convert time to unix main time or whatever it is called
+        # Get all PMS views
+        self.maintainViews()
+        embyconn = utils.kodiSQL('emby')
+        embycursor = embyconn.cursor()
+        emby_db = embydb.Embydb_Functions(embycursor)
+        views = []
+        for itemtype in PlexAPI.PlexLibraryItemtypes():
+            views.append(emby_db.getView_byType(itemtype))
 
+        # Also get checksums of Plex items already saved in Kodi
+        self.allKodiElementsId = {}
+        for itemtype in PlexAPI.dk():
             try:
-                processlist = {
-                    
-                    'added': result['ItemsAdded'],
-                    'update': result['ItemsUpdated'],
-                    'userdata': result['UserDataChanged'],
-                    'remove': result['ItemsRemoved']
-                }
-                
-            except (KeyError, TypeError):
-                self.logMsg("Failed to retrieve latest updates using fast sync.", 1)
-                return False
-            
-            else:
-                self.logMsg("Fast sync changes: %s" % result, 1)
-                for action in processlist:
-                    self.triage_items(action, processlist[action])
+                self.allKodiElementsId = dict(emby_db.getChecksum('Movie'))
+            except ValueError:
+                pass
 
-                return True
+        views = doUtils.downloadUrl("{server}/library/sections")
+        try:
+            views = views['_children']
+        except TypeError:
+            self.logMsg("Could not process fastSync view json, aborting", 0)
+            return False
+
+        # Run through views and get latest changed elements using time diff
+        for view in views:
+            pass
+
+        # Figure out whether an item needs updating
+        # Process updates
+        url = "{server}/library/recentlyAdded"
+        result = self.doUtils.downloadUrl(url, parameters=params)
+
+        try:
+            processlist = {
+                
+                'added': result['ItemsAdded'],
+                'update': result['ItemsUpdated'],
+                'userdata': result['UserDataChanged'],
+                'remove': result['ItemsRemoved']
+            }
+            
+        except (KeyError, TypeError):
+            self.logMsg("Failed to retrieve latest updates using fast sync.", 1)
+            return False
+        
+        else:
+            self.logMsg("Fast sync changes: %s" % result, 1)
+            for action in processlist:
+                self.triage_items(action, processlist[action])
+
+            return True
 
     def saveLastSync(self):
         # Save last sync time
@@ -276,7 +328,7 @@ class LibrarySync(threading.Thread):
         lastSync = time_now.strftime('%Y-%m-%dT%H:%M:%SZ')
         self.logMsg("New sync time: client time -%s min: %s"
                     % (overlap, lastSync), 1)
-        utils.settings('LastIncrementalSync', value=lastSync)
+        utils.window('LastIncrementalSync', value=lastSync)
 
     def initializeDBs(self):
         """
@@ -662,6 +714,10 @@ class LibrarySync(threading.Thread):
             thread.join(5.0)
             if thread.isAlive():
                 self.logMsg("Could not terminate thread", -1)
+        try:
+            del threads
+        except:
+            self.logMsg("Could not delete threads", -1)
         # Make sure dialog window is closed
         if dialog:
             dialog.close()
