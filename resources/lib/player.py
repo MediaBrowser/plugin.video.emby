@@ -82,6 +82,7 @@ class Player(xbmc.Player):
                 else: tryCount += 1
             
             else:
+                utils.window('Plex_currently_playing_itemid', value=itemId)
                 self.logMsg("ONPLAYBACK_STARTED: %s itemid: %s" % (currentFile, itemId), 0)
 
                 # Only proceed if an itemId was found.
@@ -113,7 +114,7 @@ class Player(xbmc.Player):
                 muted = result.get('muted')
 
                 # Postdata structure to send to Emby server
-                url = "{server}/emby/Sessions/Playing"
+                url = "{server}/:/timeline?"
                 postdata = {
 
                     'QueueableMediaTypes': "Video",
@@ -194,8 +195,8 @@ class Player(xbmc.Player):
                 
 
                 # Post playback to server
-                self.logMsg("Sending POST play started: %s." % postdata, 2)
-                self.doUtils.downloadUrl(url, postBody=postdata, type="POST")
+                # self.logMsg("Sending POST play started: %s." % postdata, 2)
+                # self.doUtils.downloadUrl(url, postBody=postdata, type="POST")
                 
                 # Ensure we do have a runtime
                 try:
@@ -370,10 +371,9 @@ class Player(xbmc.Player):
 
             # Report progress via websocketclient
             # postdata = json.dumps(postdata)
-            self.logMsg("Report: %s" % postdata, 2)
             # self.ws.sendProgressUpdate(postdata)
-            url = "{server}/:/timeline?" + urlencode(postdata)
-            self.doUtils.downloadUrl(url, type="GET")
+            self.doUtils.downloadUrl(
+                "{server}/:/timeline?" + urlencode(postdata), type="GET")
 
     def onPlayBackPaused( self ):
 

@@ -178,6 +178,7 @@ class ThreadedShowSyncInfo(threading.Thread):
 
 
 @utils.logging
+@utils.ThreadMethodsAdditionalSuspend('suspend_LibraryThread')
 @utils.ThreadMethodsStopsync
 @utils.ThreadMethods
 class LibrarySync(threading.Thread):
@@ -225,7 +226,7 @@ class LibrarySync(threading.Thread):
             self.maintainViews()
             completed = False
 
-            completed = self.fastSync()
+            # completed = self.fastSync()
 
             if not completed:
                 # Fast sync failed or server plugin is not found
@@ -1158,9 +1159,14 @@ class LibrarySync(threading.Thread):
                 # This will prevent an infinite loop in case something goes wrong.
                 startupComplete = True
 
-            # Process updates
             if utils.window('emby_dbScan') != "true":
-                self.incrementalSync()
+                # Currently no db scan, so we can start a new scan
+                if utils.window('plex_runLibScan') == "true":
+                    self.logMsg('Full library scan requested, starting', 1)
+                    utils.window('plex_runLibScan', value='false')
+                    self.fullSync(manualrun=True)
+                else:
+                    self.incrementalSync()
 
             if (utils.window('emby_onWake') == "true" and
                     utils.window('emby_online') == "true"):
@@ -1172,10 +1178,7 @@ class LibrarySync(threading.Thread):
                     librarySync = self.startSync()
                     self.logMsg("SyncDatabase onWake (finished) %s" % librarySync, 0)
 
-            if self.threadStopped():
-                # Set in service.py
-                self.logMsg("Service terminated thread.", 2)
-                break
+            xbmc.sleep(1000)
 
         self.logMsg("###===--- LibrarySync Stopped ---===###", 0)
 

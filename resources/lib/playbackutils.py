@@ -42,7 +42,8 @@ class PlaybackUtils():
 
     def play(self, itemid, dbid=None, seektime=None):
 
-        self.logMsg("Play called.", 1)
+        self.logMsg("Play called with itemid: %s, dbid: %s, seektime: %s."
+                    % (itemid, dbid, seektime), 1)
 
         doUtils = self.doUtils
         item = self.item

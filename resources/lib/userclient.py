@@ -260,7 +260,6 @@ class UserClient(threading.Thread):
     def authenticate(self):
         # Get /profile/addon_data
         plx = PlexAPI.PlexAPI()
-        lib = librarysync.LibrarySync()
         addondir = xbmc.translatePath(self.addon.getAddonInfo('profile')).decode('utf-8')
         hasSettings = xbmcvfs.exists("%ssettings.xml" % addondir)
 
@@ -288,7 +287,8 @@ class UserClient(threading.Thread):
                 self.logMsg("Current user: %s" % self.currUser, 1)
                 self.logMsg("Current userId: %s" % self.currUserId, 1)
                 self.logMsg("Current accessToken: xxxx", 1)
-                lib.resumeThread()
+
+                utils.window('suspend_LibraryThread', value='false')
                 return
 
         ##### AUTHENTICATE USER #####
@@ -326,7 +326,7 @@ class UserClient(threading.Thread):
             utils.window('plex_machineIdentifier', plex_machineIdentifier)
             self.retry = 0
             # Make sure that lib sync thread is not paused
-            lib.resumeThread()
+            utils.window('suspend_LibraryThread', value='false')
         else:
             self.logMsg("Error: user authentication failed.", -1)
             utils.settings('accessToken', value="")

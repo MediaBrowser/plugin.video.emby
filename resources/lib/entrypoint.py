@@ -39,9 +39,9 @@ def plexCompanion(fullurl, resume=None):
     except IndexError:
         # No matches found, url not like:
         # http://192.168.0.2:32400/library/metadata/243480
-        utils.logMsg("plexCompanion", "Could not parse url: %s" % fullurl, -1)
+        utils.logMsg("entrypoint - plexCompanion",
+                     "Could not parse url: %s" % fullurl, -1)
         return False
-        # TODO: direct play an URL
     # Initialize embydb
     embyconn = utils.kodiSQL('emby')
     embycursor = embyconn.cursor()
@@ -272,14 +272,16 @@ def switchPlexUser():
     # Delete any userimages. Since there's always only 1 user: position = 0
     # position = 0
     # utils.window('EmbyAdditionalUserImage.%s' % position, clear=True)
-    utils.logMsg("PLEX", "Plex home user switch requested", 0)
+    utils.logMsg("entrypoint switchPlexUser",
+                 "Plex home user switch requested", 0)
     # Pause library sync thread - user needs to be auth in order to sync
     utils.window('suspend_LibraryThread', value='true')
+    # Wait 1 second to ensure that library thread is indeed suspended
+    xbmc.sleep(1000)
     # Log out currently signed in user:
     utils.window('emby_serverStatus', value="401")
     # Request lib sync to get user view data (e.g. watched/unwatched)
     utils.window('plex_runLibScan', value='true')
-    # Reset Plex userdata: resume points, watched/unwatched status
 
 
 ##### THEME MUSIC/VIDEOS #####

@@ -37,6 +37,22 @@ def ThreadMethodsStopsync(cls):
     return cls
 
 
+def ThreadMethodsAdditionalSuspend(windowAttribute):
+    """
+    Decorator to replace threadSuspended(): thread now also suspends if a
+    Kodi windowAttribute is set to 'true', e.g. 'suspend_LibraryThread'
+
+    Use with any library sync threads. @ThreadMethods still required FIRST
+    """
+    def wrapper(cls):
+        def threadSuspended(self):
+            return (self._threadSuspended or True if
+                    window(windowAttribute) == 'true' else False)
+        cls.threadSuspended = threadSuspended
+        return cls
+    return wrapper
+
+
 def ThreadMethods(cls):
     """
     Decorator to add the following methods to a threading class:
@@ -86,8 +102,8 @@ def ThreadMethods(cls):
 
 def logging(cls):
     """
-    A decorator adding logging capabilities to classes. Also adds
-    self.addonName to the class
+    A decorator adding logging capabilities to classes.
+    Also adds self.addonName to the class
 
     Syntax: self.logMsg(message, loglevel)
 
@@ -101,9 +117,6 @@ def logging(cls):
         title = "%s %s" % (self.addonName, cls.__name__)
         logMsg(title, msg, lvl)
     cls.logMsg = newFunction
-
-    # Override the name, we don't want the decorators name showing up
-    __name__ = cls.__name__
 
     # Return class to render this a decorator
     return cls
@@ -143,7 +156,6 @@ def window(property, value=None, clear=False, windowid=10000):
         property = property.encode("utf-8")
     if isinstance(value, unicode):
         value = value.encode("utf-8")'''
-    
     if clear:
         WINDOW.clearProperty(property)
     elif value is not None:

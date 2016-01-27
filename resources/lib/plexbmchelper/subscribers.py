@@ -19,7 +19,6 @@ class SubscriptionManager:
         self.protocol = "http"
         self.port = ""
         self.playerprops = {}
-        self.sentstopped = True
         self.download = downloadutils.DownloadUtils()
         
     def getVolume(self):
@@ -60,11 +59,25 @@ class SubscriptionManager:
         ret = "\r\n"+'<Timeline location="%s" state="%s" time="%s" type="%s"' % (self.mainlocation, state, time, ptype)
         if playerid is not None:
             WINDOW = xbmcgui.Window(10000)
-            pbmc_server = str(WINDOW.getProperty('plexbmc.nowplaying.server'))
-            keyid = str(WINDOW.getProperty('plexbmc.nowplaying.id'))
+            
+            # pbmc_server = str(WINDOW.getProperty('plexbmc.nowplaying.server'))
+            # userId = str(WINDOW.getProperty('emby_currUser'))
+            # pbmc_server = str(WINDOW.getProperty('emby_server%s' % userId))
+            pbmc_server = None
+            keyid = None
+            count = 0
+            while not keyid:
+                if count > 10:
+                    break
+                keyid = str(WINDOW.getProperty('Plex_currently_playing_itemid'))
+                xbmc.sleep(1000)
+                count += 1
             if keyid:
                 self.lastkey = "/library/metadata/%s"%keyid
                 self.lastratingkey = keyid
+                ret += ' containerKey="%s"' % (self.lastkey)
+                ret += ' key="%s"' % (self.lastkey)
+                ret += ' ratingKey="%s"' % (self.lastratingkey)
                 if pbmc_server:
                     (self.server, self.port) = pbmc_server.split(':')
             serv = getServerByHost(self.server)
@@ -76,9 +89,6 @@ class SubscriptionManager:
             ret += ' address="%s"' % serv.get('server', self.server)
             ret += ' port="%s"' % serv.get('port', self.port)
             ret += ' guid="%s"' % info['guid']
-            ret += ' containerKey="%s"' % (self.lastkey or "/library/metadata/900000")
-            ret += ' key="%s"' % (self.lastkey or "/library/metadata/900000")
-            ret += ' ratingKey="%s"' % (self.lastratingkey or "900000")
             ret += ' volume="%s"' % info['volume']
             ret += ' shuffle="%s"' % info['shuffle']
         
@@ -103,7 +113,8 @@ class SubscriptionManager:
         return True
     
     def notifyServer(self, players):
-        if not players and self.sentstopped: return True
+        if not players:
+            return True
         params = {'state': 'stopped'}
         for p in players.values():
             info = self.playerprops[p.get('playerid')]
@@ -120,14 +131,12 @@ class SubscriptionManager:
             + serv.get('port', 32400) + "/:/timeline"
         self.download.downloadUrl(url, type="GET", parameters=params)
         # requests.getwithparams(serv.get('server', 'localhost'), serv.get('port', 32400), "/:/timeline", params, getPlexHeaders(), serv.get('protocol', 'http'))
+        printDebug("params: %s" % params)
+        printDebug("players: %s" % players)
         printDebug("sent server notification with state = %s" % params['state'])
         WINDOW = xbmcgui.Window(10000)
         WINDOW.setProperty('plexbmc.nowplaying.sent', '1')
-        if players:
-            self.sentstopped = False
-        else:
-            self.sentstopped = True
-    
+
     def controllable(self):
         return "playPause,play,stop,skipPrevious,skipNext,volume,stepBack,stepForward,seekTo"
         
