@@ -26,6 +26,7 @@ import playutils
 import api
 
 import PlexAPI
+import PlexFunctions
 import embydb_functions
 
 #################################################################################################
@@ -61,13 +62,13 @@ def plexCompanion(fullurl, resume=None):
         else:
             resume = round(float(resume) / 1000.0, 6)
     # Start playing
-    item = PlexAPI.PlexAPI().GetPlexMetadata(itemid)
+    item = PlexFunctions.GetPlexMetadata(itemid)
     pbutils.PlaybackUtils(item).play(itemid, dbid, seektime=resume)
 
 
 def doPlayback(itemid, dbid):
     # Get a first XML to get the librarySectionUUID
-    item = PlexAPI.PlexAPI().GetPlexMetadata(itemid)
+    item = PlexFunctions.GetPlexMetadata(itemid)
     # Use that to call the playlist
     xmlPlaylist = PlexAPI.API(item).GetPlexPlaylist()
     if xmlPlaylist:

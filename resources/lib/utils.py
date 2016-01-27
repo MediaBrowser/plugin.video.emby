@@ -10,6 +10,8 @@ import time
 import unicodedata
 import xml.etree.ElementTree as etree
 from functools import wraps, update_wrapper
+from datetime import datetime, timedelta
+from calendar import timegm
 
 import xbmc
 import xbmcaddon
@@ -114,12 +116,27 @@ def logging(cls):
 
     # Define new class methods and attach them to class
     def newFunction(self, msg, lvl=0):
-        title = "%s %s" % (self.addonName, cls.__name__)
+        title = "%s %s" % (addonName, cls.__name__)
         logMsg(title, msg, lvl)
     cls.logMsg = newFunction
 
     # Return class to render this a decorator
     return cls
+
+
+def getUnixTimestamp(secondsIntoTheFuture=None):
+    """
+    Returns a Unix time stamp (seconds passed since January 1 1970) for NOW as
+    an integer.
+
+    Optionally, pass secondsIntoTheFuture: positive int's will result in a
+    future timestamp, negative the past
+    """
+    if secondsIntoTheFuture:
+        future = datetime.utcnow() + timedelta(seconds=secondsIntoTheFuture)
+    else:
+        future = datetime.utcnow()
+    return timegm(future.timetuple())
 
 
 def logMsg(title, msg, level=1):

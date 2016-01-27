@@ -3,7 +3,7 @@
 ##################################################################################################
 
 import threading
-from datetime import datetime, timedelta
+from datetime import datetime
 import Queue
 
 import xbmc
@@ -22,6 +22,7 @@ import userclient
 import videonodes
 
 import PlexAPI
+import PlexFunctions
 
 ##################################################################################################
 
@@ -47,7 +48,6 @@ class ThreadedGetMetadata(threading.Thread):
         threading.Thread.__init__(self)
 
     def run(self):
-        plx = PlexAPI.PlexAPI()
         # cache local variables because it's faster
         queue = self.queue
         out_queue = self.out_queue
@@ -63,7 +63,7 @@ class ThreadedGetMetadata(threading.Thread):
                 continue
             # Download Metadata
             try:
-                plexXML = plx.GetPlexMetadata(updateItem['itemId'])
+                plexXML = PlexFunctions.GetPlexMetadata(updateItem['itemId'])
             except:
                 raise
             # check whether valid XML
@@ -218,7 +218,6 @@ class LibrarySync(threading.Thread):
         self.user = userclient.UserClient()
         self.emby = embyserver.Read_EmbyServer()
         self.vnodes = videonodes.VideoNodes()
-        self.plx = PlexAPI.PlexAPI()
         self.syncThreadNumber = int(utils.settings('syncThreadNumber'))
 
         threading.Thread.__init__(self)
@@ -263,37 +262,44 @@ class LibrarySync(threading.Thread):
         # Get last sync time
         lastSync = utils.window('LastIncrementalSync')
         if not lastSync:
-            lastSync = "2016-01-01T00:00:00Z"
+            # Original Emby format:
+            # lastSync = "2016-01-01T00:00:00Z"
+            # January 1, 2015 at midnight:
+            lastSync = '1420070400'
         self.logMsg("Last sync run: %s" % lastSync, 1)
 
-        # Convert time to unix main time or whatever it is called
-        # Get all PMS views
+        # Get all PMS views and PMS items already saved in Kodi
         self.maintainViews()
         embyconn = utils.kodiSQL('emby')
         embycursor = embyconn.cursor()
         emby_db = embydb.Embydb_Functions(embycursor)
         views = []
-        for itemtype in PlexAPI.PlexLibraryItemtypes():
+        for itemtype in PlexFunctions.PlexLibraryItemtypes():
             views.append(emby_db.getView_byType(itemtype))
-
-        # Also get checksums of Plex items already saved in Kodi
-        self.allKodiElementsId = {}
-        for itemtype in PlexAPI.dk():
+        self.logMsg("views is now: %s" % views, 2)
+        # Also get checksums of every Plex items already saved in Kodi
+        allKodiElementsId = {}
+        for itemtype in PlexFunctions.EmbyItemtypes():
             try:
-                self.allKodiElementsId = dict(emby_db.getChecksum('Movie'))
+                allKodiElementsId.update(dict(emby_db.getChecksum(itemtype)))
             except ValueError:
                 pass
-
-        views = doUtils.downloadUrl("{server}/library/sections")
-        try:
-            views = views['_children']
-        except TypeError:
-            self.logMsg("Could not process fastSync view json, aborting", 0)
-            return False
+        self.logMsg("allKodiElementsId is now: %s" % allKodiElementsId, 2)
 
         # Run through views and get latest changed elements using time diff
         for view in views:
-            pass
+            if self.threadStopped():
+                return False
+            # Get items per view
+            viewId = view['id']
+            viewName = view['name']
+            all_plexmovies = PlexFunctions.GetPlexSectionResults(viewId)
+            # Populate self.updatelist and self.allPlexElementsId
+            self.GetUpdatelist(all_plexmovies,
+                               itemType,
+                               'add_update',
+                               viewName,
+                               viewId)
 
         # Figure out whether an item needs updating
         # Process updates
@@ -322,12 +328,8 @@ class LibrarySync(threading.Thread):
 
     def saveLastSync(self):
         # Save last sync time
-        overlap = 2
-
-        time_now = datetime.utcnow()-timedelta(minutes=overlap)
-        lastSync = time_now.strftime('%Y-%m-%dT%H:%M:%SZ')
-        self.logMsg("New sync time: client time -%s min: %s"
-                    % (overlap, lastSync), 1)
+        lastSync = str(utils.getUnixTimestamp())
+        self.logMsg("New sync time: %s" % lastSync, 1)
         utils.window('LastIncrementalSync', value=lastSync)
 
     def initializeDBs(self):
@@ -728,7 +730,6 @@ class LibrarySync(threading.Thread):
 
     def PlexMovies(self):
         # Initialize
-        plx = PlexAPI.PlexAPI()
         self.allPlexElementsId = {}
 
         embyconn = utils.kodiSQL('emby')
@@ -761,7 +762,7 @@ class LibrarySync(threading.Thread):
             # Get items per view
             viewId = view['id']
             viewName = view['name']
-            all_plexmovies = plx.GetPlexSectionResults(viewId)
+            all_plexmovies = PlexFunctions.GetPlexSectionResults(viewId)
             # Populate self.updatelist and self.allPlexElementsId
             self.GetUpdatelist(all_plexmovies,
                                itemType,
@@ -791,11 +792,10 @@ class LibrarySync(threading.Thread):
         This is done by downloading one XML for ALL elements with viewId
         """
         starttotal = datetime.now()
-        plx = PlexAPI.PlexAPI()
         # Download XML, not JSON, because PMS JSON seems to be damaged
         headerOptions = {'Accept': 'application/xml'}
-        plexItems = plx.GetAllPlexLeaves(viewId,
-                                         headerOptions=headerOptions)
+        plexItems = PlexFunctions.GetAllPlexLeaves(
+            viewId, headerOptions=headerOptions)
         itemMth = getattr(itemtypes, itemType)
         with itemMth() as method:
             method.updateUserdata(plexItems)
@@ -854,7 +854,6 @@ class LibrarySync(threading.Thread):
 
     def PlexTVShows(self):
         # Initialize
-        plx = PlexAPI.PlexAPI()
         self.allPlexElementsId = {}
         itemType = 'TVShows'
         # Open DB connections
@@ -897,7 +896,7 @@ class LibrarySync(threading.Thread):
             # Get items per view
             viewId = view['id']
             viewName = view['name']
-            allPlexTvShows = plx.GetPlexSectionResults(viewId)
+            allPlexTvShows = PlexFunctions.GetPlexSectionResults(viewId)
             # Populate self.updatelist and self.allPlexElementsId
             self.GetUpdatelist(allPlexTvShows,
                                itemType,
@@ -915,7 +914,7 @@ class LibrarySync(threading.Thread):
             if self.threadStopped():
                 return False
             # Grab all seasons to tvshow from PMS
-            seasons = plx.GetAllPlexChildren(tvShowId)
+            seasons = PlexFunctions.GetAllPlexChildren(tvShowId)
             # Populate self.updatelist and self.allPlexElementsId
             self.GetUpdatelist(seasons,
                                itemType,
@@ -931,7 +930,7 @@ class LibrarySync(threading.Thread):
             if self.threadStopped():
                 return False
             # Grab all episodes to tvshow from PMS
-            episodes = plx.GetAllPlexLeaves(view['id'])
+            episodes = PlexFunctions.GetAllPlexLeaves(view['id'])
             # Populate self.updatelist and self.allPlexElementsId
             self.GetUpdatelist(episodes,
                                itemType,
@@ -948,7 +947,7 @@ class LibrarySync(threading.Thread):
         # Cycle through tv shows
         with itemtypes.TVShows() as TVshow:
             for tvShowId in allPlexTvShowsId:
-                XMLtvshow = plx.GetPlexMetadata(tvShowId)
+                XMLtvshow = PlexFunctions.GetPlexMetadata(tvShowId)
                 TVshow.refreshSeasonEntry(XMLtvshow, tvShowId)
         self.logMsg("Season info refreshed", 1)
 
