@@ -21,6 +21,7 @@ class PlayUtils():
     def __init__(self, item):
 
         self.item = item
+        self.API = PlexAPI.API(item)
 
         self.clientInfo = clientinfo.ClientInfo()
 
@@ -28,54 +29,44 @@ class PlayUtils():
         self.server = utils.window('emby_server%s' % self.userid)
         self.machineIdentifier = utils.window('plex_machineIdentifier')
 
-        self.API = PlexAPI.API(item)
+    def getPlayUrl(self):
+        """
+        Returns a list of playurls, one per part in item
+        """
+        playurls = []
+        # TODO: multiple media parts for e.g. trailers: replace [0] here
+        partCount = len(self.item['_children'][0]['_children'])
+        for partNumber in range(partCount):
+            playurl = None
+            self.API.setPartNumber(partNumber)
 
-    def getPlayUrl(self, child=0, partIndex=None):
-        item = self.item
-        # NO, I am not very fond of this construct!
-        self.API.setChildNumber(child)
-        if partIndex is not None:
-            self.API.setPartNumber(partIndex)
-        playurl = None
-        
-        if item.get('Type') in ["Recording","TvChannel"] and item.get('MediaSources') and item['MediaSources'][0]['Protocol'] == "Http":
-            #Is this the right way to play a Live TV or recordings ?
-            self.logMsg("File protocol is http (livetv).", 1)
-            playurl = "%s/emby/Videos/%s/live.m3u8?static=true" % (self.server, item['Id'])
-            utils.window('emby_%s.playmethod' % playurl, value="DirectPlay")
+            if self.isDirectPlay():
+                self.logMsg("File is direct playing.", 1)
+                playurl = self.API.getTranscodeVideoPath('DirectPlay')
+                playurl = playurl.encode('utf-8')
+                # Set playmethod property
+                utils.window('emby_%s.playmethod' % playurl, "DirectPlay")
 
-        # if item.get('MediaSources') and item['MediaSources'][0]['Protocol'] == "Http":
-        #     # Only play as http
-        #     self.logMsg("File protocol is http.", 1)
-        #     playurl = self.httpPlay()
-        #     utils.window('emby_%s.playmethod' % playurl, value="DirectStream")
+            elif self.isDirectStream():
+                self.logMsg("File is direct streaming.", 1)
+                playurl = self.API.getTranscodeVideoPath('DirectStream')
+                # Set playmethod property
+                utils.window('emby_%s.playmethod' % playurl, "DirectStream")
 
-        if self.isDirectPlay():
-            self.logMsg("File is direct playing.", 1)
-            playurl = self.API.getTranscodeVideoPath('DirectPlay')
-            playurl = playurl.encode('utf-8')
-            # Set playmethod property
-            utils.window('emby_%s.playmethod' % playurl, value="DirectPlay")
+            elif self.isTranscoding():
+                self.logMsg("File is transcoding.", 1)
+                quality = {
+                    'maxVideoBitrate': self.getBitrate()
+                }
+                playurl = self.API.getTranscodeVideoPath('Transcode',
+                                                         quality=quality)
+                # Set playmethod property
+                utils.window('emby_%s.playmethod' % playurl, value="Transcode")
 
-        elif self.isDirectStream():
-            self.logMsg("File is direct streaming.", 1)
-            playurl = self.API.getTranscodeVideoPath('DirectStream')
-            # Set playmethod property
-            utils.window('emby_%s.playmethod' % playurl, value="DirectStream")
+            playurls.append(playurl)
 
-        elif self.isTranscoding():
-            self.logMsg("File is transcoding.", 1)
-            quality = {
-                'maxVideoBitrate': self.getBitrate()
-            }
-            playurl = self.API.getTranscodeVideoPath(
-                'Transcode',
-                quality=quality
-            )
-            # Set playmethod property
-            utils.window('emby_%s.playmethod' % playurl, value="Transcode")
-        self.logMsg("The playurl is: %s" % playurl, 1)
-        return playurl
+        self.logMsg("The playurls are: %s" % playurls, 1)
+        return playurls
 
     def httpPlay(self):
         # Audio, Video, Photo
@@ -155,23 +146,22 @@ class PlayUtils():
         videoCodec = self.API.getVideoCodec()
         codec = videoCodec['videocodec']
         resolution = videoCodec['resolution']
-        if ((utils.settings('transcodeH265') == "true") and
-                ("hevc" in codec) and
-                (resolution == "1080")):
-            # Avoid HEVC(H265) 1080p
-            self.logMsg("Option to transcode 1080P/HEVC enabled.", 0)
+        # 720p
+        if ((utils.settings('transcode720H265') == "true") and
+                ("h265" in codec) and
+                (resolution in "720 1080")):
+            self.logMsg("Option to transcode 720P/h265 enabled.", 0)
             return False
-        else:
-            return True
+        # 1080p
+        if ((utils.settings('transcodeH265') == "true") and
+                ("h265" in codec) and
+                (resolution == "1080")):
+            self.logMsg("Option to transcode 1080P/h265 enabled.", 0)
+            return False
+        return True
 
     def isDirectStream(self):
         if not self.h265enabled():
-            return False
-
-        elif (utils.settings('transcode720H265') == "true" and
-                item['MediaSources'][0]['Name'].startswith(("720P/HEVC","720P/H265"))):
-            # Avoid H265 720p
-            self.logMsg("Option to transcode 720P/H265 enabled.", 1)
             return False
 
         # Requirement: BitRate, supported encoding
@@ -192,7 +182,7 @@ class PlayUtils():
 
         server = self.server
 
-        itemid = self.API.getKey()
+        itemid = self.API.getRatingKey()
         type = self.API.getType()
 
         # if 'Path' in item and item['Path'].endswith('.strm'):
@@ -211,7 +201,7 @@ class PlayUtils():
 
         settings = self.getBitrate()
 
-        sourceBitrate = self.API.getBitrate()
+        sourceBitrate = int(self.API.getDataFromPartOrMedia())
         self.logMsg("The add-on settings bitrate is: %s, the video bitrate required is: %s" % (settings, sourceBitrate), 1)
         if settings < sourceBitrate:
             return False

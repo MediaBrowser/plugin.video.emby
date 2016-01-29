@@ -111,16 +111,33 @@ class MyHandler(BaseHTTPRequestHandler):
                     printDebug("adjusting the volume to %s%%" % volume)
                     jsonrpc("Application.SetVolume", {"volume": volume})
             elif "/playMedia" in request_path:
+                playQueueVersion = int(params.get('playQueueVersion', 1))
+                if playQueueVersion < subMgr.playQueueVersion:
+                    # playQueue was updated; ignore this command for now
+                    return
+                if playQueueVersion > subMgr.playQueueVersion:
+                    # TODO: we should probably update something else now :-)
+                    subMgr.playQueueVersion = playQueueVersion
                 s.response(getOKMsg(), getPlexHeaders())
-                resume = params.get('viewOffset', params.get('offset', "0"))
+                offset = params.get('viewOffset', params.get('offset', "0"))
                 protocol = params.get('protocol', "http")
                 address = params.get('address', s.client_address[0])
                 server = getServerByHost(address)
                 port = params.get('port', server.get('port', '32400'))
-                fullurl = protocol+"://"+address+":"+port+params['key']
-                printDebug("playMedia command -> fullurl: %s" % fullurl)
-                jsonrpc("playmedia", [fullurl, resume])
+                try:
+                    containerKey = urlparse(params.get('containerKey')).path
+                except:
+                    containerKey = ''
+                regex = re.compile(r'''/playQueues/(\d+)$''')
+                try:
+                    playQueueID = regex.findall(containerKey)[0]
+                except IndexError:
+                    playQueueID = ''
+
+                jsonrpc("playmedia", params)
                 subMgr.lastkey = params['key']
+                subMgr.containerKey = containerKey
+                subMgr.playQueueID = playQueueID
                 subMgr.server = server.get('server', 'localhost')
                 subMgr.port = port
                 subMgr.protocol = protocol

@@ -15,6 +15,7 @@ import playutils as putils
 import playlist
 import read_embyserver as embyserver
 import utils
+import embydb_functions
 
 import PlexAPI
 
@@ -23,12 +24,10 @@ import PlexAPI
 
 @utils.logging
 class PlaybackUtils():
-    
-    
+
     def __init__(self, item):
 
         self.item = item
-        self.API = PlexAPI.API(self.item)
 
         self.doUtils = downloadutils.DownloadUtils()
 
@@ -40,21 +39,132 @@ class PlaybackUtils():
         self.emby = embyserver.Read_EmbyServer()
         self.pl = playlist.Playlist()
 
-    def play(self, itemid, dbid=None, seektime=None):
+    def StartPlay(self, resume=None, resumeItem=None):
+        self.logMsg("StartPlay called with resume=%s, resumeItem=%s"
+                    % (resume, resumeItem), 1)
+        # Setup Kodi playlist (e.g. make new one or append or even update)
+        # Why should we have different behaviour if user is on home screen?!?
+        # self.homeScreen = xbmc.getCondVisibility('Window.IsActive(home)')
+        self.playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
+        # Clear playlist since we're always using PMS playQueues
+        self.playlist.clear()
 
-        self.logMsg("Play called with itemid: %s, dbid: %s, seektime: %s."
-                    % (itemid, dbid, seektime), 1)
+        self.startPos = max(self.playlist.getposition(), 0)  # Can return -1
+        self.sizePlaylist = self.playlist.size()
+        self.currentPosition = self.startPos
+        self.logMsg("Playlist start position: %s" % self.startPos, 1)
+        self.logMsg("Playlist position we're starting with: %s"
+                    % self.currentPosition, 1)
+        self.logMsg("Playlist size: %s" % self.sizePlaylist, 1)
 
-        doUtils = self.doUtils
-        item = self.item
-        API = self.API
+        self.plexResumeItemId = resumeItem
+        # Where should we ultimately start playback?
+        self.resumePost = self.startPos
+
+        if resume:
+            if resume == '0':
+                resume = None
+            else:
+                resume = int(resume)
+
+        # Run through the passed PMS playlist and construct playlist
+        for mediaItem in self.item:
+            self.AddMediaItemToPlaylist(mediaItem)
+        # Kick off playback
+        Player = xbmc.Player()
+        Player.play(self.playlist, startpos=self.resumePost)
+        if resume:
+            try:
+                Player.seekTime(resume)
+            except:
+                self.logMsg("Could not use resume: %s. Start from beginning."
+                            % resume, 0)
+
+    def AddMediaItemToPlaylist(self, item):
+        """
+        Feed with ONE media item from PMS json response
+        (on level with e.g. key=/library/metadata/220493 present)
+
+        An item may consist of several parts (e.g. movie in 2 pieces/files)
+        """
+        API = PlexAPI.API(item)
+        playutils = putils.PlayUtils(item)
+
+        # e.g. itemid='219155'
+        itemid = API.getRatingKey()
+        # Get DB id from Kodi by using plex id, if that works
+        embyconn = utils.kodiSQL('emby')
+        embycursor = embyconn.cursor()
+        emby = embydb_functions.Embydb_Functions(embycursor)
+        try:
+            dbid = emby.getItem_byId(itemid)[0]
+        except TypeError:
+            # Trailers and the like that are not in the kodi DB
+            dbid = None
+        embyconn.close()
+
+        # Get playurls per part and process them
+        for playurl in playutils.getPlayUrl():
+            # One new listitem per part
+            listitem = xbmcgui.ListItem()
+            # For items that are not (yet) synced to Kodi lib, e.g. trailers
+            if not dbid:
+                self.logMsg("Add item to playlist without Kodi DB id", 1)
+                # Add Plex credentials to url because Kodi will have no headers
+                playurl = API.addPlexCredentialsToUrl(playurl)
+                listitem.setPath(playurl)
+                self.setProperties(playurl, listitem)
+                # Set artwork already done in setProperties
+                self.playlist.add(
+                    playurl, listitem, index=self.currentPosition)
+                self.currentPosition += 1
+            else:
+                self.logMsg("Add item to playlist with existing Kodi DB id", 1)
+                self.pl.addtoPlaylist(dbid, API.getType())
+                self.currentPosition += 1
+
+            # For transcoding only, ask for audio/subs pref
+            if utils.window('emby_%s.playmethod' % playurl) == "Transcode":
+                playurl = playutils.audioSubsPref(playurl, listitem)
+                utils.window('emby_%s.playmethod' % playurl, value="Transcode")
+
+            playQueueItemID = API.GetPlayQueueItemID()
+            # Is this the position where we should start playback?
+            if playQueueItemID == self.plexResumeItemId:
+                self.logMsg(
+                    "Figure we should start playback at position %s "
+                    "with playQueueItemID %s"
+                    % (self.currentPosition, playQueueItemID), 2)
+                self.resumePost = self.currentPosition
+            # We need to keep track of playQueueItemIDs for Plex Companion
+            utils.window(
+                'plex_%s.playQueueItemID' % playurl, API.GetPlayQueueItemID())
+            utils.window(
+                'plex_%s.playlistPosition' % playurl, self.currentPosition)
+
+        # Log the playlist that we end up with
+        self.pl.verifyPlaylist()
+
+    def play(self, item):
+
+        API = PlexAPI.API(item)
         listitem = xbmcgui.ListItem()
         playutils = putils.PlayUtils(item)
 
-        # Set child number to the very last one, because that's what we want
-        # to play ultimately
-        API.setChildNumber(-1)
-        playurl = playutils.getPlayUrl(child=-1)
+        # e.g. itemid='219155'
+        itemid = API.getRatingKey()
+        # Get DB id from Kodi by using plex id, if that works
+        embyconn = utils.kodiSQL('emby')
+        embycursor = embyconn.cursor()
+        emby = embydb_functions.Embydb_Functions(embycursor)
+        try:
+            dbid = emby.getItem_byId(itemid)[0]
+        except TypeError:
+            # Trailers and the like that are not in the kodi DB
+            dbid = None
+        embyconn.close()
+
+        playurl = playutils.getPlayUrl()
         if not playurl:
             return xbmcplugin.setResolvedUrl(int(sys.argv[1]), False, listitem)
 
@@ -82,10 +192,9 @@ class PlaybackUtils():
         self.logMsg("Playlist size: %s" % sizePlaylist, 1)
 
         ############### RESUME POINT ################
-        
-        if seektime is None:
-            userdata = API.getUserData()
-            seektime = userdata['Resume']
+
+        userdata = API.getUserData()
+        seektime = userdata['Resume']
 
         # We need to ensure we add the intro and additional parts only once.
         # Otherwise we get a loop.
@@ -132,7 +241,7 @@ class PlaybackUtils():
                             self.pl.insertintoPlaylist(currentPosition, url=introPlayurl)
                             introsPlaylist = True
                             currentPosition += 1
-                            self.logMsg("Key: %s" % API.getKey(), 1)
+                            self.logMsg("Key: %s" % API.getRatingKey(), 1)
                             self.logMsg("Successfally added trailer number %s" % i, 1)
                 # Set "working point" to the movie (last one in playlist)
                 API.setChildNumber(-1)
@@ -220,7 +329,7 @@ class PlaybackUtils():
         # Set all properties necessary for plugin path playback
         item = self.item
         # itemid = item['Id']
-        itemid = self.API.getKey()
+        itemid = self.API.getRatingKey()
         # itemtype = item['Type']
         itemtype = self.API.getType()
         resume, runtime = self.API.getRuntime()
@@ -230,8 +339,9 @@ class PlaybackUtils():
         utils.window('%s.type' % embyitem, value=itemtype)
         utils.window('%s.itemid' % embyitem, value=itemid)
 
-        if itemtype == "Episode":
-            utils.window('%s.refreshid' % embyitem, value=item.get('SeriesId'))
+        if itemtype == "episode":
+            utils.window('%s.refreshid' % embyitem,
+                         value=item.get('parentRatingKey'))
         else:
             utils.window('%s.refreshid' % embyitem, value=itemid)
 
@@ -282,10 +392,6 @@ class PlaybackUtils():
         return externalsubs
 
     def setArtwork(self, listItem):
-        # Set up item and item info
-        item = self.item
-        artwork = self.artwork
-
         # allartwork = artwork.getAllArtwork(item, parentInfo=True)
         allartwork = self.API.getAllArtwork(parentInfo=True)
         # Set artwork for listitem

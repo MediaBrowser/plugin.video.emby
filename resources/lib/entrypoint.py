@@ -31,36 +31,65 @@ import embydb_functions
 
 #################################################################################################
 
+# For logging only
+title = " %s %s" % (clientinfo.ClientInfo().getAddonName(), __name__)
 
-def plexCompanion(fullurl, resume=None):
-    regex = re.compile(r'''/(\d+)$''')
-    itemid = regex.findall(fullurl)
-    try:
-        itemid = itemid[0]
-    except IndexError:
-        # No matches found, url not like:
-        # http://192.168.0.2:32400/library/metadata/243480
-        utils.logMsg("entrypoint - plexCompanion",
-                     "Could not parse url: %s" % fullurl, -1)
-        return False
-    # Initialize embydb
-    embyconn = utils.kodiSQL('emby')
-    embycursor = embyconn.cursor()
-    emby = embydb_functions.Embydb_Functions(embycursor)
-    # Get dbid using itemid
-    # Works only for library items, not e.g. for trailers
-    try:
-        dbid = emby.getItem_byId(itemid)[0]
-    except TypeError:
-        # Trailers and the like
-        dbid = None
-    embyconn.close()
-    # Fix resume timing
-    if resume:
-        if resume == '0':
-            resume = None
-        else:
-            resume = round(float(resume) / 1000.0, 6)
+
+def plexCompanion(fullurl, params=None):
+    params = PlexFunctions.LiteralEval(params[26:])
+    utils.logMsg("entrypoint - plexCompanion",
+                     "params is: %s" % params, -1)
+    # {'protocol': 'http',
+    # 'containerKey': '/playQueues/3045?own=1&repeat=0&window=200',
+    # 'offset': '0',
+    # 'commandID': '20',
+    # 'token': 'transient-0243a39f-4c7d-495f-a5c8-6991b622b5a6',
+    # 'key': '/library/metadata/470',
+    # 'address': '192.168.0.2',
+    # 'machineIdentifier': '3eb2fc28af89500e000db2e07f8e8234d159f2c4',
+    # 'type': 'video',
+    # 'port': '32400'}
+
+    if (params.get('machineIdentifier') !=
+            utils.window('plex_machineIdentifier')):
+        utils.logMsg(
+            title,
+            "Command was not for us, machineIdentifier controller: %s, "
+            "our machineIdentifier : %s"
+            % (params.get('machineIdentifier'),
+               utils.window('plex_machineIdentifier')), -1)
+        return
+    utils.window('plex_key', params.get('key'))
+    library, key, query = PlexFunctions(params.get('containerKey'))
+    # Construct a container key that works always (get rid of playlist args)
+    utils.window('plex_containerKey', '/'+library+'/'+key)
+    # Assume it's video when something goes wrong
+    playbackType = params.get('type', 'video')
+
+    if 'playQueues' in library:
+        utils.logMsg(title, "Playing a playQueue. Query was: %s" % query, 1)
+        # Playing a playlist that we need to fetch from PMS
+        playQueue = PlexFunctions.GetPlayQueue(key)
+        if not playQueue:
+            utils.logMsg(
+                title, "Error getting PMS playlist for key %s" % key, -1)
+            return
+
+        # Set window properties to make them available for other threads
+        utils.window('plex_playQueueID', playQueue['playQueueID'])
+        utils.window('plex_playQueueVersion', playQueue['playQueueVersion'])
+        utils.window('plex_playQueueShuffled', playQueue['playQueueShuffled'])
+        utils.window(
+            'plex_playQueueSelectedItemID',
+            playQueue['playQueueSelectedItemID'])
+        utils.window(
+            'plex_playQueueSelectedItemOffset',
+            playQueue['playQueueSelectedItemOffset'])
+
+        pbutils.PlaybackUtils(playQueue['_children']).StartPlay(
+            resume=playQueue['playQueueSelectedItemOffset'],
+            resumeItem=playQueue['playQueueSelectedItemID'])
+
     # Start playing
     item = PlexFunctions.GetPlexMetadata(itemid)
     pbutils.PlaybackUtils(item).play(itemid, dbid, seektime=resume)

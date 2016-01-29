@@ -12,6 +12,9 @@ class SubscriptionManager:
         self.subscribers = {}
         self.info = {}
         self.lastkey = ""
+        self.containerKey = ""
+        self.playQueueID = ''
+        self.playQueueVersion = 1
         self.lastratingkey = ""
         self.volume = 0
         self.guid = ""
@@ -75,12 +78,15 @@ class SubscriptionManager:
             if keyid:
                 self.lastkey = "/library/metadata/%s"%keyid
                 self.lastratingkey = keyid
-                ret += ' containerKey="%s"' % (self.lastkey)
+                ret += ' containerKey="%s"' % (self.containerKey)
                 ret += ' key="%s"' % (self.lastkey)
                 ret += ' ratingKey="%s"' % (self.lastratingkey)
                 if pbmc_server:
                     (self.server, self.port) = pbmc_server.split(':')
             serv = getServerByHost(self.server)
+            if self.playQueueID:
+                ret += ' playQueueID="%s"' % self.playQueueID
+                ret += ' playQueueVersion="%s"' % self.playQueueVersion
             ret += ' duration="%s"' % info['duration']
             ret += ' seekRange="0-%s"' % info['duration']
             ret += ' controllable="%s"' % self.controllable()
@@ -119,12 +125,15 @@ class SubscriptionManager:
         for p in players.values():
             info = self.playerprops[p.get('playerid')]
             params = {}
-            params['containerKey'] = (self.lastkey or "/library/metadata/900000")
+            params['containerKey'] = (self.containerKey or "/library/metadata/900000")
+            if self.playQueueID:
+                params['playQueueID'] = self.playQueueID
             params['key'] = (self.lastkey or "/library/metadata/900000")
             params['ratingKey'] = (self.lastratingkey or "900000")
             params['state'] = info['state']
             params['time'] = info['time']
             params['duration'] = info['duration']
+            params['playQueueVersion'] = self.playQueueVersion
         serv = getServerByHost(self.server)
         url = serv.get('protocol', 'http') + '://' \
             + serv.get('server', 'localhost') + ':' \
@@ -134,11 +143,9 @@ class SubscriptionManager:
         printDebug("params: %s" % params)
         printDebug("players: %s" % players)
         printDebug("sent server notification with state = %s" % params['state'])
-        WINDOW = xbmcgui.Window(10000)
-        WINDOW.setProperty('plexbmc.nowplaying.sent', '1')
 
     def controllable(self):
-        return "playPause,play,stop,skipPrevious,skipNext,volume,stepBack,stepForward,seekTo"
+        return "volume,shuffle,repeat,audioStream,videoStream,subtitleStream,skipPrevious,skipNext,seekTo,stepBack,stepForward,stop,playPause"
         
     def addSubscriber(self, protocol, host, port, uuid, commandID):
         sub = Subscriber(protocol, host, port, uuid, commandID)
@@ -211,7 +218,13 @@ class Subscriber:
             + "/:/timeline"
         # Override some headers
         headerOptions = {
-            'Accept': '*/*'
+            'Content-Range': 'bytes 0-/-1',
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_2) AppleWebKit/537.17 (KHTML, like Gecko) Chrome/24.0.1312.52 Safari/537.17',
+            'Accept': '*/*',
+            'X-Plex-Username': 'croneter',
+            'Connection': 'keep-alive',
+            'X-Plex-Client-Capabilities': 'protocols=shoutcast,http-video;videoDecoders=h264{profile:high&resolution:1080&level:51};audioDecoders=mp3,aac,dts{bitrate:800000&channels:8},ac3{bitrate:800000&channels:8}',
+            'X-Plex-Client-Profile-Extra': 'add-transcode-target-audio-codec(type=videoProfile&context=streaming&protocol=*&audioCodec=dca,ac3)'
         }
         response = self.download.downloadUrl(
             url,
@@ -220,6 +233,6 @@ class Subscriber:
             headerOptions=headerOptions)
         # if not requests.post(self.host, self.port, "/:/timeline", msg, getPlexHeaders(), self.protocol):
         # subMgr.removeSubscriber(self.uuid)
-        if response in [False, 401]:
+        if response in [False, None, 401]:
             subMgr.removeSubscriber(self.uuid)
 subMgr = SubscriptionManager()    

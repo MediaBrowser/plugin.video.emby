@@ -9,7 +9,7 @@ import sqlite3
 import time
 import unicodedata
 import xml.etree.ElementTree as etree
-from functools import wraps, update_wrapper
+from functools import wraps
 from datetime import datetime, timedelta
 from calendar import timegm
 
@@ -24,19 +24,35 @@ import xbmcvfs
 addonName = xbmcaddon.Addon().getAddonInfo('name')
 
 
-def ThreadMethodsStopsync(cls):
+def LogTime(func):
     """
-    Decorator to replace stopThread method to include the Kodi window property
-    'emby_shouldStop'
+    Decorator for functions and methods to log the time it took to run the code
+    """
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        starttotal = datetime.now()
+        result = func(*args, **kwargs)
+        elapsedtotal = datetime.now() - starttotal
+        logMsg('%s %s' % (addonName, func.__name__),
+               'It took %s to run the function.' % (elapsedtotal), 1)
+        return result
+    return wrapper
 
-    Use with any library sync threads. @ThreadMethods still required FIRST
+
+def ThreadMethodsAdditionalStop(windowAttribute):
     """
-    def threadStopped(self):
-        return (self._threadStopped or
-                self._abortMonitor.abortRequested() or
-                window('emby_shouldStop') == "true")
-    cls.threadStopped = threadStopped
-    return cls
+    Decorator to replace stopThread method to include the Kodi windowAttribute
+
+    Use with any sync threads. @ThreadMethods still required FIRST
+    """
+    def wrapper(cls):
+        def threadStopped(self):
+            return (self._threadStopped or
+                    self._abortMonitor.abortRequested() or
+                    window(windowAttribute) == "true")
+        cls.threadStopped = threadStopped
+        return cls
+    return wrapper
 
 
 def ThreadMethodsAdditionalSuspend(windowAttribute):
@@ -48,8 +64,8 @@ def ThreadMethodsAdditionalSuspend(windowAttribute):
     """
     def wrapper(cls):
         def threadSuspended(self):
-            return (self._threadSuspended or True if
-                    window(windowAttribute) == 'true' else False)
+            return (self._threadSuspended or
+                    window(windowAttribute) == 'true')
         cls.threadSuspended = threadSuspended
         return cls
     return wrapper
@@ -140,7 +156,6 @@ def getUnixTimestamp(secondsIntoTheFuture=None):
 
 
 def logMsg(title, msg, level=1):
-    
     # Get the logLevel set in UserClient
     try:
         logLevel = int(window('emby_logLevel'))
@@ -155,13 +170,19 @@ def logMsg(title, msg, level=1):
                 xbmc.log("%s -> %s : %s" % (
                     title, func.co_name, msg))
             except UnicodeEncodeError:
-                xbmc.log("%s -> %s : %s" % (
-                    title, func.co_name, msg.encode('utf-8')))
+                try:
+                    xbmc.log("%s -> %s : %s" % (
+                        title, func.co_name, msg.encode('utf-8')))
+                except:
+                    xbmc.log("%s -> %s : %s" % (title, func.co_name, 'COULDNT LOG'))
         else:
             try:
                 xbmc.log("%s -> %s" % (title, msg))
             except UnicodeEncodeError:
-                xbmc.log("%s -> %s" % (title, msg.encode('utf-8')))
+                try:
+                    xbmc.log("%s -> %s" % (title, msg.encode('utf-8')))
+                except:
+                    xbmc.log("%s -> %s " % (title, 'COULDNT LOG'))
 
 
 def window(property, value=None, clear=False, windowid=10000):

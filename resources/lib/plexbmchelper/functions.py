@@ -71,11 +71,9 @@ def jsonrpc(action, arguments = {}):
                              "id" : 1 ,
                              "method"  : "JSONRPC.Ping" })
     elif action.lower() == "playmedia":
-        fullurl=arguments[0]
-        resume=arguments[1]
         xbmc.Player().play("plugin://plugin.video.plexkodiconnect/"
-                           "?mode=companion&resume=%s&id=%s"
-                           % (resume, fullurl))
+                           "?mode=companion&arguments=%s"
+                           % arguments)
         return True
     elif arguments:
         request=json.dumps({ "id" : 1,

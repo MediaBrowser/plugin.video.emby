@@ -1,14 +1,24 @@
 # -*- coding: utf-8 -*-
 from urllib import urlencode
+from ast import literal_eval
+from urlparse import urlparse, parse_qs
+import re
 
 from xbmcaddon import Addon
 
-from downloadutils import DownloadUtils
+import downloadutils
 from utils import logMsg
 
 
 addonName = Addon().getAddonInfo('name')
 title = "%s %s" % (addonName, __name__)
+
+
+def PlexToKodiTimefactor():
+    """
+    Kodi measures time in seconds, but Plex in milliseconds
+    """
+    return 1.0 / 1000.0
 
 
 def GetItemClassFromType(itemType):
@@ -19,6 +29,42 @@ def GetItemClassFromType(itemType):
         'show': 'TVShows'
     }
     return classes[itemType]
+
+
+def GetPlexKeyNumber(plexKey):
+    """
+    Deconstructs e.g. '/library/metadata/xxxx' to the tuple
+
+        ('library/metadata', 'xxxx')
+
+    Returns ('','') if nothing is found
+    """
+    regex = re.compile(r'''/(.+)/(\d+)$''')
+    try:
+        result = regex.findall(plexKey)[0]
+    except IndexError:
+        result = ('', '')
+    return result
+
+
+def ParseContainerKey(containerKey):
+    """
+    Parses e.g. /playQueues/3045?own=1&repeat=0&window=200 to:
+    'playQueues', '3045', {'window': ['200'], 'own': ['1'], 'repeat': ['0']}
+
+    Output hence: library, key, query       (query as a special dict)
+    """
+    result = urlparse(containerKey)
+    library, key = GetPlexKeyNumber(result.path)
+    query = parse_qs(result.query)
+    return library, key, query
+
+
+def LiteralEval(string):
+    """
+    Turns a string e.g. in a dict, safely :-)
+    """
+    return literal_eval(string)
 
 
 def GetMethodFromPlexType(plexType):
@@ -46,18 +92,25 @@ def EmbyItemtypes():
     return ['Movie', 'Series', 'Season', 'Episode']
 
 
-def XbmcPhoto():
-    return "photo"
-def XbmcVideo():
-    return "video"
-def XbmcAudio():
-    return "audio"
-def PlexPhoto():
-    return "photo"
-def PlexVideo():
-    return "video"
-def PlexAudio():
-    return "music"
+def GetPlayQueue(playQueueID):
+    """
+    Fetches the PMS playqueue with the playQueueID as a JSON
+
+    Returns False if something went wrong
+    """
+    url = "{server}/playQueues/%s" % playQueueID
+    headerOptions = {'Accept': 'application/json'}
+    json = downloadutils.DownloadUtils().downloadUrl(url, headerOptions=headerOptions)
+    try:
+        json = json.json()
+    except:
+        return False
+    try:
+        json['_children']
+        json['playQueueID']
+    except KeyError:
+        return False
+    return json
 
 
 def GetPlexMetadata(key):
@@ -87,7 +140,7 @@ def GetPlexMetadata(key):
     }
     url = url + '?' + urlencode(arguments)
     headerOptions = {'Accept': 'application/xml'}
-    xml = DownloadUtils().downloadUrl(url, headerOptions=headerOptions)
+    xml = downloadutils.DownloadUtils().downloadUrl(url, headerOptions=headerOptions)
     # Did we receive a valid XML?
     try:
         xml.tag
@@ -108,7 +161,7 @@ def GetAllPlexChildren(key):
     """
     result = []
     url = "{server}/library/metadata/%s/children" % key
-    jsondata = DownloadUtils().downloadUrl(url)
+    jsondata = downloadutils.DownloadUtils().downloadUrl(url)
     try:
         result = jsondata['_children']
     except KeyError:
@@ -125,7 +178,7 @@ def GetPlexSectionResults(viewId, headerOptions={}):
     """
     result = []
     url = "{server}/library/sections/%s/all" % viewId
-    jsondata = DownloadUtils().downloadUrl(url, headerOptions=headerOptions)
+    jsondata = downloadutils.DownloadUtils().downloadUrl(url, headerOptions=headerOptions)
     try:
         result = jsondata['_children']
     except TypeError:
@@ -146,37 +199,38 @@ def GetPlexSectionResults(viewId, headerOptions={}):
     return result
 
 
-def GetPlexUpdatedItems(viewId, unixTime, headerOptions={}):
-    """
-    Returns a list (raw JSON or XML API dump) of all Plex items in the Plex
-    section with key = viewId AFTER the unixTime
-    """
-    result = []
-    url = "{server}/library/sections/%s/allLeaves?updatedAt>=%s" \
-          % (viewId, unixTime)
-    jsondata = DownloadUtils().downloadUrl(url, headerOptions=headerOptions)
-    try:
-        result = jsondata['_children']
-    except KeyError:
-        logMsg(title,
-               "Error retrieving all items for Plex section %s and time %s"
-               % (viewId, unixTime), -1)
-    return result
-
-
-def GetAllPlexLeaves(viewId, headerOptions={}):
+def GetAllPlexLeaves(viewId, lastViewedAt=None, updatedAt=None,
+                     headerOptions={}):
     """
     Returns a list (raw JSON or XML API dump) of all Plex subitems for the
     key.
     (e.g. /library/sections/2/allLeaves pointing to all TV shows)
 
     Input:
-        viewId            Id of Plex library, e.g. '2'
-        headerOptions     to override the download headers
+        viewId              Id of Plex library, e.g. '2'
+        lastViewedAt        Unix timestamp; only retrieves PMS items viewed
+                            since that point of time until now.
+        updatedAt           Unix timestamp; only retrieves PMS items updated
+                            by the PMS since that point of time until now.
+        headerOptions     to override any download headers
+
+    If lastViewedAt and updatedAt=None, ALL PMS items are returned.
+
+    Warning: lastViewedAt and updatedAt are combined with AND by the PMS!
+
+    Relevant "master time": PMS server. I guess this COULD lead to problems,
+    e.g. when server and client are in different time zones.
     """
     result = []
-    url = "{server}/library/sections/%s/allLeaves" % viewId
-    jsondata = DownloadUtils().downloadUrl(url, headerOptions=headerOptions)
+    args = []
+    url = "{server}/library/sections/%s/allLeaves?" % viewId
+    if lastViewedAt:
+        args.append('lastViewedAt>=%s' % lastViewedAt)
+    if updatedAt:
+        args.append('updatedAt>=%s' % updatedAt)
+    args = '&'.join(args)
+    jsondata = downloadutils.DownloadUtils().downloadUrl(
+        url+args, headerOptions=headerOptions)
     try:
         result = jsondata['_children']
     except TypeError:
@@ -213,7 +267,7 @@ def GetPlexCollections(mediatype):
     """
     collections = []
     url = "{server}/library/sections"
-    jsondata = DownloadUtils().downloadUrl(url)
+    jsondata = downloadutils.DownloadUtils().downloadUrl(url)
     try:
         result = jsondata['_children']
     except KeyError:

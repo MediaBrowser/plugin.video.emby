@@ -62,7 +62,7 @@ class plexgdm:
             print "PlexGDM: %s" % message
 
     def clientDetails(self, c_id, c_name, c_post, c_product, c_version):
-        self.client_data = "Content-Type: plex/media-player\r\nResource-Identifier: %s\r\nName: %s\r\nPort: %s\r\nProduct: %s\r\nVersion: %s\r\nProtocol: plex\r\nProtocol-Version: 1\r\nProtocol-Capabilities: navigation,playback,timeline\r\nDevice-Class: HTPC" % ( c_id, c_name, c_post, c_product, c_version )
+        self.client_data = "Content-Type: plex/media-player\r\nResource-Identifier: %s\r\nName: %s\r\nPort: %s\r\nProduct: %s\r\nVersion: %s\r\nProtocol: plex\r\nProtocol-Version: 1\r\nProtocol-Capabilities: timeline,playback,navigation,mirror,playqueues\r\nDevice-Class: HTPC" % ( c_id, c_name, c_post, c_product, c_version )
         self.client_id = c_id
         
     def getClientDetails(self):

@@ -13,7 +13,6 @@ import utils
 import downloadutils
 
 import PlexAPI
-import librarysync
 
 ##################################################################################################
 

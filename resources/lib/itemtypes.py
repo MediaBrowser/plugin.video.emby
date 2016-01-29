@@ -263,7 +263,7 @@ class Movies(Items):
         API = PlexAPI.API(itemList)
         for itemNumber in range(len(itemList)):
             API.setChildNumber(itemNumber)
-            itemid = API.getKey()
+            itemid = API.getRatingKey()
             # Get key and db entry on the Kodi db side
             fileid = self.emby_db.getItem_byId(itemid)[1]
             # Grab the user's viewcount, resume points etc. from PMS' answer
@@ -276,6 +276,7 @@ class Movies(Items):
                                       userdata['LastPlayedDate'])
 
     def add_update(self, item, viewtag=None, viewid=None):
+        self.logMsg("Entering add_update", 1)
         # Process single movie
         kodicursor = self.kodicursor
         emby_db = self.emby_db
@@ -286,7 +287,7 @@ class Movies(Items):
         # If the item already exist in the local Kodi DB we'll perform a full item update
         # If the item doesn't exist, we'll add it to the database
         update_item = True
-        itemid = API.getKey()
+        itemid = API.getRatingKey()
         # Cannot parse XML, abort
         if not itemid:
             self.logMsg("Cannot parse XML data for movie", -1)
@@ -346,22 +347,22 @@ class Movies(Items):
         # Find one trailer
         trailer = None
         extras = API.getExtras()
-        for item in extras:
+        for extra in extras:
             # Only get 1st trailer element
-            if item['extraType'] == '1':
-                trailer = item['key']
+            if extra['extraType'] == '1':
+                trailer = extra['key']
                 trailer = "plugin://plugin.video.plexkodiconnect/trailer/?id=%s&mode=play" % trailer
                 self.logMsg("Trailer for %s: %s" % (itemid, trailer), 2)
                 break
 
         ##### GET THE FILE AND PATH #####
-        playurl = API.getFilePath()
-
-        if "\\" in playurl:
-            # Local path
-            filename = playurl.rsplit("\\", 1)[1]
-        else: # Network share
-            filename = playurl.rsplit("/", 1)[1]
+        playurl = API.getKey()
+        filename = playurl
+        # if "\\" in playurl:
+        #     # Local path
+        #     filename = playurl.rsplit("\\", 1)[1]
+        # else: # Network share
+        #     filename = playurl.rsplit("/", 1)[1]
 
         if self.directpath:
             # Direct paths is set the Kodi way
@@ -386,13 +387,13 @@ class Movies(Items):
             path = "plugin://plugin.video.plexkodiconnect.movies/"
             params = {
 
-                'filename': filename.encode('utf-8'),
+                #'filename': filename.encode('utf-8'),
+                'filename': filename,
                 'id': itemid,
                 'dbid': movieid,
                 'mode': "play"
             }
             filename = "%s?%s" % (path, urllib.urlencode(params))
-
         ##### UPDATE THE MOVIE #####
         if update_item:
             self.logMsg("UPDATE movie itemid: %s - Title: %s" % (itemid, title), 1)
@@ -462,24 +463,33 @@ class Movies(Items):
         # Process cast
         people = API.getPeopleList()
         kodi_db.addPeople(movieid, people, "movie")
+        self.logMsg('People added', 2)
         # Process genres
         kodi_db.addGenres(movieid, genres, "movie")
+        self.logMsg('Genres added', 2)
         # Process artwork
         allartworks = API.getAllArtwork()
+        self.logMsg('Artwork processed', 2)
         artwork.addArtwork(allartworks, movieid, "movie", kodicursor)
+        self.logMsg('Artwork added', 2)
         # Process stream details
         streams = API.getMediaStreams()
+        self.logMsg('Streames processed', 2)
         kodi_db.addStreams(fileid, streams, runtime)
+        self.logMsg('Streames added', 2)
         # Process studios
         kodi_db.addStudios(movieid, studios, "movie")
+        self.logMsg('Studios added', 2)
         # Process tags: view, emby tags
         tags = [viewtag]
         # tags.extend(item['Tags'])
         # if userdata['Favorite']:
         #     tags.append("Favorite movies")
         kodi_db.addTags(movieid, tags, "movie")
+        self.logMsg('Tags added', 2)
         # Process playstates
         kodi_db.addPlaystate(fileid, resume, runtime, playcount, dateplayed)
+        self.logMsg('Done processing %s' % itemid, 2)
 
     def remove(self, itemid):
         # Remove movieid, fileid, emby reference
@@ -598,7 +608,7 @@ class MusicVideos(Items):
 
         
         ##### GET THE FILE AND PATH #####
-        playurl = API.getFilePath()
+        playurl = API.getKey()
 
         if "\\" in playurl:
             # Local path
@@ -883,7 +893,7 @@ class TVShows(Items):
         API = PlexAPI.API(itemList)
         for itemNumber in range(len(itemList)):
             API.setChildNumber(itemNumber)
-            itemid = API.getKey()
+            itemid = API.getRatingKey()
             # Get key and db entry on the Kodi db side
             fileid = self.emby_db.getItem_byId(itemid)[1]
             # Grab the user's viewcount, resume points etc. from PMS' answer
@@ -909,7 +919,7 @@ class TVShows(Items):
         # If the item already exist in the local Kodi DB we'll perform a full item update
         # If the item doesn't exist, we'll add it to the database
         update_item = True
-        itemid = API.getKey()
+        itemid = API.getRatingKey()
         if not itemid:
             self.logMsg("Cannot parse XML data for TV show", -1)
             return
@@ -943,7 +953,7 @@ class TVShows(Items):
             studio = None
 
         ##### GET THE FILE AND PATH #####
-        playurl = API.getFilePath()
+        playurl = API.getKey()
 
         if self.directpath:
             # Direct paths is set the Kodi way
@@ -1070,7 +1080,7 @@ class TVShows(Items):
     def add_updateSeason(self, item, viewid=None, viewtag=None):
         API = PlexAPI.API(item)
         showid = viewid
-        itemid = API.getKey()
+        itemid = API.getRatingKey()
         kodicursor = self.kodicursor
         emby_db = self.emby_db
         kodi_db = self.kodi_db
@@ -1116,7 +1126,7 @@ class TVShows(Items):
         # If the item already exist in the local Kodi DB we'll perform a full item update
         # If the item doesn't exist, we'll add it to the database
         update_item = True
-        itemid = API.getKey()
+        itemid = API.getRatingKey()
         emby_dbitem = emby_db.getItem_byId(itemid)
         self.logMsg("Processing episode with Plex Id: %s" % itemid, 2)
         try:
@@ -1150,8 +1160,12 @@ class TVShows(Items):
         resume, runtime = API.getRuntime()
         premieredate = API.getPremiereDate()
 
+        self.logMsg("Retrieved metadata for %s" % itemid, 2)
+
         # episode details
         seriesId, seriesName, season, episode = API.getEpisodeDetails()
+        self.logMsg("Got episode details: %s %s: s%se%s"
+                    % (seriesId, seriesName, season, episode), 2)
 
         if season is None:
             if item.get('AbsoluteEpisodeNumber'):
@@ -1180,27 +1194,30 @@ class TVShows(Items):
         try:
             showid = show[0]
         except TypeError:
-            # Show is missing from database
-            show = self.emby.getItem(seriesId)
-            self.add_update(show)
-            show = emby_db.getItem_byId(seriesId)
-            try:
-                showid = show[0]
-            except TypeError:
-                self.logMsg("Skipping: %s. Unable to add series: %s." % (itemid, seriesId), -1)
-                return False
-
+            # self.logMsg("Show is missing from database, trying to add", 2)
+            # show = self.emby.getItem(seriesId)
+            # self.logMsg("Show now: %s. Trying to add new show" % show, 2)
+            # self.add_update(show)
+            # show = emby_db.getItem_byId(seriesId)
+            # try:
+            #     showid = show[0]
+            # except TypeError:
+            #     self.logMsg("Skipping: %s. Unable to add series: %s." % (itemid, seriesId), -1)
+            self.logMsg("Parent tvshow now found, skip item", 2)
+            return False
+        self.logMsg("showid: %s" % showid, 2)
         seasonid = kodi_db.addSeason(showid, season)
+        self.logMsg("seasonid: %s" % seasonid, 2)
 
-        
         ##### GET THE FILE AND PATH #####
-        playurl = API.getFilePath()
+        playurl = API.getKey()
+        filename = playurl
 
-        if "\\" in playurl:
-            # Local path
-            filename = playurl.rsplit("\\", 1)[1]
-        else: # Network share
-            filename = playurl.rsplit("/", 1)[1]
+        # if "\\" in playurl:
+        #     # Local path
+        #     filename = playurl.rsplit("\\", 1)[1]
+        # else: # Network share
+        #     filename = playurl.rsplit("/", 1)[1]
 
         if self.directpath:
             # Direct paths is set the Kodi way
@@ -1225,7 +1242,8 @@ class TVShows(Items):
             path = "plugin://plugin.video.plexkodiconnect.tvshows/%s/" % seriesId
             params = {
 
-                'filename': filename.encode('utf-8'),
+                #'filename': filename.encode('utf-8'),
+                'filename': filename,
                 'id': itemid,
                 'dbid': episodeid,
                 'mode': "play"
@@ -1234,7 +1252,7 @@ class TVShows(Items):
 
         ##### UPDATE THE EPISODE #####
         if update_item:
-            self.logMsg("UPDATE episode itemid: %s - Title: %s" % (itemid, title), 1)
+            self.logMsg("UPDATE episode itemid: %s" % (itemid), 1)
 
             # Update the movie entry
             if kodiversion in (16, 17):
@@ -1268,7 +1286,7 @@ class TVShows(Items):
         
         ##### OR ADD THE EPISODE #####
         else:
-            self.logMsg("ADD episode itemid: %s - Title: %s" % (itemid, title), 1)
+            self.logMsg("ADD episode itemid: %s" % (itemid), 1)
             
             # Add path
             pathid = kodi_db.addPath(path)
@@ -1850,7 +1868,7 @@ class Music(Items):
             path = "%s/emby/Audio/%s/" % (self.server, itemid)
             filename = "stream.mp3"
         else:
-            playurl = API.getFilePath()
+            playurl = API.getKey()
 
             if "\\" in playurl:
                 # Local path
