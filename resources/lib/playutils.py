@@ -107,6 +107,15 @@ class PlayUtils():
         except (IndexError, KeyError):
             playurl = item['Path']
 
+        if item.get('VideoType'):
+            # Specific format modification
+            type = item['VideoType']
+
+            if type == "Dvd":
+                playurl = "%s/VIDEO_TS/VIDEO_TS.IFO" % playurl
+            elif type == "BluRay":
+                playurl = "%s/BDMV/index.bdmv" % playurl
+
         # Assign network protocol
         if playurl.startswith('\\\\'):
             playurl = playurl.replace("\\\\", "smb://")

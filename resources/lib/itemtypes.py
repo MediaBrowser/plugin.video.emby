@@ -1934,39 +1934,50 @@ class Music(Items):
                 self.logMsg("Song itemid: %s has no albumId." % itemid, 1)
                 return
             except TypeError:
-                # No album found, create a single's album
-                kodicursor.execute("select coalesce(max(idAlbum),0) from album")
-                albumid = kodicursor.fetchone()[0] + 1
-                if kodiversion in (16, 17):
-                    # Kodi Jarvis, Krypton
-                    query = (
-                        '''
-                        INSERT INTO album(idAlbum, strGenres, iYear, strReleaseType)
+                # No album found. Let's create it
+                self.logMsg("Album database entry missing.", 1)
+                emby_albumId = item['AlbumId']
+                album = self.emby.getItem(emby_albumId)
+                self.add_updateAlbum(album)
+                emby_dbalbum = emby_db.getItem_byId(emby_albumId)
+                try:
+                    albumid = emby_dbalbum[0]
+                    self.logMsg("Found albumid: %s" % albumid, 1)
+                except TypeError:
+                    # No album found, create a single's album
+                    self.logMsg("Failed to add album. Creating singles.", 1)
+                    kodicursor.execute("select coalesce(max(idAlbum),0) from album")
+                    albumid = kodicursor.fetchone()[0] + 1
+                    if kodiversion == 16:
+                        # Kodi Jarvis
+                        query = (
+                            '''
+                            INSERT INTO album(idAlbum, strGenres, iYear, strReleaseType)
 
-                        VALUES (?, ?, ?, ?)
-                        '''
-                    )
-                    kodicursor.execute(query, (albumid, genre, year, "single"))
-                elif kodiversion == 15:
-                    # Kodi Isengard
-                    query = (
-                        '''
-                        INSERT INTO album(idAlbum, strGenres, iYear, dateAdded, strReleaseType)
+                            VALUES (?, ?, ?, ?)
+                            '''
+                        )
+                        kodicursor.execute(query, (albumid, genre, year, "single"))
+                    elif kodiversion == 15:
+                        # Kodi Isengard
+                        query = (
+                            '''
+                            INSERT INTO album(idAlbum, strGenres, iYear, dateAdded, strReleaseType)
 
-                        VALUES (?, ?, ?, ?, ?)
-                        '''
-                    )
-                    kodicursor.execute(query, (albumid, genre, year, dateadded, "single"))
-                else:
-                    # Kodi Helix
-                    query = (
-                        '''
-                        INSERT INTO album(idAlbum, strGenres, iYear, dateAdded)
+                            VALUES (?, ?, ?, ?, ?)
+                            '''
+                        )
+                        kodicursor.execute(query, (albumid, genre, year, dateadded, "single"))
+                    else:
+                        # Kodi Helix
+                        query = (
+                            '''
+                            INSERT INTO album(idAlbum, strGenres, iYear, dateAdded)
 
-                        VALUES (?, ?, ?, ?)
-                        '''
-                    )
-                    kodicursor.execute(query, (albumid, genre, year, dateadded))
+                            VALUES (?, ?, ?, ?)
+                            '''
+                        )
+                        kodicursor.execute(query, (albumid, genre, year, dateadded))
             
             # Create the song entry
             kodicursor.execute("select coalesce(max(idSong),0) from song")
