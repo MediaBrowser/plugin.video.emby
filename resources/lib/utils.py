@@ -140,6 +140,25 @@ def logging(cls):
     return cls
 
 
+def XMLAtt(xml, key):
+    try:
+        result = xml.attrib['key']
+    except KeyError:
+        result = ''
+    return result
+
+
+def IntFromStr(string):
+    """
+    Returns an int from string or the int 0 if something happened
+    """
+    try:
+        result = int(string)
+    except:
+        result = 0
+    return result
+
+
 def getUnixTimestamp(secondsIntoTheFuture=None):
     """
     Returns a Unix time stamp (seconds passed since January 1 1970) for NOW as

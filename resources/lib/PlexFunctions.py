@@ -21,6 +21,13 @@ def PlexToKodiTimefactor():
     return 1.0 / 1000.0
 
 
+def ConvertPlexToKodiTime(plexTime):
+    """
+    Converts Plextime to Koditime. Returns an int (in seconds).
+    """
+    return int(float(plexTime) * PlexToKodiTimefactor())
+
+
 def GetItemClassFromType(itemType):
     classes = {
         'movie': 'Movies',
@@ -94,26 +101,21 @@ def EmbyItemtypes():
 
 def GetPlayQueue(playQueueID):
     """
-    Fetches the PMS playqueue with the playQueueID as a JSON
+    Fetches the PMS playqueue with the playQueueID as an XML
 
     Returns False if something went wrong
     """
     url = "{server}/playQueues/%s" % playQueueID
-    headerOptions = {'Accept': 'application/json'}
-    json = downloadutils.DownloadUtils().downloadUrl(url, headerOptions=headerOptions)
+    args = {'Accept': 'application/xml'}
+    xml = downloadutils.DownloadUtils().downloadUrl(url, headerOptions=args)
     try:
-        json = json.json()
-    except:
+        xml.attrib['playQueueID']
+    except (AttributeError, KeyError):
         return False
-    try:
-        json['_children']
-        json['playQueueID']
-    except KeyError:
-        return False
-    return json
+    return xml
 
 
-def GetPlexMetadata(key):
+def GetPlexMetadata(key, JSON=True):
     """
     Returns raw API metadata for key as an etree XML.
 
@@ -139,7 +141,10 @@ def GetPlexMetadata(key):
         'includeConcerts': 1
     }
     url = url + '?' + urlencode(arguments)
-    headerOptions = {'Accept': 'application/xml'}
+    if not JSON:
+        headerOptions = {'Accept': 'application/xml'}
+    else:
+        headerOptions = {}
     xml = downloadutils.DownloadUtils().downloadUrl(url, headerOptions=headerOptions)
     # Did we receive a valid XML?
     try:

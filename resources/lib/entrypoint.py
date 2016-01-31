@@ -60,7 +60,8 @@ def plexCompanion(fullurl, params=None):
                utils.window('plex_machineIdentifier')), -1)
         return
     utils.window('plex_key', params.get('key'))
-    library, key, query = PlexFunctions(params.get('containerKey'))
+    library, key, query = PlexFunctions.ParseContainerKey(
+        params.get('containerKey'))
     # Construct a container key that works always (get rid of playlist args)
     utils.window('plex_containerKey', '/'+library+'/'+key)
     # Assume it's video when something goes wrong
@@ -69,42 +70,57 @@ def plexCompanion(fullurl, params=None):
     if 'playQueues' in library:
         utils.logMsg(title, "Playing a playQueue. Query was: %s" % query, 1)
         # Playing a playlist that we need to fetch from PMS
-        playQueue = PlexFunctions.GetPlayQueue(key)
-        if not playQueue:
+        xml = PlexFunctions.GetPlayQueue(key)
+        if not xml:
             utils.logMsg(
                 title, "Error getting PMS playlist for key %s" % key, -1)
-            return
+        else:
+            PassPlaylist(xml, resume=int(params.get('offset', '0')))
+    else:
+        utils.logMsg(
+            title, "Not knowing what to do for now - no playQueue sent", -1)
 
-        # Set window properties to make them available for other threads
-        utils.window('plex_playQueueID', playQueue['playQueueID'])
-        utils.window('plex_playQueueVersion', playQueue['playQueueVersion'])
-        utils.window('plex_playQueueShuffled', playQueue['playQueueShuffled'])
-        utils.window(
-            'plex_playQueueSelectedItemID',
-            playQueue['playQueueSelectedItemID'])
-        utils.window(
-            'plex_playQueueSelectedItemOffset',
-            playQueue['playQueueSelectedItemOffset'])
 
-        pbutils.PlaybackUtils(playQueue['_children']).StartPlay(
-            resume=playQueue['playQueueSelectedItemOffset'],
-            resumeItem=playQueue['playQueueSelectedItemID'])
+def PassPlaylist(xml, resume=0):
+        # Set window properties to make them available later for other threads
+        windowArgs = [
+            'playQueueID',
+            'playQueueVersion',
+            'playQueueShuffled']
+        for arg in windowArgs:
+            utils.window(arg, utils.XMLAtt(xml, arg))
 
-    # Start playing
-    item = PlexFunctions.GetPlexMetadata(itemid)
-    pbutils.PlaybackUtils(item).play(itemid, dbid, seektime=resume)
+        # Get resume point
+        resume1 = utils.IntFromStr(
+            utils.XMLAtt(xml, 'playQueueSelectedItemOffset'))
+        resume2 = resume
+        # Convert Plextime to Koditime
+        resume = PlexFunctions.ConvertPlexToKodiTime(max(resume1, resume2))
+
+        pbutils.PlaybackUtils(xml).StartPlay(
+            resume=resume,
+            resumeItem=utils.XMLAtt(xml, 'playQueueSelectedItemID'))
 
 
 def doPlayback(itemid, dbid):
-    # Get a first XML to get the librarySectionUUID
-    item = PlexFunctions.GetPlexMetadata(itemid)
-    # Use that to call the playlist
-    xmlPlaylist = PlexAPI.API(item).GetPlexPlaylist()
-    if xmlPlaylist:
-        pbutils.PlaybackUtils(xmlPlaylist).play(itemid, dbid)
+    utils.logMsg(title, "doPlayback called with %s %s"
+                 % (itemid, dbid), 1)
+    item = PlexFunctions.GetPlexMetadata(itemid, JSON=True)
+    playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
+    # If current playlist is NOT empty, we only need to update the item url
+    if playlist.size() != 0:
+        utils.logMsg(title, "Playlist is not empty, hence update url only", 1)
+        pbutils.PlaybackUtils(item).StartPlay()
     else:
-        # No playlist received e.g. when directly playing trailers
-        pbutils.PlaybackUtils(item).play(itemid, dbid)
+        # Get a first XML to get the librarySectionUUID
+        # Use librarySectionUUID to call the playlist
+        xmlPlaylist = PlexAPI.API(item).GetPlexPlaylist()
+        if xmlPlaylist:
+            PassPlaylist(xmlPlaylist)
+        else:
+            # No playlist received e.g. when directly playing trailers
+            pbutils.PlaybackUtils(item).StartPlay()
+
 
 ##### DO RESET AUTH #####
 def resetAuth():

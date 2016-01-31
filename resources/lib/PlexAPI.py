@@ -1425,7 +1425,13 @@ class API():
         """
         Returns the type of media, e.g. 'movie' or 'clip' for trailers
         """
-        return self.item['type']
+        # XML
+        try:
+            item = self.item.attrib
+        # JSON
+        except AttributeError:
+            item = self.item
+        return item.get('type', '')
 
     def getChecksum(self):
         """
@@ -1449,15 +1455,13 @@ class API():
         Can be used on both XML and JSON
         Returns the Plex key such as '246922' as a string
         """
-        item = self.item
         # XML
         try:
-            item = item[0].attrib
+            result = self.item.attrib
         # JSON
-        except (AttributeError, KeyError):
-            pass
-        key = item['ratingKey']
-        return str(key)
+        except AttributeError:
+            item = self.item
+        return item['ratingKey']
 
     def getKey(self):
         """
@@ -1887,7 +1891,13 @@ class API():
 
         If not found, empty str is returned
         """
-        return self.item.get('playQueueItemID')
+        # XML:
+        try:
+            item = self.item.attrib
+        # JSON
+        except AttributeError:
+            item = self.item
+        return item.get('playQueueItemID', '')
 
     def getDataFromPartOrMedia(self, key):
         """
@@ -1896,8 +1906,15 @@ class API():
 
         If all fails, None is returned.
         """
-        media = self.item['_children'][0]
-        part = media['_children'][self.part]
+        # JSON
+        try:
+            media = self.item['_children'][0]
+            part = media['_children'][self.part]
+        # XML
+        except TypeError:
+            media = self.item[0].attrib
+            part = self.item[0][self.part].attrib
+
         try:
             try:
                 value = part[key]
@@ -2242,8 +2259,8 @@ class API():
         }
         xargs = PlexAPI().getXArgsDeviceInfo(options=options)
         # For Direct Playing
+        path = self.getDataFromPartOrMedia('key')
         if action == "DirectPlay":
-            path = self.item['_children'][0]['_children'][self.partNumber]['key']
             transcodePath = self.server + path
             # Be sure to have exactly ONE '?' in the path (might already have
             # been returned, e.g. trailers!)
@@ -2257,7 +2274,6 @@ class API():
         # For Direct Streaming or Transcoding
         transcodePath = self.server + \
             '/video/:/transcode/universal/start.m3u8?'
-        path = self.getDataFromPartOrMedia('key')
         args = {
             'path': path,
             'mediaIndex': 0,       # Probably refering to XML reply sheme

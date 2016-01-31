@@ -34,9 +34,7 @@ class PlayUtils():
         Returns a list of playurls, one per part in item
         """
         playurls = []
-        # TODO: multiple media parts for e.g. trailers: replace [0] here
-        partCount = len(self.item['_children'][0]['_children'])
-        for partNumber in range(partCount):
+        for partNumber, part in enumerate(self.item[0]):
             playurl = None
             self.API.setPartNumber(partNumber)
 
