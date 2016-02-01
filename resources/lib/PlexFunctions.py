@@ -115,16 +115,15 @@ def GetPlayQueue(playQueueID):
     return xml
 
 
-def GetPlexMetadata(key, JSON=True):
+def GetPlexMetadata(key):
     """
     Returns raw API metadata for key as an etree XML.
 
     Can be called with either Plex key '/library/metadata/xxxx'metadata
     OR with the digits 'xxxx' only.
 
-    Returns an empty string '' if something went wrong
+    Returns None if something went wrong
     """
-    xml = ''
     key = str(key)
     if '/library/metadata/' in key:
         url = "{server}" + key
@@ -133,82 +132,72 @@ def GetPlexMetadata(key, JSON=True):
     arguments = {
         'checkFiles': 1,            # No idea
         'includeExtras': 1,         # Trailers and Extras => Extras
-        'includeRelated': 1,        # Similar movies => Video -> Related
-        'includeRelatedCount': 5,
-        'includeOnDeck': 1,
+        # 'includeRelated': 1,        # Similar movies => Video -> Related
+        # 'includeRelatedCount': 5,
+        # 'includeOnDeck': 1,
         'includeChapters': 1,
         'includePopularLeaves': 1,
         'includeConcerts': 1
     }
     url = url + '?' + urlencode(arguments)
-    if not JSON:
-        headerOptions = {'Accept': 'application/xml'}
-    else:
-        headerOptions = {}
-    xml = downloadutils.DownloadUtils().downloadUrl(url, headerOptions=headerOptions)
+    xml = downloadutils.DownloadUtils().downloadUrl(url)
     # Did we receive a valid XML?
     try:
-        xml.tag
+        xml.attrib
     # Nope we did not receive a valid XML
     except AttributeError:
         logMsg(title, "Error retrieving metadata for %s" % url, -1)
-        xml = ''
+        xml = None
     return xml
 
 
 def GetAllPlexChildren(key):
     """
-    Returns a list (raw JSON API dump) of all Plex children for the key.
+    Returns a list (raw xml API dump) of all Plex children for the key.
     (e.g. /library/metadata/194853/children pointing to a season)
 
     Input:
         key             Key to a Plex item, e.g. 12345
     """
-    result = []
-    url = "{server}/library/metadata/%s/children" % key
-    jsondata = downloadutils.DownloadUtils().downloadUrl(url)
+    xml = downloadutils.DownloadUtils().downloadUrl(
+        "{server}/library/metadata/%s/children" % key)
     try:
-        result = jsondata['_children']
-    except KeyError:
+        xml.attrib
+    except AttributeError:
         logMsg(
             title, "Error retrieving all children for Plex item %s" % key, -1)
-        pass
-    return result
+        xml = None
+    return xml
 
 
 def GetPlexSectionResults(viewId, headerOptions={}):
     """
-    Returns a list (raw JSON or XML API dump) of all Plex items in the Plex
+    Returns a list (XML API dump) of all Plex items in the Plex
     section with key = viewId.
+
+    Returns None if something went wrong
     """
     result = []
     url = "{server}/library/sections/%s/all" % viewId
-    jsondata = downloadutils.DownloadUtils().downloadUrl(url, headerOptions=headerOptions)
+    result = downloadutils.DownloadUtils().downloadUrl(
+        url, headerOptions=headerOptions)
+
     try:
-        result = jsondata['_children']
-    except TypeError:
-        # Maybe we received an XML, check for that with tag attribute
-        try:
-            jsondata.tag
-            result = jsondata
-        # Nope, not an XML, abort
-        except AttributeError:
-            logMsg(title,
-                   "Error retrieving all items for Plex section %s"
-                   % viewId, -1)
-            return result
-    except KeyError:
+        result.tag
+    # Nope, not an XML, abort
+    except AttributeError:
         logMsg(title,
                "Error retrieving all items for Plex section %s"
                % viewId, -1)
+        result = None
+
     return result
 
 
 def GetAllPlexLeaves(viewId, lastViewedAt=None, updatedAt=None,
                      headerOptions={}):
     """
-    Returns a list (raw JSON or XML API dump) of all Plex subitems for the
-    key.
+    Returns a list (raw XML API dump) of all Plex subitems for the key.
     (e.g. /library/sections/2/allLeaves pointing to all TV shows)
 
     Input:
@@ -226,7 +215,6 @@ def GetAllPlexLeaves(viewId, lastViewedAt=None, updatedAt=None,
     Relevant "master time": PMS server. I guess this COULD lead to problems,
     e.g. when server and client are in different time zones.
     """
-    result = []
     args = []
     url = "{server}/library/sections/%s/allLeaves?" % viewId
     if lastViewedAt:
@@ -234,24 +222,18 @@ def GetAllPlexLeaves(viewId, lastViewedAt=None, updatedAt=None,
     if updatedAt:
         args.append('updatedAt>=%s' % updatedAt)
     args = '&'.join(args)
-    jsondata = downloadutils.DownloadUtils().downloadUrl(
+    xml = downloadutils.DownloadUtils().downloadUrl(
         url+args, headerOptions=headerOptions)
+
     try:
-        result = jsondata['_children']
-    except TypeError:
-        # Maybe we received an XML, check for that with tag attribute
-        try:
-            jsondata.tag
-            result = jsondata
-        # Nope, not an XML, abort
-        except AttributeError:
-            logMsg(title,
-                   "Error retrieving all leaves for Plex section %s"
-                   % viewId, -1)
-            return result
-    except KeyError:
-        logMsg("Error retrieving all leaves for Plex viewId %s" % viewId, -1)
-    return result
+        xml.attrib
+    # Nope, not an XML, abort
+    except AttributeError:
+        logMsg(title,
+               "Error retrieving all leaves for Plex section %s"
+               % viewId, -1)
+        xml = None
+    return xml
 
 
 def GetPlexCollections(mediatype):

@@ -105,7 +105,7 @@ def PassPlaylist(xml, resume=0):
 def doPlayback(itemid, dbid):
     utils.logMsg(title, "doPlayback called with %s %s"
                  % (itemid, dbid), 1)
-    item = PlexFunctions.GetPlexMetadata(itemid, JSON=True)
+    item = PlexFunctions.GetPlexMetadata(itemid)
     playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
     # If current playlist is NOT empty, we only need to update the item url
     if playlist.size() != 0:

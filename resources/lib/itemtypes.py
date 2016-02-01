@@ -317,12 +317,15 @@ class Movies(Items):
         userdata = API.getUserData()
         playcount = userdata['PlayCount']
         dateplayed = userdata['LastPlayedDate']
+        resume = userdata['Resume']
+        runtime = userdata['Runtime']
 
         # item details
         people = API.getPeople()
         writer = API.joinList(people['Writer'])
         director = API.joinList(people['Director'])
         genres = API.getGenres()
+        genre = API.joinList(genres)
         title, sorttitle = API.getTitle()
         plot = API.getPlot()
         shortplot = None
@@ -331,10 +334,8 @@ class Movies(Items):
 
         rating = API.getAudienceRating()
         year = API.getYear()
-        imdb = API.getProvider('Imdb')
-        resume, runtime = API.getRuntime()
+        imdb = API.getProvider()
         mpaa = API.getMpaa()
-        genre = API.joinList(genres)
         countries = API.getCountry()
         country = API.joinList(countries)
         studios = API.getStudios()
@@ -350,8 +351,8 @@ class Movies(Items):
         for extra in extras:
             # Only get 1st trailer element
             if extra['extraType'] == '1':
-                trailer = extra['key']
-                trailer = "plugin://plugin.video.plexkodiconnect/trailer/?id=%s&mode=play" % trailer
+                trailer = ("plugin://plugin.video.plexkodiconnect/trailer/?"
+                           "id=%s&mode=play") % extra['key']
                 self.logMsg("Trailer for %s: %s" % (itemid, trailer), 2)
                 break
 

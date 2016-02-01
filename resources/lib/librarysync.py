@@ -63,10 +63,8 @@ class ThreadedGetMetadata(threading.Thread):
                 continue
             # Download Metadata
             plexXML = PlexFunctions.GetPlexMetadata(updateItem['itemId'])
-            try:
-                plexXML.tag
-            except:
-                # Did not receive a valid XML - skip that one for now
+            if not plexXML:
+                # Did not receive a valid XML - skip that item for now
                 queue.task_done()
                 continue
 
@@ -129,9 +127,11 @@ class ThreadedProcessMetadata(threading.Thread):
                 title = updateItem['title']
                 itemSubFkt = getattr(item, method)
                 with lock:
-                    itemSubFkt(plexitem,
-                               viewtag=viewName,
-                               viewid=viewId)
+                    # Get the one child entry in the xml and process
+                    for child in plexitem:
+                        itemSubFkt(child,
+                                   viewtag=viewName,
+                                   viewid=viewId)
                     # Keep track of where we are at
                     processMetadataCount += 1
                     processingViewName = title
@@ -303,7 +303,7 @@ class LibrarySync(threading.Thread):
             if not items:
                 continue
             # Get one itemtype, because they're the same in the PMS section
-            plexType = items[0]['type']
+            plexType = items[0].attrib['type']
             # Populate self.updatelist
             self.GetUpdatelist(items,
                                PlexFunctions.GetItemClassFromType(plexType),
@@ -456,7 +456,10 @@ class LibrarySync(threading.Thread):
         vnodes = self.vnodes
 
         # Get views
-        result = doUtils.downloadUrl("{server}/library/sections")['_children']
+        result = doUtils.downloadUrl("{server}/library/sections")
+        if not result:
+            self.logMsg("Error download PMS views, abort maintainViews", -1)
+            return False
 
         # total nodes for window properties
         vnodes.clearProperties()
@@ -467,7 +470,8 @@ class LibrarySync(threading.Thread):
             'movie',
             'show'
         ]
-        for folder in result:
+        for folderItem in result:
+            folder = folderItem.attrib
             mediatype = folder['type']
             if mediatype in mediatypes:
                 folderid = folder['key']
@@ -567,13 +571,12 @@ class LibrarySync(threading.Thread):
         embyconn.close()
         kodiconn.close()
 
-    def GetUpdatelist(self, elementList, itemType, method, viewName, viewId):
+    def GetUpdatelist(self, xml, itemType, method, viewName, viewId):
         """
         Adds items to self.updatelist as well as self.allPlexElementsId dict
 
         Input:
-            elementList:            List of elements, e.g. list of '_children'
-                                    movie elements as received from PMS
+            xml:                    PMS answer for section items
             itemType:               'Movies', 'TVShows', ...
             method:                 Method name to be called with this itemtype
                                     see itemtypes.py
@@ -596,12 +599,10 @@ class LibrarySync(threading.Thread):
         """
         if self.compare:
             # Manual sync
-            for item in elementList:
-                # Skipping XML item 'title=All episodes' without a 'ratingKey'
-                if not item.get('ratingKey', False):
+            for item in xml:
+                # Skipping items 'title=All episodes' without a 'ratingKey'
+                if not item.attrib.get('ratingKey', False):
                     continue
-                if self.threadStopped():
-                    return False
                 API = PlexAPI.API(item)
                 plex_checksum = API.getChecksum()
                 itemId = API.getRatingKey()
@@ -619,12 +620,10 @@ class LibrarySync(threading.Thread):
                                             'title': title})
         else:
             # Initial or repair sync: get all Plex movies
-            for item in elementList:
+            for item in xml:
                 # Only look at valid items = Plex library items
-                if not item.get('ratingKey', False):
+                if not item.attrib.get('ratingKey', False):
                     continue
-                if self.threadStopped():
-                    return False
                 API = PlexAPI.API(item)
                 itemId = API.getRatingKey()
                 title, sorttitle = API.getTitle()
@@ -679,7 +678,7 @@ class LibrarySync(threading.Thread):
             thread.setDaemon(True)
             thread.start()
             threads.append(thread)
-        self.logMsg("Download threads spawned", 1)
+        self.logMsg("%s download threads spawned" % len(threads), 1)
         # Spawn one more thread to process Metadata, once downloaded
         thread = ThreadedProcessMetadata(processMetadataQueue,
                                          itemType,
@@ -758,6 +757,9 @@ class LibrarySync(threading.Thread):
             viewId = view['id']
             viewName = view['name']
             all_plexmovies = PlexFunctions.GetPlexSectionResults(viewId)
+            if not all_plexmovies:
+                self.logMsg("Couldnt get section items, aborting for view.", 1)
+                continue
             # Populate self.updatelist and self.allPlexElementsId
             self.GetUpdatelist(all_plexmovies,
                                itemType,
@@ -768,6 +770,8 @@ class LibrarySync(threading.Thread):
         self.logMsg("Processed view %s with ID %s" % (viewName, viewId), 1)
         # Update viewstate
         for view in views:
+            if self.threadStopped():
+                return False
             self.PlexUpdateWatched(view['id'], itemType)
 
         ##### PROCESS DELETES #####
@@ -892,6 +896,10 @@ class LibrarySync(threading.Thread):
             viewId = view['id']
             viewName = view['name']
             allPlexTvShows = PlexFunctions.GetPlexSectionResults(viewId)
+            if not allPlexTvShows:
+                self.logMsg(
+                    "Error downloading show view xml for view %s" % viewId, -1)
+                continue
             # Populate self.updatelist and self.allPlexElementsId
             self.GetUpdatelist(allPlexTvShows,
                                itemType,
@@ -910,6 +918,10 @@ class LibrarySync(threading.Thread):
                 return False
             # Grab all seasons to tvshow from PMS
             seasons = PlexFunctions.GetAllPlexChildren(tvShowId)
+            if not seasons:
+                self.logMsg(
+                    "Error downloading season xml for show %s" % tvShowId, -1)
+                continue
             # Populate self.updatelist and self.allPlexElementsId
             self.GetUpdatelist(seasons,
                                itemType,
@@ -926,6 +938,11 @@ class LibrarySync(threading.Thread):
                 return False
             # Grab all episodes to tvshow from PMS
             episodes = PlexFunctions.GetAllPlexLeaves(view['id'])
+            if not episodes:
+                self.logMsg(
+                    "Error downloading episod xml for view %s"
+                    % view.get('name'), -1)
+                continue
             # Populate self.updatelist and self.allPlexElementsId
             self.GetUpdatelist(episodes,
                                itemType,

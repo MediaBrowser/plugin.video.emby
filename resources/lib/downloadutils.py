@@ -180,9 +180,9 @@ class DownloadUtils():
         plx = PlexAPI.PlexAPI()
         if authenticate:
             options['X-Plex-Token'] = self.token
-            header = plx.getXArgsDeviceInfo(options=options, JSON=True)
+            header = plx.getXArgsDeviceInfo(options=options)
         else:
-            header = plx.getXArgsDeviceInfo(options=options, JSON=True)
+            header = plx.getXArgsDeviceInfo(options=options)
         return header
 
     def downloadUrl(self, url, postBody=None, type="GET", parameters=None, authenticate=True, headerOptions={}):
@@ -309,18 +309,19 @@ class DownloadUtils():
             elif r.status_code == requests.codes.ok:
                
                 try: 
-                    # UNICODE - JSON object
-                    r = r.json()
+                    # Allow for xml responses
+                    r = etree.fromstring(r.content)
                     self.logMsg("====== 200 Success ======", 2)
-                    self.logMsg("Response: %s" % r, 2)
+                    self.logMsg("Received an XML response for: %s" % url, 2)
+
                     return r
 
                 except:
-                    # Allow for xml responses
                     try:
-                        r = etree.fromstring(r.content)
+                        # UNICODE - JSON object
+                        r = r.json()
                         self.logMsg("====== 200 Success ======", 2)
-                        self.logMsg("Received an XML response for: %s" % url, 2)
+                        self.logMsg("Response: %s" % r, 2)
                         return r
                     except:
                         try:

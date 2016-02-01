@@ -769,13 +769,12 @@ class PlexAPI():
         XML = self.getXMLFromPMS(PMS['baseURL'],PMS['path'],PMS['options'],PMS['token'])
         queue.put( (PMS['data'], XML) )
 
-    def getXArgsDeviceInfo(self, options={}, JSON=False):
+    def getXArgsDeviceInfo(self, options={}):
         """
         Returns a dictionary that can be used as headers for GET and POST
         requests. An authentication option is NOT yet added.
 
         Inputs:
-            JSON=True       will enforce a JSON answer
             options:        dictionary of options that will override the
                             standard header options otherwise set.
         Output:
@@ -800,8 +799,6 @@ class PlexAPI():
 
         if self.token:
             xargs['X-Plex-Token'] = self.token
-        if JSON:
-            xargs['Accept'] = 'application/json'
         if options:
             xargs.update(options)
         return xargs
@@ -1381,8 +1378,6 @@ class API():
         self.server = utils.window('emby_server%s' % self.userId)
         self.token = utils.window('emby_accessToken%s' % self.userId)
 
-        self.jumpback = int(utils.settings('resumeJumpBack'))
-
     def setPartNumber(self, number=0):
         """
         Sets the part number to work with (used to deal with Movie with several
@@ -1396,10 +1391,10 @@ class API():
         """
         return self.part
 
-    def convert_date(self, stamp):
+    def DateToKodi(self, stamp):
         """
-        convert_date(stamp) converts a Unix time stamp (seconds passed since
-        January 1 1970) to a propper, human-readable time stamp
+        converts a Unix time stamp (seconds passed sinceJanuary 1 1970) to a
+        propper, human-readable time stamp used by Kodi
         """
         # DATEFORMAT = xbmc.getRegion('dateshort')
         # TIMEFORMAT = xbmc.getRegion('meridiem')
@@ -1415,85 +1410,53 @@ class API():
         # else:
         #     localtime = time.strftime('%H:%M', date_time)
         # return localtime + '  ' + localdate
-        DATEFORMAT = xbmc.getRegion('dateshort')
-        TIMEFORMAT = xbmc.getRegion('meridiem')
-        date_time = time.localtime(float(stamp))
-        localdate = time.strftime('%Y-%m-%dT%H:%M:%SZ', date_time)
+        try:
+            DATEFORMAT = xbmc.getRegion('dateshort')
+            TIMEFORMAT = xbmc.getRegion('meridiem')
+            date_time = time.localtime(float(stamp))
+            localdate = time.strftime('%Y-%m-%dT%H:%M:%SZ', date_time)
+        except:
+            localdate = None
         return localdate
 
     def getType(self):
         """
         Returns the type of media, e.g. 'movie' or 'clip' for trailers
         """
-        # XML
-        try:
-            item = self.item.attrib
-        # JSON
-        except AttributeError:
-            item = self.item
-        return item.get('type', '')
+        return self.item.attrib.get('type', None)
 
     def getChecksum(self):
         """
-        Can be used on both XML and JSON
         Returns a string, not int
         """
-        item = self.item
-        # XML
-        try:
-            item = item[0].attrib
-        # JSON
-        except (AttributeError, KeyError):
-            pass
         # Include a letter to prohibit saving as an int!
         checksum = "K%s%s" % (self.getRatingKey(),
-                              item.get('updatedAt', ''))
+                              self.item.attrib.get('updatedAt', ''))
         return checksum
 
     def getRatingKey(self):
         """
-        Can be used on both XML and JSON
         Returns the Plex key such as '246922' as a string
         """
-        # XML
-        try:
-            result = self.item.attrib
-        # JSON
-        except AttributeError:
-            item = self.item
-        return item['ratingKey']
+        return self.item.attrib.get('ratingKey', '')
 
     def getKey(self):
         """
-        Can be used on both XML and JSON
         Returns the Plex key such as '/library/metadata/246922'
         """
-        item = self.item
-        # XML
-        try:
-            item = item[0].attrib
-        # JSON
-        except (AttributeError, KeyError):
-            pass
-        key = item['key']
-        return str(key)
+        return self.item.attrib.get('key', None)
 
     def getIndex(self):
         """
         Returns the 'index' of an PMS XML reply. Depicts e.g. season number.
         """
-        item = self.item[0].attrib
-        index = item['index']
-        return str(index)
+        return self.item.attrib.get('index', None)
 
     def getDateCreated(self):
         """
         Returns the date when this library item was created
         """
-        item = self.item[0].attrib
-        dateadded = item['addedAt']
-        dateadded = self.convert_date(dateadded)
-        return dateadded
+        return self.DateToKodi(self.item.attrib.get('addedAt', None))
 
     def getUserData(self):
         """
@@ -1508,7 +1471,7 @@ class API():
             'Rating': rating
         }
         """
-        item = self.item
+        item = self.item.attrib
         # Default
         favorite = False
         playcount = None
@@ -1516,13 +1479,6 @@ class API():
         lastPlayedDate = None
         resume = 0
         rating = 0
-
-        # XML
-        try:
-            item = item[0].attrib
-        # JSON
-        except (AttributeError, KeyError):
-            pass
 
         try:
             playcount = int(item['viewCount'])
@@ -1533,8 +1489,7 @@ class API():
             played = True
 
         try:
-            lastPlayedDate = int(item['lastViewedAt'])
-            lastPlayedDate = self.convert_date(lastPlayedDate)
+            lastPlayedDate = self.DateToKodi(int(item['lastViewedAt']))
         except KeyError:
             lastPlayedDate = None
 
@@ -1559,12 +1514,11 @@ class API():
             'Producer': list
         }
         """
-        item = self.item
         director = []
         writer = []
         cast = []
         producer = []
-        for child in item[0]:
+        for child in self.item:
             if child.tag == 'Director':
                 director.append(child.attrib['tag'])
             elif child.tag == 'Writer':
@@ -1591,7 +1545,6 @@ class API():
             ('Role': xxx for cast/actors only, None if not found)
         }
         """
-        item = self.item
         people = []
         # Key of library: Plex-identifier. Value represents the Kodi/emby side
         people_of_interest = {
@@ -1600,7 +1553,7 @@ class API():
             'Role': 'Actor',
             'Producer': 'Producer'
         }
-        for child in item[0]:
+        for child in self.item:
             if child.tag in people_of_interest.keys():
                 name = child.attrib['tag']
                 name_id = child.attrib['id']
@@ -1630,9 +1583,8 @@ class API():
         """
         Returns a list of genres found. (Not a string)
         """
-        item = self.item
         genre = []
-        for child in item[0]:
+        for child in self.item:
             if child.tag == 'Genre':
                 genre.append(child.attrib['tag'])
         return genre
@@ -1643,8 +1595,7 @@ class API():
 
         Return IMDB, e.g. "imdb://tt0903624?lang=en". Returns None if not found
         """
-        item = self.item
-        item = item[0].attrib
+        item = self.item.attrib
         try:
             item = item['guid']
         except KeyError:
@@ -1660,99 +1611,50 @@ class API():
 
     def getTitle(self):
         """
-        Returns an item's name/title or "Missing Title Name" for both XML and
-        JSON PMS replies
-
+        Returns an item's name/title or "Missing Title Name".
         Output:
             title, sorttitle
 
         sorttitle = title, if no sorttitle is found
         """
-        item = self.item
-
-        # XML
-        try:
-            item = item[0].attrib
-        # JSON
-        except (AttributeError, KeyError):
-            pass
-
-        try:
-            title = item['title']
-        except:
-            title = 'Missing Title Name'
-        try:
-            sorttitle = item['titleSort']
-        except KeyError:
-            sorttitle = title
+        title = self.item.attrib.get('title', 'Missing Title Name')
+        sorttitle = self.item.attrib.get('titleSort', title)
         return title, sorttitle
 
     def getPlot(self):
         """
         Returns the plot or None.
         """
-        item = self.item
-        item = item[0].attrib
-        try:
-            plot = item['summary']
-        except:
-            plot = None
-        return plot
+        return self.item.attrib.get('summary', None)
 
     def getTagline(self):
         """
         Returns a shorter tagline or None
         """
-        item = self.item
-        item = item[0].attrib
-        try:
-            tagline = item['tagline']
-        except KeyError:
-            tagline = None
-        return tagline
+        return self.item.attrib.get('tagline', None)
 
     def getAudienceRating(self):
         """
         Returns the audience rating or None
         """
-        item = self.item
-        item = item[0].attrib
-        try:
-            rating = item['audienceRating']
-        except KeyError:
-            rating = None
-        return rating
+        return self.item.attrib.get('audienceRating', None)
 
     def getYear(self):
         """
         Returns the production(?) year ("year") or None
         """
-        item = self.item
-        item = item[0].attrib
-        try:
-            year = item['year']
-        except KeyError:
-            year = None
-        return year
+        return self.item.attrib.get('year', None)
 
     def getRuntime(self):
         """
-        Resume point of time and runtime/totaltime in seconds, rounded to 6th
-        decimal.
+        Resume point of time and runtime/totaltime in rounded to seconds.
         Time from Plex server is measured in milliseconds.
         Kodi: seconds
 
         Output:
-            resume, runtime         as floats. 0.0 if not found
+            resume, runtime         as ints. 0 if not found
         """
-        time_factor = PlexToKodiTimefactor()
-
-        # XML
-        try:
-            item = self.item[0].attrib
-        # JSON
-        except (AttributeError, KeyError):
-            pass
+        item = self.item.attrib
 
         try:
             runtime = float(item['duration'])
@@ -1763,30 +1665,16 @@ class API():
         except KeyError:
             resume = 0.0
 
-        # Adjust the resume point by x seconds as chosen by the user in the
-        # settings
-        if resume:
-            # To avoid negative bookmark
-            if resume > self.jumpback:
-                resume = resume - self.jumpback
-
-        runtime = runtime * time_factor
-        resume = resume * time_factor
-        resume = round(resume, 6)
-        runtime = round(runtime, 6)
+        runtime = int(runtime * PlexToKodiTimefactor())
+        resume = int(resume * PlexToKodiTimefactor())
         return resume, runtime
 
     def getMpaa(self):
         """
         Get the content rating or None
         """
+        mpaa = self.item.attrib.get('contentRating', None)
         # Convert more complex cases
-        item = self.item
-        item = item[0].attrib
-        try:
-            mpaa = item['contentRating']
-        except KeyError:
-            mpaa = None
         if mpaa in ("NR", "UR"):
             # Kodi seems to not like NR, but will accept Rated Not Rated
             mpaa = "Rated Not Rated"
@@ -1796,9 +1684,8 @@ class API():
         """
         Returns a list of all countries found in item.
         """
-        item = self.item
         country = []
-        for child in item[0]:
+        for child in self.item:
             if child.tag == 'Country':
                 country.append(child.attrib['tag'])
         return country
@@ -1807,23 +1694,15 @@ class API():
         """
         Returns the "originallyAvailableAt" or None
         """
-        item = self.item
-        item = item[0].attrib
-        try:
-            premiere = item['originallyAvailableAt']
-        except:
-            premiere = None
-        return premiere
+        return self.item.attrib.get('originallyAvailableAt', None)
 
     def getStudios(self):
         """
         Returns a list with a single entry for the studio, or an empty list
         """
-        item = self.item
         studio = []
-        item = item[0].attrib
         try:
-            studio.append(self.getStudio(item['studio']))
+            studio.append(self.getStudio(self.item.attrib['studio']))
         except KeyError:
             pass
         return studio
@@ -1862,7 +1741,7 @@ class API():
                 Episode number,     Plex: 'index'
             ]
         """
-        item = self.item[0].attrib
+        item = self.item.attrib
         key = item['grandparentRatingKey']
         title = item['grandparentTitle']
         season = item['parentIndex']
@@ -1891,13 +1770,7 @@ class API():
 
         If not found, empty str is returned
         """
-        # XML:
-        try:
-            item = self.item.attrib
-        # JSON
-        except AttributeError:
-            item = self.item
-        return item.get('playQueueItemID', '')
+        return self.item.atrrib.get('playQueueItemID', '')
 
     def getDataFromPartOrMedia(self, key):
         """
@@ -1906,14 +1779,8 @@ class API():
 
         If all fails, None is returned.
         """
-        # JSON
-        try:
-            media = self.item['_children'][0]
-            part = media['_children'][self.part]
-        # XML
-        except TypeError:
-            media = self.item[0].attrib
-            part = self.item[0][self.part].attrib
+        media = self.item.attrib
+        part = self.item[self.part].attrib
 
         try:
             try:
@@ -1979,26 +1846,25 @@ class API():
             'originallyAvailableAt':
             'year':
         """
-        extras = self.item[0].find('Extras')
         elements = []
-        if not extras:
-            return elements
-        for extra in extras:
+        for extra in self.item.find('Extras'):
             # Trailer:
-            key = extra.attrib['key']
-            title = extra.attrib['title']
-            thumb = extra.attrib['thumb']
-            duration = extra.attrib['duration']
-            year = extra.attrib['year']
-            extraType = extra.attrib['extraType']
-            originallyAvailableAt = extra.attrib['originallyAvailableAt']
-            elements.append({'key': key,
-                             'title': title,
-                             'thumb': thumb,
-                             'duration': duration,
-                             'extraType': extraType,
-                             'originallyAvailableAt': originallyAvailableAt,
-                             'year': year})
+            key = extra.attrib.get('key', None)
+            title = extra.attrib.get('title', None)
+            thumb = extra.attrib.get('thumb', None)
+            duration = float(extra.attrib.get('duration', 0.0))
+            year = extra.attrib.get('year', None)
+            extraType = extra.attrib.get('extraType', None)
+            originallyAvailableAt = extra.attrib.get(
+                'originallyAvailableAt', None)
+            elements.append(
+                {'key': key,
+                 'title': title,
+                 'thumb': thumb,
+                 'duration': int(duration * PlexToKodiTimefactor()),
+                 'extraType': extraType,
+                 'originallyAvailableAt': originallyAvailableAt,
+                 'year': year})
         return elements
 
     def getMediaStreams(self):
@@ -2014,24 +1880,20 @@ class API():
             'subtitle': list of subtitle languages (or "Unknown")
         }
         """
-        item = self.item
         videotracks = []
         audiotracks = []
         subtitlelanguages = []
-        aspectratio = None
-        try:
-            aspectratio = item[0][0].attrib['aspectRatio']
-        except KeyError:
-            pass
+        # Sometimes, aspectratio is on the "toplevel"
+        aspectratio = self.item[0].attrib.get('aspectRatio', None)
         # TODO: what if several Media tags exist?!?
         # Loop over parts
-        for child in item[0][0]:
-            container = child.attrib['container'].lower()
+        for child in self.item[0]:
+            container = child.attrib.get('container', None)
             # Loop over Streams
             for grandchild in child:
                 mediaStream = grandchild.attrib
-                type = int(mediaStream['streamType'])
-                if type == 1:  # Video streams
+                mediaType = int(mediaStream.get('streamType', 999))
+                if mediaType == 1:  # Video streams
                     videotrack = {}
                     videotrack['codec'] = mediaStream['codec'].lower()
                     if "msmpeg4" in videotrack['codec']:
@@ -2043,21 +1905,17 @@ class API():
                     elif "h264" in videotrack['codec']:
                         if container in ("mp4", "mov", "m4v"):
                             videotrack['codec'] = "avc1"
-                    videotrack['height'] = mediaStream.get('height')
-                    videotrack['width'] = mediaStream.get('width')
+                    videotrack['height'] = mediaStream.get('height', None)
+                    videotrack['width'] = mediaStream.get('width', None)
                     # TODO: 3d Movies?!?
                     # videotrack['Video3DFormat'] = item.get('Video3DFormat')
-                    try:
-                        aspectratio = mediaStream['aspectRatio']
-                    except KeyError:
-                        if not aspectratio:
-                            aspectratio = round(float(videotrack['width'] / videotrack['height']), 6)
+                    aspectratio = mediaStream.get('aspectRatio', aspectratio)
                     videotrack['aspect'] = aspectratio
                     # TODO: Video 3d format
                     videotrack['video3DFormat'] = None
                     videotracks.append(videotrack)
 
-                elif type == 2:  # Audio streams
+                elif mediaType == 2:  # Audio streams
                     audiotrack = {}
                     audiotrack['codec'] = mediaStream['codec'].lower()
                     profile = mediaStream['codecID'].lower()
@@ -2070,17 +1928,16 @@ class API():
                         audiotrack['language'] = 'unknown'
                     audiotracks.append(audiotrack)
 
-                elif type == 3:  # Subtitle streams
+                elif mediaType == 3:  # Subtitle streams
                     try:
                         subtitlelanguages.append(mediaStream['language'])
                     except:
                         subtitlelanguages.append("Unknown")
-        media = {
+        return {
             'video': videotracks,
             'audio': audiotracks,
             'subtitle': subtitlelanguages
         }
-        return media
 
     def getAllArtwork(self, parentInfo=False):
         """
@@ -2097,15 +1954,7 @@ class API():
             'Backdrop': []       Plex key: "art". Only 1 pix
         }
         """
-        server = self.server
-        item = self.item
-
-        # XML
-        try:
-            item = item[0].attrib
-        # JSON
-        except (AttributeError, KeyError):
-            pass
+        item = self.item.attrib
 
         maxHeight = 10000
         maxWidth = 10000
@@ -2130,7 +1979,7 @@ class API():
         # Get background artwork URL
         try:
             background = item['art']
-            background = "%s%s" % (server, background)
+            background = "%s%s" % (self.server, background)
             background = self.addPlexCredentialsToUrl(background)
         except KeyError:
             background = ""
@@ -2138,7 +1987,7 @@ class API():
         # Get primary "thumb" pictures:
         try:
             primary = item['thumb']
-            primary = "%s%s" % (server, primary)
+            primary = "%s%s" % (self.server, primary)
             primary = self.addPlexCredentialsToUrl(primary)
         except KeyError:
             primary = ""
@@ -2160,7 +2009,7 @@ class API():
                         artwork = (
                             "%s/emby/Items/%s/Images/Backdrop/%s?"
                             "MaxWidth=%s&MaxHeight=%s&Format=original&Tag=%s%s"
-                            % (server, parentId, backdropIndex,
+                            % (self.server, parentId, backdropIndex,
                                 maxWidth, maxHeight, parentbackdroptag, customquery))
                         allartworks['Backdrop'].append(artwork)
                         backdropIndex += 1
@@ -2178,7 +2027,7 @@ class API():
                         artwork = (
                             "%s/emby/Items/%s/Images/%s/0?"
                             "MaxWidth=%s&MaxHeight=%s&Format=original&Tag=%s%s"
-                            % (server, parentId, parentart,
+                            % (self.server, parentId, parentart,
                                 maxWidth, maxHeight, parentTag, customquery))
                         allartworks[parentart] = artwork
 
@@ -2192,11 +2041,12 @@ class API():
                     artwork = (
                         "%s/emby/Items/%s/Images/Primary/0?"
                         "MaxWidth=%s&MaxHeight=%s&Format=original&Tag=%s%s"
-                        % (server, parentId, maxWidth, maxHeight, parentTag, customquery))
+                        % (self.server, parentId, maxWidth, maxHeight, parentTag, customquery))
                     allartworks['Primary'] = artwork
         return allartworks
 
-    def getTranscodeVideoPath(self, action, quality={}, subtitle={}, audioboost=None, options={}):
+    def getTranscodeVideoPath(self, action, quality={}, subtitle={},
+                              audioboost=None, options={}):
         """
         Transcode Video support; returns the URL to get a media started
 
@@ -2329,12 +2179,12 @@ class API():
         mapping = {}
 
         item = self.item
-        itemid = self.getRatingKey()
         try:
-            mediastreams = item[0][0][0]
+            mediastreams = item[0][self.part]
         except (TypeError, KeyError, IndexError):
             return
 
+        itemid = self.getRatingKey()
         kodiindex = 0
         for stream in mediastreams:
             # index = stream['Index']
@@ -2394,9 +2244,3 @@ class API():
         if not xml:
             self.logMsg("Error retrieving metadata for %s" % url, 1)
         return xml
-
-    def GetParts(self):
-        """
-        Returns the parts of the specified video child in the XML response
-        """
-        return self.item[0][0]
