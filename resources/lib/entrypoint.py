@@ -66,7 +66,10 @@ def plexCompanion(fullurl, params):
             utils.logMsg(
                 title, "Error getting PMS playlist for key %s" % key, -1)
         else:
-            PassPlaylist(xml, resume=int(params.get('offset', 0)))
+            PassPlaylist(
+                xml,
+                resume=PlexFunctions.ConvertPlexToKodiTime(
+                    params.get('offset', 0)))
     else:
         utils.logMsg(
             title, "Not knowing what to do for now - no playQueue sent", -1)
