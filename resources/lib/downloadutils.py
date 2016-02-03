@@ -188,7 +188,7 @@ class DownloadUtils():
 
     def downloadUrl(self, url, postBody=None, type="GET", parameters=None, authenticate=True, headerOptions={}):
         
-        self.logMsg("=== ENTER downloadUrl ===", 2)
+        # self.logMsg("=== ENTER downloadUrl ===", 2)
 
         timeout = self.timeout
         default_link = ""
@@ -302,18 +302,19 @@ class DownloadUtils():
                                     verify=verifyssl)
         
             ##### THE RESPONSE #####
-            self.logMsg(r.url, 2)
+            # self.logMsg(r.url, 2)
             if r.status_code == 204:
                 # No body in the response
-                self.logMsg("====== 204 Success ======", 2)
+                # self.logMsg("====== 204 Success ======", 2)
+                pass
 
             elif r.status_code == requests.codes.ok:
                
                 try: 
                     # Allow for xml responses
                     r = etree.fromstring(r.content)
-                    self.logMsg("====== 200 Success ======", 2)
-                    self.logMsg("Received an XML response for: %s" % url, 2)
+                    # self.logMsg("====== 200 Success ======", 2)
+                    # self.logMsg("Received an XML response for: %s" % url, 2)
 
                     return r
 
@@ -321,16 +322,17 @@ class DownloadUtils():
                     try:
                         # UNICODE - JSON object
                         r = r.json()
-                        self.logMsg("====== 200 Success ======", 2)
-                        self.logMsg("Response: %s" % r, 2)
+                        # self.logMsg("====== 200 Success ======", 2)
+                        # self.logMsg("Response: %s" % r, 2)
                         return r
                     except:
                         try:
                             if r.text == '' and r.status_code == 200:
-                                self.logMsg("====== 200 Success ======", 2)
-                                self.logMsg("Answer from PMS does not contain a body", 2)
-                            self.logMsg("Unable to convert the response for: %s" % url, 2)
-                            self.logMsg("Content-type was: %s" % r.headers['content-type'], 2)
+                                # self.logMsg("====== 200 Success ======", 2)
+                                # self.logMsg("Answer from PMS does not contain a body", 2)
+                                pass
+                            # self.logMsg("Unable to convert the response for: %s" % url, 2)
+                            # self.logMsg("Content-type was: %s" % r.headers['content-type'], 2)
                         except:
                             self.logMsg("Unable to convert the response for: %s" % url, 2)
                             self.logMsg("Content-type was: %s" % r.headers['content-type'], 2)
