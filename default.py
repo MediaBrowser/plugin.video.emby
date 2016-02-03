@@ -75,6 +75,7 @@ class Main:
             # Simple functions
             if mode == "play":
                 dbid = params.get('dbid')
+                # modes[mode](itemid, dbid)
                 modes[mode](itemid, dbid)
 
             elif mode in ("nextup", "inprogressepisodes", "recentepisodes"):

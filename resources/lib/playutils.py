@@ -93,8 +93,8 @@ class PlayUtils():
             return False
 
         # Found with e.g. trailers
-        if self.API.getDataFromPartOrMedia('optimizedForStreaming') == '1':
-            return False
+        # if self.API.getDataFromPartOrMedia('optimizedForStreaming') == '1':
+        #    return False
 
         return True
 
@@ -208,7 +208,7 @@ class PlayUtils():
 
         settings = self.getBitrate()
 
-        sourceBitrate = int(self.API.getDataFromPartOrMedia())
+        sourceBitrate = int(self.API.getDataFromPartOrMedia('bitrate'))
         self.logMsg("The add-on settings bitrate is: %s, the video bitrate required is: %s" % (settings, sourceBitrate), 1)
         if settings < sourceBitrate:
             return False
@@ -277,7 +277,6 @@ class PlayUtils():
         return bitrate.get(videoQuality, 2147483)
 
     def audioSubsPref(self, url, listitem, child=0):
-        self.API.setChildNumber(child)
         # For transcoding only
         # Present the list of audio to select from
         audioStreamsList = {}

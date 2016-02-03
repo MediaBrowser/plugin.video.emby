@@ -1395,6 +1395,8 @@ class API():
         """
         converts a Unix time stamp (seconds passed sinceJanuary 1 1970) to a
         propper, human-readable time stamp used by Kodi
+
+        Output: Y-m-d h:m:s = 2009-04-05 23:16:04
         """
         # DATEFORMAT = xbmc.getRegion('dateshort')
         # TIMEFORMAT = xbmc.getRegion('meridiem')
@@ -1414,7 +1416,7 @@ class API():
             DATEFORMAT = xbmc.getRegion('dateshort')
             TIMEFORMAT = xbmc.getRegion('meridiem')
             date_time = time.localtime(float(stamp))
-            localdate = time.strftime('%Y-%m-%dT%H:%M:%SZ', date_time)
+            localdate = time.strftime('%Y-%m-%d %H:%M:%S', date_time)
         except:
             localdate = None
         return localdate
@@ -1591,9 +1593,9 @@ class API():
 
     def getProvider(self, providername=None):
         """
-        providername: depricated
+        providername:  e.g. 'imdb'
 
-        Return IMDB, e.g. "imdb://tt0903624?lang=en". Returns None if not found
+        Return IMDB, e.g. "tt0903624". Returns None if not found
         """
         item = self.item.attrib
         try:
@@ -1601,7 +1603,11 @@ class API():
         except KeyError:
             return None
 
-        regex = re.compile(r'''com\.plexapp\.agents\.(.+)$''')
+        if providername == 'imdb':
+            regex = re.compile(r'''/(tt\d+)''')
+        else:
+            return None
+
         provider = regex.findall(item)
         try:
             provider = provider[0]
@@ -1729,6 +1735,9 @@ class API():
         string = " / ".join(listobject)
         return string
 
+    def getParentRatingKey(self):
+        return self.item.attrib.get('parentRatingKey', '')
+
     def getEpisodeDetails(self):
         """
         Call on a single episode.
@@ -1746,7 +1755,7 @@ class API():
         title = item['grandparentTitle']
         season = item['parentIndex']
         episode = item['index']
-        return str(key), title, str(season), str(episode)
+        return key, title, season, episode
 
     def addPlexCredentialsToUrl(self, url, arguments={}):
         """
@@ -1755,8 +1764,7 @@ class API():
 
         arguments overrule everything
         """
-        token = {'X-Plex-Token': self.token}
-        xargs = PlexAPI().getXArgsDeviceInfo(options=token)
+        xargs = PlexAPI().getXArgsDeviceInfo()
         xargs.update(arguments)
         if '?' not in url:
             url = "%s?%s" % (url, urlencode(xargs))
@@ -1770,7 +1778,7 @@ class API():
 
         If not found, empty str is returned
         """
-        return self.item.atrrib.get('playQueueItemID', '')
+        return self.item.attrib.get('playQueueItemID', '')
 
     def getDataFromPartOrMedia(self, key):
         """
@@ -1779,8 +1787,8 @@ class API():
 
         If all fails, None is returned.
         """
-        media = self.item.attrib
-        part = self.item[self.part].attrib
+        media = self.item[0].attrib
+        part = self.item[0][self.part].attrib
 
         try:
             try:
@@ -2048,6 +2056,9 @@ class API():
     def getTranscodeVideoPath(self, action, quality={}, subtitle={},
                               audioboost=None, options={}):
         """
+
+        To be called on a VIDEO level of PMS xml response!
+
         Transcode Video support; returns the URL to get a media started
 
         Input:
@@ -2107,18 +2118,15 @@ class API():
                     "wmavoice,"
                     "wmalossless;"
         }
-        xargs = PlexAPI().getXArgsDeviceInfo(options=options)
-        # For Direct Playing
-        path = self.getDataFromPartOrMedia('key')
+        path = self.item[0][self.part].attrib['key']
+        xargs = PlexAPI().getXArgsDeviceInfo()
+
         if action == "DirectPlay":
-            transcodePath = self.server + path
-            # Be sure to have exactly ONE '?' in the path (might already have
-            # been returned, e.g. trailers!)
-            if '?' not in path:
-                transcodePath = transcodePath + '?'
-            url = transcodePath + \
-                urlencode(clientArgs) + '&' + \
-                urlencode(xargs)
+            url = self.server + path
+            if '?' in url:
+                url += '&' + urlencode(xargs)
+            else:
+                url += '?' + urlencode(xargs)
             return url
 
         # For Direct Streaming or Transcoding
@@ -2187,12 +2195,11 @@ class API():
         itemid = self.getRatingKey()
         kodiindex = 0
         for stream in mediastreams:
-            # index = stream['Index']
             index = stream.attrib['id']
             # Since Emby returns all possible tracks together, have to pull only external subtitles.
             # IsTextSubtitleStream if true, is available to download from emby.
-            if (stream.attrib['streamType'] == "3" and
-                    stream.attrib['format']):
+            if (stream.attrib.get('streamType', '') == "3" and
+                    stream.attrib.get('format', '')):
 
                 # Direct stream
                 # PLEX: TODO!!
@@ -2208,39 +2215,3 @@ class API():
         utils.window('emby_%s.indexMapping' % playurl, value=mapping)
 
         return externalsubs
-
-    def GetPlexPlaylist(self):
-        """
-        Returns raw API metadata XML dump for a playlist with e.g. trailers.
-        """
-        item = self.item
-        key = self.getRatingKey()
-        try:
-            uuid = item.attrib['librarySectionUUID']
-        # if not found: probably trying to start a trailer directly
-        # Hence no playlist needed
-        except KeyError:
-            return None
-        mediatype = item[0].tag.lower()
-        trailerNumber = utils.settings('trailerNumber')
-        if not trailerNumber:
-            trailerNumber = '3'
-        url = "{server}/playQueues"
-        args = {
-            'type': mediatype,
-            'uri': 'library://' + uuid +
-                        '/item/%2Flibrary%2Fmetadata%2F' + key,
-            'includeChapters': '1',
-            'extrasPrefixCount': trailerNumber,
-            'shuffle': '0',
-            'repeat': '0'
-        }
-        url = url + '?' + urlencode(args)
-        xml = downloadutils.DownloadUtils().downloadUrl(
-            url,
-            type="POST",
-            headerOptions={'Accept': 'application/xml'}
-        )
-        if not xml:
-            self.logMsg("Error retrieving metadata for %s" % url, 1)
-        return xml

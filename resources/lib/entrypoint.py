@@ -32,38 +32,29 @@ import embydb_functions
 #################################################################################################
 
 # For logging only
-title = " %s %s" % (clientinfo.ClientInfo().getAddonName(), __name__)
+addonName = clientinfo.ClientInfo().getAddonName()
+title = "%s %s" % (addonName, __name__)
 
 
-def plexCompanion(fullurl, params=None):
+def plexCompanion(fullurl, params):
     params = PlexFunctions.LiteralEval(params[26:])
     utils.logMsg("entrypoint - plexCompanion",
-                     "params is: %s" % params, -1)
-    # {'protocol': 'http',
-    # 'containerKey': '/playQueues/3045?own=1&repeat=0&window=200',
-    # 'offset': '0',
-    # 'commandID': '20',
-    # 'token': 'transient-0243a39f-4c7d-495f-a5c8-6991b622b5a6',
-    # 'key': '/library/metadata/470',
-    # 'address': '192.168.0.2',
-    # 'machineIdentifier': '3eb2fc28af89500e000db2e07f8e8234d159f2c4',
-    # 'type': 'video',
-    # 'port': '32400'}
+                 "params is: %s" % params, -1)
 
-    if (params.get('machineIdentifier') !=
+    if (params['machineIdentifier'] !=
             utils.window('plex_machineIdentifier')):
         utils.logMsg(
             title,
             "Command was not for us, machineIdentifier controller: %s, "
             "our machineIdentifier : %s"
-            % (params.get('machineIdentifier'),
+            % (params['machineIdentifier'],
                utils.window('plex_machineIdentifier')), -1)
         return
-    utils.window('plex_key', params.get('key'))
+
     library, key, query = PlexFunctions.ParseContainerKey(
-        params.get('containerKey'))
+        params['containerKey'])
     # Construct a container key that works always (get rid of playlist args)
-    utils.window('plex_containerKey', '/'+library+'/'+key)
+    utils.window('containerKey', '/'+library+'/'+key)
     # Assume it's video when something goes wrong
     playbackType = params.get('type', 'video')
 
@@ -75,51 +66,67 @@ def plexCompanion(fullurl, params=None):
             utils.logMsg(
                 title, "Error getting PMS playlist for key %s" % key, -1)
         else:
-            PassPlaylist(xml, resume=int(params.get('offset', '0')))
+            PassPlaylist(xml, resume=int(params.get('offset', 0)))
     else:
         utils.logMsg(
             title, "Not knowing what to do for now - no playQueue sent", -1)
 
 
-def PassPlaylist(xml, resume=0):
-        # Set window properties to make them available later for other threads
-        windowArgs = [
-            'playQueueID',
-            'playQueueVersion',
-            'playQueueShuffled']
-        for arg in windowArgs:
-            utils.window(arg, utils.XMLAtt(xml, arg))
+def PassPlaylist(xml, resume=None):
+    """
+    resume in KodiTime - seconds.
+    """
+    # Set window properties to make them available later for other threads
+    windowArgs = [
+        'playQueueID',
+        'playQueueVersion',
+        'playQueueShuffled']
+    for arg in windowArgs:
+        utils.window(arg, xml.attrib.get(arg, ''))
 
-        # Get resume point
-        resume1 = utils.IntFromStr(
-            utils.XMLAtt(xml, 'playQueueSelectedItemOffset'))
-        resume2 = resume
-        # Convert Plextime to Koditime
-        resume = PlexFunctions.ConvertPlexToKodiTime(max(resume1, resume2))
+    # Get resume point
+    resume1 = PlexFunctions.ConvertPlexToKodiTime(utils.IntFromStr(
+        xml.attrib.get('playQueueSelectedItemOffset')))
+    resume2 = resume
+    resume = max(resume1, resume2)
 
-        pbutils.PlaybackUtils(xml).StartPlay(
-            resume=resume,
-            resumeItem=utils.XMLAtt(xml, 'playQueueSelectedItemID'))
+    pbutils.PlaybackUtils(xml).StartPlay(
+        resume=resume,
+        resumeId=xml.attrib.get('playQueueSelectedItemID', None))
 
 
 def doPlayback(itemid, dbid):
-    utils.logMsg(title, "doPlayback called with %s %s"
+    """
+    Called only for a SINGLE element, not playQueues
+    """
+    utils.logMsg(title, "doPlayback called with itemid=%s, dbid=%s"
                  % (itemid, dbid), 1)
     item = PlexFunctions.GetPlexMetadata(itemid)
-    playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
-    # If current playlist is NOT empty, we only need to update the item url
-    if playlist.size() != 0:
-        utils.logMsg(title, "Playlist is not empty, hence update url only", 1)
-        pbutils.PlaybackUtils(item).StartPlay()
-    else:
-        # Get a first XML to get the librarySectionUUID
-        # Use librarySectionUUID to call the playlist
-        xmlPlaylist = PlexAPI.API(item).GetPlexPlaylist()
-        if xmlPlaylist:
-            PassPlaylist(xmlPlaylist)
+    API = PlexAPI.API(item[0])
+    # If resume != 0, then we don't need to build a playlist for trailers etc.
+    # No idea how we could otherwise get resume timing out of Kodi
+    resume, runtime = API.getRuntime()
+    if resume == 0:
+        uuid = item.attrib.get('librarySectionUUID', None)
+        if uuid:
+            if utils.settings('askCinema') == "true":
+                trailers = xbmcgui.Dialog().yesno(addonName, "Play trailers?")
+            else:
+                trailers = True
+            if trailers:
+                playQueue = PlexFunctions.GetPlexPlaylist(
+                    API.getRatingKey(), uuid, mediatype=API.getType())
+                if playQueue is not None:
+                    return PassPlaylist(playQueue)
+                else:
+                    utils.logMsg(title, "Error: no valid playQueue", -1)
         else:
-            # No playlist received e.g. when directly playing trailers
-            pbutils.PlaybackUtils(item).StartPlay()
+            # E.g trailers being directly played
+            utils.logMsg(title, "No librarySectionUUID found.", 1)
+
+    # Play only 1 item, not playQueue
+    pbutils.PlaybackUtils(item).StartPlay(resume=resume,
+                                          resumeId=None)
 
 
 ##### DO RESET AUTH #####

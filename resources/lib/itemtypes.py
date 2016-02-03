@@ -334,7 +334,7 @@ class Movies(Items):
 
         rating = API.getAudienceRating()
         year = API.getYear()
-        imdb = API.getProvider()
+        imdb = API.getProvider('imdb')
         mpaa = API.getMpaa()
         countries = API.getCountry()
         country = API.joinList(countries)

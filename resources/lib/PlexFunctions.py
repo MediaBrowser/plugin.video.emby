@@ -7,7 +7,7 @@ import re
 from xbmcaddon import Addon
 
 import downloadutils
-from utils import logMsg
+from utils import logMsg, settings
 
 
 addonName = Addon().getAddonInfo('name')
@@ -273,3 +273,30 @@ def GetPlexCollections(mediatype):
                     'uuid': uuid
                 })
     return collections
+
+
+def GetPlexPlaylist(itemid, librarySectionUUID, mediatype='movie'):
+    """
+    Returns raw API metadata XML dump for a playlist with e.g. trailers.
+    """
+    trailerNumber = settings('trailerNumber')
+    if not trailerNumber:
+        trailerNumber = '3'
+    url = "{server}/playQueues"
+    args = {
+        'type': mediatype,
+        'uri': 'library://' + librarySectionUUID +
+                    '/item/%2Flibrary%2Fmetadata%2F' + itemid,
+        'includeChapters': '1',
+        'extrasPrefixCount': trailerNumber,
+        'shuffle': '0',
+        'repeat': '0'
+    }
+    xml = downloadutils.DownloadUtils().downloadUrl(
+        url + '?' + urlencode(args), type="POST")
+    try:
+        xml[0].tag
+    except (IndexError, TypeError, AttributeError):
+        logMsg("Error retrieving metadata for %s" % url, -1)
+        return None
+    return xml
