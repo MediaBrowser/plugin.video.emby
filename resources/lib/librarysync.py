@@ -1156,8 +1156,8 @@ class LibrarySync(threading.Thread):
                         self.maintainViews()
                         self.startSync()
                     # Run fast sync otherwise (ever second or so)
-                    else:
-                        self.startSync()
+                    # else:
+                        # self.startSync()
 
             xbmc.sleep(1000)
             count += 1
