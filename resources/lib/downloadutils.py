@@ -32,7 +32,7 @@ requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 class DownloadUtils():
     
     # Borg - multiple instances, shared state
-    _shared_state = {}
+    # _shared_state = {}
     clientInfo = clientinfo.ClientInfo()
 
     # Requests session
@@ -41,7 +41,8 @@ class DownloadUtils():
 
     def __init__(self):
 
-        self.__dict__ = self._shared_state
+        # self.__dict__ = self._shared_state
+        pass
 
     def setUsername(self, username):
         # Reserved for userclient only

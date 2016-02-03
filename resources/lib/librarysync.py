@@ -314,7 +314,8 @@ class LibrarySync(threading.Thread):
             if self.updatelist:
                 if self.updatelist[0]['itemType'] in ['Movies', 'TVShows']:
                     updateKodiVideoLib = True
-                self.GetAndProcessXMLs(plexType)
+                self.GetAndProcessXMLs(
+                    PlexFunctions.GetItemClassFromType(plexType))
                 self.updatelist = []
         # Let Kodi grab the artwork now
         if updateKodiVideoLib:
@@ -791,17 +792,13 @@ class LibrarySync(threading.Thread):
         also updates resume times.
         This is done by downloading one XML for ALL elements with viewId
         """
-        # Download XML, not JSON, because PMS JSON seems to be damaged
-        headerOptions = {'Accept': 'application/xml'}
-        plexItems = PlexFunctions.GetAllPlexLeaves(
-            viewId,
-            lastViewedAt=lastViewedAt,
-            updatedAt=updatedAt,
-            headerOptions=headerOptions)
-        if plexItems:
+        xml = PlexFunctions.GetAllPlexLeaves(viewId,
+                                             lastViewedAt=lastViewedAt,
+                                             updatedAt=updatedAt)
+        if xml:
             itemMth = getattr(itemtypes, itemType)
             with itemMth() as method:
-                method.updateUserdata(plexItems)
+                method.updateUserdata(xml)
 
     def musicvideos(self, embycursor, kodicursor, pdialog):
         # Get musicvideos from emby
@@ -1147,19 +1144,19 @@ class LibrarySync(threading.Thread):
                 else:
                     # Run full lib scan approx every 10min
                     if count % 600 == 0:
-                        self.logMsg('Running maintainViews() scan', 1)
                         utils.window('emby_dbScan', value="true")
+                        self.logMsg('Running maintainViews() scan', 1)
                         self.fullSync(manualrun=True)
-                        utils.window('emby_dbScan', value="false")
                         count = 0
-                    # Update views / PMS libraries approx. every 2 minutes
+                        utils.window('emby_dbScan', value="false")
+                    # Update views / PMS libraries approx. every 5
                     elif count % 120 == 0:
                         self.logMsg('Running maintainViews() scan', 1)
                         utils.window('emby_dbScan', value="true")
                         self.maintainViews()
                         self.startSync()
-                    # Run fast sync approx every 10s
-                    elif count % 10 == 0:
+                    # Run fast sync otherwise (ever second or so)
+                    else:
                         self.startSync()
 
             xbmc.sleep(1000)

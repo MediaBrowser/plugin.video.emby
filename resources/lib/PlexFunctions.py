@@ -194,8 +194,7 @@ def GetPlexSectionResults(viewId, headerOptions={}):
     return result
 
 
-def GetAllPlexLeaves(viewId, lastViewedAt=None, updatedAt=None,
-                     headerOptions={}):
+def GetAllPlexLeaves(viewId, lastViewedAt=None, updatedAt=None):
     """
     Returns a list (raw XML API dump) of all Plex subitems for the key.
     (e.g. /library/sections/2/allLeaves pointing to all TV shows)
@@ -206,7 +205,6 @@ def GetAllPlexLeaves(viewId, lastViewedAt=None, updatedAt=None,
                             since that point of time until now.
         updatedAt           Unix timestamp; only retrieves PMS items updated
                             by the PMS since that point of time until now.
-        headerOptions     to override any download headers
 
     If lastViewedAt and updatedAt=None, ALL PMS items are returned.
 
@@ -216,14 +214,16 @@ def GetAllPlexLeaves(viewId, lastViewedAt=None, updatedAt=None,
     e.g. when server and client are in different time zones.
     """
     args = []
-    url = "{server}/library/sections/%s/allLeaves?" % viewId
+    url = "{server}/library/sections/%s/allLeaves" % viewId
+
     if lastViewedAt:
         args.append('lastViewedAt>=%s' % lastViewedAt)
     if updatedAt:
         args.append('updatedAt>=%s' % updatedAt)
-    args = '&'.join(args)
-    xml = downloadutils.DownloadUtils().downloadUrl(
-        url+args, headerOptions=headerOptions)
+    if args:
+        url += '?' + '&'.join(args)
+
+    xml = downloadutils.DownloadUtils().downloadUrl(url)
 
     try:
         xml.attrib

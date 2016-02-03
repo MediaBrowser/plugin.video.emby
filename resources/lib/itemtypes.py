@@ -224,6 +224,26 @@ class Items(object):
                 icon="special://home/addons/plugin.video.plexkodiconnect/icon.png",
                 sound=False)
 
+    def updateUserdata(self, xml):
+        """
+        Updates the Kodi watched state of the item from PMS. Also retrieves
+        Plex resume points for movies in progress.
+        """
+        self.logMsg("Entering updateUserdata", 1)
+        for mediaitem in xml:
+            API = PlexAPI.API(mediaitem)
+            itemid = API.getRatingKey()
+            # Get key and db entry on the Kodi db side
+            fileid = self.emby_db.getItem_byId(itemid)[1]
+            # Grab the user's viewcount, resume points etc. from PMS' answer
+            userdata = API.getUserData()
+            # Write to Kodi DB
+            self.kodi_db.addPlaystate(fileid,
+                                      userdata['Resume'],
+                                      userdata['Runtime'],
+                                      userdata['PlayCount'],
+                                      userdata['LastPlayedDate'])
+
 
 class Movies(Items):
 
@@ -254,26 +274,6 @@ class Movies(Items):
                 pdialog.update(percentage, message=title)
                 count += 1
             self.add_updateBoxset(boxset)
-
-    def updateUserdata(self, itemList):
-        """
-        Updates the Kodi watched state of the item from PMS. Also retrieves
-        Plex resume points for movies in progress.
-        """
-        API = PlexAPI.API(itemList)
-        for itemNumber in range(len(itemList)):
-            API.setChildNumber(itemNumber)
-            itemid = API.getRatingKey()
-            # Get key and db entry on the Kodi db side
-            fileid = self.emby_db.getItem_byId(itemid)[1]
-            # Grab the user's viewcount, resume points etc. from PMS' answer
-            userdata = API.getUserData()
-            # Write to Kodi DB
-            self.kodi_db.addPlaystate(fileid,
-                                      userdata['Resume'],
-                                      userdata['Runtime'],
-                                      userdata['PlayCount'],
-                                      userdata['LastPlayedDate'])
 
     def add_update(self, item, viewtag=None, viewid=None):
         self.logMsg("Entering add_update", 1)
@@ -885,26 +885,6 @@ class TVShows(Items):
             self.add_updateEpisode(episode)
             if not pdialog and self.contentmsg:
                 self.contentPop(title)
-
-    def updateUserdata(self, itemList):
-        """
-        Updates the Kodi watched state of the item from PMS. Also retrieves
-        Plex resume points for movies in progress.
-        """
-        API = PlexAPI.API(itemList)
-        for itemNumber in range(len(itemList)):
-            API.setChildNumber(itemNumber)
-            itemid = API.getRatingKey()
-            # Get key and db entry on the Kodi db side
-            fileid = self.emby_db.getItem_byId(itemid)[1]
-            # Grab the user's viewcount, resume points etc. from PMS' answer
-            userdata = API.getUserData()
-            # Write to Kodi DB
-            self.kodi_db.addPlaystate(fileid,
-                                      userdata['Resume'],
-                                      userdata['Runtime'],
-                                      userdata['PlayCount'],
-                                      userdata['LastPlayedDate'])
 
     def add_update(self, item, viewtag=None, viewid=None):
         # Process single tvshow
