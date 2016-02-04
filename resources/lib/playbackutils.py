@@ -39,16 +39,13 @@ class PlaybackUtils():
         self.emby = embyserver.Read_EmbyServer()
         self.pl = playlist.Playlist()
 
-    def StartPlay(self, itemid=None, resume=None):
+    def StartPlay(self, resume=None, resumeId=None):
         """
         Feed with a PMS playQueue or a single PMS item metadata XML
         Every item will get put in playlist
-
-        itemid is used to determine the original item supposed to be played
         """
-        self.logMsg("StartPlay called with resume=%s, itemid=%s"
-                    % (resume, itemid), 1)
-        self.itemid = itemid
+        self.logMsg("StartPlay called with resume=%s, resumeId=%s"
+                    % (resume, resumeId), 1)
         self.playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
 
         self.startPos = max(self.playlist.getposition(), 0)  # Can return -1
@@ -65,32 +62,24 @@ class PlaybackUtils():
         startPlayer = True if self.startPos == self.sizePlaylist else False
 
         # Run through the passed PMS playlist and construct self.playlist
-        listtuples = []
+        listitems = []
         for mediaItem in self.item:
-            listtuples += self.AddMediaItemToPlaylist(mediaItem)
+            listitems += self.AddMediaItemToPlaylist(mediaItem)
 
-        # Kick off playback; no worries about overwriting initial listitem
+        # Kick off playback
         if startPlayer:
-            self.logMsg("Starting new playback", 1)
             Player = xbmc.Player()
             Player.play(self.playlist, startpos=self.startPos)
             if resume:
-                Player.seekTime(resume)
-        # Kodi has already started playing; overwrite initial listitem to
-        # preserve resume timing on the Kodi side. No trailers anyway
-        elif resume > 0:
-            self.logMsg("Overwritten Kodi listitem for resume. Pos: %s"
-                        % [x for (x, y) in listtuples if
-                           x == self.newStartPos][0], 1)
-            startitem = [y for (x, y) in listtuples if
-                         x == self.newStartPos][0]
-            xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, startitem)
-        # No resume point given; start with very first item in our playlist
+                try:
+                    Player.seekTime(resume)
+                except:
+                    self.logMsg("Error, could not resume", -1)
         else:
-            self.logMsg("No resume; start from beginning", 1)
-            startitem = [y for (x, y) in listtuples if
-                         x == self.startPos][0]
-            xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, startitem)
+            # Delete the last playlist item because we have added it already
+            filename = self.playlist[-1].getfilename()
+            self.playlist.remove(filename)
+            xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, listitems[0])
 
     def AddMediaItemToPlaylist(self, item):
         """
@@ -105,8 +94,7 @@ class PlaybackUtils():
         playutils = putils.PlayUtils(item)
 
         # Get playurls per part and process them
-        listtuples = []
-        gotStart = False
+        listitems = []
         for playurl in playutils.getPlayUrl():
             # One new listitem per part
             listitem = xbmcgui.ListItem()
@@ -122,34 +110,21 @@ class PlaybackUtils():
             self.setProperties(playurl, listitem)
             # Set metadata
             self.setListItem(listitem)
+            self.playlist.add(
+                playurl, listitem, index=self.currentPosition)
 
-            playQueueItemID = self.API.GetPlayQueueItemID()
-            # This is the 1 part we need to start with (otherwise resume is
-            # lost on the Kodi side). Skip adding a playlist item; overwrite!
-            if (not gotStart and (self.itemid == self.API.getRatingKey() or
-                                  self.itemid == playQueueItemID)):
-                self.logMsg("Item to start with has playlist position %s"
-                            % (self.currentPosition), 1)
-                # Safe place we're at for later
-                self.newStartPos = self.currentPosition
-                # Set flag that we found (first ;-)) start item/part
-                gotStart = True
-            # Otherwise, add a new playlist item
-            else:
-                self.playlist.add(
-                    playurl, listitem, index=self.currentPosition)
-
-            listtuples.append((self.currentPosition, listitem))
+            listitems.append(listitem)
             self.currentPosition += 1
 
             # We need to keep track of playQueueItemIDs for Plex Companion
+            playQueueItemID = self.API.GetPlayQueueItemID()
             utils.window(
                 'plex_%s.playQueueItemID' % playurl, playQueueItemID)
             utils.window(
                 'plex_%s.playlistPosition'
                 % playurl, str(self.currentPosition))
 
-        return listtuples
+        return listitems
 
     def setProperties(self, playurl, listitem):
         # Set all properties necessary for plugin path playback
@@ -258,26 +233,26 @@ class PlaybackUtils():
         mediaType = API.getType()
         people = API.getPeople()
 
-        # userdata = API.getUserData()
+        userdata = API.getUserData()
         title, sorttitle = API.getTitle()
 
         metadata = {
             'genre': API.joinList(API.getGenres()),
             'year': API.getYear(),
             'rating': API.getAudienceRating(),
-            # 'playcount': userdata['PlayCount'],
+            'playcount': userdata['PlayCount'],
             'cast': people['Cast'],
             'director': API.joinList(people.get('Director')),
             'plot': API.getPlot(),
             'title': title,
             'sorttitle': sorttitle,
-            # 'duration': userdata['Runtime'],
+            'duration': userdata['Runtime'],
             'studio': API.joinList(API.getStudios()),
             'tagline': API.getTagline(),
             'writer': API.joinList(people.get('Writer')),
             'premiered': API.getPremiereDate(),
             'dateadded': API.getDateCreated(),
-            # 'lastplayed': userdata['LastPlayedDate'],
+            'lastplayed': userdata['LastPlayedDate'],
             'mpaa': API.getMpaa(),
             'aired': API.getPremiereDate(),
             'votes': None

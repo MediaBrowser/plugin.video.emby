@@ -94,8 +94,8 @@ def PassPlaylist(xml, resume=None):
     resume = max(resume1, resume2)
 
     pbutils.PlaybackUtils(xml).StartPlay(
-        itemid=xml.attrib.get('playQueueSelectedItemID', None),
-        resume=resume)
+        resume=resume,
+        resumeId=xml.attrib.get('playQueueSelectedItemID', None))
 
 
 def doPlayback(itemid, dbid):
@@ -128,8 +128,8 @@ def doPlayback(itemid, dbid):
             utils.logMsg(title, "No librarySectionUUID found.", 1)
 
     # Play only 1 item, not playQueue
-    pbutils.PlaybackUtils(item).StartPlay(itemid=itemid,
-                                          resume=resume)
+    pbutils.PlaybackUtils(item).StartPlay(resume=resume,
+                                          resumeId=None)
 
 
 ##### DO RESET AUTH #####
