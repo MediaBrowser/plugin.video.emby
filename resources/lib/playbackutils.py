@@ -63,8 +63,14 @@ class PlaybackUtils():
 
         # Run through the passed PMS playlist and construct self.playlist
         listitems = []
+        # Open DB
+        embyconn = utils.kodiSQL('emby')
+        embycursor = embyconn.cursor()
+        emby_db = embydb_functions.Embydb_Functions(embycursor)
         for mediaItem in self.item:
-            listitems += self.AddMediaItemToPlaylist(mediaItem)
+            listitems += self.AddMediaItemToPlaylist(mediaItem, emby_db)
+        # Close DB
+        embyconn.close()
 
         # Kick off playback
         if startPlayer:
@@ -81,7 +87,7 @@ class PlaybackUtils():
             self.playlist.remove(filename)
             xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, listitems[0])
 
-    def AddMediaItemToPlaylist(self, item):
+    def AddMediaItemToPlaylist(self, item, emby_db):
         """
         Feed with ONE media item from PMS xml response
         (on level with e.g. key=/library/metadata/220493 present)
@@ -92,26 +98,43 @@ class PlaybackUtils():
         """
         self.API = PlexAPI.API(item)
         playutils = putils.PlayUtils(item)
+        pl = playlist.Playlist()
 
         # Get playurls per part and process them
         listitems = []
         for playurl in playutils.getPlayUrl():
-            # One new listitem per part
-            listitem = xbmcgui.ListItem()
+            # Add item via Kodi db, if found. Preserves metadata
+            emby_dbitem = emby_db.getItem_byId(self.API.getRatingKey())
+            if emby_dbitem:
+                self.logMsg('emby_dbitem found', 1)
+                kodi_id = emby_dbitem[0]
+                media_type = emby_dbitem[4]
+                pl.insertintoPlaylist(
+                    self.currentPosition,
+                    kodi_id,
+                    media_type)
+                # Retrieve listitem that we just added by JSON
+                listitem = self.playlist[self.currentPosition]
+                # Also update the playurl below, otherwise we'll get a loop!
+            # E.g. Trailers
+            else:
+                self.logMsg('emby_dbitem not found. Plex ratingKey was %s'
+                            % self.API.getRatingKey(), 1)
+                listitem = xbmcgui.ListItem()
+                # Set artwork
+                self.setProperties(playurl, listitem)
+                # Set metadata
+                self.setListItem(listitem)
+                self.playlist.add(
+                    playurl, listitem, index=self.currentPosition)
 
             # For transcoding only, ask for audio/subs pref
             if utils.window('emby_%s.playmethod' % playurl) == "Transcode":
                 playurl = playutils.audioSubsPref(playurl, listitem)
                 utils.window('emby_%s.playmethod' % playurl, value="Transcode")
 
+            # Update the playurl to the PMS xml response (hence no loop)
             listitem.setPath(playurl)
-
-            # Set artwork
-            self.setProperties(playurl, listitem)
-            # Set metadata
-            self.setListItem(listitem)
-            self.playlist.add(
-                playurl, listitem, index=self.currentPosition)
 
             listitems.append(listitem)
             self.currentPosition += 1
@@ -192,19 +215,32 @@ class PlaybackUtils():
     def setArtwork(self, listItem):
         # allartwork = artwork.getAllArtwork(item, parentInfo=True)
         allartwork = self.API.getAllArtwork(parentInfo=True)
-        self.logMsg('allartwork: %s' % allartwork, 2)
-        # Set artwork for listitem
+
+        # arttypes = {
+
+        #     'poster': "Primary",
+        #     'tvshow.poster': "Primary",
+        #     'clearart': "Art",
+        #     'tvshow.clearart': "Art",
+        #     'clearlogo': "Logo",
+        #     'tvshow.clearlogo': "Logo",
+        #     'discart': "Disc",
+        #     'fanart_image': "Backdrop",
+        #     'landscape': "Thumb"
+        # }
         arttypes = {
 
             'poster': "Primary",
             'tvshow.poster': "Primary",
             'clearart': "Art",
             'tvshow.clearart': "Art",
+            'clearart': "Primary",
+            'tvshow.clearart': "Primary",
             'clearlogo': "Logo",
             'tvshow.clearlogo': "Logo",
             'discart': "Disc",
             'fanart_image': "Backdrop",
-            'landscape': "Thumb"
+            'landscape': "Backdrop"
         }
         for arttype in arttypes:
 
