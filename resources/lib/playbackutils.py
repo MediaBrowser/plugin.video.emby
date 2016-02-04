@@ -304,7 +304,7 @@ class PlaybackUtils():
             #     - artist : list (['U2'])
         listItem.setProperty('IsPlayable', 'true')
         listItem.setProperty('IsFolder', 'false')
-        listItem.setProperty('StartOffset', -1)
+        listItem.setProperty('StartOffset', '-1')
         listItem.setLabel(metadata['title'])
         listItem.setInfo('video', infoLabels=metadata)
         """

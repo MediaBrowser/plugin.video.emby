@@ -29,6 +29,7 @@
 		<setting id="plexLogin" label="plex.tv username" type="text" default="" visible="eq(-1,true)" />
 		<setting id="plexhome" label="Plex home in use" type="bool" default="true" visible="false" />
 		<setting id="plexToken" label="plexToken" type="text" default="" visible="false" />
+	</category>
 	<category label="30506"><!-- Sync Options -->
 		<setting id="serverSync" type="bool" label="30514" default="true" />
 		<setting id="dbSyncIndicator" label="30507" type="bool" default="false" />
@@ -46,8 +47,6 @@
         <setting id="enableUpdateSongRating" type="bool" label="30526" default="false" />
 	</category>
 
-	</category>
-	
 	<category label="30516"><!-- Playback -->
 		<setting label="30517" type="action" action="RunPlugin(plugin://plugin.video.plexkodiconnect?mode=passwords)" option="close" />
 		<setting type="sep" />
