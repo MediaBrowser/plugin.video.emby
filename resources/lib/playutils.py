@@ -276,7 +276,7 @@ class PlayUtils():
         # max bit rate supported by server (max signed 32bit integer)
         return bitrate.get(videoQuality, 2147483)
 
-    def audioSubsPref(self, url, listitem, child=0):
+    def audioSubsPref(self, url, listitem, part=None):
         # For transcoding only
         # Present the list of audio to select from
         audioStreamsList = {}
@@ -289,42 +289,46 @@ class PlayUtils():
         selectSubsIndex = ""
         playurlprefs = "%s" % url
 
+        # Set part where we're at
+        self.API.setPartNumber(part)
         item = self.item
         try:
-            mediasources = item['MediaSources'][0]
-            mediastreams = mediasources['MediaStreams']
+            mediasources = item[0]
+            mediastreams = mediasources[part]
         except (TypeError, KeyError, IndexError):
             return
 
         for stream in mediastreams:
             # Since Emby returns all possible tracks together, have to sort them.
-            index = stream['Index']
-            type = stream['Type']
+            index = stream['index']
+            type = stream['streamType']
 
-            if 'Audio' in type:
-                codec = stream['Codec']
-                channelLayout = stream.get('ChannelLayout', "")
+            # Audio
+            if type == "2":
+                codec = stream['codec']
+                channelLayout = stream.get('audioChannelLayout', "")
                
                 try:
-                    track = "%s - %s - %s %s" % (index, stream['Language'], codec, channelLayout)
+                    track = "%s - %s - %s %s" % (index, stream['language'], codec, channelLayout)
                 except:
                     track = "%s - %s %s" % (index, codec, channelLayout)
                 
-                audioStreamsChannelsList[index] = stream['Channels']
+                audioStreamsChannelsList[index] = stream['channels']
                 audioStreamsList[track] = index
                 audioStreams.append(track)
 
-            elif 'Subtitle' in type:
+            # Subtitles
+            elif type == "3":
                 '''if stream['IsExternal']:
                     continue'''
                 try:
-                    track = "%s - %s" % (index, stream['Language'])
+                    track = "%s - %s" % (index, stream['language'])
                 except:
-                    track = "%s - %s" % (index, stream['Codec'])
+                    track = "%s - %s" % (index, stream['codec'])
 
-                default = stream['IsDefault']
-                forced = stream['IsForced']
-                downloadable = stream['IsTextSubtitleStream']
+                default = stream.get('default', None)
+                forced = stream.get('forced', None)
+                downloadable = True if stream.get('format', None) else False
 
                 if default:
                     track = "%s - Default" % track

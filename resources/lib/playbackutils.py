@@ -102,11 +102,10 @@ class PlaybackUtils():
 
         # Get playurls per part and process them
         listitems = []
-        for playurl in playutils.getPlayUrl():
+        for counter, playurl in enumerate(playutils.getPlayUrl()):
             # Add item via Kodi db, if found. Preserves metadata
             emby_dbitem = emby_db.getItem_byId(self.API.getRatingKey())
             if emby_dbitem:
-                self.logMsg('emby_dbitem found', 1)
                 kodi_id = emby_dbitem[0]
                 media_type = emby_dbitem[4]
                 pl.insertintoPlaylist(
@@ -121,31 +120,32 @@ class PlaybackUtils():
                 self.logMsg('emby_dbitem not found. Plex ratingKey was %s'
                             % self.API.getRatingKey(), 1)
                 listitem = xbmcgui.ListItem()
-                # Set artwork
-                self.setProperties(playurl, listitem)
-                # Set metadata
+                self.setArtwork(listitem)
                 self.setListItem(listitem)
                 self.playlist.add(
                     playurl, listitem, index=self.currentPosition)
 
+            playmethod = utils.window('emby_%s.playmethod' % playurl)
+
             # For transcoding only, ask for audio/subs pref
-            if utils.window('emby_%s.playmethod' % playurl) == "Transcode":
-                playurl = playutils.audioSubsPref(playurl, listitem)
+            if playmethod == "Transcode":
+                utils.window('emby_%s.playmethod' % playurl, clear=True)
+                playurl = playutils.audioSubsPref(
+                    playurl, listitem, part=counter)
                 utils.window('emby_%s.playmethod' % playurl, value="Transcode")
 
+            self.setProperties(playurl, listitem)
             # Update the playurl to the PMS xml response (hence no loop)
             listitem.setPath(playurl)
 
+            # Append external subtitles to stream
+            # Only for direct play and direct stream
+            if playmethod != "Transcode":
+                # Direct play automatically appends external
+                listitem.setSubtitles(self.API.externalSubs(playurl))
+
             listitems.append(listitem)
             self.currentPosition += 1
-
-            # We need to keep track of playQueueItemIDs for Plex Companion
-            playQueueItemID = self.API.GetPlayQueueItemID()
-            utils.window(
-                'plex_%s.playQueueItemID' % playurl, playQueueItemID)
-            utils.window(
-                'plex_%s.playlistPosition'
-                % playurl, str(self.currentPosition))
 
         return listitems
 
@@ -160,22 +160,19 @@ class PlaybackUtils():
         utils.window('%s.type' % embyitem, value=itemtype)
         utils.window('%s.itemid' % embyitem, value=itemid)
 
+        # We need to keep track of playQueueItemIDs for Plex Companion
+        playQueueItemID = self.API.GetPlayQueueItemID()
+        utils.window(
+            'plex_%s.playQueueItemID' % playurl, playQueueItemID)
+        utils.window(
+            'plex_%s.playlistPosition'
+            % playurl, str(self.currentPosition))
+
         if itemtype == "episode":
             utils.window('%s.refreshid' % embyitem,
                          value=self.API.getParentRatingKey())
         else:
             utils.window('%s.refreshid' % embyitem, value=itemid)
-
-        # Append external subtitles to stream
-        playmethod = utils.window('%s.playmethod' % embyitem)
-        # Only for direct play and direct stream
-        # subtitles = self.externalSubs(playurl)
-        subtitles = self.API.externalSubs(playurl)
-        if playmethod != "Transcode":
-            # Direct play automatically appends external
-            listitem.setSubtitles(subtitles)
-
-        self.setArtwork(listitem)
 
     def externalSubs(self, playurl):
 
@@ -290,8 +287,7 @@ class PlaybackUtils():
             'dateadded': API.getDateCreated(),
             'lastplayed': userdata['LastPlayedDate'],
             'mpaa': API.getMpaa(),
-            'aired': API.getPremiereDate(),
-            'votes': None
+            'aired': API.getPremiereDate()
         }
 
         if "Episode" in mediaType:

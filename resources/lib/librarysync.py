@@ -189,9 +189,8 @@ class ThreadedShowSyncInfo(threading.Thread):
             try:
                 dialog.update(
                     percentage,
-                    message="Downloaded: %s, Processed: %s: %s"
-                            % (getMetadataProgress, processMetadataProgress,
-                                viewName))
+                    message="Downloaded: %s, Processed: %s"
+                            % (getMetadataProgress, processMetadataProgress))
             except:
                 # Wierd formating of the string viewName?!?
                 pass

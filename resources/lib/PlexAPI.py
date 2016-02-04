@@ -2065,9 +2065,9 @@ class API():
             action      'DirectPlay', 'DirectStream' or 'Transcode'
 
             quality:    {
-                            'videoResolution': 'resolution',
-                            'videoQuality': 'quality',
-                            'maxVideoBitrate': 'bitrate'
+                            'videoResolution': e.g. '1024x768',
+                            'videoQuality': e.g. '60',
+                            'maxVideoBitrate': e.g. '2000' (in kbits)
                         }
                         (one or several of these options)
             subtitle    {'selected', 'dontBurnIn', 'size'}
@@ -2081,47 +2081,26 @@ class API():
         # Set Client capabilities
         clientArgs = {
             'X-Plex-Client-Capabilities':
-                "protocols=shoutcast,"
-                    "http-live-streaming,"
-                    "http-streaming-video,"
-                    "http-streaming-video-720p,"
-                    "http-streaming-video-1080p,"
-                    "http-mp4-streaming,"
-                    "http-mp4-video,"
-                    "http-mp4-video-720p,"
-                    "http-mp4-video-1080p;"
-                "videoDecoders="
-                    "h264{profile:high&resolution:1080&level:51},"
-                    "h265{profile:high&resolution:1080&level:51},"
-                    "mpeg1video,"
-                    "mpeg2video,"
-                    "mpeg4,"
-                    "msmpeg4,"
-                    "mjpeg,"
-                    "wmv2,"
-                    "wmv3,"
-                    "vc1,"
-                    "cinepak,"
-                    "h263;"
-                "audioDecoders="
-                    "mp3,"
-                    "aac,"
-                    "ac3{bitrate:800000&channels:8},"
-                    "dts{bitrate:800000&channels:8},"
-                    "truehd,"
-                    "eac3,"
-                    "dca,"
-                    "mp2,"
-                    "pcm,"
-                    "wmapro,"
-                    "wmav2,"
-                    "wmavoice,"
-                    "wmalossless;"
+                'protocols='
+                    'shoutcast,'
+                    'http-video;'
+                'videoDecoders='
+                    'h264{profile:high&resolution:1080&level:51};'
+                'audioDecoders='
+                    'mp3,aac,dts{bitrate:800000&channels:8},'
+                    'ac3{bitrate:800000&channels:8}',
+            'X-Plex-Client-Profile-Extra':
+                'add-transcode-target-audio-codec'
+                '(type=videoProfile&'
+                    'context=streaming&'
+                    'protocol=*&'
+                    'audioCodec=dca,ac3)'
         }
-        path = self.item[0][self.part].attrib['key']
         xargs = PlexAPI().getXArgsDeviceInfo()
 
+        # For DirectPlay, path/key of PART is needed
         if action == "DirectPlay":
+            path = self.item[0][self.part].attrib['key']
             url = self.server + path
             if '?' in url:
                 url += '&' + urlencode(xargs)
@@ -2130,13 +2109,27 @@ class API():
             return url
 
         # For Direct Streaming or Transcoding
+        # Path/key to VIDEO item of xml PMS response is needed, not part
+        path = self.item.attrib['key']
+        # transcodePath = self.server + \
+        #     '/video/:/transcode/universal/start.m3u8?'
         transcodePath = self.server + \
-            '/video/:/transcode/universal/start.m3u8?'
+            '/video/:/transcode/universal/start.mkv?'
+        # args = {
+        #     'path': path,
+        #     'mediaIndex': 0,       # Probably refering to XML reply sheme
+        #     'partIndex': self.part,
+        #     'protocol': 'hls',   # seen in the wild: 'dash', 'http', 'hls'
+        #     'offset': 0,           # Resume point
+        #     'fastSeek': 1
+        # }
         args = {
+            'copyts': 1,
             'path': path,
             'mediaIndex': 0,       # Probably refering to XML reply sheme
             'partIndex': self.part,
-            'protocol': 'hls',   # seen in the wild: 'dash', 'http', 'hls'
+            'protocol': 'http',   # seen in the wild: 'dash', 'http', 'hls'
+            'session': self.clientId,
             'offset': 0,           # Resume point
             'fastSeek': 1
         }

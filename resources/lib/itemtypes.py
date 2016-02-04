@@ -232,7 +232,6 @@ class Items(object):
         Updates the Kodi watched state of the item from PMS. Also retrieves
         Plex resume points for movies in progress.
         """
-        self.logMsg("Entering updateUserdata", 1)
         for mediaitem in xml:
             API = PlexAPI.API(mediaitem)
             itemid = API.getRatingKey()
@@ -300,8 +299,7 @@ class Movies(Items):
             movieid = emby_dbitem[0]
             fileid = emby_dbitem[1]
             pathid = emby_dbitem[2]
-            self.logMsg("movieid: %s fileid: %s pathid: %s" % (movieid, fileid, pathid), 1)
-        
+
         except TypeError:
             update_item = False
             self.logMsg("movieid: %s not found." % itemid, 2)
@@ -911,10 +909,8 @@ class TVShows(Items):
         try:
             showid = emby_dbitem[0]
             pathid = emby_dbitem[2]
-            self.logMsg("showid: %s pathid: %s" % (showid, pathid), 1)
         except TypeError:
             update_item = False
-            self.logMsg("showid: %s not found." % itemid, 2)
 
         self.logMsg("View tag found: %s" % viewtag, 2)
 
