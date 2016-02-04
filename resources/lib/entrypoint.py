@@ -89,7 +89,7 @@ def PassPlaylist(xml, resume=None):
 
     # Get resume point
     resume1 = PlexFunctions.ConvertPlexToKodiTime(utils.IntFromStr(
-        xml.attrib.get('playQueueSelectedItemOffset')))
+        xml.attrib.get('playQueueSelectedItemOffset', 0)))
     resume2 = resume
     resume = max(resume1, resume2)
 
