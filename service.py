@@ -10,7 +10,8 @@ from datetime import datetime
 import xbmc
 import xbmcaddon
 import xbmcgui
-# import xbmcvfs
+import _strptime
+import xbmcvfs
 
 #################################################################################################
 
