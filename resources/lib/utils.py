@@ -49,7 +49,7 @@ def ThreadMethodsAdditionalStop(windowAttribute):
     def wrapper(cls):
         def threadStopped(self):
             return (self._threadStopped or
-                    self._abortMonitor.abortRequested() or
+                    (window('terminateNow') == "true") or
                     window(windowAttribute) == "true")
         cls.threadStopped = threadStopped
         return cls
@@ -78,7 +78,7 @@ def ThreadMethods(cls):
 
     suspendThread():    pauses the thread
     resumeThread():     resumes the thread
-    stopThread():       stopps the thread
+    stopThread():       stopps/kills the thread
 
     threadSuspended():  returns True if thread is suspend_thread
     threadStopped():    returns True if thread is stopped (or should stop ;-))
@@ -87,12 +87,10 @@ def ThreadMethods(cls):
     Also adds the following class attributes:
         _threadStopped
         _threadSuspended
-        _abortMonitor = xbmc.Monitor()      (to check for premature Kodi exit)
     """
     # Attach new attributes to class
     cls._threadStopped = False
     cls._threadSuspended = False
-    cls._abortMonitor = xbmc.Monitor()
 
     # Define new class methods and attach them to class
     def stopThread(self):
@@ -112,7 +110,7 @@ def ThreadMethods(cls):
     cls.threadSuspended = threadSuspended
 
     def threadStopped(self):
-        return self._threadStopped or self._abortMonitor.abortRequested()
+        return self._threadStopped or (window('terminateNow') == 'true')
     cls.threadStopped = threadStopped
 
     # Return class to render this a decorator

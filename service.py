@@ -293,17 +293,28 @@ class Service():
 
         ##### Emby thread is terminating. #####
 
-        if self.plexCompanion_running:
-            plexCompanion.stopThread()
+        # Tell all threads to terminate
+        utils.window('terminateNow', value='true')
 
-        if self.library_running:
-            library.stopThread()
+        try:
+            if self.plexCompanion_running:
+                plexCompanion.stopThread()
+        except:
+            xbmc.log('plexCompanion already shut down')
+
+        try:
+            if self.library_running:
+                library.stopThread()
+        except:
+            xbmc.log('Library sync already shut down')
 
         # if self.websocket_running:
         #     ws.stopClient()
-        
-        if self.userclient_running:
-            user.stopThread()
+        try:
+            if self.userclient_running:
+                user.stopThread()
+        except:
+            xbmc.log('User client already shut down')
 
         log("======== STOP %s ========" % self.addonName, 0)
 
