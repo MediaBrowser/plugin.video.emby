@@ -538,19 +538,19 @@ class Player(xbmc.Player):
                         doUtils.downloadUrl(url, type="DELETE")
 
         # Clean the WINDOW properties
-        # for filename in self.played_info:
-        #     cleanup = (
-        #         'emby_%s.itemid' % filename,
-        #         'emby_%s.runtime' % filename,
-        #         'emby_%s.refreshid' % filename,
-        #         'emby_%s.playmethod' % filename,
-        #         'emby_%s.type' % filename,
-        #         'plex_%s.playQueueItemID' % filename,
-        #         'plex_%s.playlistPosition' % filename,
-        #         'plex_%s.guid' % filename
-        #     )
-        #     for item in cleanup:
-        #         utils.window(item, clear=True)
+        for filename in self.played_info:
+            cleanup = (
+                'emby_%s.itemid' % filename,
+                'emby_%s.runtime' % filename,
+                'emby_%s.refreshid' % filename,
+                'emby_%s.playmethod' % filename,
+                'emby_%s.type' % filename,
+                'plex_%s.playQueueItemID' % filename,
+                'plex_%s.playlistPosition' % filename,
+                'plex_%s.guid' % filename
+            )
+            for item in cleanup:
+                utils.window(item, clear=True)
 
         self.played_info.clear()
 
