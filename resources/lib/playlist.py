@@ -164,7 +164,8 @@ class Playlist():
             'method': "Playlist.GetItems",
             'params': {
 
-                'playlistid': 1
+                'playlistid': 1,
+                'properties': ['title', 'file']
             }
         }
         result = xbmc.executeJSONRPC(json.dumps(pl))

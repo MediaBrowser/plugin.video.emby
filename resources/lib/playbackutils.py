@@ -72,10 +72,13 @@ class PlaybackUtils():
         # Close DB
         embyconn.close()
 
-        self.logMsg("Playlist size now: %s" % self.playlist.size(), 1)
+        self.logMsg("Playlist size now: %s. Files before deletion:"
+                    % self.playlist.size(), 2)
+        for i in range(self.playlist.size()):
+            self.logMsg(self.playlist[i].getfilename(), 2)
         # Kick off playback
         if startPlayer:
-            self.logMsg("Starting up a new xbmc.Player() instance", 1)
+            self.logMsg("Starting up a new xbmc.Player() instance", 2)
             self.logMsg("Starting position: %s" % self.startPos, 1)
             Player = xbmc.Player()
             Player.play(self.playlist, startpos=self.startPos)
@@ -85,10 +88,12 @@ class PlaybackUtils():
                 except:
                     self.logMsg("Error, could not resume", -1)
         else:
-            self.logMsg("xbmc.Player() instance already up", 1)
+            self.logMsg("xbmc.Player() instance already up. Files playing:", 2)
             # Delete the last playlist item because we have added it already
             filename = self.playlist[-1].getfilename()
             self.playlist.remove(filename)
+            for i in range(self.playlist.size()):
+                self.logMsg(self.playlist[i].getfilename(), 2)
             xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, listitems[0])
 
     def AddMediaItemToPlaylist(self, item, emby_db):

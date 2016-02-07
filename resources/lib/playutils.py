@@ -156,10 +156,15 @@ class PlayUtils():
         Returns True if we need to transcode
         """
         videoCodec = self.API.getVideoCodec()
+        self.logMsg("videoCodec: %s" % videoCodec, 2)
         codec = videoCodec['videocodec']
         resolution = videoCodec['resolution']
         h265 = self.getH265()
-        if not ('h265' in codec or 'hevc' in codec) or (h265 is None):
+        try:
+            if not ('h265' in codec or 'hevc' in codec) or (h265 is None):
+                return False
+        # E.g. trailers without a codec of None
+        except TypeError:
             return False
 
         if resolution >= h265:
