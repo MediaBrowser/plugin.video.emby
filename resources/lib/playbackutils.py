@@ -72,8 +72,11 @@ class PlaybackUtils():
         # Close DB
         embyconn.close()
 
+        self.logMsg("Playlist size now: %s" % self.playlist.size(), 1)
         # Kick off playback
         if startPlayer:
+            self.logMsg("Starting up a new xbmc.Player() instance", 1)
+            self.logMsg("Starting position: %s" % self.startPos, 1)
             Player = xbmc.Player()
             Player.play(self.playlist, startpos=self.startPos)
             if resume:
@@ -82,6 +85,7 @@ class PlaybackUtils():
                 except:
                     self.logMsg("Error, could not resume", -1)
         else:
+            self.logMsg("xbmc.Player() instance already up", 1)
             # Delete the last playlist item because we have added it already
             filename = self.playlist[-1].getfilename()
             self.playlist.remove(filename)
@@ -131,8 +135,8 @@ class PlaybackUtils():
             if playmethod == "Transcode":
                 utils.window('emby_%s.playmethod' % playurl, clear=True)
                 playurl = playutils.audioSubsPref(
-                    playurl, listitem, part=counter)
-                utils.window('emby_%s.playmethod' % playurl, value="Transcode")
+                    listitem, playurl, part=counter)
+                utils.window('emby_%s.playmethod' % playurl, "Transcode")
 
             self.setProperties(playurl, listitem)
             # Update the playurl to the PMS xml response (hence no loop)
@@ -161,12 +165,15 @@ class PlaybackUtils():
         utils.window('%s.itemid' % embyitem, value=itemid)
 
         # We need to keep track of playQueueItemIDs for Plex Companion
-        playQueueItemID = self.API.GetPlayQueueItemID()
         utils.window(
-            'plex_%s.playQueueItemID' % playurl, playQueueItemID)
+            'plex_%s.playQueueItemID'
+            % playurl, self.API.GetPlayQueueItemID())
         utils.window(
             'plex_%s.playlistPosition'
             % playurl, str(self.currentPosition))
+        utils.window(
+            'plex_%s.guid'
+            % playurl, self.API.getGuid())
 
         if itemtype == "episode":
             utils.window('%s.refreshid' % embyitem,

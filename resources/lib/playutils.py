@@ -2,6 +2,8 @@
 
 #################################################################################################
 
+from urllib import urlencode
+
 import xbmc
 import xbmcgui
 import xbmcvfs
@@ -10,6 +12,7 @@ import clientinfo
 import utils
 
 import PlexAPI
+import PlexFunctions
 
 #################################################################################################
 
@@ -45,16 +48,19 @@ class PlayUtils():
                 # Set playmethod property
                 utils.window('emby_%s.playmethod' % playurl, "DirectPlay")
 
-            elif self.isDirectStream():
-                self.logMsg("File is direct streaming.", 1)
-                playurl = self.API.getTranscodeVideoPath('DirectStream')
-                # Set playmethod property
-                utils.window('emby_%s.playmethod' % playurl, "DirectStream")
+            # Currently no direct streaming possible - needs investigation
+            # elif self.isDirectStream():
+            #     self.logMsg("File is direct streaming.", 1)
+            #     playurl = self.API.getTranscodeVideoPath('DirectStream')
+            #     # Set playmethod property
+            #     utils.window('emby_%s.playmethod' % playurl, "DirectStream")
 
             elif self.isTranscoding():
                 self.logMsg("File is transcoding.", 1)
                 quality = {
-                    'maxVideoBitrate': self.getBitrate()
+                    'maxVideoBitrate': self.getBitrate(),
+                    'videoResolution': self.getResolution(),
+                    'videoQuality': '100'
                 }
                 playurl = self.API.getTranscodeVideoPath('Transcode',
                                                          quality=quality)
@@ -89,12 +95,8 @@ class PlayUtils():
             self.logMsg("Can't direct play, user enabled play from HTTP.", 1)
             return False
 
-        if not self.h265enabled():
+        if self.h265enabled():
             return False
-
-        # Found with e.g. trailers
-        # if self.API.getDataFromPartOrMedia('optimizedForStreaming') == '1':
-        #    return False
 
         return True
 
@@ -150,22 +152,23 @@ class PlayUtils():
             return False
 
     def h265enabled(self):
+        """
+        Returns True if we need to transcode
+        """
         videoCodec = self.API.getVideoCodec()
         codec = videoCodec['videocodec']
         resolution = videoCodec['resolution']
-        # 720p
-        if ((utils.settings('transcode720H265') == "true") and
-                ("h265" in codec) and
-                (resolution in "720 1080")):
-            self.logMsg("Option to transcode 720P/h265 enabled.", 0)
+        h265 = self.getH265()
+        if not ('h265' in codec or 'hevc' in codec) or (h265 is None):
             return False
-        # 1080p
-        if ((utils.settings('transcodeH265') == "true") and
-                ("h265" in codec) and
-                (resolution == "1080")):
-            self.logMsg("Option to transcode 1080P/h265 enabled.", 0)
-            return False
-        return True
+
+        if resolution >= h265:
+            self.logMsg("Option to transcode h265 enabled. Resolution media: "
+                        "%s, transcoding limit resolution: %s"
+                        % (resolution, h265), 1)
+            return True
+
+        return False
 
     def isDirectStream(self):
         if not self.h265enabled():
@@ -247,88 +250,106 @@ class PlayUtils():
         return playurl
 
     def getBitrate(self):
-
         # get the addon video quality
-        videoQuality = utils.settings('videoBitrate')
+        videoQuality = utils.settings('transcoderVideoQualities')
         bitrate = {
-
-            '0': 664,
-            '1': 996,
-            '2': 1320,
+            '0': 320,
+            '1': 720,
+            '2': 1500,
             '3': 2000,
-            '4': 3200,
-            '5': 4700,
-            '6': 6200,
-            '7': 7700,
-            '8': 9200,
-            '9': 10700,
-            '10': 12200,
-            '11': 13700,
-            '12': 15200,
-            '13': 16700,
-            '14': 18200,
-            '15': 20000,
-            '16': 40000,
-            '17': 100000,
-            '18': 1000000
+            '4': 3000,
+            '5': 4000,
+            '6': 8000,
+            '7': 10000,
+            '8': 12000,
+            '9': 20000,
+            '10': 40000,
         }
-
         # max bit rate supported by server (max signed 32bit integer)
         return bitrate.get(videoQuality, 2147483)
 
-    def audioSubsPref(self, url, listitem, part=None):
+    def getH265(self):
+        chosen = utils.settings('transcodeH265')
+        H265 = {
+            '0': None,
+            '1': 480,
+            '2': 720,
+            '3': 1080
+        }
+        return H265.get(chosen, None)
+
+    def getResolution(self):
+        chosen = utils.settings('transcoderVideoQualities')
+        res = {
+            '0': '420x420',
+            '1': '576x320',
+            '2': '720x480',
+            '3': '1024x768',
+            '4': '1280x720',
+            '5': '1280x720',
+            '6': '1920x1080',
+            '7': '1920x1080',
+            '8': '1920x1080',
+            '9': '1920x1080',
+            '10': '1920x1080',
+        }
+        return res[chosen]
+
+    def audioSubsPref(self, listitem, url, part=None):
         # For transcoding only
         # Present the list of audio to select from
-        audioStreamsList = {}
+        audioStreamsList = []
         audioStreams = []
-        audioStreamsChannelsList = {}
-        subtitleStreamsList = {}
-        subtitleStreams = ['No subtitles']
+        # audioStreamsChannelsList = []
+        subtitleStreamsList = []
+        subtitleStreams = ['1 No subtitles']
         downloadableStreams = []
-        selectAudioIndex = ""
+        # selectAudioIndex = ""
         selectSubsIndex = ""
-        playurlprefs = "%s" % url
+        playurlprefs = {}
 
         # Set part where we're at
         self.API.setPartNumber(part)
-        item = self.item
         try:
-            mediasources = item[0]
-            mediastreams = mediasources[part]
+            mediastreams = self.item[0][part]
         except (TypeError, KeyError, IndexError):
             return
 
+        audioNum = 0
+        # Remember 'no subtitles'
+        subNum = 1
         for stream in mediastreams:
             # Since Emby returns all possible tracks together, have to sort them.
-            index = stream['index']
-            type = stream['streamType']
+            index = stream.attrib['id']
+            type = stream.attrib['streamType']
 
             # Audio
             if type == "2":
-                codec = stream['codec']
-                channelLayout = stream.get('audioChannelLayout', "")
+                codec = stream.attrib['codec']
+                channelLayout = stream.attrib.get('audioChannelLayout', "")
                
                 try:
-                    track = "%s - %s - %s %s" % (index, stream['language'], codec, channelLayout)
+                    track = "%s %s - %s %s" % (audioNum+1, stream.attrib['language'], codec, channelLayout)
                 except:
-                    track = "%s - %s %s" % (index, codec, channelLayout)
+                    track = "%s 'unknown' - %s %s" % (audioNum+1, codec, channelLayout)
                 
-                audioStreamsChannelsList[index] = stream['channels']
-                audioStreamsList[track] = index
+                #audioStreamsChannelsList[audioNum] = stream.attrib['channels']
+                audioStreamsList.append(index)
                 audioStreams.append(track)
+                audioNum += 1
 
             # Subtitles
             elif type == "3":
                 '''if stream['IsExternal']:
                     continue'''
                 try:
-                    track = "%s - %s" % (index, stream['language'])
+                    track = "%s %s" % (subNum+1, stream.attrib['language'])
                 except:
-                    track = "%s - %s" % (index, stream['codec'])
+                    track = "%s 'unknown' (%s)" % (subNum+1, stream.attrib['codec'])
 
-                default = stream.get('default', None)
-                forced = stream.get('forced', None)
-                downloadable = True if stream.get('format', None) else False
+                default = stream.attrib.get('default')
+                forced = stream.attrib.get('forced')
+                downloadable = stream.attrib.get('key')
 
                 if default:
                     track = "%s - Default" % track
@@ -337,53 +358,58 @@ class PlayUtils():
                 if downloadable:
                     downloadableStreams.append(index)
 
-                subtitleStreamsList[track] = index
+                subtitleStreamsList.append(index)
                 subtitleStreams.append(track)
+                subNum += 1
 
-
-        if len(audioStreams) > 1:
+        if audioNum > 1:
             resp = xbmcgui.Dialog().select("Choose the audio stream", audioStreams)
             if resp > -1:
                 # User selected audio
-                selected = audioStreams[resp]
-                selectAudioIndex = audioStreamsList[selected]
-                playurlprefs += "&AudioStreamIndex=%s" % selectAudioIndex
-            else: # User backed out of selection
-                playurlprefs += "&AudioStreamIndex=%s" % mediasources['DefaultAudioStreamIndex']
+                playurlprefs['audioStreamID'] = audioStreamsList[resp]
+            else: # User backed out of selection - let PMS decide
+                pass
         else: # There's only one audiotrack.
-            selectAudioIndex = audioStreamsList[audioStreams[0]]
-            playurlprefs += "&AudioStreamIndex=%s" % selectAudioIndex
+            playurlprefs['audioStreamID'] = audioStreamsList[0]
 
-        if len(subtitleStreams) > 1:
+        # Add audio boost
+        playurlprefs['audioBoost'] = utils.settings('audioBoost')
+
+        if subNum > 1:
             resp = xbmcgui.Dialog().select("Choose the subtitle stream", subtitleStreams)
             if resp == 0:
                 # User selected no subtitles
-                pass
+                playurlprefs["skipSubtitles"] = 1
             elif resp > -1:
                 # User selected subtitles
-                selected = subtitleStreams[resp]
-                selectSubsIndex = subtitleStreamsList[selected]
+                selectSubsIndex = subtitleStreamsList[resp-1]
 
                 # Load subtitles in the listitem if downloadable
                 if selectSubsIndex in downloadableStreams:
 
-                    itemid = item['Id']
-                    url = [("%s/Videos/%s/%s/Subtitles/%s/Stream.srt"
-                        % (self.server, itemid, itemid, selectSubsIndex))]
-                    self.logMsg("Set up subtitles: %s %s" % (selectSubsIndex, url), 1)
-                    listitem.setSubtitles(url)
+                    url = "%s/library/streams/%s" \
+                          % (self.server, selectSubsIndex)
+                    url = self.API.addPlexCredentialsToUrl(url)
+                    self.logMsg("Downloadable sub: %s: %s" % (selectSubsIndex, url), 1)
+                    listitem.setSubtitles([url])
                 else:
-                    # Burn subtitles
-                    playurlprefs += "&SubtitleStreamIndex=%s" % selectSubsIndex
+                    self.logMsg('Need to burn in subtitle %s' % selectSubsIndex, 1)
+                    playurlprefs["subtitleStreamID"] = selectSubsIndex
+                    playurlprefs["subtitleSize"] = utils.settings('subtitleSize')
 
             else: # User backed out of selection
-                playurlprefs += "&SubtitleStreamIndex=%s" % mediasources.get('DefaultSubtitleStreamIndex', "")
+                pass
+
+        # Tell the PMS what we want with a PUT request
+        # url = self.server + '/library/parts/' + self.item[0][part].attrib['id']
+        # PlexFunctions.SelectStreams(url, playurlprefs)
+        url += '&' + urlencode(playurlprefs)
 
         # Get number of channels for selected audio track
-        audioChannels = audioStreamsChannelsList.get(selectAudioIndex, 0)
-        if audioChannels > 2:
-            playurlprefs += "&AudioBitrate=384000"
-        else:
-            playurlprefs += "&AudioBitrate=192000"
+        # audioChannels = audioStreamsChannelsList.get(selectAudioIndex, 0)
+        # if audioChannels > 2:
+        #     playurlprefs += "&AudioBitrate=384000"
+        # else:
+        #     playurlprefs += "&AudioBitrate=192000"
 
-        return playurlprefs
+        return url

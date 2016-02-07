@@ -3,8 +3,10 @@ from urllib import urlencode
 from ast import literal_eval
 from urlparse import urlparse, parse_qs
 import re
+import json
 
 from xbmcaddon import Addon
+import xbmc
 
 import downloadutils
 from utils import logMsg, settings
@@ -85,7 +87,9 @@ def LiteralEval(string):
 def GetMethodFromPlexType(plexType):
     methods = {
         'movie': 'add_update',
-        'episode': 'add_updateEpisode'
+        'episode': 'add_updateEpisode',
+        'show': 'add_update',
+        'season': 'add_updateSeason'
     }
     return methods[plexType]
 
@@ -105,6 +109,15 @@ def PlexLibraryItemtypes():
 
 def EmbyItemtypes():
     return ['Movie', 'Series', 'Season', 'Episode']
+
+
+def SelectStreams(url, args):
+    """
+    Does a PUT request to tell the PMS what audio and subtitle streams we have
+    chosen.
+    """
+    downloadutils.DownloadUtils().downloadUrl(
+        url + '?' + urlencode(args), type='PUT')
 
 
 def GetPlayQueue(playQueueID):
@@ -308,3 +321,12 @@ def GetPlexPlaylist(itemid, librarySectionUUID, mediatype='movie'):
         logMsg("Error retrieving metadata for %s" % url, -1)
         return None
     return xml
+
+
+def getPlexRepeat(kodiRepeat):
+    plexRepeat = {
+        'off': '0',
+        'one': '1',
+        'all': '2'   # does this work?!?
+    }
+    return plexRepeat.get(kodiRepeat)

@@ -63,7 +63,7 @@ class ThreadedGetMetadata(threading.Thread):
                 continue
             # Download Metadata
             plexXML = PlexFunctions.GetPlexMetadata(updateItem['itemId'])
-            if not plexXML:
+            if plexXML is None:
                 # Did not receive a valid XML - skip that item for now
                 queue.task_done()
                 continue
@@ -116,7 +116,6 @@ class ThreadedProcessMetadata(threading.Thread):
                 # grabs item from queue
                 try:
                     updateItem = queue.get(block=False)
-                # Empty queue
                 except Queue.Empty:
                     continue
                 # Do the work; lock to be sure we've only got 1 Thread
@@ -306,7 +305,7 @@ class LibrarySync(threading.Thread):
             # Populate self.updatelist
             self.GetUpdatelist(items,
                                PlexFunctions.GetItemClassFromType(plexType),
-                               PlexFunctions.GetItemClassFromType(plexType),
+                               PlexFunctions.GetMethodFromPlexType(plexType),
                                view['name'],
                                view['id'])
             # Process self.updatelist

@@ -1,11 +1,15 @@
 import re
 import threading
-import xbmcgui
 from xml.dom.minidom import parseString
 from functions import *
 from settings import settings
 from httppersist import requests
+
+from xbmc import Player
+import xbmcgui
 import downloadutils
+from utils import window
+import PlexFunctions as pf
 
 class SubscriptionManager:
     def __init__(self):
@@ -13,19 +17,18 @@ class SubscriptionManager:
         self.info = {}
         self.lastkey = ""
         self.containerKey = ""
-        self.playQueueID = ''
-        self.playQueueVersion = 1
         self.lastratingkey = ""
         self.volume = 0
-        self.guid = ""
+        self.mute = '0'
         self.server = ""
         self.protocol = "http"
         self.port = ""
         self.playerprops = {}
         self.download = downloadutils.DownloadUtils()
-        
+        self.xbmcplayer = Player()
+
     def getVolume(self):
-        self.volume = getVolume()
+        self.volume, self.mute = getVolume()
 
     def msg(self, players):
         msg = getXMLHeader()
@@ -42,7 +45,6 @@ class SubscriptionManager:
         else:
             self.mainlocation = "navigation"
         msg += ' location="%s">' % self.mainlocation
-       
         msg += self.getTimelineXML(getAudioPlayerId(players), plex_audio())
         msg += self.getTimelineXML(getPhotoPlayerId(players), plex_photo())
         msg += self.getTimelineXML(getVideoPlayerId(players), plex_video())
@@ -59,48 +61,63 @@ class SubscriptionManager:
         else:
             state = "stopped"
             time = 0
-        ret = "\r\n"+'<Timeline location="%s" state="%s" time="%s" type="%s"' % (self.mainlocation, state, time, ptype)
-        if playerid is not None:
-            WINDOW = xbmcgui.Window(10000)
-            
-            # pbmc_server = str(WINDOW.getProperty('plexbmc.nowplaying.server'))
-            # userId = str(WINDOW.getProperty('emby_currUser'))
-            # pbmc_server = str(WINDOW.getProperty('emby_server%s' % userId))
-            pbmc_server = None
-            keyid = None
-            count = 0
-            while not keyid:
-                if count > 10:
-                    break
-                keyid = str(WINDOW.getProperty('Plex_currently_playing_itemid'))
-                xbmc.sleep(1000)
-                count += 1
-            if keyid:
-                self.lastkey = "/library/metadata/%s"%keyid
-                self.lastratingkey = keyid
-                ret += ' containerKey="%s"' % (self.containerKey)
-                ret += ' key="%s"' % (self.lastkey)
-                ret += ' ratingKey="%s"' % (self.lastratingkey)
-                if pbmc_server:
-                    (self.server, self.port) = pbmc_server.split(':')
-            serv = getServerByHost(self.server)
-            if self.playQueueID:
-                ret += ' playQueueID="%s"' % self.playQueueID
-                ret += ' playQueueVersion="%s"' % self.playQueueVersion
-            ret += ' duration="%s"' % info['duration']
-            ret += ' seekRange="0-%s"' % info['duration']
-            ret += ' controllable="%s"' % self.controllable()
-            ret += ' machineIdentifier="%s"' % serv.get('uuid', "")
-            ret += ' protocol="%s"' % serv.get('protocol', "http")
-            ret += ' address="%s"' % serv.get('server', self.server)
-            ret += ' port="%s"' % serv.get('port', self.port)
-            ret += ' guid="%s"' % info['guid']
-            ret += ' volume="%s"' % info['volume']
-            ret += ' shuffle="%s"' % info['shuffle']
+        ret = "\r\n"+'  <Timeline state="%s" time="%s" type="%s"' % (state, time, ptype)
+        if playerid is None:
+            ret += ' seekRange="0-0"'
+            ret += ' />'
+            return ret
+
+        WINDOW = xbmcgui.Window(10000)
         
-        ret += '/>'
+        # pbmc_server = str(WINDOW.getProperty('plexbmc.nowplaying.server'))
+        # userId = str(WINDOW.getProperty('emby_currUser'))
+        # pbmc_server = str(WINDOW.getProperty('emby_server%s' % userId))
+        pbmc_server = None
+        keyid = None
+        count = 0
+        while not keyid:
+            if count > 10:
+                break
+            keyid = WINDOW.getProperty('Plex_currently_playing_itemid')
+            xbmc.sleep(1000)
+            count += 1
+        if keyid:
+            self.lastkey = "/library/metadata/%s"%keyid
+            self.lastratingkey = keyid
+            ret += ' location="%s"' % (self.mainlocation)
+            ret += ' key="%s"' % (self.lastkey)
+            ret += ' ratingKey="%s"' % (self.lastratingkey)
+            if pbmc_server:
+                (self.server, self.port) = pbmc_server.split(':')
+        serv = getServerByHost(self.server)
+        if info.get('playQueueID'):
+            ret += ' playQueueID="%s"' % info.get('playQueueID')
+            ret += ' playQueueVersion="%s"' % info.get('playQueueVersion')
+            ret += ' playQueueItemID="%s"' % (info.get('playQueueItemID'))
+            ret += ' containerKey="/playQueues/%s"' \
+                   % (info.get('playQueueID'))
+        elif keyid:
+            ret += ' containerKey="%s"' % (self.containerKey)
+
+        ret += ' duration="%s"' % info['duration']
+        ret += ' seekRange="0-%s"' % info['duration']
+        ret += ' controllable="%s"' % self.controllable()
+        ret += ' machineIdentifier="%s"' % serv.get('uuid', "")
+        ret += ' protocol="%s"' % serv.get('protocol', "http")
+        ret += ' address="%s"' % serv.get('server', self.server)
+        ret += ' port="%s"' % serv.get('port', self.port)
+        ret += ' guid="%s"' % info['guid']
+        ret += ' volume="%s"' % info['volume']
+        ret += ' shuffle="%s"' % info['shuffle']
+        ret += ' mute="%s"' % self.mute
+        ret += ' repeat="%s"' % info['repeat']
+        # Might need an update in the future
+        ret += ' subtitleStreamID="-1"'
+        ret += ' audioStreamID="-1"'
+
+        ret += ' />'
         return ret
-     
+
     def updateCommandID(self, uuid, commandID):
         if commandID and self.subscribers.get(uuid, False):
             self.subscribers[uuid].commandID = int(commandID)            
@@ -126,14 +143,15 @@ class SubscriptionManager:
             info = self.playerprops[p.get('playerid')]
             params = {}
             params['containerKey'] = (self.containerKey or "/library/metadata/900000")
-            if self.playQueueID:
-                params['playQueueID'] = self.playQueueID
+            if info.get('playQueueID'):
+                params['containerKey'] = '/playQueues/' + info['playQueueID']
+                params['playQueueVersion'] = info['playQueueVersion']
+                params['playQueueItemID'] = info['playQueueItemID']
             params['key'] = (self.lastkey or "/library/metadata/900000")
             params['ratingKey'] = (self.lastratingkey or "900000")
             params['state'] = info['state']
             params['time'] = info['time']
             params['duration'] = info['duration']
-            params['playQueueVersion'] = self.playQueueVersion
         serv = getServerByHost(self.server)
         url = serv.get('protocol', 'http') + '://' \
             + serv.get('server', 'localhost') + ':' \
@@ -171,12 +189,20 @@ class SubscriptionManager:
         info = {}
         try:
             # get info from the player
-            props = jsonrpc("Player.GetProperties", {"playerid": playerid, "properties": ["time", "totaltime", "speed", "shuffled"]})
+            props = jsonrpc("Player.GetProperties", {"playerid": playerid, "properties": ["time", "totaltime", "speed", "shuffled", "repeat"]})
             printDebug(jsonrpc("Player.GetItem", {"playerid": playerid, "properties": ["file", "showlink", "episode", "season"]}))
             info['time'] = timeToMillis(props['time'])
             info['duration'] = timeToMillis(props['totaltime'])
             info['state'] = ("paused", "playing")[int(props['speed'])]
-            info['shuffle'] = ("0","1")[props.get('shuffled', False)]            
+            info['shuffle'] = ("0","1")[props.get('shuffled', False)]
+            info['repeat'] = pf.getPlexRepeat(props.get('repeat'))
+            # New PMS playQueue attributes
+            cf = self.xbmcplayer.getPlayingFile()
+            info['playQueueID'] = window('playQueueID')
+            info['playQueueVersion'] = window('playQueueVersion')
+            info['playQueueItemID'] = window('plex_%s.playQueueItemID' % cf)
+            info['guid'] = window('plex_%s.guid' % cf)
+
         except:
             info['time'] = 0
             info['duration'] = 0
@@ -184,7 +210,7 @@ class SubscriptionManager:
             info['shuffle'] = False
         # get the volume from the application
         info['volume'] = self.volume
-        info['guid'] = self.guid
+        info['mute'] = self.mute
 
         return info
 
@@ -216,21 +242,11 @@ class Subscriber:
         printDebug("sending xml to subscriber %s: %s" % (self.tostr(), msg))
         url = self.protocol + '://' + self.host + ':' + self.port \
             + "/:/timeline"
-        # Override some headers
-        headerOptions = {
-            'Content-Range': 'bytes 0-/-1',
-            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_2) AppleWebKit/537.17 (KHTML, like Gecko) Chrome/24.0.1312.52 Safari/537.17',
-            'Accept': '*/*',
-            'X-Plex-Username': 'croneter',
-            'Connection': 'keep-alive',
-            'X-Plex-Client-Capabilities': 'protocols=shoutcast,http-video;videoDecoders=h264{profile:high&resolution:1080&level:51};audioDecoders=mp3,aac,dts{bitrate:800000&channels:8},ac3{bitrate:800000&channels:8}',
-            'X-Plex-Client-Profile-Extra': 'add-transcode-target-audio-codec(type=videoProfile&context=streaming&protocol=*&audioCodec=dca,ac3)'
-        }
+
         response = self.download.downloadUrl(
             url,
             postBody=msg,
-            type="POSTXML",
-            headerOptions=headerOptions)
+            type="POSTXML")
         # if not requests.post(self.host, self.port, "/:/timeline", msg, getPlexHeaders(), self.protocol):
         # subMgr.removeSubscriber(self.uuid)
         if response in [False, None, 401]:

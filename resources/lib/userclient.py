@@ -224,6 +224,7 @@ class UserClient(threading.Thread):
         if authenticated == False:
             url = "%s/clients" % (self.currServer)
             utils.window('emby_currUser', value=userId)
+            utils.window('plex_username', value=username)
             utils.window('emby_accessToken%s' % userId, value=self.currToken)
             result = doUtils.downloadUrl(url)
 
@@ -234,6 +235,7 @@ class UserClient(threading.Thread):
 
         # Set to windows property
         utils.window('emby_currUser', value=userId)
+        utils.window('plex_username', value=username)
         utils.window('emby_accessToken%s' % userId, value=self.currToken)
         utils.window('emby_server%s' % userId, value=self.currServer)
         utils.window('emby_server_%s' % userId, value=self.getServer(prefix=False))

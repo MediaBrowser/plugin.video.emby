@@ -38,6 +38,14 @@ class Player(xbmc.Player):
 
         self.logMsg("Starting playback monitor.", 2)
 
+        # Should we start notification or is this done by Plex Companion?
+        self.doNotify = False if (utils.settings('plexCompanion') == 'true') \
+            else True
+        if self.doNotify:
+            self.logMsg("PMS notifications not done by Plex Companion", 2)
+        else:
+            self.logMsg("PMS notifications done by Plex Companion", 2)
+
     def GetPlayStats(self):
         return self.playStats
 
@@ -68,7 +76,8 @@ class Player(xbmc.Player):
         if currentFile:
 
             self.currentFile = currentFile
-            
+            # Save currentFile for cleanup later
+            utils.window('plex_lastPlayedFiled', value=currentFile)
             # We may need to wait for info to be set in kodi monitor
             itemId = utils.window("emby_%s.itemid" % currentFile)
             tryCount = 0
@@ -93,6 +102,11 @@ class Player(xbmc.Player):
                 itemType = utils.window("%s.type" % embyitem)
                 utils.window('emby_skipWatched%s' % itemId, value="true")
 
+                # Suspend library sync thread while movie is playing
+                self.logMsg("Playing itemtype is: %s" % itemType, 1)
+                if itemType in ['movie', 'audio']:
+                    self.logMsg("Suspending library sync while playing", 1)
+                    utils.window('suspend_LibraryThread', value='true')
 
                 if (utils.window('emby_customPlaylist') == "true" and
                         utils.window('emby_customPlaylist.seektime')):
@@ -214,10 +228,18 @@ class Player(xbmc.Player):
                     runtime = xbmcplayer.getTotalTime()
                     self.logMsg("Runtime is missing, Kodi runtime: %s" % runtime, 1)
 
+                playQueueVersion = utils.window(
+                    'playQueueVersion')
+                playQueueID = utils.window(
+                    'playQueueID')
+                playQueueItemID = utils.window(
+                    'plex_%s.playQueueItemID' % currentFile)
                 # Save data map for updates and position calls
                 data = {
-                    
-                    'runtime': runtime,
+                    'playQueueVersion': playQueueVersion,
+                    'playQueueID': playQueueID,
+                    'playQueueItemID': playQueueItemID,
+                    'runtime': runtime * 1000,
                     'item_id': itemId,
                     'refresh_id': refresh_id,
                     'currentfile': currentFile,
@@ -247,7 +269,10 @@ class Player(xbmc.Player):
                         self.playStats[playMethod] = 1'''
 
     def reportPlayback(self):
-        
+        # Don't use if Plex Companion is enabled
+        if not self.doNotify:
+            return
+
         self.logMsg("reportPlayback Called", 2)
         xbmcplayer = self.xbmcplayer
 
@@ -310,6 +335,12 @@ class Player(xbmc.Player):
                 'time': int(playTime) * 1000,
                 'duration': int(duration) * 1000
             }
+
+            # For PMS playQueues/playlists only
+            if data.get('playQueueID'):
+                postdata['containerKey'] = '/playQueues/' + data.get('playQueueID')
+                postdata['playQueueVersion'] = data.get('playQueueVersion')
+                postdata['playQueueItemID'] = data.get('playQueueItemID')
 
             if playMethod == "Transcode":
                 # Track can't be changed, keep reporting the same index
@@ -422,12 +453,14 @@ class Player(xbmc.Player):
         utils.window('emby_customPlaylist.seektime', clear=True)
         utils.window('emby_playbackProps', clear=True)
         self.logMsg("Clear playlist properties.", 1)
+        utils.window('suspend_LibraryThread', clear=True)
         self.stopAll()
 
     def onPlayBackEnded( self ):
         # Will be called when xbmc stops playing a file
         self.logMsg("ONPLAYBACK_ENDED", 2)
         utils.window('emby_customPlaylist.seektime', clear=True)
+        utils.window('suspend_LibraryThread', clear=True)
         self.stopAll()
 
     def stopAll(self):
@@ -457,7 +490,7 @@ class Player(xbmc.Player):
 
                 if currentPosition and runtime:
                     try:
-                        percentComplete = (currentPosition * 10000) / int(runtime)
+                        percentComplete = currentPosition / int(runtime)
                     except ZeroDivisionError:
                         # Runtime is 0.
                         percentComplete = 0
@@ -474,9 +507,8 @@ class Player(xbmc.Player):
                     # Stop transcoding
                     if playMethod == "Transcode":
                         self.logMsg("Transcoding for %s terminated." % itemid, 1)
-                        deviceId = self.clientInfo.getDeviceId()
-                        url = "{server}/emby/Videos/ActiveEncodings?DeviceId=%s" % deviceId
-                        doUtils.downloadUrl(url, type="DELETE")
+                        url = "{server}/video/:/transcode/universal/stop?session=%s" % self.clientInfo.getDeviceId()
+                        doUtils.downloadUrl(url, type="GET")
 
                     # Send the delete action to the server.
                     offerDelete = False
@@ -490,6 +522,8 @@ class Player(xbmc.Player):
                         # Delete could be disabled, even if the subsetting is enabled.
                         offerDelete = False
 
+                    # Plex: never delete
+                    offerDelete = False
                     if percentComplete >= markPlayedAt and offerDelete:
                         if utils.settings('skipConfirmDelete') != "true":
                             resp = xbmcgui.Dialog().yesno(
@@ -502,7 +536,22 @@ class Player(xbmc.Player):
                         url = "{server}/emby/Items/%s?format=json" % itemid
                         self.logMsg("Deleting request: %s" % itemid)
                         doUtils.downloadUrl(url, type="DELETE")
-    
+
+        # Clean the WINDOW properties
+        # for filename in self.played_info:
+        #     cleanup = (
+        #         'emby_%s.itemid' % filename,
+        #         'emby_%s.runtime' % filename,
+        #         'emby_%s.refreshid' % filename,
+        #         'emby_%s.playmethod' % filename,
+        #         'emby_%s.type' % filename,
+        #         'plex_%s.playQueueItemID' % filename,
+        #         'plex_%s.playlistPosition' % filename,
+        #         'plex_%s.guid' % filename
+        #     )
+        #     for item in cleanup:
+        #         utils.window(item, clear=True)
+
         self.played_info.clear()
 
     def stopPlayback(self, data):
@@ -517,7 +566,7 @@ class Player(xbmc.Player):
             'ratingKey': itemId,
             'state': 'stopped',   # 'stopped', 'paused', 'buffering', 'playing'
             'time': int(playTime) * 1000,
-            'duration': int(duration) * 1000
+            'duration': int(duration)
         }
         url = url + urlencode(args)
         self.doUtils.downloadUrl(url, type="GET")

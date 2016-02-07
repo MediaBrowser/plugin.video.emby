@@ -111,13 +111,6 @@ class MyHandler(BaseHTTPRequestHandler):
                     printDebug("adjusting the volume to %s%%" % volume)
                     jsonrpc("Application.SetVolume", {"volume": volume})
             elif "/playMedia" in request_path:
-                playQueueVersion = int(params.get('playQueueVersion', 1))
-                if playQueueVersion < subMgr.playQueueVersion:
-                    # playQueue was updated; ignore this command for now
-                    return
-                if playQueueVersion > subMgr.playQueueVersion:
-                    # TODO: we should probably update something else now :-)
-                    subMgr.playQueueVersion = playQueueVersion
                 s.response(getOKMsg(), getPlexHeaders())
                 offset = params.get('viewOffset', params.get('offset', "0"))
                 protocol = params.get('protocol', "http")

@@ -115,7 +115,7 @@ def parseJSONRPC(jsonraw):
     return parsed.get('result', {})
 
 def getXMLHeader():
-    return '<?xml version="1.0" encoding="utf-8"?>'+"\r\n"
+    return '<?xml version="1.0" encoding="utf-8" ?>'+"\r\n"
 
 def getOKMsg():
     return getXMLHeader() + '<Response code="200" status="OK" />'
@@ -176,7 +176,10 @@ def getPhotoPlayerId(players = False):
     return players.get(xbmc_photo(), {}).get('playerid', None)
     
 def getVolume():
-    return str(jsonrpc('Application.GetProperties', { "properties": [ "volume" ] }).get('volume', 100))
+    answ = jsonrpc('Application.GetProperties', { "properties": [ "volume", 'muted' ] })
+    vol = str(answ.get('volume', 100))
+    mute = ("0", "1")[answ.get('muted', False)]
+    return (vol, mute)
 
 def timeToMillis(time):
     return (time['hours']*3600 + time['minutes']*60 + time['seconds'])*1000 + time['milliseconds']

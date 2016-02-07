@@ -83,10 +83,9 @@ class PlexCompanion(threading.Thread):
 
                 if not is_running:
                     self.logMsg("PleXBMC Helper has started", 0)
-
                 is_running = True
-                if message_count % 1 == 0:
-                    subscribers.subMgr.notify()
+
+                subscribers.subMgr.notify()
                 settings['serverList'] = self.client.getServerList()
             except:
                 self.logMsg("Error in loop, continuing anyway", 1)

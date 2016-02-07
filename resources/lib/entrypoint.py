@@ -6,7 +6,6 @@ import json
 import os
 import sys
 import urlparse
-import re
 
 import xbmc
 import xbmcaddon
@@ -27,7 +26,6 @@ import api
 
 import PlexAPI
 import PlexFunctions
-import embydb_functions
 
 #################################################################################################
 
@@ -81,11 +79,11 @@ def PassPlaylist(xml, resume=None):
     """
     # Set window properties to make them available later for other threads
     windowArgs = [
+        # 'containerKey'
         'playQueueID',
-        'playQueueVersion',
-        'playQueueShuffled']
+        'playQueueVersion']
     for arg in windowArgs:
-        utils.window(arg, xml.attrib.get(arg, ''))
+        utils.window(arg, value=xml.attrib.get(arg))
 
     # Get resume point
     resume1 = PlexFunctions.ConvertPlexToKodiTime(utils.IntFromStr(

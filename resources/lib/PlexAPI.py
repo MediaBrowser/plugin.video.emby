@@ -79,6 +79,7 @@ class PlexAPI():
         self.deviceName = client.getDeviceName()
         self.plexversion = client.getVersion()
         self.platform = client.getPlatform()
+        self.user = utils.window('plex_username')
         self.userId = utils.window('emby_currUser')
         self.token = utils.window('emby_accessToken%s' % self.userId)
         self.server = utils.window('emby_server%s' % self.userId)
@@ -782,6 +783,8 @@ class PlexAPI():
         """
         # Get addon infos
         xargs = {
+            'Accept': '*/*',
+            'Connection': 'keep-alive',
             "Content-Type": "application/x-www-form-urlencoded",
             # "Access-Control-Allow-Origin": "*",
             'X-Plex-Language': 'en',
@@ -795,6 +798,9 @@ class PlexAPI():
             'X-Plex-Version': self.plexversion,
             'X-Plex-Client-Identifier': self.clientId,
             'X-Plex-Provides': 'player',
+            'X-Plex-Username': self.user,
+            'X-Plex-Client-Capabilities': 'protocols=shoutcast,http-video;videoDecoders=h264{profile:high&resolution:1080&level:51};audioDecoders=mp3,aac,dts{bitrate:800000&channels:8},ac3{bitrate:800000&channels:8}',
+            'X-Plex-Client-Profile-Extra': 'add-transcode-target-audio-codec(type=videoProfile&context=streaming&protocol=*&audioCodec=dca,ac3)',
         }
 
         if self.token:
@@ -1374,6 +1380,7 @@ class API():
         self.part = 0
         self.clientinfo = clientinfo.ClientInfo()
         self.clientId = self.clientinfo.getDeviceId()
+        self.user = utils.window('plex_username')
         self.userId = utils.window('emby_currUser')
         self.server = utils.window('emby_server%s' % self.userId)
         self.token = utils.window('emby_accessToken%s' % self.userId)
@@ -1590,6 +1597,9 @@ class API():
             if child.tag == 'Genre':
                 genre.append(child.attrib['tag'])
         return genre
+
+    def getGuid(self):
+        return self.item.attrib.get('guid')
 
     def getProvider(self, providername=None):
         """
@@ -2053,8 +2063,7 @@ class API():
                     allartworks['Primary'] = artwork
         return allartworks
 
-    def getTranscodeVideoPath(self, action, quality={}, subtitle={},
-                              audioboost=None, options={}):
+    def getTranscodeVideoPath(self, action, quality={}):
         """
 
         To be called on a VIDEO level of PMS xml response!
@@ -2070,38 +2079,18 @@ class API():
                             'maxVideoBitrate': e.g. '2000' (in kbits)
                         }
                         (one or several of these options)
-            subtitle    {'selected', 'dontBurnIn', 'size'}
-            audioboost  e.g. 100
-            options     dict() of PlexConnect-options as received from aTV
         Output:
             final URL to pull in PMS transcoder
 
         TODO: mediaIndex
         """
-        # Set Client capabilities
-        clientArgs = {
-            'X-Plex-Client-Capabilities':
-                'protocols='
-                    'shoutcast,'
-                    'http-video;'
-                'videoDecoders='
-                    'h264{profile:high&resolution:1080&level:51};'
-                'audioDecoders='
-                    'mp3,aac,dts{bitrate:800000&channels:8},'
-                    'ac3{bitrate:800000&channels:8}',
-            'X-Plex-Client-Profile-Extra':
-                'add-transcode-target-audio-codec'
-                '(type=videoProfile&'
-                    'context=streaming&'
-                    'protocol=*&'
-                    'audioCodec=dca,ac3)'
-        }
-        xargs = PlexAPI().getXArgsDeviceInfo()
 
+        xargs = PlexAPI().getXArgsDeviceInfo()
         # For DirectPlay, path/key of PART is needed
         if action == "DirectPlay":
             path = self.item[0][self.part].attrib['key']
             url = self.server + path
+            # e.g. Trailers already feature an '?'!
             if '?' in url:
                 url += '&' + urlencode(xargs)
             else:
@@ -2111,49 +2100,20 @@ class API():
         # For Direct Streaming or Transcoding
         # Path/key to VIDEO item of xml PMS response is needed, not part
         path = self.item.attrib['key']
-        # transcodePath = self.server + \
-        #     '/video/:/transcode/universal/start.m3u8?'
         transcodePath = self.server + \
-            '/video/:/transcode/universal/start.mkv?'
-        # args = {
-        #     'path': path,
-        #     'mediaIndex': 0,       # Probably refering to XML reply sheme
-        #     'partIndex': self.part,
-        #     'protocol': 'hls',   # seen in the wild: 'dash', 'http', 'hls'
-        #     'offset': 0,           # Resume point
-        #     'fastSeek': 1
-        # }
+            '/video/:/transcode/universal/start.m3u8?'
         args = {
             'copyts': 1,
             'path': path,
             'mediaIndex': 0,       # Probably refering to XML reply sheme
             'partIndex': self.part,
-            'protocol': 'http',   # seen in the wild: 'dash', 'http', 'hls'
+            'protocol': 'hls',   # seen in the wild: 'dash', 'http', 'hls'
             'session': self.clientId,
-            'offset': 0,           # Resume point
+            # 'offset': 0,           # Resume point
             'fastSeek': 1
         }
-        # All the settings
-        if subtitle:
-            argsUpdate = {
-                'subtitles': 'burn',
-                'subtitleSize': subtitle['size'],        # E.g. 100
-                'skipSubtitles': subtitle['dontBurnIn']  # '1': shut off PMS
-            }
-            self.logMsg(
-                "Subtitle: selected %s, dontBurnIn %s, size %s"
-                % (subtitle['selected'], subtitle['dontBurnIn'],
-                    subtitle['size']),
-                1
-            )
-            args.update(argsUpdate)
-        if audioboost:
-            argsUpdate = {
-                'audioBoost': audioboost
-            }
-            self.logMsg("audioboost: %s" % audioboost, 1)
-            args.update(argsUpdate)
 
+        # Currently not used!
         if action == "DirectStream":
             argsUpdate = {
                 'directPlay': '0',
@@ -2170,7 +2130,6 @@ class API():
             args.update(argsUpdate)
 
         url = transcodePath + \
-            urlencode(clientArgs) + '&' + \
             urlencode(xargs) + '&' + \
             urlencode(args)
         return url
@@ -2185,20 +2144,17 @@ class API():
         except (TypeError, KeyError, IndexError):
             return
 
-        itemid = self.getRatingKey()
         kodiindex = 0
         for stream in mediastreams:
             index = stream.attrib['id']
             # Since Emby returns all possible tracks together, have to pull only external subtitles.
+            key = stream.attrib.get('key')
             # IsTextSubtitleStream if true, is available to download from emby.
-            if (stream.attrib.get('streamType', '') == "3" and
-                    stream.attrib.get('format', '')):
+            if stream.attrib.get('streamType') == "3" and key:
 
                 # Direct stream
-                # PLEX: TODO!!
-                url = ("%s/Videos/%s/%s/Subtitles/%s/Stream.srt"
-                        % (self.server, itemid, itemid, index))
-                
+                url = ("%s%s" % (self.server, key))
+                url = self.addPlexCredentialsToUrl(url)
                 # map external subtitles for mapping
                 mapping[kodiindex] = index
                 externalsubs.append(url)

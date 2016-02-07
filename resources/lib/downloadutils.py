@@ -32,7 +32,7 @@ requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 class DownloadUtils():
     
     # Borg - multiple instances, shared state
-    # _shared_state = {}
+    _shared_state = {}
     clientInfo = clientinfo.ClientInfo()
 
     # Requests session
@@ -41,8 +41,7 @@ class DownloadUtils():
 
     def __init__(self):
 
-        # self.__dict__ = self._shared_state
-        pass
+        self.__dict__ = self._shared_state
 
     def setUsername(self, username):
         # Reserved for userclient only
@@ -215,9 +214,12 @@ class DownloadUtils():
                     # For Plex Companion
                     elif type == "POSTXML":
                         r = s.post(url, postBody, timeout=timeout, headers=header)
+                    elif type == "PUT":
+                        r = s.put(url, timeout=timeout, headers=header)
                 
                 except AttributeError:
                     # request session does not exists
+                    self.logMsg("Request session does not exist: start one", 1)
                     # Get user information
                     self.userId = utils.window('emby_currUser')
                     self.server = utils.window('emby_server%s' % self.userId)
@@ -270,6 +272,13 @@ class DownloadUtils():
                                         cert=cert,
                                         verify=verifyssl)
 
+                    elif type == "PUT":
+                        r = requests.put(url,
+                                        json=postBody,
+                                        headers=header,
+                                        timeout=timeout,
+                                        cert=cert,
+                                        verify=verifyssl)
             # If user is not authenticated
             elif not authenticate:
 
@@ -301,6 +310,12 @@ class DownloadUtils():
                                     timeout=timeout,
                                     verify=verifyssl)
         
+                elif type == "PUT":
+                    r = requests.put(url,
+                                    json=postBody,
+                                    headers=header,
+                                    timeout=timeout,
+                                    verify=verifyssl)
             ##### THE RESPONSE #####
             # self.logMsg(r.url, 2)
             if r.status_code == 204:
