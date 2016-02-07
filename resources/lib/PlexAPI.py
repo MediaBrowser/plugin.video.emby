@@ -1385,12 +1385,12 @@ class API():
         self.server = utils.window('emby_server%s' % self.userId)
         self.token = utils.window('emby_accessToken%s' % self.userId)
 
-    def setPartNumber(self, number=0):
+    def setPartNumber(self, number=None):
         """
         Sets the part number to work with (used to deal with Movie with several
         parts).
         """
-        self.part = int(number)
+        self.part = number or 0
 
     def getPartNumber(self):
         """
