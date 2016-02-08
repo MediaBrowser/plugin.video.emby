@@ -100,34 +100,40 @@ def doPlayback(itemid, dbid):
     """
     Called only for a SINGLE element, not playQueues
     """
-    utils.logMsg(title, "doPlayback called with itemid=%s, dbid=%s"
-                 % (itemid, dbid), 1)
-    item = PlexFunctions.GetPlexMetadata(itemid)
-    API = PlexAPI.API(item[0])
-    # If resume != 0, then we don't need to build a playlist for trailers etc.
-    # No idea how we could otherwise get resume timing out of Kodi
-    resume, runtime = API.getRuntime()
-    if resume == 0:
-        uuid = item.attrib.get('librarySectionUUID', None)
-        if uuid:
-            if utils.settings('askCinema') == "true":
-                trailers = xbmcgui.Dialog().yesno(addonName, "Play trailers?")
-            else:
-                trailers = True
-            if trailers:
-                playQueue = PlexFunctions.GetPlexPlaylist(
-                    API.getRatingKey(), uuid, mediatype=API.getType())
-                if playQueue is not None:
-                    return PassPlaylist(playQueue)
-                else:
-                    utils.logMsg(title, "Error: no valid playQueue", -1)
-        else:
-            # E.g trailers being directly played
-            utils.logMsg(title, "No librarySectionUUID found.", 1)
 
-    # Play only 1 item, not playQueue
-    pbutils.PlaybackUtils(item).StartPlay(resume=resume,
-                                          resumeId=None)
+    item = PlexFunctions.GetPlexMetadata(itemid)
+    if item is None:
+        return False
+    pbutils.PlaybackUtils(item).play(itemid, dbid)
+
+    # utils.logMsg(title, "doPlayback called with itemid=%s, dbid=%s"
+    #              % (itemid, dbid), 1)
+    # item = PlexFunctions.GetPlexMetadata(itemid)
+    # API = PlexAPI.API(item[0])
+    # # If resume != 0, then we don't need to build a playlist for trailers etc.
+    # # No idea how we could otherwise get resume timing out of Kodi
+    # resume, runtime = API.getRuntime()
+    # if resume == 0:
+    #     uuid = item.attrib.get('librarySectionUUID', None)
+    #     if uuid:
+    #         if utils.settings('askCinema') == "true":
+    #             trailers = xbmcgui.Dialog().yesno(addonName, "Play trailers?")
+    #         else:
+    #             trailers = True
+    #         if trailers:
+    #             playQueue = PlexFunctions.GetPlexPlaylist(
+    #                 API.getRatingKey(), uuid, mediatype=API.getType())
+    #             if playQueue is not None:
+    #                 return PassPlaylist(playQueue)
+    #             else:
+    #                 utils.logMsg(title, "Error: no valid playQueue", -1)
+    #     else:
+    #         # E.g trailers being directly played
+    #         utils.logMsg(title, "No librarySectionUUID found.", 1)
+
+    # # Play only 1 item, not playQueue
+    # pbutils.PlaybackUtils(item).StartPlay(resume=resume,
+    #                                       resumeId=None)
 
 
 ##### DO RESET AUTH #####

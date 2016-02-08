@@ -48,6 +48,14 @@ def GetKodiTypeFromPlex(plexItemType):
     return classes[plexItemType.lower()]
 
 
+def GetKodiItemTypeFromPlex(plexItemType):
+    classes = {
+        'movie': 'movie',
+        'episode': 'episode',
+    }
+    return classes[plexItemType.lower()]
+
+
 def GetPlexKeyNumber(plexKey):
     """
     Deconstructs e.g. '/library/metadata/xxxx' to the tuple

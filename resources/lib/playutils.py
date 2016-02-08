@@ -32,45 +32,42 @@ class PlayUtils():
         self.server = utils.window('emby_server%s' % self.userid)
         self.machineIdentifier = utils.window('plex_machineIdentifier')
 
-    def getPlayUrl(self):
+    def getPlayUrl(self, partNumber=None):
         """
-        Returns a list of playurls, one per part in item
+        Returns the playurl for the part with number partNumber
+        (movie might consist of several files)
         """
-        playurls = []
-        for partNumber, part in enumerate(self.item[0]):
-            playurl = None
-            self.API.setPartNumber(partNumber)
+        self.API.setPartNumber(partNumber)
+        playurl = None
 
-            if self.isDirectPlay():
-                self.logMsg("File is direct playing.", 1)
-                playurl = self.API.getTranscodeVideoPath('DirectPlay')
-                playurl = playurl.encode('utf-8')
-                # Set playmethod property
-                utils.window('emby_%s.playmethod' % playurl, "DirectPlay")
+        if self.isDirectPlay():
+            self.logMsg("File is direct playing.", 1)
+            playurl = self.API.getTranscodeVideoPath('DirectPlay')
+            playurl = playurl.encode('utf-8')
+            # Set playmethod property
+            utils.window('emby_%s.playmethod' % playurl, "DirectPlay")
 
-            # Currently no direct streaming possible - needs investigation
-            # elif self.isDirectStream():
-            #     self.logMsg("File is direct streaming.", 1)
-            #     playurl = self.API.getTranscodeVideoPath('DirectStream')
-            #     # Set playmethod property
-            #     utils.window('emby_%s.playmethod' % playurl, "DirectStream")
+        # Currently no direct streaming possible - needs investigation
+        # elif self.isDirectStream():
+        #     self.logMsg("File is direct streaming.", 1)
+        #     playurl = self.API.getTranscodeVideoPath('DirectStream')
+        #     # Set playmethod property
+        #     utils.window('emby_%s.playmethod' % playurl, "DirectStream")
 
-            elif self.isTranscoding():
-                self.logMsg("File is transcoding.", 1)
-                quality = {
-                    'maxVideoBitrate': self.getBitrate(),
-                    'videoResolution': self.getResolution(),
-                    'videoQuality': '100'
-                }
-                playurl = self.API.getTranscodeVideoPath('Transcode',
-                                                         quality=quality)
-                # Set playmethod property
-                utils.window('emby_%s.playmethod' % playurl, value="Transcode")
+        elif self.isTranscoding():
+            self.logMsg("File is transcoding.", 1)
+            quality = {
+                'maxVideoBitrate': self.getBitrate(),
+                'videoResolution': self.getResolution(),
+                'videoQuality': '100'
+            }
+            playurl = self.API.getTranscodeVideoPath('Transcode',
+                                                     quality=quality)
+            # Set playmethod property
+            utils.window('emby_%s.playmethod' % playurl, value="Transcode")
 
-            playurls.append(playurl)
-
-        self.logMsg("The playurls are: %s" % playurls, 1)
-        return playurls
+        self.logMsg("The playurl is: %s" % playurl, 1)
+        return playurl
 
     def httpPlay(self):
         # Audio, Video, Photo
