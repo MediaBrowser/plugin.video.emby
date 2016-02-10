@@ -185,12 +185,11 @@ class DownloadUtils():
             header = plx.getXArgsDeviceInfo(options=options)
         return header
 
-    def downloadUrl(self, url, postBody=None, type="GET", parameters=None, authenticate=True, headerOptions={}, timeout=None):
+    def downloadUrl(self, url, postBody=None, type="GET", parameters=None, authenticate=True, headerOptions={}):
         
         # self.logMsg("=== ENTER downloadUrl ===", 2)
 
-        if timeout is None:
-            timeout = self.timeout
+        timeout = self.timeout
         default_link = ""
 
         try:
@@ -366,7 +365,7 @@ class DownloadUtils():
 
         except requests.exceptions.ConnectTimeout as e:
             self.logMsg("Server timeout at: %s" % url, 0)
-            # self.logMsg(e, 1)
+            self.logMsg(e, 1)
 
         except requests.exceptions.HTTPError as e:
 
