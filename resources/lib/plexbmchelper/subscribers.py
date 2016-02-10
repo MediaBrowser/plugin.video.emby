@@ -243,10 +243,14 @@ class Subscriber:
         url = self.protocol + '://' + self.host + ':' + self.port \
             + "/:/timeline"
 
+        # Choose an extremely low timeout due to Plex players response not
+        # being conform to HTTP standards (content length is wrong). Otherwise,
+        # This thread gets blocked for a couple of seconds
         response = self.download.downloadUrl(
             url,
             postBody=msg,
-            type="POSTXML")
+            type="POSTXML",
+            timeout=0.001)
         # if not requests.post(self.host, self.port, "/:/timeline", msg, getPlexHeaders(), self.protocol):
         # subMgr.removeSubscriber(self.uuid)
         if response in [False, None, 401]:
