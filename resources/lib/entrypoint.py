@@ -386,7 +386,7 @@ def getThemeMedia():
         return
         
     # Get every user view Id
-    with utils.GetEmbyDB() as emby_db:
+    with embydb.GetEmbyDB() as emby_db:
         viewids = emby_db.getViews()
 
     # Get Ids with Theme Videos

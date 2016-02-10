@@ -2,12 +2,30 @@
 
 #################################################################################################
 
-import utils
+from utils import logging, kodiSQL
 
 #################################################################################################
 
 
-@utils.logging
+class GetEmbyDB():
+    """
+    Usage: with GetEmbyDB() as emby_db:
+               do stuff with emby_db
+
+    On exiting "with" (no matter what), commits get automatically committed
+    and the db gets closed
+    """
+    def __enter__(self):
+        self.embyconn = kodiSQL('emby')
+        self.emby_db = Embydb_Functions(self.embyconn.cursor())
+        return self.emby_db
+
+    def __exit__(self, type, value, traceback):
+        self.embyconn.commit()
+        self.embyconn.close()
+
+
+@logging
 class Embydb_Functions():
 
     def __init__(self, embycursor):

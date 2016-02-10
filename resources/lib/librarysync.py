@@ -276,7 +276,7 @@ class LibrarySync(threading.Thread):
         # Get all PMS items already saved in Kodi
         # Also get checksums of every Plex items already saved in Kodi
         allKodiElementsId = {}
-        with utils.GetEmbyDB() as emby_db:
+        with embydb.GetEmbyDB() as emby_db:
             for itemtype in PlexFunctions.EmbyItemtypes():
                 try:
                     allKodiElementsId.update(
@@ -733,7 +733,7 @@ class LibrarySync(threading.Thread):
 
         self.allKodiElementsId = {}
         if self.compare:
-            with utils.GetEmbyDB() as emby_db:
+            with embydb.GetEmbyDB() as emby_db:
                 # Get movies from Plex server
                 # Pull the list of movies and boxsets in Kodi
                 try:
@@ -850,7 +850,7 @@ class LibrarySync(threading.Thread):
 
         self.allKodiElementsId = {}
         if self.compare:
-            with utils.GetEmbyDB() as emby_db:
+            with embydb.GetEmbyDB() as emby_db:
                 # Get movies from Plex server
                 # Pull the list of TV shows already in Kodi
                 try:
