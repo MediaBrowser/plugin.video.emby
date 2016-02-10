@@ -12,7 +12,6 @@ import xbmcplugin
 
 import artwork
 import clientinfo
-import downloadutils
 import playutils as putils
 import playlist
 import read_embyserver as embyserver
@@ -117,7 +116,8 @@ class PlaybackUtils():
             
             ############### -- CHECK FOR INTROS ################
 
-            if utils.settings('enableCinema') == "true" and not seektime:
+            if (utils.settings('enableCinema') == "true" and not seektime and
+                    not utils.window('emby_customPlaylist') == "true"):
                 # if we have any play them when the movie/show is not being resumed
                 xml = PF.GetPlexPlaylist(
                     itemid,
@@ -143,6 +143,11 @@ class PlaybackUtils():
             if len(item[0][0]) > 1:
                 # Only add to the playlist after intros have played
                 for counter, part in enumerate(item[0][0]):
+                    # Playlist items don't fail on their first call - skip them
+                    # here, otherwise we'll get two 1st parts
+                    if (counter == 0 and
+                            utils.window('emby_customPlaylist') == "true"):
+                        continue
                     # Set listitem and properties for each additional parts
                     API.setPartNumber(counter)
                     additionalListItem = xbmcgui.ListItem()

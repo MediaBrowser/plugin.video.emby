@@ -26,11 +26,6 @@ class Playlist():
         self.emby = embyserver.Read_EmbyServer()
 
     def playAll(self, itemids, startat):
-
-        embyconn = utils.kodiSQL('emby')
-        embycursor = embyconn.cursor()
-        emby_db = embydb.Embydb_Functions(embycursor)
-
         player = xbmc.Player()
         playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
         playlist.clear()
@@ -45,28 +40,28 @@ class Playlist():
             # Seek to the starting position
             utils.window('emby_customplaylist.seektime', str(startat))
 
-        for itemid in itemids:
-            embydb_item = emby_db.getItem_byId(itemid)
-            try:
-                dbid = embydb_item[0]
-                mediatype = embydb_item[4]
-            except TypeError:
-                # Item is not found in our database, add item manually
-                self.logMsg("Item was not found in the database, manually adding item.", 1)
-                item = self.emby.getItem(itemid)
-                self.addtoPlaylist_xbmc(playlist, item)
-            else:
-                # Add to playlist
-                self.addtoPlaylist(dbid, mediatype)
+        with embydb.GetEmbyDB() as emby_db:
+            for itemid in itemids:
+                embydb_item = emby_db.getItem_byId(itemid)
+                try:
+                    dbid = embydb_item[0]
+                    mediatype = embydb_item[4]
+                except TypeError:
+                    # Item is not found in our database, add item manually
+                    self.logMsg("Item was not found in the database, manually adding item.", 1)
+                    item = self.emby.getItem(itemid)
+                    self.addtoPlaylist_xbmc(playlist, item)
+                else:
+                    # Add to playlist
+                    self.addtoPlaylist(dbid, mediatype)
 
-            self.logMsg("Adding %s to playlist." % itemid, 1)
+                self.logMsg("Adding %s to playlist." % itemid, 1)
 
-            if not started:
-                started = True
-                player.play(playlist)
+                if not started:
+                    started = True
+                    player.play(playlist)
 
         self.verifyPlaylist()
-        embycursor.close()
 
     def modifyPlaylist(self, itemids):
 

@@ -132,7 +132,7 @@ def GetPlayQueue(playQueueID):
     """
     Fetches the PMS playqueue with the playQueueID as an XML
 
-    Returns False if something went wrong
+    Returns None if something went wrong
     """
     url = "{server}/playQueues/%s" % playQueueID
     args = {'Accept': 'application/xml'}
@@ -140,7 +140,7 @@ def GetPlayQueue(playQueueID):
     try:
         xml.attrib['playQueueID']
     except (AttributeError, KeyError):
-        return False
+        return None
     return xml
 
 

@@ -23,8 +23,8 @@ import embydb_functions as embydb
 import playbackutils as pbutils
 import playutils
 import api
+import playlist
 
-import PlexAPI
 import PlexFunctions
 
 #################################################################################################
@@ -53,21 +53,23 @@ def plexCompanion(fullurl, params):
         params['containerKey'])
     # Construct a container key that works always (get rid of playlist args)
     utils.window('containerKey', '/'+library+'/'+key)
-    # Assume it's video when something goes wrong
-    playbackType = params.get('type', 'video')
 
     if 'playQueues' in library:
         utils.logMsg(title, "Playing a playQueue. Query was: %s" % query, 1)
         # Playing a playlist that we need to fetch from PMS
         xml = PlexFunctions.GetPlayQueue(key)
-        if not xml:
+        if xml is None:
             utils.logMsg(
                 title, "Error getting PMS playlist for key %s" % key, -1)
+            return
         else:
-            PassPlaylist(
-                xml,
-                resume=PlexFunctions.ConvertPlexToKodiTime(
-                    params.get('offset', 0)))
+            resume = PlexFunctions.ConvertPlexToKodiTime(
+                params.get('offset', 0))
+            itemids = []
+            for item in xml:
+                itemids.append(item.get('ratingKey'))
+            return playlist.Playlist().playAll(itemids, resume)
+
     else:
         utils.logMsg(
             title, "Not knowing what to do for now - no playQueue sent", -1)
@@ -104,7 +106,7 @@ def doPlayback(itemid, dbid):
     item = PlexFunctions.GetPlexMetadata(itemid)
     if item is None:
         return False
-    pbutils.PlaybackUtils(item).play(itemid, dbid)
+    return pbutils.PlaybackUtils(item).play(itemid, dbid)
 
     # utils.logMsg(title, "doPlayback called with itemid=%s, dbid=%s"
     #              % (itemid, dbid), 1)

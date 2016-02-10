@@ -113,7 +113,7 @@ class Player(xbmc.Player):
                     # Start at, when using custom playlist (play to Kodi from webclient)
                     seektime = utils.window('emby_customPlaylist.seektime')
                     self.logMsg("Seeking to: %s" % seektime, 1)
-                    xbmcplayer.seekTime(int(seektime)/10000000.0)
+                    xbmcplayer.seekTime(int(seektime)*1000.0)
                     utils.window('emby_customPlaylist.seektime', clear=True)
 
                 seekTime = xbmcplayer.getTime()
