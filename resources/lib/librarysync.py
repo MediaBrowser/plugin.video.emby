@@ -72,10 +72,6 @@ class ThreadedGetMetadata(threading.Thread):
             updateItem['XML'] = plexXML
             # place item into out queue
             out_queue.put(updateItem)
-            del plexXML
-            del updateItem
-            # If we don't have a valid XML, don't put that into the queue
-            # but skip this item for now
             # Keep track of where we are at
             with lock:
                 getMetadataCount += 1
@@ -139,7 +135,7 @@ class ThreadedProcessMetadata(threading.Thread):
                 del plexitem
                 del updateItem
                 # signals to queue job is done
-                self.queue.task_done()
+                queue.task_done()
 
 
 @utils.ThreadMethodsAdditionalStop('emby_shouldStop')
@@ -278,17 +274,16 @@ class LibrarySync(threading.Thread):
         self.saveLastSync()
 
         # Get all PMS items already saved in Kodi
-        embyconn = utils.kodiSQL('emby')
-        embycursor = embyconn.cursor()
-        emby_db = embydb.Embydb_Functions(embycursor)
         # Also get checksums of every Plex items already saved in Kodi
         allKodiElementsId = {}
-        for itemtype in PlexFunctions.EmbyItemtypes():
-            try:
-                allKodiElementsId.update(dict(emby_db.getChecksum(itemtype)))
-            except ValueError:
-                pass
-        embyconn.close()
+        with utils.GetEmbyDB() as emby_db:
+            for itemtype in PlexFunctions.EmbyItemtypes():
+                try:
+                    allKodiElementsId.update(
+                        dict(emby_db.getChecksum(itemtype)))
+                except ValueError:
+                    pass
+
         self.allKodiElementsId = allKodiElementsId
 
         # Run through views and get latest changed elements using time diff
@@ -310,7 +305,8 @@ class LibrarySync(threading.Thread):
                                PlexFunctions.GetItemClassFromType(plexType),
                                PlexFunctions.GetMethodFromPlexType(plexType),
                                view['name'],
-                               view['id'])
+                               view['id'],
+                               dontCheck=True)
             # Process self.updatelist
             if self.updatelist:
                 if self.updatelist[0]['itemType'] in ['Movies', 'TVShows']:
@@ -573,7 +569,8 @@ class LibrarySync(threading.Thread):
         embyconn.close()
         kodiconn.close()
 
-    def GetUpdatelist(self, xml, itemType, method, viewName, viewId):
+    def GetUpdatelist(self, xml, itemType, method, viewName, viewId,
+                      dontCheck=False):
         """
         Adds items to self.updatelist as well as self.allPlexElementsId dict
 
@@ -584,6 +581,8 @@ class LibrarySync(threading.Thread):
                                     see itemtypes.py
             viewName:               Name of the Plex view (e.g. 'My TV shows')
             viewId:                 Id/Key of Plex library (e.g. '1')
+            dontCheck:              If True, skips checksum check but assumes
+                                    that all items in xml must be processed
 
         Output: self.updatelist, self.allPlexElementsId
             self.updatelist         APPENDED(!!) list itemids (Plex Keys as
@@ -599,16 +598,16 @@ class LibrarySync(threading.Thread):
             self.allPlexElementsId      APPENDED(!!) dict
                 = {itemid: checksum}
         """
-        if self.compare:
+        if self.compare or not dontCheck:
             # Manual sync
             for item in xml:
                 # Skipping items 'title=All episodes' without a 'ratingKey'
                 if not item.attrib.get('ratingKey', False):
                     continue
                 API = PlexAPI.API(item)
-                plex_checksum = API.getChecksum()
                 itemId = API.getRatingKey()
                 title, sorttitle = API.getTitle()
+                plex_checksum = API.getChecksum()
                 self.allPlexElementsId[itemId] = plex_checksum
                 kodi_checksum = self.allKodiElementsId.get(itemId)
                 if kodi_checksum != plex_checksum:
@@ -637,7 +636,6 @@ class LibrarySync(threading.Thread):
                                         'viewName': viewName,
                                         'viewId': viewId,
                                         'title': title})
-        return
 
     def GetAndProcessXMLs(self, itemType):
         """
@@ -728,27 +726,20 @@ class LibrarySync(threading.Thread):
         # Initialize
         self.allPlexElementsId = {}
 
-        embyconn = utils.kodiSQL('emby')
-        embycursor = embyconn.cursor()
-
-        emby_db = embydb.Embydb_Functions(embycursor)
         itemType = 'Movies'
 
         views = [x for x in self.views if x['itemtype'] == 'movie']
         self.logMsg("Processing Plex %s. Libraries: %s" % (itemType, views), 1)
 
+        self.allKodiElementsId = {}
         if self.compare:
-            # Get movies from Plex server
-            emby_db = embydb.Embydb_Functions(embycursor)
-            # Pull the list of movies and boxsets in Kodi
-            try:
-                self.allKodiElementsId = dict(emby_db.getChecksum('Movie'))
-            except ValueError:
-                self.allKodiElementsId = {}
-        else:
-            # Getting all metadata, hence set Kodi elements to {}
-            self.allKodiElementsId = {}
-        embyconn.close()
+            with utils.GetEmbyDB() as emby_db:
+                # Get movies from Plex server
+                # Pull the list of movies and boxsets in Kodi
+                try:
+                    self.allKodiElementsId = dict(emby_db.getChecksum('Movie'))
+                except ValueError:
+                    self.allKodiElementsId = {}
 
         ##### PROCESS MOVIES #####
         self.updatelist = []
@@ -853,37 +844,32 @@ class LibrarySync(threading.Thread):
         # Initialize
         self.allPlexElementsId = {}
         itemType = 'TVShows'
-        # Open DB connections
-        embyconn = utils.kodiSQL('emby')
-        embycursor = embyconn.cursor()
-        emby_db = embydb.Embydb_Functions(embycursor)
 
         views = [x for x in self.views if x['itemtype'] == 'show']
         self.logMsg("Media folders for %s: %s" % (itemType, views), 1)
 
         self.allKodiElementsId = {}
         if self.compare:
-            # Get movies from Plex server
-            # Pull the list of TV shows already in Kodi
-            try:
-                all_koditvshows = dict(emby_db.getChecksum('Series'))
-                self.allKodiElementsId.update(all_koditvshows)
-            except ValueError:
-                pass
-            # Same for seasons
-            try:
-                all_kodiseasons = dict(emby_db.getChecksum('Season'))
-                self.allKodiElementsId.update(all_kodiseasons)
-            except ValueError:
-                pass
-            # Same for the episodes (sub-element of shows/series)
-            try:
-                all_kodiepisodes = dict(emby_db.getChecksum('Episode'))
-                self.allKodiElementsId.update(all_kodiepisodes)
-            except ValueError:
-                pass
-        # Close DB connections
-        embyconn.close()
+            with utils.GetEmbyDB() as emby_db:
+                # Get movies from Plex server
+                # Pull the list of TV shows already in Kodi
+                try:
+                    all_koditvshows = dict(emby_db.getChecksum('Series'))
+                    self.allKodiElementsId.update(all_koditvshows)
+                except ValueError:
+                    pass
+                # Same for seasons
+                try:
+                    all_kodiseasons = dict(emby_db.getChecksum('Season'))
+                    self.allKodiElementsId.update(all_kodiseasons)
+                except ValueError:
+                    pass
+                # Same for the episodes (sub-element of shows/series)
+                try:
+                    all_kodiepisodes = dict(emby_db.getChecksum('Episode'))
+                    self.allKodiElementsId.update(all_kodiepisodes)
+                except ValueError:
+                    pass
 
         ##### PROCESS TV Shows #####
         self.updatelist = []

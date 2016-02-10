@@ -386,11 +386,8 @@ def getThemeMedia():
         return
         
     # Get every user view Id
-    embyconn = utils.kodiSQL('emby')
-    embycursor = embyconn.cursor()
-    emby_db = embydb.Embydb_Functions(embycursor)
-    viewids = emby_db.getViews()
-    embycursor.close()
+    with utils.GetEmbyDB() as emby_db:
+        viewids = emby_db.getViews()
 
     # Get Ids with Theme Videos
     itemIds = {}
