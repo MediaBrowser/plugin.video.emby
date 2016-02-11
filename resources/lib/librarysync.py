@@ -212,13 +212,12 @@ class LibrarySync(threading.Thread):
     removeItems = []
     forceLibraryUpdate = False
     refresh_views = False
+    # How long should we look into the past for fast syncing items (in s)
+    syncPast = 30
 
     def __init__(self):
 
         self.__dict__ = self._shared_state
-
-        # How long should we look into the past for fast syncing items (in s)
-        self.syncPast = 30
 
         self.clientInfo = clientinfo.ClientInfo()
         self.doUtils = downloadutils.DownloadUtils()
@@ -230,22 +229,12 @@ class LibrarySync(threading.Thread):
         self.installSyncDone = True if \
             utils.settings('SyncInstallRunDone') == 'true' else False
 
+        self.showDbSync = True if \
+            utils.settings('dbSyncIndicator') == 'true' else False
+
         threading.Thread.__init__(self)
 
-    def progressDialog(self, title, forced=False):
-
-        dialog = None
-
-        if utils.settings('dbSyncIndicator') == "true" or forced:
-            dialog = xbmcgui.DialogProgressBG()
-            dialog.create(self.addonName, title)
-            self.logMsg("Show progress dialog: %s" % title, 2)
-
-        return dialog
-
     def startSync(self):
-        # Only run fastSync AFTER startup when SyncInstallRunDone has already
-        # been set
         utils.window('emby_dbScan', value="true")
         completed = self.fastSync()
         if not completed:
@@ -1013,117 +1002,6 @@ class LibrarySync(threading.Thread):
 
         return True
 
-    # Reserved for websocket_client.py and fast start
-    def triage_items(self, process, items):
-
-        processlist = {
-
-            'added': self.addedItems,
-            'update': self.updateItems,
-            'userdata': self.userdataItems,
-            'remove': self.removeItems
-        }
-        if items:
-            if process == "userdata":
-                itemids = []
-                for item in items:
-                    itemids.append(item['ItemId'])
-                items = itemids
-
-            self.logMsg("Queue %s: %s" % (process, items), 1)
-            processlist[process].extend(items)
-
-    def incrementalSync(self):
-        
-        embyconn = utils.kodiSQL('emby')
-        embycursor = embyconn.cursor()
-        kodiconn = utils.kodiSQL('video')
-        kodicursor = kodiconn.cursor()
-        emby = self.emby
-        emby_db = embydb.Embydb_Functions(embycursor)
-        pDialog = None
-        update_embydb = False
-
-        if self.refresh_views:
-            # Received userconfig update
-            self.refresh_views = False
-            self.maintainViews(embycursor, kodicursor)
-            self.forceLibraryUpdate = True
-            update_embydb = True
-
-        if self.addedItems or self.updateItems or self.userdataItems or self.removeItems:
-            # Only present dialog if we are going to process items
-            pDialog = self.progressDialog('Incremental sync')
-
-
-        process = {
-
-            'added': self.addedItems,
-            'update': self.updateItems,
-            'userdata': self.userdataItems,
-            'remove': self.removeItems
-        }
-        types = ['added', 'update', 'userdata', 'remove']
-        for type in types:
-
-            if process[type] and utils.window('emby_kodiScan') != "true":
-                
-                listItems = list(process[type])
-                del process[type][:] # Reset class list
-
-                items_process = itemtypes.Items(embycursor, kodicursor)
-                update = False
-
-                # Prepare items according to process type
-                if type == "added":
-                    items = emby.sortby_mediatype(listItems)
-
-                elif type in ("userdata", "remove"):
-                    items = emby_db.sortby_mediaType(listItems, unsorted=False)
-                
-                else:
-                    items = emby_db.sortby_mediaType(listItems)
-                    if items.get('Unsorted'):
-                        sorted_items = emby.sortby_mediatype(items['Unsorted'])
-                        doupdate = items_process.itemsbyId(sorted_items, "added", pDialog)
-                        if doupdate:
-                            embyupdate, kodiupdate_video = doupdate
-                            if embyupdate:
-                                update_embydb = True
-                            if kodiupdate_video:
-                                self.forceLibraryUpdate = True
-                        del items['Unsorted']
-
-                doupdate = items_process.itemsbyId(items, type, pDialog)
-                if doupdate:
-                    embyupdate, kodiupdate_video = doupdate
-                    if embyupdate:
-                        update_embydb = True
-                    if kodiupdate_video:
-                        self.forceLibraryUpdate = True
-
-        if update_embydb:
-            update_embydb = False
-            self.logMsg("Updating emby database.", 1)
-            embyconn.commit()
-            self.saveLastSync()
-
-        if self.forceLibraryUpdate:
-            # Force update the Kodi library
-            self.forceLibraryUpdate = False
-            self.dbCommit(kodiconn)
-
-            self.logMsg("Updating video library.", 1)
-            utils.window('emby_kodiScan', value="true")
-            xbmc.executebuiltin('UpdateLibrary(video)')
-
-        if pDialog:
-            pDialog.close()
-
-        kodicursor.close()
-        embycursor.close()
-
-
     def compareDBVersion(self, current, minimum):
         # It returns True is database is up to date. False otherwise.
         self.logMsg("current: %s minimum: %s" % (current, minimum), 1)
@@ -1140,7 +1018,7 @@ class LibrarySync(threading.Thread):
             return False
 
     def run(self):
-    
+
         try:
             self.run_internal()
         except Exception as e:
