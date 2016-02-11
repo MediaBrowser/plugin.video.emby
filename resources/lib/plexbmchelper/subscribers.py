@@ -242,13 +242,19 @@ class Subscriber:
         printDebug("sending xml to subscriber %s: %s" % (self.tostr(), msg))
         url = self.protocol + '://' + self.host + ':' + self.port \
             + "/:/timeline"
+        t = threading.Thread(target=self.threadedSend, args=(url, msg))
+        t.start()
 
+    def threadedSend(self, url, msg):
+        """
+        Threaded POST request, because they stall due to PMS response missing
+        the Content-Length header :-(
+        """
         response = self.download.downloadUrl(
             url,
             postBody=msg,
             type="POSTXML")
-        # if not requests.post(self.host, self.port, "/:/timeline", msg, getPlexHeaders(), self.protocol):
-        # subMgr.removeSubscriber(self.uuid)
         if response in [False, None, 401]:
             subMgr.removeSubscriber(self.uuid)
-subMgr = SubscriptionManager()    
+
+subMgr = SubscriptionManager()
