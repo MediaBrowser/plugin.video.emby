@@ -217,11 +217,22 @@ class LibrarySync(Thread):
 
         self.installSyncDone = True if \
             utils.settings('SyncInstallRunDone') == 'true' else False
-
         self.showDbSync = True if \
             utils.settings('dbSyncIndicator') == 'true' else False
 
         Thread.__init__(self)
+
+    def showKodiNote(self, message, forced=False):
+        """
+        Shows a Kodi popup, if user selected to do so
+        """
+        if not (self.showDbSync or forced):
+            return
+        xbmcgui.Dialog().notification(
+            heading=self.addonName,
+            message=message,
+            icon="special://home/addons/plugin.video.plexkodiconnect/icon.png",
+            sound=False)
 
     def startSync(self):
         utils.window('emby_dbScan', value="true")
@@ -408,12 +419,9 @@ class LibrarySync(Thread):
         elapsedtotal = datetime.now() - starttotal
 
         utils.window('emby_initialScan', clear=True)
-        xbmcgui.Dialog().notification(
-            heading=self.addonName,
-            message="%s completed in: %s"
-                    % (message, str(elapsedtotal).split('.')[0]),
-            icon="special://home/addons/plugin.video.plexkodiconnect/icon.png",
-            sound=False)
+        self.showKodiNote("%s completed in: %s"
+                          % (message, str(elapsedtotal).split('.')[0]))
+
         return True
 
     def processView(self, folderItem, kodi_db, emby_db, totalnodes):
@@ -678,15 +686,17 @@ class LibrarySync(Thread):
         threads.append(thread)
         self.logMsg("Processing thread spawned", 1)
         # Start one thread to show sync progress
-        dialog = xbmcgui.DialogProgressBG()
-        thread = ThreadedShowSyncInfo(dialog,
-                                      [getMetadataLock, processMetadataLock],
-                                      itemNumber,
-                                      itemType)
-        thread.setDaemon(True)
-        thread.start()
-        threads.append(thread)
-        self.logMsg("Kodi Infobox thread spawned", 1)
+        if self.showDbSync:
+            dialog = xbmcgui.DialogProgressBG()
+            thread = ThreadedShowSyncInfo(
+                dialog,
+                [getMetadataLock, processMetadataLock],
+                itemNumber,
+                itemType)
+            thread.setDaemon(True)
+            thread.start()
+            threads.append(thread)
+            self.logMsg("Kodi Infobox thread spawned", 1)
 
         # Wait until finished
         getMetadataQueue.join()
@@ -705,9 +715,6 @@ class LibrarySync(Thread):
             del threads
         except:
             self.logMsg("Could not delete threads", -1)
-        # Make sure dialog window is closed
-        if dialog:
-            dialog.close()
         self.logMsg("Sync threads finished", 1)
         self.updatelist = []
         return True
