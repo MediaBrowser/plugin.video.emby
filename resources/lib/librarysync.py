@@ -299,11 +299,11 @@ class LibrarySync(Thread):
                 lastViewedAt=lastSync)
         # Let Kodi update the library now (artwork and userdata)
         if self.updateKodiVideoLib:
+            self.logMsg("Doing Kodi Video Lib update", 2)
             xbmc.executebuiltin('UpdateLibrary(video)')
         # Reset and return
         self.allKodiElementsId = {}
         self.allPlexElementsId = {}
-        xbmc.executebuiltin('UpdateLibrary(video)')
         return True
 
     def saveLastSync(self):
