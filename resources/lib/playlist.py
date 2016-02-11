@@ -3,15 +3,17 @@
 #################################################################################################
 
 import json
+from urllib import urlencode
 
 import xbmc
 import xbmcgui
 
-import playutils
 import playbackutils
 import embydb_functions as embydb
 import read_embyserver as embyserver
 import utils
+import PlexFunctions
+import PlexAPI
 
 #################################################################################################
 
@@ -49,7 +51,7 @@ class Playlist():
                 except TypeError:
                     # Item is not found in our database, add item manually
                     self.logMsg("Item was not found in the database, manually adding item.", 1)
-                    item = self.emby.getItem(itemid)
+                    item = PlexFunctions.GetPlexMetadata(itemid)
                     self.addtoPlaylist_xbmc(playlist, item)
                 else:
                     # Add to playlist
@@ -115,17 +117,17 @@ class Playlist():
         self.logMsg(result, 2)
 
     def addtoPlaylist_xbmc(self, playlist, item):
+        path = "plugin://plugin.video.plexkodiconnect.movies/"
+        params = {
+            'mode': "play",
+            'dbid': 999999999
+        }
+        API = PlexAPI.API(item[0])
+        params['id'] = API.getRatingKey()
+        params['filename'] = API.getKey()
+        playurl = path + '?' + urlencode(params)
 
-        itemid = item['Id']
-        playurl = playutils.PlayUtils(item).getPlayUrl()
-        if not playurl:
-            # Playurl failed
-            self.logMsg("Failed to retrieve playurl.", 1)
-            return
-
-        self.logMsg("Playurl: %s" % playurl)
         listitem = xbmcgui.ListItem()
-        playbackutils.PlaybackUtils(item).setProperties(playurl, listitem)
 
         playlist.add(playurl, listitem)
 

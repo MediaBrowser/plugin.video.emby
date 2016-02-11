@@ -784,7 +784,7 @@ class PlexAPI():
         # Get addon infos
         xargs = {
             'Accept': '*/*',
-            'Connection': 'close',
+            'Connection': 'keep-alive',
             "Content-Type": "application/x-www-form-urlencoded",
             # "Access-Control-Allow-Origin": "*",
             'X-Plex-Language': 'en',
