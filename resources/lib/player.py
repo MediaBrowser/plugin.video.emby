@@ -10,7 +10,6 @@ import xbmcgui
 import utils
 import clientinfo
 import downloadutils
-import websocket_client as wsc
 
 from urllib import urlencode
 
@@ -33,7 +32,6 @@ class Player(xbmc.Player):
 
         self.clientInfo = clientinfo.ClientInfo()
         self.doUtils = downloadutils.DownloadUtils()
-        self.ws = wsc.WebSocket_Client()
         self.xbmcplayer = xbmc.Player()
 
         self.logMsg("Starting playback monitor.", 2)

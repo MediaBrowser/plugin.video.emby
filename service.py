@@ -30,7 +30,6 @@ import librarysync
 import player
 import utils
 import videonodes
-# import websocket_client as wsc
 
 import PlexAPI
 import PlexCompanion
