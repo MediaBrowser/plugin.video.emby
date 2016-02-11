@@ -252,7 +252,7 @@ class LibrarySync(threading.Thread):
             # Fast sync failed or server plugin is not found
             self.logMsg("Something went wrong, starting full sync", 0)
             completed = self.fullSync(manualrun=True)
-        utils.window('emby_dbScan', value="false")
+        utils.window('emby_dbScan', clear=True)
         return completed
 
     def fastSync(self):
@@ -1153,13 +1153,14 @@ class LibrarySync(threading.Thread):
         self.logMsg("---===### Starting LibrarySync ###===---", 0)
         while not self.threadStopped():
 
-            # In the event the server goes offline
+            # In the event the server goes offline, or an item is playing
             while self.threadSuspended():
                 # Set in service.py
                 if self.threadStopped():
                     # Abort was requested while waiting. We should exit
+                    self.logMsg("###===--- LibrarySync Stopped ---===###", 0)
                     return
-                xbmc.sleep(3000)
+                xbmc.sleep(1000)
 
             if (utils.window('emby_dbCheck') != "true" and
                     self.installSyncDone):
@@ -1227,37 +1228,37 @@ class LibrarySync(threading.Thread):
                 utils.settings(
                     "dbCreatedWithVersion", self.clientInfo.getVersion())
                 self.installSyncDone = True
-                utils.window('emby_dbScan', value="false")
+                utils.window('emby_dbScan', clear=True)
 
             # Currently no db scan, so we can start a new scan
             elif utils.window('emby_dbScan') != "true":
                 # Full scan was requested from somewhere else, e.g. userclient
                 if utils.window('plex_runLibScan') == "true":
-                    self.logMsg('Full library scan requested, starting', 1)
+                    self.logMsg('Full library scan requested, starting', 0)
                     utils.window('emby_dbScan', value="true")
-                    utils.window('plex_runLibScan', value='false')
+                    utils.window('plex_runLibScan', clear=True)
                     self.fullSync(manualrun=True)
-                    utils.window('emby_dbScan', value="false")
+                    utils.window('emby_dbScan', clear=True)
                     count = 0
                 else:
-                    # Run full lib scan approx every 10min
-                    if count % 600 == 0:
-                        utils.window('emby_dbScan', value="true")
-                        self.logMsg('Running maintainViews() scan', 1)
-                        self.fullSync(manualrun=True)
+                    # Run full lib scan approx every 30min
+                    if count >= 1800:
                         count = 0
-                        utils.window('emby_dbScan', value="false")
-                    # Update views / PMS libraries approx. every 5
-                    elif count % 120 == 0:
-                        self.logMsg('Running maintainViews() scan', 1)
+                        utils.window('emby_dbScan', value="true")
+                        self.logMsg('Running automatic full lib scan', 0)
+                        self.fullSync(manualrun=True)
+                        utils.window('emby_dbScan', clear=True)
+                    # Update views / PMS libraries approx. every 5min
+                    elif count % 300 == 0:
+                        self.logMsg('Running maintainViews() scan', 0)
                         utils.window('emby_dbScan', value="true")
                         self.maintainViews()
                         self.startSync()
-                    # Run fast sync otherwise (ever second or so)
+                    # Run fast sync otherwise (ever 2 seconds or so)
                     else:
                         self.startSync()
 
-            xbmc.sleep(1000)
+            xbmc.sleep(2000)
             count += 1
 
         self.logMsg("###===--- LibrarySync Stopped ---===###", 0)
