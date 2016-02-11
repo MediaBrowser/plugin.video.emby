@@ -218,7 +218,7 @@ class LibrarySync(threading.Thread):
         self.__dict__ = self._shared_state
 
         # How long should we look into the past for fast syncing items (in s)
-        self.syncPast = 60
+        self.syncPast = 30
 
         self.clientInfo = clientinfo.ClientInfo()
         self.doUtils = downloadutils.DownloadUtils()
@@ -289,7 +289,7 @@ class LibrarySync(threading.Thread):
         # Run through views and get latest changed elements using time diff
         self.updatelist = []
         self.allPlexElementsId = {}
-        updateKodiVideoLib = False
+        self.updateKodiVideoLib = False
         for view in self.views:
             if self.threadStopped():
                 return True
@@ -305,27 +305,27 @@ class LibrarySync(threading.Thread):
                                PlexFunctions.GetItemClassFromType(plexType),
                                PlexFunctions.GetMethodFromPlexType(plexType),
                                view['name'],
-                               view['id'],
-                               dontCheck=True)
+                               view['id'])
             # Process self.updatelist
             if self.updatelist:
                 if self.updatelist[0]['itemType'] in ['Movies', 'TVShows']:
-                    updateKodiVideoLib = True
+                    self.updateKodiVideoLib = True
                 self.GetAndProcessXMLs(
                     PlexFunctions.GetItemClassFromType(plexType))
                 self.updatelist = []
-        # Let Kodi grab the artwork now
-        if updateKodiVideoLib:
-            xbmc.executebuiltin('UpdateLibrary(video)')
         # Update userdata
         for view in self.views:
             self.PlexUpdateWatched(
                 view['id'],
                 PlexFunctions.GetItemClassFromType(view['itemtype']),
                 lastViewedAt=lastSync)
+        # Let Kodi update the library now (artwork and userdata)
+        if self.updateKodiVideoLib:
+            xbmc.executebuiltin('UpdateLibrary(video)')
         # Reset and return
         self.allKodiElementsId = {}
         self.allPlexElementsId = {}
+        xbmc.executebuiltin('UpdateLibrary(video)')
         return True
 
     def saveLastSync(self):
@@ -787,10 +787,18 @@ class LibrarySync(threading.Thread):
         xml = PlexFunctions.GetAllPlexLeaves(viewId,
                                              lastViewedAt=lastViewedAt,
                                              updatedAt=updatedAt)
-        if xml:
-            itemMth = getattr(itemtypes, itemType)
-            with itemMth() as method:
-                method.updateUserdata(xml)
+        # Return if there are no items in PMS reply - it's faster
+        try:
+            xml[0].attrib
+        except (TypeError, AttributeError, IndexError):
+            return
+
+        if itemType in ['Movies', 'TVShows']:
+            self.updateKodiVideoLib = True
+
+        itemMth = getattr(itemtypes, itemType)
+        with itemMth() as method:
+            method.updateUserdata(xml)
 
     def musicvideos(self, embycursor, kodicursor, pdialog):
         # Get musicvideos from emby

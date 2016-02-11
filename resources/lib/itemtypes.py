@@ -237,9 +237,11 @@ class Items(object):
         """
         for mediaitem in xml:
             API = PlexAPI.API(mediaitem)
-            itemid = API.getRatingKey()
             # Get key and db entry on the Kodi db side
-            fileid = self.emby_db.getItem_byId(itemid)[1]
+            try:
+                fileid = self.emby_db.getItem_byId(API.getRatingKey())[1]
+            except:
+                continue
             # Grab the user's viewcount, resume points etc. from PMS' answer
             userdata = API.getUserData()
             # Write to Kodi DB
