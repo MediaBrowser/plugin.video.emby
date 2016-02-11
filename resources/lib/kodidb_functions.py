@@ -1,17 +1,41 @@
 # -*- coding: utf-8 -*-
 
-##################################################################################################
+###############################################################################
 
 import xbmc
 
 import artwork
 import clientinfo
-import utils
+from utils import logging, kodiSQL
 
-##################################################################################################
+###############################################################################
 
 
-@utils.logging
+class GetKodiDB():
+    """
+    Usage: with GetKodiDB(itemType) as kodi_db:
+               do stuff with kodi_db
+
+    Parameters:
+        itemType:       itemtype for Kodi DB, e.g. 'video'
+
+    On exiting "with" (no matter what), commits get automatically committed
+    and the db gets closed
+    """
+    def __init__(self, itemType):
+        self.itemType = itemType
+
+    def __enter__(self):
+        self.kodiconn = kodiSQL(self.itemType)
+        self.emby_db = Kodidb_Functions(self.kodiconn.cursor())
+        return self.emby_db
+
+    def __exit__(self, type, value, traceback):
+        self.kodiconn.commit()
+        self.kodiconn.close()
+
+
+@logging
 class Kodidb_Functions():
 
     kodiversion = int(xbmc.getInfoLabel("System.BuildVersion")[:2])
@@ -238,7 +262,6 @@ class Kodidb_Functions():
 
                     query = "INSERT INTO actor(actor_id, name) values(?, ?)"
                     cursor.execute(query, (actorid, name))
-                    self.logMsg("Add people to media, processing: %s" % name, 2)
 
                 finally:
                     # Link person to content
@@ -297,7 +320,6 @@ class Kodidb_Functions():
 
                     query = "INSERT INTO actors(idActor, strActor) values(?, ?)"
                     cursor.execute(query, (actorid, name))
-                    self.logMsg("Add people to media, processing: %s" % name, 2)
 
                 finally:
                     # Link person to content
@@ -447,8 +469,7 @@ class Kodidb_Functions():
                     
                     query = "INSERT INTO genre(genre_id, name) values(?, ?)"
                     cursor.execute(query, (genre_id, genre))
-                    self.logMsg("Add Genres to media, processing: %s" % genre, 2)
-                
+
                 finally:
                     # Assign genre to item
                     query = (
@@ -492,8 +513,7 @@ class Kodidb_Functions():
 
                     query = "INSERT INTO genre(idGenre, strGenre) values(?, ?)"
                     cursor.execute(query, (idGenre, genre))
-                    self.logMsg("Add Genres to media, processing: %s" % genre, 2)
-                
+
                 finally:
                     # Assign genre to item
                     if "movie" in mediatype:
@@ -554,7 +574,6 @@ class Kodidb_Functions():
 
                     query = "INSERT INTO studio(studio_id, name) values(?, ?)"
                     cursor.execute(query, (studioid, studio))
-                    self.logMsg("Add Studios to media, processing: %s" % studio, 2)
 
                 finally: # Assign studio to item
                     query = (
@@ -585,7 +604,6 @@ class Kodidb_Functions():
 
                     query = "INSERT INTO studio(idstudio, strstudio) values(?, ?)"
                     cursor.execute(query, (studioid, studio))
-                    self.logMsg("Add Studios to media, processing: %s" % studio, 2)
 
                 finally: # Assign studio to item
                     if "movie" in mediatype:

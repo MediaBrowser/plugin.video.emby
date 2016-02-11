@@ -1,17 +1,15 @@
 # -*- coding: utf-8 -*-
 
-#################################################################################################
+###############################################################################
 
 import cProfile
 import inspect
 import pstats
 import sqlite3
-from datetime import datetime, time
-import time
+from datetime import datetime, time, timedelta
 import unicodedata
 import xml.etree.ElementTree as etree
 from functools import wraps
-from datetime import datetime, timedelta
 from calendar import timegm
 
 import xbmc
@@ -20,7 +18,7 @@ import xbmcgui
 import xbmcvfs
 
 
-#################################################################################################
+###############################################################################
 
 addonName = xbmcaddon.Addon().getAddonInfo('name')
 
