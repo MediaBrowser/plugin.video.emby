@@ -740,7 +740,6 @@ class Kodidb_Functions():
             cursor.execute(query, (kodiid, mediatype))
     
         # Add tags
-        self.logMsg("Adding Tags: %s" % tags, 2)
         for tag in tags:
             self.addTag(kodiid, tag, mediatype)
 

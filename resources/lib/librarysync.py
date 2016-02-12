@@ -20,7 +20,6 @@ import read_embyserver as embyserver
 import userclient
 import videonodes
 
-import PlexAPI
 import PlexFunctions
 
 ###############################################################################
@@ -125,9 +124,14 @@ class ThreadedProcessMetadata(Thread):
                 with lock:
                     # Get the one child entry in the xml and process
                     for child in plexitem:
-                        itemSubFkt(child,
-                                   viewtag=viewName,
-                                   viewid=viewId)
+                        if method == 'add_updateAlbum':
+                            item.add_updateAlbum(child,
+                                                 viewtag=viewName,
+                                                 viewid=viewId)
+                        else:
+                            itemSubFkt(child,
+                                       viewtag=viewName,
+                                       viewid=viewId)
                     # Keep track of where we are at
                     processMetadataCount += 1
                     processingViewName = title
@@ -219,6 +223,8 @@ class LibrarySync(Thread):
             utils.settings('SyncInstallRunDone') == 'true' else False
         self.showDbSync = True if \
             utils.settings('dbSyncIndicator') == 'true' else False
+        self.enableMusic = True if utils.settings('enableMusic') == "true" \
+            else False
 
         Thread.__init__(self)
 
@@ -250,6 +256,13 @@ class LibrarySync(Thread):
 
         Using /library/recentlyAdded is NOT working as changes to lib items are
         not reflected
+
+        This will NOT remove items from Kodi db that were removed from the PMS
+        (happens only during fullsync)
+
+        Currently, ALL items returned by the PMS (because they've just been
+        edited by the PMS or have been watched) will be processed. This will
+        probably happen several times.
         """
         self.compare = True
         # Get last sync time
@@ -262,29 +275,22 @@ class LibrarySync(Thread):
         # Set new timestamp NOW because sync might take a while
         self.saveLastSync()
 
-        # Get all PMS items already saved in Kodi
+        # Original idea: Get all PMS items already saved in Kodi
         # Also get checksums of every Plex items already saved in Kodi
-        allKodiElementsId = {}
-        with embydb.GetEmbyDB() as emby_db:
-            for itemtype in PlexFunctions.EmbyItemtypes():
-                try:
-                    allKodiElementsId.update(
-                        dict(emby_db.getChecksum(itemtype)))
-                except ValueError:
-                    pass
-
-        self.allKodiElementsId = allKodiElementsId
+        # NEW idea: process every item returned by the PMS
+        self.allKodiElementsId = {}
 
         # Run through views and get latest changed elements using time diff
-        self.updatelist = []
-        self.allPlexElementsId = {}
         self.updateKodiVideoLib = False
+        self.updateKodiMusicLib = False
         for view in self.views:
+            self.updatelist = []
             if self.threadStopped():
                 return True
             # Get items per view
             items = PlexFunctions.GetAllPlexLeaves(
                 view['id'], updatedAt=lastSync)
+            # Just skip item if something went wrong
             if not items:
                 continue
             # Get one itemtype, because they're the same in the PMS section
@@ -299,21 +305,28 @@ class LibrarySync(Thread):
             if self.updatelist:
                 if self.updatelist[0]['itemType'] in ['Movies', 'TVShows']:
                     self.updateKodiVideoLib = True
+                elif self.updatelist[0]['itemType'] == 'Music':
+                    self.updateKodiMusicLib = True
                 self.GetAndProcessXMLs(
                     PlexFunctions.GetItemClassFromType(plexType))
                 self.updatelist = []
+
         # Update userdata
         for view in self.views:
             self.PlexUpdateWatched(
                 view['id'],
                 PlexFunctions.GetItemClassFromType(view['itemtype']),
                 lastViewedAt=lastSync)
+
         # Let Kodi update the library now (artwork and userdata)
         if self.updateKodiVideoLib:
             self.logMsg("Doing Kodi Video Lib update", 2)
             xbmc.executebuiltin('UpdateLibrary(video)')
+        if self.updateKodiMusicLib:
+            self.logMsg("Doing Kodi Music Lib update", 2)
+            xbmc.executebuiltin('UpdateLibrary(music)')
+
         # Reset and return
-        self.allKodiElementsId = {}
         self.allPlexElementsId = {}
         return True
 
@@ -346,7 +359,6 @@ class LibrarySync(Thread):
     def fullSync(self, manualrun=False, repair=False):
         # Only run once when first setting up. Can be run manually.
         self.compare = manualrun or repair
-        music_enabled = utils.settings('enableMusic') == "true"
 
         # Add sources
         utils.sourcesXML()
@@ -367,18 +379,12 @@ class LibrarySync(Thread):
         # Set views
         self.maintainViews()
 
-        # Sync video library
-        # process = {
-
-        #     'movies': self.movies,
-        #     'musicvideos': self.musicvideos,
-        #     'tvshows': self.tvshows
-        # }
-
         process = {
             'movies': self.PlexMovies,
-            'tvshows': self.PlexTVShows
+            'tvshows': self.PlexTVShows,
         }
+        if self.enableMusic:
+            process['music'] = self.PlexMusic
 
         for itemtype in process:
             startTime = datetime.now()
@@ -391,33 +397,12 @@ class LibrarySync(Thread):
                     "SyncDatabase (finished %s in: %s)"
                     % (itemtype, str(elapsedTime).split('.')[0]), 1)
 
-        # # sync music
-        # if music_enabled:
-            
-        #     musicconn = utils.kodiSQL('music')
-        #     musiccursor = musicconn.cursor()
-            
-        #    startTime = datetime.now()
-        #    completed = self.music(embycursor, musiccursor, pDialog)
-        #    if not completed:
-
-        #         utils.window('emby_dbScan', clear=True)
-
-        #         embycursor.close()
-        #         musiccursor.close()
-        #         return False
-        #     else:
-        #         musicconn.commit()
-        #         embyconn.commit()
-        #         elapsedTime = datetime.now() - startTime
-        #         self.logMsg(
-        #             "SyncDatabase (finished music in: %s)"
-        #             % (str(elapsedTime).split('.')[0]), 1)
-        #     musiccursor.close()
-
+        # Let kodi update the views in any case
         xbmc.executebuiltin('UpdateLibrary(video)')
-        elapsedtotal = datetime.now() - starttotal
+        if self.enableMusic:
+            xbmc.executebuiltin('UpdateLibrary(music)')
 
+        elapsedtotal = datetime.now() - starttotal
         utils.window('emby_initialScan', clear=True)
         self.showKodiNote("%s completed in: %s"
                           % (message, str(elapsedtotal).split('.')[0]))
@@ -429,7 +414,8 @@ class LibrarySync(Thread):
         folder = folderItem.attrib
         mediatype = folder['type']
         # Only process supported formats
-        if mediatype not in ['movie', 'show']:
+        supportedMedia = ['movie', 'show']
+        if mediatype not in supportedMedia:
             return
 
         folderid = folder['key']
@@ -565,11 +551,24 @@ class LibrarySync(Thread):
 
             # update views for all:
             self.views = emby_db.getAllViewInfo()
+            # Append music views only to self.views (no custom views otherwise)
+            if self.enableMusic:
+                for folderItem in result:
+                    if folderItem.attrib['type'] == 'artist':
+                        entry = {
+                            'id': folderItem.attrib['key'],
+                            'name': folderItem.attrib['title'],
+                            'itemtype': 'artist'
+                        }
+                        self.views.append(entry)
+
         self.logMsg("views saved: %s" % self.views, 1)
 
     def GetUpdatelist(self, xml, itemType, method, viewName, viewId,
                       dontCheck=False):
         """
+        THIS METHOD NEEDS TO BE FAST! => e.g. no API calls
+
         Adds items to self.updatelist as well as self.allPlexElementsId dict
 
         Input:
@@ -599,13 +598,13 @@ class LibrarySync(Thread):
         if self.compare or not dontCheck:
             # Manual sync
             for item in xml:
+                itemId = item.attrib.get('ratingKey')
                 # Skipping items 'title=All episodes' without a 'ratingKey'
-                if not item.attrib.get('ratingKey', False):
+                if not itemId:
                     continue
-                API = PlexAPI.API(item)
-                itemId = API.getRatingKey()
-                title, sorttitle = API.getTitle()
-                plex_checksum = API.getChecksum()
+                title = item.attrib.get('title', 'Missing Title Name')
+                plex_checksum = ("K%s%s"
+                                 % (itemId, item.attrib.get('updatedAt', '')))
                 self.allPlexElementsId[itemId] = plex_checksum
                 kodi_checksum = self.allKodiElementsId.get(itemId)
                 if kodi_checksum != plex_checksum:
@@ -620,13 +619,13 @@ class LibrarySync(Thread):
         else:
             # Initial or repair sync: get all Plex movies
             for item in xml:
-                # Only look at valid items = Plex library items
-                if not item.attrib.get('ratingKey', False):
+                itemId = item.attrib.get('ratingKey')
+                # Skipping items 'title=All episodes' without a 'ratingKey'
+                if not itemId:
                     continue
-                API = PlexAPI.API(item)
-                itemId = API.getRatingKey()
-                title, sorttitle = API.getTitle()
-                plex_checksum = API.getChecksum()
+                title = item.attrib.get('title', 'Missing Title Name')
+                plex_checksum = ("K%s%s"
+                                 % (itemId, item.attrib.get('updatedAt', '')))
                 self.allPlexElementsId[itemId] = plex_checksum
                 self.updatelist.append({'itemId': itemId,
                                         'itemType': itemType,
@@ -856,25 +855,14 @@ class LibrarySync(Thread):
         self.allKodiElementsId = {}
         if self.compare:
             with embydb.GetEmbyDB() as emby_db:
-                # Get movies from Plex server
                 # Pull the list of TV shows already in Kodi
-                try:
-                    all_koditvshows = dict(emby_db.getChecksum('Series'))
-                    self.allKodiElementsId.update(all_koditvshows)
-                except ValueError:
-                    pass
-                # Same for seasons
-                try:
-                    all_kodiseasons = dict(emby_db.getChecksum('Season'))
-                    self.allKodiElementsId.update(all_kodiseasons)
-                except ValueError:
-                    pass
-                # Same for the episodes (sub-element of shows/series)
-                try:
-                    all_kodiepisodes = dict(emby_db.getChecksum('Episode'))
-                    self.allKodiElementsId.update(all_kodiepisodes)
-                except ValueError:
-                    pass
+                for kind in ('Series', 'Season', 'Episode'):
+                    try:
+                        elements = dict(emby_db.getChecksum(kind))
+                        self.allKodiElementsId.update(elements)
+                    # Yet empty/not yet synched
+                    except ValueError:
+                        pass
 
         ##### PROCESS TV Shows #####
         self.updatelist = []
@@ -965,50 +953,83 @@ class LibrarySync(Thread):
         self.logMsg("%s sync is finished." % itemType, 1)
         return True
 
-    def music(self, embycursor, kodicursor, pdialog):
-        # Get music from emby
-        emby = self.emby
-        emby_db = embydb.Embydb_Functions(embycursor)
-        music = itemtypes.Music(embycursor, kodicursor)
+    def PlexMusic(self):
+        itemType = 'Music'
 
-        process = {
+        views = [x for x in self.views if x['itemtype'] == 'artist']
+        self.logMsg("Media folders for %s: %s" % (itemType, views), 1)
 
-            'artists': [emby.getArtists, music.add_updateArtist],
-            'albums': [emby.getAlbums, music.add_updateAlbum],
-            'songs': [emby.getSongs, music.add_updateSong]
+        methods = {
+            'MusicArtist': 'add_updateArtist',
+            'MusicAlbum': 'add_updateAlbum',
+            'Audio': 'add_updateSong'
         }
-        types = ['artists', 'albums', 'songs']
-        for type in types:
+        urlArgs = {
+            'MusicArtist': {'type': 8},
+            'MusicAlbum': {'type': 9},
+            'Audio': {'type': 10}
+        }
 
-            if pdialog:
-                pdialog.update(
-                    heading="Emby for Kodi",
-                    message="Gathering %s..." % type)
+        # Process artist, then album and tracks last
+        for kind in ('MusicArtist', 'MusicAlbum', 'Audio'):
+            if self.threadStopped():
+                return True
+            self.logMsg("Start processing music %s" % kind, 1)
+            self.ProcessMusic(
+                views, kind, urlArgs[kind], methods[kind])
+            self.logMsg("Processing of music %s done" % kind, 1)
+            self.GetAndProcessXMLs(itemType)
+            self.logMsg("GetAndProcessXMLs for music %s completed" % kind, 1)
 
-            all_embyitems = process[type][0](dialog=pdialog)
-            total = all_embyitems['TotalRecordCount']
-            embyitems = all_embyitems['Items']
-
-            if pdialog:
-                pdialog.update(heading="Processing %s / %s items" % (type, total))
-
-            count = 0
-            for embyitem in embyitems:
-                # Process individual item
-                if self.threadStopped():
-                    return False
-                
-                title = embyitem['Name']
-                if pdialog:
-                    percentage = int((float(count) / float(total))*100)
-                    pdialog.update(percentage, message=title)
-                    count += 1
-
-                process[type][1](embyitem)
-            else:
-                self.logMsg("%s finished." % type, 2)
-
+        # reset stuff
+        self.allKodiElementsId = {}
+        self.allPlexElementsId = {}
+        self.updatelist = []
+        self.logMsg("%s sync is finished." % itemType, 1)
         return True
+
+    def ProcessMusic(self, views, kind, urlArgs, method):
+        self.allKodiElementsId = {}
+        self.allPlexElementsId = {}
+        self.updatelist = []
+
+        # Get a list of items already existing in Kodi db
+        if self.compare:
+            with embydb.GetEmbyDB() as emby_db:
+                # Pull the list of items already in Kodi
+                try:
+                    elements = dict(emby_db.getChecksum(kind))
+                    self.allKodiElementsId.update(elements)
+                # Yet empty/nothing yet synched
+                except ValueError:
+                    pass
+
+        for view in views:
+            if self.threadStopped():
+                return True
+            # Get items per view
+            viewId = view['id']
+            viewName = view['name']
+            itemsXML = PlexFunctions.GetPlexSectionResults(
+                viewId, args=urlArgs)
+            if not itemsXML:
+                self.logMsg("Error downloading xml for view %s"
+                            % viewId, -1)
+                continue
+            # Populate self.updatelist and self.allPlexElementsId
+            self.GetUpdatelist(itemsXML,
+                               'Music',
+                               method,
+                               viewName,
+                               viewId)
+
+        # Remove items from Kodi db?
+        if self.compare:
+            # Manual sync, process deletes
+            with itemtypes.Music() as Music:
+                for item in self.allKodiElementsId:
+                    if item not in self.allPlexElementsId:
+                        Music.remove(item)
 
     def compareDBVersion(self, current, minimum):
         # It returns True is database is up to date. False otherwise.

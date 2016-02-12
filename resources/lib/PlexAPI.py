@@ -1420,8 +1420,8 @@ class API():
         #     localtime = time.strftime('%H:%M', date_time)
         # return localtime + '  ' + localdate
         try:
-            DATEFORMAT = xbmc.getRegion('dateshort')
-            TIMEFORMAT = xbmc.getRegion('meridiem')
+            # DATEFORMAT = xbmc.getRegion('dateshort')
+            # TIMEFORMAT = xbmc.getRegion('meridiem')
             date_time = time.localtime(float(stamp))
             localdate = time.strftime('%Y-%m-%d %H:%M:%S', date_time)
         except:
@@ -1447,7 +1447,7 @@ class API():
         """
         Returns the Plex key such as '246922' as a string
         """
-        return self.item.attrib.get('ratingKey', '')
+        return self.item.attrib.get('ratingKey', None)
 
     def getKey(self):
         """
@@ -1491,7 +1491,7 @@ class API():
 
         try:
             playcount = int(item['viewCount'])
-        except KeyError:
+        except:
             playcount = None
 
         if playcount:
@@ -1499,8 +1499,13 @@ class API():
 
         try:
             lastPlayedDate = self.DateToKodi(int(item['lastViewedAt']))
-        except KeyError:
+        except:
             lastPlayedDate = None
+
+        try:
+            userrating = int(item['userRating'])
+        except:
+            userrating = None
 
         resume, runtime = self.getRuntime()
         return {
@@ -1510,7 +1515,8 @@ class API():
             'LastPlayedDate': lastPlayedDate,
             'Resume': resume,
             'Runtime': runtime,
-            'Rating': rating
+            'Rating': rating,
+            'UserRating': userrating
         }
 
     def getPeople(self):

@@ -270,8 +270,6 @@ class Artwork():
     def CacheTexture(self, url):
         # Cache a single image url to the texture cache
         if url and self.enableTextureCache:
-            self.logMsg("Processing: %s" % url, 2)
-            
             if(self.imageCacheLimitThreads == 0 or self.imageCacheLimitThreads == None):
                 #Add image to texture cache by simply calling it at the http endpoint
                 
@@ -389,8 +387,6 @@ class Artwork():
             
             except TypeError: # Add the artwork
                 cacheimage = True
-                self.logMsg("Adding Art Link for kodiId: %s (%s)" % (kodiId, imageUrl), 2)
-                
                 query = (
                     '''
                     INSERT INTO art(media_id, media_type, type, url)
@@ -409,10 +405,6 @@ class Artwork():
                             imageType in ("fanart", "poster")):
                         # Delete current entry before updating with the new one
                         self.deleteCachedArtwork(url)
-                    
-                    self.logMsg(
-                        "Updating Art url for %s kodiId: %s (%s) -> (%s)"
-                        % (imageType, kodiId, url, imageUrl), 1)
 
                     query = ' '.join((
 

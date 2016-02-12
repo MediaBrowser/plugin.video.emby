@@ -3,10 +3,8 @@ from urllib import urlencode
 from ast import literal_eval
 from urlparse import urlparse, parse_qs
 import re
-import json
 
 from xbmcaddon import Addon
-import xbmc
 
 import downloadutils
 from utils import logMsg, settings
@@ -35,7 +33,10 @@ def GetItemClassFromType(itemType):
         'movie': 'Movies',
         'episodes': 'TVShows',
         'episode': 'TVShows',
-        'show': 'TVShows'
+        'show': 'TVShows',
+        'artist': 'Music',
+        'album': 'Music',
+        'track': 'Music'
     }
     return classes[itemType]
 
@@ -97,7 +98,10 @@ def GetMethodFromPlexType(plexType):
         'movie': 'add_update',
         'episode': 'add_updateEpisode',
         'show': 'add_update',
-        'season': 'add_updateSeason'
+        'season': 'add_updateSeason',
+        'track': 'add_updateSong',
+        'album': 'add_updateAlbum',
+        'artist': 'add_updateArtist'
     }
     return methods[plexType]
 
@@ -199,17 +203,22 @@ def GetAllPlexChildren(key):
     return xml
 
 
-def GetPlexSectionResults(viewId, headerOptions={}):
+def GetPlexSectionResults(viewId, args=None):
     """
     Returns a list (XML API dump) of all Plex items in the Plex
     section with key = viewId.
+
+    Input:
+        args:       optional dict to be urlencoded
 
     Returns None if something went wrong
     """
     result = []
     url = "{server}/library/sections/%s/all" % viewId
-    result = downloadutils.DownloadUtils().downloadUrl(
-        url, headerOptions=headerOptions)
+    if args:
+        url += "?" + urlencode(args)
+
+    result = downloadutils.DownloadUtils().downloadUrl(url)
 
     try:
         result.tag
