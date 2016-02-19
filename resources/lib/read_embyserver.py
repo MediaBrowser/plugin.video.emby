@@ -174,6 +174,8 @@ class Read_EmbyServer():
     
     def getSection(self, parentid, itemtype=None, sortby="SortName", basic=False, dialog=None):
 
+        log = self.logMsg
+
         doUtils = self.doUtils
         items = {
             
@@ -199,7 +201,7 @@ class Read_EmbyServer():
             items['TotalRecordCount'] = total
 
         except TypeError: # Failed to retrieve
-            self.logMsg("%s:%s Failed to retrieve the server response." % (url, params), 2)
+            log("%s:%s Failed to retrieve the server response." % (url, params), 2)
 
         else:
             index = 0
@@ -241,27 +243,27 @@ class Read_EmbyServer():
                     # Something happened to the connection
                     if not throttled:
                         throttled = True
-                        self.logMsg("Throttle activated.", 1)
+                        log("Throttle activated.", 1)
                     
                     if jump == highestjump:
                         # We already tried with the highestjump, but it failed. Reset value.
-                        self.logMsg("Reset highest value.", 1)
+                        log("Reset highest value.", 1)
                         highestjump = 0
 
                     # Lower the number by half
                     if highestjump:
                         throttled = False
                         jump = highestjump
-                        self.logMsg("Throttle deactivated.", 1)
+                        log("Throttle deactivated.", 1)
                     else:
                         jump = int(jump/4)
-                        self.logMsg("Set jump limit to recover: %s" % jump, 1)
+                        log("Set jump limit to recover: %s" % jump, 2)
                     
                     retry = 0
                     while utils.window('emby_online') != "true":
                         # Wait server to come back online
                         if retry == 3:
-                            self.logMsg("Unable to reconnect to server. Abort process.", 1)
+                            log("Unable to reconnect to server. Abort process.", 1)
                             return
                         
                         retry += 1
@@ -289,7 +291,7 @@ class Read_EmbyServer():
                             increment = 10
 
                         jump += increment
-                        self.logMsg("Increase jump limit to: %s" % jump, 1)
+                        log("Increase jump limit to: %s" % jump, 1)
         return items
 
     def getViews(self, type, root=False):

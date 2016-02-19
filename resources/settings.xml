@@ -56,7 +56,6 @@
         <setting id="offerDelete" type="bool" label="30114" default="false" />
 		<setting id="deleteTV" type="bool" label="30115" visible="eq(-1,true)" default="false" subsetting="true" />
 		<setting id="deleteMovies" type="bool" label="30116" visible="eq(-2,true)" default="false" subsetting="true" />
-		<setting id="skipConfirmDelete" type="bool" label="30520" visible="eq(-3,true)" default="false" subsetting="true" />
 		<setting id="resumeJumpBack" type="slider" label="30521" default="10" range="0,1,120" option="int" />
 		<setting type="sep" />
 	    <setting id="playFromStream" type="bool" label="30002" default="false" />
@@ -72,8 +71,9 @@
 	<category label="30235"><!-- Extras -->
 	    <setting id="enableCoverArt" type="bool" label="30157" default="true" />
 	    <setting id="ignoreSpecialsNextEpisodes" type="bool" label="30527" default="false" />
+	    <setting id="skipContextMenu" type="bool" label="30520" default="false" />
 		<setting id="additionalUsers" type="text" label="30528" default="" />
-		<setting type="sep" />
+		<setting type="lsep" label="30534" />
 		<setting id="connectMsg" type="bool" label="30249" default="true" />
         <setting id="restartMsg" type="bool" label="30530" default="false" />
         <setting id="newContent" type="bool" label="30531" default="false" />

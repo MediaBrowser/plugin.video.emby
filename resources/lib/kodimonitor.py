@@ -76,7 +76,7 @@ class KodiMonitor(xbmc.Monitor):
                 kodiid = item['id']
                 type = item['type']
             except (KeyError, TypeError):
-                self.logMsg("Properties already set for item.", 1)
+                self.logMsg("Item is invalid for playstate update.", 1)
             else:
                 if ((utils.settings('useDirectPaths') == "1" and not type == "song") or
                         (type == "song" and utils.settings('enableMusic') == "true")):
@@ -159,8 +159,11 @@ class KodiMonitor(xbmc.Monitor):
 
 
         elif method == "VideoLibrary.OnRemove":
-
-            try:
+            # Removed function, because with plugin paths + clean library, it will wipe
+            # entire library if user has permissions. Instead, use the emby context menu available
+            # in Isengard and higher version
+            pass
+            '''try:
                 kodiid = data['id']
                 type = data['type']
             except (KeyError, TypeError):
@@ -176,7 +179,7 @@ class KodiMonitor(xbmc.Monitor):
                 except TypeError:
                     self.logMsg("Could not find itemid in emby database.", 1)
                 else:
-                    if utils.settings('skipConfirmDelete') != "true":
+                    if utils.settings('skipContextMenu') != "true":
                         resp = xbmcgui.Dialog().yesno(
                                                 heading="Confirm delete",
                                                 line1="Delete file on Emby Server?")
@@ -184,11 +187,12 @@ class KodiMonitor(xbmc.Monitor):
                             self.logMsg("User skipped deletion.", 1)
                             embycursor.close()
                             return
+
                     url = "{server}/emby/Items/%s?format=json" % itemid
                     self.logMsg("Deleting request: %s" % itemid)
                     doUtils.downloadUrl(url, type="DELETE")
                 finally:
-                    embycursor.close()
+                    embycursor.close()'''
 
 
         elif method == "System.OnWake":

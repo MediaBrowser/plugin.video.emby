@@ -314,6 +314,17 @@ class Movies(Items):
             kodicursor.execute("select coalesce(max(idMovie),0) from movie")
             movieid = kodicursor.fetchone()[0] + 1
 
+        else:
+            # Verification the item is still in Kodi
+            query = "SELECT * FROM movie WHERE idMovie = ?"
+            kodicursor.execute(query, (movieid,))
+            try:
+                kodicursor.fetchone()[0]
+            except TypeError:
+                # item is not found, let's recreate it.
+                update_item = False
+                self.logMsg("movieid: %s missing from Kodi, repairing the entry." % movieid, 1)
+
         if not viewtag or not viewid:
             # Get view tag from emby
             viewtag, viewid, mediatype = self.emby.getView_embyId(itemid)
@@ -576,6 +587,17 @@ class MusicVideos(Items):
             # mvideoid
             kodicursor.execute("select coalesce(max(idMVideo),0) from musicvideo")
             mvideoid = kodicursor.fetchone()[0] + 1
+
+        else:
+            # Verification the item is still in Kodi
+            query = "SELECT * FROM musicvideo WHERE idMVideo = ?"
+            kodicursor.execute(query, (mvideoid,))
+            try:
+                kodicursor.fetchone()[0]
+            except TypeError:
+                # item is not found, let's recreate it.
+                update_item = False
+                self.logMsg("mvideoid: %s missing from Kodi, repairing the entry." % mvideoid, 1)
 
         if not viewtag or not viewid:
             # Get view tag from emby
@@ -896,12 +918,38 @@ class TVShows(Items):
         if not itemid:
             self.logMsg("Cannot parse XML data for TV show", -1)
             return
+        # If the item already exist in the local Kodi DB we'll perform a full item update
+        # If the item doesn't exist, we'll add it to the database
+        update_item = True
+        force_episodes = False
+        itemid = item['Id']
         emby_dbitem = emby_db.getItem_byId(itemid)
         try:
             showid = emby_dbitem[0]
             pathid = emby_dbitem[2]
         except TypeError:
             update_item = False
+            kodicursor.execute("select coalesce(max(idShow),0) from tvshow")
+            showid = kodicursor.fetchone()[0] + 1
+
+        else:
+            # Verification the item is still in Kodi
+            query = "SELECT * FROM tvshow WHERE idShow = ?"
+            kodicursor.execute(query, (showid,))
+            try:
+                kodicursor.fetchone()[0]
+            except TypeError:
+                # item is not found, let's recreate it.
+                update_item = False
+                self.logMsg("showid: %s missing from Kodi, repairing the entry." % showid, 1)
+                # Force re-add episodes after the show is re-created.
+                force_episodes = True
+
+
+        if viewtag is None or viewid is None:
+            # Get view tag from emby
+            viewtag, viewid, mediatype = emby.getView_embyId(itemid)
+            self.logMsg("View tag found: %s" % viewtag, 2)
 
         # fileId information
         checksum = API.getChecksum()
@@ -991,8 +1039,6 @@ class TVShows(Items):
             pathid = kodi_db.addPath(path)
             
             # Create the tvshow entry
-            kodicursor.execute("select coalesce(max(idShow),0) from tvshow")
-            showid = kodicursor.fetchone()[0] + 1
             query = (
                 '''
                 INSERT INTO tvshow(
@@ -1035,15 +1081,13 @@ class TVShows(Items):
         tags = [viewtag]
         kodi_db.addTags(showid, tags, "tvshow")
 
-    def refreshSeasonEntry(self, item, showid):
-        API = PlexAPI.API(item)
-        kodicursor = self.kodicursor
-        kodi_db = self.kodi_db
-        # Finally, refresh the all season entry
-        seasonid = kodi_db.addSeason(showid, -1)
-        # Process artwork for season
-        allartworks = API.getAllArtwork()
-        artwork.addArtwork(allartworks, seasonid, "season", kodicursor)
+        if force_episodes:
+            # We needed to recreate the show entry. Re-add episodes now.
+            self.logMsg("Repairing episodes for showid: %s %s" % (showid, title), 1)
+            all_episodes = emby.getEpisodesbyShow(itemid)
+            self.added_episode(all_episodes['Items'], None)
+
+    def add_updateSeason(self, item, showid=None):
 
     def add_updateSeason(self, item, viewid=None, viewtag=None):
         API = PlexAPI.API(item)
@@ -1108,6 +1152,17 @@ class TVShows(Items):
             # episodeid
             kodicursor.execute("select coalesce(max(idEpisode),0) from episode")
             episodeid = kodicursor.fetchone()[0] + 1
+
+        else:
+            # Verification the item is still in Kodi
+            query = "SELECT * FROM episode WHERE idEpisode = ?"
+            kodicursor.execute(query, (episodeid,))
+            try:
+                kodicursor.fetchone()[0]
+            except TypeError:
+                # item is not found, let's recreate it.
+                update_item = False
+                self.logMsg("episodeid: %s missing from Kodi, repairing the entry." % episodeid, 1)
 
         # fileId information
         checksum = API.getChecksum()

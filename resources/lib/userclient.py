@@ -73,42 +73,46 @@ class UserClient(threading.Thread):
 
     def getUserId(self):
 
+        log = self.logMsg
+        window = utils.window
+        settings = utils.settings
+
         username = self.getUsername()
-        w_userId = utils.window('emby_userId%s' % username)
-        s_userId = utils.settings('userId%s' % username)
+        w_userId = window('emby_currUser')
+        s_userId = settings('userId%s' % username)
 
         # Verify the window property
         if w_userId:
             if not s_userId:
                 # Save access token if it's missing from settings
-                utils.settings('userId%s' % username, value=w_userId)
-            self.logMsg(
-                "Returning userId from WINDOW for username: %s UserId: %s"
+                settings('userId%s' % username, value=w_userId)
+            log("Returning userId from WINDOW for username: %s UserId: %s"
                 % (username, w_userId), 2)
             return w_userId
         # Verify the settings
         elif s_userId:
-            self.logMsg(
-                "Returning userId from SETTINGS for username: %s userId: %s"
+            log("Returning userId from SETTINGS for username: %s userId: %s"
                 % (username, s_userId), 2)
             return s_userId
         # No userId found
         else:
-            self.logMsg("No userId saved for username: %s." % username, 1)
+            log("No userId saved for username: %s." % username, 1)
 
     def getServer(self, prefix=True):
 
-        alternate = utils.settings('altip') == "true"
+        settings = utils.settings
+
+        alternate = settings('altip') == "true"
         if alternate:
             # Alternate host
-            HTTPS = utils.settings('secondhttps') == "true"
-            host = utils.settings('secondipaddress')
-            port = utils.settings('secondport')
+            HTTPS = settings('secondhttps') == "true"
+            host = settings('secondipaddress')
+            port = settings('secondport')
         else:
             # Original host
-            HTTPS = utils.settings('https') == "true"
-            host = utils.settings('ipaddress')
-            port = utils.settings('port')
+            HTTPS = settings('https') == "true"
+            host = settings('ipaddress')
+            port = settings('port')
 
         server = host + ":" + port
         
@@ -134,33 +138,40 @@ class UserClient(threading.Thread):
 
     def getToken(self):
 
+        log = self.logMsg
+        window = utils.window
+        settings = utils.settings
+
         username = self.getUsername()
-        w_token = utils.window('emby_accessToken%s' % username)
-        s_token = utils.settings('accessToken')
+        userId = self.getUserId()
+        w_token = window('emby_accessToken%s' % userId)
+        s_token = settings('accessToken')
         
         # Verify the window property
         if w_token:
             if not s_token:
                 # Save access token if it's missing from settings
-                utils.settings('accessToken', value=w_token)
-            self.logMsg("Returning accessToken from WINDOW for username: %s "
-                        "accessToken: xxxxx" % username, 2)
+                settings('accessToken', value=w_token)
+            log("Returning accessToken from WINDOW for username: %s accessToken: %s"
+                % (username, w_token), 2)
             return w_token
         # Verify the settings
         elif s_token:
-            self.logMsg("Returning accessToken from SETTINGS for username: %s "
-                        "accessToken: xxxxx" % username, 2)
-            utils.window('emby_accessToken%s' % username, value=s_token)
+            log("Returning accessToken from SETTINGS for username: %s accessToken: %s"
+                % (username, s_token), 2)
+            window('emby_accessToken%s' % username, value=s_token)
             return s_token
         else:
-            self.logMsg("No token found.", 1)
+            log("No token found.", 1)
             return ""
 
     def getSSLverify(self):
         # Verify host certificate
-        s_sslverify = utils.settings('sslverify')
-        if utils.settings('altip') == "true":
-            s_sslverify = utils.settings('secondsslverify')
+        settings = utils.settings
+
+        s_sslverify = settings('sslverify')
+        if settings('altip') == "true":
+            s_sslverify = settings('secondsslverify')
 
         if s_sslverify == "true":
             return True
@@ -169,9 +180,11 @@ class UserClient(threading.Thread):
 
     def getSSL(self):
         # Client side certificate
-        s_cert = utils.settings('sslcert')
-        if utils.settings('altip') == "true":
-            s_cert = utils.settings('secondsslcert')
+        settings = utils.settings
+
+        s_cert = settings('sslcert')
+        if settings('altip') == "true":
+            s_cert = settings('secondsslcert')
 
         if s_cert == "None":
             return None
@@ -204,9 +217,32 @@ class UserClient(threading.Thread):
             return False
 
     def hasAccess(self):
-        return True
+		return True
+        # hasAccess is verified in service.py
+        log = self.logMsg
+        window = utils.window
+
+        url = "{server}/emby/Users?format=json"
+        result = self.doUtils.downloadUrl(url)
+        
+        if result == False:
+            # Access is restricted, set in downloadutils.py via exception
+            log("Access is restricted.", 1)
+            self.HasAccess = False
+        
+        elif window('emby_online') != "true":
+            # Server connection failed
+            pass
+
+        elif window('emby_serverStatus') == "restricted":
+            log("Access is granted.", 1)
+            self.HasAccess = True
+            window('emby_serverStatus', clear=True)
+            xbmcgui.Dialog().notification("Emby for Kodi", utils.language(33007))
 
     def loadCurrUser(self, authenticated=False):
+
+        window = utils.window
 
         doUtils = self.doUtils
         username = self.getUsername()
@@ -259,6 +295,13 @@ class UserClient(threading.Thread):
         return True
 
     def authenticate(self):
+        
+        log = self.logMsg
+        lang = utils.language
+        window = utils.window
+        settings = utils.settings
+        dialog = xbmcgui.Dialog()
+
         # Get /profile/addon_data
         plx = PlexAPI.PlexAPI()
         addondir = xbmc.translatePath(self.addon.getAddonInfo('profile')).decode('utf-8')
@@ -270,7 +313,7 @@ class UserClient(threading.Thread):
 
         # If there's no settings.xml
         if not hasSettings:
-            self.logMsg("No settings.xml found.", 0)
+            log("No settings.xml found.", 1)
             self.auth = False
             return
         # If no user information
@@ -332,22 +375,20 @@ class UserClient(threading.Thread):
             self.logMsg("Error: user authentication failed.", -1)
             utils.settings('accessToken', value="")
             utils.settings('userId%s' % username, value="")
+                log("Too many retries. "
+                    "You can retry by resetting attempts in the addon settings.", 1)
+                window('emby_serverStatus', value="Stop")
+                dialog.ok(lang(33001), lang(33010))
 
             # Give 3 attempts at entering password / selecting user
             if self.retry == 3:
-                utils.window('emby_serverStatus', value="Stop")
-                xbmcgui.Dialog().ok(heading=self.addonName,
-                                    line1="Failed to authenticate too many"
-                                          "times.",
-                                    line2="You can retry by resetting attempts"
-                                          " in the addon settings.")
+
             self.retry += 1
             self.auth = False
 
     def resetClient(self):
 
-        self.logMsg("Reset UserClient authentication.", 1)
-        username = self.getUsername()
+        log = self.logMsg
 
         utils.settings('accessToken', value="")
         utils.window('emby_accessToken%s' % username, clear=True)
@@ -359,7 +400,7 @@ class UserClient(threading.Thread):
 
     def run(self):
 
-        self.logMsg("----===## Starting UserClient ##===----", 0)
+        log("----===## Starting UserClient ##===----", 0)
 
         while not self.threadStopped():
             while self.threadSuspended():
@@ -367,7 +408,7 @@ class UserClient(threading.Thread):
                     break
                 xbmc.sleep(3000)
 
-            status = utils.window('emby_serverStatus')
+            status = window('emby_serverStatus')
             if status:
                 # Verify the connection status to server
                 if status == "restricted":
@@ -376,12 +417,12 @@ class UserClient(threading.Thread):
 
                 elif status == "401":
                     # Unauthorized access, revoke token
-                    utils.window('emby_serverStatus', value="Auth")
+                    window('emby_serverStatus', value="Auth")
                     self.resetClient()
 
             if self.auth and (self.currUser is None):
                 # Try to authenticate user
-                status = utils.window('emby_serverStatus')
+                status = window('emby_serverStatus')
                 if not status or status == "Auth":
                     # Set auth flag because we no longer need
                     # to authenticate the user
@@ -393,13 +434,13 @@ class UserClient(threading.Thread):
                 # If authenticate failed.
                 server = self.getServer()
                 username = self.getUsername()
-                status = utils.window('emby_serverStatus')
+                status = window('emby_serverStatus')
                 
                 # The status Stop is for when user cancelled password dialog.
                 if server and username and status != "Stop":
                     # Only if there's information found to login
-                    self.logMsg("Server found: %s" % server, 2)
-                    self.logMsg("Username found: %s" % username, 2)
+                    log("Server found: %s" % server, 2)
+                    log("Username found: %s" % username, 2)
                     self.auth = True
 
         self.doUtils.stopSession()

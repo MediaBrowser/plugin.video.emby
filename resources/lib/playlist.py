@@ -28,19 +28,26 @@ class Playlist():
         self.emby = embyserver.Read_EmbyServer()
 
     def playAll(self, itemids, startat):
+		log = self.logMsg
+		window = utils.window
+
+        embyconn = utils.kodiSQL('emby')
+        embycursor = embyconn.cursor()
+        emby_db = embydb.Embydb_Functions(embycursor)
+
         player = xbmc.Player()
         playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
         playlist.clear()
 
-        self.logMsg("---*** PLAY ALL ***---", 1)
-        self.logMsg("Items: %s and start at: %s" % (itemids, startat))
+        log("---*** PLAY ALL ***---", 1)
+        log("Items: %s and start at: %s" % (itemids, startat), 1)
 
         started = False
-        utils.window('emby_customplaylist', value="true")
+        window('emby_customplaylist', value="true")
 
         if startat != 0:
             # Seek to the starting position
-            utils.window('emby_customplaylist.seektime', str(startat))
+            window('emby_customplaylist.seektime', str(startat))
 
         with embydb.GetEmbyDB() as emby_db:
             for itemid in itemids:
@@ -67,12 +74,14 @@ class Playlist():
 
     def modifyPlaylist(self, itemids):
 
+        log = self.logMsg
+
         embyconn = utils.kodiSQL('emby')
         embycursor = embyconn.cursor()
         emby_db = embydb.Embydb_Functions(embycursor)
 
-        self.logMsg("---*** ADD TO PLAYLIST ***---", 1)
-        self.logMsg("Items: %s" % itemids, 1)
+        log("---*** ADD TO PLAYLIST ***---", 1)
+        log("Items: %s" % itemids, 1)
 
         player = xbmc.Player()
         playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
@@ -90,7 +99,7 @@ class Playlist():
                 # Add to playlist
                 self.addtoPlaylist(dbid, mediatype)
 
-            self.logMsg("Adding %s to playlist." % itemid, 1)
+            log("Adding %s to playlist." % itemid, 1)
 
         self.verifyPlaylist()
         embycursor.close()

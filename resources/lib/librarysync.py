@@ -213,7 +213,6 @@ class LibrarySync(Thread):
         self.__dict__ = self._shared_state
 
         self.clientInfo = clientinfo.ClientInfo()
-        self.doUtils = downloadutils.DownloadUtils()
         self.user = userclient.UserClient()
         self.emby = embyserver.Read_EmbyServer()
         self.vnodes = videonodes.VideoNodes()
@@ -369,7 +368,6 @@ class LibrarySync(Thread):
             message = "Repair sync"
         else:
             message = "Initial sync"
-            utils.window('emby_initialScan', value="true")
         # Set new timestamp NOW because sync might take a while
         self.saveLastSync()
         starttotal = datetime.now()
@@ -393,8 +391,6 @@ class LibrarySync(Thread):
                 return False
             else:
                 elapsedTime = datetime.now() - startTime
-                self.logMsg(
-                    "SyncDatabase (finished %s in: %s)"
                     % (itemtype, str(elapsedTime).split('.')[0]), 1)
 
         # Let kodi update the views in any case
@@ -803,7 +799,6 @@ class LibrarySync(Thread):
         mvideos = itemtypes.MusicVideos(embycursor, kodicursor)
 
         views = emby_db.getView_byType('musicvideos')
-        self.logMsg("Media folders: %s" % views, 1)
 
         for view in views:
             
@@ -817,7 +812,6 @@ class LibrarySync(Thread):
             if pdialog:
                 pdialog.update(
                         heading="Emby for Kodi",
-                        message="Gathering musicvideos from view: %s..." % viewName)
 
             # Initial or repair sync
             all_embymvideos = emby.getMusicVideos(viewId, dialog=pdialog)
@@ -840,7 +834,6 @@ class LibrarySync(Thread):
                     count += 1
                 mvideos.add_update(embymvideo, viewName, viewId)
         else:
-            self.logMsg("MusicVideos finished.", 2)
 
         return True
 
@@ -1023,13 +1016,6 @@ class LibrarySync(Thread):
                                viewName,
                                viewId)
 
-        # Remove items from Kodi db?
-        if self.compare:
-            # Manual sync, process deletes
-            with itemtypes.Music() as Music:
-                for item in self.allKodiElementsId:
-                    if item not in self.allPlexElementsId:
-                        Music.remove(item)
 
     def compareDBVersion(self, current, minimum):
         # It returns True is database is up to date. False otherwise.
@@ -1080,13 +1066,9 @@ class LibrarySync(Thread):
             if (utils.window('emby_dbCheck') != "true" and
                     self.installSyncDone):
                 # Verify the validity of the database
-                currentVersion = utils.settings('dbCreatedWithVersion')
-                minVersion = utils.window('emby_minDBVersion')
                 uptoDate = self.compareDBVersion(currentVersion, minVersion)
 
                 if not uptoDate:
-                    self.logMsg(
-                        "Db version out of date: %s minimum version required: %s"
                         % (currentVersion, minVersion), 0)
                     
                     resp = xbmcgui.Dialog().yesno(
@@ -1103,7 +1085,6 @@ class LibrarySync(Thread):
                     else:
                         utils.reset()
 
-                utils.window('emby_dbCheck', value="true")
 
             if not startupComplete:
                 # Also runs when installed first
@@ -1113,8 +1094,6 @@ class LibrarySync(Thread):
                     # Database does not exists
                     self.logMsg(
                         "The current Kodi version is incompatible "
-                        "with the" + self.addonName + " add-on. Please visit "
-                        "https://github.com/croneter/PlexKodiConnect "
                         "to know which Kodi versions are supported.", 0)
 
                     xbmcgui.Dialog().ok(
@@ -1132,8 +1111,6 @@ class LibrarySync(Thread):
                 startTime = datetime.now()
                 librarySync = self.fullSync(manualrun=True)
                 elapsedTime = datetime.now() - startTime
-                self.logMsg(
-                    "SyncDatabase (finished in: %s) %s"
                     % (str(elapsedTime).split('.')[0], librarySync), 1)
                 # Only try the initial sync once per kodi session regardless
                 # This will prevent an infinite loop in case something goes wrong.

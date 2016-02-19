@@ -37,11 +37,14 @@ class PlayUtils():
         Returns the playurl for the part with number partNumber
         (movie might consist of several files)
         """
+        log = self.logMsg
+        window = utils.window
+
         self.API.setPartNumber(partNumber)
         playurl = None
 
         if self.isDirectPlay():
-            self.logMsg("File is direct playing.", 1)
+            log("File is direct playing.", 1)
             playurl = self.API.getTranscodeVideoPath('DirectPlay')
             playurl = playurl.encode('utf-8')
             # Set playmethod property
@@ -55,7 +58,7 @@ class PlayUtils():
         #     utils.window('emby_%s.playmethod' % playurl, "DirectStream")
 
         elif self.isTranscoding():
-            self.logMsg("File is transcoding.", 1)
+            log("File is transcoding.", 1)
             quality = {
                 'maxVideoBitrate': self.getBitrate(),
                 'videoResolution': self.getResolution(),
@@ -64,7 +67,7 @@ class PlayUtils():
             playurl = self.API.getTranscodeVideoPath('Transcode',
                                                      quality=quality)
             # Set playmethod property
-            utils.window('emby_%s.playmethod' % playurl, value="Transcode")
+            window('emby_%s.playmethod' % playurl, value="Transcode")
 
         self.logMsg("The playurl is: %s" % playurl, 1)
         return playurl
@@ -128,24 +131,26 @@ class PlayUtils():
 
     def fileExists(self):
 
+        log = self.logMsg
+
         if 'Path' not in self.item:
             # File has no path defined in server
             return False
 
         # Convert path to direct play
         path = self.directPlay()
-        self.logMsg("Verifying path: %s" % path, 1)
+        log("Verifying path: %s" % path, 1)
 
         if xbmcvfs.exists(path):
-            self.logMsg("Path exists.", 1)
+            log("Path exists.", 1)
             return True
 
         elif ":" not in path:
-            self.logMsg("Can't verify path, assumed linux. Still try to direct play.", 1)
+            log("Can't verify path, assumed linux. Still try to direct play.", 1)
             return True
 
         else:
-            self.logMsg("Failed to find file.")
+            log("Failed to find file.", 1)
             return False
 
     def h265enabled(self):
@@ -186,7 +191,7 @@ class PlayUtils():
 
         # Verify the bitrate
         if not self.isNetworkSufficient():
-            self.logMsg("The network speed is insufficient to direct stream file.", 1)
+            log("The network speed is insufficient to direct stream file.", 1)
             return False
         return True
 
@@ -298,6 +303,9 @@ class PlayUtils():
         return res[chosen]
 
     def audioSubsPref(self, listitem, url, part=None):
+        log = self.logMsg
+        lang = utils.language
+        dialog = xbmcgui.Dialog()
         # For transcoding only
         # Present the list of audio to select from
         audioStreamsList = []
@@ -365,7 +373,7 @@ class PlayUtils():
                 subNum += 1
 
         if audioNum > 1:
-            resp = xbmcgui.Dialog().select("Choose the audio stream", audioStreams)
+            resp = dialog.select(lang(33013), audioStreams)
             if resp > -1:
                 # User selected audio
                 playurlprefs['audioStreamID'] = audioStreamsList[resp]
@@ -378,7 +386,7 @@ class PlayUtils():
         playurlprefs['audioBoost'] = utils.settings('audioBoost')
 
         if subNum > 1:
-            resp = xbmcgui.Dialog().select("Choose the subtitle stream", subtitleStreams)
+            resp = dialog.select(lang(33014), subtitleStreams)
             if resp == 0:
                 # User selected no subtitles
                 playurlprefs["skipSubtitles"] = 1

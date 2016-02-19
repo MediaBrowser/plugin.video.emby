@@ -180,13 +180,13 @@ class Service():
                             else:
                                 add = ""
                             xbmcgui.Dialog().notification(
-                                heading=self.addonName,
-                                message="%s %s%s!"
-                                % (lang(33000), user.currUser, add),
-                                icon="special://home/addons/plugin.video."
-                                "plexkodiconnect/icon.png",
-                                time=2000,
-                                sound=False)
+                                        heading=self.addonName,
+                                        message=("%s %s%s!"
+                                                % (lang(33000), user.currUser.decode('utf-8'),
+                                                    add.decode('utf-8'))),
+                                        icon="special://home/addons/plugin.video.emby/icon.png",
+                                        time=2000,
+                                        sound=False)
 
                         # Start monitoring kodi events
                         if not self.kodimonitor_running:
