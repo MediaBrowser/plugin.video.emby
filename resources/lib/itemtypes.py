@@ -1855,21 +1855,21 @@ class Music(Items):
         comment = None
 
         # Plex works a bit differently
-        if self.directstream:
-            paths = "%s%s" % (self.server, item[0][0][0].attrib.get('key'))
-            paths = paths.rsplit('/', 1)
-            path = paths[0]
-            filename = paths[1]
-        else:
-            path = "plugin://plugin.video.plexkodiconnect.movies/"
-            filename = API.getKey()
-            params = {
-                'filename': filename,
-                'id': itemid,
-                'dbid': songid,
-                'mode': "play"
-            }
-            filename = "%s?%s" % (path, urllib.urlencode(params))
+        # if self.directstream:
+        paths = "%s%s" % (self.server, item[0][0].attrib.get('key'))
+        paths = paths.rsplit('/', 1)
+        path = paths[0] + '/'
+        filename = paths[1] + '?X-Plex-Token=ihfViFUqqJf1vWrchnA9'
+        # else:
+        # path = "plugin://plugin.audio.plexkodiconnect.music/"
+        # filename = API.getKey()
+        # params = {
+        #     'filename': filename,
+        #     'id': itemid,
+        #     'dbid': songid,
+        #     'mode': "play"
+        # }
+        # filename = "%s?%s" % (path, urllib.urlencode(params))
 
         # UPDATE THE SONG #####
         if update_item:
@@ -1974,7 +1974,8 @@ class Music(Items):
 
             # Create the reference in emby table
             emby_db.addReference(
-                itemid, songid, "Audio", "song", pathid=pathid,
+                itemid, songid, "Audio", "song",
+                pathid=pathid,
                 parentid=albumid,
                 checksum=checksum)
 
@@ -2035,18 +2036,8 @@ class Music(Items):
                 kodicursor.execute(query, (artistid, albumid, artist_name))
 
         if addArtist:
-            if kodiversion in (16, 17):
-                # Kodi Jarvis, Krypton
-                query = "UPDATE album SET strArtists = ? WHERE idAlbum = ?"
-                kodicursor.execute(query, (artist_name, albumid))
-            elif kodiversion == 15:
-                # Kodi Isengard
-                query = "UPDATE album SET strArtists = ? WHERE idAlbum = ?"
-                kodicursor.execute(query, (artist_name, albumid))
-            else:
-                # Kodi Helix
-                query = "UPDATE album SET strArtists = ? WHERE idAlbum = ?"
-                kodicursor.execute(query, (artist_name, albumid))
+            query = "UPDATE album SET strArtists = ? WHERE idAlbum = ?"
+            kodicursor.execute(query, (artist_name, albumid))
 
         # Add genres
         kodi_db.addMusicGenres(songid, genres, "song")
