@@ -133,7 +133,7 @@ class PlaybackUtils():
                 self.logMsg("Adding main item to playlist.", 1)
                 self.pl.addtoPlaylist(
                     dbid,
-                    PF.GetKodiItemTypeFromPlex(API.getType()))
+                    PF.GetKodiTypeFromPlex(API.getType()))
 
             # Ensure that additional parts are played after the main item
             self.currentPosition += 1

@@ -42,17 +42,17 @@ def GetItemClassFromType(itemType):
 
 
 def GetKodiTypeFromPlex(plexItemType):
-    classes = {
-        'movie': 'video',
-        'episode': 'video',
-    }
-    return classes[plexItemType.lower()]
-
-
-def GetKodiItemTypeFromPlex(plexItemType):
+    """
+    As used in playlist.item here: http://kodi.wiki/view/JSON-RPC_API
+    """
     classes = {
         'movie': 'movie',
         'episode': 'episode',
+        'track': 'song',
+        'artist': 'artist',
+        'album': 'album',
+        'XXXXXX': 'musicvideo',
+        'XXXXXXX': 'genre'
     }
     return classes[plexItemType.lower()]
 
