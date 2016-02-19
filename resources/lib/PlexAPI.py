@@ -1773,7 +1773,7 @@ class API():
         episode = item['index']
         return key, title, season, episode
 
-    def addPlexCredentialsToUrl(self, url, arguments={}):
+    def addPlexHeadersToUrl(self, url, arguments={}):
         """
         Takes an URL and optional arguments (also to be URL-encoded); returns
         an extended URL with e.g. the Plex token included.
@@ -1786,6 +1786,18 @@ class API():
             url = "%s?%s" % (url, urlencode(xargs))
         else:
             url = "%s&%s" % (url, urlencode(xargs))
+        return url
+
+    def addPlexCredentialsToUrl(self, url):
+        """
+        Returns an extended URL with the Plex token included as 'X-Plex-Token='
+
+        url may or may not already contain a '?'
+        """
+        if '?' not in url:
+            url = "%s?X-Plex-Token=%s" % (url, self.token)
+        else:
+            url = "%s&X-Plex-Token=%s" % (url, self.token)
         return url
 
     def GetPlayQueueItemID(self):

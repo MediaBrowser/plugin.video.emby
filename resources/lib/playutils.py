@@ -391,7 +391,7 @@ class PlayUtils():
 
                     url = "%s/library/streams/%s" \
                           % (self.server, selectSubsIndex)
-                    url = self.API.addPlexCredentialsToUrl(url)
+                    url = self.API.addPlexHeadersToUrl(url)
                     self.logMsg("Downloadable sub: %s: %s" % (selectSubsIndex, url), 1)
                     listitem.setSubtitles([url])
                 else:

@@ -1859,7 +1859,7 @@ class Music(Items):
         paths = "%s%s" % (self.server, item[0][0].attrib.get('key'))
         paths = paths.rsplit('/', 1)
         path = paths[0] + '/'
-        filename = paths[1] + '?X-Plex-Token=ihfViFUqqJf1vWrchnA9'
+        filename = API.addPlexCredentialsToUrl(paths[1])
         # else:
         # path = "plugin://plugin.audio.plexkodiconnect.music/"
         # filename = API.getKey()
