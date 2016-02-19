@@ -46,7 +46,6 @@ class Embydb_Functions():
         rows = embycursor.fetchall()
         for row in rows:
             views.append(row[0])
-        
         return views
 
     def getAllViewInfo(self):
@@ -65,7 +64,6 @@ class Embydb_Functions():
             views.append({'id': row[0],
                           'name': row[1],
                           'itemtype': row[2]})
-        
         return views
 
     def getView_byId(self, viewid):
@@ -80,7 +78,6 @@ class Embydb_Functions():
         ))
         embycursor.execute(query, (viewid,))
         view = embycursor.fetchone()
-        
         return view
 
     def getView_byType(self, mediatype):
@@ -119,7 +116,6 @@ class Embydb_Functions():
         embycursor.execute(query, (tagname,))
         try:
             view = embycursor.fetchone()[0]
-        
         except TypeError:
             view = None
 
@@ -254,7 +250,6 @@ class Embydb_Functions():
         embycursor.execute(query, (embyid,))
         try:
             itemtype = embycursor.fetchone()[0]
-        
         except TypeError:
             itemtype = None
 
@@ -265,7 +260,6 @@ class Embydb_Functions():
         sorted_items = {}
         
         for itemid in itemids:
-            
             mediatype = self.getMediaType_byId(itemid)
             if mediatype:
                 sorted_items.setdefault(mediatype, []).append(itemid)
@@ -322,4 +316,3 @@ class Embydb_Functions():
 
         query = "DELETE FROM emby WHERE emby_id = ?"
         self.embycursor.execute(query, (embyid,))
-        

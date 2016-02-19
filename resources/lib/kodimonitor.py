@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-#################################################################################################
+###############################################################################
 
 import json
 
@@ -14,12 +14,11 @@ import utils
 
 from urllib import urlencode
 
-#################################################################################################
+###############################################################################
 
 
 @utils.logging
 class KodiMonitor(xbmc.Monitor):
-
 
     def __init__(self):
 
@@ -31,7 +30,7 @@ class KodiMonitor(xbmc.Monitor):
         self.logMsg("Kodi library scan %s running." % library, 2)
         if library == "video":
             utils.window('emby_kodiScan', value="true")
-            
+
     def onScanFinished(self, library):
         self.logMsg("Kodi library scan %s finished." % library, 2)
         if library == "video":
@@ -116,7 +115,6 @@ class KodiMonitor(xbmc.Monitor):
                                 playback.setProperties(playurl, listItem)
                     finally:
                         embycursor.close()
-            
 
         elif method == "VideoLibrary.OnUpdate":
             # Manually marking as watched/unwatched

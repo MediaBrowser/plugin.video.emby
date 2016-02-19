@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-##################################################################################################
+###############################################################################
 
 import urllib
 from ntpath import dirname
@@ -17,11 +17,11 @@ import utils
 import embydb_functions as embydb
 import kodidb_functions as kodidb
 import read_embyserver as embyserver
-import musicutils as musicutils
+
 import PlexAPI
 from PlexFunctions import GetPlexMetadata
 
-##################################################################################################
+###############################################################################
 
 
 @utils.logging
@@ -922,7 +922,6 @@ class TVShows(Items):
         # If the item doesn't exist, we'll add it to the database
         update_item = True
         force_episodes = False
-        itemid = item['Id']
         emby_dbitem = emby_db.getItem_byId(itemid)
         try:
             showid = emby_dbitem[0]
@@ -945,10 +944,9 @@ class TVShows(Items):
                 # Force re-add episodes after the show is re-created.
                 force_episodes = True
 
-
         if viewtag is None or viewid is None:
             # Get view tag from emby
-            viewtag, viewid, mediatype = emby.getView_embyId(itemid)
+            viewtag, viewid, mediatype = embyserver.getView_embyId(itemid)
             self.logMsg("View tag found: %s" % viewtag, 2)
 
         # fileId information
@@ -1084,10 +1082,8 @@ class TVShows(Items):
         if force_episodes:
             # We needed to recreate the show entry. Re-add episodes now.
             self.logMsg("Repairing episodes for showid: %s %s" % (showid, title), 1)
-            all_episodes = emby.getEpisodesbyShow(itemid)
+            all_episodes = embyserver.getEpisodesbyShow(itemid)
             self.added_episode(all_episodes['Items'], None)
-
-    def add_updateSeason(self, item, showid=None):
 
     def add_updateSeason(self, item, viewid=None, viewtag=None):
         API = PlexAPI.API(item)

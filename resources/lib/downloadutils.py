@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-##################################################################################################
+###############################################################################
 
 # import json
 import requests
@@ -18,19 +18,19 @@ try:
 except ImportError:
     import xml.etree.ElementTree as etree
 
-##################################################################################################
+###############################################################################
 
 # Disable requests logging
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
-#logging.getLogger('requests').setLevel(logging.WARNING)
+# logging.getLogger('requests').setLevel(logging.WARNING)
 
-##################################################################################################
+###############################################################################
 
 
 @utils.logging
 class DownloadUtils():
-    
+
     # Borg - multiple instances, shared state
     _shared_state = {}
     clientInfo = clientinfo.ClientInfo()

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-#################################################################################################
+###############################################################################
 
 import xbmc
 import xbmcgui
@@ -13,7 +13,7 @@ import userclient
 
 import PlexAPI
 
-#################################################################################################
+###############################################################################
 
 
 @utils.logging
@@ -36,12 +36,13 @@ class InitialSetup():
         Check server, user, direct paths, music, direct stream if not direct
         path.
         """
-        ##### SERVER INFO #####
+        # SERVER INFO #####
         self.logMsg("Initial setup called.", 0)
         server = self.userClient.getServer()
         clientId = self.clientInfo.getDeviceId()
-        serverid = self.userClient.getServerId()
-        myplexlogin, plexhome, plexLogin, plexToken = self.plx.GetPlexLoginFromSettings()
+        serverid = utils.settings('plex_machineIdentifier')
+        myplexlogin, plexhome, plexLogin, plexToken = \
+            self.plx.GetPlexLoginFromSettings()
         dialog = xbmcgui.Dialog()
 
         # Optionally sign into plex.tv. Will not be called on very first run
@@ -167,7 +168,7 @@ class InitialSetup():
                     % (activeServer, server['ip'], server['port'],
                         server['scheme']), 0)
 
-        ##### ADDITIONAL PROMPTS #####
+        # ADDITIONAL PROMPTS #####
         directPaths = dialog.yesno(
                             heading="%s: Playback Mode" % self.addonName,
                             line1=(

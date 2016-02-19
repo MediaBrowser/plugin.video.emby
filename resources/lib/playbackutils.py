@@ -25,8 +25,7 @@ import PlexFunctions as PF
 
 @utils.logging
 class PlaybackUtils():
-    
-    
+
     def __init__(self, item):
 
         self.item = item
@@ -34,7 +33,6 @@ class PlaybackUtils():
 
         self.clientInfo = clientinfo.ClientInfo()
         self.addonName = self.clientInfo.getAddonName()
-        self.doUtils = downloadutils.DownloadUtils().downloadUrl
 
         self.userid = utils.window('emby_currUser')
         self.server = utils.window('emby_server%s' % self.userid)
@@ -64,12 +62,12 @@ class PlaybackUtils():
 
         if dbid is None or dbid == '999999999':
             # Item is not in Kodi database
-            playmethod = utils.window('emby_%s.playmethod' % playurl)
+            playmethod = window('emby_%s.playmethod' % playurl)
             if playmethod == "Transcode":
-                utils.window('emby_%s.playmethod' % playurl, clear=True)
+                window('emby_%s.playmethod' % playurl, clear=True)
                 playurl = playutils.audioSubsPref(
                     listitem, playurl)
-                utils.window('emby_%s.playmethod' % playurl, "Transcode")
+                window('emby_%s.playmethod' % playurl, "Transcode")
             listitem.setPath(playurl)
             self.setArtwork(listitem)
             self.setListItem(listitem)
@@ -88,9 +86,9 @@ class PlaybackUtils():
         introsPlaylist = False
         dummyPlaylist = False
 
-        self.logMsg("Playlist start position: %s" % startPos, 1)
-        self.logMsg("Playlist plugin position: %s" % self.currentPosition, 1)
-        self.logMsg("Playlist size: %s" % sizePlaylist, 1)
+        log("Playlist start position: %s" % startPos, 1)
+        log("Playlist plugin position: %s" % self.currentPosition, 1)
+        log("Playlist size: %s" % sizePlaylist, 1)
 
         ############### RESUME POINT ################
         
@@ -103,9 +101,8 @@ class PlaybackUtils():
             window('emby_playbackProps', value="true")
             log("Setting up properties in playlist.", 1)
 
-            if (not homeScreen and not seektime and 
+            if (not homeScreen and not seektime and
                     window('emby_customPlaylist') != "true"):
-                
                 log("Adding dummy file to playlist.", 2)
                 dummyPlaylist = True
                 playlist.add(playurl, listitem, index=startPos)
@@ -267,16 +264,13 @@ class PlaybackUtils():
         window('%s.itemid' % embyitem, value=itemid)
 
         # We need to keep track of playQueueItemIDs for Plex Companion
-        window(
-            'plex_%s.playQueueItemID'
-            % playurl, self.API.GetPlayQueueItemID())
-        window(
-            'plex_%s.guid'
-            % playurl, self.API.getGuid())
+        window('plex_%s.playQueueItemID'
+               % playurl, self.API.GetPlayQueueItemID())
+        window('plex_%s.guid' % playurl, self.API.getGuid())
 
         if itemtype == "episode":
             window('%s.refreshid' % embyitem,
-                         value=self.API.getParentRatingKey())
+                   value=self.API.getParentRatingKey())
         else:
             window('%s.refreshid' % embyitem, value=itemid)
 

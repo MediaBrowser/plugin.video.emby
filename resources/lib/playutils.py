@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 
-#################################################################################################
+###############################################################################
 
 from urllib import urlencode
 
-import xbmc
 import xbmcgui
 import xbmcvfs
 
@@ -12,15 +11,14 @@ import clientinfo
 import utils
 
 import PlexAPI
-import PlexFunctions
 
-#################################################################################################
+
+###############################################################################
 
 
 @utils.logging
 class PlayUtils():
-    
-    
+
     def __init__(self, item):
 
         self.item = item
@@ -48,7 +46,7 @@ class PlayUtils():
             playurl = self.API.getTranscodeVideoPath('DirectPlay')
             playurl = playurl.encode('utf-8')
             # Set playmethod property
-            utils.window('emby_%s.playmethod' % playurl, "DirectPlay")
+            window('emby_%s.playmethod' % playurl, "DirectPlay")
 
         # Currently no direct streaming possible - needs investigation
         # elif self.isDirectStream():
@@ -69,7 +67,7 @@ class PlayUtils():
             # Set playmethod property
             window('emby_%s.playmethod' % playurl, value="Transcode")
 
-        self.logMsg("The playurl is: %s" % playurl, 1)
+        log("The playurl is: %s" % playurl, 1)
         return playurl
 
     def httpPlay(self):
@@ -191,7 +189,8 @@ class PlayUtils():
 
         # Verify the bitrate
         if not self.isNetworkSufficient():
-            log("The network speed is insufficient to direct stream file.", 1)
+            self.logMsg(
+                "The network speed is insufficient to direct stream file.", 1)
             return False
         return True
 
@@ -303,7 +302,6 @@ class PlayUtils():
         return res[chosen]
 
     def audioSubsPref(self, listitem, url, part=None):
-        log = self.logMsg
         lang = utils.language
         dialog = xbmcgui.Dialog()
         # For transcoding only

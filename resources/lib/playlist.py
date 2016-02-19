@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-#################################################################################################
+###############################################################################
 
 import json
 from urllib import urlencode
@@ -15,7 +15,7 @@ import utils
 import PlexFunctions
 import PlexAPI
 
-#################################################################################################
+###############################################################################
 
 
 @utils.logging
@@ -28,8 +28,8 @@ class Playlist():
         self.emby = embyserver.Read_EmbyServer()
 
     def playAll(self, itemids, startat):
-		log = self.logMsg
-		window = utils.window
+        log = self.logMsg
+        window = utils.window
 
         embyconn = utils.kodiSQL('emby')
         embycursor = embyconn.cursor()
@@ -57,14 +57,14 @@ class Playlist():
                     mediatype = embydb_item[4]
                 except TypeError:
                     # Item is not found in our database, add item manually
-                    self.logMsg("Item was not found in the database, manually adding item.", 1)
+                    log("Item was not found in the database, manually adding item.", 1)
                     item = PlexFunctions.GetPlexMetadata(itemid)
                     self.addtoPlaylist_xbmc(playlist, item)
                 else:
                     # Add to playlist
                     self.addtoPlaylist(dbid, mediatype)
 
-                self.logMsg("Adding %s to playlist." % itemid, 1)
+                log("Adding %s to playlist." % itemid, 1)
 
                 if not started:
                     started = True
@@ -83,7 +83,7 @@ class Playlist():
         log("---*** ADD TO PLAYLIST ***---", 1)
         log("Items: %s" % itemids, 1)
 
-        player = xbmc.Player()
+        # player = xbmc.Player()
         playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
 
         for itemid in itemids:

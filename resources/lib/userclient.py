@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-##################################################################################################
+###############################################################################
 
 import threading
 
@@ -14,7 +14,7 @@ import downloadutils
 
 import PlexAPI
 
-##################################################################################################
+###############################################################################
 
 
 @utils.logging
@@ -48,7 +48,7 @@ class UserClient(threading.Thread):
     def getAdditionalUsers(self):
 
         additionalUsers = utils.settings('additionalUsers')
-        
+
         if additionalUsers:
             self.AdditionalUser = additionalUsers.split(',')
 
@@ -68,7 +68,7 @@ class UserClient(threading.Thread):
             logLevel = int(utils.settings('logLevel'))
         except ValueError:
             logLevel = 0
-        
+
         return logLevel
 
     def getUserId(self):
@@ -115,7 +115,7 @@ class UserClient(threading.Thread):
             port = settings('port')
 
         server = host + ":" + port
-        
+
         if not host:
             self.logMsg("No server information saved.", 2)
             return False
@@ -132,10 +132,6 @@ class UserClient(threading.Thread):
         elif not prefix:
             return server
 
-    def getServerId(self):
-        serverId = utils.settings('plex_machineIdentifier')
-        return serverId
-
     def getToken(self):
 
         log = self.logMsg
@@ -146,7 +142,7 @@ class UserClient(threading.Thread):
         userId = self.getUserId()
         w_token = window('emby_accessToken%s' % userId)
         s_token = settings('accessToken')
-        
+
         # Verify the window property
         if w_token:
             if not s_token:
@@ -209,7 +205,7 @@ class UserClient(threading.Thread):
         # Get public Users
         url = "%s/emby/Users/Public?format=json" % server
         result = self.doUtils.downloadUrl(url, authenticate=False)
-        
+
         if result != "":
             return result
         else:
@@ -217,19 +213,20 @@ class UserClient(threading.Thread):
             return False
 
     def hasAccess(self):
-		return True
+        # Plex: always return True for now
+        return True
         # hasAccess is verified in service.py
         log = self.logMsg
         window = utils.window
 
         url = "{server}/emby/Users?format=json"
         result = self.doUtils.downloadUrl(url)
-        
+
         if result == False:
             # Access is restricted, set in downloadutils.py via exception
             log("Access is restricted.", 1)
             self.HasAccess = False
-        
+
         elif window('emby_online') != "true":
             # Server connection failed
             pass
@@ -247,21 +244,21 @@ class UserClient(threading.Thread):
         doUtils = self.doUtils
         username = self.getUsername()
         userId = self.getUserId()
-        
+
         # Only to be used if token exists
         self.currUserId = userId
         self.currServer = self.getServer()
         self.currToken = self.getToken()
-        self.machineIdentifier = self.getServerId()
+        self.machineIdentifier = utils.settings('plex_machineIdentifier')
         self.ssl = self.getSSLverify()
         self.sslcert = self.getSSL()
 
         # Test the validity of current token
-        if authenticated == False:
+        if authenticated is False:
             url = "%s/clients" % (self.currServer)
-            utils.window('emby_currUser', value=userId)
-            utils.window('plex_username', value=username)
-            utils.window('emby_accessToken%s' % userId, value=self.currToken)
+            window('emby_currUser', value=userId)
+            window('plex_username', value=username)
+            window('emby_accessToken%s' % userId, value=self.currToken)
             result = doUtils.downloadUrl(url)
 
             if result == 401:
@@ -270,12 +267,12 @@ class UserClient(threading.Thread):
                 return False
 
         # Set to windows property
-        utils.window('emby_currUser', value=userId)
-        utils.window('plex_username', value=username)
-        utils.window('emby_accessToken%s' % userId, value=self.currToken)
-        utils.window('emby_server%s' % userId, value=self.currServer)
-        utils.window('emby_server_%s' % userId, value=self.getServer(prefix=False))
-        utils.window('plex_machineIdentifier', value=self.machineIdentifier)
+        window('emby_currUser', value=userId)
+        window('plex_username', value=username)
+        window('emby_accessToken%s' % userId, value=self.currToken)
+        window('emby_server%s' % userId, value=self.currServer)
+        window('emby_server_%s' % userId, value=self.getServer(prefix=False))
+        window('plex_machineIdentifier', value=self.machineIdentifier)
 
         # Set DownloadUtils values
         doUtils.setUsername(username)
@@ -295,7 +292,7 @@ class UserClient(threading.Thread):
         return True
 
     def authenticate(self):
-        
+
         log = self.logMsg
         lang = utils.language
         window = utils.window
@@ -308,7 +305,7 @@ class UserClient(threading.Thread):
         hasSettings = xbmcvfs.exists("%ssettings.xml" % addondir)
 
         username = self.getUsername()
-        userId = utils.settings('userId%s' % username)
+        userId = settings('userId%s' % username)
         server = self.getServer()
 
         # If there's no settings.xml
@@ -318,33 +315,33 @@ class UserClient(threading.Thread):
             return
         # If no user information
         elif not server:
-            self.logMsg("Missing server information.", 0)
+            log("Missing server information.", 0)
             self.auth = False
             return
         # If there's a token, load the user
         elif self.getToken():
             result = self.loadCurrUser()
 
-            if result == False:
+            if result is False:
                 pass
             else:
-                self.logMsg("Current user: %s" % self.currUser, 1)
-                self.logMsg("Current userId: %s" % self.currUserId, 1)
-                self.logMsg("Current accessToken: xxxx", 1)
+                log("Current user: %s" % self.currUser, 1)
+                log("Current userId: %s" % self.currUserId, 1)
+                log("Current accessToken: xxxx", 1)
 
-                utils.window('suspend_LibraryThread', value='false')
+                window('suspend_LibraryThread', clear=True)
                 return
 
-        ##### AUTHENTICATE USER #####
+        # AUTHENTICATE USER #####
         # Choose Plex user login
         myplexlogin, plexhome, plexLogin, dont_use_accessToken = \
             plx.GetPlexLoginFromSettings()
-        self.logMsg("myplexlogin: %s, plexhome: %s, plexLogin: %s"
-                    % (myplexlogin, plexhome, plexLogin), 2)
+        log("myplexlogin: %s, plexhome: %s, plexLogin: %s"
+            % (myplexlogin, plexhome, plexLogin), 2)
         if myplexlogin == "true" and plexhome == 'true':
             username, userId, accessToken = plx.ChoosePlexHomeUser()
         else:
-            self.logMsg("Trying to connect to PMS without a token", 0)
+            log("Trying to connect to PMS without a token", 0)
             accessToken = ''
         # Check connection
         if plx.CheckConnection(server, accessToken) == 200:
@@ -360,35 +357,35 @@ class UserClient(threading.Thread):
                                     "Welcome",
                                     "special://home/addons/plugin.video."
                                     "plexkodiconnect/icon.png")
-            utils.settings('accessToken', value=accessToken)
-            utils.settings('userId%s' % username, value=userId)
-            self.logMsg("User authenticated with an access token", 1)
+            settings('accessToken', value=accessToken)
+            settings('userId%s' % username, value=userId)
+            log("User authenticated with an access token", 1)
             self.loadCurrUser(authenticated=True)
-            utils.window('emby_serverStatus', clear=True)
+            window('emby_serverStatus', clear=True)
             # Write plex_machineIdentifier to window
-            plex_machineIdentifier = utils.settings('plex_machineIdentifier')
-            utils.window('plex_machineIdentifier', plex_machineIdentifier)
+            plex_machineIdentifier = settings('plex_machineIdentifier')
+            window('plex_machineIdentifier', plex_machineIdentifier)
             self.retry = 0
             # Make sure that lib sync thread is not paused
             utils.window('suspend_LibraryThread', value='false')
         else:
             self.logMsg("Error: user authentication failed.", -1)
-            utils.settings('accessToken', value="")
-            utils.settings('userId%s' % username, value="")
-                log("Too many retries. "
-                    "You can retry by resetting attempts in the addon settings.", 1)
-                window('emby_serverStatus', value="Stop")
-                dialog.ok(lang(33001), lang(33010))
+            settings('accessToken', value="")
+            settings('userId%s' % username, value="")
 
             # Give 3 attempts at entering password / selecting user
             if self.retry == 3:
+                log("Too many retries. You can retry by resetting attempts in "
+                    "the addon settings.", 1)
+                window('emby_serverStatus', value="Stop")
+                dialog.ok(lang(33001), lang(33010))
 
             self.retry += 1
             self.auth = False
 
     def resetClient(self):
-
-        log = self.logMsg
+        self.logMsg("Reset UserClient authentication.", 1)
+        username = self.getUsername()
 
         utils.settings('accessToken', value="")
         utils.window('emby_accessToken%s' % username, clear=True)
@@ -399,9 +396,10 @@ class UserClient(threading.Thread):
         self.currUser = None
 
     def run(self):
+        log = self.logMsg
+        window = utils.window
 
         log("----===## Starting UserClient ##===----", 0)
-
         while not self.threadStopped():
             while self.threadSuspended():
                 if self.threadStopped():
@@ -428,14 +426,13 @@ class UserClient(threading.Thread):
                     # to authenticate the user
                     self.auth = False
                     self.authenticate()
-                
 
             if not self.auth and (self.currUser is None):
                 # If authenticate failed.
                 server = self.getServer()
                 username = self.getUsername()
                 status = window('emby_serverStatus')
-                
+
                 # The status Stop is for when user cancelled password dialog.
                 if server and username and status != "Stop":
                     # Only if there's information found to login
@@ -444,4 +441,4 @@ class UserClient(threading.Thread):
                     self.auth = True
 
         self.doUtils.stopSession()
-        self.logMsg("##===---- UserClient Stopped ----===##", 0)
+        log("##===---- UserClient Stopped ----===##", 0)

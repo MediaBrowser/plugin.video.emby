@@ -73,40 +73,43 @@ class Player(xbmc.Player):
                     break
                 else: count += 1
 
-
         if currentFile:
 
             self.currentFile = currentFile
             # Save currentFile for cleanup later
-            utils.window('plex_lastPlayedFiled', value=currentFile)
+            window('plex_lastPlayedFiled', value=currentFile)
             # We may need to wait for info to be set in kodi monitor
             itemId = window("emby_%s.itemid" % currentFile)
             tryCount = 0
             while not itemId:
-                
+
                 xbmc.sleep(200)
                 itemId = window("emby_%s.itemid" % currentFile)
                 if tryCount == 20: # try 20 times or about 10 seconds
                     log("Could not find itemId, cancelling playback report...", 1)
                     break
                 else: tryCount += 1
-            
+
             else:
                 window('Plex_currently_playing_itemid', value=itemId)
                 log("ONPLAYBACK_STARTED: %s itemid: %s" % (currentFile, itemId), 0)
 
                 # Only proceed if an itemId was found.
                 embyitem = "emby_%s" % currentFile
+                runtime = window("%s.runtime" % embyitem)
+                refresh_id = window("%s.refreshid" % embyitem)
+                playMethod = window("%s.playmethod" % embyitem)
+                itemType = window("%s.type" % embyitem)
+                window('emby_skipWatched%s' % itemId, value="true")
 
-                customseek = window('emby_customPlaylist.seektime')
-				# Suspend library sync thread while movie is playing
                 log("Playing itemtype is: %s" % itemType, 1)
+                # Suspend library sync thread while movie is playing
                 if itemType in ['movie', 'audio']:
                     log("Suspending library sync while playing", 1)
                     window('suspend_LibraryThread', value='true')
 
-                if (window('emby_customPlaylist') == "true" and
-                        customseek)):
+                customseek = window('emby_customPlaylist.seektime')
+                if (window('emby_customPlaylist') == "true" and customseek):
                     # Start at, when using custom playlist (play to Kodi from webclient)
                     log("Seeking to: %s" % customseek, 1)
                     xbmcplayer.seekTime(int(customseek))
@@ -268,8 +271,9 @@ class Player(xbmc.Player):
         if not self.doNotify:
             return
 
+        log = self.logMsg
+
         log("reportPlayback Called", 2)
-        xbmcplayer = self.xbmcplayer
 
         # Get current file
         currentFile = self.currentFile

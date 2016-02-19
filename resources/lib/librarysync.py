@@ -391,7 +391,8 @@ class LibrarySync(Thread):
                 return False
             else:
                 elapsedTime = datetime.now() - startTime
-                    % (itemtype, str(elapsedTime).split('.')[0]), 1)
+                self.logMsg("SyncDatabase (finished %s in: %s)"
+                            % (itemtype, str(elapsedTime).split('.')[0]), 1)
 
         # Let kodi update the views in any case
         xbmc.executebuiltin('UpdateLibrary(video)')
@@ -508,11 +509,11 @@ class LibrarySync(Thread):
         """
         Compare the views to Plex
         """
-        doUtils = self.doUtils
         vnodes = self.vnodes
 
         # Get views
-        result = doUtils.downloadUrl("{server}/library/sections")
+        result = downloadutils.DownloadUtils().downloadUrl(
+            "{server}/library/sections")
         if not result:
             self.logMsg("Error download PMS views, abort maintainViews", -1)
             return False
@@ -733,7 +734,7 @@ class LibrarySync(Thread):
                 except ValueError:
                     self.allKodiElementsId = {}
 
-        ##### PROCESS MOVIES #####
+        # PROCESS MOVIES #####
         self.updatelist = []
         for view in views:
             if self.threadStopped():
@@ -759,7 +760,7 @@ class LibrarySync(Thread):
                 return False
             self.PlexUpdateWatched(view['id'], itemType)
 
-        ##### PROCESS DELETES #####
+        # PROCESS DELETES #####
         if self.compare:
             # Manual sync, process deletes
             with itemtypes.Movies() as Movie:
@@ -793,16 +794,19 @@ class LibrarySync(Thread):
             method.updateUserdata(xml)
 
     def musicvideos(self, embycursor, kodicursor, pdialog):
+
+        log = self.logMsg
         # Get musicvideos from emby
         emby = self.emby
         emby_db = embydb.Embydb_Functions(embycursor)
         mvideos = itemtypes.MusicVideos(embycursor, kodicursor)
 
         views = emby_db.getView_byType('musicvideos')
+        log("Media folders: %s" % views, 1)
 
         for view in views:
             
-            if self.threadStopped():
+            if self.shouldStop():
                 return False
 
             # Get items per view
@@ -812,6 +816,7 @@ class LibrarySync(Thread):
             if pdialog:
                 pdialog.update(
                         heading="Emby for Kodi",
+                        message="%s %s..." % (utils.language(33019), viewName))
 
             # Initial or repair sync
             all_embymvideos = emby.getMusicVideos(viewId, dialog=pdialog)
@@ -824,7 +829,7 @@ class LibrarySync(Thread):
             count = 0
             for embymvideo in embymvideos:
                 # Process individual musicvideo
-                if self.threadStopped():
+                if self.shouldStop():
                     return False
                 
                 title = embymvideo['Name']
@@ -834,6 +839,7 @@ class LibrarySync(Thread):
                     count += 1
                 mvideos.add_update(embymvideo, viewName, viewId)
         else:
+            log("MusicVideos finished.", 2)
 
         return True
 
@@ -857,7 +863,7 @@ class LibrarySync(Thread):
                     except ValueError:
                         pass
 
-        ##### PROCESS TV Shows #####
+        # PROCESS TV Shows #####
         self.updatelist = []
         for view in views:
             if self.threadStopped():
@@ -881,7 +887,7 @@ class LibrarySync(Thread):
         # COPY for later use
         allPlexTvShowsId = self.allPlexElementsId.copy()
 
-        ##### PROCESS TV Seasons #####
+        # PROCESS TV Seasons #####
         # Cycle through tv shows
         for tvShowId in allPlexTvShowsId:
             if self.threadStopped():
@@ -901,7 +907,7 @@ class LibrarySync(Thread):
             self.logMsg("Analyzed all seasons of TV show with Plex Id %s"
                         % tvShowId, 1)
 
-        ##### PROCESS TV Episodes #####
+        # PROCESS TV Episodes #####
         # Cycle through tv shows
         for view in views:
             if self.threadStopped():
@@ -1016,7 +1022,6 @@ class LibrarySync(Thread):
                                viewName,
                                viewId)
 
-
     def compareDBVersion(self, current, minimum):
         # It returns True is database is up to date. False otherwise.
         self.logMsg("current: %s minimum: %s" % (current, minimum), 1)
@@ -1046,6 +1051,9 @@ class LibrarySync(Thread):
             raise
 
     def run_internal(self):
+        window = utils.window
+        settings = utils.settings
+        log = self.logMsg
 
         startupComplete = False
         self.views = []
@@ -1059,25 +1067,27 @@ class LibrarySync(Thread):
                 # Set in service.py
                 if self.threadStopped():
                     # Abort was requested while waiting. We should exit
-                    self.logMsg("###===--- LibrarySync Stopped ---===###", 0)
+                    log("###===--- LibrarySync Stopped ---===###", 0)
                     return
                 xbmc.sleep(1000)
 
-            if (utils.window('emby_dbCheck') != "true" and
+            if (window('emby_dbCheck') != "true" and
                     self.installSyncDone):
                 # Verify the validity of the database
+                currentVersion = settings('dbCreatedWithVersion')
+                minVersion = window('emby_minDBVersion')
                 uptoDate = self.compareDBVersion(currentVersion, minVersion)
 
                 if not uptoDate:
-                        % (currentVersion, minVersion), 0)
-                    
+                    log("Db version out of date: %s minimum version required: "
+                        "%s" % (currentVersion, minVersion), 0)
                     resp = xbmcgui.Dialog().yesno(
                         heading="Db Version",
                         line1=("Detected the database needs to be recreated "
                                "for this version of " + self.addonName +
                                "Proceed?"))
                     if not resp:
-                        self.logMsg("Db version out of date! USER IGNORED!", 0)
+                        log("Db version out of date! USER IGNORED!", 0)
                         xbmcgui.Dialog().ok(
                             heading=self.addonName,
                             line1=(self.addonName + " may not work correctly "
@@ -1085,17 +1095,14 @@ class LibrarySync(Thread):
                     else:
                         utils.reset()
 
-
             if not startupComplete:
                 # Also runs when installed first
                 # Verify the video database can be found
                 videoDb = utils.getKodiVideoDBPath()
                 if not xbmcvfs.exists(videoDb):
                     # Database does not exists
-                    self.logMsg(
-                        "The current Kodi version is incompatible "
+                    log("The current Kodi version is incompatible "
                         "to know which Kodi versions are supported.", 0)
-
                     xbmcgui.Dialog().ok(
                         heading=self.addonName,
                         line1=("Cancelling the database syncing process. "
@@ -1105,45 +1112,44 @@ class LibrarySync(Thread):
                     break
 
                 # Run start up sync
-                utils.window('emby_dbScan', value="true")
-                self.logMsg("Db version: %s" % utils.settings('dbCreatedWithVersion'), 0)
-                self.logMsg("SyncDatabase (started)", 1)
+                window('emby_dbScan', value="true")
+                log("Db version: %s" % settings('dbCreatedWithVersion'), 0)
+                log("SyncDatabase (started)", 1)
                 startTime = datetime.now()
                 librarySync = self.fullSync(manualrun=True)
                 elapsedTime = datetime.now() - startTime
+                log("SyncDatabase (finished in: %s) %s"
                     % (str(elapsedTime).split('.')[0], librarySync), 1)
                 # Only try the initial sync once per kodi session regardless
                 # This will prevent an infinite loop in case something goes wrong.
                 startupComplete = True
-                utils.settings(
-                    'SyncInstallRunDone', value="true")
-                utils.settings(
-                    "dbCreatedWithVersion", self.clientInfo.getVersion())
+                settings('SyncInstallRunDone', value="true")
+                settings("dbCreatedWithVersion", self.clientInfo.getVersion())
                 self.installSyncDone = True
-                utils.window('emby_dbScan', clear=True)
+                window('emby_dbScan', clear=True)
 
             # Currently no db scan, so we can start a new scan
-            elif utils.window('emby_dbScan') != "true":
+            elif window('emby_dbScan') != "true":
                 # Full scan was requested from somewhere else, e.g. userclient
-                if utils.window('plex_runLibScan') == "true":
-                    self.logMsg('Full library scan requested, starting', 0)
-                    utils.window('emby_dbScan', value="true")
-                    utils.window('plex_runLibScan', clear=True)
+                if window('plex_runLibScan') == "true":
+                    log('Full library scan requested, starting', 0)
+                    window('emby_dbScan', value="true")
+                    window('plex_runLibScan', clear=True)
                     self.fullSync(manualrun=True)
-                    utils.window('emby_dbScan', clear=True)
+                    window('emby_dbScan', clear=True)
                     count = 0
                 else:
                     # Run full lib scan approx every 30min
                     if count >= 1800:
                         count = 0
-                        utils.window('emby_dbScan', value="true")
-                        self.logMsg('Running automatic full lib scan', 0)
+                        window('emby_dbScan', value="true")
+                        log('Running automatic full lib scan', 0)
                         self.fullSync(manualrun=True)
-                        utils.window('emby_dbScan', clear=True)
+                        window('emby_dbScan', clear=True)
                     # Update views / PMS libraries approx. every 5min
                     elif count % 300 == 0:
-                        self.logMsg('Running maintainViews() scan', 0)
-                        utils.window('emby_dbScan', value="true")
+                        log('Running maintainViews() scan', 0)
+                        window('emby_dbScan', value="true")
                         self.maintainViews()
                         self.startSync()
                     # Run fast sync otherwise (ever 2 seconds or so)
@@ -1153,4 +1159,4 @@ class LibrarySync(Thread):
             xbmc.sleep(2000)
             count += 1
 
-        self.logMsg("###===--- LibrarySync Stopped ---===###", 0)
+        log("###===--- LibrarySync Stopped ---===###", 0)
