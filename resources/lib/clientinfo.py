@@ -60,7 +60,7 @@ class ClientInfo():
         else:
             return "Unknown"
 
-    def getDeviceId(self):
+    def getDeviceId(self, reset=False):
         """
         Returns a unique Plex client id "X-Plex-Client-Identifier" from Kodi
         settings file.
@@ -68,6 +68,11 @@ class ClientInfo():
 
         If id does not exist, create one and save in Kodi settings file.
         """
+
+        if reset:
+            utils.window('plex_client_Id', clear=True)
+            utils.settings('plex_client_Id', value="")
+
         clientId = utils.window('plex_client_Id')
         if clientId:
             return clientId

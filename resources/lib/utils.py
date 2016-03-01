@@ -11,6 +11,7 @@ import unicodedata
 import xml.etree.ElementTree as etree
 from functools import wraps
 from calendar import timegm
+import os
 
 import xbmc
 import xbmcaddon

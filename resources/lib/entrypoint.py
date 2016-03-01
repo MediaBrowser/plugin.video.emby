@@ -215,15 +215,17 @@ def resetDeviceId():
         utils.window('emby_deviceId', clear=True)
         deviceId = clientinfo.ClientInfo().getDeviceId(reset=True)
     except Exception as e:
-        utils.logMsg("EMBY", "Failed to generate a new device Id: %s" % e, 1)
+        utils.logMsg(addonName,
+                     "Failed to generate a new device Id: %s" % e, 1)
         dialog.ok(
-            heading="Emby for Kodi",
+            heading=addonName,
             line1=language(33032))
     else:
-        utils.logMsg("EMBY", "Successfully removed old deviceId: %s New deviceId: %s"
-                    % (deviceId_old, deviceId), 1)
+        utils.logMsg(addonName,
+                     "Successfully removed old deviceId: %s New deviceId: %s"
+                     % (deviceId_old, deviceId), 1)
         dialog.ok(
-            heading="Emby for Kodi",
+            heading=addonName,
             line1=language(33033))
         xbmc.executebuiltin('RestartApp')
 
