@@ -963,6 +963,7 @@ class TVShows(Items):
         mpaa = API.getMpaa()
         genre = API.joinList(genres)
         studios = API.getStudios()
+        collections = API.getCollections()
         try:
             studio = studios[0]
         except IndexError:
@@ -1076,8 +1077,9 @@ class TVShows(Items):
         artwork.addArtwork(allartworks, showid, "tvshow", kodicursor)
         # Process studios
         kodi_db.addStudios(showid, studios, "tvshow")
-        # Process tags: view, emby tags
+        # Process tags: view, PMS collection tags
         tags = [viewtag]
+        tags.extend(collections)
         kodi_db.addTags(showid, tags, "tvshow")
 
         if force_episodes:

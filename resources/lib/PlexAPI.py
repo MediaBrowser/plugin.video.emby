@@ -1521,7 +1521,7 @@ class API():
 
     def getCollections(self):
         """
-        Returns a list of PMS collection tags
+        Returns a list of PMS collection tags or an empty list
         """
         collections = []
         for child in self.item:
