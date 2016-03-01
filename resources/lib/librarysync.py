@@ -359,6 +359,8 @@ class LibrarySync(Thread):
         # Only run once when first setting up. Can be run manually.
         self.compare = manualrun or repair
 
+        xbmc.executebuiltin('InhibitIdleShutdown(true)')
+
         # Add sources
         utils.sourcesXML()
 
@@ -382,6 +384,7 @@ class LibrarySync(Thread):
             startTime = datetime.now()
             completed = process[itemtype]()
             if not completed:
+                xbmc.executebuiltin('InhibitIdleShutdown(false)')
                 return False
             else:
                 elapsedTime = datetime.now() - startTime
@@ -397,6 +400,7 @@ class LibrarySync(Thread):
         self.showKodiNote("Sync completed in: %s"
                           % (str(elapsedtotal).split('.')[0]))
 
+        xbmc.executebuiltin('InhibitIdleShutdown(false)')
         return True
 
     def processView(self, folderItem, kodi_db, emby_db, totalnodes):
@@ -1114,7 +1118,7 @@ class LibrarySync(Thread):
                         utils.reset()
 
             if not startupComplete:
-                # Also runs when installed first
+                # Also runs when first installed
                 # Verify the video database can be found
                 videoDb = utils.getKodiVideoDBPath()
                 if not xbmcvfs.exists(videoDb):
