@@ -362,12 +362,6 @@ class LibrarySync(Thread):
         # Add sources
         utils.sourcesXML()
 
-        if manualrun:
-            message = "Manual sync"
-        elif repair:
-            message = "Repair sync"
-        else:
-            message = "Initial sync"
         # Set new timestamp NOW because sync might take a while
         self.saveLastSync()
         starttotal = datetime.now()
@@ -400,8 +394,8 @@ class LibrarySync(Thread):
             xbmc.executebuiltin('UpdateLibrary(music)')
         elapsedtotal = datetime.now() - starttotal
         utils.window('emby_initialScan', clear=True)
-        self.showKodiNote("%s completed in: %s"
-                          % (message, str(elapsedtotal).split('.')[0]))
+        self.showKodiNote("Sync completed in: %s"
+                          % (str(elapsedtotal).split('.')[0]))
 
         return True
 
