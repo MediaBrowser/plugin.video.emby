@@ -447,6 +447,15 @@ class LibrarySync(Thread):
                 "viewname: %s" % current_viewname,
                 "viewtype: %s" % current_viewtype,
                 "tagid: %s" % current_tagid)), 2)
+
+            # Remove views that are still valid to delete rest later
+            try:
+                # View is still valid
+                self.old_views.remove(folderid)
+            except ValueError:
+                # View was just created, nothing to remove
+                pass
+
             # View was modified, update with latest info
             if current_viewname != foldername:
                 self.logMsg("viewid: %s new viewname: %s"
@@ -511,9 +520,9 @@ class LibrarySync(Thread):
         vnodes = self.vnodes
 
         # Get views
-        result = downloadutils.DownloadUtils().downloadUrl(
+        sections = downloadutils.DownloadUtils().downloadUrl(
             "{server}/library/sections")
-        if not result:
+        if not sections:
             self.logMsg("Error download PMS views, abort maintainViews", -1)
             return False
 
@@ -522,8 +531,11 @@ class LibrarySync(Thread):
         totalnodes = 0
 
         with embydb.GetEmbyDB() as emby_db:
+            # Backup old views to delete them later, if needed (at the end
+            # of this method, only unused views will be left in oldviews)
+            self.old_views = emby_db.getViews()
             with kodidb.GetKodiDB('video') as kodi_db:
-                for folderItem in result:
+                for folderItem in sections:
                     self.processView(folderItem, kodi_db, emby_db, totalnodes)
                 else:
                     # Add video nodes listings
@@ -545,11 +557,13 @@ class LibrarySync(Thread):
                     # Save total
                     utils.window('Emby.nodes.total', str(totalnodes))
 
+        # Reopen DB connection to ensure that changes are commited
+        with embydb.GetEmbyDB() as emby_db:
             # update views for all:
             self.views = emby_db.getAllViewInfo()
             # Append music views only to self.views (no custom views otherwise)
             if self.enableMusic:
-                for folderItem in result:
+                for folderItem in sections:
                     if folderItem.attrib['type'] == 'artist':
                         entry = {
                             'id': folderItem.attrib['key'],
@@ -557,6 +571,10 @@ class LibrarySync(Thread):
                             'itemtype': 'artist'
                         }
                         self.views.append(entry)
+
+            log("Removing views: %s" % self.old_views, 1)
+            for view in self.old_views:
+                emby_db.removeView(view)
 
         self.logMsg("views saved: %s" % self.views, 1)
 
