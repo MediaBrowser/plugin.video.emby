@@ -319,10 +319,10 @@ class LibrarySync(Thread):
 
         # Let Kodi update the library now (artwork and userdata)
         if self.updateKodiVideoLib:
-            self.logMsg("Doing Kodi Video Lib update", 2)
+            self.logMsg("Doing Kodi Video Lib update", 1)
             xbmc.executebuiltin('UpdateLibrary(video)')
         if self.updateKodiMusicLib:
-            self.logMsg("Doing Kodi Music Lib update", 2)
+            self.logMsg("Doing Kodi Music Lib update", 1)
             xbmc.executebuiltin('UpdateLibrary(music)')
 
         # Reset and return
@@ -808,8 +808,10 @@ class LibrarySync(Thread):
         except (TypeError, AttributeError, IndexError):
             return
 
-        if itemType in ['Movies', 'TVShows']:
+        if itemType in ('Movies', 'TVShows'):
             self.updateKodiVideoLib = True
+        elif itemType in ('Music'):
+            self.updateKodiMusicLib = True
 
         itemMth = getattr(itemtypes, itemType)
         with itemMth() as method:
