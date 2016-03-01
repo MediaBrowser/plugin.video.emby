@@ -398,7 +398,6 @@ class LibrarySync(Thread):
         xbmc.executebuiltin('UpdateLibrary(video)')
         if self.enableMusic:
             xbmc.executebuiltin('UpdateLibrary(music)')
-
         elapsedtotal = datetime.now() - starttotal
         utils.window('emby_initialScan', clear=True)
         self.showKodiNote("%s completed in: %s"
@@ -522,29 +521,6 @@ class LibrarySync(Thread):
         vnodes.clearProperties()
         totalnodes = 0
 
-        with embydb.GetEmbyDB() as emby_db:
-            with kodidb.GetKodiDB('video') as kodi_db:
-                for folderItem in result:
-                    self.processView(folderItem, kodi_db, emby_db, totalnodes)
-                else:
-                    # Add video nodes listings
-                    vnodes.singleNode(totalnodes,
-                                      "Favorite movies",
-                                      "movies",
-                                      "favourites")
-                    totalnodes += 1
-                    vnodes.singleNode(totalnodes,
-                                      "Favorite tvshows",
-                                      "tvshows",
-                                      "favourites")
-                    totalnodes += 1
-                    vnodes.singleNode(totalnodes,
-                                      "channels",
-                                      "movies",
-                                      "channels")
-                    totalnodes += 1
-                    # Save total
-                    utils.window('Emby.nodes.total', str(totalnodes))
 
             # update views for all:
             self.views = emby_db.getAllViewInfo()
@@ -558,6 +534,8 @@ class LibrarySync(Thread):
                             'itemtype': 'artist'
                         }
                         self.views.append(entry)
+            nodes = [] # Prevent duplicate for nodes of the same type
+            playlists = [] # Prevent duplicate for playlists of the same type
 
         self.logMsg("views saved: %s" % self.views, 1)
 
@@ -645,6 +623,17 @@ class LibrarySync(Thread):
         itemNumber = len(self.updatelist)
         if itemNumber == 0:
             return True
+                        # Validate the playlist exists or recreate it
+                            if (foldername not in playlists and
+                                    mediatype in ('movies', 'tvshows', 'musicvideos')):
+                                utils.playlistXSP(mediatype, foldername, folderid, viewtype)
+                                playlists.append(foldername)
+                            if foldername not in nodes and mediatype != "musicvideos":
+                                vnodes.viewNode(sorted_views.index(foldername), foldername,
+                                    mediatype, viewtype, folderid)
+                                if viewtype == "mixed": # Change the value
+                                    sorted_views[sorted_views.index(foldername)] = "%ss" % foldername
+                                nodes.append(foldername)
 
         # Run through self.updatelist, get XML metadata per item
         # Initiate threads
@@ -693,6 +682,10 @@ class LibrarySync(Thread):
             thread.start()
             threads.append(thread)
             self.logMsg("Kodi Infobox thread spawned", 1)
+            # Remove any old referenced views
+            log("Removing views: %s" % current_views, 1)
+            for view in current_views:
+                emby_db.removeView(view)
 
         # Wait until finished
         getMetadataQueue.join()

@@ -65,7 +65,8 @@ class Main:
             'recentepisodes': entrypoint.getRecentEpisodes,
             'refreshplaylist': entrypoint.refreshPlaylist,
             'companion': entrypoint.plexCompanion,
-            'switchuser': entrypoint.switchPlexUser
+            'switchuser': entrypoint.switchPlexUser,
+            'deviceid': entrypoint.resetDeviceId
         }
         
         if "extrafanart" in sys.argv[0]:

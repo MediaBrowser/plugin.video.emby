@@ -296,7 +296,7 @@ def reset():
     deleteNodes()
 
     # Wipe the kodi databases
-    logMsg("EMBY", "Resetting the Kodi video database.")
+    logMsg("EMBY", "Resetting the Kodi video database.", 0)
     connection = kodiSQL('video')
     cursor = connection.cursor()
     cursor.execute('SELECT tbl_name FROM sqlite_master WHERE type="table"')
@@ -322,7 +322,7 @@ def reset():
         cursor.close()
 
     # Wipe the emby database
-    logMsg("EMBY", "Resetting the Emby database.")
+    logMsg("EMBY", "Resetting the Emby database.", 0)
     connection = kodiSQL('emby')
     cursor = connection.cursor()
     cursor.execute('SELECT tbl_name FROM sqlite_master WHERE type="table"')
@@ -331,15 +331,45 @@ def reset():
         tablename = row[0]
         if tablename != "version":
             cursor.execute("DELETE FROM " + tablename)
+    cursor.execute('DROP table IF EXISTS emby')
+    cursor.execute('DROP table IF EXISTS view')
     connection.commit()
     cursor.close()
+
+    # Offer to wipe cached thumbnails
+    resp = dialog.yesno("Warning", "Removed all cached artwork?")
+    if resp:
+        logMsg("EMBY", "Resetting all cached artwork.", 0)
+        # Remove all existing textures first
+        path = xbmc.translatePath("special://thumbnails/").decode('utf-8')
+        if xbmcvfs.exists(path):
+            allDirs, allFiles = xbmcvfs.listdir(path)
+            for dir in allDirs:
+                allDirs, allFiles = xbmcvfs.listdir(path+dir)
+                for file in allFiles:
+                    if os.path.supports_unicode_filenames:
+                        xbmcvfs.delete(os.path.join(path+dir.decode('utf-8'),file.decode('utf-8')))
+                    else:
+                        xbmcvfs.delete(os.path.join(path.encode('utf-8')+dir,file))
+        
+        # remove all existing data from texture DB
+        connection = kodiSQL('texture')
+        cursor = connection.cursor()
+        cursor.execute('SELECT tbl_name FROM sqlite_master WHERE type="table"')
+        rows = cursor.fetchall()
+        for row in rows:
+            tableName = row[0]
+            if(tableName != "version"):
+                cursor.execute("DELETE FROM " + tableName)
+        connection.commit()
+        cursor.close()
     
     # reset the install run flag  
     settings('SyncInstallRunDone', value="false")
 
     # Remove emby info
     resp = dialog.yesno("Warning", "Reset all Emby Addon settings?")
-    if resp == 1:
+    if resp:
         # Delete the settings
         addon = xbmcaddon.Addon()
         addondir = xbmc.translatePath(addon.getAddonInfo('profile')).decode('utf-8')
@@ -601,17 +631,17 @@ def passwordsXML():
             time=1000,
             sound=False)
 
-def playlistXSP(mediatype, tagname, viewtype="", delete=False):
+def playlistXSP(mediatype, tagname, viewid, viewtype="", delete=False):
     # Tagname is in unicode - actions: add or delete
     tagname = tagname.encode('utf-8')
-    cleantagname = normalize_nodes(tagname)
+
     path = xbmc.translatePath("special://profile/playlists/video/").decode('utf-8')
     if viewtype == "mixed":
         plname = "%s - %s" % (tagname, mediatype)
-        xsppath = "%sEmby %s - %s.xsp" % (path, cleantagname, mediatype)
+        xsppath = "%sEmby %s - %s.xsp" % (path, viewid, mediatype)
     else:
         plname = tagname
-        xsppath = "%sEmby %s.xsp" % (path, cleantagname)
+        xsppath = "%sEmby %s.xsp" % (path, viewid)
 
     # Create the playlist directory
     if not xbmcvfs.exists(path):
@@ -668,7 +698,13 @@ def deleteNodes():
     dirs, files = xbmcvfs.listdir(path)
     for dir in dirs:
         if dir.decode('utf-8').startswith('Emby'):
-            shutil.rmtree("%s%s" % (path, dir.decode('utf-8')))
+            try:
+                shutil.rmtree("%s%s" % (path, dir.decode('utf-8')))
+            except:
+                logMsg("EMBY", "Failed to delete directory: %s" % dir.decode('utf-8'))
     for file in files:
         if file.decode('utf-8').startswith('emby'):
-            xbmcvfs.delete("%s%s" % (path, file.decode('utf-8')))
+            try:
+                xbmcvfs.delete("%s%s" % (path, file.decode('utf-8')))
+            except:
+                logMsg("EMBY", "Failed to file: %s" % file.decode('utf-8'))

@@ -414,7 +414,7 @@ class Player(xbmc.Player):
             self.doUtils(
                 "{server}/:/timeline?" + urlencode(postdata), type="GET")
 
-    def onPlayBackPaused( self ):
+    def onPlayBackPaused(self):
 
         currentFile = self.currentFile
         self.logMsg("PLAYBACK_PAUSED: %s" % currentFile, 2)
@@ -424,7 +424,7 @@ class Player(xbmc.Player):
         
             self.reportPlayback()
 
-    def onPlayBackResumed( self ):
+    def onPlayBackResumed(self):
 
         currentFile = self.currentFile
         self.logMsg("PLAYBACK_RESUMED: %s" % currentFile, 2)
@@ -434,7 +434,7 @@ class Player(xbmc.Player):
         
             self.reportPlayback()
 
-    def onPlayBackSeek( self, time, seekOffset ):
+    def onPlayBackSeek(self, time, seekOffset):
         # Make position when seeking a bit more accurate
         currentFile = self.currentFile
         self.logMsg("PLAYBACK_SEEK: %s" % currentFile, 2)
@@ -445,7 +445,7 @@ class Player(xbmc.Player):
 
             self.reportPlayback()
     
-    def onPlayBackStopped( self ):
+    def onPlayBackStopped(self):
         
         log = self.logMsg
         window = utils.window
@@ -458,7 +458,7 @@ class Player(xbmc.Player):
         log("Clear playlist properties.", 1)
         self.stopAll()
 
-    def onPlayBackEnded( self ):
+    def onPlayBackEnded(self):
         # Will be called when xbmc stops playing a file
         self.logMsg("ONPLAYBACK_ENDED", 2)
         utils.window('emby_customPlaylist.seektime', clear=True)
@@ -494,6 +494,9 @@ class Player(xbmc.Player):
                 type = data['Type']
                 playMethod = data['playmethod']
 
+                # Prevent manually mark as watched in Kodi monitor
+                utils.window('emby_skipWatched%s' % itemid, value="true")
+
                 if currentPosition and runtime:
                     try:
                         percentComplete = currentPosition / int(runtime)
@@ -504,16 +507,6 @@ class Player(xbmc.Player):
                     markPlayedAt = float(settings('markPlayed')) / 100
                     log("Percent complete: %s Mark played at: %s"
                         % (percentComplete, markPlayedAt), 1)
-
-                    # Prevent manually mark as watched in Kodi monitor
-                    utils.window('emby_skipWatched%s' % itemid, value="true")
-
-                    self.stopPlayback(data)
-                    # Stop transcoding
-                    if playMethod == "Transcode":
-                        log("Transcoding for %s terminated." % itemid, 1)
-                        url = "{server}/video/:/transcode/universal/stop?session=%s" % self.clientInfo.getDeviceId()
-                        doUtils(url, type="GET")
 
                     # Send the delete action to the server.
                     offerDelete = False
@@ -553,7 +546,15 @@ class Player(xbmc.Player):
             )
             for item in cleanup:
                 utils.window(item, clear=True)
+                self.stopPlayback(data)
 
+                # Stop transcoding
+                if playMethod == "Transcode":
+                    log("Transcoding for %s terminated." % itemid, 1)
+                    deviceId = self.clientInfo.getDeviceId()
+                    url = "{server}/emby/Videos/ActiveEncodings?DeviceId=%s" % deviceId
+                    doUtils(url, type="DELETE")
+    
         self.played_info.clear()
 
     def stopPlayback(self, data):

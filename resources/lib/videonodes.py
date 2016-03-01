@@ -40,16 +40,15 @@ class VideoNodes(object):
 
         return root
 
-    def viewNode(self, indexnumber, tagname, mediatype, viewtype, delete=False):
+    def viewNode(self, indexnumber, tagname, mediatype, viewtype, viewid, delete=False):
 
         window = utils.window
         kodiversion = self.kodiversion
 
-        cleantagname = utils.normalize_nodes(tagname.encode('utf-8'))
         if viewtype == "mixed":
-            dirname = "%s - %s" % (cleantagname, mediatype)
+            dirname = "%s - %s" % (viewid, mediatype)
         else:
-            dirname = cleantagname
+            dirname = viewid
         
         path = xbmc.translatePath("special://profile/library/video/").decode('utf-8')
         nodepath = xbmc.translatePath(
@@ -91,7 +90,11 @@ class VideoNodes(object):
         
         # Root
         if not mediatype == "photos":
-            root = self.commonRoot(order=0, label=tagname, tagname=tagname, roottype=0)
+            if viewtype == "mixed":
+                specialtag = "%s - %s" % (tagname, mediatype)
+                root = self.commonRoot(order=0, label=specialtag, tagname=tagname, roottype=0)
+            else:
+                root = self.commonRoot(order=0, label=tagname, tagname=tagname, roottype=0)
             try:
                 utils.indent(root)
             except: pass
@@ -166,7 +169,7 @@ class VideoNodes(object):
         for node in nodes:
 
             nodetype = nodetypes[node]
-            nodeXML = "%s%s_%s.xml" % (nodepath, cleantagname, nodetype)
+            nodeXML = "%s%s_%s.xml" % (nodepath, viewid, nodetype)
             # Get label
             stringid = nodes[node]
             if node != "1":
@@ -193,7 +196,7 @@ class VideoNodes(object):
                 # Custom query
                 path = "plugin://plugin.video.plexkodiconnect/?id=%s&mode=inprogressepisodes&limit=25"% tagname
             else:
-                path = "library://video/plex%s/%s_%s.xml" % (dirname, cleantagname, nodetype)
+                path = "library://video/plex%s/%s_%s.xml" % (dirname, viewid, nodetype)
             
             if mediatype == "photos":
                 windowpath = "ActivateWindow(Pictures,%s,return)" % path
@@ -203,7 +206,7 @@ class VideoNodes(object):
             if nodetype == "all":
 
                 if viewtype == "mixed":
-                    templabel = dirname
+                    templabel = "%s - %s" % (tagname, mediatype)
                 else:
                     templabel = label
 

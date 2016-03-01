@@ -1,3 +1,14 @@
+version 2.2.4
+- Fix external subs being appended to direct play (via add-on playback)
+- First attempt at keeping Kodi awake during the initial sync
+
+version 2.2.3
+- Fix resume
+
+version 2.2.2
+- Fix dialog crash in the manual sync
+- Fix view duplicate views appearing via launching the emby add-on, when grouping views in emby
+
 version 2.2.1
 - Fix artist/album link for music videos
 - Fix progress dialog when the manual sync runs at start up
