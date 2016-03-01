@@ -31,7 +31,7 @@ def ConvertPlexToKodiTime(plexTime):
 def GetItemClassFromType(itemType):
     classes = {
         'movie': 'Movies',
-        'episodes': 'TVShows',
+        'season': 'TVShows',
         'episode': 'TVShows',
         'show': 'TVShows',
         'artist': 'Music',

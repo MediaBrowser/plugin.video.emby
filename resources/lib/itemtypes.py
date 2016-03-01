@@ -325,9 +325,9 @@ class Movies(Items):
                 update_item = False
                 self.logMsg("movieid: %s missing from Kodi, repairing the entry." % movieid, 1)
 
-        if not viewtag or not viewid:
-            # Get view tag from emby
-            viewtag, viewid, mediatype = self.emby.getView_embyId(itemid)
+        # if not viewtag or not viewid:
+        #     # Get view tag from emby
+        #     viewtag, viewid, mediatype = self.emby.getView_embyId(itemid)
 
         # fileId information
         checksum = API.getChecksum()
@@ -349,6 +349,7 @@ class Movies(Items):
         shortplot = None
         tagline = API.getTagline()
         votecount = None
+        collections = API.getCollections()
 
         rating = API.getAudienceRating()
         year = API.getYear()
@@ -491,11 +492,11 @@ class Movies(Items):
         kodi_db.addStreams(fileid, streams, runtime)
         # Process studios
         kodi_db.addStudios(movieid, studios, "movie")
-        # Process tags: view, emby tags
+        # Process tags: view, Plex collection tags
         tags = [viewtag]
-        # tags.extend(item['Tags'])
-        # if userdata['Favorite']:
-        #     tags.append("Favorite movies")
+        tags.extend(collections)
+        if userdata['Favorite']:
+            tags.append("Favorite movies")
         kodi_db.addTags(movieid, tags, "movie")
         # Process playstates
         kodi_db.addPlaystate(fileid, resume, runtime, playcount, dateplayed)

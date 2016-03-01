@@ -1519,6 +1519,16 @@ class API():
             'UserRating': userrating
         }
 
+    def getCollections(self):
+        """
+        Returns a list of PMS collection tags
+        """
+        collections = []
+        for child in self.item:
+            if child.tag == 'Collection':
+                collections.append(child.attrib['tag'])
+        return collections
+
     def getPeople(self):
         """
         Returns a dict of lists of people found.
@@ -1574,14 +1584,10 @@ class API():
                 name_id = child.attrib['id']
                 Type = child.tag
                 Type = people_of_interest[Type]
-                try:
-                    url = child.attrib['thumb']
-                except KeyError:
-                    url = None
-                try:
-                    Role = child.attrib['role']
-                except KeyError:
-                    Role = None
+
+                url = child.attrib.get('thumb')
+                Role = child.attrib.get('role')
+
                 people.append({
                     'Name': name,
                     'Type': Type,
