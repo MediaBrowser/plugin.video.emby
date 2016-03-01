@@ -350,7 +350,7 @@ class LibrarySync(Thread):
             view_id TEXT UNIQUE, view_name TEXT, media_type TEXT, kodi_tagid INTEGER)""")
         embycursor.execute("CREATE TABLE IF NOT EXISTS version(idVersion TEXT)")
         embyconn.commit()
-        
+
         # content sync: movies, tvshows, musicvideos, music
         embyconn.close()
         return
@@ -410,8 +410,7 @@ class LibrarySync(Thread):
         folder = folderItem.attrib
         mediatype = folder['type']
         # Only process supported formats
-        supportedMedia = ['movie', 'show']
-        if mediatype not in supportedMedia:
+        if mediatype not in ('movie', 'show'):
             return
 
         folderid = folder['key']
@@ -437,7 +436,8 @@ class LibrarySync(Thread):
                 vnodes.viewNode(totalnodes,
                                 foldername,
                                 mediatype,
-                                viewtype)
+                                viewtype,
+                                folderid)
                 totalnodes += 1
             # Add view to emby database
             emby_db.addView(folderid, foldername, viewtype, tagid)
@@ -480,6 +480,7 @@ class LibrarySync(Thread):
                                             current_viewname,
                                             mediatype,
                                             current_viewtype,
+                                            folderid,
                                             delete=True)
                     # Added new playlist
                     if mediatype in ['movies', 'tvshows', 'musicvideos']:
@@ -489,7 +490,8 @@ class LibrarySync(Thread):
                         vnodes.viewNode(totalnodes,
                                         foldername,
                                         mediatype,
-                                        viewtype)
+                                        viewtype,
+                                        folderid)
                         totalnodes += 1
 
                 # Update items with new tag
@@ -510,7 +512,8 @@ class LibrarySync(Thread):
                         vnodes.viewNode(totalnodes,
                                         foldername,
                                         mediatype,
-                                        viewtype)
+                                        viewtype,
+                                        folderid)
                         totalnodes += 1
 
     def maintainViews(self):
@@ -522,7 +525,9 @@ class LibrarySync(Thread):
         # Get views
         sections = downloadutils.DownloadUtils().downloadUrl(
             "{server}/library/sections")
-        if not sections:
+        try:
+            sections.attrib
+        except AttributeError:
             self.logMsg("Error download PMS views, abort maintainViews", -1)
             return False
 
@@ -572,7 +577,7 @@ class LibrarySync(Thread):
                         }
                         self.views.append(entry)
 
-            log("Removing views: %s" % self.old_views, 1)
+            self.logMsg("Removing views: %s" % self.old_views, 1)
             for view in self.old_views:
                 emby_db.removeView(view)
 
@@ -610,7 +615,7 @@ class LibrarySync(Thread):
                 = {itemid: checksum}
         """
         if self.compare or not dontCheck:
-            # Manual sync
+            # Only process the delta - new or changed items
             for item in xml:
                 itemId = item.attrib.get('ratingKey')
                 # Skipping items 'title=All episodes' without a 'ratingKey'
@@ -621,9 +626,9 @@ class LibrarySync(Thread):
                                  % (itemId, item.attrib.get('updatedAt', '')))
                 self.allPlexElementsId[itemId] = plex_checksum
                 kodi_checksum = self.allKodiElementsId.get(itemId)
+                # Only update if movie is not in Kodi or checksum is
+                # different
                 if kodi_checksum != plex_checksum:
-                    # Only update if movie is not in Kodi or checksum is
-                    # different
                     self.updatelist.append({'itemId': itemId,
                                             'itemType': itemType,
                                             'method': method,
@@ -986,7 +991,7 @@ class LibrarySync(Thread):
             'Audio': {'type': 10}
         }
 
-        # Process artist, then album and tracks last
+        # Process artist, then album and tracks last to minimize overhead
         for kind in ('MusicArtist', 'MusicAlbum', 'Audio'):
             if self.threadStopped():
                 return True
@@ -1047,8 +1052,8 @@ class LibrarySync(Thread):
 
         if currMajor > minMajor:
             return True
-        elif currMajor == minMajor and (currMinor > minMinor or
-                                       (currMinor == minMinor and currPatch >= minPatch)):
+        elif (currMajor == minMajor and (currMinor > minMinor or
+              (currMinor == minMinor and currPatch >= minPatch))):
             return True
         else:
             # Database out of date.
@@ -1138,7 +1143,8 @@ class LibrarySync(Thread):
                 log("SyncDatabase (finished in: %s) %s"
                     % (str(elapsedTime).split('.')[0], librarySync), 1)
                 # Only try the initial sync once per kodi session regardless
-                # This will prevent an infinite loop in case something goes wrong.
+                # This will prevent an infinite loop in case something goes
+                # wrong.
                 startupComplete = True
                 settings('SyncInstallRunDone', value="true")
                 settings("dbCreatedWithVersion", self.clientInfo.getVersion())
