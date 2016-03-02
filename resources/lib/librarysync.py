@@ -416,6 +416,7 @@ class LibrarySync(Thread):
 
         # Get current media folders from emby database
         view = emby_db.getView_byId(folderid)
+        self.logMsg("playlist: %s, nodes: %s, sorted_views: %s, folderid: %s, foldername: %s, viewtype: %s" % (playlists, nodes, sorted_views, folderid, foldername, viewtype))
         try:
             current_viewname = view[0]
             current_viewtype = view[1]
@@ -547,13 +548,22 @@ class LibrarySync(Thread):
         # total nodes for window properties
         vnodes.clearProperties()
         totalnodes = 0
+        # For whatever freaking reason, .copy() or dict() does NOT work?!?!?!
         self.nodes = {
             'movie': [],
             'show': [],
             'artist': []
         }
-        self.playlists = self.nodes.copy()
-        self.sorted_views = self.nodes.copy()
+        self.playlists = {
+            'movie': [],
+            'show': [],
+            'artist': []
+        }
+        self.sorted_views = {
+            'movie': [],
+            'show': [],
+            'artist': []
+        }
 
         for view in sections:
             itemType = view.attrib['type']

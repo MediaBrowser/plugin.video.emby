@@ -1910,10 +1910,10 @@ class Music(Items):
 
         # Plex works a bit differently
         # if self.directstream:
-        paths = "%s%s" % (self.server, item[0][0].attrib.get('key'))
-        paths = paths.rsplit('/', 1)
-        path = paths[0] + '/'
-        filename = API.addPlexCredentialsToUrl(paths[1])
+        path = "%s%s" % (self.server, item[0][0].attrib.get('key'))
+        filename = API.addPlexCredentialsToUrl(path)
+        # Keep path empty to not let Kodi scan it
+        path = None
         # else:
         # path = "plugin://plugin.audio.plexkodiconnect.music/"
         # filename = API.getKey()
