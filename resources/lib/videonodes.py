@@ -6,18 +6,30 @@ import shutil
 import xml.etree.ElementTree as etree
 
 import xbmc
+import xbmcaddon
 import xbmcvfs
 
+import clientinfo
 import utils
 
 #################################################################################################
 
 
-@utils.logging
 class VideoNodes(object):
 
+
     def __init__(self):
+
+        clientInfo = clientinfo.ClientInfo()
+        self.addonName = clientInfo.getAddonName()
+
         self.kodiversion = int(xbmc.getInfoLabel('System.BuildVersion')[:2])
+
+    def logMsg(self, msg, lvl=1):
+
+        className = self.__class__.__name__
+        utils.logMsg("%s %s" % (self.addonName, className), msg, lvl)
+
 
     def commonRoot(self, order, label, tagname, roottype=1):
 
@@ -36,7 +48,7 @@ class VideoNodes(object):
             root = etree.Element('node', attrib={'order': "%s" % order, 'type': "folder"})
 
         etree.SubElement(root, 'label').text = label
-        etree.SubElement(root, 'icon').text = "special://home/addons/plugin.video.plexkodiconnect/icon.png"
+        etree.SubElement(root, 'icon').text = "special://home/addons/plugin.video.emby/icon.png"
 
         return root
 
@@ -52,7 +64,7 @@ class VideoNodes(object):
         
         path = xbmc.translatePath("special://profile/library/video/").decode('utf-8')
         nodepath = xbmc.translatePath(
-                    "special://profile/library/video/plex%s/" % dirname).decode('utf-8')
+                    "special://profile/library/video/Emby - %s/" % dirname).decode('utf-8')
 
         # Verify the video directory
         if not xbmcvfs.exists(path):
@@ -77,7 +89,7 @@ class VideoNodes(object):
         # Create index entry
         nodeXML = "%sindex.xml" % nodepath
         # Set windows property
-        path = "library://video/plex%s/" % dirname
+        path = "library://video/Emby - %s/" % dirname
         for i in range(1, indexnumber):
             # Verify to make sure we don't create duplicates
             if window('Emby.nodes.%s.index' % i) == path:
@@ -116,7 +128,7 @@ class VideoNodes(object):
         }
         mediatypes = {
             # label according to nodetype per mediatype
-            'movie': 
+            'movies': 
                 {
                 '1': tagname,
                 '2': 30174,
@@ -128,7 +140,7 @@ class VideoNodes(object):
                 '11': 30230
                 },
 
-            'show': 
+            'tvshows': 
                 {
                 '1': tagname,
                 '2': 30170,
@@ -182,21 +194,23 @@ class VideoNodes(object):
             # Set window properties
             if (mediatype == "homevideos" or mediatype == "photos") and nodetype == "all":
                 # Custom query
-                path = "plugin://plugin.video.plexkodiconnect/?id=%s&mode=browsecontent&type=%s" %(tagname,mediatype)
+                path = ("plugin://plugin.video.emby/?id=%s&mode=browsecontent&type=%s"
+                        % (tagname, mediatype))
             elif (mediatype == "homevideos" or mediatype == "photos"):
                 # Custom query
-                path = "plugin://plugin.video.plexkodiconnect/?id=%s&mode=browsecontent&type=%s&folderid=%s" %(tagname,mediatype,nodetype)
+                path = ("plugin://plugin.video.emby/?id=%s&mode=browsecontent&type=%s&folderid=%s"
+                        % (tagname, mediatype, nodetype))
             elif nodetype == "nextepisodes":
                 # Custom query
-                path = "plugin://plugin.video.plexkodiconnect/?id=%s&mode=nextup&limit=25" % tagname
+                path = "plugin://plugin.video.emby/?id=%s&mode=nextup&limit=25" % tagname
             elif kodiversion == 14 and nodetype == "recentepisodes":
                 # Custom query
-                path = "plugin://plugin.video.plexkodiconnect/?id=%s&mode=recentepisodes&limit=25" % tagname
+                path = "plugin://plugin.video.emby/?id=%s&mode=recentepisodes&limit=25" % tagname
             elif kodiversion == 14 and nodetype == "inprogressepisodes":
                 # Custom query
-                path = "plugin://plugin.video.plexkodiconnect/?id=%s&mode=inprogressepisodes&limit=25"% tagname
+                path = "plugin://plugin.video.emby/?id=%s&mode=inprogressepisodes&limit=25"% tagname
             else:
-                path = "library://video/plex%s/%s_%s.xml" % (dirname, viewid, nodetype)
+                path = "library://video/Emby - %s/%s_%s.xml" % (dirname, viewid, nodetype)
             
             if mediatype == "photos":
                 windowpath = "ActivateWindow(Pictures,%s,return)" % path
@@ -311,8 +325,8 @@ class VideoNodes(object):
         tagname = tagname.encode('utf-8')
         cleantagname = utils.normalize_nodes(tagname)
         nodepath = xbmc.translatePath("special://profile/library/video/").decode('utf-8')
-        nodeXML = "%splex_%s.xml" % (nodepath, cleantagname)
-        path = "library://video/plex%s.xml" % (cleantagname)
+        nodeXML = "%semby_%s.xml" % (nodepath, cleantagname)
+        path = "library://video/emby_%s.xml" % cleantagname
         windowpath = "ActivateWindow(Video,%s,return)" % path
         
         # Create the video node directory
@@ -342,7 +356,7 @@ class VideoNodes(object):
 
         if itemtype == "channels":
             root = self.commonRoot(order=1, label=label, tagname=tagname, roottype=2)
-            etree.SubElement(root, 'path').text = "plugin://plugin.video.plexkodiconnect/?id=0&mode=channels"
+            etree.SubElement(root, 'path').text = "plugin://plugin.video.emby/?id=0&mode=channels"
         else:
             root = self.commonRoot(order=1, label=label, tagname=tagname)
             etree.SubElement(root, 'order', {'direction': "ascending"}).text = "sorttitle"
