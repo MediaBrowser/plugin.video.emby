@@ -3,7 +3,6 @@
 ###############################################################################
 
 from threading import Thread, Lock
-from datetime import datetime
 import Queue
 
 import xbmc
@@ -244,7 +243,7 @@ class LibrarySync(Thread):
         completed = self.fastSync()
         if not completed:
             # Fast sync failed or server plugin is not found
-            self.logMsg("Something went wrong, starting full sync", 0)
+            self.logMsg("Something went wrong, starting full sync", -1)
             completed = self.fullSync(manualrun=True)
         utils.window('emby_dbScan', clear=True)
         return completed
@@ -355,8 +354,10 @@ class LibrarySync(Thread):
         embyconn.close()
         return
 
+    @utils.LogTime
     def fullSync(self, manualrun=False, repair=False):
-        # Only run once when first setting up. Can be run manually.
+        # self.compare == False: we're syncing EVERY item
+        # True: we're syncing only the delta, e.g. different checksum
         self.compare = manualrun or repair
 
         xbmc.executebuiltin('InhibitIdleShutdown(true)')
@@ -366,12 +367,13 @@ class LibrarySync(Thread):
 
         # Set new timestamp NOW because sync might take a while
         self.saveLastSync()
-        starttotal = datetime.now()
 
         # Ensure that DBs exist if called for very first time
         self.initializeDBs()
-        # Set views
-        self.maintainViews()
+        # Set views. Abort if unsuccessful
+        if not self.maintainViews():
+            xbmc.executebuiltin('InhibitIdleShutdown(false)')
+            return False
 
         process = {
             'movies': self.PlexMovies,
@@ -379,27 +381,18 @@ class LibrarySync(Thread):
         }
         if self.enableMusic:
             process['music'] = self.PlexMusic
-
         for itemtype in process:
-            startTime = datetime.now()
             completed = process[itemtype]()
             if not completed:
                 xbmc.executebuiltin('InhibitIdleShutdown(false)')
                 return False
-            else:
-                elapsedTime = datetime.now() - startTime
-                self.logMsg("SyncDatabase (finished %s in: %s)"
-                            % (itemtype, str(elapsedTime).split('.')[0]), 1)
 
-        # Let kodi update the views in any case
+        # Let kodi update the views in any case, since we're doing a full sync
         xbmc.executebuiltin('UpdateLibrary(video)')
         if self.enableMusic:
             xbmc.executebuiltin('UpdateLibrary(music)')
-        elapsedtotal = datetime.now() - starttotal
-        utils.window('emby_initialScan', clear=True)
-        self.showKodiNote("Sync completed in: %s"
-                          % (str(elapsedtotal).split('.')[0]))
 
+        utils.window('emby_initialScan', clear=True)
         xbmc.executebuiltin('InhibitIdleShutdown(false)')
         return True
 
@@ -408,8 +401,14 @@ class LibrarySync(Thread):
         folder = folderItem.attrib
         mediatype = folder['type']
         # Only process supported formats
-        if mediatype not in ('movie', 'show'):
-            return
+        if mediatype not in ('movie', 'show', 'artist'):
+            return totalnodes
+
+        # Prevent duplicate for nodes of the same type
+        nodes = self.nodes[mediatype]
+        # Prevent duplicate for playlists of the same type
+        playlists = self.playlists[mediatype]
+        sorted_views = self.sorted_views[mediatype]
 
         folderid = folder['key']
         foldername = folder['title']
@@ -422,20 +421,23 @@ class LibrarySync(Thread):
             current_viewtype = view[1]
             current_tagid = view[2]
         except TypeError:
-            self.logMsg("Creating viewid: %s in Emby database."
+            self.logMsg("Creating viewid: %s in Plex database."
                         % folderid, 1)
             tagid = kodi_db.createTag(foldername)
             # Create playlist for the video library
-            if mediatype in ['movies', 'tvshows', 'musicvideos']:
-                utils.playlistXSP(mediatype, foldername, viewtype)
+            if (foldername not in playlists and
+                    mediatype in ('movie', 'show', 'musicvideos')):
+                utils.playlistXSP(mediatype, foldername, folderid, viewtype)
+                playlists.append(foldername)
             # Create the video node
-            if (mediatype in ['movies', 'tvshows', 'musicvideos',
-                              'homevideos']):
-                vnodes.viewNode(totalnodes,
+            if (foldername not in nodes and
+                    mediatype not in ("musicvideos", "artist")):
+                vnodes.viewNode(sorted_views.index(foldername),
                                 foldername,
                                 mediatype,
                                 viewtype,
                                 folderid)
+                nodes.append(foldername)
                 totalnodes += 1
             # Add view to emby database
             emby_db.addView(folderid, foldername, viewtype, tagid)
@@ -463,56 +465,69 @@ class LibrarySync(Thread):
                 # Update view with new info
                 emby_db.updateView(foldername, tagid, folderid)
 
-                if mediatype != "music":
+                if mediatype != "artist":
                     if emby_db.getView_byName(current_viewname) is None:
                         # The tag could be a combined view. Ensure there's
                         # no other tags with the same name before deleting
                         # playlist.
                         utils.playlistXSP(mediatype,
                                           current_viewname,
+                                          folderid,
                                           current_viewtype,
                                           True)
                         # Delete video node
                         if mediatype != "musicvideos":
-                            vnodes.viewNode(totalnodes,
-                                            current_viewname,
-                                            mediatype,
-                                            current_viewtype,
-                                            folderid,
-                                            delete=True)
+                            vnodes.viewNode(
+                                indexnumber=sorted_views.index(foldername),
+                                tagname=current_viewname,
+                                mediatype=mediatype,
+                                viewtype=current_viewtype,
+                                viewid=folderid,
+                                delete=True)
                     # Added new playlist
-                    if mediatype in ['movies', 'tvshows', 'musicvideos']:
-                        utils.playlistXSP(mediatype, foldername, viewtype)
+                    if (foldername not in playlists and
+                            mediatype in ('movie', 'show', 'musicvideos')):
+                        utils.playlistXSP(mediatype,
+                                          foldername,
+                                          folderid,
+                                          viewtype)
+                        playlists.append(foldername)
                     # Add new video node
-                    if mediatype != "musicvideos":
-                        vnodes.viewNode(totalnodes,
+                    if foldername not in nodes and mediatype != "musicvideos":
+                        vnodes.viewNode(sorted_views.index(foldername),
                                         foldername,
                                         mediatype,
                                         viewtype,
                                         folderid)
+                        nodes.append(foldername)
                         totalnodes += 1
 
                 # Update items with new tag
                 items = emby_db.getItem_byView(folderid)
                 for item in items:
                     # Remove the "s" from viewtype for tags
-                    kodi_db.updateTag(current_tagid,
-                                      tagid,
-                                      item[0],
-                                      current_viewtype[:-1])
+                    kodi_db.updateTag(
+                        current_tagid, tagid, item[0], current_viewtype[:-1])
             else:
-                if mediatype != "music":
-                    # Validate the playlist exists or recreate it
-                    if mediatype in ['movies', 'tvshows', 'musicvideos']:
-                        utils.playlistXSP(mediatype, foldername, viewtype)
+                # Validate the playlist exists or recreate it
+                if mediatype != "artist":
+                    if (foldername not in playlists and
+                            mediatype in ('movie', 'show', 'musicvideos')):
+                        utils.playlistXSP(mediatype,
+                                          foldername,
+                                          folderid,
+                                          viewtype)
+                        playlists.append(foldername)
                     # Create the video node if not already exists
-                    if mediatype != "musicvideos":
-                        vnodes.viewNode(totalnodes,
+                    if foldername not in nodes and mediatype != "musicvideos":
+                        vnodes.viewNode(sorted_views.index(foldername),
                                         foldername,
                                         mediatype,
                                         viewtype,
                                         folderid)
+                        nodes.append(foldername)
                         totalnodes += 1
+        return totalnodes
 
     def maintainViews(self):
         """
@@ -532,6 +547,18 @@ class LibrarySync(Thread):
         # total nodes for window properties
         vnodes.clearProperties()
         totalnodes = 0
+        self.nodes = {
+            'movie': [],
+            'show': [],
+            'artist': []
+        }
+        self.playlists = self.nodes.copy()
+        self.sorted_views = self.nodes.copy()
+
+        for view in sections:
+            itemType = view.attrib['type']
+            if itemType in ('movie', 'show'):  # and NOT artist for now
+                self.sorted_views[itemType].append(view.attrib['title'])
 
         with embydb.GetEmbyDB() as emby_db:
             # Backup old views to delete them later, if needed (at the end
@@ -539,19 +566,23 @@ class LibrarySync(Thread):
             self.old_views = emby_db.getViews()
             with kodidb.GetKodiDB('video') as kodi_db:
                 for folderItem in sections:
-                    self.processView(folderItem, kodi_db, emby_db, totalnodes)
+                    totalnodes = self.processView(folderItem,
+                                                  kodi_db,
+                                                  emby_db,
+                                                  totalnodes)
                 else:
                     # Add video nodes listings
-                    vnodes.singleNode(totalnodes,
-                                      "Favorite movies",
-                                      "movies",
-                                      "favourites")
-                    totalnodes += 1
-                    vnodes.singleNode(totalnodes,
-                                      "Favorite tvshows",
-                                      "tvshows",
-                                      "favourites")
-                    totalnodes += 1
+                    # Plex: there seem to be no favorites/favorites tag
+                    # vnodes.singleNode(totalnodes,
+                    #                   "Favorite movies",
+                    #                   "movies",
+                    #                   "favourites")
+                    # totalnodes += 1
+                    # vnodes.singleNode(totalnodes,
+                    #                   "Favorite tvshows",
+                    #                   "tvshows",
+                    #                   "favourites")
+                    # totalnodes += 1
                     vnodes.singleNode(totalnodes,
                                       "channels",
                                       "movies",
@@ -560,7 +591,7 @@ class LibrarySync(Thread):
                     # Save total
                     utils.window('Emby.nodes.total', str(totalnodes))
 
-        # Reopen DB connection to ensure that changes are commited
+        # Reopen DB connection to ensure that changes were commited before
         with embydb.GetEmbyDB() as emby_db:
             # update views for all:
             self.views = emby_db.getAllViewInfo()
@@ -579,7 +610,9 @@ class LibrarySync(Thread):
             for view in self.old_views:
                 emby_db.removeView(view)
 
-        self.logMsg("views saved: %s" % self.views, 1)
+        self.logMsg("Finished processing views. Views saved: %s"
+                    % self.views, 1)
+        return True
 
     def GetUpdatelist(self, xml, itemType, method, viewName, viewId,
                       dontCheck=False):
@@ -664,7 +697,7 @@ class LibrarySync(Thread):
         self.logMsg("self.updatelist: %s" % self.updatelist, 2)
         itemNumber = len(self.updatelist)
         if itemNumber == 0:
-            return True
+            return
 
         # Run through self.updatelist, get XML metadata per item
         # Initiate threads
@@ -733,8 +766,8 @@ class LibrarySync(Thread):
             self.logMsg("Could not delete threads", -1)
         self.logMsg("Sync threads finished", 1)
         self.updatelist = []
-        return True
 
+    @utils.LogTime
     def PlexMovies(self):
         # Initialize
         self.allPlexElementsId = {}
@@ -865,6 +898,7 @@ class LibrarySync(Thread):
 
         return True
 
+    @utils.LogTime
     def PlexTVShows(self):
         # Initialize
         self.allPlexElementsId = {}
@@ -974,6 +1008,7 @@ class LibrarySync(Thread):
         self.logMsg("%s sync is finished." % itemType, 1)
         return True
 
+    @utils.LogTime
     def PlexMusic(self):
         itemType = 'Music'
 
@@ -1060,14 +1095,13 @@ class LibrarySync(Thread):
             return False
 
     def run(self):
-
         try:
             self.run_internal()
         except Exception as e:
             utils.window('emby_dbScan', clear=True)
             xbmcgui.Dialog().ok(
                 heading=self.addonName,
-                line1=("Library sync thread has exited! "
+                line1=("Library sync thread has crashed. "
                        "You should restart Kodi now. "
                        "Please report this on the forum."))
             raise
@@ -1080,6 +1114,7 @@ class LibrarySync(Thread):
         startupComplete = False
         self.views = []
         count = 0
+        errorcount = 0
 
         self.logMsg("---===### Starting LibrarySync ###===---", 0)
         while not self.threadStopped():
@@ -1116,6 +1151,7 @@ class LibrarySync(Thread):
                                    "until the database is reset."))
                     else:
                         utils.reset()
+                window('emby_dbCheck', value="true")
 
             if not startupComplete:
                 # Also runs when first installed
@@ -1136,20 +1172,27 @@ class LibrarySync(Thread):
                 # Run start up sync
                 window('emby_dbScan', value="true")
                 log("Db version: %s" % settings('dbCreatedWithVersion'), 0)
-                log("SyncDatabase (started)", 1)
-                startTime = datetime.now()
+                log("Initial start-up full sync starting", 0)
                 librarySync = self.fullSync(manualrun=True)
-                elapsedTime = datetime.now() - startTime
-                log("SyncDatabase (finished in: %s) %s"
-                    % (str(elapsedTime).split('.')[0], librarySync), 1)
-                # Only try the initial sync once per kodi session regardless
-                # This will prevent an infinite loop in case something goes
-                # wrong.
-                startupComplete = True
-                settings('SyncInstallRunDone', value="true")
-                settings("dbCreatedWithVersion", self.clientInfo.getVersion())
-                self.installSyncDone = True
                 window('emby_dbScan', clear=True)
+                if librarySync:
+                    log("Initial start-up full sync successful", 0)
+                    startupComplete = True
+                    settings('SyncInstallRunDone', value="true")
+                    settings("dbCreatedWithVersion",
+                             self.clientInfo.getVersion())
+                    self.installSyncDone = True
+                else:
+                    log("Initial start-up full sync unsuccessful", -1)
+                    errorcount += 1
+                    if errorcount > 2:
+                        log("Startup full sync failed. Stopping sync", -1)
+                        xbmcgui.Dialog().ok(
+                            heading=self.addonName,
+                            line1=("Startup syncing process failed repeatedly."
+                                   " Try restarting Kodi. Stopping Sync for "
+                                   "now."))
+                        break
 
             # Currently no db scan, so we can start a new scan
             elif window('emby_dbScan') != "true":

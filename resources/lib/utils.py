@@ -639,14 +639,14 @@ def playlistXSP(mediatype, tagname, viewid, viewtype="", delete=False):
     path = xbmc.translatePath("special://profile/playlists/video/").decode('utf-8')
     if viewtype == "mixed":
         plname = "%s - %s" % (tagname, mediatype)
-        xsppath = "%sEmby %s - %s.xsp" % (path, viewid, mediatype)
+        xsppath = "%sPlex %s - %s.xsp" % (path, viewid, mediatype)
     else:
         plname = tagname
-        xsppath = "%sEmby %s.xsp" % (path, viewid)
+        xsppath = "%sPlex %s.xsp" % (path, viewid)
 
     # Create the playlist directory
     if not xbmcvfs.exists(path):
-        logMsg("EMBY", "Creating directory: %s" % path, 1)
+        logMsg("PLEX", "Creating directory: %s" % path, 1)
         xbmcvfs.mkdirs(path)
 
     # Only add the playlist if it doesn't already exists
@@ -654,25 +654,25 @@ def playlistXSP(mediatype, tagname, viewid, viewtype="", delete=False):
 
         if delete:
             xbmcvfs.delete(xsppath)
-            logMsg("EMBY", "Successfully removed playlist: %s." % tagname, 1)
+            logMsg("PLEX", "Successfully removed playlist: %s." % tagname, 1)
         
         return
 
     # Using write process since there's no guarantee the xml declaration works with etree
     itemtypes = {
-        'homevideos': "movies"
+        'homevideos': "movie"
     }
-    logMsg("EMBY", "Writing playlist file to: %s" % xsppath, 1)
+    logMsg("Plex", "Writing playlist file to: %s" % xsppath, 1)
     try:
         f = xbmcvfs.File(xsppath, 'w')
     except:
-        logMsg("EMBY", "Failed to create playlist: %s" % xsppath, 1)
+        logMsg("Plex", "Failed to create playlist: %s" % xsppath, -1)
         return
     else:
         f.write(
             '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n'
             '<smartplaylist type="%s">\n\t'
-                '<name>Emby %s</name>\n\t'
+                '<name>Plex %s</name>\n\t'
                 '<match>all</match>\n\t'
                 '<rule field="tag" operator="is">\n\t\t'
                     '<value>%s</value>\n\t'
@@ -680,7 +680,7 @@ def playlistXSP(mediatype, tagname, viewid, viewtype="", delete=False):
             '</smartplaylist>'
             % (itemtypes.get(mediatype, mediatype), plname, tagname))
         f.close()
-    logMsg("EMBY", "Successfully added playlist: %s" % tagname)
+    logMsg("Plex", "Successfully added playlist: %s" % tagname)
 
 def deletePlaylists():
 
