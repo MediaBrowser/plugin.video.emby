@@ -1161,6 +1161,8 @@ class LibrarySync(Thread):
                                    "until the database is reset."))
                     else:
                         utils.reset()
+                    break
+
                 window('emby_dbCheck', value="true")
 
             if not startupComplete:
