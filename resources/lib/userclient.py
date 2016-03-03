@@ -349,7 +349,7 @@ class UserClient(threading.Thread):
             dialog = xbmcgui.Dialog()
             if username:
                 dialog.notification(self.addonName,
-                                    "Welcome %s" % username,
+                                    "Welcome %s" % username.decode('utf-8'),
                                     "special://home/addons/plugin.video."
                                     "plexkodiconnect/icon.png")
             else:

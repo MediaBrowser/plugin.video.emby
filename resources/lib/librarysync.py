@@ -361,6 +361,8 @@ class LibrarySync(Thread):
         self.compare = manualrun or repair
 
         xbmc.executebuiltin('InhibitIdleShutdown(true)')
+        screensaver = utils.getScreensaver()
+        utils.setScreensaver(value="")
 
         # Add sources
         utils.sourcesXML()
@@ -373,6 +375,7 @@ class LibrarySync(Thread):
         # Set views. Abort if unsuccessful
         if not self.maintainViews():
             xbmc.executebuiltin('InhibitIdleShutdown(false)')
+            utils.setScreensaver(value=screensaver)
             return False
 
         process = {
@@ -385,6 +388,7 @@ class LibrarySync(Thread):
             completed = process[itemtype]()
             if not completed:
                 xbmc.executebuiltin('InhibitIdleShutdown(false)')
+                utils.setScreensaver(value=screensaver)
                 return False
 
         # Let kodi update the views in any case, since we're doing a full sync
@@ -394,6 +398,7 @@ class LibrarySync(Thread):
 
         utils.window('emby_initialScan', clear=True)
         xbmc.executebuiltin('InhibitIdleShutdown(false)')
+        utils.setScreensaver(value=screensaver)
         return True
 
     def processView(self, folderItem, kodi_db, emby_db, totalnodes):
