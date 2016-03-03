@@ -24,7 +24,7 @@ import read_embyserver as embyserver
 import embydb_functions as embydb
 import kodidb_functions as kodidb
 import musicutils as musicutils
-import PlexAPI
+import api
 
 def logMsg(msg, lvl=1):
     utils.logMsg("%s %s" % ("EMBY", "Contextmenu"), msg, lvl)
@@ -57,7 +57,7 @@ if __name__ == '__main__':
 
     if embyid:
         item = emby.getItem(embyid)
-        API = PlexAPI.API(item)
+        API = api.API(item)
         userdata = API.getUserData()
         likes = userdata['Likes']
         favourite = userdata['Favorite']
@@ -83,7 +83,7 @@ if __name__ == '__main__':
             options.append(utils.language(30407))
         
         #delete item
-        # options.append(utils.language(30409))
+        options.append(utils.language(30409))
         
         #addon settings
         options.append(utils.language(30408))
