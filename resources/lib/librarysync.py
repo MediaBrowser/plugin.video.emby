@@ -413,7 +413,7 @@ class LibrarySync(Thread):
         nodes = self.nodes[mediatype]
         # Prevent duplicate for playlists of the same type
         playlists = self.playlists[mediatype]
-        sorted_views = self.sorted_views[mediatype]
+        sorted_views = self.sorted_views
 
         folderid = folder['key']
         foldername = folder['title']
@@ -456,7 +456,6 @@ class LibrarySync(Thread):
 
             # Remove views that are still valid to delete rest later
             try:
-                # View is still valid
                 self.old_views.remove(folderid)
             except ValueError:
                 # View was just created, nothing to remove
@@ -550,9 +549,6 @@ class LibrarySync(Thread):
             self.logMsg("Error download PMS views, abort maintainViews", -1)
             return False
 
-        # total nodes for window properties
-        vnodes.clearProperties()
-        totalnodes = 0
         # For whatever freaking reason, .copy() or dict() does NOT work?!?!?!
         self.nodes = {
             'movie': [],
@@ -564,16 +560,17 @@ class LibrarySync(Thread):
             'show': [],
             'artist': []
         }
-        self.sorted_views = {
-            'movie': [],
-            'show': [],
-            'artist': []
-        }
+        self.sorted_views = []
 
         for view in sections:
             itemType = view.attrib['type']
             if itemType in ('movie', 'show'):  # and NOT artist for now
-                self.sorted_views[itemType].append(view.attrib['title'])
+                self.sorted_views.append(view.attrib['title'])
+        self.logMsg('Sorted views: %s' % self.sorted_views, 1)
+
+        # total nodes for window properties
+        vnodes.clearProperties()
+        totalnodes = len(self.sorted_views)
 
         with embydb.GetEmbyDB() as emby_db:
             # Backup old views to delete them later, if needed (at the end
@@ -585,26 +582,28 @@ class LibrarySync(Thread):
                                                   kodi_db,
                                                   emby_db,
                                                   totalnodes)
-                else:
-                    # Add video nodes listings
-                    # Plex: there seem to be no favorites/favorites tag
-                    # vnodes.singleNode(totalnodes,
-                    #                   "Favorite movies",
-                    #                   "movies",
-                    #                   "favourites")
-                    # totalnodes += 1
-                    # vnodes.singleNode(totalnodes,
-                    #                   "Favorite tvshows",
-                    #                   "tvshows",
-                    #                   "favourites")
-                    # totalnodes += 1
-                    vnodes.singleNode(totalnodes,
-                                      "channels",
-                                      "movies",
-                                      "channels")
-                    totalnodes += 1
-                    # Save total
-                    utils.window('Emby.nodes.total', str(totalnodes))
+                # Add video nodes listings
+                # Plex: there seem to be no favorites/favorites tag
+                # vnodes.singleNode(totalnodes,
+                #                   "Favorite movies",
+                #                   "movies",
+                #                   "favourites")
+                # totalnodes += 1
+                # vnodes.singleNode(totalnodes,
+                #                   "Favorite tvshows",
+                #                   "tvshows",
+                #                   "favourites")
+                # totalnodes += 1
+                # vnodes.singleNode(totalnodes,
+                #                   "channels",
+                #                   "movies",
+                #                   "channels")
+                # totalnodes += 1
+            with kodidb.GetKodiDB('music') as kodi_db:
+                pass
+
+        # Save total
+        utils.window('Emby.nodes.total', str(totalnodes))
 
         # Reopen DB connection to ensure that changes were commited before
         with embydb.GetEmbyDB() as emby_db:

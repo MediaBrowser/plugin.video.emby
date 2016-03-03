@@ -42,6 +42,16 @@ class VideoNodes(object):
 
     def viewNode(self, indexnumber, tagname, mediatype, viewtype, viewid, delete=False):
 
+        # Plex: reassign mediatype due to Kodi inner workings
+        mediatypes = {
+            'movie': 'movies',
+            'show': 'tvshows',
+            'photo': 'photos',
+            'homevideo': 'homevideos',
+            'musicvideos': 'musicvideos'
+        }
+        mediatype = mediatypes[mediatype]
+
         window = utils.window
         kodiversion = self.kodiversion
 
@@ -116,7 +126,7 @@ class VideoNodes(object):
         }
         mediatypes = {
             # label according to nodetype per mediatype
-            'movie': 
+            'movies': 
                 {
                 '1': tagname,
                 '2': 30174,
@@ -128,7 +138,7 @@ class VideoNodes(object):
                 '11': 30230
                 },
 
-            'show': 
+            'tvshows': 
                 {
                 '1': tagname,
                 '2': 30170,
@@ -141,14 +151,14 @@ class VideoNodes(object):
                 '11': 30230
                 },
                 
-            'homevideos': 
+            'homevideoss': 
                 {
                 '1': tagname,
                 '2': 30251,
                 '11': 30253
                 },
                 
-            'photo': 
+            'photos': 
                 {
                 '1': tagname,
                 '2': 30252,
