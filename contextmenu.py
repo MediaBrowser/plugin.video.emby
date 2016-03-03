@@ -24,7 +24,7 @@ import read_embyserver as embyserver
 import embydb_functions as embydb
 import kodidb_functions as kodidb
 import musicutils as musicutils
-import api
+import PlexAPI
 
 def logMsg(msg, lvl=1):
     utils.logMsg("%s %s" % ("EMBY", "Contextmenu"), msg, lvl)

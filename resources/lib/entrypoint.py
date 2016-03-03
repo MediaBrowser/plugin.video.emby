@@ -22,7 +22,7 @@ import read_embyserver as embyserver
 import embydb_functions as embydb
 import playbackutils as pbutils
 import playutils
-import api
+import PlexAPI
 import playlist
 
 import PlexFunctions

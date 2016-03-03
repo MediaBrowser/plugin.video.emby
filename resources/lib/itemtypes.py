@@ -10,7 +10,6 @@ import xbmc
 import xbmcgui
 import xbmcvfs
 
-import api
 import artwork
 import downloadutils
 import utils
