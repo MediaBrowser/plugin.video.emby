@@ -104,7 +104,7 @@ class Player(xbmc.Player):
 
                 log("Playing itemtype is: %s" % itemType, 1)
                 # Suspend library sync thread while movie is playing
-                if itemType in ['movie', 'audio']:
+                if itemType in ('movie', 'episode'):
                     log("Suspending library sync while playing", 1)
                     window('suspend_LibraryThread', value='true')
 
