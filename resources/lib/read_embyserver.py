@@ -13,7 +13,7 @@ import downloadutils
 @utils.logging
 class Read_EmbyServer():
 
-    limitIndex = int(utils.settings('limitindex'))
+    # limitIndex = int(utils.settings('limitindex'))
 
     def __init__(self):
 

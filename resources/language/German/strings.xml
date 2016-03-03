@@ -2,7 +2,7 @@
 <strings>
     <string id="30000">IP-Adresse des Servers</string>
     <string id="30001">Automatisches Öffnen von Ordnern mit einem Eintrag</string>
-    <string id="30002">Via HTTP abspielen statt SMB/NFS:</string>
+    <string id="30002">Direct Play deaktivieren and Transkodieren erzwingen</string>
     <string id="30004">Log Level:</string>
     <string id="30005">Benutzername: </string>
     <string id="30006">Passwort: </string>
@@ -11,8 +11,21 @@
     <string id="30009">Transkodieren: </string>
     <string id="30010">Performancemessung aktivieren</string>
     <string id="30011">Caching-Mechanismus</string>
+    <string id="30500">Host SSL Zertifikat überprüfen (sicherer)</string>
+    <string id="30507">Synchronisations-Fortschritt anzeigen</string>
+    <string id="30512">Zwischenspeichern von PMS Bildern erzwingen</string>
+    <string id="30509">Plex Musik-Bibliotheken aktivieren (Kodi Neustart!)</string>
+    <string id="30518">Plex Trailer aktivieren (Plexpass benötigt)</string>
+    <string id="30519">Nachfragen, ob Trailer gespielt werden sollen</string>
+    <string id="30522">H265 Codec Transkodierung erzwingen</string>
+    <string id="30517">Netzwerk Credentials eingeben</string>
+    <string id="30529">PlexKodiConnect Start Verzögerung (in Sekunden)</string>
+    <string id="30527">Extras ignorieren, wenn Nächste Episode gespielt wird</string>
+    <string id="30521">Bei Wiederaufnahme zurückspulen (in Sekunden)</string>
+    <string id="30505">[COLOR yellow]Anzahl Login-Versuche zurücksetzen[/COLOR]</string>
 
-    <string id="30014">Emby</string>
+
+    <string id="30014">Verbindung</string>
     <string id="30015">Netzwerk</string>
     <string id="30016">Gerätename</string>
 
@@ -251,5 +264,57 @@
     <string id="30310">Musikvideos</string>
     <string id="30311">Musikstücke</string>
     <string id="30312">Kanäle</string>
+
+    <!-- New to Plex -->
+    <string id="39000">- Anzahl abzuspielender Trailer vor einem Film</string>
+    <string id="39001">Audio Verstärkung (audio boost) wenn transkodiert wird</string>
+    <string id="39002">Grösse des Untertitels wenn transkodiert wird</string>
+    <string id="39003">Anzahl Download Sync Threads beschränken (Empfehlung für rpi: 1)</string>
+    <string id="39004">Plex Companion aktivieren</string>
+    <string id="39005">Plex Companion Port (nur bei Bedarf ändern)</string>
+    <string id="39006">Plex Companion debug log aktivieren</string>
+    <string id="39007">Plex Companion GDM debug log aktivieren</string>
+    <string id="39008">Spiele Inhalt von anderen Plex Geräten ab</string>
+    <string id="39009">Login bei plex.tv fehlgeschlagen. Bitte erneut versuchen.</string>
+    <string id="39010">Netzwerk Verbindungsprobleme für plex.tv. Funktionieren Netzwerk und/oder Internet?</string>
+    <string id="39011">Konnte keine Plex Server im Netzwerk finden. Abbruch...</string>
+    <string id="39012">Wählen Sie Ihren Plex Server</string>
+    <string id="39013">Noch nicht authorisiert für Plex Server </string>
+    <string id="39014">Bitte loggen Sie sich in plex.tv ein.</string>
+    <string id="39015">Beim Verbinden mit dem Server sind Probleme aufgetreten. Mit einem anderen Server versuchen?</string>
+    <string id="39016">Plex Musik Bibliotheken deaktivieren?</string>
+    <string id="39017">Möchten Sie nun die Einstellungen des Plugins öffnen? (Was hoffentlich unnötig ist ;-))"</string>
+
+    <string id="39018">[COLOR yellow]Lokale Datenbank reparieren (allen Inhalt aktualisieren)[/COLOR]</string>
+    <string id="39019">[COLOR yellow]Lokale Datenbank zurücksetzen (kompletter Resync nötig)[/COLOR]</string>
+    <string id="39020">[COLOR yellow]Alle Plex Bilder in Kodi zwischenspeichern[/COLOR]</string>
+    <string id="39021">[COLOR yellow]Plex Themes zu Kodi synchronisieren[/COLOR]</string>
+
+    <!-- Plex Entrypoint.py -->
+    <string id="39200">Plex Home Benutzer wechseln</string>
+    <string id="39201">Einstellungen</string>
+    <string id="39202">Netzwerk Credentials</string>
+    <string id="39203">Plex Playlisten und Nodes zurücksetzen</string>
+    <string id="39204">Manuellen Scan der Plex Bibliotheken starten</string>
+    <string id="39205">Plex Bibliothek kann nicht gescannt werden, da keine Verbindung mit einem Plex Server besteht.</string>
+    <string id="39206">Plex könnte möglicherweise Ihren Account sperren, wenn Sie zu oft versuchen, sich erfolglos anzumelden. Trotzdem fortfahren?</string>
+
+    <!-- Plex Artwork.py -->
+    <string id="39250">Alle Plex Bilder in Kodi zwischenzuspeichern kann sehr lange dauern. Möchten Sie wirklich fortfahren?</string>
+    <string id="39251">Sollen erst alle bestehenden Bilder im Cache gelöscht werden?</string>
+
+    <!-- Plex PlexAPI.py -->
+    <string id="39300">: plex.tv Benutzernamen eingeben. Oder nichts, um abzubrechen.</string>
+    <string id="39301">Passwort eingeben für plex.tv Benutzer </string>
+    <string id="39302">Anmeldung fehlgeschlagen für Benutzer </string>
+    <string id="39303">Probleme beim Verbinden mit plex.tv. Bitte später erneut versuchen.</string>
+    <string id="39304">https://plex.tv/pin besuchen und den folgenden Code eingeben:
+
+    </string>
+    <string id="39305">Anmeldung bei plex.tv fehlgeschlagen. Bitte später erneut versuchen.</string>
+    <string id="39306">: Benutzer auswählen</string>
+    <string id="39307">PIN eingeben für Benutzer </string>
+    <string id="39308">Anmeldung fehlgeschlagen für Benutzer </string>
+    <string id="39309">Bitte erneut versuchen.</string>
 
 </strings>

@@ -159,8 +159,10 @@ class Artwork():
     def FullTextureCacheSync(self):
         # This method will sync all Kodi artwork to textures13.db
         # and cache them locally. This takes diskspace!
-        
-        if not xbmcgui.Dialog().yesno("Image Texture Cache", "Running the image cache process can take some time.", "Are you sure you want continue?"):
+        import xbmcaddon
+        string = xbmcaddon.Addon().getLocalizedString
+
+        if not xbmcgui.Dialog().yesno("Image Texture Cache", string(39250)):
             return
             
         self.logMsg("Doing Image Cache Sync", 1)
@@ -169,7 +171,7 @@ class Artwork():
         dialog.create("Emby for Kodi", "Image Cache Sync")
             
         # ask to rest all existing or not
-        if xbmcgui.Dialog().yesno("Image Texture Cache", "Reset all existing cache data first?", ""):
+        if xbmcgui.Dialog().yesno("Image Texture Cache", string(39251), ""):
             self.logMsg("Resetting all cache data first", 1)
             # Remove all existing textures first
             path = xbmc.translatePath("special://thumbnails/").decode('utf-8')

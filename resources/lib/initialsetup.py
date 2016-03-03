@@ -36,6 +36,7 @@ class InitialSetup():
         Check server, user, direct paths, music, direct stream if not direct
         path.
         """
+        string = self.__language__
         # SERVER INFO #####
         self.logMsg("Initial setup called.", 0)
         server = self.userClient.getServer()
@@ -51,10 +52,10 @@ class InitialSetup():
             chk = self.plx.CheckConnection('plex.tv', plexToken)
             # HTTP Error: unauthorized
             if chk == 401:
+                # Could not login, please try again
                 dialog.ok(
                     self.addonName,
-                    'Could not login to plex.tv.',
-                    'Please try signing in again.'
+                    string(39009)
                 )
                 result = self.plx.PlexTvSignInWithPin()
                 if result:
@@ -63,8 +64,7 @@ class InitialSetup():
             elif chk is False or chk >= 400:
                 dialog.ok(
                     self.addonName,
-                    'Problems connecting to plex.tv.',
-                    'Network or internet issue?'
+                    string(39010)
                 )
         # If a Plex server IP has already been set, return.
         if server:
@@ -99,8 +99,7 @@ class InitialSetup():
             if len(serverlist) == 0:
                 dialog.ok(
                     self.addonName,
-                    'Could not find any Plex server in the network.'
-                    'Aborting...'
+                    string(39011)
                 )
                 break
             for server in serverlist:
@@ -110,7 +109,7 @@ class InitialSetup():
                 else:
                     dialoglist.append(str(server['name']))
             resp = dialog.select(
-                'Choose your Plex server',
+                string(39012),
                 dialoglist)
             server = serverlist[resp]
             activeServer = server['machineIdentifier']
@@ -129,9 +128,8 @@ class InitialSetup():
             # Unauthorized
             if chk == 401:
                 dialog.ok(self.addonName,
-                          'Not yet authorized for Plex server %s'
-                          % str(server['name']),
-                          'Please sign in to plex.tv.')
+                          string(39013) + str(server['name']),
+                          string(39014))
                 result = self.plx.PlexTvSignInWithPin()
                 if result:
                     plexLogin = result['username']
@@ -142,8 +140,7 @@ class InitialSetup():
             # Problems connecting
             elif chk >= 400 or chk is False:
                 resp = dialog.yesno(self.addonName,
-                                    'Problems connecting to server.',
-                                    'Pick another server?')
+                                    string(39015))
                 # Exit while loop if user chooses No
                 if not resp:
                     break
@@ -169,33 +166,26 @@ class InitialSetup():
                         server['scheme']), 0)
 
         # ADDITIONAL PROMPTS #####
-        directPaths = dialog.yesno(
-                            heading="%s: Playback Mode" % self.addonName,
-                            line1=(
-                                "Caution! If you choose Native mode, you "
-                                "will probably lose access to certain Plex "
-                                "features."),
-                            nolabel="Addon (Default)",
-                            yeslabel="Native (Direct Paths)")
-        if directPaths:
-            self.logMsg("User opted to use direct paths.", 1)
-            utils.settings('useDirectPaths', value="1")
+        # directPaths = dialog.yesno(
+        #                     heading="%s: Playback Mode" % self.addonName,
+        #                     line1=(
+        #                         "Caution! If you choose Native mode, you "
+        #                         "will probably lose access to certain Plex "
+        #                         "features."),
+        #                     nolabel="Addon (Default)",
+        #                     yeslabel="Native (Direct Paths)")
+        # if directPaths:
+        #     self.logMsg("User opted to use direct paths.", 1)
+        #     utils.settings('useDirectPaths', value="1")
 
-        musicDisabled = dialog.yesno(
-                            heading="%s: Music Library" % self.addonName,
-                            line1="Disable Plex music library?")
-        if musicDisabled:
+        if dialog.yesno(
+                heading=self.addonName,
+                line1=string(39016)):
             self.logMsg("User opted to disable Plex music library.", 1)
             utils.settings('enableMusic', value="false")
-        else:
-            # Only prompt if the user didn't select direct paths for videos
-            if not directPaths:
-                musicAccess = dialog.yesno(
-                                    heading="%s: Music Library" % self.addonName,
-                                    line1=(
-                                        "Direct stream the music library? Select "
-                                        "this option only if you plan on listening "
-                                        "to music outside of your network."))
-                if musicAccess:
-                    self.logMsg("User opted to direct stream music.", 1)
-                    utils.settings('streamMusic', value="true")
+
+        if dialog.yesno(
+                heading=self.addonName,
+                line1=string(39017)):
+            xbmc.executebuiltin(
+                'Addon.OpenSettings(plugin.video.plexkodiconnect)')

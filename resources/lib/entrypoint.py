@@ -17,12 +17,10 @@ import artwork
 import utils
 import clientinfo
 import downloadutils
-import librarysync
 import read_embyserver as embyserver
 import embydb_functions as embydb
 import playbackutils as pbutils
 import playutils
-import PlexAPI
 import playlist
 
 import PlexFunctions
@@ -141,11 +139,10 @@ def doPlayback(itemid, dbid):
 ##### DO RESET AUTH #####
 def resetAuth():
     # User tried login and failed too many times
+    string = xbmcaddon.Addon().getLocalizedString
     resp = xbmcgui.Dialog().yesno(
-                heading="Warning",
-                line1=(
-                    "Plex might lock your account if you fail to log in too many times. "
-                    "Proceed anyway?"))
+        heading="Warning",
+        line1=string(39206))
     if resp == 1:
         utils.logMsg("PLEX", "Reset login attempts.", 1)
         utils.window('emby_serverStatus', value="Auth")
@@ -160,6 +157,7 @@ def addDirectoryItem(label, path, folder=True):
     xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=path, listitem=li, isFolder=folder)
 
 def doMainListing():
+    string = xbmcaddon.Addon().getLocalizedString
     xbmcplugin.setContent(int(sys.argv[1]), 'files')    
     # Get emby nodes from the window props
     embyprops = utils.window('Emby.nodes.total')
@@ -182,7 +180,7 @@ def doMainListing():
 
     # Plex user switch, if Plex home is in use
     if utils.settings('plexhome') == 'true':
-        addDirectoryItem("Switch Plex Home User",
+        addDirectoryItem(string(39200),
                          "plugin://plugin.video.plexkodiconnect/"
                          "?mode=switchuser")
 
@@ -191,16 +189,11 @@ def doMainListing():
     # addDirectoryItem("Live Tv Recordings (experimental)", "plugin://plugin.video.plexkodiconnect/?mode=browsecontent&type=recordings&folderid=root")
 
     # some extra entries for settings and stuff. TODO --> localize the labels
-    addDirectoryItem("Settings", "plugin://plugin.video.plexkodiconnect/?mode=settings")
-    addDirectoryItem("Network credentials", "plugin://plugin.video.plexkodiconnect/?mode=passwords")
+    addDirectoryItem(string(39201), "plugin://plugin.video.plexkodiconnect/?mode=settings")
     # addDirectoryItem("Add user to session", "plugin://plugin.video.plexkodiconnect/?mode=adduser")
-    addDirectoryItem("Refresh Plex playlists/nodes", "plugin://plugin.video.plexkodiconnect/?mode=refreshplaylist")
-    addDirectoryItem("Perform manual library sync", "plugin://plugin.video.plexkodiconnect/?mode=manualsync")
-    addDirectoryItem("Repair local database (force update all content)", "plugin://plugin.video.plexkodiconnect/?mode=repair")
-    addDirectoryItem("Perform local database reset (full resync)", "plugin://plugin.video.plexkodiconnect/?mode=reset")
-    addDirectoryItem("Cache all images to Kodi texture cache", "plugin://plugin.video.plexkodiconnect/?mode=texturecache")
-    addDirectoryItem("Sync Emby Theme Media to Kodi", "plugin://plugin.video.plexkodiconnect/?mode=thememedia")
-    
+    addDirectoryItem(string(39203), "plugin://plugin.video.plexkodiconnect/?mode=refreshplaylist")
+    addDirectoryItem(string(39204), "plugin://plugin.video.plexkodiconnect/?mode=manualsync")
+
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
 
@@ -1128,3 +1121,13 @@ def getExtraFanArt():
     
     # Always do endofdirectory to prevent errors in the logs
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
+
+
+def RunLibScan(mode):
+    if utils.window('emby_online') != "true":
+        # Server is not online, do not run the sync
+        string = xbmcaddon.Addon().getLocalizedString
+        xbmcgui.Dialog().ok(heading=addonName,
+                            line1=string(39205))
+    else:
+        utils.window('plex_runLibScan', value='full')

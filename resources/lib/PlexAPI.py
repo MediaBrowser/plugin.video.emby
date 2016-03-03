@@ -113,20 +113,23 @@ class PlexAPI():
         Also writes 'plexLogin' and 'token_plex.tv' to Kodi settings file
         If not logged in, empty strings are returned for both.
         """
+        string = self.__language__
+
         retrievedPlexLogin = ''
         plexLogin = 'dummy'
         authtoken = ''
         while retrievedPlexLogin == '' and plexLogin != '':
             dialog = xbmcgui.Dialog()
+            # Enter plex.tv username. Or nothing to cancel.
             plexLogin = dialog.input(
-                self.addonName +
-                ': Enter plex.tv username. Or nothing to cancel.',
+                self.addonName + string(39300),
                 type=xbmcgui.INPUT_ALPHANUM,
             )
             if plexLogin != "":
                 dialog = xbmcgui.Dialog()
+                # Enter password for plex.tv user
                 plexPassword = dialog.input(
-                    'Enter password for plex.tv user %s' % plexLogin,
+                    string(39301) + plexLogin,
                     type=xbmcgui.INPUT_ALPHANUM,
                     option=xbmcgui.ALPHANUM_HIDE_INPUT
                 )
@@ -139,8 +142,8 @@ class PlexAPI():
                             % (plexLogin, authtoken), 1)
                 if plexLogin == '':
                     dialog = xbmcgui.Dialog()
-                    dialog.ok(self.addonName, 'Could not sign in user %s'
-                              % plexLogin)
+                    # Could not sign in user
+                    dialog.ok(self.addonName, string(39302) + plexLogin)
         # Write to Kodi settings file
         utils.settings('plexLogin', value=retrievedPlexLogin)
         utils.settings('plexToken', value=authtoken)
@@ -159,16 +162,17 @@ class PlexAPI():
         }
         Returns False if authentication did not work.
         """
+        string = self.__language__
+
         code, identifier = self.GetPlexPin()
         dialog = xbmcgui.Dialog()
         if not code:
-            dialog.ok(self.addonName,
-                      'Problems trying to contact plex.tv',
-                      'Try again later')
+            # Problems trying to contact plex.tv. Try again later
+            dialog.ok(self.addonName, string(39303))
             return False
+        # Go to https://plex.tv/pin and enter the code:
         answer = dialog.yesno(self.addonName,
-                              'Go to https://plex.tv/pin and enter the code:',
-                              '',
+                              string(39304),
                               code)
         if not answer:
             return False
@@ -182,9 +186,8 @@ class PlexAPI():
             xbmc.sleep(5000)
             count += 1
         if not xml:
-            dialog.ok(self.addonName,
-                      'Could not sign in to plex.tv',
-                      'Try again later')
+            # Could not sign in to plex.tv Try again later
+            dialog.ok(self.addonName, string(39305))
             return False
         # Parse xml
         home = xml.get('home', '0')
@@ -1043,6 +1046,8 @@ class PlexAPI():
 
         Will return empty strings if failed.
         """
+        string = self.__language__
+
         plexLogin = utils.settings('plexLogin')
         plexToken = utils.settings('plexToken')
         machineIdentifier = utils.settings('plex_machineIdentifier')
@@ -1066,7 +1071,8 @@ class PlexAPI():
         while trials < 3:
             if usernumber > 1:
                 dialog = xbmcgui.Dialog()
-                user_select = dialog.select(self.addonName + ": Select User",
+                # Select user
+                user_select = dialog.select(self.addonName + string(39306),
                                             userlist)
                 if user_select == -1:
                     self.logMsg("No user selected.", 1)
@@ -1083,8 +1089,9 @@ class PlexAPI():
             # Ask for PIN, if protected:
             if user['protected'] == '1':
                 dialog = xbmcgui.Dialog()
+                # Please enter pin for user
                 pin = dialog.input(
-                    'Enter PIN for user %s' % selected_user,
+                    string(39307) + selected_user,
                     type=xbmcgui.INPUT_NUMERIC,
                     option=xbmcgui.ALPHANUM_HIDE_INPUT
                 )
@@ -1100,10 +1107,11 @@ class PlexAPI():
             # Couldn't get user auth
             if not username:
                 dialog = xbmcgui.Dialog()
+                # Could not login user, please try again
                 dialog.ok(
                     self.addonName,
-                    'Could not log in user %s' % selected_user,
-                    'Please try again.'
+                    string(39308) + selected_user,
+                    string(39309)
                 )
             # Successfully retrieved: break out of while loop
             else:
