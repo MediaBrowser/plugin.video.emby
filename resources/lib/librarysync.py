@@ -1212,13 +1212,41 @@ class LibrarySync(Thread):
             # Currently no db scan, so we can start a new scan
             elif window('emby_dbScan') != "true":
                 # Full scan was requested from somewhere else, e.g. userclient
-                if window('plex_runLibScan') == "true":
+                if window('plex_runLibScan') == "full":
                     log('Full library scan requested, starting', 0)
                     window('emby_dbScan', value="true")
                     window('plex_runLibScan', clear=True)
                     self.fullSync(manualrun=True)
                     window('emby_dbScan', clear=True)
                     count = 0
+                # Reset views was requested from somewhere else
+                elif window('plex_runLibScan') == "views":
+                    log('Refresh playlist and nodes requested, starting', 0)
+                    window('emby_dbScan', value="true")
+                    window('plex_runLibScan', clear=True)
+
+                    # First remove playlists
+                    utils.deletePlaylists()
+                    # Remove video nodes
+                    utils.deleteNodes()
+                    # Kick off refresh
+                    dialog = xbmcgui.Dialog()
+                    if self.maintainViews():
+                        dialog.notification(
+                            heading=self.addonName,
+                            message="Plex playlists/nodes refreshed",
+                            icon="special://home/addons/plugin.video.plexkodiconnect/icon.png",
+                            time=3000,
+                            sound=True)
+                    else:
+                        self.logMsg("Refresh playlists/nodes failed", -1)
+                        dialog.notification(
+                            heading=self.addonName,
+                            message="Plex playlists/nodes refresh failed",
+                            icon=xbmcgui.NOTIFICATION_ERROR,
+                            time=3000,
+                            sound=True)
+                    window('emby_dbScan', clear=True)
                 else:
                     # Run full lib scan approx every 30min
                     if count >= 1800:

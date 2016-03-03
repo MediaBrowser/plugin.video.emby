@@ -187,15 +187,15 @@ def doMainListing():
                          "?mode=switchuser")
 
     #experimental live tv nodes
-    addDirectoryItem("Live Tv Channels (experimental)", "plugin://plugin.video.plexkodiconnect/?mode=browsecontent&type=tvchannels&folderid=root")
-    addDirectoryItem("Live Tv Recordings (experimental)", "plugin://plugin.video.plexkodiconnect/?mode=browsecontent&type=recordings&folderid=root")
+    # addDirectoryItem("Live Tv Channels (experimental)", "plugin://plugin.video.plexkodiconnect/?mode=browsecontent&type=tvchannels&folderid=root")
+    # addDirectoryItem("Live Tv Recordings (experimental)", "plugin://plugin.video.plexkodiconnect/?mode=browsecontent&type=recordings&folderid=root")
 
     # some extra entries for settings and stuff. TODO --> localize the labels
-    addDirectoryItem("Network credentials", "plugin://plugin.video.plexkodiconnect/?mode=passwords")
     addDirectoryItem("Settings", "plugin://plugin.video.plexkodiconnect/?mode=settings")
-    addDirectoryItem("Add user to session", "plugin://plugin.video.plexkodiconnect/?mode=adduser")
-    addDirectoryItem("Refresh Emby playlists/nodes", "plugin://plugin.video.plexkodiconnect/?mode=refreshplaylist")
-    addDirectoryItem("Perform manual sync", "plugin://plugin.video.plexkodiconnect/?mode=manualsync")
+    addDirectoryItem("Network credentials", "plugin://plugin.video.plexkodiconnect/?mode=passwords")
+    # addDirectoryItem("Add user to session", "plugin://plugin.video.plexkodiconnect/?mode=adduser")
+    addDirectoryItem("Refresh Plex playlists/nodes", "plugin://plugin.video.plexkodiconnect/?mode=refreshplaylist")
+    addDirectoryItem("Perform manual library sync", "plugin://plugin.video.plexkodiconnect/?mode=manualsync")
     addDirectoryItem("Repair local database (force update all content)", "plugin://plugin.video.plexkodiconnect/?mode=repair")
     addDirectoryItem("Perform local database reset (full resync)", "plugin://plugin.video.plexkodiconnect/?mode=reset")
     addDirectoryItem("Cache all images to Kodi texture cache", "plugin://plugin.video.plexkodiconnect/?mode=texturecache")
@@ -370,7 +370,7 @@ def switchPlexUser():
     # Log out currently signed in user:
     utils.window('emby_serverStatus', value="401")
     # Request lib sync to get user view data (e.g. watched/unwatched)
-    utils.window('plex_runLibScan', value='true')
+    utils.window('plex_runLibScan', value='full')
 
 
 ##### THEME MUSIC/VIDEOS #####
@@ -531,31 +531,9 @@ def getThemeMedia():
 
 ##### REFRESH EMBY PLAYLISTS #####
 def refreshPlaylist():
+    utils.logMsg(addonName, 'Requesting playlist/nodes refresh', 0)
+    utils.window('plex_runLibScan', value="views")
 
-    lib = librarysync.LibrarySync()
-    dialog = xbmcgui.Dialog()
-    try:
-        # First remove playlists
-        utils.deletePlaylists()
-        # Remove video nodes
-        utils.deleteNodes()
-        # Refresh views
-        lib.refreshViews()
-        dialog.notification(
-                heading="Emby for Kodi",
-                message="Emby playlists/nodes refreshed",
-                icon="special://home/addons/plugin.video.plexkodiconnect/icon.png",
-                time=1000,
-                sound=False)
-
-    except Exception as e:
-        utils.logMsg("EMBY", "Refresh playlists/nodes failed: %s" % e, 1)
-        dialog.notification(
-            heading="Emby for Kodi",
-            message="Emby playlists/nodes refresh failed",
-            icon=xbmcgui.NOTIFICATION_ERROR,
-            time=1000,
-            sound=False)
 
 #### SHOW SUBFOLDERS FOR NODE #####
 def GetSubFolders(nodeindex):
