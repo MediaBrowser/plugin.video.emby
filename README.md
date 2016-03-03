@@ -56,7 +56,7 @@ Guess what, this is BETA. Currently these features are working:
 
 **Important note about MySQL database in kodi**
 
-The addon is not (and will not be) compatible with the MySQL database replacement in Kodi. In fact, Emby takes over the point of having a MySQL database because it acts as a "man in the middle" for your entire media library.
+The addon is not (and will not be) compatible with the MySQL database replacement in Kodi. In fact, PlexKodiConnect takes over the point of having a MySQL database because it acts as a "man in the middle" for your entire media library.
 
 **Important note about user collections/nodes**
 
