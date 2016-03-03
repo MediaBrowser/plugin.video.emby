@@ -14,6 +14,7 @@
 7. Once you're succesfully authenticated to your Plex server, the initial sync will start. 
 8. The first sync of the Plex server to local Kodi database may take a LONG time. With my setup (~400 movies, ~600 episodes, couple of Test music albums and a very powerful NAS), sync take approximately 5 minutes.
 9. Once the full sync is done, you can browse your media in Kodi, syncs will be automatically done in the background.
+10. Restart!
 
 Again, this is beta. You have been warned. It's a given that you will need to fully resync and reset your setup on a regular basis.
 
