@@ -348,15 +348,15 @@ class UserClient(threading.Thread):
             self.currUser = username
             dialog = xbmcgui.Dialog()
             if username:
-                dialog.notification(self.addonName,
-                                    "Welcome %s" % username.decode('utf-8'),
-                                    "special://home/addons/plugin.video."
-                                    "plexkodiconnect/icon.png")
+                dialog.notification(
+                    heading=self.addonName,
+                    message="Welcome %s" % username.decode('utf-8'),
+                    icon="special://home/addons/plugin.video.plexkodiconnect/icon.png")
             else:
-                dialog.notification(self.addonName,
-                                    "Welcome",
-                                    "special://home/addons/plugin.video."
-                                    "plexkodiconnect/icon.png")
+                dialog.notification(
+                    heading=self.addonName,
+                    message="Welcome",
+                    icon="special://home/addons/plugin.video.plexkodiconnect/icon.png")
             settings('accessToken', value=accessToken)
             settings('userId%s' % username, value=userId)
             log("User authenticated with an access token", 1)

@@ -321,7 +321,8 @@ class Service():
 delay = int(utils.settings('startupDelay'))
 
 xbmc.log("Delaying Plex startup by: %s sec..." % delay)
-if delay and xbmc.Monitor().waitForAbort(delay):
+# Plex: add 3 seconds just for good measure
+if delay and xbmc.Monitor().waitForAbort(delay+3):
     # Start the service
     xbmc.log("Abort requested while waiting. Emby for kodi not started.")
 else:
