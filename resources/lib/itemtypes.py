@@ -36,11 +36,10 @@ class Items(object):
     def __init__(self):
         self.doUtils = downloadutils.DownloadUtils()
         self.kodiversion = int(xbmc.getInfoLabel("System.BuildVersion")[:2])
-        self.directpath = utils.settings('useDirectPaths') == "1"
-        self.music_enabled = utils.settings('enableMusic') == "true"
-        self.contentmsg = utils.settings('newContent') == "true"
-        self.newvideo_time = int(utils.settings('newvideotime'))*1000
-        self.newmusic_time = int(utils.settings('newmusictime'))*1000
+        # self.directpath = utils.settings('useDirectPaths') == "1"
+        self.directpath = False
+        # self.music_enabled = utils.settings('enableMusic') == "true"
+        # self.contentmsg = utils.settings('newContent') == "true"
 
         self.artwork = artwork.Artwork()
         self.emby = embyserver.Read_EmbyServer()

@@ -172,7 +172,7 @@ class PlexAPI():
             return False
         # Go to https://plex.tv/pin and enter the code:
         answer = dialog.yesno(self.addonName,
-                              string(39304),
+                              string(39304) + "\n\n",
                               code)
         if not answer:
             return False
@@ -1167,7 +1167,12 @@ class PlexAPI():
             self.logMsg('Error: plex.tv switch HomeUser change failed', -1)
             return ('', '')
         self.logMsg('Plex.tv switch HomeUser change successfull', 0)
-        self.logMsg('username: %s, token: xxxx' % username, 0)
+        self.logMsg("username: %s, token: xxxx. "
+                    "Saving to window and file settings" % username, 0)
+        utils.window('emby_currUser', value=userId)
+        utils.settings('userId%s' % username, value=userId)
+        utils.settings('username', value=username)
+        utils.window('emby_accessToken%s' % userId, value=token)
         return (username, token)
 
     def MyPlexListHomeUsers(self, authtoken):

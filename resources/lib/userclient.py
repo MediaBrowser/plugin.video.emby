@@ -285,7 +285,7 @@ class UserClient(threading.Thread):
 
         # Start DownloadUtils session
         doUtils.startSession()
-        self.getAdditionalUsers()
+        # self.getAdditionalUsers()
         # Set user preferences in settings
         self.currUser = username
         self.setUserPref()
@@ -367,7 +367,7 @@ class UserClient(threading.Thread):
             window('plex_machineIdentifier', plex_machineIdentifier)
             self.retry = 0
             # Make sure that lib sync thread is not paused
-            utils.window('suspend_LibraryThread', value='false')
+            utils.window('suspend_LibraryThread', clear=True)
         else:
             self.logMsg("Error: user authentication failed.", -1)
             settings('accessToken', value="")
@@ -385,19 +385,22 @@ class UserClient(threading.Thread):
 
     def resetClient(self):
         self.logMsg("Reset UserClient authentication.", 1)
-        username = self.getUsername()
 
         utils.settings('accessToken', value="")
-        utils.window('emby_accessToken%s' % username, clear=True)
+        utils.window('emby_accessToken%s' % self.currUserId, clear=True)
         self.currToken = None
-        self.logMsg("User token has been removed.", 1)
+        self.logMsg("User token has been removed. Pausing Lib sync thread", 1)
+        utils.window('suspend_LibraryThread', value="true")
 
         self.auth = True
         self.currUser = None
+        self.currUserId = None
 
     def run(self):
         log = self.logMsg
         window = utils.window
+        # Start library sync thread in a suspended mode, until signed in
+        utils.window('suspend_LibraryThread', value="true")
 
         log("----===## Starting UserClient ##===----", 0)
         while not self.threadStopped():
@@ -420,7 +423,6 @@ class UserClient(threading.Thread):
 
             if self.auth and (self.currUser is None):
                 # Try to authenticate user
-                status = window('emby_serverStatus')
                 if not status or status == "Auth":
                     # Set auth flag because we no longer need
                     # to authenticate the user
@@ -431,7 +433,6 @@ class UserClient(threading.Thread):
                 # If authenticate failed.
                 server = self.getServer()
                 username = self.getUsername()
-                status = window('emby_serverStatus')
 
                 # The status Stop is for when user cancelled password dialog.
                 if server and username and status != "Stop":

@@ -114,32 +114,32 @@ class DownloadUtils():
             utils.window('emby_sessionId', value=sessionId)
             
             # Post any permanent additional users
-            additionalUsers = utils.settings('additionalUsers')
-            if additionalUsers:
+            # additionalUsers = utils.settings('additionalUsers')
+            # if additionalUsers:
                 
-                additionalUsers = additionalUsers.split(',')
-                self.logMsg(
-                    "List of permanent users added to the session: %s"
-                    % additionalUsers, 1)
+            #     additionalUsers = additionalUsers.split(',')
+            #     self.logMsg(
+            #         "List of permanent users added to the session: %s"
+            #         % additionalUsers, 1)
 
-                # Get the user list from server to get the userId
-                url = "{server}/emby/Users?format=json"
-                result = self.downloadUrl(url)
+            #     # Get the user list from server to get the userId
+            #     url = "{server}/emby/Users?format=json"
+            #     result = self.downloadUrl(url)
 
-                for additional in additionalUsers:
-                    addUser = additional.decode('utf-8').lower()
+            #     for additional in additionalUsers:
+            #         addUser = additional.decode('utf-8').lower()
 
-                    # Compare to server users to list of permanent additional users
-                    for user in result:
-                        username = user['Name'].lower()
+            #         # Compare to server users to list of permanent additional users
+            #         for user in result:
+            #             username = user['Name'].lower()
 
-                        if username in addUser:
-                            userId = user['Id']
-                            url = (
-                                    "{server}/emby/Sessions/%s/Users/%s?format=json"
-                                    % (sessionId, userId)
-                            )
-                            self.downloadUrl(url, postBody={}, type="POST")
+            #             if username in addUser:
+            #                 userId = user['Id']
+            #                 url = (
+            #                         "{server}/emby/Sessions/%s/Users/%s?format=json"
+            #                         % (sessionId, userId)
+            #                 )
+            #                 self.downloadUrl(url, postBody={}, type="POST")
 
 
     def startSession(self):

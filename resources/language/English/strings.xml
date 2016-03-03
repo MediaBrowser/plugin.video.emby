@@ -380,9 +380,7 @@
     <string id="39301">Enter password for plex.tv user </string>
     <string id="39302">Could not sign in user </string>
     <string id="39303">Problems trying to contact plex.tv. Try again later</string>
-    <string id="39304">Go to https://plex.tv/pin and enter the code:
-
-    </string>
+    <string id="39304">Go to https://plex.tv/pin and enter the code: </string>
     <string id="39305">Could not sign in to plex.tv. Try again later</string>
     <string id="39306">: Select User</string>
     <string id="39307">Enter PIN for user </string>

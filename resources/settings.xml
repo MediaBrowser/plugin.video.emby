@@ -41,7 +41,7 @@
 	</category>
 	<category label="30506"><!-- Sync Options -->
 		<setting id="serverSync" type="bool" label="30514" default="true" visible="false"/><!-- Enable fast startup (requires server plugin) -->
-		<setting id="dbSyncIndicator" label="30507" type="bool" default="false" />
+		<setting id="dbSyncIndicator" label="30507" type="bool" default="true" />
 		<setting type="sep" /><!-- show syncing progress -->
 		<setting id="limitindex" type="number" label="30515" default="200" option="int" visible="false"/><!-- Maximum items to request from the server at once -->
 		<setting id="enableTextureCache" label="30512"  type="bool" default="true" /> <!-- Force Artwork Caching -->
@@ -86,7 +86,7 @@
 		<setting id="connectMsg" type="bool" label="30249" default="true" visible="false" />
         <setting id="restartMsg" type="bool" label="30530" default="false" visible="false" />
         <setting id="newContent" type="bool" label="30531" default="false" visible="false" />
-        <setting id="newvideotime" type="number" label="30532" visible="false" default="5" option="int" subsetting="true" />
+	    <setting id="newvideotime" type="number" label="30532" visible="false" default="5" option="int" subsetting="true" />
         <setting id="newmusictime" type="number" label="30533" visible="false" default="2" option="int" subsetting="true" />
 	</category>
 	-->

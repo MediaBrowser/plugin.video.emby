@@ -308,9 +308,7 @@
     <string id="39301">Passwort eingeben für plex.tv Benutzer </string>
     <string id="39302">Anmeldung fehlgeschlagen für Benutzer </string>
     <string id="39303">Probleme beim Verbinden mit plex.tv. Bitte später erneut versuchen.</string>
-    <string id="39304">https://plex.tv/pin besuchen und den folgenden Code eingeben:
-
-    </string>
+    <string id="39304">https://plex.tv/pin besuchen und den folgenden Code eingeben: </string>
     <string id="39305">Anmeldung bei plex.tv fehlgeschlagen. Bitte später erneut versuchen.</string>
     <string id="39306">: Benutzer auswählen</string>
     <string id="39307">PIN eingeben für Benutzer </string>

@@ -1,26 +1,23 @@
 # -*- coding: utf-8 -*-
 
-#################################################################################################
+###############################################################################
 
 import os
 import sys
-# import time
 from datetime import datetime
 
 import xbmc
 import xbmcaddon
 import xbmcgui
-import _strptime
-import xbmcvfs
 
-#################################################################################################
+###############################################################################
 
 _addon = xbmcaddon.Addon(id='plugin.video.plexkodiconnect')
 addon_path = _addon.getAddonInfo('path').decode('utf-8')
 base_resource = xbmc.translatePath(os.path.join(addon_path, 'resources', 'lib')).decode('utf-8')
 sys.path.append(base_resource)
 
-#################################################################################################
+###############################################################################
 
 import userclient
 import clientinfo
@@ -34,7 +31,7 @@ import videonodes
 import PlexAPI
 import PlexCompanion
 
-#################################################################################################
+###############################################################################
 
 
 @utils.logging
@@ -49,7 +46,6 @@ class Service():
     library_running = False
     kodimonitor_running = False
     plexCompanion_running = False
-
 
     def __init__(self):
 
@@ -170,7 +166,7 @@ class Service():
                     else:
                         # Start up events
                         self.warn_auth = True
-                        if utils.settings('connectMsg') == "true" and self.welcome_msg:
+                        if self.welcome_msg:
                             # Reset authentication warnings
                             self.welcome_msg = False
                             # Get additional users
@@ -184,7 +180,7 @@ class Service():
                                         message=("%s %s%s!"
                                                 % (lang(33000), user.currUser.decode('utf-8'),
                                                     add.decode('utf-8'))),
-                                        icon="special://home/addons/plugin.video.emby/icon.png",
+                                        icon="special://home/addons/plugin.video.plexkodiconnect/icon.png",
                                         time=2000,
                                         sound=False)
 

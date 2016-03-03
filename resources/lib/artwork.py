@@ -506,11 +506,11 @@ def getAllArtwork(self, item, parentInfo=False):
         maxWidth = 10000
         customquery = ""
 
-        if utils.settings('compressArt') == "true":
-            customquery = "&Quality=90"
+        # if utils.settings('compressArt') == "true":
+        #     customquery = "&Quality=90"
 
-        if utils.settings('enableCoverArt') == "false":
-            customquery += "&EnableImageEnhancers=false"
+        # if utils.settings('enableCoverArt') == "false":
+        #     customquery += "&EnableImageEnhancers=false"
 
         allartworks = {
 

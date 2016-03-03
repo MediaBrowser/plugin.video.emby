@@ -358,7 +358,7 @@ def switchPlexUser():
     # Pause library sync thread - user needs to be auth in order to sync
     utils.window('suspend_LibraryThread', value='true')
     # Wait to ensure that any sync already going on has finished
-    while utils.window('emby_dbScan' == 'true'):
+    while utils.window('emby_dbScan') == 'true':
         xbmc.sleep(1000)
     # Log out currently signed in user:
     utils.window('emby_serverStatus', value="401")

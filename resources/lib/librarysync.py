@@ -1095,7 +1095,11 @@ class LibrarySync(Thread):
     def compareDBVersion(self, current, minimum):
         # It returns True is database is up to date. False otherwise.
         self.logMsg("current: %s minimum: %s" % (current, minimum), 1)
-        currMajor, currMinor, currPatch = current.split(".")
+        try:
+            currMajor, currMinor, currPatch = current.split(".")
+        except ValueError:
+            # there WAS no current DB, e.g. deleted.
+            return True
         minMajor, minMinor, minPatch = minimum.split(".")
 
         if currMajor > minMajor:

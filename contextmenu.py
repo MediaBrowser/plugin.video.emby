@@ -57,7 +57,7 @@ if __name__ == '__main__':
 
     if embyid:
         item = emby.getItem(embyid)
-        API = api.API(item)
+        API = PlexAPI.API(item)
         userdata = API.getUserData()
         likes = userdata['Likes']
         favourite = userdata['Favorite']
@@ -83,7 +83,7 @@ if __name__ == '__main__':
             options.append(utils.language(30407))
         
         #delete item
-        options.append(utils.language(30409))
+        # options.append(utils.language(30409))
         
         #addon settings
         options.append(utils.language(30408))
