@@ -421,7 +421,6 @@ class LibrarySync(Thread):
 
         # Get current media folders from emby database
         view = emby_db.getView_byId(folderid)
-        self.logMsg("playlist: %s, nodes: %s, sorted_views: %s, folderid: %s, foldername: %s, viewtype: %s" % (playlists, nodes, sorted_views, folderid, foldername, viewtype))
         try:
             current_viewname = view[0]
             current_viewtype = view[1]
@@ -1228,12 +1227,6 @@ class LibrarySync(Thread):
                         log('Running automatic full lib scan', 0)
                         self.fullSync(manualrun=True)
                         window('emby_dbScan', clear=True)
-                    # Update views / PMS libraries approx. every 5min
-                    elif count % 300 == 0:
-                        log('Running maintainViews() scan', 0)
-                        window('emby_dbScan', value="true")
-                        self.maintainViews()
-                        self.startSync()
                     # Run fast sync otherwise (ever 2 seconds or so)
                     else:
                         self.startSync()
