@@ -5,6 +5,7 @@
 - The foundation of the Plex API is all iBaa's work (https://github.com/iBaa/PlexConnect).
 
 **Installation in Kodi**
+
 1. You might want to uninstall everything else Plex related first, e.g. PlexBMC and PlexBMC Helper. Starting with a fresh Kodi install might be a good idea. Be sure to use a "normal", unmodded Skin in Kodi
 2. Simply fire up Kodi and Install from ZIP from here on. 
 3. Install the 2 needed dependencies first (be sure to NOT download the sources but the additional release files): https://github.com/croneter/plugin.video.plexkodiconnect.tvshows/releases/tag/1.0.0 and https://github.com/croneter/plugin.video.plexkodiconnect.movies/releases/tag/1.0.0
