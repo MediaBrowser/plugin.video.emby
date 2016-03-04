@@ -51,6 +51,7 @@ Guess what, this is BETA. Currently these features are working:
 **Known Issues:**
 - Windows users: Kodi Helix 14.2 RC1 required - other versions will result in errors with recently added items etc.
 - You must have a static IP address for your Plex media server if you plan to use Plex Music features. This is due to the way Kodi works and cannot be helped.
+- PlexKodiConnect continuously polls the Plex Media Server for changes. If something on the PMS changed, this change is synced to Kodi. Hence if you rescan your entire library, a long PlexKodiConnect re-sync is triggered.
 - This is a BETA version and could potentially set fire to your Raspi
 
 
