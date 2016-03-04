@@ -18,6 +18,12 @@
 
 Again, this is beta. You have been warned. It's a given that you will need to fully resync and reset your setup on a regular basis.
 
+**Having Problems? Then thanks for your log files**
+
+1. Activate a more detailed logging for KodiPlexConnect: Settings -> Advanced -> "Debug"
+2. Follow the instructions here: http://kodi.wiki/view/Log_file/Easy
+3. Post the link to your log (that you posted e.g. here: http://xbmclogs.com/) on https://forums.plex.tv/discussion/210023/plexkodiconnect-supercharge-your-plex-kodi-connection
+
 
 ### Welcome to PlexKodiConnect
 **Connect your Plex Media Server to a Kodi Front End**
