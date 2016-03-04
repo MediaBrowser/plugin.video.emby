@@ -169,21 +169,14 @@ class Service():
                         if self.welcome_msg:
                             # Reset authentication warnings
                             self.welcome_msg = False
-                            # Get additional users
-                            additionalUsers = user.AdditionalUser
-                            if additionalUsers:
-                                add = ", %s" % ", ".join(additionalUsers)
-                            else:
-                                add = ""
                             xbmcgui.Dialog().notification(
-                                        heading=self.addonName,
-                                        message=("%s %s%s!"
-                                                % (lang(33000), user.currUser.decode('utf-8'),
-                                                    add.decode('utf-8'))),
-                                        icon="special://home/addons/plugin.video.plexkodiconnect/icon.png",
-                                        time=2000,
-                                        sound=False)
-
+                                heading=self.addonName,
+                                message=("%s %s"
+                                         % (lang(33000),
+                                            user.currUser.decode('utf-8'))),
+                                icon="special://home/addons/plugin.video.plexkodiconnect/icon.png",
+                                time=2000,
+                                sound=False)
                         # Start monitoring kodi events
                         if not self.kodimonitor_running:
                             self.kodimonitor_running = kodimonitor.KodiMonitor()
@@ -221,15 +214,12 @@ class Service():
                 # Wait until Emby server is online
                 # or Kodi is shut down.
                 while not monitor.abortRequested():
-                    
                     server = user.getServer()
-                    plexToken = utils.settings('plexToken')
-                    if server == False:
+                    if server is False:
                         # No server info set in add-on settings
                         pass
-                    
-                    elif plx.CheckConnection(server, plexToken) != 200:
-                        # Server is offline.
+                    elif plx.CheckConnection(server) is False:
+                        # Server is offline or cannot be reached
                         # Alert the user and suppress future warning
                         if self.server_online:
                             log("Server is offline.", 1)

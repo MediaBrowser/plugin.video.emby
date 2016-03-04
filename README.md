@@ -14,8 +14,15 @@
 7. Once you're succesfully authenticated to your Plex server, the initial sync will start. 
 8. The first sync of the Plex server to local Kodi database may take a LONG time. With my setup (~400 movies, ~600 episodes, couple of Test music albums and a very powerful NAS), sync take approximately 5 minutes.
 9. Once the full sync is done, you can browse your media in Kodi, syncs will be automatically done in the background.
+10. Restart!
 
 Again, this is beta. You have been warned. It's a given that you will need to fully resync and reset your setup on a regular basis.
+
+**Having Problems? Then thanks for your log files**
+
+1. Activate a more detailed logging for KodiPlexConnect: Settings -> Advanced -> "Debug"
+2. Follow the instructions here: http://kodi.wiki/view/Log_file/Easy
+3. Post the link to your log (that you posted e.g. here: http://xbmclogs.com/) on https://forums.plex.tv/discussion/210023/plexkodiconnect-supercharge-your-plex-kodi-connection
 
 
 ### Welcome to PlexKodiConnect
@@ -44,6 +51,7 @@ Guess what, this is BETA. Currently these features are working:
 **Known Issues:**
 - Windows users: Kodi Helix 14.2 RC1 required - other versions will result in errors with recently added items etc.
 - You must have a static IP address for your Plex media server if you plan to use Plex Music features. This is due to the way Kodi works and cannot be helped.
+- PlexKodiConnect continuously polls the Plex Media Server for changes. If something on the PMS changed, this change is synced to Kodi. Hence if you rescan your entire library, a long PlexKodiConnect re-sync is triggered.
 - This is a BETA version and could potentially set fire to your Raspi
 
 

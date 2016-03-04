@@ -310,7 +310,7 @@
     <string id="33007">Access is enabled</string>
     <string id="33008">Enter password for user:</string>
     <string id="33009">Invalid username or password</string>
-    <string id="33010">Failed to authenticate too many times</string>
+    <string id="33010">Failed to authenticate too many times. Reset in the settings.</string>
     <string id="33011">Unable to direct play</string>
     <string id="33012">Direct play failed 3 times. Enabled play from HTTP.</string>
     <string id="33013">Choose the audio stream</string>
@@ -360,6 +360,11 @@
     <string id="39019">[COLOR yellow]Perform local database reset (full resync)[/COLOR]</string>
     <string id="39020">[COLOR yellow]Cache all images to Kodi texture cache[/COLOR]</string>
     <string id="39021">[COLOR yellow]Sync Emby Theme Media to Kodi[/COLOR]</string>
+    <string id="39022"> (local)</string>
+    <string id="39023">Failed to authenticate. Did you login to plex.tv?</string>
+    <string id="39024">[COLOR yellow]Log into plex.tv[/COLOR]</string>
+    <string id="39025">Automatically log into plex.tv on startup</string>
+
 
     <!-- Plex Entrypoint.py -->
     <string id="39200">Switch Plex Home User</string>

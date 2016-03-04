@@ -30,7 +30,7 @@ class InitialSetup():
         self.userClient = userclient.UserClient()
         self.plx = PlexAPI.PlexAPI()
 
-    def setup(self):
+    def setup(self, forcePlexTV=False):
         """
         Initial setup. Run once upon startup.
         Check server, user, direct paths, music, direct stream if not direct
@@ -42,16 +42,24 @@ class InitialSetup():
         server = self.userClient.getServer()
         clientId = self.clientInfo.getDeviceId()
         serverid = utils.settings('plex_machineIdentifier')
-        myplexlogin, plexhome, plexLogin, plexToken = \
-            self.plx.GetPlexLoginFromSettings()
+        # Get Plex credentials from settings file, if they exist
+        plexdict = self.plx.GetPlexLoginFromSettings()
+        myplexlogin = plexdict['myplexlogin']
+        plexLogin = plexdict['plexLogin']
+        plexToken = plexdict['plexToken']
+        plexid = plexdict['plexid']
+        self.logMsg('Plex info retrieved from settings: %s' % plexdict, 1)
+
         dialog = xbmcgui.Dialog()
 
         # Optionally sign into plex.tv. Will not be called on very first run
         # as plexToken will be ''
-        if plexToken and myplexlogin == 'true':
+        if (plexToken and myplexlogin == 'true' and forcePlexTV is False):
             chk = self.plx.CheckConnection('plex.tv', plexToken)
-            # HTTP Error: unauthorized
+            # HTTP Error: unauthorized. Token is no longer valid
             if chk == 401:
+                # Delete token in the settings
+                utils.settings('plexToken', value='')
                 # Could not login, please try again
                 dialog.ok(
                     self.addonName,
@@ -61,25 +69,28 @@ class InitialSetup():
                 if result:
                     plexLogin = result['username']
                     plexToken = result['token']
+                    plexid = result['plexid']
             elif chk is False or chk >= 400:
+                # Problems connecting to plex.tv. Network or internet issue?
                 dialog.ok(
                     self.addonName,
                     string(39010)
                 )
         # If a Plex server IP has already been set, return.
-        if server:
+        if server and forcePlexTV is False:
             self.logMsg("Server is already set.", 0)
             self.logMsg("url: %s, Plex machineIdentifier: %s"
                         % (server, serverid), 0)
             return
 
         # If not already retrieved myplex info, optionally let user sign in
-        # to plex.tv.
-        if not plexToken and myplexlogin == 'true':
+        # to plex.tv. This DOES get called on very first install run
+        if ((not plexToken and myplexlogin == 'true') or forcePlexTV):
             result = self.plx.PlexTvSignInWithPin()
             if result:
                 plexLogin = result['username']
                 plexToken = result['token']
+                plexid = result['plexid']
         # Get g_PMS list of servers (saved to plx.g_PMS)
         while True:
             tokenDict = {'MyPlexToken': plexToken} if plexToken else {}
@@ -104,8 +115,8 @@ class InitialSetup():
                 break
             for server in serverlist:
                 if server['local'] == '1':
-                    # server is in the same network as client
-                    dialoglist.append(str(server['name']) + ' (nearby)')
+                    # server is in the same network as client. Add "local"
+                    dialoglist.append(str(server['name']) + string(39022))
                 else:
                     dialoglist.append(str(server['name']))
             resp = dialog.select(
@@ -127,6 +138,8 @@ class InitialSetup():
             chk = self.plx.CheckConnection(url, server['accesstoken'])
             # Unauthorized
             if chk == 401:
+                # Not yet authorized for Plex server
+                # Please sign in to plex.tv
                 dialog.ok(self.addonName,
                           string(39013) + str(server['name']),
                           string(39014))
@@ -134,13 +147,14 @@ class InitialSetup():
                 if result:
                     plexLogin = result['username']
                     plexToken = result['token']
+                    plexid = result['plexid']
                 else:
                     # Exit while loop if user cancels
                     break
             # Problems connecting
             elif chk >= 400 or chk is False:
-                resp = dialog.yesno(self.addonName,
-                                    string(39015))
+                # Problems connecting to server. Pick another server?
+                resp = dialog.yesno(self.addonName, string(39015))
                 # Exit while loop if user chooses No
                 if not resp:
                     break
@@ -150,6 +164,11 @@ class InitialSetup():
                 break
         if not isconnected:
             # Enter Kodi settings instead
+            if dialog.yesno(
+                    heading=self.addonName,
+                    line1=string(39016)):
+                self.logMsg("User opted to disable Plex music library.", 1)
+                utils.settings('enableMusic', value="false")
             xbmc.executebuiltin('Addon.OpenSettings(%s)' % self.addonId)
             return
         # Write to Kodi settings file
@@ -160,7 +179,7 @@ class InitialSetup():
             utils.settings('https', 'true')
         else:
             utils.settings('https', 'false')
-        self.logMsg("Wrote to Kodi user settings file:", 0)
+        self.logMsg("Writing to Kodi user settings file", 0)
         self.logMsg("PMS machineIdentifier: %s, ip: %s, port: %s, https: %s "
                     % (activeServer, server['ip'], server['port'],
                         server['scheme']), 0)
@@ -177,6 +196,9 @@ class InitialSetup():
         # if directPaths:
         #     self.logMsg("User opted to use direct paths.", 1)
         #     utils.settings('useDirectPaths', value="1")
+
+        if forcePlexTV:
+            return
 
         if dialog.yesno(
                 heading=self.addonName,

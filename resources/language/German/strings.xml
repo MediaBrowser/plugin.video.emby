@@ -250,6 +250,8 @@
     <string id="30249">Unterdrücke Server-Verbindungsmeldungen beim Starten</string>
     <string id="30250">Benutze lokale Pfade anstelle von Addon-Umleitungen beim Abspielen</string>
 
+    <string id="33010">Plex Media Server Authorisierung ist zu häufig fehlgeschlagen. In den Einstellungen können die Anzahl erfolgloser Versuche zurückgesetzt werden.</string>
+
 	<!-- Default views -->
     <string id="30300">Aktiviert</string>
     <string id="30301">Zurücksetzen</string>
@@ -289,6 +291,10 @@
     <string id="39019">[COLOR yellow]Lokale Datenbank zurücksetzen (kompletter Resync nötig)[/COLOR]</string>
     <string id="39020">[COLOR yellow]Alle Plex Bilder in Kodi zwischenspeichern[/COLOR]</string>
     <string id="39021">[COLOR yellow]Plex Themes zu Kodi synchronisieren[/COLOR]</string>
+    <string id="39022"> (lokal)</string>
+    <string id="39023">Plex Media Server Authentifizierung fehlgeschlagen. Haben Sie sich bei plex.tv eingeloggt?</string>
+    <string id="39024">[COLOR yellow]Bei plex.tv einloggen[/COLOR]</string>
+    <string id="39025">Automatisch beim Starten bei plex.tv einloggen</string>
 
     <!-- Plex Entrypoint.py -->
     <string id="39200">Plex Home Benutzer wechseln</string>

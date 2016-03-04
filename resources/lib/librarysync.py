@@ -165,7 +165,9 @@ class ThreadedShowSyncInfo(Thread):
         downloadLock = self.locks[0]
         processLock = self.locks[1]
         dialog.create("%s: Sync %s: %s items"
-                      % (self.addonName, self.itemType, str(total)),
+                      % (self.addonName.encode('utf-8'),
+                         self.itemType.encode('utf-8'),
+                         str(total)),
                       "Starting")
         global getMetadataCount
         global processMetadataCount
@@ -188,7 +190,7 @@ class ThreadedShowSyncInfo(Thread):
                     percentage,
                     message="Downloaded: %s. Processed: %s: %s"
                             % (getMetadataProgress, processMetadataProgress,
-                               viewName))
+                               viewName.decode('utf-8')))
             except:
                 # Wierd formating of the string viewName?!?
                 pass
@@ -819,7 +821,7 @@ class LibrarySync(Thread):
                                viewName,
                                viewId)
         self.GetAndProcessXMLs(itemType)
-        self.logMsg("Processed view %s with ID %s" % (viewName, viewId), 1)
+        self.logMsg("Processed view", 1)
         # Update viewstate
         for view in views:
             if self.threadStopped():

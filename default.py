@@ -8,7 +8,6 @@ import urlparse
 
 import xbmc
 import xbmcaddon
-import xbmcgui
 
 #################################################################################################
 
@@ -67,7 +66,8 @@ class Main:
             'refreshplaylist': entrypoint.refreshPlaylist,
             'companion': entrypoint.plexCompanion,
             'switchuser': entrypoint.switchPlexUser,
-            'deviceid': entrypoint.resetDeviceId
+            'deviceid': entrypoint.resetDeviceId,
+            'doPlexTvLogin': entrypoint.doPlexTvLogin
         }
         
         if "extrafanart" in sys.argv[0]:

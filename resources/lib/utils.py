@@ -304,7 +304,7 @@ def setScreensaver(value):
         }
     }
     result = xbmc.executeJSONRPC(json.dumps(query))
-    logMsg("EMBY", "Toggling screensaver: %s %s" % (value, result), 1)    
+    logMsg("PLEX", "Toggling screensaver: %s %s" % (value, result), 1)    
 
 def reset():
 
@@ -318,7 +318,7 @@ def reset():
     window('emby_shouldStop', value="true")
     count = 10
     while window('emby_dbScan') == "true":
-        logMsg("EMBY", "Sync is running, will retry: %s..." % count)
+        logMsg("PLEX", "Sync is running, will retry: %s..." % count)
         count -= 1
         if count == 0:
             dialog.ok("Warning", "Could not stop the database from running. Try again.")

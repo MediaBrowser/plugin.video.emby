@@ -369,7 +369,6 @@ class Movies(Items):
             if extra['extraType'] == '1':
                 trailer = ("plugin://plugin.video.plexkodiconnect/trailer/?"
                            "id=%s&mode=play") % extra['key']
-                self.logMsg("Trailer for %s: %s" % (itemid, trailer), 2)
                 break
 
         ##### GET THE FILE AND PATH #####
@@ -403,9 +402,7 @@ class Movies(Items):
             # Set plugin path and media flags using real filename
             path = "plugin://plugin.video.plexkodiconnect.movies/"
             params = {
-
-                #'filename': filename.encode('utf-8'),
-                'filename': filename,
+                'filename': filename.encode('utf-8'),
                 'id': itemid,
                 'dbid': movieid,
                 'mode': "play"
@@ -1257,7 +1254,7 @@ class TVShows(Items):
             params = {
 
                 #'filename': filename.encode('utf-8'),
-                'filename': filename,
+                'filename': filename.encode('utf-8'),
                 'id': itemid,
                 'dbid': episodeid,
                 'mode': "play"

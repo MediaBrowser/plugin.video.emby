@@ -88,16 +88,25 @@ class PlexAPI():
 
     def GetPlexLoginFromSettings(self):
         """
-        Returns empty strings if not found.
+        Returns a dict:
+            'plexLogin': utils.settings('plexLogin'),
+            'plexToken': utils.settings('plexToken'),
+            'plexhome': utils.settings('plexhome'),
+            'plexid': utils.settings('plexid'),
+            'myplexlogin': utils.settings('myplexlogin')
+
+        Returns empty strings '' for a setting if not found.
 
         myplexlogin is 'true' if user opted to log into plex.tv (the default)
         plexhome is 'true' if plex home is used (the default)
         """
-        plexLogin = utils.settings('plexLogin')
-        plexToken = utils.settings('plexToken')
-        myplexlogin = utils.settings('myplexlogin')
-        plexhome = utils.settings('plexhome')
-        return (myplexlogin, plexhome, plexLogin, plexToken)
+        return {
+            'plexLogin': utils.settings('plexLogin'),
+            'plexToken': utils.settings('plexToken'),
+            'plexhome': utils.settings('plexhome'),
+            'plexid': utils.settings('plexid'),
+            'myplexlogin': utils.settings('myplexlogin')
+        }
 
     def GetPlexLoginAndPassword(self):
         """
@@ -178,18 +187,19 @@ class PlexAPI():
             return False
         count = 0
         # Wait for approx 30 seconds (since the PIN is not visible anymore :-))
-        while count < 6:
+        while count < 30:
             xml = self.CheckPlexTvSignin(identifier)
             if xml:
                 break
-            # Wait for 5 seconds
-            xbmc.sleep(5000)
+            # Wait for 1 seconds
+            xbmc.sleep(1000)
             count += 1
         if not xml:
             # Could not sign in to plex.tv Try again later
             dialog.ok(self.addonName, string(39305))
             return False
         # Parse xml
+        userid = xml.attrib.get('id')
         home = xml.get('home', '0')
         if home == '1':
             home = 'true'
@@ -202,11 +212,15 @@ class PlexAPI():
             'plexhome': home,
             'username': username,
             'avatar': avatar,
-            'token': token
+            'token': token,
+            'plexid': userid
         }
         utils.settings('plexLogin', username)
         utils.settings('plexToken', token)
         utils.settings('plexhome', home)
+        utils.settings('plexid', userid)
+        # Let Kodi log into plex.tv on startup from now on
+        utils.settings('myplexlogin', 'true')
         return result
 
     def CheckPlexTvSignin(self, identifier):
@@ -307,7 +321,7 @@ class PlexAPI():
             return False
         return xml
 
-    def CheckConnection(self, url, token):
+    def CheckConnection(self, url, token=None):
         """
         Checks connection to a Plex server, available at url. Can also be used
         to check for connection with plex.tv.
@@ -735,7 +749,6 @@ class PlexAPI():
             xargs['X-Plex-Token'] = authtoken
 
         self.logMsg("URL for XML download: %s%s" % (baseURL, path), 1)
-        self.logMsg("xargs: %s" % xargs, 1)
 
         request = urllib2.Request(baseURL+path, None, xargs)
         request.add_header('User-agent', 'PlexDB')
@@ -1090,11 +1103,14 @@ class PlexAPI():
             if user['protected'] == '1':
                 dialog = xbmcgui.Dialog()
                 # Please enter pin for user
+                self.logMsg('Asking for users PIN', 1)
                 pin = dialog.input(
                     string(39307) + selected_user,
                     type=xbmcgui.INPUT_NUMERIC,
-                    option=xbmcgui.ALPHANUM_HIDE_INPUT
-                )
+                    option=xbmcgui.ALPHANUM_HIDE_INPUT)
+                # User chose to cancel
+                if pin is None:
+                    break
             else:
                 pin = None
             # Switch to this Plex Home user, if applicable
@@ -1108,18 +1124,20 @@ class PlexAPI():
             if not username:
                 dialog = xbmcgui.Dialog()
                 # Could not login user, please try again
-                dialog.ok(
+                if not dialog.yesno(
                     self.addonName,
                     string(39308) + selected_user,
                     string(39309)
-                )
+                ):
+                    # User chose to cancel
+                    break
             # Successfully retrieved: break out of while loop
             else:
                 break
             trials += trials
         if not username:
             xbmc.executebuiltin('Addon.OpenSettings(%s)' % self.addonId)
-            return ('', '', '', '')
+            return ('', '', '')
         return (username, user['id'], usertoken)
 
     def PlexSwitchHomeUser(self, userId, pin, token, machineId):
