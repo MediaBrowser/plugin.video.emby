@@ -73,6 +73,20 @@ def plexCompanion(fullurl, params):
             title, "Not knowing what to do for now - no playQueue sent", -1)
 
 
+def doPlexTvLogin():
+    """
+    Triggers login to plex.tv
+    """
+    # Suspend the user client during procedure
+    utils.window('suspend_Userclient', value='true')
+    import initialsetup
+    initialsetup.InitialSetup().setup(forcePlexTV=True)
+    utils.logMsg("PLEX", "Reset login attempts.", 1)
+    utils.window('emby_serverStatus', value="Auth")
+    # Restart user client
+    utils.window('suspend_Userclient', clear=True)
+
+
 def PassPlaylist(xml, resume=None):
     """
     resume in KodiTime - seconds.

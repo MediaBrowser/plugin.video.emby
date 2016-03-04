@@ -25,10 +25,11 @@
 
 	<category label="plex.tv"><!-- plex.tv -->
 		<!-- Primary address -->
-		<setting id="myplexlogin" label="Log into plex.tv?" type="bool" default="true" />
-		<setting id="plexLogin" label="plex.tv username" type="text" default="" visible="eq(-1,true)" />
+		<setting id="myplexlogin" label="39025" type="bool" default="true" /> <!-- Log into plex.tv on startup -->
+		<setting id="doPlexTvLogin" label="39024" type="action" action="RunPlugin(plugin://plugin.video.plexkodiconnect?mode=doPlexTvLogin)" option="close" />
 
-		<setting id="plexhome" label="Plex home in use" type="bool" default="true" visible="false" />
+		<setting id="plexLogin" label="plex.tv username" type="text" default="" visible="false" />
+		<setting id="plexhome" label="Plex home in use" type="bool" default="" visible="false" />
 		<setting id="plexToken" label="plexToken" type="text" default="" visible="false" />
 	</category>
 	<category label="Plex Companion">
