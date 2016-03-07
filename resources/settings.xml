@@ -51,6 +51,7 @@
 		<setting id="syncEmptyShows" type="bool" label="30508" default="false" visible="false"/>
 		<setting id="useDirectPaths" type="enum" label="30511" values="Addon(Default)|Native(Direct paths)" default="0" visible="false"/> <!-- Playback mode -->
 		<setting id="enableMusic" type="bool" label="30509" default="true" />
+		<setting id="enableBackgroundSync" type="bool" label="39026" default="true" visible="true"/>
 		<setting id="streamMusic" type="bool" label="30510" default="false" visible="false" subsetting="true"/> <!-- Direct stream Music library -->
 		<setting type="lsep" label="30523" visible="false"/> <!-- Music metadata options -->
         <setting id="enableImportSongRating" type="bool" label="30524" default="true" visible="false"/>

@@ -225,6 +225,9 @@ class LibrarySync(Thread):
             utils.settings('dbSyncIndicator') == 'true' else False
         self.enableMusic = True if utils.settings('enableMusic') == "true" \
             else False
+        self.enableBackgroundSync = True if utils.settings(
+            'enableBackgroundSync') == "true" \
+            else False
 
         Thread.__init__(self)
 
@@ -1253,7 +1256,7 @@ class LibrarySync(Thread):
                             time=3000,
                             sound=True)
                     window('emby_dbScan', clear=True)
-                else:
+                elif self.enableBackgroundSync:
                     # Run full lib scan approx every 30min
                     if count >= 1800:
                         count = 0

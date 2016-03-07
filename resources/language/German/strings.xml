@@ -295,6 +295,7 @@
     <string id="39023">Plex Media Server Authentifizierung fehlgeschlagen. Haben Sie sich bei plex.tv eingeloggt?</string>
     <string id="39024">[COLOR yellow]Bei plex.tv einloggen[/COLOR]</string>
     <string id="39025">Automatisch beim Starten bei plex.tv einloggen</string>
+    <string id="39026">Laufende Synchronisierung im Hintergrund aktivieren (Neustart!)</string>
 
     <!-- Plex Entrypoint.py -->
     <string id="39200">Plex Home Benutzer wechseln</string>
