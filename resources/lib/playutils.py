@@ -343,7 +343,7 @@ class PlayUtils():
                 
                 #audioStreamsChannelsList[audioNum] = stream.attrib['channels']
                 audioStreamsList.append(index)
-                audioStreams.append(track)
+                audioStreams.append(track.encode('utf-8'))
                 audioNum += 1
 
             # Subtitles
@@ -367,11 +367,11 @@ class PlayUtils():
                     downloadableStreams.append(index)
 
                 subtitleStreamsList.append(index)
-                subtitleStreams.append(track)
+                subtitleStreams.append(track.encode('utf-8'))
                 subNum += 1
 
         if audioNum > 1:
-            resp = dialog.select(lang(33013), audioStreams)
+            resp = dialog.select(lang(33013).encode('utf-8'), audioStreams)
             if resp > -1:
                 # User selected audio
                 playurlprefs['audioStreamID'] = audioStreamsList[resp]
@@ -384,7 +384,7 @@ class PlayUtils():
         playurlprefs['audioBoost'] = utils.settings('audioBoost')
 
         if subNum > 1:
-            resp = dialog.select(lang(33014), subtitleStreams)
+            resp = dialog.select(lang(33014).encode('utf-8'), subtitleStreams)
             if resp == 0:
                 # User selected no subtitles
                 playurlprefs["skipSubtitles"] = 1

@@ -523,7 +523,10 @@ class Player(xbmc.Player):
                     # Plex: never delete
                     offerDelete = False
                     if percentComplete >= markPlayedAt and offerDelete:
-                        resp = xbmcgui.Dialog().yesno(lang(30091), lang(33015), autoclose=120000)
+                        resp = xbmcgui.Dialog().yesno(
+                            lang(30091).encode('utf-8'),
+                            lang(33015).encode('utf-8'),
+                            autoclose=120000)
                         if not resp:
                             log("User skipped deletion.", 1)
                             continue

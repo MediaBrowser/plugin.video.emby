@@ -162,7 +162,8 @@ class Artwork():
         import xbmcaddon
         string = xbmcaddon.Addon().getLocalizedString
 
-        if not xbmcgui.Dialog().yesno("Image Texture Cache", string(39250)):
+        if not xbmcgui.Dialog().yesno(
+            "Image Texture Cache", string(39250).encode('utf-8')):
             return
             
         self.logMsg("Doing Image Cache Sync", 1)
@@ -171,7 +172,8 @@ class Artwork():
         dialog.create("Emby for Kodi", "Image Cache Sync")
             
         # ask to rest all existing or not
-        if xbmcgui.Dialog().yesno("Image Texture Cache", string(39251), ""):
+        if xbmcgui.Dialog().yesno(
+            "Image Texture Cache", string(39251).encode('utf-8'), ""):
             self.logMsg("Resetting all cache data first", 1)
             # Remove all existing textures first
             path = xbmc.translatePath("special://thumbnails/").decode('utf-8')

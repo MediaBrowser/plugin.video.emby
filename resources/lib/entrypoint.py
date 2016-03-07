@@ -156,7 +156,7 @@ def resetAuth():
     string = xbmcaddon.Addon().getLocalizedString
     resp = xbmcgui.Dialog().yesno(
         heading="Warning",
-        line1=string(39206))
+        line1=string(39206).encode('utf-8'))
     if resp == 1:
         utils.logMsg("PLEX", "Reset login attempts.", 1)
         utils.window('emby_serverStatus', value="Auth")
@@ -226,14 +226,14 @@ def resetDeviceId():
                      "Failed to generate a new device Id: %s" % e, 1)
         dialog.ok(
             heading=addonName,
-            line1=language(33032))
+            line1=language(33032).encode('utf-8'))
     else:
         utils.logMsg(addonName,
                      "Successfully removed old deviceId: %s New deviceId: %s"
                      % (deviceId_old, deviceId), 1)
         dialog.ok(
             heading=addonName,
-            line1=language(33033))
+            line1=language(33033).encode('utf-8'))
         xbmc.executebuiltin('RestartApp')
 
 ##### ADD ADDITIONAL USERS #####
@@ -1160,6 +1160,6 @@ def RunLibScan(mode):
         # Server is not online, do not run the sync
         string = xbmcaddon.Addon().getLocalizedString
         xbmcgui.Dialog().ok(heading=addonName,
-                            line1=string(39205))
+                            line1=string(39205).encode('utf-8'))
     else:
         utils.window('plex_runLibScan', value='full')
