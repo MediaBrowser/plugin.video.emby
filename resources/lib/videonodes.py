@@ -65,21 +65,21 @@ class VideoNodes(object):
                     "special://profile/library/video/Plex-%s/" % dirname).decode('utf-8')
 
         # Verify the video directory
-        if not xbmcvfs.exists(path):
+        if not xbmcvfs.exists(path.encode('utf-8')):
             shutil.copytree(
                 src=xbmc.translatePath("special://xbmc/system/library/video").decode('utf-8'),
                 dst=xbmc.translatePath("special://profile/library/video").decode('utf-8'))
-            xbmcvfs.exists(path)
+            xbmcvfs.exists(path.encode('utf-8'))
 
         # Create the node directory
-        if not xbmcvfs.exists(nodepath) and not mediatype == "photo":
+        if not xbmcvfs.exists(nodepath.encode('utf-8')) and not mediatype == "photo":
             # We need to copy over the default items
-            xbmcvfs.mkdirs(nodepath)
+            xbmcvfs.mkdirs(nodepath.encode('utf-8'))
         else:
             if delete:
-                dirs, files = xbmcvfs.listdir(nodepath)
+                dirs, files = xbmcvfs.listdir(nodepath.encode('utf-8'))
                 for file in files:
-                    xbmcvfs.delete(nodepath + file)
+                    xbmcvfs.delete((nodepath + file).encode('utf-8'))
 
                 self.logMsg("Sucessfully removed videonode: %s." % tagname, 1)
                 return
@@ -239,7 +239,7 @@ class VideoNodes(object):
                 # To do: add our photos nodes to kodi picture sources somehow
                 continue
             
-            if xbmcvfs.exists(nodeXML):
+            if xbmcvfs.exists(nodeXML.encode('utf-8')):
                 # Don't recreate xml if already exists
                 continue
 

@@ -418,8 +418,8 @@ def reset():
         addon = xbmcaddon.Addon()
         addondir = xbmc.translatePath(addon.getAddonInfo('profile')).decode('utf-8')
         dataPath = "%ssettings.xml" % addondir
-        xbmcvfs.delete(dataPath)
-        logMsg("EMBY", "Deleting: settings.xml", 1)
+        xbmcvfs.delete(dataPath.encode('utf-8'))
+        logMsg("PLEX", "Deleting: settings.xml", 1)
 
     dialog.ok(
         heading="Emby for Kodi",
@@ -676,9 +676,9 @@ def passwordsXML():
             sound=False)
 
 def playlistXSP(mediatype, tagname, viewid, viewtype="", delete=False):
-    # Tagname is in unicode - actions: add or delete
-    tagname = tagname.encode('utf-8')
-
+    """
+    Feed with tagname as unicode
+    """
     path = xbmc.translatePath("special://profile/playlists/video/").decode('utf-8')
     if viewtype == "mixed":
         plname = "%s - %s" % (tagname, mediatype)
@@ -688,15 +688,15 @@ def playlistXSP(mediatype, tagname, viewid, viewtype="", delete=False):
         xsppath = "%sPlex %s.xsp" % (path, viewid)
 
     # Create the playlist directory
-    if not xbmcvfs.exists(path):
+    if not xbmcvfs.exists(path.encode('utf-8')):
         logMsg("PLEX", "Creating directory: %s" % path, 1)
-        xbmcvfs.mkdirs(path)
+        xbmcvfs.mkdirs(path.encode('utf-8'))
 
     # Only add the playlist if it doesn't already exists
-    if xbmcvfs.exists(xsppath):
-
+    if xbmcvfs.exists(xsppath.encode('utf-8')):
+        logMsg('Path %s does exist' % xsppath, 1)
         if delete:
-            xbmcvfs.delete(xsppath)
+            xbmcvfs.delete(xsppath.encode('utf-8'))
             logMsg("PLEX", "Successfully removed playlist: %s." % tagname, 1)
         
         return
@@ -707,21 +707,22 @@ def playlistXSP(mediatype, tagname, viewid, viewtype="", delete=False):
     }
     logMsg("Plex", "Writing playlist file to: %s" % xsppath, 1)
     try:
-        f = xbmcvfs.File(xsppath, 'w')
+        f = xbmcvfs.File(xsppath.encode('utf-8'), 'wb')
     except:
         logMsg("Plex", "Failed to create playlist: %s" % xsppath, -1)
         return
     else:
-        f.write(
+        f.write((
             '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n'
             '<smartplaylist type="%s">\n\t'
                 '<name>Plex %s</name>\n\t'
                 '<match>all</match>\n\t'
                 '<rule field="tag" operator="is">\n\t\t'
                     '<value>%s</value>\n\t'
-                '</rule>'
+                '</rule>\n'
             '</smartplaylist>'
             % (itemtypes.get(mediatype, mediatype), plname, tagname))
+            .encode('utf-8'))
         f.close()
     logMsg("Plex", "Successfully added playlist: %s" % tagname)
 
@@ -729,26 +730,26 @@ def deletePlaylists():
 
     # Clean up the playlists
     path = xbmc.translatePath("special://profile/playlists/video/").decode('utf-8')
-    dirs, files = xbmcvfs.listdir(path)
+    dirs, files = xbmcvfs.listdir(path.encode('utf-8'))
     for file in files:
-        if file.decode('utf-8').startswith('Emby'):
-            xbmcvfs.delete("%s%s" % (path, file))
+        if file.decode('utf-8').startswith('Plex'):
+            xbmcvfs.delete(("%s%s" % (path, file.decode('utf-8'))).encode('utf-8'))
 
 def deleteNodes():
 
     # Clean up video nodes
     import shutil
     path = xbmc.translatePath("special://profile/library/video/").decode('utf-8')
-    dirs, files = xbmcvfs.listdir(path)
+    dirs, files = xbmcvfs.listdir(path.encode('utf-8'))
     for dir in dirs:
-        if dir.decode('utf-8').startswith('Emby'):
+        if dir.decode('utf-8').startswith('Plex'):
             try:
                 shutil.rmtree("%s%s" % (path, dir.decode('utf-8')))
             except:
-                logMsg("EMBY", "Failed to delete directory: %s" % dir.decode('utf-8'))
+                logMsg("PLEX", "Failed to delete directory: %s" % dir.decode('utf-8'))
     for file in files:
-        if file.decode('utf-8').startswith('emby'):
+        if file.decode('utf-8').startswith('plex'):
             try:
-                xbmcvfs.delete("%s%s" % (path, file.decode('utf-8')))
+                xbmcvfs.delete(("%s%s" % (path, file.decode('utf-8'))).encode('utf-8'))
             except:
-                logMsg("EMBY", "Failed to file: %s" % file.decode('utf-8'))
+                logMsg("PLEX", "Failed to file: %s" % file.decode('utf-8'))
