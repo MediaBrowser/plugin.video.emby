@@ -6,7 +6,8 @@
 
 **Installation in Kodi**
 
-1. You might want to uninstall everything else Plex related first, e.g. PlexBMC and PlexBMC Helper. Starting with a fresh Kodi install might be a good idea. Be sure to use a "normal", unmodded Skin in Kodi
+1. You might want to uninstall everything else Plex related first, e.g. PlexBMC and PlexBMC Helper. Starting with a fresh Kodi install might be a good idea. Be sure to use a "normal", unmodded Skin in Kodi.
+If you're updating, you might also want to do a complete reset of the plugin: Settings -> Advanced -> "Performe full DB reset". Choose "Yes" for everything.
 2. Simply fire up Kodi and Install from ZIP from here on. 
 3. Install the 2 needed dependencies first (be sure to NOT download the sources but the additional release files): https://github.com/croneter/plugin.video.plexkodiconnect.tvshows/releases/tag/1.0.0 and https://github.com/croneter/plugin.video.plexkodiconnect.movies/releases/tag/1.0.0
 5. Then install PlexKodiConnect, again the additional release file from here: https://github.com/croneter/PlexKodiConnect/releases/
@@ -22,7 +23,8 @@ Again, this is beta. You have been warned. It's a given that you will need to fu
 
 1. Activate a more detailed logging for KodiPlexConnect: Settings -> Advanced -> "Debug"
 2. Follow the instructions here: http://kodi.wiki/view/Log_file/Easy
-3. Post the link to your log (that you posted e.g. here: http://xbmclogs.com/) on https://forums.plex.tv/discussion/210023/plexkodiconnect-supercharge-your-plex-kodi-connection
+3. Don't forget to delete all references to any of your tokens!!
+4. Post the link to your log (that you posted e.g. here: http://xbmclogs.com/) on https://forums.plex.tv/discussion/210023/plexkodiconnect-supercharge-your-plex-kodi-connection
 
 
 ### Welcome to PlexKodiConnect
@@ -56,8 +58,10 @@ Guess what, this is BETA. Currently these features are working:
 
 
 **What could be in the pipeline?**
-- Watch later
-- MusicVideos
+- Homevideos
+- Pictures
+- Watch Later
+- Music Videos
 - TV Shows Theme Music (ultra-low prio)
 
 
