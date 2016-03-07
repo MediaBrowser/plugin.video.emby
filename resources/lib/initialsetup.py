@@ -88,36 +88,40 @@ class InitialSetup():
                 plexToken = result['token']
                 plexid = result['plexid']
         # Get g_PMS list of servers (saved to plx.g_PMS)
+        httpsUpdated = False
         while True:
-            tokenDict = {'MyPlexToken': plexToken} if plexToken else {}
-            # Populate g_PMS variable with the found Plex servers
-            self.plx.discoverPMS(clientId,
-                                 None,
-                                 xbmc.getIPAddress(),
-                                 tokenDict=tokenDict)
-            self.logMsg("Result of setting g_PMS variable: %s"
-                        % self.plx.g_PMS, 2)
-            isconnected = False
-            serverlist = self.plx.returnServerList(clientId, self.plx.g_PMS)
-            # Let user pick server from a list
-            # Get a nicer list
-            dialoglist = []
-            # Exit if no servers found
-            if len(serverlist) == 0:
-                dialog.ok(
-                    self.addonName,
-                    string(39011).encode('utf-8')
-                )
-                break
-            for server in serverlist:
-                if server['local'] == '1':
-                    # server is in the same network as client. Add "local"
-                    dialoglist.append(
-                        server['name'].encode('utf-8')
-                        + string(39022).encode('utf-8'))
-                else:
-                    dialoglist.append(server['name'].encode('utf-8'))
-            resp = dialog.select(string(39012).encode('utf-8'), dialoglist)
+            if httpsUpdated is False:
+                tokenDict = {'MyPlexToken': plexToken} if plexToken else {}
+                # Populate g_PMS variable with the found Plex servers
+                self.plx.discoverPMS(clientId,
+                                     None,
+                                     xbmc.getIPAddress(),
+                                     tokenDict=tokenDict)
+                self.logMsg("Result of setting g_PMS variable: %s"
+                            % self.plx.g_PMS, 1)
+                isconnected = False
+                serverlist = self.plx.returnServerList(
+                    clientId, self.plx.g_PMS)
+                self.logMsg('PMS serverlist: %s' % serverlist)
+                # Let user pick server from a list
+                # Get a nicer list
+                dialoglist = []
+                # Exit if no servers found
+                if len(serverlist) == 0:
+                    dialog.ok(
+                        self.addonName,
+                        string(39011).encode('utf-8')
+                    )
+                    break
+                for server in serverlist:
+                    if server['local'] == '1':
+                        # server is in the same network as client. Add "local"
+                        dialoglist.append(
+                            server['name'].encode('utf-8')
+                            + string(39022).encode('utf-8'))
+                    else:
+                        dialoglist.append(server['name'].encode('utf-8'))
+                resp = dialog.select(string(39012).encode('utf-8'), dialoglist)
             server = serverlist[resp]
             activeServer = server['machineIdentifier']
             url = server['scheme'] + '://' + server['ip'] + ':' + \
@@ -132,7 +136,12 @@ class InitialSetup():
                 self.logMsg("Setting SSL verify to true, because server is "
                             "not local", 1)
             chk = self.plx.CheckConnection(url, server['accesstoken'])
-            # Unauthorized
+            if chk == 504 and httpsUpdated is False:
+                # Not able to use HTTP, try HTTPs for now
+                serverlist[resp]['scheme'] = 'https'
+                httpsUpdated = True
+                continue
+            httpsUpdated = False
             if chk == 401:
                 # Not yet authorized for Plex server
                 # Please sign in to plex.tv
