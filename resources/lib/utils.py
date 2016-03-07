@@ -210,12 +210,17 @@ def window(property, value=None, clear=False, windowid=10000):
         # Takes unicode or string by default!
         WINDOW.setProperty(property, value)
     else: #getproperty returns string so convert to unicode
-        return unicode(WINDOW.getProperty(property))
+        return WINDOW.getProperty(property)
 
 def settings(setting, value=None):
-    # Get or add addon setting
+    """
+    Get or add addon setting.
+
+    Settings needs to be string
+    Value can either be unicode or string
+    """
     addon = xbmcaddon.Addon(id='plugin.video.plexkodiconnect')
-    
+
     if value is not None:
         # Takes string or unicode by default!
         addon.setSetting(setting, value)
