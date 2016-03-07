@@ -4,6 +4,7 @@
 
 import shutil
 import xml.etree.ElementTree as etree
+from os import path as ospath
 
 import xbmc
 import xbmcvfs
@@ -41,7 +42,6 @@ class VideoNodes(object):
         return root
 
     def viewNode(self, indexnumber, tagname, mediatype, viewtype, viewid, delete=False):
-
         # Plex: reassign mediatype due to Kodi inner workings
         mediatypes = {
             'movie': 'movies',
@@ -65,24 +65,42 @@ class VideoNodes(object):
                     "special://profile/library/video/Plex-%s/" % dirname).decode('utf-8')
 
         # Verify the video directory
-        if not xbmcvfs.exists(path.encode('utf-8')):
+        # KODI BUG
+        # Kodi caches the result of exists for directories
+        #  so try creating a file
+        dummyfile = ospath.join(path, 'dummyfile.txt').encode('utf-8')
+        try:
+            etree.ElementTree(etree.Element('test')).write(dummyfile)
+        except:
+            # path does not exist yet
             shutil.copytree(
                 src=xbmc.translatePath("special://xbmc/system/library/video").decode('utf-8'),
                 dst=xbmc.translatePath("special://profile/library/video").decode('utf-8'))
-            xbmcvfs.exists(path.encode('utf-8'))
+        else:
+            # path exists - delete dummy file
+            xbmcvfs.delete(dummyfile)
 
         # Create the node directory
-        if not xbmcvfs.exists(nodepath.encode('utf-8')) and not mediatype == "photo":
-            # We need to copy over the default items
-            xbmcvfs.mkdirs(nodepath.encode('utf-8'))
-        else:
-            if delete:
-                dirs, files = xbmcvfs.listdir(nodepath.encode('utf-8'))
-                for file in files:
-                    xbmcvfs.delete((nodepath + file).encode('utf-8'))
+        if mediatype != "photo":
+            dummyfile = ospath.join(nodepath, 'dummyfile.txt').encode('utf-8')
+            try:
+                etree.ElementTree(etree.Element('test')).write(dummyfile)
+            except:
+                # folder does not exist yet
+                self.logMsg('Creating folder %s' % nodepath, 1)
+                xbmcvfs.mkdirs(nodepath.encode('utf-8'))
+            else:
+                # path exists - delete dummy file
+                xbmcvfs.delete(dummyfile)
+                if delete:
+                    dirs, files = xbmcvfs.listdir(nodepath.encode('utf-8'))
+                    for file in files:
+                        xbmcvfs.delete(
+                            (nodepath + file.decode('utf-8')).encode('utf-8'))
 
-                self.logMsg("Sucessfully removed videonode: %s." % tagname, 1)
-                return
+                    self.logMsg("Sucessfully removed videonode: %s."
+                                % tagname, 1)
+                    return
 
         # Create index entry
         nodeXML = "%sindex.xml" % nodepath
