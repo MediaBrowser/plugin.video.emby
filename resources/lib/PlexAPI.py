@@ -1117,6 +1117,9 @@ class PlexAPI():
             else:
                 pin = None
             # Switch to this Plex Home user, if applicable
+            # Plex bug: don't call url for protected user with empty PIN
+            if user['protected'] == '1' and not pin:
+                break
             username, usertoken = self.PlexSwitchHomeUser(
                 user['id'],
                 pin,
@@ -1160,8 +1163,7 @@ class PlexAPI():
         url = 'https://plex.tv/api/home/users/' + userId + '/switch'
         if pin:
             url += '?pin=' + pin
-        self.logMsg('Switching to user %s with url %s and machineId %s'
-                    % (userId, url, machineId), 0)
+        self.logMsg('Switching to user %s' % userId, 0)
         answer = self.TalkToPlexServer(url, talkType="POST", token=token)
         if not answer:
             self.logMsg('Error: plex.tv switch HomeUser change failed', -1)
