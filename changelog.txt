@@ -1,3 +1,6 @@
+version 1.0.3
+- Hotfix database minimum version = 1.0.2 
+
 version 1.0.2
 - Setting to turn off constant background sync
 - HTTPS!
