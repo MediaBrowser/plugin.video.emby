@@ -177,7 +177,7 @@ class Artwork():
             self.logMsg("Resetting all cache data first", 1)
             # Remove all existing textures first
             path = xbmc.translatePath("special://thumbnails/").decode('utf-8')
-            if xbmcvfs.exists(path):
+            if utils.IfExists(path):
                 allDirs, allFiles = xbmcvfs.listdir(path)
                 for dir in allDirs:
                     allDirs, allFiles = xbmcvfs.listdir(path+dir)

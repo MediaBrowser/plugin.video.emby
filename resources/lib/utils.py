@@ -25,6 +25,27 @@ import xbmcvfs
 addonName = xbmcaddon.Addon().getAddonInfo('name')
 
 
+def IfExists(path):
+    """
+    Kodi's xbmcvfs.exists is broken - it caches the results for directories.
+
+    path: path to a directory (with a slash at the end)
+
+    Returns True if path exists, else false
+    """
+    dummyfile = os.path.join(path, 'dummyfile.txt').encode('utf-8')
+    try:
+        etree.ElementTree(etree.Element('test')).write(dummyfile)
+    except:
+        # folder does not exist yet
+        answer = False
+    else:
+        # Folder exists. Delete file again.
+        xbmcvfs.delete(dummyfile)
+        answer = True
+    return answer
+
+
 def LogTime(func):
     """
     Decorator for functions and methods to log the time it took to run the code

@@ -5,7 +5,6 @@
 import json
 import os
 import sys
-import urlparse
 
 import xbmc
 import xbmcaddon
@@ -399,7 +398,7 @@ def getThemeMedia():
     library = xbmc.translatePath(
                 "special://profile/addon_data/plugin.video.plexkodiconnect/library/").decode('utf-8')
     # Create library directory
-    if not xbmcvfs.exists(library):
+    if not utils.IfExists(library):
         xbmcvfs.mkdir(library)
 
     # Set custom path for user

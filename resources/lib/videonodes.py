@@ -68,30 +68,17 @@ class VideoNodes(object):
         # KODI BUG
         # Kodi caches the result of exists for directories
         #  so try creating a file
-        dummyfile = ospath.join(path, 'dummyfile.txt').encode('utf-8')
-        try:
-            etree.ElementTree(etree.Element('test')).write(dummyfile)
-        except:
-            # path does not exist yet
+        if utils.IfExists(path) is False:
             shutil.copytree(
                 src=xbmc.translatePath("special://xbmc/system/library/video").decode('utf-8'),
                 dst=xbmc.translatePath("special://profile/library/video").decode('utf-8'))
-        else:
-            # path exists - delete dummy file
-            xbmcvfs.delete(dummyfile)
 
         # Create the node directory
         if mediatype != "photo":
-            dummyfile = ospath.join(nodepath, 'dummyfile.txt').encode('utf-8')
-            try:
-                etree.ElementTree(etree.Element('test')).write(dummyfile)
-            except:
+            if utils.IfExists(nodepath) is False:
                 # folder does not exist yet
                 self.logMsg('Creating folder %s' % nodepath, 1)
                 xbmcvfs.mkdirs(nodepath.encode('utf-8'))
-            else:
-                # path exists - delete dummy file
-                xbmcvfs.delete(dummyfile)
                 if delete:
                     dirs, files = xbmcvfs.listdir(nodepath.encode('utf-8'))
                     for file in files:
