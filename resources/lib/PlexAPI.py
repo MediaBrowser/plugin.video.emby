@@ -345,8 +345,8 @@ class PlexAPI():
             sslverify = True
         else:
             sslverify = False
-        self.logMsg("Checking connection to server %s with header %s and "
-                    "sslverify=%s" % (url, header, sslverify), 1)
+        self.logMsg("Checking connection to server %s with sslverify=%s"
+                    % (url, sslverify), 1)
         timeout = (3, 10)
         if 'plex.tv' in url:
             url = 'https://plex.tv/api/home/users'
