@@ -20,10 +20,6 @@ import PlexAPI
 class InitialSetup():
 
     def __init__(self):
-
-        self.addon = xbmcaddon.Addon()
-        self.__language__ = self.addon.getLocalizedString
-
         self.clientInfo = clientinfo.ClientInfo()
         self.addonId = self.clientInfo.getAddonId()
         self.doUtils = downloadutils.DownloadUtils()
@@ -36,7 +32,7 @@ class InitialSetup():
         Check server, user, direct paths, music, direct stream if not direct
         path.
         """
-        string = self.__language__
+        string = xbmcaddon.Addon().getLocalizedString
         # SERVER INFO #####
         self.logMsg("Initial setup called.", 0)
         server = self.userClient.getServer()
@@ -63,7 +59,7 @@ class InitialSetup():
                 # Could not login, please try again
                 dialog.ok(
                     self.addonName,
-                    string(39009)
+                    string(39009).encode('utf-8')
                 )
                 result = self.plx.PlexTvSignInWithPin()
                 if result:
@@ -74,7 +70,7 @@ class InitialSetup():
                 # Problems connecting to plex.tv. Network or internet issue?
                 dialog.ok(
                     self.addonName,
-                    string(39010)
+                    string(39010).encode('utf-8')
                 )
         # If a Plex server IP has already been set, return.
         if server and forcePlexTV is False:
@@ -92,36 +88,40 @@ class InitialSetup():
                 plexToken = result['token']
                 plexid = result['plexid']
         # Get g_PMS list of servers (saved to plx.g_PMS)
+        httpsUpdated = False
         while True:
-            tokenDict = {'MyPlexToken': plexToken} if plexToken else {}
-            # Populate g_PMS variable with the found Plex servers
-            self.plx.discoverPMS(clientId,
-                                 None,
-                                 xbmc.getIPAddress(),
-                                 tokenDict=tokenDict)
-            self.logMsg("Result of setting g_PMS variable: %s"
-                        % self.plx.g_PMS, 2)
-            isconnected = False
-            serverlist = self.plx.returnServerList(clientId, self.plx.g_PMS)
-            # Let user pick server from a list
-            # Get a nicer list
-            dialoglist = []
-            # Exit if no servers found
-            if len(serverlist) == 0:
-                dialog.ok(
-                    self.addonName,
-                    string(39011)
-                )
-                break
-            for server in serverlist:
-                if server['local'] == '1':
-                    # server is in the same network as client. Add "local"
-                    dialoglist.append(str(server['name']) + string(39022))
-                else:
-                    dialoglist.append(str(server['name']))
-            resp = dialog.select(
-                string(39012),
-                dialoglist)
+            if httpsUpdated is False:
+                tokenDict = {'MyPlexToken': plexToken} if plexToken else {}
+                # Populate g_PMS variable with the found Plex servers
+                self.plx.discoverPMS(clientId,
+                                     None,
+                                     xbmc.getIPAddress(),
+                                     tokenDict=tokenDict)
+                self.logMsg("Result of setting g_PMS variable: %s"
+                            % self.plx.g_PMS, 1)
+                isconnected = False
+                serverlist = self.plx.returnServerList(
+                    clientId, self.plx.g_PMS)
+                self.logMsg('PMS serverlist: %s' % serverlist)
+                # Let user pick server from a list
+                # Get a nicer list
+                dialoglist = []
+                # Exit if no servers found
+                if len(serverlist) == 0:
+                    dialog.ok(
+                        self.addonName,
+                        string(39011).encode('utf-8')
+                    )
+                    break
+                for server in serverlist:
+                    if server['local'] == '1':
+                        # server is in the same network as client. Add "local"
+                        dialoglist.append(
+                            server['name'].encode('utf-8')
+                            + string(39022).encode('utf-8'))
+                    else:
+                        dialoglist.append(server['name'].encode('utf-8'))
+                resp = dialog.select(string(39012).encode('utf-8'), dialoglist)
             server = serverlist[resp]
             activeServer = server['machineIdentifier']
             url = server['scheme'] + '://' + server['ip'] + ':' + \
@@ -136,13 +136,19 @@ class InitialSetup():
                 self.logMsg("Setting SSL verify to true, because server is "
                             "not local", 1)
             chk = self.plx.CheckConnection(url, server['accesstoken'])
-            # Unauthorized
+            if chk == 504 and httpsUpdated is False:
+                # Not able to use HTTP, try HTTPs for now
+                serverlist[resp]['scheme'] = 'https'
+                httpsUpdated = True
+                continue
+            httpsUpdated = False
             if chk == 401:
                 # Not yet authorized for Plex server
                 # Please sign in to plex.tv
                 dialog.ok(self.addonName,
-                          string(39013) + str(server['name']),
-                          string(39014))
+                          string(39013).encode('utf-8')
+                          + server['name'].encode('utf-8'),
+                          string(39014).encode('utf-8'))
                 result = self.plx.PlexTvSignInWithPin()
                 if result:
                     plexLogin = result['username']
@@ -154,7 +160,8 @@ class InitialSetup():
             # Problems connecting
             elif chk >= 400 or chk is False:
                 # Problems connecting to server. Pick another server?
-                resp = dialog.yesno(self.addonName, string(39015))
+                resp = dialog.yesno(self.addonName,
+                                    string(39015).encode('utf-8'))
                 # Exit while loop if user chooses No
                 if not resp:
                     break
@@ -166,7 +173,7 @@ class InitialSetup():
             # Enter Kodi settings instead
             if dialog.yesno(
                     heading=self.addonName,
-                    line1=string(39016)):
+                    line1=string(39016).encode('utf-8')):
                 self.logMsg("User opted to disable Plex music library.", 1)
                 utils.settings('enableMusic', value="false")
             xbmc.executebuiltin('Addon.OpenSettings(%s)' % self.addonId)
@@ -202,12 +209,12 @@ class InitialSetup():
 
         if dialog.yesno(
                 heading=self.addonName,
-                line1=string(39016)):
+                line1=string(39016).encode('utf-8')):
             self.logMsg("User opted to disable Plex music library.", 1)
             utils.settings('enableMusic', value="false")
 
         if dialog.yesno(
                 heading=self.addonName,
-                line1=string(39017)):
+                line1=string(39017).encode('utf-8')):
             xbmc.executebuiltin(
                 'Addon.OpenSettings(plugin.video.plexkodiconnect)')

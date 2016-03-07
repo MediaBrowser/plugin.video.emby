@@ -79,7 +79,6 @@ class PlexAPI():
         self.deviceName = client.getDeviceName()
         self.plexversion = client.getVersion()
         self.platform = client.getPlatform()
-        self.user = utils.window('plex_username')
         self.userId = utils.window('emby_currUser')
         self.token = utils.window('emby_accessToken%s' % self.userId)
         self.server = utils.window('emby_server%s' % self.userId)
@@ -95,13 +94,15 @@ class PlexAPI():
             'plexid': utils.settings('plexid'),
             'myplexlogin': utils.settings('myplexlogin')
 
+        plexLogin is unicode or empty unicode string u''
+
         Returns empty strings '' for a setting if not found.
 
         myplexlogin is 'true' if user opted to log into plex.tv (the default)
         plexhome is 'true' if plex home is used (the default)
         """
         return {
-            'plexLogin': utils.settings('plexLogin'),
+            'plexLogin': utils.settings('plexLogin').decode('utf-8'),
             'plexToken': utils.settings('plexToken'),
             'plexhome': utils.settings('plexhome'),
             'plexid': utils.settings('plexid'),
@@ -127,32 +128,31 @@ class PlexAPI():
         retrievedPlexLogin = ''
         plexLogin = 'dummy'
         authtoken = ''
+        dialog = xbmcgui.Dialog()
         while retrievedPlexLogin == '' and plexLogin != '':
-            dialog = xbmcgui.Dialog()
             # Enter plex.tv username. Or nothing to cancel.
             plexLogin = dialog.input(
-                self.addonName + string(39300),
+                self.addonName.encode('utf-8') + string(39300).encode('utf-8'),
                 type=xbmcgui.INPUT_ALPHANUM,
             )
             if plexLogin != "":
-                dialog = xbmcgui.Dialog()
                 # Enter password for plex.tv user
                 plexPassword = dialog.input(
-                    string(39301) + plexLogin,
+                    string(39301).encode('utf-8') + plexLogin.encode('utf-8'),
                     type=xbmcgui.INPUT_ALPHANUM,
                     option=xbmcgui.ALPHANUM_HIDE_INPUT
                 )
                 retrievedPlexLogin, authtoken = self.MyPlexSignIn(
                     plexLogin,
                     plexPassword,
-                    {'X-Plex-Client-Identifier': self.clientId}
-                )
+                    {'X-Plex-Client-Identifier': self.clientId})
                 self.logMsg("plex.tv username and token: %s, %s"
                             % (plexLogin, authtoken), 1)
                 if plexLogin == '':
-                    dialog = xbmcgui.Dialog()
                     # Could not sign in user
-                    dialog.ok(self.addonName, string(39302) + plexLogin)
+                    dialog.ok(self.addonName,
+                              string(39302).encode('utf-8')
+                              + plexLogin.encode('utf-8'))
         # Write to Kodi settings file
         utils.settings('plexLogin', value=retrievedPlexLogin)
         utils.settings('plexToken', value=authtoken)
@@ -177,12 +177,12 @@ class PlexAPI():
         dialog = xbmcgui.Dialog()
         if not code:
             # Problems trying to contact plex.tv. Try again later
-            dialog.ok(self.addonName, string(39303))
+            dialog.ok(self.addonName, string(39303).encode('utf-8'))
             return False
         # Go to https://plex.tv/pin and enter the code:
         answer = dialog.yesno(self.addonName,
-                              string(39304) + "\n\n",
-                              code)
+                              (string(39304) + "\n\n").encode('utf-8'),
+                              code.encode('utf-8'))
         if not answer:
             return False
         count = 0
@@ -196,7 +196,7 @@ class PlexAPI():
             count += 1
         if not xml:
             # Could not sign in to plex.tv Try again later
-            dialog.ok(self.addonName, string(39305))
+            dialog.ok(self.addonName, string(39305).encode('utf-8'))
             return False
         # Parse xml
         userid = xml.attrib.get('id')
@@ -259,11 +259,11 @@ class PlexAPI():
         try:
             code = xml.find('code').text
             identifier = xml.find('id').text
+            self.logMsg('Successfully retrieved code and id from plex.tv', 1)
+            return code, identifier
         except:
             self.logMsg("Error, no PIN from plex.tv provided", -1)
-        self.logMsg("plex.tv/pin: Code is: %s" % code, 2)
-        self.logMsg("plex.tv/pin: Identifier is: %s" % identifier, 2)
-        return code, identifier
+            return None, None
 
     def TalkToPlexServer(self, url, talkType="GET", verify=True, token=None):
         """
@@ -345,8 +345,8 @@ class PlexAPI():
             sslverify = True
         else:
             sslverify = False
-        self.logMsg("Checking connection to server %s with header %s and "
-                    "sslverify=%s" % (url, header, sslverify), 1)
+        self.logMsg("Checking connection to server %s with sslverify=%s"
+                    % (url, sslverify), 1)
         timeout = (3, 10)
         if 'plex.tv' in url:
             url = 'https://plex.tv/api/home/users'
@@ -814,7 +814,6 @@ class PlexAPI():
             'X-Plex-Version': self.plexversion,
             'X-Plex-Client-Identifier': self.clientId,
             'X-Plex-Provides': 'player',
-            'X-Plex-Username': self.user,
             'X-Plex-Client-Capabilities': 'protocols=shoutcast,http-video;videoDecoders=h264{profile:high&resolution:1080&level:51};audioDecoders=mp3,aac,dts{bitrate:800000&channels:8},ac3{bitrate:800000&channels:8}',
             'X-Plex-Client-Profile-Extra': 'add-transcode-target-audio-codec(type=videoProfile&context=streaming&protocol=*&audioCodec=dca,ac3)',
         }
@@ -1042,6 +1041,8 @@ class PlexAPI():
             self.logMsg("No URL for user avatar.", 1)
             return False
         for user in users:
+            self.logMsg('type user: %s, type username: %s'
+                        % (type(user['title']), type(username)))
             if username in user['title']:
                 url = user['thumb']
         self.logMsg("Avatar url for user %s is: %s" % (username, url), 1)
@@ -1060,6 +1061,7 @@ class PlexAPI():
         Will return empty strings if failed.
         """
         string = self.__language__
+        dialog = xbmcgui.Dialog()
 
         plexLogin = utils.settings('plexLogin')
         plexToken = utils.settings('plexToken')
@@ -1074,19 +1076,21 @@ class PlexAPI():
             return ('', '', '')
 
         userlist = []
+        userlistCoded = []
         for user in users:
             username = user['title']
             userlist.append(username)
+            userlistCoded.append(username.encode('utf-8'))
         usernumber = len(userlist)
         usertoken = ''
         # Plex home not in use: only 1 user returned
         trials = 0
         while trials < 3:
             if usernumber > 1:
-                dialog = xbmcgui.Dialog()
                 # Select user
-                user_select = dialog.select(self.addonName + string(39306),
-                                            userlist)
+                user_select = dialog.select(
+                    (self.addonName + string(39306)).encode('utf-8'),
+                    userlistCoded)
                 if user_select == -1:
                     self.logMsg("No user selected.", 1)
                     xbmc.executebuiltin('Addon.OpenSettings(%s)'
@@ -1101,11 +1105,10 @@ class PlexAPI():
             user = users[user_select]
             # Ask for PIN, if protected:
             if user['protected'] == '1':
-                dialog = xbmcgui.Dialog()
                 # Please enter pin for user
                 self.logMsg('Asking for users PIN', 1)
                 pin = dialog.input(
-                    string(39307) + selected_user,
+                    (string(39307) + selected_user).encode('utf-8'),
                     type=xbmcgui.INPUT_NUMERIC,
                     option=xbmcgui.ALPHANUM_HIDE_INPUT)
                 # User chose to cancel
@@ -1114,6 +1117,9 @@ class PlexAPI():
             else:
                 pin = None
             # Switch to this Plex Home user, if applicable
+            # Plex bug: don't call url for protected user with empty PIN
+            if user['protected'] == '1' and not pin:
+                break
             username, usertoken = self.PlexSwitchHomeUser(
                 user['id'],
                 pin,
@@ -1122,12 +1128,11 @@ class PlexAPI():
             )
             # Couldn't get user auth
             if not username:
-                dialog = xbmcgui.Dialog()
                 # Could not login user, please try again
                 if not dialog.yesno(
                     self.addonName,
-                    string(39308) + selected_user,
-                    string(39309)
+                    (string(39308) + selected_user).encode('utf-8'),
+                    string(39309).encode('utf-8')
                 ):
                     # User chose to cancel
                     break
@@ -1158,8 +1163,7 @@ class PlexAPI():
         url = 'https://plex.tv/api/home/users/' + userId + '/switch'
         if pin:
             url += '?pin=' + pin
-        self.logMsg('Switching to user %s with url %s and machineId %s'
-                    % (userId, url, machineId), 0)
+        self.logMsg('Switching to user %s' % userId, 0)
         answer = self.TalkToPlexServer(url, talkType="POST", token=token)
         if not answer:
             self.logMsg('Error: plex.tv switch HomeUser change failed', -1)
@@ -1188,7 +1192,7 @@ class PlexAPI():
         self.logMsg("username: %s, token: xxxx. "
                     "Saving to window and file settings" % username, 0)
         utils.window('emby_currUser', value=userId)
-        utils.settings('userId%s' % username, value=userId)
+        utils.settings('userId', value=userId)
         utils.settings('username', value=username)
         utils.window('emby_accessToken%s' % userId, value=token)
         return (username, token)
@@ -1411,7 +1415,6 @@ class API():
         self.part = 0
         self.clientinfo = clientinfo.ClientInfo()
         self.clientId = self.clientinfo.getDeviceId()
-        self.user = utils.window('plex_username')
         self.userId = utils.window('emby_currUser')
         self.server = utils.window('emby_server%s' % self.userId)
         self.token = utils.window('emby_accessToken%s' % self.userId)

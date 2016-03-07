@@ -164,10 +164,10 @@ class ThreadedShowSyncInfo(Thread):
         threadStopped = self.threadStopped
         downloadLock = self.locks[0]
         processLock = self.locks[1]
-        dialog.create("%s: Sync %s: %s items"
-                      % (self.addonName.encode('utf-8'),
-                         self.itemType.encode('utf-8'),
-                         str(total)),
+        dialog.create(("%s: Sync %s: %s items"
+                      % (self.addonName,
+                         self.itemType,
+                         str(total))).encode('utf-8'),
                       "Starting")
         global getMetadataCount
         global processMetadataCount
@@ -188,9 +188,9 @@ class ThreadedShowSyncInfo(Thread):
             try:
                 dialog.update(
                     percentage,
-                    message="Downloaded: %s. Processed: %s: %s"
-                            % (getMetadataProgress, processMetadataProgress,
-                               viewName.decode('utf-8')))
+                    message=("Downloaded: %s. Processed: %s: %s"
+                             % (getMetadataProgress, processMetadataProgress,
+                                viewName))).encode('utf-8')
             except:
                 # Wierd formating of the string viewName?!?
                 pass
@@ -225,6 +225,9 @@ class LibrarySync(Thread):
             utils.settings('dbSyncIndicator') == 'true' else False
         self.enableMusic = True if utils.settings('enableMusic') == "true" \
             else False
+        self.enableBackgroundSync = True if utils.settings(
+            'enableBackgroundSync') == "true" \
+            else False
 
         Thread.__init__(self)
 
@@ -236,7 +239,7 @@ class LibrarySync(Thread):
             return
         xbmcgui.Dialog().notification(
             heading=self.addonName,
-            message=message,
+            message=message.encode('utf-8'),
             icon="special://home/addons/plugin.video.plexkodiconnect/icon.png",
             sound=False)
 
@@ -1253,7 +1256,7 @@ class LibrarySync(Thread):
                             time=3000,
                             sound=True)
                     window('emby_dbScan', clear=True)
-                else:
+                elif self.enableBackgroundSync:
                     # Run full lib scan approx every 30min
                     if count >= 1800:
                         count = 0

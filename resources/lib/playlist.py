@@ -8,7 +8,6 @@ from urllib import urlencode
 import xbmc
 import xbmcgui
 
-import playbackutils
 import embydb_functions as embydb
 import read_embyserver as embyserver
 import utils

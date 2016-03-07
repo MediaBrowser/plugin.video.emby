@@ -171,9 +171,8 @@ class Service():
                             self.welcome_msg = False
                             xbmcgui.Dialog().notification(
                                 heading=self.addonName,
-                                message=("%s %s"
-                                         % (lang(33000),
-                                            user.currUser.decode('utf-8'))),
+                                message=("%s %s" % (lang(33000), user.currUser)
+                                         ).encode('utf-8'),
                                 icon="special://home/addons/plugin.video.plexkodiconnect/icon.png",
                                 time=2000,
                                 sound=False)
@@ -226,8 +225,8 @@ class Service():
                             window('emby_online', value="false")
 
                             xbmcgui.Dialog().notification(
-                                heading=lang(33001),
-                                message="%s %s" % (self.addonName, lang(33002)),
+                                heading=lang(33001).encode('utf-8'),
+                                message=("%s %s" % (self.addonName, lang(33002))).encode('utf-8'),
                                 icon="special://home/addons/plugin.video."
                                      "plexkodiconnect/icon.png",
                                 sound=False)
@@ -245,7 +244,7 @@ class Service():
                             # Alert the user that server is online.
                             xbmcgui.Dialog().notification(
                                 heading=self.addonName,
-                                message=lang(33003),
+                                message=lang(33003).encode('utf-8'),
                                 icon="special://home/addons/plugin.video."
                                      "plexkodiconnect/icon.png",
                                 time=2000,

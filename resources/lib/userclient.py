@@ -54,12 +54,15 @@ class UserClient(threading.Thread):
             self.AdditionalUser = additionalUsers.split(',')
 
     def getUsername(self):
+        """
+        Returns username as unicode
+        """
 
-        username = utils.settings('username')
+        username = utils.settings('username').decode('utf-8')
 
         if not username:
             self.logMsg("No username saved, trying to get Plex username", 0)
-            username = utils.settings('plexLogin')
+            username = utils.settings('plexLogin').decode('utf-8')
             if not username:
                 self.logMsg("Also no Plex username found", 0)
                 return ""
@@ -84,33 +87,31 @@ class UserClient(threading.Thread):
         if username is None:
             username = self.getUsername()
         w_userId = window('emby_currUser')
-        s_userId = settings('userId%s' % username)
+        s_userId = settings('userId')
 
         # Verify the window property
         if w_userId:
             if not s_userId:
                 # Save access token if it's missing from settings
-                settings('userId%s' % username, value=w_userId)
-            log("Returning userId from WINDOW for username: %s UserId: %s"
-                % (username, w_userId), 1)
+                settings('userId', value=w_userId)
+            log("Returning userId %s from WINDOW for username %s"
+                % (w_userId, username), 0)
             return w_userId
         # Verify the settings
         elif s_userId:
-            log("Returning userId from SETTINGS for username: %s userId: %s"
-                % (username, s_userId), 1)
+            log("Returning userId %s from SETTINGS for username %s"
+                % (w_userId, username), 0)
             return s_userId
         # No userId found
-        else:
-            log("No userId saved for username: %s. Trying to get Plex ID"
-                % username, 0)
-            plexId = settings('plexid')
-            if not plexId:
-                log('Also no Plex ID found in settings', 0)
-                return ''
-            log('Using Plex ID %s as userid for username: %s'
-                % (plexId, username))
-            settings('userId%s' % username, value=plexId)
-            return plexId
+        log("No userId saved. Trying to get Plex to use instead", 0)
+        plexId = settings('plexid')
+        if not plexId:
+            log('Also no Plex ID found in settings', 0)
+            return ''
+        log('Using Plex ID %s as userid for username %s'
+            % (plexId, username), 0)
+        settings('userId', value=plexId)
+        return plexId
 
     def getServer(self, prefix=True):
 
@@ -157,14 +158,14 @@ class UserClient(threading.Thread):
             if not s_token:
                 # Save access token if it's missing from settings
                 settings('accessToken', value=w_token)
-            log("Returning accessToken from WINDOW for username: %s accessToken: %s"
-                % (username, w_token), 2)
+            log("Returning accessToken from WINDOW for username: %s "
+                "accessToken: xxxx" % username, 2)
             return w_token
         # Verify the settings
         elif s_token:
-            log("Returning accessToken from SETTINGS for username: %s accessToken: %s"
-                % (username, s_token), 2)
-            window('emby_accessToken%s' % username, value=s_token)
+            log("Returning accessToken from SETTINGS for username: %s "
+                "accessToken: xxxx" % username, 2)
+            window('emby_accessToken%s' % userId, value=s_token)
             return s_token
         else:
             log("No token found.", 1)
@@ -244,7 +245,9 @@ class UserClient(threading.Thread):
             log("Access is granted.", 1)
             self.HasAccess = True
             window('emby_serverStatus', clear=True)
-            xbmcgui.Dialog().notification(self.addonName, utils.language(33007))
+            xbmcgui.Dialog().notification(
+                self.addonName,
+                utils.language(33007).encode('utf-8'))
 
     def loadCurrUser(self, authenticated=False):
         self.logMsg('Loading current user', 0)
@@ -284,7 +287,6 @@ class UserClient(threading.Thread):
         window('plex_username', value=username)
         window('emby_accessToken%s' % userId, value=self.currToken)
         window('emby_server%s' % userId, value=self.currServer)
-        window('emby_server_%s' % userId, value=self.getServer(prefix=False))
         window('plex_machineIdentifier', value=self.machineIdentifier)
 
         window('emby_serverStatus', clear=True)
@@ -359,9 +361,8 @@ class UserClient(threading.Thread):
         # Check connection
         if plx.CheckConnection(server, accessToken) == 200:
             self.currUser = username
-            dialog = xbmcgui.Dialog()
             settings('accessToken', value=accessToken)
-            settings('userId%s' % username, value=userId)
+            settings('userId', value=userId)
             log("User authenticated with an access token", 1)
             if self.loadCurrUser(authenticated=True) is False:
                 # Something went really wrong, return and try again
@@ -372,7 +373,7 @@ class UserClient(threading.Thread):
             if username:
                 dialog.notification(
                     heading=self.addonName,
-                    message="Welcome %s" % username.decode('utf-8'),
+                    message=("Welcome " + username).encode('utf-8'),
                     icon="special://home/addons/plugin.video.plexkodiconnect/icon.png")
             else:
                 dialog.notification(
@@ -384,13 +385,14 @@ class UserClient(threading.Thread):
         else:
             self.logMsg("Error: user authentication failed.", -1)
             settings('accessToken', value="")
-            settings('userId%s' % username, value="")
+            settings('userId', value="")
 
             # Give attempts at entering password / selecting user
             if self.retry >= 5:
                 log("Too many retries.", 1)
                 window('emby_serverStatus', value="Stop")
-                dialog.ok(lang(33001), lang(39023))
+                dialog.ok(lang(33001).encode('utf-8'),
+                          lang(39023).encode('utf-8'))
                 xbmc.executebuiltin(
                     'Addon.OpenSettings(plugin.video.plexkodiconnect)')
 

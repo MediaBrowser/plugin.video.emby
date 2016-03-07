@@ -5,7 +5,6 @@
 import json
 import os
 import sys
-import urlparse
 
 import xbmc
 import xbmcaddon
@@ -156,7 +155,7 @@ def resetAuth():
     string = xbmcaddon.Addon().getLocalizedString
     resp = xbmcgui.Dialog().yesno(
         heading="Warning",
-        line1=string(39206))
+        line1=string(39206).encode('utf-8'))
     if resp == 1:
         utils.logMsg("PLEX", "Reset login attempts.", 1)
         utils.window('emby_serverStatus', value="Auth")
@@ -226,14 +225,14 @@ def resetDeviceId():
                      "Failed to generate a new device Id: %s" % e, 1)
         dialog.ok(
             heading=addonName,
-            line1=language(33032))
+            line1=language(33032).encode('utf-8'))
     else:
         utils.logMsg(addonName,
                      "Successfully removed old deviceId: %s New deviceId: %s"
                      % (deviceId_old, deviceId), 1)
         dialog.ok(
             heading=addonName,
-            line1=language(33033))
+            line1=language(33033).encode('utf-8'))
         xbmc.executebuiltin('RestartApp')
 
 ##### ADD ADDITIONAL USERS #####
@@ -399,7 +398,7 @@ def getThemeMedia():
     library = xbmc.translatePath(
                 "special://profile/addon_data/plugin.video.plexkodiconnect/library/").decode('utf-8')
     # Create library directory
-    if not xbmcvfs.exists(library):
+    if not utils.IfExists(library):
         xbmcvfs.mkdir(library)
 
     # Set custom path for user
@@ -572,10 +571,10 @@ def BrowseContent(viewname, type="", folderid=""):
     if not folderid:
         views = emby.getViews(type)
         for view in views:
-            if view.get("name") == viewname:
+            if view.get("name") == viewname.decode('utf-8'):
                 folderid = view.get("id")
     
-    utils.logMsg("BrowseContent","viewname: %s - type: %s - folderid: %s - filter: %s" %(viewname, type, folderid, filter))
+    utils.logMsg("BrowseContent","viewname: %s - type: %s - folderid: %s - filter: %s" %(viewname.decode('utf-8'), type.decode('utf-8'), folderid.decode('utf-8'), filter.decode('utf-8')))
     #set the correct params for the content type
     #only proceed if we have a folderid
     if folderid:
@@ -584,7 +583,7 @@ def BrowseContent(viewname, type="", folderid=""):
             itemtype = "Video,Folder,PhotoAlbum"
         elif type.lower() == "photos":
             xbmcplugin.setContent(int(sys.argv[1]), 'files')
-            itemtype = "Photo,PhotoAlbum"
+            itemtype = "Photo,PhotoAlbum,Folder"
         else:
             itemtype = ""
         
@@ -610,14 +609,13 @@ def BrowseContent(viewname, type="", folderid=""):
                 li = createListItemFromEmbyItem(item,art,doUtils)
                 if item.get("IsFolder") == True:
                     #for folders we add an additional browse request, passing the folderId
-                    path = "%s?id=%s&mode=browsecontent&type=%s&folderid=%s" % (sys.argv[0], viewname, type, item.get("Id"))
+                    path = "%s?id=%s&mode=browsecontent&type=%s&folderid=%s" % (sys.argv[0].decode('utf-8'), viewname.decode('utf-8'), type.decode('utf-8'), item.get("Id").decode('utf-8'))
                     xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=path, listitem=li, isFolder=True)
                 else:
                     #playable item, set plugin path and mediastreams
                     xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=li.getProperty("path"), listitem=li)
 
 
-    xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
     if filter == "recent":
         xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_DATE)
     else:
@@ -625,6 +623,8 @@ def BrowseContent(viewname, type="", folderid=""):
         xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_DATE)
         xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_RATING)
         xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_RUNTIME)
+
+    xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
 
 ##### CREATE LISTITEM FROM EMBY METADATA #####
 def createListItemFromEmbyItem(item,art=artwork.Artwork(),doUtils=downloadutils.DownloadUtils()):
@@ -1066,28 +1066,45 @@ def getRecentEpisodes(tagname, limit):
 
     xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
 
+##### GET VIDEO EXTRAS FOR LISTITEM #####
+def getVideoFiles(embyId,embyPath):
+    #returns the video files for the item as plugin listing, can be used for browsing the actual files or videoextras etc.
+    emby = embyserver.Read_EmbyServer()
+    if not embyId:
+        if "plugin.video.emby" in embyPath:
+            embyId = embyPath.split("/")[-2]
+    if embyId:
+        item = emby.getItem(embyId)
+        putils = playutils.PlayUtils(item)
+        if putils.isDirectPlay():
+            #only proceed if we can access the files directly. TODO: copy local on the fly if accessed outside
+            filelocation = putils.directPlay()
+            if not filelocation.endswith("/"):
+                filelocation = filelocation.rpartition("/")[0]
+            dirs, files = xbmcvfs.listdir(filelocation)
+            for file in files:
+                file = filelocation + file
+                li = xbmcgui.ListItem(file, path=file)
+                xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=file, listitem=li)
+            for dir in dirs:
+                dir = filelocation + dir
+                li = xbmcgui.ListItem(dir, path=dir)
+                xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=dir, listitem=li, isFolder=True)
+    xbmcplugin.endOfDirectory(int(sys.argv[1]))
+    
 ##### GET EXTRAFANART FOR LISTITEM #####
-def getExtraFanArt():
+def getExtraFanArt(embyId,embyPath):
     
     emby = embyserver.Read_EmbyServer()
     art = artwork.Artwork()
-    embyId = ""
     
     # Get extrafanart for listitem 
     # will be called by skinhelper script to get the extrafanart
     try:
         # for tvshows we get the embyid just from the path
-        if xbmc.getCondVisibility("Container.Content(tvshows) | Container.Content(seasons) | Container.Content(episodes)"):
-            itemPath = xbmc.getInfoLabel("ListItem.Path").decode('utf-8')
-            if "plugin.video.plexkodiconnect" in itemPath:
-                embyId = itemPath.split("/")[-2]
-        else:
-            #for movies we grab the emby id from the params
-            itemPath = xbmc.getInfoLabel("ListItem.FileNameAndPath").decode('utf-8')
-            if "plugin.video.plexkodiconnect" in itemPath:
-                params = urlparse.parse_qs(itemPath)
-                embyId = params.get('id')
-                if embyId: embyId = embyId[0]
+        if not embyId:
+            if "plugin.video.emby" in embyPath:
+                embyId = embyPath.split("/")[-2]
         
         if embyId:
             #only proceed if we actually have a emby id
@@ -1131,7 +1148,7 @@ def getExtraFanArt():
                                             url=fanartFile,
                                             listitem=li)
     except Exception as e:
-        utils.logMsg("EMBY", "Error getting extrafanart: %s" % e, 1)
+        utils.logMsg("EMBY", "Error getting extrafanart: %s" % e, 0)
     
     # Always do endofdirectory to prevent errors in the logs
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
@@ -1142,6 +1159,6 @@ def RunLibScan(mode):
         # Server is not online, do not run the sync
         string = xbmcaddon.Addon().getLocalizedString
         xbmcgui.Dialog().ok(heading=addonName,
-                            line1=string(39205))
+                            line1=string(39205).encode('utf-8'))
     else:
         utils.window('plex_runLibScan', value='full')
