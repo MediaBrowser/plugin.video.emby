@@ -243,16 +243,6 @@ class LibrarySync(Thread):
             icon="special://home/addons/plugin.video.plexkodiconnect/icon.png",
             sound=False)
 
-    def startSync(self):
-        utils.window('emby_dbScan', value="true")
-        completed = self.fastSync()
-        if not completed:
-            # Fast sync failed or server plugin is not found
-            self.logMsg("Something went wrong, starting full sync", -1)
-            completed = self.fullSync(manualrun=True)
-        utils.window('emby_dbScan', clear=True)
-        return completed
-
     def fastSync(self):
         """
         Fast incremential lib sync
@@ -1129,29 +1119,37 @@ class LibrarySync(Thread):
             raise
 
     def run_internal(self):
+        # Re-assign handles to have faster calls
         window = utils.window
         settings = utils.settings
         log = self.logMsg
+        threadStopped = self.threadStopped
+        threadSuspended = self.threadSuspended
+        installSyncDone = self.installSyncDone
+        enableBackgroundSync = self.enableBackgroundSync
+        fullSync = self.fullSync
+        fastSync = self.fastSync
+
+        dialog = xbmcgui.Dialog()
 
         startupComplete = False
         self.views = []
         count = 0
         errorcount = 0
 
-        self.logMsg("---===### Starting LibrarySync ###===---", 0)
-        while not self.threadStopped():
+        log("---===### Starting LibrarySync ###===---", 0)
+        while not threadStopped():
 
             # In the event the server goes offline, or an item is playing
-            while self.threadSuspended():
+            while threadSuspended():
                 # Set in service.py
-                if self.threadStopped():
+                if threadStopped():
                     # Abort was requested while waiting. We should exit
                     log("###===--- LibrarySync Stopped ---===###", 0)
                     return
                 xbmc.sleep(1000)
 
-            if (window('emby_dbCheck') != "true" and
-                    self.installSyncDone):
+            if (window('emby_dbCheck') != "true" and installSyncDone):
                 # Verify the validity of the database
                 currentVersion = settings('dbCreatedWithVersion')
                 minVersion = window('emby_minDBVersion')
@@ -1160,14 +1158,14 @@ class LibrarySync(Thread):
                 if not uptoDate:
                     log("Db version out of date: %s minimum version required: "
                         "%s" % (currentVersion, minVersion), 0)
-                    resp = xbmcgui.Dialog().yesno(
+                    resp = dialog.yesno(
                         heading="Db Version",
                         line1=("Detected the database needs to be recreated "
                                "for this version of " + self.addonName +
                                "Proceed?"))
                     if not resp:
                         log("Db version out of date! USER IGNORED!", 0)
-                        xbmcgui.Dialog().ok(
+                        dialog.ok(
                             heading=self.addonName,
                             line1=(self.addonName + " may not work correctly "
                                    "until the database is reset."))
@@ -1185,7 +1183,7 @@ class LibrarySync(Thread):
                     # Database does not exists
                     log("The current Kodi version is incompatible "
                         "to know which Kodi versions are supported.", 0)
-                    xbmcgui.Dialog().ok(
+                    dialog.ok(
                         heading=self.addonName,
                         line1=("Cancelling the database syncing process. "
                                "Current Kodi version: %s is unsupported. "
@@ -1197,7 +1195,7 @@ class LibrarySync(Thread):
                 window('emby_dbScan', value="true")
                 log("Db version: %s" % settings('dbCreatedWithVersion'), 0)
                 log("Initial start-up full sync starting", 0)
-                librarySync = self.fullSync(manualrun=True)
+                librarySync = fullSync(manualrun=True)
                 window('emby_dbScan', clear=True)
                 if librarySync:
                     log("Initial start-up full sync successful", 0)
@@ -1205,13 +1203,13 @@ class LibrarySync(Thread):
                     settings('SyncInstallRunDone', value="true")
                     settings("dbCreatedWithVersion",
                              self.clientInfo.getVersion())
-                    self.installSyncDone = True
+                    installSyncDone = True
                 else:
                     log("Initial start-up full sync unsuccessful", -1)
                     errorcount += 1
                     if errorcount > 2:
                         log("Startup full sync failed. Stopping sync", -1)
-                        xbmcgui.Dialog().ok(
+                        dialog.ok(
                             heading=self.addonName,
                             line1=("Startup syncing process failed repeatedly."
                                    " Try restarting Kodi. Stopping Sync for "
@@ -1225,7 +1223,7 @@ class LibrarySync(Thread):
                     log('Full library scan requested, starting', 0)
                     window('emby_dbScan', value="true")
                     window('plex_runLibScan', clear=True)
-                    self.fullSync(manualrun=True)
+                    fullSync(manualrun=True)
                     window('emby_dbScan', clear=True)
                     count = 0
                 # Reset views was requested from somewhere else
@@ -1239,8 +1237,8 @@ class LibrarySync(Thread):
                     # Remove video nodes
                     utils.deleteNodes()
                     # Kick off refresh
-                    dialog = xbmcgui.Dialog()
                     if self.maintainViews():
+                        # Ran successfully
                         dialog.notification(
                             heading=self.addonName,
                             message="Plex playlists/nodes refreshed",
@@ -1248,7 +1246,8 @@ class LibrarySync(Thread):
                             time=3000,
                             sound=True)
                     else:
-                        self.logMsg("Refresh playlists/nodes failed", -1)
+                        # Failed
+                        log("Refresh playlists/nodes failed", -1)
                         dialog.notification(
                             heading=self.addonName,
                             message="Plex playlists/nodes refresh failed",
@@ -1256,19 +1255,25 @@ class LibrarySync(Thread):
                             time=3000,
                             sound=True)
                     window('emby_dbScan', clear=True)
-                elif self.enableBackgroundSync:
+                elif enableBackgroundSync:
                     # Run full lib scan approx every 30min
                     if count >= 1800:
                         count = 0
                         window('emby_dbScan', value="true")
-                        log('Running automatic full lib scan', 0)
-                        self.fullSync(manualrun=True)
+                        log('Running background full lib scan', 0)
+                        fullSync(manualrun=True)
                         window('emby_dbScan', clear=True)
-                    # Run fast sync otherwise (ever 2 seconds or so)
+                    # Run fast sync otherwise (ever second or so)
                     else:
-                        self.startSync()
+                        window('emby_dbScan', value="true")
+                        if not fastSync():
+                            # Fast sync failed or server plugin is not found
+                            self.logMsg(
+                                "Something went wrong, starting full sync", -1)
+                            fullSync(manualrun=True)
+                        window('emby_dbScan', clear=True)
 
-            xbmc.sleep(2000)
+            xbmc.sleep(1000)
             count += 1
 
         log("###===--- LibrarySync Stopped ---===###", 0)

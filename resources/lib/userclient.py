@@ -423,7 +423,7 @@ class UserClient(threading.Thread):
             while self.threadSuspended():
                 if self.threadStopped():
                     break
-                xbmc.sleep(3000)
+                xbmc.sleep(1000)
 
             status = window('emby_serverStatus')
             if status:
