@@ -55,7 +55,7 @@ import re
 import json
 from urllib import urlencode, quote_plus
 
-from PlexFunctions import PlexToKodiTimefactor
+from PlexFunctions import PlexToKodiTimefactor, PMSHttpsEnabled
 
 try:
     import xml.etree.cElementTree as etree
@@ -630,6 +630,12 @@ class PlexAPI():
             self.getPMSListFromMyPlex(ATV_udid, authtoken)
         # all servers - update enableGzip
         for uuid_id in self.g_PMS.get(ATV_udid, {}):
+            # Ping to check whether we need HTTPs or HTTP
+            url = (self.getPMSProperty(ATV_udid, uuid_id, 'ip') + ':'
+                   + self.getPMSProperty(ATV_udid, uuid_id, 'port'))
+            if PMSHttpsEnabled(url):
+                self.logMsg('PMS %s talks HTTPS' % uuid_id, 1)
+                self.updatePMSProperty(ATV_udid, uuid_id, 'scheme', 'https')
             # enable Gzip if not on same host, local&remote PMS depending
             # on setting
             enableGzip = (not self.getPMSProperty(ATV_udid, uuid_id, 'ip') == IP_self) \

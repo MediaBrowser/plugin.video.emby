@@ -40,10 +40,11 @@ class ThreadedGetMetadata(Thread):
                             the downloaded metadata XMLs as etree objects
         lock                Lock(), used for counting where we are
     """
-    def __init__(self, queue, out_queue, lock):
+    def __init__(self, queue, out_queue, lock, processlock):
         self.queue = queue
         self.out_queue = out_queue
         self.lock = lock
+        self.processlock = processlock
         Thread.__init__(self)
 
     def run(self):
@@ -51,8 +52,10 @@ class ThreadedGetMetadata(Thread):
         queue = self.queue
         out_queue = self.out_queue
         lock = self.lock
+        processlock = self.processlock
         threadStopped = self.threadStopped
         global getMetadataCount
+        global processMetadataCount
         while threadStopped() is False:
             # grabs Plex item from queue
             try:
@@ -66,9 +69,13 @@ class ThreadedGetMetadata(Thread):
             if plexXML is None:
                 # Did not receive a valid XML - skip that item for now
                 self.logMsg("Could not get metadata for %s. "
-                            "Skipping that item for now", -1)
+                            "Skipping that item for now"
+                            % updateItem['itemId'], -1)
+                # Increase BOTH counters - since metadata won't be processed
                 with lock:
                     getMetadataCount += 1
+                with processlock:
+                    processMetadataCount += 1
                 queue.task_done()
                 continue
 
@@ -119,20 +126,20 @@ class ThreadedProcessMetadata(Thread):
                 except Queue.Empty:
                     xbmc.sleep(100)
                     continue
-                # Do the work; lock to be sure we've only got 1 Thread
+                # Do the work
                 plexitem = updateItem['XML']
                 method = updateItem['method']
                 viewName = updateItem['viewName']
                 viewId = updateItem['viewId']
                 title = updateItem['title']
                 itemSubFkt = getattr(item, method)
+                # Get the one child entry in the xml and process
+                for child in plexitem:
+                    itemSubFkt(child,
+                               viewtag=viewName,
+                               viewid=viewId)
+                # Keep track of where we are at
                 with lock:
-                    # Get the one child entry in the xml and process
-                    for child in plexitem:
-                        itemSubFkt(child,
-                                   viewtag=viewName,
-                                   viewid=viewId)
-                    # Keep track of where we are at
                     processMetadataCount += 1
                     processingViewName = title
                 # signals to queue job is done
@@ -728,7 +735,8 @@ class LibrarySync(Thread):
         for i in range(min(self.syncThreadNumber, itemNumber)):
             thread = ThreadedGetMetadata(getMetadataQueue,
                                          processMetadataQueue,
-                                         getMetadataLock)
+                                         getMetadataLock,
+                                         processMetadataLock)
             thread.setDaemon(True)
             thread.start()
             threads.append(thread)

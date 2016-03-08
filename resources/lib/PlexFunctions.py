@@ -347,3 +347,24 @@ def getPlexRepeat(kodiRepeat):
         'all': '2'   # does this work?!?
     }
     return plexRepeat.get(kodiRepeat)
+
+
+def PMSHttpsEnabled(url):
+    """
+    Returns True if the PMS wants to talk https, False otherwise
+
+    With with e.g. url=192.168.0.1:32400 (NO http/https)
+
+    This is done by GET /identity (returns an error if https is enabled and we
+    are trying to use http)
+    """
+    xml = downloadutils.DownloadUtils().downloadUrl('http://%s/identity' % url)
+    try:
+        # received a valid XML - http connection is possible
+        xml.attrib
+        logMsg('PMSHttpsEnabled', 'PMS on %s talks HTTP' % url, 1)
+        return False
+    except:
+        # couldn't get an xml - switch to https traffic
+        logMsg('PMSHttpsEnabled', 'PMS on %s talks HTTPS' % url, 1)
+        return True
