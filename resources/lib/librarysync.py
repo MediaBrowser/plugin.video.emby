@@ -8,6 +8,7 @@ import Queue
 import xbmc
 import xbmcgui
 import xbmcvfs
+import xbmcaddon
 
 import utils
 import clientinfo
@@ -212,6 +213,8 @@ class LibrarySync(Thread):
     def __init__(self):
 
         self.__dict__ = self._shared_state
+
+        self.__language__ = xbmcaddon.Addon().getLocalizedString
 
         self.clientInfo = clientinfo.ClientInfo()
         self.user = userclient.UserClient()
@@ -1111,11 +1114,10 @@ class LibrarySync(Thread):
             self.run_internal()
         except Exception as e:
             utils.window('emby_dbScan', clear=True)
+            # Library sync thread has crashed
             xbmcgui.Dialog().ok(
                 heading=self.addonName,
-                line1=("Library sync thread has crashed. "
-                       "You should restart Kodi now. "
-                       "Please report this on the forum."))
+                line1=self.__language__(39400))
             raise
 
     def run_internal(self):
@@ -1129,6 +1131,7 @@ class LibrarySync(Thread):
         enableBackgroundSync = self.enableBackgroundSync
         fullSync = self.fullSync
         fastSync = self.fastSync
+        string = self.__language__
 
         dialog = xbmcgui.Dialog()
 
@@ -1158,17 +1161,14 @@ class LibrarySync(Thread):
                 if not uptoDate:
                     log("Db version out of date: %s minimum version required: "
                         "%s" % (currentVersion, minVersion), 0)
-                    resp = dialog.yesno(
-                        heading="Db Version",
-                        line1=("Detected the database needs to be recreated "
-                               "for this version of " + self.addonName +
-                               "Proceed?"))
+                    # DB out of date. Proceed to recreate?
+                    resp = dialog.yesno(heading=self.addonName,
+                                        line1=string(39401))
                     if not resp:
                         log("Db version out of date! USER IGNORED!", 0)
-                        dialog.ok(
-                            heading=self.addonName,
-                            line1=(self.addonName + " may not work correctly "
-                                   "until the database is reset."))
+                        # PKC may not work correctly until reset
+                        dialog.ok(heading=self.addonName,
+                                  line1=(self.addonName + string(39402)))
                     else:
                         utils.reset()
                     break
@@ -1182,13 +1182,12 @@ class LibrarySync(Thread):
                 if not xbmcvfs.exists(videoDb):
                     # Database does not exists
                     log("The current Kodi version is incompatible "
-                        "to know which Kodi versions are supported.", 0)
-                    dialog.ok(
-                        heading=self.addonName,
-                        line1=("Cancelling the database syncing process. "
-                               "Current Kodi version: %s is unsupported. "
-                               "Please verify your logs for more info."
-                               % xbmc.getInfoLabel('System.BuildVersion')))
+                        "to know which Kodi versions are supported.", -1)
+                    log('Current Kodi version: %s' % xbmc.getInfoLabel(
+                        'System.BuildVersion').decode('utf-8'))
+                    # "Current Kodi version is unsupported, cancel lib sync"
+                    dialog.ok(heading=self.addonName,
+                              line1=string(39403))
                     break
 
                 # Run start up sync
@@ -1209,11 +1208,10 @@ class LibrarySync(Thread):
                     errorcount += 1
                     if errorcount > 2:
                         log("Startup full sync failed. Stopping sync", -1)
-                        dialog.ok(
-                            heading=self.addonName,
-                            line1=("Startup syncing process failed repeatedly."
-                                   " Try restarting Kodi. Stopping Sync for "
-                                   "now."))
+                        # "Startup syncing process failed repeatedly"
+                        # "Please restart"
+                        dialog.ok(heading=self.addonName,
+                                  line1=string(39404))
                         break
 
             # Currently no db scan, so we can start a new scan
@@ -1239,18 +1237,21 @@ class LibrarySync(Thread):
                     # Kick off refresh
                     if self.maintainViews():
                         # Ran successfully
+                        log("Refresh playlists/nodes completed", 0)
+                        # "Plex playlists/nodes refreshed"
                         dialog.notification(
                             heading=self.addonName,
-                            message="Plex playlists/nodes refreshed",
+                            message=string(39405),
                             icon="special://home/addons/plugin.video.plexkodiconnect/icon.png",
                             time=3000,
                             sound=True)
                     else:
                         # Failed
                         log("Refresh playlists/nodes failed", -1)
+                        # "Plex playlists/nodes refresh failed"
                         dialog.notification(
                             heading=self.addonName,
-                            message="Plex playlists/nodes refresh failed",
+                            message=string(39406),
                             icon=xbmcgui.NOTIFICATION_ERROR,
                             time=3000,
                             sound=True)
@@ -1268,8 +1269,7 @@ class LibrarySync(Thread):
                         window('emby_dbScan', value="true")
                         if not fastSync():
                             # Fast sync failed or server plugin is not found
-                            self.logMsg(
-                                "Something went wrong, starting full sync", -1)
+                            log("Something went wrong, starting full sync", -1)
                             fullSync(manualrun=True)
                         window('emby_dbScan', clear=True)
 

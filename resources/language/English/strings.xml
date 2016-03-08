@@ -396,4 +396,13 @@
     <string id="39308">Could not log in user </string>
     <string id="39309">Please try again.</string>
 
+    <!-- Plex Librarysync.py -->
+    <string id="39400">Library sync thread has crashed. You should restart Kodi now. Please report this on the forum</string>
+    <string id="39401">Detected Kodi database needs to be recreated for this version. This might take a while. Proceed?</string>
+    <string id="39402"> may not work correctly until the database is reset.</string>
+    <string id="39403">Cancelling the database syncing process. Current Kodi version is unsupported. Please verify your logs for more info.</string>
+    <string id="39404">Startup syncing process failed repeatedly. Try restarting Kodi. Stopping Sync for now.</string>
+    <string id="39405">Plex playlists/nodes refreshed</string>
+    <string id="39406">Plex playlists/nodes refresh failed</string>
+
 </strings>

@@ -327,4 +327,13 @@
     <string id="39308">Anmeldung fehlgeschlagen für Benutzer </string>
     <string id="39309">Bitte erneut versuchen.</string>
 
+    <!-- Plex Librarysync.py -->
+    <string id="39400">Die Synchronisierung der Plex Bibliotheken ist abgestürzt. Bitte Kodi neu starten. Danke, wenn Sie sich die Zeit nehmen und im Plex Forum vom Absturz berichten.</string>
+    <string id="39401">Die Kodi Datenbank muss neu kreiert werden für diese Version. Das kann eine Weile dauern. Fortfahren?</string>
+    <string id="39402"> funktioniert möglicherweise nicht richtig, bis die Kodi Datenbank zurückgesetzt worden ist.</string>
+    <string id="39403">Synchronisierung der Plex Bibliotheken wird abgebrochen. Die momentane Kodi Version wird nicht unterstützt. Für weitere Informationen bitte das Kodi Log konsultieren.</string>
+    <string id="39404">Der Startup Synchronisations-Prozess der Plex Bibliotheken ist mehrmals fehlgeschlagen. Bitte Kodi neu starten. Synch wird jetzt gestoppt.</string>
+    <string id="39405">Plex Playlisten/Nodes aktualisiert</string>
+    <string id="39406">Plex Playlisten/Nodes Aktualisierung fehlgeschlagen</string>
+
 </strings>
