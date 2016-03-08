@@ -375,7 +375,7 @@
     <string id="39204">Perform manual library sync</string>
     <string id="39205">Unable to run the sync, the add-on is not connected to a Plex server.</string>
     <string id="39206">Plex might lock your account if you fail to log in too many times. Proceed anyway?</string>
-    <string id="39207">Reseting PMS connections, please wait. Test: עޥ</string>
+    <string id="39207">Reseting PMS connections, please wait</string>
     <string id="39208">Failed to reset PMS and plex.tv connects. Try to restart Kodi.</string>
     <string id="39209">[COLOR yellow]Log-in to plex.tv[/COLOR]</string>
 
