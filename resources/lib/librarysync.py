@@ -25,6 +25,7 @@ import PlexFunctions
 ###############################################################################
 
 
+@utils.logging
 @utils.ThreadMethodsAdditionalStop('emby_shouldStop')
 @utils.ThreadMethods
 class ThreadedGetMetadata(Thread):
@@ -64,6 +65,10 @@ class ThreadedGetMetadata(Thread):
             plexXML = PlexFunctions.GetPlexMetadata(updateItem['itemId'])
             if plexXML is None:
                 # Did not receive a valid XML - skip that item for now
+                self.logMsg("Could not get metadata for %s. "
+                            "Skipping that item for now", -1)
+                with lock:
+                    getMetadataCount += 1
                 queue.task_done()
                 continue
 
@@ -1105,6 +1110,7 @@ class LibrarySync(Thread):
             self.run_internal()
         except Exception as e:
             utils.window('emby_dbScan', clear=True)
+            self.logMsg('LibrarySync thread crashed', -1)
             # Library sync thread has crashed
             xbmcgui.Dialog().ok(
                 heading=self.addonName,

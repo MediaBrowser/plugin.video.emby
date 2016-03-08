@@ -40,7 +40,7 @@ class image_cache_thread(threading.Thread):
                                     "http://%s:%s/image/image://%s"
                                     % (self.xbmc_host, self.xbmc_port, self.urlToProcess)),
                                 auth=(self.xbmc_username, self.xbmc_password),
-                                timeout=(35.1, 35.1))
+                                timeout=(0.1, 0.1))
         # We don't need the result
         except: pass
         
