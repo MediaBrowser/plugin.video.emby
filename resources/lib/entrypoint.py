@@ -72,18 +72,48 @@ def plexCompanion(fullurl, params):
             title, "Not knowing what to do for now - no playQueue sent", -1)
 
 
-def doPlexTvLogin():
+def reConnect():
     """
-    Triggers login to plex.tv
+    Triggers login to plex.tv and re-authorization
     """
+    string = xbmcaddon.Addon().getLocalizedString
+    utils.logMsg("entrypoint reConnect",
+                 "Connection resets requested", 0)
+    # Pause library sync thread - user needs to be auth in order to sync
+    utils.window('suspend_LibraryThread', value='true')
     # Suspend the user client during procedure
     utils.window('suspend_Userclient', value='true')
+    dialog = xbmcgui.Dialog()
+    dialog.notification(
+        heading=addonName,
+        message=string(39207),
+        icon="special://home/addons/plugin.video.plexkodiconnect/icon.png",
+        sound=False)
+
+    # Wait max for 20 seconds for all lib scans to finish
+    counter = 0
+    while utils.window('emby_dbScan') == 'true':
+        xbmc.sleep(1000)
+        counter += 1
+        if counter > 20:
+            dialog.ok(
+                heading=addonName,
+                message=string(39208),
+            )
+            # Resuming threads, just in case
+            utils.window('suspend_LibraryThread', clear=True)
+            utils.window('suspend_Userclient', clear=True)
+            # Abort reConnection
+            return
+
     import initialsetup
     initialsetup.InitialSetup().setup(forcePlexTV=True)
-    utils.logMsg("PLEX", "Reset login attempts.", 1)
-    utils.window('emby_serverStatus', value="Auth")
+    # Log out currently signed in user:
+    utils.window('emby_serverStatus', value="401")
     # Restart user client
     utils.window('suspend_Userclient', clear=True)
+    # Request lib sync to get user view data (e.g. watched/unwatched)
+    utils.window('plex_runLibScan', value='full')
 
 
 def PassPlaylist(xml, resume=None):
@@ -155,7 +185,7 @@ def resetAuth():
     string = xbmcaddon.Addon().getLocalizedString
     resp = xbmcgui.Dialog().yesno(
         heading="Warning",
-        line1=string(39206).encode('utf-8'))
+        line1=string(39206))
     if resp == 1:
         utils.logMsg("PLEX", "Reset login attempts.", 1)
         utils.window('emby_serverStatus', value="Auth")
@@ -225,14 +255,14 @@ def resetDeviceId():
                      "Failed to generate a new device Id: %s" % e, 1)
         dialog.ok(
             heading=addonName,
-            line1=language(33032).encode('utf-8'))
+            line1=language(33032))
     else:
         utils.logMsg(addonName,
                      "Successfully removed old deviceId: %s New deviceId: %s"
                      % (deviceId_old, deviceId), 1)
         dialog.ok(
             heading=addonName,
-            line1=language(33033).encode('utf-8'))
+            line1=language(33033))
         xbmc.executebuiltin('RestartApp')
 
 ##### ADD ADDITIONAL USERS #####
@@ -1159,6 +1189,6 @@ def RunLibScan(mode):
         # Server is not online, do not run the sync
         string = xbmcaddon.Addon().getLocalizedString
         xbmcgui.Dialog().ok(heading=addonName,
-                            line1=string(39205).encode('utf-8'))
+                            line1=string(39205))
     else:
         utils.window('plex_runLibScan', value='full')

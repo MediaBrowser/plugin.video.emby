@@ -192,32 +192,47 @@ def logMsg(title, msg, level=1):
         logLevel = int(window('emby_logLevel'))
     except ValueError:
         logLevel = 0
-    
+    kodiLevel = {
+        -1: xbmc.LOGERROR,
+        0: xbmc.LOGNOTICE,
+        1: xbmc.LOGNOTICE,
+        2: xbmc.LOGNOTICE
+    }
     if logLevel >= level:
-        
         if logLevel == 2:  # inspect is expensive
             func = inspect.currentframe().f_back.f_back.f_code
             try:
                 xbmc.log("%s -> %s : %s" % (
-                    title, func.co_name, msg))
+                    title, func.co_name, msg), level=kodiLevel[level])
             except UnicodeEncodeError:
                 try:
                     xbmc.log("%s -> %s : %s" % (
-                        title, func.co_name, msg.encode('utf-8')))
+                        title, func.co_name, msg.encode('utf-8')),
+                        level=kodiLevel[level])
                 except:
-                    xbmc.log("%s -> %s : %s" % (title, func.co_name, 'COULDNT LOG'))
+                    xbmc.log("%s -> %s : %s" % (
+                        title, func.co_name, 'COULDNT LOG'),
+                        level=kodiLevel[level])
         else:
             try:
-                xbmc.log("%s -> %s" % (title, msg))
+                xbmc.log("%s -> %s" % (title, msg), level=kodiLevel[level])
             except UnicodeEncodeError:
                 try:
-                    xbmc.log("%s -> %s" % (title, msg.encode('utf-8')))
+                    xbmc.log("%s -> %s" % (title, msg.encode('utf-8')),
+                             level=kodiLevel[level])
                 except:
-                    xbmc.log("%s -> %s " % (title, 'COULDNT LOG'))
+                    xbmc.log("%s -> %s " % (title, 'COULDNT LOG'),
+                             level=kodiLevel[level])
 
 
 def window(property, value=None, clear=False, windowid=10000):
-    # Get or set window property
+    """
+    Get or set window property - thread safe!
+
+    Returns unicode.
+
+    Property needs to be string; value may be string or unicode
+    """
     WINDOW = xbmcgui.Window(windowid)
     
     #setproperty accepts both string and unicode but utf-8 strings are adviced by kodi devs because some unicode can give issues
@@ -228,14 +243,13 @@ def window(property, value=None, clear=False, windowid=10000):
     if clear:
         WINDOW.clearProperty(property)
     elif value is not None:
-        # Takes unicode or string by default!
-        WINDOW.setProperty(property, value)
-    else: #getproperty returns string so convert to unicode
-        return WINDOW.getProperty(property)
+        WINDOW.setProperty(property, value.encode('utf-8'))
+    else:
+        return WINDOW.getProperty(property).decode('utf-8')
 
 def settings(setting, value=None):
     """
-    Get or add addon setting.
+    Get or add addon setting. Returns unicode
 
     Settings needs to be string
     Value can either be unicode or string
@@ -244,10 +258,10 @@ def settings(setting, value=None):
 
     if value is not None:
         # Takes string or unicode by default!
-        addon.setSetting(setting, value)
+        addon.setSetting(setting, value.encode('utf-8'))
     else:
-        # Returns unicode by default!
-        return addon.getSetting(setting)
+        # Should return unicode by default, but just in case
+        return addon.getSetting(setting).decode('utf-8')
 
 def language(stringid):
     # Central string retrieval
@@ -443,7 +457,7 @@ def reset():
         logMsg("PLEX", "Deleting: settings.xml", 1)
 
     dialog.ok(
-        heading="Emby for Kodi",
+        heading=addonName,
         line1="Database reset has completed, Kodi will now restart to apply the changes.")
     xbmc.executebuiltin('RestartApp')
 

@@ -362,7 +362,7 @@
     <string id="39021">[COLOR yellow]Sync Emby Theme Media to Kodi[/COLOR]</string>
     <string id="39022"> (local)</string>
     <string id="39023">Failed to authenticate. Did you login to plex.tv?</string>
-    <string id="39024">[COLOR yellow]Log into plex.tv[/COLOR]</string>
+    <string id="39024">[COLOR yellow]Reset PMS and plex.tv connections to re-login[/COLOR]</string>
     <string id="39025">Automatically log into plex.tv on startup</string>
     <string id="39026">Enable constant background sync (restart Kodi!)</string>
 
@@ -375,6 +375,9 @@
     <string id="39204">Perform manual library sync</string>
     <string id="39205">Unable to run the sync, the add-on is not connected to a Plex server.</string>
     <string id="39206">Plex might lock your account if you fail to log in too many times. Proceed anyway?</string>
+    <string id="39207">Reseting PMS connections, please wait</string>
+    <string id="39208">Failed to reset PMS and plex.tv connects. Try to restart Kodi.</string>
+    <string id="39209">[COLOR yellow]Log-in to plex.tv[/COLOR]</string>
 
 
     <!-- Plex Artwork.py -->
@@ -392,5 +395,14 @@
     <string id="39307">Enter PIN for user </string>
     <string id="39308">Could not log in user </string>
     <string id="39309">Please try again.</string>
+
+    <!-- Plex Librarysync.py -->
+    <string id="39400">Library sync thread has crashed. You should restart Kodi now. Please report this on the forum</string>
+    <string id="39401">Detected Kodi database needs to be recreated for this version. This might take a while. Proceed?</string>
+    <string id="39402"> may not work correctly until the database is reset.</string>
+    <string id="39403">Cancelling the database syncing process. Current Kodi version is unsupported. Please verify your logs for more info.</string>
+    <string id="39404">Startup syncing process failed repeatedly. Try restarting Kodi. Stopping Sync for now.</string>
+    <string id="39405">Plex playlists/nodes refreshed</string>
+    <string id="39406">Plex playlists/nodes refresh failed</string>
 
 </strings>

@@ -34,6 +34,8 @@ class PlayUtils():
         """
         Returns the playurl for the part with number partNumber
         (movie might consist of several files)
+
+        playurl is utf-8 encoded!
         """
         log = self.logMsg
         window = utils.window
@@ -64,6 +66,7 @@ class PlayUtils():
             }
             playurl = self.API.getTranscodeVideoPath('Transcode',
                                                      quality=quality)
+            playurl = playurl.encode('utf-8')
             # Set playmethod property
             window('emby_%s.playmethod' % playurl, value="Transcode")
 
@@ -371,7 +374,7 @@ class PlayUtils():
                 subNum += 1
 
         if audioNum > 1:
-            resp = dialog.select(lang(33013).encode('utf-8'), audioStreams)
+            resp = dialog.select(lang(33013), audioStreams)
             if resp > -1:
                 # User selected audio
                 playurlprefs['audioStreamID'] = audioStreamsList[resp]
@@ -384,7 +387,7 @@ class PlayUtils():
         playurlprefs['audioBoost'] = utils.settings('audioBoost')
 
         if subNum > 1:
-            resp = dialog.select(lang(33014).encode('utf-8'), subtitleStreams)
+            resp = dialog.select(lang(33014), subtitleStreams)
             if resp == 0:
                 # User selected no subtitles
                 playurlprefs["skipSubtitles"] = 1

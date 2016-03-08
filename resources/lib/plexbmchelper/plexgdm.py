@@ -31,7 +31,10 @@ import re
 import threading
 import time
 import urllib2
+
 import downloadutils
+from PlexFunctions import PMSHttpsEnabled
+
 
 class plexgdm:
 
@@ -56,6 +59,7 @@ class plexgdm:
         self.discovery_complete = False
         self.client_registered = False
         self.debug = debug
+        self.download = downloadutils.DownloadUtils().downloadUrl
 
     def __printDebug(self, message, level=1):
         if self.debug:
@@ -139,13 +143,19 @@ class plexgdm:
             try:
                 media_server=self.server_list[0]['server']
                 media_port=self.server_list[0]['port']
+                scheme = self.server_list[0]['protocol']
 
                 self.__printDebug("Checking server [%s] on port [%s]" % (media_server, media_port) ,2)                    
-                client_result = downloadutils.DownloadUtils().downloadUrl(
-                    'http://%s:%s/clients' % (media_server, media_port))
+                client_result = self.download(
+                    '%s://%s:%s/clients' % (scheme, media_server, media_port))
                 # f = urllib2.urlopen('http://%s:%s/clients' % (media_server, media_port))
                 # client_result = f.read()
-                if self.client_id in str(client_result):
+                registered = False
+                for client in client_result:
+                    if (client.attrib.get('machineIdentifier') ==
+                            self.client_id):
+                        registered = True
+                if registered:
                     self.__printDebug("Client registration successful",1)
                     self.__printDebug("Client data is: %s" % client_result, 3)
                     return True
@@ -208,7 +218,6 @@ class plexgdm:
                 if "200 OK" in response.get('data'):
             
                     for each in response.get('data').split('\r\n'):
-
                         update['discovery'] = "auto"
                         update['owned']='1'
                         update['master']= 1
@@ -230,7 +239,13 @@ class plexgdm:
                         elif "Server-Class:" in each:
                             update['class'] = each.split(':')[1].strip()
 
-                discovered_servers.append(update)                    
+                # Quickly test if we need https
+                if PMSHttpsEnabled(
+                        '%s:%s' % (update['server'], update['port'])):
+                    update['protocol'] = 'https'
+                else:
+                    update['protocol'] = 'http'
+                discovered_servers.append(update)
 
         self.server_list = discovered_servers
         
@@ -239,7 +254,7 @@ class plexgdm:
         else:
             self.__printDebug("Number of servers Discovered: %s" % len(self.server_list),1)
             for items in self.server_list:
-                self.__printDebug("Server Discovered: %s" % items['serverName'] ,2)
+                self.__printDebug("Server Discovered: %s" % items, 2)
                 
 
     def setInterval(self, interval):

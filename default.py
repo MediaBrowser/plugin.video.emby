@@ -66,7 +66,7 @@ class Main:
             'companion': entrypoint.plexCompanion,
             'switchuser': entrypoint.switchPlexUser,
             'deviceid': entrypoint.resetDeviceId,
-            'doPlexTvLogin': entrypoint.doPlexTvLogin
+            'reConnect': entrypoint.reConnect
         }
         
         if "/extrafanart" in sys.argv[0]:

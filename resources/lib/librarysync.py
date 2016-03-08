@@ -8,6 +8,7 @@ import Queue
 import xbmc
 import xbmcgui
 import xbmcvfs
+import xbmcaddon
 
 import utils
 import clientinfo
@@ -24,6 +25,7 @@ import PlexFunctions
 ###############################################################################
 
 
+@utils.logging
 @utils.ThreadMethodsAdditionalStop('emby_shouldStop')
 @utils.ThreadMethods
 class ThreadedGetMetadata(Thread):
@@ -38,10 +40,11 @@ class ThreadedGetMetadata(Thread):
                             the downloaded metadata XMLs as etree objects
         lock                Lock(), used for counting where we are
     """
-    def __init__(self, queue, out_queue, lock):
+    def __init__(self, queue, out_queue, lock, processlock):
         self.queue = queue
         self.out_queue = out_queue
         self.lock = lock
+        self.processlock = processlock
         Thread.__init__(self)
 
     def run(self):
@@ -49,8 +52,10 @@ class ThreadedGetMetadata(Thread):
         queue = self.queue
         out_queue = self.out_queue
         lock = self.lock
+        processlock = self.processlock
         threadStopped = self.threadStopped
         global getMetadataCount
+        global processMetadataCount
         while threadStopped() is False:
             # grabs Plex item from queue
             try:
@@ -63,6 +68,14 @@ class ThreadedGetMetadata(Thread):
             plexXML = PlexFunctions.GetPlexMetadata(updateItem['itemId'])
             if plexXML is None:
                 # Did not receive a valid XML - skip that item for now
+                self.logMsg("Could not get metadata for %s. "
+                            "Skipping that item for now"
+                            % updateItem['itemId'], -1)
+                # Increase BOTH counters - since metadata won't be processed
+                with lock:
+                    getMetadataCount += 1
+                with processlock:
+                    processMetadataCount += 1
                 queue.task_done()
                 continue
 
@@ -113,25 +126,20 @@ class ThreadedProcessMetadata(Thread):
                 except Queue.Empty:
                     xbmc.sleep(100)
                     continue
-                # Do the work; lock to be sure we've only got 1 Thread
+                # Do the work
                 plexitem = updateItem['XML']
                 method = updateItem['method']
                 viewName = updateItem['viewName']
                 viewId = updateItem['viewId']
                 title = updateItem['title']
                 itemSubFkt = getattr(item, method)
+                # Get the one child entry in the xml and process
+                for child in plexitem:
+                    itemSubFkt(child,
+                               viewtag=viewName,
+                               viewid=viewId)
+                # Keep track of where we are at
                 with lock:
-                    # Get the one child entry in the xml and process
-                    for child in plexitem:
-                        if method == 'add_updateAlbum':
-                            item.add_updateAlbum(child,
-                                                 viewtag=viewName,
-                                                 viewid=viewId)
-                        else:
-                            itemSubFkt(child,
-                                       viewtag=viewName,
-                                       viewid=viewId)
-                    # Keep track of where we are at
                     processMetadataCount += 1
                     processingViewName = title
                 # signals to queue job is done
@@ -164,10 +172,10 @@ class ThreadedShowSyncInfo(Thread):
         threadStopped = self.threadStopped
         downloadLock = self.locks[0]
         processLock = self.locks[1]
-        dialog.create(("%s: Sync %s: %s items"
+        dialog.create("%s: Sync %s: %s items"
                       % (self.addonName,
                          self.itemType,
-                         str(total))).encode('utf-8'),
+                         str(total)),
                       "Starting")
         global getMetadataCount
         global processMetadataCount
@@ -185,15 +193,11 @@ class ThreadedShowSyncInfo(Thread):
                 percentage = int(float(totalProgress) / float(total)*100.0)
             except ZeroDivisionError:
                 percentage = 0
-            try:
-                dialog.update(
-                    percentage,
-                    message=("Downloaded: %s. Processed: %s: %s"
-                             % (getMetadataProgress, processMetadataProgress,
-                                viewName))).encode('utf-8')
-            except:
-                # Wierd formating of the string viewName?!?
-                pass
+            dialog.update(percentage,
+                          message="Downloaded: %s. Processed: %s: %s"
+                                  % (getMetadataProgress,
+                                     processMetadataProgress,
+                                     viewName))
             # Sleep for x milliseconds
             xbmc.sleep(500)
         dialog.close()
@@ -213,6 +217,8 @@ class LibrarySync(Thread):
 
         self.__dict__ = self._shared_state
 
+        self.__language__ = xbmcaddon.Addon().getLocalizedString
+
         self.clientInfo = clientinfo.ClientInfo()
         self.user = userclient.UserClient()
         self.emby = embyserver.Read_EmbyServer()
@@ -226,32 +232,22 @@ class LibrarySync(Thread):
         self.enableMusic = True if utils.settings('enableMusic') == "true" \
             else False
         self.enableBackgroundSync = True if utils.settings(
-            'enableBackgroundSync') == "true" \
-            else False
+            'enableBackgroundSync') == "true" else False
 
         Thread.__init__(self)
 
     def showKodiNote(self, message, forced=False):
         """
-        Shows a Kodi popup, if user selected to do so
+        Shows a Kodi popup, if user selected to do so. Pass message in unicode
+        or string
         """
         if not (self.showDbSync or forced):
             return
         xbmcgui.Dialog().notification(
             heading=self.addonName,
-            message=message.encode('utf-8'),
+            message=message,
             icon="special://home/addons/plugin.video.plexkodiconnect/icon.png",
             sound=False)
-
-    def startSync(self):
-        utils.window('emby_dbScan', value="true")
-        completed = self.fastSync()
-        if not completed:
-            # Fast sync failed or server plugin is not found
-            self.logMsg("Something went wrong, starting full sync", -1)
-            completed = self.fullSync(manualrun=True)
-        utils.window('emby_dbScan', clear=True)
-        return completed
 
     def fastSync(self):
         """
@@ -291,8 +287,8 @@ class LibrarySync(Thread):
             if self.threadStopped():
                 return True
             # Get items per view
-            items = PlexFunctions.GetAllPlexLeaves(
-                view['id'], updatedAt=lastSync)
+            items = PlexFunctions.GetAllPlexLeaves(view['id'],
+                                                   updatedAt=lastSync)
             # Just skip item if something went wrong
             if not items:
                 continue
@@ -456,7 +452,7 @@ class LibrarySync(Thread):
                 "Found viewid: %s" % folderid,
                 "viewname: %s" % current_viewname,
                 "viewtype: %s" % current_viewtype,
-                "tagid: %s" % current_tagid)), 2)
+                "tagid: %s" % current_tagid)), 1)
 
             # Remove views that are still valid to delete rest later
             try:
@@ -739,7 +735,8 @@ class LibrarySync(Thread):
         for i in range(min(self.syncThreadNumber, itemNumber)):
             thread = ThreadedGetMetadata(getMetadataQueue,
                                          processMetadataQueue,
-                                         getMetadataLock)
+                                         getMetadataLock,
+                                         processMetadataLock)
             thread.setDaemon(True)
             thread.start()
             threads.append(thread)
@@ -1121,37 +1118,46 @@ class LibrarySync(Thread):
             self.run_internal()
         except Exception as e:
             utils.window('emby_dbScan', clear=True)
+            self.logMsg('LibrarySync thread crashed', -1)
+            # Library sync thread has crashed
             xbmcgui.Dialog().ok(
                 heading=self.addonName,
-                line1=("Library sync thread has crashed. "
-                       "You should restart Kodi now. "
-                       "Please report this on the forum."))
+                line1=self.__language__(39400))
             raise
 
     def run_internal(self):
+        # Re-assign handles to have faster calls
         window = utils.window
         settings = utils.settings
         log = self.logMsg
+        threadStopped = self.threadStopped
+        threadSuspended = self.threadSuspended
+        installSyncDone = self.installSyncDone
+        enableBackgroundSync = self.enableBackgroundSync
+        fullSync = self.fullSync
+        fastSync = self.fastSync
+        string = self.__language__
+
+        dialog = xbmcgui.Dialog()
 
         startupComplete = False
         self.views = []
         count = 0
         errorcount = 0
 
-        self.logMsg("---===### Starting LibrarySync ###===---", 0)
-        while not self.threadStopped():
+        log("---===### Starting LibrarySync ###===---", 0)
+        while not threadStopped():
 
             # In the event the server goes offline, or an item is playing
-            while self.threadSuspended():
+            while threadSuspended():
                 # Set in service.py
-                if self.threadStopped():
+                if threadStopped():
                     # Abort was requested while waiting. We should exit
                     log("###===--- LibrarySync Stopped ---===###", 0)
                     return
                 xbmc.sleep(1000)
 
-            if (window('emby_dbCheck') != "true" and
-                    self.installSyncDone):
+            if (window('emby_dbCheck') != "true" and installSyncDone):
                 # Verify the validity of the database
                 currentVersion = settings('dbCreatedWithVersion')
                 minVersion = window('emby_minDBVersion')
@@ -1160,17 +1166,14 @@ class LibrarySync(Thread):
                 if not uptoDate:
                     log("Db version out of date: %s minimum version required: "
                         "%s" % (currentVersion, minVersion), 0)
-                    resp = xbmcgui.Dialog().yesno(
-                        heading="Db Version",
-                        line1=("Detected the database needs to be recreated "
-                               "for this version of " + self.addonName +
-                               "Proceed?"))
+                    # DB out of date. Proceed to recreate?
+                    resp = dialog.yesno(heading=self.addonName,
+                                        line1=string(39401))
                     if not resp:
                         log("Db version out of date! USER IGNORED!", 0)
-                        xbmcgui.Dialog().ok(
-                            heading=self.addonName,
-                            line1=(self.addonName + " may not work correctly "
-                                   "until the database is reset."))
+                        # PKC may not work correctly until reset
+                        dialog.ok(heading=self.addonName,
+                                  line1=(self.addonName + string(39402)))
                     else:
                         utils.reset()
                     break
@@ -1184,20 +1187,19 @@ class LibrarySync(Thread):
                 if not xbmcvfs.exists(videoDb):
                     # Database does not exists
                     log("The current Kodi version is incompatible "
-                        "to know which Kodi versions are supported.", 0)
-                    xbmcgui.Dialog().ok(
-                        heading=self.addonName,
-                        line1=("Cancelling the database syncing process. "
-                               "Current Kodi version: %s is unsupported. "
-                               "Please verify your logs for more info."
-                               % xbmc.getInfoLabel('System.BuildVersion')))
+                        "to know which Kodi versions are supported.", -1)
+                    log('Current Kodi version: %s' % xbmc.getInfoLabel(
+                        'System.BuildVersion').decode('utf-8'))
+                    # "Current Kodi version is unsupported, cancel lib sync"
+                    dialog.ok(heading=self.addonName,
+                              line1=string(39403))
                     break
 
                 # Run start up sync
                 window('emby_dbScan', value="true")
                 log("Db version: %s" % settings('dbCreatedWithVersion'), 0)
                 log("Initial start-up full sync starting", 0)
-                librarySync = self.fullSync(manualrun=True)
+                librarySync = fullSync(manualrun=True)
                 window('emby_dbScan', clear=True)
                 if librarySync:
                     log("Initial start-up full sync successful", 0)
@@ -1205,17 +1207,16 @@ class LibrarySync(Thread):
                     settings('SyncInstallRunDone', value="true")
                     settings("dbCreatedWithVersion",
                              self.clientInfo.getVersion())
-                    self.installSyncDone = True
+                    installSyncDone = True
                 else:
                     log("Initial start-up full sync unsuccessful", -1)
                     errorcount += 1
                     if errorcount > 2:
                         log("Startup full sync failed. Stopping sync", -1)
-                        xbmcgui.Dialog().ok(
-                            heading=self.addonName,
-                            line1=("Startup syncing process failed repeatedly."
-                                   " Try restarting Kodi. Stopping Sync for "
-                                   "now."))
+                        # "Startup syncing process failed repeatedly"
+                        # "Please restart"
+                        dialog.ok(heading=self.addonName,
+                                  line1=string(39404))
                         break
 
             # Currently no db scan, so we can start a new scan
@@ -1225,7 +1226,7 @@ class LibrarySync(Thread):
                     log('Full library scan requested, starting', 0)
                     window('emby_dbScan', value="true")
                     window('plex_runLibScan', clear=True)
-                    self.fullSync(manualrun=True)
+                    fullSync(manualrun=True)
                     window('emby_dbScan', clear=True)
                     count = 0
                 # Reset views was requested from somewhere else
@@ -1239,36 +1240,45 @@ class LibrarySync(Thread):
                     # Remove video nodes
                     utils.deleteNodes()
                     # Kick off refresh
-                    dialog = xbmcgui.Dialog()
                     if self.maintainViews():
+                        # Ran successfully
+                        log("Refresh playlists/nodes completed", 0)
+                        # "Plex playlists/nodes refreshed"
                         dialog.notification(
                             heading=self.addonName,
-                            message="Plex playlists/nodes refreshed",
+                            message=string(39405),
                             icon="special://home/addons/plugin.video.plexkodiconnect/icon.png",
                             time=3000,
                             sound=True)
                     else:
-                        self.logMsg("Refresh playlists/nodes failed", -1)
+                        # Failed
+                        log("Refresh playlists/nodes failed", -1)
+                        # "Plex playlists/nodes refresh failed"
                         dialog.notification(
                             heading=self.addonName,
-                            message="Plex playlists/nodes refresh failed",
+                            message=string(39406),
                             icon=xbmcgui.NOTIFICATION_ERROR,
                             time=3000,
                             sound=True)
                     window('emby_dbScan', clear=True)
-                elif self.enableBackgroundSync:
+                elif enableBackgroundSync:
                     # Run full lib scan approx every 30min
                     if count >= 1800:
                         count = 0
                         window('emby_dbScan', value="true")
-                        log('Running automatic full lib scan', 0)
-                        self.fullSync(manualrun=True)
+                        log('Running background full lib scan', 0)
+                        fullSync(manualrun=True)
                         window('emby_dbScan', clear=True)
-                    # Run fast sync otherwise (ever 2 seconds or so)
+                    # Run fast sync otherwise (ever second or so)
                     else:
-                        self.startSync()
+                        window('emby_dbScan', value="true")
+                        if not fastSync():
+                            # Fast sync failed or server plugin is not found
+                            log("Something went wrong, starting full sync", -1)
+                            fullSync(manualrun=True)
+                        window('emby_dbScan', clear=True)
 
-            xbmc.sleep(2000)
+            xbmc.sleep(1000)
             count += 1
 
         log("###===--- LibrarySync Stopped ---===###", 0)

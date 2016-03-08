@@ -87,9 +87,11 @@ class PlexCompanion(threading.Thread):
 
                 subscribers.subMgr.notify()
                 settings['serverList'] = self.client.getServerList()
+                xbmc.sleep(50)
             except:
                 self.logMsg("Error in loop, continuing anyway", 1)
                 self.logMsg(traceback.print_exc(), 1)
+                xbmc.sleep(50)
 
         self.client.stop_all()
         try:
