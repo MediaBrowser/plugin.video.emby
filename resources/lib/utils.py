@@ -217,7 +217,13 @@ def logMsg(title, msg, level=1):
 
 
 def window(property, value=None, clear=False, windowid=10000):
-    # Get or set window property
+    """
+    Get or set window property - thread safe!
+
+    Returns unicode.
+
+    Property needs to be string; value may be string or unicode
+    """
     WINDOW = xbmcgui.Window(windowid)
     
     #setproperty accepts both string and unicode but utf-8 strings are adviced by kodi devs because some unicode can give issues
@@ -228,14 +234,13 @@ def window(property, value=None, clear=False, windowid=10000):
     if clear:
         WINDOW.clearProperty(property)
     elif value is not None:
-        # Takes unicode or string by default!
-        WINDOW.setProperty(property, value)
-    else: #getproperty returns string so convert to unicode
-        return WINDOW.getProperty(property)
+        WINDOW.setProperty(property, value.encode('utf-8'))
+    else:
+        return WINDOW.getProperty(property).decode('utf-8')
 
 def settings(setting, value=None):
     """
-    Get or add addon setting.
+    Get or add addon setting. Returns unicode
 
     Settings needs to be string
     Value can either be unicode or string
@@ -244,10 +249,10 @@ def settings(setting, value=None):
 
     if value is not None:
         # Takes string or unicode by default!
-        addon.setSetting(setting, value)
+        addon.setSetting(setting, value.encode('utf-8'))
     else:
-        # Returns unicode by default!
-        return addon.getSetting(setting)
+        # Should return unicode by default, but just in case
+        return addon.getSetting(setting).decode('utf-8')
 
 def language(stringid):
     # Central string retrieval

@@ -46,23 +46,16 @@ class UserClient(threading.Thread):
 
         threading.Thread.__init__(self)
 
-    def getAdditionalUsers(self):
-
-        additionalUsers = utils.settings('additionalUsers')
-
-        if additionalUsers:
-            self.AdditionalUser = additionalUsers.split(',')
-
     def getUsername(self):
         """
         Returns username as unicode
         """
 
-        username = utils.settings('username').decode('utf-8')
+        username = utils.settings('username')
 
         if not username:
             self.logMsg("No username saved, trying to get Plex username", 0)
-            username = utils.settings('plexLogin').decode('utf-8')
+            username = utils.settings('plexLogin')
             if not username:
                 self.logMsg("Also no Plex username found", 0)
                 return ""
@@ -245,9 +238,8 @@ class UserClient(threading.Thread):
             log("Access is granted.", 1)
             self.HasAccess = True
             window('emby_serverStatus', clear=True)
-            xbmcgui.Dialog().notification(
-                self.addonName,
-                utils.language(33007).encode('utf-8'))
+            xbmcgui.Dialog().notification(self.addonName,
+                                          utils.language(33007))
 
     def loadCurrUser(self, authenticated=False):
         self.logMsg('Loading current user', 0)
@@ -318,7 +310,8 @@ class UserClient(threading.Thread):
         dialog = xbmcgui.Dialog()
 
         # Get /profile/addon_data
-        addondir = xbmc.translatePath(self.addon.getAddonInfo('profile')).decode('utf-8')
+        addondir = xbmc.translatePath(
+            self.addon.getAddonInfo('profile')).decode('utf-8')
         hasSettings = xbmcvfs.exists("%ssettings.xml" % addondir)
 
         # If there's no settings.xml
@@ -373,7 +366,7 @@ class UserClient(threading.Thread):
             if username:
                 dialog.notification(
                     heading=self.addonName,
-                    message=("Welcome " + username).encode('utf-8'),
+                    message="Welcome " + username,
                     icon="special://home/addons/plugin.video.plexkodiconnect/icon.png")
             else:
                 dialog.notification(
@@ -391,8 +384,8 @@ class UserClient(threading.Thread):
             if self.retry >= 5:
                 log("Too many retries.", 1)
                 window('emby_serverStatus', value="Stop")
-                dialog.ok(lang(33001).encode('utf-8'),
-                          lang(39023).encode('utf-8'))
+                dialog.ok(lang(33001),
+                          lang(39023))
                 xbmc.executebuiltin(
                     'Addon.OpenSettings(plugin.video.plexkodiconnect)')
 

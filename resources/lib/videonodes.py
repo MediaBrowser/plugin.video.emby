@@ -4,7 +4,6 @@
 
 import shutil
 import xml.etree.ElementTree as etree
-from os import path as ospath
 
 import xbmc
 import xbmcvfs

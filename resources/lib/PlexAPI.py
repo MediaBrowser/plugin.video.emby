@@ -131,17 +131,14 @@ class PlexAPI():
         dialog = xbmcgui.Dialog()
         while retrievedPlexLogin == '' and plexLogin != '':
             # Enter plex.tv username. Or nothing to cancel.
-            plexLogin = dialog.input(
-                self.addonName.encode('utf-8') + string(39300).encode('utf-8'),
-                type=xbmcgui.INPUT_ALPHANUM,
-            )
+            plexLogin = dialog.input(self.addonName + string(39300),
+                                     type=xbmcgui.INPUT_ALPHANUM)
             if plexLogin != "":
                 # Enter password for plex.tv user
                 plexPassword = dialog.input(
-                    string(39301).encode('utf-8') + plexLogin.encode('utf-8'),
+                    string(39301) + plexLogin,
                     type=xbmcgui.INPUT_ALPHANUM,
-                    option=xbmcgui.ALPHANUM_HIDE_INPUT
-                )
+                    option=xbmcgui.ALPHANUM_HIDE_INPUT)
                 retrievedPlexLogin, authtoken = self.MyPlexSignIn(
                     plexLogin,
                     plexPassword,
@@ -151,8 +148,7 @@ class PlexAPI():
                 if plexLogin == '':
                     # Could not sign in user
                     dialog.ok(self.addonName,
-                              string(39302).encode('utf-8')
-                              + plexLogin.encode('utf-8'))
+                              string(39302) + plexLogin)
         # Write to Kodi settings file
         utils.settings('plexLogin', value=retrievedPlexLogin)
         utils.settings('plexToken', value=authtoken)
@@ -177,12 +173,12 @@ class PlexAPI():
         dialog = xbmcgui.Dialog()
         if not code:
             # Problems trying to contact plex.tv. Try again later
-            dialog.ok(self.addonName, string(39303).encode('utf-8'))
+            dialog.ok(self.addonName, string(39303))
             return False
         # Go to https://plex.tv/pin and enter the code:
         answer = dialog.yesno(self.addonName,
-                              (string(39304) + "\n\n").encode('utf-8'),
-                              code.encode('utf-8'))
+                              string(39304) + "\n\n",
+                              code)
         if not answer:
             return False
         count = 0
@@ -196,7 +192,7 @@ class PlexAPI():
             count += 1
         if not xml:
             # Could not sign in to plex.tv Try again later
-            dialog.ok(self.addonName, string(39305).encode('utf-8'))
+            dialog.ok(self.addonName, string(39305))
             return False
         # Parse xml
         userid = xml.attrib.get('id')
@@ -1089,7 +1085,7 @@ class PlexAPI():
             if usernumber > 1:
                 # Select user
                 user_select = dialog.select(
-                    (self.addonName + string(39306)).encode('utf-8'),
+                    self.addonName + string(39306),
                     userlistCoded)
                 if user_select == -1:
                     self.logMsg("No user selected.", 1)
@@ -1108,7 +1104,7 @@ class PlexAPI():
                 # Please enter pin for user
                 self.logMsg('Asking for users PIN', 1)
                 pin = dialog.input(
-                    (string(39307) + selected_user).encode('utf-8'),
+                    string(39307) + selected_user,
                     type=xbmcgui.INPUT_NUMERIC,
                     option=xbmcgui.ALPHANUM_HIDE_INPUT)
                 # User chose to cancel
@@ -1129,11 +1125,9 @@ class PlexAPI():
             # Couldn't get user auth
             if not username:
                 # Could not login user, please try again
-                if not dialog.yesno(
-                    self.addonName,
-                    (string(39308) + selected_user).encode('utf-8'),
-                    string(39309).encode('utf-8')
-                ):
+                if not dialog.yesno(self.addonName,
+                                    string(39308) + selected_user,
+                                    string(39309)):
                     # User chose to cancel
                     break
             # Successfully retrieved: break out of while loop
