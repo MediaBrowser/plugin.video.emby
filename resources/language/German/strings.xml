@@ -293,7 +293,7 @@
     <string id="39021">[COLOR yellow]Plex Themes zu Kodi synchronisieren[/COLOR]</string>
     <string id="39022"> (lokal)</string>
     <string id="39023">Plex Media Server Authentifizierung fehlgeschlagen. Haben Sie sich bei plex.tv eingeloggt?</string>
-    <string id="39024">[COLOR yellow]Bei plex.tv einloggen[/COLOR]</string>
+    <string id="39024">[COLOR yellow]PMS und plex.tv Verbindungen zurücksetzen für erneuten Login[/COLOR]</string>
     <string id="39025">Automatisch beim Starten bei plex.tv einloggen</string>
     <string id="39026">Laufende Synchronisierung im Hintergrund aktivieren (Neustart!)</string>
 
@@ -305,6 +305,10 @@
     <string id="39204">Manuellen Scan der Plex Bibliotheken starten</string>
     <string id="39205">Plex Bibliothek kann nicht gescannt werden, da keine Verbindung mit einem Plex Server besteht.</string>
     <string id="39206">Plex könnte möglicherweise Ihren Account sperren, wenn Sie zu oft versuchen, sich erfolglos anzumelden. Trotzdem fortfahren?</string>
+    <string id="39207">PMS Verbindungen werden zurückgesetzt</string>
+    <string id="39208">PMS und plex.tv Verbindungen konnten nicht zurückgesetzt werden. Bitte versuchen Sie, Kodi neu zu starten, um das Problem zu beheben.</string>
+
+
 
     <!-- Plex Artwork.py -->
     <string id="39250">Alle Plex Bilder in Kodi zwischenzuspeichern kann sehr lange dauern. Möchten Sie wirklich fortfahren?</string>
