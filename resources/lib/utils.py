@@ -192,28 +192,37 @@ def logMsg(title, msg, level=1):
         logLevel = int(window('emby_logLevel'))
     except ValueError:
         logLevel = 0
-    
+    kodiLevel = {
+        -1: xbmc.LOGERROR,
+        0: xbmc.LOGNOTICE,
+        1: xbmc.LOGNOTICE,
+        2: xbmc.LOGNOTICE
+    }
     if logLevel >= level:
-        
         if logLevel == 2:  # inspect is expensive
             func = inspect.currentframe().f_back.f_back.f_code
             try:
                 xbmc.log("%s -> %s : %s" % (
-                    title, func.co_name, msg))
+                    title, func.co_name, msg), level=kodiLevel[level])
             except UnicodeEncodeError:
                 try:
                     xbmc.log("%s -> %s : %s" % (
-                        title, func.co_name, msg.encode('utf-8')))
+                        title, func.co_name, msg.encode('utf-8')),
+                        level=kodiLevel[level])
                 except:
-                    xbmc.log("%s -> %s : %s" % (title, func.co_name, 'COULDNT LOG'))
+                    xbmc.log("%s -> %s : %s" % (
+                        title, func.co_name, 'COULDNT LOG'),
+                        level=kodiLevel[level])
         else:
             try:
-                xbmc.log("%s -> %s" % (title, msg))
+                xbmc.log("%s -> %s" % (title, msg), level=kodiLevel[level])
             except UnicodeEncodeError:
                 try:
-                    xbmc.log("%s -> %s" % (title, msg.encode('utf-8')))
+                    xbmc.log("%s -> %s" % (title, msg.encode('utf-8')),
+                             level=kodiLevel[level])
                 except:
-                    xbmc.log("%s -> %s " % (title, 'COULDNT LOG'))
+                    xbmc.log("%s -> %s " % (title, 'COULDNT LOG'),
+                             level=kodiLevel[level])
 
 
 def window(property, value=None, clear=False, windowid=10000):
