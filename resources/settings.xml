@@ -21,12 +21,13 @@
 		<setting label="30517" type="action" action="RunPlugin(plugin://plugin.video.plexkodiconnect?mode=passwords)" option="close" /><!-- Network credentials -->
 		<setting id="accessToken" type="text" visible="false" default="" />
 		<setting id="pathsub" type="bool" visible="false" default="false" />
-		<setting id="reConnect" label="39024" type="action" action="RunPlugin(plugin://plugin.video.plexkodiconnect?mode=reConnect)" option="close" />
+		<setting label="39024" type="action" action="RunPlugin(plugin://plugin.video.plexkodiconnect?mode=reConnect)" option="close" />
 	</category>
 
 	<category label="plex.tv"><!-- plex.tv -->
 		<!-- Primary address -->
 		<setting id="myplexlogin" label="39025" type="bool" default="true" /> <!-- Log into plex.tv on startup -->
+		<setting label="39209" type="action" action="RunPlugin(plugin://plugin.video.plexkodiconnect?mode=reConnect)" option="close" />
 
 		<setting id="plexLogin" label="plex.tv username" type="text" default="" visible="false" />
 		<setting id="plexhome" label="Plex home in use" type="bool" default="" visible="false" />
