@@ -455,5 +455,8 @@ class UserClient(threading.Thread):
                     log("Server found: %s" % server, 2)
                     self.auth = True
 
+            # Minimize CPU load
+            xbmc.sleep(500)
+
         self.doUtils.stopSession()
         log("##===---- UserClient Stopped ----===##", 0)
