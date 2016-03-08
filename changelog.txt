@@ -1,3 +1,14 @@
+version 1.0.4
+- Sleep for a while in loops - drastically reduces CPU load
+- Connect to remote PMS!
+- New Setting to reset all PMS and the plex.tv connection
+- Correct encoding
+- Much shorter download timeouts
+- Improve sync resiliance and GDM discovery
+- Reduce number of unsuccesful retries to 3 before telling user
+- Clean-up library sync loop
+- Language strings for library sync
+
 version 1.0.3
 - Hotfix database minimum version = 1.0.2 
 
