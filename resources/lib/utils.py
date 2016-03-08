@@ -443,7 +443,7 @@ def reset():
         logMsg("PLEX", "Deleting: settings.xml", 1)
 
     dialog.ok(
-        heading="Emby for Kodi",
+        heading=addonName,
         line1="Database reset has completed, Kodi will now restart to apply the changes.")
     xbmc.executebuiltin('RestartApp')
 

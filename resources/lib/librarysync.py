@@ -124,14 +124,9 @@ class ThreadedProcessMetadata(Thread):
                 with lock:
                     # Get the one child entry in the xml and process
                     for child in plexitem:
-                        if method == 'add_updateAlbum':
-                            item.add_updateAlbum(child,
-                                                 viewtag=viewName,
-                                                 viewid=viewId)
-                        else:
-                            itemSubFkt(child,
-                                       viewtag=viewName,
-                                       viewid=viewId)
+                        itemSubFkt(child,
+                                   viewtag=viewName,
+                                   viewid=viewId)
                     # Keep track of where we are at
                     processMetadataCount += 1
                     processingViewName = title
