@@ -160,10 +160,10 @@ class ThreadedShowSyncInfo(Thread):
         threadStopped = self.threadStopped
         downloadLock = self.locks[0]
         processLock = self.locks[1]
-        dialog.create(("%s: Sync %s: %s items"
+        dialog.create("%s: Sync %s: %s items"
                       % (self.addonName,
                          self.itemType,
-                         str(total))).encode('utf-8'),
+                         str(total)),
                       "Starting")
         global getMetadataCount
         global processMetadataCount
@@ -181,15 +181,11 @@ class ThreadedShowSyncInfo(Thread):
                 percentage = int(float(totalProgress) / float(total)*100.0)
             except ZeroDivisionError:
                 percentage = 0
-            try:
-                dialog.update(
-                    percentage,
-                    message=("Downloaded: %s. Processed: %s: %s"
-                             % (getMetadataProgress, processMetadataProgress,
-                                viewName))).encode('utf-8')
-            except:
-                # Wierd formating of the string viewName?!?
-                pass
+            dialog.update(percentage,
+                          message="Downloaded: %s. Processed: %s: %s"
+                                  % (getMetadataProgress,
+                                     processMetadataProgress,
+                                     viewName))
             # Sleep for x milliseconds
             xbmc.sleep(500)
         dialog.close()
@@ -224,20 +220,20 @@ class LibrarySync(Thread):
         self.enableMusic = True if utils.settings('enableMusic') == "true" \
             else False
         self.enableBackgroundSync = True if utils.settings(
-            'enableBackgroundSync') == "true" \
-            else False
+            'enableBackgroundSync') == "true" else False
 
         Thread.__init__(self)
 
     def showKodiNote(self, message, forced=False):
         """
-        Shows a Kodi popup, if user selected to do so
+        Shows a Kodi popup, if user selected to do so. Pass message in unicode
+        or string
         """
         if not (self.showDbSync or forced):
             return
         xbmcgui.Dialog().notification(
             heading=self.addonName,
-            message=message.encode('utf-8'),
+            message=message,
             icon="special://home/addons/plugin.video.plexkodiconnect/icon.png",
             sound=False)
 
@@ -279,8 +275,8 @@ class LibrarySync(Thread):
             if self.threadStopped():
                 return True
             # Get items per view
-            items = PlexFunctions.GetAllPlexLeaves(
-                view['id'], updatedAt=lastSync)
+            items = PlexFunctions.GetAllPlexLeaves(view['id'],
+                                                   updatedAt=lastSync)
             # Just skip item if something went wrong
             if not items:
                 continue
@@ -444,7 +440,7 @@ class LibrarySync(Thread):
                 "Found viewid: %s" % folderid,
                 "viewname: %s" % current_viewname,
                 "viewtype: %s" % current_viewtype,
-                "tagid: %s" % current_tagid)), 2)
+                "tagid: %s" % current_tagid)), 1)
 
             # Remove views that are still valid to delete rest later
             try:
