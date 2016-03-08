@@ -381,7 +381,7 @@ class UserClient(threading.Thread):
             settings('userId', value="")
 
             # Give attempts at entering password / selecting user
-            if self.retry >= 3:
+            if self.retry >= 2:
                 log("Too many retries to login.", -1)
                 window('emby_serverStatus', value="Stop")
                 dialog.ok(lang(33001),

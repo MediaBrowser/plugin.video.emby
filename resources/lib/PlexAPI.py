@@ -295,13 +295,13 @@ class PlexAPI():
                                        verify=verify,
                                        timeout=timeout)
         except requests.exceptions.ConnectionError as e:
-            self.logMsg("Server is offline or cannot be reached. Url: %s."
-                        "Header: %s. Error message: %s"
-                        % (url, header, e), -1)
+            self.logMsg("Server is offline or cannot be reached. Url: %s. "
+                        "Error message: %s"
+                        % (url, e), -1)
             return False
         except requests.exceptions.ReadTimeout:
-            self.logMsg("Server timeout reached for Url %s with header %s"
-                        % (url, header), -1)
+            self.logMsg("Server timeout reached for Url %s"
+                        % url, -1)
             return False
         # We received an answer from the server, but not as expected.
         if answer.status_code >= 400:

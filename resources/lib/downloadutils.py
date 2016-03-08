@@ -359,7 +359,7 @@ class DownloadUtils():
         except requests.exceptions.ConnectionError as e:
             # Make the addon aware of status
             if utils.window('emby_online') != "false":
-                self.logMsg("Server unreachable at: %s" % url, 0)
+                self.logMsg("Server unreachable at: %s" % url, -1)
                 self.logMsg(e, 2)
                 utils.window('emby_online', value="false")
 

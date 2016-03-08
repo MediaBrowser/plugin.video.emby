@@ -44,7 +44,7 @@ class InitialSetup():
         plexLogin = plexdict['plexLogin']
         plexToken = plexdict['plexToken']
         plexid = plexdict['plexid']
-        self.logMsg('Plex info retrieved from settings: %s' % plexdict, 1)
+        self.logMsg('Plex info retrieved from settings', 1)
 
         dialog = xbmcgui.Dialog()
 
@@ -120,8 +120,13 @@ class InitialSetup():
                 resp = dialog.select(string(39012), dialoglist)
             server = serverlist[resp]
             activeServer = server['machineIdentifier']
-            url = server['scheme'] + '://' + server['ip'] + ':' + \
-                server['port']
+            # Re-direct via plex if remote - will lead to the correct SSL
+            # certificate
+            if server['local'] == '1':
+                url = server['scheme'] + '://' + server['ip'] + ':' \
+                    + server['port']
+            else:
+                url = server['baseURL']
             # Deactive SSL verification if the server is local!
             if server['local'] == '1':
                 utils.settings('sslverify', 'false')
@@ -166,18 +171,21 @@ class InitialSetup():
                 break
         if not isconnected:
             # Enter Kodi settings instead
-            if dialog.yesno(
-                    heading=self.addonName,
-                    line1=string(39016)):
-                self.logMsg("User opted to disable Plex music library.", 1)
-                utils.settings('enableMusic', value="false")
             xbmc.executebuiltin('Addon.OpenSettings(%s)' % self.addonId)
             return
         # Write to Kodi settings file
         utils.settings('plex_machineIdentifier', activeServer)
-        utils.settings('ipaddress', server['ip'])
-        utils.settings('port', server['port'])
-        if server['scheme'] == 'https':
+        if server['local'] == '1':
+            scheme = server['scheme']
+            utils.settings('ipaddress', server['ip'])
+            utils.settings('port', server['port'])
+        else:
+            baseURL = server['baseURL'].split(':')
+            scheme = baseURL[0]
+            utils.settings('ipaddress', baseURL[1].replace('//', ''))
+            utils.settings('port', baseURL[2])
+
+        if scheme == 'https':
             utils.settings('https', 'true')
         else:
             utils.settings('https', 'false')
