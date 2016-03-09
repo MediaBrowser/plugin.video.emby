@@ -442,6 +442,7 @@ class UserClient(threading.Thread):
                     # to authenticate the user
                     self.auth = False
                     if self.authenticate():
+                        # Successfully authenticated and loaded a user
                         log("Current user: %s" % self.currUser, 1)
                         log("Current userId: %s" % self.currUserId, 1)
                         log("Current accessToken: xxxx", 1)
