@@ -1,3 +1,8 @@
+version 1.0.5
+- Catch exceptions in itemtypes and log them
+- Slightly increased download timeouts 
+- Overhaul userclient
+
 version 1.0.4
 - Sleep for a while in loops - drastically reduces CPU load
 - Connect to remote PMS!
