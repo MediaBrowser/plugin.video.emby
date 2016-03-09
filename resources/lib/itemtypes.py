@@ -284,6 +284,17 @@ class Movies(Items):
             self.add_updateBoxset(boxset)
 
     def add_update(self, item, viewtag=None, viewid=None):
+        try:
+            self.run_add_update(item, viewtag, viewid)
+        except Exception as e:
+            utils.window('emby_dbScan', clear=True)
+            self.logMsg('itemtypes.py for movies has crashed for item %s. '
+                        'Error:' % item.attrib.get('ratingKey', None), -1)
+            self.logMsg(e, -1)
+            # skip this item for now
+            return
+
+    def run_add_update(self, item, viewtag=None, viewid=None):
         # Process single movie
         kodicursor = self.kodicursor
         emby_db = self.emby_db
@@ -296,6 +307,7 @@ class Movies(Items):
         # If the item doesn't exist, we'll add it to the database
         update_item = True
         itemid = API.getRatingKey()
+        self.logMsg("Processing item %s" % itemid, 1)
         # Cannot parse XML, abort
         if not itemid:
             self.logMsg("Cannot parse XML data for movie", -1)
@@ -360,6 +372,7 @@ class Movies(Items):
             studio = studios[0]
         except IndexError:
             studio = None
+        self.logMsg('Read all attributes', 1)
 
         # Find one trailer
         trailer = None
@@ -408,6 +421,7 @@ class Movies(Items):
                 'mode': "play"
             }
             filename = "%s?%s" % (path, urllib.urlencode(params))
+        self.logMsg('Path set for item', 1)
         ##### UPDATE THE MOVIE #####
         if update_item:
             self.logMsg("UPDATE movie itemid: %s - Title: %s" % (itemid, title), 1)
@@ -454,6 +468,7 @@ class Movies(Items):
             # Create the reference in emby table
             emby_db.addReference(itemid, movieid, "Movie", "movie", fileid, pathid, None, checksum, viewid)
 
+        self.logMsg('Done add or update for item', 1)
         # Update the path
         query = ' '.join((
 
@@ -902,6 +917,17 @@ class TVShows(Items):
                 self.contentPop(title, self.newvideo_time)
 
     def add_update(self, item, viewtag=None, viewid=None):
+        try:
+            self.run_add_update(item, viewtag, viewid)
+        except Exception as e:
+            utils.window('emby_dbScan', clear=True)
+            self.logMsg('itemtypes.py for tv show has crashed for item %s. '
+                        'Error:' % item.attrib.get('ratingKey', None), -1)
+            self.logMsg(e, -1)
+            # skip this item for now
+            return
+
+    def run_add_update(self, item, viewtag=None, viewid=None):
         # Process single tvshow
         kodicursor = self.kodicursor
         emby_db = self.emby_db
@@ -911,6 +937,8 @@ class TVShows(Items):
 
         update_item = True
         itemid = API.getRatingKey()
+        self.logMsg("Processing item %s" % itemid, 1)
+
         if not itemid:
             self.logMsg("Cannot parse XML data for TV show", -1)
             return
@@ -964,6 +992,8 @@ class TVShows(Items):
         except IndexError:
             studio = None
 
+        self.logMsg('Read all attributes', 1)
+
         # GET THE FILE AND PATH #####
         playurl = API.getKey()
 
@@ -997,7 +1027,7 @@ class TVShows(Items):
             # Set plugin path
             toplevelpath = "plugin://plugin.video.plexkodiconnect.tvshows/"
             path = "%s%s/" % (toplevelpath, itemid)
-
+        self.logMsg('Path set for item', 1)
         # UPDATE THE TVSHOW #####
         if update_item:
             self.logMsg("UPDATE tvshow itemid: %s - Title: %s" % (itemid, title), 1)
@@ -1052,7 +1082,7 @@ class TVShows(Items):
             # Create the reference in emby table
             emby_db.addReference(itemid, showid, "Series", "tvshow", pathid=pathid,
                                 checksum=checksum, mediafolderid=viewid)
-
+        self.logMsg('Done add or update for item', 1)
         # Update the path
         query = ' '.join((
 
@@ -1083,13 +1113,25 @@ class TVShows(Items):
             all_episodes = embyserver.getEpisodesbyShow(itemid)
             self.added_episode(all_episodes['Items'], None)
 
-    def add_updateSeason(self, item, viewid=None, viewtag=None):
+    def add_updateSeason(self, item, viewtag=None, viewid=None):
+        try:
+            self.run_add_updateSeason(item, viewtag, viewid)
+        except Exception as e:
+            utils.window('emby_dbScan', clear=True)
+            self.logMsg('itemtypes.py for tv seasons has crashed for item %s. '
+                        'Error:' % item.attrib.get('ratingKey', None), -1)
+            self.logMsg(e, -1)
+            # skip this item for now
+            return
+
+    def run_add_updateSeason(self, item, viewid=None, viewtag=None):
         API = PlexAPI.API(item)
         showid = viewid
         itemid = API.getRatingKey()
         if not itemid:
             self.logMsg('Error getting itemid for season, skipping', -1)
             return
+        self.logMsg("Processing item %s" % itemid, 1)
         kodicursor = self.kodicursor
         emby_db = self.emby_db
         kodi_db = self.kodi_db
@@ -1117,6 +1159,17 @@ class TVShows(Items):
             emby_db.addReference(itemid, seasonid, "Season", "season", parentid=showid, checksum=checksum)
 
     def add_updateEpisode(self, item, viewtag=None, viewid=None):
+        try:
+            self.run_add_updateEpisode(item, viewtag, viewid)
+        except Exception as e:
+            utils.window('emby_dbScan', clear=True)
+            self.logMsg('itemtypes.py for tv episode has crashed for item %s. '
+                        'Error:' % item.attrib.get('ratingKey', None), -1)
+            self.logMsg(e, -1)
+            # skip this item for now
+            return
+
+    def run_add_updateEpisode(self, item, viewtag=None, viewid=None):
         """
         viewtag and viewid are irrelevant!
         """
@@ -1136,6 +1189,7 @@ class TVShows(Items):
         if not itemid:
             self.logMsg('Error getting itemid for episode, skipping', -1)
             return
+        self.logMsg("Processing item %s" % itemid, 1)
         emby_dbitem = emby_db.getItem_byId(itemid)
         try:
             episodeid = emby_dbitem[0]
@@ -1584,7 +1638,19 @@ class Music(Items):
             if not pdialog and self.contentmsg:
                 self.contentPop(title, self.newmusic_time)
 
-    def add_updateArtist(self, item, viewtag=None, viewid=None,
+    def add_updateArtist(self, item, viewtag=None, viewid=None, artisttype="MusicArtist"):
+        try:
+            self.run_add_updateArtist(item, viewtag, viewid, artisttype)
+        except Exception as e:
+            utils.window('emby_dbScan', clear=True)
+            self.logMsg('itemtypes.py for music artist has crashed for '
+                        'item %s. Error:'
+                        % item.attrib.get('ratingKey', None), -1)
+            self.logMsg(e, -1)
+            # skip this item for now
+            return
+
+    def run_add_updateArtist(self, item, viewtag=None, viewid=None,
                          artisttype="MusicArtist"):
         kodicursor = self.kodicursor
         emby_db = self.emby_db
@@ -1594,6 +1660,7 @@ class Music(Items):
 
         update_item = True
         itemid = API.getRatingKey()
+        self.logMsg("Processing item %s" % itemid, 1)
         emby_dbitem = emby_db.getItem_byId(itemid)
         try:
             artistid = emby_dbitem[0]
@@ -1668,6 +1735,18 @@ class Music(Items):
         artwork.addArtwork(artworks, artistid, "artist", kodicursor)
 
     def add_updateAlbum(self, item, viewtag=None, viewid=None):
+        try:
+            self.run_add_updateAlbum(item, viewtag, viewid)
+        except Exception as e:
+            utils.window('emby_dbScan', clear=True)
+            self.logMsg('itemtypes.py for music album has crashed for '
+                        'item %s. Error:'
+                        % item.attrib.get('ratingKey', None), -1)
+            self.logMsg(e, -1)
+            # skip this item for now
+            return
+
+    def run_add_updateAlbum(self, item, viewtag=None, viewid=None):
         kodiversion = self.kodiversion
         kodicursor = self.kodicursor
         emby_db = self.emby_db
@@ -1680,6 +1759,7 @@ class Music(Items):
         if not itemid:
             self.logMsg('Error processing Album, skipping', -1)
             return
+        self.logMsg("Processing item %s" % itemid, 1)
         emby_dbitem = emby_db.getItem_byId(itemid)
         try:
             albumid = emby_dbitem[0]
@@ -1853,6 +1933,18 @@ class Music(Items):
         artwork.addArtwork(artworks, albumid, "album", kodicursor)
 
     def add_updateSong(self, item, viewtag=None, viewid=None):
+        try:
+            self.run_add_updateSong(item, viewtag, viewid)
+        except Exception as e:
+            utils.window('emby_dbScan', clear=True)
+            self.logMsg('itemtypes.py for music song has crashed for '
+                        'item %s. Error:'
+                        % item.attrib.get('ratingKey', None), -1)
+            self.logMsg(e, -1)
+            # skip this item for now
+            return
+
+    def run_add_updateSong(self, item, viewtag=None, viewid=None):
         # Process single song
         kodiversion = self.kodiversion
         kodicursor = self.kodicursor
@@ -1866,6 +1958,7 @@ class Music(Items):
         if not itemid:
             self.logMsg('Error processing Song; skipping', -1)
             return
+        self.logMsg("Processing item %s" % itemid, 1)
         emby_dbitem = emby_db.getItem_byId(itemid)
         try:
             songid = emby_dbitem[0]

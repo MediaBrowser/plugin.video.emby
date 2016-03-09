@@ -79,41 +79,61 @@ def reConnect():
     string = xbmcaddon.Addon().getLocalizedString
     utils.logMsg("entrypoint reConnect",
                  "Connection resets requested", 0)
-    # Pause library sync thread - user needs to be auth in order to sync
-    utils.window('suspend_LibraryThread', value='true')
-    # Suspend the user client during procedure
-    utils.window('suspend_Userclient', value='true')
     dialog = xbmcgui.Dialog()
     dialog.notification(
         heading=addonName,
         message=string(39207),
         icon="special://home/addons/plugin.video.plexkodiconnect/icon.png",
         sound=False)
+    # Pause library sync thread - user needs to be auth in order to sync
+    utils.window('suspend_LibraryThread', value='true')
 
-    # Wait max for 20 seconds for all lib scans to finish
+    # Delete plex credentials in settings
+    utils.settings('myplexlogin', value="true")
+    utils.settings('plexLogin', value="")
+    utils.settings('plexToken', value=""),
+    utils.settings('plexid', value="")
+    utils.settings('plexHomeSize', value="")
+    utils.settings('plexAvatar', value="")
+
+    # Wait max for 5 seconds for all lib scans to finish
     counter = 0
     while utils.window('emby_dbScan') == 'true':
-        xbmc.sleep(1000)
-        counter += 1
-        if counter > 20:
+        if counter > 100:
             dialog.ok(
                 heading=addonName,
                 message=string(39208),
             )
             # Resuming threads, just in case
             utils.window('suspend_LibraryThread', clear=True)
-            utils.window('suspend_Userclient', clear=True)
             # Abort reConnection
             return
+        counter += 1
+        xbmc.sleep(50)
+    # Log out currently signed in user:
+    utils.window('emby_serverStatus', value="401")
+
+    # Above method needs to have run its course! Hence wait
+    counter = 0
+    while utils.window('emby_serverStatus') == "401":
+        if counter > 100:
+            dialog.ok(
+                heading=addonName,
+                message=string(39208),
+            )
+            # Abort reConnection
+            return
+        counter += 1
+        xbmc.sleep(50)
+    # Suspend the user client during procedure
+    utils.window('suspend_Userclient', value='true')
 
     import initialsetup
     initialsetup.InitialSetup().setup(forcePlexTV=True)
-    # Log out currently signed in user:
-    utils.window('emby_serverStatus', value="401")
-    # Restart user client
-    utils.window('suspend_Userclient', clear=True)
     # Request lib sync to get user view data (e.g. watched/unwatched)
     utils.window('plex_runLibScan', value='full')
+    # Restart user client
+    utils.window('suspend_Userclient', clear=True)
 
 
 def PassPlaylist(xml, resume=None):
@@ -222,7 +242,7 @@ def doMainListing():
                 addDirectoryItem(label, path)
 
     # Plex user switch, if Plex home is in use
-    if utils.settings('plexhome') == 'true':
+    if int(utils.settings('plexHomeSize')) > 1:
         addDirectoryItem(string(39200),
                          "plugin://plugin.video.plexkodiconnect/"
                          "?mode=switchuser")
@@ -401,8 +421,17 @@ def switchPlexUser():
     # Pause library sync thread - user needs to be auth in order to sync
     utils.window('suspend_LibraryThread', value='true')
     # Wait to ensure that any sync already going on has finished
+    counter = 0
     while utils.window('emby_dbScan') == 'true':
-        xbmc.sleep(1000)
+        if counter > 100:
+            # Something went wrong, aborting
+            # Resuming threads, just in case
+            utils.window('suspend_LibraryThread', clear=True)
+            # Abort reConnection
+            return
+        counter += 1
+        xbmc.sleep(50)
+
     # Log out currently signed in user:
     utils.window('emby_serverStatus', value="401")
     # Request lib sync to get user view data (e.g. watched/unwatched)

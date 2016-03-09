@@ -16,7 +16,9 @@
 		<setting id="secondsslcert" subsetting="true" label="30501" type="file" default="None" visible="eq(-2,true)" />
 		<!-- User settings -->
 		<setting type="sep" />
-		<setting id="deviceName" label="30016" type="text" visible="eq(-1,true)" default="Kodi" />
+
+		<setting id="enforceUserLogin" label="30536" type="bool" default="false" />
+
 		<setting label="30505" type="action" visible="eq(1,) + !eq(-15,)" action="RunPlugin(plugin://plugin.video.plexkodiconnect?mode=resetauth)" option="close" />
 		<setting label="30517" type="action" action="RunPlugin(plugin://plugin.video.plexkodiconnect?mode=passwords)" option="close" /><!-- Network credentials -->
 		<setting id="accessToken" type="text" visible="false" default="" />
@@ -32,14 +34,16 @@
 		<setting id="plexLogin" label="plex.tv username" type="text" default="" visible="false" />
 		<setting id="plexhome" label="Plex home in use" type="bool" default="" visible="false" />
 		<setting id="plexToken" label="plexToken" type="text" default="" visible="false" />
+		<setting id="plexHomeSize" type="number" default="1" visible="false" />
 	</category>
 	<category label="Plex Companion">
 		<setting type="lsep" label="39008" />
 		<setting id="plexCompanion" label="39004" type="bool" default="true" />
 		<setting id="deviceNameOpt" label="30504" type="bool" default="false" />
-		<setting id="companionPort" label="39005" type="number" default="3005" option="int" visible="eq(-1,true)"/>
-		<setting id="companionDebugging" label="39006" type="bool" default="false" visible="eq(-3,true)"/>
-		<setting id="companionGDMDebugging" label="39007" type="bool" default="false" visible="eq(-4,true)"/>
+		<setting id="deviceName" label="30016" type="text" visible="eq(-1,true)" default="Kodi" />
+		<setting id="companionPort" label="39005" type="number" default="3005" option="int" visible="eq(-3,true)"/>
+		<setting id="companionDebugging" label="39006" type="bool" default="false" visible="eq(-4,true)"/>
+		<setting id="companionGDMDebugging" label="39007" type="bool" default="false" visible="eq(-5,true)"/>
 	</category>
 	<category label="30506"><!-- Sync Options -->
 		<setting id="serverSync" type="bool" label="30514" default="true" visible="false"/><!-- Enable fast startup (requires server plugin) -->

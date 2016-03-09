@@ -68,6 +68,24 @@ class InitialSetup():
                 # Problems connecting to plex.tv. Network or internet issue?
                 dialog.ok(self.addonName,
                           string(39010))
+            else:
+                # Successful connected to plex.tv
+                # Refresh the info from Plex.tv
+                url = 'https://plex.tv/'
+                path = 'users/account'
+                xml = self.plx.getXMLFromPMS(url, path, authtoken=plexToken)
+                if xml:
+                    xml = xml.getroot()
+                    plexLogin = xml.attrib.get('title')
+                    utils.settings('plexLogin', value=plexLogin)
+                    home = 'true' if xml.attrib.get('home') == '1' else 'false'
+                    utils.settings('plexhome', value=home)
+                    utils.settings('plexAvatar', value=xml.attrib.get('thumb'))
+                    utils.settings(
+                        'plexHomeSize', value=xml.attrib.get('homeSize', '1'))
+                    self.logMsg('Updated Plex info from plex.tv', 0)
+                else:
+                    self.logMsg('Failed to update Plex info from plex.tv', -1)
         # If a Plex server IP has already been set, return.
         if server and forcePlexTV is False:
             self.logMsg("Server is already set.", 0)
@@ -175,6 +193,7 @@ class InitialSetup():
             return
         # Write to Kodi settings file
         utils.settings('plex_machineIdentifier', activeServer)
+        utils.settings('plex_servername', server['name'])
         if server['local'] == '1':
             scheme = server['scheme']
             utils.settings('ipaddress', server['ip'])

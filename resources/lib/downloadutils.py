@@ -37,7 +37,7 @@ class DownloadUtils():
 
     # Requests session
     s = None
-    timeout = 3
+    timeout = 10
 
     def __init__(self):
 
@@ -224,7 +224,8 @@ class DownloadUtils():
                     # Get user information
                     self.userId = utils.window('emby_currUser')
                     self.server = utils.window('emby_server%s' % self.userId)
-                    self.token = utils.window('emby_accessToken%s' % self.userId)
+                    self.token = utils.window(
+                        'emby_accessToken%s' % self.userId)
                     header = self.getHeader(options=headerOptions)
                     verifyssl = False
                     cert = None

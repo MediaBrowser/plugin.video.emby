@@ -253,7 +253,7 @@ class Service():
                         self.server_online = True
                         log("Server is online and ready.", 1)
                         window('emby_online', value="true")
-                        
+
                         # Start the userclient thread
                         if not self.userclient_running:
                             self.userclient_running = True
