@@ -224,7 +224,8 @@ class DownloadUtils():
                     # Get user information
                     self.userId = utils.window('emby_currUser')
                     self.server = utils.window('emby_server%s' % self.userId)
-                    self.token = utils.window('emby_accessToken%s' % self.userId)
+                    self.token = utils.window(
+                        'emby_accessToken%s' % self.userId)
                     header = self.getHeader(options=headerOptions)
                     verifyssl = False
                     cert = None

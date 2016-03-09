@@ -92,9 +92,11 @@ class PlexAPI():
             'plexToken': utils.settings('plexToken'),
             'plexhome': utils.settings('plexhome'),
             'plexid': utils.settings('plexid'),
-            'myplexlogin': utils.settings('myplexlogin')
+            'myplexlogin': utils.settings('myplexlogin'),
+            'plexAvatar': utils.settings('plexAvatar'),
+            'plexHomeSize': utils.settings('plexHomeSize')
 
-        plexLogin is unicode or empty unicode string u''
+        Returns strings or unicode
 
         Returns empty strings '' for a setting if not found.
 
@@ -102,11 +104,13 @@ class PlexAPI():
         plexhome is 'true' if plex home is used (the default)
         """
         return {
-            'plexLogin': utils.settings('plexLogin').decode('utf-8'),
+            'plexLogin': utils.settings('plexLogin'),
             'plexToken': utils.settings('plexToken'),
             'plexhome': utils.settings('plexhome'),
             'plexid': utils.settings('plexid'),
-            'myplexlogin': utils.settings('myplexlogin')
+            'myplexlogin': utils.settings('myplexlogin'),
+            'plexAvatar': utils.settings('plexAvatar'),
+            'plexHomeSize': utils.settings('plexHomeSize')
         }
 
     def GetPlexLoginAndPassword(self):
@@ -158,12 +162,14 @@ class PlexAPI():
         """
         Prompts user to sign in by visiting https://plex.tv/pin
 
-        Writes plexhome, username and token to Kodi settings file. Returns:
+        Writes to Kodi settings file. Also returns:
         {
             'plexhome':          'true' if Plex Home, 'false' otherwise
             'username':
-            'avatar':            URL to user avator
+            'avatar':             URL to user avator
             'token':
+            'plexid':             Plex user ID
+            'homesize':           Number of Plex home users (defaults to '1')
         }
         Returns False if authentication did not work.
         """
@@ -202,19 +208,23 @@ class PlexAPI():
         else:
             home = 'false'
         username = xml.get('username', '')
-        avatar = xml.get('thumb')
+        avatar = xml.get('thumb', '')
         token = xml.findtext('authentication-token')
+        homeSize = xml.get('homeSize', '1')
         result = {
             'plexhome': home,
             'username': username,
             'avatar': avatar,
             'token': token,
-            'plexid': userid
+            'plexid': userid,
+            'homesize': homeSize
         }
         utils.settings('plexLogin', username)
         utils.settings('plexToken', token)
         utils.settings('plexhome', home)
         utils.settings('plexid', userid)
+        utils.settings('plexAvatar', avatar)
+        utils.settings('plexHomeSize', homeSize)
         # Let Kodi log into plex.tv on startup from now on
         utils.settings('myplexlogin', 'true')
         return result
@@ -334,7 +344,7 @@ class PlexAPI():
         # Add '/clients' to URL because then an authentication is necessary
         # If a plex.tv URL was passed, this does not work.
         header = self.getXArgsDeviceInfo()
-        if token is not None:
+        if token:
             header['X-Plex-Token'] = token
         sslverify = utils.settings('sslverify')
         if sslverify == "true":
@@ -780,7 +790,7 @@ class PlexAPI():
             XML = etree.parse(response)
         # Log received XML if debugging enabled.
         self.logMsg("====== received PMS-XML ======", 1)
-        self.logMsg(XML.getroot(), 1)
+        self.logMsg(XML, 1)
         self.logMsg("====== PMS-XML finished ======", 1)
         return XML
 
@@ -1050,42 +1060,41 @@ class PlexAPI():
         self.logMsg("Avatar url for user %s is: %s" % (username, url), 1)
         return url
 
-    def ChoosePlexHomeUser(self):
+    def ChoosePlexHomeUser(self, plexToken):
         """
         Let's user choose from a list of Plex home users. Will switch to that
         user accordingly.
 
-        Output:
-            username
-            userid
-            authtoken
+        Returns a dict:
+        {
+            'username':             Unicode
+            'userid': ''            Plex ID of the user
+            'token': ''             User's token
+            'protected':            True if PIN is needed, else False
+        }
 
-        Will return empty strings if failed.
+        Will return False if something went wrong (wrong PIN, no connection)
         """
         string = self.__language__
         dialog = xbmcgui.Dialog()
 
-        plexLogin = utils.settings('plexLogin')
-        plexToken = utils.settings('plexToken')
-        machineIdentifier = utils.settings('plex_machineIdentifier')
-        self.logMsg("Getting user list.", 1)
         # Get list of Plex home users
         users = self.MyPlexListHomeUsers(plexToken)
-        # Download users failed. Set username to Plex login
         if not users:
-            utils.settings('username', value=plexLogin)
-            self.logMsg("User download failed. Set username = plexlogin", 0)
-            return ('', '', '')
+            self.logMsg("User download failed.", -1)
+            return False
 
         userlist = []
         userlistCoded = []
         for user in users:
             username = user['title']
             userlist.append(username)
+            # To take care of non-ASCII usernames
             userlistCoded.append(username.encode('utf-8'))
         usernumber = len(userlist)
+
+        username = ''
         usertoken = ''
-        # Plex home not in use: only 1 user returned
         trials = 0
         while trials < 3:
             if usernumber > 1:
@@ -1094,58 +1103,62 @@ class PlexAPI():
                     self.addonName + string(39306),
                     userlistCoded)
                 if user_select == -1:
-                    self.logMsg("No user selected.", 1)
+                    self.logMsg("No user selected.", 0)
+                    utils.settings('username', value='')
                     xbmc.executebuiltin('Addon.OpenSettings(%s)'
                                         % self.addonId)
-                    return ('', '', '')
-            # No Plex home in use - only 1 user
+                    return False
+            # Only 1 user received, choose that one
             else:
                 user_select = 0
             selected_user = userlist[user_select]
-            self.logMsg("Selected user: %s" % selected_user, 1)
-            utils.settings('username', value=selected_user)
+            self.logMsg("Selected user: %s" % selected_user, 0)
             user = users[user_select]
             # Ask for PIN, if protected:
+            pin = None
             if user['protected'] == '1':
-                # Please enter pin for user
                 self.logMsg('Asking for users PIN', 1)
                 pin = dialog.input(
                     string(39307) + selected_user,
                     type=xbmcgui.INPUT_NUMERIC,
                     option=xbmcgui.ALPHANUM_HIDE_INPUT)
                 # User chose to cancel
-                if pin is None:
-                    break
-            else:
-                pin = None
+                # Plex bug: don't call url for protected user with empty PIN
+                if not pin:
+                    trials += 1
+                    continue
             # Switch to this Plex Home user, if applicable
-            # Plex bug: don't call url for protected user with empty PIN
-            if user['protected'] == '1' and not pin:
-                break
             username, usertoken = self.PlexSwitchHomeUser(
                 user['id'],
                 pin,
                 plexToken,
-                machineIdentifier
-            )
+                utils.settings('plex_machineIdentifier'))
             # Couldn't get user auth
             if not username:
+                trials += 1
                 # Could not login user, please try again
                 if not dialog.yesno(self.addonName,
                                     string(39308) + selected_user,
                                     string(39309)):
                     # User chose to cancel
                     break
-            # Successfully retrieved: break out of while loop
             else:
+                # Successfully retrieved username: break out of while loop
                 break
-            trials += trials
-        if not username:
-            xbmc.executebuiltin('Addon.OpenSettings(%s)' % self.addonId)
-            return ('', '', '')
-        return (username, user['id'], usertoken)
 
-    def PlexSwitchHomeUser(self, userId, pin, token, machineId):
+        if not username:
+            self.logMsg('Failed signing in a user to plex.tv', -1)
+            xbmc.executebuiltin('Addon.OpenSettings(%s)' % self.addonId)
+            return False
+
+        return {
+            'username': username,
+            'userid': user['id'],
+            'protected': True if user['protected'] == '1' else False,
+            'token': usertoken
+        }
+
+    def PlexSwitchHomeUser(self, userId, pin, token, machineIdentifier):
         """
         Retrieves Plex home token for a Plex home user.
 
@@ -1153,7 +1166,6 @@ class PlexAPI():
             userId          id of the Plex home user
             pin             PIN of the Plex home user, if protected
             token           token for plex.tv
-            machineId       Plex PMS machineIdentifier
 
         Output:
             (username, token)
@@ -1165,7 +1177,9 @@ class PlexAPI():
             url += '?pin=' + pin
         self.logMsg('Switching to user %s' % userId, 0)
         answer = self.TalkToPlexServer(url, talkType="POST", token=token)
-        if not answer:
+        try:
+            answer.attrib
+        except:
             self.logMsg('Error: plex.tv switch HomeUser change failed', -1)
             return ('', '')
 
@@ -1173,28 +1187,25 @@ class PlexAPI():
         token = answer.attrib.get('authenticationToken', '')
 
         # Get final token
-        url = 'https://plex.tv/pms/servers.xml'
-        answer = self.TalkToPlexServer(url, talkType="GET", token=token)
-        if not answer:
-            self.logMsg('Error: plex.tv switch HomeUser change failed', -1)
+        url = 'https://plex.tv/api/resources?includeHttps=1'
+        xml = self.TalkToPlexServer(url, talkType="GET", token=token)
+        try:
+            xml.attrib
+        except:
+            self.logMsg('switch HomeUser failed - plex.tv answer wrong', -1)
             return ('', '')
 
         found = 0
-        for child in answer:
-            if child.attrib['machineIdentifier'] == machineId:
-                token = child.attrib['accessToken']
-                self.logMsg('Found a plex home user token', 1)
+        for device in xml:
+            if device.attrib.get('clientIdentifier') == machineIdentifier:
                 found += 1
+                token = device.attrib.get('accessToken')
         if found == 0:
-            self.logMsg('Error: plex.tv switch HomeUser change failed', -1)
+            self.logMsg('No tokens found for your server!', -1)
             return ('', '')
+
         self.logMsg('Plex.tv switch HomeUser change successfull', 0)
-        self.logMsg("username: %s, token: xxxx. "
-                    "Saving to window and file settings" % username, 0)
-        utils.window('emby_currUser', value=userId)
-        utils.settings('userId', value=userId)
-        utils.settings('username', value=username)
-        utils.window('emby_accessToken%s' % userId, value=token)
+        self.logMsg("username: %s, token: xxxx. " % username, 0)
         return (username, token)
 
     def MyPlexListHomeUsers(self, authtoken):
@@ -1218,9 +1229,11 @@ class PlexAPI():
         If any value is missing, None is returned instead (or "" from plex.tv)
         If an error is encountered, False is returned
         """
-        XML = self.getXMLFromPMS('https://plex.tv', '/api/home/users/', {}, authtoken)
+        XML = self.getXMLFromPMS(
+            'https://plex.tv', '/api/home/users/', {}, authtoken)
         if not XML:
-            # Download failed; quitting with False
+            self.logMsg('Download of Plex home users failed.', -1)
+            self.logMsg('plex.tv xml received was: %s' % XML, -1)
             return False
         # analyse response
         root = XML.getroot()

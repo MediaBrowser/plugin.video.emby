@@ -24,6 +24,8 @@
     <string id="30521">Bei Wiederaufnahme zurückspulen (in Sekunden)</string>
     <string id="30505">[COLOR yellow]Anzahl Login-Versuche zurücksetzen[/COLOR]</string>
 
+    <string id="30536">Benutzer müssen sich bei jedem Neustart von Kodi neu anmelden</string>
+
 
     <string id="30014">Verbindung</string>
     <string id="30015">Netzwerk</string>

@@ -111,6 +111,8 @@ class UserClient(threading.Thread):
         settings = utils.settings
 
         # Original host
+        self.machineIdentifier = utils.settings('plex_machineIdentifier')
+        self.servername = utils.settings('plex_servername')
         HTTPS = settings('https') == "true"
         host = settings('ipaddress')
         port = settings('port')
@@ -192,28 +194,16 @@ class UserClient(threading.Thread):
 
     def setUserPref(self):
         self.logMsg('Setting user preferences', 0)
-        url = PlexAPI.PlexAPI().GetUserArtworkURL(self.currUser)
-        if url:
-            utils.window('EmbyUserImage', value=url)
+        # Only try to get user avatar if there is a token
+        if self.currToken:
+            url = PlexAPI.PlexAPI().GetUserArtworkURL(self.currUser)
+            if url:
+                utils.window('EmbyUserImage', value=url)
         # Set resume point max
         # url = "{server}/emby/System/Configuration?format=json"
         # result = doUtils.downloadUrl(url)
 
         # utils.settings('markPlayed', value=str(result['MaxResumePct']))
-
-    def getPublicUsers(self):
-
-        server = self.getServer()
-
-        # Get public Users
-        url = "%s/emby/Users/Public?format=json" % server
-        result = self.doUtils.downloadUrl(url, authenticate=False)
-
-        if result != "":
-            return result
-        else:
-            # Server connection failed
-            return False
 
     def hasAccess(self):
         # Plex: always return True for now
@@ -241,18 +231,15 @@ class UserClient(threading.Thread):
             xbmcgui.Dialog().notification(self.addonName,
                                           utils.language(33007))
 
-    def loadCurrUser(self, authenticated=False):
+    def loadCurrUser(self, username, userId, usertoken, authenticated=False):
         self.logMsg('Loading current user', 0)
         window = utils.window
-
+        settings = utils.settings
         doUtils = self.doUtils
-        username = self.getUsername()
-        userId = self.getUserId()
 
         self.currUserId = userId
+        self.currToken = usertoken
         self.currServer = self.getServer()
-        self.currToken = self.getToken()
-        self.machineIdentifier = utils.settings('plex_machineIdentifier')
         self.ssl = self.getSSLverify()
         self.sslcert = self.getSSL()
 
@@ -268,7 +255,6 @@ class UserClient(threading.Thread):
                 return False
             elif res == 401:
                 self.logMsg('Token is no longer valid', -1)
-                self.resetClient()
                 return False
             elif res >= 400:
                 self.logMsg('Answer from PMS is not as expected. Retrying', -1)
@@ -280,9 +266,7 @@ class UserClient(threading.Thread):
         window('emby_accessToken%s' % userId, value=self.currToken)
         window('emby_server%s' % userId, value=self.currServer)
         window('plex_machineIdentifier', value=self.machineIdentifier)
-
-        window('emby_serverStatus', clear=True)
-        window('suspend_LibraryThread', clear=True)
+        window('plex_servername', value=self.servername)
 
         # Set DownloadUtils values
         doUtils.setUsername(username)
@@ -290,8 +274,6 @@ class UserClient(threading.Thread):
         doUtils.setServer(self.currServer)
         doUtils.setToken(self.currToken)
         doUtils.setSSL(self.ssl, self.sslcert)
-        # parental control - let's verify if access is restricted
-        # self.hasAccess()
 
         # Start DownloadUtils session
         doUtils.startSession()
@@ -299,6 +281,23 @@ class UserClient(threading.Thread):
         # Set user preferences in settings
         self.currUser = username
         self.setUserPref()
+
+        # Writing values to settings file
+        settings('username', value=username)
+        settings('userid', value=userId)
+        settings('accessToken', value=usertoken)
+
+        dialog = xbmcgui.Dialog()
+        if username:
+            dialog.notification(
+                heading=self.addonName,
+                message="Welcome " + username,
+                icon="special://home/addons/plugin.video.plexkodiconnect/icon.png")
+        else:
+            dialog.notification(
+                heading=self.addonName,
+                message="Welcome",
+                icon="special://home/addons/plugin.video.plexkodiconnect/icon.png")
         return True
 
     def authenticate(self):
@@ -309,6 +308,15 @@ class UserClient(threading.Thread):
         settings = utils.settings
         dialog = xbmcgui.Dialog()
 
+        # Give attempts at entering password / selecting user
+        if self.retry >= 2:
+            log("Too many retries to login.", -1)
+            window('emby_serverStatus', value="Stop")
+            dialog.ok(lang(33001),
+                      lang(39023))
+            xbmc.executebuiltin(
+                'Addon.OpenSettings(plugin.video.plexkodiconnect)')
+
         # Get /profile/addon_data
         addondir = xbmc.translatePath(
             self.addon.getAddonInfo('profile')).decode('utf-8')
@@ -318,98 +326,94 @@ class UserClient(threading.Thread):
         if not hasSettings:
             log("Error, no settings.xml found.", -1)
             self.auth = False
-            return
+            return False
         server = self.getServer()
-        # If no user information
+        # If there is no server we can connect to
         if not server:
             log("Missing server information.", 0)
             self.auth = False
-            return
+            return False
 
-        username = self.getUsername()
-        userId = self.getUserId(username)
-        # If there's a token, load the user
-        if self.getToken(username=username, userId=userId):
-            if self.loadCurrUser() is False:
-                pass
+        # If there is a username in the settings, try authenticating
+        username = settings('username')
+        userId = settings('userid')
+        usertoken = settings('accessToken')
+        enforceLogin = settings('enforceUserLogin')
+        # Found a user in the settings, try to authenticate
+        if username and enforceLogin == 'false':
+            log('Trying to authenticate with old settings', 0)
+            if self.loadCurrUser(username,
+                                 userId,
+                                 usertoken,
+                                 authenticated=False):
+                # SUCCESS: loaded a user from the settings
+                return True
             else:
-                # We successfully loaded a user
-                log("Current user: %s" % self.currUser, 1)
-                log("Current userId: %s" % self.currUserId, 1)
-                log("Current accessToken: xxxx", 1)
-                return
+                # Failed to use the settings - delete them!
+                log("Failed to use the settings credentials. Deleting them", 1)
+                settings('username', value='')
+                settings('userid', value='')
+                settings('accessToken', value='')
 
-        # AUTHENTICATE USER #####
         plx = PlexAPI.PlexAPI()
-        # Choose Plex user login
-        plexdict = plx.GetPlexLoginFromSettings()
-        myplexlogin = plexdict['myplexlogin']
-        plexhome = plexdict['plexhome']
 
-        if myplexlogin == "true" and plexhome == 'true':
-            username, userId, accessToken = plx.ChoosePlexHomeUser()
-        else:
-            log("Trying to connect to PMS without a token", 0)
-            accessToken = ''
-        # Check connection
-        if plx.CheckConnection(server, accessToken) == 200:
-            self.currUser = username
-            settings('accessToken', value=accessToken)
-            settings('userId', value=userId)
-            log("User authenticated with an access token", 1)
-            if self.loadCurrUser(authenticated=True) is False:
-                # Something went really wrong, return and try again
+        # Could not use settings - try to get Plex user list from plex.tv
+        plextoken = settings('plexToken')
+        if plextoken:
+            log("Trying to connect to plex.tv to get a user list", 0)
+            userInfo = plx.ChoosePlexHomeUser(plextoken)
+            if userInfo is False:
+                # FAILURE: Something went wrong, try again
                 self.auth = True
-                self.currUser = None
-                return
-            # Success!
-            if username:
-                dialog.notification(
-                    heading=self.addonName,
-                    message="Welcome " + username,
-                    icon="special://home/addons/plugin.video.plexkodiconnect/icon.png")
-            else:
-                dialog.notification(
-                    heading=self.addonName,
-                    message="Welcome",
-                    icon="special://home/addons/plugin.video.plexkodiconnect/icon.png")
-            self.retry = 0
-            # Make sure that lib sync thread is not paused
+                self.retry += 1
+                return False
+            username = userInfo['username']
+            userId = userInfo['userid']
+            usertoken = userInfo['token']
         else:
-            self.logMsg("Error: user authentication failed.", -1)
-            settings('accessToken', value="")
-            settings('userId', value="")
+            log("Trying to authenticate without a token", 0)
+            username = ''
+            userId = ''
+            usertoken = ''
 
-            # Give attempts at entering password / selecting user
-            if self.retry >= 2:
-                log("Too many retries to login.", -1)
-                window('emby_serverStatus', value="Stop")
-                dialog.ok(lang(33001),
-                          lang(39023))
-                xbmc.executebuiltin(
-                    'Addon.OpenSettings(plugin.video.plexkodiconnect)')
-
+        if self.loadCurrUser(username, userId, usertoken, authenticated=False):
+            # SUCCESS: loaded a user from the settings
+            return True
+        else:
+            # FAILUR: Something went wrong, try again
+            self.auth = True
             self.retry += 1
-            self.auth = False
+            return False
 
     def resetClient(self):
         self.logMsg("Reset UserClient authentication.", 1)
+        settings = utils.settings
+        window = utils.window
 
-        utils.settings('accessToken', value="")
-        utils.window('emby_accessToken%s' % self.currUserId, clear=True)
+        window('emby_accessToken%s' % self.currUserId, clear=True)
+        window('emby_server%s' % self.currUserId, clear=True)
+        window('emby_currUser', clear=True)
+        window('plex_username', clear=True)
+
+        settings('username', value='')
+        settings('userid', value='')
+        settings('accessToken', value='')
+
+        # Reset token in downloads
+        self.doUtils.setToken('')
+        self.doUtils.setUserId('')
+        self.doUtils.setUsername('')
+
         self.currToken = None
-        self.logMsg("User token has been removed. Pausing Lib sync thread", 1)
-        utils.window('suspend_LibraryThread', value="true")
-
         self.auth = True
         self.currUser = None
         self.currUserId = None
 
+        self.retry = 0
+
     def run(self):
         log = self.logMsg
         window = utils.window
-        # Start library sync thread in a suspended mode, until signed in
-        utils.window('suspend_LibraryThread', value="true")
 
         log("----===## Starting UserClient ##===----", 0)
         while not self.threadStopped():
@@ -429,6 +433,7 @@ class UserClient(threading.Thread):
                     # Unauthorized access, revoke token
                     window('emby_serverStatus', value="Auth")
                     self.resetClient()
+                    xbmc.sleep(2000)
 
             if self.auth and (self.currUser is None):
                 # Try to authenticate user
@@ -436,7 +441,13 @@ class UserClient(threading.Thread):
                     # Set auth flag because we no longer need
                     # to authenticate the user
                     self.auth = False
-                    self.authenticate()
+                    if self.authenticate():
+                        log("Current user: %s" % self.currUser, 1)
+                        log("Current userId: %s" % self.currUserId, 1)
+                        log("Current accessToken: xxxx", 1)
+                        self.retry = 0
+                        window('suspend_LibraryThread', clear=True)
+                        window('emby_serverStatus', clear=True)
 
             if not self.auth and (self.currUser is None):
                 # Loop if no server found
