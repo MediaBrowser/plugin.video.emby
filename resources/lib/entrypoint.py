@@ -237,11 +237,10 @@ def doMainListing():
             elif path and not xbmc.getCondVisibility("Window.IsActive(VideoLibrary) | Window.IsActive(Pictures) | Window.IsActive(MusicLibrary)"):
                 addDirectoryItem(label, path)
 
-    # Plex user switch, if Plex home is in use
-    if int(utils.settings('plexHomeSize')) > 1:
-        addDirectoryItem(string(39200),
-                         "plugin://plugin.video.plexkodiconnect/"
-                         "?mode=switchuser")
+    # Plex user switch
+    addDirectoryItem(string(39200),
+                     "plugin://plugin.video.plexkodiconnect/"
+                     "?mode=switchuser")
 
     #experimental live tv nodes
     # addDirectoryItem("Live Tv Channels (experimental)", "plugin://plugin.video.plexkodiconnect/?mode=browsecontent&type=tvchannels&folderid=root")
