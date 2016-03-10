@@ -66,7 +66,8 @@ class Main:
             'companion': entrypoint.plexCompanion,
             'switchuser': entrypoint.switchPlexUser,
             'deviceid': entrypoint.resetDeviceId,
-            'reConnect': entrypoint.reConnect
+            'reConnect': entrypoint.reConnect,
+            'delete': entrypoint.deleteItem
         }
         
         if "/extrafanart" in sys.argv[0]:
@@ -108,7 +109,24 @@ class Main:
             if mode == "settings":
                 xbmc.executebuiltin('Addon.OpenSettings(plugin.video.plexkodiconnect)')
             elif mode in ("manualsync", "repair"):
-                entrypoint.RunLibScan(mode)
+                if utils.window('emby_online') != "true":
+                    # Server is not online, do not run the sync
+                    xbmcgui.Dialog().ok(heading="Emby for Kodi",
+                                        line1=("Unable to run the sync, the add-on is not "
+                                               "connected to the Emby server."))
+                    utils.logMsg("EMBY", "Not connected to the emby server.", 1)
+                    return
+                    
+                if utils.window('emby_dbScan') != "true":
+                    import librarysync
+                    lib = librarysync.LibrarySync()
+                    if mode == "manualsync":
+                        librarysync.ManualSync().sync(dialog=True)
+                    else:
+                        lib.fullSync(repair=True)
+                else:
+                    utils.logMsg("EMBY", "Database scan is already running.", 1)
+                    
             elif mode == "texturecache":
                 import artwork
                 artwork.Artwork().FullTextureCacheSync()
