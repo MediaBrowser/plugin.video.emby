@@ -8,6 +8,7 @@ import urlparse
 
 import xbmc
 import xbmcaddon
+import xbmcgui
 
 #################################################################################################
 
@@ -111,21 +112,15 @@ class Main:
             elif mode in ("manualsync", "repair"):
                 if utils.window('emby_online') != "true":
                     # Server is not online, do not run the sync
-                    xbmcgui.Dialog().ok(heading="Emby for Kodi",
+                    xbmcgui.Dialog().ok(heading="PlexKodiConnect",
                                         line1=("Unable to run the sync, the add-on is not "
                                                "connected to the Emby server."))
-                    utils.logMsg("EMBY", "Not connected to the emby server.", 1)
+                    utils.logMsg("PLEX", "Not connected to the emby server.", 1)
                     return
                     
-                if utils.window('emby_dbScan') != "true":
-                    import librarysync
-                    lib = librarysync.LibrarySync()
-                    if mode == "manualsync":
-                        librarysync.ManualSync().sync(dialog=True)
-                    else:
-                        lib.fullSync(repair=True)
                 else:
-                    utils.logMsg("EMBY", "Database scan is already running.", 1)
+                    utils.logMsg("PLEX", "Requesting full library scan", 1)
+                    utils.window('plex_runLibScan', value="full")
                     
             elif mode == "texturecache":
                 import artwork
