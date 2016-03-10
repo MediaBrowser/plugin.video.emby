@@ -21,8 +21,8 @@ import PlexAPI
 class Playlist():
 
     def __init__(self):
-        self.userid = utils.window('emby_currUser')
-        self.server = utils.window('emby_server%s' % self.userid)
+        self.userid = utils.window('currUserId')
+        self.server = utils.window('pms_server')
 
         self.emby = embyserver.Read_EmbyServer()
 

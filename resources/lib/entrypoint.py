@@ -93,17 +93,15 @@ def reConnect():
     utils.settings('plexLogin', value="")
     utils.settings('plexToken', value=""),
     utils.settings('plexid', value="")
-    utils.settings('plexHomeSize', value="")
+    utils.settings('plexHomeSize', value="1")
     utils.settings('plexAvatar', value="")
 
     # Wait max for 5 seconds for all lib scans to finish
     counter = 0
     while utils.window('emby_dbScan') == 'true':
         if counter > 100:
-            dialog.ok(
-                heading=addonName,
-                message=string(39208),
-            )
+            dialog.ok(heading=addonName,
+                      message=string(39208))
             # Resuming threads, just in case
             utils.window('suspend_LibraryThread', clear=True)
             # Abort reConnection
@@ -117,10 +115,8 @@ def reConnect():
     counter = 0
     while utils.window('emby_serverStatus') == "401":
         if counter > 100:
-            dialog.ok(
-                heading=addonName,
-                message=string(39208),
-            )
+            dialog.ok(heading=addonName,
+                      message=string(39208))
             # Abort reConnection
             return
         counter += 1
@@ -343,7 +339,7 @@ def addUser():
     clientInfo = clientinfo.ClientInfo()
     deviceId = clientInfo.getDeviceId()
     deviceName = clientInfo.getDeviceName()
-    userid = utils.window('emby_currUser')
+    userid = utils.window('currUserId')
     dialog = xbmcgui.Dialog()
 
     # Get session

@@ -329,6 +329,7 @@
     <string id="39308">Anmeldung fehlgeschlagen für Benutzer </string>
     <string id="39309">Bitte erneut versuchen.</string>
     <string id="39310">unbekannt</string>
+    <string id="39311">oder Nein drücken, um nicht bei plex.tv anzumelden</string>
 
     <!-- Plex Librarysync.py -->
     <string id="39400">Die Synchronisierung der Plex Bibliotheken ist abgestürzt. Bitte Kodi neu starten. Danke, wenn Sie sich die Zeit nehmen und im Plex Forum vom Absturz berichten.</string>

@@ -44,7 +44,8 @@ class InitialSetup():
         plexLogin = plexdict['plexLogin']
         plexToken = plexdict['plexToken']
         plexid = plexdict['plexid']
-        self.logMsg('Plex info retrieved from settings', 1)
+        if plexToken:
+            self.logMsg('Found plex.tv token in settings', 0)
 
         dialog = xbmcgui.Dialog()
 
@@ -54,6 +55,7 @@ class InitialSetup():
             chk = self.plx.CheckConnection('plex.tv', plexToken)
             # HTTP Error: unauthorized. Token is no longer valid
             if chk == 401:
+                self.logMsg('plex.tv connection returned HTTP 401', 0)
                 # Delete token in the settings
                 utils.settings('plexToken', value='')
                 # Could not login, please try again
@@ -66,10 +68,12 @@ class InitialSetup():
                     plexid = result['plexid']
             elif chk is False or chk >= 400:
                 # Problems connecting to plex.tv. Network or internet issue?
+                self.logMsg('plex.tv connection returned HTTP %s'
+                            % str(chk), 0)
                 dialog.ok(self.addonName,
                           string(39010))
             else:
-                # Successful connected to plex.tv
+                self.logMsg('plex.tv connection with token successful', 0)
                 # Refresh the info from Plex.tv
                 url = 'https://plex.tv/'
                 path = 'users/account'
@@ -86,6 +90,7 @@ class InitialSetup():
                     self.logMsg('Updated Plex info from plex.tv', 0)
                 else:
                     self.logMsg('Failed to update Plex info from plex.tv', -1)
+
         # If a Plex server IP has already been set, return.
         if server and forcePlexTV is False:
             self.logMsg("Server is already set.", 0)

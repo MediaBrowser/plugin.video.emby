@@ -67,7 +67,7 @@ except ImportError:
 class PlexAPI():
     # CONSTANTS
     # Timeout for POST/GET commands, I guess in seconds
-    timeout = 60
+    timeout = 10
     # VARIABLES
 
     def __init__(self):
@@ -79,9 +79,9 @@ class PlexAPI():
         self.deviceName = client.getDeviceName()
         self.plexversion = client.getVersion()
         self.platform = client.getPlatform()
-        self.userId = utils.window('emby_currUser')
-        self.token = utils.window('emby_accessToken%s' % self.userId)
-        self.server = utils.window('emby_server%s' % self.userId)
+        self.userId = utils.window('currUserId')
+        self.token = utils.window('pms_token')
+        self.server = utils.window('pms_server')
 
         self.doUtils = downloadutils.DownloadUtils()
 
@@ -182,9 +182,11 @@ class PlexAPI():
             dialog.ok(self.addonName, string(39303))
             return False
         # Go to https://plex.tv/pin and enter the code:
+        # Or press No to cancel the sign in.
         answer = dialog.yesno(self.addonName,
                               string(39304) + "\n\n",
-                              code)
+                              code + "\n\n",
+                              string(39311))
         if not answer:
             return False
         count = 0
@@ -638,14 +640,17 @@ class PlexAPI():
         else:
             # MyPlex servers
             self.getPMSListFromMyPlex(ATV_udid, authtoken)
+        # Delete plex.tv again
+        del self.g_PMS[ATV_udid]['plex.tv']
         # all servers - update enableGzip
         for uuid_id in self.g_PMS.get(ATV_udid, {}):
             # Ping to check whether we need HTTPs or HTTP
             url = (self.getPMSProperty(ATV_udid, uuid_id, 'ip') + ':'
                    + self.getPMSProperty(ATV_udid, uuid_id, 'port'))
             if PMSHttpsEnabled(url):
-                self.logMsg('PMS %s talks HTTPS' % uuid_id, 1)
                 self.updatePMSProperty(ATV_udid, uuid_id, 'scheme', 'https')
+            else:
+                self.updatePMSProperty(ATV_udid, uuid_id, 'scheme', 'http')
             # enable Gzip if not on same host, local&remote PMS depending
             # on setting
             enableGzip = (not self.getPMSProperty(ATV_udid, uuid_id, 'ip') == IP_self) \
@@ -657,8 +662,6 @@ class PlexAPI():
                         and True) == 'True'
                 )
             self.updatePMSProperty(ATV_udid, uuid_id, 'enableGzip', enableGzip)
-        # Delete plex.tv again
-        del self.g_PMS[ATV_udid]['plex.tv']
 
     def getPMSListFromMyPlex(self, ATV_udid, authtoken):
         """
@@ -1128,13 +1131,18 @@ class PlexAPI():
                     trials += 1
                     continue
             # Switch to this Plex Home user, if applicable
-            username, usertoken = self.PlexSwitchHomeUser(
+            result = self.PlexSwitchHomeUser(
                 user['id'],
                 pin,
                 plexToken,
                 utils.settings('plex_machineIdentifier'))
+            if result:
+                # Successfully retrieved username: break out of while loop
+                username = result['username']
+                usertoken = result['usertoken']
+                break
             # Couldn't get user auth
-            if not username:
+            else:
                 trials += 1
                 # Could not login user, please try again
                 if not dialog.yesno(self.addonName,
@@ -1142,9 +1150,6 @@ class PlexAPI():
                                     string(39309)):
                     # User chose to cancel
                     break
-            else:
-                # Successfully retrieved username: break out of while loop
-                break
 
         if not username:
             self.logMsg('Failed signing in a user to plex.tv', -1)
@@ -1161,6 +1166,7 @@ class PlexAPI():
     def PlexSwitchHomeUser(self, userId, pin, token, machineIdentifier):
         """
         Retrieves Plex home token for a Plex home user.
+        Returns False if unsuccessful
 
         Input:
             userId          id of the Plex home user
@@ -1168,9 +1174,14 @@ class PlexAPI():
             token           token for plex.tv
 
         Output:
-            (username, token)
+            {
+                'username'
+                'usertoken'         Might be empty strings if no token found
+                                    for the machineIdentifier that was chosen
+            }
 
-        Returns 2 empty strings if unsuccessful
+        Also sets the settings variable settings('accessToken'),
+        settings('userid') and settings('username') with new plex token
         """
         url = 'https://plex.tv/api/home/users/' + userId + '/switch'
         if pin:
@@ -1181,32 +1192,50 @@ class PlexAPI():
             answer.attrib
         except:
             self.logMsg('Error: plex.tv switch HomeUser change failed', -1)
-            return ('', '')
+            return False
 
         username = answer.attrib.get('title', '')
         token = answer.attrib.get('authenticationToken', '')
+        userid = answer.attrib.get('id', '')
 
-        # Get final token
+        # Write to settings file
+        utils.settings('username', username)
+        utils.settings('userid', userid)
+        utils.settings('accessToken', token)
+
+        # Get final token to the PMS we've chosen
         url = 'https://plex.tv/api/resources?includeHttps=1'
         xml = self.TalkToPlexServer(url, talkType="GET", token=token)
         try:
             xml.attrib
         except:
-            self.logMsg('switch HomeUser failed - plex.tv answer wrong', -1)
-            return ('', '')
+            self.logMsg('Answer from plex.tv not as excepted', -1)
+            # Set to empty iterable list for loop
+            xml = []
 
         found = 0
+        self.logMsg('Our machineIdentifier is %s' % machineIdentifier, 0)
         for device in xml:
-            if device.attrib.get('clientIdentifier') == machineIdentifier:
+            identifier = device.attrib.get('clientIdentifier')
+            self.logMsg('Found a Plex machineIdentifier: %s' % identifier, 0)
+            if (identifier in machineIdentifier or
+                    machineIdentifier in identifier):
                 found += 1
                 token = device.attrib.get('accessToken')
-        if found == 0:
-            self.logMsg('No tokens found for your server!', -1)
-            return ('', '')
 
-        self.logMsg('Plex.tv switch HomeUser change successfull', 0)
-        self.logMsg("username: %s, token: xxxx. " % username, 0)
-        return (username, token)
+        result = {
+            'username': username,
+        }
+        if found == 0:
+            self.logMsg('No tokens found for your server!', 0)
+            self.logMsg('Using empty string as token', 0)
+            result['usertoken'] = ''
+        else:
+            result['usertoken'] = token
+
+        self.logMsg('Plex.tv switch HomeUser change successfull for user %s'
+                    % username, 0)
+        return result
 
     def MyPlexListHomeUsers(self, authtoken):
         """
@@ -1430,9 +1459,9 @@ class API():
         self.clientId = self.clientinfo.getDeviceId()
         self.__language__ = xbmcaddon.Addon().getLocalizedString
 
-        self.userId = utils.window('emby_currUser')
-        self.server = utils.window('emby_server%s' % self.userId)
-        self.token = utils.window('emby_accessToken%s' % self.userId)
+        self.userId = utils.window('currUserId')
+        self.server = utils.window('pms_server')
+        self.token = utils.window('pms_token')
 
     def setPartNumber(self, number=None):
         """

@@ -26,8 +26,8 @@ class PlayUtils():
 
         self.clientInfo = clientinfo.ClientInfo()
 
-        self.userid = utils.window('emby_currUser')
-        self.server = utils.window('emby_server%s' % self.userid)
+        self.userid = utils.window('currUserId')
+        self.server = utils.window('pms_server')
         self.machineIdentifier = utils.window('plex_machineIdentifier')
 
     def getPlayUrl(self, partNumber=None):

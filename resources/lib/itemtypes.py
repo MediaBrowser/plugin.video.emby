@@ -1595,8 +1595,8 @@ class Music(Items):
         self.enableimportsongrating = utils.settings('enableImportSongRating') == "true"
         self.enableexportsongrating = utils.settings('enableExportSongRating') == "true"
         self.enableupdatesongrating = utils.settings('enableUpdateSongRating') == "true"
-        self.userid = utils.window('emby_currUser')
-        self.server = utils.window('emby_server%s' % self.userid)
+        self.userid = utils.window('currUserId')
+        self.server = utils.window('pms_server')
 
     def __enter__(self):
         """

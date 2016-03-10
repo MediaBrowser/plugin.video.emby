@@ -71,41 +71,6 @@ class UserClient(threading.Thread):
 
         return logLevel
 
-    def getUserId(self, username=None):
-
-        log = self.logMsg
-        window = utils.window
-        settings = utils.settings
-
-        if username is None:
-            username = self.getUsername()
-        w_userId = window('emby_currUser')
-        s_userId = settings('userId')
-
-        # Verify the window property
-        if w_userId:
-            if not s_userId:
-                # Save access token if it's missing from settings
-                settings('userId', value=w_userId)
-            log("Returning userId %s from WINDOW for username %s"
-                % (w_userId, username), 0)
-            return w_userId
-        # Verify the settings
-        elif s_userId:
-            log("Returning userId %s from SETTINGS for username %s"
-                % (w_userId, username), 0)
-            return s_userId
-        # No userId found
-        log("No userId saved. Trying to get Plex to use instead", 0)
-        plexId = settings('plexid')
-        if not plexId:
-            log('Also no Plex ID found in settings', 0)
-            return ''
-        log('Using Plex ID %s as userid for username %s'
-            % (plexId, username), 0)
-        settings('userId', value=plexId)
-        return plexId
-
     def getServer(self, prefix=True):
 
         settings = utils.settings
@@ -134,37 +99,6 @@ class UserClient(threading.Thread):
         # If only the host:port is required
         elif not prefix:
             return server
-
-    def getToken(self, username=None, userId=None):
-
-        log = self.logMsg
-        window = utils.window
-        settings = utils.settings
-
-        if username is None:
-            username = self.getUsername()
-        if userId is None:
-            userId = self.getUserId()
-        w_token = window('emby_accessToken%s' % userId)
-        s_token = settings('accessToken')
-
-        # Verify the window property
-        if w_token:
-            if not s_token:
-                # Save access token if it's missing from settings
-                settings('accessToken', value=w_token)
-            log("Returning accessToken from WINDOW for username: %s "
-                "accessToken: xxxx" % username, 2)
-            return w_token
-        # Verify the settings
-        elif s_token:
-            log("Returning accessToken from SETTINGS for username: %s "
-                "accessToken: xxxx" % username, 2)
-            window('emby_accessToken%s' % userId, value=s_token)
-            return s_token
-        else:
-            log("No token found.", 1)
-            return ""
 
     def getSSLverify(self):
         # Verify host certificate
@@ -245,9 +179,9 @@ class UserClient(threading.Thread):
 
         if authenticated is False:
             self.logMsg('Testing validity of current token', 0)
-            window('emby_currUser', value=userId)
+            window('currUserId', value=userId)
             window('plex_username', value=username)
-            window('emby_accessToken%s' % userId, value=self.currToken)
+            window('pms_token', value=self.currToken)
             res = PlexAPI.PlexAPI().CheckConnection(
                 self.currServer, self.currToken)
             if res is False:
@@ -261,10 +195,14 @@ class UserClient(threading.Thread):
                 return False
 
         # Set to windows property
-        window('emby_currUser', value=userId)
+        window('currUserId', value=userId)
         window('plex_username', value=username)
-        window('emby_accessToken%s' % userId, value=self.currToken)
-        window('emby_server%s' % userId, value=self.currServer)
+        # This is the token for the current PMS (might also be '')
+        window('pms_token', value=self.currToken)
+        # This is the token for plex.tv for the current user
+        # Is only '' if user is not signed in to plex.tv
+        window('plex_token', value=settings('accessToken'))
+        window('pms_server', value=self.currServer)
         window('plex_machineIdentifier', value=self.machineIdentifier)
         window('plex_servername', value=self.servername)
 
@@ -387,12 +325,18 @@ class UserClient(threading.Thread):
 
     def resetClient(self):
         self.logMsg("Reset UserClient authentication.", 1)
+
+        self.doUtils.stopSession()
+
         settings = utils.settings
         window = utils.window
 
-        window('emby_accessToken%s' % self.currUserId, clear=True)
-        window('emby_server%s' % self.currUserId, clear=True)
-        window('emby_currUser', clear=True)
+        window('pms_token', clear=True)
+        window('plex_token', clear=True)
+        window('pms_server', clear=True)
+        window('plex_machineIdentifier', clear=True)
+        window('plex_servername', clear=True)
+        window('currUserId', clear=True)
         window('plex_username', clear=True)
 
         settings('username', value='')
@@ -423,17 +367,21 @@ class UserClient(threading.Thread):
                 xbmc.sleep(1000)
 
             status = window('emby_serverStatus')
-            if status:
-                # Verify the connection status to server
-                if status == "restricted":
-                    # Parental control is restricting access
-                    self.HasAccess = False
 
-                elif status == "401":
-                    # Unauthorized access, revoke token
-                    window('emby_serverStatus', value="Auth")
-                    self.resetClient()
-                    xbmc.sleep(2000)
+            if status == "Stop":
+                xbmc.sleep(500)
+                continue
+
+            # Verify the connection status to server
+            elif status == "restricted":
+                # Parental control is restricting access
+                self.HasAccess = False
+
+            elif status == "401":
+                # Unauthorized access, revoke token
+                window('emby_serverStatus', value="Auth")
+                self.resetClient()
+                xbmc.sleep(2000)
 
             if self.auth and (self.currUser is None):
                 # Try to authenticate user
@@ -455,6 +403,7 @@ class UserClient(threading.Thread):
                 server = self.getServer()
 
                 # The status Stop is for when user cancelled password dialog.
+                # Or retried too many times
                 if server and status != "Stop":
                     # Only if there's information found to login
                     log("Server found: %s" % server, 2)

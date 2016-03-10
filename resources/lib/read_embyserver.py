@@ -19,8 +19,8 @@ class Read_EmbyServer():
 
         self.doUtils = downloadutils.DownloadUtils().downloadUrl
 
-        self.userId = utils.window('emby_currUser')
-        self.server = utils.window('emby_server%s' % self.userId)
+        self.userId = utils.window('currUserId')
+        self.server = utils.window('pms_server')
 
     def split_list(self, itemlist, size):
         # Split up list in pieces of size. Will generate a list of lists

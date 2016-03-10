@@ -222,10 +222,9 @@ class DownloadUtils():
                     # request session does not exists
                     self.logMsg("Request session does not exist: start one", 1)
                     # Get user information
-                    self.userId = utils.window('emby_currUser')
-                    self.server = utils.window('emby_server%s' % self.userId)
-                    self.token = utils.window(
-                        'emby_accessToken%s' % self.userId)
+                    self.userId = utils.window('currUserId')
+                    self.server = utils.window('pms_server')
+                    self.token = utils.window('pms_token')
                     header = self.getHeader(options=headerOptions)
                     verifyssl = False
                     cert = None
@@ -378,6 +377,7 @@ class DownloadUtils():
                     # Emby server errors
                     if r.headers['X-Application-Error-Code'] == "ParentalControl":
                         # Parental control - access restricted
+                        self.logMsg('Setting emby_serverStatus to restricted')
                         utils.window('emby_serverStatus', value="restricted")
                         xbmcgui.Dialog().notification(
                                                 heading=self.addonName,
@@ -392,6 +392,7 @@ class DownloadUtils():
 
                 elif status not in ("401", "Auth"):
                     # Tell userclient token has been revoked.
+                    self.logMsg('Setting emby_serverStatus to 401')
                     utils.window('emby_serverStatus', value="401")
                     self.logMsg("HTTP Error: %s" % e, 0)
                     xbmcgui.Dialog().notification(
