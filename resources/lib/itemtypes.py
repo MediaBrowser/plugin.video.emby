@@ -287,10 +287,18 @@ class Movies(Items):
         try:
             self.run_add_update(item, viewtag, viewid)
         except Exception as e:
-            utils.window('emby_dbScan', clear=True)
             self.logMsg('itemtypes.py for movies has crashed for item %s. '
                         'Error:' % item.attrib.get('ratingKey', None), -1)
             self.logMsg(e, -1)
+            import traceback
+            self.logMsg("Traceback:\n%s" % traceback.format_exc(), 0)
+            self.logMsg('The item xml is:', -1)
+            try:
+                import xml.etree.cElementTree as etree
+            except ImportError:
+                import xml.etree.ElementTree as etree
+            etree.dump(item)
+            utils.window('plex_scancrashed', value='true')
             # skip this item for now
             return
 
@@ -920,10 +928,18 @@ class TVShows(Items):
         try:
             self.run_add_update(item, viewtag, viewid)
         except Exception as e:
-            utils.window('emby_dbScan', clear=True)
             self.logMsg('itemtypes.py for tv show has crashed for item %s. '
                         'Error:' % item.attrib.get('ratingKey', None), -1)
             self.logMsg(e, -1)
+            import traceback
+            self.logMsg("Traceback:\n%s" % traceback.format_exc(), 0)
+            self.logMsg('The item xml is:', -1)
+            try:
+                import xml.etree.cElementTree as etree
+            except ImportError:
+                import xml.etree.ElementTree as etree
+            etree.dump(item)
+            utils.window('plex_scancrashed', value='true')
             # skip this item for now
             return
 
@@ -1117,10 +1133,18 @@ class TVShows(Items):
         try:
             self.run_add_updateSeason(item, viewtag, viewid)
         except Exception as e:
-            utils.window('emby_dbScan', clear=True)
             self.logMsg('itemtypes.py for tv seasons has crashed for item %s. '
                         'Error:' % item.attrib.get('ratingKey', None), -1)
             self.logMsg(e, -1)
+            import traceback
+            self.logMsg("Traceback:\n%s" % traceback.format_exc(), 0)
+            self.logMsg('The item xml is:', -1)
+            try:
+                import xml.etree.cElementTree as etree
+            except ImportError:
+                import xml.etree.ElementTree as etree
+            etree.dump(item)
+            utils.window('plex_scancrashed', value='true')
             # skip this item for now
             return
 
@@ -1162,10 +1186,18 @@ class TVShows(Items):
         try:
             self.run_add_updateEpisode(item, viewtag, viewid)
         except Exception as e:
-            utils.window('emby_dbScan', clear=True)
             self.logMsg('itemtypes.py for tv episode has crashed for item %s. '
                         'Error:' % item.attrib.get('ratingKey', None), -1)
             self.logMsg(e, -1)
+            import traceback
+            self.logMsg("Traceback:\n%s" % traceback.format_exc(), 0)
+            self.logMsg('The item xml is:', -1)
+            try:
+                import xml.etree.cElementTree as etree
+            except ImportError:
+                import xml.etree.ElementTree as etree
+            etree.dump(item)
+            utils.window('plex_scancrashed', value='true')
             # skip this item for now
             return
 
@@ -1642,11 +1674,19 @@ class Music(Items):
         try:
             self.run_add_updateArtist(item, viewtag, viewid, artisttype)
         except Exception as e:
-            utils.window('emby_dbScan', clear=True)
             self.logMsg('itemtypes.py for music artist has crashed for '
                         'item %s. Error:'
                         % item.attrib.get('ratingKey', None), -1)
             self.logMsg(e, -1)
+            import traceback
+            self.logMsg("Traceback:\n%s" % traceback.format_exc(), 0)
+            self.logMsg('The item xml is:', -1)
+            try:
+                import xml.etree.cElementTree as etree
+            except ImportError:
+                import xml.etree.ElementTree as etree
+            etree.dump(item)
+            utils.window('plex_scancrashed', value='true')
             # skip this item for now
             return
 
@@ -1738,11 +1778,19 @@ class Music(Items):
         try:
             self.run_add_updateAlbum(item, viewtag, viewid)
         except Exception as e:
-            utils.window('emby_dbScan', clear=True)
             self.logMsg('itemtypes.py for music album has crashed for '
                         'item %s. Error:'
                         % item.attrib.get('ratingKey', None), -1)
             self.logMsg(e, -1)
+            import traceback
+            self.logMsg("Traceback:\n%s" % traceback.format_exc(), 0)
+            self.logMsg('The item xml is:', -1)
+            try:
+                import xml.etree.cElementTree as etree
+            except ImportError:
+                import xml.etree.ElementTree as etree
+            etree.dump(item)
+            utils.window('plex_scancrashed', value='true')
             # skip this item for now
             return
 
@@ -1936,11 +1984,19 @@ class Music(Items):
         try:
             self.run_add_updateSong(item, viewtag, viewid)
         except Exception as e:
-            utils.window('emby_dbScan', clear=True)
             self.logMsg('itemtypes.py for music song has crashed for '
                         'item %s. Error:'
                         % item.attrib.get('ratingKey', None), -1)
             self.logMsg(e, -1)
+            import traceback
+            self.logMsg("Traceback:\n%s" % traceback.format_exc(), 0)
+            self.logMsg('The item xml is:', -1)
+            try:
+                import xml.etree.cElementTree as etree
+            except ImportError:
+                import xml.etree.ElementTree as etree
+            etree.dump(item)
+            utils.window('plex_scancrashed', value='true')
             # skip this item for now
             return
 

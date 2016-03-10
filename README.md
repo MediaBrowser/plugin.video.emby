@@ -7,13 +7,13 @@
 **Installation in Kodi**
 
 1. You might want to uninstall everything else Plex related first, e.g. PlexBMC and PlexBMC Helper. Starting with a fresh Kodi install might be a good idea. Be sure to use a "normal", unmodded Skin in Kodi.
-If you're updating, you might also want to do a complete reset of the plugin: Settings -> Advanced -> "Performe full DB reset". Choose "Yes" for everything.
+If you're updating, you might also want to do a complete reset of the plugin: Settings -> Advanced -> "Perform full DB reset". Choose "Yes" for all questions.
 2. Simply fire up Kodi and Install from ZIP from here on. 
-3. Install the 2 needed dependencies first (be sure to NOT download the sources but the additional release files): https://github.com/croneter/plugin.video.plexkodiconnect.tvshows/releases/tag/1.0.0 and https://github.com/croneter/plugin.video.plexkodiconnect.movies/releases/tag/1.0.0
+3. Install the 2 needed dependencies first (be sure to NOT download the sources but the additional release files): https://github.com/croneter/plugin.video.plexkodiconnect.tvshows/releases/ and https://github.com/croneter/plugin.video.plexkodiconnect.movies/releases/
 5. Then install PlexKodiConnect, again the additional release file from here: https://github.com/croneter/PlexKodiConnect/releases/
 6. Within a few seconds you should be prompted to log into plex.tv. This is mandatory for Plex Home, otherwise you can skip. If nothing happens, try to restart Kodi
 7. Once you're succesfully authenticated to your Plex server, the initial sync will start. 
-8. The first sync of the Plex server to local Kodi database may take a LONG time. With my setup (~400 movies, ~600 episodes, couple of Test music albums and a very powerful NAS), sync take approximately 5 minutes.
+8. The first sync of the Plex server to local Kodi database may take a LONG time. With my setup (~400 movies, ~600 episodes, couple of Test music albums and a very powerful NAS), sync takes approximately 5 minutes.
 9. Once the full sync is done, you can browse your media in Kodi, syncs will be automatically done in the background.
 10. Restart!
 
@@ -62,6 +62,8 @@ Guess what, this is BETA. Currently these features are working:
 - Pictures
 - Watch Later
 - Music Videos
+- Playlists
+- Play directly from SMB paths ("\\\\server\\Plex\\movie.mkv" on Windows) instead of HTTP ("192.168.1.1:32400")
 - TV Shows Theme Music (ultra-low prio)
 
 

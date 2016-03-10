@@ -1,3 +1,10 @@
+version 1.0.6
+- Enable traceback and dump XMLs of failed PMS items in the log for lib sync
+- Optimize notifications for library syncs
+- Manually trigger full library scan from settings
+- Merge with MediaBrowser/master up until db4cb448b0e4fd82662f8b82a800d8da8ea33688
+
+
 version 1.0.5
 - Catch exceptions in itemtypes and log them
 - Slightly increased download timeouts 

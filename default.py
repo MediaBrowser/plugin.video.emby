@@ -8,6 +8,7 @@ import urlparse
 
 import xbmc
 import xbmcaddon
+import xbmcgui
 
 #################################################################################################
 
@@ -66,7 +67,8 @@ class Main:
             'companion': entrypoint.plexCompanion,
             'switchuser': entrypoint.switchPlexUser,
             'deviceid': entrypoint.resetDeviceId,
-            'reConnect': entrypoint.reConnect
+            'reConnect': entrypoint.reConnect,
+            'delete': entrypoint.deleteItem
         }
         
         if "/extrafanart" in sys.argv[0]:
@@ -108,7 +110,18 @@ class Main:
             if mode == "settings":
                 xbmc.executebuiltin('Addon.OpenSettings(plugin.video.plexkodiconnect)')
             elif mode in ("manualsync", "repair"):
-                entrypoint.RunLibScan(mode)
+                if utils.window('emby_online') != "true":
+                    # Server is not online, do not run the sync
+                    xbmcgui.Dialog().ok(heading="PlexKodiConnect",
+                                        line1=("Unable to run the sync, the add-on is not "
+                                               "connected to the Emby server."))
+                    utils.logMsg("PLEX", "Not connected to the emby server.", 1)
+                    return
+                    
+                else:
+                    utils.logMsg("PLEX", "Requesting full library scan", 1)
+                    utils.window('plex_runLibScan', value="full")
+                    
             elif mode == "texturecache":
                 import artwork
                 artwork.Artwork().FullTextureCacheSync()
