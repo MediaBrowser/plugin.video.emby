@@ -34,8 +34,8 @@ class PlaybackUtils():
         self.clientInfo = clientinfo.ClientInfo()
         self.addonName = self.clientInfo.getAddonName()
 
-        self.userid = utils.window('emby_currUser')
-        self.server = utils.window('emby_server%s' % self.userid)
+        self.userid = utils.window('currUserId')
+        self.server = utils.window('pms_server')
 
         self.artwork = artwork.Artwork()
         self.emby = embyserver.Read_EmbyServer()

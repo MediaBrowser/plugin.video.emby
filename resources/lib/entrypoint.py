@@ -93,17 +93,15 @@ def reConnect():
     utils.settings('plexLogin', value="")
     utils.settings('plexToken', value=""),
     utils.settings('plexid', value="")
-    utils.settings('plexHomeSize', value="")
+    utils.settings('plexHomeSize', value="1")
     utils.settings('plexAvatar', value="")
 
     # Wait max for 5 seconds for all lib scans to finish
     counter = 0
     while utils.window('emby_dbScan') == 'true':
         if counter > 100:
-            dialog.ok(
-                heading=addonName,
-                message=string(39208),
-            )
+            dialog.ok(heading=addonName,
+                      message=string(39208))
             # Resuming threads, just in case
             utils.window('suspend_LibraryThread', clear=True)
             # Abort reConnection
@@ -117,10 +115,8 @@ def reConnect():
     counter = 0
     while utils.window('emby_serverStatus') == "401":
         if counter > 100:
-            dialog.ok(
-                heading=addonName,
-                message=string(39208),
-            )
+            dialog.ok(heading=addonName,
+                      message=string(39208))
             # Abort reConnection
             return
         counter += 1
@@ -241,11 +237,10 @@ def doMainListing():
             elif path and not xbmc.getCondVisibility("Window.IsActive(VideoLibrary) | Window.IsActive(Pictures) | Window.IsActive(MusicLibrary)"):
                 addDirectoryItem(label, path)
 
-    # Plex user switch, if Plex home is in use
-    if int(utils.settings('plexHomeSize')) > 1:
-        addDirectoryItem(string(39200),
-                         "plugin://plugin.video.plexkodiconnect/"
-                         "?mode=switchuser")
+    # Plex user switch
+    addDirectoryItem(string(39200),
+                     "plugin://plugin.video.plexkodiconnect/"
+                     "?mode=switchuser")
 
     #experimental live tv nodes
     # addDirectoryItem("Live Tv Channels (experimental)", "plugin://plugin.video.plexkodiconnect/?mode=browsecontent&type=tvchannels&folderid=root")
@@ -343,7 +338,7 @@ def addUser():
     clientInfo = clientinfo.ClientInfo()
     deviceId = clientInfo.getDeviceId()
     deviceName = clientInfo.getDeviceName()
-    userid = utils.window('emby_currUser')
+    userid = utils.window('currUserId')
     dialog = xbmcgui.Dialog()
 
     # Get session

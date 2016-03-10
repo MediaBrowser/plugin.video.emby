@@ -75,9 +75,10 @@ class Service():
 
             "emby_online", "emby_serverStatus", "emby_onWake",
             "emby_syncRunning", "emby_dbCheck", "emby_kodiScan",
-            "emby_shouldStop", "emby_currUser", "emby_dbScan", "emby_sessionId",
+            "emby_shouldStop", "currUserId", "emby_dbScan", "emby_sessionId",
             "emby_initialScan", "emby_customplaylist", "emby_playbackProps",
-            "plex_runLibScan", "plex_username"
+            "plex_runLibScan", "plex_username", "pms_token", "plex_token",
+            "pms_server", "plex_machineIdentifier", "plex_servername"
         ]
         for prop in properties:
             window(prop, clear=True)

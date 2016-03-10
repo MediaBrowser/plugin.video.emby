@@ -1,3 +1,9 @@
+version 1.0.7
+- Fix userclient
+- Fix KeyError in library sync
+- Make user switch always available
+- Get rid of some unneccessary logs in lib sync 
+
 version 1.0.6
 - Enable traceback and dump XMLs of failed PMS items in the log for lib sync
 - Optimize notifications for library syncs

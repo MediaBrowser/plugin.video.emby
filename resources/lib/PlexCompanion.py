@@ -36,6 +36,7 @@ class PlexCompanion(threading.Thread):
 
     def run(self):
         start_count = 0
+        window = utils.window
         while True:
             try:
                 httpd = listener.ThreadedHTTPServer(
@@ -67,6 +68,12 @@ class PlexCompanion(threading.Thread):
                 if self.threadStopped():
                     break
                 xbmc.sleep(3000)
+            # If we are not authorized, sleep
+            # Otherwise, we trigger a download which leads to a
+            # re-authorizations
+            if window('emby_serverStatus'):
+                xbmc.sleep(3000)
+                continue
             try:
 
                 httpd.handle_request()

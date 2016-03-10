@@ -357,14 +357,17 @@ def PMSHttpsEnabled(url):
 
     This is done by GET /identity (returns an error if https is enabled and we
     are trying to use http)
+
+    Prefers HTTPS over HTTP
     """
-    xml = downloadutils.DownloadUtils().downloadUrl('http://%s/identity' % url)
+    xml = downloadutils.DownloadUtils().downloadUrl(
+        'https://%s/identity' % url)
     try:
-        # received a valid XML - http connection is possible
+        # received a valid XML - https connection is possible
         xml.attrib
-        logMsg('PMSHttpsEnabled', 'PMS on %s talks HTTP' % url, 1)
-        return False
-    except:
-        # couldn't get an xml - switch to https traffic
         logMsg('PMSHttpsEnabled', 'PMS on %s talks HTTPS' % url, 1)
         return True
+    except:
+        # couldn't get an xml - switch to http traffic
+        logMsg('PMSHttpsEnabled', 'PMS on %s talks HTTPS' % url, 1)
+        return False

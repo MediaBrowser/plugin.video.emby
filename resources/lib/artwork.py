@@ -38,8 +38,8 @@ class Artwork():
         if not self.xbmc_port and self.enableTextureCache:
             self.setKodiWebServerDetails()
 
-        self.userId = utils.window('emby_currUser')
-        self.server = utils.window('emby_server%s' % self.userId)
+        self.userId = utils.window('currUserId')
+        self.server = utils.window('pms_server')
 
     def double_urlencode(self, text):
         text = self.single_urlencode(text)

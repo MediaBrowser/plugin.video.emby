@@ -70,8 +70,8 @@ class SubscriptionManager:
         WINDOW = xbmcgui.Window(10000)
         
         # pbmc_server = str(WINDOW.getProperty('plexbmc.nowplaying.server'))
-        # userId = str(WINDOW.getProperty('emby_currUser'))
-        # pbmc_server = str(WINDOW.getProperty('emby_server%s' % userId))
+        # userId = str(WINDOW.getProperty('currUserId'))
+        # pbmc_server = str(WINDOW.getProperty('pms_server'))
         pbmc_server = None
         keyid = None
         count = 0
