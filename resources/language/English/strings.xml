@@ -396,6 +396,7 @@
     <string id="39307">Enter PIN for user </string>
     <string id="39308">Could not log in user </string>
     <string id="39309">Please try again.</string>
+    <string id="39310">unknown</string>
 
     <!-- Plex Librarysync.py -->
     <string id="39400">Library sync thread has crashed. You should restart Kodi now. Please report this on the forum</string>

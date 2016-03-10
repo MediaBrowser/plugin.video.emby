@@ -1428,6 +1428,8 @@ class API():
         self.part = 0
         self.clientinfo = clientinfo.ClientInfo()
         self.clientId = self.clientinfo.getDeviceId()
+        self.__language__ = xbmcaddon.Addon().getLocalizedString
+
         self.userId = utils.window('emby_currUser')
         self.server = utils.window('emby_server%s' % self.userId)
         self.token = utils.window('emby_accessToken%s' % self.userId)
@@ -2007,21 +2009,19 @@ class API():
                 elif mediaType == 2:  # Audio streams
                     audiotrack = {}
                     audiotrack['codec'] = mediaStream['codec'].lower()
-                    profile = mediaStream['codecID'].lower()
+                    profile = mediaStream.get('codecID', '').lower()
                     if "dca" in audiotrack['codec'] and "dts-hd ma" in profile:
                         audiotrack['codec'] = "dtshd_ma"
                     audiotrack['channels'] = mediaStream.get('channels')
-                    try:
-                        audiotrack['language'] = mediaStream.get('language')
-                    except KeyError:
-                        audiotrack['language'] = 'unknown'
+                    # 'unknown' if we cannot get language
+                    audiotrack['language'] = mediaStream.get(
+                        'language', self.__language__(39310))
                     audiotracks.append(audiotrack)
 
                 elif mediaType == 3:  # Subtitle streams
-                    try:
-                        subtitlelanguages.append(mediaStream['language'])
-                    except:
-                        subtitlelanguages.append("Unknown")
+                    # 'unknown' if we cannot get language
+                    subtitlelanguages.append(
+                        mediaStream.get('language', self.__language__(39310)))
         return {
             'video': videotracks,
             'audio': audiotracks,
