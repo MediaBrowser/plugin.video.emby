@@ -70,7 +70,7 @@ class ThreadedGetMetadata(Thread):
                 # Did not receive a valid XML - skip that item for now
                 self.logMsg("Could not get metadata for %s. "
                             "Skipping that item for now"
-                            % updateItem['itemId'], -1)
+                            % updateItem['itemId'], 0)
                 # Increase BOTH counters - since metadata won't be processed
                 with lock:
                     getMetadataCount += 1
@@ -223,8 +223,8 @@ class LibrarySync(Thread):
         self.user = userclient.UserClient()
         self.emby = embyserver.Read_EmbyServer()
         self.vnodes = videonodes.VideoNodes()
-        self.syncThreadNumber = int(utils.settings('syncThreadNumber'))
 
+        self.syncThreadNumber = int(utils.settings('syncThreadNumber'))
         self.installSyncDone = True if \
             utils.settings('SyncInstallRunDone') == 'true' else False
         self.showDbSync = True if \
@@ -236,18 +236,30 @@ class LibrarySync(Thread):
 
         Thread.__init__(self)
 
-    def showKodiNote(self, message, forced=False):
+    def showKodiNote(self, message, forced=False, icon="plex"):
         """
         Shows a Kodi popup, if user selected to do so. Pass message in unicode
         or string
+
+        icon:   "plex": shows Plex icon
+                "error": shows Kodi error icon
         """
         if not (self.showDbSync or forced):
             return
-        xbmcgui.Dialog().notification(
-            heading=self.addonName,
-            message=message,
-            icon="special://home/addons/plugin.video.plexkodiconnect/icon.png",
-            sound=False)
+        if icon == "plex":
+            xbmcgui.Dialog().notification(
+                heading=self.addonName,
+                message=message,
+                icon="special://home/addons/plugin.video.plexkodiconnect/icon.png",
+                time=5000,
+                sound=False)
+        elif icon == "error":
+            xbmcgui.Dialog().notification(
+                heading=self.addonName,
+                message=message,
+                icon=xbmcgui.NOTIFICATION_ERROR,
+                time=7000,
+                sound=True)
 
     def fastSync(self):
         """
@@ -307,7 +319,8 @@ class LibrarySync(Thread):
                 elif self.updatelist[0]['itemType'] == 'Music':
                     self.updateKodiMusicLib = True
                 self.GetAndProcessXMLs(
-                    PlexFunctions.GetItemClassFromType(plexType))
+                    PlexFunctions.GetItemClassFromType(plexType),
+                    showProgress=False)
                 self.updatelist = []
 
         # Update userdata
@@ -698,7 +711,7 @@ class LibrarySync(Thread):
                                         'viewId': viewId,
                                         'title': title})
 
-    def GetAndProcessXMLs(self, itemType):
+    def GetAndProcessXMLs(self, itemType, showProgress=True):
         """
         Downloads all XMLs for itemType (e.g. Movies, TV-Shows). Processes them
         by then calling itemtypes.<itemType>()
@@ -706,6 +719,7 @@ class LibrarySync(Thread):
         Input:
             itemType:               'Movies', 'TVShows', ...
             self.updatelist
+            showProgress            If False, NEVER shows sync progress
         """
         # Some logging, just in case.
         self.logMsg("self.updatelist: %s" % self.updatelist, 2)
@@ -750,17 +764,18 @@ class LibrarySync(Thread):
         threads.append(thread)
         self.logMsg("Processing thread spawned", 1)
         # Start one thread to show sync progress
-        if self.showDbSync:
-            dialog = xbmcgui.DialogProgressBG()
-            thread = ThreadedShowSyncInfo(
-                dialog,
-                [getMetadataLock, processMetadataLock],
-                itemNumber,
-                itemType)
-            thread.setDaemon(True)
-            thread.start()
-            threads.append(thread)
-            self.logMsg("Kodi Infobox thread spawned", 1)
+        if showProgress:
+            if self.showDbSync:
+                dialog = xbmcgui.DialogProgressBG()
+                thread = ThreadedShowSyncInfo(
+                    dialog,
+                    [getMetadataLock, processMetadataLock],
+                    itemNumber,
+                    itemType)
+                thread.setDaemon(True)
+                thread.start()
+                threads.append(thread)
+                self.logMsg("Kodi Infobox thread spawned", 1)
 
         # Wait until finished
         getMetadataQueue.join()
@@ -1229,6 +1244,8 @@ class LibrarySync(Thread):
                     fullSync(manualrun=True)
                     window('emby_dbScan', clear=True)
                     count = 0
+                    # Full library sync finished
+                    self.showKodiNote(string(39407), forced=True)
                 # Reset views was requested from somewhere else
                 elif window('plex_runLibScan') == "views":
                     log('Refresh playlist and nodes requested, starting', 0)
@@ -1244,22 +1261,14 @@ class LibrarySync(Thread):
                         # Ran successfully
                         log("Refresh playlists/nodes completed", 0)
                         # "Plex playlists/nodes refreshed"
-                        dialog.notification(
-                            heading=self.addonName,
-                            message=string(39405),
-                            icon="special://home/addons/plugin.video.plexkodiconnect/icon.png",
-                            time=3000,
-                            sound=True)
+                        self.showKodiNote(string(39405), forced=True)
                     else:
                         # Failed
                         log("Refresh playlists/nodes failed", -1)
                         # "Plex playlists/nodes refresh failed"
-                        dialog.notification(
-                            heading=self.addonName,
-                            message=string(39406),
-                            icon=xbmcgui.NOTIFICATION_ERROR,
-                            time=3000,
-                            sound=True)
+                        self.showKodiNote(string(39406),
+                                          forced=True,
+                                          icon="error")
                     window('emby_dbScan', clear=True)
                 elif enableBackgroundSync:
                     # Run full lib scan approx every 30min
@@ -1269,6 +1278,8 @@ class LibrarySync(Thread):
                         log('Running background full lib scan', 0)
                         fullSync(manualrun=True)
                         window('emby_dbScan', clear=True)
+                        # Full library sync finished
+                        self.showKodiNote(string(39407), forced=False)
                     # Run fast sync otherwise (ever second or so)
                     else:
                         window('emby_dbScan', value="true")

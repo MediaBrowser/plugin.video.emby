@@ -337,5 +337,6 @@
     <string id="39404">Der Startup Synchronisations-Prozess der Plex Bibliotheken ist mehrmals fehlgeschlagen. Bitte Kodi neu starten. Synch wird jetzt gestoppt.</string>
     <string id="39405">Plex Playlisten/Nodes aktualisiert</string>
     <string id="39406">Plex Playlisten/Nodes Aktualisierung fehlgeschlagen</string>
+    <string id="39407">Plex Bibliotheken aktualisiert</string>
 
 </strings>

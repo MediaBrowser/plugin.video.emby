@@ -405,5 +405,6 @@
     <string id="39404">Startup syncing process failed repeatedly. Try restarting Kodi. Stopping Sync for now.</string>
     <string id="39405">Plex playlists/nodes refreshed</string>
     <string id="39406">Plex playlists/nodes refresh failed</string>
+    <string id="39407">Full library sync finished</string>
 
 </strings>
