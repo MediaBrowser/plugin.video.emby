@@ -340,6 +340,10 @@ class LibrarySync(Thread):
 
         # Reset and return
         self.allPlexElementsId = {}
+        # Show warning if itemtypes.py crashed at some point
+        if utils.window('plex_scancrashed') == 'true':
+            xbmcgui.Dialog().ok(self.addonName, self.__language__(39408))
+            utils.window('plex_scancrashed', clear=True)
         return True
 
     def saveLastSync(self):
@@ -413,6 +417,10 @@ class LibrarySync(Thread):
         utils.window('emby_initialScan', clear=True)
         xbmc.executebuiltin('InhibitIdleShutdown(false)')
         utils.setScreensaver(value=screensaver)
+        # Show warning if itemtypes.py crashed at some point
+        if utils.window('plex_scancrashed') == 'true':
+            xbmcgui.Dialog().ok(self.addonName, self.__language__(39408))
+            utils.window('plex_scancrashed', clear=True)
         return True
 
     def processView(self, folderItem, kodi_db, emby_db, totalnodes):

@@ -406,5 +406,6 @@
     <string id="39405">Plex playlists/nodes refreshed</string>
     <string id="39406">Plex playlists/nodes refresh failed</string>
     <string id="39407">Full library sync finished</string>
+    <string id="39408">Sync had to skip some items because they could not be processed. Please post your Kodi logs to the Plex forum.</string>
 
 </strings>
