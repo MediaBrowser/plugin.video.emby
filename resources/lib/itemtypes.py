@@ -231,10 +231,12 @@ class Items(object):
                 time=time,
                 sound=False)
 
-    def updateUserdata(self, xml):
+    def updateUserdata(self, xml, viewtag=None, viewid=None):
         """
         Updates the Kodi watched state of the item from PMS. Also retrieves
         Plex resume points for movies in progress.
+
+        viewtag and viewid only serve as dummies
         """
         for mediaitem in xml:
             API = PlexAPI.API(mediaitem)

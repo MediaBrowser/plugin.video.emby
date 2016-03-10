@@ -4,6 +4,10 @@
 
 from threading import Thread, Lock
 import Queue
+try:
+    import xml.etree.cElementTree as etree
+except ImportError:
+    import xml.etree.ElementTree as etree
 
 import xbmc
 import xbmcgui
@@ -261,6 +265,112 @@ class LibrarySync(Thread):
                 time=7000,
                 sound=True)
 
+    def resetProcessedItems(self):
+        """
+        Resets the list of PMS items that we have already processed
+        """
+        self.processed = {
+            'movie': {},
+            'show': {},
+            'season': {},
+            'episode': {},
+            'artist': {},
+            'album': {},
+            'track': {}
+        }
+
+    def getFastUpdateList(self, xml, plexType, viewName, viewId, update=True):
+        """
+        THIS METHOD NEEDS TO BE FAST! => e.g. no API calls
+
+        Adds items to self.updatelist as well as self.allPlexElementsId dict
+
+        Input:
+            xml:                    PMS answer for section items
+            plexType:               'movie', 'show', 'episode', ...
+            viewName:               Name of the Plex view (e.g. 'My TV shows')
+            viewId:                 Id/Key of Plex library (e.g. '1')
+
+        Output: self.updatelist, self.allPlexElementsId
+            self.updatelist         APPENDED(!!) list itemids (Plex Keys as
+                                    as received from API.getRatingKey())
+            One item in this list is of the form:
+                'itemId': xxx,
+                'itemType': 'Movies','TVShows', ...
+                'method': 'add_update', 'add_updateSeason', ...
+                'viewName': xxx,
+                'viewId': xxx,
+                'title': xxx
+
+            self.allPlexElementsId      APPENDED(!!) dict
+                = {itemid: checksum}
+        """
+        # Updated items are prefered over userdata updates!
+        if update:
+            # Needs to call other methods than if we're only updating userdata
+            for item in xml:
+                itemId = item.attrib.get('ratingKey')
+                # Skipping items 'title=All episodes' without a 'ratingKey'
+                if not itemId:
+                    continue
+
+                lastViewedAt = item.attrib.get('lastViewedAt')
+                updatedAt = item.attrib.get('updatedAt')
+
+                # returns the tuple (lastViewedAt, updatedAt) for the
+                # specific item
+                res = self.processed[plexType].get(itemId)
+                if res:
+                    if res == (lastViewedAt, updatedAt):
+                        # Nothing to update, we have already processed this
+                        # item
+                        continue
+                title = item.attrib.get('title', 'Missing Title Name')
+                # We need to process this:
+                self.updatelist.append({
+                    'itemId': itemId,
+                    'itemType': PlexFunctions.GetItemClassFromType(
+                        plexType),
+                    'method': PlexFunctions.GetMethodFromPlexType(plexType),
+                    'viewName': viewName,
+                    'viewId': viewId,
+                    'title': title
+                })
+                # And safe to self.processed:
+                self.processed[plexType][itemId] = (lastViewedAt, updatedAt)
+        else:
+            # Needs to call other methods than if we're only updating userdata
+            for item in xml:
+                itemId = item.attrib.get('ratingKey')
+                # Skipping items 'title=All episodes' without a 'ratingKey'
+                if not itemId:
+                    continue
+
+                lastViewedAt = item.attrib.get('lastViewedAt')
+                updatedAt = item.attrib.get('updatedAt')
+
+                # returns the tuple (lastViewedAt, updatedAt) for the
+                # specific item
+                res = self.processed[plexType].get(itemId)
+                if res:
+                    if res == (lastViewedAt, updatedAt):
+                        # Nothing to update, we have already processed this
+                        # item
+                        continue
+                title = item.attrib.get('title', 'Missing Title Name')
+                # We need to process this:
+                self.updatelist.append({
+                    'itemId': itemId,
+                    'itemType': PlexFunctions.GetItemClassFromType(
+                        plexType),
+                    'method': 'updateUserdata',
+                    'viewName': viewName,
+                    'viewId': viewId,
+                    'title': title
+                })
+                # And safe to self.processed:
+                self.processed[plexType][itemId] = (lastViewedAt, updatedAt)
+
     def fastSync(self):
         """
         Fast incremential lib sync
@@ -271,24 +381,25 @@ class LibrarySync(Thread):
         This will NOT remove items from Kodi db that were removed from the PMS
         (happens only during fullsync)
 
-        Currently, ALL items returned by the PMS (because they've just been
-        edited by the PMS or have been watched) will be processed. This will
-        probably happen several times.
+        Items that are processed are appended to the dict self.processed:
+        {
+            '<Plex itemtype>':              e.g. 'movie'
+                {
+                    '<ratingKey>': (        unique plex id 'ratingKey' as str
+                        lastViewedAt,
+                        updatedAt
+                    )
+                }
+        }
         """
         self.compare = True
         # Get last sync time
         lastSync = self.lastSync - self.syncPast
-        if not lastSync:
-            # Original Emby format:
-            # lastSync = "2016-01-01T00:00:00Z"
-            # January 1, 2015 at midnight:
-            lastSync = 1420070400
         # Set new timestamp NOW because sync might take a while
         self.saveLastSync()
 
         # Original idea: Get all PMS items already saved in Kodi
         # Also get checksums of every Plex items already saved in Kodi
-        # NEW idea: process every item returned by the PMS
         self.allKodiElementsId = {}
 
         # Run through views and get latest changed elements using time diff
@@ -296,39 +407,86 @@ class LibrarySync(Thread):
         self.updateKodiMusicLib = False
         for view in self.views:
             self.updatelist = []
-            if self.threadStopped():
-                return True
             # Get items per view
             items = PlexFunctions.GetAllPlexLeaves(view['id'],
                                                    updatedAt=lastSync)
-            # Just skip item if something went wrong
+            # Just skip if something went wrong
             if not items:
                 continue
             # Get one itemtype, because they're the same in the PMS section
-            plexType = items[0].attrib['type']
+            try:
+                plexType = items[0].attrib['type']
+            except:
+                # There was no child - PMS response is empty
+                continue
             # Populate self.updatelist
-            self.GetUpdatelist(items,
-                               PlexFunctions.GetItemClassFromType(plexType),
-                               PlexFunctions.GetMethodFromPlexType(plexType),
-                               view['name'],
-                               view['id'])
+            self.getFastUpdateList(
+                items, plexType, view['name'], view['id'])
             # Process self.updatelist
             if self.updatelist:
                 if self.updatelist[0]['itemType'] in ['Movies', 'TVShows']:
                     self.updateKodiVideoLib = True
                 elif self.updatelist[0]['itemType'] == 'Music':
                     self.updateKodiMusicLib = True
+                # Do the work
                 self.GetAndProcessXMLs(
                     PlexFunctions.GetItemClassFromType(plexType),
                     showProgress=False)
-                self.updatelist = []
 
-        # Update userdata
+        self.updatelist = []
+
+        # Update userdata DIRECTLY
+        # We don't need to refresh the Kodi library for deltas!!
+        # Start with an empty ElementTree and attach items to update
+        movieupdate = False
+        movieXML = etree.Element('root')
+        episodeupdate = False
+        episodeXML = etree.Element('root')
+        songupdate = False
+        musicXML = etree.Element('root')
         for view in self.views:
-            self.PlexUpdateWatched(
-                view['id'],
-                PlexFunctions.GetItemClassFromType(view['itemtype']),
-                lastViewedAt=lastSync)
+            items = PlexFunctions.GetAllPlexLeaves(view['id'],
+                                                   lastViewedAt=lastSync)
+            for item in items:
+                itemId = item.attrib.get('ratingKey')
+                # Skipping items 'title=All episodes' without a 'ratingKey'
+                if not itemId:
+                    continue
+                plexType = item.attrib['type']
+                lastViewedAt = item.attrib.get('lastViewedAt')
+                updatedAt = item.attrib.get('updatedAt')
+
+                # returns the tuple (lastViewedAt, updatedAt) for the
+                # specific item
+                res = self.processed[plexType].get(itemId)
+                if res:
+                    if res == (lastViewedAt, updatedAt):
+                        # Nothing to update, we have already processed this
+                        # item
+                        continue
+                if plexType == 'movie':
+                    movieXML.append(item)
+                    movieupdate = True
+                elif plexType == 'episode':
+                    episodeXML.append(item)
+                    episodeupdate = True
+                elif plexType == 'track':
+                    musicXML.append(item)
+                    songupdate = True
+                else:
+                    self.logMsg('Unknown plex type %s' % plexType, -1)
+                # And safe to self.processed:
+                self.processed[plexType][itemId] = (lastViewedAt, updatedAt)
+
+        if movieupdate:
+            with itemtypes.Movies() as movies:
+                movies.updateUserdata(movieXML)
+        if episodeupdate:
+            with itemtypes.TVShows() as tvshows:
+                tvshows.updateUserdata(episodeXML)
+        if songupdate:
+            with itemtypes.Music() as music:
+                music.updateUserdata(musicXML)
 
         # Let Kodi update the library now (artwork and userdata)
         if self.updateKodiVideoLib:
@@ -338,8 +496,6 @@ class LibrarySync(Thread):
             self.logMsg("Doing Kodi Music Lib update", 1)
             xbmc.executebuiltin('UpdateLibrary(music)')
 
-        # Reset and return
-        self.allPlexElementsId = {}
         # Show warning if itemtypes.py crashed at some point
         if utils.window('plex_scancrashed') == 'true':
             xbmcgui.Dialog().ok(self.addonName, self.__language__(39408))
@@ -1168,6 +1324,9 @@ class LibrarySync(Thread):
         count = 0
         errorcount = 0
 
+        # Initialize self.processed
+        self.resetProcessedItems()
+
         log("---===### Starting LibrarySync ###===---", 0)
         while not threadStopped():
 
@@ -1281,6 +1440,8 @@ class LibrarySync(Thread):
                 elif enableBackgroundSync:
                     # Run full lib scan approx every 30min
                     if count >= 1800:
+                        # Also reset self.processed, just in case
+                        self.resetProcessedItems()
                         count = 0
                         window('emby_dbScan', value="true")
                         log('Running background full lib scan', 0)
