@@ -315,7 +315,6 @@ class Movies(Items):
         # If the item doesn't exist, we'll add it to the database
         update_item = True
         itemid = API.getRatingKey()
-        self.logMsg("Processing item %s" % itemid, 1)
         # Cannot parse XML, abort
         if not itemid:
             self.logMsg("Cannot parse XML data for movie", -1)
@@ -380,7 +379,6 @@ class Movies(Items):
             studio = studios[0]
         except IndexError:
             studio = None
-        self.logMsg('Read all attributes', 1)
 
         # Find one trailer
         trailer = None
@@ -429,7 +427,6 @@ class Movies(Items):
                 'mode': "play"
             }
             filename = "%s?%s" % (path, urllib.urlencode(params))
-        self.logMsg('Path set for item', 1)
         ##### UPDATE THE MOVIE #####
         if update_item:
             self.logMsg("UPDATE movie itemid: %s - Title: %s" % (itemid, title), 1)
@@ -476,7 +473,6 @@ class Movies(Items):
             # Create the reference in emby table
             emby_db.addReference(itemid, movieid, "Movie", "movie", fileid, pathid, None, checksum, viewid)
 
-        self.logMsg('Done add or update for item', 1)
         # Update the path
         query = ' '.join((
 
@@ -953,7 +949,6 @@ class TVShows(Items):
 
         update_item = True
         itemid = API.getRatingKey()
-        self.logMsg("Processing item %s" % itemid, 1)
 
         if not itemid:
             self.logMsg("Cannot parse XML data for TV show", -1)
@@ -1008,8 +1003,6 @@ class TVShows(Items):
         except IndexError:
             studio = None
 
-        self.logMsg('Read all attributes', 1)
-
         # GET THE FILE AND PATH #####
         playurl = API.getKey()
 
@@ -1043,7 +1036,6 @@ class TVShows(Items):
             # Set plugin path
             toplevelpath = "plugin://plugin.video.plexkodiconnect.tvshows/"
             path = "%s%s/" % (toplevelpath, itemid)
-        self.logMsg('Path set for item', 1)
         # UPDATE THE TVSHOW #####
         if update_item:
             self.logMsg("UPDATE tvshow itemid: %s - Title: %s" % (itemid, title), 1)
@@ -1098,7 +1090,6 @@ class TVShows(Items):
             # Create the reference in emby table
             emby_db.addReference(itemid, showid, "Series", "tvshow", pathid=pathid,
                                 checksum=checksum, mediafolderid=viewid)
-        self.logMsg('Done add or update for item', 1)
         # Update the path
         query = ' '.join((
 
@@ -1155,7 +1146,6 @@ class TVShows(Items):
         if not itemid:
             self.logMsg('Error getting itemid for season, skipping', -1)
             return
-        self.logMsg("Processing item %s" % itemid, 1)
         kodicursor = self.kodicursor
         emby_db = self.emby_db
         kodi_db = self.kodi_db
@@ -1221,7 +1211,6 @@ class TVShows(Items):
         if not itemid:
             self.logMsg('Error getting itemid for episode, skipping', -1)
             return
-        self.logMsg("Processing item %s" % itemid, 1)
         emby_dbitem = emby_db.getItem_byId(itemid)
         try:
             episodeid = emby_dbitem[0]
@@ -1700,7 +1689,6 @@ class Music(Items):
 
         update_item = True
         itemid = API.getRatingKey()
-        self.logMsg("Processing item %s" % itemid, 1)
         emby_dbitem = emby_db.getItem_byId(itemid)
         try:
             artistid = emby_dbitem[0]
@@ -1807,7 +1795,6 @@ class Music(Items):
         if not itemid:
             self.logMsg('Error processing Album, skipping', -1)
             return
-        self.logMsg("Processing item %s" % itemid, 1)
         emby_dbitem = emby_db.getItem_byId(itemid)
         try:
             albumid = emby_dbitem[0]
@@ -2014,7 +2001,6 @@ class Music(Items):
         if not itemid:
             self.logMsg('Error processing Song; skipping', -1)
             return
-        self.logMsg("Processing item %s" % itemid, 1)
         emby_dbitem = emby_db.getItem_byId(itemid)
         try:
             songid = emby_dbitem[0]
