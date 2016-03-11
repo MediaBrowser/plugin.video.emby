@@ -1,3 +1,8 @@
+version 1.0.8
+- Redesigned fast incremential sync
+- Workaround to sync Kodi time with PMS time
+- Fix library sync key error
+
 version 1.0.7
 - Fix userclient
 - Fix KeyError in library sync

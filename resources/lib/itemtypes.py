@@ -231,10 +231,12 @@ class Items(object):
                 time=time,
                 sound=False)
 
-    def updateUserdata(self, xml):
+    def updateUserdata(self, xml, viewtag=None, viewid=None):
         """
         Updates the Kodi watched state of the item from PMS. Also retrieves
         Plex resume points for movies in progress.
+
+        viewtag and viewid only serve as dummies
         """
         for mediaitem in xml:
             API = PlexAPI.API(mediaitem)
@@ -1256,12 +1258,13 @@ class TVShows(Items):
         seriesId, seriesName, season, episode = API.getEpisodeDetails()
 
         if season is None:
-            if item.get('AbsoluteEpisodeNumber'):
-                # Anime scenario
-                season = 1
-                episode = item['AbsoluteEpisodeNumber']
-            else:
-                season = -1
+            season = -1
+            # if item.get('AbsoluteEpisodeNumber'):
+            #     # Anime scenario
+            #     season = 1
+            #     episode = item['AbsoluteEpisodeNumber']
+            # else:
+            #     season = -1
 
         # Specials ordering within season
         if item.get('AirsAfterSeasonNumber'):

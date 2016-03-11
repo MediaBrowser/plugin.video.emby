@@ -17,7 +17,7 @@ class GetKodiDB():
                do stuff with kodi_db
 
     Parameters:
-        itemType:       itemtype for Kodi DB, e.g. 'video'
+        itemType:       itemtype for Kodi DB, e.g. 'video', 'music'
 
     On exiting "with" (no matter what), commits get automatically committed
     and the db gets closed
@@ -700,6 +700,68 @@ class Kodidb_Functions():
                     '''
                 )
                 cursor.execute(query, (fileid, 2, subtitletrack))
+
+    def getResumes(self):
+        """
+        VIDEOS
+
+        Returns all Kodi idFile that have a resume point set (not unwatched
+        ones or items that have already been completely watched)
+        """
+        cursor = self.cursor
+
+        query = ' '.join((
+            "SELECT idFile",
+            "FROM bookmark"
+        ))
+        try:
+            rows = cursor.execute(query)
+        except:
+            return []
+        ids = []
+        for row in rows:
+            ids.append(row[0])
+        return ids
+
+    def getUnplayedMusicItems(self):
+        """
+        MUSIC
+
+        Returns all Kodi Item idFile that have not yet been completely played
+        """
+        query = ' '.join((
+            "SELECT idPath",
+            "FROM song",
+            "WHERE iTimesPlayed IS NULL OR iTimesPlayed = ''"
+        ))
+        try:
+            rows = self.cursor.execute(query)
+        except:
+            return []
+        ids = []
+        for row in rows:
+            ids.append(row[0])
+        return ids
+
+    def getUnplayedItems(self):
+        """
+        VIDEOS
+
+        Returns all Kodi Item idFile that have not yet been completely played
+        """
+        query = ' '.join((
+            "SELECT idFile",
+            "FROM files",
+            "WHERE playCount IS NULL OR playCount = ''"
+        ))
+        try:
+            rows = self.cursor.execute(query)
+        except:
+            return []
+        ids = []
+        for row in rows:
+            ids.append(row[0])
+        return ids
 
     def addPlaystate(self, fileid, resume_seconds, total_seconds, playcount, dateplayed):
         

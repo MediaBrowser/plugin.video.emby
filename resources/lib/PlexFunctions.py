@@ -3,6 +3,7 @@ from urllib import urlencode
 from ast import literal_eval
 from urlparse import urlparse, parse_qs
 import re
+import time
 
 from xbmcaddon import Addon
 
@@ -371,3 +372,22 @@ def PMSHttpsEnabled(url):
         # couldn't get an xml - switch to http traffic
         logMsg('PMSHttpsEnabled', 'PMS on %s talks HTTPS' % url, 1)
         return False
+
+
+def scrobble(ratingKey, state):
+    """
+    Tells the PMS to set an item's watched state to state="watched" or
+    state="unwatched"
+    """
+    args = {
+        'key': ratingKey,
+        'identifier': 'com.plexapp.plugins.library'
+    }
+    if state == "watched":
+        url = "{server}/:/scrobble?" + urlencode(args)
+    elif state == "unwatched":
+        url = "{server}/:/unscrobble?" + urlencode(args)
+    else:
+        return
+    downloadutils.DownloadUtils().downloadUrl(url, type="GET")
+    logMsg("Toggled watched state for Plex item %s" % ratingKey, 1)

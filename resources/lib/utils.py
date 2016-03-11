@@ -19,10 +19,86 @@ import xbmcaddon
 import xbmcgui
 import xbmcvfs
 
-
 ###############################################################################
 
 addonName = xbmcaddon.Addon().getAddonInfo('name')
+
+
+def DateToKodi(stamp):
+        """
+        converts a Unix time stamp (seconds passed sinceJanuary 1 1970) to a
+        propper, human-readable time stamp used by Kodi
+
+        Output: Y-m-d h:m:s = 2009-04-05 23:16:04
+        """
+        # DATEFORMAT = xbmc.getRegion('dateshort')
+        # TIMEFORMAT = xbmc.getRegion('meridiem')
+        # date_time = time.localtime(stamp)
+        # if DATEFORMAT[1] == 'd':
+        #     localdate = time.strftime('%d-%m-%Y', date_time)
+        # elif DATEFORMAT[1] == 'm':
+        #     localdate = time.strftime('%m-%d-%Y', date_time)
+        # else:
+        #     localdate = time.strftime('%Y-%m-%d', date_time)
+        # if TIMEFORMAT != '/':
+        #     localtime = time.strftime('%I:%M%p', date_time)
+        # else:
+        #     localtime = time.strftime('%H:%M', date_time)
+        # return localtime + '  ' + localdate
+        try:
+            # DATEFORMAT = xbmc.getRegion('dateshort')
+            # TIMEFORMAT = xbmc.getRegion('meridiem')
+            date_time = time.localtime(float(stamp))
+            localdate = time.strftime('%Y-%m-%d %H:%M:%S', date_time)
+        except:
+            localdate = None
+        return localdate
+
+
+def changePlayState(itemType, kodiId, playCount, lastplayed):
+    """
+    YET UNUSED
+
+    kodiId: int or str
+    playCount: int or str
+    lastplayed: str or int unix timestamp
+    """
+    logMsg("changePlayState", "start", 1)
+    lastplayed = DateToKodi(lastplayed)
+
+    kodiId = int(kodiId)
+    playCount = int(playCount)
+    method = {
+        'movie': ' VideoLibrary.SetMovieDetails',
+        'episode': 'VideoLibrary.SetEpisodeDetails',
+        'musicvideo': ' VideoLibrary.SetMusicVideoDetails',  # TODO
+        'show': 'VideoLibrary.SetTVShowDetails',  # TODO
+        '': 'AudioLibrary.SetAlbumDetails',  # TODO
+        '': 'AudioLibrary.SetArtistDetails',  # TODO
+        'track': 'AudioLibrary.SetSongDetails'
+    }
+    params = {
+        'movie': {
+            'movieid': kodiId,
+            'playcount': playCount,
+            'lastplayed': lastplayed
+        },
+        'episode': {
+            'episodeid': kodiId,
+            'playcount': playCount,
+            'lastplayed': lastplayed
+        }
+    }
+    query = {
+        "jsonrpc": "2.0",
+        "id": 1,
+    }
+    query['method'] = method[itemType]
+    query['params'] = params[itemType]
+    result = xbmc.executeJSONRPC(json.dumps(query))
+    result = json.loads(result)
+    result = result.get('result')
+    logMsg("changePlayState", "JSON result was: %s" % result, 1)
 
 
 def IfExists(path):
