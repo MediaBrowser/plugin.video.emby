@@ -1476,36 +1476,6 @@ class API():
         """
         return self.part
 
-    def DateToKodi(self, stamp):
-        """
-        converts a Unix time stamp (seconds passed sinceJanuary 1 1970) to a
-        propper, human-readable time stamp used by Kodi
-
-        Output: Y-m-d h:m:s = 2009-04-05 23:16:04
-        """
-        # DATEFORMAT = xbmc.getRegion('dateshort')
-        # TIMEFORMAT = xbmc.getRegion('meridiem')
-        # date_time = time.localtime(stamp)
-        # if DATEFORMAT[1] == 'd':
-        #     localdate = time.strftime('%d-%m-%Y', date_time)
-        # elif DATEFORMAT[1] == 'm':
-        #     localdate = time.strftime('%m-%d-%Y', date_time)
-        # else:
-        #     localdate = time.strftime('%Y-%m-%d', date_time)
-        # if TIMEFORMAT != '/':
-        #     localtime = time.strftime('%I:%M%p', date_time)
-        # else:
-        #     localtime = time.strftime('%H:%M', date_time)
-        # return localtime + '  ' + localdate
-        try:
-            # DATEFORMAT = xbmc.getRegion('dateshort')
-            # TIMEFORMAT = xbmc.getRegion('meridiem')
-            date_time = time.localtime(float(stamp))
-            localdate = time.strftime('%Y-%m-%d %H:%M:%S', date_time)
-        except:
-            localdate = None
-        return localdate
-
     def getType(self):
         """
         Returns the type of media, e.g. 'movie' or 'clip' for trailers
@@ -1543,7 +1513,7 @@ class API():
         """
         Returns the date when this library item was created
         """
-        return self.DateToKodi(self.item.attrib.get('addedAt', None))
+        return utils.DateToKodi(self.item.attrib.get('addedAt', None))
 
     def getUserData(self):
         """
@@ -1576,7 +1546,7 @@ class API():
             played = True
 
         try:
-            lastPlayedDate = self.DateToKodi(int(item['lastViewedAt']))
+            lastPlayedDate = utils.DateToKodi(int(item['lastViewedAt']))
         except:
             lastPlayedDate = None
 

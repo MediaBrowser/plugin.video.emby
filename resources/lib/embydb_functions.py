@@ -152,6 +152,22 @@ class Embydb_Functions():
         ))
         self.embycursor.execute(query, (viewid,))
 
+    def getItem_byFileId(self, fileId):
+        """
+        Returns the Plex itemId by using the Kodi fileId
+        """
+        query = ' '.join((
+            "SELECT emby_id",
+            "FROM emby",
+            "WHERE kodi_fileid = ?"
+        ))
+        try:
+            self.embycursor.execute(query, (fileId,))
+            item = self.embycursor.fetchone()[0]
+            return item
+        except:
+            return None
+
     def getItem_byId(self, embyid):
 
         embycursor = self.embycursor
@@ -182,6 +198,23 @@ class Embydb_Functions():
         items = embycursor.fetchall()
 
         return items
+
+    def getPlexId(self, kodiid):
+        """
+        Returns the Plex ID usind the Kodiid. Result:
+            (Plex Id, Parent's Plex Id)
+        """
+        query = ' '.join((
+            "SELECT emby_id, parent_id",
+            "FROM emby",
+            "WHERE kodi_id = ?"
+        ))
+        try:
+            self.embycursor.execute(query, (kodiid))
+            item = self.embycursor.fetchone()
+            return item
+        except:
+            return None
 
     def getItem_byKodiId(self, kodiid, mediatype):
 
