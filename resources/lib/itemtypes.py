@@ -1258,12 +1258,13 @@ class TVShows(Items):
         seriesId, seriesName, season, episode = API.getEpisodeDetails()
 
         if season is None:
-            if item.get('AbsoluteEpisodeNumber'):
-                # Anime scenario
-                season = 1
-                episode = item['AbsoluteEpisodeNumber']
-            else:
-                season = -1
+            season = -1
+            # if item.get('AbsoluteEpisodeNumber'):
+            #     # Anime scenario
+            #     season = 1
+            #     episode = item['AbsoluteEpisodeNumber']
+            # else:
+            #     season = -1
 
         # Specials ordering within season
         if item.get('AirsAfterSeasonNumber'):

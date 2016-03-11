@@ -1821,10 +1821,10 @@ class API():
             ]
         """
         item = self.item.attrib
-        key = item['grandparentRatingKey']
-        title = item['grandparentTitle']
-        season = item['parentIndex']
-        episode = item['index']
+        key = item.get('grandparentRatingKey')
+        title = item.get('grandparentTitle')
+        season = item.get('parentIndex')
+        episode = item.get('index')
         return key, title, season, episode
 
     def addPlexHeadersToUrl(self, url, arguments={}):
