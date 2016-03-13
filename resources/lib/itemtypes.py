@@ -1141,9 +1141,8 @@ class TVShows(Items):
             # skip this item for now
             return
 
-    def run_add_updateSeason(self, item, viewid=None, viewtag=None):
+    def run_add_updateSeason(self, item, viewtag=None, viewid=None):
         API = PlexAPI.API(item)
-        showid = viewid
         itemid = API.getRatingKey()
         if not itemid:
             self.logMsg('Error getting itemid for season, skipping', -1)
@@ -1153,6 +1152,18 @@ class TVShows(Items):
         kodi_db = self.kodi_db
         artwork = self.artwork
         seasonnum = API.getIndex()
+        # Get parent tv show Plex id
+        plexshowid = item.attrib.get('parentRatingKey')
+        # Get Kodi showid
+        emby_dbitem = emby_db.getItem_byId(plexshowid)
+        try:
+            showid = emby_dbitem[0]
+        except:
+            self.logMsg('Could not find parent tv show for season %s. '
+                        'Skipping season for now.'
+                        % (itemid), -1)
+            return
+
         seasonid = kodi_db.addSeason(showid, seasonnum)
         checksum = API.getChecksum()
         # Check whether Season already exists
@@ -1165,6 +1176,7 @@ class TVShows(Items):
 
         # Process artwork
         allartworks = API.getAllArtwork()
+        self.logMsg('TV id: %s, Seasonid: %s' % (viewid, seasonid), 1)
         artwork.addArtwork(allartworks, seasonid, "season", kodicursor)
 
         if update_item:
@@ -1172,7 +1184,7 @@ class TVShows(Items):
             emby_db.updateReference(itemid, checksum)
         else:
             # Create the reference in emby table
-            emby_db.addReference(itemid, seasonid, "Season", "season", parentid=showid, checksum=checksum)
+            emby_db.addReference(itemid, seasonid, "Season", "season", parentid=viewid, checksum=checksum)
 
     def add_updateEpisode(self, item, viewtag=None, viewid=None):
         try:
