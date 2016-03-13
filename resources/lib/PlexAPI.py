@@ -1513,7 +1513,7 @@ class API():
         """
         Returns the date when this library item was created
         """
-        return utils.DateToKodi(self.item.attrib.get('addedAt', None))
+        return utils.DateToKodi(self.item.attrib.get('addedAt'))
 
     def getUserData(self):
         """
