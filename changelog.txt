@@ -1,3 +1,11 @@
+version 1.0.9
+- Fix Recently Added
+- Update node names to reflect plex
+- Fix tv show season posters not showing
+- Fix TV shows episode artwork not caching
+- Increase download timeout to 30s
+- Increase image caching timeouts to 5s
+
 version 1.0.8
 - Redesigned fast incremential sync
 - Workaround to sync Kodi time with PMS time

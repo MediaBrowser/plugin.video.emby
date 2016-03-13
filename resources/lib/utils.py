@@ -7,7 +7,8 @@ import inspect
 import json
 import pstats
 import sqlite3
-from datetime import datetime, time, timedelta
+from datetime import datetime, timedelta
+import time
 import unicodedata
 import xml.etree.ElementTree as etree
 from functools import wraps
@@ -545,7 +546,7 @@ def startProfiling():
     return pr
 
 def stopProfiling(pr, profileName):
-    
+    from datetime import time
     pr.disable()
     ps = pstats.Stats(pr)
     

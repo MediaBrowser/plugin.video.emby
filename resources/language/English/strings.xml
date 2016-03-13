@@ -145,14 +145,14 @@
     
     <!-- Video nodes -->
     <string id="30170">Recently Added TV Shows</string><!-- Verified -->
-    <string id="30171">In Progress TV Shows</string><!-- Verified -->
+    <string id="30171">On Deck TV Shows</string><!-- Verified -->
     <string id="30172">All Music</string>              
     <string id="30173">Channels</string><!-- Verified -->
     <string id="30174">Recently Added Movies</string><!-- Verified -->
     <string id="30175">Recently Added Episodes</string><!-- Verified -->
     <string id="30176">Recently Added Albums</string>  
-    <string id="30177">In Progress Movies</string><!-- Verified -->
-    <string id="30178">In Progress Episodes</string><!-- Verified -->
+    <string id="30177">On Deck Movies</string><!-- Verified -->
+    <string id="30178">On Deck Episodes</string><!-- Verified -->
     <string id="30179">Next Episodes</string><!-- Verified -->
     <string id="30180">Favorite Movies</string><!-- Verified -->      
     <string id="30181">Favorite Shows</string><!-- Verified -->

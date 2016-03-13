@@ -1218,6 +1218,10 @@ class LibrarySync(Thread):
         # COPY for later use
         allPlexTvShowsId = self.allPlexElementsId.copy()
 
+        # Process self.updatelist
+        self.GetAndProcessXMLs(itemType)
+        self.logMsg("GetAndProcessXMLs completed for tv shows", 1)
+
         # PROCESS TV Seasons #####
         # Cycle through tv shows
         for tvShowId in allPlexTvShowsId:
@@ -1237,6 +1241,10 @@ class LibrarySync(Thread):
                                tvShowId)  # send showId instead of viewid
             self.logMsg("Analyzed all seasons of TV show with Plex Id %s"
                         % tvShowId, 1)
+
+        # Process self.updatelist
+        self.GetAndProcessXMLs(itemType)
+        self.logMsg("GetAndProcessXMLs completed for seasons", 1)
 
         # PROCESS TV Episodes #####
         # Cycle through tv shows
@@ -1261,7 +1269,7 @@ class LibrarySync(Thread):
 
         # Process self.updatelist
         self.GetAndProcessXMLs(itemType)
-        self.logMsg("GetAndProcessXMLs completed", 1)
+        self.logMsg("GetAndProcessXMLs completed for episodes", 1)
         # Refresh season info
         # Cycle through tv shows
         with itemtypes.TVShows() as TVshow:

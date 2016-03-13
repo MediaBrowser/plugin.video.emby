@@ -1141,9 +1141,8 @@ class TVShows(Items):
             # skip this item for now
             return
 
-    def run_add_updateSeason(self, item, viewid=None, viewtag=None):
+    def run_add_updateSeason(self, item, viewtag=None, viewid=None):
         API = PlexAPI.API(item)
-        showid = viewid
         itemid = API.getRatingKey()
         if not itemid:
             self.logMsg('Error getting itemid for season, skipping', -1)
@@ -1153,6 +1152,18 @@ class TVShows(Items):
         kodi_db = self.kodi_db
         artwork = self.artwork
         seasonnum = API.getIndex()
+        # Get parent tv show Plex id
+        plexshowid = item.attrib.get('parentRatingKey')
+        # Get Kodi showid
+        emby_dbitem = emby_db.getItem_byId(plexshowid)
+        try:
+            showid = emby_dbitem[0]
+        except:
+            self.logMsg('Could not find parent tv show for season %s. '
+                        'Skipping season for now.'
+                        % (itemid), -1)
+            return
+
         seasonid = kodi_db.addSeason(showid, seasonnum)
         checksum = API.getChecksum()
         # Check whether Season already exists
@@ -1172,7 +1183,7 @@ class TVShows(Items):
             emby_db.updateReference(itemid, checksum)
         else:
             # Create the reference in emby table
-            emby_db.addReference(itemid, seasonid, "Season", "season", parentid=showid, checksum=checksum)
+            emby_db.addReference(itemid, seasonid, "Season", "season", parentid=viewid, checksum=checksum)
 
     def add_updateEpisode(self, item, viewtag=None, viewid=None):
         try:
@@ -1434,8 +1445,8 @@ class TVShows(Items):
         people = API.getPeopleList()
         kodi_db.addPeople(episodeid, people, "episode")
         # Process artwork
-        artworks = API.getAllArtwork()
-        artwork.addOrUpdateArt(artworks['Primary'], episodeid, "episode", "thumb", kodicursor)
+        allartworks = API.getAllArtwork()
+        artwork.addArtwork(allartworks, episodeid, "episode", kodicursor)
         # Process stream details
         streams = API.getMediaStreams()
         kodi_db.addStreams(fileid, streams, runtime)
