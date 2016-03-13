@@ -1176,7 +1176,6 @@ class TVShows(Items):
 
         # Process artwork
         allartworks = API.getAllArtwork()
-        self.logMsg('TV id: %s, Seasonid: %s' % (viewid, seasonid), 1)
         artwork.addArtwork(allartworks, seasonid, "season", kodicursor)
 
         if update_item:
