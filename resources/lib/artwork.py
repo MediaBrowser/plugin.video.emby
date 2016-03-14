@@ -421,7 +421,7 @@ class Artwork():
                     cursor.execute(query, (imageUrl, kodiId, mediaType, imageType))
                     
             # Cache fanart and poster in Kodi texture cache
-            if cacheimage and imageType in ("fanart", "poster"):
+            if cacheimage and imageType in ("fanart", "poster", "thumb"):
                 self.CacheTexture(imageUrl)
 
     def deleteArtwork(self, kodiid, mediatype, cursor):

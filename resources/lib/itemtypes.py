@@ -43,6 +43,8 @@ class Items(object):
 
         self.artwork = artwork.Artwork()
         self.emby = embyserver.Read_EmbyServer()
+        self.userid = utils.window('currUserId')
+        self.server = utils.window('pms_server')
 
     def __enter__(self):
         """
@@ -1445,8 +1447,21 @@ class TVShows(Items):
         people = API.getPeopleList()
         kodi_db.addPeople(episodeid, people, "episode")
         # Process artwork
-        artworks = API.getAllArtwork()
-        artwork.addOrUpdateArt(artworks['Primary'], episodeid, "episode", "thumb", kodicursor)
+        # Wide "screenshot" of particular episode
+        poster = item.attrib.get('thumb')
+        if poster:
+            poster = API.addPlexCredentialsToUrl(
+                "%s%s" % (self.server, poster))
+            artwork.addOrUpdateArt(
+                poster, episodeid, "episode", "thumb", kodicursor)
+        # poster of TV show itself
+        # poster = item.attrib.get('grandparentThumb')
+        # if poster:
+        #     poster = API.addPlexCredentialsToUrl(
+        #         "%s%s" % (self.server, poster))
+        #     artwork.addOrUpdateArt(
+        #         poster, episodeid, "episode", "poster", kodicursor)
+
         # Process stream details
         streams = API.getMediaStreams()
         kodi_db.addStreams(fileid, streams, runtime)
@@ -1609,8 +1624,6 @@ class Music(Items):
         self.enableimportsongrating = utils.settings('enableImportSongRating') == "true"
         self.enableexportsongrating = utils.settings('enableExportSongRating') == "true"
         self.enableupdatesongrating = utils.settings('enableUpdateSongRating') == "true"
-        self.userid = utils.window('currUserId')
-        self.server = utils.window('pms_server')
 
     def __enter__(self):
         """

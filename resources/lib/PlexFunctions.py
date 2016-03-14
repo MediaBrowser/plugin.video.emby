@@ -3,7 +3,6 @@ from urllib import urlencode
 from ast import literal_eval
 from urlparse import urlparse, parse_qs
 import re
-import time
 
 from xbmcaddon import Addon
 
