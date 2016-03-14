@@ -1445,8 +1445,8 @@ class TVShows(Items):
         people = API.getPeopleList()
         kodi_db.addPeople(episodeid, people, "episode")
         # Process artwork
-        allartworks = API.getAllArtwork()
-        artwork.addArtwork(allartworks, episodeid, "episode", kodicursor)
+        artworks = API.getAllArtwork()
+        artwork.addOrUpdateArt(artworks['Primary'], episodeid, "episode", "thumb", kodicursor)
         # Process stream details
         streams = API.getMediaStreams()
         kodi_db.addStreams(fileid, streams, runtime)
