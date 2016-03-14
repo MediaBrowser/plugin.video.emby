@@ -2194,8 +2194,75 @@ class API():
                 mapping[kodiindex] = index
                 externalsubs.append(url)
                 kodiindex += 1
-        
         mapping = json.dumps(mapping)
         utils.window('emby_%s.indexMapping' % playurl, value=mapping)
 
         return externalsubs
+
+    def CreateListItemFromPlexItem(self, listItem=None):
+        """
+        Call on a child level of PMS xml response (e.g. in a for loop)
+
+        listItem:       existing xbmcgui.ListItem to work with
+                        otherwise, a new one is created
+
+        Returns XBMC listitem for this PMS library item
+        """
+        people = self.getPeople()
+        userdata = self.getUserData()
+        title, sorttitle = self.getTitle()
+
+        if listItem is None:
+            listItem = xbmcgui.ListItem()
+
+        metadata = {
+            'genre': self.joinList(self.getGenres()),
+            'year': self.getYear(),
+            'rating': self.getAudienceRating(),
+            'playcount': userdata['PlayCount'],
+            'cast': people['Cast'],
+            'director': self.joinList(people.get('Director')),
+            'plot': self.getPlot(),
+            'title': title,
+            'sorttitle': sorttitle,
+            'duration': userdata['Runtime'],
+            'studio': self.joinList(self.getStudios()),
+            'tagline': self.getTagline(),
+            'writer': self.joinList(people.get('Writer')),
+            'premiered': self.getPremiereDate(),
+            'dateadded': self.getDateCreated(),
+            'lastplayed': userdata['LastPlayedDate'],
+            'mpaa': self.getMpaa(),
+            'aired': self.getPremiereDate()
+        }
+
+        if "episode" in self.getType():
+            # Only for tv shows
+            key, show, season, episode = self.getEpisodeDetails()
+            metadata['episode'] = episode
+            metadata['season'] = season
+            metadata['tvshowtitle'] = show
+
+        listItem.setProperty('IsPlayable', 'true')
+        listItem.setProperty('IsFolder', 'false')
+        listItem.setProperty('embyid', self.getRatingKey())
+        listItem.setLabel(title)
+        listItem.setInfo('video', infoLabels=metadata)
+        return listItem
+
+    def AddStreamInfo(self, listItem):
+        """
+        Add media stream information to xbmcgui.ListItem
+        """
+        mediastreams = self.getMediaStreams()
+        videostreamFound = False
+        if mediastreams:
+            for key, value in mediastreams.iteritems():
+                if key == "video" and value:
+                    videostreamFound = True
+                if value:
+                    listItem.addStreamInfo(key, value)
+        if not videostreamFound:
+            # just set empty streamdetails to prevent errors in the logs
+            listItem.addStreamInfo(
+                "video", {'duration': self.getRuntime()[1]})

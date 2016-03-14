@@ -23,6 +23,7 @@ import playutils
 import playlist
 
 import PlexFunctions
+import PlexAPI
 
 ###############################################################################
 
@@ -670,13 +671,19 @@ def GetSubFolders(nodeindex):
               
 ##### BROWSE EMBY NODES DIRECTLY #####    
 def BrowseContent(viewname, type="", folderid=""):
-    
+    """
+    Plex:
+        viewname:   PMS name of the library
+        type:       PMS library section ID
+        folderid:   e.g. 'ondeck'
+    """
     emby = embyserver.Read_EmbyServer()
     art = artwork.Artwork()
     doUtils = downloadutils.DownloadUtils()
     
     #folderid used as filter ?
-    if folderid in ["recent","recentepisodes","inprogress","inprogressepisodes","unwatched","nextepisodes","sets","genres","random","recommended"]:
+    if folderid in ["recent","recentepisodes","inprogress","inprogressepisodes","unwatched","nextepisodes","sets","genres","random","recommended",
+        "ondeck"]:
         filter = folderid
         folderid = ""
     else:
@@ -685,7 +692,7 @@ def BrowseContent(viewname, type="", folderid=""):
     xbmcplugin.setPluginCategory(int(sys.argv[1]), viewname)
     #get views for root level
     if not folderid:
-        views = emby.getViews(type)
+        views = PlexFunctions.GetPlexCollections()
         for view in views:
             if view.get("name") == viewname.decode('utf-8'):
                 folderid = view.get("id")
@@ -1278,3 +1285,66 @@ def RunLibScan(mode):
                             line1=string(39205))
     else:
         utils.window('plex_runLibScan', value='full')
+
+
+def BrowsePlexContent(viewid, mediatype="", nodetype=""):
+    """
+    Plex:
+        viewid:          PMS name of the library
+        mediatype:       mediatype, e.g. 'movies', 'tvshows', 'photos'
+        nodetype:        e.g. 'ondeck'
+    """
+    utils.logMsg(title, "BrowsePlexContent called with viewid: %s, mediatype: %s, nodetype: %s" % (viewid, mediatype, nodetype), 1)
+
+    if nodetype == 'ondeck':
+        xml = PlexFunctions.GetPlexOnDeck(
+            viewid,
+            containerSize=int(utils.settings('limitindex')))
+        if not xml:
+            utils.logMsg(title, "Cannot get view for section %s" % viewid, -1)
+            return
+
+    viewname = xml.attrib.get('librarySectionTitle')
+    xbmcplugin.setPluginCategory(int(sys.argv[1]), viewname)
+
+    # set the correct params for the content type
+    if mediatype.lower() == "homevideos, tvshows":
+        xbmcplugin.setContent(int(sys.argv[1]), 'episodes')
+        itemtype = "Video,Folder,PhotoAlbum"
+    elif mediatype.lower() == "photos":
+        xbmcplugin.setContent(int(sys.argv[1]), 'files')
+        itemtype = "Photo,PhotoAlbum,Folder"
+    else:
+        itemtype = ""
+
+    # process the listing
+    for item in xml:
+        API = PlexAPI.API(item)
+        li = API.CreateListItemFromPlexItem()
+        if item.tag == 'Directory':
+            # for folders we add an additional browse request, passing the
+            # folderId
+            li.setProperty('IsFolder', 'true')
+            li.setProperty('IsPlayable', 'false')
+            path = "%s?id=%s&mode=browsecontent&type=%s&folderid=%s" % (sys.argv[0].decode('utf-8'), viewname.decode('utf-8'), type.decode('utf-8'), item.get("Id").decode('utf-8'))
+            xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=path, listitem=li, isFolder=True)
+        else:
+            # playable item, set plugin path and mediastreams
+            path = "%s?id=%s&mode=play" % (sys.argv[0], API.getRatingKey())
+            li.setProperty("path", path)
+            API.AddStreamInfo(li)
+            pbutils.PlaybackUtils(item).setArtwork(li)
+            xbmcplugin.addDirectoryItem(
+                handle=int(sys.argv[1]),
+                url=li.getProperty("path"),
+                listitem=li)
+
+    if filter == "recent":
+        xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_DATE)
+    else:
+        xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_TITLE)
+        xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_DATE)
+        xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_RATING)
+        xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_RUNTIME)
+
+    xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))

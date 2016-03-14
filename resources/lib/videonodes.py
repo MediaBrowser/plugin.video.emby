@@ -127,6 +127,7 @@ class VideoNodes(object):
             '9': "genres",
             '10': "random",
             '11': "recommended",
+            '12': "ondeck"
         }
         mediatypes = {
             # label according to nodetype per mediatype
@@ -152,10 +153,11 @@ class VideoNodes(object):
                 '7': 30179,
                 '9': 135,
                 '10': 30229,
-                '11': 30230
+                '11': 30230,
+                '12': 39500
                 },
                 
-            'homevideoss': 
+            'homevideos': 
                 {
                 '1': tagname,
                 '2': 30251,
@@ -211,6 +213,10 @@ class VideoNodes(object):
             elif kodiversion == 14 and nodetype == "inprogressepisodes":
                 # Custom query
                 path = "plugin://plugin.video.plexkodiconnect/?id=%s&mode=inprogressepisodes&limit=50"% tagname
+            elif nodetype == 'ondeck':
+                # PLEX custom query
+                path = ("plugin://plugin.video.plexkodiconnect/?id=%s&mode=browseplex&type=%s&folderid=%s"
+                        % (viewid, mediatype, nodetype))
             else:
                 path = "library://video/Plex-%s/%s_%s.xml" % (dirname, viewid, nodetype)
             
@@ -248,7 +254,7 @@ class VideoNodes(object):
                 continue
 
             # Create the root
-            if (nodetype == "nextepisodes" or mediatype == "homevideos" or
+            if (nodetype in ("nextepisodes", "ondeck") or mediatype == "homevideos" or
                     (kodiversion == 14 and nodetype in ('recentepisodes', 'inprogressepisodes'))):
                 # Folder type with plugin path
                 root = self.commonRoot(order=node, label=label, tagname=tagname, roottype=2)

@@ -307,7 +307,13 @@ def GetAllPlexLeaves(viewId, lastViewedAt=None, updatedAt=None,
         url += '?' + '&'.join(args) + '&'
     else:
         url += '?'
+    return DownloadChunks(url, containerSize)
 
+
+def GetPlexOnDeck(viewId, containerSize=None):
+    """
+    """
+    url = "{server}/library/sections/%s/onDeck?" % viewId
     return DownloadChunks(url, containerSize)
 
 
@@ -329,31 +335,31 @@ def GetPlexCollections(mediatype):
     """
     collections = []
     url = "{server}/library/sections"
-    jsondata = downloadutils.DownloadUtils().downloadUrl(url)
+    xml = downloadutils.DownloadUtils().downloadUrl(url)
     try:
-        result = jsondata['_children']
-    except KeyError:
-        pass
-    else:
-        for item in result:
-            contentType = item['type']
-            if contentType in mediatype:
-                name = item['title']
-                contentId = item['key']
-                uuid = item['uuid']
-                collections.append({
-                    'name': name,
-                    'type': contentType,
-                    'id': str(contentId),
-                    'uuid': uuid
-                })
+        xml.attrib
+    except AttributeError:
+        logMsg(title, 'Could not download PMS sections for %s' % url, -1)
+        return {}
+    for item in xml:
+        contentType = item['type']
+        if contentType in mediatype:
+            name = item['title']
+            contentId = item['key']
+            uuid = item['uuid']
+            collections.append({
+                'name': name,
+                'type': contentType,
+                'id': str(contentId),
+                'uuid': uuid
+            })
     return collections
 
 
 def GetPlexPlaylist(itemid, librarySectionUUID, mediatype='movie'):
     """
     Returns raw API metadata XML dump for a playlist with e.g. trailers.
-    """
+   """
     trailerNumber = settings('trailerNumber')
     if not trailerNumber:
         trailerNumber = '3'

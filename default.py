@@ -68,7 +68,8 @@ class Main:
             'switchuser': entrypoint.switchPlexUser,
             'deviceid': entrypoint.resetDeviceId,
             'reConnect': entrypoint.reConnect,
-            'delete': entrypoint.deleteItem
+            'delete': entrypoint.deleteItem,
+            'browseplex': entrypoint.BrowsePlexContent
         }
         
         if "/extrafanart" in sys.argv[0]:
@@ -97,6 +98,12 @@ class Main:
                 
             elif mode == "browsecontent":
                 modes[mode]( itemid, params.get('type',[""])[0], params.get('folderid',[""])[0] )
+
+            elif mode == 'browseplex':
+                modes[mode](
+                    itemid,
+                    params.get('type', [""])[0],
+                    params.get('folderid', [""])[0])
 
             elif mode == "channelsfolder":
                 folderid = params['folderid'][0]

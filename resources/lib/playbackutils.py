@@ -70,7 +70,7 @@ class PlaybackUtils():
                 window('emby_%s.playmethod' % playurl, "Transcode")
             listitem.setPath(playurl)
             self.setArtwork(listitem)
-            self.setListItem(listitem)
+            API.CreateListItemFromPlexItem(listitem)
             self.setProperties(playurl, listitem)
             return xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, listitem)
 
@@ -159,7 +159,7 @@ class PlaybackUtils():
                     self.setProperties(additionalPlayurl, additionalListItem)
                     self.setArtwork(additionalListItem)
                     # NEW to Plex
-                    self.setListItem(additionalListItem)
+                    API.CreateListItemFromPlexItem(additionalListItem)
 
                     playlist.add(additionalPlayurl, additionalListItem, index=self.currentPosition)
                     self.pl.verifyPlaylist()
@@ -194,7 +194,7 @@ class PlaybackUtils():
 
         if homeScreen and seektime and window('emby_customPlaylist') != "true":
             log("Play as a widget item.", 1)
-            self.setListItem(listitem)
+            API.CreateListItemFromPlexItem(listitem)
             xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, listitem)
 
         elif ((introsPlaylist and window('emby_customPlaylist') == "true") or
@@ -368,45 +368,3 @@ class PlaybackUtils():
             listItem.setProperty(arttype, path)
         else:
             listItem.setArt({arttype: path})
-
-    def setListItem(self, listItem):
-
-        API = self.API
-        mediaType = API.getType()
-        people = API.getPeople()
-
-        userdata = API.getUserData()
-        title, sorttitle = API.getTitle()
-
-        metadata = {
-            'genre': API.joinList(API.getGenres()),
-            'year': API.getYear(),
-            'rating': API.getAudienceRating(),
-            'playcount': userdata['PlayCount'],
-            'cast': people['Cast'],
-            'director': API.joinList(people.get('Director')),
-            'plot': API.getPlot(),
-            'title': title,
-            'sorttitle': sorttitle,
-            'duration': userdata['Runtime'],
-            'studio': API.joinList(API.getStudios()),
-            'tagline': API.getTagline(),
-            'writer': API.joinList(people.get('Writer')),
-            'premiered': API.getPremiereDate(),
-            'dateadded': API.getDateCreated(),
-            'lastplayed': userdata['LastPlayedDate'],
-            'mpaa': API.getMpaa(),
-            'aired': API.getPremiereDate()
-        }
-
-        if "episode" in mediaType:
-            # Only for tv shows
-            key, show, season, episode = API.getEpisodeDetails()
-            metadata['episode'] = episode
-            metadata['season'] = season
-            metadata['tvshowtitle'] = show
-
-        listItem.setProperty('IsPlayable', 'true')
-        listItem.setProperty('IsFolder', 'false')
-        listItem.setLabel(metadata['title'])
-        listItem.setInfo('video', infoLabels=metadata)
