@@ -341,6 +341,6 @@
     <string id="39405">Plex Playlisten/Nodes aktualisiert</string>
     <string id="39406">Plex Playlisten/Nodes Aktualisierung fehlgeschlagen</string>
     <string id="39407">Plex Bibliotheken aktualisiert</string>
-    <string id="39408">Einige Plex Einträge mussten übersprungen werden, da sie nicht verarbeitet werden konnten. Bitte teilen Sie Ihr Kodi log im Plex Forum.</string>
+    <string id="39408">Einige Plex Einträge mussten übersprungen werden, da sie nicht verarbeitet werden konnten. Kodi ist nun möglicherweise instabil!! Bitte teilen Sie Ihr Kodi log im Plex Forum.</string>
 
 </strings>
