@@ -310,8 +310,7 @@
     <string id="39207">PMS Verbindungen werden zurückgesetzt</string>
     <string id="39208">PMS und plex.tv Verbindungen konnten nicht zurückgesetzt werden. Bitte versuchen Sie, Kodi neu zu starten, um das Problem zu beheben.</string>
     <string id="39209">[COLOR yellow]Bei plex.tv einloggen[/COLOR]</string>
-
-
+    <string id="39210">Noch nicht mit Plex Server verbunden</string>
 
     <!-- Plex Artwork.py -->
     <string id="39250">Alle Plex Bilder in Kodi zwischenzuspeichern kann sehr lange dauern. Möchten Sie wirklich fortfahren?</string>

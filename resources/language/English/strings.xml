@@ -379,6 +379,7 @@
     <string id="39207">Reseting PMS connections, please wait</string>
     <string id="39208">Failed to reset PMS and plex.tv connects. Try to restart Kodi.</string>
     <string id="39209">[COLOR yellow]Log-in to plex.tv[/COLOR]</string>
+    <string id="39210">Not yet connected to Plex Server</string>
 
 
     <!-- Plex Artwork.py -->
