@@ -88,7 +88,7 @@ class Service():
         videonodes.VideoNodes().clearProperties()
         
         # Set the minimum database version
-        window('emby_minDBVersion', value="1.0.2")
+        window('emby_minDBVersion', value="1.0.11")
 
     def ServiceEntryPoint(self):
 

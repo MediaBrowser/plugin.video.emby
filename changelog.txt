@@ -1,3 +1,6 @@
+version 1.0.11
+- Hotfix DB comparison. Sorry for that :-)
+
 version 1.0.10
 - Limit max number of items requested from PMS (default=200)
 - Enforce PMS authentication before playback start
