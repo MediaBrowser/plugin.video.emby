@@ -237,8 +237,6 @@ def DownloadChunks(url, containerSize):
     xml = None
     pos = 0
     errorCounter = 0
-    logMsg(title, 'Downloading allLeaves of %s in chunks of %s'
-           % (url, str(containerSize)), 1)
     while errorCounter < 10:
         args = {
             'X-Plex-Container-Size': containerSize,
@@ -274,7 +272,6 @@ def DownloadChunks(url, containerSize):
     if errorCounter == 10:
         logMsg(title, 'Fatal error while downloading chunks for %s' % url, -1)
         return None
-    logMsg(title, 'Done downloading chunks', 1)
     return xml
 
 
