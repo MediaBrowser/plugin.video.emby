@@ -84,12 +84,12 @@ class PlexCompanion(threading.Thread):
                         self.logMsg("Client is still registered", 1)
                     else:
                         self.logMsg("Client is no longer registered", 1)
-                        self.logMsg("PlexBMC Helper still running on port %s"
+                        self.logMsg("Plex Companion still running on port %s"
                                     % self.port, 1)
                     message_count = 0
 
                 if not is_running:
-                    self.logMsg("PleXBMC Helper has started", 0)
+                    self.logMsg("Plex Companion has started", 0)
                 is_running = True
 
                 subscribers.subMgr.notify()
@@ -106,4 +106,4 @@ class PlexCompanion(threading.Thread):
         finally:
             httpd.socket.close()
         requests.dumpConnections()
-        self.logMsg("----===## STOP PlexBMC Helper ##===----", 0)
+        self.logMsg("----===## STOP Plex Companion ##===----", 0)
