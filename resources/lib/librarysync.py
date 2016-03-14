@@ -1382,6 +1382,12 @@ class LibrarySync(Thread):
             # there WAS no current DB, e.g. deleted.
             return True
         minMajor, minMinor, minPatch = minimum.split(".")
+        currMajor = int(currMajor)
+        currMinor = int(currMinor)
+        currPatch = int(currPatch)
+        minMajor = int(minMajor)
+        minMinor = int(minMinor)
+        minPatch = int(minPatch)
 
         if currMajor > minMajor:
             return True
