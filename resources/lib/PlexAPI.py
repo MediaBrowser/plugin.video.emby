@@ -1056,8 +1056,6 @@ class PlexAPI():
             self.logMsg("No URL for user avatar.", 1)
             return False
         for user in users:
-            self.logMsg('type user: %s, type username: %s'
-                        % (type(user['title']), type(username)))
             if username in user['title']:
                 url = user['thumb']
         self.logMsg("Avatar url for user %s is: %s" % (username, url), 1)
@@ -2092,7 +2090,7 @@ class API():
                     allartworks['Backdrop'].append(background)
 
             if not allartworks['Primary']:
-                primary = item['parentThumb']
+                primary = item.get('parentThumb')
                 if primary:
                     primary = "%s%s" % (self.server, primary)
                     primary = self.addPlexCredentialsToUrl(primary)

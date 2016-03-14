@@ -159,6 +159,18 @@ def doPlayback(itemid, dbid):
     """
     Called only for a SINGLE element, not playQueues
     """
+    if utils.window('plex_authenticated') != "true":
+        utils.logMsg('doPlayback', 'Not yet authenticated for a PMS, abort '
+                     'starting playback', -1)
+        string = xbmcaddon.Addon().getLocalizedString
+        # Not yet connected to a PMS server
+        xbmcgui.Dialog().notification(
+            heading=addonName,
+            message=string(39210),
+            icon=xbmcgui.NOTIFICATION_ERROR,
+            time=7000,
+            sound=True)
+        return False
 
     item = PlexFunctions.GetPlexMetadata(itemid)
     if item is None:

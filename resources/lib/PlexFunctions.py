@@ -3,7 +3,7 @@ from urllib import urlencode
 from ast import literal_eval
 from urlparse import urlparse, parse_qs
 import re
-import time
+from copy import deepcopy
 
 from xbmcaddon import Addon
 
@@ -185,7 +185,7 @@ def GetPlexMetadata(key):
     return xml
 
 
-def GetAllPlexChildren(key):
+def GetAllPlexChildren(key, containerSize=None):
     """
     Returns a list (raw xml API dump) of all Plex children for the key.
     (e.g. /library/metadata/194853/children pointing to a season)
@@ -193,18 +193,11 @@ def GetAllPlexChildren(key):
     Input:
         key             Key to a Plex item, e.g. 12345
     """
-    xml = downloadutils.DownloadUtils().downloadUrl(
-        "{server}/library/metadata/%s/children" % key)
-    try:
-        xml.attrib
-    except AttributeError:
-        logMsg(
-            title, "Error retrieving all children for Plex item %s" % key, -1)
-        xml = None
-    return xml
+    url = "{server}/library/metadata/%s/children?" % key
+    return DownloadChunks(url, containerSize)
 
 
-def GetPlexSectionResults(viewId, args=None):
+def GetPlexSectionResults(viewId, args=None, containerSize=None):
     """
     Returns a list (XML API dump) of all Plex items in the Plex
     section with key = viewId.
@@ -214,26 +207,76 @@ def GetPlexSectionResults(viewId, args=None):
 
     Returns None if something went wrong
     """
-    result = []
-    url = "{server}/library/sections/%s/all" % viewId
+    url = "{server}/library/sections/%s/all?" % viewId
     if args:
-        url += "?" + urlencode(args)
-
-    result = downloadutils.DownloadUtils().downloadUrl(url)
-
-    try:
-        result.tag
-    # Nope, not an XML, abort
-    except AttributeError:
-        logMsg(title,
-               "Error retrieving all items for Plex section %s"
-               % viewId, -1)
-        result = None
-
-    return result
+        url += urlencode(args) + '&'
+    return DownloadChunks(url, containerSize)
 
 
-def GetAllPlexLeaves(viewId, lastViewedAt=None, updatedAt=None):
+def DownloadChunks(url, containerSize):
+    """
+    Downloads PMS url in chunks of containerSize (int).
+    If containerSize is None: ONE xml is fetched directly
+
+    url MUST end with '?' (if no other url encoded args are present) or '&'
+
+    Returns a stitched-together xml or None.
+    """
+    if containerSize is None:
+        # Get rid of '?' or '&' at the end of url
+        xml = downloadutils.DownloadUtils().downloadUrl(url[:-1])
+        try:
+            xml.attrib
+        except AttributeError:
+            # Nope, not an XML, abort
+            logMsg(title, "Error getting url %s" % url[:-1], -1)
+            return None
+        else:
+            return xml
+
+    xml = None
+    pos = 0
+    errorCounter = 0
+    while errorCounter < 10:
+        args = {
+            'X-Plex-Container-Size': containerSize,
+            'X-Plex-Container-Start': pos
+        }
+        xmlpart = downloadutils.DownloadUtils().downloadUrl(
+            url + urlencode(args))
+        # If something went wrong - skip in the hope that it works next time
+        try:
+            xmlpart.attrib
+        except AttributeError:
+            logMsg(title, 'Error while downloading chunks: %s'
+                   % (url + urlencode(args)), -1)
+            pos += containerSize
+            errorCounter += 1
+            continue
+
+        # Very first run: starting xml (to retain data in xml's root!)
+        if xml is None:
+            xml = deepcopy(xmlpart)
+            if len(xmlpart) < containerSize:
+                break
+            else:
+                pos += containerSize
+                continue
+        # Build answer xml - containing the entire library
+        for child in xmlpart:
+            xml.append(child)
+        # Done as soon as we don't receive a full complement of items
+        if len(xmlpart) < containerSize:
+            break
+        pos += containerSize
+    if errorCounter == 10:
+        logMsg(title, 'Fatal error while downloading chunks for %s' % url, -1)
+        return None
+    return xml
+
+
+def GetAllPlexLeaves(viewId, lastViewedAt=None, updatedAt=None,
+                     containerSize=None):
     """
     Returns a list (raw XML API dump) of all Plex subitems for the key.
     (e.g. /library/sections/2/allLeaves pointing to all TV shows)
@@ -244,6 +287,7 @@ def GetAllPlexLeaves(viewId, lastViewedAt=None, updatedAt=None):
                             since that point of time until now.
         updatedAt           Unix timestamp; only retrieves PMS items updated
                             by the PMS since that point of time until now.
+        containerSize       Number of items simultaneously fetched from PMS
 
     If lastViewedAt and updatedAt=None, ALL PMS items are returned.
 
@@ -260,19 +304,11 @@ def GetAllPlexLeaves(viewId, lastViewedAt=None, updatedAt=None):
     if updatedAt:
         args.append('updatedAt>=%s' % updatedAt)
     if args:
-        url += '?' + '&'.join(args)
+        url += '?' + '&'.join(args) + '&'
+    else:
+        url += '?'
 
-    xml = downloadutils.DownloadUtils().downloadUrl(url)
-
-    try:
-        xml.attrib
-    # Nope, not an XML, abort
-    except AttributeError:
-        logMsg(title,
-               "Error retrieving all leaves for Plex section %s"
-               % viewId, -1)
-        xml = None
-    return xml
+    return DownloadChunks(url, containerSize)
 
 
 def GetPlexCollections(mediatype):

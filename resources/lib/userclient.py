@@ -179,9 +179,6 @@ class UserClient(threading.Thread):
 
         if authenticated is False:
             self.logMsg('Testing validity of current token', 0)
-            window('currUserId', value=userId)
-            window('plex_username', value=username)
-            window('pms_token', value=self.currToken)
             res = PlexAPI.PlexAPI().CheckConnection(
                 self.currServer, self.currToken)
             if res is False:
@@ -205,6 +202,7 @@ class UserClient(threading.Thread):
         window('pms_server', value=self.currServer)
         window('plex_machineIdentifier', value=self.machineIdentifier)
         window('plex_servername', value=self.servername)
+        window('plex_authenticated', value='true')
 
         # Set DownloadUtils values
         doUtils.setUsername(username)
@@ -331,6 +329,7 @@ class UserClient(threading.Thread):
         settings = utils.settings
         window = utils.window
 
+        window('plex_authenticated', clear=True)
         window('pms_token', clear=True)
         window('plex_token', clear=True)
         window('pms_server', clear=True)
@@ -410,7 +409,7 @@ class UserClient(threading.Thread):
                     self.auth = True
 
             # Minimize CPU load
-            xbmc.sleep(500)
+            xbmc.sleep(100)
 
         self.doUtils.stopSession()
         log("##===---- UserClient Stopped ----===##", 0)

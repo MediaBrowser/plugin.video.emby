@@ -237,6 +237,7 @@ class LibrarySync(Thread):
             else False
         self.enableBackgroundSync = True if utils.settings(
             'enableBackgroundSync') == "true" else False
+        self.limitindex = int(utils.settings('limitindex'))
 
         # Time offset between Kodi and PMS in seconds (=Koditime - PMStime)
         self.timeoffset = 0
@@ -340,7 +341,8 @@ class LibrarySync(Thread):
         xbmc.sleep(2000)
         # Get all PMS items to find the item we changed
         items = PlexFunctions.GetAllPlexLeaves(libraryId,
-                                               lastViewedAt=timestamp)
+                                               lastViewedAt=timestamp,
+                                               containerSize=self.limitindex)
         # Toggle watched state back
         PlexFunctions.scrobble(plexId, 'unwatched')
         # Get server timestamp for this change
@@ -482,7 +484,9 @@ class LibrarySync(Thread):
             self.updatelist = []
             # Get items per view
             items = PlexFunctions.GetAllPlexLeaves(
-                view['id'], updatedAt=self.getPMSfromKodiTime(lastSync))
+                view['id'],
+                updatedAt=self.getPMSfromKodiTime(lastSync),
+                containerSize=self.limitindex)
             # Just skip if something went wrong
             if not items:
                 continue
@@ -516,7 +520,9 @@ class LibrarySync(Thread):
         songupdate = False
         for view in self.views:
             items = PlexFunctions.GetAllPlexLeaves(
-                view['id'], lastViewedAt=self.getPMSfromKodiTime(lastSync))
+                view['id'],
+                lastViewedAt=self.getPMSfromKodiTime(lastSync),
+                containerSize=self.limitindex)
             for item in items:
                 itemId = item.attrib.get('ratingKey')
                 # Skipping items 'title=All episodes' without a 'ratingKey'
@@ -1070,7 +1076,8 @@ class LibrarySync(Thread):
             # Get items per view
             viewId = view['id']
             viewName = view['name']
-            all_plexmovies = PlexFunctions.GetPlexSectionResults(viewId)
+            all_plexmovies = PlexFunctions.GetPlexSectionResults(
+                viewId, args=None, containerSize=self.limitindex)
             if not all_plexmovies:
                 self.logMsg("Couldnt get section items, aborting for view.", 1)
                 continue
@@ -1107,7 +1114,8 @@ class LibrarySync(Thread):
         """
         xml = PlexFunctions.GetAllPlexLeaves(viewId,
                                              lastViewedAt=lastViewedAt,
-                                             updatedAt=updatedAt)
+                                             updatedAt=updatedAt,
+                                             containerSize=self.limitindex)
         # Return if there are no items in PMS reply - it's faster
         try:
             xml[0].attrib
@@ -1202,7 +1210,8 @@ class LibrarySync(Thread):
             # Get items per view
             viewId = view['id']
             viewName = view['name']
-            allPlexTvShows = PlexFunctions.GetPlexSectionResults(viewId)
+            allPlexTvShows = PlexFunctions.GetPlexSectionResults(
+                viewId, containerSize=self.limitindex)
             if not allPlexTvShows:
                 self.logMsg(
                     "Error downloading show view xml for view %s" % viewId, -1)
@@ -1228,7 +1237,8 @@ class LibrarySync(Thread):
             if self.threadStopped():
                 return False
             # Grab all seasons to tvshow from PMS
-            seasons = PlexFunctions.GetAllPlexChildren(tvShowId)
+            seasons = PlexFunctions.GetAllPlexChildren(
+                tvShowId, containerSize=self.limitindex)
             if not seasons:
                 self.logMsg(
                     "Error downloading season xml for show %s" % tvShowId, -1)
@@ -1252,7 +1262,8 @@ class LibrarySync(Thread):
             if self.threadStopped():
                 return False
             # Grab all episodes to tvshow from PMS
-            episodes = PlexFunctions.GetAllPlexLeaves(view['id'])
+            episodes = PlexFunctions.GetAllPlexLeaves(
+                view['id'], containerSize=self.limitindex)
             if not episodes:
                 self.logMsg(
                     "Error downloading episod xml for view %s"
@@ -1265,7 +1276,7 @@ class LibrarySync(Thread):
                                None,
                                None)
             self.logMsg("Analyzed all episodes of TV show with Plex Id %s"
-                        % tvShowId, 1)
+                        % view['id'], 1)
 
         # Process self.updatelist
         self.GetAndProcessXMLs(itemType)
@@ -1350,7 +1361,7 @@ class LibrarySync(Thread):
             viewId = view['id']
             viewName = view['name']
             itemsXML = PlexFunctions.GetPlexSectionResults(
-                viewId, args=urlArgs)
+                viewId, args=urlArgs, containerSize=self.limitindex)
             if not itemsXML:
                 self.logMsg("Error downloading xml for view %s"
                             % viewId, -1)

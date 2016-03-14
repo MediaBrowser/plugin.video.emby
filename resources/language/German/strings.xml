@@ -173,14 +173,14 @@
     <string id="30169">Addresse : </string>
 
     <string id="30170">Zuletzt hinzugefügte Serien</string>
-    <string id="30171">Aktuell Serien</string>
+    <string id="30171">Begonnene Serien</string>
     <string id="30172">Alles an Musik</string>
     <string id="30173">Kanäle</string>
     <string id="30174">Zuletzt hinzugefügte Filme</string>
     <string id="30175">Zuletzt hinzugefügte Episoden</string>
     <string id="30176">Zuletzt hinzugefügte Alben</string>
-    <string id="30177">Aktuelle Filme</string>
-    <string id="30178">Aktuelle Episoden</string>
+    <string id="30177">Begonnene Filme</string>
+    <string id="30178">Begonnene Episoden</string>
     <string id="30179">Nächste Episoden</string>
     <string id="30180">Favorisierte Filme</string>
     <string id="30181">Favorisierte Serien</string>
@@ -252,6 +252,8 @@
     <string id="30249">Unterdrücke Server-Verbindungsmeldungen beim Starten</string>
     <string id="30250">Benutze lokale Pfade anstelle von Addon-Umleitungen beim Abspielen</string>
 
+    <string id="30515">Max. Anzahl gleichzeitig nachgefragter PMS Einträge (Neustart!)</string>
+
     <string id="33010">Plex Media Server Authorisierung ist zu häufig fehlgeschlagen. In den Einstellungen können die Anzahl erfolgloser Versuche zurückgesetzt werden.</string>
 
 	<!-- Default views -->
@@ -310,8 +312,7 @@
     <string id="39207">PMS Verbindungen werden zurückgesetzt</string>
     <string id="39208">PMS und plex.tv Verbindungen konnten nicht zurückgesetzt werden. Bitte versuchen Sie, Kodi neu zu starten, um das Problem zu beheben.</string>
     <string id="39209">[COLOR yellow]Bei plex.tv einloggen[/COLOR]</string>
-
-
+    <string id="39210">Noch nicht mit Plex Server verbunden</string>
 
     <!-- Plex Artwork.py -->
     <string id="39250">Alle Plex Bilder in Kodi zwischenzuspeichern kann sehr lange dauern. Möchten Sie wirklich fortfahren?</string>
@@ -340,6 +341,6 @@
     <string id="39405">Plex Playlisten/Nodes aktualisiert</string>
     <string id="39406">Plex Playlisten/Nodes Aktualisierung fehlgeschlagen</string>
     <string id="39407">Plex Bibliotheken aktualisiert</string>
-    <string id="39408">Einige Plex Einträge mussten übersprungen werden, da sie nicht verarbeitet werden konnten. Bitte teilen Sie Ihr Kodi log im Plex Forum.</string>
+    <string id="39408">Einige Plex Einträge mussten übersprungen werden, da sie nicht verarbeitet werden konnten. Kodi ist nun möglicherweise instabil!! Bitte teilen Sie Ihr Kodi log im Plex Forum.</string>
 
 </strings>

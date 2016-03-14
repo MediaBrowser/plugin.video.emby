@@ -145,14 +145,14 @@
     
     <!-- Video nodes -->
     <string id="30170">Recently Added TV Shows</string><!-- Verified -->
-    <string id="30171">On Deck TV Shows</string><!-- Verified -->
+    <string id="30171">In Progress TV Shows</string><!-- Verified -->
     <string id="30172">All Music</string>              
     <string id="30173">Channels</string><!-- Verified -->
     <string id="30174">Recently Added Movies</string><!-- Verified -->
     <string id="30175">Recently Added Episodes</string><!-- Verified -->
     <string id="30176">Recently Added Albums</string>  
-    <string id="30177">On Deck Movies</string><!-- Verified -->
-    <string id="30178">On Deck Episodes</string><!-- Verified -->
+    <string id="30177">In Progress Movies</string><!-- Verified -->
+    <string id="30178">In Progress Episodes</string><!-- Verified -->
     <string id="30179">Next Episodes</string><!-- Verified -->
     <string id="30180">Favorite Movies</string><!-- Verified -->      
     <string id="30181">Favorite Shows</string><!-- Verified -->
@@ -277,7 +277,7 @@
     <string id="30512">Force artwork caching</string>
     <string id="30513">Limit artwork cache threads (recommended for rpi)</string>
     <string id="30514">Enable fast startup (requires server plugin)</string>
-    <string id="30515">Maximum items to request from the server at once</string>
+    <string id="30515">Maximum items to request from the server at once (restart!)</string>
     <string id="30516">Playback</string>
     <string id="30517">[COLOR yellow]Enter network credentials[/COLOR]</string>
     <string id="30518">Enable Plex Trailers (Plexpass is needed)</string>
@@ -379,6 +379,7 @@
     <string id="39207">Reseting PMS connections, please wait</string>
     <string id="39208">Failed to reset PMS and plex.tv connects. Try to restart Kodi.</string>
     <string id="39209">[COLOR yellow]Log-in to plex.tv[/COLOR]</string>
+    <string id="39210">Not yet connected to Plex Server</string>
 
 
     <!-- Plex Artwork.py -->
@@ -408,6 +409,6 @@
     <string id="39405">Plex playlists/nodes refreshed</string>
     <string id="39406">Plex playlists/nodes refresh failed</string>
     <string id="39407">Full library sync finished</string>
-    <string id="39408">Sync had to skip some items because they could not be processed. Please post your Kodi logs to the Plex forum.</string>
+    <string id="39408">Sync had to skip some items because they could not be processed. Kodi may be instable now!! Please post your Kodi logs to the Plex forum.</string>
 
 </strings>
