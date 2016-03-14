@@ -252,6 +252,8 @@
     <string id="30249">Unterdrücke Server-Verbindungsmeldungen beim Starten</string>
     <string id="30250">Benutze lokale Pfade anstelle von Addon-Umleitungen beim Abspielen</string>
 
+    <string id="30515">Max. Anzahl gleichzeitig nachgefragter PMS Einträge (Neustart!)</string>
+
     <string id="33010">Plex Media Server Authorisierung ist zu häufig fehlgeschlagen. In den Einstellungen können die Anzahl erfolgloser Versuche zurückgesetzt werden.</string>
 
 	<!-- Default views -->
