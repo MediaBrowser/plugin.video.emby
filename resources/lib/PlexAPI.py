@@ -2092,7 +2092,7 @@ class API():
                     allartworks['Backdrop'].append(background)
 
             if not allartworks['Primary']:
-                primary = item['parentThumb']
+                primary = item.get('parentThumb')
                 if primary:
                     primary = "%s%s" % (self.server, primary)
                     primary = self.addPlexCredentialsToUrl(primary)
