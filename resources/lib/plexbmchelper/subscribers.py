@@ -155,7 +155,7 @@ class SubscriptionManager:
         serv = getServerByHost(self.server)
         url = serv.get('protocol', 'http') + '://' \
             + serv.get('server', 'localhost') + ':' \
-            + serv.get('port', 32400) + "/:/timeline"
+            + serv.get('port', '32400') + "/:/timeline"
         self.download.downloadUrl(url, type="GET", parameters=params)
         # requests.getwithparams(serv.get('server', 'localhost'), serv.get('port', 32400), "/:/timeline", params, getPlexHeaders(), serv.get('protocol', 'http'))
         printDebug("params: %s" % params)
