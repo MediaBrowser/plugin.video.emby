@@ -37,7 +37,10 @@ class Items(object):
         self.doUtils = downloadutils.DownloadUtils()
         self.kodiversion = int(xbmc.getInfoLabel("System.BuildVersion")[:2])
         # self.directpath = utils.settings('useDirectPaths') == "1"
-        self.directpath = False
+        self.directpath = True if utils.window('useDirectPaths') == 'true' \
+            else False
+        self.replaceSMB = True if utils.window('replaceSMB') == 'true' \
+            else False
         # self.music_enabled = utils.settings('enableMusic') == "true"
         # self.contentmsg = utils.settings('newContent') == "true"
 
@@ -67,6 +70,23 @@ class Items(object):
         self.embyconn.close()
         self.kodiconn.close()
         return self
+
+    def askToValidate(self, url):
+        """
+        Displays a YESNO dialog box:
+            Kodi can't locate file: <url>. Please verify the path.
+            You may need to verify your network credentials in the
+            add-on settings or use different Plex paths. Stop syncing?
+
+        Returns True if sync should stop, else False
+        """
+        import xbmcaddon
+        string = xbmcaddon.Addon().getLocalizedString
+        resp = xbmcgui.Dialog().yesno(
+            heading=self.addonName,
+            line1=string(39031) + url,
+            line2=string(39032))
+        return resp
 
     def itemsbyId(self, items, process, pdialog=None):
         # Process items by itemid. Process can be added, update, userdata, remove
@@ -394,44 +414,45 @@ class Movies(Items):
                            "id=%s&mode=play") % extra['key']
                 break
 
-        ##### GET THE FILE AND PATH #####
-        playurl = API.getKey()
-        filename = playurl
-        # if "\\" in playurl:
-        #     # Local path
-        #     filename = playurl.rsplit("\\", 1)[1]
-        # else: # Network share
-        #     filename = playurl.rsplit("/", 1)[1]
-
+        # GET THE FILE AND PATH #####
+        doIndirect = not self.directpath
         if self.directpath:
             # Direct paths is set the Kodi way
-            if utils.window('emby_pathverified') != "true" and not xbmcvfs.exists(playurl):
-                # Validate the path is correct with user intervention
-                resp = xbmcgui.Dialog().yesno(
-                                        heading="Can't validate path",
-                                        line1=(
-                                            "Kodi can't locate file: %s. Verify the path. "
-                                            "You may to verify your network credentials in the "
-                                            "add-on settings or use the emby path substitution "
-                                            "to format your path correctly. Stop syncing?"
-                                            % playurl))
-                if resp:
-                    utils.window('emby_shouldStop', value="true")
-                    return False
-            
-            path = playurl.replace(filename, "")
-            utils.window('emby_pathverified', value="true")
-        else:
+            playurl = API.getFilePath()
+            if playurl is None:
+                # Something went wrong, trying to use non-direct paths
+                doIndirect = True
+            else:
+                if self.replaceSMB:
+                    if playurl.startswith('\\\\'):
+                        playurl = playurl.replace('\\', '/')
+                        playurl = 'smb:' + playurl
+                if (utils.window('emby_pathverified') != "true" and
+                        not xbmcvfs.exists(playurl.encode('utf-8'))):
+                    # Validate the path is correct with user intervention
+                    if self.askToValidate(playurl):
+                        utils.window('emby_shouldStop', value="true")
+                        return False
+                if "\\" in playurl:
+                    # Local path
+                    filename = playurl.rsplit("\\", 1)[1]
+                else:
+                    # Network share
+                    filename = playurl.rsplit("/", 1)[1]
+                path = playurl.replace(filename, "")
+                utils.window('emby_pathverified', value="true")
+        if doIndirect:
             # Set plugin path and media flags using real filename
             path = "plugin://plugin.video.plexkodiconnect.movies/"
             params = {
-                'filename': filename.encode('utf-8'),
+                'filename': API.getKey().encode('utf-8'),
                 'id': itemid,
                 'dbid': movieid,
                 'mode': "play"
             }
             filename = "%s?%s" % (path, urllib.urlencode(params))
-        ##### UPDATE THE MOVIE #####
+
+        # UPDATE THE MOVIE #####
         if update_item:
             self.logMsg("UPDATE movie itemid: %s - Title: %s" % (itemid, title), 1)
 
@@ -1008,38 +1029,38 @@ class TVShows(Items):
             studio = None
 
         # GET THE FILE AND PATH #####
-        playurl = API.getKey()
-
+        doIndirect = not self.directpath
         if self.directpath:
             # Direct paths is set the Kodi way
-            if "\\" in playurl:
-                # Local path
-                path = "%s\\" % playurl
-                toplevelpath = "%s\\" % dirname(dirname(path))
+            playurl = API.getTVShowPath()
+            if playurl is None:
+                # Something went wrong, trying to use non-direct paths
+                doIndirect = True
             else:
-                # Network path
-                path = "%s/" % playurl
-                toplevelpath = "%s/" % dirname(dirname(path))
-
-            if utils.window('emby_pathverified') != "true" and not xbmcvfs.exists(path):
-                # Validate the path is correct with user intervention
-                resp = xbmcgui.Dialog().yesno(
-                                        heading="Can't validate path",
-                                        line1=(
-                                            "Kodi can't locate file: %s. Verify the path. "
-                                            "You may to verify your network credentials in the "
-                                            "add-on settings or use the emby path substitution "
-                                            "to format your path correctly. Stop syncing?"
-                                            % playurl))
-                if resp:
-                    utils.window('emby_shouldStop', value="true")
-                    return False
-
-            utils.window('emby_pathverified', value="true")
-        else:
+                if self.replaceSMB:
+                    if playurl.startswith('\\\\'):
+                        playurl = playurl.replace('\\', '/')
+                        playurl = 'smb:' + playurl
+                if "\\" in playurl:
+                    # Local path
+                    path = "%s\\" % playurl
+                    toplevelpath = "%s\\" % dirname(dirname(path))
+                else:
+                    # Network path
+                    path = "%s/" % playurl
+                    toplevelpath = "%s/" % dirname(dirname(path))
+                if (utils.window('emby_pathverified') != "true" and
+                        not xbmcvfs.exists(path.encode('utf-8'))):
+                    # Validate the path is correct with user intervention
+                    if self.askToValidate(playurl):
+                        utils.window('emby_shouldStop', value="true")
+                        return False
+                utils.window('emby_pathverified', value="true")
+        if doIndirect:
             # Set plugin path
             toplevelpath = "plugin://plugin.video.plexkodiconnect.tvshows/"
             path = "%s%s/" % (toplevelpath, itemid)
+
         # UPDATE THE TVSHOW #####
         if update_item:
             self.logMsg("UPDATE tvshow itemid: %s - Title: %s" % (itemid, title), 1)
@@ -1312,40 +1333,37 @@ class TVShows(Items):
         seasonid = kodi_db.addSeason(showid, season)
 
         # GET THE FILE AND PATH #####
-        playurl = API.getKey()
-        filename = playurl
-
-        # if "\\" in playurl:
-        #     # Local path
-        #     filename = playurl.rsplit("\\", 1)[1]
-        # else: # Network share
-        #     filename = playurl.rsplit("/", 1)[1]
-
+        doIndirect = not self.directpath
         if self.directpath:
             # Direct paths is set the Kodi way
-            if utils.window('emby_pathverified') != "true" and not xbmcvfs.exists(playurl):
-                # Validate the path is correct with user intervention
-                resp = xbmcgui.Dialog().yesno(
-                                        heading="Can't validate path",
-                                        line1=(
-                                            "Kodi can't locate file: %s. Verify the path. "
-                                            "You may to verify your network credentials in the "
-                                            "add-on settings or use the emby path substitution "
-                                            "to format your path correctly. Stop syncing?"
-                                            % playurl))
-                if resp:
-                    utils.window('emby_shouldStop', value="true")
-                    return False
-            
-            path = playurl.replace(filename, "")
-            utils.window('emby_pathverified', value="true")
-        else:
+            playurl = API.getFilePath()
+            if playurl is None:
+                # Something went wrong, trying to use non-direct paths
+                doIndirect = True
+            else:
+                if self.replaceSMB:
+                    if playurl.startswith('\\\\'):
+                        playurl = playurl.replace('\\', '/')
+                        playurl = 'smb:' + playurl
+                if (utils.window('emby_pathverified') != "true" and
+                        not xbmcvfs.exists(playurl.encode('utf-8'))):
+                    # Validate the path is correct with user intervention
+                    if self.askToValidate(playurl):
+                        utils.window('emby_shouldStop', value="true")
+                        return False
+                if "\\" in playurl:
+                    # Local path
+                    filename = playurl.rsplit("\\", 1)[1]
+                else:
+                    # Network share
+                    filename = playurl.rsplit("/", 1)[1]
+                path = playurl.replace(filename, "")
+                utils.window('emby_pathverified', value="true")
+        if doIndirect:
             # Set plugin path and media flags using real filename
-            path = "plugin://plugin.video.plexkodiconnect.tvshows/%s/" % seriesId
+            path = "plugin://plugin.video.plexkodiconnect.movies/"
             params = {
-
-                #'filename': filename.encode('utf-8'),
-                'filename': filename.encode('utf-8'),
+                'filename': API.getKey().encode('utf-8'),
                 'id': itemid,
                 'dbid': episodeid,
                 'mode': "play"
@@ -2063,24 +2081,48 @@ class Music(Items):
         resume, duration = API.getRuntime()
         rating = userdata['UserRating']
 
+        #if enabled, try to get the rating from file and/or emby
+        # if not self.directstream:
+        #     rating, comment, hasEmbeddedCover = musicutils.getAdditionalSongTags(itemid, rating, API, kodicursor, emby_db, self.enableimportsongrating, self.enableexportsongrating, self.enableupdatesongrating)
+        # else:
+        #     hasEmbeddedCover = False
+        #     comment = API.getOverview()
+
+        hasEmbeddedCover = False
         comment = None
 
-        # Plex works a bit differently
-        # if self.directstream:
-        path = "%s%s" % (self.server, item[0][0].attrib.get('key'))
-        filename = API.addPlexCredentialsToUrl(path)
-        # Keep path empty to not let Kodi scan it
-        path = None
-        # else:
-        # path = "plugin://plugin.audio.plexkodiconnect.music/"
-        # filename = API.getKey()
-        # params = {
-        #     'filename': filename,
-        #     'id': itemid,
-        #     'dbid': songid,
-        #     'mode': "play"
-        # }
-        # filename = "%s?%s" % (path, urllib.urlencode(params))
+        # GET THE FILE AND PATH #####
+        doIndirect = not self.directpath
+        if self.directpath:
+            # Direct paths is set the Kodi way
+            playurl = API.getFilePath()
+            if playurl is None:
+                # Something went wrong, trying to use non-direct paths
+                doIndirect = True
+            else:
+                if self.replaceSMB:
+                    playurl = playurl.replace('\\', '/')
+                    playurl = 'smb:' + playurl
+                if (utils.window('emby_pathverified') != "true" and
+                        not xbmcvfs.exists(playurl.encode('utf-8'))):
+                    # Validate the path is correct with user intervention
+                    if self.askToValidate(playurl):
+                        utils.window('emby_shouldStop', value="true")
+                        return False
+                if "\\" in playurl:
+                    # Local path
+                    filename = playurl.rsplit("\\", 1)[1]
+                else:
+                    # Network share
+                    filename = playurl.rsplit("/", 1)[1]
+                path = playurl.replace(filename, "")
+                utils.window('emby_pathverified', value="true")
+        if doIndirect:
+            # Plex works a bit differently
+            path = "%s%s" % (self.server, item[0][0].attrib.get('key'))
+            filename = API.addPlexCredentialsToUrl(path)
+            # Keep path empty to not let Kodi scan it
+            path = None
 
         # UPDATE THE SONG #####
         if update_item:

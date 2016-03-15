@@ -203,6 +203,11 @@ class UserClient(threading.Thread):
         window('plex_machineIdentifier', value=self.machineIdentifier)
         window('plex_servername', value=self.servername)
         window('plex_authenticated', value='true')
+        # self.directpath
+        window('useDirectPaths', value='true'
+               if utils.settings('useDirectPaths') == "1" else 'false')
+        window('replaceSMB', value='true'
+               if utils.settings('replaceSMB') == "true" else 'false')
 
         # Set DownloadUtils values
         doUtils.setUsername(username)

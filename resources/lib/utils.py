@@ -687,6 +687,7 @@ def passwordsXML():
     # To add network credentials
     path = xbmc.translatePath("special://userdata/").decode('utf-8')
     xmlpath = "%spasswords.xml" % path
+    logMsg('Path to passwords.xml: %s' % xmlpath, 1)
 
     try:
         xmlparse = etree.parse(xmlpath)
@@ -751,13 +752,15 @@ def passwordsXML():
         return
     # Network password
     password = dialog.input(
-                        heading="Enter the network password",
-                        option=xbmcgui.ALPHANUM_HIDE_INPUT)
-    if not password:
-        return
+        heading="Enter the network password",
+        default='',
+        type=xbmcgui.INPUT_ALPHANUM,
+        option=xbmcgui.ALPHANUM_HIDE_INPUT)
 
+    logMsg('Done asking for user credentials', 1)
     # Add elements
     for path in root.findall('.//path'):
+        logMsg('Running in loop', 1)
         if path.find('.//from').text.lower() == "smb://%s/" % server.lower():
             # Found the server, rewrite credentials
             path.find('.//to').text = "smb://%s:%s@%s/" % (user, password, server)
@@ -773,19 +776,19 @@ def passwordsXML():
 
     # Add credentials    
     settings('networkCreds', value="%s" % server)
-    logMsg("EMBY", "Added server: %s to passwords.xml" % server, 1)
+    logMsg("PLEX", "Added server: %s to passwords.xml" % server, 1)
     # Prettify and write to file
     try:
         indent(root)
     except: pass
     etree.ElementTree(root).write(xmlpath)
     
-    dialog.notification(
-            heading="PlexKodiConnect",
-            message="%s added to passwords.xml" % server,
-            icon="special://home/addons/plugin.video.plexkodiconnect/icon.png",
-            time=1000,
-            sound=False)
+    # dialog.notification(
+    #     heading="PlexKodiConnect",
+    #     message="Added to passwords.xml",
+    #     icon="special://home/addons/plugin.video.plexkodiconnect/icon.png",
+    #     time=5000,
+    #     sound=False)
 
 def playlistXSP(mediatype, tagname, viewid, viewtype="", delete=False):
     """

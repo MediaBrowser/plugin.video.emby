@@ -302,6 +302,14 @@
     <string id="39024">[COLOR yellow]PMS und plex.tv Verbindungen zurücksetzen für erneuten Login[/COLOR]</string>
     <string id="39025">Automatisch beim Starten bei plex.tv einloggen</string>
     <string id="39026">Laufende Synchronisierung im Hintergrund aktivieren (Neustart!)</string>
+    <string id="39027">Playback Modus</string>
+    <string id="39028">WARNUNG! Mit dem "Native" Modus verlieren Sie Zugang zu Plex Funktionen wie z.B. Trailer und Transkodieren. ALLE Plex Bibliotheken müssen über direkte Plex Pfade für Kodi zugänglich sein (z.B. via \\meinNas\MeinFilm.mkv oder smb://meinNas/MeinFilm.mkv)!</string>
+    <string id="39029">Netzwerk Zugangsdaten</string>
+    <string id="39030">Möchten Sie nun Netzwerk Zugangsdaten eingeben? Wenn Sie diesen Schritt überspringen, wird möglicherweise die Synchronisierung Ihrer Bibliothek fehlschlagen, wenn Kodi nicht auf Ihre Medien zugreifen kann.</string>
+    <string id="39031">Kodi kann die folgende Datei nicht finden: </string>
+    <string id="39032">Bitte verifizieren Sie den Pfad. Möglichweise müssen Sie in den Addon Einstellungen die Netzwerk Zugangsdaten korrekt eingeben, oder Plex muss andere Pfade nutzen. Soll Sync gestoppt werden?</string>
+    <string id="39033">Sollen alle Plex Pfade \\meinNAS\meinFilm.mkv durch smb://meinNAS/meinFilm.mkv ersetzt werden? (empfohlen)</string>
+    <string id="39034">Plex Pfade \\meinNAS durch SMB Pfade smb://meinNAS ersetzen (neu synchen!)</string>
 
     <!-- Plex Entrypoint.py -->
     <string id="39200">Plex Home Benutzer wechseln</string>

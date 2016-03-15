@@ -53,7 +53,7 @@ import requests
 
 import re
 import json
-from urllib import urlencode, quote_plus
+from urllib import urlencode, quote_plus, unquote
 
 from PlexFunctions import PlexToKodiTimefactor, PMSHttpsEnabled
 
@@ -1478,7 +1478,7 @@ class API():
         """
         Returns the type of media, e.g. 'movie' or 'clip' for trailers
         """
-        return self.item.attrib.get('type', None)
+        return self.item.attrib.get('type')
 
     def getChecksum(self):
         """
@@ -1493,19 +1493,43 @@ class API():
         """
         Returns the Plex key such as '246922' as a string
         """
-        return self.item.attrib.get('ratingKey', None)
+        return self.item.attrib.get('ratingKey')
 
     def getKey(self):
         """
         Returns the Plex key such as '/library/metadata/246922'
         """
-        return self.item.attrib.get('key', None)
+        return self.item.attrib.get('key')
+
+    def getFilePath(self):
+        """
+        Returns the direct path to this item, e.g. '\\NAS\movies\movie.mkv'
+        or None
+        """
+        try:
+            res = self.item[0][0].attrib.get('file')
+        except:
+            res = None
+        if res:
+            res = unquote(res).decode('utf-8')
+        return res
+
+    def getTVShowPath(self):
+        """
+        Returns the direct path to the TV show, e.g. '\\NAS\tv\series'
+        or None
+        """
+        res = None
+        for child in self.item:
+            if child.tag == 'Location':
+                res = child.attrib.get('path')
+        return res
 
     def getIndex(self):
         """
         Returns the 'index' of an PMS XML reply. Depicts e.g. season number.
         """
-        return self.item.attrib.get('index', None)
+        return self.item.attrib.get('index')
 
     def getDateCreated(self):
         """

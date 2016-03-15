@@ -234,6 +234,26 @@ class InitialSetup():
         if forcePlexTV:
             return
 
+        # Direct paths (\\NAS\mymovie.mkv) or addon (http)?
+        if dialog.yesno(heading=self.addonName,
+                        line1=string(39027),
+                        line2=string(39028),
+                        nolabel="Addon (Default)",
+                        yeslabel="Native (Direct Paths)"):
+            self.logMsg("User opted to use direct paths.", 1)
+            utils.settings('useDirectPaths', value="1")
+            # Are you on a system where you would like to replace paths
+            # \\NAS\mymovie.mkv with smb://NAS/mymovie.mkv? (e.g. Windows)
+            if dialog.yesno(heading=self.addonName,
+                            line1=string(39033)):
+                self.logMsg("User chose to replace paths with smb", 1)
+
+            # Go to network credentials?
+            if dialog.yesno(heading=self.addonName,
+                            line1=string(39029),
+                            line2=string(39030)):
+                self.logMsg("Presenting network credentials dialog.", 1)
+                utils.passwordsXML()
         # Disable Plex music?
         if dialog.yesno(heading=self.addonName,
                         line1=string(39016)):
