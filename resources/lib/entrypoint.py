@@ -159,6 +159,8 @@ def PassPlaylist(xml, resume=None):
 def doPlayback(itemid, dbid):
     """
     Called only for a SINGLE element, not playQueues
+
+    Always to return with a "setResolvedUrl"
     """
     if utils.window('plex_authenticated') != "true":
         utils.logMsg('doPlayback', 'Not yet authenticated for a PMS, abort '
@@ -171,11 +173,14 @@ def doPlayback(itemid, dbid):
             icon=xbmcgui.NOTIFICATION_ERROR,
             time=7000,
             sound=True)
-        return False
+        return xbmcplugin.setResolvedUrl(
+            int(sys.argv[1]), False, xbmcgui.ListItem())
 
     item = PlexFunctions.GetPlexMetadata(itemid)
     if item is None:
-        return False
+        return xbmcplugin.setResolvedUrl(
+            int(sys.argv[1]), False, xbmcgui.ListItem())
+    # Everything OK
     return pbutils.PlaybackUtils(item).play(itemid, dbid)
 
     # utils.logMsg(title, "doPlayback called with itemid=%s, dbid=%s"
@@ -220,7 +225,6 @@ def resetAuth():
         utils.window('emby_serverStatus', value="Auth")
     else:
         xbmc.executebuiltin('Addon.OpenSettings(plugin.video.plexkodiconnect)')
-
 def addDirectoryItem(label, path, folder=True):
     li = xbmcgui.ListItem(label, path=path)
     li.setThumbnailImage("special://home/addons/plugin.video.plexkodiconnect/icon.png")
