@@ -251,7 +251,7 @@
     <string id="30246">Enable Netflix style next up notification</string>
     <string id="30247"> - The number of seconds before the end to show the notification</string>
     <string id="30248">Zeige Emby-Infodialog bei Abspiel/Auswahl Aktion</string>
-    <string id="30249">Unterdrücke Server-Verbindungsmeldungen beim Starten</string>
+    <string id="30249">Server-Verbindungsmeldungen beim Starten anzeigen</string>
     <string id="30250">Benutze lokale Pfade anstelle von Addon-Umleitungen beim Abspielen</string>
 
     <string id="30515">Max. Anzahl gleichzeitig nachgefragter PMS Einträge (Neustart!)</string>

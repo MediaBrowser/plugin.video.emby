@@ -168,7 +168,8 @@ class Service():
                     else:
                         # Start up events
                         self.warn_auth = True
-                        if self.welcome_msg:
+                        if (utils.settings('connectMsg') == "true" and
+                                self.welcome_msg):
                             # Reset authentication warnings
                             self.welcome_msg = False
                             xbmcgui.Dialog().notification(
