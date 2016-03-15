@@ -42,6 +42,8 @@ class VideoNodes(object):
 
     def viewNode(self, indexnumber, tagname, mediatype, viewtype, viewid, delete=False):
         # Plex: reassign mediatype due to Kodi inner workings
+        # How many items do we get at most?
+        limit = "100"
         mediatypes = {
             'movie': 'movies',
             'show': 'tvshows',
@@ -135,26 +137,27 @@ class VideoNodes(object):
                 {
                 '1': tagname,
                 '2': 30174,
-                '4': 30177,
-                '6': 30189,
+                # '4': 30177,
+                # '6': 30189,
                 '8': 20434,
                 '9': 135,
-                '10': 30229,
-                '11': 30230
+                '10': 30227,
+                '11': 30230,
+                '12': 39500,
                 },
 
             'tvshows': 
                 {
                 '1': tagname,
-                '2': 30170,
-                '3': 30175,
-                '4': 30171,
-                '5': 30178,
-                '7': 30179,
+                # '2': 30170,
+                '3': 30174,
+                # '4': 30171,
+                # '5': 30178,
+                # '7': 30179,
                 '9': 135,
-                '10': 30229,
-                '11': 30230,
-                '12': 39500
+                '10': 30227,
+                # '11': 30230,
+                '12': 39500,
                 },
                 
             'homevideos': 
@@ -179,6 +182,22 @@ class VideoNodes(object):
                 '4': 30257,
                 '6': 30258
                 }
+        }
+
+        # Key: nodetypes, value: sort order in Kodi
+        sortorder = {
+            '1': '3',  # "all",
+            '2': '2',  # "recent",
+            '3': '2',  # "recentepisodes",
+            # '4': # "inprogress",
+            # '5': # "inprogressepisodes",
+            # '6': # "unwatched",
+            # '7': # "nextepisodes",
+            '8': '7',  # "sets",
+            '9': '6',  # "genres",
+            '10': '8',  # "random",
+            '11': '5',  # "recommended",
+            '12': '1',  # "ondeck"
         }
 
         nodes = mediatypes[mediatype]
@@ -206,17 +225,21 @@ class VideoNodes(object):
                         % (tagname, mediatype, nodetype))
             elif nodetype == "nextepisodes":
                 # Custom query
-                path = "plugin://plugin.video.plexkodiconnect/?id=%s&mode=nextup&limit=50" % tagname
+                path = "plugin://plugin.video.plexkodiconnect/?id=%s&mode=nextup&limit=%s" % (tagname, limit)
             elif kodiversion == 14 and nodetype == "recentepisodes":
                 # Custom query
-                path = "plugin://plugin.video.plexkodiconnect/?id=%s&mode=recentepisodes&limit=50" % tagname
+                path = "plugin://plugin.video.plexkodiconnect/?id=%s&mode=recentepisodes&limit=%s" % (tagname, limit)
             elif kodiversion == 14 and nodetype == "inprogressepisodes":
                 # Custom query
-                path = "plugin://plugin.video.plexkodiconnect/?id=%s&mode=inprogressepisodes&limit=50"% tagname
+                path = "plugin://plugin.video.plexkodiconnect/?id=%s&mode=inprogressepisodes&limit=%s" % (tagname, limit)
             elif nodetype == 'ondeck':
                 # PLEX custom query
-                path = ("plugin://plugin.video.plexkodiconnect/?id=%s&mode=browseplex&type=%s&folderid=%s"
-                        % (viewid, mediatype, nodetype))
+                if mediatype == "tvshows":
+                    path = ("plugin://plugin.video.plexkodiconnect/?id=%s&mode=ondeck&type=%s&tagname=%s&limit=%s"
+                        % (viewid, mediatype, tagname, limit))
+                elif mediatype =="movies":
+                    # Reset nodetype; we got the label
+                    nodetype = 'inprogress'
             else:
                 path = "library://video/Plex-%s/%s_%s.xml" % (dirname, viewid, nodetype)
             
@@ -257,17 +280,16 @@ class VideoNodes(object):
             if (nodetype in ("nextepisodes", "ondeck") or mediatype == "homevideos" or
                     (kodiversion == 14 and nodetype in ('recentepisodes', 'inprogressepisodes'))):
                 # Folder type with plugin path
-                root = self.commonRoot(order=node, label=label, tagname=tagname, roottype=2)
+                root = self.commonRoot(order=sortorder[node], label=label, tagname=tagname, roottype=2)
                 etree.SubElement(root, 'path').text = path
                 etree.SubElement(root, 'content').text = "episodes"
             else:
-                root = self.commonRoot(order=node, label=label, tagname=tagname)
+                root = self.commonRoot(order=sortorder[node], label=label, tagname=tagname)
                 if nodetype in ('recentepisodes', 'inprogressepisodes'):
                     etree.SubElement(root, 'content').text = "episodes"
                 else:
                     etree.SubElement(root, 'content').text = mediatype
 
-                limit = "50"
                 # Elements per nodetype
                 if nodetype == "all":
                     etree.SubElement(root, 'order', {'direction': "ascending"}).text = "sorttitle"
@@ -317,7 +339,7 @@ class VideoNodes(object):
 
                 elif nodetype == "inprogressepisodes":
                     # Kodi Isengard, Jarvis
-                    etree.SubElement(root, 'limit').text = "50"
+                    etree.SubElement(root, 'limit').text = limit
                     rule = etree.SubElement(root, 'rule',
                         attrib={'field': "inprogress", 'operator':"true"})
 

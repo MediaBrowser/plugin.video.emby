@@ -671,19 +671,12 @@ def GetSubFolders(nodeindex):
               
 ##### BROWSE EMBY NODES DIRECTLY #####    
 def BrowseContent(viewname, type="", folderid=""):
-    """
-    Plex:
-        viewname:   PMS name of the library
-        type:       PMS library section ID
-        folderid:   e.g. 'ondeck'
-    """
     emby = embyserver.Read_EmbyServer()
     art = artwork.Artwork()
     doUtils = downloadutils.DownloadUtils()
     
     #folderid used as filter ?
-    if folderid in ["recent","recentepisodes","inprogress","inprogressepisodes","unwatched","nextepisodes","sets","genres","random","recommended",
-        "ondeck"]:
+    if folderid in ["recent","recentepisodes","inprogress","inprogressepisodes","unwatched","nextepisodes","sets","genres","random","recommended"]:
         filter = folderid
         folderid = ""
     else:
@@ -1346,5 +1339,124 @@ def BrowsePlexContent(viewid, mediatype="", nodetype=""):
         xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_DATE)
         xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_RATING)
         xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_RUNTIME)
+
+    xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
+
+
+def getOnDeck(viewid, mediatype, tagname, limit):
+    """
+    Retrieves Plex On Deck items, currently only for TV shows
+
+    Input:
+        viewid:             Plex id of the library section, e.g. '1'
+        mediatype:          Kodi mediatype, e.g. 'tvshows', 'movies',
+                            'homevideos', 'photos'
+        tagname:            Name of the Plex library, e.g. "My Movies"
+        limit:              Max. number of items to retrieve, e.g. '50'
+    """
+    # if the addon is called with nextup parameter,
+    # we return the nextepisodes list of the given tagname
+    xbmcplugin.setContent(int(sys.argv[1]), 'episodes')
+    # First we get a list of all the TV shows - filtered by tag
+    query = {
+        'jsonrpc': "2.0",
+        'id': "libTvShows",
+        'method': "VideoLibrary.GetTVShows",
+        'params': {
+            'sort': {'order': "descending", 'method': "lastplayed"},
+            'filter': {
+                'and': [
+                    {'operator': "true", 'field': "inprogress", 'value': ""},
+                    {'operator': "is", 'field': "tag", 'value': "%s" % tagname}
+                ]}
+        }
+    }
+    result = xbmc.executeJSONRPC(json.dumps(query))
+    result = json.loads(result)
+    utils.logMsg('test', 'result: %s' % result, 1)
+    # If we found any, find the oldest unwatched show for each one.
+    try:
+        items = result['result'][mediatype]
+    except (KeyError, TypeError):
+        # Now items retrieved - empty directory
+        xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
+        return
+
+    query = {
+        'jsonrpc': "2.0",
+        'id': 1,
+        'method': "VideoLibrary.GetEpisodes",
+        'params': {
+            'sort': {'method': "episode"},
+            'limits': {"end": 1},
+            'properties': [
+                "title", "playcount", "season", "episode", "showtitle",
+                "plot", "file", "rating", "resume", "tvshowid", "art",
+                "streamdetails", "firstaired", "runtime", "cast", "writer",
+                "dateadded", "lastplayed"
+            ],
+        }
+    }
+
+    if utils.settings('ignoreSpecialsNextEpisodes') == "true":
+        query['params']['filter'] = {
+            'and': [
+                {'operator': "lessthan", 'field': "playcount", 'value': "1"},
+                {'operator': "greaterthan", 'field': "season", 'value': "0"}
+            ]
+        }
+    else:
+        query['params']['filter'] = {
+            'or': [
+                {'operator': "lessthan", 'field': "playcount", 'value': "1"},
+                {'operator': "true", 'field': "inprogress", 'value': ""}
+            ]
+        }
+
+    # Are there any episodes still in progress/not yet finished watching?!?
+    # Then we should show this episode, NOT the "next up"
+    inprogrQuery = {
+        'jsonrpc': "2.0",
+        'id': 1,
+        'method': "VideoLibrary.GetEpisodes",
+        'params': {
+            'sort': {'method': "episode"},
+            'filter': {'operator': "true", 'field': "inprogress", 'value': ""},
+        }
+    }
+    inprogrQuery['params']['properties'] = query['params']['properties']
+
+    count = 0
+    for item in items:
+        inprogrQuery['params']['tvshowid'] = item['tvshowid']
+        result = xbmc.executeJSONRPC(json.dumps(inprogrQuery))
+        result = json.loads(result)
+        utils.logMsg('test', 'result: %s' % result, 1)
+        try:
+            episodes = result['result']['episodes']
+        except (KeyError, TypeError):
+            # No, there are no episodes not yet finished. Get "next up"
+            query['params']['tvshowid'] = item['tvshowid']
+            result = xbmc.executeJSONRPC(json.dumps(query))
+            result = json.loads(result)
+            try:
+                episodes = result['result']['episodes']
+            except (KeyError, TypeError):
+                # Also no episodes currently coming up
+                continue
+        utils.logMsg('test', 'results: %s' % episodes, 1)
+        for episode in episodes:
+            # There will always be only 1 episode ('limit=1')
+            utils.logMsg('test', 'episode: %s' % episode, 1)
+            li = createListItem(episode)
+            xbmcplugin.addDirectoryItem(
+                handle=int(sys.argv[1]),
+                url=episode['file'],
+                listitem=li,
+                isFolder=False)
+
+        count += 1
+        if count >= limit:
+            break
 
     xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))

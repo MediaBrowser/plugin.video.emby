@@ -176,7 +176,7 @@
     <string id="30171">Begonnene Serien</string>
     <string id="30172">Alles an Musik</string>
     <string id="30173">Kanäle</string>
-    <string id="30174">Zuletzt hinzugefügte Filme</string>
+    <string id="30174">Zuletzt hinzugefügt</string> <!-- Movies -->
     <string id="30175">Zuletzt hinzugefügte Episoden</string>
     <string id="30176">Zuletzt hinzugefügte Alben</string>
     <string id="30177">Begonnene Filme</string>
@@ -231,8 +231,10 @@
     <string id="30225">Benutze Kodi Sortierung</string>
     <string id="30226">Laufzeit</string>
 
-    <string id="30227">Zufällige Filme</string>
-    <string id="30228">Zufällige Episoden</string>
+    <string id="30227">Zufällig</string>
+    <string id="30228">Kürzlich veröffentlicht</string>
+    <string id="30230">Empfohlen</string>
+
 
     <string id="30235">Extras</string>
     <string id="30236">Synchronisiere Themen-Musik</string>
@@ -342,8 +344,5 @@
     <string id="39406">Plex Playlisten/Nodes Aktualisierung fehlgeschlagen</string>
     <string id="39407">Plex Bibliotheken aktualisiert</string>
     <string id="39408">Einige Plex Einträge mussten übersprungen werden, da sie nicht verarbeitet werden konnten. Kodi ist nun möglicherweise instabil!! Bitte teilen Sie Ihr Kodi log im Plex Forum.</string>
-
-    <!-- Plex videonodes.py -->
-    <string id="39500">Aktuell</string>
 
 </strings>

@@ -148,7 +148,7 @@
     <string id="30171">In Progress TV Shows</string><!-- Verified -->
     <string id="30172">All Music</string>              
     <string id="30173">Channels</string><!-- Verified -->
-    <string id="30174">Recently Added Movies</string><!-- Verified -->
+    <string id="30174">Recently Added</string><!-- Verified -->
     <string id="30175">Recently Added Episodes</string><!-- Verified -->
     <string id="30176">Recently Added Albums</string>  
     <string id="30177">In Progress Movies</string><!-- Verified -->
@@ -203,10 +203,10 @@
     <string id="30225">Use Kodi Sorting</string>
     <string id="30226">Runtime</string>
     
-    <string id="30227">Random Movies</string>
-    <string id="30228">Random Episodes</string>
+    <string id="30227">Random</string>
+    <string id="30228">Recently releases</string>
     <string id="30229">Random Items</string><!-- Verified -->
-    <string id="30230">Recommended Items</string><!-- Verified -->
+    <string id="30230">Recommended</string><!-- Verified -->
     
     <string id="30235">Extras</string><!-- Verified -->
     <string id="30236">Sync Theme Music</string>
@@ -410,9 +410,5 @@
     <string id="39406">Plex playlists/nodes refresh failed</string>
     <string id="39407">Full library sync finished</string>
     <string id="39408">Sync had to skip some items because they could not be processed. Kodi may be instable now!! Please post your Kodi logs to the Plex forum.</string>
-
-    <!-- Plex videonodes.py -->
-    <string id="39500">On Deck</string>
-
 
 </strings>

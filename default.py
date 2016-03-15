@@ -69,7 +69,8 @@ class Main:
             'deviceid': entrypoint.resetDeviceId,
             'reConnect': entrypoint.reConnect,
             'delete': entrypoint.deleteItem,
-            'browseplex': entrypoint.BrowsePlexContent
+            'browseplex': entrypoint.BrowsePlexContent,
+            'ondeck': entrypoint.getOnDeck
         }
         
         if "/extrafanart" in sys.argv[0]:
@@ -104,6 +105,13 @@ class Main:
                     itemid,
                     params.get('type', [""])[0],
                     params.get('folderid', [""])[0])
+
+            elif mode == 'ondeck':
+                modes[mode](
+                    itemid,
+                    params.get('type', [""])[0],
+                    params.get('tagname', [""])[0],
+                    params.get('limit', [""])[0])
 
             elif mode == "channelsfolder":
                 folderid = params['folderid'][0]
