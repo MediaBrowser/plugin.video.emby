@@ -90,7 +90,7 @@ class Main:
                 # modes[mode](itemid, dbid)
                 modes[mode](itemid, dbid)
 
-            elif mode in ("nextup", "inprogressepisodes", "recentepisodes"):
+            elif mode in ("nextup", "inprogressepisodes"):
                 limit = int(params['limit'][0])
                 modes[mode](itemid, limit)
             
@@ -106,12 +106,12 @@ class Main:
                     params.get('type', [""])[0],
                     params.get('folderid', [""])[0])
 
-            elif mode == 'ondeck':
+            elif mode in ('ondeck', 'recentepisodes'):
                 modes[mode](
                     itemid,
                     params.get('type', [""])[0],
                     params.get('tagname', [""])[0],
-                    params.get('limit', [""])[0])
+                    int(params.get('limit', [""])[0]))
 
             elif mode == "channelsfolder":
                 folderid = params['folderid'][0]

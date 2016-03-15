@@ -226,9 +226,11 @@ class VideoNodes(object):
             elif nodetype == "nextepisodes":
                 # Custom query
                 path = "plugin://plugin.video.plexkodiconnect/?id=%s&mode=nextup&limit=%s" % (tagname, limit)
-            elif kodiversion == 14 and nodetype == "recentepisodes":
+            # elif kodiversion == 14 and nodetype == "recentepisodes":
+            elif nodetype == "recentepisodes":
                 # Custom query
-                path = "plugin://plugin.video.plexkodiconnect/?id=%s&mode=recentepisodes&limit=%s" % (tagname, limit)
+                path = ("plugin://plugin.video.plexkodiconnect/?id=%s&mode=recentepisodes&type=%s&tagname=%s&limit=%s"
+                    % (viewid, mediatype, tagname, limit))
             elif kodiversion == 14 and nodetype == "inprogressepisodes":
                 # Custom query
                 path = "plugin://plugin.video.plexkodiconnect/?id=%s&mode=inprogressepisodes&limit=%s" % (tagname, limit)
@@ -277,8 +279,7 @@ class VideoNodes(object):
                 continue
 
             # Create the root
-            if (nodetype in ("nextepisodes", "ondeck") or mediatype == "homevideos" or
-                    (kodiversion == 14 and nodetype in ('recentepisodes', 'inprogressepisodes'))):
+            if (nodetype in ("nextepisodes", "ondeck", 'recentepisodes') or mediatype == "homevideos"):
                 # Folder type with plugin path
                 root = self.commonRoot(order=sortorder[node], label=label, tagname=tagname, roottype=2)
                 etree.SubElement(root, 'path').text = path

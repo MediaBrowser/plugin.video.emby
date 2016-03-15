@@ -1113,72 +1113,69 @@ def getInProgressEpisodes(tagname, limit):
     xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
 
 ##### GET RECENT EPISODES FOR TAGNAME #####    
-def getRecentEpisodes(tagname, limit):
-    
+# def getRecentEpisodes(tagname, limit):
+def getRecentEpisodes(viewid, mediatype, tagname, limit):
     count = 0
     # if the addon is called with recentepisodes parameter,
     # we return the recentepisodes list of the given tagname
     xbmcplugin.setContent(int(sys.argv[1]), 'episodes')
     # First we get a list of all the TV shows - filtered by tag
     query = {
-
         'jsonrpc': "2.0",
         'id': "libTvShows",
         'method': "VideoLibrary.GetTVShows",
         'params': {
-
             'sort': {'order': "descending", 'method': "dateadded"},
             'filter': {'operator': "is", 'field': "tag", 'value': "%s" % tagname},
-            'properties': ["title","sorttitle"]
         }
     }
     result = xbmc.executeJSONRPC(json.dumps(query))
     result = json.loads(result)
     # If we found any, find the oldest unwatched show for each one.
     try:
-        items = result['result']['tvshows']
+        items = result['result'][mediatype]
+    except (KeyError, TypeError):
+        # No items, empty folder
+        xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
+        return
+
+    allshowsIds = set()
+    for item in items:
+        allshowsIds.add(item['tvshowid'])
+
+    query = {
+        'jsonrpc': "2.0",
+        'id': 1,
+        'method': "VideoLibrary.GetEpisodes",
+        'params': {
+            'sort': {'order': "descending", 'method': "dateadded"},
+            'filter': {'operator': "lessthan", 'field': "playcount", 'value': "1"},
+            'properties': [
+                "title", "playcount", "season", "episode", "showtitle", "plot",
+                "file", "rating", "resume", "tvshowid", "art", "streamdetails",
+                "firstaired", "runtime", "cast", "writer", "dateadded", "lastplayed"
+            ],
+            "limits": {"end": limit}
+        }
+    }
+    result = xbmc.executeJSONRPC(json.dumps(query))
+    result = json.loads(result)
+    try:
+        episodes = result['result']['episodes']
     except (KeyError, TypeError):
         pass
     else:
-        allshowsIds = set()
-        for item in items:
-            allshowsIds.add(item['tvshowid'])
+        for episode in episodes:
+            if episode['tvshowid'] in allshowsIds:
+                li = createListItem(episode)
+                xbmcplugin.addDirectoryItem(
+                            handle=int(sys.argv[1]),
+                            url=episode['file'],
+                            listitem=li)
+                count += 1
 
-        query = {
-
-            'jsonrpc': "2.0",
-            'id': 1,
-            'method': "VideoLibrary.GetEpisodes",
-            'params': {
-
-                'sort': {'order': "descending", 'method': "dateadded"},
-                'filter': {'operator': "lessthan", 'field': "playcount", 'value': "1"},
-                'properties': [
-                    "title", "playcount", "season", "episode", "showtitle", "plot",
-                    "file", "rating", "resume", "tvshowid", "art", "streamdetails",
-                    "firstaired", "runtime", "cast", "writer", "dateadded", "lastplayed"
-                ],
-                "limits": {"end": limit}
-            }
-        }
-        result = xbmc.executeJSONRPC(json.dumps(query))
-        result = json.loads(result)
-        try:
-            episodes = result['result']['episodes']
-        except (KeyError, TypeError):
-            pass
-        else:
-            for episode in episodes:
-                if episode['tvshowid'] in allshowsIds:
-                    li = createListItem(episode)
-                    xbmcplugin.addDirectoryItem(
-                                handle=int(sys.argv[1]),
-                                url=episode['file'],
-                                listitem=li)
-                    count += 1
-
-                if count == limit:
-                    break
+            if count == limit:
+                break
 
     xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
 
@@ -1352,7 +1349,7 @@ def getOnDeck(viewid, mediatype, tagname, limit):
         mediatype:          Kodi mediatype, e.g. 'tvshows', 'movies',
                             'homevideos', 'photos'
         tagname:            Name of the Plex library, e.g. "My Movies"
-        limit:              Max. number of items to retrieve, e.g. '50'
+        limit:              Max. number of items to retrieve, e.g. 50
     """
     # if the addon is called with nextup parameter,
     # we return the nextepisodes list of the given tagname
@@ -1373,7 +1370,6 @@ def getOnDeck(viewid, mediatype, tagname, limit):
     }
     result = xbmc.executeJSONRPC(json.dumps(query))
     result = json.loads(result)
-    utils.logMsg('test', 'result: %s' % result, 1)
     # If we found any, find the oldest unwatched show for each one.
     try:
         items = result['result'][mediatype]
@@ -1431,7 +1427,6 @@ def getOnDeck(viewid, mediatype, tagname, limit):
         inprogrQuery['params']['tvshowid'] = item['tvshowid']
         result = xbmc.executeJSONRPC(json.dumps(inprogrQuery))
         result = json.loads(result)
-        utils.logMsg('test', 'result: %s' % result, 1)
         try:
             episodes = result['result']['episodes']
         except (KeyError, TypeError):
@@ -1444,10 +1439,8 @@ def getOnDeck(viewid, mediatype, tagname, limit):
             except (KeyError, TypeError):
                 # Also no episodes currently coming up
                 continue
-        utils.logMsg('test', 'results: %s' % episodes, 1)
         for episode in episodes:
             # There will always be only 1 episode ('limit=1')
-            utils.logMsg('test', 'episode: %s' % episode, 1)
             li = createListItem(episode)
             xbmcplugin.addDirectoryItem(
                 handle=int(sys.argv[1]),
