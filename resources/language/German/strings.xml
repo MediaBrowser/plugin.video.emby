@@ -345,4 +345,7 @@
     <string id="39407">Plex Bibliotheken aktualisiert</string>
     <string id="39408">Einige Plex Einträge mussten übersprungen werden, da sie nicht verarbeitet werden konnten. Kodi ist nun möglicherweise instabil!! Bitte teilen Sie Ihr Kodi log im Plex Forum.</string>
 
+    <!-- Plex videonodes.py -->
+    <string id="39500">Aktuell</string>
+
 </strings>
