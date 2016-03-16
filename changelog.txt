@@ -1,3 +1,12 @@
+version 1.0.13
+- Sync theTVDB id for TV shows from Plex to Kodi
+- Custom smb path substitutions for direct paths
+- Fix direct path playback not being reported to PMS
+- Fix Plex Companion not working with direct paths
+- Clean up PKC settings
+- Fix network credentials dialog issues
+- Update readme
+
 version 1.0.12
 - Possibility to use direct paths (you need to reset!)
 - Replicate Plex views in video nodes
