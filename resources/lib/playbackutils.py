@@ -251,7 +251,6 @@ class PlaybackUtils():
         return True
 
     def setProperties(self, playurl, listitem):
-
         window = utils.window
         # Set all properties necessary for plugin path playback
         itemid = self.API.getRatingKey()

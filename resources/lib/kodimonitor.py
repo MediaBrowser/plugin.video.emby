@@ -68,7 +68,6 @@ class KodiMonitor(xbmc.Monitor):
         if data:
             data = json.loads(data,'utf-8')
 
-
         if method == "Player.OnPlay":
             # Set up report progress for emby playback
             item = data.get('item')
@@ -81,19 +80,15 @@ class KodiMonitor(xbmc.Monitor):
                 if ((utils.settings('useDirectPaths') == "1" and not type == "song") or
                         (type == "song" and utils.settings('enableMusic') == "true")):
                     # Set up properties for player
-                    embyconn = utils.kodiSQL('emby')
-                    embycursor = embyconn.cursor()
-                    emby_db = embydb.Embydb_Functions(embycursor)
-                    emby_dbitem = emby_db.getItem_byKodiId(kodiid, type)
+                    with embydb.GetEmbyDB() as emby_db:
+                        emby_dbitem = emby_db.getItem_byKodiId(kodiid, type)
                     try:
                         itemid = emby_dbitem[0]
                     except TypeError:
                         self.logMsg("No kodiid returned.", 1)
                     else:
-                        url = "{server}/emby/Users/{UserId}/Items/%s?format=json" % itemid
+                        url = "{server}/library/metadata/%s" % itemid
                         result = doUtils.downloadUrl(url)
-                        self.logMsg("Item: %s" % result, 2)
-
                         playurl = None
                         count = 0
                         while not playurl and count < 2:
@@ -114,8 +109,6 @@ class KodiMonitor(xbmc.Monitor):
                                         value="DirectPlay")
                                 # Set properties for player.py
                                 playback.setProperties(playurl, listItem)
-                    finally:
-                        embycursor.close()
 
         elif method == "VideoLibrary.OnUpdate":
             # Manually marking as watched/unwatched
@@ -128,10 +121,8 @@ class KodiMonitor(xbmc.Monitor):
                 self.logMsg("Item is invalid for playstate update.", 1)
             else:
                 # Send notification to the server.
-                embyconn = utils.kodiSQL('emby')
-                embycursor = embyconn.cursor()
-                emby_db = embydb.Embydb_Functions(embycursor)
-                emby_dbitem = emby_db.getItem_byKodiId(kodiid, type)
+                with embydb.GetEmbyDB() as emby_db:
+                    emby_dbitem = emby_db.getItem_byKodiId(kodiid, type)
                 try:
                     itemid = emby_dbitem[0]
                 except TypeError:
@@ -147,10 +138,6 @@ class KodiMonitor(xbmc.Monitor):
                             scrobble(itemid, 'watched')
                         else:
                             scrobble(itemid, 'unwatched')
-
-                finally:
-                    embycursor.close()
-
 
         elif method == "VideoLibrary.OnRemove":
             # Removed function, because with plugin paths + clean library, it will wipe
