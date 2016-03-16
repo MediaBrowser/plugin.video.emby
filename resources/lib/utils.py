@@ -682,25 +682,28 @@ def sourcesXML():
     except: pass
     etree.ElementTree(root).write(xmlpath)
 
-def passwordsXML():
 
+def passwordsXML():
     # To add network credentials
     path = xbmc.translatePath("special://userdata/").decode('utf-8')
     xmlpath = "%spasswords.xml" % path
-    logMsg('Path to passwords.xml: %s' % xmlpath, 1)
+    logMsg('passwordsXML', 'Path to passwords.xml: %s' % xmlpath, 1)
 
     try:
         xmlparse = etree.parse(xmlpath)
     except: # Document is blank or missing
         root = etree.Element('passwords')
+        skipFind = True
     else:
         root = xmlparse.getroot()
+        skipFind = False
 
     dialog = xbmcgui.Dialog()
     credentials = settings('networkCreds')
     if credentials:
         # Present user with options
-        option = dialog.select("Modify/Remove network credentials", ["Modify", "Remove"])
+        option = dialog.select(
+            "Modify/Remove network credentials", ["Modify", "Remove"])
 
         if option < 0:
             # User cancelled dialog
@@ -714,8 +717,9 @@ def passwordsXML():
                 for path in paths:
                     if path.find('.//from').text == "smb://%s/" % credentials:
                         paths.remove(path)
-                        logMsg("EMBY", "Successfully removed credentials for: %s"
-                                % credentials, 1)
+                        logMsg("passwordsXML",
+                               "Successfully removed credentials for: %s"
+                               % credentials, 1)
                         etree.ElementTree(root).write(xmlpath)
                         break
             else:
@@ -723,11 +727,11 @@ def passwordsXML():
             
             settings('networkCreds', value="")
             xbmcgui.Dialog().notification(
-                                heading='PlexKodiConnect',
-                                message="%s removed from passwords.xml" % credentials,
-                                icon="special://home/addons/plugin.video.plexkodiconnect/icon.png",
-                                time=1000,
-                                sound=False)
+                heading='PlexKodiConnect',
+                message="%s removed from passwords.xml" % credentials,
+                icon="special://home/addons/plugin.video.plexkodiconnect/icon.png",
+                time=1000,
+                sound=False)
             return
 
         elif option == 0:
@@ -741,7 +745,7 @@ def passwordsXML():
             heading="Network credentials",
             line1= (
                 "Input the server name or IP address as indicated in your plex library paths. "
-                'For example, the server name: \\\\SERVER-PC\\path\\ is "SERVER-PC".'))
+                'For example, the server name: \\\\SERVER-PC\\path\\ or smb://SERVER-PC/path is "SERVER-PC".'))
         server = dialog.input("Enter the server name or IP address")
         if not server:
             return
@@ -751,21 +755,21 @@ def passwordsXML():
     if not user:
         return
     # Network password
-    password = dialog.input(
-        heading="Enter the network password",
-        default='',
-        type=xbmcgui.INPUT_ALPHANUM,
-        option=xbmcgui.ALPHANUM_HIDE_INPUT)
+    password = dialog.input("Enter the network password",
+                            '',  # Default input
+                            xbmcgui.INPUT_ALPHANUM,
+                            xbmcgui.ALPHANUM_HIDE_INPUT)
 
-    logMsg('Done asking for user credentials', 1)
-    # Add elements
-    for path in root.findall('.//path'):
-        logMsg('Running in loop', 1)
-        if path.find('.//from').text.lower() == "smb://%s/" % server.lower():
-            # Found the server, rewrite credentials
-            path.find('.//to').text = "smb://%s:%s@%s/" % (user, password, server)
-            break
-    else:
+    # Add elements. Annoying etree bug where findall hangs forever
+    if skipFind is False:
+        skipFind = True
+        for path in root.findall('.//path'):
+            if path.find('.//from').text.lower() == "smb://%s/" % server.lower():
+                # Found the server, rewrite credentials
+                path.find('.//to').text = "smb://%s:%s@%s/" % (user, password, server)
+                skipFind = False
+                break
+    if skipFind:
         # Server not found, add it.
         path = etree.SubElement(root, 'path')
         etree.SubElement(path, 'from', attrib={'pathversion': "1"}).text = "smb://%s/" % server
