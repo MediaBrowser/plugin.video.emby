@@ -271,13 +271,13 @@
     <string id="30506">Sync Options</string>
     <string id="30507">Show syncing progress</string>
     <string id="30508">Sync empty TV Shows</string>
-    <string id="30509">Enable Music Library (restart Kodi!)</string>
+    <string id="30509">Enable Music Library</string>
     <string id="30510">Direct stream music library</string>
-    <string id="30511">Playback Mode (resync!)</string>
+    <string id="30511">Playback Mode</string>
     <string id="30512">Force artwork caching</string>
     <string id="30513">Limit artwork cache threads (recommended for rpi)</string>
     <string id="30514">Enable fast startup (requires server plugin)</string>
-    <string id="30515">Maximum items to request from the server at once (restart!)</string>
+    <string id="30515">Maximum items to request from the server at once</string>
     <string id="30516">Playback</string>
     <string id="30517">[COLOR yellow]Enter network credentials[/COLOR]</string>
     <string id="30518">Enable Plex Trailers (Plexpass is needed)</string>
@@ -299,6 +299,9 @@
     <string id="30534">Server messages</string>
     <string id="30535">Generate a new device Id</string>
     <string id="30536">Users must log in every time when Kodi restarts</string>
+    <string id="30537">Restart Kodi if you make changes</string>
+    <string id="30538">Complete Re-Sync necessary</string>
+
 
     <!-- service add-on -->
     <string id="33000">Welcome</string>
@@ -365,7 +368,7 @@
     <string id="39023">Failed to authenticate. Did you login to plex.tv?</string>
     <string id="39024">[COLOR yellow]Reset PMS and plex.tv connections to re-login[/COLOR]</string>
     <string id="39025">Automatically log into plex.tv on startup</string>
-    <string id="39026">Enable constant background sync (restart Kodi!)</string>
+    <string id="39026">Enable constant background sync</string>
     <string id="39027">Playback Mode</string>
     <string id="39028">CAUTION! If you choose "Native" mode , you might loose access to certain Plex features such as: Plex trailers and transcoding options. ALL Plex shares need to use direct paths (e.g. smb://myNAS/mymovie.mkv or \\myNAS/mymovie.mkv)!</string>
     <string id="39029">Network credentials</string>
@@ -373,7 +376,7 @@
     <string id="39031">Kodi can't locate file: </string>
     <string id="39032">Please verify the path. You may need to verify your network credentials in the add-on settings or use different Plex paths. Stop syncing?</string>
     <string id="39033">Shall we transform Plex paths from e.g. \\myNas\mymovie.mkv to smb://myNas/mymovie.mkv? (recommended)</string>
-    <string id="39034">Replace Plex paths \\myNas with SMB paths smb://myNas (resync!)</string>
+    <string id="39034">Replace Plex paths \\myNas with SMB paths smb://myNas</string>
 
 
     <!-- Plex Entrypoint.py -->

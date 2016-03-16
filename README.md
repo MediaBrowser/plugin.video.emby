@@ -6,7 +6,7 @@
 **Installation in Kodi**
 
 1. You might want to uninstall everything else Plex related first, e.g. PlexBMC and PlexBMC Helper. Starting with a fresh Kodi install might be a good idea. Be sure to use a "normal", unmodded Skin in Kodi to start with.
-If you're updating, you might also want to do a complete reset of the plugin: Settings -> Advanced -> "Perform full DB reset (full DB resync)". Choose "Yes" for all questions.
+If you're updating, you might also want to do a complete reset of the plugin: Settings -> Advanced -> "Perform local database reset (full resync)". Choose "Yes" for all questions.
 2. Simply fire up Kodi and Install from ZIP from here on. 
 3. Install the 2 needed dependencies first (be sure to NOT download the sources but the additional release files): https://github.com/croneter/plugin.video.plexkodiconnect.tvshows/releases/ and https://github.com/croneter/plugin.video.plexkodiconnect.movies/releases/
 5. Then install PlexKodiConnect, again the additional release file from here: https://github.com/croneter/PlexKodiConnect/releases/
@@ -19,7 +19,7 @@ If you're updating, you might also want to do a complete reset of the plugin: Se
 This software is yet in a Beta version. You have been warned. It's very probable that you will need to fully resync and reset your setup on a regular basis.
 
 **Having Problems? Then thanks for your log files**
-It's always a good idea to try resetting the Addon: Settings -> Advanced -> "Perform full DB reset (full DB resync)"
+It's always a good idea to try resetting the Addon: Settings -> Advanced -> "Perform local database reset (full resync)"
 1. Activate a more detailed logging for KodiPlexConnect: Settings -> Advanced -> "Debug"
 2. Follow the instructions here: http://kodi.wiki/view/Log_file/Easy
 3. Don't forget to delete all references to any of your Plex tokens!! You don't want others to have access to your Plex installation

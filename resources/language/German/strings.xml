@@ -14,7 +14,7 @@
     <string id="30500">Host SSL Zertifikat überprüfen (sicherer)</string>
     <string id="30507">Synchronisations-Fortschritt anzeigen</string>
     <string id="30512">Zwischenspeichern von PMS Bildern erzwingen</string>
-    <string id="30509">Plex Musik-Bibliotheken aktivieren (Kodi Neustart!)</string>
+    <string id="30509">Plex Musik-Bibliotheken aktivieren</string>
     <string id="30518">Plex Trailer aktivieren (Plexpass benötigt)</string>
     <string id="30519">Nachfragen, ob Trailer gespielt werden sollen</string>
     <string id="30522">H265 Codec Transkodierung erzwingen</string>
@@ -25,6 +25,9 @@
     <string id="30505">[COLOR yellow]Anzahl Login-Versuche zurücksetzen[/COLOR]</string>
 
     <string id="30536">Benutzer müssen sich bei jedem Neustart von Kodi neu anmelden</string>
+    <string id="30537">Bei Änderungen Kodi neu starten</string>
+    <string id="30538">Komplette Neusynchronisierung nötig</string>
+
 
 
     <string id="30014">Verbindung</string>
@@ -254,7 +257,7 @@
     <string id="30249">Server-Verbindungsmeldungen beim Starten anzeigen</string>
     <string id="30250">Benutze lokale Pfade anstelle von Addon-Umleitungen beim Abspielen</string>
 
-    <string id="30515">Max. Anzahl gleichzeitig nachgefragter PMS Einträge (Neustart!)</string>
+    <string id="30515">Max. Anzahl gleichzeitig nachgefragter PMS Einträge</string>
 
     <string id="33010">Plex Media Server Authorisierung ist zu häufig fehlgeschlagen. In den Einstellungen können die Anzahl erfolgloser Versuche zurückgesetzt werden.</string>
 
@@ -301,7 +304,7 @@
     <string id="39023">Plex Media Server Authentifizierung fehlgeschlagen. Haben Sie sich bei plex.tv eingeloggt?</string>
     <string id="39024">[COLOR yellow]PMS und plex.tv Verbindungen zurücksetzen für erneuten Login[/COLOR]</string>
     <string id="39025">Automatisch beim Starten bei plex.tv einloggen</string>
-    <string id="39026">Laufende Synchronisierung im Hintergrund aktivieren (Neustart!)</string>
+    <string id="39026">Laufende Synchronisierung im Hintergrund aktivieren</string>
     <string id="39027">Playback Modus</string>
     <string id="39028">WARNUNG! Mit dem "Native" Modus verlieren Sie Zugang zu Plex Funktionen wie z.B. Trailer und Transkodieren. ALLE Plex Bibliotheken müssen über direkte Plex Pfade für Kodi zugänglich sein (z.B. via \\meinNas\MeinFilm.mkv oder smb://meinNas/MeinFilm.mkv)!</string>
     <string id="39029">Netzwerk Zugangsdaten</string>
@@ -309,7 +312,7 @@
     <string id="39031">Kodi kann die folgende Datei nicht finden: </string>
     <string id="39032">Bitte verifizieren Sie den Pfad. Möglichweise müssen Sie in den Addon Einstellungen die Netzwerk Zugangsdaten korrekt eingeben, oder Plex muss andere Pfade nutzen. Soll Sync gestoppt werden?</string>
     <string id="39033">Sollen alle Plex Pfade \\meinNAS\meinFilm.mkv durch smb://meinNAS/meinFilm.mkv ersetzt werden? (empfohlen)</string>
-    <string id="39034">Plex Pfade \\meinNAS durch SMB Pfade smb://meinNAS ersetzen (neu synchen!)</string>
+    <string id="39034">Plex Pfade \\meinNAS durch SMB Pfade smb://meinNAS ersetzen</string>
 
     <!-- Plex Entrypoint.py -->
     <string id="39200">Plex Home Benutzer wechseln</string>

@@ -46,6 +46,8 @@
 		<setting id="companionGDMDebugging" label="39007" type="bool" default="false" visible="eq(-5,true)"/>
 	</category>
 	<category label="30506"><!-- Sync Options -->
+		<setting type="lsep" label="30537" /><!-- Restart if you make changes -->
+		<setting id="enableBackgroundSync" type="bool" label="39026" default="true" visible="true"/>
 		<setting id="serverSync" type="bool" label="30514" default="true" visible="false"/><!-- Enable fast startup (requires server plugin) -->
 		<setting id="dbSyncIndicator" label="30507" type="bool" default="true" />
 		<setting type="sep" /><!-- show syncing progress -->
@@ -54,10 +56,11 @@
         <setting id="imageCacheLimit" type="enum" label="30513" values="Disabled|5|10|15|20|25" default="5" visible="eq(-1,true)" subsetting="true" /> <!-- Limit artwork cache threads -->
 		<setting id="syncThreadNumber" type="slider" label="39003" default="5" option="int" range="1,1,20"/>
 		<setting id="syncEmptyShows" type="bool" label="30508" default="false" visible="false"/>
+
+		<setting type="lsep" label="30538" /><!-- Complete Re-Sync necessary -->
+		<setting id="enableMusic" type="bool" label="30509" default="true" />
 		<setting id="useDirectPaths" type="enum" label="30511" values="Addon(Default)|Native(Direct paths)" default="0" visible="true"/> <!-- Playback mode -->
 		<setting id="replaceSMB" type="bool" label="39034" default="true" visible="eq(-1,1)"/> <!-- replace all Plex paths with SMB paths -->
-		<setting id="enableMusic" type="bool" label="30509" default="true" />
-		<setting id="enableBackgroundSync" type="bool" label="39026" default="true" visible="true"/>
 		<setting id="streamMusic" type="bool" label="30510" default="false" visible="false" subsetting="true"/> <!-- Direct stream Music library -->
 		<setting type="lsep" label="30523" visible="false"/> <!-- Music metadata options -->
         <setting id="enableImportSongRating" type="bool" label="30524" default="true" visible="false"/>
@@ -100,10 +103,10 @@
 	<category label="30022"><!-- Advanced -->
 		<setting id="logLevel" type="enum" label="30004" values="Disabled|Info|Debug" default="1" />
 		<setting id="startupDelay" type="number" label="30529" default="0" option="int" />
+		<setting id="connectMsg" type="bool" label="30249" default="true" />
 		<setting label="39018" type="action" action="RunPlugin(plugin://plugin.video.plexkodiconnect/?mode=repair)" option="close" /> <!-- Repair local database (force update all content) -->
 		<setting label="39019" type="action" action="RunPlugin(plugin://plugin.video.plexkodiconnect/?mode=reset)" option="close" /> <!-- Perform local database reset (full resync) -->
 		<setting label="39020" type="action" action="RunPlugin(plugin://plugin.video.plexkodiconnect/?mode=texturecache)" option="close" /> <!-- Cache all images to Kodi texture cache -->
 		<setting label="39021" type="action" action="RunPlugin(plugin://plugin.video.plexkodiconnect/?mode=thememedia)" option="close" visible="false" /> <!-- Sync Plex Theme Media to Kodi -->
-		<setting id="connectMsg" type="bool" label="30249" default="true" />
 	</category>
 </settings>
