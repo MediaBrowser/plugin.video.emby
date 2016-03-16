@@ -109,6 +109,7 @@ class Service():
         # ws = wsc.WebSocket_Client()
         library = librarysync.LibrarySync()
         kplayer = player.Player()
+        xplayer = xbmc.Player()
         plx = PlexAPI.PlexAPI()
         plexCompanion = PlexCompanion.PlexCompanion()
 
@@ -136,11 +137,11 @@ class Service():
                 if (user.currUser is not None) and user.HasAccess:
 
                      # If an item is playing
-                    if xbmc.Player().isPlaying():
+                    if xplayer.isPlaying():
                         try:
                             # Update and report progress
-                            playtime = xbmc.Player().getTime()
-                            totalTime = xbmc.Player().getTotalTime()
+                            playtime = xplayer.getTime()
+                            totalTime = xplayer.getTotalTime()
                             currentFile = kplayer.currentFile
 
                             # Update positionticks

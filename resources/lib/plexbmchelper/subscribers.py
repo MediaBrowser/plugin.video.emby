@@ -76,10 +76,10 @@ class SubscriptionManager:
         keyid = None
         count = 0
         while not keyid:
-            if count > 10:
+            if count > 300:
                 break
             keyid = WINDOW.getProperty('Plex_currently_playing_itemid')
-            xbmc.sleep(1000)
+            xbmc.sleep(100)
             count += 1
         if keyid:
             self.lastkey = "/library/metadata/%s"%keyid

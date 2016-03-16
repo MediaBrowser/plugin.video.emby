@@ -278,7 +278,7 @@ class PlaybackUtils():
         # Only for direct stream
         if playmethod in ("DirectStream"):
             # Direct play automatically appends external
-            subtitles = self.externalSubs(playurl)
+            subtitles = self.API.externalSubs(playurl)
             listitem.setSubtitles(subtitles)
 
         self.setArtwork(listitem)
@@ -288,12 +288,8 @@ class PlaybackUtils():
         externalsubs = []
         mapping = {}
 
-        item = self.item
-        itemid = item['Id']
-        try:
-            mediastreams = item['MediaSources'][0]['MediaStreams']
-        except (TypeError, KeyError, IndexError):
-            return
+        itemid = self.API.getRatingKey()
+        mediastreams = self.API.getMediaStreams()
 
         kodiindex = 0
         for stream in mediastreams:

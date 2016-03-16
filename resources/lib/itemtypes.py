@@ -82,6 +82,7 @@ class Items(object):
 
         Returns True if sync should stop, else False
         """
+        self.logMsg('Cannot access file: %s' % url, -1)
         import xbmcaddon
         string = xbmcaddon.Addon().getLocalizedString
         resp = xbmcgui.Dialog().yesno(

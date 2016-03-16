@@ -3,6 +3,7 @@
 ###############################################################################
 
 import json
+from unicodedata import normalize
 
 import xbmc
 import xbmcgui
@@ -21,7 +22,8 @@ class KodiMonitor(xbmc.Monitor):
 
     def __init__(self):
 
-        self.doUtils = downloadutils.DownloadUtils()
+        self.doUtils = downloadutils.DownloadUtils().downloadUrl
+        self.xbmcplayer = xbmc.Player()
 
         self.logMsg("Kodi monitor started.", 1)
 
@@ -60,68 +62,25 @@ class KodiMonitor(xbmc.Monitor):
             utils.window('emby_logLevel', value=currentLog)
 
     def onNotification(self, sender, method, data):
+        window = utils.window
 
-        doUtils = self.doUtils
         if method not in ("Playlist.OnAdd"):
             self.logMsg("Method: %s Data: %s" % (method, data), 1)
-            
+
         if data:
-            data = json.loads(data,'utf-8')
+            data = json.loads(data, 'utf-8')
 
         if method == "Player.OnPlay":
-            # Set up report progress for emby playback
-            item = data.get('item')
-            try:
-                kodiid = item['id']
-                type = item['type']
-            except (KeyError, TypeError):
-                self.logMsg("Item is invalid for playstate update.", 1)
-            else:
-                if ((utils.settings('useDirectPaths') == "1" and not type == "song") or
-                        (type == "song" and utils.settings('enableMusic') == "true")):
-                    # Set up properties for player
-                    with embydb.GetEmbyDB() as emby_db:
-                        emby_dbitem = emby_db.getItem_byKodiId(kodiid, type)
-                    try:
-                        itemid = emby_dbitem[0]
-                    except TypeError:
-                        self.logMsg("No kodiid returned.", 1)
-                    else:
-                        # Tell everyone else what's going on
-                        utils.window('Plex_currently_playing_itemid',
-                                     value=itemid)
-                        url = "{server}/library/metadata/%s" % itemid
-                        result = doUtils.downloadUrl(url)
-                        try:
-                            result.attrib
-                        except AttributeError:
-                            self.logMsg('Could not retrieve PMS xml for %s'
-                                        % itemid, -1)
-                            return
-                        playurl = None
-                        count = 0
-                        while not playurl and count < 2:
-                            try:
-                                playurl = xbmc.Player().getPlayingFile()
-                            except RuntimeError:
-                                count += 1
-                                xbmc.sleep(200)
-                            else:
-                                listItem = xbmcgui.ListItem()
-                                playback = pbutils.PlaybackUtils(result)
-
-                                if type == "song" and utils.settings('streamMusic') == "true":
-                                    utils.window('emby_%s.playmethod' % playurl,
-                                        value="DirectStream")
-                                else:
-                                    utils.window('emby_%s.playmethod' % playurl,
-                                        value="DirectPlay")
-                                # Set properties for player.py
-                                playback.setProperties(playurl, listItem)
+            self.PlayBackStart(data)
 
         elif method == "Player.OnStop":
             # Get rid of some values
-            utils.window('Plex_currently_playing_itemid', clear=True)
+            window('Plex_currently_playing_itemid', clear=True)
+            window('emby_customPlaylist', clear=True)
+            window('emby_customPlaylist.seektime', clear=True)
+            window('emby_playbackProps', clear=True)
+            window('suspend_LibraryThread', clear=True)
+            window('emby_customPlaylist.seektime', clear=True)
 
         elif method == "VideoLibrary.OnUpdate":
             # Manually marking as watched/unwatched
@@ -188,7 +147,6 @@ class KodiMonitor(xbmc.Monitor):
                 finally:
                     embycursor.close()'''
 
-
         elif method == "System.OnWake":
             # Allow network to wake up
             xbmc.sleep(10000)
@@ -196,3 +154,89 @@ class KodiMonitor(xbmc.Monitor):
 
         elif method == "Playlist.OnClear":
             pass
+
+    def PlayBackStart(self, data):
+        """
+        Called whenever a playback is started
+        """
+        log = self.logMsg
+        window = utils.window
+
+        # Try to get a Kodi ID
+        item = data.get('item')
+        try:
+            kodiid = item['id']
+            type = item['type']
+        except (KeyError, TypeError):
+            log("Item is invalid for Plex playstate update.", 0)
+            return
+
+        # Get Plex' item id
+        with embydb.GetEmbyDB() as emby_db:
+            emby_dbitem = emby_db.getItem_byKodiId(kodiid, type)
+        try:
+            plexid = emby_dbitem[0]
+        except TypeError:
+            log("No Plex id returned for kodiid %s" % kodiid, 0)
+            return
+        log("Found Plex id %s for Kodi id %s" % (plexid, kodiid), 1)
+
+        # Get currently playing file - can take a while
+        try:
+            currentFile = self.xbmcplayer.getPlayingFile()
+            xbmc.sleep(300)
+        except:
+            currentFile = ""
+            count = 0
+            while not currentFile:
+                xbmc.sleep(100)
+                try:
+                    currentFile = self.xbmcplayer.getPlayingFile()
+                except:
+                    pass
+                if count == 20:
+                    log("No current File - Cancelling OnPlayBackStart...", -1)
+                    return
+                else:
+                    count += 1
+        currentFile = currentFile.decode('utf-8')
+        log("Currently playing file is: %s" % currentFile, 1)
+        # Normalize to string, because we need to use this in WINDOW(key),
+        # where key can only be string
+        currentFile = normalize('NFKD', currentFile).encode('ascii', 'ignore')
+        log('Normalized filename: %s' % currentFile, 1)
+
+        # Set some stuff if Kodi initiated playback
+        if ((utils.settings('useDirectPaths') == "1" and not type == "song") or
+                (type == "song" and utils.settings('enableMusic') == "true")):
+            if self.StartDirectPath(plexid, type, currentFile) is False:
+                log('Could not initiate monitoring; aborting', -1)
+                return
+
+        # Save currentFile for cleanup later and to be able to access refs
+        window('plex_lastPlayedFiled', value=currentFile)
+        window('Plex_currently_playing_itemid', value=plexid)
+        window("emby_%s.itemid" % currentFile, value=plexid)
+        log('Finish playback startup', 1)
+
+    def StartDirectPath(self, plexid, type, currentFile):
+        """
+        Set some additional stuff if playback was initiated by Kodi, not PKC
+        """
+        result = self.doUtils('{server}/library/metadata/%s' % plexid)
+        try:
+            result[0].attrib
+        except:
+            self.logMsg('Did not receive a valid XML for plexid %s.'
+                        % plexid, -1)
+            return False
+        # Setup stuff, because playback was started by Kodi, not PKC
+        pbutils.PlaybackUtils(result[0]).setProperties(
+            currentFile, xbmcgui.ListItem())
+        if type == "song" and utils.settings('streamMusic') == "true":
+            utils.window('emby_%s.playmethod' % currentFile,
+                         value="DirectStream")
+        else:
+            utils.window('emby_%s.playmethod' % currentFile,
+                         value="DirectPlay")
+        self.logMsg('Window properties set for direct paths!', 0)

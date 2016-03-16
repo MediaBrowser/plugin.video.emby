@@ -1981,7 +1981,7 @@ class API():
 
     def getMediaStreams(self):
         """
-        Returns the media streams
+        Returns the media streams for metadata purposes
 
         Output: each track contains a dictionaries
         {
@@ -2220,7 +2220,7 @@ class API():
                 kodiindex += 1
         mapping = json.dumps(mapping)
         utils.window('emby_%s.indexMapping' % playurl, value=mapping)
-
+        self.logMsg('Found external subs: %s' % externalsubs)
         return externalsubs
 
     def CreateListItemFromPlexItem(self, listItem=None):
