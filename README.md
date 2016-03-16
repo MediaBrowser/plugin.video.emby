@@ -1,13 +1,12 @@
-### This is an early BETA Version, so Beware of the Dragons
 **Credits**
 - PlexKodiConnect shamelessly uses pretty much all the code of "Emby for Kodi" by the awesome Emby team (see https://github.com/MediaBrowser/plugin.video.emby). Thanks for sharing guys!!
-- Plex Companion ("PlexBMC Helper") and other stuff was adapted from Hippojay's great work (see https://github.com/hippojay).
+- Plex Companion ("PlexBMC Helper") and other stuff was adapted from @Hippojay 's great work (see https://github.com/hippojay).
 - The foundation of the Plex API is all iBaa's work (https://github.com/iBaa/PlexConnect).
 
 **Installation in Kodi**
 
-1. You might want to uninstall everything else Plex related first, e.g. PlexBMC and PlexBMC Helper. Starting with a fresh Kodi install might be a good idea. Be sure to use a "normal", unmodded Skin in Kodi.
-If you're updating, you might also want to do a complete reset of the plugin: Settings -> Advanced -> "Perform full DB reset". Choose "Yes" for all questions.
+1. You might want to uninstall everything else Plex related first, e.g. PlexBMC and PlexBMC Helper. Starting with a fresh Kodi install might be a good idea. Be sure to use a "normal", unmodded Skin in Kodi to start with.
+If you're updating, you might also want to do a complete reset of the plugin: Settings -> Advanced -> "Perform full DB reset (full DB resync)". Choose "Yes" for all questions.
 2. Simply fire up Kodi and Install from ZIP from here on. 
 3. Install the 2 needed dependencies first (be sure to NOT download the sources but the additional release files): https://github.com/croneter/plugin.video.plexkodiconnect.tvshows/releases/ and https://github.com/croneter/plugin.video.plexkodiconnect.movies/releases/
 5. Then install PlexKodiConnect, again the additional release file from here: https://github.com/croneter/PlexKodiConnect/releases/
@@ -15,16 +14,16 @@ If you're updating, you might also want to do a complete reset of the plugin: Se
 7. Once you're succesfully authenticated to your Plex server, the initial sync will start. 
 8. The first sync of the Plex server to local Kodi database may take a LONG time. With my setup (~400 movies, ~600 episodes, couple of Test music albums and a very powerful NAS), sync takes approximately 5 minutes.
 9. Once the full sync is done, you can browse your media in Kodi, syncs will be automatically done in the background.
-10. Restart!
+10. Restart Kodi!
 
-Again, this is beta. You have been warned. It's a given that you will need to fully resync and reset your setup on a regular basis.
+This software is yet in a Beta version. You have been warned. It's very probable that you will need to fully resync and reset your setup on a regular basis.
 
 **Having Problems? Then thanks for your log files**
-
+It's always a good idea to try resetting the Addon: Settings -> Advanced -> "Perform full DB reset (full DB resync)"
 1. Activate a more detailed logging for KodiPlexConnect: Settings -> Advanced -> "Debug"
 2. Follow the instructions here: http://kodi.wiki/view/Log_file/Easy
-3. Don't forget to delete all references to any of your tokens!!
-4. Post the link to your log (that you posted e.g. here: http://xbmclogs.com/) on https://forums.plex.tv/discussion/210023/plexkodiconnect-supercharge-your-plex-kodi-connection
+3. Don't forget to delete all references to any of your Plex tokens!! You don't want others to have access to your Plex installation
+4. Post the link to your log (that you posted e.g. here: http://xbmclogs.com/) on https://forums.plex.tv/discussion/210023/plexkodiconnect-supercharge-your-plex-kodi-connection (or send a private message)
 
 
 ### Welcome to PlexKodiConnect
@@ -37,33 +36,35 @@ PlexKodiConnect combines the best of Kodi - ultra smooth navigation, beautiful U
 With other addons for Kodi there are a couple of issues:
 - 3rd party addons such as NextAired, remote apps etc. won't work
 - Speed: when browsing the data has to be retrieved from the server. Especially on slower devices this can take too much time.
+- You can only use special Kodi skins
 - All kinds of workaround were needed to get the best experience on Kodi clients
 
-This addon synchronizes your media on your Plex server to the native Kodi database. Because we use the native Kodi database with this new approach the above limitations are gone! You can browse your media full speed and all other Kodi addons will be able to "see" your media.
+This addon synchronizes your media on your Plex server to the native Kodi database. Because we use the native Kodi database with this new approach the above limitations are gone! 
+- You can browse your media full speed
+- All other Kodi addons will be able to "see" your media, thinking it's normal Kodi stuff
+- Use any Kodi skin you want!
 
 **What is currently supported ?**
 
-Guess what, this is BETA. Currently these features are working:
+Currently these features are working:
 - Movies
 - TV Shows
 - Full sync at first run (import), background syncs configurable by the user in the addonsetting. The current default is that it will do a full sync on the background approximately every 30min and continuous incremential syncs.
 - Watched state/resume status sync: This is a 2-way synchronisation. Any watched state or resume status will be instantly (within seconds) reflected to or from Kodi and the server.
+- Plex Companion: you can fling Plex media from other Plex devices to PlexKodiConnect
+- Play directly from network paths (e.g. "\\\\server\\Plex\\movie.mkv" on Windows or SMB paths "smb://server/Plex/movie.mkv") instead of slow HTTP (e.g. "192.168.1.1:32400"). You have to setup all your Plex libraries to point to such network paths. 
 
 
 **Known Issues:**
-- Windows users: Kodi Helix 14.2 RC1 required - other versions will result in errors with recently added items etc.
-- You must have a static IP address for your Plex media server if you plan to use Plex Music features. This is due to the way Kodi works and cannot be helped.
-- PlexKodiConnect continuously polls the Plex Media Server for changes. If something on the PMS changed, this change is synced to Kodi. Hence if you rescan your entire library, a long PlexKodiConnect re-sync is triggered.
-- This is a BETA version and could potentially set fire to your Raspi
-
+- **Plex Music:** You must have a static IP address for your Plex media server if you plan to use Plex Music features. This is due to the way Kodi works and cannot be helped.
+-**Plex updates:** PlexKodiConnect continuously polls the Plex Media Server for changes. If something on the PMS has changed, this change is synced to Kodi. Hence if you rescan your entire library, a long PlexKodiConnect re-sync is triggered.
 
 **What could be in the pipeline?**
+- Watch Later
+- Playlists
 - Homevideos
 - Pictures
-- Watch Later
 - Music Videos
-- Playlists
-- Play directly from SMB paths ("\\\\server\\Plex\\movie.mkv" on Windows) instead of HTTP ("192.168.1.1:32400")
 - TV Shows Theme Music (ultra-low prio)
 
 
