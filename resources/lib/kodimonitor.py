@@ -87,8 +87,17 @@ class KodiMonitor(xbmc.Monitor):
                     except TypeError:
                         self.logMsg("No kodiid returned.", 1)
                     else:
+                        # Tell everyone else what's going on
+                        utils.window('Plex_currently_playing_itemid',
+                                     value=itemid)
                         url = "{server}/library/metadata/%s" % itemid
                         result = doUtils.downloadUrl(url)
+                        try:
+                            result.attrib
+                        except AttributeError:
+                            self.logMsg('Could not retrieve PMS xml for %s'
+                                        % itemid, -1)
+                            return
                         playurl = None
                         count = 0
                         while not playurl and count < 2:
@@ -109,6 +118,10 @@ class KodiMonitor(xbmc.Monitor):
                                         value="DirectPlay")
                                 # Set properties for player.py
                                 playback.setProperties(playurl, listItem)
+
+        elif method == "Player.OnStop":
+            # Get rid of some values
+            utils.window('Plex_currently_playing_itemid', clear=True)
 
         elif method == "VideoLibrary.OnUpdate":
             # Manually marking as watched/unwatched
