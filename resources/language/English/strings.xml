@@ -375,9 +375,18 @@
     <string id="39030">Add network credentials to allow Kodi access to your content? Note: Skipping this step may generate a message during the initial scan of your content if Kodi can't locate your content.</string>
     <string id="39031">Kodi can't locate file: </string>
     <string id="39032">Please verify the path. You may need to verify your network credentials in the add-on settings or use different Plex paths. Stop syncing?</string>
-    <string id="39033">Shall we transform Plex paths from e.g. \\myNas\mymovie.mkv to smb://myNas/mymovie.mkv? (recommended)</string>
-    <string id="39034">Replace Plex paths \\myNas with SMB paths smb://myNas</string>
+    <string id="39033">Transform Plex UNC library paths \\myNas\mymovie.mkv automatically to smb paths, smb://myNas/mymovie.mkv? (recommended)</string>
+    <string id="39034">Replace Plex UNC paths \\myNas with smb://myNas</string>
 
+    <string id="39035">Replace Plex paths /volume1/media or \\myserver\media with custom SMB paths smb://NAS/mystuff</string>
+    <string id="39037">Original Plex MOVIE path to replace:</string>
+    <string id="39038">Replace Plex MOVIE with:</string>
+    <string id="39039">Original Plex TV SHOWS path to replace:</string>
+    <string id="39040">Replace Plex TV SHOWS with:</string>
+    <string id="39041">Original Plex MUSIC path to replace:</string>
+    <string id="39042">Replace Plex MUSIC with:</string>
+    <string id="39043">Go a step further and complete replace all original Plex library paths (/volume1/media) with custom SMB paths (smb://NAS/MyStuff)?</string>
+    <string id="39044">Please enter your custom smb paths in the settings under "Sync Options" and then restart Kodi</string>
 
     <!-- Plex Entrypoint.py -->
     <string id="39200">Switch Plex Home User</string>

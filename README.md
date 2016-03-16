@@ -57,7 +57,8 @@ Currently these features are working:
 
 **Known Issues:**
 - **Plex Music:** You must have a static IP address for your Plex media server if you plan to use Plex Music features. This is due to the way Kodi works and cannot be helped.
--**Plex updates:** PlexKodiConnect continuously polls the Plex Media Server for changes. If something on the PMS has changed, this change is synced to Kodi. Hence if you rescan your entire library, a long PlexKodiConnect re-sync is triggered.
+- **Plex updates:** PlexKodiConnect continuously polls the Plex Media Server for changes. If something on the PMS has changed, this change is synced to Kodi. Hence if you rescan your entire library, a long PlexKodiConnect re-sync is triggered.
+- **Direct Paths:** If you use direct paths, your sync will be slower
 
 **What could be in the pipeline?**
 - Watch Later

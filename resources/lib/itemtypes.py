@@ -41,6 +41,8 @@ class Items(object):
             else False
         self.replaceSMB = True if utils.window('replaceSMB') == 'true' \
             else False
+        self.remapSMB = True if utils.window('remapSMB') == 'true' \
+            else False
         # self.music_enabled = utils.settings('enableMusic') == "true"
         # self.contentmsg = utils.settings('newContent') == "true"
 
@@ -87,6 +89,28 @@ class Items(object):
             line1=string(39031) + url,
             line2=string(39032))
         return resp
+
+    def validatePlayurl(self, playurl, typus):
+        """
+        If False is returned, itemtypes should return with False (stop sync)
+
+        typus: 'movie', 'tv', 'music'
+        """
+        if self.remapSMB:
+            playurl = playurl.replace(utils.window('remapSMB%sOrg' % typus),
+                                      utils.window('remapSMB%sNew' % typus))
+            # There might be backslashes left over:
+            playurl = playurl.replace('\\', '/')
+        elif self.replaceSMB:
+            if playurl.startswith('\\\\'):
+                playurl = 'smb:' + playurl.replace('\\', '/')
+        if (utils.window('emby_pathverified') != "true" and
+                not xbmcvfs.exists(playurl.encode('utf-8'))):
+            # Validate the path is correct with user intervention
+            if self.askToValidate(playurl):
+                utils.window('emby_shouldStop', value="true")
+                playurl = False
+        return playurl
 
     def itemsbyId(self, items, process, pdialog=None):
         # Process items by itemid. Process can be added, update, userdata, remove
@@ -423,16 +447,9 @@ class Movies(Items):
                 # Something went wrong, trying to use non-direct paths
                 doIndirect = True
             else:
-                if self.replaceSMB:
-                    if playurl.startswith('\\\\'):
-                        playurl = playurl.replace('\\', '/')
-                        playurl = 'smb:' + playurl
-                if (utils.window('emby_pathverified') != "true" and
-                        not xbmcvfs.exists(playurl.encode('utf-8'))):
-                    # Validate the path is correct with user intervention
-                    if self.askToValidate(playurl):
-                        utils.window('emby_shouldStop', value="true")
-                        return False
+                playurl = self.validatePlayurl(playurl, 'movie')
+                if playurl is False:
+                    return False
                 if "\\" in playurl:
                     # Local path
                     filename = playurl.rsplit("\\", 1)[1]
@@ -1037,10 +1054,9 @@ class TVShows(Items):
                 # Something went wrong, trying to use non-direct paths
                 doIndirect = True
             else:
-                if self.replaceSMB:
-                    if playurl.startswith('\\\\'):
-                        playurl = playurl.replace('\\', '/')
-                        playurl = 'smb:' + playurl
+                playurl = self.validatePlayurl(playurl, 'tv')
+                if playurl is False:
+                    return False
                 if "\\" in playurl:
                     # Local path
                     path = "%s\\" % playurl
@@ -1341,10 +1357,9 @@ class TVShows(Items):
                 # Something went wrong, trying to use non-direct paths
                 doIndirect = True
             else:
-                if self.replaceSMB:
-                    if playurl.startswith('\\\\'):
-                        playurl = playurl.replace('\\', '/')
-                        playurl = 'smb:' + playurl
+                playurl = self.validatePlayurl(playurl, 'tv')
+                if playurl is False:
+                    return False
                 if (utils.window('emby_pathverified') != "true" and
                         not xbmcvfs.exists(playurl.encode('utf-8'))):
                     # Validate the path is correct with user intervention
@@ -2100,9 +2115,9 @@ class Music(Items):
                 # Something went wrong, trying to use non-direct paths
                 doIndirect = True
             else:
-                if self.replaceSMB:
-                    playurl = playurl.replace('\\', '/')
-                    playurl = 'smb:' + playurl
+                playurl = self.validatePlayurl(playurl, 'music')
+                if playurl is False:
+                    return False
                 if (utils.window('emby_pathverified') != "true" and
                         not xbmcvfs.exists(playurl.encode('utf-8'))):
                     # Validate the path is correct with user intervention

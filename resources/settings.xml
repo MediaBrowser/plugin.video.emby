@@ -61,6 +61,14 @@
 		<setting id="enableMusic" type="bool" label="30509" default="true" />
 		<setting id="useDirectPaths" type="enum" label="30511" values="Addon(Default)|Native(Direct paths)" default="0" visible="true"/> <!-- Playback mode -->
 		<setting id="replaceSMB" type="bool" label="39034" default="true" visible="eq(-1,1)"/> <!-- replace all Plex paths with SMB paths -->
+		<setting id="remapSMB" type="bool" label="39035" default="false" visible="eq(-2,1)"/> <!-- replace Plex paths /volume1/media or \\myserver\media with a custom SMB path smb://NAS/mystuff -->
+		<setting id="remapSMBmovieOrg" type="text" label="39037" default="" visible="eq(-1,true)"/> <!-- Original Plex MOVIE path to replace -->
+		<setting id="remapSMBmovieNew" type="text" label="39038" default="smb://" visible="eq(-2,true)"/> <!-- Replace Plex MOVIE with: -->
+		<setting id="remapSMBtvOrg" type="text" label="39039" default="" visible="eq(-3,true)"/> <!-- Original Plex TV SHOWS path to replace: -->
+		<setting id="remapSMBtvNew" type="text" label="39040" default="smb://" visible="eq(-4,true)"/> <!-- Replace Plex TV SHOWS with: -->
+		<setting id="remapSMBmusicOrg" type="text" label="39041" default="" visible="eq(-5,true)"/> <!-- Original Plex MUSIC path to replace: -->
+		<setting id="remapSMBmusicNew" type="text" label="39042" default="smb://" visible="eq(-6,true)"/> <!-- Replace Plex MUSIC with: -->
+
 		<setting id="streamMusic" type="bool" label="30510" default="false" visible="false" subsetting="true"/> <!-- Direct stream Music library -->
 		<setting type="lsep" label="30523" visible="false"/> <!-- Music metadata options -->
         <setting id="enableImportSongRating" type="bool" label="30524" default="true" visible="false"/>

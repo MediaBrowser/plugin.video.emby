@@ -234,6 +234,7 @@ class InitialSetup():
         if forcePlexTV:
             return
 
+        goToSettings = False
         # Direct paths (\\NAS\mymovie.mkv) or addon (http)?
         if dialog.yesno(heading=self.addonName,
                         line1=string(39027),
@@ -247,6 +248,21 @@ class InitialSetup():
             if dialog.yesno(heading=self.addonName,
                             line1=string(39033)):
                 self.logMsg("User chose to replace paths with smb", 1)
+            else:
+                utils.settings('replaceSMB', value="false")
+
+            # complete replace all original Plex library paths with custom SMB
+            if dialog.yesno(heading=self.addonName,
+                            line1=string(39043)):
+                self.logMsg("User chose custom smb paths", 1)
+                utils.settings('remapSMB', value="true")
+                # Please enter your custom smb paths in the settings under
+                # "Sync Options" and then restart Kodi
+                dialog.ok(heading=self.addonName,
+                          line1=string(39044))
+                goToSettings = True
+                # Don't start anything because we need these paths first!
+                utils.window('emby_serverStatus', value="Stop")
 
             # Go to network credentials?
             if dialog.yesno(heading=self.addonName,
@@ -260,8 +276,12 @@ class InitialSetup():
             self.logMsg("User opted to disable Plex music library.", 1)
             utils.settings('enableMusic', value="false")
 
-        # Open Settings page now?
-        if dialog.yesno(heading=self.addonName,
-                        line1=string(39017)):
+        if goToSettings:
             xbmc.executebuiltin(
                 'Addon.OpenSettings(plugin.video.plexkodiconnect)')
+        else:
+            # Open Settings page now?
+            if dialog.yesno(heading=self.addonName,
+                            line1=string(39017)):
+                xbmc.executebuiltin(
+                    'Addon.OpenSettings(plugin.video.plexkodiconnect)')

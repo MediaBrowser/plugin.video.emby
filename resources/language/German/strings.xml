@@ -311,8 +311,18 @@
     <string id="39030">Möchten Sie nun Netzwerk Zugangsdaten eingeben? Wenn Sie diesen Schritt überspringen, wird möglicherweise die Synchronisierung Ihrer Bibliothek fehlschlagen, wenn Kodi nicht auf Ihre Medien zugreifen kann.</string>
     <string id="39031">Kodi kann die folgende Datei nicht finden: </string>
     <string id="39032">Bitte verifizieren Sie den Pfad. Möglichweise müssen Sie in den Addon Einstellungen die Netzwerk Zugangsdaten korrekt eingeben, oder Plex muss andere Pfade nutzen. Soll Sync gestoppt werden?</string>
-    <string id="39033">Sollen alle Plex Pfade \\meinNAS\meinFilm.mkv durch smb://meinNAS/meinFilm.mkv ersetzt werden? (empfohlen)</string>
-    <string id="39034">Plex Pfade \\meinNAS durch SMB Pfade smb://meinNAS ersetzen</string>
+    <string id="39033">Sollen alle Plex UNC Pfade \\meinNAS\meinFilm.mkv automatisch durch SMB Pfade smb://meinNAS/meinFilm.mkv ersetzt werden? (empfohlen)</string>
+    <string id="39034">Plex UNC Pfade \\meinNAS durch smb://meinNAS ersetzen</string>
+
+    <string id="39035">Benutzerdefinierte smb Pfade für z.B. /volume1/media erstellen</string>
+    <string id="39037">Ursprünglicher Plex Pfad für FILME:</string>
+    <string id="39038">Plex FILM Pfade ersetzen durch:</string>
+    <string id="39039">Ursprünglicher Plex Pfad für TV SERIEN:</string>
+    <string id="39040">Plex TV SERIEN Pfade ersetzen durch:</string>
+    <string id="39041">Ursprünglicher Plex Pfad für MUSIK:</string>
+    <string id="39042">Plex MUSIK Pfade ersetzen durch:</string>
+    <string id="39043">Sollen sogar sämtliche Plex Pfade wie /volume1/Hans/medien durch benutzerdefinierte smb Pfade wie smb://NAS/Filme ersetzt werden?</string>
+    <string id="39044">Bitte geben Sie Ihre benutzerdefinierten SMB Pfade nun in den Einstellungen unter Sync Optionen ein. Starten Sie dann Kodi neu.</string>
 
     <!-- Plex Entrypoint.py -->
     <string id="39200">Plex Home Benutzer wechseln</string>
