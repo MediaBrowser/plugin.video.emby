@@ -39,10 +39,6 @@ class Items(object):
         # self.directpath = utils.settings('useDirectPaths') == "1"
         self.directpath = True if utils.window('useDirectPaths') == 'true' \
             else False
-        self.replaceSMB = True if utils.window('replaceSMB') == 'true' \
-            else False
-        self.remapSMB = True if utils.window('remapSMB') == 'true' \
-            else False
         # self.music_enabled = utils.settings('enableMusic') == "true"
         # self.contentmsg = utils.settings('newContent') == "true"
 
@@ -72,46 +68,6 @@ class Items(object):
         self.embyconn.close()
         self.kodiconn.close()
         return self
-
-    def askToValidate(self, url):
-        """
-        Displays a YESNO dialog box:
-            Kodi can't locate file: <url>. Please verify the path.
-            You may need to verify your network credentials in the
-            add-on settings or use different Plex paths. Stop syncing?
-
-        Returns True if sync should stop, else False
-        """
-        self.logMsg('Cannot access file: %s' % url, -1)
-        import xbmcaddon
-        string = xbmcaddon.Addon().getLocalizedString
-        resp = xbmcgui.Dialog().yesno(
-            heading=self.addonName,
-            line1=string(39031) + url,
-            line2=string(39032))
-        return resp
-
-    def validatePlayurl(self, playurl, typus):
-        """
-        If False is returned, itemtypes should return with False (stop sync)
-
-        typus: 'movie', 'tv', 'music'
-        """
-        if self.remapSMB:
-            playurl = playurl.replace(utils.window('remapSMB%sOrg' % typus),
-                                      utils.window('remapSMB%sNew' % typus))
-            # There might be backslashes left over:
-            playurl = playurl.replace('\\', '/')
-        elif self.replaceSMB:
-            if playurl.startswith('\\\\'):
-                playurl = 'smb:' + playurl.replace('\\', '/')
-        if (utils.window('emby_pathverified') != "true" and
-                not xbmcvfs.exists(playurl.encode('utf-8'))):
-            # Validate the path is correct with user intervention
-            if self.askToValidate(playurl):
-                utils.window('emby_shouldStop', value="true")
-                playurl = False
-        return playurl
 
     def itemsbyId(self, items, process, pdialog=None):
         # Process items by itemid. Process can be added, update, userdata, remove
@@ -448,7 +404,7 @@ class Movies(Items):
                 # Something went wrong, trying to use non-direct paths
                 doIndirect = True
             else:
-                playurl = self.validatePlayurl(playurl, 'movie')
+                playurl = API.validatePlayurl(playurl, 'movie')
                 if playurl is False:
                     return False
                 if "\\" in playurl:
@@ -1055,7 +1011,7 @@ class TVShows(Items):
                 # Something went wrong, trying to use non-direct paths
                 doIndirect = True
             else:
-                playurl = self.validatePlayurl(playurl, 'tv')
+                playurl = API.validatePlayurl(playurl, 'tv')
                 if playurl is False:
                     return False
                 if "\\" in playurl:
@@ -1358,7 +1314,7 @@ class TVShows(Items):
                 # Something went wrong, trying to use non-direct paths
                 doIndirect = True
             else:
-                playurl = self.validatePlayurl(playurl, 'tv')
+                playurl = API.validatePlayurl(playurl, 'tv')
                 if playurl is False:
                     return False
                 if (utils.window('emby_pathverified') != "true" and
@@ -2116,7 +2072,7 @@ class Music(Items):
                 # Something went wrong, trying to use non-direct paths
                 doIndirect = True
             else:
-                playurl = self.validatePlayurl(playurl, 'music')
+                playurl = API.validatePlayurl(playurl, 'music')
                 if playurl is False:
                     return False
                 if (utils.window('emby_pathverified') != "true" and

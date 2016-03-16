@@ -38,6 +38,7 @@ import downloadutils
 import xbmcaddon
 import xbmcgui
 import xbmc
+import xbmcvfs
 
 import struct
 import time
@@ -2290,3 +2291,42 @@ class API():
             # just set empty streamdetails to prevent errors in the logs
             listItem.addStreamInfo(
                 "video", {'duration': self.getRuntime()[1]})
+
+    def validatePlayurl(self, playurl, typus):
+        """
+        Returns a valid url for Kodi, e.g. with substituted path
+        """
+        if utils.window('remapSMB') == 'true':
+            playurl = playurl.replace(utils.window('remapSMB%sOrg' % typus),
+                                      utils.window('remapSMB%sNew' % typus))
+            # There might be backslashes left over:
+            playurl = playurl.replace('\\', '/')
+        elif utils.window('replaceSMB') == 'true':
+            if playurl.startswith('\\\\'):
+                playurl = 'smb:' + playurl.replace('\\', '/')
+        if (utils.window('emby_pathverified') != "true" and
+                not xbmcvfs.exists(playurl.encode('utf-8'))):
+            # Validate the path is correct with user intervention
+            if self.askToValidate(playurl):
+                utils.window('emby_shouldStop', value="true")
+                playurl = False
+            utils.window('emby_pathverified', value='true')
+        return playurl
+
+    def askToValidate(self, url):
+        """
+        Displays a YESNO dialog box:
+            Kodi can't locate file: <url>. Please verify the path.
+            You may need to verify your network credentials in the
+            add-on settings or use different Plex paths. Stop syncing?
+
+        Returns True if sync should stop, else False
+        """
+        self.logMsg('Cannot access file: %s' % url, -1)
+        import xbmcaddon
+        string = xbmcaddon.Addon().getLocalizedString
+        resp = xbmcgui.Dialog().yesno(
+            heading=self.addonName,
+            line1=string(39031) + url,
+            line2=string(39032))
+        return resp
