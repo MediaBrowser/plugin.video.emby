@@ -1686,7 +1686,7 @@ class API():
 
     def getProvider(self, providername=None):
         """
-        providername:  e.g. 'imdb'
+        providername:  e.g. 'imdb', 'tvdb'
 
         Return IMDB, e.g. "tt0903624". Returns None if not found
         """
@@ -1698,6 +1698,9 @@ class API():
 
         if providername == 'imdb':
             regex = re.compile(r'''/(tt\d+)''')
+        elif providername == 'tvdb':
+            # originally e.g. com.plexapp.agents.thetvdb://276564?lang=en
+            regex = re.compile(r'''tvdb://(\d+)''')
         else:
             return None
 

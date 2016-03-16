@@ -992,7 +992,7 @@ class TVShows(Items):
         plot = API.getPlot()
         rating = API.getAudienceRating()
         premieredate = API.getPremiereDate()
-        tvdb = API.getProvider('Tvdb')
+        tvdb = API.getProvider('tvdb')
         mpaa = API.getMpaa()
         genre = API.joinList(genres)
         studios = API.getStudios()
