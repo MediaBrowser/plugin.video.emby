@@ -62,8 +62,6 @@ class KodiMonitor(xbmc.Monitor):
             utils.window('emby_logLevel', value=currentLog)
 
     def onNotification(self, sender, method, data):
-        window = utils.window
-
         if method not in ("Playlist.OnAdd"):
             self.logMsg("Method: %s Data: %s" % (method, data), 1)
 
@@ -72,15 +70,6 @@ class KodiMonitor(xbmc.Monitor):
 
         if method == "Player.OnPlay":
             self.PlayBackStart(data)
-
-        elif method == "Player.OnStop":
-            # Get rid of some values
-            window('Plex_currently_playing_itemid', clear=True)
-            window('emby_customPlaylist', clear=True)
-            window('emby_customPlaylist.seektime', clear=True)
-            window('emby_playbackProps', clear=True)
-            window('suspend_LibraryThread', clear=True)
-            window('emby_customPlaylist.seektime', clear=True)
 
         elif method == "VideoLibrary.OnUpdate":
             # Manually marking as watched/unwatched

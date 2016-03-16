@@ -91,12 +91,13 @@ class SubscriptionManager:
                 (self.server, self.port) = pbmc_server.split(':')
         serv = getServerByHost(self.server)
         if info.get('playQueueID'):
+            self.containerKey = "/playQueues/%s" % info.get('playQueueID')
             ret += ' playQueueID="%s"' % info.get('playQueueID')
             ret += ' playQueueVersion="%s"' % info.get('playQueueVersion')
             ret += ' playQueueItemID="%s"' % (info.get('playQueueItemID'))
-            ret += ' containerKey="/playQueues/%s"' \
-                   % (info.get('playQueueID'))
+            ret += ' containerKey="%s"' % self.containerKey
         elif keyid:
+            self.containerKey = self.lastkey
             ret += ' containerKey="%s"' % (self.containerKey)
 
         ret += ' duration="%s"' % info['duration']

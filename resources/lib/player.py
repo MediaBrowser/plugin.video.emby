@@ -447,19 +447,26 @@ class Player(xbmc.Player):
             self.reportPlayback()
     
     def onPlayBackStopped(self):
+        # Will be called when user stops xbmc playing a file
         
         log = self.logMsg
         window = utils.window
-        # Will be called when user stops xbmc playing a file
-        log("ONPLAYBACK_STOPPED", 2)
-        log("Clear playlist properties.", 1)
+        log("ONPLAYBACK_STOPPED", 1)
+
         self.stopAll()
+
+        window('Plex_currently_playing_itemid', clear=True)
+        window('emby_customPlaylist', clear=True)
+        window('emby_customPlaylist.seektime', clear=True)
+        window('emby_playbackProps', clear=True)
+        window('suspend_LibraryThread', clear=True)
+        window('emby_customPlaylist.seektime', clear=True)
+        log("Clear playlist properties.", 1)
 
     def onPlayBackEnded(self):
-        # Will be called when xbmc stops playing a file
-        self.logMsg("ONPLAYBACK_ENDED", 2)
-
-        self.stopAll()
+        # Will be called when xbmc stops playing a file, because the file ended
+        self.logMsg("ONPLAYBACK_ENDED", 1)
+        self.onPlayBackStopped()
 
     def stopAll(self):
 
