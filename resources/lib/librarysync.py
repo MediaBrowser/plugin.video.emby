@@ -876,17 +876,6 @@ class LibrarySync(Thread):
         with embydb.GetEmbyDB() as emby_db:
             # update views for all:
             self.views = emby_db.getAllViewInfo()
-            # Append music views only to self.views (no custom views otherwise)
-            if self.enableMusic:
-                for folderItem in sections:
-                    if folderItem.attrib['type'] == 'artist':
-                        entry = {
-                            'id': folderItem.attrib['key'],
-                            'name': folderItem.attrib['title'],
-                            'itemtype': 'artist'
-                        }
-                        self.views.append(entry)
-
             self.logMsg("Removing views: %s" % self.old_views, 1)
             for view in self.old_views:
                 emby_db.removeView(view)

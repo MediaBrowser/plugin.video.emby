@@ -49,7 +49,6 @@ class Kodidb_Functions():
 
     def addPath(self, path):
         # SQL won't return existing paths otherwise
-        self.logMsg('path is: %s' % path, 1)
         if path is None:
             path = ""
         cursor = self.cursor
