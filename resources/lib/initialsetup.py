@@ -54,8 +54,8 @@ class InitialSetup():
         if (plexToken and myplexlogin == 'true' and forcePlexTV is False):
             chk = self.plx.CheckConnection('plex.tv', plexToken)
             # HTTP Error: unauthorized. Token is no longer valid
-            if chk == 401:
-                self.logMsg('plex.tv connection returned HTTP 401', 0)
+            if chk == 401 or chk == 403:
+                self.logMsg('plex.tv connection returned HTTP %s' % chk, 0)
                 # Delete token in the settings
                 utils.settings('plexToken', value='')
                 # Could not login, please try again

@@ -1179,7 +1179,6 @@ class PlexAPI():
                                     for the machineIdentifier that was chosen
             }
 
-        Also sets the settings variable settings('accessToken'),
         settings('userid') and settings('username') with new plex token
         """
         url = 'https://plex.tv/api/home/users/' + userId + '/switch'
