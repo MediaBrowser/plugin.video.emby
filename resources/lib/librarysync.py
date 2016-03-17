@@ -523,6 +523,8 @@ class LibrarySync(Thread):
                 view['id'],
                 lastViewedAt=self.getPMSfromKodiTime(lastSync),
                 containerSize=self.limitindex)
+            if not items:
+                continue
             for item in items:
                 itemId = item.attrib.get('ratingKey')
                 # Skipping items 'title=All episodes' without a 'ratingKey'
