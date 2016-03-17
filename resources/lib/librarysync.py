@@ -293,10 +293,15 @@ class LibrarySync(Thread):
                 self.logMsg('Found kodiId: %s' % kodiId, 1)
                 # Get Plex ID using the Kodi ID
                 with embydb.GetEmbyDB() as emby_db:
-                    plexId = emby_db.getItem_byFileId(kodiId)
-                if plexId:
-                    self.logMsg('Found plexId: %s' % plexId, 1)
-                    break
+                    plexId = emby_db.getItem_byFileId(kodiId, 'movie')
+                    if plexId:
+                        self.logMsg('Found movie plexId: %s' % plexId, 1)
+                        break
+                    else:
+                        plexId = emby_db.getItem_byFileId(kodiId, 'episode')
+                        if plexId:
+                            self.logMsg('Found episode plexId: %s' % plexId, 1)
+                            break
 
         # Try getting a music item if we did not find a video item
         if not plexId:
@@ -310,7 +315,7 @@ class LibrarySync(Thread):
                 self.logMsg('Found kodiId: %s' % kodiId, 1)
                 # Get Plex ID using the Kodi ID
                 with embydb.GetEmbyDB() as emby_db:
-                    plexId = emby_db.getItem_byFileId(kodiId)
+                    plexId = emby_db.getMusicItem_byFileId(kodiId, 'song')
                 if plexId:
                     self.logMsg('Found plexId: %s' % plexId, 1)
                     break
