@@ -730,7 +730,7 @@ class Kodidb_Functions():
         Returns all Kodi Item idFile that have not yet been completely played
         """
         query = ' '.join((
-            "SELECT idPath",
+            "SELECT idSong",
             "FROM song",
             "WHERE iTimesPlayed IS NULL OR iTimesPlayed = ''"
         ))
