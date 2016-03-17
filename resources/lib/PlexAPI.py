@@ -1736,9 +1736,12 @@ class API():
 
     def getAudienceRating(self):
         """
-        Returns the audience rating or None
+        Returns the audience rating, 'rating' itself or None
         """
-        return self.item.attrib.get('audienceRating', None)
+        res = self.item.attrib.get('audienceRating')
+        if res is None:
+            res = self.item.attrib.get('rating')
+        return res
 
     def getYear(self):
         """
