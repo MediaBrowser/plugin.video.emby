@@ -1748,6 +1748,8 @@ class Music(Items):
 
         # Update artwork
         artwork.addArtwork(artworks, artistid, "artist", kodicursor)
+        self.embyconn.commit()
+        self.kodiconn.commit()
 
     def add_updateAlbum(self, item, viewtag=None, viewid=None):
         try:
@@ -1947,6 +1949,8 @@ class Music(Items):
         kodi_db.addMusicGenres(albumid, genres, "album")
         # Update artwork
         artwork.addArtwork(artworks, albumid, "album", kodicursor)
+        self.embyconn.commit()
+        self.kodiconn.commit()
 
     def add_updateSong(self, item, viewtag=None, viewid=None):
         try:
@@ -2053,12 +2057,12 @@ class Music(Items):
             path = "%s%s" % (self.server, item[0][0].attrib.get('key'))
             filename = API.addPlexCredentialsToUrl(path)
             # Keep path empty to not let Kodi scan it
-            path = None
+            path = ""
 
         # UPDATE THE SONG #####
         if update_item:
-            self.logMsg("UPDATE song itemid: %s - Title: %s"
-                        % (itemid, title), 1)
+            self.logMsg("UPDATE song itemid: %s - Title: %s with path: %s"
+                        % (itemid, title, path), 1)
             # Update path
             query = "UPDATE path SET strPath = ? WHERE idPath = ?"
             kodicursor.execute(query, (path, pathid))
@@ -2282,6 +2286,8 @@ class Music(Items):
         if item.get('parentKey') is None:
             # Update album artwork
             artwork.addArtwork(allart, albumid, "album", kodicursor)
+        self.embyconn.commit()
+        self.kodiconn.commit()
 
     def remove(self, itemid):
         # Remove kodiid, fileid, pathid, emby reference
@@ -2363,6 +2369,8 @@ class Music(Items):
             self.removeArtist(kodiid)
 
         self.logMsg("Deleted %s: %s from kodi database" % (mediatype, itemid), 1)
+        self.embyconn.commit()
+        self.kodiconn.commit()
 
     def removeSong(self, kodiid):
 
