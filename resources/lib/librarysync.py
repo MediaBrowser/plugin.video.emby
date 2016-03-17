@@ -802,6 +802,7 @@ class LibrarySync(Thread):
         """
         Compare the views to Plex
         """
+        self.views = []
         vnodes = self.vnodes
 
         # Get views
