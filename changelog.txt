@@ -1,3 +1,13 @@
+version 1.0.14
+- Fix TV shows rating not showing up
+- Fix music libraries being scanned twice
+- Fix potential crash for fast sync
+- Fixed some plex.tv token issue
+- Fix removing Plex libraries on PMS side (e.g. user switch)
+- Don't dump PMS item xml to log if library sync crashed
+- Merge with MediaBrowser/master up until 0afd338cc7bb495f8f0f2c92ba084419b87ff775
+- And other stuff
+
 version 1.0.13
 - Sync theTVDB id for TV shows from Plex to Kodi
 - Custom smb path substitutions for direct paths
