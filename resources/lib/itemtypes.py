@@ -297,12 +297,6 @@ class Movies(Items):
             self.logMsg(e, -1)
             import traceback
             self.logMsg("Traceback:\n%s" % traceback.format_exc(), 0)
-            self.logMsg('The item xml is:', -1)
-            try:
-                import xml.etree.cElementTree as etree
-            except ImportError:
-                import xml.etree.ElementTree as etree
-            etree.dump(item)
             utils.window('plex_scancrashed', value='true')
             # skip this item for now
             return
@@ -928,12 +922,6 @@ class TVShows(Items):
             self.logMsg(e, -1)
             import traceback
             self.logMsg("Traceback:\n%s" % traceback.format_exc(), 0)
-            self.logMsg('The item xml is:', -1)
-            try:
-                import xml.etree.cElementTree as etree
-            except ImportError:
-                import xml.etree.ElementTree as etree
-            etree.dump(item)
             utils.window('plex_scancrashed', value='true')
             # skip this item for now
             return
@@ -1127,12 +1115,6 @@ class TVShows(Items):
             self.logMsg(e, -1)
             import traceback
             self.logMsg("Traceback:\n%s" % traceback.format_exc(), 0)
-            self.logMsg('The item xml is:', -1)
-            try:
-                import xml.etree.cElementTree as etree
-            except ImportError:
-                import xml.etree.ElementTree as etree
-            etree.dump(item)
             utils.window('plex_scancrashed', value='true')
             # skip this item for now
             return
@@ -1190,12 +1172,6 @@ class TVShows(Items):
             self.logMsg(e, -1)
             import traceback
             self.logMsg("Traceback:\n%s" % traceback.format_exc(), 0)
-            self.logMsg('The item xml is:', -1)
-            try:
-                import xml.etree.cElementTree as etree
-            except ImportError:
-                import xml.etree.ElementTree as etree
-            etree.dump(item)
             utils.window('plex_scancrashed', value='true')
             # skip this item for now
             return
@@ -1686,12 +1662,6 @@ class Music(Items):
             self.logMsg(e, -1)
             import traceback
             self.logMsg("Traceback:\n%s" % traceback.format_exc(), 0)
-            self.logMsg('The item xml is:', -1)
-            try:
-                import xml.etree.cElementTree as etree
-            except ImportError:
-                import xml.etree.ElementTree as etree
-            etree.dump(item)
             utils.window('plex_scancrashed', value='true')
             # skip this item for now
             return
@@ -1789,12 +1759,6 @@ class Music(Items):
             self.logMsg(e, -1)
             import traceback
             self.logMsg("Traceback:\n%s" % traceback.format_exc(), 0)
-            self.logMsg('The item xml is:', -1)
-            try:
-                import xml.etree.cElementTree as etree
-            except ImportError:
-                import xml.etree.ElementTree as etree
-            etree.dump(item)
             utils.window('plex_scancrashed', value='true')
             # skip this item for now
             return
@@ -1994,12 +1958,6 @@ class Music(Items):
             self.logMsg(e, -1)
             import traceback
             self.logMsg("Traceback:\n%s" % traceback.format_exc(), 0)
-            self.logMsg('The item xml is:', -1)
-            try:
-                import xml.etree.cElementTree as etree
-            except ImportError:
-                import xml.etree.ElementTree as etree
-            etree.dump(item)
             utils.window('plex_scancrashed', value='true')
             # skip this item for now
             return
