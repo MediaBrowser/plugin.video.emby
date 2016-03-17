@@ -500,7 +500,7 @@ def getAllArtwork(self, item, parentInfo=False):
 
         server = self.server
 
-        id = item['Id']
+        itemid = item['Id']
         artworks = item['ImageTags']
         backdrops = item.get('BackdropImageTags',[])
 
@@ -526,15 +526,12 @@ def getAllArtwork(self, item, parentInfo=False):
         }
         
         # Process backdrops
-        backdropIndex = 0
-        for backdroptag in backdrops:
+        for index, tag in enumerate(backdrops):
             artwork = (
                 "%s/emby/Items/%s/Images/Backdrop/%s?"
                 "MaxWidth=%s&MaxHeight=%s&Format=original&Tag=%s%s"
-                % (server, id, backdropIndex,
-                    maxWidth, maxHeight, backdroptag, customquery))
+                % (server, itemid, index, maxWidth, maxHeight, tag, customquery))
             allartworks['Backdrop'].append(artwork)
-            backdropIndex += 1
 
         # Process the rest of the artwork
         for art in artworks:
@@ -544,7 +541,7 @@ def getAllArtwork(self, item, parentInfo=False):
                 artwork = (
                     "%s/emby/Items/%s/Images/%s/0?"
                     "MaxWidth=%s&MaxHeight=%s&Format=original&Tag=%s%s"
-                    % (server, id, art, maxWidth, maxHeight, tag, customquery))
+                    % (server, itemid, art, maxWidth, maxHeight, tag, customquery))
                 allartworks[art] = artwork
 
         # Process parent items if the main item is missing artwork
@@ -558,15 +555,12 @@ def getAllArtwork(self, item, parentInfo=False):
                     # If there is a parentId, go through the parent backdrop list
                     parentbackdrops = item['ParentBackdropImageTags']
 
-                    backdropIndex = 0
-                    for parentbackdroptag in parentbackdrops:
+                    for index, tag in enumerate(parentbackdrops):
                         artwork = (
                             "%s/emby/Items/%s/Images/Backdrop/%s?"
                             "MaxWidth=%s&MaxHeight=%s&Format=original&Tag=%s%s"
-                            % (server, parentId, backdropIndex,
-                                maxWidth, maxHeight, parentbackdroptag, customquery))
+                            % (server, parentId, index, maxWidth, maxHeight, tag, customquery))
                         allartworks['Backdrop'].append(artwork)
-                        backdropIndex += 1
 
             # Process the rest of the artwork
             parentartwork = ['Logo', 'Art', 'Thumb']
