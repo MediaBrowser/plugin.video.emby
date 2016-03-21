@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 
-#################################################################################################
+###############################################################################
 
 import json
 import threading
 import websocket
+import ssl
 
 import xbmc
 import xbmcgui
@@ -19,9 +20,11 @@ import utils
 import logging
 logging.basicConfig()
 
-#################################################################################################
+###############################################################################
 
 
+@utils.logging
+@utils.ThreadMethods
 class WebSocket_Client(threading.Thread):
 
     _shared_state = {}
@@ -29,28 +32,29 @@ class WebSocket_Client(threading.Thread):
     client = None
     stopWebsocket = False
 
-
     def __init__(self):
 
         self.__dict__ = self._shared_state
-        self.monitor = xbmc.Monitor()
-        
+
         self.doUtils = downloadutils.DownloadUtils()
         self.clientInfo = clientinfo.ClientInfo()
-        self.addonName = self.clientInfo.getAddonName()
         self.deviceId = self.clientInfo.getDeviceId()
         self.librarySync = librarysync.LibrarySync()
-        
+
+        # 'state' that can be returned by PMS
+        self.timeStates = {
+            0: 'created',
+            2: 'matching',
+            3: 'downloading',
+            4: 'loading',
+            5: 'finished',
+            6: 'analyzing',
+            9: 'deleted'
+        }
+
         threading.Thread.__init__(self)
 
-    def logMsg(self, msg, lvl=1):
-
-        self.className = self.__class__.__name__
-        utils.logMsg("%s %s" % (self.addonName, self.className), msg, lvl)
-
-
     def sendProgressUpdate(self, data):
-        
         log = self.logMsg
 
         log("sendProgressUpdate", 2)
@@ -68,18 +72,73 @@ class WebSocket_Client(threading.Thread):
             log("Exception: %s" % e, 1)
 
     def on_message(self, ws, message):
-        
-        log = self.logMsg
-        window = utils.window
-        lang = utils.language
+        """
+        Will be called automatically if ws receives a message from PMS
+        """
+        try:
+            message = json.loads(message)
+        except Exception as ex:
+            self.logMsg('Error decoding message from websocket: %s' % ex, -1)
+            self.logMsg(message, -1)
+            return False
 
-        result = json.loads(message)
-        messageType = result['MessageType']
-        data = result['Data']
+        typus = message.get('type')
+        if not typus:
+            return False
 
-        if messageType not in ('SessionEnded'):
-            # Mute certain events
-            log("Message: %s" % message, 1)
+        process_func = getattr(self, 'processing_%s' % typus, None)
+        if process_func and process_func(message):
+            return True
+
+        # Something went wrong; log
+        self.logMsg("Error processing PMS websocket message.", -1)
+        self.logMsg("Received websocket message from PMS: %s" % message, -1)
+        return True
+
+    def processing_playing(self, message):
+        """
+        Called when somewhere a PMS item is started, being played, stopped.
+
+        Calls Libsync with a list of children dictionaries:
+        {
+          '_elementType':         e.g. 'PlaySessionStateNotification'
+          'guid':                  e.g. ''
+          'key':                   e.g. '/library/metadata/282300',
+          'ratingKey':             e.g. '282300',
+          'sessionKey':            e.g. '590',
+          'state':                 e.g. 'playing', 'available', 'buffering',
+                                   'stopped'
+          'transcodeSession':      e.g. 'yv50n9p4cr',
+          'url':                   e.g. ''
+          'viewOffset':            e.g. 1878534        (INT!)
+        }
+        """
+        children = message.get('_children')
+        if not children:
+            return False
+
+    def processing_progress(self, message):
+        """
+        Called when a PMS items keeps getting played (resume points update)
+        """
+
+    def processing_timeline(self, message):
+        """
+        Called when a PMS is in the process or has updated/added/removed a
+        library item
+        """
+        children = message.get('_children')
+        if not children:
+            return False
+        for item in children:
+            state = self.timeStates.get(item.get('state'))
+        return True
+
+    def processing_status(self, message):
+        """
+        Called when a PMS is scanning its libraries (to be verified)
+        """
+
 
         if messageType == "Play":
             # A remote control play command has been sent from the server.
@@ -255,7 +314,7 @@ class WebSocket_Client(threading.Thread):
         elif messageType == "ServerRestarting":
             if utils.settings('supressRestartMsg') == "true":
                 xbmcgui.Dialog().notification(
-                                    heading="Emby for Kodi",
+                                    heading=self.addonName,
                                     message=lang(33006),
                                     icon="special://home/addons/plugin.video.emby/icon.png")
 
@@ -268,6 +327,7 @@ class WebSocket_Client(threading.Thread):
         self.logMsg("Closed.", 2)
 
     def on_open(self, ws):
+        return
         self.doUtils.postCapabilities(self.deviceId)
 
     def on_error(self, ws, error):
@@ -281,14 +341,12 @@ class WebSocket_Client(threading.Thread):
 
         log = self.logMsg
         window = utils.window
-        monitor = self.monitor
 
-        loglevel = int(window('emby_logLevel'))
         # websocket.enableTrace(True)
 
-        userId = window('emby_currUser')
-        server = window('emby_server%s' % userId)
-        token = window('emby_accessToken%s' % userId)
+        userId = window('currUserId')
+        server = window('pms_server')
+        token = window('pms_token')
         deviceId = self.deviceId
 
         # Get the appropriate prefix for the websocket
@@ -297,31 +355,35 @@ class WebSocket_Client(threading.Thread):
         else:
             server = server.replace('http', "ws")
 
-        websocket_url = "%s?api_key=%s&deviceId=%s" % (server, token, deviceId)
+        websocket_url = "%s/:/websockets/notifications" % server
+        if token:
+            websocket_url += '?X-Plex-Token=%s' % token
         log("websocket url: %s" % websocket_url, 1)
 
-        self.client = websocket.WebSocketApp(websocket_url,
-                                    on_message=self.on_message,
-                                    on_error=self.on_error,
-                                    on_close=self.on_close)
-        
+        sslopt = {}
+        if utils.settings('sslverify') == "false":
+            sslopt["cert_reqs"] = ssl.CERT_NONE
+
+        self.client = websocket.WebSocketApp(
+            websocket_url,
+            on_message=self.on_message,
+            on_error=self.on_error,
+            on_close=self.on_close)
+
         self.client.on_open = self.on_open
         log("----===## Starting WebSocketClient ##===----", 0)
 
-        while not monitor.abortRequested():
-
-            self.client.run_forever(ping_interval=10)
-            if self.stopWebsocket:
-                break
-
-            if monitor.waitForAbort(5):
-                # Abort was requested, exit
-                break
+        while not self.threadStopped():
+            self.client.run_forever(ping_interval=10,
+                                    sslopt=sslopt)
+            xbmc.sleep(100)
 
         log("##===---- WebSocketClient Stopped ----===##", 0)
 
-    def stopClient(self):
-
-        self.stopWebsocket = True
+    def stopThread(self):
+        """
+        Overwrite this method from ThreadMethods to close websockets first
+        """
+        self.logMsg("Stopping websocket client thread.", 1)
         self.client.close()
-        self.logMsg("Stopping thread.", 1)
+        self._threadStopped = True
