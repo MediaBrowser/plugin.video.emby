@@ -2316,6 +2316,7 @@ class API():
                 utils.window('emby_shouldStop', value="true")
                 playurl = False
             utils.window('emby_pathverified', value='true')
+            utils.settings('emby_pathverified', value='true')
         return playurl
 
     def askToValidate(self, url):

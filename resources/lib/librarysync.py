@@ -239,6 +239,9 @@ class LibrarySync(Thread):
             'enableBackgroundSync') == "true" else False
         self.limitindex = int(utils.settings('limitindex'))
 
+        if utils.settings('emby_pathverified') == 'true':
+            utils.window('emby_pathverified', value='true')
+
         # Time offset between Kodi and PMS in seconds (=Koditime - PMStime)
         self.timeoffset = 0
         # Time in seconds to look into the past when looking for PMS changes
