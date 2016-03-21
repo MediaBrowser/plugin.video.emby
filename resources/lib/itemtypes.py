@@ -37,7 +37,7 @@ class Items(object):
         self.doUtils = downloadutils.DownloadUtils()
         self.kodiversion = int(xbmc.getInfoLabel("System.BuildVersion")[:2])
         # self.directpath = utils.settings('useDirectPaths') == "1"
-        self.directpath = True if utils.window('useDirectPaths') == 'true' \
+        self.directpath = True if utils.window('useDirectPaths') == '1' \
             else False
         # self.music_enabled = utils.settings('enableMusic') == "true"
         # self.contentmsg = utils.settings('newContent') == "true"
