@@ -638,6 +638,12 @@ class LibrarySync(Thread):
         # Add sources
         utils.sourcesXML()
 
+        # Deactivate Kodi popup showing that it's (unsuccessfully) trying to
+        # scan music folders
+        if self.enableMusic:
+            utils.musiclibXML()
+            utils.advancedSettingsXML()
+
         # Set new timestamp NOW because sync might take a while
         self.saveLastSync()
 

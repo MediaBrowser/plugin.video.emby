@@ -47,7 +47,7 @@ class Kodidb_Functions():
         self.clientInfo = clientinfo.ClientInfo()
         self.artwork = artwork.Artwork()
 
-    def addPath(self, path):
+    def addPath(self, path, strHash=None):
         # SQL won't return existing paths otherwise
         if path is None:
             path = ""
@@ -64,15 +64,26 @@ class Kodidb_Functions():
         except TypeError:
             cursor.execute("select coalesce(max(idPath),0) from path")
             pathid = cursor.fetchone()[0] + 1
-            query = (
-                '''
-                INSERT INTO path(
-                    idPath, strPath)
+            if strHash is None:
+                query = (
+                    '''
+                    INSERT INTO path(
+                        idPath, strPath)
 
-                VALUES (?, ?)
-                '''
-            )
-            cursor.execute(query, (pathid, path))
+                    VALUES (?, ?)
+                    '''
+                )
+                cursor.execute(query, (pathid, path))
+            else:
+                query = (
+                    '''
+                    INSERT INTO path(
+                        idPath, strPath, strHash)
+
+                    VALUES (?, ?, ?)
+                    '''
+                )
+                cursor.execute(query, (pathid, path, strHash))
 
         return pathid
 
