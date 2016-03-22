@@ -71,8 +71,11 @@ class SubscriptionManager:
         
         # pbmc_server = str(WINDOW.getProperty('plexbmc.nowplaying.server'))
         # userId = str(WINDOW.getProperty('currUserId'))
-        # pbmc_server = str(WINDOW.getProperty('pms_server'))
-        pbmc_server = None
+        pbmc_server = WINDOW.getProperty('pms_server')
+        if pbmc_server:
+            (self.protocol, self.server, self.port) = \
+                pbmc_server.split(':')
+            self.server = self.server.replace('/', '')
         keyid = None
         count = 0
         while not keyid:
@@ -87,8 +90,6 @@ class SubscriptionManager:
             ret += ' location="%s"' % (self.mainlocation)
             ret += ' key="%s"' % (self.lastkey)
             ret += ' ratingKey="%s"' % (self.lastratingkey)
-            if pbmc_server:
-                (self.server, self.port) = pbmc_server.split(':')
         serv = getServerByHost(self.server)
         if info.get('playQueueID'):
             self.containerKey = "/playQueues/%s" % info.get('playQueueID')
