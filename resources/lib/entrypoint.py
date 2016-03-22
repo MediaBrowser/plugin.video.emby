@@ -1446,6 +1446,17 @@ def getOnDeck(viewid, mediatype, tagname, limit):
         for episode in episodes:
             # There will always be only 1 episode ('limit=1')
             li = createListItem(episode)
+            # Fix some skin shortcomings
+            title = episode['title']
+            if utils.settings('OnDeckTvAppendSeason') == 'true':
+                season = episode.get('season')
+                if season:
+                    title = str(season) + ' - ' + title
+            if utils.settings('OnDeckTvAppendShow') == 'true':
+                show = episode.get('showtitle')
+                if show:
+                    title = show + ' - ' + title
+            li.setLabel(title)
             xbmcplugin.addDirectoryItem(
                 handle=int(sys.argv[1]),
                 url=episode['file'],

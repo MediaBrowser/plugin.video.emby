@@ -388,6 +388,12 @@
     <string id="39043">Go a step further and complete replace all original Plex library paths (/volume1/media) with custom SMB paths (smb://NAS/MyStuff)?</string>
     <string id="39044">Please enter your custom smb paths in the settings under "Sync Options" and then restart Kodi</string>
 
+    <string id="39045">Appearance Tweaks</string>
+    <string id="39046">TV Shows</string>
+    <string id="39047">On Deck view: Append show title to episode</string>
+    <string id="39048">On Deck view: Append season number to episode</string>
+
+
     <!-- Plex Entrypoint.py -->
     <string id="39200">Switch Plex Home User</string>
     <string id="39201">Settings</string>

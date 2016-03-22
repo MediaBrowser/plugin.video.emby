@@ -324,6 +324,11 @@
     <string id="39043">Sollen sogar sämtliche Plex Pfade wie /volume1/Hans/medien durch benutzerdefinierte smb Pfade wie smb://NAS/Filme ersetzt werden?</string>
     <string id="39044">Bitte geben Sie Ihre benutzerdefinierten SMB Pfade nun in den Einstellungen unter Sync Optionen ein. Starten Sie dann Kodi neu.</string>
 
+    <string id="39045">Erscheinung</string>
+    <string id="39046">TV Serien</string>
+    <string id="39047">"Aktuell": Serien- an Episoden-Titel anfügen</string>
+    <string id="39048">"Aktuell": Staffel an Episoden-Titel anfügen</string>
+
     <!-- Plex Entrypoint.py -->
     <string id="39200">Plex Home Benutzer wechseln</string>
     <string id="39201">Einstellungen</string>

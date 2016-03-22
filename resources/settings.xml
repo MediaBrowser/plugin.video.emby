@@ -109,6 +109,13 @@
         <setting id="newmusictime" type="number" label="30533" visible="false" default="2" option="int" subsetting="true" />
 	</category>
 	-->
+
+	<category label="39045"><!-- Appearance Tweaks -->
+		<setting type="lsep" label="39046" />
+		<setting id="OnDeckTvAppendShow" type="bool" label="39047" default="false" /><!--On Deck view: Append show title to episode-->
+		<setting id="OnDeckTvAppendSeason" type="bool" label="39048" default="false" /><!--On Deck view: Append season number to episode-->
+	</category>
+
 	<category label="30022"><!-- Advanced -->
 		<setting id="logLevel" type="enum" label="30004" values="Disabled|Info|Debug" default="1" />
 		<setting id="startupDelay" type="number" label="30529" default="0" option="int" />
