@@ -755,6 +755,88 @@ class Kodidb_Functions():
             ids.append(row[0])
         return ids
 
+    def getIdFromTitle(self, itemdetails):
+        """
+        Returns the Kodi id (e.g. idMovie, idEpisode) from the item's
+        title (c00), if there is exactly ONE found for the itemtype.
+        (False otherwise)
+
+        itemdetails is the data['item'] response from Kodi
+
+        itemdetails for movies:
+        {
+            "title":"Kung Fu Panda",
+            "type":"movie",
+            "year":2008
+        }
+
+        itemdetails for episodes:
+        {
+            "episode":5
+            "season":5,
+            "showtitle":"Girls",
+            "title":"Queen for Two Days",
+            "type":"episode"
+        }
+        """
+        try:
+            type = itemdetails['type']
+        except:
+            return False
+
+        if type == 'movie':
+            query = ' '.join((
+                "SELECT idMovie",
+                "FROM movie",
+                "WHERE c00 = ?"
+            ))
+            try:
+                rows = self.cursor.execute(query, (itemdetails['title'],))
+            except:
+                return False
+        elif type == 'episode':
+            query = ' '.join((
+                "SELECT idShow",
+                "FROM tvshow",
+                "WHERE c00 = ?"
+            ))
+            try:
+                rows = self.cursor.execute(query, (itemdetails['showtitle'],))
+            except:
+                return False
+            ids = []
+            for row in rows:
+                ids.append(row[0])
+            if len(ids) > 1:
+                # No unique match possible
+                return False
+            showid = ids[0]
+
+            query = ' '.join((
+                "SELECT idEpisode",
+                "FROM episode",
+                "WHERE c12 = ? AND c13 = ? AND idShow = ?"
+            ))
+            try:
+                rows = self.cursor.execute(
+                    query,
+                    (itemdetails['season'],
+                     itemdetails['episode'],
+                     showid))
+            except:
+                return False
+        else:
+            return False
+
+        ids = []
+        for row in rows:
+            ids.append(row[0])
+        if len(ids) > 1:
+            # No unique match possible
+            return False
+        else:
+            return ids[0]
+
     def getUnplayedItems(self):
         """
         VIDEOS
