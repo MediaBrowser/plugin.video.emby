@@ -275,9 +275,7 @@ class PlaybackUtils():
 
         # Append external subtitles to stream
         playmethod = utils.window('%s.playmethod' % embyitem)
-        # Only for direct stream
-        if playmethod in ("DirectStream"):
-            # Direct play automatically appends external
+        if playmethod in ("DirectStream", "DirectPlay"):
             subtitles = self.API.externalSubs(playurl)
             listitem.setSubtitles(subtitles)
 
