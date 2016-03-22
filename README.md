@@ -56,7 +56,9 @@ Currently these features are working:
 
 
 **Known Issues:**
-- **Plex Music:** You must have a static IP address for your Plex media server if you plan to use Plex Music features. This is due to the way Kodi works and cannot be helped.
+- **Plex Music:** You must have a static IP address for your Plex media server if you plan to use Plex Music features. This is due to the way Kodi works and cannot be helped. 
+- **Plex Music:** Kodi tries to scan every(!) single Plex song on startup. This leads to errors in the Kodi log file and potentially even crashes. (Plex puts each song in a "dedicated folder", e.g. 'http://192.168.1.1:32400/library/parts/749450/'. Kodi unsuccessfully tries to scan these folders)
+- **Plex Music:** Plex Music for direct paths does not work yet.
 - **Plex updates:** PlexKodiConnect continuously polls the Plex Media Server for changes. If something on the PMS has changed, this change is synced to Kodi. Hence if you rescan your entire library, a long PlexKodiConnect re-sync is triggered.
 - **Direct Paths:** If you use direct paths, your sync will be slower
 - **Video Nodes**: some nodes, e.g. "On Deck", are customized/hacked. Hence no access to movie metadata is possible, because Kodi does not know it's a library item
@@ -67,6 +69,9 @@ Currently these features are working:
 - Homevideos
 - Pictures
 - Music Videos
+- Automatic updates
+- Redesigned background sync process that puts less strain on the PMS
+- Simultaneously connecting to several PMS
 - TV Shows Theme Music (ultra-low prio)
 
 
