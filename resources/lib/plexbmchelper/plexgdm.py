@@ -34,6 +34,7 @@ import urllib2
 
 import downloadutils
 from PlexFunctions import PMSHttpsEnabled
+from utils import window
 
 
 class plexgdm:
@@ -247,8 +248,36 @@ class plexgdm:
                     update['protocol'] = 'http'
                 discovered_servers.append(update)
 
+        # Append REMOTE PMS that we haven't found yet; if necessary
+        currServer = window('pms_server')
+        if currServer:
+            currServerProt, currServerIP, currServerPort = \
+                currServer.split(':')
+            currServerIP = currServerIP.replace('/', '')
+            for server in discovered_servers:
+                if server['server'] == currServerIP:
+                    break
+            else:
+                # Currently active server was not discovered via GDM; ADD
+                update = {
+                    'port': currServerPort,
+                    'protocol': currServerProt,
+                    'class': None,
+                    'content-type': 'plex/media-server',
+                    'discovery': 'auto',
+                    'master': 1,
+                    'owned': '1',
+                    'role': 'master',
+                    'server': currServerIP,
+                    'serverName': window('plex_servername'),
+                    'updated': int(time.time()),
+                    'uuid': window('plex_machineIdentifier'),
+                    'version': 'irrelevant'
+                }
+                discovered_servers.append(update)
+
         self.server_list = discovered_servers
-        
+
         if not self.server_list:
             self.__printDebug("No servers have been discovered",1)
         else:
