@@ -537,6 +537,7 @@ class Player(xbmc.Player):
                         url = "{server}/emby/Items/%s?format=json" % itemid
                         log("Deleting request: %s" % itemid, 1)
                         doUtils(url, type="DELETE")
+                self.stopPlayback(data)
 
         # Clean the WINDOW properties
         for filename in self.played_info:
@@ -552,7 +553,6 @@ class Player(xbmc.Player):
             )
             for item in cleanup:
                 utils.window(item, clear=True)
-                self.stopPlayback(data)
 
                 # Stop transcoding
                 if playMethod == "Transcode":
@@ -564,7 +564,7 @@ class Player(xbmc.Player):
         self.played_info.clear()
 
     def stopPlayback(self, data):
-        self.logMsg("stopPlayback called", 2)
+        self.logMsg("stopPlayback called", 1)
 
         itemId = data['item_id']
         playTime = data['currentPosition']
