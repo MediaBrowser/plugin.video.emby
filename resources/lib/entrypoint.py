@@ -255,7 +255,7 @@ def doMainListing():
                 addDirectoryItem(label, path)
 
     # Plex user switch
-    addDirectoryItem(string(39200),
+    addDirectoryItem(string(39200) + utils.window('plex_username'),
                      "plugin://plugin.video.plexkodiconnect/"
                      "?mode=switchuser")
 

@@ -395,7 +395,7 @@
 
 
     <!-- Plex Entrypoint.py -->
-    <string id="39200">Switch Plex Home User</string>
+    <string id="39200">Log-out Plex Home User: </string>
     <string id="39201">Settings</string>
     <string id="39202">Network credentials</string>
     <string id="39203">Refresh Plex playlists/nodes</string>

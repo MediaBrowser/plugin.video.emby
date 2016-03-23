@@ -330,7 +330,7 @@
     <string id="39048">"Aktuell": Staffel und Episode anfügen (z.B. S3E2)</string>
 
     <!-- Plex Entrypoint.py -->
-    <string id="39200">Plex Home Benutzer wechseln</string>
+    <string id="39200">Plex Home Benutzer abmelden: </string>
     <string id="39201">Einstellungen</string>
     <string id="39202">Netzwerk Credentials</string>
     <string id="39203">Plex Playlisten und Nodes zurücksetzen</string>
