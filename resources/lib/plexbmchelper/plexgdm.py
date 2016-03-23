@@ -144,9 +144,15 @@ class plexgdm:
                 return False
 
             try:
-                media_server=self.server_list[0]['server']
-                media_port=self.server_list[0]['port']
-                scheme = self.server_list[0]['protocol']
+                for server in self.server_list:
+                    if server['uuid'] == window('plex_machineIdentifier'):
+                        media_server = server['server']
+                        media_port = server['port']
+                        scheme = server['protocol']
+                        break
+                else:
+                    self.__printDebug("Did not find our server!", 2)
+                    return False
 
                 self.__printDebug("Checking server [%s] on port [%s]" % (media_server, media_port) ,2)                    
                 client_result = self.download(
