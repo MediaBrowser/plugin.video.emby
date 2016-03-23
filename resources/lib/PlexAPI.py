@@ -58,10 +58,7 @@ from urllib import urlencode, quote_plus, unquote
 
 from PlexFunctions import PlexToKodiTimefactor, PMSHttpsEnabled
 
-try:
-    import xml.etree.cElementTree as etree
-except ImportError:
-    import xml.etree.ElementTree as etree
+import xml.etree.ElementTree as etree
 
 
 @utils.logging

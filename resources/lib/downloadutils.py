@@ -4,6 +4,7 @@
 
 # import json
 import requests
+import xml.etree.ElementTree as etree
 # import logging
 
 # import xbmc
@@ -13,10 +14,6 @@ import utils
 import clientinfo
 
 import PlexAPI
-try:
-    import xml.etree.cElementTree as etree
-except ImportError:
-    import xml.etree.ElementTree as etree
 
 ###############################################################################
 

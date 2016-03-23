@@ -79,7 +79,10 @@ class Service():
             "emby_initialScan", "emby_customplaylist", "emby_playbackProps",
             "plex_runLibScan", "plex_username", "pms_token", "plex_token",
             "pms_server", "plex_machineIdentifier", "plex_servername",
-            "plex_authenticated"
+            "plex_authenticated", "EmbyUserImage", "useDirectPaths",
+            "replaceSMB", "remapSMB", "remapSMBmovieOrg", "remapSMBtvOrg",
+            "remapSMBmusicOrg", "remapSMBmovieNew", "remapSMBtvNew",
+            "remapSMBmusicNew", "suspend_LibraryThread"
         ]
         for prop in properties:
             window(prop, clear=True)
