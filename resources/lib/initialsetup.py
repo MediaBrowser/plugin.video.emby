@@ -261,8 +261,6 @@ class InitialSetup():
                 dialog.ok(heading=self.addonName,
                           line1=string(39044))
                 goToSettings = True
-                # Don't start anything because we need these paths first!
-                utils.window('emby_serverStatus', value="Stop")
 
             # Go to network credentials?
             if dialog.yesno(heading=self.addonName,
@@ -280,8 +278,9 @@ class InitialSetup():
             xbmc.executebuiltin(
                 'Addon.OpenSettings(plugin.video.plexkodiconnect)')
         else:
-            # Open Settings page now?
+            # Open Settings page now? You will need to restart!
             if dialog.yesno(heading=self.addonName,
                             line1=string(39017)):
+                utils.window('emby_serverStatus', value="Stop")
                 xbmc.executebuiltin(
                     'Addon.OpenSettings(plugin.video.plexkodiconnect)')

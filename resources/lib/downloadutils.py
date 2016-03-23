@@ -4,6 +4,7 @@
 
 # import json
 import requests
+import xml.etree.ElementTree as etree
 # import logging
 
 # import xbmc
@@ -13,10 +14,6 @@ import utils
 import clientinfo
 
 import PlexAPI
-try:
-    import xml.etree.cElementTree as etree
-except ImportError:
-    import xml.etree.ElementTree as etree
 
 ###############################################################################
 
@@ -392,7 +389,8 @@ class DownloadUtils():
 
                 elif status not in ("401", "Auth"):
                     # Tell userclient token has been revoked.
-                    self.logMsg('Setting emby_serverStatus to 401')
+                    self.logMsg('Error 401 contacting %s' % url, 0)
+                    self.logMsg('Setting emby_serverStatus to 401', 0)
                     utils.window('emby_serverStatus', value="401")
                     self.logMsg("HTTP Error: %s" % e, 0)
                     xbmcgui.Dialog().notification(

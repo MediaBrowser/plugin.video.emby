@@ -32,8 +32,11 @@ import threading
 import time
 import urllib2
 
+import xbmc
+
 import downloadutils
 from PlexFunctions import PMSHttpsEnabled
+from utils import window
 
 
 class plexgdm:
@@ -119,7 +122,7 @@ class plexgdm:
                     
                     self.__printDebug("Sending registration data: HTTP/1.0 200 OK\r\n%s" % (self.client_data), 3)
                     self.client_registered = True
-            time.sleep(0.5)        
+            xbmc.sleep(500)
 
         self.__printDebug("Client Update loop stopped",1)
         
@@ -141,9 +144,15 @@ class plexgdm:
                 return False
 
             try:
-                media_server=self.server_list[0]['server']
-                media_port=self.server_list[0]['port']
-                scheme = self.server_list[0]['protocol']
+                for server in self.server_list:
+                    if server['uuid'] == window('plex_machineIdentifier'):
+                        media_server = server['server']
+                        media_port = server['port']
+                        scheme = server['protocol']
+                        break
+                else:
+                    self.__printDebug("Did not find our server!", 2)
+                    return False
 
                 self.__printDebug("Checking server [%s] on port [%s]" % (media_server, media_port) ,2)                    
                 client_result = self.download(
@@ -240,15 +249,47 @@ class plexgdm:
                             update['class'] = each.split(':')[1].strip()
 
                 # Quickly test if we need https
-                if PMSHttpsEnabled(
-                        '%s:%s' % (update['server'], update['port'])):
+                https = PMSHttpsEnabled(
+                    '%s:%s' % (update['server'], update['port']))
+                if https is None:
+                    # Error contacting server
+                    continue
+                elif https:
                     update['protocol'] = 'https'
                 else:
                     update['protocol'] = 'http'
                 discovered_servers.append(update)
 
+        # Append REMOTE PMS that we haven't found yet; if necessary
+        currServer = window('pms_server')
+        if currServer:
+            currServerProt, currServerIP, currServerPort = \
+                currServer.split(':')
+            currServerIP = currServerIP.replace('/', '')
+            for server in discovered_servers:
+                if server['server'] == currServerIP:
+                    break
+            else:
+                # Currently active server was not discovered via GDM; ADD
+                update = {
+                    'port': currServerPort,
+                    'protocol': currServerProt,
+                    'class': None,
+                    'content-type': 'plex/media-server',
+                    'discovery': 'auto',
+                    'master': 1,
+                    'owned': '1',
+                    'role': 'master',
+                    'server': currServerIP,
+                    'serverName': window('plex_servername'),
+                    'updated': int(time.time()),
+                    'uuid': window('plex_machineIdentifier'),
+                    'version': 'irrelevant'
+                }
+                discovered_servers.append(update)
+
         self.server_list = discovered_servers
-        
+
         if not self.server_list:
             self.__printDebug("No servers have been discovered",1)
         else:
@@ -292,7 +333,7 @@ class plexgdm:
             if discovery_count > self.discovery_interval:
                 self.discover()
                 discovery_count=0
-            time.sleep(1)
+            xbmc.sleep(1000)
 
     def start_discovery(self, daemon = False):
         if not self._discovery_is_running:
@@ -326,8 +367,8 @@ if __name__ == '__main__':
     client.start_all()
     while not client.discovery_complete:
         print "Waiting for results"
-        time.sleep(1)
-    time.sleep(20)
+        xbmc.sleep(1000)
+    xbmc.sleep(20000)
     print client.getServerList()
     if client.check_client_registration():
         print "Successfully registered"

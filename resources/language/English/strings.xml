@@ -357,11 +357,10 @@
     <string id="39014">Please sign in to plex.tv.</string>
     <string id="39015">Problems connecting to server. Pick another server?</string>
     <string id="39016">Disable Plex music library?</string>
-    <string id="39017">Would you now like to go to the plugin's settings?
-    (This is hopefully unneccessary ;-))</string>
+    <string id="39017">Would you now like to go to the plugin's settings to fine-tune PKC? You will need to RESTART Kodi!</string>
 
     <string id="39018">[COLOR yellow]Repair local database (force update all content)[/COLOR]</string>
-    <string id="39019">[COLOR yellow]Perform local database reset (full resync)[/COLOR]</string>
+    <string id="39019">[COLOR red]Partial or full reset of Database and PKC[/COLOR]</string>
     <string id="39020">[COLOR yellow]Cache all images to Kodi texture cache[/COLOR]</string>
     <string id="39021">[COLOR yellow]Sync Emby Theme Media to Kodi[/COLOR]</string>
     <string id="39022"> (local)</string>
@@ -388,8 +387,15 @@
     <string id="39043">Go a step further and complete replace all original Plex library paths (/volume1/media) with custom SMB paths (smb://NAS/MyStuff)?</string>
     <string id="39044">Please enter your custom smb paths in the settings under "Sync Options" and then restart Kodi</string>
 
+    <string id="39045">Appearance Tweaks</string>
+    <string id="39046">TV Shows</string>
+    <string id="39047">On Deck: Append show title to episode</string>
+    <string id="39048">On Deck: Append season- and episode-number (e.g. S3E2)</string>
+    <string id="39049">Nothing works? Try a full reset!</string>
+
+
     <!-- Plex Entrypoint.py -->
-    <string id="39200">Switch Plex Home User</string>
+    <string id="39200">Log-out Plex Home User: </string>
     <string id="39201">Settings</string>
     <string id="39202">Network credentials</string>
     <string id="39203">Refresh Plex playlists/nodes</string>

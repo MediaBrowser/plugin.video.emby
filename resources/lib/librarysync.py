@@ -4,10 +4,7 @@
 
 from threading import Thread, Lock
 import Queue
-try:
-    import xml.etree.cElementTree as etree
-except ImportError:
-    import xml.etree.ElementTree as etree
+import xml.etree.ElementTree as etree
 
 import xbmc
 import xbmcgui
@@ -239,6 +236,9 @@ class LibrarySync(Thread):
             'enableBackgroundSync') == "true" else False
         self.limitindex = int(utils.settings('limitindex'))
 
+        if utils.settings('emby_pathverified') == 'true':
+            utils.window('emby_pathverified', value='true')
+
         # Time offset between Kodi and PMS in seconds (=Koditime - PMStime)
         self.timeoffset = 0
         # Time in seconds to look into the past when looking for PMS changes
@@ -326,7 +326,7 @@ class LibrarySync(Thread):
 
         # Get the Plex item's metadata
         xml = PlexFunctions.GetPlexMetadata(plexId)
-        if not xml:
+        if xml is None:
             self.logMsg("Could not download metadata, aborting time sync", -1)
             return
         libraryId = xml[0].attrib['librarySectionID']
@@ -493,7 +493,7 @@ class LibrarySync(Thread):
                 updatedAt=self.getPMSfromKodiTime(lastSync),
                 containerSize=self.limitindex)
             # Just skip if something went wrong
-            if not items:
+            if items is None:
                 continue
             # Get one itemtype, because they're the same in the PMS section
             try:
@@ -528,7 +528,7 @@ class LibrarySync(Thread):
                 view['id'],
                 lastViewedAt=self.getPMSfromKodiTime(lastSync),
                 containerSize=self.limitindex)
-            if not items:
+            if items is None:
                 continue
             for item in items:
                 itemId = item.attrib.get('ratingKey')
@@ -634,6 +634,12 @@ class LibrarySync(Thread):
 
         # Add sources
         utils.sourcesXML()
+
+        # Deactivate Kodi popup showing that it's (unsuccessfully) trying to
+        # scan music folders
+        if self.enableMusic:
+            utils.musiclibXML()
+            utils.advancedSettingsXML()
 
         # Set new timestamp NOW because sync might take a while
         self.saveLastSync()
@@ -1075,7 +1081,7 @@ class LibrarySync(Thread):
             viewName = view['name']
             all_plexmovies = PlexFunctions.GetPlexSectionResults(
                 viewId, args=None, containerSize=self.limitindex)
-            if not all_plexmovies:
+            if all_plexmovies is None:
                 self.logMsg("Couldnt get section items, aborting for view.", 1)
                 continue
             # Populate self.updatelist and self.allPlexElementsId
@@ -1209,7 +1215,7 @@ class LibrarySync(Thread):
             viewName = view['name']
             allPlexTvShows = PlexFunctions.GetPlexSectionResults(
                 viewId, containerSize=self.limitindex)
-            if not allPlexTvShows:
+            if allPlexTvShows is None:
                 self.logMsg(
                     "Error downloading show view xml for view %s" % viewId, -1)
                 continue
@@ -1236,7 +1242,7 @@ class LibrarySync(Thread):
             # Grab all seasons to tvshow from PMS
             seasons = PlexFunctions.GetAllPlexChildren(
                 tvShowId, containerSize=self.limitindex)
-            if not seasons:
+            if seasons is None:
                 self.logMsg(
                     "Error downloading season xml for show %s" % tvShowId, -1)
                 continue
@@ -1261,7 +1267,7 @@ class LibrarySync(Thread):
             # Grab all episodes to tvshow from PMS
             episodes = PlexFunctions.GetAllPlexLeaves(
                 view['id'], containerSize=self.limitindex)
-            if not episodes:
+            if episodes is None:
                 self.logMsg(
                     "Error downloading episod xml for view %s"
                     % view.get('name'), -1)
@@ -1359,7 +1365,7 @@ class LibrarySync(Thread):
             viewName = view['name']
             itemsXML = PlexFunctions.GetPlexSectionResults(
                 viewId, args=urlArgs, containerSize=self.limitindex)
-            if not itemsXML:
+            if itemsXML is None:
                 self.logMsg("Error downloading xml for view %s"
                             % viewId, -1)
                 continue
@@ -1401,6 +1407,7 @@ class LibrarySync(Thread):
         except Exception as e:
             utils.window('emby_dbScan', clear=True)
             self.logMsg('LibrarySync thread crashed', -1)
+            self.logMsg('Error message: %s' % e, -1)
             # Library sync thread has crashed
             xbmcgui.Dialog().ok(
                 heading=self.addonName,

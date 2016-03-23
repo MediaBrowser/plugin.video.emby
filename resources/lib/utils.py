@@ -148,7 +148,7 @@ def ThreadMethodsAdditionalStop(windowAttribute):
     def wrapper(cls):
         def threadStopped(self):
             return (self._threadStopped or
-                    (window('terminateNow') == "true") or
+                    (window('plex_terminateNow') == "true") or
                     window(windowAttribute) == "true")
         cls.threadStopped = threadStopped
         return cls
@@ -209,7 +209,7 @@ def ThreadMethods(cls):
     cls.threadSuspended = threadSuspended
 
     def threadStopped(self):
-        return self._threadStopped or (window('terminateNow') == 'true')
+        return self._threadStopped or (window('plex_terminateNow') == 'true')
     cls.threadStopped = threadStopped
 
     # Return class to render this a decorator
@@ -624,6 +624,85 @@ def indent(elem, level=0):
     else:
         if level and (not elem.tail or not elem.tail.strip()):
           elem.tail = i
+
+
+def musiclibXML():
+    """
+    Deactivates Kodi trying to scan music library on startup
+
+    Changes guisettings.xml in Kodi userdata folder:
+        updateonstartup:        set to "false"
+    """
+    path = xbmc.translatePath("special://profile/").decode('utf-8')
+    xmlpath = "%sguisettings.xml" % path
+
+    try:
+        xmlparse = etree.parse(xmlpath)
+    except:
+        # Document is blank or missing
+        root = etree.Element('settings')
+    else:
+        root = xmlparse.getroot()
+
+    music = root.find('musiclibrary')
+    if music is None:
+        music = etree.SubElement(root, 'musiclibrary')
+
+    startup = music.find('updateonstartup')
+    if startup is None:
+        # Setting does not exist yet; create it
+        startup = etree.SubElement(music,
+                                   'updateonstartup',
+                                   attrib={'default': "true"}).text = "false"
+    else:
+        startup.text = "false"
+
+    # Prettify and write to file
+    try:
+        indent(root)
+    except:
+        pass
+    etree.ElementTree(root).write(xmlpath)
+
+
+def advancedSettingsXML():
+    """
+    Deactivates Kodi popup for scanning of music library
+
+    Changes advancedsettings.xml, musiclibrary:
+        backgroundupdate        set to "true"
+    """
+    path = xbmc.translatePath("special://profile/").decode('utf-8')
+    xmlpath = "%sadvancedsettings.xml" % path
+
+    try:
+        xmlparse = etree.parse(xmlpath)
+    except:
+        # Document is blank or missing
+        root = etree.Element('advancedsettings')
+    else:
+        root = xmlparse.getroot()
+
+    music = root.find('musiclibrary')
+    if music is None:
+        music = etree.SubElement(root, 'musiclibrary')
+
+    backgroundupdate = music.find('backgroundupdate')
+    if backgroundupdate is None:
+        # Setting does not exist yet; create it
+        backgroundupdate = etree.SubElement(
+            music,
+            'backgroundupdate').text = "true"
+    else:
+        backgroundupdate.text = "true"
+
+    # Prettify and write to file
+    try:
+        indent(root)
+    except:
+        pass
+    etree.ElementTree(root).write(xmlpath)
+
 
 def sourcesXML():
     # To make Master lock compatible

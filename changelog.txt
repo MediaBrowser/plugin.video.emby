@@ -1,3 +1,20 @@
+version 1.0.16
+- Kodi profiles up and running; try assigning different Plex users per profile!
+- Change "Switch User" to "Log Out Plex User: <username>"
+- TV shows On Deck: append season and episode number in the settings
+- Shut down PKC correctly (useful for Kodi profiles)
+- Don't de-authorize if several PMS are present
+- Relabel to "Full PKC reset" in settings
+
+version 1.0.15
+- Enable external Plex subtitles if available
+- TV On Deck: option to include show name
+- Playback updates now if an item is resumed
+- Fix PMS not being informed of playback stop
+- Fix playback updates for remote PMS
+- Deactivate info "Gathering information from files"
+- Updated readme
+
 version 1.0.14
 - Fix TV shows rating not showing up
 - Fix music libraries being scanned twice

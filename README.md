@@ -55,18 +55,28 @@ Currently these features are working:
 - Play directly from network paths (e.g. "\\\\server\\Plex\\movie.mkv" on Windows or SMB paths "smb://server/Plex/movie.mkv") instead of slow HTTP (e.g. "192.168.1.1:32400"). You have to setup all your Plex libraries to point to such network paths. 
 
 
-**Known Issues:**
-- **Plex Music:** You must have a static IP address for your Plex media server if you plan to use Plex Music features. This is due to the way Kodi works and cannot be helped.
+**Known "Larger" Issues:**
+Solutions are unlikely due to the nature of these issues
+- **Plex Music:** You must have a static IP address for your Plex media server if you plan to use Plex Music features. This is due to the way Kodi works and cannot be helped. 
+- **Plex Music:** Kodi tries to scan every(!) single Plex song on startup. This leads to errors in the Kodi log file and potentially even crashes. (Plex puts each song in a "dedicated folder", e.g. 'http://192.168.1.1:32400/library/parts/749450/'. Kodi unsuccessfully tries to scan these folders)
 - **Plex updates:** PlexKodiConnect continuously polls the Plex Media Server for changes. If something on the PMS has changed, this change is synced to Kodi. Hence if you rescan your entire library, a long PlexKodiConnect re-sync is triggered.
-- **Direct Paths:** If you use direct paths, your sync will be slower
+- **Subtitles**: external Plex subtitles (separate file, e.g. mymovie.srt) can be used, but it is impossible to label them correctly/tell what language they are in
+- **Direct Paths:** If you use direct paths, your (initial) sync will be slower
+
+**Known Bugs:**
+- **Plex Music:** Plex Music for direct paths does not work yet.
 - **Video Nodes**: some nodes, e.g. "On Deck", are customized/hacked. Hence no access to movie metadata is possible, because Kodi does not know it's a library item
 
-**What could be in the pipeline?**
+
+**What could be in the pipeline for future development?**
 - Watch Later
 - Playlists
 - Homevideos
 - Pictures
 - Music Videos
+- Automatic updates
+- Redesigned background sync process that puts less strain on the PMS
+- Simultaneously connecting to several PMS
 - TV Shows Theme Music (ultra-low prio)
 
 

@@ -1,12 +1,12 @@
 import re
 import threading
-from xml.dom.minidom import parseString
+# from xml.dom.minidom import parseString
 from functions import *
 from settings import settings
 from httppersist import requests
 
 from xbmc import Player
-import xbmcgui
+# import xbmcgui
 import downloadutils
 from utils import window
 import PlexFunctions as pf
@@ -67,18 +67,19 @@ class SubscriptionManager:
             ret += ' />'
             return ret
 
-        WINDOW = xbmcgui.Window(10000)
-        
         # pbmc_server = str(WINDOW.getProperty('plexbmc.nowplaying.server'))
         # userId = str(WINDOW.getProperty('currUserId'))
-        # pbmc_server = str(WINDOW.getProperty('pms_server'))
-        pbmc_server = None
+        pbmc_server = window('pms_server')
+        if pbmc_server:
+            (self.protocol, self.server, self.port) = \
+                pbmc_server.split(':')
+            self.server = self.server.replace('/', '')
         keyid = None
         count = 0
         while not keyid:
             if count > 300:
                 break
-            keyid = WINDOW.getProperty('Plex_currently_playing_itemid')
+            keyid = window('Plex_currently_playing_itemid')
             xbmc.sleep(100)
             count += 1
         if keyid:
@@ -87,8 +88,6 @@ class SubscriptionManager:
             ret += ' location="%s"' % (self.mainlocation)
             ret += ' key="%s"' % (self.lastkey)
             ret += ' ratingKey="%s"' % (self.lastratingkey)
-            if pbmc_server:
-                (self.server, self.port) = pbmc_server.split(':')
         serv = getServerByHost(self.server)
         if info.get('playQueueID'):
             self.containerKey = "/playQueues/%s" % info.get('playQueueID')

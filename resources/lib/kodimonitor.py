@@ -10,6 +10,7 @@ import xbmcgui
 
 import downloadutils
 import embydb_functions as embydb
+import kodidb_functions as kodidb
 import playbackutils as pbutils
 import utils
 from PlexFunctions import scrobble
@@ -154,11 +155,21 @@ class KodiMonitor(xbmc.Monitor):
         # Try to get a Kodi ID
         item = data.get('item')
         try:
-            kodiid = item['id']
             type = item['type']
-        except (KeyError, TypeError):
-            log("Item is invalid for Plex playstate update.", 0)
+        except:
+            log("Item is invalid for PMS playstate update.", 0)
             return
+        try:
+            kodiid = item['id']
+        except (KeyError, TypeError):
+            log('Kodi did not give us a Kodi item id, trying to get from item '
+                'title', 0)
+            # Try to get itemid with the element's title
+            with kodidb.GetKodiDB('video') as kodi_db:
+                kodiid = kodi_db.getIdFromTitle(item)
+                if kodiid is False:
+                    log("Item is invalid for PMS playstate update.", 0)
+                    return
 
         # Get Plex' item id
         with embydb.GetEmbyDB() as emby_db:

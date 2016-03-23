@@ -294,10 +294,10 @@
     <string id="39014">Bitte loggen Sie sich in plex.tv ein.</string>
     <string id="39015">Beim Verbinden mit dem Server sind Probleme aufgetreten. Mit einem anderen Server versuchen?</string>
     <string id="39016">Plex Musik Bibliotheken deaktivieren?</string>
-    <string id="39017">Möchten Sie nun die Einstellungen des Plugins öffnen? (Was hoffentlich unnötig ist ;-))"</string>
+    <string id="39017">Möchten Sie nun die Einstellungen des Plugins öffnen? Kodi muss anschliessend neu gestartet werden!</string>
 
     <string id="39018">[COLOR yellow]Lokale Datenbank reparieren (allen Inhalt aktualisieren)[/COLOR]</string>
-    <string id="39019">[COLOR yellow]Lokale Datenbank zurücksetzen (kompletter Resync nötig)[/COLOR]</string>
+    <string id="39019">[COLOR red]Datenbank und auf Wunsch PKC zurücksetzen[/COLOR]</string>
     <string id="39020">[COLOR yellow]Alle Plex Bilder in Kodi zwischenspeichern[/COLOR]</string>
     <string id="39021">[COLOR yellow]Plex Themes zu Kodi synchronisieren[/COLOR]</string>
     <string id="39022"> (lokal)</string>
@@ -324,8 +324,14 @@
     <string id="39043">Sollen sogar sämtliche Plex Pfade wie /volume1/Hans/medien durch benutzerdefinierte smb Pfade wie smb://NAS/Filme ersetzt werden?</string>
     <string id="39044">Bitte geben Sie Ihre benutzerdefinierten SMB Pfade nun in den Einstellungen unter Sync Optionen ein. Starten Sie dann Kodi neu.</string>
 
+    <string id="39045">Erscheinung</string>
+    <string id="39046">TV Serien</string>
+    <string id="39047">"Aktuell": Serien- an Episoden-Titel anfügen</string>
+    <string id="39048">"Aktuell": Staffel und Episode anfügen (z.B. S3E2)</string>
+    <string id="39049">Nichts funktioniert? Setze mal alles zurück!</string>
+
     <!-- Plex Entrypoint.py -->
-    <string id="39200">Plex Home Benutzer wechseln</string>
+    <string id="39200">Plex Home Benutzer abmelden: </string>
     <string id="39201">Einstellungen</string>
     <string id="39202">Netzwerk Credentials</string>
     <string id="39203">Plex Playlisten und Nodes zurücksetzen</string>

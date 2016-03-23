@@ -2055,17 +2055,18 @@ class Music(Items):
         if doIndirect:
             # Plex works a bit differently
             path = "%s%s" % (self.server, item[0][0].attrib.get('key'))
-            filename = API.addPlexCredentialsToUrl(path)
-            # Keep path empty to not let Kodi scan it
-            path = ""
+            path = API.addPlexCredentialsToUrl(path)
+            filename = path.rsplit('/', 1)[1]
+            path = path.replace(filename, '')
 
         # UPDATE THE SONG #####
         if update_item:
             self.logMsg("UPDATE song itemid: %s - Title: %s with path: %s"
                         % (itemid, title, path), 1)
             # Update path
-            query = "UPDATE path SET strPath = ? WHERE idPath = ?"
-            kodicursor.execute(query, (path, pathid))
+            # Use dummy strHash '123' for Kodi
+            query = "UPDATE path SET strPath = ?, strHash = ? WHERE idPath = ?"
+            kodicursor.execute(query, (path, '123', pathid))
 
             # Update the song entry
             query = ' '.join((
@@ -2087,7 +2088,7 @@ class Music(Items):
             self.logMsg("ADD song itemid: %s - Title: %s" % (itemid, title), 1)
 
             # Add path
-            pathid = kodi_db.addPath(path)
+            pathid = kodi_db.addPath(path, strHash="123")
 
             try:
                 # Get the album

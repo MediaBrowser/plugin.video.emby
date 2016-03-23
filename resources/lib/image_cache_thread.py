@@ -3,6 +3,10 @@ import utils
 import xbmc
 import requests
 
+# Disable requests logging
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
+requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+
 
 @utils.logging
 class image_cache_thread(threading.Thread):
