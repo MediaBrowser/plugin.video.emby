@@ -360,7 +360,7 @@
     <string id="39017">Would you now like to go to the plugin's settings to fine-tune PKC? You will need to RESTART Kodi!</string>
 
     <string id="39018">[COLOR yellow]Repair local database (force update all content)[/COLOR]</string>
-    <string id="39019">[COLOR yellow]Perform local database reset (full resync)[/COLOR]</string>
+    <string id="39019">[COLOR red]Partial or full reset of Database and PKC[/COLOR]</string>
     <string id="39020">[COLOR yellow]Cache all images to Kodi texture cache[/COLOR]</string>
     <string id="39021">[COLOR yellow]Sync Emby Theme Media to Kodi[/COLOR]</string>
     <string id="39022"> (local)</string>
@@ -391,6 +391,7 @@
     <string id="39046">TV Shows</string>
     <string id="39047">On Deck: Append show title to episode</string>
     <string id="39048">On Deck: Append season- and episode-number (e.g. S3E2)</string>
+    <string id="39049">Nothing works? Try a full reset!</string>
 
 
     <!-- Plex Entrypoint.py -->

@@ -121,8 +121,9 @@
 		<setting id="startupDelay" type="number" label="30529" default="0" option="int" />
 		<setting id="connectMsg" type="bool" label="30249" default="true" />
 		<setting label="39018" type="action" action="RunPlugin(plugin://plugin.video.plexkodiconnect/?mode=repair)" option="close" /> <!-- Repair local database (force update all content) -->
-		<setting label="39019" type="action" action="RunPlugin(plugin://plugin.video.plexkodiconnect/?mode=reset)" option="close" /> <!-- Perform local database reset (full resync) -->
 		<setting label="39020" type="action" action="RunPlugin(plugin://plugin.video.plexkodiconnect/?mode=texturecache)" option="close" /> <!-- Cache all images to Kodi texture cache -->
 		<setting label="39021" type="action" action="RunPlugin(plugin://plugin.video.plexkodiconnect/?mode=thememedia)" option="close" visible="false" /> <!-- Sync Plex Theme Media to Kodi -->
+		<setting type="lsep" label="39049" /><!-- Nothing works? Try a full reset -->
+		<setting label="39019" type="action" action="RunPlugin(plugin://plugin.video.plexkodiconnect/?mode=reset)" option="close" /> <!-- Partial or full reset of Database and PKC -->
 	</category>
 </settings>

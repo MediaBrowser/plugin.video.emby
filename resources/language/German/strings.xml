@@ -297,7 +297,7 @@
     <string id="39017">Möchten Sie nun die Einstellungen des Plugins öffnen? Kodi muss anschliessend neu gestartet werden!</string>
 
     <string id="39018">[COLOR yellow]Lokale Datenbank reparieren (allen Inhalt aktualisieren)[/COLOR]</string>
-    <string id="39019">[COLOR yellow]Lokale Datenbank zurücksetzen (kompletter Resync nötig)[/COLOR]</string>
+    <string id="39019">[COLOR red]Datenbank und auf Wunsch PKC zurücksetzen[/COLOR]</string>
     <string id="39020">[COLOR yellow]Alle Plex Bilder in Kodi zwischenspeichern[/COLOR]</string>
     <string id="39021">[COLOR yellow]Plex Themes zu Kodi synchronisieren[/COLOR]</string>
     <string id="39022"> (lokal)</string>
@@ -328,6 +328,7 @@
     <string id="39046">TV Serien</string>
     <string id="39047">"Aktuell": Serien- an Episoden-Titel anfügen</string>
     <string id="39048">"Aktuell": Staffel und Episode anfügen (z.B. S3E2)</string>
+    <string id="39049">Nichts funktioniert? Setze mal alles zurück!</string>
 
     <!-- Plex Entrypoint.py -->
     <string id="39200">Plex Home Benutzer abmelden: </string>
