@@ -1447,11 +1447,13 @@ def getOnDeck(viewid, mediatype, tagname, limit):
             # There will always be only 1 episode ('limit=1')
             li = createListItem(episode)
             # Fix some skin shortcomings
-            title = episode['title']
+            title = episode.get('title', '')
             if utils.settings('OnDeckTvAppendSeason') == 'true':
-                season = episode.get('season')
-                if season:
-                    title = str(season) + ' - ' + title
+                seasonid = episode.get('season')
+                episodeid = episode.get('episode')
+                if seasonid and episodeid:
+                    title = ('S' + str(seasonid) + 'E' + str(episodeid)
+                             + ' - ' + title)
             if utils.settings('OnDeckTvAppendShow') == 'true':
                 show = episode.get('showtitle')
                 if show:

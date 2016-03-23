@@ -327,7 +327,7 @@
     <string id="39045">Erscheinung</string>
     <string id="39046">TV Serien</string>
     <string id="39047">"Aktuell": Serien- an Episoden-Titel anfügen</string>
-    <string id="39048">"Aktuell": Staffel an Episoden-Titel anfügen</string>
+    <string id="39048">"Aktuell": Staffel und Episode anfügen (z.B. S3E2)</string>
 
     <!-- Plex Entrypoint.py -->
     <string id="39200">Plex Home Benutzer wechseln</string>

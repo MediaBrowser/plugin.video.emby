@@ -390,8 +390,8 @@
 
     <string id="39045">Appearance Tweaks</string>
     <string id="39046">TV Shows</string>
-    <string id="39047">On Deck view: Append show title to episode</string>
-    <string id="39048">On Deck view: Append season number to episode</string>
+    <string id="39047">On Deck: Append show title to episode</string>
+    <string id="39048">On Deck: Append season- and episode-number (e.g. S3E2)</string>
 
 
     <!-- Plex Entrypoint.py -->
