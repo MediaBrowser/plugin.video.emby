@@ -63,22 +63,19 @@ class PlexCompanion(threading.Thread):
         message_count = 0
         is_running = False
         while not self.threadStopped():
-            while self.threadSuspended():
-                if self.threadStopped():
-                    break
-                xbmc.sleep(3000)
             # If we are not authorized, sleep
             # Otherwise, we trigger a download which leads to a
             # re-authorizations
-            if window('emby_serverStatus'):
-                xbmc.sleep(3000)
-                continue
+            while self.threadSuspended() or window('emby_serverStatus'):
+                if self.threadStopped():
+                    break
+                xbmc.sleep(1000)
             try:
 
                 httpd.handle_request()
                 message_count += 1
 
-                if message_count > 30:
+                if message_count > 100:
                     if self.client.check_client_registration():
                         self.logMsg("Client is still registered", 1)
                     else:
@@ -96,7 +93,7 @@ class PlexCompanion(threading.Thread):
                 xbmc.sleep(50)
             except:
                 self.logMsg("Error in loop, continuing anyway", 1)
-                self.logMsg(traceback.print_exc(), 1)
+                self.logMsg(traceback.format_exc(), 1)
                 xbmc.sleep(50)
 
         self.client.stop_all()

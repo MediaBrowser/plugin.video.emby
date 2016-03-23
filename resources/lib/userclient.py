@@ -76,8 +76,8 @@ class UserClient(threading.Thread):
         settings = utils.settings
 
         # Original host
-        self.machineIdentifier = utils.settings('plex_machineIdentifier')
-        self.servername = utils.settings('plex_servername')
+        self.machineIdentifier = settings('plex_machineIdentifier')
+        self.servername = settings('plex_servername')
         HTTPS = settings('https') == "true"
         host = settings('ipaddress')
         port = settings('port')
@@ -91,14 +91,11 @@ class UserClient(threading.Thread):
         # If https is true
         if prefix and HTTPS:
             server = "https://%s" % server
-            return server
         # If https is false
         elif prefix and not HTTPS:
             server = "http://%s" % server
-            return server
-        # If only the host:port is required
-        elif not prefix:
-            return server
+        self.logMsg('Returning active server: %s' % server)
+        return server
 
     def getSSLverify(self):
         # Verify host certificate
@@ -410,6 +407,7 @@ class UserClient(threading.Thread):
                     self.auth = False
                     if self.authenticate():
                         # Successfully authenticated and loaded a user
+                        log("Successfully authenticated!", 1)
                         log("Current user: %s" % self.currUser, 1)
                         log("Current userId: %s" % self.currUserId, 1)
                         log("Current accessToken: xxxx", 1)

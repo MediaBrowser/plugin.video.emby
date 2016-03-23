@@ -645,7 +645,11 @@ class PlexAPI():
             # Ping to check whether we need HTTPs or HTTP
             url = (self.getPMSProperty(ATV_udid, uuid_id, 'ip') + ':'
                    + self.getPMSProperty(ATV_udid, uuid_id, 'port'))
-            if PMSHttpsEnabled(url):
+            https = PMSHttpsEnabled(url)
+            if https is None:
+                # Error contacting url
+                continue
+            elif https:
                 self.updatePMSProperty(ATV_udid, uuid_id, 'scheme', 'https')
             else:
                 self.updatePMSProperty(ATV_udid, uuid_id, 'scheme', 'http')

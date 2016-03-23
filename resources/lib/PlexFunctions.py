@@ -4,11 +4,16 @@ from ast import literal_eval
 from urlparse import urlparse, parse_qs
 import re
 from copy import deepcopy
+import requests
 
 from xbmcaddon import Addon
 
 import downloadutils
 from utils import logMsg, settings
+
+# Disable requests logging
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
+requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 
 addonName = Addon().getAddonInfo('name')
@@ -394,7 +399,8 @@ def getPlexRepeat(kodiRepeat):
 
 def PMSHttpsEnabled(url):
     """
-    Returns True if the PMS wants to talk https, False otherwise
+    Returns True if the PMS wants to talk https, False otherwise. None if error
+    occured, e.g. the connection timed out
 
     With with e.g. url=192.168.0.1:32400 (NO http/https)
 
@@ -403,17 +409,37 @@ def PMSHttpsEnabled(url):
 
     Prefers HTTPS over HTTP
     """
-    xml = downloadutils.DownloadUtils().downloadUrl(
-        'https://%s/identity' % url)
+    # True if https, False if http
+    answer = True
     try:
-        # received a valid XML - https connection is possible
-        xml.attrib
-        logMsg('PMSHttpsEnabled', 'PMS on %s talks HTTPS' % url, 1)
-        return True
-    except:
-        # couldn't get an xml - switch to http traffic
-        logMsg('PMSHttpsEnabled', 'PMS on %s talks HTTPS' % url, 1)
-        return False
+        # Don't use downloadutils here, otherwise we may get un-authorized!
+        res = requests.get('https://%s/identity' % url,
+                           headers={},
+                           verify=False,
+                           timeout=(3, 10))
+        # Don't verify SSL since we can connect for sure then!
+    except requests.exceptions.ConnectionError as e:
+        # Might have SSL deactivated. Try with http
+        try:
+            res = requests.get('http://%s/identity' % url,
+                               headers={},
+                               timeout=(3, 10))
+        except requests.exceptions.ConnectionError as e:
+            logMsg("Server is offline or cannot be reached. Url: %s, "
+                   "Error message: %s" % (url, e), -1)
+            return None
+        except requests.exceptions.ReadTimeout:
+            logMsg("Server timeout reached for Url %s" % url, -1)
+            return None
+        else:
+            answer = False
+    except requests.exceptions.ReadTimeout:
+        logMsg("Server timeout reached for Url %s" % url, -1)
+        return None
+    if res.status_code == requests.codes.ok:
+        return answer
+    else:
+        return None
 
 
 def scrobble(ratingKey, state):

@@ -81,13 +81,28 @@ def reConnect():
     utils.logMsg("entrypoint reConnect",
                  "Connection resets requested", 0)
     dialog = xbmcgui.Dialog()
+    # Resetting, please wait
     dialog.notification(
         heading=addonName,
         message=string(39207),
         icon="special://home/addons/plugin.video.plexkodiconnect/icon.png",
+        time=2000,
         sound=False)
     # Pause library sync thread - user needs to be auth in order to sync
     utils.window('suspend_LibraryThread', value='true')
+    # Wait max for 5 seconds for all lib scans to finish
+    counter = 0
+    while utils.window('emby_dbScan') == 'true':
+        if counter > 500:
+            # Failed to reset PMS and plex.tv connects. Try to restart Kodi.
+            dialog.ok(heading=addonName,
+                      message=string(39208))
+            # Resuming threads, just in case
+            utils.window('suspend_LibraryThread', clear=True)
+            # Abort reConnection
+            return
+        counter += 1
+        xbmc.sleep(50)
 
     # Delete plex credentials in settings
     utils.settings('myplexlogin', value="true")
@@ -97,18 +112,13 @@ def reConnect():
     utils.settings('plexHomeSize', value="1")
     utils.settings('plexAvatar', value="")
 
-    # Wait max for 5 seconds for all lib scans to finish
-    counter = 0
-    while utils.window('emby_dbScan') == 'true':
-        if counter > 100:
-            dialog.ok(heading=addonName,
-                      message=string(39208))
-            # Resuming threads, just in case
-            utils.window('suspend_LibraryThread', clear=True)
-            # Abort reConnection
-            return
-        counter += 1
-        xbmc.sleep(50)
+    # Reset connection details
+    utils.settings('plex_machineIdentifier', value="")
+    utils.settings('plex_servername', value="")
+    utils.settings('https', value="")
+    utils.settings('ipaddress', value="")
+    utils.settings('port', value="")
+
     # Log out currently signed in user:
     utils.window('emby_serverStatus', value="401")
 

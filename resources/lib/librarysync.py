@@ -493,7 +493,7 @@ class LibrarySync(Thread):
                 updatedAt=self.getPMSfromKodiTime(lastSync),
                 containerSize=self.limitindex)
             # Just skip if something went wrong
-            if not items:
+            if items is None:
                 continue
             # Get one itemtype, because they're the same in the PMS section
             try:
@@ -528,7 +528,7 @@ class LibrarySync(Thread):
                 view['id'],
                 lastViewedAt=self.getPMSfromKodiTime(lastSync),
                 containerSize=self.limitindex)
-            if not items:
+            if items is None:
                 continue
             for item in items:
                 itemId = item.attrib.get('ratingKey')
@@ -1081,7 +1081,7 @@ class LibrarySync(Thread):
             viewName = view['name']
             all_plexmovies = PlexFunctions.GetPlexSectionResults(
                 viewId, args=None, containerSize=self.limitindex)
-            if not all_plexmovies:
+            if all_plexmovies is None:
                 self.logMsg("Couldnt get section items, aborting for view.", 1)
                 continue
             # Populate self.updatelist and self.allPlexElementsId

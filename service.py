@@ -135,12 +135,10 @@ class Service():
             # 3. User has access to the server
 
             if window('emby_online') == "true":
-                
                 # Emby server is online
                 # Verify if user is set and has access to the server
                 if (user.currUser is not None) and user.HasAccess:
-
-                     # If an item is playing
+                    # If an item is playing
                     if xplayer.isPlaying():
                         try:
                             # Update and report progress
@@ -189,14 +187,20 @@ class Service():
 
                         # Start the Websocket Client
                         # if not self.websocket_running:
+                        #     log('Starting websocket thread', 1)
                         #     self.websocket_running = True
                         #     ws.start()
                         # Start the syncing thread
                         if not self.library_running:
+                            log('Starting libary sync thread', 1)
                             self.library_running = True
                             library.start()
+                        # Start the Plex Companion thread
+                        if not self.plexCompanion_running and \
+                                self.runPlexCompanion == "true":
+                            self.plexCompanion_running = True
+                            plexCompanion.start()
                 else:
-                    
                     if (user.currUser is None) and self.warn_auth:
                         # Alert user is not authenticated and suppress future warning
                         self.warn_auth = False
@@ -216,6 +220,7 @@ class Service():
                         if monitor.waitForAbort(5):
                             # Abort was requested while waiting. We should exit
                             break
+                        xbmc.sleep(50)
             else:
                 # Wait until Emby server is online
                 # or Kodi is shut down.
@@ -238,9 +243,7 @@ class Service():
                                 icon="special://home/addons/plugin.video."
                                      "plexkodiconnect/icon.png",
                                 sound=False)
-                        
                         self.server_online = False
-                    
                     else:
                         # Server is online
                         if not self.server_online:
@@ -257,9 +260,8 @@ class Service():
                                      "plexkodiconnect/icon.png",
                                 time=2000,
                                 sound=False)
-                        
                         self.server_online = True
-                        log("Server is online and ready.", 1)
+                        log("Server %s is online and ready." % server, 1)
                         window('emby_online', value="true")
 
                         # Start the userclient thread
@@ -267,17 +269,14 @@ class Service():
                             self.userclient_running = True
                             user.start()
                         
-                        # Start the Plex Companion thread
-                        if not self.plexCompanion_running and \
-                                self.runPlexCompanion == "true":
-                            self.plexCompanion_running = True
-                            plexCompanion.start()
+
 
                         break
 
                     if monitor.waitForAbort(1):
                         # Abort was requested while waiting.
                         break
+                    xbmc.sleep(50)
 
             if monitor.waitForAbort(1):
                 # Abort was requested while waiting. We should exit
@@ -315,8 +314,8 @@ class Service():
 delay = int(utils.settings('startupDelay'))
 
 xbmc.log("Delaying Plex startup by: %s sec..." % delay)
-# Plex: add 3 seconds just for good measure
-if delay and xbmc.Monitor().waitForAbort(delay+3):
+# Plex: add 5 seconds just for good measure
+if delay and xbmc.Monitor().waitForAbort(delay+5):
     # Start the service
     xbmc.log("Abort requested while waiting. Emby for kodi not started.")
 else:
