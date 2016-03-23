@@ -15,6 +15,10 @@ import xbmcvfs
 import utils
 import image_cache_thread
 
+# Disable requests logging
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
+requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+
 ###############################################################################
 
 

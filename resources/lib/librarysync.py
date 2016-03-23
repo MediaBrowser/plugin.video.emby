@@ -326,7 +326,7 @@ class LibrarySync(Thread):
 
         # Get the Plex item's metadata
         xml = PlexFunctions.GetPlexMetadata(plexId)
-        if not xml:
+        if xml is None:
             self.logMsg("Could not download metadata, aborting time sync", -1)
             return
         libraryId = xml[0].attrib['librarySectionID']
@@ -1215,7 +1215,7 @@ class LibrarySync(Thread):
             viewName = view['name']
             allPlexTvShows = PlexFunctions.GetPlexSectionResults(
                 viewId, containerSize=self.limitindex)
-            if not allPlexTvShows:
+            if allPlexTvShows is None:
                 self.logMsg(
                     "Error downloading show view xml for view %s" % viewId, -1)
                 continue
@@ -1242,7 +1242,7 @@ class LibrarySync(Thread):
             # Grab all seasons to tvshow from PMS
             seasons = PlexFunctions.GetAllPlexChildren(
                 tvShowId, containerSize=self.limitindex)
-            if not seasons:
+            if seasons is None:
                 self.logMsg(
                     "Error downloading season xml for show %s" % tvShowId, -1)
                 continue
@@ -1267,7 +1267,7 @@ class LibrarySync(Thread):
             # Grab all episodes to tvshow from PMS
             episodes = PlexFunctions.GetAllPlexLeaves(
                 view['id'], containerSize=self.limitindex)
-            if not episodes:
+            if episodes is None:
                 self.logMsg(
                     "Error downloading episod xml for view %s"
                     % view.get('name'), -1)
@@ -1365,7 +1365,7 @@ class LibrarySync(Thread):
             viewName = view['name']
             itemsXML = PlexFunctions.GetPlexSectionResults(
                 viewId, args=urlArgs, containerSize=self.limitindex)
-            if not itemsXML:
+            if itemsXML is None:
                 self.logMsg("Error downloading xml for view %s"
                             % viewId, -1)
                 continue
@@ -1407,6 +1407,7 @@ class LibrarySync(Thread):
         except Exception as e:
             utils.window('emby_dbScan', clear=True)
             self.logMsg('LibrarySync thread crashed', -1)
+            self.logMsg('Error message: %s' % e, -1)
             # Library sync thread has crashed
             xbmcgui.Dialog().ok(
                 heading=self.addonName,

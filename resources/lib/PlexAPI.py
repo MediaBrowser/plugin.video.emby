@@ -51,6 +51,7 @@ from threading import Thread
 import Queue
 import traceback
 import requests
+import xml.etree.ElementTree as etree
 
 import re
 import json
@@ -58,7 +59,10 @@ from urllib import urlencode, quote_plus, unquote
 
 from PlexFunctions import PlexToKodiTimefactor, PMSHttpsEnabled
 
-import xml.etree.ElementTree as etree
+
+# Disable requests logging
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
+requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 
 @utils.logging
@@ -191,12 +195,12 @@ class PlexAPI():
         # Wait for approx 30 seconds (since the PIN is not visible anymore :-))
         while count < 30:
             xml = self.CheckPlexTvSignin(identifier)
-            if xml:
+            if xml is not False:
                 break
             # Wait for 1 seconds
             xbmc.sleep(1000)
             count += 1
-        if not xml:
+        if xml is False:
             # Could not sign in to plex.tv Try again later
             dialog.ok(self.addonName, string(39305))
             return False
@@ -260,7 +264,7 @@ class PlexAPI():
         identifier = None
         # Download
         xml = self.TalkToPlexServer(url, talkType="POST")
-        if not xml:
+        if xml is False:
             return code, identifier
         try:
             code = xml.find('code').text
