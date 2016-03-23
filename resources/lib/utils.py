@@ -148,7 +148,7 @@ def ThreadMethodsAdditionalStop(windowAttribute):
     def wrapper(cls):
         def threadStopped(self):
             return (self._threadStopped or
-                    (window('terminateNow') == "true") or
+                    (window('plex_terminateNow') == "true") or
                     window(windowAttribute) == "true")
         cls.threadStopped = threadStopped
         return cls
@@ -209,7 +209,7 @@ def ThreadMethods(cls):
     cls.threadSuspended = threadSuspended
 
     def threadStopped(self):
-        return self._threadStopped or (window('terminateNow') == 'true')
+        return self._threadStopped or (window('plex_terminateNow') == 'true')
     cls.threadStopped = threadStopped
 
     # Return class to render this a decorator

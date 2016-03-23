@@ -27,6 +27,7 @@ import librarysync
 import player
 import utils
 import videonodes
+import downloadutils
 
 import PlexAPI
 import PlexCompanion
@@ -82,7 +83,7 @@ class Service():
             "plex_authenticated", "EmbyUserImage", "useDirectPaths",
             "replaceSMB", "remapSMB", "remapSMBmovieOrg", "remapSMBtvOrg",
             "remapSMBmusicOrg", "remapSMBmovieNew", "remapSMBtvNew",
-            "remapSMBmusicNew", "suspend_LibraryThread"
+            "remapSMBmusicNew", "suspend_LibraryThread", "plex_terminateNow"
         ]
         for prop in properties:
             window(prop, clear=True)
@@ -282,28 +283,29 @@ class Service():
                 # Abort was requested while waiting. We should exit
                 break
 
-        ##### Emby thread is terminating. #####
+        # Terminating PlexKodiConnect
 
-        # Tell all threads to terminate
-        utils.window('terminateNow', value='true')
+        # Tell all threads to terminate (e.g. several lib sync threads)
+        utils.window('plex_terminateNow', value='true')
 
         try:
-            if self.plexCompanion_running:
-                plexCompanion.stopThread()
+            plexCompanion.stopThread()
         except:
             xbmc.log('plexCompanion already shut down')
 
         try:
-            if self.library_running:
-                library.stopThread()
+            library.stopThread()
         except:
             xbmc.log('Library sync already shut down')
 
-        # if self.websocket_running:
+        downloadutils.DownloadUtils().stopSession()
+
+        # try:
         #     ws.stopClient()
+        # except:
+        #     xbmc.log('Websocket client already shut down')
         try:
-            if self.userclient_running:
-                user.stopThread()
+            user.stopThread()
         except:
             xbmc.log('User client already shut down')
 

@@ -2,7 +2,6 @@
 import threading
 import traceback
 import socket
-import requests
 
 import xbmc
 
@@ -103,7 +102,8 @@ class PlexCompanion(threading.Thread):
         self.client.stop_all()
         try:
             httpd.socket.shutdown(socket.SHUT_RDWR)
+        except:
+            pass
         finally:
             httpd.socket.close()
-        requests.dumpConnections()
         self.logMsg("----===## STOP Plex Companion ##===----", 0)
