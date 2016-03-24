@@ -29,17 +29,6 @@ http://stackoverflow.com/questions/2407126/python-urllib2-basic-auth-problem
 http://stackoverflow.com/questions/111945/is-there-any-way-to-do-http-put-in-python
 (and others...)
 """
-
-
-# Specific to PlexDB:
-import clientinfo
-import utils
-import downloadutils
-import xbmcaddon
-import xbmcgui
-import xbmc
-import xbmcvfs
-
 import struct
 import time
 import urllib2
@@ -52,13 +41,21 @@ import Queue
 import traceback
 import requests
 import xml.etree.ElementTree as etree
+from uuid import uuid4
 
 import re
 import json
 from urllib import urlencode, quote_plus, unquote
 
-from PlexFunctions import PlexToKodiTimefactor, PMSHttpsEnabled
+import clientinfo
+import utils
+import downloadutils
+import xbmcaddon
+import xbmcgui
+import xbmc
+import xbmcvfs
 
+from PlexFunctions import PlexToKodiTimefactor, PMSHttpsEnabled
 
 # Disable requests logging
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
@@ -835,8 +832,6 @@ class PlexAPI():
             'X-Plex-Version': self.plexversion,
             'X-Plex-Client-Identifier': self.clientId,
             'X-Plex-Provides': 'player',
-            'X-Plex-Client-Capabilities': 'protocols=shoutcast,http-video;videoDecoders=h264{profile:high&resolution:1080&level:51};audioDecoders=mp3,aac,dts{bitrate:800000&channels:8},ac3{bitrate:800000&channels:8}',
-            'X-Plex-Client-Profile-Extra': 'add-transcode-target-audio-codec(type=videoProfile&context=streaming&protocol=*&audioCodec=dca,ac3)',
         }
 
         if self.token:
@@ -2178,10 +2173,12 @@ class API():
             'mediaIndex': 0,       # Probably refering to XML reply sheme
             'partIndex': self.part,
             'protocol': 'hls',   # seen in the wild: 'dash', 'http', 'hls'
-            'session': self.clientId,
+            'session': str(uuid4()),
             # 'offset': 0,           # Resume point
             'fastSeek': 1
         }
+        # Seem like PHT to let the PMS use the transcoding profile
+        xargs['X-Plex-Device'] = 'Plex Home Theater'
 
         # Currently not used!
         if action == "DirectStream":
@@ -2199,9 +2196,7 @@ class API():
             args.update(quality)
             args.update(argsUpdate)
 
-        url = transcodePath + \
-            urlencode(xargs) + '&' + \
-            urlencode(args)
+        url = transcodePath + urlencode(xargs) + '&' + urlencode(args)
         return url
 
     def externalSubs(self, playurl):

@@ -321,22 +321,24 @@ class PlayUtils():
 
         # Set part where we're at
         self.API.setPartNumber(part)
+        if part is None:
+            part = 0
         try:
             mediastreams = self.item[0][part]
         except (TypeError, KeyError, IndexError):
-            return
+            return url
 
         audioNum = 0
         # Remember 'no subtitles'
         subNum = 1
         for stream in mediastreams:
             # Since Emby returns all possible tracks together, have to sort them.
-            index = stream.attrib['id']
-            type = stream.attrib['streamType']
+            index = stream.attrib.get('id')
+            type = stream.attrib.get('streamType')
 
             # Audio
             if type == "2":
-                codec = stream.attrib['codec']
+                codec = stream.attrib.get('codec')
                 channelLayout = stream.attrib.get('audioChannelLayout', "")
                
                 try:
@@ -356,7 +358,7 @@ class PlayUtils():
                 try:
                     track = "%s %s" % (subNum+1, stream.attrib['language'])
                 except:
-                    track = "%s 'unknown' (%s)" % (subNum+1, stream.attrib['codec'])
+                    track = "%s 'unknown' (%s)" % (subNum+1, stream.attrib.get('codec'))
 
                 default = stream.attrib.get('default')
                 forced = stream.attrib.get('forced')
