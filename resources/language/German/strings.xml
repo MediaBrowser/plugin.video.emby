@@ -24,6 +24,7 @@
     <string id="30521">Bei Wiederaufnahme zurückspulen (in Sekunden)</string>
     <string id="30505">[COLOR yellow]Anzahl Login-Versuche zurücksetzen[/COLOR]</string>
 
+    <string id="30535">[COLOR yellow]Neue einzigartige Geräte-ID generieren (z.B. wenn Kodi geklont wurde)[/COLOR]</string>
     <string id="30536">Benutzer müssen sich bei jedem Neustart von Kodi neu anmelden</string>
     <string id="30537">Bei Änderungen Kodi neu starten</string>
     <string id="30538">Komplette Neusynchronisierung nötig</string>
@@ -329,6 +330,7 @@
     <string id="39047">"Aktuell": Serien- an Episoden-Titel anfügen</string>
     <string id="39048">"Aktuell": Staffel und Episode anfügen (z.B. S3E2)</string>
     <string id="39049">Nichts funktioniert? Setze mal alles zurück!</string>
+    <string id="39050">[COLOR yellow]Plex Server aus Liste auswählen[/COLOR]</string>
 
     <!-- Plex Entrypoint.py -->
     <string id="39200">Plex Home Benutzer abmelden: </string>

@@ -73,36 +73,100 @@ def plexCompanion(fullurl, params):
             title, "Not knowing what to do for now - no playQueue sent", -1)
 
 
-def reConnect():
+def chooseServer():
     """
-    Triggers login to plex.tv and re-authorization
+    Lets user choose from list of PMS (signs out & signs in)
     """
     string = xbmcaddon.Addon().getLocalizedString
-    utils.logMsg("entrypoint reConnect",
-                 "Connection resets requested", 0)
+    utils.logMsg(title, "Choosing PMS server requested, starting", 0)
     dialog = xbmcgui.Dialog()
     # Resetting, please wait
     dialog.notification(
         heading=addonName,
         message=string(39207),
         icon="special://home/addons/plugin.video.plexkodiconnect/icon.png",
-        time=2000,
+        time=3000,
         sound=False)
     # Pause library sync thread - user needs to be auth in order to sync
     utils.window('suspend_LibraryThread', value='true')
-    # Wait max for 5 seconds for all lib scans to finish
+    # Wait max for 25 seconds for all lib scans to finish
     counter = 0
     while utils.window('emby_dbScan') == 'true':
         if counter > 500:
             # Failed to reset PMS and plex.tv connects. Try to restart Kodi.
-            dialog.ok(heading=addonName,
-                      message=string(39208))
+            dialog.ok(addonName,
+                      string(39208))
             # Resuming threads, just in case
             utils.window('suspend_LibraryThread', clear=True)
-            # Abort reConnection
+            utils.logMsg(title, "Could not stop library sync, aborting", -1)
             return
         counter += 1
         xbmc.sleep(50)
+    utils.logMsg(title, "Successfully stopped library sync", 0)
+
+    # Reset connection details
+    utils.settings('plex_machineIdentifier', value="")
+    utils.settings('plex_servername', value="")
+    utils.settings('https', value="")
+    utils.settings('ipaddress', value="")
+    utils.settings('port', value="")
+
+    # Log out currently signed in user:
+    utils.window('emby_serverStatus', value="401")
+
+    # Above method needs to have run its course! Hence wait
+    counter = 0
+    while utils.window('emby_serverStatus') == "401":
+        if counter > 100:
+            dialog.ok(addonName,
+                      string(39208))
+            utils.logMsg(title, "Could not sign out, aborting", -1)
+            return
+        counter += 1
+        xbmc.sleep(50)
+    # Suspend the user client during procedure
+    utils.window('suspend_Userclient', value='true')
+
+    import initialsetup
+    initialsetup.InitialSetup().setup(chooseServer=True)
+    # Request lib sync to get user view data (e.g. watched/unwatched)
+    utils.window('plex_runLibScan', value='full')
+    # Restart user client
+    utils.window('suspend_Userclient', clear=True)
+    utils.logMsg(title, "Choosing new PMS complete", 0)
+
+
+def reConnect():
+    """
+    Triggers login to plex.tv and re-authorization
+    """
+    string = xbmcaddon.Addon().getLocalizedString
+    utils.logMsg(title, "Connection resets requested", 0)
+    dialog = xbmcgui.Dialog()
+    # Resetting, please wait
+    dialog.notification(
+        heading=addonName,
+        message=string(39207),
+        icon="special://home/addons/plugin.video.plexkodiconnect/icon.png",
+        time=3000,
+        sound=False)
+    # Pause library sync thread - user needs to be auth in order to sync
+    utils.window('suspend_LibraryThread', value='true')
+    # Wait max for 25 seconds for all lib scans to finish
+    counter = 0
+    while utils.window('emby_dbScan') == 'true':
+        if counter > 500:
+            # Failed to reset PMS and plex.tv connects. Try to restart Kodi.
+            dialog.ok(addonName,
+                      string(39208))
+            # Resuming threads, just in case
+            utils.window('suspend_LibraryThread', clear=True)
+            utils.logMsg(title, "Could not stop library sync, aborting", -1)
+            return
+        counter += 1
+        xbmc.sleep(50)
+
+    utils.logMsg(title, "Successfully stopped library sync", 0)
 
     # Delete plex credentials in settings
     utils.settings('myplexlogin', value="true")
@@ -126,9 +190,9 @@ def reConnect():
     counter = 0
     while utils.window('emby_serverStatus') == "401":
         if counter > 100:
-            dialog.ok(heading=addonName,
-                      message=string(39208))
-            # Abort reConnection
+            dialog.ok(addonName,
+                      string(39208))
+            utils.logMsg(title, "Could not sign out, aborting", -1)
             return
         counter += 1
         xbmc.sleep(50)
@@ -141,6 +205,7 @@ def reConnect():
     utils.window('plex_runLibScan', value='full')
     # Restart user client
     utils.window('suspend_Userclient', clear=True)
+    utils.logMsg(title, "Complete reconnection to plex.tv and PMS complete", 0)
 
 
 def PassPlaylist(xml, resume=None):
@@ -288,9 +353,8 @@ def resetDeviceId():
     dialog = xbmcgui.Dialog()
     language = utils.language
 
-    deviceId_old = utils.window('emby_deviceId')
+    deviceId_old = utils.window('plex_client_Id')
     try:
-        utils.window('emby_deviceId', clear=True)
         deviceId = clientinfo.ClientInfo().getDeviceId(reset=True)
     except Exception as e:
         utils.logMsg(addonName,

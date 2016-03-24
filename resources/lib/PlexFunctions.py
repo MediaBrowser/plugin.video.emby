@@ -383,7 +383,7 @@ def GetPlexPlaylist(itemid, librarySectionUUID, mediatype='movie'):
     try:
         xml[0].tag
     except (IndexError, TypeError, AttributeError):
-        logMsg("Error retrieving metadata for %s" % url, -1)
+        logMsg(title, "Error retrieving metadata for %s" % url, -1)
         return None
     return xml
 
@@ -425,21 +425,41 @@ def PMSHttpsEnabled(url):
                                headers={},
                                timeout=(3, 10))
         except requests.exceptions.ConnectionError as e:
-            logMsg("Server is offline or cannot be reached. Url: %s, "
-                   "Error message: %s" % (url, e), -1)
+            logMsg(title, "Server is offline or cannot be reached. Url: %s"
+                   ", Error message: %s" % (url, e), -1)
             return None
         except requests.exceptions.ReadTimeout:
-            logMsg("Server timeout reached for Url %s" % url, -1)
+            logMsg(title, "Server timeout reached for Url %s" % url, -1)
             return None
         else:
             answer = False
     except requests.exceptions.ReadTimeout:
-        logMsg("Server timeout reached for Url %s" % url, -1)
+        logMsg(title, "Server timeout reached for Url %s" % url, -1)
         return None
     if res.status_code == requests.codes.ok:
         return answer
     else:
         return None
+
+
+def GetMachineIdentifier(url):
+    """
+    Returns the unique PMS machine identifier of url
+
+    Returns None if something went wrong
+    """
+    xml = downloadutils.DownloadUtils().downloadUrl(
+        url + '/identity', type="GET")
+    try:
+        xml.attrib
+    except:
+        logMsg(title, 'Could not get the PMS machineIdentifier for %s'
+               % url, -1)
+        return None
+    machineIdentifier = xml.attrib.get('machineIdentifier')
+    logMsg(title, 'Found machineIdentifier %s for %s'
+           % (machineIdentifier, url), 1)
+    return machineIdentifier
 
 
 def scrobble(ratingKey, state):
@@ -458,4 +478,4 @@ def scrobble(ratingKey, state):
     else:
         return
     downloadutils.DownloadUtils().downloadUrl(url, type="GET")
-    logMsg("Toggled watched state for Plex item %s" % ratingKey, 1)
+    logMsg(title, "Toggled watched state for Plex item %s" % ratingKey, 1)

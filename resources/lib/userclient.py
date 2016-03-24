@@ -13,6 +13,7 @@ import utils
 import downloadutils
 
 import PlexAPI
+from PlexFunctions import GetMachineIdentifier
 
 ###############################################################################
 
@@ -76,11 +77,11 @@ class UserClient(threading.Thread):
         settings = utils.settings
 
         # Original host
-        self.machineIdentifier = settings('plex_machineIdentifier')
         self.servername = settings('plex_servername')
         HTTPS = settings('https') == "true"
         host = settings('ipaddress')
         port = settings('port')
+        self.machineIdentifier = settings('plex_machineIdentifier')
 
         server = host + ":" + port
 
@@ -94,6 +95,12 @@ class UserClient(threading.Thread):
         # If https is false
         elif prefix and not HTTPS:
             server = "http://%s" % server
+        # User entered IP; we need to get the machineIdentifier
+        if self.machineIdentifier == '' and prefix is True:
+            self.machineIdentifier = GetMachineIdentifier(server)
+            if self.machineIdentifier is None:
+                self.machineIdentifier = ''
+            settings('plex_machineIdentifier', value=self.machineIdentifier)
         self.logMsg('Returning active server: %s' % server)
         return server
 
