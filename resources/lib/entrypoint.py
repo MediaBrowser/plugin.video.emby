@@ -288,9 +288,8 @@ def resetDeviceId():
     dialog = xbmcgui.Dialog()
     language = utils.language
 
-    deviceId_old = utils.window('emby_deviceId')
+    deviceId_old = utils.window('plex_client_Id')
     try:
-        utils.window('emby_deviceId', clear=True)
         deviceId = clientinfo.ClientInfo().getDeviceId(reset=True)
     except Exception as e:
         utils.logMsg(addonName,

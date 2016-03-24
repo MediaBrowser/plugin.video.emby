@@ -69,7 +69,7 @@ class ClientInfo():
         If id does not exist, create one and save in Kodi settings file.
         """
 
-        if reset:
+        if reset is True:
             utils.window('plex_client_Id', clear=True)
             utils.settings('plex_client_Id', value="")
 
@@ -78,7 +78,8 @@ class ClientInfo():
             return clientId
 
         clientId = utils.settings('plex_client_Id')
-        if clientId:
+        # Because Kodi appears to cache file settings!!
+        if clientId != "" and reset is False:
             utils.window('plex_client_Id', value=clientId)
             self.logMsg("Unique device Id plex_client_Id loaded: %s" % clientId, 1)
             return clientId
