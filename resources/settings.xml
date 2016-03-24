@@ -2,6 +2,7 @@
 <settings>
 	<category label="30014"><!-- Connection -->
 		<!-- Primary address -->
+		<setting label="39050" type="action" action="RunPlugin(plugin://plugin.video.plexkodiconnect?mode=chooseServer)" option="close" /><!-- Choose Plex Server from a list -->
 		<setting id="ipaddress" label="30000" type="text" default="" />
 		<setting id="port" label="30030" type="number" default="32400" />
 		<setting id="https" label="30243" type="bool" default="false" />

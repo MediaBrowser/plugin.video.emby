@@ -330,6 +330,7 @@
     <string id="39047">"Aktuell": Serien- an Episoden-Titel anfügen</string>
     <string id="39048">"Aktuell": Staffel und Episode anfügen (z.B. S3E2)</string>
     <string id="39049">Nichts funktioniert? Setze mal alles zurück!</string>
+    <string id="39050">[COLOR yellow]Plex Server aus Liste auswählen[/COLOR]</string>
 
     <!-- Plex Entrypoint.py -->
     <string id="39200">Plex Home Benutzer abmelden: </string>

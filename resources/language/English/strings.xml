@@ -392,6 +392,7 @@
     <string id="39047">On Deck: Append show title to episode</string>
     <string id="39048">On Deck: Append season- and episode-number (e.g. S3E2)</string>
     <string id="39049">Nothing works? Try a full reset!</string>
+    <string id="39050">[COLOR yellow]Choose Plex Server from a list[/COLOR]</string>
 
 
     <!-- Plex Entrypoint.py -->

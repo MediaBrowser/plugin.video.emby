@@ -2168,14 +2168,14 @@ class API():
         transcodePath = self.server + \
             '/video/:/transcode/universal/start.m3u8?'
         args = {
-            'copyts': 1,
+            'protocol': 'hls',   # seen in the wild: 'dash', 'http', 'hls'
+            'session': str(uuid4()),
+            'fastSeek': 1,
             'path': path,
             'mediaIndex': 0,       # Probably refering to XML reply sheme
             'partIndex': self.part,
-            'protocol': 'hls',   # seen in the wild: 'dash', 'http', 'hls'
-            'session': str(uuid4()),
+            # 'copyts': 1,
             # 'offset': 0,           # Resume point
-            'fastSeek': 1
         }
         # Seem like PHT to let the PMS use the transcoding profile
         xargs['X-Plex-Device'] = 'Plex Home Theater'

@@ -70,7 +70,8 @@ class Main:
             'reConnect': entrypoint.reConnect,
             'delete': entrypoint.deleteItem,
             'browseplex': entrypoint.BrowsePlexContent,
-            'ondeck': entrypoint.getOnDeck
+            'ondeck': entrypoint.getOnDeck,
+            'chooseServer': entrypoint.chooseServer
         }
         
         if "/extrafanart" in sys.argv[0]:

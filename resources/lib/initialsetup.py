@@ -26,7 +26,7 @@ class InitialSetup():
         self.userClient = userclient.UserClient()
         self.plx = PlexAPI.PlexAPI()
 
-    def setup(self, forcePlexTV=False):
+    def setup(self, forcePlexTV=False, chooseServer=False):
         """
         Initial setup. Run once upon startup.
         Check server, user, direct paths, music, direct stream if not direct
@@ -51,7 +51,8 @@ class InitialSetup():
 
         # Optionally sign into plex.tv. Will not be called on very first run
         # as plexToken will be ''
-        if (plexToken and myplexlogin == 'true' and forcePlexTV is False):
+        if (plexToken and myplexlogin == 'true' and forcePlexTV is False
+                and chooseServer is False):
             chk = self.plx.CheckConnection('plex.tv', plexToken)
             # HTTP Error: unauthorized. Token is no longer valid
             if chk == 401 or chk == 403:
@@ -92,7 +93,7 @@ class InitialSetup():
                     self.logMsg('Failed to update Plex info from plex.tv', -1)
 
         # If a Plex server IP has already been set, return.
-        if server and forcePlexTV is False:
+        if server and forcePlexTV is False and chooseServer is False:
             self.logMsg("Server is already set.", 0)
             self.logMsg("url: %s, Plex machineIdentifier: %s"
                         % (server, serverid), 0)
@@ -100,7 +101,8 @@ class InitialSetup():
 
         # If not already retrieved myplex info, optionally let user sign in
         # to plex.tv. This DOES get called on very first install run
-        if ((not plexToken and myplexlogin == 'true') or forcePlexTV):
+        if ((not plexToken and myplexlogin == 'true' and chooseServer is False)
+                or forcePlexTV):
             result = self.plx.PlexTvSignInWithPin()
             if result:
                 plexLogin = result['username']
@@ -231,7 +233,7 @@ class InitialSetup():
         #     self.logMsg("User opted to use direct paths.", 1)
         #     utils.settings('useDirectPaths', value="1")
 
-        if forcePlexTV:
+        if forcePlexTV is True or chooseServer is True:
             return
 
         goToSettings = False
