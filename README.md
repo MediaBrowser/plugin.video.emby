@@ -56,6 +56,7 @@ Currently these features are working:
 
 
 **Known "Larger" Issues:**
+
 Solutions are unlikely due to the nature of these issues
 - **Plex Music:** You must have a static IP address for your Plex media server if you plan to use Plex Music features. This is due to the way Kodi works and cannot be helped. 
 - **Plex Music:** Kodi tries to scan every(!) single Plex song on startup. This leads to errors in the Kodi log file and potentially even crashes. (Plex puts each song in a "dedicated folder", e.g. 'http://192.168.1.1:32400/library/parts/749450/'. Kodi unsuccessfully tries to scan these folders)
