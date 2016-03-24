@@ -46,6 +46,8 @@ import logging
 import traceback
 import sys
 
+import xbmc
+
 """
 websocket python client.
 =========================
@@ -728,9 +730,12 @@ class WebSocket(object):
         except socket.timeout as e:
             raise WebSocketTimeoutException(e.args[0])
         except Exception as e:
-            if "timed out" in e.args[0]:
-                raise WebSocketTimeoutException(e.args[0])
-            else:
+            try:
+                if "timed out" in e.args[0]:
+                    raise WebSocketTimeoutException(e.args[0])
+                else:
+                    raise e
+            except:
                 raise e
 
     def _recv(self, bufsize):
@@ -879,6 +884,7 @@ class WebSocketApp(object):
                     #print str(e.args[0])
                     if "timed out" not in e.args[0]:
                         raise e
+                xbmc.sleep(100)
 
         except Exception, e:
             self._callback(self.on_error, e)

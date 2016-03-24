@@ -4,6 +4,7 @@
 
 import json
 import threading
+import Queue
 import websocket
 import ssl
 
@@ -26,20 +27,27 @@ logging.basicConfig()
 @utils.logging
 @utils.ThreadMethods
 class WebSocket_Client(threading.Thread):
+    """
+    websocket_client.WebSocket_Client(queue)
 
+    where (communication with librarysync)
+        queue:      Queue object for background sync
+    """
     _shared_state = {}
 
     client = None
     stopWebsocket = False
 
-    def __init__(self):
+    def __init__(self, queue):
 
         self.__dict__ = self._shared_state
+
+        # Communication with librarysync
+        self.queue = queue
 
         self.doUtils = downloadutils.DownloadUtils()
         self.clientInfo = clientinfo.ClientInfo()
         self.deviceId = self.clientInfo.getDeviceId()
-        self.librarySync = librarysync.LibrarySync()
 
         # 'state' that can be returned by PMS
         self.timeStates = {
@@ -77,23 +85,18 @@ class WebSocket_Client(threading.Thread):
         """
         try:
             message = json.loads(message)
-        except Exception as ex:
-            self.logMsg('Error decoding message from websocket: %s' % ex, -1)
-            self.logMsg(message, -1)
+        except Exception as e:
+            self.logMsg('Error decoding message from websocket: %s' % e, -1)
             return False
 
-        typus = message.get('type')
-        if not typus:
-            return False
-
-        process_func = getattr(self, 'processing_%s' % typus, None)
-        if process_func and process_func(message):
+        # Put PMS message on queue and let libsync take care of it
+        try:
+            self.queue.put(message)
             return True
-
-        # Something went wrong; log
-        self.logMsg("Error processing PMS websocket message.", -1)
-        self.logMsg("Received websocket message from PMS: %s" % message, -1)
-        return True
+        except Queue.Full:
+            # Queue only takes 100 messages. No worries if we miss one or two
+            self.logMsg('Queue is full, dropping PMS message', 0)
+            return False
 
     def processing_playing(self, message):
         """

@@ -5,6 +5,7 @@
 import os
 import sys
 from datetime import datetime
+import Queue
 
 import xbmc
 import xbmcaddon
@@ -109,10 +110,13 @@ class Service():
         # Server auto-detect
         initialsetup.InitialSetup().setup()
 
+        # Queue and lock for background sync
+        queue = Queue.LifoQueue(maxsize=100)
+
         # Initialize important threads
         user = userclient.UserClient()
-        ws = wsc.WebSocket_Client()
-        library = librarysync.LibrarySync()
+        ws = wsc.WebSocket_Client(queue)
+        library = librarysync.LibrarySync(queue)
         kplayer = player.Player()
         xplayer = xbmc.Player()
         plx = PlexAPI.PlexAPI()
@@ -307,14 +311,19 @@ class Service():
         except:
             xbmc.log('User client already shut down')
 
+        try:
+            downloadutils.DownloadUtils().stopSession()
+        except:
+            pass
+
         log("======== STOP %s ========" % self.addonName, 0)
 
 # Delay option
 delay = int(utils.settings('startupDelay'))
 
 xbmc.log("Delaying Plex startup by: %s sec..." % delay)
-# Plex: add 5 seconds just for good measure
-if delay and xbmc.Monitor().waitForAbort(delay+5):
+# Plex: add 10 seconds just for good measure
+if delay and xbmc.Monitor().waitForAbort(delay+10):
     # Start the service
     xbmc.log("Abort requested while waiting. Emby for kodi not started.")
 else:

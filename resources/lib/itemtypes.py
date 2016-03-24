@@ -257,6 +257,17 @@ class Items(object):
                                       userdata['PlayCount'],
                                       userdata['LastPlayedDate'])
 
+    def updatePlaystate(self, item):
+        if item['duration'] is None:
+            item['duration'] = self.kodi_db.getVideoRuntime(item['kodi_id'],
+                                                            item['kodi_type'])
+        self.logMsg('Updating item with: %s' % item, 0)
+        self.kodi_db.addPlaystate(item['file_id'],
+                                  item['viewOffset'],
+                                  item['duration'],
+                                  item['viewCount'],
+                                  item['lastViewedAt'])
+
 
 class Movies(Items):
 

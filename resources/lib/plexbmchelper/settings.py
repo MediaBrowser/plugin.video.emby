@@ -6,9 +6,11 @@ import utils
 
 settings = {}
 try:
-    guidoc = parse(xbmc.translatePath('special://userdata/guisettings.xml'))
+    path = xbmc.translatePath(
+        'special://userdata/guisettings.xml').decode('utf-8')
+    guidoc = parse(path)
 except:
-    print "Unable to read XBMC's guisettings.xml"
+    print "PlexKodiConnect - Unable to read XBMC's guisettings.xml"
 
 def getGUI(name):
     global guidoc
@@ -36,6 +38,7 @@ for entry in kodiSettingsList:
 settings['client_name'] = plexbmc.getSetting('deviceName')
 
 # XBMC web server settings
+xbmc.sleep(5000)
 settings['webserver_enabled'] = (getGUI('webserver') == "true")
 settings['port'] = int(getGUI('webserverport'))
 settings['user'] = getGUI('webserverusername')

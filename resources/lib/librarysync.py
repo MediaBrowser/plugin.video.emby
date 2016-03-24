@@ -21,7 +21,7 @@ import read_embyserver as embyserver
 import userclient
 import videonodes
 
-import PlexFunctions
+import PlexFunctions as PF
 
 ###############################################################################
 
@@ -66,7 +66,7 @@ class ThreadedGetMetadata(Thread):
                 xbmc.sleep(100)
                 continue
             # Download Metadata
-            plexXML = PlexFunctions.GetPlexMetadata(updateItem['itemId'])
+            plexXML = PF.GetPlexMetadata(updateItem['itemId'])
             if plexXML is None:
                 # Did not receive a valid XML - skip that item for now
                 self.logMsg("Could not get metadata for %s. "
@@ -209,16 +209,26 @@ class ThreadedShowSyncInfo(Thread):
 @utils.ThreadMethodsAdditionalStop('emby_shouldStop')
 @utils.ThreadMethods
 class LibrarySync(Thread):
+    """
+    librarysync.LibrarySync(queue)
+
+    where (communication with websockets)
+        queue:      Queue object for background sync
+    """
     # Borg, even though it's planned to only have 1 instance up and running!
     _shared_state = {}
     # How long should we look into the past for fast syncing items (in s)
     syncPast = 30
 
-    def __init__(self):
-
+    def __init__(self, queue):
         self.__dict__ = self._shared_state
 
         self.__language__ = xbmcaddon.Addon().getLocalizedString
+
+        # Communication with websockets
+        self.queue = queue
+        self.itemsToProcess = []
+        self.safteyMargin = 30
 
         self.clientInfo = clientinfo.ClientInfo()
         self.user = userclient.UserClient()
@@ -325,7 +335,7 @@ class LibrarySync(Thread):
                 return
 
         # Get the Plex item's metadata
-        xml = PlexFunctions.GetPlexMetadata(plexId)
+        xml = PF.GetPlexMetadata(plexId)
         if xml is None:
             self.logMsg("Could not download metadata, aborting time sync", -1)
             return
@@ -341,15 +351,15 @@ class LibrarySync(Thread):
         # Set the timer
         koditime = utils.getUnixTimestamp()
         # Toggle watched state
-        PlexFunctions.scrobble(plexId, 'watched')
+        PF.scrobble(plexId, 'watched')
         # Let the PMS process this first!
         xbmc.sleep(2000)
         # Get all PMS items to find the item we changed
-        items = PlexFunctions.GetAllPlexLeaves(libraryId,
-                                               lastViewedAt=timestamp,
-                                               containerSize=self.limitindex)
+        items = PF.GetAllPlexLeaves(libraryId,
+                                    lastViewedAt=timestamp,
+                                    containerSize=self.limitindex)
         # Toggle watched state back
-        PlexFunctions.scrobble(plexId, 'unwatched')
+        PF.scrobble(plexId, 'unwatched')
         # Get server timestamp for this change
         plextime = None
         for item in items:
@@ -438,9 +448,9 @@ class LibrarySync(Thread):
             # We need to process this:
             self.updatelist.append({
                 'itemId': itemId,
-                'itemType': PlexFunctions.GetItemClassFromType(
+                'itemType': PF.GetItemClassFromType(
                     plexType),
-                'method': PlexFunctions.GetMethodFromPlexType(plexType),
+                'method': PF.GetMethodFromPlexType(plexType),
                 'viewName': viewName,
                 'viewId': viewId,
                 'title': title
@@ -488,7 +498,7 @@ class LibrarySync(Thread):
         for view in self.views:
             self.updatelist = []
             # Get items per view
-            items = PlexFunctions.GetAllPlexLeaves(
+            items = PF.GetAllPlexLeaves(
                 view['id'],
                 updatedAt=self.getPMSfromKodiTime(lastSync),
                 containerSize=self.limitindex)
@@ -512,7 +522,7 @@ class LibrarySync(Thread):
                     self.updateKodiMusicLib = True
                 # Do the work
                 self.GetAndProcessXMLs(
-                    PlexFunctions.GetItemClassFromType(plexType),
+                    PF.GetItemClassFromType(plexType),
                     showProgress=False)
 
         self.updatelist = []
@@ -524,7 +534,7 @@ class LibrarySync(Thread):
         episodeupdate = False
         songupdate = False
         for view in self.views:
-            items = PlexFunctions.GetAllPlexLeaves(
+            items = PF.GetAllPlexLeaves(
                 view['id'],
                 lastViewedAt=self.getPMSfromKodiTime(lastSync),
                 containerSize=self.limitindex)
@@ -1079,7 +1089,7 @@ class LibrarySync(Thread):
             # Get items per view
             viewId = view['id']
             viewName = view['name']
-            all_plexmovies = PlexFunctions.GetPlexSectionResults(
+            all_plexmovies = PF.GetPlexSectionResults(
                 viewId, args=None, containerSize=self.limitindex)
             if all_plexmovies is None:
                 self.logMsg("Couldnt get section items, aborting for view.", 1)
@@ -1115,10 +1125,10 @@ class LibrarySync(Thread):
         also updates resume times.
         This is done by downloading one XML for ALL elements with viewId
         """
-        xml = PlexFunctions.GetAllPlexLeaves(viewId,
-                                             lastViewedAt=lastViewedAt,
-                                             updatedAt=updatedAt,
-                                             containerSize=self.limitindex)
+        xml = PF.GetAllPlexLeaves(viewId,
+                                  lastViewedAt=lastViewedAt,
+                                  updatedAt=updatedAt,
+                                  containerSize=self.limitindex)
         # Return if there are no items in PMS reply - it's faster
         try:
             xml[0].attrib
@@ -1213,7 +1223,7 @@ class LibrarySync(Thread):
             # Get items per view
             viewId = view['id']
             viewName = view['name']
-            allPlexTvShows = PlexFunctions.GetPlexSectionResults(
+            allPlexTvShows = PF.GetPlexSectionResults(
                 viewId, containerSize=self.limitindex)
             if allPlexTvShows is None:
                 self.logMsg(
@@ -1240,7 +1250,7 @@ class LibrarySync(Thread):
             if self.threadStopped():
                 return False
             # Grab all seasons to tvshow from PMS
-            seasons = PlexFunctions.GetAllPlexChildren(
+            seasons = PF.GetAllPlexChildren(
                 tvShowId, containerSize=self.limitindex)
             if seasons is None:
                 self.logMsg(
@@ -1265,7 +1275,7 @@ class LibrarySync(Thread):
             if self.threadStopped():
                 return False
             # Grab all episodes to tvshow from PMS
-            episodes = PlexFunctions.GetAllPlexLeaves(
+            episodes = PF.GetAllPlexLeaves(
                 view['id'], containerSize=self.limitindex)
             if episodes is None:
                 self.logMsg(
@@ -1288,7 +1298,7 @@ class LibrarySync(Thread):
         # Cycle through tv shows
         with itemtypes.TVShows() as TVshow:
             for tvShowId in allPlexTvShowsId:
-                XMLtvshow = PlexFunctions.GetPlexMetadata(tvShowId)
+                XMLtvshow = PF.GetPlexMetadata(tvShowId)
                 TVshow.refreshSeasonEntry(XMLtvshow, tvShowId)
         self.logMsg("Season info refreshed", 1)
 
@@ -1363,7 +1373,7 @@ class LibrarySync(Thread):
             # Get items per view
             viewId = view['id']
             viewName = view['name']
-            itemsXML = PlexFunctions.GetPlexSectionResults(
+            itemsXML = PF.GetPlexSectionResults(
                 viewId, args=urlArgs, containerSize=self.limitindex)
             if itemsXML is None:
                 self.logMsg("Error downloading xml for view %s"
@@ -1401,6 +1411,159 @@ class LibrarySync(Thread):
             # Database out of date.
             return False
 
+    def processMessage(self, message):
+        """
+        processes json.loads() messages from websocket. Triage what we need to
+        do with "process_" methods
+        """
+        typus = message.get('type')
+        if typus is None:
+            self.logMsg('No type, dropping message: %s' % message, -1)
+            return
+
+        if typus == 'playing':
+            self.process_playing(message['_children'])
+        elif typus == 'timeline':
+            self.process_timeline(message['_children'])
+        else:
+            self.logMsg('Dropping message: %s' % message, -1)
+
+    def multi_delete(self, liste, deleteListe):
+        """
+        Deletes the list items of liste at the positions in deleteListe
+        """
+        indexes = sorted(deleteListe, reverse=True)
+        for index in indexes:
+            del liste[index]
+        return liste
+
+    def process_newitems(self):
+        """
+        Periodically called to process new/updated PMS items
+
+        PMS needs a while to download info from internet AFTER it
+        showed up under 'timeline' websocket messages
+        """
+        videoLibUpdate = False
+        now = utils.getUnixTimestamp()
+        deleteListe = []
+        for i, item in enumerate(self.itemsToProcess):
+            ratingKey = item['ratingKey']
+            timestamp = item['timestamp']
+            if now - timestamp < self.safteyMargin:
+                # We haven't waited long enough for the PMS to finish
+                # processing the item
+                continue
+            xml = PF.GetPlexMetadata(ratingKey)
+            if xml is None:
+                self.logMsg('Could not download metadata for %s'
+                            % ratingKey, -1)
+                continue
+            deleteListe.append(i)
+            self.logMsg("Adding new PMS item: %s" % ratingKey, 1)
+            viewtag = xml.attrib.get('librarySectionTitle')
+            viewid = xml.attrib.get('librarySectionID')
+            mediatype = xml[0].attrib.get('type')
+            if mediatype == 'movie':
+                # Movie
+                videoLibUpdate = True
+                with itemtypes.Movies() as movie:
+                    movie.add_update(xml[0],
+                                     viewtag=viewtag,
+                                     viewid=viewid)
+            elif mediatype == 'episode':
+                # Episode
+                videoLibUpdate = True
+                with itemtypes.TVShows() as show:
+                    show.add_updateEpisode(xml[0],
+                                           viewtag=viewtag,
+                                           viewid=viewid)
+
+        # Get rid of the items we just processed
+        if len(deleteListe) > 0:
+            self.itemsToProcess = self.multi_delete(
+                self.itemsToProcess, deleteListe)
+        # Let Kodi know of the change
+        if videoLibUpdate is True:
+            self.logMsg("Doing Kodi Video Lib update", 1)
+            xbmc.executebuiltin('UpdateLibrary(video)')
+
+    def process_timeline(self, data):
+        """
+        PMS is messing with the library items
+
+        data['type']:
+            1:      movie
+            2:      tv show??
+            3:      season??
+            4:      episode
+            12:     trailer, extras?
+        """
+        videoLibUpdate = False
+        for item in data:
+            if item.get('state') == 9:
+                # Item was deleted.
+                # Only care for playable type
+                # For some reason itemID and not ratingKey
+                if item.get('type') == 1:
+                    # Movie
+                    self.logMsg("Removing movie %s" % item.get('itemID'), 1)
+                    videoLibUpdate = True
+                    with itemtypes.Movies() as movie:
+                        movie.remove(item.get('itemID'))
+                elif item.get('type') == 4:
+                    # Episode
+                    self.logMsg("Removing episode %s" % item.get('itemID'), 1)
+                    videoLibUpdate = True
+                    with itemtypes.TVShows() as show:
+                        show.remove(item.get('itemID'))
+
+            elif item.get('state') == 5 and item.get('type') in (1, 4):
+                # Item added or changed
+                # Need to process later because PMS needs to be done first
+                self.logMsg('New/changed PMS item: %s' % item.get('itemID'), 1)
+                self.itemsToProcess.append({
+                    'ratingKey': item.get('itemID'),
+                    'timestamp': utils.getUnixTimestamp()
+                })
+
+        # Let Kodi know of the change
+        if videoLibUpdate is True:
+            self.logMsg("Doing Kodi Video Lib update", 1)
+            xbmc.executebuiltin('UpdateLibrary(video)')
+
+    def process_playing(self, data):
+        items = []
+        with embydb.GetEmbyDB() as emby_db:
+            for item in data:
+                # Drop buffering messages
+                state = item.get('state')
+                if state == 'buffering':
+                    continue
+                ratingKey = item.get('ratingKey')
+                kodiInfo = emby_db.getItem_byId(ratingKey)
+                if kodiInfo is None:
+                    # Item not (yet) in Kodi library
+                    continue
+                items.append({
+                    'ratingKey': ratingKey,
+                    'kodi_id': kodiInfo[0],
+                    'file_id': kodiInfo[1],
+                    'kodi_type': kodiInfo[4],
+                    'viewOffset': PF.ConvertPlexToKodiTime(
+                        item.get('viewOffset')),
+                    'state': state,
+                    'duration': PF.ConvertPlexToKodiTime(
+                        item.get('duration')),
+                    'viewCount': item.get('viewCount'),
+                    'lastViewedAt': utils.DateToKodi(utils.getUnixTimestamp())
+                })
+        for item in items:
+            itemFkt = getattr(itemtypes,
+                              PF.GetItemClassFromType(item['kodi_type']))
+            with itemFkt() as Fkt:
+                Fkt.updatePlaystate(item)
+
     def run(self):
         try:
             self.run_internal()
@@ -1424,10 +1587,12 @@ class LibrarySync(Thread):
         installSyncDone = self.installSyncDone
         enableBackgroundSync = self.enableBackgroundSync
         fullSync = self.fullSync
-        fastSync = self.fastSync
+        processMessage = self.processMessage
         string = self.__language__
 
         dialog = xbmcgui.Dialog()
+
+        queue = self.queue
 
         startupComplete = False
         self.views = []
@@ -1563,16 +1728,27 @@ class LibrarySync(Thread):
                         window('emby_dbScan', clear=True)
                         # Full library sync finished
                         self.showKodiNote(string(39407), forced=False)
-                    # Run fast sync otherwise (ever second or so)
+                    elif count % 300 == 0:
+                        count += 1
+                        self.process_newitems()
                     else:
-                        window('emby_dbScan', value="true")
-                        if not fastSync():
-                            # Fast sync failed or server plugin is not found
-                            log("Something went wrong, starting full sync", -1)
-                            fullSync(manualrun=True)
-                        window('emby_dbScan', clear=True)
+                        count += 1
+                        # See if there is a PMS message we need to handle
+                        try:
+                            message = queue.get(block=False)
+                        # Empty queue
+                        except Queue.Empty:
+                            xbmc.sleep(100)
+                            continue
+                        # Got a message from PMS; process it
+                        else:
+                            window('emby_dbScan', value="true")
+                            processMessage(message)
+                            window('emby_dbScan', clear=True)
+                            # NO sleep!
+                            continue
 
-            xbmc.sleep(1000)
+            xbmc.sleep(100)
             count += 1
 
         log("###===--- LibrarySync Stopped ---===###", 0)

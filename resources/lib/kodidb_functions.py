@@ -857,10 +857,28 @@ class Kodidb_Functions():
             ids.append(row[0])
         return ids
 
-    def addPlaystate(self, fileid, resume_seconds, total_seconds, playcount, dateplayed):
-        
-        cursor = self.cursor
+    def getVideoRuntime(self, kodiid, mediatype):
+        if mediatype == 'movie':
+            query = ' '.join((
+                "SELECT c11",
+                "FROM movie",
+                "WHERE idMovie = ?",
+            ))
+        elif mediatype == 'episode':
+            query = ' '.join((
+                "SELECT c09",
+                "FROM episode",
+                "WHERE idEpisode = ?",
+            ))
+        self.cursor.execute(query, (kodiid,))
+        try:
+            runtime = self.cursor.fetchone()[0]
+        except TypeError:
+            return None
+        return int(runtime)
 
+    def addPlaystate(self, fileid, resume_seconds, total_seconds, playcount, dateplayed):
+        cursor = self.cursor
         # Delete existing resume point
         query = ' '.join((
 
@@ -870,13 +888,20 @@ class Kodidb_Functions():
         cursor.execute(query, (fileid,))
         
         # Set watched count
-        query = ' '.join((
-
-            "UPDATE files",
-            "SET playCount = ?, lastPlayed = ?",
-            "WHERE idFile = ?"
-        ))
-        cursor.execute(query, (playcount, dateplayed, fileid))
+        if playcount is None:
+            query = ' '.join((
+                "UPDATE files",
+                "SET lastPlayed = ?",
+                "WHERE idFile = ?"
+            ))
+            cursor.execute(query, (dateplayed, fileid))
+        else:
+            query = ' '.join((
+                "UPDATE files",
+                "SET playCount = ?, lastPlayed = ?",
+                "WHERE idFile = ?"
+            ))
+            cursor.execute(query, (playcount, dateplayed, fileid))
         
         # Set the resume bookmark
         if resume_seconds:

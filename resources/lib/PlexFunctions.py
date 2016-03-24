@@ -31,6 +31,8 @@ def ConvertPlexToKodiTime(plexTime):
     """
     Converts Plextime to Koditime. Returns an int (in seconds).
     """
+    if plexTime is None:
+        return None
     return int(float(plexTime) * PlexToKodiTimefactor())
 
 
@@ -43,6 +45,14 @@ def GetItemClassFromType(itemType):
         'artist': 'Music',
         'album': 'Music',
         'track': 'Music'
+    }
+    return classes[itemType]
+
+
+def GetItemClassFromNumber(itemType):
+    classes = {
+        1: 'Movies',
+        4: 'TVShows',
     }
     return classes[itemType]
 
