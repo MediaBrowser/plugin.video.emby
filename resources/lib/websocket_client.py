@@ -13,7 +13,6 @@ import xbmcgui
 
 import clientinfo
 import downloadutils
-import librarysync
 import playlist
 import userclient
 import utils
@@ -349,7 +348,8 @@ class WebSocket_Client(threading.Thread):
 
         userId = window('currUserId')
         server = window('pms_server')
-        token = window('pms_token')
+        # Need to use plex.tv token, if any
+        token = window('plex_token')
         deviceId = self.deviceId
 
         # Get the appropriate prefix for the websocket

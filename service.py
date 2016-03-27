@@ -85,7 +85,8 @@ class Service():
             "plex_authenticated", "EmbyUserImage", "useDirectPaths",
             "replaceSMB", "remapSMB", "remapSMBmovieOrg", "remapSMBtvOrg",
             "remapSMBmusicOrg", "remapSMBmovieNew", "remapSMBtvNew",
-            "remapSMBmusicNew", "suspend_LibraryThread", "plex_terminateNow"
+            "remapSMBmusicNew", "suspend_LibraryThread", "plex_terminateNow",
+            "kodiplextimeoffset"
         ]
         for prop in properties:
             window(prop, clear=True)

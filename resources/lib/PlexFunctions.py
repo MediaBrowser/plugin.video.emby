@@ -472,6 +472,48 @@ def GetMachineIdentifier(url):
     return machineIdentifier
 
 
+def GetPMSStatus(token):
+    """
+    token:                  Needs to be authorized with a master Plex token
+                            (not a managed user token)!
+    Calls /status/sessions on currently active PMS. Returns a dict with:
+
+    'sessionKey':
+    {
+        'userId':           Plex ID of the user (if applicable, otherwise '')
+        'username':         Plex name (if applicable, otherwise '')
+        'ratingKey':        Unique Plex id of item being played
+    }
+
+    or an empty dict.
+    """
+    answer = {}
+    xml = downloadutils.DownloadUtils().downloadUrl(
+        "{server}" + '/status/sessions',
+        type="GET",
+        headerOptions={'X-Plex-Token': token})
+    try:
+        xml.attrib
+    except AttributeError:
+        return answer
+    for item in xml:
+        ratingKey = item.attrib.get('ratingKey')
+        sessionKey = item.attrib.get('sessionKey')
+        userId = item.find('User')
+        username = ''
+        if userId is not None:
+            username = userId.attrib.get('title', '')
+            userId = userId.attrib.get('id', '')
+        else:
+            userId = ''
+        answer[sessionKey] = {
+            'userId': userId,
+            'username': username,
+            'ratingKey': ratingKey
+        }
+    return answer
+
+
 def scrobble(ratingKey, state):
     """
     Tells the PMS to set an item's watched state to state="watched" or

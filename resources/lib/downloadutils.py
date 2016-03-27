@@ -177,7 +177,6 @@ class DownloadUtils():
     def getHeader(self, authenticate=True, options={}):
         plx = PlexAPI.PlexAPI()
         if authenticate:
-            options['X-Plex-Token'] = self.token
             header = plx.getXArgsDeviceInfo(options=options)
         else:
             header = plx.getXArgsDeviceInfo(options=options)

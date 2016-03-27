@@ -33,24 +33,9 @@ def DateToKodi(stamp):
 
         Output: Y-m-d h:m:s = 2009-04-05 23:16:04
         """
-        # DATEFORMAT = xbmc.getRegion('dateshort')
-        # TIMEFORMAT = xbmc.getRegion('meridiem')
-        # date_time = time.localtime(stamp)
-        # if DATEFORMAT[1] == 'd':
-        #     localdate = time.strftime('%d-%m-%Y', date_time)
-        # elif DATEFORMAT[1] == 'm':
-        #     localdate = time.strftime('%m-%d-%Y', date_time)
-        # else:
-        #     localdate = time.strftime('%Y-%m-%d', date_time)
-        # if TIMEFORMAT != '/':
-        #     localtime = time.strftime('%I:%M%p', date_time)
-        # else:
-        #     localtime = time.strftime('%H:%M', date_time)
-        # return localtime + '  ' + localdate
+        stamp = float(stamp) + float(window('kodiplextimeoffset'))
         try:
-            # DATEFORMAT = xbmc.getRegion('dateshort')
-            # TIMEFORMAT = xbmc.getRegion('meridiem')
-            date_time = time.localtime(float(stamp))
+            date_time = time.localtime(stamp)
             localdate = time.strftime('%Y-%m-%d %H:%M:%S', date_time)
         except:
             localdate = None
