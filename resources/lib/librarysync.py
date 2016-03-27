@@ -22,6 +22,7 @@ import userclient
 import videonodes
 
 import PlexFunctions as PF
+import PlexAPI
 
 ###############################################################################
 
@@ -46,6 +47,8 @@ class ThreadedGetMetadata(Thread):
         self.out_queue = out_queue
         self.lock = lock
         self.processlock = processlock
+        # Just in case a time sync goes wrong
+        utils.window('kodiplextimeoffset', value='0')
         Thread.__init__(self)
 
     def run(self):
@@ -228,7 +231,9 @@ class LibrarySync(Thread):
         # Communication with websockets
         self.queue = queue
         self.itemsToProcess = []
-        self.safteyMargin = 30
+        self.sessionKeys = []
+        # How long should we wait at least to process new/changed PMS items?
+        self.saftyMargin = int(utils.settings('saftyMargin'))
 
         self.clientInfo = clientinfo.ClientInfo()
         self.user = userclient.UserClient()
@@ -286,6 +291,10 @@ class LibrarySync(Thread):
         """
         PMS does not provide a means to get a server timestamp. This is a work-
         around.
+
+        In general, everything saved to Kodi shall be in Kodi time.
+
+        Any info with a PMS timestamp is in Plex time, naturally
         """
         self.logMsg('Synching time with PMS server', 0)
         # Find a PMS item where we can toggle the view state to enforce a
@@ -372,7 +381,8 @@ class LibrarySync(Thread):
 
         # Calculate time offset Kodi-PMS
         self.timeoffset = int(koditime) - int(plextime)
-        self.logMsg("Time offset Koditime - PMStime in seconds: %s"
+        utils.window('kodiplextimeoffset', value=str(self.timeoffset))
+        self.logMsg("Time offset Koditime - Plextime in seconds: %s"
                     % str(self.timeoffset), 0)
 
     def getPMSfromKodiTime(self, koditime):
@@ -1420,17 +1430,16 @@ class LibrarySync(Thread):
         if typus is None:
             self.logMsg('No type, dropping message: %s' % message, -1)
             return
-
+        self.logMsg('Message received from websocket: %s' % message, 2)
         if typus == 'playing':
             self.process_playing(message['_children'])
         elif typus == 'timeline':
             self.process_timeline(message['_children'])
-        else:
-            self.logMsg('Dropping message: %s' % message, -1)
 
     def multi_delete(self, liste, deleteListe):
         """
         Deletes the list items of liste at the positions in deleteListe
+        (arbitrary order)
         """
         indexes = sorted(deleteListe, reverse=True)
         for index in indexes:
@@ -1450,7 +1459,7 @@ class LibrarySync(Thread):
         for i, item in enumerate(self.itemsToProcess):
             ratingKey = item['ratingKey']
             timestamp = item['timestamp']
-            if now - timestamp < self.safteyMargin:
+            if now - timestamp < self.saftyMargin:
                 # We haven't waited long enough for the PMS to finish
                 # processing the item
                 continue
@@ -1521,7 +1530,8 @@ class LibrarySync(Thread):
             elif item.get('state') == 5 and item.get('type') in (1, 4):
                 # Item added or changed
                 # Need to process later because PMS needs to be done first
-                self.logMsg('New/changed PMS item: %s' % item.get('itemID'), 1)
+                self.logMsg('New/changed PMS item detected: %s'
+                            % item.get('itemID'), 1)
                 self.itemsToProcess.append({
                     'ratingKey': item.get('itemID'),
                     'timestamp': utils.getUnixTimestamp()
@@ -1533,18 +1543,66 @@ class LibrarySync(Thread):
             xbmc.executebuiltin('UpdateLibrary(video)')
 
     def process_playing(self, data):
+        """
+        Someone (not necessarily the user signed in) is playing something some-
+        where
+        """
         items = []
         with embydb.GetEmbyDB() as emby_db:
             for item in data:
-                # Drop buffering messages
+                # Drop buffering messages immediately
                 state = item.get('state')
                 if state == 'buffering':
                     continue
                 ratingKey = item.get('ratingKey')
+                sessionKey = item.get('sessionKey')
+                # Do we already have a sessionKey stored?
+                if sessionKey not in self.sessionKeys:
+                    # No - update our list of all current sessions
+                    self.sessionKeys = PF.GetPMSStatus(
+                        utils.window('plex_token'))
+                    self.logMsg('Updated current sessions. They are: %s'
+                                % self.sessionKeys, 2)
+                    if sessionKey not in self.sessionKeys:
+                        self.logMsg('Session key %s still unknown! Skip item'
+                                    % sessionKey, 1)
+                        continue
+
+                currSess = self.sessionKeys[sessionKey]
+                # Identify the user - same one as signed on with PKC?
+                # Skip update if neither session's username nor userid match
+                # (Owner sometime's returns id '1', not always)
+                if not (currSess['userId'] == utils.window('currUserId')
+                        or
+                        currSess['username'] == utils.window('plex_username')):
+                    self.logMsg('Our username %s, userid %s did not match the '
+                                'session username %s with userid %s'
+                                % (utils.window('plex_username'),
+                                   utils.window('currUserId'),
+                                   currSess['username'],
+                                   currSess['userId']), 2)
+                    continue
+
                 kodiInfo = emby_db.getItem_byId(ratingKey)
                 if kodiInfo is None:
                     # Item not (yet) in Kodi library
                     continue
+
+                # Get an up-to-date XML from the PMS
+                # because PMS will NOT directly tell us:
+                #   duration of item
+                #   viewCount
+                if currSess.get('duration') is None:
+                    xml = PF.GetPlexMetadata(ratingKey)
+                    if xml is None:
+                        self.logMsg('Could not get up-to-date xml for item %s'
+                                    % ratingKey, -1)
+                        continue
+                    API = PlexAPI.API(xml[0])
+                    userdata = API.getUserData()
+                    currSess['duration'] = userdata['Runtime']
+                    currSess['viewCount'] = userdata['PlayCount']
+                # Append to list that we need to process
                 items.append({
                     'ratingKey': ratingKey,
                     'kodi_id': kodiInfo[0],
@@ -1553,11 +1611,14 @@ class LibrarySync(Thread):
                     'viewOffset': PF.ConvertPlexToKodiTime(
                         item.get('viewOffset')),
                     'state': state,
-                    'duration': PF.ConvertPlexToKodiTime(
-                        item.get('duration')),
-                    'viewCount': item.get('viewCount'),
+                    'duration': currSess['duration'],
+                    'viewCount': currSess['viewCount'],
                     'lastViewedAt': utils.DateToKodi(utils.getUnixTimestamp())
                 })
+                self.logMsg('Update playstate for user %s with id %s: %s'
+                            % (utils.window('plex_username'),
+                               utils.window('currUserId'),
+                               items[-1]), 2)
         for item in items:
             itemFkt = getattr(itemtypes,
                               PF.GetItemClassFromType(item['kodi_type']))
@@ -1618,9 +1679,8 @@ class LibrarySync(Thread):
                 # Verify the validity of the database
                 currentVersion = settings('dbCreatedWithVersion')
                 minVersion = window('emby_minDBVersion')
-                uptoDate = self.compareDBVersion(currentVersion, minVersion)
 
-                if not uptoDate:
+                if not self.compareDBVersion(currentVersion, minVersion):
                     log("Db version out of date: %s minimum version required: "
                         "%s" % (currentVersion, minVersion), 0)
                     # DB out of date. Proceed to recreate?
@@ -1655,10 +1715,10 @@ class LibrarySync(Thread):
                 # Run start up sync
                 window('emby_dbScan', value="true")
                 log("Db version: %s" % settings('dbCreatedWithVersion'), 0)
+                self.syncPMStime()
                 log("Initial start-up full sync starting", 0)
                 librarySync = fullSync(manualrun=True)
                 # Initialize time offset Kodi - PMS
-                self.syncPMStime()
                 window('emby_dbScan', clear=True)
                 if librarySync:
                     log("Initial start-up full sync successful", 0)
@@ -1730,7 +1790,9 @@ class LibrarySync(Thread):
                         self.showKodiNote(string(39407), forced=False)
                     elif count % 300 == 0:
                         count += 1
+                        window('emby_dbScan', value="true")
                         self.process_newitems()
+                        window('emby_dbScan', clear=True)
                     else:
                         count += 1
                         # See if there is a PMS message we need to handle
@@ -1744,6 +1806,7 @@ class LibrarySync(Thread):
                         else:
                             window('emby_dbScan', value="true")
                             processMessage(message)
+                            queue.task_done()
                             window('emby_dbScan', clear=True)
                             # NO sleep!
                             continue

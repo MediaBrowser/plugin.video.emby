@@ -258,10 +258,24 @@ class Items(object):
                                       userdata['LastPlayedDate'])
 
     def updatePlaystate(self, item):
-        if item['duration'] is None:
-            item['duration'] = self.kodi_db.getVideoRuntime(item['kodi_id'],
-                                                            item['kodi_type'])
-        self.logMsg('Updating item with: %s' % item, 0)
+        """
+        Use with websockets, not xml
+        """
+        # If the playback was stopped, check whether we need to increment the
+        # playcount. PMS won't tell us the playcount via websockets
+        if item['state'] in ('stopped', 'ended'):
+            complete = float(item['viewOffset']) / float(item['duration'])
+            complete = complete * 100
+            self.logMsg('Item %s stopped with completion rate %s percent.'
+                        'Mark item played at %s percent.'
+                        % (item['ratingKey'],
+                           str(complete),
+                           utils.settings('markPlayed')), 1)
+            if complete >= float(utils.settings('markPlayed')):
+                self.logMsg('Marking as completely watched in Kodi', 1)
+                item['viewCount'] += 1
+                item['viewOffset'] = 0
+        # Do the actual update
         self.kodi_db.addPlaystate(item['file_id'],
                                   item['viewOffset'],
                                   item['duration'],
@@ -351,10 +365,6 @@ class Movies(Items):
                 # item is not found, let's recreate it.
                 update_item = False
                 self.logMsg("movieid: %s missing from Kodi, repairing the entry." % movieid, 1)
-
-        # if not viewtag or not viewid:
-        #     # Get view tag from emby
-        #     viewtag, viewid, mediatype = self.emby.getView_embyId(itemid)
 
         # fileId information
         checksum = API.getChecksum()

@@ -1482,7 +1482,9 @@ class API():
 
     def getChecksum(self):
         """
-        Returns a string, not int
+        Returns a string, not int. 
+
+        WATCH OUT - time in Plex, not Kodi ;-)
         """
         # Include a letter to prohibit saving as an int!
         checksum = "K%s%s" % (self.getRatingKey(),
@@ -1553,7 +1555,6 @@ class API():
         item = self.item.attrib
         # Default
         favorite = False
-        playcount = None
         played = False
         lastPlayedDate = None
         resume = 0
@@ -1562,7 +1563,7 @@ class API():
         try:
             playcount = int(item['viewCount'])
         except:
-            playcount = None
+            playcount = 0
 
         if playcount:
             played = True
