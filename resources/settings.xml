@@ -60,6 +60,7 @@
 		<setting type="lsep" label="39052" /><!-- Background Sync -->
 		<setting id="enableBackgroundSync" type="bool" label="39026" default="true" visible="true"/>
 		<setting id="saftyMargin" type="slider" label="39051" default="30" option="int" range="10,1,300" visible="eq(-1,true)"/>
+		<setting id="fullSyncInterval" type="number" label="39053" default="30" option="int" />
 
 		<setting type="lsep" label="30538" /><!-- Complete Re-Sync necessary -->
 		<setting id="enableMusic" type="bool" label="30509" default="true" />

@@ -48,17 +48,6 @@ class WebSocket_Client(threading.Thread):
         self.clientInfo = clientinfo.ClientInfo()
         self.deviceId = self.clientInfo.getDeviceId()
 
-        # 'state' that can be returned by PMS
-        self.timeStates = {
-            0: 'created',
-            2: 'matching',
-            3: 'downloading',
-            4: 'loading',
-            5: 'finished',
-            6: 'analyzing',
-            9: 'deleted'
-        }
-
         threading.Thread.__init__(self)
 
     def sendProgressUpdate(self, data):
@@ -88,6 +77,14 @@ class WebSocket_Client(threading.Thread):
             self.logMsg('Error decoding message from websocket: %s' % e, -1)
             return False
 
+        # Triage
+        typus = message.get('type')
+        if typus is None:
+            self.logMsg('No message type, dropping message: %s' % message, -1)
+            return False
+        # Drop everything we're not interested in
+        if typus not in ('playing', 'timeline'):
+            return
         # Put PMS message on queue and let libsync take care of it
         try:
             self.queue.put(message)
@@ -97,50 +94,19 @@ class WebSocket_Client(threading.Thread):
             self.logMsg('Queue is full, dropping PMS message', 0)
             return False
 
-    def processing_playing(self, message):
-        """
-        Called when somewhere a PMS item is started, being played, stopped.
+    def on_message_LEGACY_EMBY(self, ws, message):
+        
+        log = self.logMsg
+        window = utils.window
+        lang = utils.language
 
-        Calls Libsync with a list of children dictionaries:
-        {
-          '_elementType':         e.g. 'PlaySessionStateNotification'
-          'guid':                  e.g. ''
-          'key':                   e.g. '/library/metadata/282300',
-          'ratingKey':             e.g. '282300',
-          'sessionKey':            e.g. '590',
-          'state':                 e.g. 'playing', 'available', 'buffering',
-                                   'stopped'
-          'transcodeSession':      e.g. 'yv50n9p4cr',
-          'url':                   e.g. ''
-          'viewOffset':            e.g. 1878534        (INT!)
-        }
-        """
-        children = message.get('_children')
-        if not children:
-            return False
+        result = json.loads(message)
+        messageType = result['MessageType']
+        data = result['Data']
 
-    def processing_progress(self, message):
-        """
-        Called when a PMS items keeps getting played (resume points update)
-        """
-
-    def processing_timeline(self, message):
-        """
-        Called when a PMS is in the process or has updated/added/removed a
-        library item
-        """
-        children = message.get('_children')
-        if not children:
-            return False
-        for item in children:
-            state = self.timeStates.get(item.get('state'))
-        return True
-
-    def processing_status(self, message):
-        """
-        Called when a PMS is scanning its libraries (to be verified)
-        """
-
+        if messageType not in ('SessionEnded'):
+            # Mute certain events
+            log("Message: %s" % message, 1)
 
         if messageType == "Play":
             # A remote control play command has been sent from the server.
@@ -316,7 +282,7 @@ class WebSocket_Client(threading.Thread):
         elif messageType == "ServerRestarting":
             if utils.settings('supressRestartMsg') == "true":
                 xbmcgui.Dialog().notification(
-                                    heading=self.addonName,
+                                    heading="Emby for Kodi",
                                     message=lang(33006),
                                     icon="special://home/addons/plugin.video.emby/icon.png")
 
@@ -330,6 +296,7 @@ class WebSocket_Client(threading.Thread):
 
     def on_open(self, ws):
         return
+        # Can we post something to Plex?
         self.doUtils.postCapabilities(self.deviceId)
 
     def on_error(self, ws, error):
@@ -346,11 +313,9 @@ class WebSocket_Client(threading.Thread):
 
         # websocket.enableTrace(True)
 
-        userId = window('currUserId')
         server = window('pms_server')
-        # Need to use plex.tv token, if any
+        # Need to use plex.tv token, if any. NOT user token
         token = window('plex_token')
-        deviceId = self.deviceId
 
         # Get the appropriate prefix for the websocket
         if "https" in server:

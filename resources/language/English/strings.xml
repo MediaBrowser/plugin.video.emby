@@ -395,6 +395,7 @@
     <string id="39050">[COLOR yellow]Choose Plex Server from a list[/COLOR]</string>
     <string id="39051">Wait before sync new/changed PMS item [s]</string>
     <string id="39052">Background Sync</string>
+    <string id="39053">Do a full library sync every x minutes</string>
 
 
 

@@ -333,6 +333,8 @@
     <string id="39050">[COLOR yellow]Plex Server aus Liste auswählen[/COLOR]</string>
     <string id="39051">Warten bevor neue/geänderte PMS Einträge gesynct werden [s]</string>
     <string id="39052">Hintergrund-Synchronisation</string>
+    <string id="39053">Kompletten Scan aller Bibliotheken alle x Minuten durchführen</string>
+
 
     <!-- Plex Entrypoint.py -->
     <string id="39200">Plex Home Benutzer abmelden: </string>

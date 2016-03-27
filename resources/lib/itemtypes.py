@@ -2132,8 +2132,8 @@ class Music(Items):
                 # No album found. Let's create it
                 self.logMsg("Album database entry missing.", 1)
                 emby_albumId = item.attrib.get('parentRatingKey')
-                album = emby.getItem(emby_albumId)
-                self.add_updateAlbum(album)
+                album = GetPlexMetadata(emby_albumId)
+                self.add_updateAlbum(album[0])
                 emby_dbalbum = emby_db.getItem_byId(emby_albumId)
                 try:
                     albumid = emby_dbalbum[0]
