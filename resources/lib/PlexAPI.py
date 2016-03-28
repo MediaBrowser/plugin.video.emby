@@ -1801,6 +1801,9 @@ class API():
         """
         return self.item.attrib.get('originallyAvailableAt', None)
 
+    def getMusicStudio(self):
+        return self.item.attrib.get('studio', '')
+
     def getStudios(self):
         """
         Returns a list with a single entry for the studio, or an empty list

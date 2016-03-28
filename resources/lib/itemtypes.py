@@ -1820,6 +1820,7 @@ class Music(Items):
         genre = API.joinList(genres)
         bio = API.getPlot()
         rating = userdata['UserRating']
+        studio = API.getMusicStudio()
         # artists = item['AlbumArtists']
         # if not artists:
         #     artists = item['ArtistItems']
@@ -1862,45 +1863,51 @@ class Music(Items):
 
                 "UPDATE album",
                 "SET strArtists = ?, iYear = ?, strGenres = ?, strReview = ?, strImage = ?,",
-                    "iUserrating = ?, lastScraped = ?, strReleaseType = ?",
+                    "iUserrating = ?, lastScraped = ?, strReleaseType = ?, "
+                    "strLabel = ? ",
                 "WHERE idAlbum = ?"
             ))
             kodicursor.execute(query, (artistname, year, genre, bio, thumb,
-                                       rating, lastScraped, "album", albumid))
+                                       rating, lastScraped, "album", studio,
+                                       albumid))
         elif kodiversion == 16:
             # Kodi Jarvis
             query = ' '.join((
 
                 "UPDATE album",
                 "SET strArtists = ?, iYear = ?, strGenres = ?, strReview = ?, strImage = ?,",
-                    "iRating = ?, lastScraped = ?, strReleaseType = ?",
+                    "iRating = ?, lastScraped = ?, strReleaseType = ?, "
+                    "strLabel = ? ",
                 "WHERE idAlbum = ?"
             ))
             kodicursor.execute(query, (artistname, year, genre, bio, thumb,
-                                       rating, lastScraped, "album", albumid))
+                                       rating, lastScraped, "album", studio,
+                                       albumid))
         elif kodiversion == 15:
             # Kodi Isengard
             query = ' '.join((
 
                 "UPDATE album",
                 "SET strArtists = ?, iYear = ?, strGenres = ?, strReview = ?, strImage = ?,",
-                    "iRating = ?, lastScraped = ?, dateAdded = ?, strReleaseType = ?",
+                    "iRating = ?, lastScraped = ?, dateAdded = ?, "
+                    "strReleaseType = ?, strLabel = ? ",
                 "WHERE idAlbum = ?"
             ))
             kodicursor.execute(query, (artistname, year, genre, bio, thumb,
                                        rating, lastScraped, dateadded,
-                                       "album", albumid))
+                                       "album", studio, albumid))
         else:
             # Kodi Helix
             query = ' '.join((
 
                 "UPDATE album",
                 "SET strArtists = ?, iYear = ?, strGenres = ?, strReview = ?, strImage = ?,",
-                    "iRating = ?, lastScraped = ?, dateAdded = ?",
+                    "iRating = ?, lastScraped = ?, dateAdded = ?, "
+                    "strLabel = ? ",
                 "WHERE idAlbum = ?"
             ))
             kodicursor.execute(query, (artistname, year, genre, bio, thumb,
-                                       rating, lastScraped, dateadded,
+                                       rating, lastScraped, dateadded, studio,
                                        albumid))
 
         # Associate the parentid for emby reference
@@ -1914,7 +1921,7 @@ class Music(Items):
                             % parentId, 1)
                 artist = GetPlexMetadata(parentId)
                 # Item may not be an artist, verification necessary.
-                if artist:
+                if artist is not None:
                     if artist[0].attrib.get('type') == "artist":
                         # Update with the parentId, for remove reference
                         emby_db.addReference(
