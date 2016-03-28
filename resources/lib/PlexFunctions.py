@@ -44,7 +44,8 @@ def GetItemClassFromType(itemType):
         'show': 'TVShows',
         'artist': 'Music',
         'album': 'Music',
-        'track': 'Music'
+        'track': 'Music',
+        'song': 'Music'
     }
     return classes[itemType]
 
