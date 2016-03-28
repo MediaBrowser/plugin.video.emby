@@ -78,6 +78,7 @@ class WebSocket_Client(threading.Thread):
             return False
 
         # Triage
+        self.logMsg('Message received: %s' % message, 2)
         typus = message.get('type')
         if typus is None:
             self.logMsg('No message type, dropping message: %s' % message, -1)

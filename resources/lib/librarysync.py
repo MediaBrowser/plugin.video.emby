@@ -1195,7 +1195,6 @@ class LibrarySync(Thread):
         do with "process_" methods
         """
         typus = message.get('type')
-        self.logMsg('Message received from websocket: %s' % message, 2)
         if typus == 'playing':
             self.process_playing(message['_children'])
         elif typus == 'timeline':
