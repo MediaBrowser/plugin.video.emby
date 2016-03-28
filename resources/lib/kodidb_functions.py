@@ -744,10 +744,10 @@ class Kodidb_Functions():
         query = ' '.join((
             "SELECT idSong",
             "FROM song",
-            "WHERE iTimesPlayed IS NULL OR iTimesPlayed = ''"
+            "WHERE iTimesPlayed = ?"
         ))
         try:
-            rows = self.cursor.execute(query)
+            rows = self.cursor.execute(query, (0, ))
         except:
             return []
         ids = []

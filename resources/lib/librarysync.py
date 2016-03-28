@@ -1582,7 +1582,7 @@ class LibrarySync(Thread):
                         self.showKodiNote(string(39407), forced=False)
                     elif enableBackgroundSync:
                         # Check back whether we should process something
-                        if now - lastProcessing > 5:
+                        if now - lastProcessing > 10:
                             window('emby_dbScan', value="true")
                             self.processItems()
                             window('emby_dbScan', clear=True)
