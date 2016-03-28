@@ -390,6 +390,9 @@ class WebSocket(object):
         self._frame_mask = None
         self._cont_data = None
 
+        # Do not allow simultaneous send - leads to SSL issues!
+        self.lock = threading.Lock()
+
     def fileno(self):
         return self.sock.fileno()
 
@@ -565,9 +568,10 @@ class WebSocket(object):
         length = len(data)
         if traceEnabled:
             logger.debug("send: " + repr(data))
-        while data:
-            l = self._send(data)
-            data = data[l:]
+        with self.lock:
+            while data:
+                l = self._send(data)
+                data = data[l:]
         return length
 
     def send_binary(self, payload):
