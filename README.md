@@ -63,6 +63,7 @@ Solutions are unlikely due to the nature of these issues
 - **Plex updates:** PlexKodiConnect continuously polls the Plex Media Server for changes. If something on the PMS has changed, this change is synced to Kodi. Hence if you rescan your entire library, a long PlexKodiConnect re-sync is triggered.
 - **Subtitles**: external Plex subtitles (separate file, e.g. mymovie.srt) can be used, but it is impossible to label them correctly/tell what language they are in
 - **Direct Paths:** If you use direct paths, your (initial) sync will be slower
+- **Background Sync:** If you toggle the viewstate of an item to (un)watched somewhere else outside of Kodi/PKC, this change is only synched with a full sync. Plex does not communicate this toggling to anyone. 
 
 **Known Bugs:**
 - **Plex Music:** Plex Music for direct paths does not work yet.

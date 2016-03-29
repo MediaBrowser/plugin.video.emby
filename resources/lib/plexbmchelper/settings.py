@@ -9,7 +9,10 @@ guisettingsXML = utils.guisettingsXML()
 
 def getGUI(name):
     try:
-        return list(guisettingsXML.iter(name))[0].text
+        ans = list(guisettingsXML.iter(name))[0].text
+        if ans is None:
+            ans = ''
+        return ans
     except:
         return ""
 
