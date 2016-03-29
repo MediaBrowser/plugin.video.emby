@@ -16,17 +16,6 @@ import utils
 ###############################################################################
 
 
-TIMELINE_STATES = {
-    0: 'created',
-    2: 'matching',
-    3: 'downloading',
-    4: 'loading',
-    5: 'finished',
-    6: 'analyzing',
-    9: 'deleted'
-}
-
-
 @utils.logging
 @utils.ThreadMethods
 class WebSocket(threading.Thread):
@@ -83,20 +72,17 @@ class WebSocket(threading.Thread):
             return frame.opcode, None
         elif frame.opcode == websocket.ABNF.OPCODE_PING:
             ws.pong("Hi!")
-
         return None, None
 
     def getUri(self):
         server = utils.window('pms_server')
         # Need to use plex.tv token, if any. NOT user token
         token = utils.window('plex_token')
-
         # Get the appropriate prefix for the websocket
         if "https" in server:
             server = server.replace('https', "wss")
         else:
             server = server.replace('http', "ws")
-
         uri = "%s/:/websockets/notifications" % server
         if token:
             uri += '?X-Plex-Token=%s' % token
@@ -142,6 +128,11 @@ class WebSocket(threading.Thread):
                     xbmc.sleep(1000)
             except Exception as e:
                 log("Unknown exception encountered: %s" % e)
+                try:
+                    self.ws.shutdown()
+                except:
+                    pass
+                self.ws = None
                 pass
 
         log("##===---- WebSocketClient Stopped ----===##", 0)
