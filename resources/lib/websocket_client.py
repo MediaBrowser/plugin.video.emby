@@ -17,6 +17,7 @@ import utils
 
 
 @utils.logging
+@utils.ThreadMethodsAdditionalSuspend('suspend_LibraryThread')
 @utils.ThreadMethods
 class WebSocket(threading.Thread):
     opcode_data = (websocket.ABNF.OPCODE_TEXT, websocket.ABNF.OPCODE_BINARY)
@@ -103,6 +104,12 @@ class WebSocket(threading.Thread):
             # In the event the server goes offline
             while threadSuspended():
                 # Set in service.py
+                if self.ws is not None:
+                    try:
+                        self.ws.shutdown()
+                    except:
+                        pass
+                    self.ws = None
                 if threadStopped():
                     # Abort was requested while waiting. We should exit
                     log("##===---- WebSocketClient Stopped ----===##", 0)

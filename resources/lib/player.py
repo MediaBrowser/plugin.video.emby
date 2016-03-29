@@ -110,10 +110,6 @@ class Player(xbmc.Player):
         window('emby_skipWatched%s' % itemId, value="true")
 
         log("Playing itemtype is: %s" % itemType, 1)
-        # Suspend library sync thread while movie is playing
-        if itemType in ('movie', 'episode'):
-            log("Suspending library sync while playing", 1)
-            window('suspend_LibraryThread', value='true')
 
         customseek = window('emby_customPlaylist.seektime')
         if (window('emby_customPlaylist') == "true" and customseek):
@@ -459,7 +455,6 @@ class Player(xbmc.Player):
         window('emby_customPlaylist', clear=True)
         window('emby_customPlaylist.seektime', clear=True)
         window('emby_playbackProps', clear=True)
-        window('suspend_LibraryThread', clear=True)
         window('emby_customPlaylist.seektime', clear=True)
         log("Clear playlist properties.", 1)
 

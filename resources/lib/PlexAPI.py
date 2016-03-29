@@ -1573,7 +1573,7 @@ class API():
         except:
             lastPlayedDate = None
 
-        userrating = int(item.get('userRating', 0))
+        userrating = int(float(item.get('userRating', 0)))
 
         resume, runtime = self.getRuntime()
         return {

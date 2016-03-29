@@ -1449,6 +1449,8 @@ class LibrarySync(Thread):
         fullSyncInterval = self.fullSyncInterval
         lastProcessing = 0
 
+        xbmcplayer = xbmc.Player()
+
         dialog = xbmcgui.Dialog()
 
         queue = self.queue
@@ -1569,7 +1571,8 @@ class LibrarySync(Thread):
                     window('emby_dbScan', clear=True)
                 else:
                     now = utils.getUnixTimestamp()
-                    if now - self.lastSync > fullSyncInterval:
+                    if (now - self.lastSync > fullSyncInterval and
+                            not xbmcplayer.isPlaying()):
                         log('Doing scheduled full library scan', 1)
                         # Recalculate time offset Kodi - PMS
                         self.syncPMStime()
@@ -1589,7 +1592,6 @@ class LibrarySync(Thread):
                         # See if there is a PMS message we need to handle
                         try:
                             message = queue.get(block=False)
-                        # Empty queue
                         except Queue.Empty:
                             xbmc.sleep(100)
                             continue
