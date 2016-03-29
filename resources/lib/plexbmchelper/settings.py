@@ -1,23 +1,15 @@
-import uuid
 import xbmc
 import xbmcaddon
-from xml.dom.minidom import parse
 import utils
 
 settings = {}
-try:
-    path = xbmc.translatePath(
-        'special://userdata/guisettings.xml').decode('utf-8')
-    guidoc = parse(path)
-except:
-    print "PlexKodiConnect - Unable to read XBMC's guisettings.xml"
+
+guisettingsXML = utils.guisettingsXML()
+
 
 def getGUI(name):
-    global guidoc
-    if guidoc is None:
-        return False
     try:
-        return guidoc.getElementsByTagName(name)[0].firstChild.nodeValue
+        return list(guisettingsXML.iter(name))[0].text
     except:
         return ""
 

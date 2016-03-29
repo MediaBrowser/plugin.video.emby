@@ -650,6 +650,23 @@ def musiclibXML():
     etree.ElementTree(root).write(xmlpath)
 
 
+def guisettingsXML():
+    """
+    Returns special://userdata/guisettings.xml as an etree xml root element
+    """
+    path = xbmc.translatePath("special://profile/").decode('utf-8')
+    xmlpath = "%sguisettings.xml" % path
+
+    try:
+        xmlparse = etree.parse(xmlpath)
+    except:
+        # Document is blank or missing
+        root = etree.Element('settings')
+    else:
+        root = xmlparse.getroot()
+    return root
+
+
 def advancedSettingsXML():
     """
     Deactivates Kodi popup for scanning of music library
