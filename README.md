@@ -76,7 +76,6 @@ Solutions are unlikely due to the nature of these issues
 - Pictures
 - Music Videos
 - Automatic updates
-- Redesigned background sync process that puts less strain on the PMS
 - Simultaneously connecting to several PMS
 - TV Shows Theme Music (ultra-low prio)
 
