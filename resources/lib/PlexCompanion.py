@@ -103,4 +103,4 @@ class PlexCompanion(threading.Thread):
             pass
         finally:
             httpd.socket.close()
-        self.logMsg("----===## STOP Plex Companion ##===----", 0)
+        self.logMsg("----===## Plex Companion stopped ##===----", 0)

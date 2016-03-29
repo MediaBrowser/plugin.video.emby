@@ -111,12 +111,12 @@ class Service():
         # Server auto-detect
         initialsetup.InitialSetup().setup()
 
-        # Queue and lock for background sync
-        queue = Queue.LifoQueue(maxsize=100)
+        # Queue for background sync
+        queue = Queue.Queue(maxsize=200)
 
         # Initialize important threads
         user = userclient.UserClient()
-        ws = wsc.WebSocket_Client(queue)
+        ws = wsc.WebSocket(queue)
         library = librarysync.LibrarySync(queue)
         kplayer = player.Player()
         xplayer = xbmc.Player()
@@ -197,7 +197,6 @@ class Service():
                             ws.start()
                         # Start the syncing thread
                         if not self.library_running:
-                            log('Starting libary sync thread', 1)
                             self.library_running = True
                             library.start()
                         # Start the Plex Companion thread

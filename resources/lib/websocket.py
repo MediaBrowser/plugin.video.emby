@@ -46,8 +46,6 @@ import logging
 import traceback
 import sys
 
-import xbmc
-
 """
 websocket python client.
 =========================
@@ -390,9 +388,6 @@ class WebSocket(object):
         self._frame_mask = None
         self._cont_data = None
 
-        # Do not allow simultaneous send - leads to SSL issues!
-        self.lock = threading.Lock()
-
     def fileno(self):
         return self.sock.fileno()
 
@@ -568,10 +563,9 @@ class WebSocket(object):
         length = len(data)
         if traceEnabled:
             logger.debug("send: " + repr(data))
-        with self.lock:
-            while data:
-                l = self._send(data)
-                data = data[l:]
+        while data:
+            l = self._send(data)
+            data = data[l:]
         return length
 
     def send_binary(self, payload):
@@ -734,12 +728,9 @@ class WebSocket(object):
         except socket.timeout as e:
             raise WebSocketTimeoutException(e.args[0])
         except Exception as e:
-            try:
-                if "timed out" in e.args[0]:
-                    raise WebSocketTimeoutException(e.args[0])
-                else:
-                    raise e
-            except:
+            if "timed out" in e.args[0]:
+                raise WebSocketTimeoutException(e.args[0])
+            else:
                 raise e
 
     def _recv(self, bufsize):
@@ -888,7 +879,6 @@ class WebSocketApp(object):
                     #print str(e.args[0])
                     if "timed out" not in e.args[0]:
                         raise e
-                xbmc.sleep(100)
 
         except Exception, e:
             self._callback(self.on_error, e)
