@@ -1,3 +1,9 @@
+version 1.0.17
+- Fix transcoding
+- Get a machineIdentifier if it is missing
+- New Setting: Choose Plex Server from a list
+- Generate a new unique Plex device ID in settings
+
 version 1.0.16
 - Kodi profiles up and running; try assigning different Plex users per profile!
 - Change "Switch User" to "Log Out Plex User: <username>"
