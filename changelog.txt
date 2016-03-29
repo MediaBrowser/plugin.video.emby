@@ -1,3 +1,11 @@
+version 1.1.0
+(you will need to rescan your library)
+- No constant polling of your PMS anymore! (use websockets)
+- Fix 'NameError: global name 'guidoc' is not defined'
+- Fix time sync for Music items
+- Music: set default rating to 0, not NULL
+- Music: scrape Studio/Label 
+
 version 1.0.17
 - Fix transcoding
 - Get a machineIdentifier if it is missing
