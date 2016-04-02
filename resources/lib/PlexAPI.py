@@ -1553,12 +1553,8 @@ class API():
         }
         """
         item = self.item.attrib
-        # Default
+        # Default - attributes not found with Plex
         favorite = False
-        played = False
-        lastPlayedDate = None
-        resume = 0
-        rating = 0
 
         try:
             playcount = int(item['viewCount'])
@@ -1567,13 +1563,26 @@ class API():
 
         if playcount:
             played = True
+        else:
+            played = False
 
         try:
             lastPlayedDate = utils.DateToKodi(int(item['lastViewedAt']))
         except:
             lastPlayedDate = None
 
-        userrating = int(float(item.get('userRating', 0)))
+        try:
+            userrating = float(item['userRating'])
+        except:
+            userrating = 0.0
+
+        try:
+            rating = float(item['audienceRating'])
+        except:
+            try:
+                rating = float(item['rating'])
+            except:
+                rating = 0.0
 
         resume, runtime = self.getRuntime()
         return {
@@ -1734,11 +1743,12 @@ class API():
 
     def getAudienceRating(self):
         """
-        Returns the audience rating, 'rating' itself or None
+        Returns the audience rating, 'rating' itself or 0.0
         """
         res = self.item.attrib.get('audienceRating')
         if res is None:
-            res = self.item.attrib.get('rating')
+            res = self.item.attrib.get('rating', 0.0)
+        res = float(res)
         return res
 
     def getYear(self):

@@ -388,7 +388,7 @@ class Movies(Items):
         votecount = None
         collections = API.getCollections()
 
-        rating = API.getAudienceRating()
+        rating = userdata['Rating']
         year = API.getYear()
         imdb = API.getProvider('imdb')
         mpaa = API.getMpaa()
@@ -1254,7 +1254,7 @@ class TVShows(Items):
         producer = API.joinList(peoples['Producer'])
         title, sorttitle = API.getTitle()
         plot = API.getPlot()
-        rating = API.getAudienceRating()
+        rating = userdata['Rating']
         resume, runtime = API.getRuntime()
         premieredate = API.getPremiereDate()
 
@@ -1859,8 +1859,6 @@ class Music(Items):
         # Process the album info
         if kodiversion == 17:
             # Kodi Krypton
-            if not rating:
-                rating = 0.0
             query = ' '.join((
 
                 "UPDATE album",
@@ -2045,8 +2043,6 @@ class Music(Items):
         year = API.getYear()
         resume, duration = API.getRuntime()
         rating = userdata['UserRating']
-        if not rating and kodiversion == 17:
-            rating = 0.0
 
         #if enabled, try to get the rating from file and/or emby
         # if not self.directstream:
