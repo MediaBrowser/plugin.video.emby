@@ -32,9 +32,11 @@ def DateToKodi(stamp):
         propper, human-readable time stamp used by Kodi
 
         Output: Y-m-d h:m:s = 2009-04-05 23:16:04
+
+        None if an error was encountered
         """
-        stamp = float(stamp) + float(window('kodiplextimeoffset'))
         try:
+            stamp = float(stamp) + float(window('kodiplextimeoffset'))
             date_time = time.localtime(stamp)
             localdate = time.strftime('%Y-%m-%d %H:%M:%S', date_time)
         except:
