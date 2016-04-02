@@ -333,7 +333,7 @@ class plexgdm:
             if discovery_count > self.discovery_interval:
                 self.discover()
                 discovery_count=0
-            xbmc.sleep(1000)
+            xbmc.sleep(500)
 
     def start_discovery(self, daemon = False):
         if not self._discovery_is_running:

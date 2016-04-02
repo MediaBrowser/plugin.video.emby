@@ -7,22 +7,25 @@ import xbmc
 
 import clientinfo
 import utils
-from plexbmchelper import listener, plexgdm, subscribers
-from plexbmchelper.settings import settings
+from plexbmchelper import listener, plexgdm, subscribers, functions, \
+    httppersist
 
 
 @utils.logging
+@utils.ThreadMethodsAdditionalSuspend('emby_serverStatus')
 @utils.ThreadMethods
 class PlexCompanion(threading.Thread):
     def __init__(self):
-        self.port = int(utils.settings('companionPort'))
         ci = clientinfo.ClientInfo()
         self.clientId = ci.getDeviceId()
         self.deviceName = ci.getDeviceName()
-        self.logMsg("----===## Starting PlexBMC Helper ##===----", 1)
+
+        self.port = int(utils.settings('companionPort'))
+        self.logMsg("----===## Starting PlexCompanion ##===----", 1)
 
         # Start GDM for server/client discovery
-        self.client = plexgdm.plexgdm(debug=settings['gdm_debug'])
+        self.client = plexgdm.plexgdm(
+            debug=utils.settings('companionGDMDebugging'))
         self.client.clientDetails(self.clientId,      # UUID
                                   self.deviceName,    # clientName
                                   self.port,
@@ -34,23 +37,38 @@ class PlexCompanion(threading.Thread):
         threading.Thread.__init__(self)
 
     def run(self):
+        # Cache for quicker while loops
+        log = self.logMsg
+        client = self.client
+        threadStopped = self.threadStopped
+        threadSuspended = self.threadSuspended
         start_count = 0
-        window = utils.window
+
+        # Start up instances
+        requestMgr = httppersist.RequestMgr()
+        jsonClass = functions.jsonClass(requestMgr)
+        subscriptionManager = subscribers.SubscriptionManager(
+            jsonClass, requestMgr)
+
+        # Start up httpd
         while True:
             try:
                 httpd = listener.ThreadedHTTPServer(
+                    client,
+                    subscriptionManager,
+                    jsonClass,
                     ('', self.port),
                     listener.MyHandler)
                 httpd.timeout = 0.95
                 break
             except:
-                self.logMsg("Unable to start PlexCompanion. Traceback:", -1)
-                self.logMsg(traceback.print_exc(), -1)
+                log("Unable to start PlexCompanion. Traceback:", -1)
+                log(traceback.print_exc(), -1)
 
             xbmc.sleep(3000)
 
             if start_count == 3:
-                self.logMsg("Error: Unable to start web helper.", -1)
+                log("Error: Unable to start web helper.", -1)
                 httpd = False
                 break
 
@@ -59,15 +77,15 @@ class PlexCompanion(threading.Thread):
         if not httpd:
             return
 
-        self.client.start_all()
+        client.start_all()
+
         message_count = 0
-        is_running = False
-        while not self.threadStopped():
+        while not threadStopped():
             # If we are not authorized, sleep
             # Otherwise, we trigger a download which leads to a
             # re-authorizations
-            while self.threadSuspended() or window('emby_serverStatus'):
-                if self.threadStopped():
+            while threadSuspended():
+                if threadStopped():
                     break
                 xbmc.sleep(1000)
             try:
@@ -76,31 +94,29 @@ class PlexCompanion(threading.Thread):
                 message_count += 1
 
                 if message_count > 100:
-                    if self.client.check_client_registration():
-                        self.logMsg("Client is still registered", 1)
+                    if client.check_client_registration():
+                        log("Client is still registered", 1)
                     else:
-                        self.logMsg("Client is no longer registered", 1)
-                        self.logMsg("Plex Companion still running on port %s"
-                                    % self.port, 1)
+                        log("Client is no longer registered", 1)
+                        log("Plex Companion still running on port %s"
+                            % self.port, 1)
                     message_count = 0
 
-                if not is_running:
-                    self.logMsg("Plex Companion has started", 0)
-                is_running = True
+                # Get and set servers
+                subscriptionManager.serverlist = client.getServerList()
 
-                subscribers.subMgr.notify()
-                settings['serverList'] = self.client.getServerList()
+                subscriptionManager.notify()
                 xbmc.sleep(50)
             except:
-                self.logMsg("Error in loop, continuing anyway", 1)
-                self.logMsg(traceback.format_exc(), 1)
+                log("Error in loop, continuing anyway", 1)
+                log(traceback.format_exc(), 1)
                 xbmc.sleep(50)
 
-        self.client.stop_all()
+        client.stop_all()
         try:
             httpd.socket.shutdown(socket.SHUT_RDWR)
         except:
             pass
         finally:
             httpd.socket.close()
-        self.logMsg("----===## Plex Companion stopped ##===----", 0)
+        log("----===## Plex Companion stopped ##===----", 0)
