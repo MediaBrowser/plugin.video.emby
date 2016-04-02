@@ -1859,6 +1859,8 @@ class Music(Items):
         # Process the album info
         if kodiversion == 17:
             # Kodi Krypton
+            if not rating:
+                rating = 0.0
             query = ' '.join((
 
                 "UPDATE album",
@@ -2043,6 +2045,8 @@ class Music(Items):
         year = API.getYear()
         resume, duration = API.getRuntime()
         rating = userdata['UserRating']
+        if not rating and kodiversion == 17:
+            rating = 0.0
 
         #if enabled, try to get the rating from file and/or emby
         # if not self.directstream:
