@@ -142,7 +142,7 @@ class plexgdm:
             else:
                 if "M-SEARCH * HTTP/1." in data:
                     self.logMsg("Detected client discovery request from %s. "
-                                " Replying" % addr, 2)
+                                " Replying" % str(addr), 2)
                     try:
                         update_sock.sendto("HTTP/1.0 200 OK\r\n%s"
                                            % self.client_data,

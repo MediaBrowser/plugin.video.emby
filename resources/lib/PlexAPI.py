@@ -37,7 +37,6 @@ import socket
 import StringIO
 import gzip
 from threading import Thread
-import Queue
 import traceback
 import requests
 import xml.etree.ElementTree as etree
@@ -71,7 +70,7 @@ class PlexAPI():
     def __init__(self):
         self.__language__ = xbmcaddon.Addon().getLocalizedString
         self.g_PMS = {}
-        self.doUtils = downloadutils.DownloadUtils()
+        self.doUtils = downloadutils.DownloadUtils().downloadUrl
 
     def GetPlexLoginFromSettings(self):
         """
@@ -227,8 +226,9 @@ class PlexAPI():
         Returns False if not yet done so, or the XML response file as etree
         """
         # Try to get a temporary token
-        url = 'https://plex.tv/pins/%s.xml' % identifier
-        xml = self.TalkToPlexServer(url, talkType="GET2")
+        xml = self.doUtils('https://plex.tv/pins/%s.xml' % identifier,
+                           authenticate=False,
+                           type="GET")
         try:
             temp_token = xml.find('auth_token').text
         except:
@@ -238,29 +238,31 @@ class PlexAPI():
         if not temp_token:
             return False
         # Use temp token to get the final plex credentials
-        url = 'https://plex.tv/users/account?X-Plex-Token=%s' % temp_token
-        xml = self.TalkToPlexServer(url, talkType="GET")
+        xml = self.doUtils('https://plex.tv/users/account?X-Plex-Token=%s'
+                           % temp_token,
+                           authenticate=False,
+                           type="GET")
         return xml
 
     def GetPlexPin(self):
         """
         For plex.tv sign-in: returns 4-digit code and identifier as 2 str
         """
-        url = 'https://plex.tv/pins.xml'
         code = None
         identifier = None
         # Download
-        xml = self.TalkToPlexServer(url, talkType="POST")
-        if xml is False:
-            return code, identifier
+        xml = self.doUtils('https://plex.tv/pins.xml',
+                           authenticate=False,
+                           type="POST")
         try:
-            code = xml.find('code').text
-            identifier = xml.find('id').text
-            self.logMsg('Successfully retrieved code and id from plex.tv', 1)
-            return code, identifier
+            xml.attrib
         except:
             self.logMsg("Error, no PIN from plex.tv provided", -1)
             return None, None
+        code = xml.find('code').text
+        identifier = xml.find('id').text
+        self.logMsg('Successfully retrieved code and id from plex.tv', 1)
+        return code, identifier
 
     def TalkToPlexServer(self, url, talkType="GET", verify=True, token=None):
         """
@@ -674,137 +676,95 @@ class PlexAPI():
 
         get Plex media Server List from plex.tv/pms/resources
         """
-        # dprint(__name__, 0, "***")
-        # dprint(__name__, 0, "poke plex.tv - request Plex Media Server list")
-        # dprint(__name__, 0, "***")
-        XML = self.getXMLFromPMS('https://plex.tv', '/api/resources?includeHttps=1', {}, authtoken)
-        if XML==False:
-            pass  # no data from MyPlex
-        else:
-            queue = Queue.Queue()
-            threads = []
-            
-            for Dir in XML.getiterator('Device'):
-                if Dir.get('product','') == "Plex Media Server" and Dir.get('provides','') == "server":
-                    uuid = Dir.get('clientIdentifier')
-                    name = Dir.get('name')
-                    token = Dir.get('accessToken', authtoken)
-                    owned = Dir.get('owned', '0')
-                    local = Dir.get('publicAddressMatches')
-                    
-                    if Dir.find('Connection') == None:
-                        continue  # no valid connection - skip
-                    
-                    uri = ""  # flag to set first connection, possibly overwrite later with more suitable
-                    for Con in Dir.getiterator('Connection'):
-                        if uri=="" or Con.get('local','') == local:
-                            protocol = Con.get('protocol')
-                            ip = Con.get('address')
-                            port = Con.get('port')
-                            uri = Con.get('uri')
-                        # todo: handle unforeseen - like we get multiple suitable connections. how to choose one?
-                    
-                    # check MyPlex data age - skip if >1 days
-                    infoAge = time.time() - int(Dir.get('lastSeenAt'))
-                    oneDayInSec = 60*60*24
-                    if infoAge > 1*oneDayInSec:
-                        self.logMsg("Server %s not updated for 1 day - "
-                                    "skipping." % name, 0)
-                        continue
-
-                    # poke PMS, own thread for each poke
-                    PMSInfo = { 'uuid': uuid, 'name': name, 'token': token, 'owned': owned, 'local': local, \
-                            'protocol': protocol, 'ip': ip, 'port': port, 'uri': uri }
-                    PMS = { 'baseURL': uri, 'path': '/', 'options': None, 'token': token, \
-                            'data': PMSInfo }
-                    t = Thread(target=self.getXMLFromPMSToQueue, args=(PMS, queue))
-                    t.start()
-                    threads.append(t)
-                
-                # wait for requests being answered
-                for t in threads:
-                    t.join()
-                
-                # declare new PMSs
-                while not queue.empty():
-                        (PMSInfo, PMS) = queue.get()
-                        
-                        if PMS==False:
-                            continue
-                        
-                        uuid = PMSInfo['uuid']
-                        name = PMSInfo['name']
-                        token = PMSInfo['token']
-                        owned = PMSInfo['owned']
-                        local = PMSInfo['local']
-                        protocol = PMSInfo['protocol']
-                        ip = PMSInfo['ip']
-                        port = PMSInfo['port']
-                        uri = PMSInfo['uri']
-                        
-                        self.declarePMS(ATV_udid, uuid, name, protocol, ip, port)  # dflt: token='', local, owned - updated later
-                        self.updatePMSProperty(ATV_udid, uuid, 'accesstoken', token)
-                        self.updatePMSProperty(ATV_udid, uuid, 'owned', owned)
-                        self.updatePMSProperty(ATV_udid, uuid, 'local', local)
-                        self.updatePMSProperty(ATV_udid, uuid, 'baseURL', uri)  # set in declarePMS, overwrite for https encryption
-
-    def getXMLFromPMS(self, baseURL, path, options={}, authtoken='', enableGzip=False):
-        """
-        Plex Media Server communication
-
-        parameters:
-            host
-            path
-            options - dict() of PlexConnect-options as received from aTV
-                None for no
-                std. X-Plex-Args
-            authtoken - authentication answer from MyPlex Sign In
-        result:
-            returned XML or 'False' in case of error
-        """
-        xargs = {}
-        if options is not None:
-            xargs = self.getXArgsDeviceInfo(options)
-        if not authtoken == '':
-            xargs['X-Plex-Token'] = authtoken
-
-        self.logMsg("URL for XML download: %s%s" % (baseURL, path), 1)
-
-        request = urllib2.Request(baseURL+path, None, xargs)
-        request.add_header('User-agent', 'PlexDB')
-        if enableGzip:
-            request.add_header('Accept-encoding', 'gzip')
-
+        xml = self.doUtils('https://plex.tv/api/resources?includeHttps=1',
+                           authenticate=False,
+                           headerOptions={'X-Plex-Token': authtoken})
         try:
-            response = urllib2.urlopen(request, timeout=20)
-        except (urllib2.URLError, httplib.HTTPException) as e:
-            self.logMsg("No Response from Plex Media Server", 0)
-            if hasattr(e, 'reason'):
-                self.logMsg("We failed to reach a server. Reason: %s" % e.reason, 0)
-            elif hasattr(e, 'code'):
-                self.logMsg("The server couldn't fulfill the request. Error code: %s" % e.code, 0)
-            self.logMsg("Traceback:\n%s" % traceback.format_exc(), 0)
-            return False
-        except IOError:
-            self.logMsg("Error loading response XML from Plex Media Server:\n%s" % traceback.format_exc(), 0)
-            return False
+            xml.attrib
+        except:
+            self.logMsg('Could not get list of PMS from plex.tv', -1)
+            return
 
-        if response.info().get('Content-Encoding') == 'gzip':
-            buf = StringIO.StringIO(response.read())
-            file = gzip.GzipFile(fileobj=buf)
-            XML = etree.parse(file)
+        import Queue
+        queue = Queue.Queue()
+        threads = []
+
+        for Dir in xml.iter(tag='Device'):
+            if "server" in Dir.get('provides'):
+                if Dir.find('Connection') is None:
+                    # no valid connection - skip
+                    continue
+
+                # check MyPlex data age - skip if >2 days
+                PMS = {}
+                PMS['name'] = Dir.get('name')
+                infoAge = time.time() - int(Dir.get('lastSeenAt'))
+                oneDayInSec = 2*60*60*24
+                if infoAge > 1*oneDayInSec:
+                    self.logMsg("Server %s not seen for 1 day - "
+                                "skipping." % PMS['name'], 0)
+                    continue
+
+                PMS['uuid'] = Dir.get('clientIdentifier')
+                PMS['token'] = Dir.get('accessToken', authtoken)
+                PMS['owned'] = Dir.get('owned', '0')
+                PMS['local'] = Dir.get('publicAddressMatches')
+                PMS['ownername'] = Dir.get('sourceTitle', '')
+                PMS['path'] = '/'
+                PMS['options'] = None
+
+                # flag to set first connection, possibly overwrite later with
+                # more suitable
+                PMS['baseURL'] = ""
+                for Con in Dir.iter(tag='Connection'):
+                    if (PMS['baseURL'] == "" or
+                            Con.get('local') == PMS['local']):
+                        PMS['protocol'] = Con.get('protocol')
+                        PMS['ip'] = Con.get('address')
+                        PMS['port'] = Con.get('port')
+                        PMS['baseURL'] = Con.get('baseURL')
+                    # todo: handle unforeseen - like we get multiple suitable
+                    # connections. how to choose one?
+
+                # poke PMS, own thread for each poke
+                t = Thread(target=self.pokePMS,
+                           args=(PMS['baseURL'], PMS['token'], PMS, queue))
+                t.start()
+                threads.append(t)
+
+            # wait for requests being answered
+            for t in threads:
+                t.join()
+
+            # declare new PMSs
+            while not queue.empty():
+                    PMS = queue.get()
+                    self.declarePMS(ATV_udid, PMS['uuid'], PMS['name'],
+                                    PMS['protocol'], PMS['ip'], PMS['port'])
+                    # dflt: token='', local, owned - updated later
+                    self.updatePMSProperty(
+                        ATV_udid, PMS['uuid'], 'accesstoken', PMS['token'])
+                    self.updatePMSProperty(
+                        ATV_udid, PMS['uuid'], 'owned', PMS['owned'])
+                    self.updatePMSProperty(
+                        ATV_udid, PMS['uuid'], 'local', PMS['local'])
+                    # set in declarePMS, overwrite for https encryption
+                    self.updatePMSProperty(
+                        ATV_udid, PMS['uuid'], 'baseURL', PMS['baseURL'])
+                    self.updatePMSProperty(
+                        ATV_udid, PMS['uuid'], 'ownername', PMS['ownername'])
+                    queue.task_done()
+
+    def pokePMS(self, url, token, PMS, queue):
+        xml = self.doUtils(url,
+                           authenticate=False,
+                           headerOptions={'X-Plex-Token': token})
+        try:
+            xml.attrib
+        except:
+            return
         else:
-            # parse into etree
-            XML = etree.parse(response)
-        # Log received XML if debugging enabled.
-        self.logMsg("====== received PMS-XML ======", 1)
-        self.logMsg(XML, 1)
-        self.logMsg("====== PMS-XML finished ======", 1)
-        return XML
-
-    def getXMLFromPMSToQueue(self, PMS, queue):
-        XML = self.getXMLFromPMS(PMS['baseURL'],PMS['path'],PMS['options'],PMS['token'])
-        queue.put( (PMS['data'], XML) )
+            queue.put(PMS)
 
     def getURL(self, baseURL, path, key):
         if key.startswith('http://') or key.startswith('https://'):  # external server
@@ -1046,7 +1006,10 @@ class PlexAPI():
         if pin:
             url += '?pin=' + pin
         self.logMsg('Switching to user %s' % userId, 0)
-        answer = self.TalkToPlexServer(url, talkType="POST", token=token)
+        answer = self.doUtils(url,
+                              authenticate=False,
+                              type="POST",
+                              headerOptions={'X-Plex-Token': token})
         try:
             answer.attrib
         except:
@@ -1064,7 +1027,10 @@ class PlexAPI():
 
         # Get final token to the PMS we've chosen
         url = 'https://plex.tv/api/resources?includeHttps=1'
-        xml = self.TalkToPlexServer(url, talkType="GET", token=token)
+        xml = self.doUtils(url,
+                           authenticate=False,
+                           type="GET",
+                           headerOptions={'X-Plex-Token': token})
         try:
             xml.attrib
         except:
@@ -1096,12 +1062,12 @@ class PlexAPI():
                     % username, 0)
         return result
 
-    def MyPlexListHomeUsers(self, authtoken):
+    def MyPlexListHomeUsers(self, token):
         """
         Returns a list for myPlex home users for the current plex.tv account.
 
         Input:
-            authtoken for plex.tv
+            token for plex.tv
         Output:
             List of users, where one entry is of the form:
                 "id": userId,
@@ -1117,16 +1083,16 @@ class PlexAPI():
         If any value is missing, None is returned instead (or "" from plex.tv)
         If an error is encountered, False is returned
         """
-        XML = self.getXMLFromPMS(
-            'https://plex.tv', '/api/home/users/', {}, authtoken)
-        if not XML:
+        xml = self.doUtils('https://plex.tv/api/home/users/',
+                           authenticate=False,
+                           headerOptions={'X-Plex-Token': token})
+        try:
+            xml.attrib
+        except:
             self.logMsg('Download of Plex home users failed.', -1)
-            self.logMsg('plex.tv xml received was: %s' % XML, -1)
             return False
-        # analyse response
-        root = XML.getroot()
         users = []
-        for user in root:
+        for user in xml:
             users.append(user.attrib)
         return users
 

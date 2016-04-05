@@ -22,7 +22,7 @@ class InitialSetup():
     def __init__(self):
         self.clientInfo = clientinfo.ClientInfo()
         self.addonId = self.clientInfo.getAddonId()
-        self.doUtils = downloadutils.DownloadUtils()
+        self.doUtils = downloadutils.DownloadUtils().downloadUrl
         self.userClient = userclient.UserClient()
         self.plx = PlexAPI.PlexAPI()
 
@@ -76,11 +76,14 @@ class InitialSetup():
             else:
                 self.logMsg('plex.tv connection with token successful', 0)
                 # Refresh the info from Plex.tv
-                url = 'https://plex.tv/'
-                path = 'users/account'
-                xml = self.plx.getXMLFromPMS(url, path, authtoken=plexToken)
-                if xml:
-                    xml = xml.getroot()
+                xml = self.doUtils('https://plex.tv/users/account',
+                                   authenticate=False,
+                                   headerOptions={'X-Plex-Token': plexToken})
+                try:
+                    xml.attrib
+                except:
+                    self.logMsg('Failed to update Plex info from plex.tv', -1)
+                else:
                     plexLogin = xml.attrib.get('title')
                     utils.settings('plexLogin', value=plexLogin)
                     home = 'true' if xml.attrib.get('home') == '1' else 'false'
@@ -89,8 +92,6 @@ class InitialSetup():
                     utils.settings(
                         'plexHomeSize', value=xml.attrib.get('homeSize', '1'))
                     self.logMsg('Updated Plex info from plex.tv', 0)
-                else:
-                    self.logMsg('Failed to update Plex info from plex.tv', -1)
 
         # If a Plex server IP has already been set, return.
         if server and forcePlexTV is False and chooseServer is False:

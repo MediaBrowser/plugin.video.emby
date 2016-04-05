@@ -2,12 +2,9 @@
 
 ###############################################################################
 
-# import json
 import requests
 import xml.etree.ElementTree as etree
-# import logging
 
-# import xbmc
 import xbmcgui
 
 import utils
@@ -36,8 +33,6 @@ class DownloadUtils():
     def __init__(self):
         self.__dict__ = self._shared_state
 
-        self.clientInfo = clientinfo.ClientInfo()
-
     def setUsername(self, username):
         # Reserved for userclient only
         self.username = username
@@ -64,7 +59,6 @@ class DownloadUtils():
         self.sslclient = sslclient
         self.logMsg("Verify SSL host certificate: %s" % ssl, 2)
         self.logMsg("SSL client side certificate: %s" % sslclient, 2)
-
 
     def postCapabilities(self, deviceId):
 
@@ -136,17 +130,12 @@ class DownloadUtils():
             #                 )
             #                 self.downloadUrl(url, postBody={}, type="POST")
 
-
     def startSession(self):
+        # User should be authenticated when this method is called
+        client = clientinfo.ClientInfo()
 
-        log = self.logMsg
-
-        self.deviceId = self.clientInfo.getDeviceId()
-
-        # User is identified from this point
-        # Attach authenticated header to the session
+        self.deviceId = client.getDeviceId()
         verify = False
-        header = self.getHeader()
 
         # If user enabled host certificate verification
         try:
@@ -154,17 +143,17 @@ class DownloadUtils():
             if self.sslclient is not None:
                 verify = self.sslclient
         except:
-            log("Could not load SSL settings.", 1)
-        
+            self.logMsg("Could not load SSL settings.", -1)
         # Start session
         self.s = requests.Session()
-        self.s.headers = header
+        # Attach authenticated header to the session
+        self.s.headers = client.getXArgsDeviceInfo()
         self.s.verify = verify
         # Retry connections to the server
         self.s.mount("http://", requests.adapters.HTTPAdapter(max_retries=1))
         self.s.mount("https://", requests.adapters.HTTPAdapter(max_retries=1))
 
-        log("Requests session started on: %s" % self.server, 1)
+        self.logMsg("Requests session started on: %s" % self.server, 1)
 
     def stopSession(self):
         try:
@@ -172,15 +161,17 @@ class DownloadUtils():
         except:
             self.logMsg("Requests session could not be terminated.", 1)
 
-    def getHeader(self, authenticate=True, options={}):
-        if authenticate:
-            header = self.clientInfo.getXArgsDeviceInfo(options=options)
-        else:
-            header = self.clientInfo.getXArgsDeviceInfo(options=options)
+    def getHeader(self, options=None):
+        try:
+            header = self.s.headers.copy()
+        except:
+            header = clientinfo.ClientInfo().getXArgsDeviceInfo()
+        if options is not None:
+            header.update(options)
         return header
 
     def downloadUrl(self, url, postBody=None, type="GET", parameters=None,
-                    authenticate=True, headerOptions={}):
+                    authenticate=True, headerOptions=None):
         timeout = self.timeout
         default_link = ""
 
@@ -271,8 +262,7 @@ class DownloadUtils():
             # If user is not authenticated
             elif not authenticate:
 
-                header = self.getHeader(authenticate=False,
-                                        options=headerOptions)
+                header = self.getHeader(options=headerOptions)
 
                 # If user enables ssl verification
                 try:
@@ -285,7 +275,6 @@ class DownloadUtils():
                     else:
                         verifyssl = False
                 self.logMsg("Set SSL verification to: %s" % verifyssl, 2)
-                
                 # Prepare request
                 if type == "GET":
                     r = requests.get(url,
