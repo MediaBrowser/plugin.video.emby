@@ -67,21 +67,10 @@ class PlexAPI():
     # CONSTANTS
     # Timeout for POST/GET commands, I guess in seconds
     timeout = 10
-    # VARIABLES
 
     def __init__(self):
         self.__language__ = xbmcaddon.Addon().getLocalizedString
         self.g_PMS = {}
-        client = clientinfo.ClientInfo()
-        self.addonId = client.getAddonId()
-        self.clientId = client.getDeviceId()
-        self.deviceName = client.getDeviceName()
-        self.plexversion = client.getVersion()
-        self.platform = client.getPlatform()
-        self.userId = utils.window('currUserId')
-        self.token = utils.window('pms_token')
-        self.server = utils.window('pms_server')
-
         self.doUtils = downloadutils.DownloadUtils()
 
     def GetPlexLoginFromSettings(self):
@@ -145,7 +134,8 @@ class PlexAPI():
                 retrievedPlexLogin, authtoken = self.MyPlexSignIn(
                     plexLogin,
                     plexPassword,
-                    {'X-Plex-Client-Identifier': self.clientId})
+                    {'X-Plex-Client-Identifier':
+                        clientinfo.ClientInfo().getDeviceId()})
                 self.logMsg("plex.tv username and token: %s, %s"
                             % (plexLogin, authtoken), 1)
                 if plexLogin == '':
@@ -345,7 +335,7 @@ class PlexAPI():
         """
         # Add '/clients' to URL because then an authentication is necessary
         # If a plex.tv URL was passed, this does not work.
-        header = self.getXArgsDeviceInfo()
+        header = clientinfo.ClientInfo().getXArgsDeviceInfo()
         if token:
             header['X-Plex-Token'] = token
         sslverify = utils.settings('sslverify')
@@ -816,148 +806,6 @@ class PlexAPI():
         XML = self.getXMLFromPMS(PMS['baseURL'],PMS['path'],PMS['options'],PMS['token'])
         queue.put( (PMS['data'], XML) )
 
-    def getXArgsDeviceInfo(self, options={}):
-        """
-        Returns a dictionary that can be used as headers for GET and POST
-        requests. An authentication option is NOT yet added.
-
-        Inputs:
-            options:        dictionary of options that will override the
-                            standard header options otherwise set.
-        Output:
-            header dictionary
-        """
-        # Get addon infos
-        xargs = {
-            'Accept': '*/*',
-            'Connection': 'keep-alive',
-            "Content-Type": "application/x-www-form-urlencoded",
-            # "Access-Control-Allow-Origin": "*",
-            'X-Plex-Language': 'en',
-            'X-Plex-Device': self.addonName,
-            'X-Plex-Client-Platform': self.platform,
-            'X-Plex-Device-Name': self.deviceName,
-            'X-Plex-Platform': self.addonName,
-            'X-Plex-Platform-Version': 'unknown',
-            'X-Plex-Model': 'unknown',
-            'X-Plex-Product': self.addonName,
-            'X-Plex-Version': self.plexversion,
-            'X-Plex-Client-Identifier': self.clientId,
-            'X-Plex-Provides': 'player',
-        }
-
-        if self.token:
-            xargs['X-Plex-Token'] = self.token
-        if options:
-            xargs.update(options)
-        return xargs
-
-    def getXMLFromMultiplePMS(self, ATV_udid, path, type, options={}):
-        """
-        provide combined XML representation of local servers' XMLs, eg. /library/section
-
-        parameters:
-            ATV_udid
-            path
-            type - owned <> shared (previously: local, myplex)
-            options
-        result:
-            XML
-        """
-        queue = Queue.Queue()
-        threads = []
-        
-        root = etree.Element("MediaConverter")
-        root.set('friendlyName', type+' Servers')
-        
-        for uuid in g_PMS.get(ATV_udid, {}):
-            if (type=='all' and getPMSProperty(ATV_udid, uuid, 'name')!='plex.tv') or \
-               (type=='owned' and getPMSProperty(ATV_udid, uuid, 'owned')=='1') or \
-               (type=='shared' and getPMSProperty(ATV_udid, uuid, 'owned')=='0') or \
-               (type=='local' and getPMSProperty(ATV_udid, uuid, 'local')=='1') or \
-               (type=='remote' and getPMSProperty(ATV_udid, uuid, 'local')=='0'):
-                Server = etree.SubElement(root, 'Server')  # create "Server" node
-                Server.set('name',    getPMSProperty(ATV_udid, uuid, 'name'))
-                Server.set('address', getPMSProperty(ATV_udid, uuid, 'ip'))
-                Server.set('port',    getPMSProperty(ATV_udid, uuid, 'port'))
-                Server.set('baseURL', getPMSProperty(ATV_udid, uuid, 'baseURL'))
-                Server.set('local',   getPMSProperty(ATV_udid, uuid, 'local'))
-                Server.set('owned',   getPMSProperty(ATV_udid, uuid, 'owned'))
-                
-                baseURL = getPMSProperty(ATV_udid, uuid, 'baseURL')
-                token = getPMSProperty(ATV_udid, uuid, 'accesstoken')
-                PMS_mark = 'PMS(' + getPMSProperty(ATV_udid, uuid, 'address') + ')'
-                
-                Server.set('searchKey', PMS_mark + getURL('', '', '/Search/Entry.xml'))
-                
-                # request XMLs, one thread for each
-                PMS = { 'baseURL':baseURL, 'path':path, 'options':options, 'token':token, \
-                        'data': {'uuid': uuid, 'Server': Server} }
-                t = Thread(target=getXMLFromPMSToQueue, args=(PMS, queue))
-                t.start()
-                threads.append(t)
-        
-        # wait for requests being answered
-        for t in threads:
-            t.join()
-        
-        # add new data to root XML, individual Server
-        while not queue.empty():
-                (data, XML) = queue.get()
-                uuid = data['uuid']
-                Server = data['Server']
-                
-                baseURL = getPMSProperty(ATV_udid, uuid, 'baseURL')
-                token = getPMSProperty(ATV_udid, uuid, 'accesstoken')
-                PMS_mark = 'PMS(' + getPMSProperty(ATV_udid, uuid, 'address') + ')'
-                
-                if XML==False:
-                    Server.set('size',    '0')
-                else:
-                    Server.set('size',    XML.getroot().get('size', '0'))
-                    
-                    for Dir in XML.getiterator('Directory'):  # copy "Directory" content, add PMS to links
-                        key = Dir.get('key')  # absolute path
-                        Dir.set('key',    PMS_mark + getURL('', path, key))
-                        Dir.set('refreshKey', getURL(baseURL, path, key) + '/refresh')
-                        if 'thumb' in Dir.attrib:
-                            Dir.set('thumb',  PMS_mark + getURL('', path, Dir.get('thumb')))
-                        if 'art' in Dir.attrib:
-                            Dir.set('art',    PMS_mark + getURL('', path, Dir.get('art')))
-                        Server.append(Dir)
-                    
-                    for Playlist in XML.getiterator('Playlist'):  # copy "Playlist" content, add PMS to links
-                        key = Playlist.get('key')  # absolute path
-                        Playlist.set('key',    PMS_mark + getURL('', path, key))
-                        if 'composite' in Playlist.attrib:
-                            Playlist.set('composite', PMS_mark + getURL('', path, Playlist.get('composite')))
-                        Server.append(Playlist)
-                    
-                    for Video in XML.getiterator('Video'):  # copy "Video" content, add PMS to links
-                        key = Video.get('key')  # absolute path
-                        Video.set('key',    PMS_mark + getURL('', path, key))
-                        if 'thumb' in Video.attrib:
-                            Video.set('thumb', PMS_mark + getURL('', path, Video.get('thumb')))
-                        if 'parentKey' in Video.attrib:
-                            Video.set('parentKey', PMS_mark + getURL('', path, Video.get('parentKey')))
-                        if 'parentThumb' in Video.attrib:
-                            Video.set('parentThumb', PMS_mark + getURL('', path, Video.get('parentThumb')))
-                        if 'grandparentKey' in Video.attrib:
-                            Video.set('grandparentKey', PMS_mark + getURL('', path, Video.get('grandparentKey')))
-                        if 'grandparentThumb' in Video.attrib:
-                            Video.set('grandparentThumb', PMS_mark + getURL('', path, Video.get('grandparentThumb')))
-                        Server.append(Video)
-        
-        root.set('size', str(len(root.findall('Server'))))
-        
-        XML = etree.ElementTree(root)
-        
-        dprint(__name__, 1, "====== Local Server/Sections XML ======")
-        dprint(__name__, 1, XML.getroot())
-        dprint(__name__, 1, "====== Local Server/Sections XML finished ======")
-        
-        return XML  # XML representation - created "just in time". Do we need to cache it?
-
     def getURL(self, baseURL, path, key):
         if key.startswith('http://') or key.startswith('https://'):  # external server
             URL = key
@@ -988,7 +836,7 @@ class PlexAPI():
         MyPlexURL = 'https://' + MyPlexHost + MyPlexSignInPath
 
         # create POST request
-        xargs = self.getXArgsDeviceInfo(options)
+        xargs = clientinfo.ClientInfo().getXArgsDeviceInfo(options)
         self.logMsg("Header is: %s" % xargs, 1)
         request = urllib2.Request(MyPlexURL, None, xargs)
         request.get_method = lambda: 'POST'
@@ -1120,7 +968,7 @@ class PlexAPI():
                     self.logMsg("No user selected.", 0)
                     utils.settings('username', value='')
                     xbmc.executebuiltin('Addon.OpenSettings(%s)'
-                                        % self.addonId)
+                                        % clientinfo.ClientInfo().getAddonId())
                     return False
             # Only 1 user received, choose that one
             else:
@@ -1164,7 +1012,8 @@ class PlexAPI():
 
         if not username:
             self.logMsg('Failed signing in a user to plex.tv', -1)
-            xbmc.executebuiltin('Addon.OpenSettings(%s)' % self.addonId)
+            xbmc.executebuiltin('Addon.OpenSettings(%s)'
+                                % clientinfo.ClientInfo().getAddonId())
             return False
 
         return {
@@ -1385,7 +1234,7 @@ class PlexAPI():
         args['protocol'] = 'http'
         args['maxAudioBitrate'] = maxAudioBitrate
         
-        xargs = getXArgsDeviceInfo(options)
+        xargs = clientinfo.ClientInfo().getXArgsDeviceInfo(options)
         if not AuthToken=='':
             xargs['X-Plex-Token'] = AuthToken
         
@@ -1465,13 +1314,8 @@ class API():
         self.item = item
         # which media part in the XML response shall we look at?
         self.part = 0
-        self.clientinfo = clientinfo.ClientInfo()
-        self.clientId = self.clientinfo.getDeviceId()
         self.__language__ = xbmcaddon.Addon().getLocalizedString
-
-        self.userId = utils.window('currUserId')
         self.server = utils.window('pms_server')
-        self.token = utils.window('pms_token')
 
     def setPartNumber(self, number=None):
         """
@@ -1888,7 +1732,7 @@ class API():
 
         arguments overrule everything
         """
-        xargs = PlexAPI().getXArgsDeviceInfo()
+        xargs = clientinfo.ClientInfo().getXArgsDeviceInfo()
         xargs.update(arguments)
         if '?' not in url:
             url = "%s?%s" % (url, urlencode(xargs))
@@ -1902,10 +1746,12 @@ class API():
 
         url may or may not already contain a '?'
         """
+        if utils.window('pms_token') == '':
+            return url
         if '?' not in url:
-            url = "%s?X-Plex-Token=%s" % (url, self.token)
+            url = "%s?X-Plex-Token=%s" % (url, utils.window('pms_token'))
         else:
-            url = "%s&X-Plex-Token=%s" % (url, self.token)
+            url = "%s&X-Plex-Token=%s" % (url, utils.window('pms_token'))
         return url
 
     def GetPlayQueueItemID(self):
@@ -2176,7 +2022,7 @@ class API():
         TODO: mediaIndex
         """
 
-        xargs = PlexAPI().getXArgsDeviceInfo()
+        xargs = clientinfo.ClientInfo().getXArgsDeviceInfo()
         # For DirectPlay, path/key of PART is needed
         if action == "DirectPlay":
             path = self.item[0][self.part].attrib['key']

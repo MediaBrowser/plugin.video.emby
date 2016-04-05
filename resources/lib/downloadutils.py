@@ -13,8 +13,6 @@ import xbmcgui
 import utils
 import clientinfo
 
-import PlexAPI
-
 ###############################################################################
 
 # Disable requests logging
@@ -30,15 +28,15 @@ class DownloadUtils():
 
     # Borg - multiple instances, shared state
     _shared_state = {}
-    clientInfo = clientinfo.ClientInfo()
 
     # Requests session
     s = None
     timeout = 30
 
     def __init__(self):
-
         self.__dict__ = self._shared_state
+
+        self.clientInfo = clientinfo.ClientInfo()
 
     def setUsername(self, username):
         # Reserved for userclient only
@@ -175,17 +173,14 @@ class DownloadUtils():
             self.logMsg("Requests session could not be terminated.", 1)
 
     def getHeader(self, authenticate=True, options={}):
-        plx = PlexAPI.PlexAPI()
         if authenticate:
-            header = plx.getXArgsDeviceInfo(options=options)
+            header = self.clientInfo.getXArgsDeviceInfo(options=options)
         else:
-            header = plx.getXArgsDeviceInfo(options=options)
+            header = self.clientInfo.getXArgsDeviceInfo(options=options)
         return header
 
-    def downloadUrl(self, url, postBody=None, type="GET", parameters=None, authenticate=True, headerOptions={}):
-        
-        # self.logMsg("=== ENTER downloadUrl ===", 2)
-
+    def downloadUrl(self, url, postBody=None, type="GET", parameters=None,
+                    authenticate=True, headerOptions={}):
         timeout = self.timeout
         default_link = ""
 
@@ -276,7 +271,8 @@ class DownloadUtils():
             # If user is not authenticated
             elif not authenticate:
 
-                header = self.getHeader(authenticate=False, options=headerOptions)
+                header = self.getHeader(authenticate=False,
+                                        options=headerOptions)
 
                 # If user enables ssl verification
                 try:

@@ -7,40 +7,72 @@ from uuid import uuid4
 import xbmc
 import xbmcaddon
 
-import utils
+from utils import logging, window, settings
 
 ###############################################################################
 
 
-@utils.logging
+@logging
 class ClientInfo():
 
     def __init__(self):
-
         self.addon = xbmcaddon.Addon()
+
+    def getXArgsDeviceInfo(self, options=None):
+        """
+        Returns a dictionary that can be used as headers for GET and POST
+        requests. An authentication option is NOT yet added.
+
+        Inputs:
+            options:        dictionary of options that will override the
+                            standard header options otherwise set.
+        Output:
+            header dictionary
+        """
+        # Get addon infos
+        xargs = {
+            'Accept': '*/*',
+            'Connection': 'keep-alive',
+            "Content-Type": "application/x-www-form-urlencoded",
+            # "Access-Control-Allow-Origin": "*",
+            # 'X-Plex-Language': 'en',
+            'X-Plex-Device': self.getAddonName(),
+            'X-Plex-Client-Platform': self.getPlatform(),
+            'X-Plex-Device-Name': self.getDeviceName(),
+            'X-Plex-Platform': self.getPlatform(),
+            # 'X-Plex-Platform-Version': 'unknown',
+            # 'X-Plex-Model': 'unknown',
+            'X-Plex-Product': self.getAddonName(),
+            'X-Plex-Version': self.getVersion(),
+            'X-Plex-Client-Identifier': self.getDeviceId(),
+            'X-Plex-Provides': 'player',
+        }
+
+        if window('pms_token'):
+            xargs['X-Plex-Token'] = window('pms_token')
+        if options is not None:
+            xargs.update(options)
+        return xargs
 
     def getAddonName(self):
         # Used for logging
         return self.addon.getAddonInfo('name')
 
     def getAddonId(self):
-
         return "plugin.video.plexkodiconnect"
 
     def getVersion(self):
-
         return self.addon.getAddonInfo('version')
 
     def getDeviceName(self):
-
-        if utils.settings('deviceNameOpt') == "false":
+        if settings('deviceNameOpt') == "false":
             # Use Kodi's deviceName
-            deviceName = xbmc.getInfoLabel('System.FriendlyName').decode('utf-8')
+            deviceName = xbmc.getInfoLabel(
+                'System.FriendlyName').decode('utf-8')
         else:
-            deviceName = utils.settings('deviceName')
+            deviceName = settings('deviceName')
             deviceName = deviceName.replace("\"", "_")
             deviceName = deviceName.replace("/", "_")
-
         return deviceName
 
     def getPlatform(self):
@@ -69,25 +101,25 @@ class ClientInfo():
 
         If id does not exist, create one and save in Kodi settings file.
         """
-
         if reset is True:
-            utils.window('plex_client_Id', clear=True)
-            utils.settings('plex_client_Id', value="")
+            window('plex_client_Id', clear=True)
+            settings('plex_client_Id', value="")
 
-        clientId = utils.window('plex_client_Id')
+        clientId = window('plex_client_Id')
         if clientId:
             return clientId
 
-        clientId = utils.settings('plex_client_Id')
+        clientId = settings('plex_client_Id')
         # Because Kodi appears to cache file settings!!
         if clientId != "" and reset is False:
-            utils.window('plex_client_Id', value=clientId)
-            self.logMsg("Unique device Id plex_client_Id loaded: %s" % clientId, 1)
+            window('plex_client_Id', value=clientId)
+            self.logMsg("Unique device Id plex_client_Id loaded: %s"
+                        % clientId, 1)
             return clientId
 
         self.logMsg("Generating a new deviceid.", 0)
         clientId = str(uuid4())
-        utils.settings('plex_client_Id', value=clientId)
-        utils.window('plex_client_Id', value=clientId)
+        settings('plex_client_Id', value=clientId)
+        window('plex_client_Id', value=clientId)
         self.logMsg("Unique device Id plex_client_Id loaded: %s" % clientId, 1)
         return clientId
