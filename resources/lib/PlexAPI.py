@@ -332,6 +332,7 @@ class PlexAPI():
         """
         Checks connection to a Plex server, available at url. Can also be used
         to check for connection with plex.tv.
+        Will check up to 3x until reply with False
 
         Input:
             url         URL to Plex server (e.g. https://192.168.1.1:32400)
@@ -359,24 +360,33 @@ class PlexAPI():
             url = 'https://plex.tv/api/home/users'
         else:
             url = url + '/library/onDeck'
-        try:
-            answer = requests.get(url,
-                                  headers={},
-                                  params=header,
-                                  verify=sslverify,
-                                  timeout=timeout)
-        except requests.exceptions.ConnectionError as e:
-            self.logMsg("Server is offline or cannot be reached. Url: %s "
-                        "Header: %s  Error message: %s"
-                        % (url, header, e), -1)
-            return False
-        except requests.exceptions.ReadTimeout:
-            self.logMsg("Server timeout reached for Url %s with header %s"
-                        % (url, header), -1)
-            return False
-        result = answer.status_code
-        self.logMsg("Result was: %s" % result, 1)
-        return result
+        # Check up to 3 times before giving up - this sometimes happens when
+        # PKC was just started
+        count = 0
+        while count < 3:
+            try:
+                answer = requests.get(url,
+                                      headers={},
+                                      params=header,
+                                      verify=sslverify,
+                                      timeout=timeout)
+            except requests.exceptions.ConnectionError as e:
+                self.logMsg("Server is offline or cannot be reached. Url: %s "
+                            "Header: %s  Error message: %s"
+                            % (url, header, e), 0)
+                count += 1
+                continue
+            except requests.exceptions.ReadTimeout:
+                self.logMsg("Server timeout reached for Url %s with header %s"
+                            % (url, header), 0)
+                count += 1
+                continue
+            else:
+                result = answer.status_code
+                self.logMsg("Result was: %s" % result, 1)
+                return result
+        self.logMsg('Failed to connect to %s too many times.' % url, -1)
+        return False
 
     def GetgPMSKeylist(self):
         """
