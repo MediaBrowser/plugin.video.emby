@@ -375,11 +375,13 @@ class PlexAPI():
                             "Header: %s  Error message: %s"
                             % (url, header, e), 0)
                 count += 1
+                xbmc.sleep(1000)
                 continue
             except requests.exceptions.ReadTimeout:
                 self.logMsg("Server timeout reached for Url %s with header %s"
                             % (url, header), 0)
                 count += 1
+                xbmc.sleep(1000)
                 continue
             else:
                 result = answer.status_code
