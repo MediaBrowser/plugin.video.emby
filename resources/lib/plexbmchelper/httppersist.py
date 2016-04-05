@@ -78,9 +78,13 @@ class RequestMgr:
                 return False
             else:
                 return data.read() or True
-        except:
-            self.logMsg("Unable to connect to %s\nReason:" % host, -1)
-            self.logMsg(traceback.print_exc(), -1)
+        except socket_error as serr:
+            # Ignore remote close and connection refused (e.g. shutdown PKC)
+            if serr.errno in (errno.WSAECONNABORTED, errno.WSAECONNREFUSED):
+                pass
+            else:
+                self.logMsg("Unable to connect to %s\nReason:" % host, -1)
+                self.logMsg(traceback.print_exc(), -1)
             self.conns.pop(protocol+host+str(port), None)
             conn.close()
             return False

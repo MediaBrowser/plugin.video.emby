@@ -5,10 +5,9 @@ import socket
 
 import xbmc
 
-import clientinfo
 import utils
 from plexbmchelper import listener, plexgdm, subscribers, functions, \
-    httppersist
+    httppersist, settings
 
 
 @utils.logging
@@ -16,21 +15,12 @@ from plexbmchelper import listener, plexgdm, subscribers, functions, \
 @utils.ThreadMethods
 class PlexCompanion(threading.Thread):
     def __init__(self):
-        ci = clientinfo.ClientInfo()
-        self.clientId = ci.getDeviceId()
-        self.deviceName = ci.getDeviceName()
-
-        self.port = int(utils.settings('companionPort'))
         self.logMsg("----===## Starting PlexCompanion ##===----", 1)
+        self.settings = settings.getSettings()
 
         # Start GDM for server/client discovery
-        self.client = plexgdm.plexgdm(
-            debug=utils.settings('companionGDMDebugging'))
-        self.client.clientDetails(self.clientId,      # UUID
-                                  self.deviceName,    # clientName
-                                  self.port,
-                                  self.addonName,
-                                  '1.0')    # Version
+        self.client = plexgdm.plexgdm()
+        self.client.clientDetails(self.settings)
         self.logMsg("Registration string is: %s "
                     % self.client.getClientDetails(), 1)
 
@@ -46,7 +36,7 @@ class PlexCompanion(threading.Thread):
 
         # Start up instances
         requestMgr = httppersist.RequestMgr()
-        jsonClass = functions.jsonClass(requestMgr)
+        jsonClass = functions.jsonClass(requestMgr, self.settings)
         subscriptionManager = subscribers.SubscriptionManager(
             jsonClass, requestMgr)
 
@@ -57,7 +47,8 @@ class PlexCompanion(threading.Thread):
                     client,
                     subscriptionManager,
                     jsonClass,
-                    ('', self.port),
+                    self.settings,
+                    ('', self.settings['myport']),
                     listener.MyHandler)
                 httpd.timeout = 0.95
                 break
@@ -99,7 +90,7 @@ class PlexCompanion(threading.Thread):
                     else:
                         log("Client is no longer registered", 1)
                         log("Plex Companion still running on port %s"
-                            % self.port, 1)
+                            % self.settings['myport'], 1)
                     message_count = 0
 
                 # Get and set servers
@@ -108,7 +99,7 @@ class PlexCompanion(threading.Thread):
                 subscriptionManager.notify()
                 xbmc.sleep(50)
             except:
-                log("Error in loop, continuing anyway", 1)
+                log("Error in loop, continuing anyway", 0)
                 log(traceback.format_exc(), 1)
                 xbmc.sleep(50)
 

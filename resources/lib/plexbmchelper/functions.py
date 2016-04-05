@@ -2,8 +2,7 @@ import base64
 import json
 import string
 import xbmc
-import settings
-from utils import logMsg
+from utils import logging
 
 
 def xbmc_photo():
@@ -48,24 +47,6 @@ def plex_type(xbmc_type):
         return plex_audio()
 
 
-def getPlatform():
-    if xbmc.getCondVisibility('system.platform.osx'):
-        return "MacOSX"
-    elif xbmc.getCondVisibility('system.platform.atv2'):
-        return "AppleTV2"
-    elif xbmc.getCondVisibility('system.platform.ios'):
-        return "iOS"
-    elif xbmc.getCondVisibility('system.platform.windows'):
-        return "Windows"
-    elif xbmc.getCondVisibility('system.platform.raspberrypi'):
-        return "RaspberryPi"
-    elif xbmc.getCondVisibility('system.platform.linux'):
-        return "Linux"
-    elif xbmc.getCondVisibility('system.platform.android'):
-        return "Android"
-    return "Unknown"
-
-
 def getXMLHeader():
     return '<?xml version="1.0" encoding="utf-8" ?>'+"\r\n"
 
@@ -93,10 +74,11 @@ def textFromXml(element):
     return element.firstChild.data
 
 
+@logging
 class jsonClass():
 
-    def __init__(self, requestMgr):
-        self.settings = settings.getSettings()
+    def __init__(self, requestMgr, settings):
+        self.settings = settings
         self.requestMgr = requestMgr
 
     def jsonrpc(self, action, arguments={}):
@@ -122,9 +104,8 @@ class jsonClass():
                                  "jsonrpc" : "2.0",
                                  "method"  : action})
 
-        logMsg("PlexCompanion",
-               "Sending request to XBMC without network stack: %s"
-               % request, 2)
+        self.logMsg("Sending request to XBMC without network stack: %s"
+                    % request, 2)
         result = self.parseJSONRPC(xbmc.executeJSONRPC(request))
 
         if not result and self.settings['webserver_enabled']:
@@ -159,14 +140,13 @@ class jsonClass():
 
     def parseJSONRPC(self, jsonraw):
         if not jsonraw:
-            logMsg("PlexCompanion", "Empty response from XBMC", 1)
+            self.logMsg("Empty response from XBMC", 1)
             return {}
         else:
-            logMsg("PlexCompanion", "Response from XBMC: %s" % jsonraw, 2)
+            self.logMsg("Response from XBMC: %s" % jsonraw, 2)
             parsed=json.loads(jsonraw)
         if parsed.get('error', False):
-            logMsg("PlexCompanion", "XBMC returned an error: %s"
-                   % parsed.get('error'), -1)
+            self.logMsg("XBMC returned an error: %s" % parsed.get('error'), -1)
         return parsed.get('result', {})
 
     def getPlayers(self):

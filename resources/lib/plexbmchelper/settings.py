@@ -1,11 +1,11 @@
-import xbmcaddon
-import utils
+from utils import guisettingsXML, settings, logMsg
+import clientinfo
 
 
 def getGUI(name):
-    guisettingsXML = utils.guisettingsXML()
+    xml = guisettingsXML()
     try:
-        ans = list(guisettingsXML.iter(name))[0].text
+        ans = list(xml.iter(name))[0].text
         if ans is None:
             ans = ''
     except:
@@ -14,33 +14,45 @@ def getGUI(name):
 
 
 def getSettings():
-    settings = {}
-    addon = xbmcaddon.Addon()
-    plexbmc = xbmcaddon.Addon('plugin.video.plexkodiconnect')
+    client = clientinfo.ClientInfo()
+    options = {}
+    title = 'PlexCompanion Settings'
 
-    settings['debug'] = utils.settings('companionDebugging')
-    settings['gdm_debug'] = utils.settings('companionGDMDebugging')
+    options['gdm_debug'] = settings('companionGDMDebugging')
+    options['gdm_debug'] = True if options['gdm_debug'] == 'true' else False
 
-    # Transform 'true' into True because of the way Kodi's file settings work
-    kodiSettingsList = ['debug', 'gdm_debug']
-    for entry in kodiSettingsList:
-        if settings[entry] == 'true':
-            settings[entry] = True
-        else:
-            settings[entry] = False
+    options['client_name'] = settings('deviceName')
 
-    settings['client_name'] = plexbmc.getSetting('deviceName')
+    # XBMC web server options
+    options['webserver_enabled'] = (getGUI('webserver') == "true")
+    logMsg(title, 'Webserver is set to %s' % options['webserver_enabled'], 0)
+    webserverport = getGUI('webserverport')
+    try:
+        webserverport = int(webserverport)
+        logMsg(title, 'Using webserver port %s' % str(webserverport), 0)
+    except:
+        logMsg(title, 'No setting for webserver port found in guisettings.xml.'
+               'Using default fallback port 8080', 0)
+        webserverport = 8080
+    options['port'] = webserverport
 
-    # XBMC web server settings
-    settings['webserver_enabled'] = (getGUI('webserver') == "true")
-    settings['port'] = int(getGUI('webserverport'))
-    settings['user'] = getGUI('webserverusername')
-    settings['passwd'] = getGUI('webserverpassword')
+    options['user'] = getGUI('webserverusername')
+    options['passwd'] = getGUI('webserverpassword')
+    logMsg(title, 'Webserver username: %s, password: %s'
+           % (options['user'], options['passwd']), 1)
 
-    settings['uuid'] = plexbmc.getSetting('plex_client_Id')
-
-    settings['version'] = plexbmc.getAddonInfo('version')
-    settings['plexbmc_version'] = plexbmc.getAddonInfo('version')
-    settings['myplex_user'] = plexbmc.getSetting('username')
-    settings['myport'] = addon.getSetting('companionPort')
-    return settings
+    options['addonName'] = client.getAddonName()
+    options['uuid'] = settings('plex_client_Id')
+    options['platform'] = client.getPlatform()
+    options['version'] = client.getVersion()
+    options['plexbmc_version'] = options['version']
+    options['myplex_user'] = settings('username')
+    try:
+        options['myport'] = int(settings('companionPort'))
+        logMsg(title, 'Using Plex Companion Port %s'
+               % str(options['myport']), 0)
+    except:
+        logMsg(title, 'Error getting Plex Companion Port from file settings. '
+               'Using fallback port 39005', -1)
+        options['myport'] = 39005
+    return options

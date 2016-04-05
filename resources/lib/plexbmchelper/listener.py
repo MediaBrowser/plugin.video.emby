@@ -1,10 +1,11 @@
 import re
 import traceback
-import xbmc
 from SocketServer import ThreadingMixIn
 from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
 from urlparse import urlparse, parse_qs
-import settings
+
+from xbmc import sleep
+
 from functions import *
 from utils import logging
 
@@ -14,9 +15,9 @@ class MyHandler(BaseHTTPRequestHandler):
     protocol_version = 'HTTP/1.1'
 
     def __init__(self, *args, **kwargs):
-        self.serverlist = []
-        self.settings = settings.getSettings()
         BaseHTTPRequestHandler.__init__(self, *args, **kwargs)
+        self.serverlist = []
+        self.settings = self.server.settings
 
     def getServerByHost(self, host):
         if len(self.serverlist) == 1:
@@ -113,7 +114,7 @@ class MyHandler(BaseHTTPRequestHandler):
                 s.subMgr.addSubscriber(protocol, host, port, uuid, commandID)
             elif "/poll" in request_path:
                 if params.get('wait', False) == '1':
-                    xbmc.sleep(950)
+                    sleep(950)
                 commandID = params.get('commandID', 0)
                 s.response(re.sub(r"INSERTCOMMANDID", str(commandID), s.subMgr.msg(s.js.getPlayers())), {
                   'X-Plex-Client-Identifier': s.settings['uuid'],
@@ -221,7 +222,7 @@ class MyHandler(BaseHTTPRequestHandler):
 class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
     daemon_threads = True
 
-    def __init__(self, client, subscriptionManager, jsonClass,
+    def __init__(self, client, subscriptionManager, jsonClass, settings,
                  *args, **kwargs):
         """
         client: Class handle to plexgdm.plexgdm. We can thus ask for an up-to-
@@ -232,4 +233,5 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
         self.client = client
         self.subscriptionManager = subscriptionManager
         self.jsonClass = jsonClass
+        self.settings = settings
         HTTPServer.__init__(self, *args, **kwargs)

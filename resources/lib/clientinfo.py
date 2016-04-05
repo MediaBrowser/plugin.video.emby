@@ -44,19 +44,20 @@ class ClientInfo():
         return deviceName
 
     def getPlatform(self):
-
         if xbmc.getCondVisibility('system.platform.osx'):
-            return "OSX"
+            return "MacOSX"
         elif xbmc.getCondVisibility('system.platform.atv2'):
-            return "ATV2"
+            return "AppleTV2"
         elif xbmc.getCondVisibility('system.platform.ios'):
             return "iOS"
         elif xbmc.getCondVisibility('system.platform.windows'):
             return "Windows"
+        elif xbmc.getCondVisibility('system.platform.raspberrypi'):
+            return "RaspberryPi"
         elif xbmc.getCondVisibility('system.platform.linux'):
-            return "Linux/RPi"
-        elif xbmc.getCondVisibility('system.platform.android'): 
-            return "Linux/Android"
+            return "Linux"
+        elif xbmc.getCondVisibility('system.platform.android'):
+            return "Android"
         else:
             return "Unknown"
 
