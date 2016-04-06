@@ -410,47 +410,38 @@ def getPlexRepeat(kodiRepeat):
 
 def PMSHttpsEnabled(url):
     """
-    Returns True if the PMS wants to talk https, False otherwise. None if error
-    occured, e.g. the connection timed out
+    Returns True if the PMS can talk https, False otherwise.
+    None if error occured, e.g. the connection timed out
 
-    With with e.g. url=192.168.0.1:32400 (NO http/https)
+    Call with e.g. url='192.168.0.1:32400' (NO http/https)
 
     This is done by GET /identity (returns an error if https is enabled and we
     are trying to use http)
 
     Prefers HTTPS over HTTP
     """
-    # True if https, False if http
-    answer = True
+    doUtils = downloadutils.DownloadUtils().downloadUrl
+    res = doUtils('https://%s/identity' % url,
+                  authenticate=False,
+                  verifySSL=False)
     try:
-        # Don't use downloadutils here, otherwise we may get un-authorized!
-        res = requests.get('https://%s/identity' % url,
-                           headers={},
-                           verify=False,
-                           timeout=(3, 10))
-        # Don't verify SSL since we can connect for sure then!
-    except requests.exceptions.ConnectionError as e:
+        res.attrib
+    except:
         # Might have SSL deactivated. Try with http
+        res = doUtils('http://%s/identity' % url,
+                      authenticate=False,
+                      verifySSL=False)
         try:
-            res = requests.get('http://%s/identity' % url,
-                               headers={},
-                               timeout=(3, 10))
-        except requests.exceptions.ConnectionError as e:
-            logMsg(title, "Server is offline or cannot be reached. Url: %s"
-                   ", Error message: %s" % (url, e), -1)
-            return None
-        except requests.exceptions.ReadTimeout:
-            logMsg(title, "Server timeout reached for Url %s" % url, -1)
+            res.attrib
+        except:
+            logMsg(title, "Could not contact PMS %s" % url, -1)
             return None
         else:
-            answer = False
-    except requests.exceptions.ReadTimeout:
-        logMsg(title, "Server timeout reached for Url %s" % url, -1)
-        return None
-    if res.status_code == requests.codes.ok:
-        return answer
+            # Received a valid XML. Server wants to talk HTTP
+            return False
     else:
-        return None
+        # Received a valid XML. Server wants to talk HTTPS
+        return True
 
 
 def GetMachineIdentifier(url):

@@ -106,29 +106,12 @@ class UserClient(threading.Thread):
 
     def getSSLverify(self):
         # Verify host certificate
-        settings = utils.settings
-
-        s_sslverify = settings('sslverify')
-        if settings('altip') == "true":
-            s_sslverify = settings('secondsslverify')
-
-        if s_sslverify == "true":
-            return True
-        else:
-            return False
+        return None if utils.settings('sslverify') == 'true' else False
 
     def getSSL(self):
         # Client side certificate
-        settings = utils.settings
-
-        s_cert = settings('sslcert')
-        if settings('altip') == "true":
-            s_cert = settings('secondsslcert')
-
-        if s_cert == "None":
-            return None
-        else:
-            return s_cert
+        return None if utils.settings('sslcert') == 'None' \
+            else utils.settings('sslcert')
 
     def setUserPref(self):
         self.logMsg('Setting user preferences', 0)
@@ -183,8 +166,9 @@ class UserClient(threading.Thread):
 
         if authenticated is False:
             self.logMsg('Testing validity of current token', 0)
-            res = PlexAPI.PlexAPI().CheckConnection(
-                self.currServer, self.currToken)
+            res = PlexAPI.PlexAPI().CheckConnection(self.currServer,
+                                                    token=self.currToken,
+                                                    verifySSL=self.ssl)
             if res is False:
                 self.logMsg('Answer from PMS is not as expected. Retrying', -1)
                 return False
@@ -226,13 +210,6 @@ class UserClient(threading.Thread):
                     new = new[:-1]
                 window('remapSMB%sOrg' % item, value=org)
                 window('remapSMB%sNew' % item, value=new)
-
-        # Set DownloadUtils values
-        doUtils.setUsername(username)
-        doUtils.setUserId(self.currUserId)
-        doUtils.setServer(self.currServer)
-        doUtils.setToken(self.currToken)
-        doUtils.setSSL(self.ssl, self.sslcert)
 
         # Start DownloadUtils session
         doUtils.startSession()

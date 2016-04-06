@@ -233,7 +233,7 @@ class Service():
                     if server is False:
                         # No server info set in add-on settings
                         pass
-                    elif plx.CheckConnection(server) is False:
+                    elif plx.CheckConnection(server, verifySSL=True) is False:
                         # Server is offline or cannot be reached
                         # Alert the user and suppress future warning
                         if self.server_online:

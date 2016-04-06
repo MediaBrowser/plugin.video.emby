@@ -36,7 +36,6 @@ class InitialSetup():
         # SERVER INFO #####
         self.logMsg("Initial setup called.", 0)
         server = self.userClient.getServer()
-        clientId = self.clientInfo.getDeviceId()
         serverid = utils.settings('plex_machineIdentifier')
         # Get Plex credentials from settings file, if they exist
         plexdict = self.plx.GetPlexLoginFromSettings()
@@ -54,8 +53,15 @@ class InitialSetup():
         if (plexToken and myplexlogin == 'true' and forcePlexTV is False
                 and chooseServer is False):
             chk = self.plx.CheckConnection('plex.tv', plexToken)
+            try:
+                chk.attrib
+            except:
+                pass
+            else:
+                # Success - we downloaded an xml!
+                chk = 200
             # HTTP Error: unauthorized. Token is no longer valid
-            if chk == 401 or chk == 403:
+            if chk in (401, 403):
                 self.logMsg('plex.tv connection returned HTTP %s' % chk, 0)
                 # Delete token in the settings
                 utils.settings('plexToken', value='')
@@ -113,18 +119,13 @@ class InitialSetup():
         httpsUpdated = False
         while True:
             if httpsUpdated is False:
-                tokenDict = {'MyPlexToken': plexToken} if plexToken else {}
                 # Populate g_PMS variable with the found Plex servers
-                self.plx.discoverPMS(clientId,
-                                     None,
-                                     xbmc.getIPAddress(),
-                                     tokenDict=tokenDict)
-                self.logMsg("Result of setting g_PMS variable: %s"
-                            % self.plx.g_PMS, 1)
+                self.plx.discoverPMS(xbmc.getIPAddress(),
+                                     plexToken=plexToken)
                 isconnected = False
-                serverlist = self.plx.returnServerList(clientId,
-                                                       self.plx.g_PMS)
-                self.logMsg('PMS serverlist: %s' % serverlist)
+                self.logMsg('g_PMS: %s' % self.plx.g_PMS, 1)
+                serverlist = self.plx.returnServerList(self.plx.g_PMS)
+                self.logMsg('PMS serverlist: %s' % serverlist, 2)
                 # Let user pick server from a list
                 # Get a nicer list
                 dialoglist = []
@@ -138,11 +139,20 @@ class InitialSetup():
                 for server in serverlist:
                     if server['local'] == '1':
                         # server is in the same network as client. Add "local"
-                        dialoglist.append(
-                            server['name']
-                            + string(39022))
+                        msg = string(39022)
                     else:
-                        dialoglist.append(server['name'])
+                        # Add 'remote'
+                        msg = string(39054)
+                    if server.get('ownername'):
+                        # Display username if its not our PMS
+                        dialoglist.append('%s (%s, %s)'
+                                          % (server['name'],
+                                             server['ownername'],
+                                             msg))
+                    else:
+                        dialoglist.append('%s (%s)'
+                                          % (server['name'],
+                                             msg))
                 resp = dialog.select(string(39012), dialoglist)
             server = serverlist[resp]
             activeServer = server['machineIdentifier']
@@ -154,15 +164,20 @@ class InitialSetup():
             else:
                 url = server['baseURL']
             # Deactive SSL verification if the server is local!
+            # Watch out - settings is cached by Kodi - use dedicated var!
             if server['local'] == '1':
                 utils.settings('sslverify', 'false')
                 self.logMsg("Setting SSL verify to false, because server is "
                             "local", 1)
+                verifySSL = False
             else:
                 utils.settings('sslverify', 'true')
                 self.logMsg("Setting SSL verify to true, because server is "
                             "not local", 1)
-            chk = self.plx.CheckConnection(url, server['accesstoken'])
+                verifySSL = None
+            chk = self.plx.CheckConnection(url,
+                                           server['accesstoken'],
+                                           verifySSL=verifySSL)
             if chk == 504 and httpsUpdated is False:
                 # Not able to use HTTP, try HTTPs for now
                 serverlist[resp]['scheme'] = 'https'
@@ -220,19 +235,6 @@ class InitialSetup():
         self.logMsg("PMS machineIdentifier: %s, ip: %s, port: %s, https: %s "
                     % (activeServer, server['ip'], server['port'],
                         server['scheme']), 0)
-
-        # ADDITIONAL PROMPTS #####
-        # directPaths = dialog.yesno(
-        #                     heading="%s: Playback Mode" % self.addonName,
-        #                     line1=(
-        #                         "Caution! If you choose Native mode, you "
-        #                         "will probably lose access to certain Plex "
-        #                         "features."),
-        #                     nolabel="Addon (Default)",
-        #                     yeslabel="Native (Direct Paths)")
-        # if directPaths:
-        #     self.logMsg("User opted to use direct paths.", 1)
-        #     utils.settings('useDirectPaths', value="1")
 
         if forcePlexTV is True or chooseServer is True:
             return

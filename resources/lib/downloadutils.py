@@ -5,9 +5,7 @@
 import requests
 import xml.etree.ElementTree as etree
 
-import xbmcgui
-
-import utils
+from utils import logging, settings, window
 import clientinfo
 
 ###############################################################################
@@ -20,382 +18,258 @@ requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 ###############################################################################
 
 
-@utils.logging
+@logging
 class DownloadUtils():
+    """
+    Manages any up/downloads with PKC. Careful to initiate correctly
+    Use startSession() to initiate.
+    If not initiated, e.g. SSL check will fallback to False
+    """
 
     # Borg - multiple instances, shared state
     _shared_state = {}
 
     # Requests session
-    s = None
     timeout = 30
 
     def __init__(self):
         self.__dict__ = self._shared_state
 
     def setUsername(self, username):
-        # Reserved for userclient only
+        """
+        Reserved for userclient only
+        """
         self.username = username
-        self.logMsg("Set username: %s" % username, 2)
+        self.logMsg("Set username: %s" % username, 0)
 
     def setUserId(self, userId):
-        # Reserved for userclient only
+        """
+        Reserved for userclient only
+        """
         self.userId = userId
-        self.logMsg("Set userId: %s" % userId, 2)
+        self.logMsg("Set userId: %s" % userId, 0)
 
     def setServer(self, server):
-        # Reserved for userclient only
+        """
+        Reserved for userclient only
+        """
         self.server = server
-        self.logMsg("Set server: %s" % server, 2)
+        self.logMsg("Set server: %s" % server, 0)
 
     def setToken(self, token):
-        # Reserved for userclient only
+        """
+        Reserved for userclient only
+        """
         self.token = token
-        self.logMsg("Set token: xxxxxxx", 2)
-
-    def setSSL(self, ssl, sslclient):
-        # Reserved for userclient only
-        self.sslverify = ssl
-        self.sslclient = sslclient
-        self.logMsg("Verify SSL host certificate: %s" % ssl, 2)
-        self.logMsg("SSL client side certificate: %s" % sslclient, 2)
-
-    def postCapabilities(self, deviceId):
-
-        # Post settings to session
-        url = "{server}/emby/Sessions/Capabilities/Full?format=json"
-        data = {
-            
-            'PlayableMediaTypes': "Audio,Video",
-            'SupportsMediaControl': True,
-            'SupportedCommands': (
-                
-                "MoveUp,MoveDown,MoveLeft,MoveRight,Select,"
-                "Back,ToggleContextMenu,ToggleFullscreen,ToggleOsdMenu,"
-                "GoHome,PageUp,NextLetter,GoToSearch,"
-                "GoToSettings,PageDown,PreviousLetter,TakeScreenshot,"
-                "VolumeUp,VolumeDown,ToggleMute,SendString,DisplayMessage,"
-                "SetAudioStreamIndex,SetSubtitleStreamIndex,"
-
-                "Mute,Unmute,SetVolume,"
-                "Play,Playstate,PlayNext"
-            )
-        }
-
-        self.logMsg("Capabilities URL: %s" % url, 2)
-        self.logMsg("Postdata: %s" % data, 2)
-
-        self.downloadUrl(url, postBody=data, type="POST")
-        self.logMsg("Posted capabilities to %s" % self.server, 2)
-
-        # Attempt at getting sessionId
-        url = "{server}/emby/Sessions?DeviceId=%s&format=json" % deviceId
-        result = self.downloadUrl(url)
-        try:
-            sessionId = result[0]['Id']
-        
-        except (KeyError, TypeError):
-            self.logMsg("Failed to retrieve sessionId.", 1)
-        
+        if token == '':
+            self.logMsg('Set token: empty token!', 0)
         else:
-            self.logMsg("Session: %s" % result, 2)
-            self.logMsg("SessionId: %s" % sessionId, 1)
-            utils.window('emby_sessionId', value=sessionId)
-            
-            # Post any permanent additional users
-            # additionalUsers = utils.settings('additionalUsers')
-            # if additionalUsers:
-                
-            #     additionalUsers = additionalUsers.split(',')
-            #     self.logMsg(
-            #         "List of permanent users added to the session: %s"
-            #         % additionalUsers, 1)
+            self.logMsg("Set token: xxxxxxx", 0)
 
-            #     # Get the user list from server to get the userId
-            #     url = "{server}/emby/Users?format=json"
-            #     result = self.downloadUrl(url)
+    def setSSL(self, verifySSL=None, certificate=None):
+        """
+        Reserved for userclient only
 
-            #     for additional in additionalUsers:
-            #         addUser = additional.decode('utf-8').lower()
+        verifySSL must be 'true' to enable certificate validation
 
-            #         # Compare to server users to list of permanent additional users
-            #         for user in result:
-            #             username = user['Name'].lower()
-
-            #             if username in addUser:
-            #                 userId = user['Id']
-            #                 url = (
-            #                         "{server}/emby/Sessions/%s/Users/%s?format=json"
-            #                         % (sessionId, userId)
-            #                 )
-            #                 self.downloadUrl(url, postBody={}, type="POST")
+        certificate must be path to certificate or 'None'
+        """
+        if verifySSL is None:
+            verifySSL = settings('sslverify')
+        if certificate is None:
+            certificate = settings('sslcert')
+        self.logMsg("Verify SSL certificates set to: %s" % verifySSL, 0)
+        self.logMsg("SSL client side certificate set to: %s" % certificate, 0)
+        if verifySSL != 'true':
+            self.s.verify = False
+        if certificate != 'None':
+            self.s.cert = certificate
 
     def startSession(self):
-        # User should be authenticated when this method is called
-        client = clientinfo.ClientInfo()
-
-        self.deviceId = client.getDeviceId()
-        verify = False
-
-        # If user enabled host certificate verification
-        try:
-            verify = self.sslverify
-            if self.sslclient is not None:
-                verify = self.sslclient
-        except:
-            self.logMsg("Could not load SSL settings.", -1)
+        """
+        User should be authenticated when this method is called (via
+        userclient)
+        """
         # Start session
         self.s = requests.Session()
+
+        client = clientinfo.ClientInfo()
+        self.deviceId = client.getDeviceId()
         # Attach authenticated header to the session
         self.s.headers = client.getXArgsDeviceInfo()
-        self.s.verify = verify
+        self.s.encoding = 'utf-8'
+        # Set SSL settings
+        self.setSSL()
+
+        # Set other stuff
+        self.setServer(window('pms_server'))
+        self.setToken(window('pms_token'))
+        self.setUserId(window('currUserId'))
+        self.setUsername(window('plex_username'))
+
         # Retry connections to the server
         self.s.mount("http://", requests.adapters.HTTPAdapter(max_retries=1))
         self.s.mount("https://", requests.adapters.HTTPAdapter(max_retries=1))
 
-        self.logMsg("Requests session started on: %s" % self.server, 1)
+        self.logMsg("Requests session started on: %s" % self.server, 0)
 
     def stopSession(self):
         try:
             self.s.close()
         except:
-            self.logMsg("Requests session could not be terminated.", 1)
+            self.logMsg("Requests session could not be terminated.", 0)
+        try:
+            del self.s
+        except:
+            pass
+        self.logMsg('Request session stopped', 0)
 
     def getHeader(self, options=None):
-        try:
-            header = self.s.headers.copy()
-        except:
-            header = clientinfo.ClientInfo().getXArgsDeviceInfo()
+        header = clientinfo.ClientInfo().getXArgsDeviceInfo()
         if options is not None:
             header.update(options)
         return header
 
-    def downloadUrl(self, url, postBody=None, type="GET", parameters=None,
-                    authenticate=True, headerOptions=None):
-        timeout = self.timeout
-        default_link = ""
+    def __doDownload(self, s, type, **kwargs):
+        if type == "GET":
+            r = s.get(**kwargs)
+        elif type == "POST":
+            r = s.post(**kwargs)
+        elif type == "DELETE":
+            r = s.delete(**kwargs)
+        elif type == "OPTIONS":
+            r = s.options(**kwargs)
+        elif type == "PUT":
+            r = s.put(**kwargs)
+        return r
 
+    def downloadUrl(self, url, type="GET", postBody=None, parameters=None,
+                    authenticate=True, headerOptions=None, verifySSL=True):
+        """
+        Override SSL check with verifySSL=False
+
+        If authenticate=True, existing request session will be used/started
+        Otherwise, 'empty' request will be made
+
+        Returns:
+            False              If an error occured
+            True               If connection worked but no body was received
+            401, ...           integer if PMS answered with HTTP error 401
+                               (unauthorized) or other http error codes
+            xml                xml etree root object, if applicable
+            JSON               json() object, if applicable
+        """
+        kwargs = {}
+        if authenticate:
+            # Get requests session
+            try:
+                s = self.s
+            except AttributeError:
+                self.logMsg("Request session does not exist: start one", 0)
+                self.startSession()
+                s = self.s
+            # Replace for the real values
+            url = url.replace("{server}", self.server)
+        else:
+            # User is not (yet) authenticated. Used to communicate with
+            # plex.tv and to check for PMS servers
+            s = requests
+            headerOptions = self.getHeader(options=headerOptions)
+            kwargs['timeout'] = self.timeout
+            if settings('sslcert') != 'None':
+                kwargs['cert'] = settings('sslcert')
+
+        # Set the variables we were passed (fallback to request session
+        # otherwise - faster)
+        kwargs['url'] = url
+        if verifySSL is False:
+            kwargs['verify'] = False
+        if headerOptions is not None:
+            kwargs['headers'] = headerOptions
+        if postBody is not None:
+            kwargs['data'] = postBody
+        if parameters is not None:
+            kwargs['params'] = parameters
+
+        # ACTUAL DOWNLOAD HAPPENING HERE
         try:
-            # If user is authenticated
-            if (authenticate):
-                # Get requests session
-                try: 
-                    s = self.s
-                    # Replace for the real values
-                    url = url.replace("{server}", self.server)
-                    url = url.replace("{UserId}", self.userId)
-                    header = self.getHeader(options=headerOptions)
-                    # Prepare request
-                    if type == "GET":
-                        r = s.get(url, json=postBody, params=parameters, timeout=timeout, headers=header)
-                    elif type == "POST":
-                        r = s.post(url, json=postBody, timeout=timeout, headers=header)
-                    elif type == "DELETE":
-                        r = s.delete(url, json=postBody, timeout=timeout, headers=header)
-                    elif type == "OPTIONS":
-                        r = s.options(url, json=postBody, timeout=timeout, headers=header)
-                    # For Plex Companion
-                    elif type == "POSTXML":
-                        r = s.post(url, postBody, timeout=timeout, headers=header)
-                    elif type == "PUT":
-                        r = s.put(url, timeout=timeout, headers=header)
-                
-                except AttributeError:
-                    # request session does not exists
-                    self.logMsg("Request session does not exist: start one", 1)
-                    # Get user information
-                    self.userId = utils.window('currUserId')
-                    self.server = utils.window('pms_server')
-                    self.token = utils.window('pms_token')
-                    header = self.getHeader(options=headerOptions)
-                    verifyssl = False
-                    cert = None
+            r = self.__doDownload(s, type, **kwargs)
 
-                    # IF user enables ssl verification
-                    if utils.settings('sslverify') == "true":
-                        verifyssl = True
-                    if utils.settings('sslcert') != "None":
-                        verifyssl = utils.settings('sslcert')
-
-                    # Replace for the real values
-                    url = url.replace("{server}", self.server)
-                    url = url.replace("{UserId}", self.userId)
-
-                    # Prepare request
-                    if type == "GET":
-                        r = requests.get(url,
-                                        json=postBody,
-                                        params=parameters,
-                                        headers=header,
-                                        timeout=timeout,
-                                        verify=verifyssl)
-
-                    elif type == "POST":
-                        r = requests.post(url,
-                                        json=postBody,
-                                        headers=header,
-                                        timeout=timeout,
-                                        verify=verifyssl)
-
-                    elif type == "DELETE":
-                        r = requests.delete(url,
-                                        json=postBody,
-                                        headers=header,
-                                        timeout=timeout,
-                                        verify=verifyssl)
-
-                    elif type == "OPTIONS":
-                        r = requests.options(url,
-                                        json=postBody,
-                                        headers=header,
-                                        timeout=timeout,
-                                        cert=cert,
-                                        verify=verifyssl)
-
-                    elif type == "PUT":
-                        r = requests.put(url,
-                                        json=postBody,
-                                        headers=header,
-                                        timeout=timeout,
-                                        cert=cert,
-                                        verify=verifyssl)
-            # If user is not authenticated
-            elif not authenticate:
-
-                header = self.getHeader(options=headerOptions)
-
-                # If user enables ssl verification
-                try:
-                    verifyssl = self.sslverify
-                    if self.sslclient is not None:
-                        verifyssl = self.sslclient
-                except AttributeError:
-                    if utils.settings('sslverify') == "true":
-                        verifyssl = True
-                    else:
-                        verifyssl = False
-                self.logMsg("Set SSL verification to: %s" % verifyssl, 2)
-                # Prepare request
-                if type == "GET":
-                    r = requests.get(url,
-                                    json=postBody,
-                                    params=parameters,
-                                    headers=header,
-                                    timeout=timeout,
-                                    verify=verifyssl)
-
-                elif type == "POST":
-                    r = requests.post(url,
-                                    json=postBody,
-                                    headers=header,
-                                    timeout=timeout,
-                                    verify=verifyssl)
-        
-                elif type == "PUT":
-                    r = requests.put(url,
-                                    json=postBody,
-                                    headers=header,
-                                    timeout=timeout,
-                                    verify=verifyssl)
-            ##### THE RESPONSE #####
-            # self.logMsg(r.url, 2)
-            if r.status_code == 204:
-                # No body in the response
-                # self.logMsg("====== 204 Success ======", 2)
-                pass
-
-            elif r.status_code == requests.codes.ok:
-               
-                try: 
-                    # Allow for xml responses
-                    r = etree.fromstring(r.content)
-                    # self.logMsg("====== 200 Success ======", 2)
-                    # self.logMsg("Received an XML response for: %s" % url, 2)
-
-                    return r
-
-                except:
-                    try:
-                        # UNICODE - JSON object
-                        r = r.json()
-                        # self.logMsg("====== 200 Success ======", 2)
-                        # self.logMsg("Response: %s" % r, 2)
-                        return r
-                    except:
-                        try:
-                            if r.text == '' and r.status_code == 200:
-                                # self.logMsg("====== 200 Success ======", 2)
-                                # self.logMsg("Answer from PMS does not contain a body", 2)
-                                pass
-                            # self.logMsg("Unable to convert the response for: %s" % url, 2)
-                            # self.logMsg("Content-type was: %s" % r.headers['content-type'], 2)
-                        except:
-                            self.logMsg("Unable to convert the response for: %s" % url, 2)
-                            self.logMsg("Content-type was: %s" % r.headers['content-type'], 2)
-            else:
-                r.raise_for_status()
-        
-        ##### EXCEPTIONS #####
-
+        # THE EXCEPTIONS
         except requests.exceptions.ConnectionError as e:
+            # Connection error
+            self.logMsg("Server unreachable at: %s" % url, -1)
+            self.logMsg(e, 2)
             # Make the addon aware of status
-            if utils.window('emby_online') != "false":
-                self.logMsg("Server unreachable at: %s" % url, -1)
-                self.logMsg(e, 2)
-                utils.window('emby_online', value="false")
+            window('emby_online', value="false")
+            return False
 
         except requests.exceptions.ConnectTimeout as e:
-            self.logMsg("Server timeout at: %s" % url, 0)
-            self.logMsg(e, 1)
+            self.logMsg("Server timeout at: %s" % url, -1)
+            self.logMsg(e, 2)
+            return False
 
         except requests.exceptions.HTTPError as e:
-
-            if r.status_code == 401:
+            r = r.status_code
+            if r == 401:
                 # Unauthorized
-                status = utils.window('emby_serverStatus')
-
-                if 'X-Application-Error-Code' in r.headers:
-                    # Emby server errors
-                    if r.headers['X-Application-Error-Code'] == "ParentalControl":
-                        # Parental control - access restricted
-                        self.logMsg('Setting emby_serverStatus to restricted')
-                        utils.window('emby_serverStatus', value="restricted")
-                        xbmcgui.Dialog().notification(
-                                                heading=self.addonName,
-                                                message="Access restricted.",
-                                                icon=xbmcgui.NOTIFICATION_ERROR,
-                                                time=5000)
-                        return False
-                    
-                    elif r.headers['X-Application-Error-Code'] == "UnauthorizedAccessException":
-                        # User tried to do something his emby account doesn't allow
-                        pass
-
-                elif status not in ("401", "Auth"):
-                    # Tell userclient token has been revoked.
-                    self.logMsg('Error 401 contacting %s' % url, 0)
-                    self.logMsg('Setting emby_serverStatus to 401', 0)
-                    utils.window('emby_serverStatus', value="401")
-                    self.logMsg("HTTP Error: %s" % e, 0)
-                    xbmcgui.Dialog().notification(
-                                            heading=self.addonName,
-                                            message="Error connecting: Unauthorized.",
-                                            icon=xbmcgui.NOTIFICATION_ERROR)
-                    return 401
-
-            elif r.status_code in (301, 302):
+                self.logMsg('Error 401 contacting %s' % url, -1)
+            elif r in (301, 302):
                 # Redirects
-                pass
-            elif r.status_code == 400:
+                self.logMsg('HTTP redirect error %s at %s' % (r, url), -1)
+            elif r == 400:
                 # Bad requests
-                pass
+                self.logMsg('Bad request at %s' % url, -1)
+            else:
+                self.logMsg('HTTP Error %s at %s' % (r, url), -1)
+            self.logMsg(e, 2)
+            return r
 
         except requests.exceptions.SSLError as e:
-            self.logMsg("Invalid SSL certificate for: %s" % url, 0)
-            self.logMsg(e, 1)
+            self.logMsg("Invalid SSL certificate for: %s" % url, -1)
+            self.logMsg(e, 2)
+            return False
 
         except requests.exceptions.RequestException as e:
-            self.logMsg("Unknown error connecting to: %s" % url, 0)
-            self.logMsg(e, 1)
+            self.logMsg("Unknown error connecting to: %s" % url, -1)
+            self.logMsg("Error message: %s" % e, 2)
+            return False
 
-        return default_link
+        except:
+            self.logMsg('Unknown requests error', -1)
+            import traceback
+            self.logMsg(traceback.format_exc(), 0)
+            return False
+
+        # THE RESPONSE #####
+        if r.status_code == 204:
+            # No body in the response
+            return True
+
+        elif r.status_code in (200, 201):
+            # 200: OK
+            # 201: Created
+            try:
+                # xml response
+                r = etree.fromstring(r.content)
+                return r
+            except:
+                r.encoding = 'utf-8'
+                if r.text == '':
+                    # Answer does not contain a body (even though it should)
+                    return True
+                try:
+                    # UNICODE - JSON object
+                    r = r.json()
+                    return r
+                except:
+                    self.logMsg("Unable to convert the response for: %s"
+                                % url, -1)
+                    self.logMsg("Received headers were: %s" % r.headers, -1)
+                    return False
+        else:
+            self.logMsg('Unknown answer from PMS %s with status code %s. '
+                        'Message:' % (url, r.status_code), -1)
+            r.encoding = 'utf-8'
+            self.logMsg(r.text, -1)
+            return True

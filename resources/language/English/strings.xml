@@ -363,7 +363,7 @@
     <string id="39019">[COLOR red]Partial or full reset of Database and PKC[/COLOR]</string>
     <string id="39020">[COLOR yellow]Cache all images to Kodi texture cache[/COLOR]</string>
     <string id="39021">[COLOR yellow]Sync Emby Theme Media to Kodi[/COLOR]</string>
-    <string id="39022"> (local)</string>
+    <string id="39022">local</string>
     <string id="39023">Failed to authenticate. Did you login to plex.tv?</string>
     <string id="39024">[COLOR yellow]Reset PMS and plex.tv connections to re-login[/COLOR]</string>
     <string id="39025">Automatically log into plex.tv on startup</string>
@@ -396,6 +396,8 @@
     <string id="39051">Wait before sync new/changed PMS item [s]</string>
     <string id="39052">Background Sync</string>
     <string id="39053">Do a full library sync every x minutes</string>
+    <string id="39054">remote</string>
+    <string id="39055">Searching for Plex Server</string>
 
 
 

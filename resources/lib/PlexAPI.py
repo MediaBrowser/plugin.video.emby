@@ -29,18 +29,12 @@ http://stackoverflow.com/questions/2407126/python-urllib2-basic-auth-problem
 http://stackoverflow.com/questions/111945/is-there-any-way-to-do-http-put-in-python
 (and others...)
 """
-import struct
 import time
 import urllib2
-import httplib
 import socket
-import StringIO
-import gzip
 from threading import Thread
-import traceback
 import requests
 import xml.etree.ElementTree as etree
-from uuid import uuid4
 
 import re
 import json
@@ -232,15 +226,15 @@ class PlexAPI():
         try:
             temp_token = xml.find('auth_token').text
         except:
-            self.logMsg("Error: Could not find token in plex.tv answer.", -1)
+            self.logMsg("Could not find token in plex.tv answer.", -1)
             return False
         self.logMsg("temp token from plex.tv is: %s" % temp_token, 2)
         if not temp_token:
             return False
         # Use temp token to get the final plex credentials
-        xml = self.doUtils('https://plex.tv/users/account?X-Plex-Token=%s'
-                           % temp_token,
+        xml = self.doUtils('https://plex.tv/users/account',
                            authenticate=False,
+                           parameters={'X-Plex-Token': temp_token},
                            type="GET")
         return xml
 
@@ -320,11 +314,15 @@ class PlexAPI():
             return False
         return xml
 
-    def CheckConnection(self, url, token=None):
+    def CheckConnection(self, url, token=None, verifySSL=None):
         """
         Checks connection to a Plex server, available at url. Can also be used
         to check for connection with plex.tv.
         Will check up to 3x until reply with False
+
+        Override SSL to skip the check by setting verifySSL=False
+        if 'None', SSL will be checked (standard requests setting)
+        if 'True', SSL settings from file settings are used (False/True)
 
         Input:
             url         URL to Plex server (e.g. https://192.168.1.1:32400)
@@ -332,54 +330,47 @@ class PlexAPI():
                         the current token is used
         Output:
             False       if server could not be reached or timeout occured
-            e.g. 200    if connection was successfull
+            200         if connection was successfull
             int         or other HTML status codes as received from the server
         """
         # Add '/clients' to URL because then an authentication is necessary
         # If a plex.tv URL was passed, this does not work.
-        header = clientinfo.ClientInfo().getXArgsDeviceInfo()
-        if token:
-            header['X-Plex-Token'] = token
-        sslverify = utils.settings('sslverify')
-        if sslverify == "true":
-            sslverify = True
-        else:
-            sslverify = False
-        self.logMsg("Checking connection to server %s with sslverify=%s"
-                    % (url, sslverify), 1)
-        timeout = (3, 10)
+        headerOptions = None
+        if token is not None:
+            headerOptions = {'X-Plex-Token': token}
+        if verifySSL is True:
+            verifySSL = None if utils.settings('sslverify') == 'true' \
+                else False
         if 'plex.tv' in url:
             url = 'https://plex.tv/api/home/users'
         else:
             url = url + '/library/onDeck'
-        # Check up to 3 times before giving up - this sometimes happens when
-        # PKC was just started
+        self.logMsg("Checking connection to server %s with verifySSL=%s"
+                    % (url, verifySSL), 1)
+        # Check up to 3 times before giving up
         count = 0
         while count < 3:
+            answer = self.doUtils(url,
+                                  authenticate=False,
+                                  headerOptions=headerOptions,
+                                  verifySSL=verifySSL)
+            if answer is False:
+                self.logMsg("Could not connect to %s" % url, 0)
+                count += 1
+                xbmc.sleep(500)
+                continue
             try:
-                answer = requests.get(url,
-                                      headers={},
-                                      params=header,
-                                      verify=sslverify,
-                                      timeout=timeout)
-            except requests.exceptions.ConnectionError as e:
-                self.logMsg("Server is offline or cannot be reached. Url: %s "
-                            "Header: %s  Error message: %s"
-                            % (url, header, e), 0)
-                count += 1
-                xbmc.sleep(1000)
-                continue
-            except requests.exceptions.ReadTimeout:
-                self.logMsg("Server timeout reached for Url %s with header %s"
-                            % (url, header), 0)
-                count += 1
-                xbmc.sleep(1000)
-                continue
+                answer.attrib
+            except:
+                pass
             else:
-                result = answer.status_code
-                self.logMsg("Result was: %s" % result, 1)
-                return result
-        self.logMsg('Failed to connect to %s too many times.' % url, -1)
+                # Success - we downloaded an xml!
+                answer = 200
+            self.logMsg("Checking connection successfull. Answer: %s"
+                        % answer, 1)
+            return answer
+        self.logMsg('Failed to connect to %s too many times. PMS is dead'
+                    % url, 0)
         return False
 
     def GetgPMSKeylist(self):
@@ -455,73 +446,45 @@ class PlexAPI():
         addon.setSetting('serverlist', serverlist)
         return
 
-    def declarePMS(self, ATV_udid, uuid, name, scheme, ip, port):
+    def declarePMS(self, uuid, name, scheme, ip, port):
         """
         Plex Media Server handling
 
         parameters:
-            ATV_udid
             uuid - PMS ID
             name, scheme, ip, port, type, owned, token
         """
-        # store PMS information in g_PMS database
-        if ATV_udid not in self.g_PMS:
-            self.g_PMS[ATV_udid] = {}
-
         address = ip + ':' + port
         baseURL = scheme+'://'+ip+':'+port
-        self.g_PMS[ATV_udid][uuid] = { 'name': name,
-                                  'scheme':scheme, 'ip': ip , 'port': port,
-                                  'address': address,
-                                  'baseURL': baseURL,
-                                  'local': '1',
-                                  'owned': '1',
-                                  'accesstoken': '',
-                                  'enableGzip': False
-                                }
+        self.g_PMS[uuid] = {
+            'name': name,
+            'scheme': scheme,
+            'ip': ip,
+            'port': port,
+            'address': address,
+            'baseURL': baseURL,
+            'local': '1',
+            'owned': '1',
+            'accesstoken': '',
+            'enableGzip': False
+        }
 
-    def updatePMSProperty(self, ATV_udid, uuid, tag, value):
+    def updatePMSProperty(self, uuid, tag, value):
         # set property element of PMS by UUID
-        if not ATV_udid in self.g_PMS:
-            return ''  # no server known for this aTV
-        if not uuid in self.g_PMS[ATV_udid]:
-            return ''  # requested PMS not available
-        
-        self.g_PMS[ATV_udid][uuid][tag] = value
+        try:
+            self.g_PMS[uuid][tag] = value
+        except:
+            self.logMsg('%s has not yet been declared ' % uuid, -1)
+            return False
 
-    def getPMSProperty(self, ATV_udid, uuid, tag):
+    def getPMSProperty(self, uuid, tag):
         # get name of PMS by UUID
-        if not ATV_udid in self.g_PMS:
-            return ''  # no server known for this aTV
-        if not uuid in self.g_PMS[ATV_udid]:
-            return ''  # requested PMS not available
-        
-        return self.g_PMS[ATV_udid][uuid].get(tag, '')
-
-    def getPMSFromAddress(self, ATV_udid, address):
-        # find PMS by IP, return UUID
-        if not ATV_udid in self.g_PMS:
-            return ''  # no server known for this aTV
-        
-        for uuid in self.g_PMS[ATV_udid]:
-            if address in self.g_PMS[ATV_udid][uuid].get('address', None):
-                return uuid
-        return ''  # IP not found
-
-    def getPMSAddress(self, ATV_udid, uuid, data):
-        # get address of PMS by UUID
-        if not ATV_udid in data:
-            return ''  # no server known for this aTV
-        if not uuid in data[ATV_udid]:
-            return ''  # requested PMS not available
-        return data[ATV_udid][uuid]['ip'] + ':' + data[ATV_udid][uuid]['port']
-
-    def getPMSCount(self, ATV_udid):
-        # get count of discovered PMS by UUID
-        if not ATV_udid in self.g_PMS:
-            return 0  # no server known for this aTV
-        
-        return len(self.g_PMS[ATV_udid])
+        try:
+            answ = self.g_PMS[uuid].get(tag, '')
+        except:
+            self.logMsg('%s not found in PMS catalogue' % uuid, -1)
+            answ = False
+        return answ
 
     def PlexGDM(self):
         """
@@ -532,25 +495,23 @@ class PlexAPI():
         result:
             PMS_list - dict() of PMSs found
         """
+        import struct
+
         IP_PlexGDM = '239.0.0.250'  # multicast to PMS
         Port_PlexGDM = 32414
         Msg_PlexGDM = 'M-SEARCH * HTTP/1.0'
-        # dprint(__name__, 0, "***")
-        # dprint(__name__, 0, "PlexGDM - looking up Plex Media Server")
-        # dprint(__name__, 0, "***")
-        
+
         # setup socket for discovery -> multicast message
         GDM = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        GDM.settimeout(1.0)
-        
-        # Set the time-to-live for messages to 1 for local network
-        ttl = struct.pack('b', 1)
+        GDM.settimeout(2.0)
+
+        # Set the time-to-live for messages to 2 for local network
+        ttl = struct.pack('b', 2)
         GDM.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, ttl)
-        
+
         returnData = []
         try:
             # Send data to the multicast group
-            # dprint(__name__, 1, "Sending discovery message: {0}", Msg_PlexGDM)
             GDM.sendto(Msg_PlexGDM, (IP_PlexGDM, Port_PlexGDM))
 
             # Look for responses from all recipients
@@ -559,126 +520,109 @@ class PlexAPI():
                     data, server = GDM.recvfrom(1024)
                     # dprint(__name__, 1, "Received data from {0}", server)
                     # dprint(__name__, 1, "Data received:\n {0}", data)
-                    returnData.append( { 'from' : server,
-                                         'data' : data } )
+                    returnData.append({'from': server,
+                                       'data': data})
                 except socket.timeout:
                     break
         finally:
             GDM.close()
 
-        discovery_complete = True
+        pmsList = {}
 
-        PMS_list = {}
-        if returnData:
-            for response in returnData:
-                update = { 'ip' : response.get('from')[0] }
-                
-                # Check if we had a positive HTTP response                        
-                if "200 OK" in response.get('data'):
-                    for each in response.get('data').split('\n'): 
-                        # decode response data
-                        update['discovery'] = "auto"
-                        #update['owned']='1'
-                        #update['master']= 1
-                        #update['role']='master'
-                        
-                        if "Content-Type:" in each:
-                            update['content-type'] = each.split(':')[1].strip()
-                        elif "Resource-Identifier:" in each:
-                            update['uuid'] = each.split(':')[1].strip()
-                        elif "Name:" in each:
-                            update['serverName'] = each.split(':')[1].strip().decode('utf-8', 'replace')  # store in utf-8
-                        elif "Port:" in each:
-                            update['port'] = each.split(':')[1].strip()
-                        elif "Updated-At:" in each:
-                            update['updated'] = each.split(':')[1].strip()
-                        elif "Version:" in each:
-                            update['version'] = each.split(':')[1].strip()
-                
-                PMS_list[update['uuid']] = update
-        
-        # if PMS_list=={}:
-        #     dprint(__name__, 0, "GDM: No servers discovered")
-        # else:
-        #     dprint(__name__, 0, "GDM: Servers discovered: {0}", len(PMS_list))
-        #     for uuid in PMS_list:
-        #         dprint(__name__, 1, "{0} {1}:{2}", PMS_list[uuid]['serverName'], PMS_list[uuid]['ip'], PMS_list[uuid]['port'])
-        
-        return PMS_list
+        self.logMsg('returndata is: %s' % returnData)
+        for response in returnData:
+            update = {'ip': response.get('from')[0]}
+            # Check if we had a positive HTTP response
+            if "200 OK" in response.get('data'):
+                for each in response.get('data').split('\n'):
+                    # decode response data
+                    update['discovery'] = "auto"
+                    # update['owned']='1'
+                    # update['master']= 1
+                    # update['role']='master'
 
-    def discoverPMS(self, ATV_udid, CSettings, IP_self, tokenDict={}):
+                    if "Content-Type:" in each:
+                        update['content-type'] = each.split(':')[1].strip()
+                    elif "Resource-Identifier:" in each:
+                        update['uuid'] = each.split(':')[1].strip()
+                    elif "Name:" in each:
+                        update['serverName'] = each.split(':')[1].strip().decode('utf-8', 'replace')
+                    elif "Port:" in each:
+                        update['port'] = each.split(':')[1].strip()
+                    elif "Updated-At:" in each:
+                        update['updated'] = each.split(':')[1].strip()
+                    elif "Version:" in each:
+                        update['version'] = each.split(':')[1].strip()
+            pmsList[update['uuid']] = update
+
+        return pmsList
+
+    def discoverPMS(self, IP_self, plexToken=None):
         """
-        discoverPMS
-
         parameters:
-            ATV_udid
-            CSettings - for manual PMS configuration. this one looks strange.
-            IP_self
+            IP_self         Own IP
         optional:
-            tokenDict - dictionary of tokens for MyPlex, PlexHome
+            plexToken       token for plex.tv
         result:
-            self.g_PMS dictionary for ATV_udid
+            self.g_PMS      dict set
         """
-        self.g_PMS[ATV_udid] = {}
+        self.g_PMS = {}
+        xbmcgui.Dialog().notification(
+            heading=self.addonName,
+            message=self.__language__(39055),
+            icon="special://home/addons/plugin.video.plexkodiconnect/icon.png",
+            time=3000,
+            sound=False)
 
-        # install plex.tv "virtual" PMS - for myPlex, PlexHome
-        self.declarePMS(ATV_udid, 'plex.tv', 'plex.tv', 'https', 'plex.tv', '443')
-        self.updatePMSProperty(ATV_udid, 'plex.tv', 'local', '-')
-        self.updatePMSProperty(ATV_udid, 'plex.tv', 'owned', '-')
-        self.updatePMSProperty(ATV_udid, 'plex.tv', 'accesstoken', tokenDict.get('MyPlexToken', ''))
-
-        if 'PlexHomeToken' in tokenDict:
-            authtoken = tokenDict.get('PlexHomeToken')
-        else:
-            authtoken = tokenDict.get('MyPlexToken', '')
-
-        if authtoken == '':
-            # not logged into myPlex
-            # local PMS
-            # PlexGDM
-            PMS_list = self.PlexGDM()
-            for uuid_id in PMS_list:
-                PMS = PMS_list[uuid_id]
-                self.declarePMS(ATV_udid, PMS['uuid'], PMS['serverName'], 'http', PMS['ip'], PMS['port'])  # dflt: token='', local, owned
-        else:
-            # MyPlex servers
-            self.getPMSListFromMyPlex(ATV_udid, authtoken)
-        # Delete plex.tv again
-        del self.g_PMS[ATV_udid]['plex.tv']
-        # all servers - update enableGzip
-        for uuid_id in self.g_PMS.get(ATV_udid, {}):
+        # Look first for local PMS in the LAN
+        pmsList = self.PlexGDM()
+        self.logMsg('pmslist: %s' % pmsList, 1)
+        for uuid in pmsList:
+            PMS = pmsList[uuid]
+            self.declarePMS(PMS['uuid'], PMS['serverName'], 'http',
+                            PMS['ip'], PMS['port'])
+            self.updatePMSProperty(PMS['uuid'], 'owned', '-')
             # Ping to check whether we need HTTPs or HTTP
-            url = (self.getPMSProperty(ATV_udid, uuid_id, 'ip') + ':'
-                   + self.getPMSProperty(ATV_udid, uuid_id, 'port'))
+            url = '%s:%s' % (PMS['ip'], PMS['port'])
             https = PMSHttpsEnabled(url)
             if https is None:
-                # Error contacting url
+                # Error contacting url. Skip for now
                 continue
-            elif https:
-                self.updatePMSProperty(ATV_udid, uuid_id, 'scheme', 'https')
+            elif https is True:
+                self.updatePMSProperty(PMS['uuid'], 'scheme', 'https')
+                self.updatePMSProperty(
+                    PMS['uuid'],
+                    'baseURL',
+                    'https://%s:%s' % (PMS['ip'], PMS['port']))
             else:
-                self.updatePMSProperty(ATV_udid, uuid_id, 'scheme', 'http')
-            # enable Gzip if not on same host, local&remote PMS depending
-            # on setting
-            enableGzip = (not self.getPMSProperty(ATV_udid, uuid_id, 'ip') == IP_self) \
-                and (
-                    (self.getPMSProperty(ATV_udid, uuid_id, 'local') == '1'
-                        and False)
-                    or
-                    (self.getPMSProperty(ATV_udid, uuid_id, 'local') == '0'
-                        and True) == 'True'
-                )
-            self.updatePMSProperty(ATV_udid, uuid_id, 'enableGzip', enableGzip)
+                # Already declared with http
+                pass
 
-    def getPMSListFromMyPlex(self, ATV_udid, authtoken):
+        if not plexToken:
+            self.logMsg('No plex.tv token supplied, checked LAN for PMS', 0)
+            return
+
+        # install plex.tv "virtual" PMS - for myPlex, PlexHome
+        # self.declarePMS('plex.tv', 'plex.tv', 'https', 'plex.tv', '443')
+        # self.updatePMSProperty('plex.tv', 'local', '-')
+        # self.updatePMSProperty('plex.tv', 'owned', '-')
+        # self.updatePMSProperty(
+        #     'plex.tv', 'accesstoken', plexToken)
+        # (remote and local) servers from plex.tv
+
+        # Get PMS from plex.tv. This will overwrite any PMS we already found
+        self.getPMSListFromMyPlex(plexToken)
+
+    def getPMSListFromMyPlex(self, token):
         """
         getPMSListFromMyPlex
 
         get Plex media Server List from plex.tv/pms/resources
         """
-        xml = self.doUtils('https://plex.tv/api/resources?includeHttps=1',
+        xml = self.doUtils('https://plex.tv/api/resources',
                            authenticate=False,
-                           headerOptions={'X-Plex-Token': authtoken})
+                           parameters={'includeHttps': 1},
+                           headerOptions={'X-Plex-Token': token})
         try:
             xml.attrib
         except:
@@ -699,36 +643,43 @@ class PlexAPI():
                 PMS = {}
                 PMS['name'] = Dir.get('name')
                 infoAge = time.time() - int(Dir.get('lastSeenAt'))
-                oneDayInSec = 2*60*60*24
-                if infoAge > 1*oneDayInSec:
-                    self.logMsg("Server %s not seen for 1 day - "
+                oneDayInSec = 60*60*24
+                if infoAge > 2*oneDayInSec:
+                    self.logMsg("Server %s not seen for 2 days - "
                                 "skipping." % PMS['name'], 0)
                     continue
 
                 PMS['uuid'] = Dir.get('clientIdentifier')
-                PMS['token'] = Dir.get('accessToken', authtoken)
+                PMS['token'] = Dir.get('accessToken', token)
                 PMS['owned'] = Dir.get('owned', '0')
                 PMS['local'] = Dir.get('publicAddressMatches')
                 PMS['ownername'] = Dir.get('sourceTitle', '')
                 PMS['path'] = '/'
                 PMS['options'] = None
 
-                # flag to set first connection, possibly overwrite later with
-                # more suitable
-                PMS['baseURL'] = ""
+                # If PMS seems (!!) local, try a local connection first
+                # Backup to remote connection, if that failes
+                PMS['baseURL'] = ''
                 for Con in Dir.iter(tag='Connection'):
-                    if (PMS['baseURL'] == "" or
-                            Con.get('local') == PMS['local']):
+                    localConn = Con.get('local')
+                    if ((PMS['local'] == '1' and localConn == '1') or
+                            (PMS['local'] == '0' and localConn == '0')):
+                        # Either both local or both remote
                         PMS['protocol'] = Con.get('protocol')
                         PMS['ip'] = Con.get('address')
                         PMS['port'] = Con.get('port')
-                        PMS['baseURL'] = Con.get('baseURL')
-                    # todo: handle unforeseen - like we get multiple suitable
-                    # connections. how to choose one?
+                        PMS['baseURL'] = Con.get('uri')
+                    elif PMS['local'] == '1' and localConn == '0':
+                        # Backup connection if local one did not work
+                        PMS['backup'] = {}
+                        PMS['backup']['protocol'] = Con.get('protocol')
+                        PMS['backup']['ip'] = Con.get('address')
+                        PMS['backup']['port'] = Con.get('port')
+                        PMS['backup']['baseURL'] = Con.get('uri')
 
                 # poke PMS, own thread for each poke
                 t = Thread(target=self.pokePMS,
-                           args=(PMS['baseURL'], PMS['token'], PMS, queue))
+                           args=(PMS, queue))
                 t.start()
                 threads.append(t)
 
@@ -739,44 +690,48 @@ class PlexAPI():
             # declare new PMSs
             while not queue.empty():
                     PMS = queue.get()
-                    self.declarePMS(ATV_udid, PMS['uuid'], PMS['name'],
+                    self.declarePMS(PMS['uuid'], PMS['name'],
                                     PMS['protocol'], PMS['ip'], PMS['port'])
                     # dflt: token='', local, owned - updated later
                     self.updatePMSProperty(
-                        ATV_udid, PMS['uuid'], 'accesstoken', PMS['token'])
+                        PMS['uuid'], 'accesstoken', PMS['token'])
                     self.updatePMSProperty(
-                        ATV_udid, PMS['uuid'], 'owned', PMS['owned'])
+                        PMS['uuid'], 'owned', PMS['owned'])
                     self.updatePMSProperty(
-                        ATV_udid, PMS['uuid'], 'local', PMS['local'])
+                        PMS['uuid'], 'local', PMS['local'])
                     # set in declarePMS, overwrite for https encryption
                     self.updatePMSProperty(
-                        ATV_udid, PMS['uuid'], 'baseURL', PMS['baseURL'])
+                        PMS['uuid'], 'baseURL', PMS['baseURL'])
                     self.updatePMSProperty(
-                        ATV_udid, PMS['uuid'], 'ownername', PMS['ownername'])
+                        PMS['uuid'], 'ownername', PMS['ownername'])
                     queue.task_done()
 
-    def pokePMS(self, url, token, PMS, queue):
-        xml = self.doUtils(url,
+    def pokePMS(self, PMS, queue):
+        # Ignore SSL certificates for now
+        xml = self.doUtils(PMS['baseURL'],
                            authenticate=False,
-                           headerOptions={'X-Plex-Token': token})
+                           headerOptions={'X-Plex-Token': PMS['token']},
+                           verifySSL=False)
         try:
             xml.attrib
         except:
-            return
+            # Connection failed
+            # retry with remote connection if we just tested local one.
+            if PMS['local'] == '1' and PMS.get('backup'):
+                self.logMsg('Couldnt talk to local PMS locally.'
+                            'Trying again remotely.', 0)
+                PMS['protocol'] = PMS['backup']['protocol']
+                PMS['ip'] = PMS['backup']['ip']
+                PMS['port'] = PMS['backup']['port']
+                PMS['baseURL'] = PMS['backup']['baseURL']
+                PMS['local'] = '0'
+                # Try again
+                self.pokePMS(PMS, queue)
+            else:
+                return
         else:
+            # Connection successful, process later
             queue.put(PMS)
-
-    def getURL(self, baseURL, path, key):
-        if key.startswith('http://') or key.startswith('https://'):  # external server
-            URL = key
-        elif key.startswith('/'):  # internal full path.
-            URL = baseURL + key
-        elif key == '':  # internal path
-            URL = baseURL + path
-        else:  # internal path, add-on
-            URL = baseURL + path + '/' + key
-        
-        return URL
 
     def MyPlexSignIn(self, username, password, options):
         """
@@ -1226,13 +1181,12 @@ class PlexAPI():
         
         return path
 
-    def returnServerList(self, ATV_udid, data):
+    def returnServerList(self, data):
         """
         Returns a nicer list of all servers found in data, where data is in
         g_PMS format, for the client device with unique ID ATV_udid
 
         Input:
-            ATV_udid                Unique client ID
             data                    e.g. self.g_PMS
 
         Output: List of all servers, with an entry of the form:
@@ -1247,21 +1201,23 @@ class PlexAPI():
         'machineIdentifier': id,    Plex server machine identifier
         'accesstoken': token        Access token to this server
         'baseURL': baseURL          scheme://ip:port
+        'ownername'                 Plex username of PMS owner
         }
         """
         serverlist = []
-        for key, value in data[ATV_udid].items():
+        for key, value in data.items():
             serverlist.append({
-                'name': value['name'],
-                'address': value['address'],
-                'ip': value['ip'],
-                'port': value['port'],
-                'scheme': value['scheme'],
-                'local': value['local'],
-                'owned': value['owned'],
+                'name': value.get('name'),
+                'address': value.get('address'),
+                'ip': value.get('ip'),
+                'port': value.get('port'),
+                'scheme': value.get('scheme'),
+                'local': value.get('local'),
+                'owned': value.get('owned'),
                 'machineIdentifier': key,
-                'accesstoken': value['accesstoken'],
-                'baseURL': value['baseURL']
+                'accesstoken': value.get('accesstoken'),
+                'baseURL': value.get('baseURL'),
+                'ownername': value.get('ownername')
             })
         return serverlist
 
@@ -2001,6 +1957,7 @@ class API():
             return url
 
         # For Direct Streaming or Transcoding
+        from uuid import uuid4
         # Path/key to VIDEO item of xml PMS response is needed, not part
         path = self.item.attrib['key']
         transcodePath = self.server + \

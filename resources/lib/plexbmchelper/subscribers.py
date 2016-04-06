@@ -278,9 +278,8 @@ class Subscriber:
         Threaded POST request, because they stall due to PMS response missing
         the Content-Length header :-(
         """
-        response = self.download.downloadUrl(
-            url,
-            postBody=msg,
-            type="POSTXML")
+        response = self.download.downloadUrl(url,
+                                             postBody=msg,
+                                             type="POST")
         if response in [False, None, 401]:
             self.subMgr.removeSubscriber(self.uuid)

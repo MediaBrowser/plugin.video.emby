@@ -301,7 +301,7 @@
     <string id="39019">[COLOR red]Datenbank und auf Wunsch PKC zurücksetzen[/COLOR]</string>
     <string id="39020">[COLOR yellow]Alle Plex Bilder in Kodi zwischenspeichern[/COLOR]</string>
     <string id="39021">[COLOR yellow]Plex Themes zu Kodi synchronisieren[/COLOR]</string>
-    <string id="39022"> (lokal)</string>
+    <string id="39022">lokal</string>
     <string id="39023">Plex Media Server Authentifizierung fehlgeschlagen. Haben Sie sich bei plex.tv eingeloggt?</string>
     <string id="39024">[COLOR yellow]PMS und plex.tv Verbindungen zurücksetzen für erneuten Login[/COLOR]</string>
     <string id="39025">Automatisch beim Starten bei plex.tv einloggen</string>
@@ -334,6 +334,8 @@
     <string id="39051">Warten bevor neue/geänderte PMS Einträge gesynct werden [s]</string>
     <string id="39052">Hintergrund-Synchronisation</string>
     <string id="39053">Kompletten Scan aller Bibliotheken alle x Minuten durchführen</string>
+    <string id="39054">remote</string>
+    <string id="39055">Suche Plex Server</string>
 
 
     <!-- Plex Entrypoint.py -->
