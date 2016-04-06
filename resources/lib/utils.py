@@ -23,7 +23,7 @@ import xbmcvfs
 
 ###############################################################################
 
-addonName = xbmcaddon.Addon().getAddonInfo('name')
+addonName = 'PlexKodiConnect'
 
 
 def DateToKodi(stamp):

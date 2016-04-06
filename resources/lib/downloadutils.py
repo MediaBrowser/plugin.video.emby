@@ -10,10 +10,9 @@ import clientinfo
 
 ###############################################################################
 
-# Disable requests logging
-from requests.packages.urllib3.exceptions import InsecureRequestWarning
-requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
-# logging.getLogger('requests').setLevel(logging.WARNING)
+# Disable annoying requests warnings
+import requests.packages.urllib3
+requests.packages.urllib3.disable_warnings()
 
 ###############################################################################
 
@@ -263,10 +262,18 @@ class DownloadUtils():
                     r = r.json()
                     return r
                 except:
-                    self.logMsg("Unable to convert the response for: %s"
-                                % url, -1)
-                    self.logMsg("Received headers were: %s" % r.headers, -1)
-                    return False
+                    r.encoding = 'utf-8'
+                    if '200 OK' in r.text:
+                        # Received fucked up OK from PMS on playstate update
+                        pass
+                    else:
+                        self.logMsg("Unable to convert the response for: %s"
+                                    % url, -1)
+                        self.logMsg("Received headers were: %s"
+                                    % r.headers, -1)
+                        self.logMsg('Received text:', -1)
+                        self.logMsg(r.text, -1)
+                    return True
         else:
             self.logMsg('Unknown answer from PMS %s with status code %s. '
                         'Message:' % (url, r.status_code), -1)

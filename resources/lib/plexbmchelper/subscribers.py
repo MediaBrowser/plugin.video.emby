@@ -1,11 +1,12 @@
 import re
 import threading
-from functions import *
 
 from xbmc import Player
+
 import downloadutils
 from utils import window, logging
 import PlexFunctions as pf
+from functions import *
 
 
 @logging
@@ -23,7 +24,7 @@ class SubscriptionManager:
         self.protocol = "http"
         self.port = ""
         self.playerprops = {}
-        self.download = downloadutils.DownloadUtils()
+        self.doUtils = downloadutils.DownloadUtils().downloadUrl
         self.xbmcplayer = Player()
 
         self.js = jsonClass
@@ -167,7 +168,7 @@ class SubscriptionManager:
         url = serv.get('protocol', 'http') + '://' \
             + serv.get('server', 'localhost') + ':' \
             + serv.get('port', '32400') + "/:/timeline"
-        self.download.downloadUrl(url, type="GET", parameters=params)
+        self.doUtils(url, type="GET", parameters=params)
         # requests.getwithparams(serv.get('server', 'localhost'), serv.get('port', 32400), "/:/timeline", params, getPlexHeaders(), serv.get('protocol', 'http'))
         self.logMsg("params: %s" % params, 2)
         self.logMsg("players: %s" % players, 2)
@@ -244,7 +245,7 @@ class Subscriber:
         self.commandID = int(commandID) or 0
         self.navlocationsent = False
         self.age = 0
-        self.download = downloadutils.DownloadUtils()
+        self.doUtils = downloadutils.DownloadUtils().downloadUrl
         self.subMgr = subMgr
         self.RequestMgr = RequestMgr
 
@@ -278,8 +279,8 @@ class Subscriber:
         Threaded POST request, because they stall due to PMS response missing
         the Content-Length header :-(
         """
-        response = self.download.downloadUrl(url,
-                                             postBody=msg,
-                                             type="POST")
+        response = self.doUtils(url,
+                                postBody=msg,
+                                type="POST")
         if response in [False, None, 401]:
             self.subMgr.removeSubscriber(self.uuid)

@@ -33,26 +33,20 @@ import time
 import urllib2
 import socket
 from threading import Thread
-import requests
 import xml.etree.ElementTree as etree
-
 import re
 import json
 from urllib import urlencode, quote_plus, unquote
 
-import clientinfo
-import utils
-import downloadutils
 import xbmcaddon
 import xbmcgui
 import xbmc
 import xbmcvfs
 
+import clientinfo
+import utils
+import downloadutils
 from PlexFunctions import PlexToKodiTimefactor, PMSHttpsEnabled
-
-# Disable requests logging
-from requests.packages.urllib3.exceptions import InsecureRequestWarning
-requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 
 @utils.logging
@@ -257,62 +251,6 @@ class PlexAPI():
         identifier = xml.find('id').text
         self.logMsg('Successfully retrieved code and id from plex.tv', 1)
         return code, identifier
-
-    def TalkToPlexServer(self, url, talkType="GET", verify=True, token=None):
-        """
-        Start request with PMS with url.
-
-        Returns the parsed XML answer as an etree object.
-        False if the server could not be reached/timeout occured.
-        False if HTTP error code of >=400 was returned.
-        """
-        header = self.getXArgsDeviceInfo()
-        if token:
-            header['X-Plex-Token'] = token
-        timeout = (3, 10)
-        try:
-            if talkType == "GET":
-                answer = requests.get(url,
-                                      headers={},
-                                      params=header,
-                                      verify=verify,
-                                      timeout=timeout)
-            # Only seems to be used for initial plex.tv sign in
-            if talkType == "GET2":
-                answer = requests.get(url,
-                                      headers=header,
-                                      params={},
-                                      verify=verify,
-                                      timeout=timeout)
-            elif talkType == "POST":
-                answer = requests.post(url,
-                                       data='',
-                                       headers=header,
-                                       params={},
-                                       verify=verify,
-                                       timeout=timeout)
-        except requests.exceptions.ConnectionError as e:
-            self.logMsg("Server is offline or cannot be reached. Url: %s. "
-                        "Error message: %s"
-                        % (url, e), -1)
-            return False
-        except requests.exceptions.ReadTimeout:
-            self.logMsg("Server timeout reached for Url %s"
-                        % url, -1)
-            return False
-        # We received an answer from the server, but not as expected.
-        if answer.status_code >= 400:
-            self.logMsg("Error, answer from server %s was not as expected. "
-                        "HTTP status code: %s" % (url, answer.status_code), -1)
-            return False
-        xml = answer.text.encode('utf-8')
-        self.logMsg("xml received from server %s: %s" % (url, xml), 2)
-        try:
-            xml = etree.fromstring(xml)
-        except:
-            self.logMsg("Error parsing XML answer from %s" % url, -1)
-            return False
-        return xml
 
     def CheckConnection(self, url, token=None, verifySSL=None):
         """

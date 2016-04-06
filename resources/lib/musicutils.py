@@ -5,13 +5,11 @@
 import os
 
 import xbmc
-import xbmcaddon
 import xbmcvfs
 
-from mutagen.flac import FLAC, Picture
+from mutagen.flac import FLAC
 from mutagen.id3 import ID3
 from mutagen import id3
-import base64
 
 import read_embyserver as embyserver
 import utils

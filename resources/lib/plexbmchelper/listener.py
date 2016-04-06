@@ -17,7 +17,6 @@ class MyHandler(BaseHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         BaseHTTPRequestHandler.__init__(self, *args, **kwargs)
         self.serverlist = []
-        self.settings = self.server.settings
 
     def getServerByHost(self, host):
         if len(self.serverlist) == 1:
@@ -39,7 +38,7 @@ class MyHandler(BaseHTTPRequestHandler):
     def do_OPTIONS(s):
         s.send_response(200)
         s.send_header('Content-Length', '0')
-        s.send_header('X-Plex-Client-Identifier', s.settings['uuid'])
+        s.send_header('X-Plex-Client-Identifier', s.server.settings['uuid'])
         s.send_header('Content-Type', 'text/plain')
         s.send_header('Connection', 'close')
         s.send_header('Access-Control-Max-Age', '1209600')
@@ -71,6 +70,8 @@ class MyHandler(BaseHTTPRequestHandler):
         s.serverlist = s.server.client.getServerList()
         s.subMgr = s.server.subscriptionManager
         s.js = s.server.jsonClass
+        s.settings = s.server.settings
+
         try:
             request_path = s.path[1:]
             request_path = re.sub(r"\?.*", "", request_path)
@@ -97,7 +98,7 @@ class MyHandler(BaseHTTPRequestHandler):
                 resp += ' protocolCapabilities="navigation,playback,timeline"'
                 resp += ' machineIdentifier="%s"' % s.settings['uuid']
                 resp += ' product="PlexKodiConnect"'
-                resp += ' platform="%s"' % getPlatform()
+                resp += ' platform="%s"' % s.settings['platform']
                 resp += ' platformVersion="%s"' % s.settings['plexbmc_version']
                 resp += ' deviceClass="pc"'
                 resp += "/>"
@@ -215,8 +216,10 @@ class MyHandler(BaseHTTPRequestHandler):
             elif request_path == "player/navigation/back":
                 s.response(getOKMsg(), s.js.getPlexHeaders())
                 s.js.jsonrpc("Input.Back")
+
         except:
-            traceback.print_exc()
+            s.logMsg('Error encountered. Traceback:', -1)
+            s.logMsg(traceback.print_exc(), -1)
 
 
 class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):

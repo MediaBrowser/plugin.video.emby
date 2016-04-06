@@ -28,14 +28,12 @@ import PlexAPI
 ###############################################################################
 
 # For logging only
-addonName = clientinfo.ClientInfo().getAddonName()
+addonName = 'PlexKodiConnect'
 title = "%s %s" % (addonName, __name__)
 
 
 def plexCompanion(fullurl, params):
     params = PlexFunctions.LiteralEval(params[26:])
-    utils.logMsg("entrypoint - plexCompanion",
-                 "params is: %s" % params, -1)
 
     if (params['machineIdentifier'] !=
             utils.window('plex_machineIdentifier')):

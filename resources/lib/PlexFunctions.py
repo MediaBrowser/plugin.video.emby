@@ -4,19 +4,12 @@ from ast import literal_eval
 from urlparse import urlparse, parse_qs
 import re
 from copy import deepcopy
-import requests
-
-from xbmcaddon import Addon
 
 import downloadutils
 from utils import logMsg, settings
 
-# Disable requests logging
-from requests.packages.urllib3.exceptions import InsecureRequestWarning
-requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
-
-addonName = Addon().getAddonInfo('name')
+addonName = 'PlexKodiConnect'
 title = "%s %s" % (addonName, __name__)
 
 

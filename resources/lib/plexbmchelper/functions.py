@@ -1,7 +1,9 @@
 import base64
 import json
 import string
+
 import xbmc
+
 from utils import logging
 
 
@@ -48,7 +50,7 @@ def plex_type(xbmc_type):
 
 
 def getXMLHeader():
-    return '<?xml version="1.0" encoding="utf-8" ?>'+"\r\n"
+    return '<?xml version="1.0" encoding="utf-8" ?>\r\n'
 
 
 def getOKMsg():
@@ -131,7 +133,7 @@ class jsonClass():
             "X-Plex-Product": "PlexKodiConnect",
             "X-Plex-Device-Name": self.settings['client_name'],
             "X-Plex-Platform": "Kodi",
-            "X-Plex-Model": getPlatform(),
+            "X-Plex-Model": self.settings['platform'],
             "X-Plex-Device": "PC",
         }
         if self.settings['myplex_user']:
