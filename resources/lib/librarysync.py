@@ -1370,9 +1370,16 @@ class LibrarySync(Thread):
                 # Identify the user - same one as signed on with PKC?
                 # Skip update if neither session's username nor userid match
                 # (Owner sometime's returns id '1', not always)
-                if not (currSess['userId'] == utils.window('currUserId')
-                        or
-                        currSess['username'] == utils.window('plex_username')):
+                if (utils.window('plex_token') == '' and
+                        currSess['userId'] == '1'):
+                    # PKC not signed in to plex.tv. Plus owner of PMS is
+                    # playing (the '1').
+                    # Hence must be us (since several users require plex.tv
+                    # token for PKC)
+                    pass
+                elif not (currSess['userId'] == utils.window('currUserId')
+                          or
+                          currSess['username'] == utils.window('plex_username')):
                     self.logMsg('Our username %s, userid %s did not match the '
                                 'session username %s with userid %s'
                                 % (utils.window('plex_username'),
