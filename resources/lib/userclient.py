@@ -26,23 +26,22 @@ class UserClient(threading.Thread):
     # Borg - multiple instances, shared state
     __shared_state = {}
 
-    auth = True
-    retry = 0
-
-    currUser = None
-    currUserId = None
-    currServer = None
-    currToken = None
-    HasAccess = True
-    AdditionalUser = []
-
-    userSettings = None
-
     def __init__(self):
-
         self.__dict__ = self.__shared_state
-        self.addon = xbmcaddon.Addon()
 
+        self.auth = True
+        self.retry = 0
+
+        self.currUser = None
+        self.currUserId = None
+        self.currServer = None
+        self.currToken = None
+        self.HasAccess = True
+        self.AdditionalUser = []
+
+        self.userSettings = None
+
+        self.addon = xbmcaddon.Addon()
         self.doUtils = downloadutils.DownloadUtils()
 
         threading.Thread.__init__(self)
@@ -62,15 +61,6 @@ class UserClient(threading.Thread):
                 return ""
 
         return username
-
-    def getLogLevel(self):
-
-        try:
-            logLevel = int(utils.settings('logLevel'))
-        except ValueError:
-            logLevel = 0
-
-        return logLevel
 
     def getServer(self, prefix=True):
 

@@ -56,7 +56,7 @@ class Service():
         window = utils.window
 
         self.clientInfo = clientinfo.ClientInfo()
-        logLevel = userclient.UserClient().getLogLevel()
+        logLevel = self.getLogLevel()
         self.monitor = xbmc.Monitor()
 
         window('emby_logLevel', value=str(logLevel))
@@ -97,6 +97,13 @@ class Service():
         # Set the minimum database version
         window('emby_minDBVersion', value="1.1.0")
 
+    def getLogLevel(self):
+        try:
+            logLevel = int(utils.settings('logLevel'))
+        except ValueError:
+            logLevel = 0
+        return logLevel
+
     def ServiceEntryPoint(self):
 
         log = self.logMsg
@@ -123,7 +130,6 @@ class Service():
         kplayer = player.Player()
         xplayer = xbmc.Player()
         plx = PlexAPI.PlexAPI()
-        plexCompanion = PlexCompanion.PlexCompanion()
 
         # Sync and progress report
         lastProgressUpdate = datetime.today()
@@ -172,7 +178,6 @@ class Service():
                                 window('emby_command', clear=True)
                                 kplayer.reportPlayback()
                                 lastProgressUpdate = datetime.today()
-                            
                         except Exception as e:
                             log("Exception in Playback Monitor Service: %s" % e, 1)
                             pass
@@ -204,6 +209,7 @@ class Service():
                         if not self.plexCompanion_running and \
                                 self.runPlexCompanion == "true":
                             self.plexCompanion_running = True
+                            plexCompanion = PlexCompanion.PlexCompanion()
                             plexCompanion.start()
                 else:
                     if (user.currUser is None) and self.warn_auth:
