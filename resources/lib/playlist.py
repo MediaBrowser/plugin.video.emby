@@ -58,7 +58,10 @@ class Playlist():
                     # Item is not found in our database, add item manually
                     log("Item was not found in the database, manually adding item.", 1)
                     item = PlexFunctions.GetPlexMetadata(itemid)
-                    self.addtoPlaylist_xbmc(playlist, item)
+                    if item is None or item == 401:
+                        log('Could not download itemid %s' % itemid, -1)
+                    else:
+                        self.addtoPlaylist_xbmc(playlist, item)
                 else:
                     # Add to playlist
                     self.addtoPlaylist(dbid, mediatype)

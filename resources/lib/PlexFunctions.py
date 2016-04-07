@@ -184,6 +184,9 @@ def GetPlexMetadata(key):
     }
     url = url + '?' + urlencode(arguments)
     xml = downloadutils.DownloadUtils().downloadUrl(url)
+    if xml == 401:
+        # Either unauthorized (taken care of by doUtils) or PMS under strain
+        return 401
     # Did we receive a valid XML?
     try:
         xml.attrib

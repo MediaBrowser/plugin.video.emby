@@ -250,7 +250,7 @@ def doPlayback(itemid, dbid):
             int(sys.argv[1]), False, xbmcgui.ListItem())
 
     item = PlexFunctions.GetPlexMetadata(itemid)
-    if item is None:
+    if item is None or item == 401:
         return xbmcplugin.setResolvedUrl(
             int(sys.argv[1]), False, xbmcgui.ListItem())
     # Everything OK

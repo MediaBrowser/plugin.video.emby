@@ -1921,7 +1921,7 @@ class Music(Items):
                             % parentId, 1)
                 artist = GetPlexMetadata(parentId)
                 # Item may not be an artist, verification necessary.
-                if artist is not None:
+                if artist is not None and artist != 401:
                     if artist[0].attrib.get('type') == "artist":
                         # Update with the parentId, for remove reference
                         emby_db.addReference(
@@ -1942,7 +1942,7 @@ class Music(Items):
             self.logMsg('Artist %s does not exist in emby database'
                         % artistId, 1)
             artist = GetPlexMetadata(artistId)
-            if artist:
+            if artist is not None and artist != 401:
                 self.add_updateArtist(artist[0], artisttype="AlbumArtist")
                 emby_dbartist = emby_db.getItem_byId(artistId)
                 artistid = emby_dbartist[0]
@@ -2140,6 +2140,9 @@ class Music(Items):
                 self.logMsg("Album database entry missing.", 1)
                 emby_albumId = item.attrib.get('parentRatingKey')
                 album = GetPlexMetadata(emby_albumId)
+                if album is None or album == 401:
+                    self.logMsg('Could not download album, abort', -1)
+                    return
                 self.add_updateAlbum(album[0])
                 emby_dbalbum = emby_db.getItem_byId(emby_albumId)
                 try:
@@ -2231,7 +2234,11 @@ class Music(Items):
             except TypeError:
                 # Artist is missing from emby database, add it.
                 artist_full = emby.getItem(artist_eid)
-                self.add_updateArtist(GetPlexMetadata(artist_eid)[0])
+                artistXml = GetPlexMetadata(artist_eid)
+                if artistXml is None or artistXml == 401:
+                    self.logMsg('Error getting artist, abort', -1)
+                    return
+                self.add_updateArtist(artistXml[0])
                 artist_edb = emby_db.getItem_byId(artist_eid)
                 artistid = artist_edb[0]
             finally:

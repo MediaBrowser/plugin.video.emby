@@ -59,7 +59,7 @@ if __name__ == '__main__':
 
     if embyid:
         item = PF.GetPlexMetadata(embyid)
-        if item is None:
+        if item is None or item == 401:
             logMsg('Could not get item metadata for item %s' % embyid, -1)
             return
         API = PlexAPI.API(item[0])

@@ -81,6 +81,22 @@ class ThreadedGetMetadata(Thread):
                     processMetadataCount += 1
                 queue.task_done()
                 continue
+            elif plexXML == 401:
+                self.logMsg('HTTP 401 returned by PMS. Too much strain? '
+                            'Cancelling sync for now', -1)
+                utils.window('plex_scancrashed', value='401')
+                # Kill remaining items in queue (for main thread to cont.)
+                queue.task_done()
+                while not queue.empty():
+                    # Still try because remaining item might have been taken
+                    try:
+                        queue.get(block=False)
+                    except Queue.Empty:
+                        xbmc.sleep(100)
+                        continue
+                    else:
+                        queue.task_done()
+                break
 
             updateItem['XML'] = plexXML
             # place item into out queue
@@ -346,7 +362,7 @@ class LibrarySync(Thread):
 
         # Get the Plex item's metadata
         xml = PF.GetPlexMetadata(plexId)
-        if xml is None:
+        if xml is None or xml == 401:
             self.logMsg("Could not download metadata, aborting time sync", -1)
             return
         libraryId = xml[0].attrib['librarySectionID']
@@ -457,10 +473,15 @@ class LibrarySync(Thread):
         utils.window('emby_initialScan', clear=True)
         xbmc.executebuiltin('InhibitIdleShutdown(false)')
         utils.setScreensaver(value=screensaver)
-        # Show warning if itemtypes.py crashed at some point
         if utils.window('plex_scancrashed') == 'true':
+            # Show warning if itemtypes.py crashed at some point
             self.dialog.ok(self.addonName, self.__language__(39408))
             utils.window('plex_scancrashed', clear=True)
+        elif utils.window('plex_scancrashed') == '401':
+            utils.window('plex_scancrashed', clear=True)
+            if utils.window('emby_serverStatus') not in ('401', 'Auth'):
+                # Plex server had too much and returned ERROR
+                self.dialog.ok(self.addonName, self.__language__(39409))
 
         # Path hack, so Kodis Information screen works
         with kodidb.GetKodiDB('video') as kodi_db:
@@ -1079,6 +1100,9 @@ class LibrarySync(Thread):
         with itemtypes.TVShows() as TVshow:
             for tvShowId in allPlexTvShowsId:
                 XMLtvshow = PF.GetPlexMetadata(tvShowId)
+                if XMLtvshow is None or XMLtvshow == 401:
+                    self.logMsg('Could not download XMLtvshow', -1)
+                    continue
                 TVshow.refreshSeasonEntry(XMLtvshow, tvShowId)
         self.logMsg("Season info refreshed", 1)
 
@@ -1275,7 +1299,7 @@ class LibrarySync(Thread):
     def process_newitems(self, item):
         ratingKey = item['ratingKey']
         xml = PF.GetPlexMetadata(ratingKey)
-        if xml is None:
+        if xml is None or xml == 401:
             self.logMsg('Could not download metadata for %s, skipping'
                         % ratingKey, -1)
             return False
@@ -1399,7 +1423,7 @@ class LibrarySync(Thread):
                 #   viewCount
                 if currSess.get('duration') is None:
                     xml = PF.GetPlexMetadata(ratingKey)
-                    if xml is None:
+                    if xml is None or xml == 401:
                         self.logMsg('Could not get up-to-date xml for item %s'
                                     % ratingKey, -1)
                         continue

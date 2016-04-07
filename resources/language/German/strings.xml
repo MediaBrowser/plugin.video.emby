@@ -379,6 +379,7 @@
     <string id="39406">Plex Playlisten/Nodes Aktualisierung fehlgeschlagen</string>
     <string id="39407">Plex Bibliotheken aktualisiert</string>
     <string id="39408">Einige Plex Einträge mussten übersprungen werden, da sie nicht verarbeitet werden konnten. Kodi ist nun möglicherweise instabil!! Bitte teilen Sie Ihr Kodi log im Plex Forum.</string>
+    <string id="39409">Der Plex Server war überfordert und hat mit ERROR reagiert. Versuchen Sie, in den PKC Optionen die Download Sync Threads Anzahl zu reduzieren. Ein paar Plex Filme wurden nun übersprungen.</string>
 
     <!-- Plex videonodes.py -->
     <string id="39500">Aktuell</string>
