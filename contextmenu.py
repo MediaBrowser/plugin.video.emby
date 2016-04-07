@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-#################################################################################################
+###############################################################################
 
 import os
 import sys
@@ -10,7 +10,7 @@ import xbmc
 import xbmcaddon
 import xbmcgui
 
-addon_ = xbmcaddon.Addon(id='plugin.video.emby')
+addon_ = xbmcaddon.Addon(id='plugin.video.plexkodiconnect')
 addon_path = addon_.getAddonInfo('path').decode('utf-8')
 base_resource = xbmc.translatePath(os.path.join(addon_path, 'resources', 'lib')).decode('utf-8')
 sys.path.append(base_resource)
@@ -24,10 +24,13 @@ import read_embyserver as embyserver
 import embydb_functions as embydb
 import kodidb_functions as kodidb
 import musicutils as musicutils
-import api
+
+import PlexFunctions as PF
+import PlexAPI
+
 
 def logMsg(msg, lvl=1):
-    utils.logMsg("%s %s" % ("EMBY", "Contextmenu"), msg, lvl)
+    utils.logMsg("%s %s" % ("PlexKodiConnect", "Contextmenu"), msg, lvl)
 
 
 #Kodi contextmenu item to configure the emby settings
@@ -47,18 +50,19 @@ if __name__ == '__main__':
     if (not itemid or itemid == "-1") and xbmc.getInfoLabel("ListItem.Property(embyid)"):
         embyid = xbmc.getInfoLabel("ListItem.Property(embyid)")
     else:
-        embyconn = utils.kodiSQL('emby')
-        embycursor = embyconn.cursor()
-        emby_db = embydb.Embydb_Functions(embycursor)
-        item = emby_db.getItem_byKodiId(itemid, itemtype)
-        embycursor.close()
-        if item: embyid = item[0]
-    
+        with embydb.GetEmbyDB() as emby_db:
+            item = emby_db.getItem_byKodiId(itemid, itemtype)
+        if item:
+            embyid = item[0]
+
     logMsg("Contextmenu opened for embyid: %s  - itemtype: %s" %(embyid,itemtype))
 
     if embyid:
-        item = emby.getItem(embyid)
-        API = api.API(item)
+        item = PF.GetPlexMetadata(embyid)
+        if item is None:
+            logMsg('Could not get item metadata for item %s' % embyid, -1)
+            return
+        API = PlexAPI.API(item[0])
         userdata = API.getUserData()
         likes = userdata['Likes']
         favourite = userdata['Favorite']
@@ -124,7 +128,7 @@ if __name__ == '__main__':
 
             if options[ret] == utils.language(30408):
                 #Open addon settings
-                xbmc.executebuiltin("Addon.OpenSettings(plugin.video.emby)")
+                xbmc.executebuiltin("Addon.OpenSettings(plugin.video.plexkodiconnect)")
                 
             if options[ret] == utils.language(30409):
                 #delete item from the server
