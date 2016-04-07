@@ -566,6 +566,10 @@ def switchPlexUser():
         counter += 1
         xbmc.sleep(50)
 
+    # First remove playlists
+    utils.deletePlaylists()
+    # Remove video nodes
+    utils.deleteNodes()
     # Log out currently signed in user:
     utils.window('emby_serverStatus', value="401")
     # Request lib sync to get user view data (e.g. watched/unwatched)
