@@ -405,10 +405,13 @@ class LibrarySync(Thread):
         return
 
     @utils.LogTime
-    def fullSync(self, manualrun=False, repair=False):
+    def fullSync(self, repair=False):
+        """
+        repair=True: force sync EVERY item
+        """
         # self.compare == False: we're syncing EVERY item
         # True: we're syncing only the delta, e.g. different checksum
-        self.compare = manualrun or repair
+        self.compare = not repair
 
         xbmc.executebuiltin('InhibitIdleShutdown(true)')
         screensaver = utils.getScreensaver()
@@ -675,8 +678,7 @@ class LibrarySync(Thread):
                     % self.views, 1)
         return True
 
-    def GetUpdatelist(self, xml, itemType, method, viewName, viewId,
-                      dontCheck=False):
+    def GetUpdatelist(self, xml, itemType, method, viewName, viewId):
         """
         THIS METHOD NEEDS TO BE FAST! => e.g. no API calls
 
@@ -689,8 +691,6 @@ class LibrarySync(Thread):
                                     see itemtypes.py
             viewName:               Name of the Plex view (e.g. 'My TV shows')
             viewId:                 Id/Key of Plex library (e.g. '1')
-            dontCheck:              If True, skips checksum check but assumes
-                                    that all items in xml must be processed
 
         Output: self.updatelist, self.allPlexElementsId
             self.updatelist         APPENDED(!!) list itemids (Plex Keys as
@@ -706,7 +706,7 @@ class LibrarySync(Thread):
             self.allPlexElementsId      APPENDED(!!) dict
                 = {itemid: checksum}
         """
-        if self.compare or not dontCheck:
+        if self.compare:
             # Only process the delta - new or changed items
             for item in xml:
                 itemId = item.attrib.get('ratingKey')
@@ -1511,7 +1511,7 @@ class LibrarySync(Thread):
                 log("Db version: %s" % settings('dbCreatedWithVersion'), 0)
                 self.syncPMStime()
                 log("Initial start-up full sync starting", 0)
-                librarySync = fullSync(manualrun=True)
+                librarySync = fullSync()
                 # Initialize time offset Kodi - PMS
                 window('emby_dbScan', clear=True)
                 if librarySync:
@@ -1535,11 +1535,14 @@ class LibrarySync(Thread):
             # Currently no db scan, so we can start a new scan
             elif window('emby_dbScan') != "true":
                 # Full scan was requested from somewhere else, e.g. userclient
-                if window('plex_runLibScan') == "full":
+                if window('plex_runLibScan') in ("full", "repair"):
                     log('Full library scan requested, starting', 0)
                     window('emby_dbScan', value="true")
+                    if window('plex_runLibScan') == "full":
+                        fullSync()
+                    elif window('plex_runLibScan') == "repair":
+                        fullSync(repair=True)
                     window('plex_runLibScan', clear=True)
-                    fullSync(manualrun=True)
                     window('emby_dbScan', clear=True)
                     # Full library sync finished
                     self.showKodiNote(string(39407), forced=True)
@@ -1576,7 +1579,7 @@ class LibrarySync(Thread):
                         self.syncPMStime()
                         window('emby_dbScan', value="true")
                         log('Running background full lib scan', 0)
-                        fullSync(manualrun=True)
+                        fullSync()
                         window('emby_dbScan', clear=True)
                         # Full library sync finished
                         self.showKodiNote(string(39407), forced=False)

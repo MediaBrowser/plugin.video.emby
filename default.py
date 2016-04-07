@@ -135,8 +135,12 @@ class Main:
                     return
                     
                 else:
-                    utils.logMsg("PLEX", "Requesting full library scan", 1)
-                    utils.window('plex_runLibScan', value="full")
+                    if mode == 'repair':
+                        utils.window('plex_runLibScan', value="repair")
+                        utils.logMsg("PLEX", "Requesting repair lib sync", 1)
+                    elif mode == 'manualsync':
+                        utils.logMsg("PLEX", "Requesting full library scan", 1)
+                        utils.window('plex_runLibScan', value="full")
                     
             elif mode == "texturecache":
                 import artwork
