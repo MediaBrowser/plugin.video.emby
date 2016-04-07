@@ -464,7 +464,12 @@ class LibrarySync(Thread):
 
         # Path hack, so Kodis Information screen works
         with kodidb.GetKodiDB('video') as kodi_db:
-            kodi_db.pathHack()
+            try:
+                kodi_db.pathHack()
+            except Exception as e:
+                # Empty movies, tv shows?
+                self.logMsg('Path hack failed with error message: %s'
+                            % str(e), -1)
         return True
 
     def processView(self, folderItem, kodi_db, emby_db, totalnodes):
