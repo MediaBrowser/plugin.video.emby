@@ -39,6 +39,7 @@ class WebSocket(threading.Thread):
             self.logMsg(message, -1)
             return False
 
+        self.logMsg('websocket message received: %s' % message, -1)
         # Triage
         typus = message.get('type')
         if typus is None:

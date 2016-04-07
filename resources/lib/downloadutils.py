@@ -5,6 +5,8 @@
 import requests
 import xml.etree.ElementTree as etree
 
+import xbmcgui
+
 from utils import logging, settings, window
 import clientinfo
 
@@ -244,6 +246,27 @@ class DownloadUtils():
         if r.status_code == 204:
             # No body in the response
             return True
+
+        elif r.status_code == 401:
+            r.encoding = 'utf-8'
+            self.logMsg('HTTP error 401 from PMS. Message received:', -1)
+            self.logMsg(r.text, -1)
+            if '401 Unauthorized' in r.text:
+                # Truly unauthorized
+                self.logMsg('We seem to be truely unauthorized', 0)
+                if window('emby_serverStatus') not in ('401', 'Auth'):
+                    # Tell userclient token has been revoked.
+                    self.logMsg('Setting emby_serverStatus to 401', 0)
+                    window('emby_serverStatus', value="401")
+                    xbmcgui.Dialog().notification(
+                        self.addonName,
+                        "Error connecting: Unauthorized.",
+                        xbmcgui.NOTIFICATION_ERROR)
+                return 401
+            else:
+                # there might be other 401 where e.g. PMS is under strain (tbv)
+                self.logMsg('PMS might only be under strain', 0)
+                return 401
 
         elif r.status_code in (200, 201):
             # 200: OK

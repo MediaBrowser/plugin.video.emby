@@ -474,7 +474,7 @@ def GetPMSStatus(token):
     """
     answer = {}
     xml = downloadutils.DownloadUtils().downloadUrl(
-        "{server}" + '/status/sessions',
+        '{server}/status/sessions',
         type="GET",
         headerOptions={'X-Plex-Token': token})
     try:

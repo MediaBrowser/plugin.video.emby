@@ -253,6 +253,7 @@ class UserClient(threading.Thread):
                       lang(39023))
             xbmc.executebuiltin(
                 'Addon.OpenSettings(plugin.video.plexkodiconnect)')
+            return False
 
         # Get /profile/addon_data
         addondir = xbmc.translatePath(
