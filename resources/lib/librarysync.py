@@ -420,12 +420,6 @@ class LibrarySync(Thread):
         # Set new timestamp NOW because sync might take a while
         self.saveLastSync()
 
-        # Deactivate Kodi popup showing that it's (unsuccessfully) trying to
-        # scan music folders
-        if self.enableMusic:
-            utils.musiclibXML()
-            utils.advancedSettingsXML()
-
         # Ensure that DBs exist if called for very first time
         self.initializeDBs()
         # Set views. Abort if unsuccessful

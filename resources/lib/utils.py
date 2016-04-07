@@ -617,6 +617,8 @@ def indent(elem, level=0):
 
 def musiclibXML():
     """
+    UNUSED - WORK IN PROGRESS
+
     Deactivates Kodi trying to scan music library on startup
 
     Changes guisettings.xml in Kodi userdata folder:
@@ -673,6 +675,8 @@ def guisettingsXML():
 
 def advancedSettingsXML():
     """
+    UNUSED
+
     Deactivates Kodi popup for scanning of music library
 
     Changes advancedsettings.xml, musiclibrary:
