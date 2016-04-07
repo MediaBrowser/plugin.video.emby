@@ -114,6 +114,8 @@ class Service():
         # Queue for background sync
         queue = Queue.Queue(maxsize=200)
 
+        connectMsg = True if utils.settings('connectMsg') == 'true' else False
+
         # Initialize important threads
         user = userclient.UserClient()
         ws = wsc.WebSocket(queue)
@@ -177,8 +179,7 @@ class Service():
                     else:
                         # Start up events
                         self.warn_auth = True
-                        if (utils.settings('connectMsg') == "true" and
-                                self.welcome_msg):
+                        if connectMsg and self.welcome_msg:
                             # Reset authentication warnings
                             self.welcome_msg = False
                             xbmcgui.Dialog().notification(
@@ -272,8 +273,6 @@ class Service():
                         if not self.userclient_running:
                             self.userclient_running = True
                             user.start()
-                        
-
 
                         break
 
