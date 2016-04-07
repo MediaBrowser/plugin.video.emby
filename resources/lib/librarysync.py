@@ -238,6 +238,7 @@ class LibrarySync(Thread):
         self.user = userclient.UserClient()
         self.emby = embyserver.Read_EmbyServer()
         self.vnodes = videonodes.VideoNodes()
+        self.dialog = xbmcgui.Dialog()
 
         self.syncThreadNumber = int(utils.settings('syncThreadNumber'))
         self.installSyncDone = True if \
@@ -266,23 +267,26 @@ class LibrarySync(Thread):
 
         icon:   "plex": shows Plex icon
                 "error": shows Kodi error icon
+
+        forced: always show popup, even if user setting to off
         """
-        if not (self.showDbSync or forced):
-            return
+        if not self.showDbSync:
+            if not forced:
+                return
         if icon == "plex":
-            xbmcgui.Dialog().notification(
-                heading=self.addonName,
-                message=message,
-                icon="special://home/addons/plugin.video.plexkodiconnect/icon.png",
-                time=5000,
-                sound=False)
+            self.dialog.notification(
+                self.addonName,
+                message,
+                "special://home/addons/plugin.video.plexkodiconnect/icon.png",
+                5000,
+                False)
         elif icon == "error":
-            xbmcgui.Dialog().notification(
-                heading=self.addonName,
-                message=message,
-                icon=xbmcgui.NOTIFICATION_ERROR,
-                time=7000,
-                sound=True)
+            self.dialog.notification(
+                self.addonName,
+                message,
+                xbmcgui.NOTIFICATION_ERROR,
+                7000,
+                True)
 
     def syncPMStime(self):
         """
@@ -458,7 +462,7 @@ class LibrarySync(Thread):
         utils.setScreensaver(value=screensaver)
         # Show warning if itemtypes.py crashed at some point
         if utils.window('plex_scancrashed') == 'true':
-            xbmcgui.Dialog().ok(self.addonName, self.__language__(39408))
+            self.dialog.ok(self.addonName, self.__language__(39408))
             utils.window('plex_scancrashed', clear=True)
 
         # Path hack, so Kodis Information screen works
@@ -1431,7 +1435,7 @@ class LibrarySync(Thread):
             self.logMsg('LibrarySync thread crashed', -1)
             self.logMsg('Error message: %s' % e, -1)
             # Library sync thread has crashed
-            xbmcgui.Dialog().ok(
+            self.dialog.ok(
                 heading=self.addonName,
                 line1=self.__language__(39400))
             raise
@@ -1452,8 +1456,6 @@ class LibrarySync(Thread):
         lastProcessing = 0
 
         xbmcplayer = xbmc.Player()
-
-        dialog = xbmcgui.Dialog()
 
         queue = self.queue
 
@@ -1482,13 +1484,13 @@ class LibrarySync(Thread):
                     log("Db version out of date: %s minimum version required: "
                         "%s" % (currentVersion, minVersion), 0)
                     # DB out of date. Proceed to recreate?
-                    resp = dialog.yesno(heading=self.addonName,
-                                        line1=string(39401))
+                    resp = self.dialog.yesno(heading=self.addonName,
+                                             line1=string(39401))
                     if not resp:
                         log("Db version out of date! USER IGNORED!", 0)
                         # PKC may not work correctly until reset
-                        dialog.ok(heading=self.addonName,
-                                  line1=(self.addonName + string(39402)))
+                        self.dialog.ok(heading=self.addonName,
+                                       line1=(self.addonName + string(39402)))
                     else:
                         utils.reset()
                     break
@@ -1506,8 +1508,8 @@ class LibrarySync(Thread):
                     log('Current Kodi version: %s' % xbmc.getInfoLabel(
                         'System.BuildVersion').decode('utf-8'))
                     # "Current Kodi version is unsupported, cancel lib sync"
-                    dialog.ok(heading=self.addonName,
-                              line1=string(39403))
+                    self.dialog.ok(heading=self.addonName,
+                                   line1=string(39403))
                     break
 
                 # Run start up sync
@@ -1532,8 +1534,8 @@ class LibrarySync(Thread):
                         log("Startup full sync failed. Stopping sync", -1)
                         # "Startup syncing process failed repeatedly"
                         # "Please restart"
-                        dialog.ok(heading=self.addonName,
-                                  line1=string(39404))
+                        self.dialog.ok(heading=self.addonName,
+                                       line1=string(39404))
                         break
 
             # Currently no db scan, so we can start a new scan
