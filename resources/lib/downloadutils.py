@@ -145,7 +145,8 @@ class DownloadUtils():
         return r
 
     def downloadUrl(self, url, type="GET", postBody=None, parameters=None,
-                    authenticate=True, headerOptions=None, verifySSL=True):
+                    authenticate=True, headerOptions=None, verifySSL=True,
+                    dontSignout=False):
         """
         Override SSL check with verifySSL=False
 
@@ -248,6 +249,9 @@ class DownloadUtils():
             return True
 
         elif r.status_code == 401:
+            if dontSignout is True:
+                # Called when checking a connect - no need for rash action
+                return 401
             r.encoding = 'utf-8'
             self.logMsg('HTTP error 401 from PMS. Message received:', -1)
             self.logMsg(r.text, -1)
