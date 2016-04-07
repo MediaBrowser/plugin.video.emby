@@ -422,6 +422,10 @@ class LibrarySync(Thread):
 
         # Ensure that DBs exist if called for very first time
         self.initializeDBs()
+        # First remove playlists
+        utils.deletePlaylists()
+        # Remove video nodes
+        utils.deleteNodes()
         # Set views. Abort if unsuccessful
         if not self.maintainViews():
             xbmc.executebuiltin('InhibitIdleShutdown(false)')
