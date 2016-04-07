@@ -47,6 +47,27 @@ class Kodidb_Functions():
         self.clientInfo = clientinfo.ClientInfo()
         self.artwork = artwork.Artwork()
 
+    def pathHack(self):
+        """
+        Use with Kodi video DB
+
+        Sets strContent to e.g. 'movies' and strScraper to metadata.local
+
+        For some reason, Kodi ignores this if done via itemtypes while e.g.
+        adding or updating items. (addPath method does NOT work)
+        """
+        types = ['movies', 'tvshows']
+        query = ' '.join((
+            "UPDATE path",
+            "SET strContent = ?, strScraper = ?",
+            "WHERE strPath LIKE ?"
+        ))
+        for typus in types:
+            self.cursor.execute(
+                query, (typus,
+                        'metadata.local',
+                        'plugin://plugin.video.plexkodiconnect.%s%%' % typus))
+
     def addPath(self, path, strHash=None):
         # SQL won't return existing paths otherwise
         if path is None:

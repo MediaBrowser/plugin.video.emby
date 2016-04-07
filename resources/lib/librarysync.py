@@ -460,6 +460,10 @@ class LibrarySync(Thread):
         if utils.window('plex_scancrashed') == 'true':
             xbmcgui.Dialog().ok(self.addonName, self.__language__(39408))
             utils.window('plex_scancrashed', clear=True)
+
+        # Path hack, so Kodis Information screen works
+        with kodidb.GetKodiDB('video') as kodi_db:
+            kodi_db.pathHack()
         return True
 
     def processView(self, folderItem, kodi_db, emby_db, totalnodes):
