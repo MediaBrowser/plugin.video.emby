@@ -1278,7 +1278,7 @@ class API():
         try:
             playcount = int(item['viewCount'])
         except:
-            playcount = 0
+            playcount = None
 
         if playcount:
             played = True
