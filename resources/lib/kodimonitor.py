@@ -72,6 +72,10 @@ class KodiMonitor(xbmc.Monitor):
         if method == "Player.OnPlay":
             self.PlayBackStart(data)
 
+        elif method == "Player.OnStop":
+            # Should refresh our video nodes, e.g. on deck
+            xbmc.executebuiltin('Container.Refresh')
+
         elif method == "VideoLibrary.OnUpdate":
             # Manually marking as watched/unwatched
             playcount = data.get('playcount')
