@@ -1230,6 +1230,13 @@ class LibrarySync(Thread):
                                viewName,
                                viewId)
 
+        if self.compare:
+            # Manual sync, process deletes
+            with itemtypes.Music() as Music:
+                for itemid in self.allKodiElementsId:
+                    if itemid not in self.allPlexElementsId:
+                        Music.remove(itemid)
+
     def compareDBVersion(self, current, minimum):
         # It returns True is database is up to date. False otherwise.
         self.logMsg("current: %s minimum: %s" % (current, minimum), 1)
