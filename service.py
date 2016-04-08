@@ -95,7 +95,7 @@ class Service():
         videonodes.VideoNodes().clearProperties()
         
         # Set the minimum database version
-        window('emby_minDBVersion', value="1.1.0")
+        window('emby_minDBVersion', value="1.1.1")
 
     def getLogLevel(self):
         try:

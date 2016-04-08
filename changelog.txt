@@ -1,3 +1,19 @@
+version 1.1.1
+(you will need to rescan your library)
+- Fix Kodi information screen not working
+- Fix entire TV shows showing up as watched
+- Clear playlists and video nodes on user switch
+- Update playstate if owner plays for single user PMS
+- Deal with PMS reply 401 under too much strain
+- Fix Library Repair Sync
+- Rewired downloads and connecting to PMS
+- Shut down libsync more cleanly if interrupted
+- Use Plex library for timesync
+- Try 3x before declaring plex connection dead
+- Plex Companion cleanup (e.g. fix instance chaos)
+- Fix TypeError with PMS item 'addedAt' missing
+
+
 version 1.1.0
 (you will need to rescan your library)
 - No constant polling of your PMS anymore! (use websockets)
