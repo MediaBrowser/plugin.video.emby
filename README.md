@@ -37,6 +37,7 @@ This software is yet in a Beta version. You have been warned. It's very probable
 
 First try to restart Kodi. If that does not help: try resetting the Addon: Settings -> Advanced -> "Partial or Full Reset of Database and PKC". Then choose 3x "Yes".
 If you're still having problems, let me know:
+
 1. Activate a more detailed logging for KodiPlexConnect: Settings -> Advanced -> "Debug"
 2. Follow the instructions here: http://kodi.wiki/view/Log_file/Easy and try to reproduce the bug
 3. Don't forget to **delete all references to any of your Plex tokens**!! You don't want others to have access to your Plex installation
