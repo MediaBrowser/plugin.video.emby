@@ -32,7 +32,9 @@ This addon synchronizes your media on your Plex server to the native Kodi databa
 
 This software is yet in a Beta version. You have been warned. It's very probable that you will need to fully resync and reset your setup on a regular basis.
 
+
 **Having Problems? Then thanks for your log files**
+
 First try to restart Kodi. If that does not help: try resetting the Addon: Settings -> Advanced -> "Partial or Full Reset of Database and PKC". Then choose 3x "Yes".
 If you're still having problems, let me know:
 1. Activate a more detailed logging for KodiPlexConnect: Settings -> Advanced -> "Debug"
@@ -55,15 +57,9 @@ Currently these features are working:
 **Known Issues:**
 
 Solutions are unlikely due to the nature of these issues
-
-*Plex Music:*
-- Kodi tries to scan every(!) single Plex song on startup. This leads to errors in the Kodi log file and potentially even crashes. (Plex puts each song in a "dedicated folder", e.g. 'http://192.168.1.1:32400/library/parts/749450/'. Kodi unsuccessfully tries to scan these folders)
-- You must have a static IP address for your Plex media server if you plan to use Plex Music features. This is due to the way Kodi works and cannot be helped. 
-
-*Plex updates:*
+- *Plex Music:* Kodi tries to scan every(!) single Plex song on startup. This leads to errors in the Kodi log file and potentially even crashes. (Plex puts each song in a "dedicated folder", e.g. 'http://192.168.1.1:32400/library/parts/749450/'. Kodi unsuccessfully tries to scan these folders)
+- *Plex Music:* You must have a static IP address for your Plex media server if you plan to use Plex Music features. This is due to the way Kodi works and cannot be helped. 
 - If something on the PMS has changed, this change is synced to Kodi. Hence if you rescan your entire library, a long PlexKodiConnect re-sync is triggered.
-
-*Subtitles:*
 - External Plex subtitles (separate file, e.g. mymovie.srt) can be used, but it is impossible to label them correctly/tell what language they are in. However, this is not the case if you use direct paths
 
 *Background Sync:*
