@@ -83,6 +83,8 @@ class Items(object):
             heading=self.addonName,
             line1=string(39031) + url,
             line2=string(39032))
+        if resp:
+            utils.window('suspend_LibraryThread', value="true")
         return resp
 
     def itemsbyId(self, items, process, pdialog=None):
@@ -1051,7 +1053,6 @@ class TVShows(Items):
                         not xbmcvfs.exists(path.encode('utf-8'))):
                     # Validate the path is correct with user intervention
                     if self.askToValidate(playurl):
-                        utils.window('emby_shouldStop', value="true")
                         return False
                 utils.window('emby_pathverified', value="true")
         if doIndirect:
@@ -1334,7 +1335,6 @@ class TVShows(Items):
                         not xbmcvfs.exists(playurl.encode('utf-8'))):
                     # Validate the path is correct with user intervention
                     if self.askToValidate(playurl):
-                        utils.window('emby_shouldStop', value="true")
                         return False
                 if "\\" in playurl:
                     # Local path
@@ -2086,7 +2086,6 @@ class Music(Items):
                         not xbmcvfs.exists(playurl.encode('utf-8'))):
                     # Validate the path is correct with user intervention
                     if self.askToValidate(playurl):
-                        utils.window('emby_shouldStop', value="true")
                         return False
                 if "\\" in playurl:
                     # Local path

@@ -27,7 +27,7 @@ import PlexAPI
 
 
 @utils.logging
-@utils.ThreadMethodsAdditionalStop('emby_shouldStop')
+@utils.ThreadMethodsAdditionalStop('suspend_LibraryThread')
 @utils.ThreadMethods
 class ThreadedGetMetadata(Thread):
     """
@@ -114,7 +114,7 @@ class ThreadedGetMetadata(Thread):
         self.terminateNow()
 
 
-@utils.ThreadMethodsAdditionalStop('emby_shouldStop')
+@utils.ThreadMethodsAdditionalStop('suspend_LibraryThread')
 @utils.ThreadMethods
 class ThreadedProcessMetadata(Thread):
     """
@@ -186,7 +186,7 @@ class ThreadedProcessMetadata(Thread):
         self.terminateNow()
 
 
-@utils.ThreadMethodsAdditionalStop('emby_shouldStop')
+@utils.ThreadMethodsAdditionalStop('suspend_LibraryThread')
 @utils.ThreadMethods
 class ThreadedShowSyncInfo(Thread):
     """
