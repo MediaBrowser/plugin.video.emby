@@ -87,10 +87,10 @@ def chooseServer():
         sound=False)
     # Pause library sync thread - user needs to be auth in order to sync
     utils.window('suspend_LibraryThread', value='true')
-    # Wait max for 25 seconds for all lib scans to finish
+    # Wait max for 5 seconds for all lib scans to shutdown
     counter = 0
     while utils.window('emby_dbScan') == 'true':
-        if counter > 500:
+        if counter > 100:
             # Failed to reset PMS and plex.tv connects. Try to restart Kodi.
             dialog.ok(addonName,
                       string(39208))
