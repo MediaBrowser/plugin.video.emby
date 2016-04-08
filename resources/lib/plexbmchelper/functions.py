@@ -106,8 +106,6 @@ class jsonClass():
                                  "jsonrpc" : "2.0",
                                  "method"  : action})
 
-        self.logMsg("Sending request to XBMC without network stack: %s"
-                    % request, 2)
         result = self.parseJSONRPC(xbmc.executeJSONRPC(request))
 
         if not result and self.settings['webserver_enabled']:
@@ -145,7 +143,6 @@ class jsonClass():
             self.logMsg("Empty response from XBMC", 1)
             return {}
         else:
-            self.logMsg("Response from XBMC: %s" % jsonraw, 2)
             parsed=json.loads(jsonraw)
         if parsed.get('error', False):
             self.logMsg("XBMC returned an error: %s" % parsed.get('error'), -1)
