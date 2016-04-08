@@ -1536,6 +1536,11 @@ class LibrarySync(Thread):
         errorcount = 0
 
         log("---===### Starting LibrarySync ###===---", 0)
+
+        if self.enableMusic:
+            # utils.musiclibXML()
+            utils.advancedSettingsXML()
+
         while not threadStopped():
 
             # In the event the server goes offline

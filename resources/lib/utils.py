@@ -745,7 +745,7 @@ def sourcesXML():
         # Missing smb:// occurences, re-add.
         for i in range(0, count):
             source = etree.SubElement(video, 'source')
-            etree.SubElement(source, 'name').text = "Emby"
+            etree.SubElement(source, 'name').text = "Plex"
             etree.SubElement(source, 'path', attrib={'pathversion': "1"}).text = "smb://"
             etree.SubElement(source, 'allowsharing').text = "true"
     # Prettify and write to file
