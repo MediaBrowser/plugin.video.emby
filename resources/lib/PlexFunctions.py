@@ -421,7 +421,8 @@ def PMSHttpsEnabled(url):
     doUtils = downloadutils.DownloadUtils().downloadUrl
     res = doUtils('https://%s/identity' % url,
                   authenticate=False,
-                  verifySSL=False)
+                  verifySSL=False,
+                  dontSignout=True)
     try:
         res.attrib
     except:

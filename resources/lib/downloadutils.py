@@ -200,10 +200,11 @@ class DownloadUtils():
         # THE EXCEPTIONS
         except requests.exceptions.ConnectionError as e:
             # Connection error
-            self.logMsg("Server unreachable at: %s" % url, -1)
-            self.logMsg(e, 2)
-            # Make the addon aware of status
-            window('emby_online', value="false")
+            if dontSignout is False:
+                self.logMsg("Server unreachable at: %s" % url, -1)
+                self.logMsg(e, 2)
+                # Make the addon aware of status
+                window('emby_online', value="false")
             return False
 
         except requests.exceptions.ConnectTimeout as e:
