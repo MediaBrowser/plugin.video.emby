@@ -237,6 +237,8 @@ def DownloadChunks(url, containerSize):
     if containerSize is None:
         # Get rid of '?' or '&' at the end of url
         xml = downloadutils.DownloadUtils().downloadUrl(url[:-1])
+        if xml == 401:
+            return 401
         try:
             xml.attrib
         except AttributeError:

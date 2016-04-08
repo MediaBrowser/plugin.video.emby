@@ -76,6 +76,7 @@
 		<setting type="lsep" label="30523" visible="false"/> <!-- Music metadata options -->
         <setting id="enableImportSongRating" type="bool" label="30524" default="true" visible="false"/>
         <setting id="enableExportSongRating" type="bool" label="30525" default="false" visible="false" />
+        <setting id="kodiplextimeoffset" type="number" label="Time difference in seconds (Koditime - Plextime)" default="0" visible="false" option="int" />
         <setting id="enableUpdateSongRating" type="bool" label="30526" default="false" visible="false" />
         <setting id="emby_pathverified" type="bool" default="false" visible="false" /> <!-- If 'false': one single warning message pops up if PKC cannot verify direct paths -->
 	</category>

@@ -444,7 +444,7 @@
     <string id="39407">Full library sync finished</string>
     <string id="39408">Sync had to skip some items because they could not be processed. Kodi may be instable now!! Please post your Kodi logs to the Plex forum.</string>
     <string id="39409">The Plex Server did not like you asking for so much data at once and returned ERRORS. Try lowering the number of sync download threads in the settings. Skipped some items for now.</string>
-
+    <string id="39410">ERROR in library sync</string>
 
     <!-- Plex videonodes.py -->
     <string id="39500">On Deck</string>
