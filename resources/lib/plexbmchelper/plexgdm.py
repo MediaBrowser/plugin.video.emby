@@ -150,8 +150,7 @@ class plexgdm:
                     except:
                         self.logMsg("Unable to send client update message", -1)
 
-                    self.logMsg("Sending registration data: HTTP/1.0 200 OK"
-                                "\r\n%s" % self.client_data, 2)
+                    self.logMsg("Sending registration data HTTP/1.0 200 OK", 2)
                     self.client_registered = True
             sleep(500)
 
