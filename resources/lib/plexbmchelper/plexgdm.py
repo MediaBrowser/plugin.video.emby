@@ -236,7 +236,6 @@ class plexgdm:
                 try:
                     data, server = sock.recvfrom(1024)
                     self.logMsg("Received data from %s, %s" % server, 2)
-                    self.logMsg("Data received is:\r\n %s" % data, 2)
                     returnData.append({'from': server,
                                        'data': data})
                 except socket.timeout:

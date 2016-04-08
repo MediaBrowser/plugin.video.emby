@@ -46,9 +46,6 @@ class ThreadedGetMetadata(Thread):
         self.out_queue = out_queue
         self.lock = lock
         self.processlock = processlock
-        # Just in case a time sync goes wrong
-        utils.window('kodiplextimeoffset',
-                     utils.settings('kodiplextimeoffset'))
         Thread.__init__(self)
 
     def terminateNow(self):
@@ -291,11 +288,9 @@ class LibrarySync(Thread):
         if utils.settings('emby_pathverified') == 'true':
             utils.window('emby_pathverified', value='true')
 
-        # Time offset between Kodi and PMS in seconds (=Koditime - PMStime)
-        self.timeoffset = 0
-        self.lastSync = 0
-        self.lastTimeSync = 0
-
+        # Just in case a time sync goes wrong
+        self.timeoffset = int(utils.settings('kodiplextimeoffset'))
+        utils.window('kodiplextimeoffset', value=str(self.timeoffset))
         Thread.__init__(self)
 
     def showKodiNote(self, message, forced=False, icon="plex"):
@@ -338,101 +333,98 @@ class LibrarySync(Thread):
         self.logMsg('Synching time with PMS server', 0)
         # Find a PMS item where we can toggle the view state to enforce a
         # change in lastViewedAt
-        with kodidb.GetKodiDB('video') as kodi_db:
-            unplayedIds = kodi_db.getUnplayedItems()
-            resumeIds = kodi_db.getResumes()
-        self.logMsg('resumeIds: %s' % resumeIds, 1)
 
-        plexId = False
-        for unplayedId in unplayedIds:
-            if unplayedId not in resumeIds:
-                if self.threadStopped():
-                    return
-                # Found an item we can work with!
-                kodiId = unplayedId
-                self.logMsg('Found kodiId: %s' % kodiId, 1)
-                # Get Plex ID using the Kodi ID
-                with embydb.GetEmbyDB() as emby_db:
-                    plexId = emby_db.getItem_byFileId(kodiId, 'movie')
-                    if plexId:
-                        self.logMsg('Found movie plexId: %s' % plexId, 1)
-                        break
-                    else:
-                        plexId = emby_db.getItem_byFileId(kodiId, 'episode')
-                        if plexId:
-                            self.logMsg('Found episode plexId: %s' % plexId, 1)
-                            break
+        # Get all Plex libraries
+        sections = downloadutils.DownloadUtils().downloadUrl(
+            "{server}/library/sections")
+        try:
+            sections.attrib
+        except AttributeError:
+            self.logMsg("Error download PMS views, abort syncPMStime", -1)
+            return False
 
-        # Try getting a music item if we did not find a video item
-        if not plexId:
-            self.logMsg("Could not find a video item to sync time with", 0)
-            with kodidb.GetKodiDB('music') as kodi_db:
-                unplayedIds = kodi_db.getUnplayedMusicItems()
-                # We don't care about resuming songs in the middle
-            for unplayedId in unplayedIds:
-                if self.threadStopped():
-                    return
-                # Found an item we can work with!
-                kodiId = unplayedId
-                self.logMsg('Found kodiId: %s' % kodiId, 1)
-                # Get Plex ID using the Kodi ID
-                with embydb.GetEmbyDB() as emby_db:
-                    plexId = emby_db.getMusicItem_byFileId(kodiId, 'song')
-                if plexId:
-                    self.logMsg('Found plexId: %s' % plexId, 1)
+        plexId = None
+        for mediatype in ('movie', 'show', 'artist'):
+            if plexId is not None:
+                break
+            for view in sections:
+                if plexId is not None:
                     break
-            else:
-                self.logMsg("Could not find an item to sync time with", -1)
-                self.logMsg("Aborting PMS-Kodi time sync", -1)
-                return
+                if not view.attrib['type'] == mediatype:
+                    continue
+                items = PF.GetAllPlexLeaves(view.attrib['key'],
+                                            containerSize=self.limitindex)
+                if items in (None, 401):
+                    self.logMsg("Could not download section %s"
+                                % view.attrib['key'], -1)
+                    continue
+                for item in items:
+                    if item.attrib.get('viewCount') is not None:
+                        # Don't want to mess with items that have playcount>0
+                        continue
+                    if item.attrib.get('viewOffset') is not None:
+                        # Don't mess with items with a resume point
+                        continue
+                    plexId = item.attrib.get('ratingKey')
+                    self.logMsg('Found an item to sync with: %s' % plexId, 1)
+                    break
+
+        if plexId is None:
+            self.logMsg("Could not find an item to sync time with", -1)
+            self.logMsg("Aborting PMS-Kodi time sync", -1)
+            return False
 
         # Get the Plex item's metadata
         xml = PF.GetPlexMetadata(plexId)
-        if xml is None or xml == 401:
+        if xml in (None, 401):
             self.logMsg("Could not download metadata, aborting time sync", -1)
-            return
+            return False
+
         libraryId = xml[0].attrib['librarySectionID']
-        # Get a PMS timestamp to start our question with
         timestamp = xml[0].attrib.get('lastViewedAt')
-        if not timestamp:
+        if timestamp is None:
             timestamp = xml[0].attrib.get('updatedAt')
             self.logMsg('Using items updatedAt=%s' % timestamp, 1)
-            if not timestamp:
+            if timestamp is None:
                 timestamp = xml[0].attrib.get('addedAt')
                 self.logMsg('Using items addedAt=%s' % timestamp, 1)
+                if timestamp is None:
+                    timestamp = 0
+                    self.logMsg('No timestamp; using 0', 1)
+
         # Set the timer
         koditime = utils.getUnixTimestamp()
         # Toggle watched state
         PF.scrobble(plexId, 'watched')
         # Let the PMS process this first!
-        xbmc.sleep(2000)
-        # Get all PMS items to find the item we just changed
+        xbmc.sleep(1000)
+        # Get PMS items to find the item we just changed
         items = PF.GetAllPlexLeaves(libraryId,
                                     lastViewedAt=timestamp,
                                     containerSize=self.limitindex)
         # Toggle watched state back
         PF.scrobble(plexId, 'unwatched')
         if items in (None, 401):
-            self.logMsg('Could not download all Plex leaves for library %s '
-                        'with lastViewedAt=%s and containerSize=%s'
-                        % (libraryId, timestamp, self.limitindex), -1)
-            return
-        # Get server timestamp for this change
+            self.logMsg("Could not download metadata, aborting time sync", -1)
+            return False
+
         plextime = None
         for item in items:
             if item.attrib['ratingKey'] == plexId:
                 plextime = item.attrib.get('lastViewedAt')
                 break
+
         if plextime is None:
-            self.logMsg("Could not set the items watched state, abort", -1)
-            return
+            self.logMsg('Could not get lastViewedAt - aborting', -1)
+            return False
 
         # Calculate time offset Kodi-PMS
-        timeoffset = int(koditime) - int(plextime)
-        utils.window('kodiplextimeoffset', value=str(timeoffset))
-        utils.settings('kodiplextimeoffset', value=str(timeoffset))
+        self.timeoffset = int(koditime) - int(plextime)
+        utils.window('kodiplextimeoffset', value=str(self.timeoffset))
+        utils.settings('kodiplextimeoffset', value=str(self.timeoffset))
         self.logMsg("Time offset Koditime - Plextime in seconds: %s"
                     % str(self.timeoffset), 0)
+        return True
 
     def initializeDBs(self):
         """
@@ -1530,8 +1522,8 @@ class LibrarySync(Thread):
         processItems = self.processItems
         string = self.__language__
         fullSyncInterval = self.fullSyncInterval
-        lastSync = self.lastSync
-        lastTimeSync = self.lastTimeSync
+        lastSync = 0
+        lastTimeSync = 0
         lastProcessing = 0
         oneDay = 60*60*24
 
@@ -1595,8 +1587,10 @@ class LibrarySync(Thread):
                 # Run start up sync
                 window('emby_dbScan', value="true")
                 log("Db version: %s" % settings('dbCreatedWithVersion'), 0)
+                lastTimeSync = utils.getUnixTimestamp()
                 self.syncPMStime()
                 log("Initial start-up full sync starting", 0)
+                lastSync = utils.getUnixTimestamp()
                 librarySync = fullSync()
                 # Initialize time offset Kodi - PMS
                 window('emby_dbScan', clear=True)
