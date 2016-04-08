@@ -304,6 +304,11 @@ class VideoNodes(object):
                 elif nodetype == "inprogress":
                     etree.SubElement(root, 'rule', {'field': "inprogress", 'operator': "true"})
                     etree.SubElement(root, 'limit').text = limit
+                    etree.SubElement(
+                        root,
+                        'order',
+                        {'direction': 'descending'}
+                    ).text = 'lastplayed'
 
                 elif nodetype == "genres":
                     etree.SubElement(root, 'order', {'direction': "ascending"}).text = "sorttitle"
