@@ -2041,6 +2041,9 @@ class Music(Items):
         dateadded = API.getDateCreated()
         userdata = API.getUserData()
         playcount = userdata['PlayCount']
+        if playcount is None:
+            # This is different to Video DB!
+            playcount = 0
         dateplayed = userdata['LastPlayedDate']
 
         # item details
@@ -2058,7 +2061,7 @@ class Music(Items):
             track = disc*2**16 + tracknumber
         year = API.getYear()
         resume, duration = API.getRuntime()
-        rating = userdata['UserRating']
+        rating = int(userdata['UserRating'])
 
         #if enabled, try to get the rating from file and/or emby
         # if not self.directstream:
@@ -2205,15 +2208,15 @@ class Music(Items):
                 INSERT INTO song(
                     idSong, idAlbum, idPath, strArtists, strGenres, strTitle, iTrack,
                     iDuration, iYear, strFileName, strMusicBrainzTrackID, iTimesPlayed, lastplayed,
-                    rating)
+                    rating, iStartOffset, iEndOffset)
 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 '''
             )
             kodicursor.execute(
                 query, (songid, albumid, pathid, artists, genre, title, track,
                         duration, year, filename, musicBrainzId, playcount,
-                        dateplayed, rating))
+                        dateplayed, rating, 0, 0))
 
             # Create the reference in emby table
             emby_db.addReference(
