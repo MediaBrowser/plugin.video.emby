@@ -23,6 +23,6 @@
     <website>https://github.com/croneter/PlexKodiConnect</website>
     <source></source>
     <summary lang="en"></summary>
-    <description lang="en">To be done</description>
+    <description lang="en">Connect Kodi to your Plex Media Server</description>
   </extension>
 </addon>
