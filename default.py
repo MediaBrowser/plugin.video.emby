@@ -32,10 +32,10 @@ class Main:
     # MAIN ENTRY POINT
     def __init__(self):
         # Parse parameters
-        xbmc.log("Full sys.argv received: %s" % sys.argv)
+        xbmc.log("PlexKodiConnect - Full sys.argv received: %s" % sys.argv)
         base_url = sys.argv[0]
         params = urlparse.parse_qs(sys.argv[2][1:])
-        xbmc.log("Parameter string: %s" % sys.argv[2])
+        xbmc.log("PlexKodiConnect - Parameter string: %s" % sys.argv[2])
         try:
             mode = params['mode'][0]
             itemid = params.get('id', '')
