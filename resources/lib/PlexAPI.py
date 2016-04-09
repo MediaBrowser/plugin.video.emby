@@ -572,7 +572,7 @@ class PlexAPI():
         queue = Queue.Queue()
         threads = []
 
-        for Dir in xml.iter(tag='Device'):
+        for Dir in xml.findall('Device'):
             if "server" in Dir.get('provides'):
                 if Dir.find('Connection') is None:
                     # no valid connection - skip
@@ -599,7 +599,7 @@ class PlexAPI():
                 # If PMS seems (!!) local, try a local connection first
                 # Backup to remote connection, if that failes
                 PMS['baseURL'] = ''
-                for Con in Dir.iter(tag='Connection'):
+                for Con in Dir.findall('Connection'):
                     localConn = Con.get('local')
                     if ((PMS['local'] == '1' and localConn == '1') or
                             (PMS['local'] == '0' and localConn == '0')):
