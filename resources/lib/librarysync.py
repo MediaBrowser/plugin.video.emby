@@ -58,6 +58,17 @@ class ThreadedGetMetadata(Thread):
                 continue
             else:
                 self.queue.task_done()
+        if utils.window('plex_terminateNow') == 'true':
+            # Extreme measures if Kodi shutdown requested
+            while not self.out_queue.empty():
+                # Still try because remaining item might have been taken
+                try:
+                    self.out_queue.get(block=False)
+                except Queue.Empty:
+                    xbmc.sleep(50)
+                    continue
+                else:
+                    self.out_queue.task_done()
 
     def run(self):
         # cache local variables because it's faster
@@ -96,7 +107,6 @@ class ThreadedGetMetadata(Thread):
                 utils.window('plex_scancrashed', value='401')
                 # Kill remaining items in queue (for main thread to cont.)
                 queue.task_done()
-                self.terminateNow()
                 break
 
             updateItem['XML'] = plexXML
@@ -109,8 +119,10 @@ class ThreadedGetMetadata(Thread):
             queue.task_done()
         # Empty queue in case PKC was shut down (main thread hangs otherwise)
         self.terminateNow()
+        self.logMsg('Download thread terminated', 2)
 
 
+@utils.logging
 @utils.ThreadMethodsAdditionalStop('suspend_LibraryThread')
 @utils.ThreadMethods
 class ThreadedProcessMetadata(Thread):
@@ -157,7 +169,7 @@ class ThreadedProcessMetadata(Thread):
                 try:
                     updateItem = queue.get(block=False)
                 except Queue.Empty:
-                    xbmc.sleep(100)
+                    xbmc.sleep(50)
                     continue
                 # Do the work
                 plexitem = updateItem['XML']
@@ -181,8 +193,10 @@ class ThreadedProcessMetadata(Thread):
         # Sleep, just in case the other threads throw another xml
         xbmc.sleep(1000)
         self.terminateNow()
+        self.logMsg('Processing thread terminated', 2)
 
 
+@utils.logging
 @utils.ThreadMethodsAdditionalStop('suspend_LibraryThread')
 @utils.ThreadMethods
 class ThreadedShowSyncInfo(Thread):
@@ -238,6 +252,7 @@ class ThreadedShowSyncInfo(Thread):
             # Sleep for x milliseconds
             xbmc.sleep(500)
         dialog.close()
+        self.logMsg('Dialog Infobox thread terminated', 2)
 
 
 @utils.logging
@@ -1711,4 +1726,9 @@ class LibrarySync(Thread):
 
             xbmc.sleep(100)
 
+        # doUtils could still have a session open due to interrupted sync
+        try:
+            downloadutils.DownloadUtils().stopSession()
+        except:
+            pass
         log("###===--- LibrarySync Stopped ---===###", 0)

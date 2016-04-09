@@ -238,6 +238,11 @@ class DownloadUtils():
             self.logMsg("Error message: %s" % e, 2)
             return False
 
+        except SystemExit:
+            self.logMsg('SystemExit detected, aborting download', 0)
+            self.stopSession()
+            return False
+
         except:
             self.logMsg('Unknown requests error', -1)
             import traceback
