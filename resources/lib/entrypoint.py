@@ -241,11 +241,11 @@ def doPlayback(itemid, dbid):
         string = xbmcaddon.Addon().getLocalizedString
         # Not yet connected to a PMS server
         xbmcgui.Dialog().notification(
-            heading=addonName,
-            message=string(39210),
-            icon=xbmcgui.NOTIFICATION_ERROR,
-            time=7000,
-            sound=True)
+            addonName,
+            string(39210),
+            xbmcgui.NOTIFICATION_ERROR,
+            7000,
+            True)
         return xbmcplugin.setResolvedUrl(
             int(sys.argv[1]), False, xbmcgui.ListItem())
 
@@ -1259,32 +1259,66 @@ def getRecentEpisodes(viewid, mediatype, tagname, limit):
 
     xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
 
-##### GET VIDEO EXTRAS FOR LISTITEM #####
-def getVideoFiles(embyId,embyPath):
-    #returns the video files for the item as plugin listing, can be used for browsing the actual files or videoextras etc.
-    emby = embyserver.Read_EmbyServer()
-    if not embyId:
-        if "plugin.video.emby" in embyPath:
-            embyId = embyPath.split("/")[-2]
-    if embyId:
-        item = emby.getItem(embyId)
-        putils = playutils.PlayUtils(item)
-        if putils.isDirectPlay():
-            #only proceed if we can access the files directly. TODO: copy local on the fly if accessed outside
-            filelocation = putils.directPlay()
-            if not filelocation.endswith("/"):
-                filelocation = filelocation.rpartition("/")[0]
-            dirs, files = xbmcvfs.listdir(filelocation)
-            for file in files:
-                file = filelocation + file
-                li = xbmcgui.ListItem(file, path=file)
-                xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=file, listitem=li)
-            for dir in dirs:
-                dir = filelocation + dir
-                li = xbmcgui.ListItem(dir, path=dir)
-                xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=dir, listitem=li, isFolder=True)
+
+def getVideoFiles(plexId, params):
+    """
+    GET VIDEO EXTRAS FOR LISTITEM
+
+    returns the video files for the item as plugin listing, can be used for
+    browsing the actual files or videoextras etc.
+    """
+    if plexId is None:
+        filename = params.get('filename')
+        if filename is not None:
+            filename = filename[0]
+            import re
+            regex = re.compile(r'''library/metadata/(\d+)''')
+            filename = regex.findall(filename)
+            try:
+                plexId = filename[0]
+            except IndexError:
+                pass
+
+    if plexId is None:
+        utils.logMsg(title, 'No Plex ID found, abort getting Extras', 0)
+        return xbmcplugin.endOfDirectory(int(sys.argv[1]))
+
+    item = PlexFunctions.GetPlexMetadata(plexId)
+    try:
+        path = item[0][0][0].attrib['file']
+    except:
+        utils.logMsg(title, 'Could not get file path for item %s'
+                     % plexId, -1)
+        return xbmcplugin.endOfDirectory(int(sys.argv[1]))
+    # Assign network protocol
+    if path.startswith('\\\\'):
+        path = path.replace('\\\\', 'smb://')
+        path = path.replace('\\', '/')
+    # Plex returns Windows paths as e.g. 'c:\slfkjelf\slfje\file.mkv'
+    elif '\\' in path:
+        path = path.replace('\\', '\\\\')
+    # Directory only, get rid of filename (!! exists() needs /  or \ at end)
+    path = path.replace(os.path.basename(path), '')
+    # Only proceed if we can access this folder
+    if xbmcvfs.exists(path):
+        # Careful, returns encoded strings!
+        dirs, files = xbmcvfs.listdir(path)
+        for file in files:
+            file = path + file.decode('utf-8')
+            li = xbmcgui.ListItem(file, path=file)
+            xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),
+                                        url=file.encode('utf-8'),
+                                        listitem=li)
+        for dir in dirs:
+            dir = path + dir.decode('utf-8')
+            li = xbmcgui.ListItem(dir, path=dir)
+            xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),
+                                        url=dir.encode('utf-8'),
+                                        listitem=li,
+                                        isFolder=True)
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
-    
+
+
 ##### GET EXTRAFANART FOR LISTITEM #####
 def getExtraFanArt(embyId,embyPath):
     

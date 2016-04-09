@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-#################################################################################################
+###############################################################################
 
 import os
 import sys
@@ -10,24 +10,24 @@ import xbmc
 import xbmcaddon
 import xbmcgui
 
-#################################################################################################
+###############################################################################
 
 addon_ = xbmcaddon.Addon(id='plugin.video.plexkodiconnect')
 addon_path = addon_.getAddonInfo('path').decode('utf-8')
 base_resource = xbmc.translatePath(os.path.join(addon_path, 'resources', 'lib')).decode('utf-8')
 sys.path.append(base_resource)
 
-#################################################################################################
+###############################################################################
 
 import entrypoint
 import utils
 
-#################################################################################################
+###############################################################################
 
 enableProfiling = False
 
-class Main:
 
+class Main:
 
     # MAIN ENTRY POINT
     def __init__(self):
@@ -73,16 +73,17 @@ class Main:
             'ondeck': entrypoint.getOnDeck,
             'chooseServer': entrypoint.chooseServer
         }
-        
+
         if "/extrafanart" in sys.argv[0]:
             embypath = sys.argv[2][1:]
             embyid = params.get('id',[""])[0]
             entrypoint.getExtraFanArt(embyid,embypath)
-            
-        if "/Extras" in sys.argv[0] or "/VideoFiles" in sys.argv[0]:
-            embypath = sys.argv[2][1:]
-            embyid = params.get('id',[""])[0]
-            entrypoint.getVideoFiles(embyid,embypath)
+
+        # Called by e.g. 3rd party plugin video extras
+        if ("/Extras" in sys.argv[0] or "/VideoFiles" in sys.argv[0] or
+                "/Extras" in sys.argv[2]):
+            plexId = params.get('id', [None])[0]
+            entrypoint.getVideoFiles(plexId, params)
 
         if modes.get(mode):
             # Simple functions
