@@ -1316,6 +1316,8 @@ def getVideoFiles(plexId, params):
                                         url=dir.encode('utf-8'),
                                         listitem=li,
                                         isFolder=True)
+    else:
+        utils.logMsg(title, 'Kodi cannot access folder %s' % path, 0)
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
 
