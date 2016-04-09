@@ -1,3 +1,8 @@
+version 1.1.2
+- Backwards compatibility py2.6: replace etree iter (fixes AttributeError: _ElementInterface instance has no attribute 'iter')
+- Redirect /Extras calls by e.g. Video Extras plugin
+- Try to shutdown more cleanly
+
 version 1.1.1
 (you will need to rescan your library)
 - Fix Kodi information screen not working
