@@ -1,3 +1,9 @@
+###IMPORTANT###
+
+1. If you post logs, your **Plex tokens** might be included. Be sure to double and tripple check for tokens before posting any logs anywhere. 
+2. **Compatibility**: PKC is currently not compatible with Kodi's Video Extras plugin. **Deactivate Video Extras** if trailers/movies start randomly playing. 
+
+
 ### Welcome to PlexKodiConnect
 **Connect your Plex Media Server to a Kodi Front End**
 
