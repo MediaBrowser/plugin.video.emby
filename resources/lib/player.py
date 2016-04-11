@@ -454,7 +454,6 @@ class Player(xbmc.Player):
         window('Plex_currently_playing_itemid', clear=True)
         window('emby_customPlaylist', clear=True)
         window('emby_customPlaylist.seektime', clear=True)
-        window('emby_playbackProps', clear=True)
         window('emby_customPlaylist.seektime', clear=True)
         log("Clear playlist properties.", 1)
 

@@ -60,8 +60,8 @@ class PlaybackUtils():
         if not playurl:
             return xbmcplugin.setResolvedUrl(int(sys.argv[1]), False, listitem)
 
-        if dbid is None or dbid == '999999999':
-            # Item is not in Kodi database
+        if dbid in (None, '999999999'):
+            # Item is not in Kodi database or is a trailer
             playmethod = window('emby_%s.playmethod' % playurl)
             if playmethod == "Transcode":
                 window('emby_%s.playmethod' % playurl, clear=True)
@@ -144,10 +144,8 @@ class PlaybackUtils():
             if len(item[0][0]) > 1:
                 # Only add to the playlist after intros have played
                 for counter, part in enumerate(item[0][0]):
-                    # Playlist items don't fail on their first call - skip them
-                    # here, otherwise we'll get two 1st parts
-                    if (counter == 0 and
-                            window('emby_customPlaylist') == "true"):
+                    # Never add first part
+                    if counter == 0:
                         continue
                     # Set listitem and properties for each additional parts
                     API.setPartNumber(counter)
@@ -213,7 +211,7 @@ class PlaybackUtils():
         added
         """
         # Failure when downloading trailer playQueue
-        if xml is None:
+        if xml in (None, 401):
             return False
         # Failure when getting trailers, e.g. when no plex pass
         if xml.attrib.get('size') == '1':
