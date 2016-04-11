@@ -130,8 +130,17 @@ class WebSocket(threading.Thread):
                         timeout=1,
                         sslopt=sslopt,
                         enable_multithread=True)
-                except (IOError):
+                except IOError:
                     log("Error connecting", 0)
+                    self.ws = None
+                    xbmc.sleep(1000)
+                except websocket.WebSocketTimeoutException:
+                    log("timeout while connecting, trying again", 0)
+                    self.ws = None
+                    xbmc.sleep(1000)
+                except Exception as e:
+                    log("Unknown exception encountered in connecting: %s" % e)
+                    self.ws = None
                     xbmc.sleep(1000)
             except Exception as e:
                 log("Unknown exception encountered: %s" % e)
@@ -140,7 +149,6 @@ class WebSocket(threading.Thread):
                 except:
                     pass
                 self.ws = None
-                pass
 
         log("##===---- WebSocketClient Stopped ----===##", 0)
 
