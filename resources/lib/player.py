@@ -3,7 +3,6 @@
 ###############################################################################
 
 import json
-from unicodedata import normalize
 
 import xbmc
 import xbmcgui
@@ -58,7 +57,7 @@ class Player(xbmc.Player):
         xbmcplayer = self.xbmcplayer
         self.stopAll()
 
-        # Get current file
+        # Get current file (in utf-8!)
         try:
             currentFile = xbmcplayer.getPlayingFile()
             xbmc.sleep(300)
@@ -79,15 +78,10 @@ class Player(xbmc.Player):
         if not currentFile:
             log('Error getting a currently playing file; abort reporting', -1)
             return
-        currentFile = currentFile.decode('utf-8')
-        # Normalize to string, because we need to use this in WINDOW(key),
-        # where key can only be string
-        currentFile = normalize('NFKD', currentFile).encode('ascii', 'ignore')
-        log('Normalized filename: %s' % currentFile, 1)
 
         # Save currentFile for cleanup later and for references
         self.currentFile = currentFile
-        window('plex_lastPlayedFiled', value=currentFile)
+        window('plex_lastPlayedFiled', value=currentFile.decode('utf-8'))
         # We may need to wait for info to be set in kodi monitor
         itemId = window("emby_%s.itemid" % currentFile)
         count = 0
@@ -100,7 +94,8 @@ class Player(xbmc.Player):
                 return
             count += 1
 
-        log("ONPLAYBACK_STARTED: %s itemid: %s" % (currentFile, itemId), 0)
+        log("ONPLAYBACK_STARTED: %s itemid: %s"
+            % (currentFile.decode('utf-8'), itemId), 0)
 
         embyitem = "emby_%s" % currentFile
         runtime = window("%s.runtime" % embyitem)
@@ -414,7 +409,7 @@ class Player(xbmc.Player):
     def onPlayBackPaused(self):
 
         currentFile = self.currentFile
-        self.logMsg("PLAYBACK_PAUSED: %s" % currentFile, 2)
+        self.logMsg("PLAYBACK_PAUSED: %s" % currentFile.decode('utf-8'), 2)
 
         if self.played_info.get(currentFile):
             self.played_info[currentFile]['paused'] = True
@@ -424,7 +419,7 @@ class Player(xbmc.Player):
     def onPlayBackResumed(self):
 
         currentFile = self.currentFile
-        self.logMsg("PLAYBACK_RESUMED: %s" % currentFile, 2)
+        self.logMsg("PLAYBACK_RESUMED: %s" % currentFile.decode('utf-8'), 2)
 
         if self.played_info.get(currentFile):
             self.played_info[currentFile]['paused'] = False
@@ -434,7 +429,7 @@ class Player(xbmc.Player):
     def onPlayBackSeek(self, time, seekOffset):
         # Make position when seeking a bit more accurate
         currentFile = self.currentFile
-        self.logMsg("PLAYBACK_SEEK: %s" % currentFile, 2)
+        self.logMsg("PLAYBACK_SEEK: %s" % currentFile.decode('utf-8'), 2)
 
         if self.played_info.get(currentFile):
             position = self.xbmcplayer.getTime()

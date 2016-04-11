@@ -3,7 +3,6 @@
 ###############################################################################
 
 import json
-from unicodedata import normalize
 
 import xbmc
 import xbmcgui
@@ -179,7 +178,7 @@ class KodiMonitor(xbmc.Monitor):
             return
         log("Found Plex id %s for Kodi id %s" % (plexid, kodiid), 1)
 
-        # Get currently playing file - can take a while
+        # Get currently playing file - can take a while. Will be utf-8!
         try:
             currentFile = self.xbmcplayer.getPlayingFile()
             xbmc.sleep(300)
@@ -197,12 +196,7 @@ class KodiMonitor(xbmc.Monitor):
                     return
                 else:
                     count += 1
-        currentFile = currentFile.decode('utf-8')
         log("Currently playing file is: %s" % currentFile, 1)
-        # Normalize to string, because we need to use this in WINDOW(key),
-        # where key can only be string
-        currentFile = normalize('NFKD', currentFile).encode('ascii', 'ignore')
-        log('Normalized filename: %s' % currentFile, 1)
 
         # Set some stuff if Kodi initiated playback
         if ((utils.settings('useDirectPaths') == "1" and not type == "song") or
@@ -212,7 +206,7 @@ class KodiMonitor(xbmc.Monitor):
                 return
 
         # Save currentFile for cleanup later and to be able to access refs
-        window('plex_lastPlayedFiled', value=currentFile)
+        window('plex_lastPlayedFiled', value=currentFile.decode('utf-8'))
         window('Plex_currently_playing_itemid', value=plexid)
         window("emby_%s.itemid" % currentFile, value=plexid)
         log('Finish playback startup', 1)
