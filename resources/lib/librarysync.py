@@ -58,8 +58,8 @@ class ThreadedGetMetadata(Thread):
                 continue
             else:
                 self.queue.task_done()
-        if utils.window('plex_terminateNow') == 'true':
-            # Extreme measures if Kodi shutdown requested
+        if self.threadStopped():
+            # Shutdown from outside requested; purge out_queue as well
             while not self.out_queue.empty():
                 # Still try because remaining item might have been taken
                 try:
