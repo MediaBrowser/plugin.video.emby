@@ -291,7 +291,10 @@ class Items(object):
                            utils.settings('markPlayed')), 1)
             if complete >= float(utils.settings('markPlayed')):
                 self.logMsg('Marking as completely watched in Kodi', 1)
-                item['viewCount'] += 1
+                try:
+                    item['viewCount'] += 1
+                except TypeError:
+                    item['viewCount'] = 1
                 item['viewOffset'] = 0
         # Do the actual update
         self.kodi_db.addPlaystate(item['file_id'],
