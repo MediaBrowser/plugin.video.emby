@@ -314,7 +314,6 @@ class PlaybackUtils():
 
     def setArtwork(self, listItem):
         allartwork = self.API.getAllArtwork(parentInfo=True)
-        self.logMsg('allartwork: %s' % allartwork, 2)
 
         # arttypes = {
 
