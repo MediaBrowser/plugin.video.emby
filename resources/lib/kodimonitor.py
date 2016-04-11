@@ -166,14 +166,8 @@ class KodiMonitor(xbmc.Monitor):
         try:
             kodiid = item['id']
         except (KeyError, TypeError):
-            log('Kodi did not give us a Kodi item id, trying to get from item '
-                'title', 0)
-            # Try to get itemid with the element's title
-            with kodidb.GetKodiDB('video') as kodi_db:
-                kodiid = kodi_db.getIdFromTitle(item)
-                if kodiid is False:
-                    log("Item is invalid for PMS playstate update.", 0)
-                    return
+            log("Item is invalid for PMS playstate update.", 0)
+            return
 
         # Get Plex' item id
         with embydb.GetEmbyDB() as emby_db:
