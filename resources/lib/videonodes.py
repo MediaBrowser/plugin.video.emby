@@ -321,7 +321,7 @@ class VideoNodes(object):
 
                 elif nodetype == "sets":
                     etree.SubElement(root, 'order', {'direction': "ascending"}).text = "sorttitle"
-                    etree.SubElement(root, 'group').text = "sets"
+                    etree.SubElement(root, 'group').text = "tags"
 
                 elif nodetype == "random":
                     etree.SubElement(root, 'order', {'direction': "ascending"}).text = "random"
