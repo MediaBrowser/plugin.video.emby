@@ -448,5 +448,7 @@
 
     <!-- Plex videonodes.py -->
     <string id="39500">On Deck</string>
+    <string id="39501">Collections</string>
+
 
 </strings>

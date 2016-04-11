@@ -384,5 +384,7 @@
 
     <!-- Plex videonodes.py -->
     <string id="39500">Aktuell</string>
+    <string id="39501">Kollektionen</string>
+
 
 </strings>
