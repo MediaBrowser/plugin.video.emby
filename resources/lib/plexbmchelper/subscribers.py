@@ -136,6 +136,10 @@ class SubscriptionManager:
         
     def notify(self, event = False):
         self.cleanup()
+        # Don't tell anyone if we don't know a Plex ID and are still playing
+        # (e.g. no stop called). Used for e.g. PVR/TV without PKC usage
+        if not window('Plex_currently_playing_itemid'):
+            return True
         players = self.js.getPlayers()
         # fetch the message, subscribers or not, since the server
         # will need the info anyway
@@ -150,10 +154,9 @@ class SubscriptionManager:
     def notifyServer(self, players):
         if not players:
             return True
-        params = {'state': 'stopped'}
         for p in players.values():
             info = self.playerprops[p.get('playerid')]
-            params = {}
+            params = {'state': 'stopped'}
             params['containerKey'] = (self.containerKey or "/library/metadata/900000")
             if info.get('playQueueID'):
                 params['containerKey'] = '/playQueues/' + info['playQueueID']
@@ -164,16 +167,15 @@ class SubscriptionManager:
             params['state'] = info['state']
             params['time'] = info['time']
             params['duration'] = info['duration']
-        serv = self.getServerByHost(self.server)
-        url = serv.get('protocol', 'http') + '://' \
-            + serv.get('server', 'localhost') + ':' \
-            + serv.get('port', '32400') + "/:/timeline"
-        self.doUtils(url, type="GET", parameters=params)
-        # requests.getwithparams(serv.get('server', 'localhost'), serv.get('port', 32400), "/:/timeline", params, getPlexHeaders(), serv.get('protocol', 'http'))
-        self.logMsg("params: %s" % params, 2)
-        self.logMsg("players: %s" % players, 2)
-        self.logMsg("sent server notification with state = %s"
-                    % params['state'], 2)
+
+            serv = self.getServerByHost(self.server)
+            url = serv.get('protocol', 'http') + '://' \
+                + serv.get('server', 'localhost') + ':' \
+                + serv.get('port', '32400') + "/:/timeline"
+            self.doUtils(url, type="GET", parameters=params)
+            # requests.getwithparams(serv.get('server', 'localhost'), serv.get('port', 32400), "/:/timeline", params, getPlexHeaders(), serv.get('protocol', 'http'))
+            self.logMsg("sent server notification with state = %s"
+                        % params['state'], 2)
 
     def controllable(self):
         return "volume,shuffle,repeat,audioStream,videoStream,subtitleStream,skipPrevious,skipNext,seekTo,stepBack,stepForward,stop,playPause"
