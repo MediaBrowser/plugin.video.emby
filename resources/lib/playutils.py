@@ -41,21 +41,19 @@ class PlayUtils():
         window = utils.window
 
         self.API.setPartNumber(partNumber)
-        playurl = None
+        playurl = self.isDirectPlay()
 
-        if self.isDirectPlay():
+        if playurl:
             log("File is direct playing.", 1)
-            playurl = self.API.getTranscodeVideoPath('DirectPlay')
             playurl = playurl.encode('utf-8')
             # Set playmethod property
             window('emby_%s.playmethod' % playurl, "DirectPlay")
 
-        # Currently no direct streaming possible - needs investigation
-        # elif self.isDirectStream():
-        #     self.logMsg("File is direct streaming.", 1)
-        #     playurl = self.API.getTranscodeVideoPath('DirectStream')
-        #     # Set playmethod property
-        #     utils.window('emby_%s.playmethod' % playurl, "DirectStream")
+        elif self.isDirectStream():
+            self.logMsg("File is direct streaming.", 1)
+            playurl = self.API.getTranscodeVideoPath('DirectStream').encode('utf-8')
+            # Set playmethod property
+            utils.window('emby_%s.playmethod' % playurl, "DirectStream")
 
         elif self.isTranscoding():
             log("File is transcoding.", 1)
@@ -64,9 +62,9 @@ class PlayUtils():
                 'videoResolution': self.getResolution(),
                 'videoQuality': '100'
             }
-            playurl = self.API.getTranscodeVideoPath('Transcode',
-                                                     quality=quality)
-            playurl = playurl.encode('utf-8')
+            playurl = self.API.getTranscodeVideoPath(
+                'Transcode',
+                quality=quality).encode('utf-8')
             # Set playmethod property
             window('emby_%s.playmethod' % playurl, value="Transcode")
 
@@ -89,6 +87,9 @@ class PlayUtils():
         return playurl
 
     def isDirectPlay(self):
+        """
+        Returns the path/playurl if successful, False otherwise
+        """
 
         # Requirement: Filesystem, Accessible path
         if utils.settings('playFromStream') == "true":
@@ -99,7 +100,22 @@ class PlayUtils():
         if self.h265enabled():
             return False
 
-        return True
+        path = self.API.getFilePath()
+        # Assign network protocol
+        if path.startswith('\\\\'):
+            path = path.replace('\\\\', 'smb://')
+            path = path.replace('\\', '/')
+        # Plex returns Windows paths as e.g. 'c:\slfkjelf\slfje\file.mkv'
+        elif '\\' in path:
+            path = path.replace('\\', '\\\\')
+
+        if xbmcvfs.exists(path):
+            self.logMsg('Kodi can access file %s - direct playing' % path, 2)
+            return path
+        else:
+            self.logMsg('Kodi cannot access file %s - no direct play'
+                        % path, 2)
+            return False
 
     def directPlay(self):
 
@@ -180,14 +196,6 @@ class PlayUtils():
 
     def isDirectStream(self):
         if not self.h265enabled():
-            return False
-
-        # Requirement: BitRate, supported encoding
-        # canDirectStream = item['MediaSources'][0]['SupportsDirectStream']
-        # Plex: always able?!?
-        canDirectStream = True
-        # Make sure the server supports it
-        if not canDirectStream:
             return False
 
         # Verify the bitrate

@@ -1226,7 +1226,7 @@ class API():
         or None
         """
         try:
-            res = self.item[0][0].attrib.get('file')
+            res = self.item[0][self.part].attrib.get('file')
         except:
             res = None
         if res:
@@ -1869,7 +1869,7 @@ class API():
         Transcode Video support; returns the URL to get a media started
 
         Input:
-            action      'DirectPlay', 'DirectStream' or 'Transcode'
+            action      'DirectStream' or 'Transcode'
 
             quality:    {
                             'videoResolution': e.g. '1024x768',
@@ -1885,7 +1885,7 @@ class API():
 
         xargs = clientinfo.ClientInfo().getXArgsDeviceInfo()
         # For DirectPlay, path/key of PART is needed
-        if action == "DirectPlay":
+        if action == "DirectStream":
             path = self.item[0][self.part].attrib['key']
             url = self.server + path
             # e.g. Trailers already feature an '?'!
