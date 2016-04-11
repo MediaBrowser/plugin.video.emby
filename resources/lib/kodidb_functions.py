@@ -852,11 +852,11 @@ class Kodidb_Functions():
         ids = []
         for row in rows:
             ids.append(row[0])
-        if len(ids) > 1:
+        if len(ids) == 1:
+            return ids[0]
+        else:
             # No unique match possible
             return False
-        else:
-            return ids[0]
 
     def getUnplayedItems(self):
         """
