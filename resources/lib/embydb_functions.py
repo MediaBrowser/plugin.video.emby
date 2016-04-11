@@ -234,7 +234,7 @@ class Embydb_Functions():
 
         return items
 
-    def getPlexId(self, kodiid, mediatype):
+    def getPlexId(self, kodiid):
         """
         Returns the Plex ID usind the Kodiid. Result:
             (Plex Id, Parent's Plex Id)
@@ -242,10 +242,10 @@ class Embydb_Functions():
         query = ' '.join((
             "SELECT emby_id, parent_id",
             "FROM emby",
-            "WHERE kodi_id = ? AND media_type = ?"
+            "WHERE kodi_id = ?"
         ))
         try:
-            self.embycursor.execute(query, (kodiid, mediatype))
+            self.embycursor.execute(query, (kodiid))
             item = self.embycursor.fetchone()
             return item
         except:
