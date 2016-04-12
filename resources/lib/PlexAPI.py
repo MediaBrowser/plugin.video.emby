@@ -394,7 +394,7 @@ class PlexAPI():
             name, scheme, ip, port, type, owned, token
         """
         address = ip + ':' + port
-        baseURL = scheme+'://'+ip+':'+port
+        baseURL = scheme + '://' + ip + ':' + port
         self.g_PMS[uuid] = {
             'name': name,
             'scheme': scheme,
@@ -485,7 +485,8 @@ class PlexAPI():
                     elif "Resource-Identifier:" in each:
                         update['uuid'] = each.split(':')[1].strip()
                     elif "Name:" in each:
-                        update['serverName'] = each.split(':')[1].strip().decode('utf-8', 'replace')
+                        update['serverName'] = each.split(
+                            ':')[1].strip().decode('utf-8', 'replace')
                     elif "Port:" in each:
                         update['port'] = each.split(':')[1].strip()
                     elif "Updated-At:" in each:
@@ -582,8 +583,8 @@ class PlexAPI():
                 PMS = {}
                 PMS['name'] = Dir.get('name')
                 infoAge = time.time() - int(Dir.get('lastSeenAt'))
-                oneDayInSec = 60*60*24
-                if infoAge > 2*oneDayInSec:
+                oneDayInSec = 60 * 60 * 24
+                if infoAge > 2 * oneDayInSec:
                     self.logMsg("Server %s not seen for 2 days - "
                                 "skipping." % PMS['name'], 0)
                     continue
@@ -628,22 +629,22 @@ class PlexAPI():
 
             # declare new PMSs
             while not queue.empty():
-                    PMS = queue.get()
-                    self.declarePMS(PMS['uuid'], PMS['name'],
-                                    PMS['protocol'], PMS['ip'], PMS['port'])
-                    # dflt: token='', local, owned - updated later
-                    self.updatePMSProperty(
-                        PMS['uuid'], 'accesstoken', PMS['token'])
-                    self.updatePMSProperty(
-                        PMS['uuid'], 'owned', PMS['owned'])
-                    self.updatePMSProperty(
-                        PMS['uuid'], 'local', PMS['local'])
-                    # set in declarePMS, overwrite for https encryption
-                    self.updatePMSProperty(
-                        PMS['uuid'], 'baseURL', PMS['baseURL'])
-                    self.updatePMSProperty(
-                        PMS['uuid'], 'ownername', PMS['ownername'])
-                    queue.task_done()
+                PMS = queue.get()
+                self.declarePMS(PMS['uuid'], PMS['name'],
+                                PMS['protocol'], PMS['ip'], PMS['port'])
+                # dflt: token='', local, owned - updated later
+                self.updatePMSProperty(
+                    PMS['uuid'], 'accesstoken', PMS['token'])
+                self.updatePMSProperty(
+                    PMS['uuid'], 'owned', PMS['owned'])
+                self.updatePMSProperty(
+                    PMS['uuid'], 'local', PMS['local'])
+                # set in declarePMS, overwrite for https encryption
+                self.updatePMSProperty(
+                    PMS['uuid'], 'baseURL', PMS['baseURL'])
+                self.updatePMSProperty(
+                    PMS['uuid'], 'ownername', PMS['ownername'])
+                queue.task_done()
 
     def pokePMS(self, PMS, queue):
         # Ignore SSL certificates for now
@@ -708,14 +709,15 @@ class PlexAPI():
         """
 
         # provide credentials
-        ### optional... when 'realm' is unknown
+        # optional... when 'realm' is unknown
         ##passmanager = urllib2.HTTPPasswordMgrWithDefaultRealm()
-        ##passmanager.add_password(None, address, username, password)  # None: default "realm"
+        # passmanager.add_password(None, address, username, password)  # None:
+        # default "realm"
         passmanager = urllib2.HTTPPasswordMgr()
         passmanager.add_password(MyPlexHost, MyPlexURL, username, password)
         authhandler = urllib2.HTTPBasicAuthHandler(passmanager)
         urlopener = urllib2.build_opener(authhandler)
-        
+
         # sign in, get MyPlex response
         try:
             response = urlopener.open(request).read()
@@ -744,14 +746,16 @@ class PlexAPI():
         MyPlexHost = 'plex.tv'
         MyPlexSignOutPath = '/users/sign_out.xml'
         MyPlexURL = 'http://' + MyPlexHost + MyPlexSignOutPath
-        
+
         # create POST request
-        xargs = { 'X-Plex-Token': authtoken }
+        xargs = {'X-Plex-Token': authtoken}
         request = urllib2.Request(MyPlexURL, None, xargs)
-        request.get_method = lambda: 'POST'  # turn into 'POST' - done automatically with data!=None. But we don't have data.
-        
+        # turn into 'POST' - done automatically with data!=None. But we don't
+        # have data.
+        request.get_method = lambda: 'POST'
+
         response = urllib2.urlopen(request).read()
-        
+
         dprint(__name__, 1, "====== MyPlex sign out XML ======")
         dprint(__name__, 1, response)
         dprint(__name__, 1, "====== MyPlex sign out XML finished ======")
@@ -1005,16 +1009,16 @@ class PlexAPI():
         if key.startswith('http://') or key.startswith('https://'):  # external address - keep
             path = key
         else:
-            if AuthToken=='':
+            if AuthToken == '':
                 path = key
             else:
                 xargs = dict()
                 xargs['X-Plex-Token'] = AuthToken
-                if key.find('?')==-1:
+                if key.find('?') == -1:
                     path = key + '?' + urlencode(xargs)
                 else:
                     path = key + '&' + urlencode(xargs)
-        
+
         return path
 
     def getTranscodeImagePath(self, key, AuthToken, path, width, height):
@@ -1037,19 +1041,20 @@ class PlexAPI():
         else:  # internal path, add-on
             path = 'http://127.0.0.1:32400' + path + '/' + key
         path = path.encode('utf8')
-        
+
         # This is bogus (note the extra path component) but ATV is stupid when it comes to caching images, it doesn't use querystrings.
         # Fortunately PMS is lenient...
-        transcodePath = '/photo/:/transcode/' +str(width)+'x'+str(height)+ '/' + quote_plus(path)
-        
+        transcodePath = '/photo/:/transcode/' + \
+            str(width) + 'x' + str(height) + '/' + quote_plus(path)
+
         args = dict()
         args['width'] = width
         args['height'] = height
         args['url'] = path
-        
-        if not AuthToken=='':
+
+        if not AuthToken == '':
             args['X-Plex-Token'] = AuthToken
-        
+
         return transcodePath + '?' + urlencode(args)
 
     def getDirectImagePath(self, path, AuthToken):
@@ -1062,14 +1067,14 @@ class PlexAPI():
         result:
             final path to image file
         """
-        if not AuthToken=='':
+        if not AuthToken == '':
             xargs = dict()
             xargs['X-Plex-Token'] = AuthToken
-            if path.find('?')==-1:
+            if path.find('?') == -1:
                 path = path + '?' + urlencode(xargs)
             else:
                 path = path + '&' + urlencode(xargs)
-        
+
         return path
 
     def getTranscodeAudioPath(self, path, AuthToken, options, maxAudioBitrate):
@@ -1085,19 +1090,19 @@ class PlexAPI():
             final path to pull in PMS transcoder
         """
         UDID = options['PlexConnectUDID']
-        
+
         transcodePath = '/music/:/transcode/universal/start.mp3?'
-        
+
         args = dict()
         args['path'] = path
         args['session'] = UDID
         args['protocol'] = 'http'
         args['maxAudioBitrate'] = maxAudioBitrate
-        
+
         xargs = clientinfo.ClientInfo().getXArgsDeviceInfo(options)
-        if not AuthToken=='':
+        if not AuthToken == '':
             xargs['X-Plex-Token'] = AuthToken
-        
+
         return transcodePath + urlencode(args) + '&' + urlencode(xargs)
 
     def getDirectAudioPath(self, path, AuthToken):
@@ -1110,14 +1115,14 @@ class PlexAPI():
         result:
             final path to audio file
         """
-        if not AuthToken=='':
+        if not AuthToken == '':
             xargs = dict()
             xargs['X-Plex-Token'] = AuthToken
-            if path.find('?')==-1:
+            if path.find('?') == -1:
                 path = path + '?' + urlencode(xargs)
             else:
                 path = path + '&' + urlencode(xargs)
-        
+
         return path
 
     def returnServerList(self, data):
@@ -1229,7 +1234,7 @@ class API():
             res = self.item[0][self.part].attrib.get('file')
         except:
             res = None
-        if res:
+        if res is not None:
             res = unquote(res).decode('utf-8')
         return res
 
@@ -1946,7 +1951,8 @@ class API():
         kodiindex = 0
         for stream in mediastreams:
             index = stream.attrib['id']
-            # Since Emby returns all possible tracks together, have to pull only external subtitles.
+            # Since Emby returns all possible tracks together, have to pull
+            # only external subtitles.
             key = stream.attrib.get('key')
             # IsTextSubtitleStream if true, is available to download from emby.
             if stream.attrib.get('streamType') == "3" and key:
@@ -2031,27 +2037,61 @@ class API():
             listItem.addStreamInfo(
                 "video", {'duration': self.getRuntime()[1]})
 
-    def validatePlayurl(self, playurl, typus):
+    def validatePlayurl(self, path, typus, forceCheck=False):
         """
-        Returns a valid url for Kodi, e.g. with substituted path
+        Returns a valid path for Kodi, e.g. with '\' substituted to '\\' in
+        Unicode. Returns None if this is not possible
+
+            path       : Unicode
+            typus      : Plex type from PMS xml
+            forceCheck : Will always try to check validity of path
+                         Will also skip confirmation dialog if path not found
         """
+        if path is None:
+            return None
+        types = {
+            'movie': 'movie',
+            'show': 'tv',
+            'season': 'tv',
+            'episode': 'tv',
+            'artist': 'music',
+            'album': 'music',
+            'song': 'music',
+            'track': 'music',
+        }
+        typus = types[typus]
         if utils.window('remapSMB') == 'true':
-            playurl = playurl.replace(utils.window('remapSMB%sOrg' % typus),
-                                      utils.window('remapSMB%sNew' % typus))
+            path = path.replace(utils.window('remapSMB%sOrg' % typus),
+                                utils.window('remapSMB%sNew' % typus))
             # There might be backslashes left over:
-            playurl = playurl.replace('\\', '/')
+            path = path.replace('\\', '/')
         elif utils.window('replaceSMB') == 'true':
-            if playurl.startswith('\\\\'):
-                playurl = 'smb:' + playurl.replace('\\', '/')
-        if (utils.window('emby_pathverified') != "true" and
-                not xbmcvfs.exists(playurl.encode('utf-8'))):
-            # Validate the path is correct with user intervention
-            if self.askToValidate(playurl):
-                utils.window('emby_shouldStop', value="true")
-                playurl = False
-            utils.window('emby_pathverified', value='true')
-            utils.settings('emby_pathverified', value='true')
-        return playurl
+            if path.startswith('\\\\'):
+                path = 'smb:' + path.replace('\\', '/')
+        if utils.window('emby_pathverified') == 'true' and forceCheck is False:
+            return path
+
+        check = xbmcvfs.exists(path.encode('utf-8'))
+        # exists() NEEDS either a '/' or '\\' at the end of a DIR name
+        if check is False:
+            check = xbmcvfs.exists((path + '/').encode('utf-8'))
+            if check is False:
+                check = xbmcvfs.exists((path + '\\').encode('utf-8'))
+        if check is False:
+            if forceCheck is False:
+                # Validate the path is correct with user intervention
+                if self.askToValidate(path):
+                    utils.window('emby_shouldStop', value="true")
+                    path = None
+                utils.window('emby_pathverified', value='true')
+                utils.settings('emby_pathverified', value='true')
+            else:
+                path = None
+        elif forceCheck is False:
+            if utils.window('emby_pathverified') != 'true':
+                utils.window('emby_pathverified', value='true')
+                utils.settings('emby_pathverified', value='true')
+        return path
 
     def askToValidate(self, url):
         """

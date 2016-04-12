@@ -91,34 +91,25 @@ class PlayUtils():
         Returns the path/playurl if successful, False otherwise
         """
 
-        # Requirement: Filesystem, Accessible path
-        if utils.settings('playFromStream') == "true":
+        # set to either 'Direct Stream=1' or 'Transcode=2'
+        if utils.settings('playType') != "0":
             # User forcing to play via HTTP
-            self.logMsg("Can't direct play, user enabled play from HTTP.", 1)
+            self.logMsg("User chose to not direct play", 1)
             return False
 
         if self.h265enabled():
             return False
 
-        path = self.API.getFilePath()
+        path = self.API.validatePlayurl(self.API.getFilePath(),
+                                        self.API.getType(),
+                                        forceCheck=True)
         if path is None:
-            self.logMsg('PMS item does not have a filepath', 2)
-            return False
-        # Assign network protocol
-        if path.startswith('\\\\'):
-            path = path.replace('\\\\', 'smb://')
-            path = path.replace('\\', '/')
-        # Plex returns Windows paths as e.g. 'c:\slfkjelf\slfje\file.mkv'
-        elif '\\' in path:
-            path = path.replace('\\', '\\\\')
-
-        if xbmcvfs.exists(path):
-            self.logMsg('Kodi can access file %s - direct playing' % path, 2)
-            return path
-        else:
             self.logMsg('Kodi cannot access file %s - no direct play'
-                        % path, 2)
+                        % path, 1)
             return False
+        else:
+            self.logMsg('Kodi can access file %s - direct playing' % path, 1)
+            return path
 
     def directPlay(self):
 
@@ -198,13 +189,17 @@ class PlayUtils():
         return False
 
     def isDirectStream(self):
-        if not self.h265enabled():
+        # set to 'Transcode=2'
+        if utils.settings('playType') == "2":
+            # User forcing to play via HTTP
+            self.logMsg("User chose to transcode", 1)
             return False
-
+        if self.h265enabled():
+            return False
         # Verify the bitrate
         if not self.isNetworkSufficient():
-            self.logMsg(
-                "The network speed is insufficient to direct stream file.", 1)
+            self.logMsg("The network speed is insufficient to direct stream "
+                        "file. Transcoding", 1)
             return False
         return True
 
@@ -228,11 +223,18 @@ class PlayUtils():
         return playurl
 
     def isNetworkSufficient(self):
-
+        """
+        Returns True if the network is sufficient (set in file settings)
+        """
+        try:
+            sourceBitrate = int(self.API.getDataFromPartOrMedia('bitrate'))
+        except:
+            self.logMsg('Could not detect source bitrate. It is assumed to be'
+                        'sufficient', 1)
+            return True
         settings = self.getBitrate()
-
-        sourceBitrate = int(self.API.getDataFromPartOrMedia('bitrate'))
-        self.logMsg("The add-on settings bitrate is: %s, the video bitrate required is: %s" % (settings, sourceBitrate), 1)
+        self.logMsg("The add-on settings bitrate is: %s, the video bitrate"
+                    "required is: %s" % (settings, sourceBitrate), 1)
         if settings < sourceBitrate:
             return False
         return True

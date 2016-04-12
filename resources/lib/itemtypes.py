@@ -440,8 +440,8 @@ class Movies(Items):
                 # Something went wrong, trying to use non-direct paths
                 doIndirect = True
             else:
-                playurl = API.validatePlayurl(playurl, 'movie')
-                if playurl is False:
+                playurl = API.validatePlayurl(playurl, API.getType())
+                if playurl is None:
                     return False
                 if "\\" in playurl:
                     # Local path
@@ -450,7 +450,6 @@ class Movies(Items):
                     # Network share
                     filename = playurl.rsplit("/", 1)[1]
                 path = playurl.replace(filename, "")
-                utils.window('emby_pathverified', value="true")
         if doIndirect:
             # Set plugin path and media flags using real filename
             path = "plugin://plugin.video.plexkodiconnect.movies/"
@@ -1041,8 +1040,8 @@ class TVShows(Items):
                 # Something went wrong, trying to use non-direct paths
                 doIndirect = True
             else:
-                playurl = API.validatePlayurl(playurl, 'tv')
-                if playurl is False:
+                playurl = API.validatePlayurl(playurl, API.getType())
+                if playurl is None:
                     return False
                 if "\\" in playurl:
                     # Local path
@@ -1052,12 +1051,6 @@ class TVShows(Items):
                     # Network path
                     path = "%s/" % playurl
                     toplevelpath = "%s/" % dirname(dirname(path))
-                if (utils.window('emby_pathverified') != "true" and
-                        not xbmcvfs.exists(path.encode('utf-8'))):
-                    # Validate the path is correct with user intervention
-                    if self.askToValidate(playurl):
-                        return False
-                utils.window('emby_pathverified', value="true")
         if doIndirect:
             # Set plugin path
             toplevelpath = "plugin://plugin.video.plexkodiconnect.tvshows/"
@@ -1331,14 +1324,9 @@ class TVShows(Items):
                 # Something went wrong, trying to use non-direct paths
                 doIndirect = True
             else:
-                playurl = API.validatePlayurl(playurl, 'tv')
-                if playurl is False:
+                playurl = API.validatePlayurl(playurl, API.getType())
+                if playurl is None:
                     return False
-                if (utils.window('emby_pathverified') != "true" and
-                        not xbmcvfs.exists(playurl.encode('utf-8'))):
-                    # Validate the path is correct with user intervention
-                    if self.askToValidate(playurl):
-                        return False
                 if "\\" in playurl:
                     # Local path
                     filename = playurl.rsplit("\\", 1)[1]
@@ -1346,7 +1334,6 @@ class TVShows(Items):
                     # Network share
                     filename = playurl.rsplit("/", 1)[1]
                 path = playurl.replace(filename, "")
-                utils.window('emby_pathverified', value="true")
         if doIndirect:
             # Set plugin path and media flags using real filename
             path = "plugin://plugin.video.plexkodiconnect.movies/"
@@ -2085,14 +2072,9 @@ class Music(Items):
                 # Something went wrong, trying to use non-direct paths
                 doIndirect = True
             else:
-                playurl = API.validatePlayurl(playurl, 'music')
-                if playurl is False:
+                playurl = API.validatePlayurl(playurl, API.getType())
+                if playurl is None:
                     return False
-                if (utils.window('emby_pathverified') != "true" and
-                        not xbmcvfs.exists(playurl.encode('utf-8'))):
-                    # Validate the path is correct with user intervention
-                    if self.askToValidate(playurl):
-                        return False
                 if "\\" in playurl:
                     # Local path
                     filename = playurl.rsplit("\\", 1)[1]
@@ -2100,7 +2082,6 @@ class Music(Items):
                     # Network share
                     filename = playurl.rsplit("/", 1)[1]
                 path = playurl.replace(filename, "")
-                utils.window('emby_pathverified', value="true")
         if doIndirect:
             # Plex works a bit differently
             path = "%s%s" % (self.server, item[0][0].attrib.get('key'))

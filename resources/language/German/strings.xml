@@ -2,7 +2,7 @@
 <strings>
     <string id="30000">IP-Adresse des Servers</string>
     <string id="30001">Automatisches Öffnen von Ordnern mit einem Eintrag</string>
-    <string id="30002">Direct Play deaktivieren and Transkodieren erzwingen</string>
+    <string id="30002">Gewünschte Wiedergabe-Methode</string>
     <string id="30004">Log Level:</string>
     <string id="30005">Benutzername: </string>
     <string id="30006">Passwort: </string>
@@ -163,7 +163,7 @@
     <string id="30157">Deaktiviere erweiterte Bilder (z.B. CoverArt)</string>
     <string id="30158">Metadaten</string>
     <string id="30159">Grafiken</string>
-    <string id="30160">Videoqualität</string>
+    <string id="30160">Videoqualität für Transkodierung</string>
 
     <string id="30161">'Empfohlen'-Loader aktivieren (Erfordert Neustart)</string>
     <string id="30162">Staffelnummer hinzufügen</string>
@@ -336,6 +336,9 @@
     <string id="39053">Kompletten Scan aller Bibliotheken alle x Minuten durchführen</string>
     <string id="39054">remote</string>
     <string id="39055">Suche Plex Server</string>
+    <string id="39056">Verwendet für Synchronisierung sowie beim Versuch, Direct Play zu nutzen</string>
+    <string id="39057">Pfade ändern</string>
+
 
 
     <!-- Plex Entrypoint.py -->

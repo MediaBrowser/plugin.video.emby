@@ -2,7 +2,7 @@
 <strings>
     <!-- Add-on settings -->
     <string id="30000">Server Address (IP)</string><!-- Verified -->
-    <string id="30002">Deactivate Direct Play and enforce Transcoding</string><!-- Verified -->
+    <string id="30002">Prefered playback method</string><!-- Verified -->
     <string id="30004">Log level</string><!-- Verified -->
     <string id="30005">Username: </string>
     <string id="30006">Password: </string>
@@ -130,7 +130,7 @@
     <string id="30157">Enable Enhanced Images (eg CoverArt)</string><!-- Verified -->
     <string id="30158">Metadata</string>
     <string id="30159">Artwork</string>
-    <string id="30160">Video Quality</string><!-- Verified -->
+    <string id="30160">Video Quality for Transcoding</string><!-- Verified -->
     
     <string id="30161">Enable Suggested Loader (Requires Restart)</string>
     <string id="30162">Add Season Number</string>     
@@ -298,7 +298,7 @@
     <string id="30533">Duration of the music library pop up (in seconds)</string>
     <string id="30534">Server messages</string>
     <string id="30535">[COLOR yellow]Generate a new unique device Id (e.g. when cloning Kodi)[/COLOR]</string>
-    <string id="30536">Users must log in every time when Kodi restarts</string>
+    <string id="30536">Users must log in every time Kodi restarts</string>
     <string id="30537">RESTART KODI IF YOU MAKE ANY CHANGES</string>
     <string id="30538">Complete Re-Sync necessary</string>
 
@@ -384,7 +384,7 @@
     <string id="39040">Replace Plex TV SHOWS with:</string>
     <string id="39041">Original Plex MUSIC path to replace:</string>
     <string id="39042">Replace Plex MUSIC with:</string>
-    <string id="39043">Go a step further and complete replace all original Plex library paths (/volume1/media) with custom SMB paths (smb://NAS/MyStuff)?</string>
+    <string id="39043">Go a step further and completely replace all original Plex library paths (/volume1/media) with custom SMB paths (smb://NAS/MyStuff)?</string>
     <string id="39044">Please enter your custom smb paths in the settings under "Sync Options" and then restart Kodi</string>
 
     <string id="39045">Appearance Tweaks</string>
@@ -398,8 +398,8 @@
     <string id="39053">Do a full library sync every x minutes</string>
     <string id="39054">remote</string>
     <string id="39055">Searching for Plex Server</string>
-
-
+    <string id="39056">Used by Sync and when attempting to Direct Play</string>
+    <string id="39057">Customize Paths</string>
 
     <!-- Plex Entrypoint.py -->
     <string id="39200">Log-out Plex Home User </string>
