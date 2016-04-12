@@ -117,8 +117,7 @@ class PlaybackUtils():
             
             ############### -- CHECK FOR INTROS ################
 
-            if (settings('enableCinema') == "true" and not seektime and
-                    not window('emby_customPlaylist') == "true"):
+            if (settings('enableCinema') == "true" and not seektime):
                 # if we have any play them when the movie/show is not being resumed
                 xml = PF.GetPlexPlaylist(
                     itemid,

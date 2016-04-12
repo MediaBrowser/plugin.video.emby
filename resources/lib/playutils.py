@@ -101,6 +101,9 @@ class PlayUtils():
             return False
 
         path = self.API.getFilePath()
+        if path is None:
+            self.logMsg('PMS item does not have a filepath', 2)
+            return False
         # Assign network protocol
         if path.startswith('\\\\'):
             path = path.replace('\\\\', 'smb://')
