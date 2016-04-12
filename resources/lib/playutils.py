@@ -415,7 +415,7 @@ class PlayUtils():
                           % (self.server, selectSubsIndex)
                     url = self.API.addPlexHeadersToUrl(url)
                     self.logMsg("Downloadable sub: %s: %s" % (selectSubsIndex, url), 1)
-                    listitem.setSubtitles([url])
+                    listitem.setSubtitles([url.encode('utf-8')])
                 else:
                     self.logMsg('Need to burn in subtitle %s' % selectSubsIndex, 1)
                     playurlprefs["subtitleStreamID"] = selectSubsIndex
