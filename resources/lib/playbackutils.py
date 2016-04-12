@@ -66,7 +66,7 @@ class PlaybackUtils():
             if playmethod == "Transcode":
                 window('emby_%s.playmethod' % playurl, clear=True)
                 playurl = playutils.audioSubsPref(
-                    listitem, playurl)
+                    listitem, playurl.decode('utf-8')).encode('utf-8')
                 window('emby_%s.playmethod' % playurl, "Transcode")
             listitem.setPath(playurl)
             self.setArtwork(listitem)
