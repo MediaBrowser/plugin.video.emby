@@ -259,7 +259,7 @@ class DownloadUtils():
                     # Called when checking a connect - no need for rash action
                     return 401
                 r.encoding = 'utf-8'
-                self.logMsg('HTTP error 401 from PMS', -1)
+                self.logMsg('HTTP error 401 from PMS %s' % url, -1)
                 self.logMsg(r.text, 1)
                 if '401 Unauthorized' in r.text:
                     # Truly unauthorized
