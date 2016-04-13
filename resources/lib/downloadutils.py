@@ -90,7 +90,7 @@ class DownloadUtils():
         if certificate != 'None':
             self.s.cert = certificate
 
-    def startSession(self):
+    def startSession(self, reset=False):
         """
         User should be authenticated when this method is called (via
         userclient)
@@ -115,7 +115,7 @@ class DownloadUtils():
         # Counters to declare PMS dead or unauthorized
         # Use window variables because start of movies will be called with a
         # new plugin instance - it's impossible to share data otherwise
-        if window('countUnauthorized') == '':
+        if reset is True:
             window('countUnauthorized', value='0')
             window('countError', value='0')
 

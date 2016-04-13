@@ -202,7 +202,7 @@ class UserClient(threading.Thread):
                 window('remapSMB%sNew' % item, value=new)
 
         # Start DownloadUtils session
-        doUtils.startSession()
+        doUtils.startSession(reset=True)
         # self.getAdditionalUsers()
         # Set user preferences in settings
         self.currUser = username
