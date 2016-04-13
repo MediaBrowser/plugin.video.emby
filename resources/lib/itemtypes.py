@@ -1022,7 +1022,9 @@ class TVShows(Items):
                 # Something went wrong, trying to use non-direct paths
                 doIndirect = True
             else:
-                playurl = API.validatePlayurl(playurl, API.getType())
+                playurl = API.validatePlayurl(playurl,
+                                              API.getType(),
+                                              folder=True)
                 if playurl is None:
                     return False
                 if "\\" in playurl:

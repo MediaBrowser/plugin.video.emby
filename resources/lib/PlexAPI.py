@@ -2036,7 +2036,7 @@ class API():
             listItem.addStreamInfo(
                 "video", {'duration': self.getRuntime()[1]})
 
-    def validatePlayurl(self, path, typus, forceCheck=False):
+    def validatePlayurl(self, path, typus, forceCheck=False, folder=False):
         """
         Returns a valid path for Kodi, e.g. with '\' substituted to '\\' in
         Unicode. Returns None if this is not possible
@@ -2045,6 +2045,7 @@ class API():
             typus      : Plex type from PMS xml
             forceCheck : Will always try to check validity of path
                          Will also skip confirmation dialog if path not found
+            folder     : Set to True if path is a folder
         """
         if path is None:
             return None
@@ -2070,12 +2071,23 @@ class API():
         if utils.window('emby_pathverified') == 'true' and forceCheck is False:
             return path
 
-        check = xbmcvfs.exists(path.encode('utf-8'))
-        # exists() NEEDS either a '/' or '\\' at the end of a DIR name
-        if check is False:
-            check = xbmcvfs.exists((path + '/').encode('utf-8'))
-            if check is False:
-                check = xbmcvfs.exists((path + '\\').encode('utf-8'))
+        # exist() needs a / or \ at the end to work for directories
+        if folder is False:
+            # files
+            check = True if xbmcvfs.exists(path.encode('utf-8')) == 1 \
+                else False
+        else:
+            # directories
+            if "\\" in path:
+                # Add the missing backslash
+                check = True if \
+                    xbmcvfs.exists((path + "\\").encode('utf-8')) == 1 \
+                    else False
+            else:
+                check = True if \
+                    xbmcvfs.exists((path + "/").encode('utf-8')) == 1 \
+                    else False
+
         if check is False:
             if forceCheck is False:
                 # Validate the path is correct with user intervention
