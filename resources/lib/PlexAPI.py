@@ -291,8 +291,7 @@ class PlexAPI():
             answer = self.doUtils(url,
                                   authenticate=False,
                                   headerOptions=headerOptions,
-                                  verifySSL=verifySSL,
-                                  dontSignout=True)
+                                  verifySSL=verifySSL)
             if answer is False:
                 self.logMsg("Could not connect to %s" % url, 0)
                 count += 1

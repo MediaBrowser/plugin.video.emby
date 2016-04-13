@@ -145,8 +145,7 @@ class DownloadUtils():
         return r
 
     def downloadUrl(self, url, type="GET", postBody=None, parameters=None,
-                    authenticate=True, headerOptions=None, verifySSL=True,
-                    dontSignout=False):
+                    authenticate=True, headerOptions=None, verifySSL=True):
         """
         Override SSL check with verifySSL=False
 
@@ -200,7 +199,7 @@ class DownloadUtils():
         # THE EXCEPTIONS
         except requests.exceptions.ConnectionError as e:
             # Connection error
-            if dontSignout is False:
+            if authenticate is False:
                 self.logMsg("Server unreachable at: %s" % url, -1)
                 self.logMsg(e, 2)
                 # Make the addon aware of status
@@ -233,6 +232,11 @@ class DownloadUtils():
             self.logMsg(e, 2)
             return False
 
+        except requests.exceptions.TooManyRedirects as e:
+            self.logMsg("Too many redirects connecting to: %s" % url, -1)
+            self.logMsg(e, 2)
+            return False
+
         except requests.exceptions.RequestException as e:
             self.logMsg("Unknown error connecting to: %s" % url, -1)
             self.logMsg("Error message: %s" % e, 2)
@@ -255,7 +259,7 @@ class DownloadUtils():
             return True
 
         elif r.status_code == 401:
-            if dontSignout is True:
+            if authenticate is False:
                 # Called when checking a connect - no need for rash action
                 return 401
             r.encoding = 'utf-8'
