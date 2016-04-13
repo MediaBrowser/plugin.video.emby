@@ -181,7 +181,8 @@ class PlaybackUtils():
         # For transcoding only, ask for audio/subs pref
         if window('emby_%s.playmethod' % playurl) == "Transcode":
             window('emby_%s.playmethod' % playurl, clear=True)
-            playurl = playutils.audioSubsPref(listitem, playurl)
+            playurl = playutils.audioSubsPref(
+                listitem, playurl.decode('utf-8')).encode('utf-8')
             window('emby_%s.playmethod' % playurl, value="Transcode")
 
         listitem.setPath(playurl)
