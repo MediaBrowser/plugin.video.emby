@@ -894,7 +894,9 @@ def playlistXSP(mediatype, tagname, viewid, viewtype="", delete=False):
 
     # Using write process since there's no guarantee the xml declaration works with etree
     itemtypes = {
-        'homevideos': "movie"
+        'homevideos': 'movies',
+        'movie': 'movies',
+        'show': 'tvshows'
     }
     logMsg("Plex", "Writing playlist file to: %s" % xsppath, 1)
     try:
@@ -911,7 +913,7 @@ def playlistXSP(mediatype, tagname, viewid, viewtype="", delete=False):
                 '<rule field="tag" operator="is">\n\t\t'
                     '<value>%s</value>\n\t'
                 '</rule>\n'
-            '</smartplaylist>'
+            '</smartplaylist>\n'
             % (itemtypes.get(mediatype, mediatype), plname, tagname))
             .encode('utf-8'))
         f.close()
