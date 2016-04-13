@@ -69,24 +69,6 @@ class Items(object):
         self.kodiconn.close()
         return self
 
-    def askToValidate(self, url):
-        """
-        Displays a YESNO dialog box:
-            Kodi can't locate file: <url>. Please verify the path.
-            You may need to verify your network credentials in the
-            add-on settings or use different Plex paths. Stop syncing?
-        Returns True if sync should stop, else False
-        """
-        import xbmcaddon
-        string = xbmcaddon.Addon().getLocalizedString
-        resp = xbmcgui.Dialog().yesno(
-            heading=self.addonName,
-            line1=string(39031) + url,
-            line2=string(39032))
-        if resp:
-            utils.window('suspend_LibraryThread', value="true")
-        return resp
-
     def itemsbyId(self, items, process, pdialog=None):
         # Process items by itemid. Process can be added, update, userdata, remove
         emby = self.emby
