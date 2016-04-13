@@ -32,6 +32,10 @@ class DownloadUtils():
 
     # Requests session
     timeout = 30
+    # How many failed attempts before declaring PMS dead?
+    connectionAttempts = 3
+    # How many 401 returns before declaring unauthorized?
+    unauthorizedAttempts = 3
 
     def __init__(self):
         self.__dict__ = self._shared_state
@@ -108,6 +112,10 @@ class DownloadUtils():
         self.setUserId(window('currUserId'))
         self.setUsername(window('plex_username'))
 
+        # Counters to declare PMS dead or unauthorized
+        self.countUnauthorized = 0
+        self.countError = 0
+
         # Retry connections to the server
         self.s.mount("http://", requests.adapters.HTTPAdapter(max_retries=1))
         self.s.mount("https://", requests.adapters.HTTPAdapter(max_retries=1))
@@ -118,7 +126,7 @@ class DownloadUtils():
         try:
             self.s.close()
         except:
-            self.logMsg("Requests session could not be terminated.", 0)
+            self.logMsg("Requests session already closed", 0)
         try:
             del self.s
         except:
@@ -161,7 +169,7 @@ class DownloadUtils():
             JSON               json() object, if applicable
         """
         kwargs = {}
-        if authenticate:
+        if authenticate is True:
             # Get requests session
             try:
                 s = self.s
@@ -199,121 +207,119 @@ class DownloadUtils():
         # THE EXCEPTIONS
         except requests.exceptions.ConnectionError as e:
             # Connection error
-            if authenticate is False:
-                self.logMsg("Server unreachable at: %s" % url, -1)
-                self.logMsg(e, 2)
-                # Make the addon aware of status
-                window('emby_online', value="false")
-            return False
+            self.logMsg("Server unreachable at: %s" % url, -1)
+            self.logMsg(e, 1)
 
         except requests.exceptions.ConnectTimeout as e:
             self.logMsg("Server timeout at: %s" % url, -1)
-            self.logMsg(e, 2)
-            return False
+            self.logMsg(e, 1)
 
         except requests.exceptions.HTTPError as e:
-            r = r.status_code
-            if r == 401:
-                # Unauthorized
-                self.logMsg('Error 401 contacting %s' % url, -1)
-            elif r in (301, 302):
-                # Redirects
-                self.logMsg('HTTP redirect error %s at %s' % (r, url), -1)
-            elif r == 400:
-                # Bad requests
-                self.logMsg('Bad request at %s' % url, -1)
-            else:
-                self.logMsg('HTTP Error %s at %s' % (r, url), -1)
-            self.logMsg(e, 2)
-            return r
+            self.logMsg('HTTP Error at %s' % url, -1)
+            self.logMsg(e, 1)
 
         except requests.exceptions.SSLError as e:
             self.logMsg("Invalid SSL certificate for: %s" % url, -1)
-            self.logMsg(e, 2)
-            return False
+            self.logMsg(e, 1)
 
         except requests.exceptions.TooManyRedirects as e:
             self.logMsg("Too many redirects connecting to: %s" % url, -1)
-            self.logMsg(e, 2)
-            return False
+            self.logMsg(e, 1)
 
         except requests.exceptions.RequestException as e:
             self.logMsg("Unknown error connecting to: %s" % url, -1)
-            self.logMsg("Error message: %s" % e, 2)
-            return False
+            self.logMsg(e, 1)
 
         except SystemExit:
             self.logMsg('SystemExit detected, aborting download', 0)
             self.stopSession()
-            return False
 
         except:
-            self.logMsg('Unknown requests error', -1)
+            self.logMsg('Unknown error while downloading. Traceback:', -1)
             import traceback
             self.logMsg(traceback.format_exc(), 0)
-            return False
 
         # THE RESPONSE #####
-        if r.status_code == 204:
-            # No body in the response
-            return True
+        else:
+            # We COULD contact the PMS, hence it ain't dead
+            if authenticate is True:
+                self.countError = 0
+                if r.status_code != 401:
+                    self.countUnauthorized = 0
 
-        elif r.status_code == 401:
-            if authenticate is False:
-                # Called when checking a connect - no need for rash action
-                return 401
-            r.encoding = 'utf-8'
-            self.logMsg('HTTP error 401 from PMS. Message received:', -1)
-            self.logMsg(r.text, -1)
-            if '401 Unauthorized' in r.text:
-                # Truly unauthorized
-                self.logMsg('We seem to be truely unauthorized', 0)
-                if window('emby_serverStatus') not in ('401', 'Auth'):
-                    # Tell userclient token has been revoked.
-                    self.logMsg('Setting emby_serverStatus to 401', 0)
-                    window('emby_serverStatus', value="401")
-                    xbmcgui.Dialog().notification(
-                        self.addonName,
-                        "Error connecting: Unauthorized.",
-                        xbmcgui.NOTIFICATION_ERROR)
-                return 401
-            else:
-                # there might be other 401 where e.g. PMS is under strain (tbv)
-                self.logMsg('PMS might only be under strain', 0)
-                return 401
+            if r.status_code == 204:
+                # No body in the response
+                return True
 
-        elif r.status_code in (200, 201):
-            # 200: OK
-            # 201: Created
-            try:
-                # xml response
-                r = etree.fromstring(r.content)
-                return r
-            except:
+            elif r.status_code == 401:
+                if authenticate is False:
+                    # Called when checking a connect - no need for rash action
+                    return 401
                 r.encoding = 'utf-8'
-                if r.text == '':
-                    # Answer does not contain a body (even though it should)
-                    return True
+                self.logMsg('HTTP error 401 from PMS', -1)
+                self.logMsg(r.text, 1)
+                if '401 Unauthorized' in r.text:
+                    # Truly unauthorized
+                    self.countUnauthorized += 1
+                    if self.countUnauthorized >= self.unauthorizedAttempts:
+                        self.logMsg('We seem to be truly unauthorized for PMS'
+                                    % url, -1)
+                        if window('emby_serverStatus') not in ('401', 'Auth'):
+                            # Tell userclient token has been revoked.
+                            self.logMsg('Setting PMS server status to '
+                                        'unauthorized', 0)
+                            window('emby_serverStatus', value="401")
+                            xbmcgui.Dialog().notification(
+                                self.addonName,
+                                "Unauthorized for PMS",
+                                xbmcgui.NOTIFICATION_ERROR)
+                else:
+                    # there might be other 401 where e.g. PMS under strain
+                    self.logMsg('PMS might only be under strain', 0)
+                return 401
+
+            elif r.status_code in (200, 201):
+                # 200: OK
+                # 201: Created
                 try:
-                    # UNICODE - JSON object
-                    r = r.json()
+                    # xml response
+                    r = etree.fromstring(r.content)
                     return r
                 except:
                     r.encoding = 'utf-8'
-                    if '200 OK' in r.text:
-                        # Received fucked up OK from PMS on playstate update
-                        pass
-                    else:
-                        self.logMsg("Unable to convert the response for: %s"
-                                    % url, -1)
-                        self.logMsg("Received headers were: %s"
-                                    % r.headers, -1)
-                        self.logMsg('Received text:', -1)
-                        self.logMsg(r.text, -1)
-                    return True
-        else:
-            self.logMsg('Unknown answer from PMS %s with status code %s. '
-                        'Message:' % (url, r.status_code), -1)
-            r.encoding = 'utf-8'
-            self.logMsg(r.text, -1)
-            return True
+                    if r.text == '':
+                        # Answer does not contain a body
+                        return True
+                    try:
+                        # UNICODE - JSON object
+                        r = r.json()
+                        return r
+                    except:
+                        if '200 OK' in r.text:
+                            # Received fucked up OK from PMS on playstate
+                            # update
+                            pass
+                        else:
+                            self.logMsg("Unable to convert the response for: "
+                                        "%s" % url, -1)
+                            self.logMsg("Received headers were: %s"
+                                        % r.headers, -1)
+                            self.logMsg('Received text:', -1)
+                            self.logMsg(r.text, -1)
+                        return True
+            else:
+                self.logMsg('Unknown answer from PMS %s with status code %s. '
+                            'Message:' % (url, r.status_code), -1)
+                r.encoding = 'utf-8'
+                self.logMsg(r.text, 1)
+                return True
+
+        # And now deal with the consequences of the exceptions
+        if authenticate is True:
+            # Make the addon aware of status
+            self.countError += 1
+            if self.countError >= self.connectionAttempts:
+                self.logMsg('Failed to connect to %s too many times. Declare '
+                            'PMS dead' % url, -1)
+                window('emby_online', value="false")
+        return False
