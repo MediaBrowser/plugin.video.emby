@@ -246,6 +246,8 @@ class Service():
                         if self.server_online:
                             log("Server is offline.", 1)
                             window('emby_online', value="false")
+                            # Suspend threads
+                            window('suspend_LibraryThread', value='true')
 
                             xbmcgui.Dialog().notification(
                                 heading=lang(33001),
@@ -274,6 +276,10 @@ class Service():
                         self.server_online = True
                         log("Server %s is online and ready." % server, 1)
                         window('emby_online', value="true")
+                        if window('plex_authenticated') == 'true':
+                            # Server got offline when we were authenticated.
+                            # Hence resume threads
+                            window('suspend_LibraryThread', clear=True)
 
                         # Start the userclient thread
                         if not self.userclient_running:
