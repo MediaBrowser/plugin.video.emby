@@ -268,7 +268,7 @@ class DownloadUtils():
                     if (int(window('countUnauthorized')) >=
                             self.unauthorizedAttempts):
                         self.logMsg('We seem to be truly unauthorized for PMS'
-                                    % url, -1)
+                                    ' %s ' % url, -1)
                         if window('emby_serverStatus') not in ('401', 'Auth'):
                             # Tell userclient token has been revoked.
                             self.logMsg('Setting PMS server status to '
