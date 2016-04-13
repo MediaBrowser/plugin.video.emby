@@ -543,13 +543,13 @@ class Player(xbmc.Player):
             for item in cleanup:
                 utils.window(item, clear=True)
 
-                # Stop transcoding
-                if playMethod == "Transcode":
-                    log("Transcoding for %s terminated." % itemid, 1)
-                    deviceId = self.clientInfo.getDeviceId()
-                    url = "{server}/emby/Videos/ActiveEncodings?DeviceId=%s" % deviceId
-                    doUtils(url, type="DELETE")
-    
+        # Stop transcoding
+        if playMethod == "Transcode":
+            log("Transcoding for %s terminating" % itemid, 1)
+            doUtils(
+                "{server}/video/:/transcode/universal/stop",
+                parameters={'session': self.clientInfo.getDeviceId()})
+
         self.played_info.clear()
 
     def stopPlayback(self, data):

@@ -1899,15 +1899,14 @@ class API():
                 url += '?' + urlencode(xargs)
             return url
 
-        # For Direct Streaming or Transcoding
-        from uuid import uuid4
+        # For Transcoding
         # Path/key to VIDEO item of xml PMS response is needed, not part
         path = self.item.attrib['key']
         transcodePath = self.server + \
             '/video/:/transcode/universal/start.m3u8?'
         args = {
             'protocol': 'hls',   # seen in the wild: 'dash', 'http', 'hls'
-            'session': str(uuid4()),
+            'session':  clientinfo.ClientInfo().getDeviceId(),
             'fastSeek': 1,
             'path': path,
             'mediaIndex': 0,       # Probably refering to XML reply sheme
