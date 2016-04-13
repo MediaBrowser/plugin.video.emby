@@ -33,9 +33,9 @@ class DownloadUtils():
     # Requests session
     timeout = 30
     # How many failed attempts before declaring PMS dead?
-    connectionAttempts = 3
+    connectionAttempts = 2
     # How many 401 returns before declaring unauthorized?
-    unauthorizedAttempts = 3
+    unauthorizedAttempts = 2
 
     def __init__(self):
         self.__dict__ = self._shared_state
@@ -113,8 +113,11 @@ class DownloadUtils():
         self.setUsername(window('plex_username'))
 
         # Counters to declare PMS dead or unauthorized
-        self.countUnauthorized = 0
-        self.countError = 0
+        # Use window variables because start of movies will be called with a
+        # new plugin instance - it's impossible to share data otherwise
+        if window('countUnauthorized') == '':
+            window('countUnauthorized', value='0')
+            window('countError', value='0')
 
         # Retry connections to the server
         self.s.mount("http://", requests.adapters.HTTPAdapter(max_retries=1))
@@ -243,9 +246,9 @@ class DownloadUtils():
         else:
             # We COULD contact the PMS, hence it ain't dead
             if authenticate is True:
-                self.countError = 0
+                window('countError', value='0')
                 if r.status_code != 401:
-                    self.countUnauthorized = 0
+                    window('countUnauthorized', value='0')
 
             if r.status_code == 204:
                 # No body in the response
@@ -260,8 +263,10 @@ class DownloadUtils():
                 self.logMsg(r.text, 1)
                 if '401 Unauthorized' in r.text:
                     # Truly unauthorized
-                    self.countUnauthorized += 1
-                    if self.countUnauthorized >= self.unauthorizedAttempts:
+                    window('countUnauthorized',
+                           value=str(int(window('countUnauthorized')) + 1))
+                    if (int(window('countUnauthorized')) >=
+                            self.unauthorizedAttempts):
                         self.logMsg('We seem to be truly unauthorized for PMS'
                                     % url, -1)
                         if window('emby_serverStatus') not in ('401', 'Auth'):
@@ -317,8 +322,9 @@ class DownloadUtils():
         # And now deal with the consequences of the exceptions
         if authenticate is True:
             # Make the addon aware of status
-            self.countError += 1
-            if self.countError >= self.connectionAttempts:
+            window('countError',
+                   value=str(int(window('countError')) + 1))
+            if int(window('countError')) >= self.connectionAttempts:
                 self.logMsg('Failed to connect to %s too many times. Declare '
                             'PMS dead' % url, -1)
                 window('emby_online', value="false")

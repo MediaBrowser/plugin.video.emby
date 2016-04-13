@@ -86,7 +86,7 @@ class Service():
             "replaceSMB", "remapSMB", "remapSMBmovieOrg", "remapSMBtvOrg",
             "remapSMBmusicOrg", "remapSMBmovieNew", "remapSMBtvNew",
             "remapSMBmusicNew", "suspend_LibraryThread", "plex_terminateNow",
-            "kodiplextimeoffset"
+            "kodiplextimeoffset", "countError", "countUnauthorized"
         ]
         for prop in properties:
             window(prop, clear=True)
