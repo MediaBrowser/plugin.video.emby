@@ -1203,6 +1203,12 @@ class LibrarySync(Thread):
             self.GetAndProcessXMLs(itemType)
             self.logMsg("GetAndProcessXMLs for music %s completed" % kind, 1)
 
+        # Update viewstate for EVERY item
+        for view in views:
+            if self.threadStopped():
+                return False
+            self.PlexUpdateWatched(view['id'], itemType)
+
         # reset stuff
         self.allKodiElementsId = {}
         self.allPlexElementsId = {}
