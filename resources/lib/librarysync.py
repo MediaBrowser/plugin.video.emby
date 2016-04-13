@@ -524,6 +524,7 @@ class LibrarySync(Thread):
         with kodidb.GetKodiDB('video') as kodi_db:
             try:
                 kodi_db.pathHack()
+                self.logMsg('Path hack successful', 1)
             except Exception as e:
                 # Empty movies, tv shows?
                 self.logMsg('Path hack failed with error message: %s'
