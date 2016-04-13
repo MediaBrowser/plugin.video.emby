@@ -59,6 +59,7 @@ Currently these features are working:
 - Instant watched state/resume status sync: This is a 2-way synchronisation. Any watched state or resume status will be instantly (within seconds) reflected to or from Kodi and the server
 - Plex Companion: fling Plex media (or anything else) from other Plex devices to PlexKodiConnect
 - Play directly from network paths (e.g. "\\\\server\\Plex\\movie.mkv" or "smb://server/Plex/movie.mkv") instead of slow HTTP (e.g. "192.168.1.1:32400"). You have to setup all your Plex libraries to point to such network paths
+- Transcoding
 
 
 **Known Issues:**
