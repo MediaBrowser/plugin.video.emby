@@ -190,8 +190,6 @@ class ThreadedProcessMetadata(Thread):
                 # signals to queue job is done
                 queue.task_done()
         # Empty queue in case PKC was shut down (main thread hangs otherwise)
-        # Sleep, just in case the other threads throw another xml
-        xbmc.sleep(1000)
         self.terminateNow()
         self.logMsg('Processing thread terminated', 2)
 
