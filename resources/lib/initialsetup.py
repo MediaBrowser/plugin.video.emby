@@ -217,6 +217,7 @@ class InitialSetup():
         # Write to Kodi settings file
         utils.settings('plex_machineIdentifier', activeServer)
         utils.settings('plex_servername', server['name'])
+        utils.settings('plex_serverowned', server['owned'])
         if server['local'] == '1':
             scheme = server['scheme']
             utils.settings('ipaddress', server['ip'])

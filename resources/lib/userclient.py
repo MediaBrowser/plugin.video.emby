@@ -181,6 +181,7 @@ class UserClient(threading.Thread):
         window('plex_machineIdentifier', value=self.machineIdentifier)
         window('plex_servername', value=self.servername)
         window('plex_authenticated', value='true')
+        window('plex_serverowned', value=settings('plex_serverowned'))
 
         window('useDirectPaths', value='true'
                if utils.settings('useDirectPaths') == "1" else 'false')
