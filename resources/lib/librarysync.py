@@ -975,6 +975,9 @@ class LibrarySync(Thread):
         try:
             xml[0].attrib
         except (TypeError, AttributeError, IndexError):
+            self.logMsg('Error updating watch status. Could not get viewId: '
+                        '%s of itemType %s with lastViewedAt: %s, updatedAt: '
+                        '%s' % (viewId, itemType, lastViewedAt, updatedAt), -1)
             return
 
         if itemType in ('Movies', 'TVShows'):
