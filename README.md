@@ -5,7 +5,7 @@
 
 
 ### [Checkout the Wiki](https://github.com/croneter/PlexKodiConnect/wiki)
-
+[The Wiki will hopefully answer all your questions](https://github.com/croneter/PlexKodiConnect/wiki)
 
 ### Welcome to PlexKodiConnect
 **Connect your Plex Media Server to a Kodi Front End**
