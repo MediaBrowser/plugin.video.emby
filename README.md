@@ -4,6 +4,9 @@
 2. **Compatibility**: PKC is currently not compatible with Kodi's Video Extras plugin. **Deactivate Video Extras** if trailers/movies start randomly playing. 
 
 
+### [Checkout the Wiki](https://github.com/croneter/PlexKodiConnect/wiki)
+
+
 ### Welcome to PlexKodiConnect
 **Connect your Plex Media Server to a Kodi Front End**
 
@@ -26,28 +29,7 @@ This addon synchronizes your media on your Plex server to the native Kodi databa
 
 **Installation in Kodi**
 
-1. Uninstall everything else Plex related first, e.g. PlexBMC and PlexBMC Helper. 
-2. Simply fire up Kodi and "Install from ZIP" from here on. 
-3. Install the 2 needed dependencies first (be sure to NOT download the sources but the additional release files): https://github.com/croneter/plugin.video.plexkodiconnect.tvshows/releases/ and https://github.com/croneter/plugin.video.plexkodiconnect.movies/releases/
-4. Then install PlexKodiConnect, again the additional release file from here: https://github.com/croneter/PlexKodiConnect/releases/
-5. Within a few seconds you should be prompted to log into plex.tv. This is mandatory for Plex Home, otherwise you can skip. If nothing happens, try to restart Kodi
-6. Once you have succesfully authenticated, the initial sync will start. 
-7. The first sync of the Plex server to local Kodi database may take a **LONG time**. With my setup (~400 movies, ~600 episodes, couple of Test music albums and a very powerful NAS), sync takes approximately 5 minutes.
-8. Once the full sync is done, you can browse your media in Kodi, syncs will be automatically done in the background.
-9. Restart Kodi, just to be on the safe side
-
-This software is yet in a Beta version. You have been warned. It's very probable that you will need to fully resync and reset your setup on a regular basis.
-
-
-**Having Problems? Then thanks for your log files**
-
-First try to restart Kodi. If that does not help: try resetting the Addon: Settings -> Advanced -> "Partial or Full Reset of Database and PKC". Then choose 3x "Yes".
-If you're still having problems, let me know:
-
-1. Activate a more detailed logging for KodiPlexConnect: Settings -> Advanced -> "Debug"
-2. Follow the instructions here: http://kodi.wiki/view/Log_file/Easy and try to reproduce the bug
-3. Don't forget to **delete all references to any of your Plex tokens**!! You don't want others to have access to your Plex installation
-4. Post the link to your log (that you posted e.g. here: http://xbmclogs.com/) on https://forums.plex.tv/discussion/210023/plexkodiconnect-supercharge-your-plex-kodi-connection (or send a private message to prevent your Plex keys from leaking)
+Check out the [Wiki](https://github.com/croneter/PlexKodiConnect/wiki)
 
 
 **What is currently supported ?**
