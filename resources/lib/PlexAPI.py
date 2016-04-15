@@ -1256,11 +1256,15 @@ class API():
 
     def getDateCreated(self):
         """
-        Returns the date when this library item was created or None
+        Returns the date when this library item was created.
+
+        If not found, returns 2000-01-01 10:00:00
         """
         res = self.item.attrib.get('addedAt')
         if res is not None:
             res = utils.DateToKodi(res)
+        else:
+            res = '2000-01-01 10:00:00'
         return res
 
     def getUserData(self):
