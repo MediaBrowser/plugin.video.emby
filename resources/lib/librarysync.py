@@ -1453,7 +1453,7 @@ class LibrarySync(Thread):
                 sessionKey = item.get('sessionKey')
                 # Do we already have a sessionKey stored?
                 if sessionKey not in self.sessionKeys:
-                    if utils.window('plex_serverowned') == '0':
+                    if utils.window('plex_serverowned') == 'false':
                         # Not our PMS, we are not authorized to get the
                         # sessions
                         # On the bright side, it must be us playing :-)
@@ -1472,7 +1472,7 @@ class LibrarySync(Thread):
                             continue
 
                 currSess = self.sessionKeys[sessionKey]
-                if utils.window('plex_serverowned') != '0':
+                if utils.window('plex_serverowned') != 'false':
                     # Identify the user - same one as signed on with PKC? Skip
                     # update if neither session's username nor userid match
                     # (Owner sometime's returns id '1', not always)

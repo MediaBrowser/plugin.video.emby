@@ -20,6 +20,7 @@
     <string id="30024">Username</string><!-- Verified -->
     
     <string id="30030">Port Number</string><!-- Verified -->
+    <string id="30031">I own this Plex Media Server</string>
     <string id="30036">Number of recent Movies to show:</string>    
     <string id="30037">Number of recent TV episodes to show:</string>    
     <string id="30035">Number of recent Music Albums to show:</string>    
