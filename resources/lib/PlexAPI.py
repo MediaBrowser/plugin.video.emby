@@ -1846,6 +1846,14 @@ class API():
             primary = ""
         allartworks['Primary'] = primary
 
+        try:
+            banner = item['banner']
+            banner = "%s%s" % (self.server, banner)
+            banner = self.addPlexCredentialsToUrl(banner)
+        except KeyError:
+            banner = ""
+        allartworks['Banner'].append(banner)
+
         # Process parent items if the main item is missing artwork
         if parentInfo:
             # Process parent backdrops
