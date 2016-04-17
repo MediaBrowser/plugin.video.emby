@@ -16,6 +16,7 @@ import playutils as putils
 import playlist
 import read_embyserver as embyserver
 import utils
+import downloadutils
 
 import PlexAPI
 import PlexFunctions as PF
@@ -60,8 +61,24 @@ class PlaybackUtils():
         if not playurl:
             return xbmcplugin.setResolvedUrl(int(sys.argv[1]), False, listitem)
 
-        if dbid in (None, '999999999'):
-            # Item is not in Kodi database or is a trailer
+        if dbid in (None, '999999999', 'plexnode'):
+            # Item is not in Kodi database, is a trailer or plex redirect
+            # e.g. plex.tv watch later
+            API.CreateListItemFromPlexItem(listitem)
+            self.setArtwork(listitem)
+            if dbid == 'plexnode':
+                # Need to get yet another xml to get final url
+                window('emby_%s.playmethod' % playurl, clear=True)
+                xml = downloadutils.DownloadUtils().downloadUrl(
+                    '{server}%s' % item[0][0][0].attrib.get('key'))
+                if xml in (None, 401):
+                    log('Could not download %s'
+                        % item[0][0][0].attrib.get('key'), -1)
+                    return xbmcplugin.setResolvedUrl(
+                        int(sys.argv[1]), False, listitem)
+                playurl = xml[0].attrib.get('key').encode('utf-8')
+                window('emby_%s.playmethod' % playurl, value='DirectStream')
+
             playmethod = window('emby_%s.playmethod' % playurl)
             if playmethod == "Transcode":
                 window('emby_%s.playmethod' % playurl, clear=True)
@@ -69,8 +86,6 @@ class PlaybackUtils():
                     listitem, playurl.decode('utf-8')).encode('utf-8')
                 window('emby_%s.playmethod' % playurl, "Transcode")
             listitem.setPath(playurl)
-            self.setArtwork(listitem)
-            API.CreateListItemFromPlexItem(listitem)
             self.setProperties(playurl, listitem)
             return xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, listitem)
 

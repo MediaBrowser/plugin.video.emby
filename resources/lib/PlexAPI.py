@@ -916,12 +916,15 @@ class PlexAPI():
 
         username = answer.attrib.get('title', '')
         token = answer.attrib.get('authenticationToken', '')
-        userid = answer.attrib.get('id', '')
 
         # Write to settings file
         utils.settings('username', username)
-        utils.settings('userid', userid)
         utils.settings('accessToken', token)
+        utils.settings('userid',
+                       answer.attrib.get('id', ''))
+        utils.settings('plex_restricteduser',
+                       'true' if answer.attrib.get('restricted', '0') == '1'
+                       else 'false')
 
         # Get final token to the PMS we've chosen
         url = 'https://plex.tv/api/resources?includeHttps=1'
@@ -1476,8 +1479,11 @@ class API():
         """
         res = self.item.attrib.get('audienceRating')
         if res is None:
-            res = self.item.attrib.get('rating', 0.0)
-        res = float(res)
+            res = self.item.attrib.get('rating')
+        try:
+            res = float(res)
+        except (ValueError, TypeError):
+            res = 0.0
         return res
 
     def getYear(self):
@@ -1499,11 +1505,11 @@ class API():
 
         try:
             runtime = float(item['duration'])
-        except KeyError:
+        except (KeyError, ValueError):
             runtime = 0.0
         try:
             resume = float(item['viewOffset'])
-        except KeyError:
+        except (KeyError, ValueError):
             resume = 0.0
 
         runtime = int(runtime * PlexToKodiTimefactor())
@@ -1837,16 +1843,22 @@ class API():
         # Get background artwork URL
         try:
             background = item['art']
-            background = "%s%s" % (self.server, background)
-            background = self.addPlexCredentialsToUrl(background)
+            if background.startswith('http'):
+                pass
+            else:
+                background = "%s%s" % (self.server, background)
+                background = self.addPlexCredentialsToUrl(background)
         except KeyError:
             background = ""
         allartworks['Backdrop'].append(background)
         # Get primary "thumb" pictures:
         try:
             primary = item['thumb']
-            primary = "%s%s" % (self.server, primary)
-            primary = self.addPlexCredentialsToUrl(primary)
+            if primary.startswith('http'):
+                pass
+            else:
+                primary = "%s%s" % (self.server, primary)
+                primary = self.addPlexCredentialsToUrl(primary)
         except KeyError:
             primary = ""
         allartworks['Primary'] = primary
@@ -2012,6 +2024,14 @@ class API():
             self.logMsg('No extra artwork found')
             return allartworks
 
+    def shouldStream(self):
+        """
+        Returns True if the item's 'optimizedForStreaming' is set, False other-
+        wise
+        """
+        return (True if self.item[0].attrib.get('optimizedForStreaming') == '1'
+                else False)
+
     def getTranscodeVideoPath(self, action, quality={}):
         """
 
@@ -2033,7 +2053,6 @@ class API():
 
         TODO: mediaIndex
         """
-
         xargs = clientinfo.ClientInfo().getXArgsDeviceInfo()
         # For DirectPlay, path/key of PART is needed
         if action == "DirectStream":
@@ -2151,7 +2170,7 @@ class API():
             'aired': self.getPremiereDate()
         }
 
-        if "episode" in self.getType():
+        if self.getType() == "episode":
             # Only for tv shows
             key, show, season, episode = self.getEpisodeDetails()
             metadata['episode'] = episode
@@ -2204,6 +2223,7 @@ class API():
             'album': 'music',
             'song': 'music',
             'track': 'music',
+            'clip': 'clip'
         }
         typus = types[typus]
         if utils.window('remapSMB') == 'true':

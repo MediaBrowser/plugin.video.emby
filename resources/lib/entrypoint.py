@@ -5,6 +5,7 @@
 import json
 import os
 import sys
+import urllib
 
 import xbmc
 import xbmcaddon
@@ -235,6 +236,16 @@ def doPlayback(itemid, dbid):
 
     Always to return with a "setResolvedUrl"
     """
+    if dbid == 'plexnode':
+        # Plex redirect, e.g. watch later. Need to get actual URLs
+        xml = downloadutils.DownloadUtils().downloadUrl(itemid,
+                                                        authenticate=False)
+        if xml in (None, 401):
+            utils.logMsg(title, "Could not resolve url %s" % itemid, -1)
+            return xbmcplugin.setResolvedUrl(
+                int(sys.argv[1]), False, xbmcgui.ListItem())
+        return pbutils.PlaybackUtils(xml).play(None, dbid)
+
     if utils.window('plex_authenticated') != "true":
         utils.logMsg('doPlayback', 'Not yet authenticated for a PMS, abort '
                      'starting playback', -1)
@@ -249,12 +260,12 @@ def doPlayback(itemid, dbid):
         return xbmcplugin.setResolvedUrl(
             int(sys.argv[1]), False, xbmcgui.ListItem())
 
-    item = PlexFunctions.GetPlexMetadata(itemid)
-    if item is None or item == 401:
+    xml = PlexFunctions.GetPlexMetadata(itemid)
+    if xml in (None, 401):
         return xbmcplugin.setResolvedUrl(
             int(sys.argv[1]), False, xbmcgui.ListItem())
     # Everything OK
-    return pbutils.PlaybackUtils(item).play(itemid, dbid)
+    return pbutils.PlaybackUtils(xml).play(itemid, dbid)
 
     # utils.logMsg(title, "doPlayback called with itemid=%s, dbid=%s"
     #              % (itemid, dbid), 1)
@@ -327,6 +338,9 @@ def doMainListing():
             elif path and not xbmc.getCondVisibility("Window.IsActive(VideoLibrary) | Window.IsActive(Pictures) | Window.IsActive(MusicLibrary)"):
                 addDirectoryItem(label, path)
 
+    # Plex Watch later
+    addDirectoryItem(string(39211),
+                     "plugin://plugin.video.plexkodiconnect/?mode=watchlater")
     # Plex user switch
     addDirectoryItem(string(39200) + utils.window('plex_username'),
                      "plugin://plugin.video.plexkodiconnect/"
@@ -1582,3 +1596,47 @@ def getOnDeck(viewid, mediatype, tagname, limit):
             break
 
     xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
+
+
+def watchlater():
+    """
+    Listing for plex.tv Watch Later section (if signed in to plex.tv)
+    """
+    if utils.window('plex_token') == '':
+        utils.logMsg(title, 'No watch later - not signed in to plex.tv', -1)
+        return xbmcplugin.endOfDirectory(int(sys.argv[1]), False)
+    if utils.settings('plex_restricteduser') == 'true':
+        utils.logMsg(title, 'No watch later - restricted user', -1)
+        return xbmcplugin.endOfDirectory(int(sys.argv[1]), False)
+
+    xml = downloadutils.DownloadUtils().downloadUrl(
+        'https://plex.tv/pms/playlists/queue/all',
+        authenticate=False,
+        headerOptions={'X-Plex-Token': utils.window('plex_token')})
+    if xml in (None, 401):
+        utils.logMsg(title,
+                     'Could not download watch later list from plex.tv', -1)
+        return xbmcplugin.endOfDirectory(int(sys.argv[1]), False)
+
+    utils.logMsg(title, 'Displaying watch later plex.tv items', 1)
+    xbmcplugin.setContent(int(sys.argv[1]), 'movies')
+    url = "plugin://plugin.video.plexkodiconnect.movies/"
+    params = {
+        'mode': "play",
+        'dbid': 'plexnode'
+    }
+    for item in xml:
+        API = PlexAPI.API(item)
+        listitem = API.CreateListItemFromPlexItem()
+        API.AddStreamInfo(listitem)
+        pbutils.PlaybackUtils(item).setArtwork(listitem)
+        params['id'] = item.attrib.get('key')
+        xbmcplugin.addDirectoryItem(
+            handle=int(sys.argv[1]),
+            url="%s?%s" % (url, urllib.urlencode(params)),
+            listitem=listitem)
+
+    xbmcplugin.endOfDirectory(
+        handle=int(sys.argv[1]),
+        cacheToDisc=True if utils.settings('enableTextureCache') == 'true'
+        else False)

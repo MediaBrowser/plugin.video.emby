@@ -71,7 +71,8 @@ class Main:
             'delete': entrypoint.deleteItem,
             'browseplex': entrypoint.BrowsePlexContent,
             'ondeck': entrypoint.getOnDeck,
-            'chooseServer': entrypoint.chooseServer
+            'chooseServer': entrypoint.chooseServer,
+            'watchlater': entrypoint.watchlater
         }
 
         if "/extrafanart" in sys.argv[0]:

@@ -120,6 +120,9 @@
 		<setting id="deviceNameOpt" label="30504" type="bool" default="false" />
 		<setting id="deviceName" label="30016" type="text" visible="eq(-1,true)" default="Kodi" />
 		<setting id="companionPort" label="39005" type="number" default="3005" option="int" visible="eq(-3,true)"/>
+
+		<setting id="plex_restricteduser" type="bool" default="false" visible="false"/>
+
 	</category>
 
 	<category label="39045"><!-- Appearance Tweaks -->

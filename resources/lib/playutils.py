@@ -90,6 +90,10 @@ class PlayUtils():
         """
         Returns the path/playurl if successful, False otherwise
         """
+        # True for e.g. plex.tv watch later
+        if self.API.shouldStream() is True:
+            self.logMsg("Plex item optimized for direct streaming", 1)
+            return False
 
         # set to either 'Direct Stream=1' or 'Transcode=2'
         if utils.settings('playType') != "0":
