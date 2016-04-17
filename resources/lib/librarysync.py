@@ -365,7 +365,8 @@ class LibrarySync(Thread):
                     break
                 if not view.attrib['type'] == mediatype:
                     continue
-                items = PF.GetAllPlexLeaves(view.attrib['key'],
+                libraryId = view.attrib['key']
+                items = PF.GetAllPlexLeaves(libraryId,
                                             containerSize=self.limitindex)
                 if items in (None, 401):
                     self.logMsg("Could not download section %s"
@@ -393,7 +394,6 @@ class LibrarySync(Thread):
             self.logMsg("Could not download metadata, aborting time sync", -1)
             return False
 
-        libraryId = xml[0].attrib['librarySectionID']
         timestamp = xml[0].attrib.get('lastViewedAt')
         if timestamp is None:
             timestamp = xml[0].attrib.get('updatedAt')
