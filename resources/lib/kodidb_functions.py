@@ -780,7 +780,7 @@ class Kodidb_Functions():
         """
         Returns the Kodi id (e.g. idMovie, idEpisode) from the item's
         title (c00), if there is exactly ONE found for the itemtype.
-        (False otherwise)
+        (None otherwise)
 
         itemdetails is the data['item'] response from Kodi
 
@@ -801,11 +801,11 @@ class Kodidb_Functions():
         }
         """
         try:
-            type = itemdetails['type']
+            typus = itemdetails['type']
         except:
-            return False
+            return
 
-        if type == 'movie':
+        if typus == 'movie':
             query = ' '.join((
                 "SELECT idMovie",
                 "FROM movie",
@@ -814,8 +814,8 @@ class Kodidb_Functions():
             try:
                 rows = self.cursor.execute(query, (itemdetails['title'],))
             except:
-                return False
-        elif type == 'episode':
+                return
+        elif typus == 'episode':
             query = ' '.join((
                 "SELECT idShow",
                 "FROM tvshow",
@@ -824,14 +824,13 @@ class Kodidb_Functions():
             try:
                 rows = self.cursor.execute(query, (itemdetails['showtitle'],))
             except:
-                return False
+                return
             ids = []
             for row in rows:
                 ids.append(row[0])
             if len(ids) > 1:
                 # No unique match possible
-                return False
-            showid = ids[0]
+                return
 
             query = ' '.join((
                 "SELECT idEpisode",
@@ -843,11 +842,11 @@ class Kodidb_Functions():
                     query,
                     (itemdetails['season'],
                      itemdetails['episode'],
-                     showid))
+                     ids[0]))
             except:
-                return False
+                return
         else:
-            return False
+            return
 
         ids = []
         for row in rows:
@@ -856,7 +855,7 @@ class Kodidb_Functions():
             return ids[0]
         else:
             # No unique match possible
-            return False
+            return
 
     def getUnplayedItems(self):
         """

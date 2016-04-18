@@ -156,6 +156,25 @@ class KodiMonitor(xbmc.Monitor):
         log = self.logMsg
         window = utils.window
 
+        # Get currently playing file - can take a while. Will be utf-8!
+        try:
+            currentFile = self.xbmcplayer.getPlayingFile()
+        except:
+            currentFile = None
+            count = 0
+            while currentFile is None:
+                xbmc.sleep(100)
+                try:
+                    currentFile = self.xbmcplayer.getPlayingFile()
+                except:
+                    pass
+                if count == 50:
+                    log("No current File - Cancelling OnPlayBackStart...", -1)
+                    return
+                else:
+                    count += 1
+        log("Currently playing file is: %s" % currentFile.decode('utf-8'), 1)
+
         # Try to get a Kodi ID
         item = data.get('item')
         try:
@@ -166,8 +185,19 @@ class KodiMonitor(xbmc.Monitor):
         try:
             kodiid = item['id']
         except (KeyError, TypeError):
-            log("Item is invalid for PMS playstate update.", 0)
-            return
+            itemType = window("emby_%s.type" % currentFile)
+            log("No kodi id passed. Playing itemtype is: %s" % itemType, 1)
+            if itemType in ('movie', 'episode'):
+                # Window was setup by PKC and is NOT a trailer ('clip')
+                with kodidb.GetKodiDB('video') as kodi_db:
+                    kodiid = kodi_db.getIdFromTitle(data.get('item'))
+                    if kodiid is None:
+                        log("Skip playstate update. No unique Kodi title found"
+                            " for %s" % data.get('item'), 0)
+                        return
+            else:
+                log("Item is invalid for PMS playstate update.", 0)
+                return
 
         # Get Plex' item id
         with embydb.GetEmbyDB() as emby_db:
@@ -178,26 +208,6 @@ class KodiMonitor(xbmc.Monitor):
             log("No Plex id returned for kodiid %s" % kodiid, 0)
             return
         log("Found Plex id %s for Kodi id %s" % (plexid, kodiid), 1)
-
-        # Get currently playing file - can take a while. Will be utf-8!
-        try:
-            currentFile = self.xbmcplayer.getPlayingFile()
-            xbmc.sleep(300)
-        except:
-            currentFile = ""
-            count = 0
-            while not currentFile:
-                xbmc.sleep(100)
-                try:
-                    currentFile = self.xbmcplayer.getPlayingFile()
-                except:
-                    pass
-                if count == 20:
-                    log("No current File - Cancelling OnPlayBackStart...", -1)
-                    return
-                else:
-                    count += 1
-        log("Currently playing file is: %s" % currentFile, 1)
 
         # Set some stuff if Kodi initiated playback
         if ((utils.settings('useDirectPaths') == "1" and not type == "song") or
