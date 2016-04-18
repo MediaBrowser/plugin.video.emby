@@ -2173,6 +2173,7 @@ class API():
             'aired': self.getPremiereDate()
         }
         try:
+            PercentPlayed = userdata['Resume'] / userdata['Runtime'] * 100.0
         except ZeroDivisionError:
             PercentPlayed = 0.0
         if PercentPlayed > 0:
