@@ -1879,7 +1879,9 @@ class API():
                     primary = "%s%s" % (self.server, primary)
                     primary = self.addPlexCredentialsToUrl(primary)
                     allartworks['Primary'] = primary
+        return allartworks
 
+        # TO BE DONE
         # Plex does not get much artwork - go ahead and get the rest from fanart tv only for movie or tv show
         type = item.get('type')
         if type=='movie' or type=='show':
@@ -1890,6 +1892,7 @@ class API():
             return  {}
         else:
             return allartworks
+
     def getfanartTVimages(self,allartworks):
         item = self.item.attrib
         tmdb_apiKey = "ae06df54334aa653354e9a010f4b81cb"
