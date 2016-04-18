@@ -401,6 +401,7 @@
     <string id="39055">Searching for Plex Server</string>
     <string id="39056">Used by Sync and when attempting to Direct Play</string>
     <string id="39057">Customize Paths</string>
+    <string id="39058">Extend Plex TV Series "On Deck" view to all shows</string>
 
     <!-- Plex Entrypoint.py -->
     <string id="39200">Log-out Plex Home User </string>

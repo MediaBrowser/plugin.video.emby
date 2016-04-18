@@ -1481,9 +1481,48 @@ def getOnDeck(viewid, mediatype, tagname, limit):
         tagname:            Name of the Plex library, e.g. "My Movies"
         limit:              Max. number of items to retrieve, e.g. 50
     """
+    xbmcplugin.setContent(int(sys.argv[1]), 'episodes')
+    if utils.settings('OnDeckTVextended') == 'false':
+        # Chances are that this view is used on Kodi startup
+        # Wait till we've connected to a PMS. At most 30s
+        counter = 0
+        while utils.window('plex_authenticated') != 'true':
+            counter += 1
+            if counter >= 300:
+                break
+            xbmc.sleep(100)
+        xml = downloadutils.DownloadUtils().downloadUrl(
+            '{server}/library/sections/%s/onDeck' % viewid)
+        if xml in (None, 401):
+            return xbmcplugin.endOfDirectory(int(sys.argv[1]))
+        url = "plugin://plugin.video.plexkodiconnect.tvshows/"
+        params = {
+            'mode': "play"
+        }
+        with embydb.GetEmbyDB() as emby_db:
+            for item in xml:
+                API = PlexAPI.API(item)
+                listitem = API.CreateListItemFromPlexItem()
+                API.AddStreamInfo(listitem)
+                pbutils.PlaybackUtils(item).setArtwork(listitem)
+                plexID = API.getRatingKey()
+                try:
+                    dbid = emby_db.getItem_byId(plexID)[0]
+                except TypeError:
+                    dbid = None
+                params['id'] = plexID
+                params['dbid'] = dbid
+                xbmcplugin.addDirectoryItem(
+                    handle=int(sys.argv[1]),
+                    url="%s?%s" % (url, urllib.urlencode(params)),
+                    listitem=listitem)
+        return xbmcplugin.endOfDirectory(
+            handle=int(sys.argv[1]),
+            cacheToDisc=True if utils.settings('enableTextureCache') == 'true'
+            else False)
+
     # if the addon is called with nextup parameter,
     # we return the nextepisodes list of the given tagname
-    xbmcplugin.setContent(int(sys.argv[1]), 'episodes')
     # First we get a list of all the TV shows - filtered by tag
     query = {
         'jsonrpc': "2.0",
