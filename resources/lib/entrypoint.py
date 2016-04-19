@@ -1031,7 +1031,6 @@ def createListItem(item):
     li.setIconImage('DefaultTVShows.png')
     li.setProperty('dbid', str(item['episodeid']))
     li.setProperty('fanart_image', item['art'].get('tvshow.fanart',''))
-    li.setLabel(title)
     for key, value in item['streamdetails'].iteritems():
         for stream in value:
             li.addStreamInfo(key, stream)
@@ -1492,12 +1491,6 @@ def getOnDeck(viewid, mediatype, tagname, limit):
             if counter >= 300:
                 break
             xbmc.sleep(100)
-        # Wait till full lib sync done
-        while utils.window('emby_dbScan') == 'true':
-            counter += 1
-            if counter >= 300:
-                break
-            xbmc.sleep(100)
         xml = downloadutils.DownloadUtils().downloadUrl(
             '{server}/library/sections/%s/onDeck' % viewid)
         if xml in (None, 401):
@@ -1506,34 +1499,23 @@ def getOnDeck(viewid, mediatype, tagname, limit):
         params = {
             'mode': "play"
         }
-        counter = 0
-        for item in xml:
-            counter += 1
-            if counter > 1:
-                break
-            API = PlexAPI.API(item)
-            listitem = API.CreateListItemFromPlexItem()
-            pbutils.PlaybackUtils(item).setArtwork(listitem)
-            API.AddStreamInfo(listitem)
-            plexID = API.getRatingKey()
-            with embydb.GetEmbyDB() as emby_db:
+        with embydb.GetEmbyDB() as emby_db:
+            for item in xml:
+                API = PlexAPI.API(item)
+                listitem = API.CreateListItemFromPlexItem()
+                API.AddStreamInfo(listitem)
+                pbutils.PlaybackUtils(item).setArtwork(listitem)
+                plexID = API.getRatingKey()
                 try:
                     dbid = emby_db.getItem_byId(plexID)[0]
                 except TypeError:
                     dbid = None
-            params['id'] = plexID
-            params['dbid'] = dbid
-            path = "%s?%s" % (url, urllib.urlencode(params))
-            listitem.setProperty('path', path)
-            listitem.setProperty('file', path)
-            listitem.setProperty('FileNameAndPath', path)
-            props = ('dbid', 'DBTYPE', 'path',)
-            for thing in props:
-                utils.logMsg('%s: %s' % (thing, listitem.getProperty(thing)), 1)
-            xbmcplugin.addDirectoryItem(
-                handle=int(sys.argv[1]),
-                url=path,
-                listitem=listitem)
+                params['id'] = plexID
+                params['dbid'] = dbid
+                xbmcplugin.addDirectoryItem(
+                    handle=int(sys.argv[1]),
+                    url="%s?%s" % (url, urllib.urlencode(params)),
+                    listitem=listitem)
         return xbmcplugin.endOfDirectory(
             handle=int(sys.argv[1]),
             cacheToDisc=True if utils.settings('enableTextureCache') == 'true'
@@ -1628,7 +1610,7 @@ def getOnDeck(viewid, mediatype, tagname, limit):
                 continue
         for episode in episodes:
             # There will always be only 1 episode ('limit=1')
-            listitem = createListItem(episode)
+            li = createListItem(episode)
             # Fix some skin shortcomings
             title = episode.get('title', '')
             if utils.settings('OnDeckTvAppendSeason') == 'true':
@@ -1641,11 +1623,11 @@ def getOnDeck(viewid, mediatype, tagname, limit):
                 show = episode.get('showtitle')
                 if show:
                     title = show + ' - ' + title
-            listitem.setLabel(title)
+            li.setLabel(title)
             xbmcplugin.addDirectoryItem(
                 handle=int(sys.argv[1]),
                 url=episode['file'],
-                listitem=listitem,
+                listitem=li,
                 isFolder=False)
 
         count += 1

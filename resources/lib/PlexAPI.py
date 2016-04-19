@@ -37,7 +37,6 @@ import xml.etree.ElementTree as etree
 import re
 import json
 from urllib import urlencode, quote_plus, unquote
-import requests
 
 import xbmcaddon
 import xbmcgui
@@ -47,7 +46,7 @@ import xbmcvfs
 import clientinfo
 import utils
 import downloadutils
-import embydb_functions as embydb
+import requests
 from PlexFunctions import PlexToKodiTimefactor, PMSHttpsEnabled
 
 
@@ -2146,31 +2145,13 @@ class API():
 
         Returns XBMC listitem for this PMS library item
         """
+        people = self.getPeople()
+        userdata = self.getUserData()
         title, sorttitle = self.getTitle()
 
         if listItem is None:
-            listItem = xbmcgui.ListItem(title)
-        else:
-            listItem.setLabel(title)
+            listItem = xbmcgui.ListItem()
 
-        listItem.setProperty('IsPlayable', 'true')
-        listItem.setProperty('IsFolder', 'false')
-
-        typus = self.getType()
-        if typus == 'movie':
-            listItem.setProperty('DBTYPE', 'movie')
-        elif typus == 'episode':
-            listItem.setProperty('DBTYPE', 'episode')
-
-        with embydb.GetEmbyDB() as emby_db:
-            try:
-                dbid = emby_db.getItem_byId(self.getRatingKey())[0]
-                listItem.setProperty('dbid', str(dbid))
-            except TypeError:
-                pass
-        self.logMsg('ratingKey: %s, dbid: %s' % (self.getRatingKey(), str(dbid)))
-        people = self.getPeople()
-        userdata = self.getUserData()
         metadata = {
             'genre': self.joinList(self.getGenres()),
             'year': self.getYear(),
@@ -2179,6 +2160,7 @@ class API():
             'cast': people['Cast'],
             'director': self.joinList(people.get('Director')),
             'plot': self.getPlot(),
+            'title': title,
             'sorttitle': sorttitle,
             'duration': userdata['Runtime'],
             'studio': self.joinList(self.getStudios()),
@@ -2190,38 +2172,24 @@ class API():
             'mpaa': self.getMpaa(),
             'aired': self.getPremiereDate()
         }
-
-        if userdata['Resume'] > 0:
-            listItem.setProperty('resumetime', str(userdata['Resume']))
-        if userdata['Runtime'] > 0:
-            listItem.setProperty('totaltime', str(userdata['Runtime']))
+        try:
+            PercentPlayed = userdata['Resume'] / userdata['Runtime'] * 100.0
+        except ZeroDivisionError:
+            PercentPlayed = 0.0
+        if PercentPlayed > 0:
+            metadata['PercentPlayed'] = PercentPlayed
 
         if self.getType() == "episode":
             # Only for tv shows
             key, show, season, episode = self.getEpisodeDetails()
-            metadata['episode'] = int(episode)
-            metadata['season'] = int(season)
+            metadata['episode'] = episode
+            metadata['season'] = season
             metadata['tvshowtitle'] = show
-            try:
-                listItem.setProperty('episodeno', "s%.2de%.2d"
-                                     % (int(season), int(episode)))
-            except:
-                pass
-            listItem.setIconImage('DefaultTVShows.png')
-        elif self.getType() == "movie":
-            listItem.setIconImage('DefaultMovies.png')
-        elif self.getType() == "clip":
-            listItem.setIconImage('DefaultVideo.png')
 
-        artwork = self.getAllArtwork()
-        if artwork.get('Primary'):
-            listItem.setThumbnailImage(artwork.get('Primary'))
-        elif self.getType() == "movie":
-            listItem.setThumbnailImage('DefaultMovies.png')
-        elif self.getType() == "episode":
-            listItem.setThumbnailImage('DefaultTVShows.png')
-
-        # Very resource intensive
+        listItem.setProperty('IsPlayable', 'true')
+        listItem.setProperty('IsFolder', 'false')
+        listItem.setProperty('embyid', self.getRatingKey())
+        listItem.setLabel(title)
         listItem.setInfo('video', infoLabels=metadata)
         return listItem
 
