@@ -2172,11 +2172,6 @@ class API():
             'mpaa': self.getMpaa(),
             'aired': self.getPremiereDate()
         }
-        try:
-        except ZeroDivisionError:
-            PercentPlayed = 0.0
-        if PercentPlayed > 0:
-            metadata['PercentPlayed'] = PercentPlayed
 
         if self.getType() == "episode":
             # Only for tv shows
