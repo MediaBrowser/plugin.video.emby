@@ -1320,7 +1320,7 @@ class TVShows(Items):
                 path = playurl.replace(filename, "")
         if doIndirect:
             # Set plugin path and media flags using real filename
-            path = "plugin://plugin.video.plexkodiconnect.movies/"
+            path = "plugin://plugin.video.plexkodiconnect.tvshows/"
             params = {
                 'filename': API.getKey().encode('utf-8'),
                 'id': itemid,
