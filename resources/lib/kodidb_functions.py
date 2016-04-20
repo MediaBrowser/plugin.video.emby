@@ -56,17 +56,15 @@ class Kodidb_Functions():
         For some reason, Kodi ignores this if done via itemtypes while e.g.
         adding or updating items. (addPath method does NOT work)
         """
-        types = ['movies', 'tvshows']
         query = ' '.join((
             "UPDATE path",
             "SET strContent = ?, strScraper = ?",
             "WHERE strPath LIKE ?"
         ))
-        for typus in types:
-            self.cursor.execute(
-                query, (typus,
-                        'metadata.local',
-                        'plugin://plugin.video.plexkodiconnect.%s%%' % typus))
+        self.cursor.execute(
+            query, ('movies',
+                    'metadata.local',
+                    'plugin://plugin.video.plexkodiconnect.movies%%'))
 
     def addPath(self, path, strHash=None):
         # SQL won't return existing paths otherwise

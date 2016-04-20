@@ -1301,9 +1301,9 @@ class TVShows(Items):
 
         # GET THE FILE AND PATH #####
         doIndirect = not self.directpath
+        playurl = API.getFilePath()
         if self.directpath:
             # Direct paths is set the Kodi way
-            playurl = API.getFilePath()
             if playurl is None:
                 # Something went wrong, trying to use non-direct paths
                 doIndirect = True
@@ -1320,9 +1320,16 @@ class TVShows(Items):
                 path = playurl.replace(filename, "")
         if doIndirect:
             # Set plugin path and media flags using real filename
-            path = "plugin://plugin.video.plexkodiconnect.tvshows/"
+            if playurl is not None:
+                if '\\' in playurl:
+                    filename = playurl.rsplit('\\', 1)[1]
+                else:
+                    filename = playurl.rsplit('/', 1)[1]
+            else:
+                filename = 'file_not_found'
+            path = "plugin://plugin.video.plexkodiconnect.tvshows/%s/" % seriesId
             params = {
-                'filename': API.getKey().encode('utf-8'),
+                'filename': filename.encode('utf-8'),
                 'id': itemid,
                 'dbid': episodeid,
                 'mode': "play"
