@@ -1123,6 +1123,8 @@ class TVShows(Items):
             self.logMsg("Repairing episodes for showid: %s %s" % (showid, title), 1)
             all_episodes = embyserver.getEpisodesbyShow(itemid)
             self.added_episode(all_episodes['Items'], None)
+        self.kodiconn.commit()
+        self.embyconn.commit()
 
     def add_updateSeason(self, item, viewtag=None, viewid=None):
         try:
@@ -1180,6 +1182,8 @@ class TVShows(Items):
         else:
             # Create the reference in emby table
             emby_db.addReference(itemid, seasonid, "Season", "season", parentid=viewid, checksum=checksum)
+        self.kodiconn.commit()
+        self.embyconn.commit()
 
     def add_updateEpisode(self, item, viewtag=None, viewid=None):
         try:
@@ -1260,6 +1264,8 @@ class TVShows(Items):
 
         if season is None:
             season = -1
+        if episode is None:
+            episode = -1
             # if item.get('AbsoluteEpisodeNumber'):
             #     # Anime scenario
             #     season = 1
@@ -1463,6 +1469,8 @@ class TVShows(Items):
             ))
             kodicursor.execute(query, (temppathid, filename, dateadded, tempfileid))
             kodi_db.addPlaystate(tempfileid, resume, runtime, playcount, dateplayed)
+        self.kodiconn.commit()
+        self.embyconn.commit()
 
     def remove(self, itemid):
         # Remove showid, fileid, pathid, emby reference
