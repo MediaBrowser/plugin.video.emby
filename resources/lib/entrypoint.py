@@ -1499,23 +1499,17 @@ def getOnDeck(viewid, mediatype, tagname, limit):
         params = {
             'mode': "play"
         }
-        with embydb.GetEmbyDB() as emby_db:
-            for item in xml:
-                API = PlexAPI.API(item)
-                listitem = API.CreateListItemFromPlexItem()
-                API.AddStreamInfo(listitem)
-                pbutils.PlaybackUtils(item).setArtwork(listitem)
-                plexID = API.getRatingKey()
-                try:
-                    dbid = emby_db.getItem_byId(plexID)[0]
-                except TypeError:
-                    dbid = None
-                params['id'] = plexID
-                params['dbid'] = dbid
-                xbmcplugin.addDirectoryItem(
-                    handle=int(sys.argv[1]),
-                    url="%s?%s" % (url, urllib.urlencode(params)),
-                    listitem=listitem)
+        for item in xml:
+            API = PlexAPI.API(item)
+            listitem = API.CreateListItemFromPlexItem()
+            API.AddStreamInfo(listitem)
+            pbutils.PlaybackUtils(item).setArtwork(listitem)
+            params['id'] = API.getRatingKey()
+            params['dbid'] = listitem.getProperty('dbid')
+            xbmcplugin.addDirectoryItem(
+                handle=int(sys.argv[1]),
+                url="%s?%s" % (url, urllib.urlencode(params)),
+                listitem=listitem)
         return xbmcplugin.endOfDirectory(
             handle=int(sys.argv[1]),
             cacheToDisc=True if utils.settings('enableTextureCache') == 'true'

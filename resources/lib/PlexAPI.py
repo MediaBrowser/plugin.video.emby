@@ -48,6 +48,7 @@ import utils
 import downloadutils
 import requests
 from PlexFunctions import PlexToKodiTimefactor, PMSHttpsEnabled
+import embydb_functions as embydb
 
 
 @utils.logging
@@ -1803,32 +1804,37 @@ class API():
             'subtitle': subtitlelanguages
         }
 
+    def __getOneArtwork(self, entry):
+        try:
+            artwork = self.item.attrib[entry]
+            if artwork.startswith('http'):
+                pass
+            else:
+                artwork = "%s%s" % (self.server, artwork)
+                artwork = self.addPlexCredentialsToUrl(artwork)
+        except KeyError:
+            artwork = ""
+        return artwork
+
     def getAllArtwork(self, parentInfo=False):
         """
         Gets the URLs to the Plex artwork, or empty string if not found.
+        parentInfo=True will check for parent's artwork if None is found
 
         Output:
         {
-            'Primary':           Plex key: "thumb". Only 1 pix
-            'Art':,
-            'Banner':,
-            'Logo':,
-            'Thumb':,
-            'Disc':,
-            'Backdrop': []       Plex key: "art". Only 1 pix
+            'Primary'  : xml key 'thumb'
+            'Art'      : always ''
+            'Banner'   : xml key 'banner'
+            'Logo'     : always ''
+            'Thumb'    : xml key 'grandparentThumb'
+            'Disc'     : always ''
+            'Backdrop' : LIST with ONE xml key "art"
         }
+
+
         """
         item = self.item.attrib
-
-        # maxHeight = 10000
-        # maxWidth = 10000
-        # customquery = ""
-
-        # if utils.settings('compressArt') == "true":
-        #     customquery = "&Quality=90"
-
-        # if utils.settings('enableCoverArt') == "false":
-        #     customquery += "&EnableImageEnhancers=false"
 
         allartworks = {
             'Primary': "",
@@ -1841,44 +1847,22 @@ class API():
         }
         # Process backdrops
         # Get background artwork URL
-        try:
-            background = item['art']
-            if background.startswith('http'):
-                pass
-            else:
-                background = "%s%s" % (self.server, background)
-                background = self.addPlexCredentialsToUrl(background)
-        except KeyError:
-            background = ""
-        allartworks['Backdrop'].append(background)
+        allartworks['Backdrop'].append(self.__getOneArtwork('art'))
         # Get primary "thumb" pictures:
-        try:
-            primary = item['thumb']
-            if primary.startswith('http'):
-                pass
-            else:
-                primary = "%s%s" % (self.server, primary)
-                primary = self.addPlexCredentialsToUrl(primary)
-        except KeyError:
-            primary = ""
-        allartworks['Primary'] = primary
+        allartworks['Primary'] = self.__getOneArtwork('thumb')
+        # Banner (usually only on tv series level)
+        allartworks['Banner'] = self.__getOneArtwork('banner')
+        # For e.g. TV shows, get series thumb
+        allartworks['Thumb'] = self.__getOneArtwork('grandparentThumb')
 
         # Process parent items if the main item is missing artwork
         if parentInfo:
             # Process parent backdrops
             if not allartworks['Backdrop']:
-                background = item.get('parentArt')
-                if background:
-                    background = "%s%s" % (self.server, background)
-                    background = self.addPlexCredentialsToUrl(background)
-                    allartworks['Backdrop'].append(background)
-
+                allartworks['Backdrop'].append(
+                    self.__getOneArtwork('parentArt'))
             if not allartworks['Primary']:
-                primary = item.get('parentThumb')
-                if primary:
-                    primary = "%s%s" % (self.server, primary)
-                    primary = self.addPlexCredentialsToUrl(primary)
-                    allartworks['Primary'] = primary
+                allartworks['Primary'] = self.__getOneArtwork('parentThumb')
         return allartworks
 
         # TO BE DONE
@@ -2150,7 +2134,8 @@ class API():
         title, sorttitle = self.getTitle()
 
         if listItem is None:
-            listItem = xbmcgui.ListItem()
+            listItem = xbmcgui.ListItem(title)
+        listItem.setProperty('IsPlayable', 'true')
 
         metadata = {
             'genre': self.joinList(self.getGenres()),
@@ -2176,14 +2161,31 @@ class API():
         if self.getType() == "episode":
             # Only for tv shows
             key, show, season, episode = self.getEpisodeDetails()
+            season = -1 if season is None else int(season)
+            episode = -1 if episode is None else int(episode)
             metadata['episode'] = episode
             metadata['season'] = season
             metadata['tvshowtitle'] = show
+            if season and episode:
+                listItem.setProperty('episodeno',
+                                     "s%.2de%.2d" % (season, episode))
+            listItem.setIconImage('DefaultTVShows.png')
+        elif self.getType() == "movie":
+            listItem.setIconImage('DefaultMovies.png')
+        else:
+            listItem.setIconImage('DefaultVideo.png')
 
-        listItem.setProperty('IsPlayable', 'true')
-        listItem.setProperty('IsFolder', 'false')
-        listItem.setProperty('embyid', self.getRatingKey())
-        listItem.setLabel(title)
+        listItem.setProperty('resumetime', str(userdata['Resume']))
+        listItem.setProperty('totaltime', str(userdata['Runtime']))
+        plexId = self.getRatingKey()
+        listItem.setProperty('embyid', plexId)
+        with embydb.GetEmbyDB() as emby_db:
+            try:
+                listItem.setProperty('dbid',
+                                     str(emby_db.getItem_byId(plexId)[0]))
+            except TypeError:
+                pass
+        # Expensive operation
         listItem.setInfo('video', infoLabels=metadata)
         return listItem
 

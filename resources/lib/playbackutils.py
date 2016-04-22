@@ -327,22 +327,9 @@ class PlaybackUtils():
 
     def setArtwork(self, listItem):
         allartwork = self.API.getAllArtwork(parentInfo=True)
-
-        # arttypes = {
-
-        #     'poster': "Primary",
-        #     'tvshow.poster': "Primary",
-        #     'clearart': "Art",
-        #     'tvshow.clearart': "Art",
-        #     'clearlogo': "Logo",
-        #     'tvshow.clearlogo': "Logo",
-        #     'discart': "Disc",
-        #     'fanart_image': "Backdrop",
-        #     'landscape': "Thumb"
-        # }
         arttypes = {
             'poster': "Primary",
-            'tvshow.poster': "Primary",
+            'tvshow.poster': "Thumb",
             'clearart': "Art",
             'tvshow.clearart': "Art",
             'clearart': "Primary",
@@ -351,25 +338,25 @@ class PlaybackUtils():
             'tvshow.clearlogo': "Logo",
             'discart': "Disc",
             'fanart_image': "Backdrop",
-            'landscape': "Backdrop"
+            'landscape': "Backdrop",
+            "banner": "Banner"
         }
         for arttype in arttypes:
-
             art = arttypes[arttype]
             if art == "Backdrop":
-                try: # Backdrop is a list, grab the first backdrop
+                try:
+                    # Backdrop is a list, grab the first backdrop
                     self.setArtProp(listItem, arttype, allartwork[art][0])
-                except: pass
+                except:
+                    pass
             else:
                 self.setArtProp(listItem, arttype, allartwork[art])
 
     def setArtProp(self, listItem, arttype, path):
-        
         if arttype in (
                 'thumb', 'fanart_image', 'small_poster', 'tiny_poster',
                 'medium_landscape', 'medium_poster', 'small_fanartimage',
                 'medium_fanartimage', 'fanart_noindicators'):
-            
             listItem.setProperty(arttype, path)
         else:
             listItem.setArt({arttype: path})
