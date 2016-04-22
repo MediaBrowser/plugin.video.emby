@@ -357,7 +357,7 @@
     <string id="39013">Not yet authorized for Plex server </string>
     <string id="39014">Please sign in to plex.tv.</string>
     <string id="39015">Problems connecting to server. Pick another server?</string>
-    <string id="39016">Disable Plex music library?</string>
+    <string id="39016">Disable Plex music library? (It is HIGHLY recommended to use Plex music only with direct paths for large music libraries. Kodi might crash otherwise)</string>
     <string id="39017">Would you now like to go to the plugin's settings to fine-tune PKC? You will need to RESTART Kodi!</string>
 
     <string id="39018">[COLOR yellow]Repair local database (force update all content)[/COLOR]</string>
