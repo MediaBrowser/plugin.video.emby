@@ -281,14 +281,18 @@ class InitialSetup():
                         line1=string(39016)):
             self.logMsg("User opted to disable Plex music library.", 1)
             utils.settings('enableMusic', value="false")
+        else:
+            utils.advancedSettingsXML()
 
+        if goToSettings is False:
+            # Open Settings page now? You will need to restart!
+            goToSettings = dialog.yesno(heading=self.addonName,
+                                        line1=string(39017))
         if goToSettings:
+            utils.window('emby_serverStatus', value="Stop")
             xbmc.executebuiltin(
                 'Addon.OpenSettings(plugin.video.plexkodiconnect)')
         else:
-            # Open Settings page now? You will need to restart!
-            if dialog.yesno(heading=self.addonName,
-                            line1=string(39017)):
-                utils.window('emby_serverStatus', value="Stop")
-                xbmc.executebuiltin(
-                    'Addon.OpenSettings(plugin.video.plexkodiconnect)')
+            xbmc.executebuiltin('RestartApp')
+        # We should always restart to ensure e.g. Kodi settings for Music
+        # are in use!

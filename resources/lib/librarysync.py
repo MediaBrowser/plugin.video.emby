@@ -1576,7 +1576,6 @@ class LibrarySync(Thread):
         log("---===### Starting LibrarySync ###===---", 0)
 
         if self.enableMusic:
-            # utils.musiclibXML()
             utils.advancedSettingsXML()
 
         while not threadStopped():
