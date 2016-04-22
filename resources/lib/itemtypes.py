@@ -1040,6 +1040,8 @@ class TVShows(Items):
             toplevelpath = "plugin://plugin.video.plexkodiconnect.tvshows/"
             path = "%s%s/" % (toplevelpath, itemid)
 
+        # Add top path
+        toppathid = kodi_db.addPath(toplevelpath)
         # UPDATE THE TVSHOW #####
         if update_item:
             self.logMsg("UPDATE tvshow itemid: %s - Title: %s" % (itemid, title), 1)
@@ -1062,8 +1064,6 @@ class TVShows(Items):
         else:
             self.logMsg("ADD tvshow itemid: %s - Title: %s" % (itemid, title), 1)
             
-            # Add top path
-            toppathid = kodi_db.addPath(toplevelpath)
             query = ' '.join((
 
                 "UPDATE path",
@@ -1098,10 +1098,11 @@ class TVShows(Items):
         query = ' '.join((
 
             "UPDATE path",
-            "SET strPath = ?, strContent = ?, strScraper = ?, noUpdate = ?",
+            "SET strPath = ?, strContent = ?, strScraper = ?, noUpdate = ?, ",
+            "idParentPath = ?"
             "WHERE idPath = ?"
         ))
-        kodicursor.execute(query, (path, None, None, 1, pathid))
+        kodicursor.execute(query, (path, None, None, 1, toppathid, pathid))
         
         # Process cast
         people = API.getPeopleList()
@@ -1123,6 +1124,8 @@ class TVShows(Items):
             self.logMsg("Repairing episodes for showid: %s %s" % (showid, title), 1)
             all_episodes = embyserver.getEpisodesbyShow(itemid)
             self.added_episode(all_episodes['Items'], None)
+        self.kodiconn.commit()
+        self.embyconn.commit()
 
     def add_updateSeason(self, item, viewtag=None, viewid=None):
         try:
@@ -1180,6 +1183,8 @@ class TVShows(Items):
         else:
             # Create the reference in emby table
             emby_db.addReference(itemid, seasonid, "Season", "season", parentid=viewid, checksum=checksum)
+        self.kodiconn.commit()
+        self.embyconn.commit()
 
     def add_updateEpisode(self, item, viewtag=None, viewid=None):
         try:
@@ -1260,6 +1265,8 @@ class TVShows(Items):
 
         if season is None:
             season = -1
+        if episode is None:
+            episode = -1
             # if item.get('AbsoluteEpisodeNumber'):
             #     # Anime scenario
             #     season = 1
@@ -1301,9 +1308,9 @@ class TVShows(Items):
 
         # GET THE FILE AND PATH #####
         doIndirect = not self.directpath
+        playurl = API.getFilePath()
         if self.directpath:
             # Direct paths is set the Kodi way
-            playurl = API.getFilePath()
             if playurl is None:
                 # Something went wrong, trying to use non-direct paths
                 doIndirect = True
@@ -1318,16 +1325,26 @@ class TVShows(Items):
                     # Network share
                     filename = playurl.rsplit("/", 1)[1]
                 path = playurl.replace(filename, "")
+                parentPathId = kodi_db.getParentPathId(path)
         if doIndirect:
             # Set plugin path and media flags using real filename
-            path = "plugin://plugin.video.plexkodiconnect.movies/"
+            if playurl is not None:
+                if '\\' in playurl:
+                    filename = playurl.rsplit('\\', 1)[1]
+                else:
+                    filename = playurl.rsplit('/', 1)[1]
+            else:
+                filename = 'file_not_found'
+            path = "plugin://plugin.video.plexkodiconnect.tvshows/%s/" % seriesId
             params = {
-                'filename': API.getKey().encode('utf-8'),
+                'filename': filename.encode('utf-8'),
                 'id': itemid,
                 'dbid': episodeid,
                 'mode': "play"
             }
             filename = "%s?%s" % (path, urllib.urlencode(params))
+            parentPathId = kodi_db.addPath(
+                'plugin://plugin.video.plexkodiconnect.tvshows/')
 
         # UPDATE THE EPISODE #####
         if update_item:
@@ -1408,10 +1425,11 @@ class TVShows(Items):
         query = ' '.join((
 
             "UPDATE path",
-            "SET strPath = ?, strContent = ?, strScraper = ?, noUpdate = ?",
+            "SET strPath = ?, strContent = ?, strScraper = ?, noUpdate = ?, ",
+            "idParentPath = ?"
             "WHERE idPath = ?"
         ))
-        kodicursor.execute(query, (path, None, None, 1, pathid))
+        kodicursor.execute(query, (path, None, None, 1, parentPathId, pathid))
         # Update the file
         query = ' '.join((
 
@@ -1456,6 +1474,8 @@ class TVShows(Items):
             ))
             kodicursor.execute(query, (temppathid, filename, dateadded, tempfileid))
             kodi_db.addPlaystate(tempfileid, resume, runtime, playcount, dateplayed)
+        self.kodiconn.commit()
+        self.embyconn.commit()
 
     def remove(self, itemid):
         # Remove showid, fileid, pathid, emby reference

@@ -3,6 +3,7 @@
 ###############################################################################
 
 import xbmc
+from ntpath import dirname
 
 import artwork
 import clientinfo
@@ -56,17 +57,44 @@ class Kodidb_Functions():
         For some reason, Kodi ignores this if done via itemtypes while e.g.
         adding or updating items. (addPath method does NOT work)
         """
-        types = ['movies', 'tvshows']
         query = ' '.join((
             "UPDATE path",
             "SET strContent = ?, strScraper = ?",
             "WHERE strPath LIKE ?"
         ))
-        for typus in types:
-            self.cursor.execute(
-                query, (typus,
-                        'metadata.local',
-                        'plugin://plugin.video.plexkodiconnect.%s%%' % typus))
+        self.cursor.execute(
+            query, ('movies',
+                    'metadata.local',
+                    'plugin://plugin.video.plexkodiconnect.movies%%'))
+
+    def getParentPathId(self, path):
+        """
+        Video DB: Adds all subdirectories to SQL path while setting a "trail"
+        of parentPathId
+        """
+        if "\\" in path:
+            # Local path
+            parentpath = "%s\\" % dirname(dirname(path))
+        else:
+            # Network path
+            parentpath = "%s/" % dirname(dirname(path))
+        pathid = self.getPath(parentpath)
+        if pathid is None:
+            self.cursor.execute("select coalesce(max(idPath),0) from path")
+            pathid = self.cursor.fetchone()[0] + 1
+            query = ' '.join((
+                "INSERT INTO path(idPath, strPath)",
+                "VALUES (?, ?)"
+            ))
+            self.cursor.execute(query, (pathid, parentpath))
+            parentPathid = self.getParentPathId(parentpath)
+            query = ' '.join((
+                "UPDATE path",
+                "SET idParentPath = ?",
+                "WHERE idPath = ?"
+            ))
+            self.cursor.execute(query, (parentPathid, pathid))
+        return pathid
 
     def addPath(self, path, strHash=None):
         # SQL won't return existing paths otherwise
@@ -780,7 +808,7 @@ class Kodidb_Functions():
         """
         Returns the Kodi id (e.g. idMovie, idEpisode) from the item's
         title (c00), if there is exactly ONE found for the itemtype.
-        (False otherwise)
+        (None otherwise)
 
         itemdetails is the data['item'] response from Kodi
 
@@ -801,11 +829,11 @@ class Kodidb_Functions():
         }
         """
         try:
-            type = itemdetails['type']
+            typus = itemdetails['type']
         except:
-            return False
+            return
 
-        if type == 'movie':
+        if typus == 'movie':
             query = ' '.join((
                 "SELECT idMovie",
                 "FROM movie",
@@ -814,8 +842,8 @@ class Kodidb_Functions():
             try:
                 rows = self.cursor.execute(query, (itemdetails['title'],))
             except:
-                return False
-        elif type == 'episode':
+                return
+        elif typus == 'episode':
             query = ' '.join((
                 "SELECT idShow",
                 "FROM tvshow",
@@ -824,14 +852,13 @@ class Kodidb_Functions():
             try:
                 rows = self.cursor.execute(query, (itemdetails['showtitle'],))
             except:
-                return False
+                return
             ids = []
             for row in rows:
                 ids.append(row[0])
             if len(ids) > 1:
                 # No unique match possible
-                return False
-            showid = ids[0]
+                return
 
             query = ' '.join((
                 "SELECT idEpisode",
@@ -843,11 +870,11 @@ class Kodidb_Functions():
                     query,
                     (itemdetails['season'],
                      itemdetails['episode'],
-                     showid))
+                     ids[0]))
             except:
-                return False
+                return
         else:
-            return False
+            return
 
         ids = []
         for row in rows:
@@ -856,7 +883,7 @@ class Kodidb_Functions():
             return ids[0]
         else:
             # No unique match possible
-            return False
+            return
 
     def getUnplayedItems(self):
         """

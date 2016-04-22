@@ -1,3 +1,16 @@
+version 1.1.4
+(you will need to rescan your library)
+- Plex Watch Later available as a separate Video Node!
+- Fix Kodi Movie Info showing instead of Episode Info
+- New settings option: use default Plex On Deck TV Shows
+- Fix TV show on deck view
+- Enable playstate update if Kodi does not give us a Kodi DB id
+- First startup: Add warning for large music libraries and not using Direct Paths
+- Fix KeyError: 'librarySectionID' during syncPMStime
+- Retrieve banner art when available
+- New setting: I own this PMS (needed if you manually set your IP)
+- Increased default full sync frequency to 60 minutes
+
 version 1.1.3
 YOU WILL NEED TO RECONNECT TO YOUR PMS: PKC Settings -> Connection -> 'Choose Plex Server from a list'. Just repick your PMS
 - 'true' awesome & fast direct play without 'direct paths' if your Plex library points to paths that are accessible to Kodi. Customize paths in the settings

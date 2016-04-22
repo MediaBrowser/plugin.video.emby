@@ -20,6 +20,7 @@
     <string id="30024">Username</string><!-- Verified -->
     
     <string id="30030">Port Number</string><!-- Verified -->
+    <string id="30031">I own this Plex Media Server</string>
     <string id="30036">Number of recent Movies to show:</string>    
     <string id="30037">Number of recent TV episodes to show:</string>    
     <string id="30035">Number of recent Music Albums to show:</string>    
@@ -356,7 +357,7 @@
     <string id="39013">Not yet authorized for Plex server </string>
     <string id="39014">Please sign in to plex.tv.</string>
     <string id="39015">Problems connecting to server. Pick another server?</string>
-    <string id="39016">Disable Plex music library?</string>
+    <string id="39016">Disable Plex music library? (It is HIGHLY recommended to use Plex music only with direct paths for large music libraries. Kodi might crash otherwise)</string>
     <string id="39017">Would you now like to go to the plugin's settings to fine-tune PKC? You will need to RESTART Kodi!</string>
 
     <string id="39018">[COLOR yellow]Repair local database (force update all content)[/COLOR]</string>
@@ -400,6 +401,7 @@
     <string id="39055">Searching for Plex Server</string>
     <string id="39056">Used by Sync and when attempting to Direct Play</string>
     <string id="39057">Customize Paths</string>
+    <string id="39058">Extend Plex TV Series "On Deck" view to all shows</string>
 
     <!-- Plex Entrypoint.py -->
     <string id="39200">Log-out Plex Home User </string>
@@ -413,6 +415,7 @@
     <string id="39208">Failed to reset PMS and plex.tv connects. Try to restart Kodi.</string>
     <string id="39209">[COLOR yellow]Log-in to plex.tv[/COLOR]</string>
     <string id="39210">Not yet connected to Plex Server</string>
+    <string id="39211">Watch later</string>
 
 
     <!-- Plex Artwork.py -->

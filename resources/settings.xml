@@ -5,6 +5,7 @@
 		<setting label="39050" type="action" action="RunPlugin(plugin://plugin.video.plexkodiconnect?mode=chooseServer)" option="close" /><!-- Choose Plex Server from a list -->
 		<setting id="ipaddress" label="30000" type="text" default="" />
 		<setting id="port" label="30030" type="number" default="32400" />
+		<setting id="plex_serverowned" label="30031" type="bool" default="true" /><!-- I own this PMS -->
 		<setting id="https" label="30243" type="bool" default="false" />
 		<setting id="sslverify" subsetting="true" label="30500" type="bool" default="false" visible="eq(-1,true)" />
 		<setting id="sslcert" subsetting="true" label="30501" type="file" default="None" visible="eq(-2,true)" />
@@ -52,7 +53,7 @@
 		<setting type="lsep" label="39052" /><!-- Background Sync -->
 		<setting id="enableBackgroundSync" type="bool" label="39026" default="true" visible="true"/>
 		<setting id="saftyMargin" type="slider" label="39051" default="30" option="int" range="10,1,300" visible="eq(-1,true)"/>
-		<setting id="fullSyncInterval" type="number" label="39053" default="30" option="int" />
+		<setting id="fullSyncInterval" type="number" label="39053" default="60" option="int" />
 
 		<setting type="lsep" label="30538" /><!-- Complete Re-Sync necessary -->
 		<setting id="enableMusic" type="bool" label="30509" default="true" />
@@ -119,11 +120,15 @@
 		<setting id="deviceNameOpt" label="30504" type="bool" default="false" />
 		<setting id="deviceName" label="30016" type="text" visible="eq(-1,true)" default="Kodi" />
 		<setting id="companionPort" label="39005" type="number" default="3005" option="int" visible="eq(-3,true)"/>
+
+		<setting id="plex_restricteduser" type="bool" default="false" visible="false"/>
+
 	</category>
 
 	<category label="39045"><!-- Appearance Tweaks -->
 		<setting id="connectMsg" type="bool" label="30249" default="true" />
 		<setting type="lsep" label="39046" />
+		<setting id="OnDeckTVextended" type="bool" label="39058" default="true" /><!-- Extend Plex TV Series "On Deck" view to all shows -->
 		<setting id="OnDeckTvAppendShow" type="bool" label="39047" default="false" /><!--On Deck view: Append show title to episode-->
 		<setting id="OnDeckTvAppendSeason" type="bool" label="39048" default="false" /><!--On Deck view: Append season number to episode-->
 	</category>

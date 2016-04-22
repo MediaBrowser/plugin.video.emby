@@ -82,7 +82,7 @@ class Service():
             "emby_initialScan", "emby_customplaylist", "emby_playbackProps",
             "plex_runLibScan", "plex_username", "pms_token", "plex_token",
             "pms_server", "plex_machineIdentifier", "plex_servername",
-            "plex_authenticated", "EmbyUserImage", "useDirectPaths",
+            "plex_authenticated", "PlexUserImage", "useDirectPaths",
             "replaceSMB", "remapSMB", "remapSMBmovieOrg", "remapSMBtvOrg",
             "remapSMBmusicOrg", "remapSMBmovieNew", "remapSMBtvNew",
             "remapSMBmusicNew", "suspend_LibraryThread", "plex_terminateNow",
@@ -95,7 +95,7 @@ class Service():
         videonodes.VideoNodes().clearProperties()
         
         # Set the minimum database version
-        window('emby_minDBVersion', value="1.1.1")
+        window('emby_minDBVersion', value="1.1.4")
 
     def getLogLevel(self):
         try:

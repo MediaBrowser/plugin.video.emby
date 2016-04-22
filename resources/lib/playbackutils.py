@@ -16,6 +16,7 @@ import playutils as putils
 import playlist
 import read_embyserver as embyserver
 import utils
+import downloadutils
 
 import PlexAPI
 import PlexFunctions as PF
@@ -60,8 +61,24 @@ class PlaybackUtils():
         if not playurl:
             return xbmcplugin.setResolvedUrl(int(sys.argv[1]), False, listitem)
 
-        if dbid in (None, '999999999'):
-            # Item is not in Kodi database or is a trailer
+        if dbid in (None, '999999999', 'plexnode'):
+            # Item is not in Kodi database, is a trailer or plex redirect
+            # e.g. plex.tv watch later
+            API.CreateListItemFromPlexItem(listitem)
+            self.setArtwork(listitem)
+            if dbid == 'plexnode':
+                # Need to get yet another xml to get final url
+                window('emby_%s.playmethod' % playurl, clear=True)
+                xml = downloadutils.DownloadUtils().downloadUrl(
+                    '{server}%s' % item[0][0][0].attrib.get('key'))
+                if xml in (None, 401):
+                    log('Could not download %s'
+                        % item[0][0][0].attrib.get('key'), -1)
+                    return xbmcplugin.setResolvedUrl(
+                        int(sys.argv[1]), False, listitem)
+                playurl = xml[0].attrib.get('key').encode('utf-8')
+                window('emby_%s.playmethod' % playurl, value='DirectStream')
+
             playmethod = window('emby_%s.playmethod' % playurl)
             if playmethod == "Transcode":
                 window('emby_%s.playmethod' % playurl, clear=True)
@@ -69,8 +86,6 @@ class PlaybackUtils():
                     listitem, playurl.decode('utf-8')).encode('utf-8')
                 window('emby_%s.playmethod' % playurl, "Transcode")
             listitem.setPath(playurl)
-            self.setArtwork(listitem)
-            API.CreateListItemFromPlexItem(listitem)
             self.setProperties(playurl, listitem)
             return xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, listitem)
 
@@ -312,22 +327,9 @@ class PlaybackUtils():
 
     def setArtwork(self, listItem):
         allartwork = self.API.getAllArtwork(parentInfo=True)
-
-        # arttypes = {
-
-        #     'poster': "Primary",
-        #     'tvshow.poster': "Primary",
-        #     'clearart': "Art",
-        #     'tvshow.clearart': "Art",
-        #     'clearlogo': "Logo",
-        #     'tvshow.clearlogo': "Logo",
-        #     'discart': "Disc",
-        #     'fanart_image': "Backdrop",
-        #     'landscape': "Thumb"
-        # }
         arttypes = {
             'poster': "Primary",
-            'tvshow.poster': "Primary",
+            'tvshow.poster': "Thumb",
             'clearart': "Art",
             'tvshow.clearart': "Art",
             'clearart': "Primary",
@@ -336,25 +338,25 @@ class PlaybackUtils():
             'tvshow.clearlogo': "Logo",
             'discart': "Disc",
             'fanart_image': "Backdrop",
-            'landscape': "Backdrop"
+            'landscape': "Backdrop",
+            "banner": "Banner"
         }
         for arttype in arttypes:
-
             art = arttypes[arttype]
             if art == "Backdrop":
-                try: # Backdrop is a list, grab the first backdrop
+                try:
+                    # Backdrop is a list, grab the first backdrop
                     self.setArtProp(listItem, arttype, allartwork[art][0])
-                except: pass
+                except:
+                    pass
             else:
                 self.setArtProp(listItem, arttype, allartwork[art])
 
     def setArtProp(self, listItem, arttype, path):
-        
         if arttype in (
                 'thumb', 'fanart_image', 'small_poster', 'tiny_poster',
                 'medium_landscape', 'medium_poster', 'small_fanartimage',
                 'medium_fanartimage', 'fanart_noindicators'):
-            
             listItem.setProperty(arttype, path)
         else:
             listItem.setArt({arttype: path})

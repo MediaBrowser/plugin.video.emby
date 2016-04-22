@@ -514,7 +514,7 @@ def reset():
     settings('SyncInstallRunDone', value="false")
 
     # Remove emby info
-    resp = dialog.yesno("Warning", "Reset all Emby Addon settings?")
+    resp = dialog.yesno("Warning", "Reset all Plex KodiConnect Addon settings?")
     if resp:
         # Delete the settings
         addon = xbmcaddon.Addon()
@@ -615,47 +615,6 @@ def indent(elem, level=0):
           elem.tail = i
 
 
-def musiclibXML():
-    """
-    UNUSED - WORK IN PROGRESS
-
-    Deactivates Kodi trying to scan music library on startup
-
-    Changes guisettings.xml in Kodi userdata folder:
-        updateonstartup:        set to "false"
-    """
-    path = xbmc.translatePath("special://profile/").decode('utf-8')
-    xmlpath = "%sguisettings.xml" % path
-
-    try:
-        xmlparse = etree.parse(xmlpath)
-    except:
-        # Document is blank or missing
-        root = etree.Element('settings')
-    else:
-        root = xmlparse.getroot()
-
-    music = root.find('musiclibrary')
-    if music is None:
-        music = etree.SubElement(root, 'musiclibrary')
-
-    startup = music.find('updateonstartup')
-    if startup is None:
-        # Setting does not exist yet; create it
-        startup = etree.SubElement(music,
-                                   'updateonstartup',
-                                   attrib={'default': "true"}).text = "false"
-    else:
-        startup.text = "false"
-
-    # Prettify and write to file
-    try:
-        indent(root)
-    except:
-        pass
-    etree.ElementTree(root).write(xmlpath)
-
-
 def guisettingsXML():
     """
     Returns special://userdata/guisettings.xml as an etree xml root element
@@ -673,14 +632,51 @@ def guisettingsXML():
     return root
 
 
+def __setXMLTag(element, tag, value, attrib=None):
+    """
+    Looks for an element's subelement and sets its value.
+    If "subelement" does not exist, create it using attrib and value.
+
+        element : etree element
+        tag     : string/unicode for subelement
+        value   : string/unicode
+        attrib  : dict; will use etree attrib method
+
+    Returns the subelement
+    """
+    subelement = element.find(tag)
+    if subelement is None:
+        # Setting does not exist yet; create it
+        if attrib is None:
+            etree.SubElement(element, tag).text = value
+        else:
+            etree.SubElement(element, tag, attrib=attrib).text = value
+    else:
+        subelement.text = value
+    return subelement
+
+
+def __setSubElement(element, subelement):
+    """
+    Returns an etree element's subelement. Creates one if not exist
+    """
+    answ = element.find(subelement)
+    if answ is None:
+        answ = etree.SubElement(element, subelement)
+    return answ
+
+
 def advancedSettingsXML():
     """
-    UNUSED
-
-    Deactivates Kodi popup for scanning of music library
+    Kodi tweaks
 
     Changes advancedsettings.xml, musiclibrary:
         backgroundupdate        set to "true"
+
+    Overrides guisettings.xml in Kodi userdata folder:
+        updateonstartup  : set to "false"
+        usetags          : set to "false"
+        findremotethumbs : set to "false"
     """
     path = xbmc.translatePath("special://profile/").decode('utf-8')
     xmlpath = "%sadvancedsettings.xml" % path
@@ -693,18 +689,14 @@ def advancedSettingsXML():
     else:
         root = xmlparse.getroot()
 
-    music = root.find('musiclibrary')
-    if music is None:
-        music = etree.SubElement(root, 'musiclibrary')
+    music = __setSubElement(root, 'musiclibrary')
+    __setXMLTag(music, 'backgroundupdate', "true")
+    # __setXMLTag(music, 'updateonstartup', "false")
 
-    backgroundupdate = music.find('backgroundupdate')
-    if backgroundupdate is None:
-        # Setting does not exist yet; create it
-        backgroundupdate = etree.SubElement(
-            music,
-            'backgroundupdate').text = "true"
-    else:
-        backgroundupdate.text = "true"
+    # Subtag 'musicfiles'
+    # music = __setSubElement(root, 'musicfiles')
+    # __setXMLTag(music, 'usetags', "false")
+    # __setXMLTag(music, 'findremotethumbs', "false")
 
     # Prettify and write to file
     try:
@@ -946,3 +938,15 @@ def deleteNodes():
                 xbmcvfs.delete(("%s%s" % (path, file.decode('utf-8'))).encode('utf-8'))
             except:
                 logMsg("PLEX", "Failed to file: %s" % file.decode('utf-8'))
+
+def try_encode(text, encoding="utf-8"):
+    try:
+        return text.encode(encoding,"ignore")
+    except:
+        return text
+
+def try_decode(text, encoding="utf-8"):
+    try:
+        return text.decode(encoding,"ignore")
+    except:
+        return text

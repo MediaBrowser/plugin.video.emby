@@ -29,28 +29,30 @@ This addon synchronizes your media on your Plex server to the native Kodi databa
 
 **Installation in Kodi**
 
-Check out the [Wiki](https://github.com/croneter/PlexKodiConnect/wiki)
+Check out the [Wiki for installation instructions](https://github.com/croneter/PlexKodiConnect/wiki)
 
 
-**What is currently supported ?**
+**What is currently supported?**
 
 Currently these features are working:
-- Movies
+- Movies and Home Videos
 - TV Shows
-- Full sync at first run, then periodic delta syncs every 30min (customizable)
+- [Plex Watch Later / Plex It!](https://support.plex.tv/hc/en-us/sections/200211783-Plex-It-)
+- Full sync at first run, then periodic delta syncs every 60min (customizable)
 - Instant watched state/resume status sync: This is a 2-way synchronisation. Any watched state or resume status will be instantly (within seconds) reflected to or from Kodi and the server
-- Plex Companion: fling Plex media (or anything else) from other Plex devices to PlexKodiConnect
-- Play directly from network paths (e.g. "\\\\server\\Plex\\movie.mkv" or "smb://server/Plex/movie.mkv") instead of slow HTTP (e.g. "192.168.1.1:32400"). You have to setup all your Plex libraries to point to such network paths
-- Transcoding
+- [Plex Companion](https://support.plex.tv/hc/en-us/sections/200276908-Plex-Companion): fling Plex media (or anything else) from other Plex devices to PlexKodiConnect
+- Play directly from network paths (e.g. "\\\\server\\Plex\\movie.mkv" or "smb://server/Plex/movie.mkv") instead of slow HTTP (e.g. "192.168.1.1:32400"). You have to setup all your Plex libraries to point to such network paths. Do have a look at [the wiki here](https://github.com/croneter/PlexKodiConnect/wiki/Direct-Paths)
+- [Plex Transcoding](https://support.plex.tv/hc/en-us/articles/200250377-Transcoding-Media)
 
 
 **Known Issues:**
 
 Solutions are unlikely due to the nature of these issues
-- *Plex Music:* Kodi tries to scan every(!) single Plex song on startup. This leads to errors in the Kodi log file and potentially even crashes. (Plex puts each song in a "dedicated folder", e.g. 'http://192.168.1.1:32400/library/parts/749450/'. Kodi unsuccessfully tries to scan these folders)
-- *Plex Music:* You must have a static IP address for your Plex media server if you plan to use Plex Music features. This is due to the way Kodi works and cannot be helped. 
-- If something on the PMS has changed, this change is synced to Kodi. Hence if you rescan your entire library, a long PlexKodiConnect re-sync is triggered.
-- External Plex subtitles (separate file, e.g. mymovie.srt) can be used, but it is impossible to label them correctly/tell what language they are in. However, this is not the case if you use direct paths
+- *Plex Music when using Addon paths instead of Native Direct Paths:* Kodi tries to scan every(!) single Plex song on startup. This leads to errors in the Kodi log file and potentially even crashes. (Plex puts each song in a "dedicated folder", e.g. 'http://192.168.1.1:32400/library/parts/749450/'. Kodi unsuccessfully tries to scan these folders)
+- *Plex Music when using Addon paths instead of Native Direct Paths:* You must have a static IP address for your Plex media server if you plan to use Plex Music features
+- If something on the PMS has changed, this change is synced to Kodi. Hence if you rescan your entire library, a long PlexKodiConnect re-sync is triggered
+- External Plex subtitles (in separate files, e.g. mymovie.srt) can be used, but it is impossible to label them correctly/tell what language they are in. However, this is not the case if you use direct paths
+- If using Addon Paths: In the TV show video nodes On Deck and Recently Added, Kodi will not display the Episode Information screen if you push "i". This is a Kodi issue. It does work if you use Direct Paths
 
 *Background Sync:*
 The Plex Server does not tell anyone of the following changes. Hence PKC cannot detect these changes instantly but will notice them on full/delta syncs. 
@@ -60,13 +62,11 @@ However, some changes to individual items are instantly detected, e.g. if you ma
 
 
 **Known Bugs:**
-- Plex Music for direct paths does not work yet. Items on Kodi get deleted  instantly.
+- Resume a video does not work yet with Plex Watch Later
 
 
 **What could be in the pipeline for future development?**
-- Watch Later
 - Playlists
-- Homevideos
 - Pictures
 - Music Videos
 - Automatic updates

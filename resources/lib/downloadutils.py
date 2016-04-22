@@ -322,10 +322,14 @@ class DownloadUtils():
         # And now deal with the consequences of the exceptions
         if authenticate is True:
             # Make the addon aware of status
-            window('countError',
-                   value=str(int(window('countError')) + 1))
-            if int(window('countError')) >= self.connectionAttempts:
-                self.logMsg('Failed to connect to %s too many times. Declare '
-                            'PMS dead' % url, -1)
-                window('emby_online', value="false")
-        return False
+            try:
+                window('countError',
+                       value=str(int(window('countError')) + 1))
+                if int(window('countError')) >= self.connectionAttempts:
+                    self.logMsg('Failed to connect to %s too many times. '
+                                'Declare PMS dead' % url, -1)
+                    window('emby_online', value="false")
+            except:
+                # 'countError' not yet set
+                pass
+        return None

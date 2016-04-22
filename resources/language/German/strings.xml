@@ -41,6 +41,7 @@
     <string id="30026">Benutze 'SIMPLEJSON' anstelle von 'JSON'</string>
 
     <string id="30030">Portnummer:</string>
+    <string id="30031">Dieser Plex Media Server gehört mir</string>
     <string id="30036">Anzahl der zuletzt hinzugefügten Filme:</string>
     <string id="30037">Anzahl der zuletzt hinzugefügten Episoden:</string>
     <string id="30035">Anzahl der zuletzt hinzugefügten Alben:</string>
@@ -294,7 +295,7 @@
     <string id="39013">Noch nicht authorisiert für Plex Server </string>
     <string id="39014">Bitte loggen Sie sich in plex.tv ein.</string>
     <string id="39015">Beim Verbinden mit dem Server sind Probleme aufgetreten. Mit einem anderen Server versuchen?</string>
-    <string id="39016">Plex Musik Bibliotheken deaktivieren?</string>
+    <string id="39016">Plex Musik Bibliotheken deaktivieren? (Es wird dringend empfohlen, Musik bei grossen Bibliotheken nur mit "Direct Paths" zu nutzen. Kodi könnte ansonsten abstürzen)</string>
     <string id="39017">Möchten Sie nun die Einstellungen des Plugins öffnen? Kodi muss anschliessend neu gestartet werden!</string>
 
     <string id="39018">[COLOR yellow]Lokale Datenbank reparieren (allen Inhalt aktualisieren)[/COLOR]</string>
@@ -338,6 +339,7 @@
     <string id="39055">Suche Plex Server</string>
     <string id="39056">Verwendet für Synchronisierung sowie beim Versuch, Direct Play zu nutzen</string>
     <string id="39057">Pfade ändern</string>
+    <string id="39058">Standard Plex Ansicht "Aktuell" auf alle TV Shows erweitern</string>
 
 
 
@@ -353,6 +355,7 @@
     <string id="39208">PMS und plex.tv Verbindungen konnten nicht zurückgesetzt werden. Bitte versuchen Sie, Kodi neu zu starten, um das Problem zu beheben.</string>
     <string id="39209">[COLOR yellow]Bei plex.tv einloggen[/COLOR]</string>
     <string id="39210">Noch nicht mit Plex Server verbunden</string>
+    <string id="39211">Später ansehen</string>
 
     <!-- Plex Artwork.py -->
     <string id="39250">Alle Plex Bilder in Kodi zwischenzuspeichern kann sehr lange dauern. Möchten Sie wirklich fortfahren?</string>

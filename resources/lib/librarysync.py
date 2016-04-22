@@ -365,7 +365,8 @@ class LibrarySync(Thread):
                     break
                 if not view.attrib['type'] == mediatype:
                     continue
-                items = PF.GetAllPlexLeaves(view.attrib['key'],
+                libraryId = view.attrib['key']
+                items = PF.GetAllPlexLeaves(libraryId,
                                             containerSize=self.limitindex)
                 if items in (None, 401):
                     self.logMsg("Could not download section %s"
@@ -393,7 +394,6 @@ class LibrarySync(Thread):
             self.logMsg("Could not download metadata, aborting time sync", -1)
             return False
 
-        libraryId = xml[0].attrib['librarySectionID']
         timestamp = xml[0].attrib.get('lastViewedAt')
         if timestamp is None:
             timestamp = xml[0].attrib.get('updatedAt')
@@ -1453,7 +1453,7 @@ class LibrarySync(Thread):
                 sessionKey = item.get('sessionKey')
                 # Do we already have a sessionKey stored?
                 if sessionKey not in self.sessionKeys:
-                    if utils.window('plex_serverowned') == '0':
+                    if utils.window('plex_serverowned') == 'false':
                         # Not our PMS, we are not authorized to get the
                         # sessions
                         # On the bright side, it must be us playing :-)
@@ -1472,7 +1472,7 @@ class LibrarySync(Thread):
                             continue
 
                 currSess = self.sessionKeys[sessionKey]
-                if utils.window('plex_serverowned') != '0':
+                if utils.window('plex_serverowned') != 'false':
                     # Identify the user - same one as signed on with PKC? Skip
                     # update if neither session's username nor userid match
                     # (Owner sometime's returns id '1', not always)
@@ -1576,7 +1576,6 @@ class LibrarySync(Thread):
         log("---===### Starting LibrarySync ###===---", 0)
 
         if self.enableMusic:
-            # utils.musiclibXML()
             utils.advancedSettingsXML()
 
         while not threadStopped():
