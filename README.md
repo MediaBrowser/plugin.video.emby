@@ -57,7 +57,7 @@ Solutions are unlikely due to the nature of these issues
 *Background Sync:*
 The Plex Server does not tell anyone of the following changes. Hence PKC cannot detect these changes instantly but will notice them on full/delta syncs. 
 - Toggle the viewstate of an item to (un)watched outside of Kodi
-- Changing details of an item, e.g. replacing a poster
+- Changing details of an item, e.g. replacing a poster  
 However, some changes to individual items are instantly detected, e.g. if you match a yet unrecognized movie. 
 
 
