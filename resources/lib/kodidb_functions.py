@@ -3,6 +3,7 @@
 ###############################################################################
 
 import xbmc
+from ntpath import dirname
 
 import artwork
 import clientinfo
@@ -65,6 +66,35 @@ class Kodidb_Functions():
             query, ('movies',
                     'metadata.local',
                     'plugin://plugin.video.plexkodiconnect.movies%%'))
+
+    def getParentPathId(self, path):
+        """
+        Video DB: Adds all subdirectories to SQL path while setting a "trail"
+        of parentPathId
+        """
+        if "\\" in path:
+            # Local path
+            parentpath = "%s\\" % dirname(dirname(path))
+        else:
+            # Network path
+            parentpath = "%s/" % dirname(dirname(path))
+        pathid = self.getPath(parentpath)
+        if pathid is None:
+            self.cursor.execute("select coalesce(max(idPath),0) from path")
+            pathid = self.cursor.fetchone()[0] + 1
+            query = ' '.join((
+                "INSERT INTO path(idPath, strPath)",
+                "VALUES (?, ?)"
+            ))
+            self.cursor.execute(query, (pathid, parentpath))
+            parentPathid = self.getParentPathId(parentpath)
+            query = ' '.join((
+                "UPDATE path",
+                "SET idParentPath = ?",
+                "WHERE idPath = ?"
+            ))
+            self.cursor.execute(query, (parentPathid, pathid))
+        return pathid
 
     def addPath(self, path, strHash=None):
         # SQL won't return existing paths otherwise

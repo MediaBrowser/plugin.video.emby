@@ -1040,6 +1040,8 @@ class TVShows(Items):
             toplevelpath = "plugin://plugin.video.plexkodiconnect.tvshows/"
             path = "%s%s/" % (toplevelpath, itemid)
 
+        # Add top path
+        toppathid = kodi_db.addPath(toplevelpath)
         # UPDATE THE TVSHOW #####
         if update_item:
             self.logMsg("UPDATE tvshow itemid: %s - Title: %s" % (itemid, title), 1)
@@ -1062,8 +1064,6 @@ class TVShows(Items):
         else:
             self.logMsg("ADD tvshow itemid: %s - Title: %s" % (itemid, title), 1)
             
-            # Add top path
-            toppathid = kodi_db.addPath(toplevelpath)
             query = ' '.join((
 
                 "UPDATE path",
@@ -1098,10 +1098,11 @@ class TVShows(Items):
         query = ' '.join((
 
             "UPDATE path",
-            "SET strPath = ?, strContent = ?, strScraper = ?, noUpdate = ?",
+            "SET strPath = ?, strContent = ?, strScraper = ?, noUpdate = ?, ",
+            "idParentPath = ?"
             "WHERE idPath = ?"
         ))
-        kodicursor.execute(query, (path, None, None, 1, pathid))
+        kodicursor.execute(query, (path, None, None, 1, toppathid, pathid))
         
         # Process cast
         people = API.getPeopleList()
@@ -1324,6 +1325,7 @@ class TVShows(Items):
                     # Network share
                     filename = playurl.rsplit("/", 1)[1]
                 path = playurl.replace(filename, "")
+                parentPathId = kodi_db.getParentPathId(path)
         if doIndirect:
             # Set plugin path and media flags using real filename
             if playurl is not None:
@@ -1341,6 +1343,8 @@ class TVShows(Items):
                 'mode': "play"
             }
             filename = "%s?%s" % (path, urllib.urlencode(params))
+            parentPathId = kodi_db.addPath(
+                'plugin://plugin.video.plexkodiconnect.tvshows/')
 
         # UPDATE THE EPISODE #####
         if update_item:
@@ -1421,10 +1425,11 @@ class TVShows(Items):
         query = ' '.join((
 
             "UPDATE path",
-            "SET strPath = ?, strContent = ?, strScraper = ?, noUpdate = ?",
+            "SET strPath = ?, strContent = ?, strScraper = ?, noUpdate = ?, ",
+            "idParentPath = ?"
             "WHERE idPath = ?"
         ))
-        kodicursor.execute(query, (path, None, None, 1, pathid))
+        kodicursor.execute(query, (path, None, None, 1, parentPathId, pathid))
         # Update the file
         query = ' '.join((
 
