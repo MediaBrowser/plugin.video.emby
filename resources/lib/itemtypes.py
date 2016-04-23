@@ -442,6 +442,17 @@ class Movies(Items):
                 'mode': "play"
             }
             filename = "%s?%s" % (path, urllib.urlencode(params))
+            playurl = filename
+
+        # Even if the item is only updated, the file may have been moved or updated.
+        # In the worst case we get exactly the same values as we had before.
+        pathid = kodi_db.addPath(path)
+        fileid = kodi_db.addFile(filename, pathid)
+
+        # movie table:
+        # c22 - playurl
+        # c23 - pathid
+        # This information is used later by file browser.
 
         # UPDATE THE MOVIE #####
         if update_item:
@@ -453,12 +464,12 @@ class Movies(Items):
                 "UPDATE movie",
                 "SET c00 = ?, c01 = ?, c02 = ?, c03 = ?, c04 = ?, c05 = ?, c06 = ?,",
                     "c07 = ?, c09 = ?, c10 = ?, c11 = ?, c12 = ?, c14 = ?, c15 = ?,",
-                    "c16 = ?, c18 = ?, c19 = ?, c21 = ?",
+                    "c16 = ?, c18 = ?, c19 = ?, c21 = ?, c22 = ?, c23 = ?",
                 "WHERE idMovie = ?"
             ))
             kodicursor.execute(query, (title, plot, shortplot, tagline, votecount, rating, writer,
                 year, imdb, sorttitle, runtime, mpaa, genre, director, title, studio, trailer,
-                country, movieid))
+                country, playurl, pathid, movieid))
 
             # Update the checksum in emby table
             emby_db.updateReference(itemid, checksum)
@@ -466,25 +477,20 @@ class Movies(Items):
         ##### OR ADD THE MOVIE #####
         else:
             self.logMsg("ADD movie itemid: %s - Title: %s" % (itemid, title), 1)
-            
-            # Add path
-            pathid = kodi_db.addPath(path)
-            # Add the file
-            fileid = kodi_db.addFile(filename, pathid)
-            
+
             # Create the movie entry
             query = (
                 '''
                 INSERT INTO movie(
                     idMovie, idFile, c00, c01, c02, c03, c04, c05, c06, c07, 
-                    c09, c10, c11, c12, c14, c15, c16, c18, c19, c21)
+                    c09, c10, c11, c12, c14, c15, c16, c18, c19, c21, c22, c23)
 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 '''
             )
             kodicursor.execute(query, (movieid, fileid, title, plot, shortplot, tagline, votecount,
                 rating, writer, year, imdb, sorttitle, runtime, mpaa, genre, director, title,
-                studio, trailer, country))
+                studio, trailer, country, playurl, pathid))
 
             # Create the reference in emby table
             emby_db.addReference(itemid, movieid, "Movie", "movie", fileid, pathid, None, checksum, viewid)
