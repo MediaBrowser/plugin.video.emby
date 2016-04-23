@@ -1349,8 +1349,19 @@ class TVShows(Items):
                 'mode': "play"
             }
             filename = "%s?%s" % (path, urllib.urlencode(params))
+            playurl = filename
             parentPathId = kodi_db.addPath(
                 'plugin://plugin.video.plexkodiconnect.tvshows/')
+
+        # Even if the item is only updated, the file may have been moved or updated.
+        # In the worst case we get exactly the same values as we had before.
+        pathid = kodi_db.addPath(path)
+        fileid = kodi_db.addFile(filename, pathid)
+
+        # episodes table:
+        # c18 - playurl
+        # c19 - pathid
+        # This information is used later by file browser.
 
         # UPDATE THE EPISODE #####
         if update_item:
@@ -1363,23 +1374,24 @@ class TVShows(Items):
                 
                     "UPDATE episode",
                     "SET c00 = ?, c01 = ?, c03 = ?, c04 = ?, c05 = ?, c09 = ?, c10 = ?,",
-                        "c12 = ?, c13 = ?, c14 = ?, c15 = ?, c16 = ?, idSeason = ?",
+                        "c12 = ?, c13 = ?, c14 = ?, c15 = ?, c16 = ?, c18 = ?, c19 = ?,",
+                        "idSeason = ?",
                     "WHERE idEpisode = ?"
                 ))
                 kodicursor.execute(query, (title, plot, rating, writer, premieredate,
                     runtime, director, season, episode, title, airsBeforeSeason,
-                    airsBeforeEpisode, seasonid, episodeid))
+                    airsBeforeEpisode, playurl, pathid, seasonid, episodeid))
             else:
                 query = ' '.join((
                     
                     "UPDATE episode",
                     "SET c00 = ?, c01 = ?, c03 = ?, c04 = ?, c05 = ?, c09 = ?, c10 = ?,",
-                        "c12 = ?, c13 = ?, c14 = ?, c15 = ?, c16 = ?",
+                        "c12 = ?, c13 = ?, c14 = ?, c15 = ?, c16 = ?, c18 = ?, c19 = ?",
                     "WHERE idEpisode = ?"
                 ))
                 kodicursor.execute(query, (title, plot, rating, writer, premieredate,
                     runtime, director, season, episode, title, airsBeforeSeason,
-                    airsBeforeEpisode, episodeid))
+                    airsBeforeEpisode, playurl, pathid, episodeid))
 
             # Update the checksum in emby table
             emby_db.updateReference(itemid, checksum)
@@ -1389,11 +1401,7 @@ class TVShows(Items):
         ##### OR ADD THE EPISODE #####
         else:
             self.logMsg("ADD episode itemid: %s" % (itemid), 1)
-            
-            # Add path
-            pathid = kodi_db.addPath(path)
-            # Add the file
-            fileid = kodi_db.addFile(filename, pathid)
+
             # Create the episode entry
             if kodiversion in (16, 17):
                 # Kodi Jarvis, Krypton
@@ -1401,27 +1409,27 @@ class TVShows(Items):
                     '''
                     INSERT INTO episode(
                         idEpisode, idFile, c00, c01, c03, c04, c05, c09, c10, c12, c13, c14,
-                        idShow, c15, c16, idSeason)
+                        idShow, c15, c16, c18, c19, idSeason)
 
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     '''
                 )
                 kodicursor.execute(query, (episodeid, fileid, title, plot, rating, writer,
                     premieredate, runtime, director, season, episode, title, showid,
-                    airsBeforeSeason, airsBeforeEpisode, seasonid))
+                    airsBeforeSeason, airsBeforeEpisode, playurl, pathid, seasonid))
             else:
                 query = (
                     '''
                     INSERT INTO episode(
                         idEpisode, idFile, c00, c01, c03, c04, c05, c09, c10, c12, c13, c14,
-                        idShow, c15, c16)
+                        idShow, c15, c16, c18, c19)
 
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     '''
                 )
                 kodicursor.execute(query, (episodeid, fileid, title, plot, rating, writer,
                     premieredate, runtime, director, season, episode, title, showid,
-                    airsBeforeSeason, airsBeforeEpisode))
+                    airsBeforeSeason, airsBeforeEpisode, playurl, pathid))
 
             # Create the reference in emby table
             emby_db.addReference(itemid, episodeid, "Episode", "episode", fileid, pathid,
