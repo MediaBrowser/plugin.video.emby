@@ -2,7 +2,7 @@
 <strings>
     <!-- Add-on settings -->
     <string id="30000">Server Address (IP)</string><!-- Verified -->
-    <string id="30002">Prefered playback method</string><!-- Verified -->
+    <string id="30002">Preferred playback method</string><!-- Verified -->
     <string id="30004">Log level</string><!-- Verified -->
     <string id="30005">Username: </string>
     <string id="30006">Password: </string>
@@ -411,7 +411,7 @@
     <string id="39204">Perform manual library sync</string>
     <string id="39205">Unable to run the sync, the add-on is not connected to a Plex server.</string>
     <string id="39206">Plex might lock your account if you fail to log in too many times. Proceed anyway?</string>
-    <string id="39207">Reseting PMS connections, please wait</string>
+    <string id="39207">Resetting PMS connections, please wait</string>
     <string id="39208">Failed to reset PMS and plex.tv connects. Try to restart Kodi.</string>
     <string id="39209">[COLOR yellow]Log-in to plex.tv[/COLOR]</string>
     <string id="39210">Not yet connected to Plex Server</string>
