@@ -2,7 +2,7 @@
 
 1. If your are using a **low CPU device like a raspberry pi or a CuBox**, PKC might be instable or crash during initial sync. Lower the number of threads in the [PKC settings under Sync Options](https://github.com/croneter/PlexKodiConnect/wiki/PKC-settings#sync-options):
     - Limit artwork cache threads: 5
-    - Limit download sync threads: 1
+    - Limit download sync threads: 1  
 Don't forget to reboot Kodi
 2. If you post logs, your **Plex tokens** might be included. Be sure to double and tripple check for tokens before posting any logs anywhere. 
 3. **Compatibility**: PKC is currently not compatible with Kodi's Video Extras plugin. **Deactivate Video Extras** if trailers/movies start randomly playing. 
