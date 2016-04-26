@@ -33,7 +33,7 @@ from xbmc import sleep
 
 import downloadutils
 from PlexFunctions import PMSHttpsEnabled
-from utils import window, logging, settings
+from utils import window, logging
 
 
 @logging
@@ -60,7 +60,7 @@ class plexgdm:
         self.client_registered = False
         self.download = downloadutils.DownloadUtils().downloadUrl
 
-    def clientDetails(self, options):
+    def clientDetails(self, settings):
         self.client_data = (
             "Content-Type: plex/media-player\r\n"
             "Resource-Identifier: %s\r\n"
@@ -74,13 +74,13 @@ class plexgdm:
             "mirror,playqueues\r\n"
             "Device-Class: HTPC"
         ) % (
-            options['uuid'],
-            options['client_name'],
-            options['myport'],
-            options['addonName'],
-            options['version']
+            settings['uuid'],
+            settings['client_name'],
+            settings['myport'],
+            settings['addonName'],
+            settings['version']
         )
-        self.client_id = options['uuid']
+        self.client_id = settings['uuid']
 
     def getClientDetails(self):
         if not self.client_data:
@@ -388,5 +388,4 @@ class plexgdm:
 
     def start_all(self, daemon=False):
         self.start_discovery(daemon)
-        if settings('plexCompanion') == 'true':
-            self.start_registration(daemon)
+        self.start_registration(daemon)
