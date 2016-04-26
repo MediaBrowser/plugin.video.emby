@@ -36,14 +36,6 @@ class Player(xbmc.Player):
 
         self.logMsg("Starting playback monitor.", 2)
 
-        # Should we start notification or is this done by Plex Companion?
-        self.doNotify = False if (utils.settings('plexCompanion') == 'true') \
-            else True
-        if self.doNotify:
-            self.logMsg("PMS notifications not done by Plex Companion", 2)
-        else:
-            self.logMsg("PMS notifications done by Plex Companion", 2)
-
     def GetPlayStats(self):
         return self.playStats
 
@@ -74,7 +66,8 @@ class Player(xbmc.Player):
                 else:
                     count += 1
         if not currentFile:
-            log('Error getting a currently playing file; abort reporting', -1)
+            self.logMsg('Error getting a currently playing file; abort '
+                        'reporting', -1)
             return
 
         # Save currentFile for cleanup later and for references
@@ -88,12 +81,13 @@ class Player(xbmc.Player):
             itemId = window("emby_%s.itemid" % currentFile)
             # try 20 times or about 10 seconds
             if count == 20:
-                log("Could not find itemId, cancelling playback report...", -1)
+                self.logMsg("Could not find itemId, cancelling playback "
+                            "report!", -1)
                 return
             count += 1
 
-        log("ONPLAYBACK_STARTED: %s itemid: %s"
-            % (currentFile.decode('utf-8'), itemId), 0)
+        self.logMsg("ONPLAYBACK_STARTED: %s itemid: %s"
+                    % (currentFile.decode('utf-8'), itemId), 0)
 
         embyitem = "emby_%s" % currentFile
         runtime = window("%s.runtime" % embyitem)
@@ -102,16 +96,16 @@ class Player(xbmc.Player):
         itemType = window("%s.type" % embyitem)
         window('emby_skipWatched%s' % itemId, value="true")
 
-        log("Playing itemtype is: %s" % itemType, 1)
+        self.logMsg("Playing itemtype is: %s" % itemType, 1)
 
         customseek = window('emby_customPlaylist.seektime')
         if (window('emby_customPlaylist') == "true" and customseek):
             # Start at, when using custom playlist (play to Kodi from webclient)
-            log("Seeking to: %s" % customseek, 1)
-            xbmcplayer.seekTime(int(customseek))
+            self.logMsg("Seeking to: %s" % customseek, 1)
+            self.xbmcplayer.seekTime(int(customseek))
             window('emby_customPlaylist.seektime', clear=True)
 
-        seekTime = xbmcplayer.getTime()
+        seekTime = self.xbmcplayer.getTime()
 
         # Get playback volume
         volume_query = {
@@ -191,7 +185,8 @@ class Player(xbmc.Player):
 
                 if mapping: # Set in playbackutils.py
                     
-                    log("Mapping for external subtitles index: %s" % mapping, 2)
+                    self.logMsg("Mapping for external subtitles index: %s"
+                                % mapping, 2)
                     externalIndex = json.loads(mapping)
 
                     if externalIndex.get(str(indexSubs)):
@@ -257,9 +252,8 @@ class Player(xbmc.Player):
                 self.playStats[playMethod] = 1'''
 
     def reportPlayback(self):
-        # Don't use if Plex Companion is enabled
-        if not self.doNotify:
-            return
+        # Done by Plex Companion
+        return
 
         self.logMsg("reportPlayback Called", 2)
 

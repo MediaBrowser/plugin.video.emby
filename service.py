@@ -63,8 +63,6 @@ class Service():
         window('emby_kodiProfile', value=xbmc.translatePath("special://profile"))
         window('emby_pluginpath', value=utils.settings('useDirectPaths'))
 
-        self.runPlexCompanion = utils.settings('plexCompanion')
-
         # Initial logging
         log("======== START %s ========" % self.addonName, 0)
         log("Platform: %s" % (self.clientInfo.getPlatform()), 0)
@@ -206,8 +204,7 @@ class Service():
                             self.library_running = True
                             library.start()
                         # Start the Plex Companion thread
-                        if not self.plexCompanion_running and \
-                                self.runPlexCompanion == "true":
+                        if not self.plexCompanion_running:
                             self.plexCompanion_running = True
                             plexCompanion = PlexCompanion.PlexCompanion()
                             plexCompanion.start()
