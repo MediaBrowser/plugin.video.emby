@@ -172,7 +172,7 @@ class SubscriptionManager:
             url = serv.get('protocol', 'http') + '://' \
                 + serv.get('server', 'localhost') + ':' \
                 + serv.get('port', '32400') + "/:/timeline"
-            self.doUtils(url, type="GET", parameters=params)
+            self.doUtils(url, parameters=params)
             # requests.getwithparams(serv.get('server', 'localhost'), serv.get('port', 32400), "/:/timeline", params, getPlexHeaders(), serv.get('protocol', 'http'))
             self.logMsg("sent server notification with state = %s"
                         % params['state'], 2)
@@ -283,6 +283,6 @@ class Subscriber:
         """
         response = self.doUtils(url,
                                 postBody=msg,
-                                type="POST")
+                                action_type="POST")
         if response in [False, None, 401]:
             self.subMgr.removeSubscriber(self.uuid)

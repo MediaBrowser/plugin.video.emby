@@ -142,21 +142,22 @@ class DownloadUtils():
             header.update(options)
         return header
 
-    def __doDownload(self, s, type, **kwargs):
-        if type == "GET":
+    def __doDownload(self, s, action_type, **kwargs):
+        if action_type == "GET":
             r = s.get(**kwargs)
-        elif type == "POST":
+        elif action_type == "POST":
             r = s.post(**kwargs)
-        elif type == "DELETE":
+        elif action_type == "DELETE":
             r = s.delete(**kwargs)
-        elif type == "OPTIONS":
+        elif action_type == "OPTIONS":
             r = s.options(**kwargs)
-        elif type == "PUT":
+        elif action_type == "PUT":
             r = s.put(**kwargs)
         return r
 
-    def downloadUrl(self, url, type="GET", postBody=None, parameters=None,
-                    authenticate=True, headerOptions=None, verifySSL=True):
+    def downloadUrl(self, url, action_type="GET", postBody=None,
+                    parameters=None, authenticate=True, headerOptions=None,
+                    verifySSL=True):
         """
         Override SSL check with verifySSL=False
 
@@ -205,7 +206,7 @@ class DownloadUtils():
 
         # ACTUAL DOWNLOAD HAPPENING HERE
         try:
-            r = self.__doDownload(s, type, **kwargs)
+            r = self.__doDownload(s, action_type, **kwargs)
 
         # THE EXCEPTIONS
         except requests.exceptions.ConnectionError as e:

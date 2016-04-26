@@ -11,7 +11,6 @@ import xbmcgui
 import xbmcvfs
 
 import artwork
-import downloadutils
 import utils
 import embydb_functions as embydb
 import kodidb_functions as kodidb
@@ -34,7 +33,6 @@ class Items(object):
     """
 
     def __init__(self):
-        self.doUtils = downloadutils.DownloadUtils()
         self.kodiversion = int(xbmc.getInfoLabel("System.BuildVersion")[:2])
         # self.directpath = utils.settings('useDirectPaths') == "1"
         self.directpath = True if utils.window('useDirectPaths') == 'true' \

@@ -217,8 +217,7 @@ class PlexAPI():
         """
         # Try to get a temporary token
         xml = self.doUtils('https://plex.tv/pins/%s.xml' % identifier,
-                           authenticate=False,
-                           type="GET")
+                           authenticate=False)
         try:
             temp_token = xml.find('auth_token').text
         except:
@@ -230,8 +229,7 @@ class PlexAPI():
         # Use temp token to get the final plex credentials
         xml = self.doUtils('https://plex.tv/users/account',
                            authenticate=False,
-                           parameters={'X-Plex-Token': temp_token},
-                           type="GET")
+                           parameters={'X-Plex-Token': temp_token})
         return xml
 
     def GetPlexPin(self):
@@ -243,7 +241,7 @@ class PlexAPI():
         # Download
         xml = self.doUtils('https://plex.tv/pins.xml',
                            authenticate=False,
-                           type="POST")
+                           action_type="POST")
         try:
             xml.attrib
         except:
@@ -907,7 +905,7 @@ class PlexAPI():
         self.logMsg('Switching to user %s' % userId, 0)
         answer = self.doUtils(url,
                               authenticate=False,
-                              type="POST",
+                              action_type="POST",
                               headerOptions={'X-Plex-Token': token})
         try:
             answer.attrib

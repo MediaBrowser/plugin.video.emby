@@ -139,7 +139,7 @@ def SelectStreams(url, args):
     chosen.
     """
     downloadutils.DownloadUtils().downloadUrl(
-        url + '?' + urlencode(args), type='PUT')
+        url + '?' + urlencode(args), action_type='PUT')
 
 
 def GetPlayQueue(playQueueID):
@@ -388,7 +388,7 @@ def GetPlexPlaylist(itemid, librarySectionUUID, mediatype='movie'):
         'repeat': '0'
     }
     xml = downloadutils.DownloadUtils().downloadUrl(
-        url + '?' + urlencode(args), type="POST")
+        url + '?' + urlencode(args), action_type="POST")
     try:
         xml[0].tag
     except (IndexError, TypeError, AttributeError):
@@ -448,8 +448,7 @@ def GetMachineIdentifier(url):
 
     Returns None if something went wrong
     """
-    xml = downloadutils.DownloadUtils().downloadUrl(
-        url + '/identity', type="GET")
+    xml = downloadutils.DownloadUtils().downloadUrl(url + '/identity')
     try:
         xml.attrib
     except:
@@ -480,7 +479,6 @@ def GetPMSStatus(token):
     answer = {}
     xml = downloadutils.DownloadUtils().downloadUrl(
         '{server}/status/sessions',
-        type="GET",
         headerOptions={'X-Plex-Token': token})
     try:
         xml.attrib
@@ -519,5 +517,5 @@ def scrobble(ratingKey, state):
         url = "{server}/:/unscrobble?" + urlencode(args)
     else:
         return
-    downloadutils.DownloadUtils().downloadUrl(url, type="GET")
+    downloadutils.DownloadUtils().downloadUrl(url)
     logMsg(title, "Toggled watched state for Plex item %s" % ratingKey, 1)

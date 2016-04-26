@@ -521,7 +521,7 @@ class Player(xbmc.Player):
 
                         url = "{server}/emby/Items/%s?format=json" % itemid
                         log("Deleting request: %s" % itemid, 1)
-                        doUtils(url, type="DELETE")
+                        doUtils(url, action_type="DELETE")
                 self.stopPlayback(data)
 
         # Clean the WINDOW properties
