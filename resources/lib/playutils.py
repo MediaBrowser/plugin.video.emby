@@ -189,8 +189,6 @@ class PlayUtils():
         if utils.settings('playType') == "2":
             # User forcing to play via HTTP
             self.logMsg("User chose to transcode", 1)
-            self.logMsg("Resolution is: %sP, transcode for resolution: %sP+"
-        canDirectStream = self.item['MediaSources'][0]['SupportsDirectStream']
             return False
         if self.h265enabled():
             return False
@@ -200,25 +198,6 @@ class PlayUtils():
                         "file. Transcoding", 1)
             return False
         return True
-
-    def directStream(self):
-
-        server = self.server
-
-        itemid = self.API.getRatingKey()
-        type = self.API.getType()
-
-        # if 'Path' in item and item['Path'].endswith('.strm'):
-        #     # Allow strm loading when direct streaming
-        #     playurl = self.directPlay()
-        if type == "Audio":
-            playurl = "%s/emby/Audio/%s/stream.mp3" % (server, itemid)
-        else:
-            playurl = "%s/emby/Videos/%s/stream?static=true" % (server, itemid)
-            playurl = "{server}/player/playback/playMedia?key=%2Flibrary%2Fmetadata%2F%s&offset=0&X-Plex-Client-Identifier={clientId}&machineIdentifier={SERVER ID}&address={SERVER IP}&port={SERVER PORT}&protocol=http&path=http%3A%2F%2F{SERVER IP}%3A{SERVER PORT}%2Flibrary%2Fmetadata%2F{MEDIA ID}" % (itemid)
-            playurl = self.API.replaceURLtags()
-
-        return playurl
 
     def isNetworkSufficient(self):
         """
@@ -243,24 +222,6 @@ class PlayUtils():
             return False
 
         return True
-
-    def transcoding(self):
-
-        if 'Path' in self.item and self.item['Path'].endswith('.strm'):
-            # Allow strm loading when transcoding
-            playurl = self.directPlay()
-        else:
-            itemid = self.item['Id']
-            deviceId = self.clientInfo.getDeviceId()
-            playurl = (
-                "%s/emby/Videos/%s/master.m3u8?MediaSourceId=%s"
-                % (self.server, itemid, itemid)
-            )
-            playurl = (
-                "%s&VideoCodec=h264&AudioCodec=ac3&MaxAudioChannels=6&deviceId=%s&VideoBitrate=%s"
-                % (playurl, deviceId, self.getBitrate()*1000))
-
-        return playurl
 
     def getBitrate(self):
         # get the addon video quality

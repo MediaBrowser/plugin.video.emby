@@ -840,7 +840,7 @@ def BrowseContent(viewname, browse_type="", folderid=""):
 
 ##### CREATE LISTITEM FROM EMBY METADATA #####
 def createListItemFromEmbyItem(item,art=artwork.Artwork(),doUtils=downloadutils.DownloadUtils()):
-    API = api.API(item)
+    API = PlexAPI.API(item)
     itemid = item['Id']
     
     title = item.get('Name')

@@ -126,7 +126,7 @@ class UserClient(threading.Thread):
         url = "{server}/emby/Users?format=json"
         result = self.doUtils.downloadUrl(url)
 
-        if result == False:
+        if result is False:
             # Access is restricted, set in downloadutils.py via exception
             log("Access is restricted.", 1)
             self.HasAccess = False

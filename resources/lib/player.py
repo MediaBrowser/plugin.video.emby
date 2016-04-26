@@ -216,10 +216,8 @@ class Player(xbmc.Player):
         try:
             runtime = int(runtime)
         except ValueError:
-            runtime = xbmcplayer.getTotalTime()
-            log("Runtime is missing, Kodi runtime: %s" % runtime, 1)
-                    runtime = self.xbmcplayer.getTotalTime()
-                    self.logMsg("Runtime is missing, Kodi runtime: %s" % runtime, 1)
+            runtime = self.xbmcplayer.getTotalTime()
+            self.logMsg("Runtime is missing, Kodi runtime: %s" % runtime, 1)
 
         playQueueVersion = window('playQueueVersion')
         playQueueID = window('playQueueID')
@@ -241,7 +239,7 @@ class Player(xbmc.Player):
         }
         
         self.played_info[currentFile] = data
-        log("ADDING_FILE: %s" % self.played_info, 1)
+        self.logMsg("ADDING_FILE: %s" % self.played_info, 1)
 
         # log some playback stats
         '''if(itemType != None):
@@ -264,8 +262,6 @@ class Player(xbmc.Player):
             return
 
         self.logMsg("reportPlayback Called", 2)
-
-        log("reportPlayback Called", 2)
 
         # Get current file
         currentFile = self.currentFile
@@ -441,7 +437,7 @@ class Player(xbmc.Player):
         # Will be called when user stops xbmc playing a file
         
         window = utils.window
-        log("ONPLAYBACK_STOPPED", 1)
+        self.logMsg("ONPLAYBACK_STOPPED", 1)
 
         self.stopAll()
 
@@ -449,7 +445,7 @@ class Player(xbmc.Player):
         window('emby_customPlaylist', clear=True)
         window('emby_customPlaylist.seektime', clear=True)
         window('emby_customPlaylist.seektime', clear=True)
-        log("Clear playlist properties.", 1)
+        self.logMsg("Clear playlist properties.", 1)
 
     def onPlayBackEnded(self):
         # Will be called when xbmc stops playing a file, because the file ended
@@ -520,8 +516,8 @@ class Player(xbmc.Player):
                             continue
 
                         url = "{server}/emby/Items/%s?format=json" % itemid
-                        log("Deleting request: %s" % itemid, 1)
-                        doUtils(url, action_type="DELETE")
+                        self.logMsg("Deleting request: %s" % itemid, 1)
+                        self.doUtils(url, action_type="DELETE")
                 self.stopPlayback(data)
 
         # Clean the WINDOW properties
@@ -541,8 +537,8 @@ class Player(xbmc.Player):
 
         # Stop transcoding
         if playMethod == "Transcode":
-            log("Transcoding for %s terminating" % itemid, 1)
-            doUtils(
+            self.logMsg("Transcoding for %s terminating" % itemid, 1)
+            self.doUtils(
                 "{server}/video/:/transcode/universal/stop",
                 parameters={'session': self.clientInfo.getDeviceId()})
 

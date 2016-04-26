@@ -442,8 +442,8 @@ class Movies(Items):
 
         # Even if the item is only updated, the file may have been moved or updated.
         # In the worst case we get exactly the same values as we had before.
-        pathid = kodi_db.addPath(path)
-        fileid = kodi_db.addFile(filename, pathid)
+        pathid = self.kodi_db.addPath(path)
+        fileid = self.kodi_db.addFile(filename, pathid)
 
         # movie table:
         # c22 - playurl
@@ -510,7 +510,7 @@ class Movies(Items):
         kodicursor.execute(query, (pathid, filename, dateadded, fileid))
         
         # Process countries
-        kodi_db.addCountries(movieid, countries, "movie")
+        self.kodi_db.addCountries(movieid, countries, "movie")
         # Process cast
         people = API.getPeopleList()
         self.kodi_db.addPeople(movieid, people, "movie")
@@ -531,7 +531,7 @@ class Movies(Items):
             tags.append("Favorite movies")
         self.kodi_db.addTags(movieid, tags, "movie")
         # Process playstates
-        kodi_db.addPlaystate(fileid, resume, runtime, playcount, dateplayed)
+        self.kodi_db.addPlaystate(fileid, resume, runtime, playcount, dateplayed)
 
     def remove(self, itemid):
         # Remove movieid, fileid, emby reference
@@ -600,7 +600,7 @@ class MusicVideos(Items):
         kodicursor = self.kodicursor
         emby_db = self.emby_db
         artwork = self.artwork
-        API = api.API(item)
+        API = PlexAPI.API(item)
 
         # If the item already exist in the local Kodi DB we'll perform a full item update
         # If the item doesn't exist, we'll add it to the database
@@ -1039,7 +1039,7 @@ class TVShows(Items):
             path = "%s%s/" % (toplevelpath, itemid)
 
         # Add top path
-        toppathid = kodi_db.addPath(toplevelpath)
+        toppathid = self.kodi_db.addPath(toplevelpath)
         # UPDATE THE TVSHOW #####
         if update_item:
             self.logMsg("UPDATE tvshow itemid: %s - Title: %s" % (itemid, title), 1)
@@ -1160,7 +1160,7 @@ class TVShows(Items):
                         % (itemid), -1)
             return
 
-        seasonid = kodi_db.addSeason(showid, seasonnum)
+        seasonid = self.kodi_db.addSeason(showid, seasonnum)
         checksum = API.getChecksum()
         # Check whether Season already exists
         update_item = True
@@ -1320,7 +1320,7 @@ class TVShows(Items):
                     # Network share
                     filename = playurl.rsplit("/", 1)[1]
                 path = playurl.replace(filename, "")
-                parentPathId = kodi_db.getParentPathId(path)
+                parentPathId = self.kodi_db.getParentPathId(path)
         if doIndirect:
             # Set plugin path and media flags using real filename
             if playurl is not None:
@@ -1339,13 +1339,13 @@ class TVShows(Items):
             }
             filename = "%s?%s" % (path, urllib.urlencode(params))
             playurl = filename
-            parentPathId = kodi_db.addPath(
+            parentPathId = self.kodi_db.addPath(
                 'plugin://plugin.video.plexkodiconnect.tvshows/')
 
         # Even if the item is only updated, the file may have been moved or updated.
         # In the worst case we get exactly the same values as we had before.
-        pathid = kodi_db.addPath(path)
-        fileid = kodi_db.addFile(filename, pathid)
+        pathid = self.kodi_db.addPath(path)
+        fileid = self.kodi_db.addFile(filename, pathid)
 
         # episodes table:
         # c18 - playurl

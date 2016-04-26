@@ -55,17 +55,19 @@ class Playlist():
                     mediatype = embydb_item[4]
                 except TypeError:
                     # Item is not found in our database, add item manually
-                    log("Item was not found in the database, manually adding item.", 1)
+                    self.logMsg("Item was not found in the database, manually "
+                                "adding item.", 1)
                     item = PlexFunctions.GetPlexMetadata(itemid)
                     if item is None or item == 401:
-                        log('Could not download itemid %s' % itemid, -1)
+                        self.logMsg('Could not download itemid %s'
+                                    % itemid, -1)
                     else:
                         self.addtoPlaylist_xbmc(playlist, item)
                 else:
                     # Add to playlist
                     self.addtoPlaylist(dbid, mediatype)
 
-                log("Adding %s to playlist." % itemid, 1)
+                self.logMsg("Adding %s to playlist." % itemid, 1)
 
                 if not started:
                     started = True
@@ -103,7 +105,7 @@ class Playlist():
         self.verifyPlaylist()
         embycursor.close()
         return playlist
-    
+
     def addtoPlaylist(self, dbid=None, mediatype=None, url=None):
 
         pl = {

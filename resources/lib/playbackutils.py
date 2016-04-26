@@ -71,7 +71,7 @@ class PlaybackUtils():
                 xml = downloadutils.DownloadUtils().downloadUrl(
                     '{server}%s' % item[0][0][0].attrib.get('key'))
                 if xml in (None, 401):
-                    log('Could not download %s'
+                    self.logMsg('Could not download %s'
                         % item[0][0][0].attrib.get('key'), -1)
                     return xbmcplugin.setResolvedUrl(
                         int(sys.argv[1]), False, listitem)
@@ -101,7 +101,7 @@ class PlaybackUtils():
         dummyPlaylist = False
 
         self.logMsg("Playlist start position: %s" % startPos, 2)
-        self.logMsg("Playlist plugin position: %s" % currentPosition, 2)
+        self.logMsg("Playlist plugin position: %s" % self.currentPosition, 2)
         self.logMsg("Playlist size: %s" % sizePlaylist, 2)
 
         ############### RESUME POINT ################
@@ -144,7 +144,7 @@ class PlaybackUtils():
             if homeScreen and not seektime and not sizePlaylist:
                 # Extend our current playlist with the actual item to play
                 # only if there's no playlist first
-                log("Adding main item to playlist.", 1)
+                self.logMsg("Adding main item to playlist.", 1)
                 self.pl.addtoPlaylist(
                     dbid,
                     PF.GetKodiTypeFromPlex(API.getType()))
@@ -165,7 +165,7 @@ class PlaybackUtils():
                     additionalListItem = xbmcgui.ListItem()
                     additionalPlayurl = playutils.getPlayUrl(
                         partNumber=counter)
-                    log("Adding additional part: %s" % counter, 1)
+                    self.logMsg("Adding additional part: %s" % counter, 1)
 
                     self.setProperties(additionalPlayurl, additionalListItem)
                     self.setArtwork(additionalListItem)

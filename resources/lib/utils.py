@@ -356,7 +356,6 @@ def getKodiVideoDBPath():
         "14": 90,   # Helix
         "15": 93,   # Isengard
         "16": 99,   # Jarvis
-	"17":104    # Krypton
         "17": 104   # Krypton
     }
 
