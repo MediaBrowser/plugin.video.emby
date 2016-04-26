@@ -1237,7 +1237,11 @@ class API():
         except:
             res = None
         if res is not None:
-            res = unquote(res).decode('utf-8')
+            try:
+                res = unquote(res).decode('utf-8')
+            except UnicodeEncodeError:
+                # Sometimes, unquote seems to return unicode, not string
+                res = unquote(res)
         return res
 
     def getTVShowPath(self):
