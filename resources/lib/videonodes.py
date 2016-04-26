@@ -54,7 +54,6 @@ class VideoNodes(object):
         mediatype = mediatypes[mediatype]
 
         window = utils.window
-        kodiversion = self.kodiversion
 
         if viewtype == "mixed":
             dirname = "%s-%s" % (viewid, mediatype)
@@ -231,7 +230,7 @@ class VideoNodes(object):
                 # Custom query
                 path = ("plugin://plugin.video.plexkodiconnect/?id=%s&mode=recentepisodes&type=%s&tagname=%s&limit=%s"
                     % (viewid, mediatype, tagname, limit))
-            elif kodiversion == 14 and nodetype == "inprogressepisodes":
+            elif self.kodiversion == 14 and nodetype == "inprogressepisodes":
                 # Custom query
                 path = "plugin://plugin.video.plexkodiconnect/?id=%s&mode=inprogressepisodes&limit=%s" % (tagname, limit)
             elif nodetype == 'ondeck':

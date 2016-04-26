@@ -299,7 +299,7 @@ def window(property, value=None, clear=False, windowid=10000):
     Property needs to be string; value may be string or unicode
     """
     WINDOW = xbmcgui.Window(windowid)
-    
+
     #setproperty accepts both string and unicode but utf-8 strings are adviced by kodi devs because some unicode can give issues
     '''if isinstance(property, unicode):
         property = property.encode("utf-8")
@@ -334,23 +334,22 @@ def language(stringid):
     string = addon.getLocalizedString(stringid) #returns unicode object
     return string
 
-def kodiSQL(type="video"):
-    
-    if type == "emby":
+def kodiSQL(media_type="video"):
+
+    if media_type == "emby":
         dbPath = xbmc.translatePath("special://database/emby.db").decode('utf-8')
-    elif type == "music":
+    elif media_type == "music":
         dbPath = getKodiMusicDBPath()
-    elif type == "texture":
+    elif media_type == "texture":
         dbPath = xbmc.translatePath("special://database/Textures13.db").decode('utf-8')
     else:
         dbPath = getKodiVideoDBPath()
-    
+
     connection = sqlite3.connect(dbPath)
     return connection
 
 def getKodiVideoDBPath():
 
-    kodibuild = xbmc.getInfoLabel('System.BuildVersion')[:2]
     dbVersion = {
 
         "13": 78,   # Gotham
@@ -358,16 +357,16 @@ def getKodiVideoDBPath():
         "15": 93,   # Isengard
         "16": 99,   # Jarvis
 	"17":104    # Krypton
+        "17": 104   # Krypton
     }
 
     dbPath = xbmc.translatePath(
                     "special://database/MyVideos%s.db"
-                    % dbVersion.get(kodibuild, "")).decode('utf-8')
+                    % dbVersion.get(xbmc.getInfoLabel('System.BuildVersion')[:2], "")).decode('utf-8')
     return dbPath
 
 def getKodiMusicDBPath():
 
-    kodibuild = xbmc.getInfoLabel('System.BuildVersion')[:2]
     dbVersion = {
 
         "13": 46,   # Gotham
@@ -379,7 +378,7 @@ def getKodiMusicDBPath():
 
     dbPath = xbmc.translatePath(
                     "special://database/MyMusic%s.db"
-                    % dbVersion.get(kodibuild, "")).decode('utf-8')
+                    % dbVersion.get(xbmc.getInfoLabel('System.BuildVersion')[:2], "")).decode('utf-8')
     return dbPath
 
 def getScreensaver():
@@ -394,11 +393,7 @@ def getScreensaver():
             'setting': "screensaver.mode"
         }
     }
-    result = xbmc.executeJSONRPC(json.dumps(query))
-    result = json.loads(result)
-    screensaver = result['result']['value']
-
-    return screensaver
+    return json.loads(xbmc.executeJSONRPC(json.dumps(query)))['result']['value']
 
 def setScreensaver(value):
     # Toggle the screensaver
@@ -413,15 +408,13 @@ def setScreensaver(value):
             'value': value
         }
     }
-    result = xbmc.executeJSONRPC(json.dumps(query))
-    logMsg("PLEX", "Toggling screensaver: %s %s" % (value, result), 1)    
+    logMsg("PLEX", "Toggling screensaver: %s %s" % (value, xbmc.executeJSONRPC(json.dumps(query))), 1)
 
 def reset():
 
     dialog = xbmcgui.Dialog()
 
-    resp = dialog.yesno("Warning", "Are you sure you want to reset your local Kodi database?")
-    if resp == 0:
+    if dialog.yesno("Warning", "Are you sure you want to reset your local Kodi database?") == 0:
         return
 
     # first stop any db sync
@@ -483,7 +476,7 @@ def reset():
     cursor.close()
 
     # Offer to wipe cached thumbnails
-    resp = dialog.yesno("Warning", "Removed all cached artwork?")
+    resp = dialog.yesno("Warning", "Remove all cached artwork?")
     if resp:
         logMsg("EMBY", "Resetting all cached artwork.", 0)
         # Remove all existing textures first
@@ -497,7 +490,7 @@ def reset():
                         xbmcvfs.delete(os.path.join(path+dir.decode('utf-8'),file.decode('utf-8')))
                     else:
                         xbmcvfs.delete(os.path.join(path.encode('utf-8')+dir,file))
-        
+
         # remove all existing data from texture DB
         connection = kodiSQL('texture')
         cursor = connection.cursor()
@@ -509,8 +502,8 @@ def reset():
                 cursor.execute("DELETE FROM " + tableName)
         connection.commit()
         cursor.close()
-    
-    # reset the install run flag  
+
+    # reset the install run flag
     settings('SyncInstallRunDone', value="false")
 
     # Remove emby info
@@ -532,7 +525,7 @@ def profiling(sortby="cumulative"):
     # Will print results to Kodi log
     def decorator(func):
         def wrapper(*args, **kwargs):
-            
+
             pr = cProfile.Profile()
 
             pr.enable()
@@ -576,7 +569,7 @@ def normalize_nodes(text):
     # with dots at the end
     text = text.rstrip('.')
     text = unicodedata.normalize('NFKD', unicode(text, 'utf-8')).encode('ascii', 'ignore')
-    
+
     return text
 
 def normalize_string(text):
@@ -717,7 +710,7 @@ def sourcesXML():
         root = etree.Element('sources')
     else:
         root = xmlparse.getroot()
-        
+
 
     video = root.find('video')
     if video is None:
@@ -729,7 +722,7 @@ def sourcesXML():
     for source in root.findall('.//path'):
         if source.text == "smb://":
             count -= 1
-        
+
         if count == 0:
             # sources already set
             break
@@ -775,9 +768,7 @@ def passwordsXML():
 
         elif option == 1:
             # User selected remove
-            iterator = root.getiterator('passwords')
-
-            for paths in iterator:
+            for paths in root.getiterator('passwords'):
                 for path in paths:
                     if path.find('.//from').text == "smb://%s/" % credentials:
                         paths.remove(path)
@@ -788,7 +779,7 @@ def passwordsXML():
                         break
             else:
                 logMsg("EMBY", "Failed to find saved server: %s in passwords.xml" % credentials, 1)
-            
+
             settings('networkCreds', value="")
             xbmcgui.Dialog().notification(
                 heading='PlexKodiConnect',
@@ -842,7 +833,7 @@ def passwordsXML():
         # Force Kodi to see the credentials without restarting
         xbmcvfs.exists(topath)
 
-    # Add credentials    
+    # Add credentials
     settings('networkCreds', value="%s" % server)
     logMsg("PLEX", "Added server: %s to passwords.xml" % server, 1)
     # Prettify and write to file
@@ -850,7 +841,7 @@ def passwordsXML():
         indent(root)
     except: pass
     etree.ElementTree(root).write(xmlpath)
-    
+
     # dialog.notification(
     #     heading="PlexKodiConnect",
     #     message="Added to passwords.xml",
@@ -881,7 +872,7 @@ def playlistXSP(mediatype, tagname, viewid, viewtype="", delete=False):
         if delete:
             xbmcvfs.delete(xsppath.encode('utf-8'))
             logMsg("PLEX", "Successfully removed playlist: %s." % tagname, 1)
-        
+
         return
 
     # Using write process since there's no guarantee the xml declaration works with etree

@@ -44,7 +44,6 @@ class PlaybackUtils():
 
     def play(self, itemid, dbid=None):
 
-        log = self.logMsg
         window = utils.window
         settings = utils.settings
 
@@ -56,7 +55,7 @@ class PlaybackUtils():
         listitem = xbmcgui.ListItem()
         playutils = putils.PlayUtils(item[0])
 
-        log("Play called.", 1)
+        self.logMsg("Play called.", 1)
         playurl = playutils.getPlayUrl()
         if not playurl:
             return xbmcplugin.setResolvedUrl(int(sys.argv[1]), False, listitem)
@@ -101,9 +100,9 @@ class PlaybackUtils():
         introsPlaylist = False
         dummyPlaylist = False
 
-        log("Playlist start position: %s" % startPos, 1)
-        log("Playlist plugin position: %s" % self.currentPosition, 1)
-        log("Playlist size: %s" % sizePlaylist, 1)
+        self.logMsg("Playlist start position: %s" % startPos, 2)
+        self.logMsg("Playlist plugin position: %s" % currentPosition, 2)
+        self.logMsg("Playlist size: %s" % sizePlaylist, 2)
 
         ############### RESUME POINT ################
         
@@ -114,11 +113,11 @@ class PlaybackUtils():
         if not propertiesPlayback:
 
             window('emby_playbackProps', value="true")
-            log("Setting up properties in playlist.", 1)
+            self.logMsg("Setting up properties in playlist.", 1)
 
             if (not homeScreen and not seektime and
                     window('emby_customPlaylist') != "true"):
-                log("Adding dummy file to playlist.", 2)
+                self.logMsg("Adding dummy file to playlist.", 2)
                 dummyPlaylist = True
                 playlist.add(playurl, listitem, index=startPos)
                 # Remove the original item from playlist 
@@ -181,13 +180,13 @@ class PlaybackUtils():
             if dummyPlaylist:
                 # Added a dummy file to the playlist,
                 # because the first item is going to fail automatically.
-                log("Processed as a playlist. First item is skipped.", 1)
+                self.logMsg("Processed as a playlist. First item is skipped.", 1)
                 return xbmcplugin.setResolvedUrl(int(sys.argv[1]), False, listitem)
                 
 
         # We just skipped adding properties. Reset flag for next time.
         elif propertiesPlayback:
-            log("Resetting properties playback flag.", 2)
+            self.logMsg("Resetting properties playback flag.", 2)
             window('emby_playbackProps', clear=True)
 
         #self.pl.verifyPlaylist()
@@ -206,18 +205,18 @@ class PlaybackUtils():
         ############### PLAYBACK ################
 
         if homeScreen and seektime and window('emby_customPlaylist') != "true":
-            log("Play as a widget item.", 1)
+            self.logMsg("Play as a widget item.", 1)
             API.CreateListItemFromPlexItem(listitem)
             xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, listitem)
 
         elif ((introsPlaylist and window('emby_customPlaylist') == "true") or
                 (homeScreen and not sizePlaylist)):
             # Playlist was created just now, play it.
-            log("Play playlist.", 1)
+            self.logMsg("Play playlist.", 1)
             xbmc.Player().play(playlist, startpos=startPos)
 
         else:
-            log("Play as a regular item.", 1)
+            self.logMsg("Play as a regular item.", 1)
             xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, listitem)
 
     def AddTrailers(self, xml):

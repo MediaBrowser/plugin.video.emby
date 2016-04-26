@@ -82,13 +82,13 @@ class KodiMonitor(xbmc.Monitor):
             item = data.get('item')
             try:
                 kodiid = item['id']
-                type = item['type']
+                item_type = item['type']
             except (KeyError, TypeError):
                 self.logMsg("Item is invalid for playstate update.", 1)
             else:
                 # Send notification to the server.
                 with embydb.GetEmbyDB() as emby_db:
-                    emby_dbitem = emby_db.getItem_byKodiId(kodiid, type)
+                    emby_dbitem = emby_db.getItem_byKodiId(kodiid, item_type)
                 try:
                     itemid = emby_dbitem[0]
                 except TypeError:
@@ -137,7 +137,7 @@ class KodiMonitor(xbmc.Monitor):
 
                     url = "{server}/emby/Items/%s?format=json" % itemid
                     self.logMsg("Deleting request: %s" % itemid)
-                    doUtils.downloadUrl(url, type="DELETE")
+                    doUtils.downloadUrl(url, action_type="DELETE")
                 finally:
                     embycursor.close()'''
 

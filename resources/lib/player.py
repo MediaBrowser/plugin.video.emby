@@ -51,15 +51,13 @@ class Player(xbmc.Player):
         """
         Window values need to have been set in Kodimonitor.py
         """
-        log = self.logMsg
         window = utils.window
         # Will be called when xbmc starts playing a file
-        xbmcplayer = self.xbmcplayer
         self.stopAll()
 
         # Get current file (in utf-8!)
         try:
-            currentFile = xbmcplayer.getPlayingFile()
+            currentFile = self.xbmcplayer.getPlayingFile()
             xbmc.sleep(300)
         except:
             currentFile = ""
@@ -67,11 +65,11 @@ class Player(xbmc.Player):
             while not currentFile:
                 xbmc.sleep(100)
                 try:
-                    currentFile = xbmcplayer.getPlayingFile()
+                    currentFile = self.xbmcplayer.getPlayingFile()
                 except:
                     pass
                 if count == 20:
-                    log("Cancelling playback report...", 1)
+                    self.logMsg("Cancelling playback report...", 1)
                     break
                 else:
                     count += 1
@@ -220,6 +218,8 @@ class Player(xbmc.Player):
         except ValueError:
             runtime = xbmcplayer.getTotalTime()
             log("Runtime is missing, Kodi runtime: %s" % runtime, 1)
+                    runtime = self.xbmcplayer.getTotalTime()
+                    self.logMsg("Runtime is missing, Kodi runtime: %s" % runtime, 1)
 
         playQueueVersion = window('playQueueVersion')
         playQueueID = window('playQueueID')
@@ -263,7 +263,7 @@ class Player(xbmc.Player):
         if not self.doNotify:
             return
 
-        log = self.logMsg
+        self.logMsg("reportPlayback Called", 2)
 
         log("reportPlayback Called", 2)
 
@@ -382,7 +382,7 @@ class Player(xbmc.Player):
 
                     if mapping: # Set in PlaybackUtils.py
                         
-                        log("Mapping for external subtitles index: %s" % mapping, 2)
+                        self.logMsg("Mapping for external subtitles index: %s" % mapping, 2)
                         externalIndex = json.loads(mapping)
 
                         if externalIndex.get(str(indexSubs)):
@@ -404,7 +404,7 @@ class Player(xbmc.Player):
             # postdata = json.dumps(postdata)
             # self.ws.sendProgressUpdate(postdata)
             self.doUtils(
-                "{server}/:/timeline?" + urlencode(postdata), type="GET")
+                "{server}/:/timeline?" + urlencode(postdata), action_type="GET")
 
     def onPlayBackPaused(self):
 
@@ -440,7 +440,6 @@ class Player(xbmc.Player):
     def onPlayBackStopped(self):
         # Will be called when user stops xbmc playing a file
         
-        log = self.logMsg
         window = utils.window
         log("ONPLAYBACK_STOPPED", 1)
 
@@ -459,31 +458,28 @@ class Player(xbmc.Player):
 
     def stopAll(self):
 
-        log = self.logMsg
         lang = utils.language
         settings = utils.settings
-
-        doUtils = self.doUtils
 
         if not self.played_info:
             return 
             
-        log("Played_information: %s" % self.played_info, 1)
+        self.logMsg("Played_information: %s" % self.played_info, 1)
         # Process each items
         for item in self.played_info:
             
             data = self.played_info.get(item)
             if data:
                 
-                log("Item path: %s" % item, 2)
-                log("Item data: %s" % data, 2)
+                self.logMsg("Item path: %s" % item, 2)
+                self.logMsg("Item data: %s" % data, 2)
 
                 runtime = data['runtime']
                 currentPosition = data['currentPosition']
                 itemid = data['item_id']
                 refresh_id = data['refresh_id']
                 currentFile = data['currentfile']
-                type = data['Type']
+                media_type = data['Type']
                 playMethod = data['playmethod']
 
                 # Prevent manually mark as watched in Kodi monitor
@@ -497,15 +493,15 @@ class Player(xbmc.Player):
                         percentComplete = 0
                         
                     markPlayedAt = float(settings('markPlayed')) / 100
-                    log("Percent complete: %s Mark played at: %s"
+                    self.logMsg("Percent complete: %s Mark played at: %s"
                         % (percentComplete, markPlayedAt), 1)
 
                     # Send the delete action to the server.
                     offerDelete = False
 
-                    if type == "Episode" and settings('deleteTV') == "true":
+                    if media_type == "Episode" and settings('deleteTV') == "true":
                         offerDelete = True
-                    elif type == "Movie" and settings('deleteMovies') == "true":
+                    elif media_type == "Movie" and settings('deleteMovies') == "true":
                         offerDelete = True
 
                     if settings('offerDelete') != "true":
@@ -520,7 +516,7 @@ class Player(xbmc.Player):
                             lang(33015),
                             autoclose=120000)
                         if not resp:
-                            log("User skipped deletion.", 1)
+                            self.logMsg("User skipped deletion.", 1)
                             continue
 
                         url = "{server}/emby/Items/%s?format=json" % itemid
@@ -567,4 +563,4 @@ class Player(xbmc.Player):
             'duration': int(duration)
         }
         url = url + urlencode(args)
-        self.doUtils(url, type="GET")
+        self.doUtils(url, action_type="GET")
