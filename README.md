@@ -11,6 +11,9 @@ Don't forget to reboot Kodi
 ### [Checkout the Wiki](https://github.com/croneter/PlexKodiConnect/wiki)
 [The Wiki will hopefully answer all your questions](https://github.com/croneter/PlexKodiConnect/wiki)
 
+### [Please Post Your Bugs on Github](https://github.com/croneter/PlexKodiConnect/issues)
+And not on the plex.tv forums. I can't find anything there...
+
 ### Welcome to PlexKodiConnect
 **Connect your Plex Media Server to a Kodi Front End**  
 
@@ -66,7 +69,7 @@ However, some changes to individual items are instantly detected, e.g. if you ma
 
 
 **Known Bugs:**
-- Resume a video does not work yet with Plex Watch Later
+- Have a look at the [Github Issues Page](https://github.com/croneter/PlexKodiConnect/issues)
 
 
 **What could be in the pipeline for future development?**
