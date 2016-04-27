@@ -975,15 +975,12 @@ def BrowseChannels(itemid, folderid=None):
     xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
 
 ##### LISTITEM SETUP FOR VIDEONODES #####
-def createListItem(item):
-
+def createListItem(item, appendShowTitle=False, appendSxxExx=False):
     title = item['title']
     li = xbmcgui.ListItem(title)
     li.setProperty('IsPlayable', "true")
-    
-    metadata = {
 
-        'Title': title,
+    metadata = {
         'duration': str(item['runtime']/60),
         'Plot': item['plot'],
         'Playcount': item['playcount']
@@ -999,12 +996,16 @@ def createListItem(item):
 
     if season and episode:
         li.setProperty('episodeno', "s%.2de%.2d" % (season, episode))
+        if appendSxxExx is True:
+            title = "S%.2dE%.2d - %s" % (season, episode, title)
 
     if "firstaired" in item:
         metadata['Premiered'] = item['firstaired']
 
     if "showtitle" in item:
         metadata['TVshowTitle'] = item['showtitle']
+        if appendShowTitle is True:
+            title = item['showtitle'] + ' - ' + title
 
     if "rating" in item:
         metadata['Rating'] = str(round(float(item['rating']),1))
@@ -1024,6 +1025,9 @@ def createListItem(item):
             castandrole.append((name, person['role']))
         metadata['Cast'] = cast
         metadata['CastAndRole'] = castandrole
+
+    metadata['Title'] = title
+    li.setLabel(title)
 
     li.setInfo(type="Video", infoLabels=metadata)  
     li.setProperty('resumetime', str(item['resume']['position']))
@@ -1215,6 +1219,10 @@ def getRecentEpisodes(viewid, mediatype, tagname, limit):
     # if the addon is called with recentepisodes parameter,
     # we return the recentepisodes list of the given tagname
     xbmcplugin.setContent(int(sys.argv[1]), 'episodes')
+    appendShowTitle = True if \
+        utils.settings('RecentTvAppendShow') == 'true' else False
+    appendSxxExx = True if \
+        utils.settings('RecentTvAppendSeason') == 'true' else False
     # First we get a list of all the TV shows - filtered by tag
     query = {
         'jsonrpc': "2.0",
@@ -1263,7 +1271,9 @@ def getRecentEpisodes(viewid, mediatype, tagname, limit):
     else:
         for episode in episodes:
             if episode['tvshowid'] in allshowsIds:
-                li = createListItem(episode)
+                li = createListItem(episode,
+                                    appendShowTitle=appendShowTitle,
+                                    appendSxxExx=appendSxxExx)
                 xbmcplugin.addDirectoryItem(
                             handle=int(sys.argv[1]),
                             url=episode['file'],
@@ -1484,6 +1494,10 @@ def getOnDeck(viewid, mediatype, tagname, limit):
         limit:              Max. number of items to retrieve, e.g. 50
     """
     xbmcplugin.setContent(int(sys.argv[1]), 'episodes')
+    appendShowTitle = True if \
+        utils.settings('OnDeckTvAppendShow') == 'true' else False
+    appendSxxExx = True if \
+        utils.settings('OnDeckTvAppendSeason') == 'true' else False
     if utils.settings('OnDeckTVextended') == 'false':
         # Chances are that this view is used on Kodi startup
         # Wait till we've connected to a PMS. At most 30s
@@ -1503,7 +1517,9 @@ def getOnDeck(viewid, mediatype, tagname, limit):
         }
         for item in xml:
             API = PlexAPI.API(item)
-            listitem = API.CreateListItemFromPlexItem()
+            listitem = API.CreateListItemFromPlexItem(
+                appendShowTitle=appendShowTitle,
+                appendSxxExx=appendSxxExx)
             API.AddStreamInfo(listitem)
             pbutils.PlaybackUtils(item).setArtwork(listitem)
             params['id'] = API.getRatingKey()
@@ -1606,20 +1622,9 @@ def getOnDeck(viewid, mediatype, tagname, limit):
                 continue
         for episode in episodes:
             # There will always be only 1 episode ('limit=1')
-            li = createListItem(episode)
-            # Fix some skin shortcomings
-            title = episode.get('title', '')
-            if utils.settings('OnDeckTvAppendSeason') == 'true':
-                seasonid = episode.get('season')
-                episodeid = episode.get('episode')
-                if seasonid and episodeid:
-                    title = ('S' + str(seasonid) + 'E' + str(episodeid)
-                             + ' - ' + title)
-            if utils.settings('OnDeckTvAppendShow') == 'true':
-                show = episode.get('showtitle')
-                if show:
-                    title = show + ' - ' + title
-            li.setLabel(title)
+            li = createListItem(episode,
+                                appendShowTitle=appendShowTitle,
+                                appendSxxExx=appendSxxExx)
             xbmcplugin.addDirectoryItem(
                 handle=int(sys.argv[1]),
                 url=episode['file'],

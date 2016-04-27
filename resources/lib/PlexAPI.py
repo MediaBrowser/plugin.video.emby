@@ -2122,12 +2122,15 @@ class API():
         self.logMsg('Found external subs: %s' % externalsubs)
         return externalsubs
 
-    def CreateListItemFromPlexItem(self, listItem=None):
+    def CreateListItemFromPlexItem(self, listItem=None,
+                                   appendShowTitle=False, appendSxxExx=False):
         """
         Call on a child level of PMS xml response (e.g. in a for loop)
 
-        listItem:       existing xbmcgui.ListItem to work with
-                        otherwise, a new one is created
+        listItem        : existing xbmcgui.ListItem to work with
+                          otherwise, a new one is created
+        appendShowTitle : True to append TV show title to episode title
+        appendSxxExx    : True to append SxxExx to episode title
 
         Returns XBMC listitem for this PMS library item
         """
@@ -2147,7 +2150,6 @@ class API():
             'cast': people['Cast'],
             'director': self.joinList(people.get('Director')),
             'plot': self.getPlot(),
-            'title': title,
             'sorttitle': sorttitle,
             'duration': userdata['Runtime'],
             'studio': self.joinList(self.getStudios()),
@@ -2171,7 +2173,11 @@ class API():
             if season and episode:
                 listItem.setProperty('episodeno',
                                      "s%.2de%.2d" % (season, episode))
+                if appendSxxExx is True:
+                    title = "S%.2dE%.2d - %s" % (season, episode, title)
             listItem.setIconImage('DefaultTVShows.png')
+            if appendShowTitle is True:
+                title = show + ' - ' + title
         elif self.getType() == "movie":
             listItem.setIconImage('DefaultMovies.png')
         else:
@@ -2188,6 +2194,8 @@ class API():
             except TypeError:
                 pass
         # Expensive operation
+        metadata['title'] = title
+        listItem.setLabel(title)
         listItem.setInfo('video', infoLabels=metadata)
         return listItem
 

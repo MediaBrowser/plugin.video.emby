@@ -391,7 +391,7 @@
     <string id="39045">Appearance Tweaks</string>
     <string id="39046">TV Shows</string>
     <string id="39047">On Deck: Append show title to episode</string>
-    <string id="39048">On Deck: Append season- and episode-number (e.g. S3E2)</string>
+    <string id="39048">On Deck: Append season- and episode-number SxxExx</string>
     <string id="39049">Nothing works? Try a full reset!</string>
     <string id="39050">[COLOR yellow]Choose Plex Server from a list[/COLOR]</string>
     <string id="39051">Wait before sync new/changed PMS item [s]</string>
@@ -402,6 +402,8 @@
     <string id="39056">Used by Sync and when attempting to Direct Play</string>
     <string id="39057">Customize Paths</string>
     <string id="39058">Extend Plex TV Series "On Deck" view to all shows</string>
+    <string id="39059">Recently Added: Append show title to episode</string>
+    <string id="39060">Recently Added: Append season- and episode-number SxxExx</string>
 
     <!-- Plex Entrypoint.py -->
     <string id="39200">Log-out Plex Home User </string>

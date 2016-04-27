@@ -329,7 +329,7 @@
     <string id="39045">Erscheinung</string>
     <string id="39046">TV Serien</string>
     <string id="39047">"Aktuell": Serien- an Episoden-Titel anfügen</string>
-    <string id="39048">"Aktuell": Staffel und Episode anfügen (z.B. S3E2)</string>
+    <string id="39048">"Aktuell": Staffel und Episode anfügen, SxxExx</string>
     <string id="39049">Nichts funktioniert? Setze mal alles zurück!</string>
     <string id="39050">[COLOR yellow]Plex Server aus Liste auswählen[/COLOR]</string>
     <string id="39051">Warten bevor neue/geänderte PMS Einträge gesynct werden [s]</string>
@@ -340,6 +340,8 @@
     <string id="39056">Verwendet für Synchronisierung sowie beim Versuch, Direct Play zu nutzen</string>
     <string id="39057">Pfade ändern</string>
     <string id="39058">Standard Plex Ansicht "Aktuell" auf alle TV Shows erweitern</string>
+    <string id="39059">"Zuletzt hinzugefügt": Serien- an Episoden-Titel anfügen</string>
+    <string id="39060">"Zuletzt hinzugefügt": Staffel und Episode anfügen, SxxExx</string>
 
 
 
