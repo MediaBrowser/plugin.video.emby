@@ -1,3 +1,12 @@
+version 1.1.5
+(you will need to rescan your library)
+- A Kodi repository for easy installation and updating is now available. Download the [ZIP file from Github](https://github.com/croneter/PlexKodiConnect). Instructions can be found [in the Wiki](https://github.com/croneter/PlexKodiConnect/wiki/Installation)
+- Additional artwork download from FanartTV! Enable it in the PKC settings under Sync Options
+- New setting: Add TV show name and SxxExx to an episode in Recently Added 
+- Fix UnicodeEncodeError during sync
+- Plex Companion now always reports playstate. Should increase stability
+- Merge Emby for Kodi commits up to 3dbdab79a9d213aab3cb6347af0b8fb905bb6e45
+
 version 1.1.4
 (you will need to rescan your library)
 - Plex Watch Later available as a separate Video Node!
