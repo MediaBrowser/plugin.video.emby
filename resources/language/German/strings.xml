@@ -28,6 +28,8 @@
     <string id="30536">Benutzer müssen sich bei jedem Neustart von Kodi neu anmelden</string>
     <string id="30537">BEI ÄNDERUNGEN KODI NEU STARTEN</string>
     <string id="30538">Komplette Neusynchronisierung nötig</string>
+    <string id="30539">Zusätzliche Bilder von FanArtTV herunterladen (langsamer!)</string>
+
 
 
 
@@ -342,8 +344,7 @@
     <string id="39058">Standard Plex Ansicht "Aktuell" auf alle TV Shows erweitern</string>
     <string id="39059">"Zuletzt hinzugefügt": Serien- an Episoden-Titel anfügen</string>
     <string id="39060">"Zuletzt hinzugefügt": Staffel und Episode anfügen, SxxExx</string>
-
-
+    <string id="39061">Zusätzliche Bilder von FanArtTV herunterladen? Die Synchronisierung wird länger dauern!</string>
 
     <!-- Plex Entrypoint.py -->
     <string id="39200">Plex Home Benutzer abmelden: </string>

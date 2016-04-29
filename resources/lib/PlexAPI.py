@@ -1825,16 +1825,14 @@ class API():
 
         Output:
         {
-            'Primary'  : xml key 'thumb'
-            'Art'      : always ''
-            'Banner'   : xml key 'banner'
-            'Logo'     : always ''
-            'Thumb'    : xml key 'grandparentThumb'
-            'Disc'     : always ''
-            'Backdrop' : LIST with ONE xml key "art"
+            'Primary'
+            'Art'
+            'Banner'
+            'Logo'
+            'Thumb'
+            'Disc'
+            'Backdrop' : LIST with the first entry xml key "art"
         }
-
-
         """
         item = self.item.attrib
 
@@ -1865,161 +1863,255 @@ class API():
                     self.__getOneArtwork('parentArt'))
             if not allartworks['Primary']:
                 allartworks['Primary'] = self.__getOneArtwork('parentThumb')
+
+        # Plex does not get much artwork - go ahead and get the rest from
+        # fanart tv only for movie or tv show
+        if utils.settings('FanartTV') == 'true':
+            if item.get('type') in ('movie', 'show'):
+                externalId = self.getExternalItemId()
+                if externalId is not None:
+                    allartworks = self.getFanartTVArt(externalId, allartworks)
         return allartworks
 
-        # TO BE DONE
-        # Plex does not get much artwork - go ahead and get the rest from fanart tv only for movie or tv show
-        type = item.get('type')
-        if type=='movie' or type=='show':
-            allartworks = self.getfanartTVimages(allartworks)
+    def getExternalItemId(self):
+        """
+        Returns the item's IMDB id for movies or tvdb id for TV shows
 
-        if allartworks == None:
-            self.logMsg('No artwork found for title%s' %str(item.get('title')))
-            return  {}
-        else:
-            return allartworks
-
-    def getfanartTVimages(self,allartworks):
+        If not found in item's Plex metadata, check themovidedb.org
+        """
         item = self.item.attrib
-        tmdb_apiKey = "ae06df54334aa653354e9a010f4b81cb"
+        media_type = item.get('type')
+        externalId = None
+        if media_type == 'movie':
+            externalId = self.getProvider('imdb')
+        elif media_type == 'show':
+            externalId = self.getProvider('tvdb')
+        if externalId is not None:
+            return externalId
+
+        self.logMsg('Plex did not provide ID for IMDB or TVDB. Start lookup '
+                    'process', 1)
         KODILANGUAGE = xbmc.getLanguage(xbmc.ISO_639_1)
-        media_id = None
-        media_type = None
-        type = item.get('type')
-        if type == 'show':
-            type = 'tv'
-        title = item.get('title')
-        # if the title has the year in remove it as tmdb cannot deal with it...making an assumption it is something like The Americans (2015)
-        if title.endswith(")"): title = title[:-6]
-        year = item.get('year')
-        if not type: type="multi"
+        apiKey = "ae06df54334aa653354e9a010f4b81cb"
+        if media_type == 'show':
+            media_type = 'tv'
+        title = item.get('title', '')
+        # if the title has the year in remove it as tmdb cannot deal with it...
+        # replace e.g. 'The Americans (2015)' with 'The Americans'
+        title = re.sub(r'\s*\(\d{4}\)$', '', title, count=1)
+        url = 'http://api.themoviedb.org/3/search/%s' % media_type
+        parameters = {
+            'api_key': apiKey,
+            'language': KODILANGUAGE,
+            'query': title.encode('utf-8', errors='ignore')
+        }
+        data = downloadutils.DownloadUtils().downloadUrl(
+            url,
+            authenticate=False,
+            parameters=parameters,
+            timeout=7)
         try:
-            url = 'http://api.themoviedb.org/3/search/%s?api_key=%s&language=%s&query=%s' %(type,tmdb_apiKey,KODILANGUAGE,utils.try_encode(title))
-            response = requests.get(url, timeout=5)
-            if response.status_code == 200:
-                data = json.loads(response.content.decode('utf-8','replace'))
-                #find year match
-                if data and year and data.get("results"):
-                    for item in data["results"]:
-                        if item.get("first_air_date") and year in item.get("first_air_date"):
-                            matchFound = item
-                            break
-                        elif item.get("release_date") and year in item.get("release_date"):
-                            matchFound = item
-                            break
-                #find exact match based on title
-                if not matchFound and data and data.get("results",None):
-                    for item in data["results"]:
-                        name = item.get("name")
-                        if not name: name = item.get("title")
-                        original_name = item.get("original_name","")
-                        title_alt = title.lower().replace(" ","").replace("-","").replace(":","").replace("&","").replace(",","")
-                        name_alt = name.lower().replace(" ","").replace("-","").replace(":","").replace("&","").replace(",","")
-                        org_name_alt = original_name.lower().replace(" ","").replace("-","").replace(":","").replace("&","").replace(",","")
-                        if name == title or original_name == title:
-                            #match found for exact title name
-                            matchFound = item
-                            break
-                        elif name.split(" (")[0] == title or title_alt == name_alt or title_alt == org_name_alt:
-                            #match found with substituting some stuff
-                            matchFound = item
-                            break
+            data.get('test')
+        except:
+            self.logMsg('Could not download data from FanartTV', -1)
+            return
+        if data.get('results') is None:
+            self.logMsg('No match found on themoviedb for type: %s, title: %s'
+                        % (media_type, title), 1)
+            return
 
-                    #if a match was not found, we accept the closest match from TMDB
-                    if not matchFound and len(data.get("results")) > 0 and not len(data.get("results")) > 5:
-                        matchFound = item = data.get("results")[0]
+        year = item.get('year')
+        matchFound = None
+        # find year match
+        if year is not None:
+            for entry in data["results"]:
+                if year in entry.get("first_air_date", ""):
+                    matchFound = entry
+                    break
+                elif year in entry.get("release_date", ""):
+                    matchFound = entry
+                    break
+        # find exact match based on title, if we haven't found a year match
+        if matchFound is None:
+            self.logMsg('No themoviedb match found using year %s' % year, 1)
+            replacements = (
+                ' ',
+                '-',
+                '&',
+                ',',
+                ':',
+                ';'
+            )
+            for entry in data["results"]:
+                name = entry.get("name", entry.get("title", ""))
+                original_name = entry.get("original_name", "")
+                title_alt = title.lower()
+                name_alt = name.lower()
+                org_name_alt = original_name.lower()
+                for replaceString in replacements:
+                    title_alt = title_alt.replace(replaceString, '')
+                    name_alt = name_alt.replace(replaceString, '')
+                    org_name_alt = org_name_alt.replace(replaceString, '')
+                if name == title or original_name == title:
+                    # match found for exact title name
+                    matchFound = entry
+                    break
+                elif (name.split(" (")[0] == title or title_alt == name_alt
+                        or title_alt == org_name_alt):
+                    # match found with substituting some stuff
+                    matchFound = entry
+                    break
 
-            if matchFound:
-                coverUrl = matchFound.get("poster_path","")
-                fanartUrl = matchFound.get("backdrop_path","")
-                id = str(matchFound.get("id",""))
-                media_type = type
-                if media_type == "multi" and matchFound.get("media_type"):
-                    media_type = matchFound.get("media_type","")
-                name = item.get("name")
-                if not name: name = item.get("title")
-                #lookup external tmdb_id and perform artwork lookup on fanart.tv
-                if id:
-                    languages = [KODILANGUAGE,"en"]
-                    for language in languages:
-                        if media_type == "movie":
-                            url = 'http://api.themoviedb.org/3/movie/%s?api_key=%s&language=%s&append_to_response=videos' %(id,tmdb_apiKey,language)
-                        elif media_type == "tv":
-                            url = 'http://api.themoviedb.org/3/tv/%s?api_key=%s&append_to_response=external_ids,videos&language=%s' %(id,tmdb_apiKey,language)
-                        response = requests.get(url)
-                        data = json.loads(response.content.decode('utf-8','replace'))
-                        if data:
-                            if not media_id and data.get("imdb_id"):
-                                media_id = str(data.get("imdb_id"))
-                            if not media_id and data.get("external_ids"):
-                                media_id = str(data["external_ids"].get("tvdb_id"))
+        # if a match was not found, we accept the closest match from TMDB
+        if matchFound is None and len(data.get("results")) > 0:
+            self.logMsg('Using very first match from themoviedb', 1)
+            matchFound = entry = data.get("results")[0]
 
-            #lookup artwork on fanart.tv
-            if media_id and media_type:
-                #gets fanart.tv images for given id
-                api_key = "639191cb0774661597f28a47e7e2bad5"
+        if matchFound is None:
+            self.logMsg('Still no themoviedb match for type: %s, title: %s, '
+                        'year: %s' % (media_type, title, year), 1)
+            self.logMsg('themoviedb answer was %s' % data['results'], 1)
+            return
 
-                if type == "movie":
-                    url = 'http://webservice.fanart.tv/v3/movies/%s?api_key=%s' %(media_id,api_key)
-                else:
-                    url = 'http://webservice.fanart.tv/v3/tv/%s?api_key=%s' %(media_id,api_key)
-                try:
-                    response = requests.get(url, timeout=15)
-                except Exception as e:
-                    return allartworks
-                if response and response.content and response.status_code == 200:
-                    data = json.loads(response.content.decode('utf-8','replace'))
-                else:
-                    #not found
-                    return allartworks
-                if data:
-                    #we need to use a little mapping between fanart.tv arttypes and kodi artttypes
-                    fanartTVTypes = [ ("logo","Logo"),("musiclogo","clearlogo"),("disc","Disc"),("clearart","Art"),("banner","Banner"),("clearlogo","Logo"),("background","fanart"),("showbackground","fanart"),("characterart","characterart")]
-                    if type != "artist": fanartTVTypes.append( ("thumb","Thumb") )
-                    if type == "artist": fanartTVTypes.append( ("thumb","folder") )
-                    prefixes = ["",type,"hd","hd"+type]
-                    for fanarttype in fanartTVTypes:
-                        for prefix in prefixes:
-                            fanarttvimage = prefix+fanarttype[0]
-                            if data.has_key(fanarttvimage):
-                                for item in data[fanarttvimage]:
-                                    if item.get("lang","") == KODILANGUAGE:
-                                        #select image in preferred language
-                                        if xbmcvfs.exists(item.get("url")):
-                                            allartworks[fanarttype[1]] = item.get("url")
-                                            break
-                                if not allartworks.get(fanarttype[1]) or (not "http:" in allartworks.get(fanarttype[1])):
-                                    #just grab the first english one as fallback
-                                    for item in data[fanarttvimage]:
-                                        if item.get("lang","") == "en" or not item.get("lang"):
-                                            if xbmcvfs.exists(item.get("url")):
-                                                allartworks[fanarttype[1]] = item.get("url")
-                                                break
-                                #grab extrafanarts in list
-                                maxfanarts = 10
-                                if "background" in fanarttvimage:
-                                    fanartcount = 0
-                                    for item in data[fanarttvimage]:
-                                        if fanartcount < maxfanarts:
-                                            if xbmcvfs.exists(item.get("url")):
-                                                allartworks['Backdrop'].append(item.get("url"))
-                                                fanartcount += 1
-                                                #save extrafanarts as string
+        self.logMsg('Found themoviedb match for %s: %s'
+                    % (item.get('title'), matchFound), 1)
 
-                return allartworks
+        tmdbId = str(entry.get("id", ""))
+        if tmdbId == '':
+            self.logMsg('No themoviedb ID found, aborting', -1)
+            return
 
-        except Exception as e:
-            #no artwork
-            self.logMsg('No extra artwork found')
+        if media_type == "multi" and entry.get("media_type"):
+            media_type = entry.get("media_type")
+        name = entry.get("name", entry.get("title"))
+        # lookup external tmdbId and perform artwork lookup on fanart.tv
+        parameters = {
+            'api_key': apiKey
+        }
+        mediaId = None
+        for language in [KODILANGUAGE, "en"]:
+            parameters['language'] = language
+            if media_type == "movie":
+                url = 'http://api.themoviedb.org/3/movie/%s' % tmdbId
+                parameters['append_to_response'] = 'videos'
+            elif media_type == "tv":
+                url = 'http://api.themoviedb.org/3/tv/%s' % tmdbId
+                parameters['append_to_response'] = 'external_ids,videos'
+            data = downloadutils.DownloadUtils().downloadUrl(
+                url,
+                authenticate=False,
+                parameters=parameters,
+                timeout=7)
+            try:
+                data.get('test')
+            except:
+                self.logMsg('Could not download %s with parameters %s'
+                            % (url, parameters), -1)
+                continue
+            if data.get("imdb_id") is not None:
+                mediaId = str(data.get("imdb_id"))
+                break
+            if data.get("external_ids") is not None:
+                mediaId = str(data["external_ids"].get("tvdb_id"))
+                break
+        return mediaId
+
+    def getFanartTVArt(self, mediaId, allartworks):
+        """
+        perform artwork lookup on fanart.tv
+
+        mediaId: IMDB id for movies, tvdb id for TV shows
+        """
+        item = self.item.attrib
+        KODILANGUAGE = xbmc.getLanguage(xbmc.ISO_639_1)
+        api_key = "639191cb0774661597f28a47e7e2bad5"
+        typus = item.get('type')
+        if typus == 'show':
+            typus = 'tv'
+
+        if typus == "movie":
+            url = 'http://webservice.fanart.tv/v3/movies/%s?api_key=%s' \
+                % (mediaId, api_key)
+        elif typus == 'tv':
+            url = 'http://webservice.fanart.tv/v3/tv/%s?api_key=%s' \
+                % (mediaId, api_key)
+        else:
+            # Not supported artwork
             return allartworks
+        data = downloadutils.DownloadUtils().downloadUrl(
+            url,
+            authenticate=False,
+            timeout=15)
+        try:
+            data.get('test')
+        except:
+            self.logMsg('Could not download data from FanartTV', -1)
+            return allartworks
+
+        # we need to use a little mapping between fanart.tv arttypes and kodi
+        # artttypes
+        fanartTVTypes = [
+            ("logo", "Logo"),
+            ("musiclogo", "clearlogo"),
+            ("disc", "Disc"),
+            ("clearart", "Art"),
+            ("banner", "Banner"),
+            ("clearlogo", "Logo"),
+            ("background", "fanart"),
+            ("showbackground", "fanart"),
+            ("characterart", "characterart")
+        ]
+        if typus == "artist":
+            fanartTVTypes.append(("thumb", "folder"))
+        else:
+            fanartTVTypes.append(("thumb", "Thumb"))
+        prefixes = (
+            "hd" + typus,
+            "hd",
+            typus,
+            "",
+        )
+        for fanarttype in fanartTVTypes:
+            # Skip the ones we already have
+            if allartworks.get(fanarttype[1]):
+                continue
+            for prefix in prefixes:
+                fanarttvimage = prefix + fanarttype[0]
+                if fanarttvimage not in data:
+                    continue
+                # select image in preferred language
+                for entry in data[fanarttvimage]:
+                    if entry.get("lang") == KODILANGUAGE:
+                        allartworks[fanarttype[1]] = entry.get("url")
+                        break
+                # just grab the first english OR undefinded one as fallback
+                if allartworks.get(fanarttype[1]) is None:
+                    for entry in data[fanarttvimage]:
+                        if entry.get("lang") in ("en", "00"):
+                            allartworks[fanarttype[1]] = entry.get("url")
+                            break
+
+        # grab extrafanarts in list
+        maxfanarts = 10
+        fanartcount = 0
+        for prefix in prefixes:
+            fanarttvimage = prefix + 'background'
+            if fanarttvimage not in data:
+                continue
+            for entry in data[fanarttvimage]:
+                if fanartcount < maxfanarts:
+                    if xbmcvfs.exists(entry.get("url")):
+                        allartworks['Backdrop'].append(entry.get("url"))
+                        fanartcount += 1
+
+        return allartworks
 
     def shouldStream(self):
         """
         Returns True if the item's 'optimizedForStreaming' is set, False other-
         wise
         """
-        return (True if self.item[0].attrib.get('optimizedForStreaming') == '1'
-                else False)
+        return self.item[0].attrib.get('optimizedForStreaming') == '1'
 
     def getTranscodeVideoPath(self, action, quality={}):
         """

@@ -928,15 +928,3 @@ def deleteNodes():
                 xbmcvfs.delete(("%s%s" % (path, file.decode('utf-8'))).encode('utf-8'))
             except:
                 logMsg("PLEX", "Failed to file: %s" % file.decode('utf-8'))
-
-def try_encode(text, encoding="utf-8"):
-    try:
-        return text.encode(encoding,"ignore")
-    except:
-        return text
-
-def try_decode(text, encoding="utf-8"):
-    try:
-        return text.decode(encoding,"ignore")
-    except:
-        return text

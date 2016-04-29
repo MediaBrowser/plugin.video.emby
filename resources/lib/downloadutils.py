@@ -157,7 +157,7 @@ class DownloadUtils():
 
     def downloadUrl(self, url, action_type="GET", postBody=None,
                     parameters=None, authenticate=True, headerOptions=None,
-                    verifySSL=True):
+                    verifySSL=True, timeout=None):
         """
         Override SSL check with verifySSL=False
 
@@ -203,6 +203,8 @@ class DownloadUtils():
             kwargs['data'] = postBody
         if parameters is not None:
             kwargs['params'] = parameters
+        if timeout is not None:
+            kwargs['timeout'] = timeout
 
         # ACTUAL DOWNLOAD HAPPENING HERE
         try:

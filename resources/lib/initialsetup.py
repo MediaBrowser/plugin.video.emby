@@ -284,6 +284,12 @@ class InitialSetup():
         else:
             utils.advancedSettingsXML()
 
+        # Download additional art from FanArtTV
+        if dialog.yesno(heading=self.addonName,
+                        line1=string(39016)):
+            self.logMsg("User opted to use FanArtTV", 1)
+            utils.settings('FanartTV', value="true")
+
         if goToSettings is False:
             # Open Settings page now? You will need to restart!
             goToSettings = dialog.yesno(heading=self.addonName,
