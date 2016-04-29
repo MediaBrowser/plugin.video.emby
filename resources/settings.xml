@@ -67,6 +67,8 @@
         <setting id="kodiplextimeoffset" type="number" label="Time difference in seconds (Koditime - Plextime)" default="0" visible="false" option="int" />
         <setting id="enableUpdateSongRating" type="bool" label="30526" default="false" visible="false" />
         <setting id="emby_pathverified" type="bool" default="false" visible="false" /> <!-- If 'false': one single warning message pops up if PKC cannot verify direct paths -->
+        <setting id="themoviedbAPIKey" type="text" default="ae06df54334aa653354e9a010f4b81cb" visible="false"/>
+        <setting id="FanArtTVAPIKey" type="text" default="639191cb0774661597f28a47e7e2bad5" visible="false"/>
 	</category>
 
 	<category label="39057"><!-- Customize Paths -->

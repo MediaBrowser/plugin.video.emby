@@ -1892,7 +1892,7 @@ class API():
         self.logMsg('Plex did not provide ID for IMDB or TVDB. Start lookup '
                     'process', 1)
         KODILANGUAGE = xbmc.getLanguage(xbmc.ISO_639_1)
-        apiKey = "ae06df54334aa653354e9a010f4b81cb"
+        apiKey = utils.settings('themoviedbAPIKey')
         if media_type == 'show':
             media_type = 'tv'
         title = item.get('title', '')
@@ -2024,7 +2024,7 @@ class API():
         """
         item = self.item.attrib
         KODILANGUAGE = xbmc.getLanguage(xbmc.ISO_639_1)
-        api_key = "639191cb0774661597f28a47e7e2bad5"
+        api_key = utils.settings('FanArtTVAPIKey')
         typus = item.get('type')
         if typus == 'show':
             typus = 'tv'
