@@ -8,7 +8,7 @@
     - Limit artwork cache threads: 5
     - Limit download sync threads: 1  
 Don't forget to reboot Kodi
-2. If you post logs, your **Plex tokens** might be included. Be sure to double and tripple check for tokens before posting any logs anywhere. 
+2. If you post logs, your **Plex tokens** might be included. Be sure to double and tripple check for tokens before posting any logs anywhere by searching for `token`
 3. **Compatibility**: PKC is currently not compatible with Kodi's Video Extras plugin. **Deactivate Video Extras** if trailers/movies start randomly playing. 
 
 
@@ -33,7 +33,7 @@ With other addons for Kodi there are a couple of issues:
 - All kinds of workarounds are needed to get the best experience on Kodi clients
 
 This addon synchronizes your media on your Plex server to the native Kodi database. Because we use the native Kodi database with this new approach the above limitations are gone! 
-- You can browse your media full speed, e.g. images are cached
+- You can browse your media full speed, images are cached
 - All other Kodi addons will be able to "see" your media, thinking it's normal Kodi stuff
 - Use any Kodi skin you want!
 
@@ -48,10 +48,18 @@ Check out the [Wiki for installation instructions](https://github.com/croneter/P
 Currently these features are working:
 - Movies and Home Videos
 - TV Shows
+- Music
 - [Plex Watch Later / Plex It!](https://support.plex.tv/hc/en-us/sections/200211783-Plex-It-)
 - Full sync at first run, then periodic delta syncs every 60min (customizable)
 - Instant watched state/resume status sync: This is a 2-way synchronisation. Any watched state or resume status will be instantly (within seconds) reflected to or from Kodi and the server
 - [Plex Companion](https://support.plex.tv/hc/en-us/sections/200276908-Plex-Companion): fling Plex media (or anything else) from other Plex devices to PlexKodiConnect
+- Automatically download more artwork from [FanArt.TV](https://fanart.tv/), just like the Kodi addon Artwork Downloader
+    + Banners
+    + Disc art
+    + Clear Logo
+    + Landscape
+    + Clear art
+    + Extra fanart background
 - Play directly from network paths (e.g. "\\\\server\\Plex\\movie.mkv" or "smb://server/Plex/movie.mkv") instead of slow HTTP (e.g. "192.168.1.1:32400"). You have to setup all your Plex libraries to point to such network paths. Do have a look at [the wiki here](https://github.com/croneter/PlexKodiConnect/wiki/Direct-Paths)
 - [Plex Transcoding](https://support.plex.tv/hc/en-us/articles/200250377-Transcoding-Media)
 
@@ -59,14 +67,13 @@ Currently these features are working:
 **Known Issues:**
 
 Solutions are unlikely due to the nature of these issues
-- *Plex Music when using Addon paths instead of Native Direct Paths:* Kodi tries to scan every(!) single Plex song on startup. This leads to errors in the Kodi log file and potentially even crashes. (Plex puts each song in a "dedicated folder", e.g. 'http://192.168.1.1:32400/library/parts/749450/'. Kodi unsuccessfully tries to scan these folders)
+- *Plex Music when using Addon paths instead of Native Direct Paths:* Kodi tries to scan every(!) single Plex song on startup. This leads to errors in the Kodi log file and potentially even crashes. See the [Github issue](https://github.com/croneter/PlexKodiConnect/issues/14) for more details
 - *Plex Music when using Addon paths instead of Native Direct Paths:* You must have a static IP address for your Plex media server if you plan to use Plex Music features
 - If something on the PMS has changed, this change is synced to Kodi. Hence if you rescan your entire library, a long PlexKodiConnect re-sync is triggered
-- External Plex subtitles (in separate files, e.g. mymovie.srt) can be used, but it is impossible to label them correctly/tell what language they are in. However, this is not the case if you use direct paths
-- If using Addon Paths: In the TV show video nodes On Deck and Recently Added, Kodi will not display the Episode Information screen if you push "i". This is a Kodi issue. It does work if you use Direct Paths
+- External Plex subtitles (in separate files, e.g. mymovie.srt) can be used, but it is impossible to label them correctly and tell what language they are in. However, this is not the case if you use direct paths
 
 *Background Sync:*
-The Plex Server does not tell anyone of the following changes. Hence PKC cannot detect these changes instantly but will notice them on full/delta syncs. 
+The Plex Server does not tell anyone of the following changes. Hence PKC cannot detect these changes instantly but will notice them only on full/delta syncs
 - Toggle the viewstate of an item to (un)watched outside of Kodi
 - Changing details of an item, e.g. replacing a poster  
 However, some changes to individual items are instantly detected, e.g. if you match a yet unrecognized movie. 
