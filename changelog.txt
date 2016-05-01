@@ -1,3 +1,8 @@
+version 1.1.6
+- Corrected the addon's folder name from `PlexKodiConnect-develop` to `plugin.video.plexkodiconnect` in the Kodi addon folder. If you still experience issues, check your addon folder and delete `PlexKodiConnect-develop`
+- Fix TypeError during Plex user switch
+- Fix TypeError when trying to transcode
+
 version 1.1.5
 (you will need to rescan your library)
 - A Kodi repository for easy installation and updating is now available. Download the [ZIP file from Github](https://github.com/croneter/PlexKodiConnect). Instructions can be found [in the Wiki](https://github.com/croneter/PlexKodiConnect/wiki/Installation)
