@@ -53,13 +53,13 @@ Currently these features are working:
 - Full sync at first run, then periodic delta syncs every 60min (customizable)
 - Instant watched state/resume status sync: This is a 2-way synchronisation. Any watched state or resume status will be instantly (within seconds) reflected to or from Kodi and the server
 - [Plex Companion](https://support.plex.tv/hc/en-us/sections/200276908-Plex-Companion): fling Plex media (or anything else) from other Plex devices to PlexKodiConnect
-- Automatically download more artwork from [FanArt.TV](https://fanart.tv/), just like the Kodi addon Artwork Downloader
+- Automatically download more artwork from [Fanart.tv](https://fanart.tv/), just like the Kodi addon Artwork Downloader
     + Banners
     + Disc art
-    + Clear Logo
-    + Landscape
+    + Clear logos
+    + Landscapes
     + Clear art
-    + Extra fanart background
+    + Extra fanart backgrounds
 - Play directly from network paths (e.g. "\\\\server\\Plex\\movie.mkv" or "smb://server/Plex/movie.mkv") instead of slow HTTP (e.g. "192.168.1.1:32400"). You have to setup all your Plex libraries to point to such network paths. Do have a look at [the wiki here](https://github.com/croneter/PlexKodiConnect/wiki/Direct-Paths)
 - [Plex Transcoding](https://support.plex.tv/hc/en-us/articles/200250377-Transcoding-Media)
 
@@ -76,6 +76,7 @@ Solutions are unlikely due to the nature of these issues
 The Plex Server does not tell anyone of the following changes. Hence PKC cannot detect these changes instantly but will notice them only on full/delta syncs
 - Toggle the viewstate of an item to (un)watched outside of Kodi
 - Changing details of an item, e.g. replacing a poster  
+
 However, some changes to individual items are instantly detected, e.g. if you match a yet unrecognized movie. 
 
 
