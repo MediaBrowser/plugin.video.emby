@@ -1,3 +1,7 @@
+version 1.1.7
+- Fix UnicodeDecodeError with file paths on sync
+- Remove Emby reference from logs
+
 version 1.1.6
 - Corrected the addon's folder name from `PlexKodiConnect-develop` to `plugin.video.plexkodiconnect` in the Kodi addon folder. If you still experience issues, check your addon folder and delete `PlexKodiConnect-develop`
 - Fix TypeError during Plex user switch
