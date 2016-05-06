@@ -46,7 +46,6 @@ import xbmcvfs
 import clientinfo
 import utils
 import downloadutils
-import requests
 from PlexFunctions import PlexToKodiTimefactor, PMSHttpsEnabled
 import embydb_functions as embydb
 
@@ -1238,9 +1237,9 @@ class API():
         if res is not None:
             try:
                 res = unquote(res).decode('utf-8')
-            except UnicodeEncodeError:
-                # Sometimes, unquote seems to return unicode, not string
-                res = unquote(res)
+            except UnicodeDecodeError:
+                # Sometimes, Plex seems to have encoded in latin1
+                res = unquote(res).decode('latin1')
         return res
 
     def getTVShowPath(self):
