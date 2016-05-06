@@ -434,7 +434,7 @@ def reset():
     deleteNodes()
 
     # Wipe the kodi databases
-    logMsg("EMBY", "Resetting the Kodi video database.", 0)
+    logMsg("Plex", "Resetting the Kodi video database.", 0)
     connection = kodiSQL('video')
     cursor = connection.cursor()
     cursor.execute('SELECT tbl_name FROM sqlite_master WHERE type="table"')
@@ -447,7 +447,7 @@ def reset():
     cursor.close()
 
     if settings('enableMusic') == "true":
-        logMsg("EMBY", "Resetting the Kodi music database.")
+        logMsg("Plex", "Resetting the Kodi music database.")
         connection = kodiSQL('music')
         cursor = connection.cursor()
         cursor.execute('SELECT tbl_name FROM sqlite_master WHERE type="table"')
@@ -459,8 +459,8 @@ def reset():
         connection.commit()
         cursor.close()
 
-    # Wipe the emby database
-    logMsg("EMBY", "Resetting the Emby database.", 0)
+    # Wipe the Plex database
+    logMsg("Plex", "Resetting the Emby database.", 0)
     connection = kodiSQL('emby')
     cursor = connection.cursor()
     cursor.execute('SELECT tbl_name FROM sqlite_master WHERE type="table"')
@@ -777,7 +777,7 @@ def passwordsXML():
                         etree.ElementTree(root).write(xmlpath)
                         break
             else:
-                logMsg("EMBY", "Failed to find saved server: %s in passwords.xml" % credentials, 1)
+                logMsg("Plex", "Failed to find saved server: %s in passwords.xml" % credentials, 1)
 
             settings('networkCreds', value="")
             xbmcgui.Dialog().notification(
