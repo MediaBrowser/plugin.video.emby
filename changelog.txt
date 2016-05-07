@@ -1,3 +1,8 @@
+version 1.1.8
+- Account for string.encode() not allowing args. This will hopefully fix any sync problems now, especially for Android TV
+- Also show already watched recently added episodes
+- Increase logging for background updates
+
 version 1.1.7
 - Fix UnicodeDecodeError with file paths on sync
 - Remove Emby reference from logs
