@@ -10,18 +10,30 @@ import xbmc
 import xbmcaddon
 import xbmcgui
 
-import utils
 
 ###############################################################################
 
-addon_ = xbmcaddon.Addon(id='plugin.video.plexkodiconnect')
-addon_path = utils.tryDecode(addon_.getAddonInfo('path'))
-base_resource = utils.tryDecode(xbmc.translatePath(os.path.join(addon_path, 'resources', 'lib')))
+_addon = xbmcaddon.Addon(id='plugin.video.plexkodiconnect')
+try:
+    addon_path = _addon.getAddonInfo('path').decode('utf-8')
+except TypeError:
+    addon_path = _addon.getAddonInfo('path').decode()
+try:
+    base_resource = xbmc.translatePath(os.path.join(
+        addon_path,
+        'resources',
+        'lib')).decode('utf-8')
+except TypeError:
+    base_resource = xbmc.translatePath(os.path.join(
+        addon_path,
+        'resources',
+        'lib')).decode()
 sys.path.append(base_resource)
 
 ###############################################################################
 
 import entrypoint
+import utils
 
 ###############################################################################
 
