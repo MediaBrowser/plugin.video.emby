@@ -466,7 +466,6 @@ class PlexAPI():
 
         pmsList = {}
 
-        self.logMsg('returndata is: %s' % returnData)
         for response in returnData:
             update = {'ip': response.get('from')[0]}
             # Check if we had a positive HTTP response
