@@ -11,11 +11,15 @@ import xbmc
 import xbmcaddon
 import xbmcgui
 
+import utils
 ###############################################################################
 
 _addon = xbmcaddon.Addon(id='plugin.video.plexkodiconnect')
-addon_path = _addon.getAddonInfo('path').decode('utf-8')
-base_resource = xbmc.translatePath(os.path.join(addon_path, 'resources', 'lib')).decode('utf-8')
+addon_path = utils.tryDecode(_addon.getAddonInfo('path'))
+base_resource = utils.tryDecode(xbmc.translatePath(os.path.join(
+    addon_path,
+    'resources',
+    'lib')))
 sys.path.append(base_resource)
 
 ###############################################################################
@@ -26,7 +30,6 @@ import initialsetup
 import kodimonitor
 import librarysync
 import player
-import utils
 import videonodes
 import websocket_client as wsc
 import downloadutils

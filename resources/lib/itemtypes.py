@@ -432,7 +432,7 @@ class Movies(Items):
             # Set plugin path and media flags using real filename
             path = "plugin://plugin.video.plexkodiconnect.movies/"
             params = {
-                'filename': API.getKey().encode('utf-8'),
+                'filename': utils.tryEncode(API.getKey()),
                 'id': itemid,
                 'dbid': movieid,
                 'mode': "play"
@@ -691,7 +691,7 @@ class MusicVideos(Items):
             path = "plugin://plugin.video.plexkodiconnect.musicvideos/"
             params = {
 
-                'filename': filename.encode('utf-8'),
+                'filename': utils.tryEncode(filename),
                 'id': itemid,
                 'dbid': mvideoid,
                 'mode': "play"
@@ -1332,7 +1332,7 @@ class TVShows(Items):
                 filename = 'file_not_found'
             path = "plugin://plugin.video.plexkodiconnect.tvshows/%s/" % seriesId
             params = {
-                'filename': filename.encode('utf-8'),
+                'filename': utils.tryEncode(filename),
                 'id': itemid,
                 'dbid': episodeid,
                 'mode': "play"

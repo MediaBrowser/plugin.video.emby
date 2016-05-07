@@ -32,7 +32,7 @@ def getRealFileName(filename, isTemp=False):
     if os.path.supports_unicode_filenames:
         checkfile = filename
     else:
-        checkfile = filename.encode("utf-8")
+        checkfile = utils.tryEncode(filename)
     
     # determine if our python module is able to access the file directly...
     if os.path.exists(checkfile):
@@ -46,7 +46,7 @@ def getRealFileName(filename, isTemp=False):
         else: filepart = filename.split("\\")[-1]
         tempfile = "special://temp/"+filepart
         xbmcvfs.copy(filename, tempfile)
-        filename = xbmc.translatePath(tempfile).decode("utf-8")
+        filename = utils.tryDecode(xbmc.translatePath(tempfile))
         
     return (isTemp,filename)
 
@@ -242,7 +242,7 @@ def updateRatingToFile(rating, file):
     else: filepart = file.split("\\")[-1]
     tempfile = "special://temp/"+filepart
     xbmcvfs.copy(file, tempfile)
-    tempfile = xbmc.translatePath(tempfile).decode("utf-8")
+    tempfile = utils.tryDecode(xbmc.translatePath(tempfile))
     
     logMsg( "setting song rating: %s for filename: %s - using tempfile: %s" %(rating,file,tempfile))
     

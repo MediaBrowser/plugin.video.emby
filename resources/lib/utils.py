@@ -98,7 +98,7 @@ def IfExists(path):
 
     Returns True if path exists, else false
     """
-    dummyfile = os.path.join(path, 'dummyfile.txt').encode('utf-8')
+    dummyfile = tryEncode(os.path.join(path, 'dummyfile.txt'))
     try:
         etree.ElementTree(etree.Element('test')).write(dummyfile)
     except:
@@ -272,7 +272,7 @@ def logMsg(title, msg, level=1):
             except UnicodeEncodeError:
                 try:
                     xbmc.log("%s -> %s : %s" % (
-                        title, func.co_name, msg.encode('utf-8')),
+                        title, func.co_name, tryEncode(msg)),
                         level=kodiLevel[level])
                 except:
                     xbmc.log("%s -> %s : %s" % (
@@ -283,7 +283,7 @@ def logMsg(title, msg, level=1):
                 xbmc.log("%s -> %s" % (title, msg), level=kodiLevel[level])
             except UnicodeEncodeError:
                 try:
-                    xbmc.log("%s -> %s" % (title, msg.encode('utf-8')),
+                    xbmc.log("%s -> %s" % (title, tryEncode(msg)),
                              level=kodiLevel[level])
                 except:
                     xbmc.log("%s -> %s " % (title, 'COULDNT LOG'),
@@ -301,16 +301,12 @@ def window(property, value=None, clear=False, windowid=10000):
     WINDOW = xbmcgui.Window(windowid)
 
     #setproperty accepts both string and unicode but utf-8 strings are adviced by kodi devs because some unicode can give issues
-    '''if isinstance(property, unicode):
-        property = property.encode("utf-8")
-    if isinstance(value, unicode):
-        value = value.encode("utf-8")'''
     if clear:
         WINDOW.clearProperty(property)
     elif value is not None:
-        WINDOW.setProperty(property, value.encode('utf-8'))
+        WINDOW.setProperty(property, tryEncode(value))
     else:
-        return WINDOW.getProperty(property).decode('utf-8')
+        return tryDecode(WINDOW.getProperty(property))
 
 def settings(setting, value=None):
     """
@@ -323,10 +319,10 @@ def settings(setting, value=None):
 
     if value is not None:
         # Takes string or unicode by default!
-        addon.setSetting(setting, value.encode('utf-8'))
+        addon.setSetting(setting, tryEncode(value))
     else:
         # Should return unicode by default, but just in case
-        return addon.getSetting(setting).decode('utf-8')
+        return tryDecode(addon.getSetting(setting))
 
 def language(stringid):
     # Central string retrieval
@@ -337,11 +333,12 @@ def language(stringid):
 def kodiSQL(media_type="video"):
 
     if media_type == "emby":
-        dbPath = xbmc.translatePath("special://database/emby.db").decode('utf-8')
+        dbPath = tryDecode(xbmc.translatePath("special://database/emby.db"))
     elif media_type == "music":
         dbPath = getKodiMusicDBPath()
     elif media_type == "texture":
-        dbPath = xbmc.translatePath("special://database/Textures13.db").decode('utf-8')
+        dbPath = tryDecode(xbmc.translatePath(
+            "special://database/Textures13.db"))
     else:
         dbPath = getKodiVideoDBPath()
 
@@ -359,9 +356,9 @@ def getKodiVideoDBPath():
         "17": 104   # Krypton
     }
 
-    dbPath = xbmc.translatePath(
-                    "special://database/MyVideos%s.db"
-                    % dbVersion.get(xbmc.getInfoLabel('System.BuildVersion')[:2], "")).decode('utf-8')
+    dbPath = tryDecode(xbmc.translatePath(
+        "special://database/MyVideos%s.db"
+        % dbVersion.get(xbmc.getInfoLabel('System.BuildVersion')[:2], "")))
     return dbPath
 
 def getKodiMusicDBPath():
@@ -375,9 +372,9 @@ def getKodiMusicDBPath():
         "17": 60    # Krypton
     }
 
-    dbPath = xbmc.translatePath(
-                    "special://database/MyMusic%s.db"
-                    % dbVersion.get(xbmc.getInfoLabel('System.BuildVersion')[:2], "")).decode('utf-8')
+    dbPath = tryDecode(xbmc.translatePath(
+        "special://database/MyMusic%s.db"
+        % dbVersion.get(xbmc.getInfoLabel('System.BuildVersion')[:2], "")))
     return dbPath
 
 def getScreensaver():
@@ -479,16 +476,20 @@ def reset():
     if resp:
         logMsg("EMBY", "Resetting all cached artwork.", 0)
         # Remove all existing textures first
-        path = xbmc.translatePath("special://thumbnails/").decode('utf-8')
+        path = tryDecode(xbmc.translatePath("special://thumbnails/"))
         if xbmcvfs.exists(path):
             allDirs, allFiles = xbmcvfs.listdir(path)
             for dir in allDirs:
                 allDirs, allFiles = xbmcvfs.listdir(path+dir)
                 for file in allFiles:
                     if os.path.supports_unicode_filenames:
-                        xbmcvfs.delete(os.path.join(path+dir.decode('utf-8'),file.decode('utf-8')))
+                        xbmcvfs.delete(os.path.join(
+                            path + tryDecode(dir),
+                            tryDecode(file)))
                     else:
-                        xbmcvfs.delete(os.path.join(path.encode('utf-8')+dir,file))
+                        xbmcvfs.delete(os.path.join(
+                            tryEncode(path) + dir,
+                            file))
 
         # remove all existing data from texture DB
         connection = kodiSQL('texture')
@@ -510,9 +511,9 @@ def reset():
     if resp:
         # Delete the settings
         addon = xbmcaddon.Addon()
-        addondir = xbmc.translatePath(addon.getAddonInfo('profile')).decode('utf-8')
+        addondir = tryDecode(xbmc.translatePath(addon.getAddonInfo('profile')))
         dataPath = "%ssettings.xml" % addondir
-        xbmcvfs.delete(dataPath.encode('utf-8'))
+        xbmcvfs.delete(tryEncode(dataPath))
         logMsg("PLEX", "Deleting: settings.xml", 1)
 
     dialog.ok(
@@ -567,7 +568,7 @@ def normalize_nodes(text):
     # Remove dots from the last character as windows can not have directories
     # with dots at the end
     text = text.rstrip('.')
-    text = unicodedata.normalize('NFKD', unicode(text, 'utf-8')).encode('ascii', 'ignore')
+    text = tryEncode(unicodedata.normalize('NFKD', unicode(text, 'utf-8')))
 
     return text
 
@@ -586,7 +587,7 @@ def normalize_string(text):
     # Remove dots from the last character as windows can not have directories
     # with dots at the end
     text = text.rstrip('.')
-    text = unicodedata.normalize('NFKD', unicode(text, 'utf-8')).encode('ascii', 'ignore')
+    text = tryEncode(unicodedata.normalize('NFKD', unicode(text, 'utf-8')))
 
     return text
 
@@ -611,7 +612,7 @@ def guisettingsXML():
     """
     Returns special://userdata/guisettings.xml as an etree xml root element
     """
-    path = xbmc.translatePath("special://profile/").decode('utf-8')
+    path = tryDecode(xbmc.translatePath("special://profile/"))
     xmlpath = "%sguisettings.xml" % path
 
     try:
@@ -670,7 +671,7 @@ def advancedSettingsXML():
         usetags          : set to "false"
         findremotethumbs : set to "false"
     """
-    path = xbmc.translatePath("special://profile/").decode('utf-8')
+    path = tryDecode(xbmc.translatePath("special://profile/"))
     xmlpath = "%sadvancedsettings.xml" % path
 
     try:
@@ -700,7 +701,7 @@ def advancedSettingsXML():
 
 def sourcesXML():
     # To make Master lock compatible
-    path = xbmc.translatePath("special://profile/").decode('utf-8')
+    path = tryDecode(xbmc.translatePath("special://profile/"))
     xmlpath = "%ssources.xml" % path
 
     try:
@@ -741,7 +742,7 @@ def sourcesXML():
 
 def passwordsXML():
     # To add network credentials
-    path = xbmc.translatePath("special://userdata/").decode('utf-8')
+    path = tryDecode(xbmc.translatePath("special://userdata/"))
     xmlpath = "%spasswords.xml" % path
     logMsg('passwordsXML', 'Path to passwords.xml: %s' % xmlpath, 1)
 
@@ -852,7 +853,7 @@ def playlistXSP(mediatype, tagname, viewid, viewtype="", delete=False):
     """
     Feed with tagname as unicode
     """
-    path = xbmc.translatePath("special://profile/playlists/video/").decode('utf-8')
+    path = tryDecode(xbmc.translatePath("special://profile/playlists/video/"))
     if viewtype == "mixed":
         plname = "%s - %s" % (tagname, mediatype)
         xsppath = "%sPlex %s - %s.xsp" % (path, viewid, mediatype)
@@ -861,15 +862,15 @@ def playlistXSP(mediatype, tagname, viewid, viewtype="", delete=False):
         xsppath = "%sPlex %s.xsp" % (path, viewid)
 
     # Create the playlist directory
-    if not xbmcvfs.exists(path.encode('utf-8')):
+    if not xbmcvfs.exists(tryEncode(path)):
         logMsg("PLEX", "Creating directory: %s" % path, 1)
-        xbmcvfs.mkdirs(path.encode('utf-8'))
+        xbmcvfs.mkdirs(tryEncode(path))
 
     # Only add the playlist if it doesn't already exists
-    if xbmcvfs.exists(xsppath.encode('utf-8')):
+    if xbmcvfs.exists(tryEncode(xsppath)):
         logMsg('Path %s does exist' % xsppath, 1)
         if delete:
-            xbmcvfs.delete(xsppath.encode('utf-8'))
+            xbmcvfs.delete(tryEncode(xsppath))
             logMsg("PLEX", "Successfully removed playlist: %s." % tagname, 1)
 
         return
@@ -882,12 +883,12 @@ def playlistXSP(mediatype, tagname, viewid, viewtype="", delete=False):
     }
     logMsg("Plex", "Writing playlist file to: %s" % xsppath, 1)
     try:
-        f = xbmcvfs.File(xsppath.encode('utf-8'), 'wb')
+        f = xbmcvfs.File(tryEncode(xsppath), 'wb')
     except:
         logMsg("Plex", "Failed to create playlist: %s" % xsppath, -1)
         return
     else:
-        f.write((
+        f.write(tryEncode(
             '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n'
             '<smartplaylist type="%s">\n\t'
                 '<name>Plex %s</name>\n\t'
@@ -896,35 +897,61 @@ def playlistXSP(mediatype, tagname, viewid, viewtype="", delete=False):
                     '<value>%s</value>\n\t'
                 '</rule>\n'
             '</smartplaylist>\n'
-            % (itemtypes.get(mediatype, mediatype), plname, tagname))
-            .encode('utf-8'))
+            % (itemtypes.get(mediatype, mediatype), plname, tagname)))
         f.close()
     logMsg("Plex", "Successfully added playlist: %s" % tagname)
 
 def deletePlaylists():
 
     # Clean up the playlists
-    path = xbmc.translatePath("special://profile/playlists/video/").decode('utf-8')
-    dirs, files = xbmcvfs.listdir(path.encode('utf-8'))
+    path = tryDecode(xbmc.translatePath("special://profile/playlists/video/"))
+    dirs, files = xbmcvfs.listdir(tryEncode(path))
     for file in files:
-        if file.decode('utf-8').startswith('Plex'):
-            xbmcvfs.delete(("%s%s" % (path, file.decode('utf-8'))).encode('utf-8'))
+        if tryDecode(file).startswith('Plex'):
+            xbmcvfs.delete(tryEncode("%s%s" % (path, tryDecode(file))))
 
 def deleteNodes():
 
     # Clean up video nodes
     import shutil
-    path = xbmc.translatePath("special://profile/library/video/").decode('utf-8')
-    dirs, files = xbmcvfs.listdir(path.encode('utf-8'))
+    path = tryDecode(xbmc.translatePath("special://profile/library/video/"))
+    dirs, files = xbmcvfs.listdir(tryEncode(path))
     for dir in dirs:
-        if dir.decode('utf-8').startswith('Plex'):
+        if tryDecode(dir).startswith('Plex'):
             try:
-                shutil.rmtree("%s%s" % (path, dir.decode('utf-8')))
+                shutil.rmtree("%s%s" % (path, tryDecode(dir)))
             except:
-                logMsg("PLEX", "Failed to delete directory: %s" % dir.decode('utf-8'))
+                logMsg("PLEX", "Failed to delete directory: %s"
+                       % tryDecode(dir))
     for file in files:
-        if file.decode('utf-8').startswith('plex'):
+        if tryDecode(file).startswith('plex'):
             try:
-                xbmcvfs.delete(("%s%s" % (path, file.decode('utf-8'))).encode('utf-8'))
+                xbmcvfs.delete(tryEncode("%s%s" % (path, tryDecode(file))))
             except:
-                logMsg("PLEX", "Failed to file: %s" % file.decode('utf-8'))
+                logMsg("PLEX", "Failed to file: %s" % tryDecode(file))
+
+
+def tryEncode(uniString, encoding='utf-8'):
+    """
+    Will try to encode uniString (in unicode) to encoding. This possibly
+    fails with e.g. Android TV's Python, which does not accept arguments for
+    string.encode()
+    """
+    try:
+        uniString.encode(encoding, "ignore")
+    except TypeError:
+        uniString.encode()
+    return uniString
+
+
+def tryDecode(string, encoding='utf-8'):
+    """
+    Will try to decode string (encoded) using encoding. This possibly
+    fails with e.g. Android TV's Python, which does not accept arguments for
+    string.encode()
+    """
+    try:
+        string.decode(encoding, "ignore")
+    except TypeError:
+        string.decode()
+    return string

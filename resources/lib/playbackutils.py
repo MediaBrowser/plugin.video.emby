@@ -75,14 +75,14 @@ class PlaybackUtils():
                         % item[0][0][0].attrib.get('key'), -1)
                     return xbmcplugin.setResolvedUrl(
                         int(sys.argv[1]), False, listitem)
-                playurl = xml[0].attrib.get('key').encode('utf-8')
+                playurl = utils.tryEncode(xml[0].attrib.get('key'))
                 window('emby_%s.playmethod' % playurl, value='DirectStream')
 
             playmethod = window('emby_%s.playmethod' % playurl)
             if playmethod == "Transcode":
                 window('emby_%s.playmethod' % playurl, clear=True)
-                playurl = playutils.audioSubsPref(
-                    listitem, playurl.decode('utf-8')).encode('utf-8')
+                playurl = utils.tryEncode(playutils.audioSubsPref(
+                    listitem, utils.tryDecode(playurl)))
                 window('emby_%s.playmethod' % playurl, "Transcode")
             listitem.setPath(playurl)
             self.setProperties(playurl, listitem)
@@ -195,8 +195,8 @@ class PlaybackUtils():
         # For transcoding only, ask for audio/subs pref
         if window('emby_%s.playmethod' % playurl) == "Transcode":
             window('emby_%s.playmethod' % playurl, clear=True)
-            playurl = playutils.audioSubsPref(
-                listitem, playurl.decode('utf-8')).encode('utf-8')
+            playurl = utils.tryEncode(playutils.audioSubsPref(
+                listitem, utils.tryDecode(playurl)))
             window('emby_%s.playmethod' % playurl, value="Transcode")
 
         listitem.setPath(playurl)

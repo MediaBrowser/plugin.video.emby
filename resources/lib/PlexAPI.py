@@ -482,8 +482,8 @@ class PlexAPI():
                     elif "Resource-Identifier:" in each:
                         update['uuid'] = each.split(':')[1].strip()
                     elif "Name:" in each:
-                        update['serverName'] = each.split(
-                            ':')[1].strip().decode('utf-8', 'replace')
+                        update['serverName'] = utils.tryDecode(each.split(
+                            ':')[1].strip())
                     elif "Port:" in each:
                         update['port'] = each.split(':')[1].strip()
                     elif "Updated-At:" in each:
@@ -807,7 +807,7 @@ class PlexAPI():
             username = user['title']
             userlist.append(username)
             # To take care of non-ASCII usernames
-            userlistCoded.append(username.encode('utf-8'))
+            userlistCoded.append(utils.tryEncode(username))
         usernumber = len(userlist)
 
         username = ''
@@ -1039,7 +1039,7 @@ class PlexAPI():
             path = 'http://127.0.0.1:32400' + key
         else:  # internal path, add-on
             path = 'http://127.0.0.1:32400' + path + '/' + key
-        path = path.encode('utf8')
+        path = utils.tryEncode(path)
 
         # This is bogus (note the extra path component) but ATV is stupid when it comes to caching images, it doesn't use querystrings.
         # Fortunately PMS is lenient...
@@ -1235,7 +1235,7 @@ class API():
             res = None
         if res is not None:
             try:
-                res = unquote(res).decode('utf-8')
+                res = utils.tryDecode(unquote(res))
             except UnicodeDecodeError:
                 # Sometimes, Plex seems to have encoded in latin1
                 res = unquote(res).decode('latin1')
@@ -1899,13 +1899,9 @@ class API():
         url = 'http://api.themoviedb.org/3/search/%s' % media_type
         parameters = {
             'api_key': apiKey,
-            'language': KODILANGUAGE
+            'language': KODILANGUAGE,
+            'query': utils.tryEncode(title)
         }
-        try:
-            parameters['query'] = title.encode('utf-8', errors='ignore')
-        except TypeError:
-            # E.g. Android TV's python does NOT take arguments to encode
-            parameters['query'] = title.encode()
         data = downloadutils.DownloadUtils().downloadUrl(
             url,
             authenticate=False,
@@ -2348,19 +2344,14 @@ class API():
         # exist() needs a / or \ at the end to work for directories
         if folder is False:
             # files
-            check = True if xbmcvfs.exists(path.encode('utf-8')) == 1 \
-                else False
+            check = xbmcvfs.exists(utils.tryEncode(path)) == 1
         else:
             # directories
             if "\\" in path:
                 # Add the missing backslash
-                check = True if \
-                    xbmcvfs.exists((path + "\\").encode('utf-8')) == 1 \
-                    else False
+                check = xbmcvfs.exists(utils.tryEncode(path + "\\")) == 1
             else:
-                check = True if \
-                    xbmcvfs.exists((path + "/").encode('utf-8')) == 1 \
-                    else False
+                check = xbmcvfs.exists(utils.tryEncode(path + "/")) == 1
 
         if check is False:
             if forceCheck is False:

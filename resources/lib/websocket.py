@@ -46,6 +46,8 @@ import logging
 import traceback
 import sys
 
+import utils
+
 """
 websocket python client.
 =========================
@@ -286,7 +288,7 @@ class ABNF(object):
         opcode: operation code. please see OPCODE_XXX.
         """
         if opcode == ABNF.OPCODE_TEXT and isinstance(data, unicode):
-            data = data.encode("utf-8")
+            data = utils.tryEncode(data)
         # mask must be set if send data from client
         return ABNF(1, 0, 0, 0, opcode, 1, data)
 

@@ -10,13 +10,14 @@ import xbmc
 import xbmcaddon
 import xbmcgui
 
+import utils
+
 addon_ = xbmcaddon.Addon(id='plugin.video.plexkodiconnect')
-addon_path = addon_.getAddonInfo('path').decode('utf-8')
-base_resource = xbmc.translatePath(os.path.join(addon_path, 'resources', 'lib')).decode('utf-8')
+addon_path = utils.tryDecode(addon_.getAddonInfo('path'))
+base_resource = utils.tryDecode(xbmc.translatePath(os.path.join(addon_path, 'resources', 'lib')))
 sys.path.append(base_resource)
 
 import artwork
-import utils
 import clientinfo
 import downloadutils
 import librarysync
@@ -36,8 +37,8 @@ def logMsg(msg, lvl=1):
 #Kodi contextmenu item to configure the emby settings
 #for now used to set ratings but can later be used to sync individual items etc.
 if __name__ == '__main__':
-    itemid = xbmc.getInfoLabel("ListItem.DBID").decode("utf-8")
-    itemtype = xbmc.getInfoLabel("ListItem.DBTYPE").decode("utf-8")
+    itemid = utils.tryDecode(xbmc.getInfoLabel("ListItem.DBID"))
+    itemtype = utils.tryDecode(xbmc.getInfoLabel("ListItem.DBTYPE"))
     
     emby = embyserver.Read_EmbyServer()
     

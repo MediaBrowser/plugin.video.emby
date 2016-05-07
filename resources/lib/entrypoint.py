@@ -606,15 +606,15 @@ def getThemeMedia():
     else:
         return
 
-    library = xbmc.translatePath(
-                "special://profile/addon_data/plugin.video.plexkodiconnect/library/").decode('utf-8')
+    library = utils.tryDecode(xbmc.translatePath(
+                "special://profile/addon_data/plugin.video.plexkodiconnect/library/"))
     # Create library directory
     if not utils.IfExists(library):
         xbmcvfs.mkdir(library)
 
     # Set custom path for user
-    tvtunes_path = xbmc.translatePath(
-        "special://profile/addon_data/script.tvtunes/").decode('utf-8')
+    tvtunes_path = utils.tryDecode(xbmc.translatePath(
+        "special://profile/addon_data/script.tvtunes/"))
     if xbmcvfs.exists(tvtunes_path):
         tvtunes = xbmcaddon.Addon(id="script.tvtunes")
         tvtunes.setSetting('custom_path_enable', "true")
@@ -644,7 +644,8 @@ def getThemeMedia():
             for item in result['Items']:
                 itemId = item['Id']
                 folderName = item['Name']
-                folderName = utils.normalize_string(folderName.encode('utf-8'))
+                folderName = utils.normalize_string(
+                    utils.tryEncode(folderName))
                 itemIds[itemId] = folderName
 
     # Get paths for theme videos
@@ -670,8 +671,8 @@ def getThemeMedia():
                 playurl = putils.directPlay()
             else:
                 playurl = putils.directStream()
-            pathstowrite += ('<file>%s</file>' % playurl.encode('utf-8'))
-        
+            pathstowrite += ('<file>%s</file>' % utils.tryEncode(playurl))
+
         # Check if the item has theme songs and add them   
         url = "{server}/emby/Items/%s/ThemeSongs?format=json" % itemId
         result = doUtils.downloadUrl(url)
@@ -683,7 +684,7 @@ def getThemeMedia():
                 playurl = putils.directPlay()
             else:
                 playurl = putils.directStream()
-            pathstowrite += ('<file>%s</file>' % playurl.encode('utf-8'))
+            pathstowrite += ('<file>%s</file>' % utils.tryEncode(playurl))
 
         nfo_file.write(
             '<tvtunes>%s</tvtunes>' % pathstowrite
@@ -700,7 +701,8 @@ def getThemeMedia():
             for item in result['Items']:
                 itemId = item['Id']
                 folderName = item['Name']
-                folderName = utils.normalize_string(folderName.encode('utf-8'))
+                folderName = utils.normalize_string(
+                    utils.tryEncode(folderName))
                 musicitemIds[itemId] = folderName
 
     # Get paths
@@ -731,7 +733,7 @@ def getThemeMedia():
                 playurl = putils.directPlay()
             else:
                 playurl = putils.directStream()
-            pathstowrite += ('<file>%s</file>' % playurl.encode('utf-8'))
+            pathstowrite += ('<file>%s</file>' % utils.tryEncode(playurl))
 
         nfo_file.write(
             '<tvtunes>%s</tvtunes>' % pathstowrite
@@ -781,12 +783,16 @@ def BrowseContent(viewname, browse_type="", folderid=""):
     if not folderid:
         views = PlexFunctions.GetPlexCollections()
         for view in views:
-            if view.get("name") == viewname.decode('utf-8'):
+            if view.get("name") == utils.tryDecode(viewname):
                 folderid = view.get("id")
                 break
     
     if viewname is not None:
-        utils.logMsg("BrowseContent","viewname: %s - type: %s - folderid: %s - filter: %s" %(viewname.decode('utf-8'), browse_type.decode('utf-8'), folderid.decode('utf-8'), filter_type.decode('utf-8')))
+        utils.logMsg("BrowseContent", "viewname: %s - type: %s - folderid: %s "
+                     "- filter: %s" % (utils.tryDecode(viewname),
+                                      utils.tryDecode(browse_type),
+                                      utils.tryDecode(folderid),
+                                      utils.tryDecode(filter_type)))
     #set the correct params for the content type
     #only proceed if we have a folderid
     if folderid:
@@ -821,7 +827,11 @@ def BrowseContent(viewname, browse_type="", folderid=""):
                 li = createListItemFromEmbyItem(item,art,doUtils)
                 if item.get("IsFolder") == True:
                     #for folders we add an additional browse request, passing the folderId
-                    path = "%s?id=%s&mode=browsecontent&type=%s&folderid=%s" % (sys.argv[0].decode('utf-8'), viewname.decode('utf-8'), browse_type.decode('utf-8'), item.get("Id").decode('utf-8'))
+                    path = "%s?id=%s&mode=browsecontent&type=%s&folderid=%s" \
+                           % (utils.tryDecode(sys.argv[0]),
+                              utils.tryDecode(viewname),
+                              utils.tryDecode(browse_type),
+                              utils.tryDecode(item.get("Id")))
                     xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=path, listitem=li, isFolder=True)
                 else:
                     #playable item, set plugin path and mediastreams
@@ -1330,16 +1340,16 @@ def getVideoFiles(plexId, params):
         # Careful, returns encoded strings!
         dirs, files = xbmcvfs.listdir(path)
         for file in files:
-            file = path + file.decode('utf-8')
+            file = path + utils.tryDecode(file)
             li = xbmcgui.ListItem(file, path=file)
             xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),
-                                        url=file.encode('utf-8'),
+                                        url=utils.tryEncode(file),
                                         listitem=li)
         for dir in dirs:
-            dir = path + dir.decode('utf-8')
+            dir = path + utils.tryDecode(dir)
             li = xbmcgui.ListItem(dir, path=dir)
             xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),
-                                        url=dir.encode('utf-8'),
+                                        url=utils.tryEncode(dir),
                                         listitem=li,
                                         isFolder=True)
     else:
@@ -1367,7 +1377,8 @@ def getExtraFanArt(embyId,embyPath):
 
             # We need to store the images locally for this to work
             # because of the caching system in xbmc
-            fanartDir = xbmc.translatePath("special://thumbnails/emby/%s/" % embyId).decode('utf-8')
+            fanartDir = utils.tryDecode(xbmc.translatePath(
+                "special://thumbnails/emby/%s/" % embyId))
             
             if not xbmcvfs.exists(fanartDir):
                 # Download the images to the cache directory
@@ -1383,7 +1394,9 @@ def getExtraFanArt(embyId,embyPath):
                         if os.path.supports_unicode_filenames:
                             fanartFile = os.path.join(fanartDir, "fanart%s.jpg" % tag)
                         else:
-                            fanartFile = os.path.join(fanartDir.encode("utf-8"), "fanart%s.jpg" % tag.encode("utf-8"))
+                            fanartFile = os.path.join(
+                                utils.tryEncode(fanartDir),
+                                "fanart%s.jpg" % utils.tryEncode(tag))
                         li = xbmcgui.ListItem(tag, path=fanartFile)
                         xbmcplugin.addDirectoryItem(
                                             handle=int(sys.argv[1]),
@@ -1396,7 +1409,7 @@ def getExtraFanArt(embyId,embyPath):
                 # Use existing cached images
                 dirs, files = xbmcvfs.listdir(fanartDir)
                 for file in files:
-                    fanartFile = os.path.join(fanartDir, file.decode('utf-8'))
+                    fanartFile = os.path.join(fanartDir, utils.tryDecode(file))
                     li = xbmcgui.ListItem(file, path=fanartFile)
                     xbmcplugin.addDirectoryItem(
                                             handle=int(sys.argv[1]),
@@ -1458,7 +1471,11 @@ def BrowsePlexContent(viewid, mediatype="", nodetype=""):
             # folderId
             li.setProperty('IsFolder', 'true')
             li.setProperty('IsPlayable', 'false')
-            path = "%s?id=%s&mode=browsecontent&type=%s&folderid=%s" % (sys.argv[0].decode('utf-8'), viewname.decode('utf-8'), type.decode('utf-8'), item.get("Id").decode('utf-8'))
+            path = "%s?id=%s&mode=browsecontent&type=%s&folderid=%s" \
+                   % (utils.tryDecode(sys.argv[0]),
+                      utils.tryDecode(viewname),
+                      utils.tryDecode(type),
+                      utils.tryDecode(item.get("Id")))
             xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=path, listitem=li, isFolder=True)
         else:
             # playable item, set plugin path and mediastreams

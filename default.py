@@ -10,17 +10,18 @@ import xbmc
 import xbmcaddon
 import xbmcgui
 
+import utils
+
 ###############################################################################
 
 addon_ = xbmcaddon.Addon(id='plugin.video.plexkodiconnect')
-addon_path = addon_.getAddonInfo('path').decode('utf-8')
-base_resource = xbmc.translatePath(os.path.join(addon_path, 'resources', 'lib')).decode('utf-8')
+addon_path = utils.tryDecode(addon_.getAddonInfo('path'))
+base_resource = utils.tryDecode(xbmc.translatePath(os.path.join(addon_path, 'resources', 'lib')))
 sys.path.append(base_resource)
 
 ###############################################################################
 
 import entrypoint
-import utils
 
 ###############################################################################
 
@@ -159,8 +160,8 @@ if ( __name__ == "__main__" ):
         import pstats
         import random
         from time import gmtime, strftime
-        addonid      = addon_.getAddonInfo('id').decode( 'utf-8' )
-        datapath     = os.path.join( xbmc.translatePath( "special://profile/" ).decode( 'utf-8' ), "addon_data", addonid )
+        addonid      = utils.tryDecode(addon_.getAddonInfo('id'))
+        datapath     = os.path.join(utils.tryDecode(xbmc.translatePath( "special://profile/" )), "addon_data", addonid )
         
         filename = os.path.join( datapath, strftime( "%Y%m%d%H%M%S",gmtime() ) + "-" + str( random.randrange(0,100000) ) + ".log" )
         cProfile.run( 'Main()', filename )

@@ -45,13 +45,14 @@ class PlayUtils():
 
         if playurl:
             log("File is direct playing.", 1)
-            playurl = playurl.encode('utf-8')
+            playurl = utils.tryEncode(playurl)
             # Set playmethod property
             window('emby_%s.playmethod' % playurl, "DirectPlay")
 
         elif self.isDirectStream():
             self.logMsg("File is direct streaming.", 1)
-            playurl = self.API.getTranscodeVideoPath('DirectStream').encode('utf-8')
+            playurl = utils.tryEncode(
+                self.API.getTranscodeVideoPath('DirectStream'))
             # Set playmethod property
             utils.window('emby_%s.playmethod' % playurl, "DirectStream")
 
@@ -62,9 +63,9 @@ class PlayUtils():
                 'videoResolution': self.getResolution(),
                 'videoQuality': '100'
             }
-            playurl = self.API.getTranscodeVideoPath(
+            playurl = utils.tryEncode(self.API.getTranscodeVideoPath(
                 'Transcode',
-                quality=quality).encode('utf-8')
+                quality=quality))
             # Set playmethod property
             window('emby_%s.playmethod' % playurl, value="Transcode")
 
@@ -306,7 +307,7 @@ class PlayUtils():
                 
                 #audioStreamsChannelsList[audioNum] = stream.attrib['channels']
                 audioStreamsList.append(index)
-                audioStreams.append(track.encode('utf-8'))
+                audioStreams.append(utils.tryEncode(track))
                 audioNum += 1
 
             # Subtitles
@@ -330,7 +331,7 @@ class PlayUtils():
                     downloadableStreams.append(index)
 
                 subtitleStreamsList.append(index)
-                subtitleStreams.append(track.encode('utf-8'))
+                subtitleStreams.append(utils.tryEncode(track))
                 subNum += 1
 
         if audioNum > 1:
@@ -362,7 +363,7 @@ class PlayUtils():
                           % (self.server, selectSubsIndex)
                     url = self.API.addPlexHeadersToUrl(url)
                     self.logMsg("Downloadable sub: %s: %s" % (selectSubsIndex, url), 1)
-                    listitem.setSubtitles([url.encode('utf-8')])
+                    listitem.setSubtitles([utils.tryEncode(url)])
                 else:
                     self.logMsg('Need to burn in subtitle %s' % selectSubsIndex, 1)
                     playurlprefs["subtitleStreamID"] = selectSubsIndex

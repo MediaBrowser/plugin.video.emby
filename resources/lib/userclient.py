@@ -247,8 +247,8 @@ class UserClient(threading.Thread):
             return False
 
         # Get /profile/addon_data
-        addondir = xbmc.translatePath(
-            self.addon.getAddonInfo('profile')).decode('utf-8')
+        addondir = utils.tryDecode(xbmc.translatePath(
+            self.addon.getAddonInfo('profile')))
         hasSettings = xbmcvfs.exists("%ssettings.xml" % addondir)
 
         # If there's no settings.xml

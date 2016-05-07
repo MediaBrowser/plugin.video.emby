@@ -53,10 +53,10 @@ class Artwork():
 
     def single_urlencode(self, text):
 
-        text = urllib.urlencode({'blahblahblah':text.encode("utf-8")}) #urlencode needs a utf- string
+        text = urllib.urlencode({'blahblahblah': utils.tryEncode(text)}) #urlencode needs a utf- string
         text = text[13:]
 
-        return text.decode("utf-8") #return the result again as unicode
+        return utils.tryDecode(text) #return the result again as unicode
 
     def setKodiWebServerDetails(self):
         # Get the Kodi webserver details - used to set the texture cache
@@ -167,7 +167,7 @@ class Artwork():
         string = xbmcaddon.Addon().getLocalizedString
 
         if not xbmcgui.Dialog().yesno(
-            "Image Texture Cache", string(39250).encode('utf-8')):
+                "Image Texture Cache", string(39250)):
             return
 
         self.logMsg("Doing Image Cache Sync", 1)
@@ -177,19 +177,23 @@ class Artwork():
 
         # ask to rest all existing or not
         if xbmcgui.Dialog().yesno(
-            "Image Texture Cache", string(39251).encode('utf-8'), ""):
+                "Image Texture Cache", string(39251), ""):
             self.logMsg("Resetting all cache data first", 1)
             # Remove all existing textures first
-            path = xbmc.translatePath("special://thumbnails/").decode('utf-8')
+            path = utils.tryDecode(xbmc.translatePath("special://thumbnails/"))
             if utils.IfExists(path):
                 allDirs, allFiles = xbmcvfs.listdir(path)
                 for dir in allDirs:
                     allDirs, allFiles = xbmcvfs.listdir(path+dir)
                     for file in allFiles:
                         if os.path.supports_unicode_filenames:
-                            xbmcvfs.delete(os.path.join(path+dir.decode('utf-8'),file.decode('utf-8')))
+                            xbmcvfs.delete(os.path.join(
+                                path + utils.tryDecode(dir),
+                                utils.tryDecode(file)))
                         else:
-                            xbmcvfs.delete(os.path.join(path.encode('utf-8')+dir,file))
+                            xbmcvfs.delete(os.path.join(
+                                utils.tryEncode(path) + dir,
+                                file))
 
             # remove all existing data from texture DB
             textureconnection = utils.kodiSQL('texture')
@@ -467,7 +471,8 @@ class Artwork():
             self.logMsg("Database is locked. Skip deletion process.", 1)
 
         else: # Delete thumbnail as well as the entry
-            thumbnails = xbmc.translatePath("special://thumbnails/%s" % cachedurl).decode('utf-8')
+            thumbnails = utils.tryDecode(
+                xbmc.translatePath("special://thumbnails/%s" % cachedurl))
             self.logMsg("Deleting cached thumbnail: %s" % thumbnails, 1)
             xbmcvfs.delete(thumbnails)
 

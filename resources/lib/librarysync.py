@@ -1619,8 +1619,8 @@ class LibrarySync(Thread):
                     # Database does not exists
                     log("The current Kodi version is incompatible "
                         "to know which Kodi versions are supported.", -1)
-                    log('Current Kodi version: %s' % xbmc.getInfoLabel(
-                        'System.BuildVersion').decode('utf-8'))
+                    log('Current Kodi version: %s' % utils.tryDecode(
+                        xbmc.getInfoLabel('System.BuildVersion')))
                     # "Current Kodi version is unsupported, cancel lib sync"
                     self.dialog.ok(heading=self.addonName,
                                    line1=string(39403))

@@ -173,7 +173,7 @@ class KodiMonitor(xbmc.Monitor):
                     return
                 else:
                     count += 1
-        log("Currently playing file is: %s" % currentFile.decode('utf-8'), 1)
+        log("Currently playing file is: %s" % utils.tryDecode(currentFile), 1)
 
         # Try to get a Kodi ID
         item = data.get('item')
@@ -217,7 +217,7 @@ class KodiMonitor(xbmc.Monitor):
                 return
 
         # Save currentFile for cleanup later and to be able to access refs
-        window('plex_lastPlayedFiled', value=currentFile.decode('utf-8'))
+        window('plex_lastPlayedFiled', value=utils.tryDecode(currentFile))
         window('Plex_currently_playing_itemid', value=plexid)
         window("emby_%s.itemid" % currentFile, value=plexid)
         log('Finish playback startup', 1)
