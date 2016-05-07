@@ -1900,9 +1900,13 @@ class API():
         url = 'http://api.themoviedb.org/3/search/%s' % media_type
         parameters = {
             'api_key': apiKey,
-            'language': KODILANGUAGE,
-            'query': title.encode('utf-8', errors='ignore')
+            'language': KODILANGUAGE
         }
+        try:
+            parameters['query'] = title.encode('utf-8', errors='ignore')
+        except TypeError:
+            # E.g. Android TV's python does NOT take arguments to encode
+            parameters['query'] = title.encode()
         data = downloadutils.DownloadUtils().downloadUrl(
             url,
             authenticate=False,
