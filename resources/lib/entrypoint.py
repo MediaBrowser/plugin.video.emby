@@ -1263,7 +1263,6 @@ def getRecentEpisodes(viewid, mediatype, tagname, limit):
         'method': "VideoLibrary.GetEpisodes",
         'params': {
             'sort': {'order': "descending", 'method': "dateadded"},
-            'filter': {'operator': "lessthan", 'field': "playcount", 'value': "1"},
             'properties': [
                 "title", "playcount", "season", "episode", "showtitle", "plot",
                 "file", "rating", "resume", "tvshowid", "art", "streamdetails",
