@@ -432,7 +432,7 @@ class Movies(Items):
             # Set plugin path and media flags using real filename
             path = "plugin://plugin.video.plexkodiconnect.movies/"
             params = {
-                'filename': utils.tryEncode(API.getKey()),
+                'filename': API.getKey(),
                 'id': itemid,
                 'dbid': movieid,
                 'mode': "play"
@@ -1329,7 +1329,7 @@ class TVShows(Items):
                 else:
                     filename = playurl.rsplit('/', 1)[1]
             else:
-                filename = 'file_not_found'
+                filename = 'file_not_found.mkv'
             path = "plugin://plugin.video.plexkodiconnect.tvshows/%s/" % seriesId
             params = {
                 'filename': utils.tryEncode(filename),
@@ -1337,7 +1337,8 @@ class TVShows(Items):
                 'dbid': episodeid,
                 'mode': "play"
             }
-            filename = "%s?%s" % (path, urllib.urlencode(params))
+            filename = "%s?%s" % (path,
+                                  utils.tryDecode(urllib.urlencode(params)))
             playurl = filename
             parentPathId = self.kodi_db.addPath(
                 'plugin://plugin.video.plexkodiconnect.tvshows/')

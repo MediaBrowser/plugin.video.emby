@@ -938,9 +938,9 @@ def tryEncode(uniString, encoding='utf-8'):
     string.encode()
     """
     try:
-        uniString.encode(encoding, "ignore")
+        uniString = uniString.encode(encoding, "ignore")
     except TypeError:
-        uniString.encode()
+        uniString = uniString.encode()
     return uniString
 
 
@@ -951,7 +951,7 @@ def tryDecode(string, encoding='utf-8'):
     string.encode()
     """
     try:
-        string.decode(encoding, "ignore")
+        string = string.decode(encoding, "ignore")
     except TypeError:
-        string.decode()
+        string = string.decode()
     return string
