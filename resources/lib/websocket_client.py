@@ -44,6 +44,7 @@ class WebSocket(threading.Thread):
         if typus is None:
             self.logMsg('No message type, dropping message: %s' % message, -1)
             return False
+        self.logMsg('Received message from PMS server: %s' % message, 2)
         # Drop everything we're not interested in
         if typus not in ('playing', 'timeline'):
             return True
