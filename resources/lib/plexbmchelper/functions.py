@@ -123,7 +123,7 @@ class jsonClass():
 
     def getPlexHeaders(self):
         h = {
-            "Content-type": "application/x-www-form-urlencoded",
+            "Content-type": "text/xml",
             "Access-Control-Allow-Origin": "*",
             "X-Plex-Version": self.settings['version'],
             "X-Plex-Client-Identifier": self.settings['uuid'],
