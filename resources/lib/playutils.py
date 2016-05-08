@@ -186,6 +186,9 @@ class PlayUtils():
         return False
 
     def isDirectStream(self):
+        # Never transcode Music
+        if self.API.getType() == 'track':
+            return True
         # set to 'Transcode=2'
         if utils.settings('playType') == "2":
             # User forcing to play via HTTP
