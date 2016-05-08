@@ -6,11 +6,11 @@ import json
 from urllib import urlencode
 
 import xbmc
-import xbmcgui
 
 import embydb_functions as embydb
 import read_embyserver as embyserver
 import utils
+import playbackutils
 import PlexFunctions
 import PlexAPI
 
@@ -93,7 +93,8 @@ class Playlist():
                 dbid = embydb_item[0]
                 mediatype = embydb_item[4]
             except TypeError:
-                # Item is not found in our database, add item manually
+                self.logMsg('item %s not found in Kodi DB, add manually'
+                            % itemid, 1)
                 item = self.emby.getItem(itemid)
                 self.addtoPlaylist_xbmc(playlist, item)
             else:
@@ -126,17 +127,18 @@ class Playlist():
         self.logMsg(xbmc.executeJSONRPC(json.dumps(pl)), 2)
 
     def addtoPlaylist_xbmc(self, playlist, item):
-        path = "plugin://plugin.video.plexkodiconnect.movies/"
+        API = PlexAPI.API(item[0])
         params = {
             'mode': "play",
-            'dbid': 999999999
+            'dbid': 999999999,
+            'id': API.getRatingKey(),
+            'filename': API.getKey()
         }
-        API = PlexAPI.API(item[0])
-        params['id'] = API.getRatingKey()
-        params['filename'] = API.getKey()
-        playurl = path + '?' + urlencode(params)
+        playurl = "plugin://plugin.video.plexkodiconnect.movies/?%s" \
+            % urlencode(params)
 
-        listitem = xbmcgui.ListItem()
+        listitem = API.CreateListItemFromPlexItem()
+        playbackutils.PlaybackUtils(item[0]).setArtwork(listitem)
 
         playlist.add(playurl, listitem)
 
