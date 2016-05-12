@@ -1,5 +1,7 @@
 version 1.1.9
-- Added Python requests to the PKC repo
+- Fix new episodes not being detected 
+- Use direct file paths for on deck shows if enabled
+- Added Python requests to the PKC repo (should fix install problems)
 
 version 1.1.8
 - Account for string.encode() not allowing args. This will hopefully fix any sync problems now, especially for Android TV
