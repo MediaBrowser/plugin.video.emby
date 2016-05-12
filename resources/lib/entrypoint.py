@@ -1229,10 +1229,8 @@ def getRecentEpisodes(viewid, mediatype, tagname, limit):
     # if the addon is called with recentepisodes parameter,
     # we return the recentepisodes list of the given tagname
     xbmcplugin.setContent(int(sys.argv[1]), 'episodes')
-    appendShowTitle = True if \
-        utils.settings('RecentTvAppendShow') == 'true' else False
-    appendSxxExx = True if \
-        utils.settings('RecentTvAppendSeason') == 'true' else False
+    appendShowTitle = utils.settings('RecentTvAppendShow') == 'true'
+    appendSxxExx = utils.settings('RecentTvAppendSeason') == 'true'
     # First we get a list of all the TV shows - filtered by tag
     query = {
         'jsonrpc': "2.0",
@@ -1510,10 +1508,8 @@ def getOnDeck(viewid, mediatype, tagname, limit):
         limit:              Max. number of items to retrieve, e.g. 50
     """
     xbmcplugin.setContent(int(sys.argv[1]), 'episodes')
-    appendShowTitle = True if \
-        utils.settings('OnDeckTvAppendShow') == 'true' else False
-    appendSxxExx = True if \
-        utils.settings('OnDeckTvAppendSeason') == 'true' else False
+    appendShowTitle = utils.settings('OnDeckTvAppendShow') == 'true'
+    appendSxxExx = utils.settings('OnDeckTvAppendSeason') == 'true'
     if utils.settings('OnDeckTVextended') == 'false':
         # Chances are that this view is used on Kodi startup
         # Wait till we've connected to a PMS. At most 30s
@@ -1521,13 +1517,12 @@ def getOnDeck(viewid, mediatype, tagname, limit):
         while utils.window('plex_authenticated') != 'true':
             counter += 1
             if counter >= 300:
-                break
+                return xbmcplugin.endOfDirectory(int(sys.argv[1]), False)
             xbmc.sleep(100)
         xml = downloadutils.DownloadUtils().downloadUrl(
             '{server}/library/sections/%s/onDeck' % viewid)
         if xml in (None, 401):
             return xbmcplugin.endOfDirectory(int(sys.argv[1]))
-        url = "plugin://plugin.video.plexkodiconnect.tvshows/"
         params = {
             'mode': "play"
         }
@@ -1538,16 +1533,23 @@ def getOnDeck(viewid, mediatype, tagname, limit):
                 appendSxxExx=appendSxxExx)
             API.AddStreamInfo(listitem)
             pbutils.PlaybackUtils(item).setArtwork(listitem)
-            params['id'] = API.getRatingKey()
-            params['dbid'] = listitem.getProperty('dbid')
+            if utils.settings('useDirectPaths') == 'true':
+                url = API.getFilePath()
+            else:
+                params = {
+                    'mode': "play",
+                    'id': API.getRatingKey(),
+                    'dbid': listitem.getProperty('dbid')
+                }
+                url = "plugin://plugin.video.plexkodiconnect.tvshows/?%s" \
+                      % urllib.urlencode(params)
             xbmcplugin.addDirectoryItem(
                 handle=int(sys.argv[1]),
-                url="%s?%s" % (url, urllib.urlencode(params)),
+                url=url,
                 listitem=listitem)
         return xbmcplugin.endOfDirectory(
             handle=int(sys.argv[1]),
-            cacheToDisc=True if utils.settings('enableTextureCache') == 'true'
-            else False)
+            cacheToDisc=utils.settings('enableTextureCache') == 'true')
 
     # if the addon is called with nextup parameter,
     # we return the nextepisodes list of the given tagname
