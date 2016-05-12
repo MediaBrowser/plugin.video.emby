@@ -1347,11 +1347,11 @@ class LibrarySync(Thread):
                 # We haven't waited long enough for the PMS to finish
                 # processing the item. Do it later
                 continue
-            if item['state'] == 5:
-                if self.process_newitems(item) is True:
-                    deleteListe.append(i)
-            elif item['state'] == 9:
+            if item['state'] == 9:
                 if self.process_deleteditems(item) is True:
+                    deleteListe.append(i)
+            else:
+                if self.process_newitems(item) is True:
                     deleteListe.append(i)
 
         # Get rid of the items we just processed
@@ -1423,15 +1423,22 @@ class LibrarySync(Thread):
         "processing queue" for later
         """
         for item in data:
-            state = item.get('state')
             typus = item.get('type')
-            if state == 9 or (state == 5 and typus in (1, 4, 10)):
-                self.itemsToProcess.append({
-                    'state': state,
-                    'type': typus,
-                    'ratingKey': item.get('itemID'),
-                    'timestamp': utils.getUnixTimestamp()
-                })
+            state = item.get('state')
+            if state == 9 or typus in (1, 4, 10):
+                itemId = item.get('itemID')
+                # Have we already added this element?
+                for existingItem in self.itemsToProcess:
+                    if existingItem['ratingKey'] == itemId:
+                        break
+                else:
+                    # Haven't added this element to the queue yet
+                    self.itemsToProcess.append({
+                        'state': state,
+                        'type': typus,
+                        'ratingKey': itemId,
+                        'timestamp': utils.getUnixTimestamp()
+                    })
 
     def process_playing(self, data):
         """
