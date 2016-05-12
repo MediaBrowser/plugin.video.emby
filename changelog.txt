@@ -1,3 +1,6 @@
+version 1.1.9
+- Added Python requests to the PKC repo
+
 version 1.1.8
 - Account for string.encode() not allowing args. This will hopefully fix any sync problems now, especially for Android TV
 - Also show already watched recently added episodes
