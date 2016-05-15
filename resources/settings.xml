@@ -99,6 +99,7 @@
 	    <setting id="transcoderVideoQualities" type="enum" label="30160" values="420x420, 320Kbps|576x320, 720Kbps|720x480, 1.5Mbps|1024x768, 2Mbps|1280x720, 3Mbps|1280x720, 4Mbps|1920x1080, 8Mbps|1920x1080, 10Mbps|1920x1080, 12Mbps|1920x1080, 20Mbps|1920x1080, 40Mbps" default="11" />
 	    <setting id="transcodeH265" type="enum" label="30522" default="0" values="Disabled (default)|480p (and higher)|720p (and higher)|1080p" />
 	    <setting id="transcodeHi10P" type="bool" label="39063" default="false"/>
+	    <setting id="transcodeHEVC" type="bool" label="39065" default="false"/>
 	    <setting id="audioBoost" type="slider" label="39001" default="0" range="0,10,100" option="int"/>
 	    <setting id="subtitleSize" label="39002" type="slider" option="int" range="0,30,300" default="100" />
 	    <setting id="markPlayed" type="number" visible="false" default="95" />

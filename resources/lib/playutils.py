@@ -166,6 +166,7 @@ class PlayUtils():
         Returns True if we need to transcode because
             - codec is in h265
             - 10bit video codec
+            - HEVC codec
         if the corresponding file settings are set to 'true'
         """
         videoCodec = self.API.getVideoCodec()
@@ -188,6 +189,10 @@ class PlayUtils():
         if (utils.settings('transcodeHi10P') == 'true' and
                 videoCodec['bitDepth'] == '10'):
             self.logMsg('Option to transcode 10bit video content enabled.', 1)
+            return True
+        if (utils.settings('transcodeHEVC') == 'true' and
+                codec == 'hevc'):
+            self.logMsg('Option to transcode HEVC video content enabled.', 1)
             return True
 
         return False
