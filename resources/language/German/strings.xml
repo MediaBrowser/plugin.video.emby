@@ -347,6 +347,7 @@
     <string id="39061">Zusätzliche Bilder von FanArtTV herunterladen? Die Synchronisierung wird länger dauern!</string>
     <string id="39062">Sync wenn Bildschirmschoner deaktiviert wird</string>
     <string id="39063">Hi10p Codec Transkodierung erzwingen</string>
+    <string id="39064">"Zuletzt hinzugefügt": gesehene Folgen anzeigen</string>
 
     <!-- Plex Entrypoint.py -->
     <string id="39200">Plex Home Benutzer abmelden: </string>

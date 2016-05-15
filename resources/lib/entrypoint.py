@@ -1269,6 +1269,12 @@ def getRecentEpisodes(viewid, mediatype, tagname, limit):
             "limits": {"end": limit}
         }
     }
+    if utils.settings('ShowWatched') == 'false':
+        query['params']['filter'] = {
+            'operator': "lessthan",
+            'field': "playcount",
+            'value': "1"
+        }
     result = xbmc.executeJSONRPC(json.dumps(query))
     result = json.loads(result)
     try:

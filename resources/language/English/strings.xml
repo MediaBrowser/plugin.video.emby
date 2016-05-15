@@ -408,6 +408,7 @@
     <string id="39061">Would you like to download additional artwork from FanArtTV? Sync will be slower!</string>
     <string id="39062">Sync when screensaver is deactivated</string>
     <string id="39063">Force Transcode Hi10P</string>
+    <string id="39064">Recently Added: Also show already watched episodes</string>
 
     <!-- Plex Entrypoint.py -->
     <string id="39200">Log-out Plex Home User </string>
