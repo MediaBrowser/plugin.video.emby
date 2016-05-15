@@ -100,7 +100,7 @@ class PlayUtils():
             self.logMsg("User chose to not direct play", 1)
             return False
 
-        if self.h265enabled():
+        if self.mustTranscode():
             return False
 
         path = self.API.validatePlayurl(self.API.getFilePath(),
@@ -161,9 +161,12 @@ class PlayUtils():
             self.logMsg("Failed to find file.", 1)
             return False
 
-    def h265enabled(self):
+    def mustTranscode(self):
         """
-        Returns True if we need to transcode
+        Returns True if we need to transcode because
+            - codec is in h265
+            - 10bit video codec
+        if the corresponding file settings are set to 'true'
         """
         videoCodec = self.API.getVideoCodec()
         self.logMsg("videoCodec: %s" % videoCodec, 2)
@@ -182,6 +185,10 @@ class PlayUtils():
                         "%s, transcoding limit resolution: %s"
                         % (resolution, h265), 1)
             return True
+        if (utils.settings('transcodeHi10P') == 'true' and
+                videoCodec['bitDepth'] == '10'):
+            self.logMsg('Option to transcode 10bit video content enabled.', 1)
+            return True
 
         return False
 
@@ -194,7 +201,7 @@ class PlayUtils():
             # User forcing to play via HTTP
             self.logMsg("User chose to transcode", 1)
             return False
-        if self.h265enabled():
+        if self.mustTranscode():
             return False
         # Verify the bitrate
         if not self.isNetworkSufficient():

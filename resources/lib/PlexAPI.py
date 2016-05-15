@@ -1672,28 +1672,20 @@ class API():
                 'width': xxx,            e.g. '1920'
                 'aspectratio': xxx,      e.g. '1.78'
                 'bitrate': xxx,          e.g. 10642 (an int!)
-                'container': xxx         e.g. 'mkv'
+                'container': xxx         e.g. 'mkv',
+                'bitDepth': xxx          e.g. '8', '10'
             }
         """
-
-        videocodec = self.getDataFromPartOrMedia('videoCodec')
-        resolution = self.getDataFromPartOrMedia('videoResolution')
-        height = self.getDataFromPartOrMedia('height')
-        width = self.getDataFromPartOrMedia('width')
-        aspectratio = self.getDataFromPartOrMedia('aspectratio')
-        bitrate = self.getDataFromPartOrMedia('bitrate')
-        container = self.getDataFromPartOrMedia('container')
-
-        videoCodec = {
-            'videocodec': videocodec,
-            'resolution': resolution,
-            'height': height,
-            'width': width,
-            'aspectratio': aspectratio,
-            'bitrate': bitrate,
-            'container': container
+        return {
+            'videocodec': self.getDataFromPartOrMedia('videoCodec'),
+            'resolution': self.getDataFromPartOrMedia('videoResolution'),
+            'height': self.getDataFromPartOrMedia('height'),
+            'width': self.getDataFromPartOrMedia('width'),
+            'aspectratio': self.getDataFromPartOrMedia('aspectratio'),
+            'bitrate': self.getDataFromPartOrMedia('bitrate'),
+            'container': self.getDataFromPartOrMedia('container'),
+            'bitDepth': self.getDataFromPartOrMedia('bitDepth')
         }
-        return videoCodec
 
     def getExtras(self):
         """
