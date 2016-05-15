@@ -140,13 +140,15 @@ class Main:
             # Other functions
             if mode == "settings":
                 xbmc.executebuiltin('Addon.OpenSettings(plugin.video.plexkodiconnect)')
-            elif mode in ("manualsync", "fastsync", "repair"):
+            elif mode in ("manualsync", "repair"):
                 if utils.window('emby_online') != "true":
                     # Server is not online, do not run the sync
-                    xbmcgui.Dialog().ok(heading="PlexKodiConnect",
-                                        line1=("Unable to run the sync, the add-on is not "
-                                               "connected to the Emby server."))
-                    utils.logMsg("PLEX", "Not connected to the emby server.", 1)
+                    xbmcgui.Dialog().ok(
+                        "PlexKodiConnect",
+                        "Unable to run the sync, the add-on is not connected "
+                        "to a Plex server.")
+                    utils.logMsg("PLEX",
+                                 "Not connected to a PMS.", -1)
                     return
                     
                 else:

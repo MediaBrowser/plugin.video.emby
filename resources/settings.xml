@@ -54,6 +54,7 @@
 		<setting id="enableBackgroundSync" type="bool" label="39026" default="true" visible="true"/>
 		<setting id="saftyMargin" type="slider" label="39051" default="60" option="int" range="10,1,300" visible="eq(-1,true)"/>
 		<setting id="fullSyncInterval" type="number" label="39053" default="60" option="int" />
+		<setting id="dbSyncScreensaver" type="bool" label="39062" default="false" /><!--Sync when screensaver is deactivated-->
 
 		<setting type="lsep" label="30538" /><!-- Complete Re-Sync necessary -->
 		<setting id="FanartTV" label="30539" type="bool" default="false" /><!-- Download additional art from FanArtTV -->

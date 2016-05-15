@@ -345,6 +345,7 @@
     <string id="39059">"Zuletzt hinzugefügt": Serien- an Episoden-Titel anfügen</string>
     <string id="39060">"Zuletzt hinzugefügt": Staffel und Episode anfügen, SxxExx</string>
     <string id="39061">Zusätzliche Bilder von FanArtTV herunterladen? Die Synchronisierung wird länger dauern!</string>
+    <string id="39062">Sync wenn Bildschirmschoner deaktiviert wird</string>
 
     <!-- Plex Entrypoint.py -->
     <string id="39200">Plex Home Benutzer abmelden: </string>
