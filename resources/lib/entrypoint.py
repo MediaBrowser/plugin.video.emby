@@ -1269,7 +1269,7 @@ def getRecentEpisodes(viewid, mediatype, tagname, limit):
             "limits": {"end": limit}
         }
     }
-    if utils.settings('ShowWatched') == 'false':
+    if utils.settings('TVShowWatched') == 'false':
         query['params']['filter'] = {
             'operator': "lessthan",
             'field': "playcount",

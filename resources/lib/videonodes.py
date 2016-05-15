@@ -300,8 +300,12 @@ class VideoNodes(object):
                 elif nodetype == "recent":
                     etree.SubElement(root, 'order', {'direction': "descending"}).text = "dateadded"
                     etree.SubElement(root, 'limit').text = limit
-                    rule = etree.SubElement(root, 'rule', {'field': "playcount", 'operator': "is"})
-                    etree.SubElement(rule, 'value').text = "0"
+                    if utils.settings('MovieShowWatched') == 'false':
+                        rule = etree.SubElement(root,
+                                                'rule',
+                                                {'field': "playcount",
+                                                 'operator': "is"})
+                        etree.SubElement(rule, 'value').text = "0"
                 
                 elif nodetype == "inprogress":
                     etree.SubElement(root, 'rule', {'field': "inprogress", 'operator': "true"})

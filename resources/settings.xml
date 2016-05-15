@@ -136,9 +136,11 @@
 		<setting id="OnDeckTVextended" type="bool" label="39058" default="true" /><!-- Extend Plex TV Series "On Deck" view to all shows -->
 		<setting id="OnDeckTvAppendShow" type="bool" label="39047" default="false" /><!--On Deck view: Append show title to episode-->
 		<setting id="OnDeckTvAppendSeason" type="bool" label="39048" default="false" /><!--On Deck view: Append season number to episode-->
-		<setting id="ShowWatched" type="bool" label="39064" default="true" /><!--Recently Added: Also show already watched episodes-->
+		<setting id="TVShowWatched" type="bool" label="39064" default="true" /><!--Recently Added: Also show already watched episodes-->
 		<setting id="RecentTvAppendShow" type="bool" label="39059" default="false" /><!--Recently added: Append show title to episode-->
 		<setting id="RecentTvAppendSeason" type="bool" label="39060" default="false" /><!--Recently Added: Append season- and episode-number SxxExx-->
+		<setting type="lsep" label="30302" /><!-- Movies -->
+		<setting id="MovieShowWatched" type="bool" label="39066" default="true" /><!--Recently Added: Also show already watched episodes-->
 	</category>
 
 	<category label="30022"><!-- Advanced -->
