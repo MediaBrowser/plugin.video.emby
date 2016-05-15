@@ -140,7 +140,7 @@ class Main:
             # Other functions
             if mode == "settings":
                 xbmc.executebuiltin('Addon.OpenSettings(plugin.video.plexkodiconnect)')
-            elif mode in ("manualsync", "repair"):
+            elif mode in ("manualsync", "fastsync", "repair"):
                 if utils.window('emby_online') != "true":
                     # Server is not online, do not run the sync
                     xbmcgui.Dialog().ok(heading="PlexKodiConnect",

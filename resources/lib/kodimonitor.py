@@ -146,6 +146,13 @@ class KodiMonitor(xbmc.Monitor):
             xbmc.sleep(10000)
             utils.window('emby_onWake', value="true")
 
+
+        elif method == "GUI.OnScreensaverDeactivated":
+            if utils.settings('dbSyncScreensaver') == "true":
+                xbmc.sleep(5000);
+                utils.window('emby_onWake', value="true")
+
+
         elif method == "Playlist.OnClear":
             pass
 
