@@ -1671,7 +1671,7 @@ class API():
                 'height': xxx,           e.g. '816'
                 'width': xxx,            e.g. '1920'
                 'aspectratio': xxx,      e.g. '1.78'
-                'bitrate': xxx,          e.g. 10642 (an int!)
+                'bitrate': xxx,          e.g. '10642'
                 'container': xxx         e.g. 'mkv',
                 'bitDepth': xxx          e.g. '8', '10'
             }
