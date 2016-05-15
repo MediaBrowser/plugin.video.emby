@@ -954,4 +954,7 @@ def tryDecode(string, encoding='utf-8'):
         string = string.decode(encoding, "ignore")
     except TypeError:
         string = string.decode()
+    except UnicodeEncodeError:
+        # Already in unicode - e.g. sometimes file paths
+        pass
     return string
