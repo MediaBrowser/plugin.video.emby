@@ -1,3 +1,15 @@
+version 1.1.10
+- A donation link is up. Your support is much appreciated :-)
+- Movie sets are working (without set art as this is missing from Plex). Many thanks to mattsch!
+- Fix playback report and marking an item played. Should fix issues with e.g. episodes not correctly being set to watched in Kodi in the On Deck view
+- Fix UnicodeEncodeError for file paths
+- New setting: show watched movies in recently added
+- New setting: don't show already watched episodes
+- New setting: Force transcode HEVC
+- New setting: Force transcode 10bit
+- New setting: do a sync after screensaver deactivated. Very useful for Kodi for Android as Android may put Kodi in a weird kind of sleep
+- Merge with plugin.video.emby up to 417b8d3b2237f982d1eab462c130e8a4f445dd8b
+
 version 1.1.9
 - Fix new episodes not being detected 
 - Use direct file paths for on deck shows if enabled
