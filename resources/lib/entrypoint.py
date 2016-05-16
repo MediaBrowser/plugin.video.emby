@@ -1524,15 +1524,16 @@ def getOnDeck(viewid, mediatype, tagname, limit):
         while utils.window('plex_authenticated') != 'true':
             counter += 1
             if counter >= 300:
+                utils.logMsg(title, 'Aborting On Deck view, we were not '
+                             'authenticated for the PMS', -1)
                 return xbmcplugin.endOfDirectory(int(sys.argv[1]), False)
             xbmc.sleep(100)
         xml = downloadutils.DownloadUtils().downloadUrl(
             '{server}/library/sections/%s/onDeck' % viewid)
         if xml in (None, 401):
+            utils.logMsg(title, 'Could not download PMS xml for view %s'
+                         % viewid, -1)
             return xbmcplugin.endOfDirectory(int(sys.argv[1]))
-        params = {
-            'mode': "play"
-        }
         for item in xml:
             API = PlexAPI.API(item)
             listitem = API.CreateListItemFromPlexItem(
