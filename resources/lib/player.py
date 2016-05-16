@@ -222,7 +222,7 @@ class Player(xbmc.Player):
             'playQueueVersion': playQueueVersion,
             'playQueueID': playQueueID,
             'playQueueItemID': playQueueItemID,
-            'runtime': runtime * 1000,
+            'runtime': runtime,
             'item_id': itemId,
             'refresh_id': refresh_id,
             'currentfile': currentFile,
@@ -477,7 +477,7 @@ class Player(xbmc.Player):
 
                 if currentPosition and runtime:
                     try:
-                        percentComplete = currentPosition / int(runtime)
+                        percentComplete = float(currentPosition) / float(runtime)
                     except ZeroDivisionError:
                         # Runtime is 0.
                         percentComplete = 0
@@ -485,6 +485,8 @@ class Player(xbmc.Player):
                     markPlayedAt = float(settings('markPlayed')) / 100
                     self.logMsg("Percent complete: %s Mark played at: %s"
                         % (percentComplete, markPlayedAt), 1)
+                    if percentComplete >= markPlayedAt:
+                        
 
                     # Send the delete action to the server.
                     offerDelete = False
@@ -549,7 +551,7 @@ class Player(xbmc.Player):
         args = {
             'ratingKey': itemId,
             'state': 'stopped',   # 'stopped', 'paused', 'buffering', 'playing'
-            'time': int(playTime) * 1000,
+            'time': int(playTime),
             'duration': int(duration)
         }
         url = url + urlencode(args)
