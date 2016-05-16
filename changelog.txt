@@ -1,3 +1,6 @@
+version 1.1.11
+- Episodes and movies should now correctly be marked as watched in Kodi
+
 version 1.1.10
 - A donation link is up. Your support is much appreciated :-)
 - Movie sets are working (without set art as this is missing from Plex). Many thanks to mattsch!
