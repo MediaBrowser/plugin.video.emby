@@ -1,7 +1,7 @@
 ### Download the Kodi Repository
-The easiest way to install PlexKodiConnect (PKC) is via its dedicated PKC Kodi repository (we cannot use the official Kodi repository as PKC messes with Kodi's databases)
-
 [ ![Download](https://api.bintray.com/packages/croneter/PlexKodiConnect/PlexKodiConnect/images/download.svg) ](https://dl.bintray.com/croneter/PlexKodiConnect/bin/repository.plexkodiconnect/repository.plexkodiconnect-1.0.0.zip)
+
+The easiest way to install PlexKodiConnect (PKC) is via its dedicated PKC Kodi repository (we cannot use the official Kodi repository as PKC messes with Kodi's databases). See the [installation guideline](https://github.com/croneter/PlexKodiConnect/wiki/Installation).
 
 ### Donations
 I'm not in any way affiliated with Plex. Thank you very much for your small donation via ko-fi.com and PayPal if you appreciate PlexKodiConnect. 
