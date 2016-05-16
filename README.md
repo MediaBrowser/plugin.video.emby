@@ -2,6 +2,10 @@
 
 [ ![Download](https://api.bintray.com/packages/croneter/PlexKodiConnect/PlexKodiConnect/images/download.svg) ](https://dl.bintray.com/croneter/PlexKodiConnect/bin/repository.plexkodiconnect/repository.plexkodiconnect-1.0.0.zip)
 
+### Donations
+I'm not in any way affiliated with Plex. Thank you very much for your small donation if you appreciate PKC
+[[https://az743702.vo.msecnd.net/cdn/kofi1.png?v=a|alt=Buy Me a Coffee at ko-fi.com]](https://ko-fi.com/A3882E4)
+
 ###IMPORTANT###
 
 1. If your are using a **low CPU device like a raspberry pi or a CuBox**, PKC might be instable or crash during initial sync. Lower the number of threads in the [PKC settings under Sync Options](https://github.com/croneter/PlexKodiConnect/wiki/PKC-settings#sync-options):
