@@ -1516,6 +1516,7 @@ def getOnDeck(viewid, mediatype, tagname, limit):
     xbmcplugin.setContent(int(sys.argv[1]), 'episodes')
     appendShowTitle = utils.settings('OnDeckTvAppendShow') == 'true'
     appendSxxExx = utils.settings('OnDeckTvAppendSeason') == 'true'
+    directpaths = utils.settings('useDirectPaths') == 'true'
     if utils.settings('OnDeckTVextended') == 'false':
         # Chances are that this view is used on Kodi startup
         # Wait till we've connected to a PMS. At most 30s
@@ -1539,7 +1540,7 @@ def getOnDeck(viewid, mediatype, tagname, limit):
                 appendSxxExx=appendSxxExx)
             API.AddStreamInfo(listitem)
             pbutils.PlaybackUtils(item).setArtwork(listitem)
-            if utils.settings('useDirectPaths') == 'true':
+            if directpaths:
                 url = API.getFilePath()
             else:
                 params = {
