@@ -6,8 +6,6 @@ The easiest way to install PlexKodiConnect (PKC) is via its dedicated PKC Kodi r
 ### Donations
 I'm not in any way affiliated with Plex. Thank you very much for your small donation via ko-fi.com and PayPal if you appreciate PlexKodiConnect. 
 
-[ ![Download](https://az743702.vo.msecnd.net/cdn/kofi1.png?v=a|alt=Buy Me a Coffee)](https://ko-fi.com/A0022E8)
-
 ###IMPORTANT###
 
 1. If your are using a **low CPU device like a raspberry pi or a CuBox**, PKC might be instable or crash during initial sync. Lower the number of threads in the [PKC settings under Sync Options](https://github.com/croneter/PlexKodiConnect/wiki/PKC-settings#sync-options):
