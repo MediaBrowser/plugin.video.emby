@@ -6,6 +6,7 @@ The easiest way to install PlexKodiConnect (PKC) is via its dedicated PKC Kodi r
 ### Donations
 I'm not in any way affiliated with Plex. Thank you very much for your small donation via ko-fi.com and PayPal if you appreciate PlexKodiConnect. 
 
+[ ![Download](https://az743702.vo.msecnd.net/cdn/kofi1.png?v=a|alt=Buy Me a Coffee)](https://ko-fi.com/A0022E8)
 
 ###IMPORTANT###
 
