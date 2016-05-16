@@ -530,6 +530,8 @@ class Movies(Items):
         if userdata['Favorite']:
             tags.append("Favorite movies")
         self.kodi_db.addTags(movieid, tags, "movie")
+        # Add any sets from Plex collection tags
+        self.kodi_db.addSets(movieid, collections)
         # Process playstates
         self.kodi_db.addPlaystate(fileid, resume, runtime, playcount, dateplayed)
 

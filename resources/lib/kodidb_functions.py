@@ -1181,6 +1181,11 @@ class Kodidb_Functions():
                 ))
                 self.cursor.execute(query, (kodiid, mediatype, tag_id,))
 
+    def addSets(self, movieid, collections):
+        for setname in collections:
+            setid = self.createBoxset(setname)
+            self.assignBoxset(setid, movieid)
+
     def createBoxset(self, boxsetname):
 
         self.logMsg("Adding boxset: %s" % boxsetname, 2)
