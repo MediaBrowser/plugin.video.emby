@@ -267,12 +267,13 @@ class PlaybackUtils():
         # Set all properties necessary for plugin path playback
         itemid = self.API.getRatingKey()
         itemtype = self.API.getType()
-        resume, runtime = self.API.getRuntime()
+        userdata = self.API.getUserData()
 
         embyitem = "emby_%s" % playurl
-        window('%s.runtime' % embyitem, value=str(runtime))
+        window('%s.runtime' % embyitem, value=str(userdata['Runtime']))
         window('%s.type' % embyitem, value=itemtype)
         window('%s.itemid' % embyitem, value=itemid)
+        window('%s.playcount' % embyitem, value=str(userdata['PlayCount']))
 
         # We need to keep track of playQueueItemIDs for Plex Companion
         window('plex_%s.playQueueItemID'

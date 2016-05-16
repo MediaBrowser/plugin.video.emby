@@ -10,6 +10,8 @@ import xbmcgui
 import utils
 import clientinfo
 import downloadutils
+import embydb_functions as embydb
+import kodidb_functions as kodidb
 
 from urllib import urlencode
 
@@ -94,6 +96,10 @@ class Player(xbmc.Player):
         refresh_id = window("%s.refreshid" % embyitem)
         playMethod = window("%s.playmethod" % embyitem)
         itemType = window("%s.type" % embyitem)
+        try:
+            playcount = int(window("%s.playcount" % embyitem))
+        except ValueError:
+            playcount = 0
         window('emby_skipWatched%s' % itemId, value="true")
 
         self.logMsg("Playing itemtype is: %s" % itemType, 1)
@@ -217,12 +223,19 @@ class Player(xbmc.Player):
         playQueueVersion = window('playQueueVersion')
         playQueueID = window('playQueueID')
         playQueueItemID = window('plex_%s.playQueueItemID' % currentFile)
+        with embydb.GetEmbyDB() as emby_db:
+            emby_dbitem = emby_db.getItem_byId(itemId)
+        try:
+            fileid = emby_dbitem[1]
+        except TypeError:
+            self.logMsg("Could not find fileid in plex db.", 1)
+            fileid = None
         # Save data map for updates and position calls
         data = {
             'playQueueVersion': playQueueVersion,
             'playQueueID': playQueueID,
             'playQueueItemID': playQueueItemID,
-            'runtime': runtime,
+            'runtime': runtime * 1000,
             'item_id': itemId,
             'refresh_id': refresh_id,
             'currentfile': currentFile,
@@ -230,11 +243,14 @@ class Player(xbmc.Player):
             'SubtitleStreamIndex': postdata['SubtitleStreamIndex'],
             'playmethod': playMethod,
             'Type': itemType,
-            'currentPosition': int(seekTime)
+            'currentPosition': int(seekTime) * 1000,
+            'fileid': fileid,
+            'itemType': itemType,
+            'playcount': playcount
         }
         
         self.played_info[currentFile] = data
-        self.logMsg("ADDING_FILE: %s" % self.played_info, 1)
+        self.logMsg("ADDING_FILE: %s" % data, 1)
 
         # log some playback stats
         '''if(itemType != None):
@@ -423,7 +439,7 @@ class Player(xbmc.Player):
 
         if self.played_info.get(currentFile):
             position = self.xbmcplayer.getTime()
-            self.played_info[currentFile]['currentPosition'] = position
+            self.played_info[currentFile]['currentPosition'] = position * 1000
 
             self.reportPlayback()
     
@@ -484,8 +500,18 @@ class Player(xbmc.Player):
                         
                     markPlayedAt = float(settings('markPlayed')) / 100
                     self.logMsg("Percent complete: %s Mark played at: %s"
-                        % (percentComplete, markPlayedAt), 1)
-
+                                % (percentComplete, markPlayedAt), 1)
+                    if currentPosition >= markPlayedAt:
+                        # Tell Kodi that we've finished watching (Plex knows)
+                        if (data['fileid'] is not None and
+                                data['itemType'] in ('movie', 'episode')):
+                            with kodidb.GetKodiDB('video') as kodi_db:
+                                kodi_db.addPlaystate(
+                                    data['fileid'],
+                                    None,
+                                    None,
+                                    data['playcount'] + 1,
+                                    utils.DateToKodi(utils.getUnixTimestamp()))
                     # Send the delete action to the server.
                     offerDelete = False
 
@@ -522,6 +548,8 @@ class Player(xbmc.Player):
                 'emby_%s.refreshid' % filename,
                 'emby_%s.playmethod' % filename,
                 'emby_%s.type' % filename,
+                'emby_%s.runtime' % filename,
+                'emby_%s.playcount' % filename,
                 'plex_%s.playQueueItemID' % filename,
                 'plex_%s.playlistPosition' % filename,
                 'plex_%s.guid' % filename
@@ -540,17 +568,11 @@ class Player(xbmc.Player):
 
     def stopPlayback(self, data):
         self.logMsg("stopPlayback called", 1)
-
-        itemId = data['item_id']
-        playTime = data['currentPosition']
-        duration = data.get('runtime', '')
-
-        url = "{server}/:/timeline?"
         args = {
-            'ratingKey': itemId,
+            'ratingKey': data['item_id'],
             'state': 'stopped',   # 'stopped', 'paused', 'buffering', 'playing'
-            'time': int(playTime),
-            'duration': int(duration)
+            'time': int(data['currentPosition']),
+            'duration': int(data.get('runtime', 0))
         }
-        url = url + urlencode(args)
-        self.doUtils(url, action_type="GET")
+        self.doUtils("{server}/:/timeline?" + urlencode(args),
+                     action_type="GET")
