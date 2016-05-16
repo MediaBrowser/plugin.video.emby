@@ -1521,8 +1521,7 @@ class LibrarySync(Thread):
                     'kodi_id': kodiInfo[0],
                     'file_id': kodiInfo[1],
                     'kodi_type': kodiInfo[4],
-                    'viewOffset': PF.ConvertPlexToKodiTime(
-                        item.get('viewOffset')),
+                    'viewOffset': item.get('viewOffset'),
                     'state': state,
                     'duration': currSess['duration'],
                     'viewCount': currSess['viewCount'],
