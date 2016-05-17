@@ -2324,7 +2324,8 @@ class API():
         typus = types[typus]
         if utils.window('remapSMB') == 'true':
             path = path.replace(utils.window('remapSMB%sOrg' % typus),
-                                utils.window('remapSMB%sNew' % typus))
+                                utils.window('remapSMB%sNew' % typus),
+                                1)
             # There might be backslashes left over:
             path = path.replace('\\', '/')
         elif utils.window('replaceSMB') == 'true':
