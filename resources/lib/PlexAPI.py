@@ -291,18 +291,22 @@ class PlexAPI():
                                   authenticate=False,
                                   headerOptions=headerOptions,
                                   verifySSL=verifySSL)
-            if answer is False:
+            if answer is None:
                 self.logMsg("Could not connect to %s" % url, 0)
                 count += 1
                 xbmc.sleep(500)
                 continue
             try:
+                # xml received?
                 answer.attrib
             except:
-                pass
+                if answer is True:
+                    # Maybe no xml but connection was successful nevertheless
+                    answer = 200
             else:
                 # Success - we downloaded an xml!
                 answer = 200
+            # We could connect but maybe were not authenticated. No worries
             self.logMsg("Checking connection successfull. Answer: %s"
                         % answer, 1)
             return answer

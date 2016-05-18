@@ -165,7 +165,7 @@ class DownloadUtils():
         Otherwise, 'empty' request will be made
 
         Returns:
-            False              If an error occured
+            None              If an error occured
             True               If connection worked but no body was received
             401, ...           integer if PMS answered with HTTP error 401
                                (unauthorized) or other http error codes

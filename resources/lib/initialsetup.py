@@ -53,15 +53,8 @@ class InitialSetup():
         if (plexToken and myplexlogin == 'true' and forcePlexTV is False
                 and chooseServer is False):
             chk = self.plx.CheckConnection('plex.tv', plexToken)
-            try:
-                chk.attrib
-            except:
-                pass
-            else:
-                # Success - we downloaded an xml!
-                chk = 200
-            # HTTP Error: unauthorized. Token is no longer valid
             if chk in (401, 403):
+                # HTTP Error: unauthorized. Token is no longer valid
                 self.logMsg('plex.tv connection returned HTTP %s' % chk, 0)
                 # Delete token in the settings
                 utils.settings('plexToken', value='')
