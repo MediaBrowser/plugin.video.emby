@@ -12,6 +12,7 @@ import downloadutils
 import userclient
 
 import PlexAPI
+from PlexFunctions import GetMachineIdentifier
 
 ###############################################################################
 
@@ -25,6 +26,11 @@ class InitialSetup():
         self.doUtils = downloadutils.DownloadUtils().downloadUrl
         self.userClient = userclient.UserClient()
         self.plx = PlexAPI.PlexAPI()
+
+    def PlexTvSignIn(self):
+        """
+        Checks existing connection to plex.tv. If not, triggers sign in
+        """
 
     def setup(self, forcePlexTV=False, chooseServer=False):
         """
@@ -44,7 +50,7 @@ class InitialSetup():
         plexToken = plexdict['plexToken']
         plexid = plexdict['plexid']
         if plexToken:
-            self.logMsg('Found plex.tv token in settings', 0)
+            self.logMsg('Found a plex.tv token in the settings', 0)
 
         dialog = xbmcgui.Dialog()
 
@@ -79,11 +85,10 @@ class InitialSetup():
                                    authenticate=False,
                                    headerOptions={'X-Plex-Token': plexToken})
                 try:
-                    xml.attrib
-                except:
+                    plexLogin = xml.attrib['title']
+                except (AttributeError, KeyError):
                     self.logMsg('Failed to update Plex info from plex.tv', -1)
                 else:
-                    plexLogin = xml.attrib.get('title')
                     utils.settings('plexLogin', value=plexLogin)
                     home = 'true' if xml.attrib.get('home') == '1' else 'false'
                     utils.settings('plexhome', value=home)
@@ -92,12 +97,36 @@ class InitialSetup():
                         'plexHomeSize', value=xml.attrib.get('homeSize', '1'))
                     self.logMsg('Updated Plex info from plex.tv', 0)
 
-        # If a Plex server IP has already been set, return.
+        # If a Plex server IP has already been set
+        # return only if the right machine identifier is found
+        getNewPMS = False
         if server and forcePlexTV is False and chooseServer is False:
-            self.logMsg("Server is already set.", 0)
-            self.logMsg("url: %s, Plex machineIdentifier: %s"
-                        % (server, serverid), 0)
-            return
+            self.logMsg("PMS is already set: %s. Checking now..." % server, 0)
+            chk = self.plx.CheckConnection(server, verifySSL=False)
+            if chk is False:
+                self.logMsg('Could not reach PMS %s' % server, -1)
+                getNewPMS = True
+            if getNewPMS is False and not serverid:
+                self.logMsg('No PMS machineIdentifier found for %s. Trying to '
+                            'get the PMS unique ID' % server, 1)
+                serverid = GetMachineIdentifier(server)
+                if serverid is None:
+                    self.logMsg('Could not retrieve machineIdentifier', -1)
+                    getNewPMS = True
+                else:
+                    utils.settings('plex_machineIdentifier', value=serverid)
+            elif getNewPMS is False:
+                tempServerid = GetMachineIdentifier(server)
+                if tempServerid != serverid:
+                    self.logMsg('The current PMS %s was expected to have a '
+                                'unique machineIdentifier of %s. But we got '
+                                '%s. Pick a new server to be sure'
+                                % (server, serverid, tempServerid), 1)
+                    getNewPMS = True
+            if getNewPMS is False:
+                self.logMsg("Using PMS %s with machineIdentifier %s"
+                            % (server, serverid), 0)
+                return
 
         # If not already retrieved myplex info, optionally let user sign in
         # to plex.tv. This DOES get called on very first install run

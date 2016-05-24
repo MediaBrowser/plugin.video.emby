@@ -424,14 +424,14 @@ def PMSHttpsEnabled(url):
                   verifySSL=False)
     try:
         res.attrib
-    except:
+    except AttributeError:
         # Might have SSL deactivated. Try with http
         res = doUtils('http://%s/identity' % url,
                       authenticate=False,
                       verifySSL=False)
         try:
             res.attrib
-        except:
+        except AttributeError:
             logMsg(title, "Could not contact PMS %s" % url, -1)
             return None
         else:
@@ -448,15 +448,16 @@ def GetMachineIdentifier(url):
 
     Returns None if something went wrong
     """
-    xml = downloadutils.DownloadUtils().downloadUrl(url + '/identity')
+    xml = downloadutils.DownloadUtils().downloadUrl('%s/identity' % url,
+                                                    authenticate=False,
+                                                    verifySSL=False)
     try:
-        xml.attrib
-    except:
+        machineIdentifier = xml.attrib['machineIdentifier']
+    except (AttributeError, KeyError):
         logMsg(title, 'Could not get the PMS machineIdentifier for %s'
                % url, -1)
         return None
-    machineIdentifier = xml.attrib.get('machineIdentifier')
-    logMsg(title, 'Found machineIdentifier %s for %s'
+    logMsg(title, 'Found machineIdentifier %s for the PMS %s'
            % (machineIdentifier, url), 1)
     return machineIdentifier
 

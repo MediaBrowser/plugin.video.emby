@@ -508,24 +508,33 @@ class PlexAPI():
             self.g_PMS      dict set
         """
         self.g_PMS = {}
+        # "Searching for Plex Server"
         xbmcgui.Dialog().notification(
             heading=self.addonName,
             message=self.__language__(39055),
             icon="special://home/addons/plugin.video.plexkodiconnect/icon.png",
-            time=3000,
+            time=4000,
             sound=False)
 
         # Look first for local PMS in the LAN
         pmsList = self.PlexGDM()
-        self.logMsg('pmslist: %s' % pmsList, 1)
+        self.logMsg('PMS found in the local LAN via GDM: %s' % pmsList, 2)
+
+        # Get PMS from plex.tv
+        if plexToken:
+            self.logMsg('Checking with plex.tv for more PMS to connect to', 1)
+            self.getPMSListFromMyPlex(plexToken)
+        else:
+            self.logMsg('No plex token supplied, only checked LAN for PMS', 1)
+
         for uuid in pmsList:
             PMS = pmsList[uuid]
+            if PMS['uuid'] in self.g_PMS:
+                continue
             self.declarePMS(PMS['uuid'], PMS['serverName'], 'http',
                             PMS['ip'], PMS['port'])
-            self.updatePMSProperty(PMS['uuid'], 'owned', '-')
             # Ping to check whether we need HTTPs or HTTP
-            url = '%s:%s' % (PMS['ip'], PMS['port'])
-            https = PMSHttpsEnabled(url)
+            https = PMSHttpsEnabled('%s:%s' % (PMS['ip'], PMS['port']))
             if https is None:
                 # Error contacting url. Skip for now
                 continue
@@ -539,10 +548,6 @@ class PlexAPI():
                 # Already declared with http
                 pass
 
-        if not plexToken:
-            self.logMsg('No plex.tv token supplied, checked LAN for PMS', 0)
-            return
-
         # install plex.tv "virtual" PMS - for myPlex, PlexHome
         # self.declarePMS('plex.tv', 'plex.tv', 'https', 'plex.tv', '443')
         # self.updatePMSProperty('plex.tv', 'local', '-')
@@ -550,9 +555,6 @@ class PlexAPI():
         # self.updatePMSProperty(
         #     'plex.tv', 'accesstoken', plexToken)
         # (remote and local) servers from plex.tv
-
-        # Get PMS from plex.tv. This will overwrite any PMS we already found
-        self.getPMSListFromMyPlex(plexToken)
 
     def getPMSListFromMyPlex(self, token):
         """
@@ -566,7 +568,7 @@ class PlexAPI():
                            headerOptions={'X-Plex-Token': token})
         try:
             xml.attrib
-        except:
+        except AttributeError:
             self.logMsg('Could not get list of PMS from plex.tv', -1)
             return
 
@@ -574,105 +576,110 @@ class PlexAPI():
         queue = Queue.Queue()
         threads = []
 
+        maxAgeSeconds = 2*60*60*24
         for Dir in xml.findall('Device'):
-            if "server" in Dir.get('provides'):
-                if Dir.find('Connection') is None:
-                    # no valid connection - skip
-                    continue
+            if 'server' not in Dir.get('provides'):
+                # No PMS - skip
+                continue
+            if Dir.find('Connection') is None:
+                # no valid connection - skip
+                continue
 
-                # check MyPlex data age - skip if >2 days
-                PMS = {}
-                PMS['name'] = Dir.get('name')
-                infoAge = time.time() - int(Dir.get('lastSeenAt'))
-                oneDayInSec = 60 * 60 * 24
-                if infoAge > 2 * oneDayInSec:
-                    self.logMsg("Server %s not seen for 2 days - "
-                                "skipping." % PMS['name'], 0)
-                    continue
+            # check MyPlex data age - skip if >2 days
+            PMS = {}
+            PMS['name'] = Dir.get('name')
+            infoAge = time.time() - int(Dir.get('lastSeenAt'))
+            if infoAge > maxAgeSeconds:
+                self.logMsg("Server %s not seen for 2 days - skipping."
+                            % PMS['name'], 1)
+                continue
 
-                PMS['uuid'] = Dir.get('clientIdentifier')
-                PMS['token'] = Dir.get('accessToken', token)
-                PMS['owned'] = Dir.get('owned', '0')
-                PMS['local'] = Dir.get('publicAddressMatches')
-                PMS['ownername'] = Dir.get('sourceTitle', '')
-                PMS['path'] = '/'
-                PMS['options'] = None
+            PMS['uuid'] = Dir.get('clientIdentifier')
+            PMS['token'] = Dir.get('accessToken', token)
+            PMS['owned'] = Dir.get('owned', '1')
+            PMS['local'] = Dir.get('publicAddressMatches')
+            PMS['ownername'] = Dir.get('sourceTitle', '')
+            PMS['path'] = '/'
+            PMS['options'] = None
 
-                # If PMS seems (!!) local, try a local connection first
-                # Backup to remote connection, if that failes
-                PMS['baseURL'] = ''
-                for Con in Dir.findall('Connection'):
-                    localConn = Con.get('local')
-                    if ((PMS['local'] == '1' and localConn == '1') or
-                            (PMS['local'] == '0' and localConn == '0')):
-                        # Either both local or both remote
-                        PMS['protocol'] = Con.get('protocol')
-                        PMS['ip'] = Con.get('address')
-                        PMS['port'] = Con.get('port')
-                        PMS['baseURL'] = Con.get('uri')
-                    elif PMS['local'] == '1' and localConn == '0':
-                        # Backup connection if local one did not work
-                        PMS['backup'] = {}
-                        PMS['backup']['protocol'] = Con.get('protocol')
-                        PMS['backup']['ip'] = Con.get('address')
-                        PMS['backup']['port'] = Con.get('port')
-                        PMS['backup']['baseURL'] = Con.get('uri')
+            # Try a local connection first
+            # Backup to remote connection, if that failes
+            PMS['connections'] = []
+            for Con in Dir.findall('Connection'):
+                if Con.get('local') == '1':
+                    PMS['connections'].append(Con)
+            # Append non-local
+            for Con in Dir.findall('Connection'):
+                if Con.get('local') != '1':
+                    PMS['connections'].append(Con)
 
-                # poke PMS, own thread for each poke
-                t = Thread(target=self.pokePMS,
-                           args=(PMS, queue))
-                t.start()
-                threads.append(t)
+            # poke PMS, own thread for each poke
+            t = Thread(target=self.pokePMS,
+                       args=(PMS, queue))
+            t.start()
+            threads.append(t)
 
-            # wait for requests being answered
-            for t in threads:
-                t.join()
+        # wait for requests being answered
+        for t in threads:
+            t.join()
 
-            # declare new PMSs
-            while not queue.empty():
-                PMS = queue.get()
-                self.declarePMS(PMS['uuid'], PMS['name'],
-                                PMS['protocol'], PMS['ip'], PMS['port'])
-                # dflt: token='', local, owned - updated later
-                self.updatePMSProperty(
-                    PMS['uuid'], 'accesstoken', PMS['token'])
-                self.updatePMSProperty(
-                    PMS['uuid'], 'owned', PMS['owned'])
-                self.updatePMSProperty(
-                    PMS['uuid'], 'local', PMS['local'])
-                # set in declarePMS, overwrite for https encryption
-                self.updatePMSProperty(
-                    PMS['uuid'], 'baseURL', PMS['baseURL'])
-                self.updatePMSProperty(
-                    PMS['uuid'], 'ownername', PMS['ownername'])
-                queue.task_done()
+        # declare new PMSs
+        while not queue.empty():
+            PMS = queue.get()
+            self.declarePMS(PMS['uuid'], PMS['name'],
+                            PMS['protocol'], PMS['ip'], PMS['port'])
+            # dflt: token='', local, owned - updated later
+            self.updatePMSProperty(
+                PMS['uuid'], 'accesstoken', PMS['token'])
+            self.updatePMSProperty(
+                PMS['uuid'], 'owned', PMS['owned'])
+            self.updatePMSProperty(
+                PMS['uuid'], 'local', PMS['local'])
+            # set in declarePMS, overwrite for https encryption
+            self.updatePMSProperty(
+                PMS['uuid'], 'baseURL', PMS['baseURL'])
+            self.updatePMSProperty(
+                PMS['uuid'], 'ownername', PMS['ownername'])
+            queue.task_done()
 
     def pokePMS(self, PMS, queue):
-        # Ignore SSL certificates for now
-        xml = self.doUtils(PMS['baseURL'],
+        if PMS['connections'][0].get('local') == '1':
+            protocol = PMS['connections'][0].get('protocol')
+            address = PMS['connections'][0].get('address')
+            port = PMS['connections'][0].get('port')
+            url = '%s://%s:%s' % (protocol, address, port)
+        else:
+            url = PMS['connections'][0].get('uri')
+            protocol, address, port = url.split(':')
+            address = address.replace('/', '')
+
+        xml = self.doUtils('%s/identity' % url,
                            authenticate=False,
                            headerOptions={'X-Plex-Token': PMS['token']},
-                           verifySSL=False)
+                           verifySSL=False,
+                           timeout=3)
         try:
             xml.attrib
-        except:
-            # Connection failed
-            # retry with remote connection if we just tested local one.
-            if PMS['local'] == '1' and PMS.get('backup'):
-                self.logMsg('Couldnt talk to local PMS locally.'
-                            'Trying again remotely.', 0)
-                PMS['protocol'] = PMS['backup']['protocol']
-                PMS['ip'] = PMS['backup']['ip']
-                PMS['port'] = PMS['backup']['port']
-                PMS['baseURL'] = PMS['backup']['baseURL']
-                PMS['local'] = '0'
-                # Try again
-                self.pokePMS(PMS, queue)
-            else:
-                return
+        except AttributeError:
+            # No connection, delete the one we just tested
+            del PMS['connections'][0]
+            if len(PMS['connections']) > 0:
+                # Still got connections left, try them
+                return self.pokePMS(PMS, queue)
+            return
         else:
-            # Connection successful, process later
-            queue.put(PMS)
+            # Connection successful - correct PMS?
+            if xml.get('machineIdentifier') == PMS['uuid']:
+                # process later
+                PMS['baseURL'] = url
+                PMS['protocol'] = protocol
+                PMS['ip'] = address
+                PMS['port'] = port
+                queue.put(PMS)
+                return
+        self.logMsg('Found a PMS at %s, but the expected machineIdentifier of '
+                    '%s did not match the one we found: %s'
+                    % (url, PMS['uuid'], xml.get('machineIdentifier')), -1)
 
     def MyPlexSignIn(self, username, password, options):
         """
