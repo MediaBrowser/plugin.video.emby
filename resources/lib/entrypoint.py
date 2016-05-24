@@ -77,7 +77,7 @@ def chooseServer():
     Lets user choose from list of PMS (signs out & signs in)
     """
     string = xbmcaddon.Addon().getLocalizedString
-    utils.logMsg(title, "Choosing PMS server requested, starting", 0)
+    utils.logMsg(title, "Choosing PMS server requested, starting", 1)
     dialog = xbmcgui.Dialog()
     # Resetting, please wait
     dialog.notification(
@@ -93,33 +93,24 @@ def chooseServer():
     while utils.window('emby_dbScan') == 'true':
         if counter > 100:
             # Failed to reset PMS and plex.tv connects. Try to restart Kodi.
-            dialog.ok(addonName,
-                      string(39208))
+            dialog.ok(addonName, string(39208))
             # Resuming threads, just in case
             utils.window('suspend_LibraryThread', clear=True)
             utils.logMsg(title, "Could not stop library sync, aborting", -1)
             return
         counter += 1
         xbmc.sleep(50)
-    utils.logMsg(title, "Successfully stopped library sync", 0)
-
-    # Reset connection details
-    utils.settings('plex_machineIdentifier', value="")
-    utils.settings('plex_servername', value="")
-    utils.settings('https', value="")
-    utils.settings('ipaddress', value="")
-    utils.settings('port', value="")
+    utils.logMsg(title, "Successfully stopped library sync", 1)
 
     # Log out currently signed in user:
     utils.window('emby_serverStatus', value="401")
-
     # Above method needs to have run its course! Hence wait
     counter = 0
     while utils.window('emby_serverStatus') == "401":
         if counter > 100:
             dialog.ok(addonName,
                       string(39208))
-            utils.logMsg(title, "Could not sign out, aborting", -1)
+            utils.logMsg(title, "Could not sign out, aborting PMS", -1)
             return
         counter += 1
         xbmc.sleep(50)
@@ -127,12 +118,22 @@ def chooseServer():
     utils.window('suspend_Userclient', value='true')
 
     import initialsetup
-    initialsetup.InitialSetup().setup(chooseServer=True)
+    setup = initialsetup.InitialSetup()
+    server = setup.PickPMS()
+    if server is None:
+        utils.logMsg('We did not connect to a new PMS, aborting', -1)
+        utils.window('suspend_Userclient', clear=True)
+        utils.window('suspend_LibraryThread', clear=True)
+        return
+
+    setup.WritePMStoSettings(server)
     # Request lib sync to get user view data (e.g. watched/unwatched)
     utils.window('plex_runLibScan', value='full')
     # Restart user client
     utils.window('suspend_Userclient', clear=True)
     utils.logMsg(title, "Choosing new PMS complete", 0)
+    # And do NOT clear suspend_LibraryThread flag, that needs to be done in
+    # service.py
 
 
 def reConnect():
