@@ -477,9 +477,6 @@ class LibrarySync(Thread):
         # Add sources
         utils.sourcesXML()
 
-        # Ensure that DBs exist if called for very first time
-        self.initializeDBs()
-
         # Set views. Abort if unsuccessful
         if not self.maintainViews():
             xbmc.executebuiltin('InhibitIdleShutdown(false)')
@@ -1580,6 +1577,9 @@ class LibrarySync(Thread):
         errorcount = 0
 
         log("---===### Starting LibrarySync ###===---", 0)
+
+        # Ensure that DBs exist if called for very first time
+        self.initializeDBs()
 
         if self.enableMusic:
             utils.advancedSettingsXML()
