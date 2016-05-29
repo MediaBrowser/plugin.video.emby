@@ -254,7 +254,7 @@ class Service():
                         # Server is offline or cannot be reached
                         # Alert the user and suppress future warning
                         if self.server_online:
-                            log("Server is offline.", 1)
+                            log("Server is offline.", -1)
                             window('emby_online', value="false")
                             # Suspend threads
                             window('suspend_LibraryThread', value='true')
