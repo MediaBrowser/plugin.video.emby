@@ -734,11 +734,11 @@ class LibrarySync(Thread):
 
         # Reopen DB connection to ensure that changes were commited before
         with embydb.GetEmbyDB() as emby_db:
-            # update views for all:
-            self.views = emby_db.getAllViewInfo()
             self.logMsg("Removing views: %s" % self.old_views, 1)
             for view in self.old_views:
                 emby_db.removeView(view)
+            # update views for all:
+            self.views = emby_db.getAllViewInfo()
 
         self.logMsg("Finished processing views. Views saved: %s"
                     % self.views, 1)
