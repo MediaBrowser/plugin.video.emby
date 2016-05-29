@@ -869,8 +869,9 @@ class PlexAPI():
                 self.logMsg('Asking for users PIN', 1)
                 pin = dialog.input(
                     string(39307) + selected_user,
-                    type=xbmcgui.INPUT_NUMERIC,
-                    option=xbmcgui.ALPHANUM_HIDE_INPUT)
+                    '',
+                    xbmcgui.INPUT_NUMERIC,
+                    xbmcgui.ALPHANUM_HIDE_INPUT)
                 # User chose to cancel
                 # Plex bug: don't call url for protected user with empty PIN
                 if not pin:
