@@ -87,13 +87,19 @@ def chooseServer():
         utils.window('suspend_LibraryThread', clear=True)
         return
 
+    utils.logMsg(title, "User chose server %s" % server['name'], 1)
     setup.WritePMStoSettings(server)
 
-    if not __LogOut():
+    if not __LogOut(user=True):
         return
 
+    # First remove playlists
+    utils.deletePlaylists()
+    # Remove video nodes
+    utils.deleteNodes()
+
     # Log in again
-    __LogIn()
+    __LogIn(user=True)
     utils.logMsg(title, "Choosing new PMS complete", 1)
     # '<PMS> connected'
     xbmcgui.Dialog().notification(
