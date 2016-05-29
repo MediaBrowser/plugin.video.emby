@@ -1665,6 +1665,8 @@ def enterPMS():
     utils.settings('https', value=https)
     utils.settings('ipaddress', value=ip)
     utils.settings('port', value=port)
+    # Chances are this is a local PMS, so disable SSL certificate check
+    utils.settings('sslverify', value='false')
 
     # Sign out to trigger new login
     if __LogOut():
