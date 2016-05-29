@@ -97,6 +97,7 @@ class WebSocket(threading.Thread):
         log = self.logMsg
         log("----===## Starting WebSocketClient ##===----", 0)
 
+        counter = 0
         threadStopped = self.threadStopped
         threadSuspended = self.threadSuspended
         while not threadStopped():
@@ -133,6 +134,12 @@ class WebSocket(threading.Thread):
                     # Server is probably offline
                     log("Error connecting", 0)
                     self.ws = None
+                    counter += 1
+                    if counter > 10:
+                        log("Repeatedly could not connect to PMS, declaring "
+                            "the connection dead", -1)
+                        utils.window('emby_online', value='false')
+                        counter = 0
                     xbmc.sleep(1000)
                 except websocket.WebSocketTimeoutException:
                     log("timeout while connecting, trying again", 0)
@@ -142,6 +149,8 @@ class WebSocket(threading.Thread):
                     log("Unknown exception encountered in connecting: %s" % e)
                     self.ws = None
                     xbmc.sleep(1000)
+                else:
+                    counter = 0
             except Exception as e:
                 log("Unknown exception encountered: %s" % e)
                 try:
