@@ -88,15 +88,13 @@ class WebSocket(threading.Thread):
         uri = "%s/:/websockets/notifications" % server
         if token:
             uri += '?X-Plex-Token=%s' % token
-        return uri
-
-    def run(self):
-        log = self.logMsg
-        # Currently not working due to missing SSL environment
         sslopt = {}
         if utils.settings('sslverify') == "false":
             sslopt["cert_reqs"] = ssl.CERT_NONE
+        return uri, sslopt
 
+    def run(self):
+        log = self.logMsg
         log("----===## Starting WebSocketClient ##===----", 0)
 
         threadStopped = self.threadStopped
@@ -123,7 +121,7 @@ class WebSocket(threading.Thread):
                 pass
             except websocket.WebSocketConnectionClosedException:
                 log("Connection closed, (re)connecting", 0)
-                uri = self.getUri()
+                uri, sslopt = self.getUri()
                 try:
                     # Low timeout - let's us shut this thread down!
                     self.ws = websocket.create_connection(
@@ -132,6 +130,7 @@ class WebSocket(threading.Thread):
                         sslopt=sslopt,
                         enable_multithread=True)
                 except IOError:
+                    # Server is probably offline
                     log("Error connecting", 0)
                     self.ws = None
                     xbmc.sleep(1000)
