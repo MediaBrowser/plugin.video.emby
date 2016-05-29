@@ -1,3 +1,14 @@
+version 1.2.0
+- Re-wired connection manager completely
+- Periodically check if PMS address has changed
+- Smarter, faster way to tell that PMS went offline
+- Fix DTS-HD audio is not correctly identified (you will need to manually reset your Kodi DB)
+- Improvements to PMS connection checks
+- Fix default transcoding quality / network speed (so that PKC won't transcode initially)
+- Fix direct path replacing possibly several times
+- Initialize Kodi DBs only once
+- Correctly update views on server switch
+
 version 1.1.11
 - Episodes and movies should now correctly be marked as watched in Kodi
 
