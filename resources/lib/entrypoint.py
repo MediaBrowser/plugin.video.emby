@@ -90,7 +90,7 @@ def chooseServer():
     utils.logMsg(title, "User chose server %s" % server['name'], 1)
     setup.WritePMStoSettings(server)
 
-    if not __LogOut(user=True):
+    if not __LogOut():
         return
 
     # First remove playlists
@@ -99,7 +99,7 @@ def chooseServer():
     utils.deleteNodes()
 
     # Log in again
-    __LogIn(user=True)
+    __LogIn()
     utils.logMsg(title, "Choosing new PMS complete", 1)
     # '<PMS> connected'
     xbmcgui.Dialog().notification(
@@ -493,7 +493,7 @@ def switchPlexUser():
     # position = 0
     # utils.window('EmbyAdditionalUserImage.%s' % position, clear=True)
     utils.logMsg(title, "Plex home user switch requested", 0)
-    if not __LogOut(user=True):
+    if not __LogOut():
         return
 
     # First remove playlists of old user
@@ -1672,27 +1672,23 @@ def enterPMS():
         __LogIn()
 
 
-def __LogIn(user=False):
+def __LogIn():
     """
     Resets (clears) window properties to enable (re-)login:
         suspend_Userclient
         plex_runLibScan: set to 'full' to trigger lib sync
 
-    user=False: user has NOT been signed out before
     suspend_LibraryThread is cleared in service.py if user was signed out!
     """
     utils.window('plex_runLibScan', value='full')
     # Restart user client
     utils.window('suspend_Userclient', clear=True)
-    if user is False:
-        utils.window('suspend_LibraryThread', clear=True)
 
 
-def __LogOut(user=False):
+def __LogOut():
     """
     Finishes lib scans, logs out user. The following window attributes are set:
         suspend_LibraryThread: 'true'
-    If user=True, then the user will also be logged out
         suspend_Userclient: 'true'
 
     Returns True if successfully signed out, False otherwise
@@ -1722,19 +1718,18 @@ def __LogOut(user=False):
         xbmc.sleep(50)
     utils.logMsg(title, "Successfully stopped library sync", 1)
 
-    if user:
-        # Log out currently signed in user:
-        utils.window('emby_serverStatus', value="401")
-        # Above method needs to have run its course! Hence wait
-        counter = 0
-        while utils.window('emby_serverStatus') == "401":
-            if counter > 100:
-                # 'Failed to reset PKC. Try to restart Kodi.'
-                dialog.ok(addonName, string(39208))
-                utils.logMsg(title, "Could not sign out user, aborting", -1)
-                return False
-            counter += 1
-            xbmc.sleep(50)
-        # Suspend the user client during procedure
-        utils.window('suspend_Userclient', value='true')
+    # Log out currently signed in user:
+    utils.window('emby_serverStatus', value="401")
+    # Above method needs to have run its course! Hence wait
+    counter = 0
+    while utils.window('emby_serverStatus') == "401":
+        if counter > 100:
+            # 'Failed to reset PKC. Try to restart Kodi.'
+            dialog.ok(addonName, string(39208))
+            utils.logMsg(title, "Could not sign out user, aborting", -1)
+            return False
+        counter += 1
+        xbmc.sleep(50)
+    # Suspend the user client during procedure
+    utils.window('suspend_Userclient', value='true')
     return True
