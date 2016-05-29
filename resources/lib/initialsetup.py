@@ -59,25 +59,31 @@ class InitialSetup():
     def CheckPlexTVSignIn(self):
         """
         Checks existing connection to plex.tv. If not, triggers sign in
+
+        Returns True if signed in, False otherwise
         """
-        chk = self.plx.CheckConnection('plex.tv', self.plexToken)
+        answer = True
+        chk = self.plx.CheckConnection('plex.tv', token=self.plexToken)
         if chk in (401, 403):
             # HTTP Error: unauthorized. Token is no longer valid
-            self.logMsg('plex.tv connection returned HTTP %s' % chk, 1)
+            self.logMsg('plex.tv connection returned HTTP %s' % str(chk), 1)
             # Delete token in the settings
             utils.settings('plexToken', value='')
+            utils.settings('plexLogin', value='')
             # Could not login, please try again
             self.dialog.ok(self.addonName,
                            self.string(39009))
-            self.PlexTVSignIn()
+            answer = self.PlexTVSignIn()
         elif chk is False or chk >= 400:
             # Problems connecting to plex.tv. Network or internet issue?
-            self.logMsg('plex.tv connection returned HTTP %s'
-                        % str(chk), 1)
+            self.logMsg('Problems connecting to plex.tv; connection returned '
+                        'HTTP %s' % str(chk), 1)
             self.dialog.ok(self.addonName,
                            self.string(39010))
+            answer = False
         else:
             self.logMsg('plex.tv connection with token successful', 1)
+            utils.settings('plex_status', value='Logged in to plex.tv')
             # Refresh the info from Plex.tv
             xml = self.doUtils('https://plex.tv/users/account',
                                authenticate=False,
@@ -94,6 +100,7 @@ class InitialSetup():
                 utils.settings(
                     'plexHomeSize', value=xml.attrib.get('homeSize', '1'))
                 self.logMsg('Updated Plex info from plex.tv', 1)
+        return answer
 
     def CheckPMS(self):
         """
@@ -106,7 +113,8 @@ class InitialSetup():
         not set before
         """
         answer = True
-        chk = self.plx.CheckConnection(self.server, verifySSL=False)
+        chk = self.plx.CheckConnection(self.server,
+                                       verifySSL=False)
         if chk is False:
             self.logMsg('Could not reach PMS %s' % self.server, -1)
             answer = False
@@ -129,9 +137,41 @@ class InitialSetup():
                 answer = False
         return answer
 
-    def PickPMS(self):
+    def __getServerList(self):
         """
-        Searches for PMS and lets user pick one
+        Returns a list of servers from GDM and possibly plex.tv
+        """
+        self.plx.discoverPMS(xbmc.getIPAddress(),
+                             plexToken=self.plexToken)
+        serverlist = self.plx.returnServerList(self.plx.g_PMS)
+        self.logMsg('PMS serverlist: %s' % serverlist, 2)
+        return serverlist
+
+    def __checkServerCon(self, server):
+        """
+        Checks for server's connectivity. Returns CheckConnection result
+        """
+        # Re-direct via plex if remote - will lead to the correct SSL
+        # certificate
+        if server['local'] == '1':
+            url = '%s://%s:%s' \
+                  % (server['scheme'], server['ip'], server['port'])
+            # Deactive SSL verification if the server is local!
+            verifySSL = False
+        else:
+            url = server['baseURL']
+            verifySSL = None
+        chk = self.plx.CheckConnection(url,
+                                       token=server['accesstoken'],
+                                       verifySSL=verifySSL)
+        return chk
+
+    def PickPMS(self, showDialog=False):
+        """
+        Searches for PMS in local Lan and optionally (if self.plexToken set)
+        also on plex.tv
+            showDialog=True: let the user pick one
+            showDialog=False: automatically pick PMS based on machineIdentifier
 
         Returns the picked PMS' detail as a dict:
         {
@@ -150,24 +190,98 @@ class InitialSetup():
 
         or None if unsuccessful
         """
+        server = None
+        # If no server is set, let user choose one
+        if not self.server or not self.serverid:
+            showDialog = True
+        if showDialog is True:
+            server = self.__UserPickPMS()
+        else:
+            server = self.__AutoPickPMS()
+        return server
+
+    def __AutoPickPMS(self):
+        """
+        Will try to pick PMS based on machineIdentifier saved in file settings
+        but only once
+
+        Returns server or None if unsuccessful
+        """
+        httpsUpdated = False
+        checkedPlexTV = False
+        server = None
+        while True:
+            if httpsUpdated is False:
+                serverlist = self.__getServerList()
+                for item in serverlist:
+                    if item.get('machineIdentifier') == self.serverid:
+                        server = item
+                if server is None:
+                    name = utils.settings('plex_servername')
+                    self.logMsg('The PMS you have used before with a unique '
+                                'machineIdentifier of %s and name %s is '
+                                'offline' % (self.serverid, name), -1)
+                    # "PMS xyz offline"
+                    self.dialog.notification(self.addonName,
+                                             '%s %s'
+                                             % (name, self.string(39213)),
+                                             xbmcgui.NOTIFICATION_ERROR,
+                                             7000,
+                                             False)
+                    return
+            chk = self.__checkServerCon(server)
+            if chk == 504 and httpsUpdated is False:
+                # Not able to use HTTP, try HTTPs for now
+                server['scheme'] = 'https'
+                httpsUpdated = True
+                continue
+            if chk == 401:
+                self.logMsg('Not yet authorized for Plex server %s'
+                            % server['name'], -1)
+                if self.CheckPlexTVSignIn() is True:
+                    if checkedPlexTV is False:
+                        # Try again
+                        checkedPlexTV = True
+                        httpsUpdated = False
+                        continue
+                    else:
+                        self.logMsg('Not authorized even though we are signed '
+                                    ' in to plex.tv correctly', -1)
+                        self.dialog.ok(self.addonName, '%s %s'
+                                       % self.string(39214) + server['name'])
+                        return
+                else:
+                    return
+            # Problems connecting
+            elif chk >= 400 or chk is False:
+                self.logMsg('Problems connecting to server %s. chk is %s'
+                            % (server['name'], chk), -1)
+                return
+            self.logMsg('We found a server to automatically connect to: %s'
+                        % server['name'], 1)
+            return server
+
+    def __UserPickPMS(self):
+        """
+        Lets user pick his/her PMS from a list
+
+        Returns server or None if unsuccessful
+        """
         httpsUpdated = False
         while True:
             if httpsUpdated is False:
-                # Populate g_PMS variable with the found Plex servers
-                self.plx.discoverPMS(xbmc.getIPAddress(),
-                                     plexToken=self.plexToken)
-                serverlist = self.plx.returnServerList(self.plx.g_PMS)
-                self.logMsg('PMS serverlist: %s' % serverlist, 2)
+                serverlist = self.__getServerList()
                 # Exit if no servers found
                 if len(serverlist) == 0:
+                    self.logMsg('No plex media servers found!', -1)
                     self.dialog.ok(self.addonName, self.string(39011))
-                    server = None
-                    break
+                    return
                 # Get a nicer list
                 dialoglist = []
                 for server in serverlist:
                     if server['local'] == '1':
-                        # server is in the same network as client. Add "local"
+                        # server is in the same network as client.
+                        # Add"local"
                         msg = self.string(39022)
                     else:
                         # Add 'remote'
@@ -183,22 +297,9 @@ class InitialSetup():
                                           % (server['name'], msg))
                 # Let user pick server from a list
                 resp = self.dialog.select(self.string(39012), dialoglist)
+
             server = serverlist[resp]
-            # Re-direct via plex if remote - will lead to the correct SSL
-            # certificate
-            if server['local'] == '1':
-                url = '%s://%s:%s' \
-                      % (server['scheme'], server['ip'], server['port'])
-            else:
-                url = server['baseURL']
-            # Deactive SSL verification if the server is local!
-            if server['local'] == '1':
-                verifySSL = False
-            else:
-                verifySSL = None
-            chk = self.plx.CheckConnection(url,
-                                           server['accesstoken'],
-                                           verifySSL=verifySSL)
+            chk = self.__checkServerCon(server)
             if chk == 504 and httpsUpdated is False:
                 # Not able to use HTTP, try HTTPs for now
                 serverlist[resp]['scheme'] = 'https'
@@ -206,15 +307,15 @@ class InitialSetup():
                 continue
             httpsUpdated = False
             if chk == 401:
-                # Not yet authorized for Plex server
+                self.logMsg('Not yet authorized for Plex server %s'
+                            % server['name'], -1)
                 # Please sign in to plex.tv
                 self.dialog.ok(self.addonName,
                                self.string(39013) + server['name'],
                                self.string(39014))
                 if self.PlexTVSignIn() is False:
                     # Exit while loop if user cancels
-                    server = None
-                    break
+                    return
             # Problems connecting
             elif chk >= 400 or chk is False:
                 # Problems connecting to server. Pick another server?
@@ -222,12 +323,10 @@ class InitialSetup():
                                          self.string(39015))
                 # Exit while loop if user chooses No
                 if not answ:
-                    server = None
-                    break
+                    return
             # Otherwise: connection worked!
             else:
-                break
-        return server
+                return server
 
     def WritePMStoSettings(self, server):
         """
@@ -278,7 +377,7 @@ class InitialSetup():
                     % (server['machineIdentifier'], server['ip'],
                        server['port'], server['scheme']), 0)
 
-    def setup(self, forcePlexTV=False, chooseServer=False):
+    def setup(self):
         """
         Initial setup. Run once upon startup.
 
@@ -291,17 +390,18 @@ class InitialSetup():
 
         # Optionally sign into plex.tv. Will not be called on very first run
         # as plexToken will be ''
+        utils.settings('plex_status', value='Not logged in to plex.tv')
         if self.plexToken and self.myplexlogin:
             self.CheckPlexTVSignIn()
 
         # If a Plex server IP has already been set
         # return only if the right machine identifier is found
-        getNewPMS = False
+        getNewIP = False
         if self.server:
             self.logMsg("PMS is already set: %s. Checking now..."
                         % self.server, 0)
-            getNewPMS = not self.CheckPMS()
-            if getNewPMS is False:
+            getNewIP = not self.CheckPMS()
+            if getNewIP is False:
                 self.logMsg("Using PMS %s with machineIdentifier %s"
                             % (self.server, self.serverid), 0)
                 return
@@ -312,16 +412,21 @@ class InitialSetup():
             self.PlexTVSignIn()
 
         server = self.PickPMS()
-        if server is None:
-            # Enter Kodi settings instead
-            xbmc.executebuiltin('Addon.OpenSettings(%s)' % self.addonId)
+        if server is not None:
+            goToSettings = False
+            # Write our chosen server to Kodi settings file
+            self.WritePMStoSettings(server)
+        else:
+            goToSettings = True
+
+        # User already answered the installation questions
+        if utils.settings('InstallQuestionsAnswered') == 'true':
+            if goToSettings:
+                xbmc.executebuiltin(
+                    'Addon.OpenSettings(plugin.video.plexkodiconnect)')
             return
 
-        # Write our chosen server to Kodi settings file
-        self.WritePMStoSettings(server)
-
         # Additional settings where the user needs to choose
-        goToSettings = False
         # Direct paths (\\NAS\mymovie.mkv) or addon (http)?
         if dialog.yesno(self.addonName,
                         string(39027),
@@ -365,9 +470,12 @@ class InitialSetup():
 
         # Download additional art from FanArtTV
         if dialog.yesno(heading=self.addonName,
-                        line1=string(39016)):
+                        line1=string(39061)):
             self.logMsg("User opted to use FanArtTV", 1)
             utils.settings('FanartTV', value="true")
+
+        # Make sure that we only ask these questions upon first installation
+        utils.settings('InstallQuestionsAnswered', value='true')
 
         if goToSettings is False:
             # Open Settings page now? You will need to restart!

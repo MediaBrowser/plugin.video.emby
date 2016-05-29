@@ -206,6 +206,7 @@ class PlexAPI():
         utils.settings('plexHomeSize', homeSize)
         # Let Kodi log into plex.tv on startup from now on
         utils.settings('myplexlogin', 'true')
+        utils.settings('plex_status', value='Logged in to plex.tv')
         return result
 
     def CheckPlexTvSignin(self, identifier):
@@ -290,7 +291,8 @@ class PlexAPI():
             answer = self.doUtils(url,
                                   authenticate=False,
                                   headerOptions=headerOptions,
-                                  verifySSL=verifySSL)
+                                  verifySSL=verifySSL,
+                                  timeout=4)
             if answer is None:
                 self.logMsg("Could not connect to %s" % url, 0)
                 count += 1
@@ -459,8 +461,6 @@ class PlexAPI():
             while True:
                 try:
                     data, server = GDM.recvfrom(1024)
-                    # dprint(__name__, 1, "Received data from {0}", server)
-                    # dprint(__name__, 1, "Data received:\n {0}", data)
                     returnData.append({'from': server,
                                        'data': data})
                 except socket.timeout:
@@ -469,31 +469,31 @@ class PlexAPI():
             GDM.close()
 
         pmsList = {}
-
         for response in returnData:
             update = {'ip': response.get('from')[0]}
             # Check if we had a positive HTTP response
-            if "200 OK" in response.get('data'):
-                for each in response.get('data').split('\n'):
-                    # decode response data
-                    update['discovery'] = "auto"
-                    # update['owned']='1'
-                    # update['master']= 1
-                    # update['role']='master'
+            if "200 OK" not in response.get('data'):
+                continue
+            for each in response.get('data').split('\n'):
+                # decode response data
+                update['discovery'] = "auto"
+                # update['owned']='1'
+                # update['master']= 1
+                # update['role']='master'
 
-                    if "Content-Type:" in each:
-                        update['content-type'] = each.split(':')[1].strip()
-                    elif "Resource-Identifier:" in each:
-                        update['uuid'] = each.split(':')[1].strip()
-                    elif "Name:" in each:
-                        update['serverName'] = utils.tryDecode(each.split(
-                            ':')[1].strip())
-                    elif "Port:" in each:
-                        update['port'] = each.split(':')[1].strip()
-                    elif "Updated-At:" in each:
-                        update['updated'] = each.split(':')[1].strip()
-                    elif "Version:" in each:
-                        update['version'] = each.split(':')[1].strip()
+                if "Content-Type:" in each:
+                    update['content-type'] = each.split(':')[1].strip()
+                elif "Resource-Identifier:" in each:
+                    update['uuid'] = each.split(':')[1].strip()
+                elif "Name:" in each:
+                    update['serverName'] = utils.tryDecode(each.split(
+                        ':')[1].strip())
+                elif "Port:" in each:
+                    update['port'] = each.split(':')[1].strip()
+                elif "Updated-At:" in each:
+                    update['updated'] = each.split(':')[1].strip()
+                elif "Version:" in each:
+                    update['version'] = each.split(':')[1].strip()
             pmsList[update['uuid']] = update
 
         return pmsList
@@ -530,6 +530,8 @@ class PlexAPI():
         for uuid in pmsList:
             PMS = pmsList[uuid]
             if PMS['uuid'] in self.g_PMS:
+                self.logMsg('We already know of PMS %s from plex.tv'
+                            % PMS['serverName'], 1)
                 continue
             self.declarePMS(PMS['uuid'], PMS['serverName'], 'http',
                             PMS['ip'], PMS['port'])
@@ -574,7 +576,7 @@ class PlexAPI():
 
         import Queue
         queue = Queue.Queue()
-        threads = []
+        threadQueue = []
 
         maxAgeSeconds = 2*60*60*24
         for Dir in xml.findall('Device'):
@@ -613,11 +615,30 @@ class PlexAPI():
                 if Con.get('local') != '1':
                     PMS['connections'].append(Con)
 
-            # poke PMS, own thread for each poke
             t = Thread(target=self.pokePMS,
                        args=(PMS, queue))
-            t.start()
-            threads.append(t)
+            threadQueue.append(t)
+
+        maxThreads = int(utils.settings('imageCacheLimit'))
+        threads = []
+        # poke PMS, own thread for each PMS
+        while(True):
+            # Remove finished threads
+            for t in threads:
+                if not t.isAlive():
+                    threads.remove(t)
+            if len(threads) < maxThreads:
+                try:
+                    t = threadQueue.pop()
+                except IndexError:
+                    # We have done our work
+                    break
+                else:
+                    t.start()
+                    threads.append(t)
+            else:
+                self.logMsg('Waiting for queue spot to poke PMS', 1)
+                xbmc.sleep(50)
 
         # wait for requests being answered
         for t in threads:
@@ -628,7 +649,6 @@ class PlexAPI():
             PMS = queue.get()
             self.declarePMS(PMS['uuid'], PMS['name'],
                             PMS['protocol'], PMS['ip'], PMS['port'])
-            # dflt: token='', local, owned - updated later
             self.updatePMSProperty(
                 PMS['uuid'], 'accesstoken', PMS['token'])
             self.updatePMSProperty(
@@ -643,13 +663,14 @@ class PlexAPI():
             queue.task_done()
 
     def pokePMS(self, PMS, queue):
-        if PMS['connections'][0].get('local') == '1':
-            protocol = PMS['connections'][0].get('protocol')
-            address = PMS['connections'][0].get('address')
-            port = PMS['connections'][0].get('port')
+        data = PMS['connections'][0].attrib
+        if data['local'] == '1':
+            protocol = data['protocol']
+            address = data['address']
+            port = data['port']
             url = '%s://%s:%s' % (protocol, address, port)
         else:
-            url = PMS['connections'][0].get('uri')
+            url = data['uri']
             protocol, address, port = url.split(':')
             address = address.replace('/', '')
 
@@ -659,8 +680,8 @@ class PlexAPI():
                            verifySSL=False,
                            timeout=3)
         try:
-            xml.attrib
-        except AttributeError:
+            xml.attrib['machineIdentifier']
+        except (AttributeError, KeyError):
             # No connection, delete the one we just tested
             del PMS['connections'][0]
             if len(PMS['connections']) > 0:

@@ -367,7 +367,8 @@
     <string id="39021">[COLOR yellow]Sync Emby Theme Media to Kodi[/COLOR]</string>
     <string id="39022">local</string>
     <string id="39023">Failed to authenticate. Did you login to plex.tv?</string>
-    <string id="39024">[COLOR yellow]Reset PMS and plex.tv connections to re-login[/COLOR]</string>
+    
+
     <string id="39025">Automatically log into plex.tv on startup</string>
     <string id="39026">Enable constant background sync</string>
     <string id="39027">Playback Mode</string>
@@ -411,6 +412,11 @@
     <string id="39064">Recently Added: Also show already watched episodes</string>
     <string id="39065">Force Transcode HEVC</string>
     <string id="39066">Recently Added: Also show already watched movies (Refresh Plex playlist/nodes!)</string>
+    <string id="39067">Your current Plex Media Server:</string>
+    <string id="39068">[COLOR yellow]Manually enter Plex Media Server address[/COLOR]</string>
+    <string id="39069">Current address:</string>
+    <string id="39070">Current port:</string>
+    <string id="39071">Current plex.tv status:</string>
 
     <!-- Plex Entrypoint.py -->
     <string id="39200">Log-out Plex Home User </string>
@@ -421,10 +427,19 @@
     <string id="39205">Unable to run the sync, the add-on is not connected to a Plex server.</string>
     <string id="39206">Plex might lock your account if you fail to log in too many times. Proceed anyway?</string>
     <string id="39207">Resetting PMS connections, please wait</string>
-    <string id="39208">Failed to reset PMS and plex.tv connects. Try to restart Kodi.</string>
-    <string id="39209">[COLOR yellow]Log-in to plex.tv[/COLOR]</string>
+    <string id="39208">Failed to reset PKC. Try to restart Kodi.</string>
+    <string id="39209">[COLOR yellow]Toggle plex.tv login (sign in or sign out)[/COLOR]</string>
     <string id="39210">Not yet connected to Plex Server</string>
     <string id="39211">Watch later</string>
+    <string id="39213">is offline</string>
+    <string id="39214">Even though we signed in to plex.tv, we could not authorize for PMS</string>
+    <string id="39215">Enter your Plex Media Server's IP or URL, Examples are:</string>
+
+    <string id="39217">Does your Plex Media Server support SSL connections? (https instead of http)?</string>
+    <string id="39218">Error contacting PMS</string>
+    <string id="39219">Abort (Yes) or save address anyway (No)?</string>
+    <string id="39220">connected</string>
+    <string id="39221">plex.tv toggle successful</string>
 
 
     <!-- Plex Artwork.py -->

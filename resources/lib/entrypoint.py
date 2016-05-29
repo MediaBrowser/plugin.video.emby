@@ -74,52 +74,13 @@ def plexCompanion(fullurl, params):
 
 def chooseServer():
     """
-    Lets user choose from list of PMS (signs out & signs in)
+    Lets user choose from list of PMS
     """
-    string = xbmcaddon.Addon().getLocalizedString
     utils.logMsg(title, "Choosing PMS server requested, starting", 1)
-    dialog = xbmcgui.Dialog()
-    # Resetting, please wait
-    dialog.notification(
-        heading=addonName,
-        message=string(39207),
-        icon="special://home/addons/plugin.video.plexkodiconnect/icon.png",
-        time=3000,
-        sound=False)
-    # Pause library sync thread - user needs to be auth in order to sync
-    utils.window('suspend_LibraryThread', value='true')
-    # Wait max for 5 seconds for all lib scans to shutdown
-    counter = 0
-    while utils.window('emby_dbScan') == 'true':
-        if counter > 100:
-            # Failed to reset PMS and plex.tv connects. Try to restart Kodi.
-            dialog.ok(addonName, string(39208))
-            # Resuming threads, just in case
-            utils.window('suspend_LibraryThread', clear=True)
-            utils.logMsg(title, "Could not stop library sync, aborting", -1)
-            return
-        counter += 1
-        xbmc.sleep(50)
-    utils.logMsg(title, "Successfully stopped library sync", 1)
-
-    # Log out currently signed in user:
-    utils.window('emby_serverStatus', value="401")
-    # Above method needs to have run its course! Hence wait
-    counter = 0
-    while utils.window('emby_serverStatus') == "401":
-        if counter > 100:
-            dialog.ok(addonName,
-                      string(39208))
-            utils.logMsg(title, "Could not sign out, aborting PMS", -1)
-            return
-        counter += 1
-        xbmc.sleep(50)
-    # Suspend the user client during procedure
-    utils.window('suspend_Userclient', value='true')
 
     import initialsetup
     setup = initialsetup.InitialSetup()
-    server = setup.PickPMS()
+    server = setup.PickPMS(showDialog=True)
     if server is None:
         utils.logMsg('We did not connect to a new PMS, aborting', -1)
         utils.window('suspend_Userclient', clear=True)
@@ -127,85 +88,45 @@ def chooseServer():
         return
 
     setup.WritePMStoSettings(server)
-    # Request lib sync to get user view data (e.g. watched/unwatched)
-    utils.window('plex_runLibScan', value='full')
-    # Restart user client
-    utils.window('suspend_Userclient', clear=True)
-    utils.logMsg(title, "Choosing new PMS complete", 0)
-    # And do NOT clear suspend_LibraryThread flag, that needs to be done in
-    # service.py
 
+    if not __LogOut():
+        return
 
-def reConnect():
-    """
-    Triggers login to plex.tv and re-authorization
-    """
-    string = xbmcaddon.Addon().getLocalizedString
-    utils.logMsg(title, "Connection resets requested", 0)
-    dialog = xbmcgui.Dialog()
-    # Resetting, please wait
-    dialog.notification(
+    # Log in again
+    __LogIn()
+    utils.logMsg(title, "Choosing new PMS complete", 1)
+    # '<PMS> connected'
+    xbmcgui.Dialog().notification(
         heading=addonName,
-        message=string(39207),
+        message='%s %s' % (server['name'],
+                           xbmcaddon.Addon().getLocalizedString(39220)),
         icon="special://home/addons/plugin.video.plexkodiconnect/icon.png",
         time=3000,
         sound=False)
-    # Pause library sync thread - user needs to be auth in order to sync
-    utils.window('suspend_LibraryThread', value='true')
-    # Wait max for 25 seconds for all lib scans to finish
-    counter = 0
-    while utils.window('emby_dbScan') == 'true':
-        if counter > 500:
-            # Failed to reset PMS and plex.tv connects. Try to restart Kodi.
-            dialog.ok(addonName,
-                      string(39208))
-            # Resuming threads, just in case
-            utils.window('suspend_LibraryThread', clear=True)
-            utils.logMsg(title, "Could not stop library sync, aborting", -1)
-            return
-        counter += 1
-        xbmc.sleep(50)
 
-    utils.logMsg(title, "Successfully stopped library sync", 0)
 
-    # Delete plex credentials in settings
-    utils.settings('myplexlogin', value="true")
-    utils.settings('plexLogin', value="")
-    utils.settings('plexToken', value=""),
-    utils.settings('plexid', value="")
-    utils.settings('plexHomeSize', value="1")
-    utils.settings('plexAvatar', value="")
+def togglePlexTV():
+    if utils.settings('plexToken'):
+        utils.logMsg(title, 'Reseting plex.tv credentials in settings', 1)
+        utils.settings('plexLogin', value="")
+        utils.settings('plexToken', value=""),
+        utils.settings('plexid', value="")
+        utils.settings('plexHomeSize', value="1")
+        utils.settings('plexAvatar', value="")
+        utils.settings('plex_status', value="Not logged in to plex.tv")
 
-    # Reset connection details
-    utils.settings('plex_machineIdentifier', value="")
-    utils.settings('plex_servername', value="")
-    utils.settings('https', value="")
-    utils.settings('ipaddress', value="")
-    utils.settings('port', value="")
-
-    # Log out currently signed in user:
-    utils.window('emby_serverStatus', value="401")
-
-    # Above method needs to have run its course! Hence wait
-    counter = 0
-    while utils.window('emby_serverStatus') == "401":
-        if counter > 100:
-            dialog.ok(addonName,
-                      string(39208))
-            utils.logMsg(title, "Could not sign out, aborting", -1)
-            return
-        counter += 1
-        xbmc.sleep(50)
-    # Suspend the user client during procedure
-    utils.window('suspend_Userclient', value='true')
-
-    import initialsetup
-    initialsetup.InitialSetup().setup(forcePlexTV=True)
-    # Request lib sync to get user view data (e.g. watched/unwatched)
-    utils.window('plex_runLibScan', value='full')
-    # Restart user client
-    utils.window('suspend_Userclient', clear=True)
-    utils.logMsg(title, "Complete reconnection to plex.tv and PMS complete", 0)
+        utils.window('plex_token', clear=True)
+        utils.window('plex_username', clear=True)
+    else:
+        utils.logMsg(title, 'Login to plex.tv', 1)
+        import initialsetup
+        initialsetup.InitialSetup().PlexTVSignIn()
+    xbmcgui.Dialog().notification(
+        heading=addonName,
+        message=xbmcaddon.Addon().getLocalizedString(39221),
+        icon="special://home/addons/plugin.video.plexkodiconnect/icon.png",
+        time=3000,
+        sound=False)
 
 
 def PassPlaylist(xml, resume=None):
@@ -565,30 +486,15 @@ def switchPlexUser():
     # Delete any userimages. Since there's always only 1 user: position = 0
     # position = 0
     # utils.window('EmbyAdditionalUserImage.%s' % position, clear=True)
-    utils.logMsg("entrypoint switchPlexUser",
-                 "Plex home user switch requested", 0)
-    # Pause library sync thread - user needs to be auth in order to sync
-    utils.window('suspend_LibraryThread', value='true')
-    # Wait to ensure that any sync already going on has finished
-    counter = 0
-    while utils.window('emby_dbScan') == 'true':
-        if counter > 100:
-            # Something went wrong, aborting
-            # Resuming threads, just in case
-            utils.window('suspend_LibraryThread', clear=True)
-            # Abort reConnection
-            return
-        counter += 1
-        xbmc.sleep(50)
+    utils.logMsg(title, "Plex home user switch requested", 0)
+    if not __LogOut(user=True):
+        return
 
-    # First remove playlists
+    # First remove playlists of old user
     utils.deletePlaylists()
     # Remove video nodes
     utils.deleteNodes()
-    # Log out currently signed in user:
-    utils.window('emby_serverStatus', value="401")
-    # Request lib sync to get user view data (e.g. watched/unwatched)
-    utils.window('plex_runLibScan', value='full')
+    __LogIn()
 
 
 ##### THEME MUSIC/VIDEOS #####
@@ -1707,3 +1613,122 @@ def watchlater():
         handle=int(sys.argv[1]),
         cacheToDisc=True if utils.settings('enableTextureCache') == 'true'
         else False)
+
+
+def enterPMS():
+    """
+    Opens dialogs for the user the plug in the PMS details
+    """
+    dialog = xbmcgui.Dialog()
+    string = xbmcaddon.Addon().getLocalizedString
+    # "Enter your Plex Media Server's IP or URL. Examples are:"
+    dialog.ok(addonName,
+              string(39215),
+              '192.168.1.2',
+              'plex.myServer.org')
+    ip = dialog.input("Enter PMS IP or URL")
+    if ip == '':
+        return
+    port = dialog.input("Enter PMS port", '32400', xbmcgui.INPUT_NUMERIC)
+    if port == '':
+        return
+    url = '%s:%s' % (ip, port)
+    # "Does your Plex Media Server support SSL connections?
+    # (https instead of http)"
+    https = dialog.yesno(addonName, string(39217))
+    if https:
+        url = 'https://%s' % url
+    else:
+        url = 'http://%s' % url
+    https = 'true' if https else 'false'
+
+    machineIdentifier = PlexFunctions.GetMachineIdentifier(url)
+    if machineIdentifier is None:
+        # "Error contacting url
+        # Abort (Yes) or save address anyway (No)"
+        if dialog.yesno(addonName, '%s %s. %s'
+                        % (string(39218), url, string(39219))):
+            return
+        else:
+            utils.settings('plex_machineIdentifier', '')
+    else:
+        utils.settings('plex_machineIdentifier', machineIdentifier)
+    utils.logMsg(title, 'Setting new PMS to: https %s, ip %s, port %s, '
+                 'machineIdentifier: %s'
+                 % (https, ip, port, machineIdentifier), 1)
+    utils.settings('https', value=https)
+    utils.settings('ipaddress', value=ip)
+    utils.settings('port', value=port)
+
+    # Sign out to trigger new login
+    if __LogOut():
+        # Only login again if logout was successful
+        __LogIn()
+
+
+def __LogIn(user=False):
+    """
+    Resets (clears) window properties to enable (re-)login:
+        suspend_Userclient
+        plex_runLibScan: set to 'full' to trigger lib sync
+
+    user=False: user has NOT been signed out before
+    suspend_LibraryThread is cleared in service.py if user was signed out!
+    """
+    utils.window('plex_runLibScan', value='full')
+    # Restart user client
+    utils.window('suspend_Userclient', clear=True)
+    if user is False:
+        utils.window('suspend_LibraryThread', clear=True)
+
+
+def __LogOut(user=False):
+    """
+    Finishes lib scans, logs out user. The following window attributes are set:
+        suspend_LibraryThread: 'true'
+    If user=True, then the user will also be logged out
+        suspend_Userclient: 'true'
+
+    Returns True if successfully signed out, False otherwise
+    """
+    string = xbmcaddon.Addon().getLocalizedString
+    dialog = xbmcgui.Dialog()
+    # Resetting, please wait
+    dialog.notification(
+        heading=addonName,
+        message=string(39207),
+        icon="special://home/addons/plugin.video.plexkodiconnect/icon.png",
+        time=3000,
+        sound=False)
+    # Pause library sync thread
+    utils.window('suspend_LibraryThread', value='true')
+    # Wait max for 10 seconds for all lib scans to shutdown
+    counter = 0
+    while utils.window('emby_dbScan') == 'true':
+        if counter > 200:
+            # Failed to reset PMS and plex.tv connects. Try to restart Kodi.
+            dialog.ok(addonName, string(39208))
+            # Resuming threads, just in case
+            utils.window('suspend_LibraryThread', clear=True)
+            utils.logMsg(title, "Could not stop library sync, aborting", -1)
+            return False
+        counter += 1
+        xbmc.sleep(50)
+    utils.logMsg(title, "Successfully stopped library sync", 1)
+
+    if user:
+        # Log out currently signed in user:
+        utils.window('emby_serverStatus', value="401")
+        # Above method needs to have run its course! Hence wait
+        counter = 0
+        while utils.window('emby_serverStatus') == "401":
+            if counter > 100:
+                # 'Failed to reset PKC. Try to restart Kodi.'
+                dialog.ok(addonName, string(39208))
+                utils.logMsg(title, "Could not sign out user, aborting", -1)
+                return False
+            counter += 1
+            xbmc.sleep(50)
+        # Suspend the user client during procedure
+        utils.window('suspend_Userclient', value='true')
+    return True

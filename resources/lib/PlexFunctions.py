@@ -450,7 +450,8 @@ def GetMachineIdentifier(url):
     """
     xml = downloadutils.DownloadUtils().downloadUrl('%s/identity' % url,
                                                     authenticate=False,
-                                                    verifySSL=False)
+                                                    verifySSL=False,
+                                                    timeout=4)
     try:
         machineIdentifier = xml.attrib['machineIdentifier']
     except (AttributeError, KeyError):

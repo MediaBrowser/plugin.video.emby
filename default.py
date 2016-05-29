@@ -48,7 +48,6 @@ class Main:
         xbmc.log("PlexKodiConnect - Full sys.argv received: %s" % sys.argv)
         base_url = sys.argv[0]
         params = urlparse.parse_qs(sys.argv[2][1:])
-        xbmc.log("PlexKodiConnect - Parameter string: %s" % sys.argv[2])
         try:
             mode = params['mode'][0]
             itemid = params.get('id', '')
@@ -80,12 +79,13 @@ class Main:
             'companion': entrypoint.plexCompanion,
             'switchuser': entrypoint.switchPlexUser,
             'deviceid': entrypoint.resetDeviceId,
-            'reConnect': entrypoint.reConnect,
             'delete': entrypoint.deleteItem,
             'browseplex': entrypoint.BrowsePlexContent,
             'ondeck': entrypoint.getOnDeck,
             'chooseServer': entrypoint.chooseServer,
-            'watchlater': entrypoint.watchlater
+            'watchlater': entrypoint.watchlater,
+            'enterPMS': entrypoint.enterPMS,
+            'togglePlexTV': entrypoint.togglePlexTV
         }
 
         if "/extrafanart" in sys.argv[0]:
