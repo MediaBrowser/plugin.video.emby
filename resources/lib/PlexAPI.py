@@ -1809,8 +1809,8 @@ class API():
                 elif mediaType == 2:  # Audio streams
                     audiotrack = {}
                     audiotrack['codec'] = mediaStream['codec'].lower()
-                    profile = mediaStream.get('codecID', '').lower()
-                    if "dca" in audiotrack['codec'] and "dts-hd ma" in profile:
+                    if ("dca" in audiotrack['codec'] and
+                            "ma" in mediaStream.get('profile', '').lower()):
                         audiotrack['codec'] = "dtshd_ma"
                     audiotrack['channels'] = mediaStream.get('channels')
                     # 'unknown' if we cannot get language
