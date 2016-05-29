@@ -127,7 +127,8 @@ class Service():
         kodiProfile = xbmc.translatePath("special://profile")
 
         # Server auto-detect
-        initialsetup.InitialSetup().setup()
+        setup = initialsetup.InitialSetup()
+        setup.setup()
 
         # Queue for background sync
         queue = Queue.Queue(maxsize=200)
@@ -145,6 +146,7 @@ class Service():
         # Sync and progress report
         lastProgressUpdate = datetime.today()
 
+        counter = 0
         while not monitor.abortRequested():
 
             if window('emby_kodiProfile') != kodiProfile:
@@ -267,8 +269,16 @@ class Service():
                                      "plexkodiconnect/icon.png",
                                 sound=False)
                         self.server_online = False
+                        counter += 1
+                        # Periodically check if the IP changed, e.g. per minute
+                        if counter > 30:
+                            counter = 0
+                            tmp = setup.PickPMS()
+                            if tmp is not None:
+                                setup.WritePMStoSettings(tmp)
                     else:
                         # Server is online
+                        counter = 0
                         if not self.server_online:
                             # Server was offline when Kodi started.
                             # Wait for server to be fully established.
@@ -281,7 +291,7 @@ class Service():
                                 message=lang(33003),
                                 icon="special://home/addons/plugin.video."
                                      "plexkodiconnect/icon.png",
-                                time=2000,
+                                time=5000,
                                 sound=False)
                         self.server_online = True
                         log("Server %s is online and ready." % server, 1)
@@ -298,10 +308,9 @@ class Service():
 
                         break
 
-                    if monitor.waitForAbort(1):
+                    if monitor.waitForAbort(2):
                         # Abort was requested while waiting.
                         break
-                    xbmc.sleep(50)
 
             if monitor.waitForAbort(1):
                 # Abort was requested while waiting. We should exit
