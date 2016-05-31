@@ -108,7 +108,10 @@ class Player(xbmc.Player):
         if (window('plex_customplaylist') == "true" and customseek):
             # Start at, when using custom playlist (play to Kodi from webclient)
             self.logMsg("Seeking to: %s" % customseek, 1)
-            self.xbmcplayer.seekTime(int(customseek))
+            try:
+                self.xbmcplayer.seekTime(int(customseek))
+            except:
+                self.logMsg('Could not seek!', -1)
             window('plex_customplaylist.seektime', clear=True)
 
         try:
@@ -220,8 +223,13 @@ class Player(xbmc.Player):
         try:
             runtime = int(runtime)
         except ValueError:
-            runtime = self.xbmcplayer.getTotalTime()
-            self.logMsg("Runtime is missing, Kodi runtime: %s" % runtime, 1)
+            try:
+                runtime = self.xbmcplayer.getTotalTime()
+                self.logMsg("Runtime is missing, Kodi runtime: %s"
+                            % runtime, 1)
+            except:
+                self.logMsg('Could not get kodi runtime, setting to zero', -1)
+                runtime = 0
 
         playQueueVersion = window('playQueueVersion')
         playQueueID = window('playQueueID')
