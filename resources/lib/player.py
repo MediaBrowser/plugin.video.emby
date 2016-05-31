@@ -111,7 +111,10 @@ class Player(xbmc.Player):
             self.xbmcplayer.seekTime(int(customseek))
             window('plex_customplaylist.seektime', clear=True)
 
-        seekTime = self.xbmcplayer.getTime()
+        try:
+            seekTime = self.xbmcplayer.getTime()
+        except RuntimeError:
+            seekTime = 0
 
         # Get playback volume
         volume_query = {
@@ -419,7 +422,6 @@ class Player(xbmc.Player):
 
         if self.played_info.get(currentFile):
             self.played_info[currentFile]['paused'] = True
-        
             self.reportPlayback()
 
     def onPlayBackResumed(self):
@@ -429,7 +431,6 @@ class Player(xbmc.Player):
 
         if self.played_info.get(currentFile):
             self.played_info[currentFile]['paused'] = False
-        
             self.reportPlayback()
 
     def onPlayBackSeek(self, time, seekOffset):
@@ -438,11 +439,14 @@ class Player(xbmc.Player):
         self.logMsg("PLAYBACK_SEEK: %s" % utils.tryDecode(currentFile), 2)
 
         if self.played_info.get(currentFile):
-            position = self.xbmcplayer.getTime()
+            try:
+                position = self.xbmcplayer.getTime()
+            except RuntimeError:
+                # When Kodi is not playing
+                return
             self.played_info[currentFile]['currentPosition'] = position * 1000
-
             self.reportPlayback()
-    
+
     def onPlayBackStopped(self):
         # Will be called when user stops xbmc playing a file
         
