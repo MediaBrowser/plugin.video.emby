@@ -127,8 +127,7 @@ class Service():
         kodiProfile = xbmc.translatePath("special://profile")
 
         # Server auto-detect
-        setup = initialsetup.InitialSetup()
-        setup.setup()
+        initialsetup.InitialSetup().setup()
 
         # Queue for background sync
         queue = Queue.Queue(maxsize=200)
@@ -245,7 +244,7 @@ class Service():
                             break
                         xbmc.sleep(50)
             else:
-                # Wait until Emby server is online
+                # Wait until Plex server is online
                 # or Kodi is shut down.
                 while not monitor.abortRequested():
                     server = user.getServer()
@@ -260,7 +259,6 @@ class Service():
                             window('emby_online', value="false")
                             # Suspend threads
                             window('suspend_LibraryThread', value='true')
-
                             xbmcgui.Dialog().notification(
                                 heading=lang(33001),
                                 message="%s %s"
@@ -273,6 +271,7 @@ class Service():
                         # Periodically check if the IP changed, e.g. per minute
                         if counter > 30:
                             counter = 0
+                            setup = initialsetup.InitialSetup()
                             tmp = setup.PickPMS()
                             if tmp is not None:
                                 setup.WritePMStoSettings(tmp)
