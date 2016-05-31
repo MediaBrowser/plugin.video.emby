@@ -1345,10 +1345,17 @@ class LibrarySync(Thread):
                 # processing the item. Do it later
                 continue
             if item['state'] == 9:
-                if self.process_deleteditems(item) is True:
-                    deleteListe.append(i)
+                successful = self.process_deleteditems(item)
             else:
-                if self.process_newitems(item) is True:
+                successful = self.process_newitems(item)
+            if successful is True:
+                deleteListe.append(i)
+            else:
+                # Safety net if we can't process an item
+                item['attempt'] += 1
+                if item['attempt'] > 3:
+                    self.logMsg('Repeatetly could not process item %s, abort'
+                                % item, -1)
                     deleteListe.append(i)
 
         # Get rid of the items we just processed
@@ -1434,7 +1441,8 @@ class LibrarySync(Thread):
                         'state': state,
                         'type': typus,
                         'ratingKey': itemId,
-                        'timestamp': utils.getUnixTimestamp()
+                        'timestamp': utils.getUnixTimestamp(),
+                        'attempt': 0
                     })
 
     def process_playing(self, data):
