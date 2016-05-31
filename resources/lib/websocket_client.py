@@ -138,7 +138,7 @@ class WebSocket(threading.Thread):
                     if counter > 10:
                         log("Repeatedly could not connect to PMS, declaring "
                             "the connection dead", -1)
-                        utils.window('emby_online', value='false')
+                        utils.window('plex_online', value='false')
                         counter = 0
                     xbmc.sleep(1000)
                 except websocket.WebSocketTimeoutException:

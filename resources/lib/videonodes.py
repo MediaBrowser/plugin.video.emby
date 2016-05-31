@@ -98,13 +98,13 @@ class VideoNodes(object):
         path = "library://video/Plex-%s/" % dirname
         for i in range(1, indexnumber):
             # Verify to make sure we don't create duplicates
-            if window('Emby.nodes.%s.index' % i) == path:
+            if window('Plex.nodes.%s.index' % i) == path:
                 return
 
         if mediatype == "photo":
             path = "plugin://plugin.video.plexkodiconnect/?id=%s&mode=getsubfolders" % indexnumber
             
-        window('Emby.nodes.%s.index' % indexnumber, value=path)
+        window('Plex.nodes.%s.index' % indexnumber, value=path)
         
         # Root
         if not mediatype == "photo":
@@ -259,13 +259,13 @@ class VideoNodes(object):
                 else:
                     templabel = label
 
-                embynode = "Emby.nodes.%s" % indexnumber
+                embynode = "Plex.nodes.%s" % indexnumber
                 window('%s.title' % embynode, value=templabel)
                 window('%s.path' % embynode, value=windowpath)
                 window('%s.content' % embynode, value=path)
                 window('%s.type' % embynode, value=mediatype)
             else:
-                embynode = "Emby.nodes.%s.%s" % (indexnumber, nodetype)
+                embynode = "Plex.nodes.%s.%s" % (indexnumber, nodetype)
                 window('%s.title' % embynode, value=label)
                 window('%s.path' % embynode, value=windowpath)
                 window('%s.content' % embynode, value=path)
@@ -389,7 +389,7 @@ class VideoNodes(object):
             'channels': 30173
         }
         label = utils.language(labels[tagname])
-        embynode = "Emby.nodes.%s" % indexnumber
+        embynode = "Plex.nodes.%s" % indexnumber
         window('%s.title' % embynode, value=label)
         window('%s.path' % embynode, value=windowpath)
         window('%s.content' % embynode, value=path)
@@ -418,7 +418,7 @@ class VideoNodes(object):
         window = utils.window
 
         self.logMsg("Clearing nodes properties.", 1)
-        embyprops = window('Emby.nodes.total')
+        plexprops = window('Plex.nodes.total')
         propnames = [
         
             "index","path","title","content",
@@ -433,8 +433,8 @@ class VideoNodes(object):
             "inprogressepisodes.content","inprogressepisodes.path"
         ]
 
-        if embyprops:
-            totalnodes = int(embyprops)
+        if plexprops:
+            totalnodes = int(plexprops)
             for i in range(totalnodes):
                 for prop in propnames:
-                    window('Emby.nodes.%s.%s' % (str(i), prop), clear=True)
+                    window('Plex.nodes.%s.%s' % (str(i), prop), clear=True)

@@ -234,7 +234,7 @@ def resetAuth():
         line1=string(39206))
     if resp == 1:
         utils.logMsg("PLEX", "Reset login attempts.", 1)
-        utils.window('emby_serverStatus', value="Auth")
+        utils.window('plex_serverStatus', value="Auth")
     else:
         xbmc.executebuiltin('Addon.OpenSettings(plugin.video.plexkodiconnect)')
 def addDirectoryItem(label, path, folder=True):
@@ -248,15 +248,15 @@ def doMainListing():
     string = xbmcaddon.Addon().getLocalizedString
     xbmcplugin.setContent(int(sys.argv[1]), 'files')    
     # Get emby nodes from the window props
-    embyprops = utils.window('Emby.nodes.total')
-    if embyprops:
-        totalnodes = int(embyprops)
+    plexprops = utils.window('Plex.nodes.total')
+    if plexprops:
+        totalnodes = int(plexprops)
         for i in range(totalnodes):
-            path = utils.window('Emby.nodes.%s.index' % i)
+            path = utils.window('Plex.nodes.%s.index' % i)
             if not path:
-                path = utils.window('Emby.nodes.%s.content' % i)
-            label = utils.window('Emby.nodes.%s.title' % i)
-            node_type = utils.window('Emby.nodes.%s.type' % i)
+                path = utils.window('Plex.nodes.%s.content' % i)
+            label = utils.window('Plex.nodes.%s.title' % i)
+            node_type = utils.window('Plex.nodes.%s.type' % i)
             #because we do not use seperate entrypoints for each content type, we need to figure out which items to show in each listing.
             #for now we just only show picture nodes in the picture library video nodes in the video library and all nodes in any other window
             if path and xbmc.getCondVisibility("Window.IsActive(Pictures)") and node_type == "photos":
@@ -315,8 +315,8 @@ def resetDeviceId():
 def deleteItem():
 
     # Serves as a keymap action
-    if xbmc.getInfoLabel('ListItem.Property(embyid)'): # If we already have the embyid
-        embyid = xbmc.getInfoLabel('ListItem.Property(embyid)')
+    if xbmc.getInfoLabel('ListItem.Property(plexid)'): # If we already have the plexid
+        plexid = xbmc.getInfoLabel('ListItem.Property(plexid)')
     else:
         dbid = xbmc.getInfoLabel('ListItem.DBID')
         itemtype = xbmc.getInfoLabel('ListItem.DBTYPE')
@@ -342,9 +342,9 @@ def deleteItem():
         embycursor.close()
 
         try:
-            embyid = item[0]
+            plexid = item[0]
         except TypeError:
-            utils.logMsg("EMBY delete", "Unknown embyId, unable to proceed.", 1)
+            utils.logMsg("EMBY delete", "Unknown plexid, unable to proceed.", 1)
             return
 
     if utils.settings('skipContextMenu') != "true":
@@ -353,12 +353,12 @@ def deleteItem():
                                 line1=("Delete file from Emby Server? This will "
                                         "also delete the file(s) from disk!"))
         if not resp:
-            utils.logMsg("EMBY delete", "User skipped deletion for: %s." % embyid, 1)
+            utils.logMsg("EMBY delete", "User skipped deletion for: %s." % plexid, 1)
             return
     
     doUtils = downloadutils.DownloadUtils()
-    url = "{server}/emby/Items/%s?format=json" % embyid
-    utils.logMsg("EMBY delete", "Deleting request: %s" % embyid, 0)
+    url = "{server}/emby/Items/%s?format=json" % plexid
+    utils.logMsg("EMBY delete", "Deleting request: %s" % plexid, 0)
     doUtils.downloadUrl(url, action_type="DELETE")
 
 ##### ADD ADDITIONAL USERS #####
@@ -671,9 +671,9 @@ def refreshPlaylist():
 def GetSubFolders(nodeindex):
     nodetypes = ["",".recent",".recentepisodes",".inprogress",".inprogressepisodes",".unwatched",".nextepisodes",".sets",".genres",".random",".recommended"]
     for node in nodetypes:
-        title = utils.window('Emby.nodes.%s%s.title' %(nodeindex,node))
+        title = utils.window('Plex.nodes.%s%s.title' %(nodeindex,node))
         if title:
-            path = utils.window('Emby.nodes.%s%s.content' %(nodeindex,node))
+            path = utils.window('Plex.nodes.%s%s.content' %(nodeindex,node))
             addDirectoryItem(title, path)
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
               
@@ -775,7 +775,7 @@ def createListItemFromEmbyItem(item,art=artwork.Artwork(),doUtils=downloadutils.
         premieredatelst = premieredate.split('T')[0].split("-")
         premieredate = "%s.%s.%s" %(premieredatelst[2],premieredatelst[1],premieredatelst[0])
 
-    li.setProperty("embyid",itemid)
+    li.setProperty("plexid",itemid)
     
     allart = art.getAllArtwork(item)
     
@@ -1274,7 +1274,7 @@ def getVideoFiles(plexId, params):
 
 
 ##### GET EXTRAFANART FOR LISTITEM #####
-def getExtraFanArt(embyId,embyPath):
+def getExtraFanArt(plexid,embyPath):
     
     emby = embyserver.Read_EmbyServer()
     art = artwork.Artwork()
@@ -1282,24 +1282,24 @@ def getExtraFanArt(embyId,embyPath):
     # Get extrafanart for listitem 
     # will be called by skinhelper script to get the extrafanart
     try:
-        # for tvshows we get the embyid just from the path
-        if not embyId:
+        # for tvshows we get the plexid just from the path
+        if not plexid:
             if "plugin.video.emby" in embyPath:
-                embyId = embyPath.split("/")[-2]
+                plexid = embyPath.split("/")[-2]
         
-        if embyId:
+        if plexid:
             #only proceed if we actually have a emby id
-            utils.logMsg("EMBY", "Requesting extrafanart for Id: %s" % embyId, 0)
+            utils.logMsg("EMBY", "Requesting extrafanart for Id: %s" % plexid, 0)
 
             # We need to store the images locally for this to work
             # because of the caching system in xbmc
             fanartDir = utils.tryDecode(xbmc.translatePath(
-                "special://thumbnails/emby/%s/" % embyId))
+                "special://thumbnails/emby/%s/" % plexid))
             
             if not xbmcvfs.exists(fanartDir):
                 # Download the images to the cache directory
                 xbmcvfs.mkdirs(fanartDir)
-                item = emby.getItem(embyId)
+                item = emby.getItem(plexid)
                 if item:
                     backdrops = art.getAllArtwork(item)['Backdrop']
                     tags = item['BackdropImageTags']
@@ -1339,7 +1339,7 @@ def getExtraFanArt(embyId,embyPath):
 
 
 def RunLibScan(mode):
-    if utils.window('emby_online') != "true":
+    if utils.window('plex_online') != "true":
         # Server is not online, do not run the sync
         string = xbmcaddon.Addon().getLocalizedString
         xbmcgui.Dialog().ok(heading=addonName,
@@ -1708,7 +1708,7 @@ def __LogOut():
     utils.window('suspend_LibraryThread', value='true')
     # Wait max for 10 seconds for all lib scans to shutdown
     counter = 0
-    while utils.window('emby_dbScan') == 'true':
+    while utils.window('plex_dbScan') == 'true':
         if counter > 200:
             # Failed to reset PMS and plex.tv connects. Try to restart Kodi.
             dialog.ok(addonName, string(39208))
@@ -1721,10 +1721,10 @@ def __LogOut():
     utils.logMsg(title, "Successfully stopped library sync", 1)
 
     # Log out currently signed in user:
-    utils.window('emby_serverStatus', value="401")
+    utils.window('plex_serverStatus', value="401")
     # Above method needs to have run its course! Hence wait
     counter = 0
-    while utils.window('emby_serverStatus') == "401":
+    while utils.window('plex_serverStatus') == "401":
         if counter > 100:
             # 'Failed to reset PKC. Try to restart Kodi.'
             dialog.ok(addonName, string(39208))

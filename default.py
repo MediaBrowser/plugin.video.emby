@@ -89,9 +89,9 @@ class Main:
         }
 
         if "/extrafanart" in sys.argv[0]:
-            embypath = sys.argv[2][1:]
-            embyid = params.get('id',[""])[0]
-            entrypoint.getExtraFanArt(embyid,embypath)
+            plexpath = sys.argv[2][1:]
+            plexid = params.get('id', [""])[0]
+            entrypoint.getExtraFanArt(plexid, plexpath)
 
         # Called by e.g. 3rd party plugin video extras
         if ("/Extras" in sys.argv[0] or "/VideoFiles" in sys.argv[0] or
@@ -141,7 +141,7 @@ class Main:
             if mode == "settings":
                 xbmc.executebuiltin('Addon.OpenSettings(plugin.video.plexkodiconnect)')
             elif mode in ("manualsync", "repair"):
-                if utils.window('emby_online') != "true":
+                if utils.window('plex_online') != "true":
                     # Server is not online, do not run the sync
                     xbmcgui.Dialog().ok(
                         "PlexKodiConnect",

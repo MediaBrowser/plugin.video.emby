@@ -11,7 +11,7 @@ from plexbmchelper import listener, plexgdm, subscribers, functions, \
 
 
 @utils.logging
-@utils.ThreadMethodsAdditionalSuspend('emby_serverStatus')
+@utils.ThreadMethodsAdditionalSuspend('plex_serverStatus')
 @utils.ThreadMethods
 class PlexCompanion(threading.Thread):
     def __init__(self):

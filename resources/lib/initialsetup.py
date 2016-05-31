@@ -482,7 +482,7 @@ class InitialSetup():
             goToSettings = dialog.yesno(heading=self.addonName,
                                         line1=string(39017))
         if goToSettings:
-            utils.window('emby_serverStatus', value="Stop")
+            utils.window('plex_serverStatus', value="Stop")
             xbmc.executebuiltin(
                 'Addon.OpenSettings(plugin.video.plexkodiconnect)')
         else:

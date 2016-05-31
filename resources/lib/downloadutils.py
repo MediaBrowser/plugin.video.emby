@@ -272,11 +272,11 @@ class DownloadUtils():
                             self.unauthorizedAttempts):
                         self.logMsg('We seem to be truly unauthorized for PMS'
                                     ' %s ' % url, -1)
-                        if window('emby_serverStatus') not in ('401', 'Auth'):
+                        if window('plex_serverStatus') not in ('401', 'Auth'):
                             # Tell userclient token has been revoked.
                             self.logMsg('Setting PMS server status to '
                                         'unauthorized', 0)
-                            window('emby_serverStatus', value="401")
+                            window('plex_serverStatus', value="401")
                             xbmcgui.Dialog().notification(
                                 self.addonName,
                                 "Unauthorized for PMS",
@@ -331,7 +331,7 @@ class DownloadUtils():
                 if int(window('countError')) >= self.connectionAttempts:
                     self.logMsg('Failed to connect to %s too many times. '
                                 'Declare PMS dead' % url, -1)
-                    window('emby_online', value="false")
+                    window('plex_online', value="false")
             except:
                 # 'countError' not yet set
                 pass

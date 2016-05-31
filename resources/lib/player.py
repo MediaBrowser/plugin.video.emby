@@ -104,12 +104,12 @@ class Player(xbmc.Player):
 
         self.logMsg("Playing itemtype is: %s" % itemType, 1)
 
-        customseek = window('emby_customPlaylist.seektime')
-        if (window('emby_customPlaylist') == "true" and customseek):
+        customseek = window('plex_customplaylist.seektime')
+        if (window('plex_customplaylist') == "true" and customseek):
             # Start at, when using custom playlist (play to Kodi from webclient)
             self.logMsg("Seeking to: %s" % customseek, 1)
             self.xbmcplayer.seekTime(int(customseek))
-            window('emby_customPlaylist.seektime', clear=True)
+            window('plex_customplaylist.seektime', clear=True)
 
         seekTime = self.xbmcplayer.getTime()
 
@@ -452,9 +452,9 @@ class Player(xbmc.Player):
         self.stopAll()
 
         window('Plex_currently_playing_itemid', clear=True)
-        window('emby_customPlaylist', clear=True)
-        window('emby_customPlaylist.seektime', clear=True)
-        window('emby_customPlaylist.seektime', clear=True)
+        window('plex_customplaylist', clear=True)
+        window('plex_customplaylist.seektime', clear=True)
+        window('plex_customplaylist.seektime', clear=True)
         self.logMsg("Clear playlist properties.", 1)
 
     def onPlayBackEnded(self):

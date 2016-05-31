@@ -96,7 +96,7 @@ class PlaybackUtils():
         sizePlaylist = playlist.size()
         self.currentPosition = startPos
 
-        propertiesPlayback = window('emby_playbackProps') == "true"
+        propertiesPlayback = window('plex_playbackProps') == "true"
         introsPlaylist = False
         dummyPlaylist = False
 
@@ -112,11 +112,11 @@ class PlaybackUtils():
         # Otherwise we get a loop.
         if not propertiesPlayback:
 
-            window('emby_playbackProps', value="true")
+            window('plex_playbackProps', value="true")
             self.logMsg("Setting up properties in playlist.", 1)
 
             if (not homeScreen and not seektime and
-                    window('emby_customPlaylist') != "true"):
+                    window('plex_customplaylist') != "true"):
                 self.logMsg("Adding dummy file to playlist.", 2)
                 dummyPlaylist = True
                 playlist.add(playurl, listitem, index=startPos)
@@ -187,7 +187,7 @@ class PlaybackUtils():
         # We just skipped adding properties. Reset flag for next time.
         elif propertiesPlayback:
             self.logMsg("Resetting properties playback flag.", 2)
-            window('emby_playbackProps', clear=True)
+            window('plex_playbackProps', clear=True)
 
         #self.pl.verifyPlaylist()
         ########## SETUP MAIN ITEM ##########
@@ -204,12 +204,12 @@ class PlaybackUtils():
 
         ############### PLAYBACK ################
 
-        if homeScreen and seektime and window('emby_customPlaylist') != "true":
+        if homeScreen and seektime and window('plex_customplaylist') != "true":
             self.logMsg("Play as a widget item.", 1)
             API.CreateListItemFromPlexItem(listitem)
             xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, listitem)
 
-        elif ((introsPlaylist and window('emby_customPlaylist') == "true") or
+        elif ((introsPlaylist and window('plex_customplaylist') == "true") or
                 (homeScreen and not sizePlaylist)):
             # Playlist was created just now, play it.
             self.logMsg("Play playlist.", 1)

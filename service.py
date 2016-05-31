@@ -72,9 +72,9 @@ class Service():
         logLevel = self.getLogLevel()
         self.monitor = xbmc.Monitor()
 
-        window('emby_logLevel', value=str(logLevel))
-        window('emby_kodiProfile', value=xbmc.translatePath("special://profile"))
-        window('emby_pluginpath', value=utils.settings('useDirectPaths'))
+        window('plex_logLevel', value=str(logLevel))
+        window('plex_kodiProfile', value=xbmc.translatePath("special://profile"))
+        window('plex_pluginpath', value=utils.settings('useDirectPaths'))
 
         # Initial logging
         log("======== START %s ========" % self.addonName, 0)
@@ -87,10 +87,10 @@ class Service():
         # Reset window props for profile switch
         properties = [
 
-            "emby_online", "emby_serverStatus", "emby_onWake",
-            "emby_syncRunning", "emby_dbCheck", "emby_kodiScan",
-            "emby_shouldStop", "currUserId", "emby_dbScan", "emby_sessionId",
-            "emby_initialScan", "emby_customplaylist", "emby_playbackProps",
+            "plex_online", "plex_serverStatus", "plex_onWake",
+            "plex_dbCheck", "plex_kodiScan",
+            "plex_shouldStop", "currUserId", "plex_dbScan",
+            "plex_initialScan", "plex_customplaylist", "plex_playbackProps",
             "plex_runLibScan", "plex_username", "pms_token", "plex_token",
             "pms_server", "plex_machineIdentifier", "plex_servername",
             "plex_authenticated", "PlexUserImage", "useDirectPaths",
@@ -106,7 +106,7 @@ class Service():
         videonodes.VideoNodes().clearProperties()
         
         # Set the minimum database version
-        window('emby_minDBVersion', value="1.1.5")
+        window('plex_minDBVersion', value="1.1.5")
 
     def getLogLevel(self):
         try:
@@ -148,10 +148,11 @@ class Service():
         counter = 0
         while not monitor.abortRequested():
 
-            if window('emby_kodiProfile') != kodiProfile:
+            if window('plex_kodiProfile') != kodiProfile:
                 # Profile change happened, terminate this thread and others
-                log("Kodi profile was: %s and changed to: %s. Terminating old Emby thread."
-                    % (kodiProfile, utils.window('emby_kodiProfile')), 1)
+                log("Kodi profile was: %s and changed to: %s. Terminating old "
+                    "PlexKodiConnect thread."
+                    % (kodiProfile, utils.window('plex_kodiProfile')), 1)
                 
                 break
             
@@ -160,8 +161,8 @@ class Service():
             # 2. User is set
             # 3. User has access to the server
 
-            if window('emby_online') == "true":
-                # Emby server is online
+            if window('plex_online') == "true":
+                # Plex server is online
                 # Verify if user is set and has access to the server
                 if (user.currUser is not None) and user.HasAccess:
                     # If an item is playing
@@ -179,15 +180,15 @@ class Service():
                             td = datetime.today() - lastProgressUpdate
                             secDiff = td.seconds
                             
-                            # Report progress to Emby server
+                            # Report progress to Plex server
                             if (secDiff > 3):
                                 kplayer.reportPlayback()
                                 lastProgressUpdate = datetime.today()
                             
-                            elif window('emby_command') == "true":
+                            elif window('plex_command') == "true":
                                 # Received a remote control command that
                                 # requires updating immediately
-                                window('emby_command', clear=True)
+                                window('plex_command', clear=True)
                                 kplayer.reportPlayback()
                                 lastProgressUpdate = datetime.today()
                         except Exception as e:
@@ -235,7 +236,7 @@ class Service():
                         # Verify access with an API call
                         user.hasAccess()
 
-                        if window('emby_online') != "true":
+                        if window('plex_online') != "true":
                             # Server went offline
                             break
 
@@ -256,7 +257,7 @@ class Service():
                         # Alert the user and suppress future warning
                         if self.server_online:
                             log("Server is offline.", -1)
-                            window('emby_online', value="false")
+                            window('plex_online', value="false")
                             # Suspend threads
                             window('suspend_LibraryThread', value='true')
                             xbmcgui.Dialog().notification(
@@ -294,7 +295,7 @@ class Service():
                                 sound=False)
                         self.server_online = True
                         log("Server %s is online and ready." % server, 1)
-                        window('emby_online', value="true")
+                        window('plex_online', value="true")
                         if window('plex_authenticated') == 'true':
                             # Server got offline when we were authenticated.
                             # Hence resume threads
@@ -353,6 +354,6 @@ delay = int(utils.settings('startupDelay'))
 xbmc.log("Delaying Plex startup by: %s sec..." % delay)
 if delay and xbmc.Monitor().waitForAbort(delay):
     # Start the service
-    xbmc.log("Abort requested while waiting. Emby for kodi not started.")
+    xbmc.log("Abort requested while waiting. PKC not started.")
 else:
     Service().ServiceEntryPoint()

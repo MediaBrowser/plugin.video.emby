@@ -30,22 +30,22 @@ class KodiMonitor(xbmc.Monitor):
     def onScanStarted(self, library):
         self.logMsg("Kodi library scan %s running." % library, 2)
         if library == "video":
-            utils.window('emby_kodiScan', value="true")
+            utils.window('plex_kodiScan', value="true")
 
     def onScanFinished(self, library):
         self.logMsg("Kodi library scan %s finished." % library, 2)
         if library == "video":
-            utils.window('emby_kodiScan', clear=True)
+            utils.window('plex_kodiScan', clear=True)
 
     def onSettingsChanged(self):
         # Monitor emby settings
         # Review reset setting at a later time, need to be adjusted to account for initial setup
         # changes.
         '''currentPath = utils.settings('useDirectPaths')
-        if utils.window('emby_pluginpath') != currentPath:
+        if utils.window('plex_pluginpath') != currentPath:
             # Plugin path value changed. Offer to reset
             self.logMsg("Changed to playback mode detected", 1)
-            utils.window('emby_pluginpath', value=currentPath)
+            utils.window('plex_pluginpath', value=currentPath)
             resp = xbmcgui.Dialog().yesno(
                                 heading="Playback mode change detected",
                                 line1=(
@@ -56,10 +56,10 @@ class KodiMonitor(xbmc.Monitor):
                 utils.reset()'''
 
         currentLog = utils.settings('logLevel')
-        if utils.window('emby_logLevel') != currentLog:
+        if utils.window('plex_logLevel') != currentLog:
             # The log level changed, set new prop
             self.logMsg("New log level: %s" % currentLog, 1)
-            utils.window('emby_logLevel', value=currentLog)
+            utils.window('plex_logLevel', value=currentLog)
 
     def onNotification(self, sender, method, data):
         if method not in ("Playlist.OnAdd"):
@@ -144,7 +144,7 @@ class KodiMonitor(xbmc.Monitor):
         elif method == "System.OnWake":
             # Allow network to wake up
             xbmc.sleep(10000)
-            utils.window('emby_onWake', value="true")
+            utils.window('plex_onWake', value="true")
 
         elif method == "GUI.OnScreensaverDeactivated":
             if utils.settings('dbSyncScreensaver') == "true":

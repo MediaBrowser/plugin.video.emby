@@ -254,7 +254,7 @@ def getUnixTimestamp(secondsIntoTheFuture=None):
 def logMsg(title, msg, level=1):
     # Get the logLevel set in UserClient
     try:
-        logLevel = int(window('emby_logLevel'))
+        logLevel = int(window('plex_logLevel'))
     except ValueError:
         logLevel = 0
     kodiLevel = {
@@ -414,9 +414,9 @@ def reset():
         return
 
     # first stop any db sync
-    window('emby_shouldStop', value="true")
+    window('plex_shouldStop', value="true")
     count = 10
-    while window('emby_dbScan') == "true":
+    while window('plex_dbScan') == "true":
         logMsg("PLEX", "Sync is running, will retry: %s..." % count)
         count -= 1
         if count == 0:

@@ -564,11 +564,11 @@ class Movies(Items):
             # Delete kodi boxset
             boxset_movies = emby_db.getItem_byParentId(kodiid, "movie")
             for movie in boxset_movies:
-                embyid = movie[0]
+                plexid = movie[0]
                 movieid = movie[1]
                 self.kodi_db.removefromBoxset(movieid)
                 # Update emby reference
-                emby_db.updateParentId(embyid, None)
+                emby_db.updateParentId(plexid, None)
 
             kodicursor.execute("DELETE FROM sets WHERE idSet = ?", (kodiid,))
 
@@ -635,7 +635,7 @@ class MusicVideos(Items):
 
         if not viewtag or not viewid:
             # Get view tag from emby
-            viewtag, viewid, mediatype = self.emby.getView_embyId(itemid)
+            viewtag, viewid, mediatype = self.emby.getView_plexid(itemid)
             self.logMsg("View tag found: %s" % viewtag, 2)
 
         # fileId information
@@ -672,7 +672,7 @@ class MusicVideos(Items):
 
         if self.directpath:
             # Direct paths is set the Kodi way
-            if utils.window('emby_pathverified') != "true" and not xbmcvfs.exists(playurl):
+            if utils.window('plex_pathverified') != "true" and not xbmcvfs.exists(playurl):
                 # Validate the path is correct with user intervention
                 resp = xbmcgui.Dialog().yesno(
                                         heading="Can't validate path",
@@ -683,11 +683,11 @@ class MusicVideos(Items):
                                             "to format your path correctly. Stop syncing?"
                                             % playurl))
                 if resp:
-                    utils.window('emby_shouldStop', value="true")
+                    utils.window('plex_shouldStop', value="true")
                     return False
             
             path = playurl.replace(filename, "")
-            utils.window('emby_pathverified', value="true")
+            utils.window('plex_pathverified', value="true")
         else:
             # Set plugin path and media flags using real filename
             path = "plugin://plugin.video.plexkodiconnect.musicvideos/"
@@ -991,7 +991,7 @@ class TVShows(Items):
 
         if viewtag is None or viewid is None:
             # Get view tag from emby
-            viewtag, viewid, mediatype = embyserver.getView_embyId(itemid)
+            viewtag, viewid, mediatype = embyserver.getView_plexid(itemid)
             self.logMsg("View tag found: %s" % viewtag, 2)
 
         # fileId information

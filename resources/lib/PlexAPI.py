@@ -2300,7 +2300,7 @@ class API():
         listItem.setProperty('resumetime', str(userdata['Resume']))
         listItem.setProperty('totaltime', str(userdata['Runtime']))
         plexId = self.getRatingKey()
-        listItem.setProperty('embyid', plexId)
+        listItem.setProperty('plexid', plexId)
         with embydb.GetEmbyDB() as emby_db:
             try:
                 listItem.setProperty('dbid',
@@ -2364,7 +2364,7 @@ class API():
         elif utils.window('replaceSMB') == 'true':
             if path.startswith('\\\\'):
                 path = 'smb:' + path.replace('\\', '/')
-        if utils.window('emby_pathverified') == 'true' and forceCheck is False:
+        if utils.window('plex_pathverified') == 'true' and forceCheck is False:
             return path
 
         # exist() needs a / or \ at the end to work for directories
@@ -2383,16 +2383,16 @@ class API():
             if forceCheck is False:
                 # Validate the path is correct with user intervention
                 if self.askToValidate(path):
-                    utils.window('emby_shouldStop', value="true")
+                    utils.window('plex_shouldStop', value="true")
                     path = None
-                utils.window('emby_pathverified', value='true')
-                utils.settings('emby_pathverified', value='true')
+                utils.window('plex_pathverified', value='true')
+                utils.settings('plex_pathverified', value='true')
             else:
                 path = None
         elif forceCheck is False:
-            if utils.window('emby_pathverified') != 'true':
-                utils.window('emby_pathverified', value='true')
-                utils.settings('emby_pathverified', value='true')
+            if utils.window('plex_pathverified') != 'true':
+                utils.window('plex_pathverified', value='true')
+                utils.settings('plex_pathverified', value='true')
         return path
 
     def askToValidate(self, url):

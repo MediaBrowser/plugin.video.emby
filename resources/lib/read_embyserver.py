@@ -81,8 +81,8 @@ class Read_EmbyServer():
 
         return items
 
-    def getView_embyId(self, itemid):
-        # Returns ancestors using embyId
+    def getView_plexid(self, itemid):
+        # Returns ancestors using plexid
         viewId = None
 
         for view in self.doUtils("{server}/emby/Items/%s/Ancestors?UserId={UserId}&format=json" % itemid):
@@ -245,7 +245,7 @@ class Read_EmbyServer():
                         self.logMsg("Set jump limit to recover: %s" % jump, 2)
                     
                     retry = 0
-                    while utils.window('emby_online') != "true":
+                    while utils.window('plex_online') != "true":
                         # Wait server to come back online
                         if retry == 5:
                             self.logMsg("Unable to reconnect to server. Abort process.", 1)

@@ -173,7 +173,7 @@ class Artwork():
         self.logMsg("Doing Image Cache Sync", 1)
 
         dialog = xbmcgui.DialogProgress()
-        dialog.create("Emby for Kodi", "Image Cache Sync")
+        dialog.create("PlexKodiConnect", "Image Cache Sync")
 
         # ask to rest all existing or not
         if xbmcgui.Dialog().yesno(
@@ -414,7 +414,7 @@ class Artwork():
                     cacheimage = True
 
                     # Only for the main backdrop, poster
-                    if (utils.window('emby_initialScan') != "true" and
+                    if (utils.window('plex_initialScan') != "true" and
                             imageType in ("fanart", "poster")):
                         # Delete current entry before updating with the new one
                         self.deleteCachedArtwork(url)

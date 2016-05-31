@@ -41,11 +41,11 @@ class Playlist():
         self.logMsg("Items: %s and start at: %s" % (itemids, startat), 1)
 
         started = False
-        window('emby_customplaylist', value="true")
+        window('plex_customplaylist', value="true")
 
         if startat != 0:
             # Seek to the starting position
-            window('emby_customplaylist.seektime', str(startat))
+            window('plex_customplaylist.seektime', str(startat))
 
         with embydb.GetEmbyDB() as emby_db:
             for itemid in itemids:

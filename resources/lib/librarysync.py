@@ -255,7 +255,7 @@ class ThreadedShowSyncInfo(Thread):
 
 @utils.logging
 @utils.ThreadMethodsAdditionalSuspend('suspend_LibraryThread')
-@utils.ThreadMethodsAdditionalStop('emby_shouldStop')
+@utils.ThreadMethodsAdditionalStop('plex_shouldStop')
 @utils.ThreadMethods
 class LibrarySync(Thread):
     """
@@ -298,8 +298,8 @@ class LibrarySync(Thread):
             'enableBackgroundSync') == "true" else False
         self.limitindex = int(utils.settings('limitindex'))
 
-        if utils.settings('emby_pathverified') == 'true':
-            utils.window('emby_pathverified', value='true')
+        if utils.settings('plex_pathverified') == 'true':
+            utils.window('plex_pathverified', value='true')
 
         # Just in case a time sync goes wrong
         self.timeoffset = int(utils.settings('kodiplextimeoffset'))
@@ -504,7 +504,7 @@ class LibrarySync(Thread):
         if self.enableMusic:
             xbmc.executebuiltin('UpdateLibrary(music)')
 
-        utils.window('emby_initialScan', clear=True)
+        utils.window('plex_initialScan', clear=True)
         xbmc.executebuiltin('InhibitIdleShutdown(false)')
         utils.setScreensaver(value=screensaver)
         if utils.window('plex_scancrashed') == 'true':
@@ -513,7 +513,7 @@ class LibrarySync(Thread):
             utils.window('plex_scancrashed', clear=True)
         elif utils.window('plex_scancrashed') == '401':
             utils.window('plex_scancrashed', clear=True)
-            if utils.window('emby_serverStatus') not in ('401', 'Auth'):
+            if utils.window('plex_serverStatus') not in ('401', 'Auth'):
                 # Plex server had too much and returned ERROR
                 self.dialog.ok(self.addonName, self.__language__(39409))
 
@@ -730,7 +730,7 @@ class LibrarySync(Thread):
                 pass
 
         # Save total
-        utils.window('Emby.nodes.total', str(totalnodes))
+        utils.window('Plex.nodes.total', str(totalnodes))
 
         # Reopen DB connection to ensure that changes were commited before
         with embydb.GetEmbyDB() as emby_db:
@@ -1539,7 +1539,7 @@ class LibrarySync(Thread):
         try:
             self.run_internal()
         except Exception as e:
-            utils.window('emby_dbScan', clear=True)
+            utils.window('plex_dbScan', clear=True)
             self.logMsg('LibrarySync thread crashed', -1)
             self.logMsg('Error message: %s' % e, -1)
             import traceback
@@ -1595,10 +1595,10 @@ class LibrarySync(Thread):
                     return
                 xbmc.sleep(1000)
 
-            if (window('emby_dbCheck') != "true" and installSyncDone):
+            if (window('plex_dbCheck') != "true" and installSyncDone):
                 # Verify the validity of the database
                 currentVersion = settings('dbCreatedWithVersion')
-                minVersion = window('emby_minDBVersion')
+                minVersion = window('plex_minDBVersion')
 
                 if not self.compareDBVersion(currentVersion, minVersion):
                     log("Db version out of date: %s minimum version required: "
@@ -1615,7 +1615,7 @@ class LibrarySync(Thread):
                         utils.reset()
                     break
 
-                window('emby_dbCheck', value="true")
+                window('plex_dbCheck', value="true")
 
             if not startupComplete:
                 # Also runs when first installed
@@ -1633,7 +1633,7 @@ class LibrarySync(Thread):
                     break
 
                 # Run start up sync
-                window('emby_dbScan', value="true")
+                window('plex_dbScan', value="true")
                 log("Db version: %s" % settings('dbCreatedWithVersion'), 0)
                 lastTimeSync = utils.getUnixTimestamp()
                 self.syncPMStime()
@@ -1641,7 +1641,7 @@ class LibrarySync(Thread):
                 lastSync = utils.getUnixTimestamp()
                 librarySync = fullSync()
                 # Initialize time offset Kodi - PMS
-                window('emby_dbScan', clear=True)
+                window('plex_dbScan', clear=True)
                 if librarySync:
                     log("Initial start-up full sync successful", 0)
                     startupComplete = True
@@ -1661,23 +1661,23 @@ class LibrarySync(Thread):
                         break
 
             # Currently no db scan, so we can start a new scan
-            elif window('emby_dbScan') != "true":
+            elif window('plex_dbScan') != "true":
                 # Full scan was requested from somewhere else, e.g. userclient
                 if window('plex_runLibScan') in ("full", "repair"):
                     log('Full library scan requested, starting', 0)
-                    window('emby_dbScan', value="true")
+                    window('plex_dbScan', value="true")
                     if window('plex_runLibScan') == "full":
                         fullSync()
                     elif window('plex_runLibScan') == "repair":
                         fullSync(repair=True)
                     window('plex_runLibScan', clear=True)
-                    window('emby_dbScan', clear=True)
+                    window('plex_dbScan', clear=True)
                     # Full library sync finished
                     self.showKodiNote(string(39407), forced=True)
                 # Reset views was requested from somewhere else
                 elif window('plex_runLibScan') == "views":
                     log('Refresh playlist and nodes requested, starting', 0)
-                    window('emby_dbScan', value="true")
+                    window('plex_dbScan', value="true")
                     window('plex_runLibScan', clear=True)
 
                     # First remove playlists
@@ -1697,36 +1697,36 @@ class LibrarySync(Thread):
                         self.showKodiNote(string(39406),
                                           forced=True,
                                           icon="error")
-                    window('emby_dbScan', clear=True)
+                    window('plex_dbScan', clear=True)
                 else:
                     now = utils.getUnixTimestamp()
                     if (now - lastSync > fullSyncInterval and
                             not xbmcplayer.isPlaying()):
                         lastSync = now
                         log('Doing scheduled full library scan', 1)
-                        window('emby_dbScan', value="true")
+                        window('plex_dbScan', value="true")
                         if fullSync() is False and not threadStopped():
                             log('Could not finish scheduled full sync', -1)
                             self.showKodiNote(string(39410),
                                               forced=True,
                                               icon='error')
-                        window('emby_dbScan', clear=True)
+                        window('plex_dbScan', clear=True)
                         # Full library sync finished
                         self.showKodiNote(string(39407), forced=False)
                     elif now - lastTimeSync > oneDay:
                         lastTimeSync = now
                         log('Starting daily time sync', 0)
-                        window('emby_dbScan', value="true")
+                        window('plex_dbScan', value="true")
                         self.syncPMStime()
-                        window('emby_dbScan', clear=True)
+                        window('plex_dbScan', clear=True)
                     elif enableBackgroundSync:
                         # Check back whether we should process something
                         # Only do this once every 10 seconds
                         if now - lastProcessing > 10:
                             lastProcessing = now
-                            window('emby_dbScan', value="true")
+                            window('plex_dbScan', value="true")
                             processItems()
-                            window('emby_dbScan', clear=True)
+                            window('plex_dbScan', clear=True)
                         # See if there is a PMS message we need to handle
                         try:
                             message = queue.get(block=False)
@@ -1735,10 +1735,10 @@ class LibrarySync(Thread):
                             continue
                         # Got a message from PMS; process it
                         else:
-                            window('emby_dbScan', value="true")
+                            window('plex_dbScan', value="true")
                             processMessage(message)
                             queue.task_done()
-                            window('emby_dbScan', clear=True)
+                            window('plex_dbScan', clear=True)
                             # NO sleep!
                             continue
                     else:
