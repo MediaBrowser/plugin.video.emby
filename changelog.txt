@@ -1,3 +1,12 @@
+version 1.2.1
+- Fix crash when Kodi not playing as expected
+- Improve player.py stability
+- Background sync: don't try to process infinitely
+- Only tell PMS we're connected to what we're playing. This should enable the Plex Media Server to fall to sleep because PKC is not constantly bugging it
+- Ensure credentials are known when reconnecting
+- Remove some emby references
+- Ask on first run if we have a low powered device
+
 version 1.2.0
 - Re-wired connection manager completely
 - Periodically check if PMS address has changed
