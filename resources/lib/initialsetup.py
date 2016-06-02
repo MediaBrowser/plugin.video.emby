@@ -474,6 +474,15 @@ class InitialSetup():
             self.logMsg("User opted to use FanArtTV", 1)
             utils.settings('FanartTV', value="true")
 
+        # Is your Kodi installed on a low-powered device like a raspberry pie?
+        # If yes, then we will reduce the strain on Kodi to prevent it from
+        # crashing.
+        if dialog.yesno(heading=self.addonName,
+                        line1=string(39072)):
+            self.logMsg('User thinks that PKC runs on a raspi or similar', 1)
+            utils.settings('imageCacheLimit', value='1')
+            utils.settings('syncThreadNumber', value='1')
+
         # Make sure that we only ask these questions upon first installation
         utils.settings('InstallQuestionsAnswered', value='true')
 

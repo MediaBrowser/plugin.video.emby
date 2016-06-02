@@ -355,6 +355,8 @@
     <string id="39068">[COLOR yellow]Plex Media Server Adresse manuell eingeben[/COLOR]</string>
     <string id="39069">Aktuelle Adresse:</string>
     <string id="39070">Aktueller Port:</string>
+    <string id="39071">Aktueller plex.tv Status:</string>
+    <string id="39072">Läuft Kodi auf einem Raspberry Pie oder ähnlichem Computer mit äusserst wenig Rechenleistung? Falls ja, wird die Rechenlast reduziert, damit Kodi nicht abstürzt.</string>
 
     <!-- Plex Entrypoint.py -->
     <string id="39200">Plex Home Benutzer abmelden: </string>
