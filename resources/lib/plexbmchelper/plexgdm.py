@@ -22,17 +22,14 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 MA 02110-1301, USA.
 """
 
-__author__ = 'DHJ (hippojay) <plex@h-jay.com>'
 
 import socket
-import struct
 import threading
 import time
 
 from xbmc import sleep
 
 import downloadutils
-from PlexFunctions import PMSHttpsEnabled
 from utils import window, logging, settings
 
 
