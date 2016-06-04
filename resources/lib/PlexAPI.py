@@ -2352,7 +2352,8 @@ class API():
             'album': 'music',
             'song': 'music',
             'track': 'music',
-            'clip': 'clip'
+            'clip': 'clip',
+            'photo': 'photo'
         }
         typus = types[typus]
         if utils.window('remapSMB') == 'true':

@@ -77,7 +77,7 @@ class VideoNodes(object):
                     "special://profile/library/video")))
 
         # Create the node directory
-        if mediatype != "photo":
+        if mediatype != "photos":
             if utils.IfExists(nodepath) is False:
                 # folder does not exist yet
                 self.logMsg('Creating folder %s' % nodepath, 1)
@@ -101,13 +101,13 @@ class VideoNodes(object):
             if window('Plex.nodes.%s.index' % i) == path:
                 return
 
-        if mediatype == "photo":
+        if mediatype == "photos":
             path = "plugin://plugin.video.plexkodiconnect/?id=%s&mode=getsubfolders" % indexnumber
             
         window('Plex.nodes.%s.index' % indexnumber, value=path)
         
         # Root
-        if not mediatype == "photo":
+        if not mediatype == "photos":
             if viewtype == "mixed":
                 specialtag = "%s-%s" % (tagname, mediatype)
                 root = self.commonRoot(order=0, label=specialtag, tagname=tagname, roottype=0)
@@ -217,14 +217,14 @@ class VideoNodes(object):
                 label = stringid
 
             # Set window properties
-            if (mediatype == "homevideos" or mediatype == "photo") and nodetype == "all":
+            if (mediatype == "homevideos" or mediatype == "photos") and nodetype == "all":
                 # Custom query
-                path = ("plugin://plugin.video.plexkodiconnect/?id=%s&mode=browsecontent&type=%s"
-                        % (tagname, mediatype))
-            elif (mediatype == "homevideos" or mediatype == "photo"):
+                path = ("plugin://plugin.video.plexkodiconnect/?id=%s&mode=browseplex&type=%s"
+                        % (viewid, mediatype))
+            elif (mediatype == "homevideos" or mediatype == "photos"):
                 # Custom query
-                path = ("plugin://plugin.video.plexkodiconnect/?id=%s&mode=browsecontent&type=%s&folderid=%s"
-                        % (tagname, mediatype, nodetype))
+                path = ("plugin://plugin.video.plexkodiconnect/?id=%s&mode=browseplex&type=%s&folderid=%s"
+                        % (viewid, mediatype, nodetype))
             elif nodetype == "nextepisodes":
                 # Custom query
                 path = "plugin://plugin.video.plexkodiconnect/?id=%s&mode=nextup&limit=%s" % (tagname, limit)
@@ -247,7 +247,7 @@ class VideoNodes(object):
             else:
                 path = "library://video/Plex-%s/%s_%s.xml" % (dirname, viewid, nodetype)
             
-            if mediatype == "photo":
+            if mediatype == "photos":
                 windowpath = "ActivateWindow(Pictures,%s,return)" % path
             else:
                 windowpath = "ActivateWindow(Video,%s,return)" % path
@@ -270,7 +270,7 @@ class VideoNodes(object):
                 window('%s.path' % embynode, value=windowpath)
                 window('%s.content' % embynode, value=path)
 
-            if mediatype == "photo":
+            if mediatype == "photos":
                 # For photos, we do not create a node in videos but we do want the window props
                 # to be created.
                 # To do: add our photos nodes to kodi picture sources somehow

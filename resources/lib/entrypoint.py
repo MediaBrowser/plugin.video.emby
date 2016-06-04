@@ -1348,16 +1348,16 @@ def RunLibScan(mode):
         utils.window('plex_runLibScan', value='full')
 
 
-def BrowsePlexContent(viewid, mediatype="", nodetype=""):
+def BrowsePlexContent(viewid, mediatype="", folderid=""):
     """
-    Plex:
+    Browse Plex Photos:
         viewid:          PMS name of the library
-        mediatype:       mediatype, e.g. 'movies', 'tvshows', 'photos'
-        nodetype:        e.g. 'ondeck'
+        mediatype:       mediatype, 'photos'
+        nodetype:        e.g. 'ondeck' (TBD!!)
     """
-    utils.logMsg(title, "BrowsePlexContent called with viewid: %s, mediatype: %s, nodetype: %s" % (viewid, mediatype, nodetype), 1)
+    utils.logMsg(title, "BrowsePlexContent called with viewid: %s, mediatype: %s, folderid: %s" % (viewid, mediatype, folderid), 1)
 
-    if nodetype == 'ondeck':
+    if folderid == 'ondeck':
         xml = PlexFunctions.GetPlexOnDeck(
             viewid,
             containerSize=int(utils.settings('limitindex')))
@@ -1365,8 +1365,27 @@ def BrowsePlexContent(viewid, mediatype="", nodetype=""):
             utils.logMsg(title, "Cannot get view for section %s" % viewid, -1)
             return
 
-    viewname = xml.attrib.get('librarySectionTitle')
-    xbmcplugin.setPluginCategory(int(sys.argv[1]), viewname)
+    if not folderid:
+        # Get all sections
+        xml = PlexFunctions.GetPlexSectionResults(
+            viewid,
+            containerSize=int(utils.settings('limitindex')))
+        try:
+            xml.attrib
+        except AttributeError:
+            utils.logMsg(title, "Error download section %s" % viewid, -1)
+            return
+    else:
+        xml = downloadutils.DownloadUtils().downloadUrl(
+            "{server}%s" % folderid)
+        try:
+            xml.attrib
+        except AttributeError:
+            utils.logMsg(title, "Error download %s" % folderid, -1)
+            return
+
+    xbmcplugin.setPluginCategory(int(sys.argv[1]),
+                                 xml.attrib.get('librarySectionTitle'))
 
     # set the correct params for the content type
     if mediatype.lower() == "homevideos, tvshows":
@@ -1387,11 +1406,11 @@ def BrowsePlexContent(viewid, mediatype="", nodetype=""):
             # folderId
             li.setProperty('IsFolder', 'true')
             li.setProperty('IsPlayable', 'false')
-            path = "%s?id=%s&mode=browsecontent&type=%s&folderid=%s" \
+            path = "%s?id=%s&mode=browseplex&type=%s&folderid=%s" \
                    % (utils.tryDecode(sys.argv[0]),
-                      utils.tryDecode(viewname),
-                      utils.tryDecode(type),
-                      utils.tryDecode(item.get("Id")))
+                      utils.tryDecode(viewid),
+                      utils.tryDecode(mediatype),
+                      utils.tryDecode(API.getKey()))
             xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=path, listitem=li, isFolder=True)
         else:
             # playable item, set plugin path and mediastreams

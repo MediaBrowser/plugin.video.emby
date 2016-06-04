@@ -533,7 +533,7 @@ class LibrarySync(Thread):
         folder = folderItem.attrib
         mediatype = folder['type']
         # Only process supported formats
-        if mediatype not in ('movie', 'show', 'artist'):
+        if mediatype not in ('movie', 'show', 'artist', 'photo'):
             return totalnodes
 
         # Prevent duplicate for nodes of the same type
@@ -680,18 +680,20 @@ class LibrarySync(Thread):
         self.nodes = {
             'movie': [],
             'show': [],
-            'artist': []
+            'artist': [],
+            'photo': []
         }
         self.playlists = {
             'movie': [],
             'show': [],
-            'artist': []
+            'artist': [],
+            'photo': []
         }
         self.sorted_views = []
 
         for view in sections:
             itemType = view.attrib['type']
-            if itemType in ('movie', 'show'):  # and NOT artist for now
+            if itemType in ('movie', 'show', 'photo'):  # NOT artist for now
                 self.sorted_views.append(view.attrib['title'])
         self.logMsg('Sorted views: %s' % self.sorted_views, 1)
 
