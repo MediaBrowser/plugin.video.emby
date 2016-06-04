@@ -131,7 +131,7 @@
     <string id="30157">Enable Enhanced Images (eg CoverArt)</string><!-- Verified -->
     <string id="30158">Metadata</string>
     <string id="30159">Artwork</string>
-    <string id="30160">Video Quality for Transcoding</string><!-- Verified -->
+    <string id="30160">Video Quality if Transcoding necessary</string><!-- Verified -->
     
     <string id="30161">Enable Suggested Loader (Requires Restart)</string>
     <string id="30162">Add Season Number</string>     

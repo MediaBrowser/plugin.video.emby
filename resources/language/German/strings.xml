@@ -166,7 +166,7 @@
     <string id="30157">Deaktiviere erweiterte Bilder (z.B. CoverArt)</string>
     <string id="30158">Metadaten</string>
     <string id="30159">Grafiken</string>
-    <string id="30160">Videoqualität für Transkodierung</string>
+    <string id="30160">Videoqualität falls Transkodierung nötig</string>
 
     <string id="30161">'Empfohlen'-Loader aktivieren (Erfordert Neustart)</string>
     <string id="30162">Staffelnummer hinzufügen</string>
