@@ -440,11 +440,6 @@ class Movies(Items):
             filename = "%s?%s" % (path, urllib.urlencode(params))
             playurl = filename
 
-        # Even if the item is only updated, the file may have been moved or updated.
-        # In the worst case we get exactly the same values as we had before.
-        pathid = self.kodi_db.addPath(path)
-        fileid = self.kodi_db.addFile(filename, pathid)
-
         # movie table:
         # c22 - playurl
         # c23 - pathid
@@ -473,6 +468,10 @@ class Movies(Items):
         ##### OR ADD THE MOVIE #####
         else:
             self.logMsg("ADD movie itemid: %s - Title: %s" % (itemid, title), 1)
+            # Add path
+            pathid = self.kodi_db.addPath(path)
+            # Add the file
+            fileid = self.kodi_db.addFile(filename, pathid)
 
             # Create the movie entry
             query = (
