@@ -1,3 +1,8 @@
+version 1.2.2
+- Fix filename change recognition for episodes and movies - finally! If you experienced this, you will have to manually reset the Kodi database in the PKC settings
+- Fix PKC resume points set way too high
+- Clarify that transcode settings are TARGET quality
+
 version 1.2.1
 - Fix crash when Kodi not playing as expected
 - Improve player.py stability
