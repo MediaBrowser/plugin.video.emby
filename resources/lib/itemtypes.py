@@ -1344,11 +1344,6 @@ class TVShows(Items):
             parentPathId = self.kodi_db.addPath(
                 'plugin://plugin.video.plexkodiconnect.tvshows/')
 
-        # Even if the item is only updated, the file may have been moved or updated.
-        # In the worst case we get exactly the same values as we had before.
-        pathid = self.kodi_db.addPath(path)
-        fileid = self.kodi_db.addFile(filename, pathid)
-
         # episodes table:
         # c18 - playurl
         # c19 - pathid
@@ -1392,6 +1387,10 @@ class TVShows(Items):
         ##### OR ADD THE EPISODE #####
         else:
             self.logMsg("ADD episode itemid: %s - Title: %s" % (itemid, title), 1)
+            # Add path
+            pathid = self.kodi_db.addPath(path)
+            # Add the file
+            fileid = self.kodi_db.addFile(filename, pathid)
             # Create the episode entry
             if self.kodiversion in (16, 17):
                 # Kodi Jarvis, Krypton
