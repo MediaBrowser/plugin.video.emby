@@ -95,7 +95,6 @@
 	    <setting id="transcodeHEVC" type="bool" label="39065" default="false"/>
 	    <setting id="audioBoost" type="slider" label="39001" default="0" range="0,10,100" option="int"/>
 	    <setting id="subtitleSize" label="39002" type="slider" option="int" range="0,30,300" default="100" />
-	    <setting id="markPlayed" type="number" visible="false" default="95" />
 	    <setting id="failedCount" type="number" visible="false" default="0" />
 	    <setting id="networkCreds" type="text" visible="false" default="" />
 	</category>

@@ -114,8 +114,6 @@ class UserClient(threading.Thread):
         # url = "{server}/emby/System/Configuration?format=json"
         # result = doUtils.downloadUrl(url)
 
-        # utils.settings('markPlayed', value=str(result['MaxResumePct']))
-
     def hasAccess(self):
         # Plex: always return True for now
         return True

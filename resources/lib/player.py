@@ -510,11 +510,11 @@ class Player(xbmc.Player):
                     except ZeroDivisionError:
                         # Runtime is 0.
                         percentComplete = 0
-                        
-                    markPlayedAt = float(settings('markPlayed')) / 100
+
+                    markPlayed = 0.90
                     self.logMsg("Percent complete: %s Mark played at: %s"
-                                % (percentComplete, markPlayedAt), 1)
-                    if percentComplete >= markPlayedAt:
+                                % (percentComplete, markPlayed), 1)
+                    if percentComplete >= markPlayed:
                         # Tell Kodi that we've finished watching (Plex knows)
                         if (data['fileid'] is not None and
                                 data['itemType'] in ('movie', 'episode')):
@@ -539,7 +539,7 @@ class Player(xbmc.Player):
 
                     # Plex: never delete
                     offerDelete = False
-                    if percentComplete >= markPlayedAt and offerDelete:
+                    if percentComplete >= markPlayed and offerDelete:
                         resp = xbmcgui.Dialog().yesno(
                             lang(30091),
                             lang(33015),
