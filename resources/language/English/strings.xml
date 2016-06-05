@@ -367,6 +367,7 @@
     <string id="39021">[COLOR yellow]Sync Emby Theme Media to Kodi[/COLOR]</string>
     <string id="39022">local</string>
     <string id="39023">Failed to authenticate. Did you login to plex.tv?</string>
+    <string id="39024">Mark item watched after x percent (Plex: 90)</string>
     
 
     <string id="39025">Automatically log into plex.tv on startup</string>
