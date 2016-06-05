@@ -1,3 +1,7 @@
+version 1.2.3
+- Improvements to resume points. PKC should now correctly mark an item as completely watched.
+- Get rid of obsolete setting markPlayed. Mark a video item as played after 90%, just like Plex.
+
 version 1.2.2
 - Fix filename change recognition for episodes and movies - finally! If you experienced this, you will have to manually reset the Kodi database in the PKC settings
 - Fix PKC resume points set way too high
