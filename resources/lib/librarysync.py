@@ -1522,13 +1522,19 @@ class LibrarySync(Thread):
                     userdata = API.getUserData()
                     currSess['duration'] = userdata['Runtime']
                     currSess['viewCount'] = userdata['PlayCount']
+                # Sometimes, Plex tells us resume points in milliseconds and
+                # not in seconds - thank you very much!
+                if item.get('viewOffset') > currSess['duration']:
+                    resume = item.get('viewOffset') / 1000
+                else:
+                    resume = item.get('viewOffset')
                 # Append to list that we need to process
                 items.append({
                     'ratingKey': ratingKey,
                     'kodi_id': kodiInfo[0],
                     'file_id': kodiInfo[1],
                     'kodi_type': kodiInfo[4],
-                    'viewOffset': item.get('viewOffset'),
+                    'viewOffset': resume,
                     'state': state,
                     'duration': currSess['duration'],
                     'viewCount': currSess['viewCount'],

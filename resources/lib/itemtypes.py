@@ -262,8 +262,7 @@ class Items(object):
         # If the playback was stopped, check whether we need to increment the
         # playcount. PMS won't tell us the playcount via websockets
         if item['state'] in ('stopped', 'ended'):
-            complete = float(item['viewOffset']) / float(item['duration'])
-            complete = complete * 100
+            complete = float(item['viewOffset']) / float(item['duration'])*100
             self.logMsg('Item %s stopped with completion rate %s percent.'
                         'Mark item played at %s percent.'
                         % (item['ratingKey'],

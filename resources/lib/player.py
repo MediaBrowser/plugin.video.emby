@@ -117,6 +117,7 @@ class Player(xbmc.Player):
         try:
             seekTime = self.xbmcplayer.getTime()
         except RuntimeError:
+            self.logMsg('Could not get current seektime from xbmc player', -1)
             seekTime = 0
 
         # Get playback volume
@@ -246,7 +247,7 @@ class Player(xbmc.Player):
             'playQueueVersion': playQueueVersion,
             'playQueueID': playQueueID,
             'playQueueItemID': playQueueItemID,
-            'runtime': runtime * 1000,
+            'runtime': runtime,
             'item_id': itemId,
             'refresh_id': refresh_id,
             'currentfile': currentFile,
@@ -513,7 +514,7 @@ class Player(xbmc.Player):
                     markPlayedAt = float(settings('markPlayed')) / 100
                     self.logMsg("Percent complete: %s Mark played at: %s"
                                 % (percentComplete, markPlayedAt), 1)
-                    if currentPosition >= markPlayedAt:
+                    if percentComplete >= markPlayedAt:
                         # Tell Kodi that we've finished watching (Plex knows)
                         if (data['fileid'] is not None and
                                 data['itemType'] in ('movie', 'episode')):
@@ -586,5 +587,6 @@ class Player(xbmc.Player):
             'time': int(data['currentPosition']),
             'duration': int(data.get('runtime', 0))
         }
+        self.logMsg('Informing PMS about our state: %s' % args, 2)
         self.doUtils("{server}/:/timeline?" + urlencode(args),
                      action_type="GET")

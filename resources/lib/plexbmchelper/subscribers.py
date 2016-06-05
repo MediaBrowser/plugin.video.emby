@@ -174,8 +174,8 @@ class SubscriptionManager:
                 + serv.get('port', '32400') + "/:/timeline"
             self.doUtils(url, parameters=params)
             # requests.getwithparams(serv.get('server', 'localhost'), serv.get('port', 32400), "/:/timeline", params, getPlexHeaders(), serv.get('protocol', 'http'))
-            self.logMsg("sent server notification with state = %s"
-                        % params['state'], 2)
+            self.logMsg("sent server notification with parameters: %s"
+                        % params, 2)
 
     def controllable(self):
         return "volume,shuffle,repeat,audioStream,videoStream,subtitleStream,skipPrevious,skipNext,seekTo,stepBack,stepForward,stop,playPause"
