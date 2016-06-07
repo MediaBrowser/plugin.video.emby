@@ -528,7 +528,7 @@ class Movies(Items):
             tags.append("Favorite movies")
         self.kodi_db.addTags(movieid, tags, "movie")
         # Add any sets from Plex collection tags
-        self.kodi_db.addSets(movieid, collections)
+        self.kodi_db.addSets(movieid, collections, kodicursor, API)
         # Process playstates
         self.kodi_db.addPlaystate(fileid, resume, runtime, playcount, dateplayed)
 
