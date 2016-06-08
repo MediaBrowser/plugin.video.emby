@@ -1,3 +1,7 @@
+version 1.2.4
+- Automatically download Plex collection artwork from FanArtTv! Many thanks to @im85288
+- A dedicated PKC setting to download this set fanart (independent of the other FanArtTv download)
+
 version 1.2.3
 - Improvements to resume points. PKC should now correctly mark an item as completely watched.
 - Get rid of obsolete setting markPlayed. Mark a video item as played after 90%, just like Plex.
