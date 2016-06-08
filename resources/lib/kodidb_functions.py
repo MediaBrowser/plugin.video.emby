@@ -7,7 +7,7 @@ from ntpath import dirname
 
 import artwork
 import clientinfo
-import utils
+from utils import settings
 from utils import logging, kodiSQL
 
 ###############################################################################
@@ -1186,8 +1186,11 @@ class Kodidb_Functions():
         for setname in collections:
             setid = self.createBoxset(setname)
             # Process artwork
-            if utils.settings('FanartTV') == 'true':
-                self.artwork.addArtwork(API.getSetArtwork(), setid, "set", kodicursor)
+            if settings('FanartTV') == 'true':
+                self.artwork.addArtwork(API.getSetArtwork(),
+                                        setid,
+                                        "set",
+                                        kodicursor)
             self.assignBoxset(setid, movieid)
 
     def createBoxset(self, boxsetname):
