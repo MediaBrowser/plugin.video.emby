@@ -1186,7 +1186,7 @@ class Kodidb_Functions():
         for setname in collections:
             setid = self.createBoxset(setname)
             # Process artwork
-            if settings('FanartTV') == 'true':
+            if settings('setFanartTV') == 'true':
                 self.artwork.addArtwork(API.getSetArtwork(),
                                         setid,
                                         "set",

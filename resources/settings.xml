@@ -51,6 +51,7 @@
 
 		<setting type="lsep" label="30538" /><!-- Complete Re-Sync necessary -->
 		<setting id="FanartTV" label="30539" type="bool" default="false" /><!-- Download additional art from FanArtTV -->
+		<setting id="setFanartTV" label="30540" type="bool" default="true" /><!-- Download movie set/collection art from FanArtTV -->
 		<setting id="enableMusic" type="bool" label="30509" default="true" />
 		<setting id="useDirectPaths" type="enum" label="30511" values="Addon(Default)|Native(Direct paths)" default="0" visible="true"/> <!-- Playback mode -->
 
