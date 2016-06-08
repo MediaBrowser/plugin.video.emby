@@ -2038,7 +2038,7 @@ class API():
                 self.logMsg('Could not download %s with parameters %s'
                             % (url, parameters), -1)
                 continue
-            if collection is True:
+            if collection is False:
                 if data.get("imdb_id") is not None:
                     mediaId = str(data.get("imdb_id"))
                     break
