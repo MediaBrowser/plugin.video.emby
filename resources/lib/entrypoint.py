@@ -192,8 +192,16 @@ def doPlayback(itemid, dbid):
     if xml in (None, 401):
         return xbmcplugin.setResolvedUrl(
             int(sys.argv[1]), False, xbmcgui.ListItem())
-    # Everything OK
-    return pbutils.PlaybackUtils(xml).play(itemid, dbid)
+    if xml[0].attrib.get('type') == 'photo':
+        # Photo
+        API = PlexAPI.API(xml[0])
+        listitem = API.CreateListItemFromPlexItem()
+        API.AddStreamInfo(listitem)
+        pbutils.PlaybackUtils(xml[0]).setArtwork(listitem)
+        return xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, listitem)
+    else:
+        # Video
+        return pbutils.PlaybackUtils(xml).play(itemid, dbid)
 
     # utils.logMsg(title, "doPlayback called with itemid=%s, dbid=%s"
     #              % (itemid, dbid), 1)
@@ -1356,17 +1364,11 @@ def BrowsePlexContent(viewid, mediatype="", folderid=""):
         mediatype:       mediatype, 'photos'
         nodetype:        e.g. 'ondeck' (TBD!!)
     """
-    utils.logMsg(title, "BrowsePlexContent called with viewid: %s, mediatype: %s, folderid: %s" % (viewid, mediatype, folderid), 1)
-
-    if folderid == 'ondeck':
-        xml = PlexFunctions.GetPlexOnDeck(
-            viewid,
-            containerSize=int(utils.settings('limitindex')))
-        if not xml:
-            utils.logMsg(title, "Cannot get view for section %s" % viewid, -1)
-            return
+    utils.logMsg(title, "BrowsePlexContent called with viewid: %s, mediatype: "
+                 "%s, folderid: %s" % (viewid, mediatype, folderid), 2)
 
     if not folderid:
+        # Top-level navigation, so get the content of this section
         # Get all sections
         xml = PlexFunctions.GetPlexSectionResults(
             viewid,
@@ -1375,28 +1377,26 @@ def BrowsePlexContent(viewid, mediatype="", folderid=""):
             xml.attrib
         except AttributeError:
             utils.logMsg(title, "Error download section %s" % viewid, -1)
-            return
+            return xbmcplugin.endOfDirectory(int(sys.argv[1]), False)
     else:
+        # folderid was passed so we can directly access the folder
         xml = downloadutils.DownloadUtils().downloadUrl(
             "{server}%s" % folderid)
         try:
             xml.attrib
         except AttributeError:
-            utils.logMsg(title, "Error download %s" % folderid, -1)
-            return
+            utils.logMsg(title, "Error downloading %s" % folderid, -1)
+            return xbmcplugin.endOfDirectory(int(sys.argv[1]), False)
 
+    # Set the folder's name
     xbmcplugin.setPluginCategory(int(sys.argv[1]),
                                  xml.attrib.get('librarySectionTitle'))
 
     # set the correct params for the content type
     if mediatype.lower() == "homevideos, tvshows":
         xbmcplugin.setContent(int(sys.argv[1]), 'episodes')
-        itemtype = "Video,Folder,PhotoAlbum"
     elif mediatype.lower() == "photos":
         xbmcplugin.setContent(int(sys.argv[1]), 'files')
-        itemtype = "Photo,PhotoAlbum,Folder"
-    else:
-        itemtype = ""
 
     # process the listing
     for item in xml:
@@ -1408,20 +1408,32 @@ def BrowsePlexContent(viewid, mediatype="", folderid=""):
             li.setProperty('IsFolder', 'true')
             li.setProperty('IsPlayable', 'false')
             path = "%s?id=%s&mode=browseplex&type=%s&folderid=%s" \
-                   % (utils.tryDecode(sys.argv[0]),
-                      utils.tryDecode(viewid),
-                      utils.tryDecode(mediatype),
-                      utils.tryDecode(API.getKey()))
-            xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=path, listitem=li, isFolder=True)
+                   % (sys.argv[0], viewid, mediatype, API.getKey())
+            xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),
+                                        url=path,
+                                        listitem=li,
+                                        isFolder=True)
         else:
-            # playable item, set plugin path and mediastreams
-            path = "%s?id=%s&mode=play" % (sys.argv[0], API.getRatingKey())
-            li.setProperty("path", path)
-            API.AddStreamInfo(li)
+            if item.attrib.get('type') == 'photo':
+                # pictures
+                if utils.settings('useDirectPaths') == '0':
+                    # Addon paths
+                    path = '%s%s' % (utils.window('pms_server'),
+                                     item[0][0].attrib['key'])
+                    path = API.addPlexCredentialsToUrl(path)
+                else:
+                    # Direct paths
+                    path = item[0][0].attrib['file']
+                li.setProperty('picturepath', path)
+            else:
+                # videos
+                path = "%s?id=%s&mode=play" % (sys.argv[0], API.getRatingKey())
+                li.setProperty("path", path)
+                API.AddStreamInfo(li)
             pbutils.PlaybackUtils(item).setArtwork(li)
             xbmcplugin.addDirectoryItem(
                 handle=int(sys.argv[1]),
-                url=li.getProperty("path"),
+                url=path,
                 listitem=li)
 
     if filter == "recent":
@@ -1432,7 +1444,10 @@ def BrowsePlexContent(viewid, mediatype="", folderid=""):
         xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_RATING)
         xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_RUNTIME)
 
-    xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
+    xbmcplugin.endOfDirectory(
+        handle=int(sys.argv[1]),
+        cacheToDisc=True if utils.settings('enableTextureCache') == 'true'
+        else False)
 
 
 def getOnDeck(viewid, mediatype, tagname, limit):

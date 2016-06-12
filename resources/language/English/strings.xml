@@ -390,6 +390,8 @@
     <string id="39042">Replace Plex MUSIC with:</string>
     <string id="39043">Go a step further and completely replace all original Plex library paths (/volume1/media) with custom SMB paths (smb://NAS/MyStuff)?</string>
     <string id="39044">Please enter your custom smb paths in the settings under "Sync Options" and then restart Kodi</string>
+    <string id="39045">Original Plex PHOTO path to replace:</string>
+    <string id="39046">Replace Plex PHOTO with:</string>
 
     <string id="39045">Appearance Tweaks</string>
     <string id="39046">TV Shows</string>

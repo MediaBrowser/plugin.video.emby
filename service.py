@@ -96,7 +96,8 @@ class Service():
             "plex_authenticated", "PlexUserImage", "useDirectPaths",
             "replaceSMB", "remapSMB", "remapSMBmovieOrg", "remapSMBtvOrg",
             "remapSMBmusicOrg", "remapSMBmovieNew", "remapSMBtvNew",
-            "remapSMBmusicNew", "suspend_LibraryThread", "plex_terminateNow",
+            "remapSMBmusicNew", "remapSMBphotoOrg", "remapSMBphotoNew",
+            "suspend_LibraryThread", "plex_terminateNow",
             "kodiplextimeoffset", "countError", "countUnauthorized"
         ]
         for prop in properties:

@@ -2289,6 +2289,16 @@ class API():
         self.logMsg('Found external subs: %s' % externalsubs)
         return externalsubs
 
+    def GetFileSize(self):
+        """
+        Returns the item's filesize in bytes or 0 (int) if unsuccessful
+        """
+        try:
+            ans = int(self.item[0][0].attrib['size'])
+        except:
+            ans = 0
+        return ans
+
     def CreateListItemFromPlexItem(self, listItem=None,
                                    appendShowTitle=False, appendSxxExx=False):
         """
@@ -2301,35 +2311,43 @@ class API():
 
         Returns XBMC listitem for this PMS library item
         """
-        people = self.getPeople()
-        userdata = self.getUserData()
         title, sorttitle = self.getTitle()
+        typus = self.getType()
 
         if listItem is None:
             listItem = xbmcgui.ListItem(title)
         listItem.setProperty('IsPlayable', 'true')
 
-        metadata = {
-            'genre': self.joinList(self.getGenres()),
-            'year': self.getYear(),
-            'rating': self.getAudienceRating(),
-            'playcount': userdata['PlayCount'],
-            'cast': people['Cast'],
-            'director': self.joinList(people.get('Director')),
-            'plot': self.getPlot(),
-            'sorttitle': sorttitle,
-            'duration': userdata['Runtime'],
-            'studio': self.joinList(self.getStudios()),
-            'tagline': self.getTagline(),
-            'writer': self.joinList(people.get('Writer')),
-            'premiered': self.getPremiereDate(),
-            'dateadded': self.getDateCreated(),
-            'lastplayed': userdata['LastPlayedDate'],
-            'mpaa': self.getMpaa(),
-            'aired': self.getPremiereDate()
-        }
+        if typus != 'photo':
+            # Video items, e.g. movies and episodes or clips
+            people = self.getPeople()
+            userdata = self.getUserData()
+            metadata = {
+                'genre': self.joinList(self.getGenres()),
+                'year': self.getYear(),
+                'rating': self.getAudienceRating(),
+                'playcount': userdata['PlayCount'],
+                'cast': people['Cast'],
+                'director': self.joinList(people.get('Director')),
+                'plot': self.getPlot(),
+                'sorttitle': sorttitle,
+                'duration': userdata['Runtime'],
+                'studio': self.joinList(self.getStudios()),
+                'tagline': self.getTagline(),
+                'writer': self.joinList(people.get('Writer')),
+                'premiered': self.getPremiereDate(),
+                'dateadded': self.getDateCreated(),
+                'lastplayed': userdata['LastPlayedDate'],
+                'mpaa': self.getMpaa(),
+                'aired': self.getPremiereDate()
+            }
+            listItem.setProperty('resumetime', str(userdata['Resume']))
+            listItem.setProperty('totaltime', str(userdata['Runtime']))
+        else:
+            # E.g. photo
+            metadata = {'size': self.GetFileSize()}
 
-        if self.getType() == "episode":
+        if typus == "episode":
             # Only for tv shows
             key, show, season, episode = self.getEpisodeDetails()
             season = -1 if season is None else int(season)
@@ -2345,13 +2363,14 @@ class API():
             listItem.setIconImage('DefaultTVShows.png')
             if appendShowTitle is True:
                 title = show + ' - ' + title
-        elif self.getType() == "movie":
+        elif typus == "movie":
             listItem.setIconImage('DefaultMovies.png')
+        elif typus == "photo":
+            listItem.setIconImage('DefaultPicture.png')
         else:
+            # E.g. clips, trailers, ...
             listItem.setIconImage('DefaultVideo.png')
 
-        listItem.setProperty('resumetime', str(userdata['Resume']))
-        listItem.setProperty('totaltime', str(userdata['Runtime']))
         plexId = self.getRatingKey()
         listItem.setProperty('plexid', plexId)
         with embydb.GetEmbyDB() as emby_db:
@@ -2363,7 +2382,10 @@ class API():
         # Expensive operation
         metadata['title'] = title
         listItem.setLabel(title)
-        listItem.setInfo('video', infoLabels=metadata)
+        if typus != 'photo':
+            listItem.setInfo('video', infoLabels=metadata)
+        else:
+            listItem.setInfo('pictures', infoLabels=metadata)
         return listItem
 
     def AddStreamInfo(self, listItem):
