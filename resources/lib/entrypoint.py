@@ -306,6 +306,7 @@ def resetDeviceId():
         utils.logMsg(addonName,
                      "Successfully removed old deviceId: %s New deviceId: %s"
                      % (deviceId_old, deviceId), 1)
+        # "Kodi will now restart to apply the changes"
         dialog.ok(
             heading=addonName,
             line1=language(33033))

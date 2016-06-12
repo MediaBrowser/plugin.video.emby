@@ -279,6 +279,8 @@
     <string id="30311">Musikstücke</string>
     <string id="30312">Kanäle</string>
 
+    <string id="33033">Kodi wird jetzt neu gestartet um die Änderungen anzuwenden.</string>
+
     <!-- New to Plex -->
     <string id="39000">- Anzahl abzuspielender Trailer vor einem Film</string>
     <string id="39001">Audio Verstärkung (audio boost) wenn transkodiert wird</string>

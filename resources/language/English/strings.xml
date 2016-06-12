@@ -340,7 +340,7 @@
     <string id="33030">Comparing episodes from:</string>
     <string id="33031">Comparing:</string>
     <string id="33032">Failed to generate a new device Id. See your logs for more information.</string>
-    <string id="33033">A new device Id has been generated. Kodi will now restart.</string>
+    <string id="33033">Kodi will now restart to apply the changes.</string>
 
     <!-- New to Plex -->
     <string id="39000">- Number of trailers to play before a movie</string>
