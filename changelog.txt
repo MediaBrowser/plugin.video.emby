@@ -1,3 +1,12 @@
+version 1.2.5
+-  Plex Photos! Choose "Refresh Plex playlists/nodes" to use the new feature.
+-  Compatibility with latest Kodi Krypton (which is still under heavy development and in an alpha state). If PKC stops working for you, update your Kodi Krypton to the latest version.
+-   Fixes to getExtraFanart. If not using the PKC repository, you will have to manually update plugin.video.plexkodiconnect.movies and plugin.video.plexkodiconnect.tvshows to profit from these changes.
+- Use language codes ('spa'), not verbose 'español' for audio streams and subtitles. You will have to reset your Kodi DB manually to profit from this change.
+- Fix fanart.tv fallback to English not working.
+- Fix plex.tv Watch Later ignored resume points.
+- Fix double PKC settings strings.
+
 version 1.2.4
 - Automatically download Plex collection artwork from FanArtTv! Many thanks to @im85288
 - A dedicated PKC setting to download this set fanart (independent of the other FanArtTv download)
