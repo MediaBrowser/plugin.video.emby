@@ -1,3 +1,6 @@
+version 1.2.6
+- Fix Watch Later TypeError
+
 version 1.2.5
 -  Plex Photos! Choose "Refresh Plex playlists/nodes" to use the new feature.
 -  Compatibility with latest Kodi Krypton (which is still under heavy development and in an alpha state). If PKC stops working for you, update your Kodi Krypton to the latest version.
