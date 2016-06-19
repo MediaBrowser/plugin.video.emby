@@ -2289,19 +2289,80 @@ class API():
         self.logMsg('Found external subs: %s' % externalsubs)
         return externalsubs
 
-    def GetFileSize(self):
-        """
-        Returns the item's filesize in bytes or 0 (int) if unsuccessful
-        """
-        try:
-            ans = int(self.item[0][0].attrib['size'])
-        except:
-            ans = 0
-        return ans
+    def CreateListItemFromPlexItem(self,
+                                   listItem=None,
+                                   appendShowTitle=False,
+                                   appendSxxExx=False):
+        if self.getType() == 'photo':
+            listItem = self.__createPhotoListItem(listItem)
+        else:
+            listItem = self.__createVideoListItem(listItem,
+                                                  appendShowTitle,
+                                                  appendSxxExx)
+        return listItem
 
-    def CreateListItemFromPlexItem(self, listItem=None,
-                                   appendShowTitle=False, appendSxxExx=False):
+    def GetKodiPremierDate(self):
         """
+        Takes Plex' originallyAvailableAt of the form "yyyy-mm-dd" and returns
+        Kodi's "dd.mm.yyyy"
+        """
+        date = self.getPremiereDate()
+        if date is None:
+            return
+        try:
+            date = re.sub(r'(\d+)-(\d+)-(\d+)', r'\3.\2.\1', date)
+        except:
+            date = None
+        return date
+
+    def __createPhotoListItem(self, listItem=None):
+        """
+        Use for photo items only
+        """
+        title, _ = self.getTitle()
+        if listItem is None:
+            listItem = xbmcgui.ListItem(title)
+        else:
+            listItem.setLabel(title)
+        listItem.setProperty('IsPlayable', 'true')
+        # Always use HTTP, not direct paths
+        # Kodi has problems accessing photos directly
+        path = '%s%s' % (utils.window('pms_server'),
+                         self.item[0][0].attrib['key'])
+        path = utils.tryEncode(self.addPlexCredentialsToUrl(path))
+        metadata = {
+            'date': self.GetKodiPremierDate(),
+            'picturepath': path,
+            'size': long(self.item[0][0].attrib.get('size', 0)),
+            'exif:width': self.item[0].attrib.get('width', ''),
+            'exif:height': self.item[0].attrib.get('height', ''),
+            'title': title
+        }
+        listItem.setInfo('pictures', infoLabels=metadata)
+        try:
+            if int(metadata['exif:width']) > int(metadata['exif:height']):
+                # add image as fanart for use with skinhelper auto thumb/
+                # backgrund creation
+                listItem.setArt({'fanart':  path})
+        except ValueError:
+            pass
+        # Stuff that we CANNOT set with listItem.setInfo
+        listItem.setProperty('path', path)
+        listItem.setProperty('plot', self.getPlot())
+        listItem.setProperty('plexid', self.getRatingKey())
+        # We do NOT set these props
+        # listItem.setProperty('isPlayable', 'true')
+        # listItem.setProperty('isFolder', 'true')
+        # Further stuff
+        listItem.setIconImage('DefaultPicture.png')
+        return listItem
+
+    def __createVideoListItem(self,
+                              listItem=None,
+                              appendShowTitle=False,
+                              appendSxxExx=False):
+        """
+        Use for video items only
         Call on a child level of PMS xml response (e.g. in a for loop)
 
         listItem        : existing xbmcgui.ListItem to work with
@@ -2318,34 +2379,30 @@ class API():
             listItem = xbmcgui.ListItem(title)
         listItem.setProperty('IsPlayable', 'true')
 
-        if typus != 'photo':
-            # Video items, e.g. movies and episodes or clips
-            people = self.getPeople()
-            userdata = self.getUserData()
-            metadata = {
-                'genre': self.joinList(self.getGenres()),
-                'year': self.getYear(),
-                'rating': self.getAudienceRating(),
-                'playcount': userdata['PlayCount'],
-                'cast': people['Cast'],
-                'director': self.joinList(people.get('Director')),
-                'plot': self.getPlot(),
-                'sorttitle': sorttitle,
-                'duration': userdata['Runtime'],
-                'studio': self.joinList(self.getStudios()),
-                'tagline': self.getTagline(),
-                'writer': self.joinList(people.get('Writer')),
-                'premiered': self.getPremiereDate(),
-                'dateadded': self.getDateCreated(),
-                'lastplayed': userdata['LastPlayedDate'],
-                'mpaa': self.getMpaa(),
-                'aired': self.getPremiereDate()
-            }
-            listItem.setProperty('resumetime', str(userdata['Resume']))
-            listItem.setProperty('totaltime', str(userdata['Runtime']))
-        else:
-            # E.g. photo
-            metadata = {'size': self.GetFileSize()}
+        # Video items, e.g. movies and episodes or clips
+        people = self.getPeople()
+        userdata = self.getUserData()
+        metadata = {
+            'genre': self.joinList(self.getGenres()),
+            'year': self.getYear(),
+            'rating': self.getAudienceRating(),
+            'playcount': userdata['PlayCount'],
+            'cast': people['Cast'],
+            'director': self.joinList(people.get('Director')),
+            'plot': self.getPlot(),
+            'sorttitle': sorttitle,
+            'duration': userdata['Runtime'],
+            'studio': self.joinList(self.getStudios()),
+            'tagline': self.getTagline(),
+            'writer': self.joinList(people.get('Writer')),
+            'premiered': self.getPremiereDate(),
+            'dateadded': self.getDateCreated(),
+            'lastplayed': userdata['LastPlayedDate'],
+            'mpaa': self.getMpaa(),
+            'aired': self.getPremiereDate()
+        }
+        listItem.setProperty('resumetime', str(userdata['Resume']))
+        listItem.setProperty('totaltime', str(userdata['Runtime']))
 
         if typus == "episode":
             # Only for tv shows
@@ -2362,11 +2419,9 @@ class API():
                     title = "S%.2dE%.2d - %s" % (season, episode, title)
             listItem.setIconImage('DefaultTVShows.png')
             if appendShowTitle is True:
-                title = show + ' - ' + title
+                title = "%s - %s " % (show, title)
         elif typus == "movie":
             listItem.setIconImage('DefaultMovies.png')
-        elif typus == "photo":
-            listItem.setIconImage('DefaultPicture.png')
         else:
             # E.g. clips, trailers, ...
             listItem.setIconImage('DefaultVideo.png')
@@ -2382,10 +2437,7 @@ class API():
         # Expensive operation
         metadata['title'] = title
         listItem.setLabel(title)
-        if typus != 'photo':
-            listItem.setInfo('video', infoLabels=metadata)
-        else:
-            listItem.setInfo('pictures', infoLabels=metadata)
+        listItem.setInfo('video', infoLabels=metadata)
         return listItem
 
     def AddStreamInfo(self, listItem):

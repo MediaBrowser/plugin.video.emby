@@ -1393,56 +1393,41 @@ def BrowsePlexContent(viewid, mediatype="", folderid=""):
                                  xml.attrib.get('librarySectionTitle'))
 
     # set the correct params for the content type
-    if mediatype.lower() == "homevideos, tvshows":
-        xbmcplugin.setContent(int(sys.argv[1]), 'episodes')
-    elif mediatype.lower() == "photos":
-        xbmcplugin.setContent(int(sys.argv[1]), 'files')
+    if mediatype == "photos":
+        xbmcplugin.setContent(int(sys.argv[1]), 'photos')
 
     # process the listing
     for item in xml:
         API = PlexAPI.API(item)
-        li = API.CreateListItemFromPlexItem()
         if item.tag == 'Directory':
+            li = xbmcgui.ListItem(item.attrib.get('title', 'Missing title'))
             # for folders we add an additional browse request, passing the
             # folderId
             li.setProperty('IsFolder', 'true')
             li.setProperty('IsPlayable', 'false')
             path = "%s?id=%s&mode=browseplex&type=%s&folderid=%s" \
                    % (sys.argv[0], viewid, mediatype, API.getKey())
+            pbutils.PlaybackUtils(item).setArtwork(li)
             xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),
                                         url=path,
                                         listitem=li,
                                         isFolder=True)
         else:
-            if item.attrib.get('type') == 'photo':
-                # pictures
-                if utils.settings('useDirectPaths') == '0':
-                    # Addon paths
-                    path = '%s%s' % (utils.window('pms_server'),
-                                     item[0][0].attrib['key'])
-                    path = API.addPlexCredentialsToUrl(path)
-                else:
-                    # Direct paths
-                    path = item[0][0].attrib['file']
-                li.setProperty('picturepath', path)
-            else:
-                # videos
-                path = "%s?id=%s&mode=play" % (sys.argv[0], API.getRatingKey())
-                li.setProperty("path", path)
-                API.AddStreamInfo(li)
+            li = API.CreateListItemFromPlexItem()
             pbutils.PlaybackUtils(item).setArtwork(li)
             xbmcplugin.addDirectoryItem(
                 handle=int(sys.argv[1]),
-                url=path,
+                url=li.getProperty("path"),
                 listitem=li)
 
-    if filter == "recent":
-        xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_DATE)
-    else:
-        xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_TITLE)
-        xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_DATE)
-        xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_RATING)
-        xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_RUNTIME)
+    xbmcplugin.addSortMethod(int(sys.argv[1]),
+                             xbmcplugin.SORT_METHOD_VIDEO_TITLE)
+    xbmcplugin.addSortMethod(int(sys.argv[1]),
+                             xbmcplugin.SORT_METHOD_DATE)
+    xbmcplugin.addSortMethod(int(sys.argv[1]),
+                             xbmcplugin.SORT_METHOD_VIDEO_RATING)
+    xbmcplugin.addSortMethod(int(sys.argv[1]),
+                             xbmcplugin.SORT_METHOD_VIDEO_RUNTIME)
 
     xbmcplugin.endOfDirectory(
         handle=int(sys.argv[1]),
