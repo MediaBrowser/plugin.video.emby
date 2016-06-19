@@ -2327,11 +2327,15 @@ class API():
         else:
             listItem.setLabel(title)
         listItem.setProperty('IsPlayable', 'true')
-        # Always use HTTP, not direct paths
-        # Kodi has problems accessing photos directly
-        path = '%s%s' % (utils.window('pms_server'),
-                         self.item[0][0].attrib['key'])
-        path = utils.tryEncode(self.addPlexCredentialsToUrl(path))
+        if utils.settings('useDirectPaths') == '0':
+            # Addon paths
+            path = self.addPlexCredentialsToUrl(
+                '%s%s' % (utils.window('pms_server'),
+                          self.item[0][0].attrib['key']))
+        else:
+            # Native direct paths
+            path = self.validatePlayurl(self.getFilePath(), 'photo')
+        path = utils.tryEncode(path)
         metadata = {
             'date': self.GetKodiPremierDate(),
             'picturepath': path,
