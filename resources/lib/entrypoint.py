@@ -1429,8 +1429,7 @@ def BrowsePlexContent(viewid, mediatype="", folderid=""):
 
     xbmcplugin.endOfDirectory(
         handle=int(sys.argv[1]),
-        cacheToDisc=True if utils.settings('enableTextureCache') == 'true'
-        else False)
+        cacheToDisc=utils.settings('enableTextureCache') == 'true')
 
 
 def getOnDeck(viewid, mediatype, tagname, limit):
@@ -1635,8 +1634,7 @@ def watchlater():
 
     xbmcplugin.endOfDirectory(
         handle=int(sys.argv[1]),
-        cacheToDisc=True if utils.settings('enableTextureCache') == 'true'
-        else False)
+        cacheToDisc=utils.settings('enableTextureCache') == 'true')
 
 
 def enterPMS():
