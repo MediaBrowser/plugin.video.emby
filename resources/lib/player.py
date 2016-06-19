@@ -105,7 +105,7 @@ class Player(xbmc.Player):
         self.logMsg("Playing itemtype is: %s" % itemType, 1)
 
         customseek = window('plex_customplaylist.seektime')
-        if (window('plex_customplaylist') == "true" and customseek):
+        if customseek:
             # Start at, when using custom playlist (play to Kodi from webclient)
             self.logMsg("Seeking to: %s" % customseek, 1)
             try:

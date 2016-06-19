@@ -85,7 +85,8 @@ class Main:
             'chooseServer': entrypoint.chooseServer,
             'watchlater': entrypoint.watchlater,
             'enterPMS': entrypoint.enterPMS,
-            'togglePlexTV': entrypoint.togglePlexTV
+            'togglePlexTV': entrypoint.togglePlexTV,
+            'playwatchlater': entrypoint.playWatchLater
         }
 
         if "/extrafanart" in sys.argv[0]:
@@ -134,6 +135,8 @@ class Main:
                 modes[mode](itemid, folderid)
             elif mode == "companion":
                 modes[mode](itemid, params=sys.argv[2])
+            elif mode == 'playwatchlater':
+                modes[mode](params.get('id')[0], params.get('viewOffset')[0])
             else:
                 modes[mode]()
         else:
