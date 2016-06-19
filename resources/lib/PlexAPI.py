@@ -1815,13 +1815,14 @@ class API():
                     audiotrack['channels'] = mediaStream.get('channels')
                     # 'unknown' if we cannot get language
                     audiotrack['language'] = mediaStream.get(
-                        'language', self.__language__(39310))
+                        'languageCode', self.__language__(39310)).lower()
                     audiotracks.append(audiotrack)
 
                 elif mediaType == 3:  # Subtitle streams
                     # 'unknown' if we cannot get language
                     subtitlelanguages.append(
-                        mediaStream.get('language', self.__language__(39310)))
+                        mediaStream.get('languageCode',
+                                        self.__language__(39310)).lower())
         return {
             'video': videotracks,
             'audio': audiotracks,
