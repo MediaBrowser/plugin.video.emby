@@ -1282,68 +1282,66 @@ def getVideoFiles(plexId, params):
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
 
-##### GET EXTRAFANART FOR LISTITEM #####
-def getExtraFanArt(plexid,embyPath):
-    
-    emby = embyserver.Read_EmbyServer()
-    art = artwork.Artwork()
-    
-    # Get extrafanart for listitem 
-    # will be called by skinhelper script to get the extrafanart
-    try:
-        # for tvshows we get the plexid just from the path
-        if not plexid:
-            if "plugin.video.emby" in embyPath:
-                plexid = embyPath.split("/")[-2]
-        
-        if plexid:
-            #only proceed if we actually have a emby id
-            utils.logMsg("EMBY", "Requesting extrafanart for Id: %s" % plexid, 0)
+def getExtraFanArt(plexid, plexPath):
+    """
+    Get extrafanart for listitem
+    will be called by skinhelper script to get the extrafanart
+    for tvshows we get the plexid just from the path
+    """
+    utils.logMsg(title, 'getExtraFanArt called with plexid: %s, plexPath: %s'
+                 % (plexid, plexPath), 1)
+    if not plexid:
+        if "plugin.video.plexkodiconnect" in plexPath:
+            plexid = plexPath.split("/")[-2]
+    if not plexid:
+        utils.logMsg(title, 'Could not get a plexid, aborting', -1)
+        return xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
-            # We need to store the images locally for this to work
-            # because of the caching system in xbmc
-            fanartDir = utils.tryDecode(xbmc.translatePath(
-                "special://thumbnails/emby/%s/" % plexid))
-            
-            if not xbmcvfs.exists(fanartDir):
-                # Download the images to the cache directory
-                xbmcvfs.mkdirs(fanartDir)
-                item = emby.getItem(plexid)
-                if item:
-                    backdrops = art.getAllArtwork(item)['Backdrop']
-                    tags = item['BackdropImageTags']
-                    count = 0
-                    for backdrop in backdrops:
-                        # Same ordering as in artwork
-                        tag = tags[count]
-                        if os.path.supports_unicode_filenames:
-                            fanartFile = os.path.join(fanartDir, "fanart%s.jpg" % tag)
-                        else:
-                            fanartFile = os.path.join(
-                                utils.tryEncode(fanartDir),
-                                "fanart%s.jpg" % utils.tryEncode(tag))
-                        li = xbmcgui.ListItem(tag, path=fanartFile)
-                        xbmcplugin.addDirectoryItem(
-                                            handle=int(sys.argv[1]),
+    try:
+        # We need to store the images locally for this to work
+        # because of the caching system in xbmc
+        fanartDir = utils.tryDecode(xbmc.translatePath(
+            "special://thumbnails/plex/%s/" % plexid))
+        if not xbmcvfs.exists(fanartDir):
+            # Download the images to the cache directory
+            xbmcvfs.mkdirs(utils.tryEncode(fanartDir))
+            xml = PlexFunctions.GetPlexMetadata(plexid)
+            if xml is None:
+                utils.logMsg('Could not download metadata for %s' % plexid, -1)
+                return xbmcplugin.endOfDirectory(int(sys.argv[1]))
+
+            API = PlexAPI.API(xml[0])
+            backdrops = API.getAllArtwork()['Backdrop']
+            for count, backdrop in enumerate(backdrops):
+                # Same ordering as in artwork
+                if os.path.supports_unicode_filenames:
+                    fanartFile = os.path.join(fanartDir,
+                                              "fanart%.3d.jpg" % count)
+                else:
+                    fanartFile = os.path.join(
+                        utils.tryEncode(fanartDir),
+                        utils.tryEncode("fanart%.3d.jpg" % count))
+                li = xbmcgui.ListItem("%.3d" % count, path=fanartFile)
+                xbmcplugin.addDirectoryItem(
+                    handle=int(sys.argv[1]),
+                    url=fanartFile,
+                    listitem=li)
+                xbmcvfs.copy(backdrop, fanartFile)
+        else:
+            utils.logMsg(title, "Found cached backdrop.", 1)
+            # Use existing cached images
+            dirs, files = xbmcvfs.listdir(fanartDir)
+            for file in files:
+                fanartFile = os.path.join(fanartDir, utils.tryDecode(file))
+                li = xbmcgui.ListItem(file, path=fanartFile)
+                xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),
                                             url=fanartFile,
                                             listitem=li)
-                        xbmcvfs.copy(backdrop, fanartFile) 
-                        count += 1               
-            else:
-                utils.logMsg("EMBY", "Found cached backdrop.", 2)
-                # Use existing cached images
-                dirs, files = xbmcvfs.listdir(fanartDir)
-                for file in files:
-                    fanartFile = os.path.join(fanartDir, utils.tryDecode(file))
-                    li = xbmcgui.ListItem(file, path=fanartFile)
-                    xbmcplugin.addDirectoryItem(
-                                            handle=int(sys.argv[1]),
-                                            url=fanartFile,
-                                            listitem=li)
+
     except Exception as e:
-        utils.logMsg("EMBY", "Error getting extrafanart: %s" % e, 0)
-    
-    # Always do endofdirectory to prevent errors in the logs
+        utils.logMsg(title, "Error getting extrafanart: %s" % e, -1)
+        import traceback
+        utils.logMsg("Traceback:\n%s" % traceback.format_exc(), 0)
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
 
