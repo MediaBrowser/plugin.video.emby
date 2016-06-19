@@ -173,14 +173,15 @@ def playWatchLater(itemid, viewOffset):
         utils.logMsg(title, "Could not resolve url %s" % itemid, -1)
         return xbmcplugin.setResolvedUrl(
             int(sys.argv[1]), False, xbmcgui.ListItem())
-    try:
-        viewOffset = int(PlexFunctions.PlexToKodiTimefactor() *
-                         float(viewOffset))
-    except:
-        pass
-    else:
-        utils.window('plex_customplaylist.seektime', value=str(viewOffset))
-        utils.logMsg('Set resume point to %s' % str(viewOffset), 1)
+    if viewOffset != '0':
+        try:
+            viewOffset = int(PlexFunctions.PlexToKodiTimefactor() *
+                             float(viewOffset))
+        except:
+            pass
+        else:
+            utils.window('plex_customplaylist.seektime', value=str(viewOffset))
+            utils.logMsg('Set resume point to %s' % str(viewOffset), 1)
     return pbutils.PlaybackUtils(xml).play(None, 'plexnode')
 
 
@@ -1642,7 +1643,7 @@ def watchlater():
         API.AddStreamInfo(listitem)
         pbutils.PlaybackUtils(item).setArtwork(listitem)
         params['id'] = item.attrib.get('key')
-        params['viewOffset'] = item.attrib.get('viewOffset', '')
+        params['viewOffset'] = item.attrib.get('viewOffset', '0')
         xbmcplugin.addDirectoryItem(
             handle=int(sys.argv[1]),
             url="%s?%s" % (url, urllib.urlencode(params)),
