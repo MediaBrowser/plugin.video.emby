@@ -331,9 +331,6 @@
     <string id="39044">Bitte geben Sie Ihre benutzerdefinierten SMB Pfade nun in den Einstellungen unter Sync Optionen ein. Starten Sie dann Kodi neu.</string>
     <string id="39045">Ursprünglicher Plex Pfad für PHOTOS:</string>
     <string id="39046">Plex PHOTO Pfade ersetzen durch:</string>
-
-    <string id="39045">Erscheinung</string>
-    <string id="39046">TV Serien</string>
     <string id="39047">"Aktuell": Serien- an Episoden-Titel anfügen</string>
     <string id="39048">"Aktuell": Staffel und Episode anfügen, SxxExx</string>
     <string id="39049">Nichts funktioniert? Setze mal alles zurück!</string>
@@ -360,6 +357,8 @@
     <string id="39070">Aktueller Port:</string>
     <string id="39071">Aktueller plex.tv Status:</string>
     <string id="39072">Läuft Kodi auf einem Raspberry Pie oder ähnlichem Computer mit äusserst wenig Rechenleistung? Falls ja, wird die Rechenlast reduziert, damit Kodi nicht abstürzt.</string>
+    <string id="39073">Tweaks Aussehen</string>
+    <string id="39074">TV Serien</string>
 
     <!-- Plex Entrypoint.py -->
     <string id="39200">Plex Home Benutzer abmelden: </string>

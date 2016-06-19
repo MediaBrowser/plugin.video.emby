@@ -392,9 +392,6 @@
     <string id="39044">Please enter your custom smb paths in the settings under "Sync Options" and then restart Kodi</string>
     <string id="39045">Original Plex PHOTO path to replace:</string>
     <string id="39046">Replace Plex PHOTO with:</string>
-
-    <string id="39045">Appearance Tweaks</string>
-    <string id="39046">TV Shows</string>
     <string id="39047">On Deck: Append show title to episode</string>
     <string id="39048">On Deck: Append season- and episode-number SxxExx</string>
     <string id="39049">Nothing works? Try a full reset!</string>
@@ -421,6 +418,8 @@
     <string id="39070">Current port:</string>
     <string id="39071">Current plex.tv status:</string>
     <string id="39072">Is your Kodi installed on a low-powered device like a raspberry pie? If yes, then we will reduce the strain on Kodi to prevent it from crashing.</string>
+    <string id="39073">Appearance Tweaks</string>
+    <string id="39074">TV Shows</string>
 
     <!-- Plex Entrypoint.py -->
     <string id="39200">Log-out Plex Home User </string>
