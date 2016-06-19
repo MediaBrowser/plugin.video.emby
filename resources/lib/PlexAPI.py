@@ -2125,7 +2125,8 @@ class API():
                         allartworks[fanarttype[1]] = entry.get("url")
                         break
                 # just grab the first english OR undefinded one as fallback
-                if allartworks.get(fanarttype[1]) is None:
+                # (so we're actually grabbing the more popular one)
+                if not allartworks.get(fanarttype[1]):
                     for entry in data[fanarttvimage]:
                         if entry.get("lang") in ("en", "00"):
                             allartworks[fanarttype[1]] = entry.get("url")
