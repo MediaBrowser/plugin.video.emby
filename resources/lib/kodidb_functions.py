@@ -792,86 +792,83 @@ class Kodidb_Functions():
             ids.append(row[0])
         return ids
 
-    def getIdFromTitle(self, itemdetails):
+    def getIdFromFilename(self, filename, path):
         """
-        Returns the Kodi id (e.g. idMovie, idEpisode) from the item's
-        title (c00), if there is exactly ONE found for the itemtype.
-        (None otherwise)
+        Returns the tuple (itemId, type) where
+            itemId:     Kodi DB unique Id for either movie or episode
+            type:       either 'movie' or 'episode'
 
-        itemdetails is the data['item'] response from Kodi
-
-        itemdetails for movies:
-        {
-            "title":"Kung Fu Panda",
-            "type":"movie",
-            "year":2008
-        }
-
-        itemdetails for episodes:
-        {
-            "episode":5
-            "season":5,
-            "showtitle":"Girls",
-            "title":"Queen for Two Days",
-            "type":"episode"
-        }
+        Returns None if not found OR if too many entries were found
         """
-        try:
-            typus = itemdetails['type']
-        except:
+        query = ' '.join((
+            "SELECT idFile, idPath",
+            "FROM files",
+            "WHERE strFilename = ?"
+        ))
+        self.cursor.execute(query, (filename,))
+        files = self.cursor.fetchall()
+        if len(files) == 0:
+            self.logMsg('Did not find any file, abort', 1)
             return
-
-        if typus == 'movie':
-            query = ' '.join((
-                "SELECT idMovie",
-                "FROM movie",
-                "WHERE c00 = ?"
-            ))
+        query = ' '.join((
+            "SELECT strPath",
+            "FROM path",
+            "WHERE idPath = ?"
+        ))
+        # result will contain a list of all idFile with matching filename and
+        # matching path
+        result = []
+        for file in files:
+            # Use idPath to get path as a string
+            self.cursor.execute(query, (file[1],))
             try:
-                rows = self.cursor.execute(query, (itemdetails['title'],))
-            except:
-                return
-        elif typus == 'episode':
-            query = ' '.join((
-                "SELECT idShow",
-                "FROM tvshow",
-                "WHERE c00 = ?"
-            ))
-            try:
-                rows = self.cursor.execute(query, (itemdetails['showtitle'],))
-            except:
-                return
-            ids = []
-            for row in rows:
-                ids.append(row[0])
-            if len(ids) > 1:
-                self.logMsg('No unique match possible. Rows: %s' % rows, 1)
-                return
+                strPath = self.cursor.fetchone()[0]
+            except TypeError:
+                # idPath not found; skip
+                continue
+            # For whatever reason, double might have become triple
+            strPath = strPath.replace('///', '//')
+            strPath = strPath.replace('\\\\\\', '\\\\')
+            if strPath == path:
+                result.append(file[0])
+        if len(result) == 0:
+            self.logMsg('Did not find matching paths, abort', 1)
+            return
+        self.logMsg('Result: %s' % result)
+        # Kodi seems to make ONE temporary entry; we only want the earlier,
+        # permanent one
+        if len(result) > 2:
+            self.logMsg('We found too many items with matching filenames and '
+                        ' paths, aborting', 1)
+            return
+        idFile = result[0]
+        self.logMsg('idFile: %s' % idFile)
 
+        # Try movies first
+        query = ' '.join((
+            "SELECT idMovie",
+            "FROM movie",
+            "WHERE idFile = ?"
+        ))
+        self.cursor.execute(query, (idFile,))
+        try:
+            itemId = self.cursor.fetchone()[0]
+            typus = 'movie'
+        except TypeError:
+            # Try tv shows next
             query = ' '.join((
                 "SELECT idEpisode",
                 "FROM episode",
-                "WHERE c12 = ? AND c13 = ? AND idShow = ?"
+                "WHERE idFile = ?"
             ))
+            self.cursor.execute(query, (idFile,))
             try:
-                rows = self.cursor.execute(
-                    query,
-                    (itemdetails['season'],
-                     itemdetails['episode'],
-                     ids[0]))
-            except:
+                itemId = self.cursor.fetchone()[0]
+                typus = 'episode'
+            except TypeError:
+                self.logMsg('Unexpectantly did not find a match!', 1)
                 return
-        else:
-            return
-
-        ids = []
-        for row in rows:
-            ids.append(row[0])
-        if len(ids) == 1:
-            return ids[0]
-        else:
-            # No unique match possible
-            return
+        return itemId, typus
 
     def getUnplayedItems(self):
         """

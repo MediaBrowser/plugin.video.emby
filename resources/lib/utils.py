@@ -941,6 +941,9 @@ def tryEncode(uniString, encoding='utf-8'):
         uniString = uniString.encode(encoding, "ignore")
     except TypeError:
         uniString = uniString.encode()
+    except UnicodeDecodeError:
+        # already encoded
+        pass
     return uniString
 
 

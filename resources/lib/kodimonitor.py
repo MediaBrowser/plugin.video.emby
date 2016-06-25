@@ -177,7 +177,9 @@ class KodiMonitor(xbmc.Monitor):
                     return
                 else:
                     count += 1
-        log("Currently playing file is: %s" % utils.tryDecode(currentFile), 1)
+        # Just to be on the safe side
+        currentFile = utils.tryDecode(currentFile)
+        log("Currently playing file is: %s" % currentFile, 1)
 
         # Get the type of media we're playing
         try:
@@ -185,81 +187,67 @@ class KodiMonitor(xbmc.Monitor):
         except (TypeError, KeyError):
             log("Item is invalid for PMS playstate update.", 0)
             return
-        log("Playing itemtype is: %s" % typus, 1)
+        log("Playing itemtype is (or appears to be): %s" % typus, 1)
 
         # Try to get a Kodi ID
-        try:
-            kodiid = data['item']['id']
-        except (TypeError, KeyError):
-            log('Could not get Kodi id directly, trying jsonrpc', 1)
+        # If PKC was used - native paths, not direct paths
+        plexid = utils.window('emby_%s.itemid'
+                              % utils.tryEncode(currentFile))
+        # Get rid of the '' if the window property was not set
+        plexid = None if not plexid else plexid
+        kodiid = None
+        if plexid is None:
+            log('Did not get Plex id from window properties', 1)
             try:
-                playerid = data["player"]["playerid"]
+                kodiid = data['item']['id']
             except (TypeError, KeyError):
-                log("Could not get Kodi playerid. Abort playback report", 0)
-                return
-            # Get details of the playing media
-            result = xbmc.executeJSONRPC(json.dumps({
-                "jsonrpc": "2.0",
-                "id": 1,
-                "method": "Player.GetItem",
-                "params": {
-                    "playerid": playerid,
-                    # Just ask something so we get the item's id (for movies)
-                    "properties": [
-                        "tvshowid", "title"
-                    ]
-                }
-            }))
-            result = json.loads(result)
-
-            kodiid = None
-            if typus in ('movie', 'song'):
-                key = 'id'
-            elif typus == 'episode':
-                key = 'tvshowid'
-            else:
-                log('Unknown type, abort playback report', 1)
-                return
+                log('Did not get a Kodi id from Kodi, darn', 1)
+        # For direct paths, if we're not streaming something
+        # When using Widgets, Kodi doesn't tell us shit so we need this hack
+        if (kodiid is None and plexid is None and typus in ('movie', 'episode')
+                and not currentFile.startswith('http')):
             try:
-                kodiid = result["result"]["item"][key]
-            except (TypeError, KeyError):
-                pass
-            # Kodi might return -1 for last element
-            if kodiid in (None, -1) and typus in ('movie', 'episode'):
-                log('Could not get Kodi id directly. Kodi said: %s'
-                    % result, 1)
-                log('Trying to get Kodi id from the items name', 1)
-                with kodidb.GetKodiDB('video') as kodi_db:
-                    kodiid = kodi_db.getIdFromTitle(data.get('item'))
+                filename = currentFile.rsplit('/', 1)[1]
+                path = currentFile.rsplit('/', 1)[0] + '/'
+            except IndexError:
+                filename = currentFile.rsplit('\\', 1)[1]
+                path = currentFile.rsplit('\\', 1)[0] + '\\'
+            log('Trying to figure out playing item from filename: %s and '
+                'path: %s' % (filename, path), 1)
+            with kodidb.GetKodiDB('video') as kodi_db:
+                try:
+                    kodiid, typus = kodi_db.getIdFromFilename(filename, path)
+                except TypeError:
+                    log('Aborting playback report', 1)
+                    return
 
-            if kodiid in (None, -1):
-                log("Skip playstate update. No unique Kodi title found"
-                    " for %s" % data.get('item'), 0)
+        if plexid is None:
+            # Get Plex' item id
+            with embydb.GetEmbyDB() as emby_db:
+                emby_dbitem = emby_db.getItem_byKodiId(kodiid, typus)
+            try:
+                plexid = emby_dbitem[0]
+            except TypeError:
+                log("No Plex id returned for kodiid %s" % kodiid, 1)
+                log('Aborting playback report', 1)
                 return
-
-        # Get Plex' item id
-        with embydb.GetEmbyDB() as emby_db:
-            emby_dbitem = emby_db.getItem_byKodiId(kodiid, typus)
-        try:
-            plexid = emby_dbitem[0]
-        except TypeError:
-            log("No Plex id returned for kodiid %s" % kodiid, 1)
-            log('Aborting playback report', 1)
-            return
-        log("Found Plex id %s for Kodi id %s" % (plexid, kodiid), 1)
+        log("Found Plex id %s for Kodi id %s for type %s"
+            % (plexid, kodiid, typus), 1)
 
         # Set some stuff if Kodi initiated playback
         if ((utils.settings('useDirectPaths') == "1" and not typus == "song")
                 or
                 (typus == "song" and utils.settings('enableMusic') == "true")):
-            if self.StartDirectPath(plexid, typus, currentFile) is False:
+            if self.StartDirectPath(plexid,
+                                    typus,
+                                    utils.tryEncode(currentFile)) is False:
                 log('Could not initiate monitoring; aborting', -1)
                 return
 
         # Save currentFile for cleanup later and to be able to access refs
-        window('plex_lastPlayedFiled', value=utils.tryDecode(currentFile))
+        window('plex_lastPlayedFiled', value=currentFile)
         window('Plex_currently_playing_itemid', value=plexid)
-        window("emby_%s.itemid" % currentFile, value=plexid)
+        window("emby_%s.itemid" % utils.tryEncode(currentFile), value=plexid)
         log('Finish playback startup', 1)
 
     def StartDirectPath(self, plexid, type, currentFile):
