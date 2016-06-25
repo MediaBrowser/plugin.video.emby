@@ -1,3 +1,7 @@
+version 1.2.7
+- Let the user pick between several streams or if you have, several different files for the same movie (can be deactivated in the settings)
+- Use the playing item's filename and path to figure out the Plex id. Now Plex should really always be informed what you're currently playing
+
 version 1.2.6
 - Fix Watch Later TypeError
 
