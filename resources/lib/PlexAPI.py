@@ -2214,7 +2214,22 @@ class API():
         xargs = clientinfo.ClientInfo().getXArgsDeviceInfo()
         # For DirectPlay, path/key of PART is needed
         if action == "DirectStream":
-            path = self.item[0][self.part].attrib['key']
+            if len(self.item) > 1 and utils.settings('bestQuality') == 'false':
+                # Several streams/files available.
+                dialoglist = []
+                for entry in self.item:
+                    dialoglist.append(
+                        "%sp %s - %s (%s)"
+                        % (entry.attrib.get('videoResolution', 'unknown'),
+                           entry.attrib.get('videoCodec', 'unknown'),
+                           entry.attrib.get('audioProfile', 'unknown'),
+                           entry.attrib.get('audioCodec', 'unknown'))
+                    )
+                media = xbmcgui.Dialog().select('Select stream', dialoglist)
+            else:
+                media = 0
+
+            path = self.item[media][self.part].attrib['key']
             url = self.server + path
             # e.g. Trailers already feature an '?'!
             if '?' in url:
