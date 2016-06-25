@@ -195,7 +195,7 @@ class Kodidb_Functions():
             idFile = None
         else:
             # Try to fetch again - if successful, we got >1 result
-            if self.cursor.fetchone() is None:
+            if self.cursor.fetchone() is not None:
                 self.logMsg('We found several items with the same filename', 1)
                 idFile = None
         if idFile is None:
