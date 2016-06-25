@@ -179,52 +179,6 @@ class Kodidb_Functions():
 
         return fileid
 
-    def getIdFromFilename(self, filename):
-        """
-        Returns None if not found OR if several entries found
-        """
-        query = ' '.join((
-            "SELECT idFile",
-            "FROM files",
-            "WHERE strFilename = ?"
-        ))
-        self.cursor.execute(query, (filename,))
-        try:
-            idFile = self.cursor.fetchone()[0]
-        except TypeError:
-            idFile = None
-        else:
-            # Try to fetch again - if successful, we got >1 result
-            if self.cursor.fetchone() is not None:
-                self.logMsg('We found several items with the same filename', 1)
-                idFile = None
-        if idFile is None:
-            return
-
-        # Try movies first
-        itemId = None
-        query = ' '.join((
-            "SELECT idMovie",
-            "FROM movie",
-            "WHERE idFile = ?"
-        ))
-        self.cursor.execute(query, (idFile,))
-        try:
-            itemId = self.cursor.fetchone()[0]
-        except TypeError:
-            # Try tv shows next
-            query = ' '.join((
-                "SELECT idEpisode",
-                "FROM episode",
-                "WHERE idFile = ?"
-            ))
-            self.cursor.execute(query, (idFile,))
-            try:
-                itemId = self.cursor.fetchone()[0]
-            except TypeError:
-                pass
-        return itemId
-
     def getFile(self, fileid):
 
         query = ' '.join((
@@ -891,7 +845,7 @@ class Kodidb_Functions():
             for row in rows:
                 ids.append(row[0])
             if len(ids) > 1:
-                # No unique match possible
+                self.logMsg('No unique match possible. Rows: %s' % rows, 1)
                 return
 
             query = ' '.join((

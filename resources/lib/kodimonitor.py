@@ -189,64 +189,53 @@ class KodiMonitor(xbmc.Monitor):
 
         # Try to get a Kodi ID
         try:
-            playerid = data["player"]["playerid"]
+            kodiid = data['item']['id']
         except (TypeError, KeyError):
-            log("Could not get Kodi playerid. Abort playback report", 0)
-            return
-        # Get details of the playing media
-        result = xbmc.executeJSONRPC(json.dumps({
-            "jsonrpc": "2.0",
-            "id": 1,
-            "method": "Player.GetItem",
-            "params": {
-                "playerid": playerid,
-                # Just ask something so we get the item's id (for movies)
-                "properties": [
-                    "tvshowid", "title"
-                ]
-            }
-        }))
-        result = json.loads(result)
+            log('Could not get Kodi id directly, trying jsonrpc', 1)
+            try:
+                playerid = data["player"]["playerid"]
+            except (TypeError, KeyError):
+                log("Could not get Kodi playerid. Abort playback report", 0)
+                return
+            # Get details of the playing media
+            result = xbmc.executeJSONRPC(json.dumps({
+                "jsonrpc": "2.0",
+                "id": 1,
+                "method": "Player.GetItem",
+                "params": {
+                    "playerid": playerid,
+                    # Just ask something so we get the item's id (for movies)
+                    "properties": [
+                        "tvshowid", "title"
+                    ]
+                }
+            }))
+            result = json.loads(result)
 
-        kodiid = None
-        if typus in ('movie', 'song'):
-            key = 'id'
-        elif typus == 'episode':
-            key = 'tvshowid'
-        else:
-            log('Unknown type, abort playback report', 1)
-            return
-        try:
-            kodiid = result["result"]["item"][key]
-        except KeyError:
-            pass
-        # Kodi might return -1 for last element
-        if kodiid in (None, -1):
-            log('Could not get Kodi id directly. Kodi said: %s' % result, 1)
-            if currentFile.startswith('http'):
-                # Native paths - should have launched directly via PKC
-                log('Trying to get Kodi id from window properties', 1)
-                kodiid = utils.window('emby_%s.itemid' % currentFile)
-            elif typus in ('movie', 'episode'):
-                try:
-                    filename = currentFile.rsplit('/', 1)[1]
-                except IndexError:
-                    filename = currentFile.rsplit('\\', 1)[1]
-                log('Trying to get Kodi id from filename: %s'
-                    % utils.tryDecode(filename), 1)
+            kodiid = None
+            if typus in ('movie', 'song'):
+                key = 'id'
+            elif typus == 'episode':
+                key = 'tvshowid'
+            else:
+                log('Unknown type, abort playback report', 1)
+                return
+            try:
+                kodiid = result["result"]["item"][key]
+            except (TypeError, KeyError):
+                pass
+            # Kodi might return -1 for last element
+            if kodiid in (None, -1) and typus in ('movie', 'episode'):
+                log('Could not get Kodi id directly. Kodi said: %s'
+                    % result, 1)
+                log('Trying to get Kodi id from the items name', 1)
                 with kodidb.GetKodiDB('video') as kodi_db:
-                    kodiid = kodi_db.getIdFromFilename(
-                        utils.tryDecode(filename))
+                    kodiid = kodi_db.getIdFromTitle(data.get('item'))
 
-        if not kodiid and typus in ('movie', 'episode'):
-            log('Trying to get Kodi id from the items name', 1)
-            with kodidb.GetKodiDB('video') as kodi_db:
-                kodiid = kodi_db.getIdFromTitle(data.get('item'))
-
-        if kodiid is None:
-            log("Skip playstate update. No unique Kodi title found"
-                " for %s" % data.get('item'), 0)
-            return
+            if kodiid in (None, -1):
+                log("Skip playstate update. No unique Kodi title found"
+                    " for %s" % data.get('item'), 0)
+                return
 
         # Get Plex' item id
         with embydb.GetEmbyDB() as emby_db:
