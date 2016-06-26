@@ -2213,11 +2213,21 @@ class API():
         """
         xargs = clientinfo.ClientInfo().getXArgsDeviceInfo()
         # For DirectPlay, path/key of PART is needed
+        # trailers are 'clip' with PMS xmls
         if action == "DirectStream":
-            if len(self.item) > 1 and utils.settings('bestQuality') == 'false':
+            # How many streams do we have?
+            count = 0
+            for entry in self.item.findall('./Media'):
+                count += 1
+            if (count > 1 and (
+                    (self.getType() != 'clip' and
+                     utils.settings('bestQuality') == 'false')
+                    or
+                    (self.getType() == 'clip' and
+                     utils.settings('bestTrailer') == 'false'))):
                 # Several streams/files available.
                 dialoglist = []
-                for entry in self.item:
+                for entry in self.item.findall('./Media'):
                     dialoglist.append(
                         "%sp %s - %s (%s)"
                         % (entry.attrib.get('videoResolution', 'unknown'),
