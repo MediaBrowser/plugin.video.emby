@@ -204,7 +204,7 @@ class KodiMonitor(xbmc.Monitor):
                 log('Did not get a Kodi id from Kodi, darn', 1)
         # For direct paths, if we're not streaming something
         # When using Widgets, Kodi doesn't tell us shit so we need this hack
-        if (kodiid is None and plexid is None and typus in ('movie', 'episode')
+        if (kodiid is None and plexid is None and typus != 'song'
                 and not currentFile.startswith('http')):
             try:
                 filename = currentFile.rsplit('/', 1)[1]
