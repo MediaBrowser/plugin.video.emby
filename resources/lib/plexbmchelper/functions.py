@@ -4,7 +4,8 @@ import string
 
 import xbmc
 
-from utils import logging
+from utils import logging, tryDecode
+import embydb_functions as embydb
 
 
 def xbmc_photo():
@@ -121,6 +122,21 @@ class jsonClass():
 
         return result
 
+    def skipTo(self, plexId, typus):
+        self.logMsg('players: %s' % self.getPlayers())
+        # playlistId = self.getPlaylistId(tryDecode(xbmc_type(typus)))
+        # playerId = self.
+        with embydb.GetEmbyDB() as emby_db:
+            embydb_item = emby_db.getItem_byId(plexId)
+            try:
+                dbid = embydb_item[0]
+                mediatype = embydb_item[4]
+            except TypeError:
+                self.logMsg('Couldnt find item %s in Kodi db' % plexId, 1)
+                return
+        self.logMsg('plexid: %s, kodi id: %s, type: %s'
+                    % (plexId, dbid, mediatype))
+
     def getPlexHeaders(self):
         h = {
             "Content-type": "text/xml",
@@ -155,6 +171,27 @@ class jsonClass():
             player['playerid'] = int(player['playerid'])
             ret[player['type']] = player
         return ret
+
+    def getPlaylistId(self, typus):
+        """
+        typus: one of the Kodi types, e.g. audio or video
+
+        Returns None if nothing was found
+        """
+        for playlist in self.getPlaylists():
+            if playlist.get('type') == typus:
+                return playlist.get('playlistid')
+
+    def getPlaylists(self):
+        """
+        Returns a list, e.g.
+            [
+                {u'playlistid': 0, u'type': u'audio'},
+                {u'playlistid': 1, u'type': u'video'},
+                {u'playlistid': 2, u'type': u'picture'}
+            ]
+        """
+        return self.jsonrpc('Playlist.GetPlaylists')
 
     def getPlayerIds(self):
         ret = []

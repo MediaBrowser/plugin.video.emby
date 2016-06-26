@@ -83,10 +83,11 @@ class MyHandler(BaseHTTPRequestHandler):
             params = {}
             for key in paramarrays:
                 params[key] = paramarrays[key][0]
+            self.logMsg("remote request_path: %s" % request_path, 2)
             self.logMsg("params received from remote: %s" % params, 2)
             self.subMgr.updateCommandID(self.headers.get('X-Plex-Client-Identifier', self.client_address[0]), params.get('commandID', False))
             if request_path=="version":
-                self.response("PleXBMC Helper Remote Redirector: Running\r\nVersion: %s" % self.settings['version'])
+                self.response("PlexKodiConnect Plex Companion: Running\r\nVersion: %s" % self.settings['version'])
             elif request_path=="verify":
                 result=self.js.jsonrpc("ping")
                 self.response("XBMC JSON connection test:\r\n"+result)
@@ -197,6 +198,10 @@ class MyHandler(BaseHTTPRequestHandler):
                 for playerid in self.js.getPlayerIds():
                     self.js.jsonrpc("Player.GoTo", {"playerid":playerid, "to":"previous"})
                 self.subMgr.notify()
+            elif request_path == "player/playback/skipTo":
+                self.js.skipTo(params.get('key').rsplit('/', 1)[1],
+                               params.get('type'))
+                self.subMgr.notify()
             elif request_path == "player/navigation/moveUp":
                 self.response(getOKMsg(), self.js.getPlexHeaders())
                 self.js.jsonrpc("Input.Up")
@@ -218,6 +223,8 @@ class MyHandler(BaseHTTPRequestHandler):
             elif request_path == "player/navigation/back":
                 self.response(getOKMsg(), self.js.getPlexHeaders())
                 self.js.jsonrpc("Input.Back")
+            else:
+                self.logMsg('Unknown request path: %s' % request_path, -1)
             # elif 'player/mirror/details' in request_path:
             #     # Detailed e.g. Movie information page was opened
             #     # CURRENTLY NOT POSSIBLE DUE TO KODI RESTRICTIONS
