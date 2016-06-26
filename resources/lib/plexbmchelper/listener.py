@@ -190,12 +190,12 @@ class MyHandler(BaseHTTPRequestHandler):
             elif request_path == "player/playback/skipNext":
                 self.response(getOKMsg(), self.js.getPlexHeaders())
                 for playerid in self.js.getPlayerIds():
-                    self.js.jsonrpc("Player.Seek", {"playerid":playerid, "value":"bigforward"})
+                    self.js.jsonrpc("Player.GoTo", {"playerid":playerid, "to":"next"})
                 self.subMgr.notify()
             elif request_path == "player/playback/skipPrevious":
                 self.response(getOKMsg(), self.js.getPlexHeaders())
                 for playerid in self.js.getPlayerIds():
-                    self.js.jsonrpc("Player.Seek", {"playerid":playerid, "value":"bigbackward"})
+                    self.js.jsonrpc("Player.GoTo", {"playerid":playerid, "to":"previous"})
                 self.subMgr.notify()
             elif request_path == "player/navigation/moveUp":
                 self.response(getOKMsg(), self.js.getPlexHeaders())
