@@ -40,7 +40,10 @@ class PlaybackUtils():
 
         self.artwork = artwork.Artwork()
         self.emby = embyserver.Read_EmbyServer()
-        self.pl = playlist.Playlist()
+        if self.API.getType() == 'track':
+            self.pl = playlist.Playlist(typus='music')
+        else:
+            self.pl = playlist.Playlist(typus='video')
 
     def play(self, itemid, dbid=None):
 
@@ -91,7 +94,7 @@ class PlaybackUtils():
         ############### ORGANIZE CURRENT PLAYLIST ################
         
         homeScreen = xbmc.getCondVisibility('Window.IsActive(home)')
-        playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
+        playlist = self.pl.playlist
         startPos = max(playlist.getposition(), 0) # Can return -1
         sizePlaylist = playlist.size()
         self.currentPosition = startPos

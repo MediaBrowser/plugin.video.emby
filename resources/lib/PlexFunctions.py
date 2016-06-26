@@ -165,7 +165,7 @@ def GetPlexMetadata(key):
     Can be called with either Plex key '/library/metadata/xxxx'metadata
     OR with the digits 'xxxx' only.
 
-    Returns None if something went wrong
+    Returns None or 401 if something went wrong
     """
     key = str(key)
     if '/library/metadata/' in key:
