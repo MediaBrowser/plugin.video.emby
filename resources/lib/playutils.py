@@ -37,17 +37,14 @@ class PlayUtils():
 
         playurl is utf-8 encoded!
         """
-        log = self.logMsg
-        window = utils.window
-
         self.API.setPartNumber(partNumber)
         playurl = self.isDirectPlay()
 
-        if playurl:
-            log("File is direct playing.", 1)
+        if playurl is not None:
+            self.logMsg("File is direct playing.", 1)
             playurl = utils.tryEncode(playurl)
             # Set playmethod property
-            window('emby_%s.playmethod' % playurl, "DirectPlay")
+            utils.window('emby_%s.playmethod' % playurl, "DirectPlay")
 
         elif self.isDirectStream():
             self.logMsg("File is direct streaming.", 1)
@@ -67,9 +64,9 @@ class PlayUtils():
                 'Transcode',
                 quality=quality))
             # Set playmethod property
-            window('emby_%s.playmethod' % playurl, value="Transcode")
+            utils.window('emby_%s.playmethod' % playurl, value="Transcode")
 
-        log("The playurl is: %s" % playurl, 1)
+        self.logMsg("The playurl is: %s" % playurl, 1)
         return playurl
 
     def httpPlay(self):
@@ -87,32 +84,25 @@ class PlayUtils():
 
     def isDirectPlay(self):
         """
-        Returns the path/playurl if successful, False otherwise
+        Returns the path/playurl if successful, None otherwise
         """
         # True for e.g. plex.tv watch later
         if self.API.shouldStream() is True:
             self.logMsg("Plex item optimized for direct streaming", 1)
-            return False
+            return
 
         # set to either 'Direct Stream=1' or 'Transcode=2'
         if utils.settings('playType') != "0":
             # User forcing to play via HTTP
             self.logMsg("User chose to not direct play", 1)
-            return False
+            return
 
         if self.mustTranscode():
-            return False
+            return
 
-        path = self.API.validatePlayurl(self.API.getFilePath(),
+        return self.API.validatePlayurl(self.API.getFilePath(),
                                         self.API.getType(),
                                         forceCheck=True)
-        if path is None:
-            self.logMsg('Kodi cannot access file %s - no direct play'
-                        % path, 1)
-            return False
-        else:
-            self.logMsg('Kodi can access file %s - direct playing' % path, 1)
-            return path
 
     def directPlay(self):
 
