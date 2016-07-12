@@ -84,22 +84,20 @@ class PlayUtils():
 
     def isDirectPlay(self):
         """
-        Returns the path/playurl if successful, None otherwise
+        Returns the path/playurl if we can direct play, None otherwise
         """
         # True for e.g. plex.tv watch later
         if self.API.shouldStream() is True:
             self.logMsg("Plex item optimized for direct streaming", 1)
             return
-
         # set to either 'Direct Stream=1' or 'Transcode=2'
+        # and NOT to 'Direct Play=0'
         if utils.settings('playType') != "0":
             # User forcing to play via HTTP
             self.logMsg("User chose to not direct play", 1)
             return
-
         if self.mustTranscode():
             return
-
         return self.API.validatePlayurl(self.API.getFilePath(),
                                         self.API.getType(),
                                         forceCheck=True)
@@ -161,30 +159,29 @@ class PlayUtils():
         """
         videoCodec = self.API.getVideoCodec()
         self.logMsg("videoCodec: %s" % videoCodec, 2)
-        codec = videoCodec['videocodec']
-        resolution = videoCodec['resolution']
-        h265 = self.getH265()
-        try:
-            if not ('h265' in codec or 'hevc' in codec) or (h265 is None):
-                return False
-        # E.g. trailers without a codec of None
-        except TypeError:
-            return False
-
-        if resolution >= h265:
-            self.logMsg("Option to transcode h265 enabled. Resolution media: "
-                        "%s, transcoding limit resolution: %s"
-                        % (resolution, h265), 1)
-            return True
         if (utils.settings('transcodeHi10P') == 'true' and
                 videoCodec['bitDepth'] == '10'):
             self.logMsg('Option to transcode 10bit video content enabled.', 1)
             return True
-        if (utils.settings('transcodeHEVC') == 'true' and
-                codec == 'hevc'):
-            self.logMsg('Option to transcode HEVC video content enabled.', 1)
+        codec = videoCodec['videocodec']
+        if (utils.settings('transcodeHEVC') == 'true' and codec == 'hevc'):
+            self.logMsg('Option to transcode HEVC video codec enabled.', 1)
             return True
-
+        if codec is None:
+            # e.g. trailers. Avoids TypeError with "'h265' in codec"
+            self.logMsg('No codec from PMS, not transcoding.', 1)
+            return False
+        try:
+            resolution = int(videoCodec['resolution'])
+        except TypeError:
+            self.logMsg('No video resolution from PMS, not transcoding.', 1)
+            return False
+        if 'h265' in codec:
+            if resolution >= self.getH265():
+                self.logMsg("Option to transcode h265 enabled. Resolution of "
+                            "the media: %s, transcoding limit resolution: %s"
+                            % (str(resolution), str(self.getH265())), 1)
+                return True
         return False
 
     def isDirectStream(self):
@@ -242,14 +239,19 @@ class PlayUtils():
         return bitrate.get(videoQuality, 2147483)
 
     def getH265(self):
-        chosen = utils.settings('transcodeH265')
+        """
+        Returns the user settings for transcoding h265: boundary resolutions
+        of 480, 720 or 1080 as an int
+
+        OR 9999999 (int) if user chose not to transcode
+        """
         H265 = {
-            '0': None,
+            '0': 9999999,
             '1': 480,
             '2': 720,
             '3': 1080
         }
-        return H265.get(chosen, None)
+        return H265[utils.settings('transcodeH265')]
 
     def getResolution(self):
         chosen = utils.settings('transcoderVideoQualities')
