@@ -30,8 +30,6 @@ class DownloadUtils():
     # Borg - multiple instances, shared state
     _shared_state = {}
 
-    # Requests session
-    timeout = 30
     # How many failed attempts before declaring PMS dead?
     connectionAttempts = 2
     # How many 401 returns before declaring unauthorized?
@@ -39,6 +37,8 @@ class DownloadUtils():
 
     def __init__(self):
         self.__dict__ = self._shared_state
+        # Requests session
+        self.timeout = 30.0
 
     def setUsername(self, username):
         """
@@ -172,7 +172,7 @@ class DownloadUtils():
             xml                xml etree root object, if applicable
             JSON               json() object, if applicable
         """
-        kwargs = {}
+        kwargs = {'timeout': self.timeout}
         if authenticate is True:
             # Get requests session
             try:
@@ -188,7 +188,6 @@ class DownloadUtils():
             # plex.tv and to check for PMS servers
             s = requests
             headerOptions = self.getHeader(options=headerOptions)
-            kwargs['timeout'] = self.timeout
             if settings('sslcert') != 'None':
                 kwargs['cert'] = settings('sslcert')
 
