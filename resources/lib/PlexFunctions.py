@@ -173,7 +173,6 @@ def GetPlexMetadata(key):
     else:
         url = "{server}/library/metadata/" + key
     arguments = {
-        'checkFiles': 1,            # No idea
         'includeExtras': 1,         # Trailers and Extras => Extras
         # 'includeRelated': 1,        # Similar movies => Video -> Related
         # 'includeRelatedCount': 5,
