@@ -2190,7 +2190,7 @@ class API():
         """
         return self.item[0].attrib.get('optimizedForStreaming') == '1'
 
-    def getTranscodeVideoPath(self, action, quality={}):
+    def getTranscodeVideoPath(self, action, quality=None):
         """
 
         To be called on a VIDEO level of PMS xml response!
@@ -2211,6 +2211,8 @@ class API():
 
         TODO: mediaIndex
         """
+        if quality is None:
+            quality = {}
         xargs = clientinfo.ClientInfo().getXArgsDeviceInfo()
         # For DirectPlay, path/key of PART is needed
         # trailers are 'clip' with PMS xmls

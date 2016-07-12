@@ -55,14 +55,13 @@ class PlayUtils():
 
         else:
             self.logMsg("File is transcoding.", 1)
-            quality = {
-                'maxVideoBitrate': self.getBitrate(),
-                'videoResolution': self.getResolution(),
-                'videoQuality': '100'
-            }
             playurl = utils.tryEncode(self.API.getTranscodeVideoPath(
                 'Transcode',
-                quality=quality))
+                quality={
+                    'maxVideoBitrate': self.getBitrate(),
+                    'videoResolution': self.getResolution(),
+                    'videoQuality': '100'
+                }))
             # Set playmethod property
             utils.window('emby_%s.playmethod' % playurl, value="Transcode")
 
