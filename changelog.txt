@@ -1,3 +1,9 @@
+version 1.2.9
+- Don't let the PMS force scan the media when requesting PMS item metadata
+- Improve detection of the need to transcode
+- Increase (and enforce) a higher connection timeout
+- Enable stream/media selection for direct play (e.g. if you have several files for the same movie item on the PMS)
+
 version 1.2.8
 - Fix PKC playstate updates for widgets on Krypton
 - Let user choose to always play trailer in highest quality
