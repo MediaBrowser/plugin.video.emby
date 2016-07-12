@@ -1263,7 +1263,7 @@ class API():
         or None
         """
         try:
-            res = self.item[0][self.part].attrib.get('file')
+            res = self.item[self.__getMedia()][self.part].attrib.get('file')
         except:
             res = None
         if res is not None:
@@ -2190,6 +2190,37 @@ class API():
         """
         return self.item[0].attrib.get('optimizedForStreaming') == '1'
 
+    def __getMedia(self):
+        """
+        Returns the Media stream as an int (mostly 0). Will let the user choose
+        if several media streams are present for a PMS item (if settings are
+        set accordingly)
+        """
+        # How many streams do we have?
+        count = 0
+        for entry in self.item.findall('./Media'):
+            count += 1
+        if (count > 1 and (
+                (self.getType() != 'clip' and
+                 utils.settings('bestQuality') == 'false')
+                or
+                (self.getType() == 'clip' and
+                 utils.settings('bestTrailer') == 'false'))):
+            # Several streams/files available.
+            dialoglist = []
+            for entry in self.item.findall('./Media'):
+                dialoglist.append(
+                    "%sp %s - %s (%s)"
+                    % (entry.attrib.get('videoResolution', 'unknown'),
+                       entry.attrib.get('videoCodec', 'unknown'),
+                       entry.attrib.get('audioProfile', 'unknown'),
+                       entry.attrib.get('audioCodec', 'unknown'))
+                )
+            media = xbmcgui.Dialog().select('Select stream', dialoglist)
+        else:
+            media = 0
+        return media
+
     def getTranscodeVideoPath(self, action, quality=None):
         """
 
@@ -2217,31 +2248,7 @@ class API():
         # For DirectPlay, path/key of PART is needed
         # trailers are 'clip' with PMS xmls
         if action == "DirectStream":
-            # How many streams do we have?
-            count = 0
-            for entry in self.item.findall('./Media'):
-                count += 1
-            if (count > 1 and (
-                    (self.getType() != 'clip' and
-                     utils.settings('bestQuality') == 'false')
-                    or
-                    (self.getType() == 'clip' and
-                     utils.settings('bestTrailer') == 'false'))):
-                # Several streams/files available.
-                dialoglist = []
-                for entry in self.item.findall('./Media'):
-                    dialoglist.append(
-                        "%sp %s - %s (%s)"
-                        % (entry.attrib.get('videoResolution', 'unknown'),
-                           entry.attrib.get('videoCodec', 'unknown'),
-                           entry.attrib.get('audioProfile', 'unknown'),
-                           entry.attrib.get('audioCodec', 'unknown'))
-                    )
-                media = xbmcgui.Dialog().select('Select stream', dialoglist)
-            else:
-                media = 0
-
-            path = self.item[media][self.part].attrib['key']
+            path = self.item[self.__getMedia()][self.part].attrib['key']
             url = self.server + path
             # e.g. Trailers already feature an '?'!
             if '?' in url:
