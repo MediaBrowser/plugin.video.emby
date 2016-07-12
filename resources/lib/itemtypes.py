@@ -411,7 +411,7 @@ class Movies(Items):
         doIndirect = not self.directpath
         if self.directpath:
             # Direct paths is set the Kodi way
-            playurl = API.getFilePath()
+            playurl = API.getFilePath(forceFirstMediaStream=True)
             if playurl is None:
                 # Something went wrong, trying to use non-direct paths
                 doIndirect = True
@@ -1302,7 +1302,7 @@ class TVShows(Items):
 
         # GET THE FILE AND PATH #####
         doIndirect = not self.directpath
-        playurl = API.getFilePath()
+        playurl = API.getFilePath(forceFirstMediaStream=True)
         if self.directpath:
             # Direct paths is set the Kodi way
             if playurl is None:
@@ -2060,7 +2060,7 @@ class Music(Items):
         doIndirect = not self.directpath
         if self.directpath:
             # Direct paths is set the Kodi way
-            playurl = API.getFilePath()
+            playurl = API.getFilePath(forceFirstMediaStream=True)
             if playurl is None:
                 # Something went wrong, trying to use non-direct paths
                 doIndirect = True

@@ -1257,22 +1257,29 @@ class API():
         """
         return self.item.attrib.get('key')
 
-    def getFilePath(self):
+    def getFilePath(self, forceFirstMediaStream=False):
         """
         Returns the direct path to this item, e.g. '\\NAS\movies\movie.mkv'
         or None
+
+        forceFirstMediaStream=True:
+            will always use 1st media stream, e.g. when several different
+            files are present for the same PMS item
         """
         try:
-            res = self.item[self.__getMedia()][self.part].attrib.get('file')
+            if forceFirstMediaStream is False:
+                ans = self.item[self.__getMedia()][self.part].attrib['file']
+            else:
+                ans = self.item[0][self.part].attrib['file']
         except:
-            res = None
-        if res is not None:
+            ans = None
+        if ans is not None:
             try:
-                res = utils.tryDecode(unquote(res))
+                ans = utils.tryDecode(unquote(ans))
             except UnicodeDecodeError:
                 # Sometimes, Plex seems to have encoded in latin1
-                res = unquote(res).decode('latin1')
-        return res
+                ans = unquote(ans).decode('latin1')
+        return ans
 
     def getTVShowPath(self):
         """
@@ -2368,7 +2375,9 @@ class API():
                           self.item[0][0].attrib['key']))
         else:
             # Native direct paths
-            path = self.validatePlayurl(self.getFilePath(), 'photo')
+            path = self.validatePlayurl(
+                self.getFilePath(forceFirstMediaStream=True),
+                'photo')
         path = utils.tryEncode(path)
         metadata = {
             'date': self.GetKodiPremierDate(),
