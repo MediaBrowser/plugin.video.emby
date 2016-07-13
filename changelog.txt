@@ -1,3 +1,6 @@
+version 1.2.10
+- Hotfix: Fix ValueError for playing certain files
+
 version 1.2.9
 - Don't let the PMS force scan the media when requesting PMS item metadata
 - Improve detection of the need to transcode
