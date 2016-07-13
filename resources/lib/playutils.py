@@ -172,7 +172,7 @@ class PlayUtils():
             return False
         try:
             resolution = int(videoCodec['resolution'])
-        except TypeError:
+        except (TypeError, ValueError):
             self.logMsg('No video resolution from PMS, not transcoding.', 1)
             return False
         if 'h265' in codec:
