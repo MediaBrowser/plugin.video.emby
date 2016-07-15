@@ -1,3 +1,7 @@
+version 1.2.11
+-  Fix PKC not releasing connections to the PMS. Should fix memory, connection and PMS issues
+-  Fix TypeError for playlists
+
 version 1.2.10
 - Hotfix: Fix ValueError for playing certain files
 
