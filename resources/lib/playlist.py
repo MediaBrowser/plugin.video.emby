@@ -78,7 +78,7 @@ class Playlist():
                         self.logMsg('Could not download itemid %s'
                                     % itemid, -1)
                     else:
-                        self.addtoPlaylist_xbmc(self.playlist, item)
+                        self.addtoPlaylist_xbmc(item)
                 else:
                     # Add to playlist
                     self.addtoPlaylist(dbid, mediatype)
