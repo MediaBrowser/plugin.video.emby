@@ -254,6 +254,9 @@ class DownloadUtils():
 
             if r.status_code == 204:
                 # No body in the response
+                # But read (empty) content to release connection back to pool
+                # (see requests: keep-alive documentation)
+                r.content
                 return True
 
             elif r.status_code == 401:
