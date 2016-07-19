@@ -140,7 +140,6 @@ class Playlist():
                                     int(dbid)}
         else:
             pl['params']['item'] = {'file': url}
-        self.logMsg('JSONRPC question: %s' % json.dumps(pl), 2)
         self.logMsg(xbmc.executeJSONRPC(json.dumps(pl)), 2)
 
     def _addtoPlaylist_xbmc(self, item):
