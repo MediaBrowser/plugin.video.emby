@@ -17,6 +17,7 @@ class MyHandler(BaseHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         BaseHTTPRequestHandler.__init__(self, *args, **kwargs)
         self.serverlist = []
+        self.regex = re.compile(r'''/playQueues/(\d+)$''')
 
     def getServerByHost(self, host):
         if len(self.serverlist) == 1:
@@ -147,9 +148,8 @@ class MyHandler(BaseHTTPRequestHandler):
                     containerKey = urlparse(params.get('containerKey')).path
                 except:
                     containerKey = ''
-                regex = re.compile(r'''/playQueues/(\d+)$''')
                 try:
-                    playQueueID = regex.findall(containerKey)[0]
+                    playQueueID = self.regex.findall(containerKey)[0]
                 except IndexError:
                     playQueueID = ''
 
