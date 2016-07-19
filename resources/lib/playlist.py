@@ -21,18 +21,22 @@ class Playlist():
     """
     Initiate with Playlist(typus='video' or 'music')
     """
-
     def __init__(self, typus=None):
         self.userid = utils.window('currUserId')
         self.server = utils.window('pms_server')
         if typus == 'video':
             self.playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
+            self.logMsg('Initiated video playlist', 1)
         elif typus == 'music':
             self.playlist = xbmc.PlayList(xbmc.PLAYLIST_MUSIC)
+            self.logMsg('Initiated music playlist', 1)
         else:
             self.playlist = None
+        if self.playlist is not None:
+            self.playlistId = self.playlist.getPlayListId()
 
-    def __initiatePlaylist(self, itemids):
+    def _initiatePlaylist(self, itemids):
+        self.logMsg('Initiating playlist', 1)
         playlist = None
         with embydb.GetEmbyDB() as emby_db:
             for itemid in itemids:
@@ -40,9 +44,12 @@ class Playlist():
                 try:
                     mediatype = embydb_item[4]
                 except TypeError:
-                    self.logMsg('Couldnt find item %s in Kodi db' % itemid, 1)
+                    self.logMsg('Couldnt find item %s in Kodi db'
+                                % itemid, 1)
                     item = PlexFunctions.GetPlexMetadata(itemid)
                     if item in (None, 401):
+                        self.logMsg('Couldnt find item %s on PMS, trying next'
+                                    % itemid, 1)
                         continue
                     if PlexAPI.API(item[0]).getType() == 'track':
                         playlist = xbmc.PlayList(xbmc.PLAYLIST_MUSIC)
@@ -58,9 +65,9 @@ class Playlist():
                         playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
                         self.logMsg('Video playlist initiated', 1)
                 break
-        if playlist is not None:
-            playlist.clear()
         self.playlist = playlist
+        if self.playlist is not None:
+            self.playlistId = self.playlist.getPlayListId()
 
     def _addToPlaylist(self, itemids, startPlayer=False):
         started = False
@@ -78,7 +85,7 @@ class Playlist():
                                     % itemid, -1)
                     else:
                         self.logMsg('Downloaded item metadata, adding now', 1)
-                        self.addtoPlaylist_xbmc(item)
+                        self._addtoPlaylist_xbmc(item[0])
                 else:
                     # Add to playlist
                     self.logMsg("Adding %s PlexId %s, KodiId %s to playlist."
@@ -93,7 +100,7 @@ class Playlist():
         self.logMsg("Items: %s and start at: %s" % (itemids, startat), 1)
 
         if self.playlist is None:
-            self.__initiatePlaylist(itemids)
+            self._initiatePlaylist(itemids)
         if self.playlist is None:
             self.logMsg('Could not create playlist, abort', -1)
             return
@@ -109,7 +116,7 @@ class Playlist():
         self.logMsg("---*** ADD TO PLAYLIST ***---", 1)
         self.logMsg("Items: %s" % itemids, 1)
 
-        self.__initiatePlaylist(itemids)
+        self._initiatePlaylist(itemids)
         self._addToPlaylist(itemids, startPlayer=True)
 
         self.verifyPlaylist()
@@ -121,13 +128,11 @@ class Playlist():
         """
 
         pl = {
-
             'jsonrpc': "2.0",
             'id': 1,
             'method': "Playlist.Add",
             'params': {
-
-                'playlistid': self.playlist.getPlayListId()
+                'playlistid': self.playlistId
             }
         }
         if dbid is not None:
@@ -138,8 +143,8 @@ class Playlist():
         self.logMsg('JSONRPC question: %s' % json.dumps(pl), 2)
         self.logMsg(xbmc.executeJSONRPC(json.dumps(pl)), 2)
 
-    def addtoPlaylist_xbmc(self, item):
-        API = PlexAPI.API(item[0])
+    def _addtoPlaylist_xbmc(self, item):
+        API = PlexAPI.API(item)
         params = {
             'mode': "play",
             'dbid': 999999999,
@@ -150,7 +155,7 @@ class Playlist():
             % urlencode(params)
 
         listitem = API.CreateListItemFromPlexItem()
-        playbackutils.PlaybackUtils(item[0]).setArtwork(listitem)
+        playbackutils.PlaybackUtils(item).setArtwork(listitem)
 
         self.playlist.add(playurl, listitem)
 
@@ -163,7 +168,7 @@ class Playlist():
             'method': "Playlist.Insert",
             'params': {
 
-                'playlistid': self.playlist.getPlayListId(),
+                'playlistid': self.playlistId,
                 'position': position
             }
         }
@@ -184,7 +189,7 @@ class Playlist():
             'method': "Playlist.GetItems",
             'params': {
 
-                'playlistid': self.playlist.getPlayListId(),
+                'playlistid': self.playlistId,
                 'properties': ['title', 'file']
             }
         }
@@ -199,7 +204,7 @@ class Playlist():
             'method': "Playlist.Remove",
             'params': {
 
-                'playlistid': self.playlist.getPlayListId(),
+                'playlistid': self.playlistId,
                 'position': position
             }
         }
