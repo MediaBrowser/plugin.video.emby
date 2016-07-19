@@ -62,11 +62,10 @@ class Playlist():
             playlist.clear()
         self.playlist = playlist
 
-    def __addToPlaylist(self, itemids, startPlayer=False):
+    def _addToPlaylist(self, itemids, startPlayer=False):
         started = False
         with embydb.GetEmbyDB() as emby_db:
             for itemid in itemids:
-                self.logMsg("Adding %s to playlist." % itemid, 1)
                 embydb_item = emby_db.getItem_byId(itemid)
                 try:
                     dbid = embydb_item[0]
@@ -78,9 +77,12 @@ class Playlist():
                         self.logMsg('Could not download itemid %s'
                                     % itemid, -1)
                     else:
+                        self.logMsg('Downloaded item metadata, adding now', 1)
                         self.addtoPlaylist_xbmc(item)
                 else:
                     # Add to playlist
+                    self.logMsg("Adding %s PlexId %s, KodiId %s to playlist."
+                                % (mediatype, itemid, dbid), 1)
                     self.addtoPlaylist(dbid, mediatype)
                 if started is False and startPlayer is True:
                     started = True
@@ -100,7 +102,7 @@ class Playlist():
         if startat != 0:
             # Seek to the starting position
             utils.window('plex_customplaylist.seektime', str(startat))
-        self.__addToPlaylist(itemids, startPlayer=True)
+        self._addToPlaylist(itemids, startPlayer=True)
         self.verifyPlaylist()
 
     def modifyPlaylist(self, itemids):
@@ -108,7 +110,7 @@ class Playlist():
         self.logMsg("Items: %s" % itemids, 1)
 
         self.__initiatePlaylist(itemids)
-        self.__addToPlaylist(itemids, startPlayer=True)
+        self._addToPlaylist(itemids, startPlayer=True)
 
         self.verifyPlaylist()
 
@@ -133,6 +135,7 @@ class Playlist():
                                     int(dbid)}
         else:
             pl['params']['item'] = {'file': url}
+        self.logMsg('JSONRPC question: %s' % json.dumps(pl), 2)
         self.logMsg(xbmc.executeJSONRPC(json.dumps(pl)), 2)
 
     def addtoPlaylist_xbmc(self, item):
