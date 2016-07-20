@@ -106,11 +106,6 @@ class jsonClass():
                 "id": 1,
                 "method": "JSONRPC.Ping"
             })
-        elif action.lower() == "playmedia":
-            xbmc.Player().play("plugin://plugin.video.plexkodiconnect/"
-                               "?mode=companion&arguments=%s"
-                               % arguments)
-            return True
         elif arguments:
             request = json.dumps({
                 "id": 1,

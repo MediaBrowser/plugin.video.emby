@@ -14,7 +14,10 @@ from plexbmchelper import listener, plexgdm, subscribers, functions, \
 @utils.ThreadMethodsAdditionalSuspend('plex_serverStatus')
 @utils.ThreadMethods
 class PlexCompanion(threading.Thread):
-    def __init__(self):
+    """
+    Initialize with a Queue for callbacks
+    """
+    def __init__(self, queue):
         self.logMsg("----===## Starting PlexCompanion ##===----", 1)
         self.settings = settings.getSettings()
 
@@ -23,6 +26,8 @@ class PlexCompanion(threading.Thread):
         self.client.clientDetails(self.settings)
         self.logMsg("Registration string is: %s "
                     % self.client.getClientDetails(), 2)
+
+        self.queue = queue
 
         threading.Thread.__init__(self)
 
@@ -51,6 +56,7 @@ class PlexCompanion(threading.Thread):
                         subscriptionManager,
                         jsonClass,
                         self.settings,
+                        self.queue,
                         ('', self.settings['myport']),
                         listener.MyHandler)
                     httpd.timeout = 0.95

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from urllib import urlencode
 from ast import literal_eval
-from urlparse import urlparse, parse_qs
+from urlparse import urlparse, parse_qsl
 import re
 from copy import deepcopy
 
@@ -86,13 +86,13 @@ def GetPlexKeyNumber(plexKey):
 def ParseContainerKey(containerKey):
     """
     Parses e.g. /playQueues/3045?own=1&repeat=0&window=200 to:
-    'playQueues', '3045', {'window': ['200'], 'own': ['1'], 'repeat': ['0']}
+    'playQueues', '3045', {'window': '200', 'own': '1', 'repeat': '0'}
 
-    Output hence: library, key, query       (query as a special dict)
+    Output hence: library, key, query       (str, str, dict)
     """
     result = urlparse(containerKey)
     library, key = GetPlexKeyNumber(result.path)
-    query = parse_qs(result.query)
+    query = dict(parse_qsl(result.query))
     return library, key, query
 
 
