@@ -13,11 +13,11 @@ from utils import logging
 @logging
 class MyHandler(BaseHTTPRequestHandler):
     protocol_version = 'HTTP/1.1'
+    regex = re.compile(r'''/playQueues/(\d+)$''')
 
     def __init__(self, *args, **kwargs):
         BaseHTTPRequestHandler.__init__(self, *args, **kwargs)
         self.serverlist = []
-        self.regex = re.compile(r'''/playQueues/(\d+)$''')
 
     def getServerByHost(self, host):
         if len(self.serverlist) == 1:
