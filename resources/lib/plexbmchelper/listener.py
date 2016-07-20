@@ -1,5 +1,4 @@
 import re
-import traceback
 from SocketServer import ThreadingMixIn
 from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
 from urlparse import urlparse, parse_qs
@@ -247,6 +246,7 @@ class MyHandler(BaseHTTPRequestHandler):
 
         except:
             self.logMsg('Error encountered. Traceback:', -1)
+            import traceback
             self.logMsg(traceback.print_exc(), -1)
 
 
