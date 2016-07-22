@@ -36,7 +36,9 @@ class Player(xbmc.Player):
         self.doUtils = downloadutils.DownloadUtils().downloadUrl
         self.xbmcplayer = xbmc.Player()
 
-        self.logMsg("Starting playback monitor.", 2)
+        xbmc.Player.__init__(self)
+
+        self.logMsg("Started playback monitor.", 2)
 
     def GetPlayStats(self):
         return self.playStats

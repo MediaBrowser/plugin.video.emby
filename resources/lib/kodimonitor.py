@@ -24,7 +24,7 @@ class KodiMonitor(xbmc.Monitor):
 
         self.doUtils = downloadutils.DownloadUtils().downloadUrl
         self.xbmcplayer = xbmc.Player()
-
+        xbmc.Monitor.__init__(self)
         self.logMsg("Kodi monitor started.", 1)
 
     def onScanStarted(self, library):
