@@ -81,8 +81,7 @@ class Player(xbmc.Player):
         while not itemId:
             xbmc.sleep(200)
             itemId = window("emby_%s.itemid" % currentFile)
-            # try 20 times or about 10 seconds
-            if count == 20:
+            if count == 5:
                 self.logMsg("Could not find itemId, cancelling playback "
                             "report!", -1)
                 return
