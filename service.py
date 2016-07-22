@@ -43,11 +43,9 @@ import player
 import videonodes
 import websocket_client as wsc
 import downloadutils
-import playlist
 
 import PlexAPI
 import PlexCompanion
-import PlexFunctions as PF
 
 ###############################################################################
 
@@ -111,89 +109,12 @@ class Service():
         # Set the minimum database version
         window('plex_minDBVersion', value="1.1.5")
 
-        # Initialize playlist/queue stuff
-        self.queueId = None
-        self.playlist = None
-
     def getLogLevel(self):
         try:
             logLevel = int(utils.settings('logLevel'))
         except ValueError:
             logLevel = 0
         return logLevel
-
-    def _getStartItem(self, string):
-        """
-        Grabs the Plex id from e.g. '/library/metadata/12987'
-
-        and returns the tuple (typus, id) where typus is either 'queueId' or
-        'plexId' and id is the corresponding id as a string
-        """
-        typus = 'plexId'
-        if string.startswith('/library/metadata'):
-            try:
-                string = string.split('/')[3]
-            except IndexError:
-                string = ''
-        else:
-            self.logMsg('Unknown string! %s' % string, -1)
-        return typus, string
-
-    def processTasks(self, task):
-        """
-        Processes tasks picked up e.g. by Companion listener
-
-        task = {
-            'action':       'playlist'
-            'data':         as received from Plex companion
-        }
-        """
-        self.logMsg('Processing: %s' % task, 2)
-        data = task['data']
-
-        if task['action'] == 'playlist':
-            try:
-                _, queueId, query = PF.ParseContainerKey(data['containerKey'])
-            except Exception as e:
-                self.logMsg('Exception while processing: %s' % e, -1)
-                import traceback
-                self.logMsg("Traceback:\n%s" % traceback.format_exc(), -1)
-                return
-            if self.playlist is not None:
-                if self.playlist.typus != data.get('type'):
-                    self.logMsg('Switching to Kodi playlist of type %s'
-                                % data.get('type'), 1)
-                    self.playlist = None
-                    self.queueId = None
-            if self.playlist is None:
-                if data.get('type') == 'music':
-                    self.playlist = playlist.Playlist('music')
-                elif data.get('type') == 'video':
-                    self.playlist = playlist.Playlist('video')
-                else:
-                    self.playlist = playlist.Playlist()
-            if queueId != self.queueId:
-                self.logMsg('New playlist received, updating!', 1)
-                self.queueId = queueId
-                xml = PF.GetPlayQueue(queueId)
-                if xml in (None, 401):
-                    self.logMsg('Could not download Plex playlist.', -1)
-                    return
-                # Clear existing playlist on the Kodi side
-                self.playlist.clear()
-                items = []
-                for item in xml:
-                    items.append({
-                        'queueId': item.get('playQueueItemID'),
-                        'plexId': item.get('ratingKey'),
-                        'kodiId': None
-                    })
-                self.playlist.playAll(
-                    items,
-                    startitem=self._getStartItem(data.get('key', '')),
-                    offset=PF.ConvertPlexToKodiTime(data.get('offset', 0)))
-            else:
-                self.logMsg('This has never happened before!', -1)
 
     def ServiceEntryPoint(self):
 
@@ -211,8 +132,6 @@ class Service():
 
         # Queue for background sync
         queue = Queue.Queue(maxsize=200)
-        # Queue for PlexCompanion listener
-        companionQueue = Queue.Queue(maxsize=100)
 
         connectMsg = True if utils.settings('connectMsg') == 'true' else False
 
@@ -276,14 +195,7 @@ class Service():
                         except Exception as e:
                             log("Exception in Playback Monitor Service: %s" % e, 1)
                             pass
-                    try:
-                        task = companionQueue.get(block=False)
-                    except Queue.Empty:
-                        pass
-                    else:
-                        # Got instructions from Plex Companions, process them
-                        self.processTasks(task)
-                        companionQueue.task_done()
+
                     if not self.kodimonitor_running:
                         # Start up events
                         self.warn_auth = True
@@ -311,8 +223,7 @@ class Service():
                         # Start the Plex Companion thread
                         if not self.plexCompanion_running:
                             self.plexCompanion_running = True
-                            plexCompanion = PlexCompanion.PlexCompanion(
-                                companionQueue)
+                            plexCompanion = PlexCompanion.PlexCompanion()
                             plexCompanion.start()
                 else:
                     if (user.currUser is None) and self.warn_auth:

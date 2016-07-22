@@ -2,12 +2,16 @@
 import threading
 import traceback
 import socket
+import Queue
 
 import xbmc
 
 import utils
 from plexbmchelper import listener, plexgdm, subscribers, functions, \
     httppersist, settings
+from PlexFunctions import ParseContainerKey, GetPlayQueue, \
+    ConvertPlexToKodiTime
+import playlist
 
 
 @utils.logging
@@ -17,7 +21,7 @@ class PlexCompanion(threading.Thread):
     """
     Initialize with a Queue for callbacks
     """
-    def __init__(self, queue):
+    def __init__(self):
         self.logMsg("----===## Starting PlexCompanion ##===----", 1)
         self.settings = settings.getSettings()
 
@@ -27,9 +31,84 @@ class PlexCompanion(threading.Thread):
         self.logMsg("Registration string is: %s "
                     % self.client.getClientDetails(), 2)
 
-        self.queue = queue
+        # Initialize playlist/queue stuff
+        self.queueId = None
+        self.playlist = None
 
         threading.Thread.__init__(self)
+
+    def _getStartItem(self, string):
+        """
+        Grabs the Plex id from e.g. '/library/metadata/12987'
+
+        and returns the tuple (typus, id) where typus is either 'queueId' or
+        'plexId' and id is the corresponding id as a string
+        """
+        typus = 'plexId'
+        if string.startswith('/library/metadata'):
+            try:
+                string = string.split('/')[3]
+            except IndexError:
+                string = ''
+        else:
+            self.logMsg('Unknown string! %s' % string, -1)
+        return typus, string
+
+    def processTasks(self, task):
+        """
+        Processes tasks picked up e.g. by Companion listener
+
+        task = {
+            'action':       'playlist'
+            'data':         as received from Plex companion
+        }
+        """
+        self.logMsg('Processing: %s' % task, 2)
+        data = task['data']
+
+        if task['action'] == 'playlist':
+            try:
+                _, queueId, query = ParseContainerKey(data['containerKey'])
+            except Exception as e:
+                self.logMsg('Exception while processing: %s' % e, -1)
+                import traceback
+                self.logMsg("Traceback:\n%s" % traceback.format_exc(), -1)
+                return
+            if self.playlist is not None:
+                if self.playlist.typus != data.get('type'):
+                    self.logMsg('Switching to Kodi playlist of type %s'
+                                % data.get('type'), 1)
+                    self.playlist = None
+                    self.queueId = None
+            if self.playlist is None:
+                if data.get('type') == 'music':
+                    self.playlist = playlist.Playlist('music')
+                elif data.get('type') == 'video':
+                    self.playlist = playlist.Playlist('video')
+                else:
+                    self.playlist = playlist.Playlist()
+            if queueId != self.queueId:
+                self.logMsg('New playlist received, updating!', 1)
+                self.queueId = queueId
+                xml = GetPlayQueue(queueId)
+                if xml in (None, 401):
+                    self.logMsg('Could not download Plex playlist.', -1)
+                    return
+                # Clear existing playlist on the Kodi side
+                self.playlist.clear()
+                items = []
+                for item in xml:
+                    items.append({
+                        'queueId': item.get('playQueueItemID'),
+                        'plexId': item.get('ratingKey'),
+                        'kodiId': None
+                    })
+                self.playlist.playAll(
+                    items,
+                    startitem=self._getStartItem(data.get('key', '')),
+                    offset=ConvertPlexToKodiTime(data.get('offset', 0)))
+            else:
+                self.logMsg('This has never happened before!', -1)
 
     def run(self):
         httpd = False
@@ -45,6 +124,8 @@ class PlexCompanion(threading.Thread):
         subscriptionManager = subscribers.SubscriptionManager(
             jsonClass, requestMgr)
 
+        queue = Queue.Queue(maxsize=100)
+
         if utils.settings('plexCompanion') == 'true':
             self.logMsg('User activated Plex Companion', 0)
             # Start up httpd
@@ -56,7 +137,7 @@ class PlexCompanion(threading.Thread):
                         subscriptionManager,
                         jsonClass,
                         self.settings,
-                        self.queue,
+                        queue,
                         ('', self.settings['myport']),
                         listener.MyHandler)
                     httpd.timeout = 0.95
@@ -105,11 +186,19 @@ class PlexCompanion(threading.Thread):
                 subscriptionManager.serverlist = client.getServerList()
 
                 subscriptionManager.notify()
-                xbmc.sleep(50)
             except:
                 log("Error in loop, continuing anyway. Traceback:", 1)
                 log(traceback.format_exc(), 1)
-                xbmc.sleep(50)
+            # See if there's anything we need to process
+            try:
+                task = queue.get(block=False)
+            except Queue.Empty:
+                pass
+            else:
+                # Got instructions, process them
+                self.processTasks(task)
+                queue.task_done()
+            xbmc.sleep(10)
 
         client.stop_all()
         if httpd:
