@@ -111,6 +111,32 @@ def IfExists(path):
     return answer
 
 
+def CatchExceptions(warnuser=False):
+    """
+    Decorator for methods to catch exceptions and log them. Useful for e.g.
+    librarysync threads using itemtypes.py, because otherwise we would not
+    get informed of crashes
+
+    warnuser=True:      sets the window flag 'plex_scancrashed' to true
+                        which will trigger a Kodi infobox to inform user
+    """
+    def decorate(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            try:
+                return func(*args, **kwargs)
+            except Exception as e:
+                logMsg(addonName, '%s has crashed' % func.__name__, -1)
+                logMsg(addonName, e, -1)
+                import traceback
+                logMsg(addonName, "Traceback:\n%s"
+                       % traceback.format_exc(), -1)
+                if warnuser:
+                    window('plex_scancrashed', value='true')
+        return wrapper
+    return decorate
+
+
 def LogTime(func):
     """
     Decorator for functions and methods to log the time it took to run the code

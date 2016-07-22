@@ -61,6 +61,7 @@ class KodiMonitor(xbmc.Monitor):
             self.logMsg("New log level: %s" % currentLog, 1)
             utils.window('plex_logLevel', value=currentLog)
 
+    @utils.CatchExceptions(warnuser=False)
     def onNotification(self, sender, method, data):
 
         if data:
