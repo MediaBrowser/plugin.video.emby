@@ -311,20 +311,8 @@ class Movies(Items):
                 count += 1
             self.add_updateBoxset(boxset)
 
+    @utils.CatchExceptions(warnuser=True)
     def add_update(self, item, viewtag=None, viewid=None):
-        try:
-            self.run_add_update(item, viewtag, viewid)
-        except Exception as e:
-            self.logMsg('itemtypes.py for movies has crashed for item %s. '
-                        'Error:' % item.attrib.get('ratingKey', None), -1)
-            self.logMsg(e, -1)
-            import traceback
-            self.logMsg("Traceback:\n%s" % traceback.format_exc(), 0)
-            utils.window('plex_scancrashed', value='true')
-            # skip this item for now
-            return
-
-    def run_add_update(self, item, viewtag=None, viewid=None):
         # Process single movie
         kodicursor = self.kodicursor
         emby_db = self.emby_db
@@ -934,20 +922,8 @@ class TVShows(Items):
             if not pdialog and self.contentmsg:
                 self.contentPop(title, self.newvideo_time)
 
+    @utils.CatchExceptions(warnuser=True)
     def add_update(self, item, viewtag=None, viewid=None):
-        try:
-            self.run_add_update(item, viewtag, viewid)
-        except Exception as e:
-            self.logMsg('itemtypes.py for tv show has crashed for item %s. '
-                        'Error:' % item.attrib.get('ratingKey', None), -1)
-            self.logMsg(e, -1)
-            import traceback
-            self.logMsg("Traceback:\n%s" % traceback.format_exc(), 0)
-            utils.window('plex_scancrashed', value='true')
-            # skip this item for now
-            return
-
-    def run_add_update(self, item, viewtag=None, viewid=None):
         # Process single tvshow
         kodicursor = self.kodicursor
         emby_db = self.emby_db
@@ -1124,20 +1100,8 @@ class TVShows(Items):
         self.kodiconn.commit()
         self.embyconn.commit()
 
+    @utils.CatchExceptions(warnuser=True)
     def add_updateSeason(self, item, viewtag=None, viewid=None):
-        try:
-            self.run_add_updateSeason(item, viewtag, viewid)
-        except Exception as e:
-            self.logMsg('itemtypes.py for tv seasons has crashed for item %s. '
-                        'Error:' % item.attrib.get('ratingKey', None), -1)
-            self.logMsg(e, -1)
-            import traceback
-            self.logMsg("Traceback:\n%s" % traceback.format_exc(), 0)
-            utils.window('plex_scancrashed', value='true')
-            # skip this item for now
-            return
-
-    def run_add_updateSeason(self, item, viewtag=None, viewid=None):
         API = PlexAPI.API(item)
         itemid = API.getRatingKey()
         if not itemid:
@@ -1182,20 +1146,8 @@ class TVShows(Items):
         self.kodiconn.commit()
         self.embyconn.commit()
 
+    @utils.CatchExceptions(warnuser=True)
     def add_updateEpisode(self, item, viewtag=None, viewid=None):
-        try:
-            self.run_add_updateEpisode(item, viewtag, viewid)
-        except Exception as e:
-            self.logMsg('itemtypes.py for tv episode has crashed for item %s. '
-                        'Error:' % item.attrib.get('ratingKey', None), -1)
-            self.logMsg(e, -1)
-            import traceback
-            self.logMsg("Traceback:\n%s" % traceback.format_exc(), 0)
-            utils.window('plex_scancrashed', value='true')
-            # skip this item for now
-            return
-
-    def run_add_updateEpisode(self, item, viewtag=None, viewid=None):
         """
         viewtag and viewid are irrelevant!
         """
@@ -1677,21 +1629,8 @@ class Music(Items):
             if not pdialog and self.contentmsg:
                 self.contentPop(song['Name'], self.newmusic_time)
 
-    def add_updateArtist(self, item, viewtag=None, viewid=None, artisttype="MusicArtist"):
-        try:
-            self.run_add_updateArtist(item, viewtag, viewid, artisttype)
-        except Exception as e:
-            self.logMsg('itemtypes.py for music artist has crashed for '
-                        'item %s. Error:'
-                        % item.attrib.get('ratingKey', None), -1)
-            self.logMsg(e, -1)
-            import traceback
-            self.logMsg("Traceback:\n%s" % traceback.format_exc(), 0)
-            utils.window('plex_scancrashed', value='true')
-            # skip this item for now
-            return
-
-    def run_add_updateArtist(self, item, viewtag=None, viewid=None,
+    @utils.CatchExceptions(warnuser=True)
+    def add_updateArtist(self, item, viewtag=None, viewid=None,
                          artisttype="MusicArtist"):
         kodicursor = self.kodicursor
         emby_db = self.emby_db
@@ -1775,21 +1714,8 @@ class Music(Items):
         self.embyconn.commit()
         self.kodiconn.commit()
 
+    @utils.CatchExceptions(warnuser=True)
     def add_updateAlbum(self, item, viewtag=None, viewid=None):
-        try:
-            self.run_add_updateAlbum(item, viewtag, viewid)
-        except Exception as e:
-            self.logMsg('itemtypes.py for music album has crashed for '
-                        'item %s. Error:'
-                        % item.attrib.get('ratingKey', None), -1)
-            self.logMsg(e, -1)
-            import traceback
-            self.logMsg("Traceback:\n%s" % traceback.format_exc(), 0)
-            utils.window('plex_scancrashed', value='true')
-            # skip this item for now
-            return
-
-    def run_add_updateAlbum(self, item, viewtag=None, viewid=None):
         kodicursor = self.kodicursor
         emby_db = self.emby_db
         artwork = self.artwork
@@ -1981,21 +1907,8 @@ class Music(Items):
         self.embyconn.commit()
         self.kodiconn.commit()
 
+    @utils.CatchExceptions(warnuser=True)
     def add_updateSong(self, item, viewtag=None, viewid=None):
-        try:
-            self.run_add_updateSong(item, viewtag, viewid)
-        except Exception as e:
-            self.logMsg('itemtypes.py for music song has crashed for '
-                        'item %s. Error:'
-                        % item.attrib.get('ratingKey', None), -1)
-            self.logMsg(e, -1)
-            import traceback
-            self.logMsg("Traceback:\n%s" % traceback.format_exc(), 0)
-            utils.window('plex_scancrashed', value='true')
-            # skip this item for now
-            return
-
-    def run_add_updateSong(self, item, viewtag=None, viewid=None):
         # Process single song
         kodicursor = self.kodicursor
         emby = self.emby
