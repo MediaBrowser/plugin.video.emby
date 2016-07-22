@@ -62,10 +62,10 @@ class KodiMonitor(xbmc.Monitor):
             utils.window('plex_logLevel', value=currentLog)
 
     def onNotification(self, sender, method, data):
-        self.logMsg("Method: %s Data: %s" % (method, data), 1)
 
         if data:
             data = json.loads(data, 'utf-8')
+            self.logMsg("Method: %s Data: %s" % (method, data), 1)
 
         if method == "Player.OnPlay":
             self.PlayBackStart(data)
