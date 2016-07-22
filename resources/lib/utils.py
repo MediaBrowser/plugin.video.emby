@@ -133,6 +133,7 @@ def CatchExceptions(warnuser=False):
                        % traceback.format_exc(), -1)
                 if warnuser:
                     window('plex_scancrashed', value='true')
+                return
         return wrapper
     return decorate
 
