@@ -89,7 +89,7 @@ class Playlist():
             self.playlistId = self.playlist.getPlayListId()
 
     def _addToPlaylist(self, startitem, startPlayer=False):
-        started = False
+        startpos = None
         with embydb.GetEmbyDB() as emby_db:
             for pos, item in enumerate(self.items):
                 kodiId = None
@@ -115,17 +115,16 @@ class Playlist():
                 # Add the kodiId
                 if kodiId is not None:
                     item['kodiId'] = str(kodiId)
-                if (started is False and
-                        startPlayer is True and
-                        startitem[1] == item[startitem[0]]):
-                    started = True
-                    xbmc.Player().play(self.playlist, startpos=pos)
-        if (started is False and
-                startPlayer is True and
-                len(self.playlist) > 0):
-            self.logMsg('Never received a starting item for playlist, '
-                        'starting with the first entry', 1)
-            xbmc.Player().play(self.playlist)
+                if (startpos is None and startitem[1] == item[startitem[0]]):
+                    startpos = pos
+
+        if startPlayer is True and len(self.playlist) > 0:
+            if startpos is not None:
+                xbmc.Player().play(self.playlist, startpos=startpos)
+            else:
+                self.logMsg('Never received a starting item for playlist, '
+                            'starting with the first entry', 1)
+                xbmc.Player().play(self.playlist)
 
     def playAll(self, items, startitem, offset):
         """
