@@ -38,6 +38,7 @@ class Playlist():
             self.typus = None
         if self.playlist is not None:
             self.playlistId = self.playlist.getPlayListId()
+        self.player = xbmc.Player()
         # "interal" PKC playlist
         self.items = []
 
@@ -120,11 +121,11 @@ class Playlist():
 
         if startPlayer is True and len(self.playlist) > 0:
             if startpos is not None:
-                xbmc.Player().play(self.playlist, startpos=startpos)
+                self.player.play(self.playlist, startpos=startpos)
             else:
                 self.logMsg('Never received a starting item for playlist, '
                             'starting with the first entry', 1)
-                xbmc.Player().play(self.playlist)
+                self.player.play(self.playlist)
 
     def playAll(self, items, startitem, offset):
         """
