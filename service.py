@@ -209,8 +209,7 @@ class Service():
                                 time=2000,
                                 sound=False)
                         # Start monitoring kodi events
-                        self.kodimonitor_running = True
-                        kodimonitor.KodiMonitor()
+                        self.kodimonitor_running = kodimonitor.KodiMonitor()
 
                         # Start the Websocket Client
                         if not self.websocket_running:
