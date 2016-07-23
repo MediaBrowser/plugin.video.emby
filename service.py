@@ -140,7 +140,6 @@ class Service():
         ws = wsc.WebSocket(queue)
         library = librarysync.LibrarySync(queue)
         kplayer = player.Player()
-        xplayer = xbmc.Player()
         plx = PlexAPI.PlexAPI()
 
         # Sync and progress report
@@ -167,11 +166,11 @@ class Service():
                 # Verify if user is set and has access to the server
                 if (user.currUser is not None) and user.HasAccess:
                     # If an item is playing
-                    if xplayer.isPlaying():
+                    if kplayer.isPlaying():
                         try:
                             # Update and report progress
-                            playtime = xplayer.getTime()
-                            totalTime = xplayer.getTotalTime()
+                            playtime = kplayer.getTime()
+                            totalTime = kplayer.getTotalTime()
                             currentFile = kplayer.currentFile
 
                             # Update positionticks
@@ -209,7 +208,8 @@ class Service():
                                 time=2000,
                                 sound=False)
                         # Start monitoring kodi events
-                        self.kodimonitor_running = kodimonitor.KodiMonitor()
+                        self.kodimonitor_running = kodimonitor.KodiMonitor(
+                            player=kplayer)
 
                         # Start the Websocket Client
                         if not self.websocket_running:
@@ -222,7 +222,8 @@ class Service():
                         # Start the Plex Companion thread
                         if not self.plexCompanion_running:
                             self.plexCompanion_running = True
-                            plexCompanion = PlexCompanion.PlexCompanion()
+                            plexCompanion = PlexCompanion.PlexCompanion(
+                                player=kplayer)
                             plexCompanion.start()
                 else:
                     if (user.currUser is None) and self.warn_auth:

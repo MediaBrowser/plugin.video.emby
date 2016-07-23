@@ -21,7 +21,7 @@ class Playlist():
     """
     Initiate with Playlist(typus='video' or 'music')
     """
-    def __init__(self, typus=None):
+    def __init__(self, typus=None, player=None):
         self.userid = utils.window('currUserId')
         self.server = utils.window('pms_server')
         # Construct the Kodi playlist instance
@@ -38,7 +38,8 @@ class Playlist():
             self.typus = None
         if self.playlist is not None:
             self.playlistId = self.playlist.getPlayListId()
-        self.player = xbmc.Player()
+        # kodi player instance
+        self.player = player
         # "interal" PKC playlist
         self.items = []
 

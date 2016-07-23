@@ -20,10 +20,10 @@ from PlexFunctions import scrobble
 @utils.logging
 class KodiMonitor(xbmc.Monitor):
 
-    def __init__(self):
+    def __init__(self, player=None):
 
         self.doUtils = downloadutils.DownloadUtils().downloadUrl
-        self.xbmcplayer = xbmc.Player()
+        self.xbmcplayer = player
         xbmc.Monitor.__init__(self)
         self.logMsg("Kodi monitor started.", 1)
 

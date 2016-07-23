@@ -21,7 +21,7 @@ class PlexCompanion(threading.Thread):
     """
     Initialize with a Queue for callbacks
     """
-    def __init__(self):
+    def __init__(self, player=None):
         self.logMsg("----===## Starting PlexCompanion ##===----", 1)
         self.settings = settings.getSettings()
 
@@ -34,6 +34,9 @@ class PlexCompanion(threading.Thread):
         # Initialize playlist/queue stuff
         self.queueId = None
         self.playlist = None
+
+        # kodi player instance
+        self.player = player
 
         threading.Thread.__init__(self)
 
@@ -82,11 +85,13 @@ class PlexCompanion(threading.Thread):
                     self.queueId = None
             if self.playlist is None:
                 if data.get('type') == 'music':
-                    self.playlist = playlist.Playlist('music')
+                    self.playlist = playlist.Playlist('music',
+                                                      player=self.player)
                 elif data.get('type') == 'video':
-                    self.playlist = playlist.Playlist('video')
+                    self.playlist = playlist.Playlist('video',
+                                                      player=self.player)
                 else:
-                    self.playlist = playlist.Playlist()
+                    self.playlist = playlist.Playlist(player=self.player)
             if queueId != self.queueId:
                 self.logMsg('New playlist received, updating!', 1)
                 self.queueId = queueId
