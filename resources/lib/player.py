@@ -34,7 +34,6 @@ class Player(xbmc.Player):
 
         self.clientInfo = clientinfo.ClientInfo()
         self.doUtils = downloadutils.DownloadUtils().downloadUrl
-        self.xbmcplayer = xbmc.Player()
 
         xbmc.Player.__init__(self)
 
@@ -53,7 +52,7 @@ class Player(xbmc.Player):
 
         # Get current file (in utf-8!)
         try:
-            currentFile = self.xbmcplayer.getPlayingFile()
+            currentFile = self.getPlayingFile()
             xbmc.sleep(300)
         except:
             currentFile = ""
@@ -61,7 +60,7 @@ class Player(xbmc.Player):
             while not currentFile:
                 xbmc.sleep(100)
                 try:
-                    currentFile = self.xbmcplayer.getPlayingFile()
+                    currentFile = self.getPlayingFile()
                 except:
                     pass
                 if count == 20:
@@ -110,13 +109,13 @@ class Player(xbmc.Player):
             # Start at, when using custom playlist (play to Kodi from webclient)
             self.logMsg("Seeking to: %s" % customseek, 1)
             try:
-                self.xbmcplayer.seekTime(int(customseek))
+                self.seekTime(int(customseek))
             except:
                 self.logMsg('Could not seek!', -1)
             window('plex_customplaylist.seektime', clear=True)
 
         try:
-            seekTime = self.xbmcplayer.getTime()
+            seekTime = self.getTime()
         except RuntimeError:
             self.logMsg('Could not get current seektime from xbmc player', -1)
             seekTime = 0
@@ -226,7 +225,7 @@ class Player(xbmc.Player):
             runtime = int(runtime)
         except ValueError:
             try:
-                runtime = self.xbmcplayer.getTotalTime()
+                runtime = self.getTotalTime()
                 self.logMsg("Runtime is missing, Kodi runtime: %s"
                             % runtime, 1)
             except:
@@ -450,7 +449,7 @@ class Player(xbmc.Player):
 
         if self.played_info.get(currentFile):
             try:
-                position = self.xbmcplayer.getTime()
+                position = self.getTime()
             except RuntimeError:
                 # When Kodi is not playing
                 return
