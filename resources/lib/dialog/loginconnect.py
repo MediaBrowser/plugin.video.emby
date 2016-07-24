@@ -23,7 +23,7 @@ class LoginConnect(xbmcgui.WindowXMLDialog):
 
         xbmcgui.WindowXMLDialog.__init__(self, *args, **kwargs)
 
-    def __add_editcontrol(self, x, y, height, width, password=0):
+    def _add_editcontrol(self, x, y, height, width, password=0):
         
         media = os.path.join(addon.getAddonInfo('path'), 'resources', 'skins', 'default', 'media')
         control = xbmcgui.ControlEdit(0,0,0,0,
@@ -43,9 +43,9 @@ class LoginConnect(xbmcgui.WindowXMLDialog):
 
     def onInit(self):
         
-        self.user_field = self.__add_editcontrol(685,385,40,500)
+        self.user_field = self._add_editcontrol(685,385,40,500)
         self.setFocus(self.user_field)
-        self.password_field = self.__add_editcontrol(685,470,40,500, password=1)
+        self.password_field = self._add_editcontrol(685,470,40,500, password=1)
         self.signin_button = self.getControl(SIGN_IN)
         self.remind_button = self.getControl(REMIND_LATER)
 
@@ -61,7 +61,7 @@ class LoginConnect(xbmcgui.WindowXMLDialog):
         if control == SIGN_IN:
             # Sign in to emby connect
             self.user = self.user_field.getText()
-            __password = self.password_field.getText()
+            _password = self.password_field.getText()
 
             ### REVIEW ONCE CONNECT MODULE IS MADE
             self.close()
