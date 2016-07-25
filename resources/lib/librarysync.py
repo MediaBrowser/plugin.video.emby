@@ -417,8 +417,8 @@ class LibrarySync(threading.Thread):
                                 # Take the userview, and validate the item belong to the view
                                 if self.emby.verifyView(grouped_view['Id'], verifyitem):
                                     # Take the name of the userview
-                                    log("Found corresponding view: %s %s"
-                                        % (grouped_view['Name'], grouped_view['Id']), 1)
+                                    log.info("Found corresponding view: %s %s"
+                                        % (grouped_view['Name'], grouped_view['Id']))
                                     foldername = grouped_view['Name']
                                     break
                         else:
@@ -807,11 +807,11 @@ class LibrarySync(threading.Thread):
 
         incSyncIndicator = int(settings('incSyncIndicator'))
         totalUpdates = len(self.addedItems) + len(self.updateItems) + len(self.userdataItems) + len(self.removeItems)
-        log.info("incSyncIndicator=" + str(incSyncIndicator) + " totalUpdates=" + str(totalUpdates))
         
         if incSyncIndicator != -1 and totalUpdates > incSyncIndicator:
             # Only present dialog if we are going to process items
             pDialog = self.progressDialog('Incremental sync')
+            log.info("incSyncIndicator=" + str(incSyncIndicator) + " totalUpdates=" + str(totalUpdates))
 
         process = {
 
@@ -901,14 +901,13 @@ class LibrarySync(threading.Thread):
             self.run_internal()
         except Exception as e:
             window('emby_dbScan', clear=True)
+            log.exception(e)
             xbmcgui.Dialog().ok(
                         heading=lang(29999),
                         line1=(
                             "Library sync thread has exited! "
                             "You should restart Kodi now. "
                             "Please report this on the forum."))
-            log.exception(e)
-            raise
 
     def run_internal(self):
 
