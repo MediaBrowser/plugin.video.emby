@@ -27,7 +27,7 @@
 				<texture>logo-white.png</texture>
 				<width>160</width>
 				<height>49</height>
-				<top>20</top>
+				<top>30</top>
 				<left>25</left>
 			</control>
 			
@@ -102,7 +102,7 @@
 					</control>
 					
 					<control type="button" id="201">
-						<description>Later</description>
+						<description>Cancel</description>
 						<texturenofocus border="5" colordiffuse="ff464646">box.png</texturenofocus>
 						<texturefocus border="5" colordiffuse="ff464646">box.png</texturefocus>
 						<label>[UPPERCASE][B]$ADDON[plugin.video.emby 30606][/B][/UPPERCASE]</label>
@@ -155,6 +155,5 @@
 				</control>
 			</control>
 		</control>
-
 	</controls>
 </window>
