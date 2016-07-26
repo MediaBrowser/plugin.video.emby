@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <window>
-	<defaultcontrol always="false">200</defaultcontrol>
+	<defaultcontrol always="true">200</defaultcontrol>
 	<zorder>0</zorder>
 	<include>dialogeffect</include>
 	<controls>
@@ -89,10 +89,12 @@
 					<top>385</top>
 					<control type="button" id="200">
 						<description>Sign in</description>
-						<texturenofocus border="5" colordiffuse="green">box.png</texturenofocus>
-						<texturefocus border="5" colordiffuse="green">box.png</texturefocus>
+						<texturenofocus border="5" colordiffuse="ff0b8628">box.png</texturenofocus>
+						<texturefocus border="5" colordiffuse="ff0b8628">box.png</texturefocus>
 						<label>[UPPERCASE][B]$ADDON[plugin.video.emby 30605][/B][/UPPERCASE]</label>
 						<font>font10</font>
+						<textcolor>ffa6a6a6</textcolor>
+						<focusedcolor>white</focusedcolor>
 						<align>center</align>
 						<width>100%</width>
 						<height>50</height>
@@ -105,6 +107,8 @@
 						<texturefocus border="5" colordiffuse="ff464646">box.png</texturefocus>
 						<label>[UPPERCASE][B]$ADDON[plugin.video.emby 30606][/B][/UPPERCASE]</label>
 						<font>font10</font>
+						<textcolor>ffa6a6a6</textcolor>
+						<focusedcolor>white</focusedcolor>
 						<align>center</align>
 						<width>100%</width>
 						<height>50</height>
@@ -124,26 +128,29 @@
 						<wrapmultiline>true</wrapmultiline>
 						<aligny>top</aligny>
 						<width>340</width>
+						<height>100%</height>
 					</control>
 
-					<control type="image">
-						<description>qrcode</description>
-						<texture>qrcode_disclaimer.png</texture>
-						<width>140</width>
-						<height>140</height>
-						<top>10</top>
-						<left>360</left>
-					</control>
+					<control type="group">
+						<control type="label">
+							<description>Scan me</description>
+							<label>[UPPERCASE]$ADDON[plugin.video.emby 30604][/UPPERCASE]</label>
+							<font>font12</font>
+							<textcolor>ff0b8628</textcolor>
+							<aligny>top</aligny>
+							<width>200</width>
+							<top>120</top>
+							<left>230</left>
+						</control>
 
-					<control type="label">
-						<description>Scan me</description>
-						<label>[UPPERCASE]$ADDON[plugin.video.emby 30604][/UPPERCASE]</label>
-						<font>font12</font>
-						<textcolor>green</textcolor>
-						<align>right</align>
-						<aligny>top</aligny>
-						<top>120</top>
-						<right>160</right>
+						<control type="image">
+							<description>qrcode</description>
+							<texture>qrcode_disclaimer.png</texture>
+							<width>140</width>
+							<height>140</height>
+							<top>10</top>
+							<left>360</left>
+						</control>
 					</control>
 				</control>
 			</control>

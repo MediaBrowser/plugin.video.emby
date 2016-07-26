@@ -2,6 +2,7 @@
 
 ##################################################################################################
 
+import logging
 import os
 
 import xbmcgui
@@ -9,11 +10,14 @@ import xbmcaddon
 
 ##################################################################################################
 
+log = logging.getLogger("EMBY."+__name__)
 addon = xbmcaddon.Addon('plugin.video.emby')
 
 ACTION_BACK = 92
 SIGN_IN = 200
 REMIND_LATER = 201
+
+##################################################################################################
 
 
 class LoginConnect(xbmcgui.WindowXMLDialog):

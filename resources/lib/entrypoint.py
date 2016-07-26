@@ -19,6 +19,7 @@ import utils
 import clientinfo
 import downloadutils
 import librarysync
+import dialog.loginconnect as loginconnect
 import read_embyserver as embyserver
 import embydb_functions as embydb
 import playlist
@@ -103,6 +104,7 @@ def doMainListing():
             "plugin://plugin.video.emby/?mode=browsecontent&type=recordings&folderid=root")
 
     # some extra entries for settings and stuff. TODO --> localize the labels
+    addDirectoryItem("Emby connect", "plugin://plugin.video.emby/?mode=connect")
     addDirectoryItem(lang(30517), "plugin://plugin.video.emby/?mode=passwords")
     addDirectoryItem(lang(33053), "plugin://plugin.video.emby/?mode=settings")
     addDirectoryItem(lang(33054), "plugin://plugin.video.emby/?mode=adduser")
@@ -114,6 +116,28 @@ def doMainListing():
     addDirectoryItem(lang(33060), "plugin://plugin.video.emby/?mode=thememedia")
     
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
+
+def emby_connect():
+
+    addon = xbmcaddon.Addon(id='plugin.video.emby')
+    connect = loginconnect.LoginConnect("script-emby-connect-login.xml", addon.getAddonInfo('path'), "default", "1080i")
+    connect.doModal()
+
+    '''doUtils = DownloadUtils()
+    addonSettings = xbmcaddon.Addon(id='plugin.video.emby')
+    userPreferencesPage = UserPreferences("script-emby-kodi-UserPreferences.xml", addonSettings.getAddonInfo('path'), "default", "1080i")
+    url = "{server}/mediabrowser/Users/{UserId}" 
+    result = doUtils.downloadUrl(url)
+    configuration = result[u'Configuration']
+    userPreferencesPage.setConfiguration(configuration)
+    userPreferencesPage.setName(result[u'Name'])
+    userPreferencesPage.setImage(API().getUserArtwork(result,"Primary"))
+    
+    userPreferencesPage.doModal()
+    if userPreferencesPage.isSave():
+        url = "{server}/mediabrowser/Users/{UserId}/Configuration"
+        postdata = userPreferencesPage.getConfiguration()
+        doUtils.downloadUrl(url, postBody=postdata, type="POST")'''
 
 ##### Generate a new deviceId
 def resetDeviceId():
