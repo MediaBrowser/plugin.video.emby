@@ -123,11 +123,18 @@ def emby_connect():
     addon = xbmcaddon.Addon(id='plugin.video.emby')
     connect = loginconnect.LoginConnect("script-emby-connect-login.xml", addon.getAddonInfo('path'), "default", "1080i")
     connect.doModal()
+    user = connect.user
+    password = connect.password
 
+    del connect
+
+    url = "https://connect.emby.media/service/user/authenticate"
+    params = {'nameOrEmail': user, 'password': password}
+    result = downloadutils.DownloadUtils().downloadUrl(url, "POST", parameters=params)
     server = serverconnect.ServerConnect("script-emby-connect-server.xml", addon.getAddonInfo('path'), "default", "1080i")
-    server.set_name("Angel")
-    server.set_image("https://emby.media/community/uploads/profile/photo-4388.jpg")
-    server.set_servers([{u'Name': u'CORRUPTION-PC', u'Url': u'http://danielhome.zapto.org:8096', u'AccessKey': u'3819d02ae74c4647b008abf7e870b052', u'LocalAddress': u'http://192.168.0.190:8096', u'UserType': u'Linked', u'SystemId': u'a76663c19c204cb18b14908222fdc1aa', u'SupporterKey': u'', u'Id': u'06e8f4ab553448dc036e8beec48357cd'}, {u'Name': u'danielhome.zapto.org', u'Url': u'http://danielhome.zapto.org:8096', u'AccessKey': u'40bbfdc356da4882961db9734c03ae9f', u'LocalAddress': u'http://192.168.0.190:8096', u'UserType': u'Linked', u'SystemId': u'7e3d7e2ac0e54624829ac4e63ca067ff', u'SupporterKey': u'', u'Id': u'7be26e27079de97927ad30eda79321c8'}, {u'Name': u'CORRUPTION-PC', u'Url': u'http://danielhome.zapto.org:8096', u'AccessKey': u'd8b77c8cd0684367a7d7176448f48816', u'LocalAddress': u'http://192.168.0.190:8096', u'UserType': u'Linked', u'SystemId': u'b1ef1940b1964e2188f00b73611d53fd', u'SupporterKey': u'', u'Id': u'00f7199b362d10bd3db913be7e49cccc'}])
+    server.set_name()
+    server.set_image()
+    server.set_servers()
 
     server.doModal()
 

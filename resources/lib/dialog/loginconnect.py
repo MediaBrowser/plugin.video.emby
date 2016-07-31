@@ -2,6 +2,7 @@
 
 ##################################################################################################
 
+import hashlib
 import logging
 import os
 
@@ -23,6 +24,9 @@ CANCEL = 201
 
 
 class LoginConnect(xbmcgui.WindowXMLDialog):
+
+    user = None
+    password = None
 
 
     def __init__(self, *args, **kwargs):
@@ -49,9 +53,7 @@ class LoginConnect(xbmcgui.WindowXMLDialog):
         if control == SIGN_IN:
             # Sign in to emby connect
             self.user = self.user_field.getText()
-            _password = self.password_field.getText()
-
-            ### REVIEW ONCE CONNECT MODULE IS MADE
+            self.password = hashlib.md5(self.password_field.getText()).hexdigest()
             self.close()
 
         elif control == CANCEL:
