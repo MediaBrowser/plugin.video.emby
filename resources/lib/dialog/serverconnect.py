@@ -3,78 +3,84 @@
 ##################################################################################################
 
 import logging
-import os
 
 import xbmcgui
 import xbmcaddon
+
+from utils import language as lang
 
 ##################################################################################################
 
 log = logging.getLogger("EMBY."+__name__)
 addon = xbmcaddon.Addon('plugin.video.emby')
 
+ACTION_PARENT_DIR = 9
+ACTION_PREVIOUS_MENU = 10
 ACTION_BACK = 92
-SIGN_IN = 200
-REMIND_LATER = 201
+ACTION_SELECT_ITEM = 7
+ACTION_MOUSE_LEFT_CLICK = 100
+USER_IMAGE = 150
+USER_NAME = 151
+LIST = 155
+CANCEL = 201
 
 ##################################################################################################
 
 
-class LoginConnect(xbmcgui.WindowXMLDialog):
+class ServerConnect(xbmcgui.WindowXMLDialog):
+
+    name = None
+    user_image = None
+    servers = []
+    selected_id = None
 
 
     def __init__(self, *args, **kwargs):
 
         xbmcgui.WindowXMLDialog.__init__(self, *args, **kwargs)
 
-    def _add_editcontrol(self, x, y, height, width, password=0):
-        
-        media = os.path.join(addon.getAddonInfo('path'), 'resources', 'skins', 'default', 'media')
-        control = xbmcgui.ControlEdit(0,0,0,0,
-                            label="User",
-                            font="font10",
-                            textColor="ff464646",
-                            focusTexture=os.path.join(media, "button-focus.png"),
-                            noFocusTexture=os.path.join(media, "button-focus.png"),
-                            isPassword=password)
+    def set_servers(self, servers):
+        self.servers = servers or []
 
-        control.setPosition(x,y)
-        control.setHeight(height)
-        control.setWidth(width)
+    def set_name(self, name):
+        self.name = name
 
-        self.addControl(control)
-        return control
+    def set_image(self, image):
+        self.user_image = image
 
     def onInit(self):
-        
-        self.user_field = self._add_editcontrol(685,385,40,500)
-        self.setFocus(self.user_field)
-        self.password_field = self._add_editcontrol(685,470,40,500, password=1)
-        self.signin_button = self.getControl(SIGN_IN)
-        self.remind_button = self.getControl(REMIND_LATER)
 
-        self.user_field.controlUp(self.remind_button)
-        self.user_field.controlDown(self.password_field)
-        self.password_field.controlUp(self.user_field)
-        self.password_field.controlDown(self.signin_button)
-        self.signin_button.controlUp(self.password_field)
-        self.remind_button.controlDown(self.user_field)
+        if self.user_image is not None:
+            self.getControl(USER_IMAGE).setImage(self.user_image)
 
-    def onClick(self, control):
+        self.getControl(USER_NAME).setLabel("%s %s" % (lang(33000), self.name.decode('utf-8')))
 
-        if control == SIGN_IN:
-            # Sign in to emby connect
-            self.user = self.user_field.getText()
-            _password = self.password_field.getText()
-
-            ### REVIEW ONCE CONNECT MODULE IS MADE
-            self.close()
-
-        elif control == REMIND_LATER:
-            # Remind me later
-            self.close()
+        list_ = self.getControl(LIST)
+        for server in self.servers:
+            list_.addItem(self._add_listitem(server['Name'], server['Id']))
+        #self.setFocus(list_)
 
     def onAction(self, action):
 
-        if action == ACTION_BACK:
+        if action in (ACTION_BACK, ACTION_PREVIOUS_MENU, ACTION_PARENT_DIR):
             self.close()
+
+        if action in (ACTION_SELECT_ITEM, ACTION_MOUSE_LEFT_CLICK):
+            if self.getFocusId() == LIST:
+                list_ = self.getControl(LIST)
+                server = list_.getSelectedItem()
+                self.selected_id = server.getProperty('id')
+                log.info('Server Id selected: %s' % self.selected_id)
+                self.close()
+
+    def onClick(self, control):
+
+        if control == CANCEL:
+            self.close()
+
+    def _add_listitem(self, label, server_id):
+        
+        item = xbmcgui.ListItem(label)
+        item.setProperty('id', server_id)
+
+        return item
