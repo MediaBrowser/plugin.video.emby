@@ -1689,7 +1689,7 @@ class LibrarySync(Thread):
                     window('plex_runLibScan', clear=True)
                     window('plex_dbScan', clear=True)
                     # Full library sync finished
-                    self.showKodiNote(string(39407), forced=True)
+                    self.showKodiNote(string(39407), forced=False)
                 # Reset views was requested from somewhere else
                 elif window('plex_runLibScan') == "views":
                     log('Refresh playlist and nodes requested, starting', 0)
