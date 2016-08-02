@@ -17,6 +17,7 @@ import xbmcplugin
 import artwork
 import utils
 import clientinfo
+import connect.connectionmanager as connectM
 import downloadutils
 import librarysync
 import dialog.loginconnect as loginconnect
@@ -119,8 +120,11 @@ def doMainListing():
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
 def emby_connect():
-
+    
     addon = xbmcaddon.Addon(id='plugin.video.emby')
+    connectm = connectM.ConnectionManager("Kodi", "2.2.19", "Kodi", "6D0FB919859F46009E33EA046C5599CF")
+    connectm.setFilePath(xbmc.translatePath(addon.getAddonInfo('profile')).decode('utf-8'))
+    
     connect = loginconnect.LoginConnect("script-emby-connect-login.xml", addon.getAddonInfo('path'), "default", "1080i")
     connect.doModal()
     user = connect.user
@@ -128,13 +132,18 @@ def emby_connect():
 
     del connect
 
-    url = "https://connect.emby.media/service/user/authenticate"
     params = {'nameOrEmail': user, 'password': password}
-    result = downloadutils.DownloadUtils().downloadUrl(url, "POST", parameters=params)
+    log.info(params)
+    code, result = connectm.loginToConnect(user, password)
+    log.info(result)
+    servers  = connectm.getAvailableServers()
+    #log.info(result)
+    #urlconnect = "https://connect.emby.media/service/servers?userId=%s" % result['User']['Id']
+    #resultconnect = downloadutils.DownloadUtils().downloadUrl(url)
     server = serverconnect.ServerConnect("script-emby-connect-server.xml", addon.getAddonInfo('path'), "default", "1080i")
-    server.set_name()
-    server.set_image()
-    server.set_servers()
+    server.set_name(result['User']['Name'])
+    server.set_image(result['User']['ImageUrl'])
+    server.set_servers(servers)
 
     server.doModal()
 

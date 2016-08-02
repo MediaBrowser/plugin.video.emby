@@ -53,7 +53,8 @@ class LoginConnect(xbmcgui.WindowXMLDialog):
         if control == SIGN_IN:
             # Sign in to emby connect
             self.user = self.user_field.getText()
-            self.password = hashlib.md5(self.password_field.getText()).hexdigest()
+            self.password = self.password_field.getText()
+            #self.password = hashlib.md5(self.password_field.getText()).hexdigest()
             self.close()
 
         elif control == CANCEL:
