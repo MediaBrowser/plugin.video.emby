@@ -419,7 +419,7 @@
     <string id="39069">Current address:</string>
     <string id="39070">Current port:</string>
     <string id="39071">Current plex.tv status:</string>
-    <string id="39072">Is your Kodi installed on a low-powered device like a raspberry pie? If yes, then we will reduce the strain on Kodi to prevent it from crashing.</string>
+    <string id="39072">Is your Kodi installed on a low-powered device like a Raspberry Pi? If yes, then we will reduce the strain on Kodi to prevent it from crashing.</string>
     <string id="39073">Appearance Tweaks</string>
     <string id="39074">TV Shows</string>
 
