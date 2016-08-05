@@ -131,21 +131,22 @@ def emby_connect():
     password = connect.password
 
     del connect
+    if user and password:
+        params = {'nameOrEmail': user, 'password': password}
+        result = connectm.loginToConnect(user, password)
 
-    params = {'nameOrEmail': user, 'password': password}
-    log.info(params)
-    code, result = connectm.loginToConnect(user, password)
-    log.info(result)
-    servers  = connectm.getAvailableServers()
-    #log.info(result)
-    #urlconnect = "https://connect.emby.media/service/servers?userId=%s" % result['User']['Id']
-    #resultconnect = downloadutils.DownloadUtils().downloadUrl(url)
+
+    servers  = connectm.connect()
+    log.info(servers)
+
     server = serverconnect.ServerConnect("script-emby-connect-server.xml", addon.getAddonInfo('path'), "default", "1080i")
     server.set_name(result['User']['Name'])
-    server.set_image(result['User']['ImageUrl'])
-    server.set_servers(servers)
+    #server.set_image(result['User']['ImageUrl'])
+    server.set_servers(servers['Servers'])
 
     server.doModal()
+    selected_server = server.selected_id
+    del server
 
 ##### Generate a new deviceId
 def resetDeviceId():

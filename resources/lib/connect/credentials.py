@@ -23,7 +23,7 @@ class Credentials(object):
     def __init__(self):
         pass
 
-    def set_path(self, path):
+    def setPath(self, path):
         # Path to save persistant data
         self.path = path
 
@@ -82,7 +82,7 @@ class Credentials(object):
                 # Merge the data
                 existing['DateLastAccessed'] = existing.get('DateLastAccessed', "2001-01-01T00:00:00Z")
                 if server.get('DateLastAccessed'):
-                    if self.date(server['DateLastAccessed']) > self.date(existing['DateLastAccessed']):
+                    if self.dateObject(server['DateLastAccessed']) > self.dateObject(existing['DateLastAccessed']):
                         existing['DateLastAccessed'] = server['DateLastAccessed']
 
                 if server.get('UserLinkType'):
@@ -131,7 +131,7 @@ class Credentials(object):
         else:
             server['Users'].append(user)
 
-    def date(self, date):
+    def dateObject(self, date):
         # Convert string to date
         date_obj = datetime.strptime(date, "%Y-%m-%dT%H:%M:%SZ")
         return date_obj
