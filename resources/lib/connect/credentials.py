@@ -24,7 +24,7 @@ class Credentials(object):
         pass
 
     def setPath(self, path):
-        # Path to save persistant data
+        # Path to save persistant data.txt
         self.path = path
 
     def _ensure(self):
@@ -76,13 +76,15 @@ class Credentials(object):
         if not server.get('Id'):
             raise KeyError("Server['Id'] cannot be null or empty")
 
+        # Add default DateLastAccessed if doesn't exist.
+        server.setdefault('DateLastAccessed', "2001-01-01T00:00:00Z")
+
         for existing in list_:
             if existing['Id'] == server['Id']:
                 
                 # Merge the data
-                existing['DateLastAccessed'] = existing.get('DateLastAccessed', "2001-01-01T00:00:00Z")
                 if server.get('DateLastAccessed'):
-                    if self.dateObject(server['DateLastAccessed']) > self.dateObject(existing['DateLastAccessed']):
+                    if self._dateObject(server['DateLastAccessed']) > self._dateObject(existing['DateLastAccessed']):
                         existing['DateLastAccessed'] = server['DateLastAccessed']
 
                 if server.get('UserLinkType'):
@@ -131,7 +133,7 @@ class Credentials(object):
         else:
             server['Users'].append(user)
 
-    def dateObject(self, date):
+    def _dateObject(self, date):
         # Convert string to date
         date_obj = datetime.strptime(date, "%Y-%m-%dT%H:%M:%SZ")
         return date_obj

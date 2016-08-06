@@ -124,29 +124,43 @@ def emby_connect():
     addon = xbmcaddon.Addon(id='plugin.video.emby')
     connectm = connectM.ConnectionManager("Kodi", "2.2.19", "Kodi", "6D0FB919859F46009E33EA046C5599CF")
     connectm.setFilePath(xbmc.translatePath(addon.getAddonInfo('profile')).decode('utf-8'))
-    
-    connect = loginconnect.LoginConnect("script-emby-connect-login.xml", addon.getAddonInfo('path'), "default", "1080i")
-    connect.doModal()
-    user = connect.user
-    password = connect.password
+    result  = connectm.connect()
+    user = result.get('ConnectUser')
 
-    del connect
-    if user and password:
-        params = {'nameOrEmail': user, 'password': password}
-        result = connectm.loginToConnect(user, password)
+    if result.get('State') == 2: # Manual sign in or offer emby connect sign in
+        pass
 
+    if result.get('State') == 3: # Signed in
+        log.info("Logged in: %s" % result['Servers'])
+        return
 
-    servers  = connectm.connect()
-    log.info(servers)
+    if user is None or result.get('State') == 4: # Sign in
+        connect = loginconnect.LoginConnect("script-emby-connect-login.xml", addon.getAddonInfo('path'), "default", "1080i")
+        connect.doModal()
+        user = connect.user
+        password = connect.password
 
-    server = serverconnect.ServerConnect("script-emby-connect-server.xml", addon.getAddonInfo('path'), "default", "1080i")
-    server.set_name(result['User']['Name'])
-    #server.set_image(result['User']['ImageUrl'])
-    server.set_servers(servers['Servers'])
+        del connect
+        if user and password:
+            params = {'nameOrEmail': user, 'password': password}
+            connectm.loginToConnect(user, password)
+            result  = connectm.connect()
+            user = result.get('ConnectUser')
 
-    server.doModal()
-    selected_server = server.selected_id
-    del server
+    if result.get('State') == 1: # Server selection
+        server = serverconnect.ServerConnect("script-emby-connect-server.xml", addon.getAddonInfo('path'), "default", "1080i")
+        server.set_name(user['DisplayName'])
+        server.set_image(user['ImageUrl'])
+        server.set_servers(result['Servers'])
+
+        server.doModal()
+        selected_server = server.selected_id
+        del server
+
+        if selected_server:
+            serverm = connectm.getServerInfo(selected_server)
+            test = connectm.connectToServer(serverm, {'enableAutoLogin': False})
+            log.info("test: %s" % test)
 
 ##### Generate a new deviceId
 def resetDeviceId():
