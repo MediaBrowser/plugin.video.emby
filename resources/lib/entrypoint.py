@@ -124,17 +124,21 @@ def emby_connect():
     addon = xbmcaddon.Addon(id='plugin.video.emby')
     connectm = connectM.ConnectionManager("Kodi", "2.2.19", "Kodi", "6D0FB919859F46009E33EA046C5599CF")
     connectm.setFilePath(xbmc.translatePath(addon.getAddonInfo('profile')).decode('utf-8'))
+    state = connectM.ConnectionState
+
     result  = connectm.connect()
     user = result.get('ConnectUser')
 
-    if result.get('State') == 2: # Manual sign in or offer emby connect sign in
+    if result.get('State') == state['ServerSignIn']: # Manual sign in or offer emby connect sign in
+        log.info("Manual login")
         pass
 
-    if result.get('State') == 3: # Signed in
-        log.info("Logged in: %s" % result['Servers'])
+    if result.get('State') == state['SignedIn']:
+        log.info("Logged in: %s" % result)
         return
 
-    if user is None or result.get('State') == 4: # Sign in
+    elif user is None or result.get('State') == state['ConnectSignIn']: # Sign in
+        log.info("Connect Login")
         connect = loginconnect.LoginConnect("script-emby-connect-login.xml", addon.getAddonInfo('path'), "default", "1080i")
         connect.doModal()
         user = connect.user
@@ -142,12 +146,12 @@ def emby_connect():
 
         del connect
         if user and password:
-            params = {'nameOrEmail': user, 'password': password}
             connectm.loginToConnect(user, password)
             result  = connectm.connect()
             user = result.get('ConnectUser')
 
-    if result.get('State') == 1: # Server selection
+    if result.get('State') == state['ServerSelection']: # Server selection
+        log.info("Connect server selection")
         server = serverconnect.ServerConnect("script-emby-connect-server.xml", addon.getAddonInfo('path'), "default", "1080i")
         server.set_name(user['DisplayName'])
         server.set_image(user['ImageUrl'])
@@ -159,8 +163,7 @@ def emby_connect():
 
         if selected_server:
             serverm = connectm.getServerInfo(selected_server)
-            test = connectm.connectToServer(serverm, {'enableAutoLogin': False})
-            log.info("test: %s" % test)
+            test = connectm.connectToServer(serverm)
 
 ##### Generate a new deviceId
 def resetDeviceId():

@@ -9,7 +9,7 @@ from datetime import datetime
 
 #################################################################################################
 
-log = logging.getLogger("EMBY."+__name__)
+log = logging.getLogger("EMBY."+__name__.split('.')[-1])
 
 #################################################################################################
 
@@ -73,7 +73,7 @@ class Credentials(object):
 
     def addOrUpdateServer(self, list_, server):
 
-        if not server.get('Id'):
+        if server.get('Id') is None:
             raise KeyError("Server['Id'] cannot be null or empty")
 
         # Add default DateLastAccessed if doesn't exist.
