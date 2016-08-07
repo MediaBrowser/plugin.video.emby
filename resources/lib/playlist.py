@@ -4,6 +4,8 @@
 
 import json
 from urllib import urlencode
+from threading import Lock
+from functools import wraps
 
 import xbmc
 
@@ -16,12 +18,32 @@ import PlexAPI
 ###############################################################################
 
 
+class lockMethod:
+    lock = Lock()
+
+    @classmethod
+    def decorate(cls, func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            with cls.lock:
+                result = func(*args, **kwargs)
+            return result
+        return wrapper
+
+
 @utils.logging
 class Playlist():
     """
     Initiate with Playlist(typus='video' or 'music')
     """
-    def __init__(self, typus=None, player=None):
+    # Borg - multiple instances, shared state
+    _shared_state = {}
+
+    @lockMethod.decorate
+    def __init__(self, typus=None):
+        # Borg
+        self.__dict__ = self._shared_state
+
         self.userid = utils.window('currUserId')
         self.server = utils.window('pms_server')
         # Construct the Kodi playlist instance
@@ -38,11 +60,11 @@ class Playlist():
             self.typus = None
         if self.playlist is not None:
             self.playlistId = self.playlist.getPlayListId()
-        # kodi player instance
-        self.player = player
+        self.player = xbmc.Player()
         # "interal" PKC playlist
         self.items = []
 
+    @lockMethod.decorate
     def clear(self):
         """
         Empties current Kodi playlist and internal self.items list
@@ -90,7 +112,7 @@ class Playlist():
         if self.playlist is not None:
             self.playlistId = self.playlist.getPlayListId()
 
-    def _addToPlaylist(self, startitem, startPlayer=False):
+    def _processItems(self, startitem, startPlayer=False):
         startpos = None
         with embydb.GetEmbyDB() as emby_db:
             for pos, item in enumerate(self.items):
@@ -113,7 +135,7 @@ class Playlist():
                     # Add to playlist
                     self.logMsg("Adding %s PlexId %s, KodiId %s to playlist."
                                 % (mediatype, plexId, kodiId), 1)
-                    self.addtoPlaylist(kodiId, mediatype)
+                    self._addtoPlaylist(kodiId, mediatype)
                 # Add the kodiId
                 if kodiId is not None:
                     item['kodiId'] = str(kodiId)
@@ -128,6 +150,7 @@ class Playlist():
                             'starting with the first entry', 1)
                 self.player.play(self.playlist)
 
+    @lockMethod.decorate
     def playAll(self, items, startitem, offset):
         """
         items: list of dicts of the form
@@ -155,21 +178,26 @@ class Playlist():
         if offset != 0:
             # Seek to the starting position
             utils.window('plex_customplaylist.seektime', str(offset))
-        self._addToPlaylist(startitem, startPlayer=True)
+        self._processItems(startitem, startPlayer=True)
         # Log playlist
-        self.verifyPlaylist()
+        self._verifyPlaylist()
         self.logMsg('Internal playlist: %s' % self.items, 2)
 
+    @lockMethod.decorate
     def modifyPlaylist(self, itemids):
         self.logMsg("---*** ADD TO PLAYLIST ***---", 1)
         self.logMsg("Items: %s" % itemids, 1)
 
         self._initiatePlaylist(itemids)
-        self._addToPlaylist(itemids, startPlayer=True)
+        self._processItems(itemids, startPlayer=True)
 
-        self.verifyPlaylist()
+        self._verifyPlaylist()
 
+    @lockMethod.decorate
     def addtoPlaylist(self, dbid=None, mediatype=None, url=None):
+        self._addtoPlaylist(dbid=None, mediatype=None, url=None)
+
+    def _addtoPlaylist(self, dbid=None, mediatype=None, url=None):
         """
         mediatype: Kodi type: 'movie', 'episode', 'musicvideo', 'artist',
                               'album', 'song', 'genre'
@@ -205,6 +233,7 @@ class Playlist():
 
         self.playlist.add(playurl, listitem)
 
+    @lockMethod.decorate
     def insertintoPlaylist(self, position, dbid=None, mediatype=None, url=None):
 
         pl = {
@@ -226,8 +255,11 @@ class Playlist():
 
         self.logMsg(xbmc.executeJSONRPC(json.dumps(pl)), 2)
 
+    @lockMethod.decorate
     def verifyPlaylist(self):
+        self._verifyPlaylist()
 
+    def _verifyPlaylist(self):
         pl = {
 
             'jsonrpc': "2.0",
@@ -241,6 +273,7 @@ class Playlist():
         }
         self.logMsg(xbmc.executeJSONRPC(json.dumps(pl)), 2)
 
+    @lockMethod.decorate
     def removefromPlaylist(self, position):
 
         pl = {

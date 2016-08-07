@@ -12,6 +12,7 @@ from plexbmchelper import listener, plexgdm, subscribers, functions, \
 from PlexFunctions import ParseContainerKey, GetPlayQueue, \
     ConvertPlexToKodiTime
 import playlist
+import player
 
 
 @utils.logging
@@ -21,7 +22,7 @@ class PlexCompanion(threading.Thread):
     """
     Initialize with a Queue for callbacks
     """
-    def __init__(self, player=None):
+    def __init__(self):
         self.logMsg("----===## Starting PlexCompanion ##===----", 1)
         self.settings = settings.getSettings()
 
@@ -36,7 +37,7 @@ class PlexCompanion(threading.Thread):
         self.playlist = None
 
         # kodi player instance
-        self.player = player
+        self.player = player.Player()
 
         threading.Thread.__init__(self)
 
@@ -127,7 +128,7 @@ class PlexCompanion(threading.Thread):
         requestMgr = httppersist.RequestMgr()
         jsonClass = functions.jsonClass(requestMgr, self.settings)
         subscriptionManager = subscribers.SubscriptionManager(
-            jsonClass, requestMgr)
+            jsonClass, requestMgr, self.player)
 
         queue = Queue.Queue(maxsize=100)
 

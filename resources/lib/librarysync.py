@@ -1549,9 +1549,9 @@ class LibrarySync(Thread):
             with itemFkt() as Fkt:
                 Fkt.updatePlaystate(item)
 
-    def run(self, player=None):
+    def run(self):
         try:
-            self.run_internal(player)
+            self.run_internal()
         except Exception as e:
             utils.window('plex_dbScan', clear=True)
             self.logMsg('LibrarySync thread crashed', -1)
@@ -1563,7 +1563,7 @@ class LibrarySync(Thread):
                            self.__language__(39400))
             raise
 
-    def run_internal(self, player=None):
+    def run_internal(self):
         # Re-assign handles to have faster calls
         window = utils.window
         settings = utils.settings
@@ -1582,7 +1582,7 @@ class LibrarySync(Thread):
         lastProcessing = 0
         oneDay = 60*60*24
 
-        xbmcplayer = player
+        xbmcplayer = xbmc.Player()
 
         queue = self.queue
 

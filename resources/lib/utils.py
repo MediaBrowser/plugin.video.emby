@@ -16,6 +16,7 @@ from functools import wraps
 from calendar import timegm
 import os
 
+
 import xbmc
 import xbmcaddon
 import xbmcgui
@@ -109,6 +110,19 @@ def IfExists(path):
         xbmcvfs.delete(dummyfile)
         answer = True
     return answer
+
+
+def forEveryMethod(decorator):
+    """
+    Wrapper for classes to add the decorator "decorator" to all methods of the
+    class
+    """
+    def decorate(cls):
+        for attr in cls.__dict__:  # there's propably a better way to do this
+            if callable(getattr(cls, attr)):
+                setattr(cls, attr, decorator(getattr(cls, attr)))
+        return cls
+    return decorate
 
 
 def CatchExceptions(warnuser=False):

@@ -1,8 +1,6 @@
 import re
 import threading
 
-from xbmc import Player
-
 import downloadutils
 from utils import window, logging
 import PlexFunctions as pf
@@ -11,7 +9,7 @@ from functions import *
 
 @logging
 class SubscriptionManager:
-    def __init__(self, jsonClass, RequestMgr):
+    def __init__(self, jsonClass, RequestMgr, player):
         self.serverlist = []
         self.subscribers = {}
         self.info = {}
@@ -25,7 +23,7 @@ class SubscriptionManager:
         self.port = ""
         self.playerprops = {}
         self.doUtils = downloadutils.DownloadUtils().downloadUrl
-        self.xbmcplayer = Player()
+        self.xbmcplayer = player
 
         self.js = jsonClass
         self.RequestMgr = RequestMgr

@@ -4,7 +4,6 @@
 
 import os
 import sys
-from datetime import datetime
 import Queue
 
 import xbmc
@@ -39,7 +38,6 @@ import clientinfo
 import initialsetup
 import kodimonitor
 import librarysync
-import player
 import videonodes
 import websocket_client as wsc
 import downloadutils
@@ -139,11 +137,7 @@ class Service():
         user = userclient.UserClient()
         ws = wsc.WebSocket(queue)
         library = librarysync.LibrarySync(queue)
-        kplayer = player.Player()
         plx = PlexAPI.PlexAPI()
-
-        # Sync and progress report
-        lastProgressUpdate = datetime.today()
 
         counter = 0
         while not monitor.abortRequested():
@@ -153,9 +147,8 @@ class Service():
                 log("Kodi profile was: %s and changed to: %s. Terminating old "
                     "PlexKodiConnect thread."
                     % (kodiProfile, utils.window('plex_kodiProfile')), 1)
-                
                 break
-            
+
             # Before proceeding, need to make sure:
             # 1. Server is online
             # 2. User is set
@@ -165,36 +158,6 @@ class Service():
                 # Plex server is online
                 # Verify if user is set and has access to the server
                 if (user.currUser is not None) and user.HasAccess:
-                    # If an item is playing
-                    if kplayer.isPlaying():
-                        try:
-                            # Update and report progress
-                            playtime = kplayer.getTime()
-                            totalTime = kplayer.getTotalTime()
-                            currentFile = kplayer.currentFile
-
-                            # Update positionticks
-                            if kplayer.played_info.get(currentFile) is not None:
-                                kplayer.played_info[currentFile]['currentPosition'] = playtime
-                            
-                            td = datetime.today() - lastProgressUpdate
-                            secDiff = td.seconds
-                            
-                            # Report progress to Plex server
-                            if (secDiff > 3):
-                                kplayer.reportPlayback()
-                                lastProgressUpdate = datetime.today()
-                            
-                            elif window('plex_command') == "true":
-                                # Received a remote control command that
-                                # requires updating immediately
-                                window('plex_command', clear=True)
-                                kplayer.reportPlayback()
-                                lastProgressUpdate = datetime.today()
-                        except Exception as e:
-                            log("Exception in Playback Monitor Service: %s" % e, 1)
-                            pass
-
                     if not self.kodimonitor_running:
                         # Start up events
                         self.warn_auth = True
@@ -208,8 +171,7 @@ class Service():
                                 time=2000,
                                 sound=False)
                         # Start monitoring kodi events
-                        self.kodimonitor_running = kodimonitor.KodiMonitor(
-                            player=kplayer)
+                        self.kodimonitor_running = kodimonitor.KodiMonitor()
 
                         # Start the Websocket Client
                         if not self.websocket_running:
@@ -222,8 +184,7 @@ class Service():
                         # Start the Plex Companion thread
                         if not self.plexCompanion_running:
                             self.plexCompanion_running = True
-                            plexCompanion = PlexCompanion.PlexCompanion(
-                                player=kplayer)
+                            plexCompanion = PlexCompanion.PlexCompanion()
                             plexCompanion.start()
                 else:
                     if (user.currUser is None) and self.warn_auth:
