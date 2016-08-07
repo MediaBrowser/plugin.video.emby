@@ -86,13 +86,11 @@ class PlexCompanion(threading.Thread):
                     self.queueId = None
             if self.playlist is None:
                 if data.get('type') == 'music':
-                    self.playlist = playlist.Playlist('music',
-                                                      player=self.player)
+                    self.playlist = playlist.Playlist('music')
                 elif data.get('type') == 'video':
-                    self.playlist = playlist.Playlist('video',
-                                                      player=self.player)
+                    self.playlist = playlist.Playlist('video')
                 else:
-                    self.playlist = playlist.Playlist(player=self.player)
+                    self.playlist = playlist.Playlist()
             if queueId != self.queueId:
                 self.logMsg('New playlist received, updating!', 1)
                 self.queueId = queueId
