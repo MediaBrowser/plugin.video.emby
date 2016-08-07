@@ -77,9 +77,7 @@ class ClientInfo():
         if clientId:
             return clientId
 
-        path = xbmc.translatePath("special://temp/emby.id").decode('utf-8')
-        
-        GUID_file = xbmc.translatePath(path).decode('utf-8')
+        GUID_file = xbmc.translatePath("special://temp/emby.id").decode('utf-8')
         
         if reset and xbmcvfs.exists(GUID_file):
             # Reset the file
