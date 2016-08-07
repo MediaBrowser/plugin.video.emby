@@ -173,13 +173,15 @@ def GetPlexMetadata(key):
     else:
         url = "{server}/library/metadata/" + key
     arguments = {
+        'checkFiles': 0,
         'includeExtras': 1,         # Trailers and Extras => Extras
-        # 'includeRelated': 1,        # Similar movies => Video -> Related
-        # 'includeRelatedCount': 5,
+        'includeReviews': 1,
+        'includeRelated': 0,        # Similar movies => Video -> Related
+        # 'includeRelatedCount': 0,
         # 'includeOnDeck': 1,
-        'includeChapters': 1,
-        'includePopularLeaves': 1,
-        'includeConcerts': 1
+        # 'includeChapters': 1,
+        # 'includePopularLeaves': 1,
+        # 'includeConcerts': 1
     }
     url = url + '?' + urlencode(arguments)
     xml = downloadutils.DownloadUtils().downloadUrl(url)
