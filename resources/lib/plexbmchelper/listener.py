@@ -192,15 +192,18 @@ class MyHandler(BaseHTTPRequestHandler):
                 for playerid in js.getPlayerIds():
                     js.jsonrpc("Player.PlayPause",
                                {"playerid": playerid, "play": True})
+                subMgr.notify()
             elif request_path == "player/playback/pause":
                 self.response(getOKMsg(), js.getPlexHeaders())
                 for playerid in js.getPlayerIds():
                     js.jsonrpc("Player.PlayPause",
                                {"playerid": playerid, "play": False})
+                subMgr.notify()
             elif request_path == "player/playback/stop":
                 self.response(getOKMsg(), js.getPlexHeaders())
                 for playerid in js.getPlayerIds():
                     js.jsonrpc("Player.Stop", {"playerid": playerid})
+                subMgr.notify()
             elif request_path == "player/playback/seekTo":
                 self.response(getOKMsg(), js.getPlexHeaders())
                 for playerid in js.getPlayerIds():

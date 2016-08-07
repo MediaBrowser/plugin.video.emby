@@ -3,6 +3,7 @@ import threading
 import traceback
 import socket
 import Queue
+import threading
 
 import xbmc
 
@@ -164,6 +165,9 @@ class PlexCompanion(threading.Thread):
         client.start_all()
 
         message_count = 0
+        if httpd:
+            t = threading.Thread(target=httpd.handle_request)
+
         while not threadStopped():
             # If we are not authorized, sleep
             # Otherwise, we trigger a download which leads to a
@@ -173,23 +177,27 @@ class PlexCompanion(threading.Thread):
                     break
                 xbmc.sleep(1000)
             try:
+                message_count += 1
                 if httpd:
-                    httpd.handle_request()
-                    message_count += 1
+                    if not t.isAlive():
+                        t = threading.Thread(target=httpd.handle_request)
+                        t.start()
 
-                    if message_count > 100:
+                    if message_count == 3000:
+                        message_count = 0
                         if client.check_client_registration():
                             log("Client is still registered", 1)
                         else:
                             log("Client is no longer registered", 1)
                             log("Plex Companion still running on port %s"
                                 % self.settings['myport'], 1)
-                        message_count = 0
 
                 # Get and set servers
-                subscriptionManager.serverlist = client.getServerList()
-
-                subscriptionManager.notify()
+                if message_count % 30 == 0:
+                    subscriptionManager.serverlist = client.getServerList()
+                    subscriptionManager.notify()
+                    if not httpd:
+                        message_count = 0
             except:
                 log("Error in loop, continuing anyway. Traceback:", 1)
                 log(traceback.format_exc(), 1)
@@ -202,7 +210,9 @@ class PlexCompanion(threading.Thread):
                 # Got instructions, process them
                 self.processTasks(task)
                 queue.task_done()
-            xbmc.sleep(10)
+                # Don't sleep
+                continue
+            xbmc.sleep(20)
 
         client.stop_all()
         if httpd:

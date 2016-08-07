@@ -150,8 +150,6 @@ class SubscriptionManager:
         return True
     
     def notifyServer(self, players):
-        if not players:
-            return True
         for p in players.values():
             info = self.playerprops[p.get('playerid')]
             params = {'state': 'stopped'}
