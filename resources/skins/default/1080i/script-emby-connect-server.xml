@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <window>
+	<defaultcontrol always="true">155</defaultcontrol>
 	<zorder>0</zorder>
 	<include>dialogeffect</include>
 	<controls>
@@ -95,12 +96,21 @@
 					<onright>155</onright>
 					<scrolltime tween="sine" easing="out">250</scrolltime>
 					<itemlayout height="46">
-						<control type="image">
-							<description>Wifi</description>
-							<aspectratio>keep</aspectratio>
-							<texture>wifi.png</texture>
+						<control type="group">
 							<width>45</width>
 							<height>45</height>
+							<control type="image">
+								<description>Network</description>
+								<aspectratio>keep</aspectratio>
+								<texture>network.png</texture>
+								<visible>StringCompare(ListItem.Property(server_type),network)</visible>
+							</control>
+							<control type="image">
+								<description>Wifi</description>
+								<aspectratio>keep</aspectratio>
+								<texture>wifi.png</texture>
+								<visible>StringCompare(ListItem.Property(server_type),wifi)</visible>
+							</control>
 						</control>
 
 						<control type="label">
@@ -113,12 +123,21 @@
 						</control>
 					</itemlayout>
 					<focusedlayout height="46">
-						<control type="image">
-							<description>Wifi</description>
-							<aspectratio>keep</aspectratio>
-							<texture>wifi.png</texture>
+						<control type="group">
 							<width>45</width>
 							<height>45</height>
+							<control type="image">
+								<description>Network</description>
+								<aspectratio>keep</aspectratio>
+								<texture>network.png</texture>
+								<visible>StringCompare(ListItem.Property(server_type),network)</visible>
+							</control>
+							<control type="image">
+								<description>Wifi</description>
+								<aspectratio>keep</aspectratio>
+								<texture>wifi.png</texture>
+								<visible>StringCompare(ListItem.Property(server_type),wifi)</visible>
+							</control>
 						</control>
 
 						<control type="label">

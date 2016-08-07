@@ -57,8 +57,10 @@ class ServerConnect(xbmcgui.WindowXMLDialog):
 
         list_ = self.getControl(LIST)
         for server in self.servers:
-            list_.addItem(self._add_listitem(server['Name'], server['Id']))
-        #self.setFocus(list_)
+            server_type = "wifi" if server.get('ExchangeToken') else "network"
+            list_.addItem(self._add_listitem(server['Name'], server['Id'], server_type))
+        
+        self.setFocus(list_)
 
     def onAction(self, action):
 
@@ -78,9 +80,10 @@ class ServerConnect(xbmcgui.WindowXMLDialog):
         if control == CANCEL:
             self.close()
 
-    def _add_listitem(self, label, server_id):
-        
+    def _add_listitem(self, label, server_id, server_type):
+
         item = xbmcgui.ListItem(label)
         item.setProperty('id', server_id)
+        item.setProperty('server_type', server_type)
 
         return item
