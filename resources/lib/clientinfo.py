@@ -62,10 +62,12 @@ class ClientInfo():
             return "iOS"
         elif xbmc.getCondVisibility('system.platform.windows'):
             return "Windows"
-        elif xbmc.getCondVisibility('system.platform.linux'):
-            return "Linux/RPi"
         elif xbmc.getCondVisibility('system.platform.android'): 
             return "Linux/Android"
+        elif xbmc.getCondVisibility('system.platform.linux.raspberrypi'):
+            return "Linux/RPi"            
+        elif xbmc.getCondVisibility('system.platform.linux'):
+            return "Linux"
         else:
             return "Unknown"
 
@@ -74,14 +76,8 @@ class ClientInfo():
         clientId = window('emby_deviceId')
         if clientId:
             return clientId
-
-        addon_path = self.addon.getAddonInfo('path').decode('utf-8')
-        if os.path.supports_unicode_filenames:
-            path = os.path.join(addon_path, "machine_guid")
-        else:
-            path = os.path.join(addon_path.encode('utf-8'), "machine_guid")
         
-        GUID_file = xbmc.translatePath(path).decode('utf-8')
+        GUID_file = xbmc.translatePath("special://temp/emby.id").decode('utf-8')
         
         if reset and xbmcvfs.exists(GUID_file):
             # Reset the file
