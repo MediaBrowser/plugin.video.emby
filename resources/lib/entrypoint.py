@@ -17,6 +17,7 @@ import xbmcplugin
 import artwork
 import utils
 import clientinfo
+import connectmanager
 import connect.connectionmanager as connectM
 import downloadutils
 import librarysync
@@ -122,37 +123,37 @@ def doMainListing():
 def emby_connect():
     
     addon = xbmcaddon.Addon(id='plugin.video.emby')
-    connectm = connectM.ConnectionManager("Kodi", "2.2.19", "Kodi", "6D0FB919859F46009E33EA046C5599CF")
-    connectm.setFilePath(xbmc.translatePath(addon.getAddonInfo('profile')).decode('utf-8'))
-    state = connectM.ConnectionState
+    CONNECT = connectmanager.ConnectManager()
+    #connectm = connectM.ConnectionManager("Kodi", "2.2.19", "Kodi", "6D0FB919859F46009E33EA046C5599CF")
+    #connectm.setFilePath(xbmc.translatePath(addon.getAddonInfo('profile')).decode('utf-8'))
+    #state = connectmanager.ConnectionState
 
-    result  = connectm.connect()
-    user = result.get('ConnectUser')
-
+    #result  = connectm.connect()
+    #user = result.get('ConnectUser')
+    result = CONNECT.select_servers()
+    return 
     if result.get('State') == state['ServerSignIn']: # Manual sign in or offer emby connect sign in
         log.info("Manual login")
         pass
 
     if result.get('State') == state['SignedIn']:
         log.info("Logged in: %s" % result)
-        return
 
-    elif user is None or result.get('State') == state['ConnectSignIn']: # Sign in
-        log.info("Connect Login")
-        connect = loginconnect.LoginConnect("script-emby-connect-login.xml", addon.getAddonInfo('path'), "default", "1080i")
-        connect.doModal()
-        user = connect.user
-        password = connect.password
 
-        del connect
-        if user and password:
-            connectm.loginToConnect(user, password)
-            result  = connectm.connect()
-            user = result.get('ConnectUser')
+    elif result.get('State') == state['ConnectSignIn']: # Sign in
 
-    if result.get('State') == state['ServerSelection']: # Server selection
+        result = CONNECT.login()
+        log.info(CONNECT.state)
+
+
+    result = CONNECT.select_servers()
+    return 
+    if CONNECT.state.get('State') == state['ServerSelection']: # Server selection
+
         log.info("Connect server selection")
-        server = serverconnect.ServerConnect("script-emby-connect-server.xml", addon.getAddonInfo('path'), "default", "1080i")
+        result = CONNECT.select_servers()
+        log.info(result)
+        '''server = serverconnect.ServerConnect("script-emby-connect-server.xml", addon.getAddonInfo('path'), "default", "1080i")
         server.set_name(user['DisplayName'])
         server.set_image(user['ImageUrl'])
         server.set_servers(result['Servers'])
@@ -163,7 +164,7 @@ def emby_connect():
 
         if selected_server:
             serverm = connectm.getServerInfo(selected_server)
-            test = connectm.connectToServer(serverm)
+            test = connectm.connectToServer(serverm)'''
 
 ##### Generate a new deviceId
 def resetDeviceId():
