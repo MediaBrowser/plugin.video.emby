@@ -19,6 +19,12 @@ import PlexAPI
 
 
 class lockMethod:
+    """
+    Decorator for class methods to lock hem completely. Same lock is used for
+    every single decorator and instance used!
+
+    Here only used for Playlist()
+    """
     lock = Lock()
 
     @classmethod
