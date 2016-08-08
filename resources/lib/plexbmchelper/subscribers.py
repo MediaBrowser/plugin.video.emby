@@ -13,9 +13,15 @@ class SubscriptionManager:
         self.serverlist = []
         self.subscribers = {}
         self.info = {}
-        self.lastkey = ""
+        self.key = ""
         self.containerKey = ""
-        self.lastratingkey = ""
+        # We need one pass with previous rating key
+        # Tuple: (<type>, <ratingkey>)
+        self.ratingkey = self.lastratingkey = {
+            'video': "",
+            'music': "",
+            'photo': ""
+        }
         self.volume = 0
         self.mute = '0'
         self.server = ""
@@ -60,67 +66,81 @@ class SubscriptionManager:
         msg += self.getTimelineXML(self.js.getVideoPlayerId(players), plex_video())
         msg += "\r\n</MediaContainer>"
         return msg
-        
+
     def getTimelineXML(self, playerid, ptype):
+        """
+        If playerid is None => player stopped
+        """
         if playerid is not None:
-            info = self.getPlayerProperties(playerid)
+            self.info = self.getPlayerProperties(playerid)
+
             # save this info off so the server update can use it too
-            self.playerprops[playerid] = info;
-            state = info['state']
-            time = info['time']
+            self.playerprops[playerid] = self.info
+            state = self.info['state']
+            time = self.info['time']
         else:
             state = "stopped"
             time = 0
         ret = "\r\n"+'  <Timeline state="%s" time="%s" type="%s"' % (state, time, ptype)
-        if playerid is None:
+        if playerid is None and not self.lastratingkey[ptype]:
+            # We already told everyone that we stopped
             ret += ' seekRange="0-0"'
             ret += ' />'
             return ret
 
-        # pbmc_server = str(WINDOW.getProperty('plexbmc.nowplaying.server'))
-        # userId = str(WINDOW.getProperty('currUserId'))
         pbmc_server = window('pms_server')
         if pbmc_server:
             (self.protocol, self.server, self.port) = \
                 pbmc_server.split(':')
             self.server = self.server.replace('/', '')
         keyid = None
-        count = 0
-        while not keyid:
-            if count > 300:
-                break
-            keyid = window('Plex_currently_playing_itemid')
-            xbmc.sleep(100)
-            count += 1
+        if playerid is not None:
+            count = 0
+            while not keyid:
+                if count > 300:
+                    break
+                keyid = window('Plex_currently_playing_itemid')
+                xbmc.sleep(10)
+                count += 1
         if keyid:
-            self.lastkey = "/library/metadata/%s"%keyid
-            self.lastratingkey = keyid
-            ret += ' location="%s"' % (self.mainlocation)
-            ret += ' key="%s"' % (self.lastkey)
-            ret += ' ratingKey="%s"' % (self.lastratingkey)
+            self.key = "/library/metadata/%s" % keyid
+            self.lastratingkey[ptype] = self.ratingkey[ptype] = keyid
+            ret += ' location="%s"' % self.mainlocation
+            ret += ' key="%s"' % self.key
+            ret += ' ratingKey="%s"' % self.ratingkey[ptype]
+        elif self.lastratingkey[ptype]:
+            # Currently not playing a Plex item (maybe stopped)
+            # We need to tell everyone exactly once
+            self.key = "/library/metadata/%s" % self.lastratingkey[ptype]
+            ret += ' location="%s"' % self.mainlocation
+            ret += ' key="%s"' % self.key
+            ret += ' ratingKey="%s"' % self.lastratingkey[ptype]
+            # Done our job of telling we've stopped. Let's do that only once
+            self.lastratingkey[ptype] = ""
+            self.logMsg('Done telling everyone')
         serv = self.getServerByHost(self.server)
-        if info.get('playQueueID'):
-            self.containerKey = "/playQueues/%s" % info.get('playQueueID')
-            ret += ' playQueueID="%s"' % info.get('playQueueID')
-            ret += ' playQueueVersion="%s"' % info.get('playQueueVersion')
-            ret += ' playQueueItemID="%s"' % (info.get('playQueueItemID'))
+        if self.info.get('playQueueID'):
+            self.containerKey = "/playQueues/%s" % self.info.get('playQueueID')
+            ret += ' playQueueID="%s"' % self.info.get('playQueueID')
+            ret += ' playQueueVersion="%s"' % self.info.get('playQueueVersion')
+            ret += ' playQueueItemID="%s"' % self.info.get('playQueueItemID')
             ret += ' containerKey="%s"' % self.containerKey
-        elif keyid:
-            self.containerKey = self.lastkey
+        elif keyid or self.lastratingkey[ptype]:
+            self.containerKey = self.key
             ret += ' containerKey="%s"' % (self.containerKey)
 
-        ret += ' duration="%s"' % info['duration']
-        ret += ' seekRange="0-%s"' % info['duration']
+        ret += ' duration="%s"' % self.info['duration']
+        ret += ' seekRange="0-%s"' % self.info['duration']
         ret += ' controllable="%s"' % self.controllable()
         ret += ' machineIdentifier="%s"' % serv.get('uuid', "")
         ret += ' protocol="%s"' % serv.get('protocol', "http")
         ret += ' address="%s"' % serv.get('server', self.server)
         ret += ' port="%s"' % serv.get('port', self.port)
-        ret += ' guid="%s"' % info['guid']
-        ret += ' volume="%s"' % info['volume']
-        ret += ' shuffle="%s"' % info['shuffle']
+        ret += ' guid="%s"' % self.info['guid']
+        ret += ' volume="%s"' % self.info['volume']
+        ret += ' shuffle="%s"' % self.info['shuffle']
         ret += ' mute="%s"' % self.mute
-        ret += ' repeat="%s"' % info['repeat']
+        ret += ' repeat="%s"' % self.info['repeat']
         # Might need an update in the future
         ret += ' subtitleStreamID="-1"'
         ret += ' audioStreamID="-1"'
@@ -130,9 +150,9 @@ class SubscriptionManager:
 
     def updateCommandID(self, uuid, commandID):
         if commandID and self.subscribers.get(uuid, False):
-            self.subscribers[uuid].commandID = int(commandID)            
-        
-    def notify(self, event = False):
+            self.subscribers[uuid].commandID = int(commandID)
+
+    def notify(self, event=False):
         self.cleanup()
         # Don't tell anyone if we don't know a Plex ID and are still playing
         # (e.g. no stop called). Used for e.g. PVR/TV without PKC usage
@@ -145,12 +165,18 @@ class SubscriptionManager:
         if self.subscribers:
             with threading.RLock():
                 for sub in self.subscribers.values():
-                    sub.send_update(msg, len(players)==0)
+                    sub.send_update(msg, len(players) == 0)
         self.notifyServer(players)
         return True
-    
+
     def notifyServer(self, players):
-        for p in players.values():
+        conv = {
+            "video": "video",
+            "audio": "music",
+            "picture": "photo"
+        }
+        for typus, p in players.iteritems():
+            ptype = conv[typus]
             info = self.playerprops[p.get('playerid')]
             params = {'state': 'stopped'}
             params['containerKey'] = (self.containerKey or "/library/metadata/900000")
@@ -158,8 +184,8 @@ class SubscriptionManager:
                 params['containerKey'] = '/playQueues/' + info['playQueueID']
                 params['playQueueVersion'] = info['playQueueVersion']
                 params['playQueueItemID'] = info['playQueueItemID']
-            params['key'] = (self.lastkey or "/library/metadata/900000")
-            params['ratingKey'] = (self.lastratingkey or "900000")
+            params['key'] = (self.key or "/library/metadata/900000")
+            params['ratingKey'] = (self.ratingkey[ptype] or "900000")
             params['state'] = info['state']
             params['time'] = info['time']
             params['duration'] = info['duration']
