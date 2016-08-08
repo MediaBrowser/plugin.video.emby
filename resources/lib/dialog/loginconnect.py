@@ -33,14 +33,14 @@ ERROR = {
 class LoginConnect(xbmcgui.WindowXMLDialog):
 
     _user = None
-    isError = False
+    error = None
 
 
     def __init__(self, *args, **kwargs):
 
         xbmcgui.WindowXMLDialog.__init__(self, *args, **kwargs)
 
-    def setConnect(self, connect_manager):
+    def setConnectManager(self, connect_manager):
         self._connect_manager = connect_manager
 
     def isLoggedIn(self):
@@ -89,7 +89,7 @@ class LoginConnect(xbmcgui.WindowXMLDialog):
 
     def onAction(self, action):
 
-        if self.isError == ERROR['Empty'] and self.user_field.getText() and self.password_field.getText():
+        if self.error == ERROR['Empty'] and self.user_field.getText() and self.password_field.getText():
             self._disable_error()
 
         if action in (ACTION_BACK, ACTION_PARENT_DIR, ACTION_PREVIOUS_MENU):
@@ -125,11 +125,11 @@ class LoginConnect(xbmcgui.WindowXMLDialog):
 
     def _error(self, state, message):
 
-        self.isError = state
+        self.error = state
         self.error_msg.setLabel(message)
         self.error_toggle.setVisibleCondition('True')
 
     def _disable_error(self):
 
-        self.isError = False
+        self.error = None
         self.error_toggle.setVisibleCondition('False')
