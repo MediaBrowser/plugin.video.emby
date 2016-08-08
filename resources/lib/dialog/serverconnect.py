@@ -4,9 +4,11 @@
 
 import logging
 
+import xbmc
 import xbmcgui
 import xbmcaddon
 
+import connect.connectionmanager as connectionmanager
 from utils import language as lang
 
 ##################################################################################################
@@ -23,6 +25,10 @@ USER_IMAGE = 150
 USER_NAME = 151
 LIST = 155
 CANCEL = 201
+MESSAGE_BOX = 202
+MESSAGE = 203
+BUSY = 204
+ConnectionState = connectionmanager.ConnectionState
 
 ##################################################################################################
 
@@ -32,21 +38,30 @@ class ServerConnect(xbmcgui.WindowXMLDialog):
     name = None
     user_image = None
     servers = []
-    selected_id = None
+    selected_server = None
 
 
     def __init__(self, *args, **kwargs):
 
         xbmcgui.WindowXMLDialog.__init__(self, *args, **kwargs)
 
-    def set_servers(self, servers):
+    def setConnectManager(self, connect_manager):
+        self._connect_manager = connect_manager
+
+    def setServers(self, servers):
         self.servers = servers or []
 
-    def set_name(self, name):
+    def setName(self, name):
         self.name = name
 
-    def set_image(self, image):
+    def setImage(self, image):
         self.user_image = image
+
+    def isServerSelected(self):
+        return True if self.selected_server else False
+
+    def getServer(self):
+        return self.selected_server
 
     def onInit(self):
 
@@ -54,6 +69,9 @@ class ServerConnect(xbmcgui.WindowXMLDialog):
             self.getControl(USER_IMAGE).setImage(self.user_image)
 
         self.getControl(USER_NAME).setLabel("%s %s" % (lang(33000), self.name.decode('utf-8')))
+        self.message = self.getControl(MESSAGE)
+        self.message_box = self.getControl(MESSAGE_BOX)
+        self.busy = self.getControl(BUSY)
 
         list_ = self.getControl(LIST)
         for server in self.servers:
@@ -68,12 +86,16 @@ class ServerConnect(xbmcgui.WindowXMLDialog):
             self.close()
 
         if action in (ACTION_SELECT_ITEM, ACTION_MOUSE_LEFT_CLICK):
+            
             if self.getFocusId() == LIST:
                 list_ = self.getControl(LIST)
                 server = list_.getSelectedItem()
-                self.selected_id = server.getProperty('id')
-                log.info('Server Id selected: %s' % self.selected_id)
-                self.close()
+                selected_id = server.getProperty('id')
+                log.info('Server Id selected: %s' % selected_id)
+                
+                if self._connect_server(selected_id):
+                    self.message_box.setVisibleCondition("False")
+                    self.close()
 
     def onClick(self, control):
 
@@ -87,3 +109,20 @@ class ServerConnect(xbmcgui.WindowXMLDialog):
         item.setProperty('server_type', server_type)
 
         return item
+
+    def _connect_server(self, server_id):
+
+        server = self._connect_manager.getServerInfo(server_id)
+        self.message.setLabel("Connecting...")
+        self.message_box.setVisibleCondition("True")
+        self.busy.setVisibleCondition("True")
+        result = self._connect_manager.connectToServer(server)
+
+        if result.get('State') == ConnectionState['Unavailable']:
+            self.busy.setVisibleCondition("False")
+            self.message.setLabel(lang(30609))
+            return False
+        else:
+            xbmc.sleep(1000)
+            self.selected_server = result['Servers'][0]
+            return True

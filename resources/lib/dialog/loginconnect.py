@@ -12,7 +12,7 @@ from utils import language as lang
 
 ##################################################################################################
 
-log = logging.getLogger("EMBY."+__name__.split('.')[-1])
+log = logging.getLogger("EMBY."+__name__)
 addon = xbmcaddon.Addon('plugin.video.emby')
 
 ACTION_PARENT_DIR = 9

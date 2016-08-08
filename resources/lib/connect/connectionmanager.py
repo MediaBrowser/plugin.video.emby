@@ -360,7 +360,7 @@ class ConnectionManager(object):
 
         return servers
 
-    def _getAvailableServers(self):
+    def getAvailableServers(self):
         
         log.info("Begin getAvailableServers")
 
@@ -712,7 +712,7 @@ class ConnectionManager(object):
 
         log.info("Begin connect")
 
-        servers = self._getAvailableServers()
+        servers = self.getAvailableServers()
         return self._connectToServers(servers, options)
 
     def _connectToServers(self, servers, options):
