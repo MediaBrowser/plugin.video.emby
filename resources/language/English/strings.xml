@@ -239,7 +239,8 @@
     <string id="30605">Sign in</string>
     <string id="30606">Cancel</string>
     <string id="30607">Select main server</string>
-
+    <string id="30608">Username or password cannot be empty</string>
+    
     <!-- service add-on -->
     <string id="33000">Welcome</string>
     <string id="33001">Error connecting</string>
