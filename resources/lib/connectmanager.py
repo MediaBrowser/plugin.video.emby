@@ -47,7 +47,7 @@ class ConnectManager():
         self.state = self._connect.connect({'updateDateLastAccessed': False})
         return self.state
 
-    def login(self):
+    def login_connect(self):
 
         dialog = loginconnect.LoginConnect("script-emby-connect-login.xml", addon.getAddonInfo('path'), "default", "1080i")
         dialog.setConnectManager(self._connect)
@@ -66,7 +66,7 @@ class ConnectManager():
 
         dialog = serverconnect.ServerConnect("script-emby-connect-server.xml", addon.getAddonInfo('path'), "default", "1080i")
         dialog.setConnectManager(self._connect)
-        dialog.setName(user.get('DisplayName'))
+        dialog.setName(user.get('DisplayName',""))
         if user.get('ImageUrl'):
             dialog.setImage(user['ImageUrl'])
         dialog.setServers(self._connect.getAvailableServers())
@@ -78,3 +78,11 @@ class ConnectManager():
             return dialog.getServer()
         else:
             raise Exception("No server selected")
+
+    def login_manual(self):
+        # server login
+        pass
+
+    def server_discovery(self):
+        # Lan options
+        pass 

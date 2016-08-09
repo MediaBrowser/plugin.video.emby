@@ -35,7 +35,7 @@ ConnectionState = connectionmanager.ConnectionState
 
 class ServerConnect(xbmcgui.WindowXMLDialog):
 
-    name = None
+    name = ""
     user_image = None
     servers = []
     selected_server = None

@@ -135,5 +135,11 @@ class Credentials(object):
 
     def _dateObject(self, date):
         # Convert string to date
-        date_obj = datetime.strptime(date, "%Y-%m-%dT%H:%M:%SZ")
+        try:
+            date_obj = datetime.strptime(date, "%Y-%m-%dT%H:%M:%SZ")
+        except (ImportError, TypeError):
+            # TypeError: attribute of type 'NoneType' is not callable
+            # Known Kodi/python error
+            date_obj = datetime(*(time.strptime(date, "%Y-%m-%dT%H:%M:%SZ")[0:6]))
+        
         return date_obj
