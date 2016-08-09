@@ -59,22 +59,22 @@
 				<left>50</left>
 				<control type="image" id="150">
 					<description>User image</description>
-					<texture diffuse="user_image.png"></texture> 
+					<texture diffuse="user_image.png">userflyoutdefault.png</texture> 
 					<aspectratio>keep</aspectratio>
 					<width>70</width>
 					<height>70</height>
-					<top>47</top>
+					<top>40</top>
 					<left>40%</left>
 				</control>
 
 				<control type="image" id="204">
 					<description>Busy animation</description>
 					<left>35%</left>
-					<top>30</top>
+					<top>23</top>
 					<width>105</width>
 					<height>105</height>
 					<visible>False</visible>
-					<texture colordiffuse="ff0b8628">android/spinner_48_outer_holo.png</texture>
+					<texture colordiffuse="ff13a134">fading_circle.png</texture>
 					<aspectratio>keep</aspectratio>
 					<animation effect="rotate" start="360" end="0" center="auto" time="2000" loop="true" condition="true">conditional</animation>
 				</control>
