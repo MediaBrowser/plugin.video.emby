@@ -255,7 +255,7 @@ class Player(xbmc.Player):
             'SubtitleStreamIndex': postdata['SubtitleStreamIndex'],
             'playmethod': playMethod,
             'Type': itemType,
-            'currentPosition': int(seekTime) * 1000,
+            'currentPosition': int(seekTime),
             'fileid': fileid,
             'itemType': itemType,
             'playcount': playcount
@@ -306,7 +306,7 @@ class Player(xbmc.Player):
             except RuntimeError:
                 # When Kodi is not playing
                 return
-            self.played_info[currentFile]['currentPosition'] = position * 1000
+            self.played_info[currentFile]['currentPosition'] = position
 
     def onPlayBackStopped(self):
         # Will be called when user stops xbmc playing a file
