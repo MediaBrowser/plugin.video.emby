@@ -16,6 +16,12 @@ class SubscriptionManager:
         self.lastkey = ""
         self.containerKey = ""
         self.ratingkey = ""
+        self.lastplayers = {}
+        self.lastinfo = {
+            'video': {},
+            'audio': {},
+            'picture': {}
+        }
         self.volume = 0
         self.mute = '0'
         self.server = ""
@@ -147,31 +153,43 @@ class SubscriptionManager:
                 for sub in self.subscribers.values():
                     sub.send_update(msg, len(players) == 0)
         self.notifyServer(players)
+        self.lastplayers = players
         return True
 
     def notifyServer(self, players):
-        for p in players.values():
+        for typus, p in players.iteritems():
             info = self.playerprops[p.get('playerid')]
-            params = {'state': 'stopped'}
-            params['containerKey'] = (self.containerKey or "/library/metadata/900000")
-            if info.get('playQueueID'):
-                params['containerKey'] = '/playQueues/' + info['playQueueID']
-                params['playQueueVersion'] = info['playQueueVersion']
-                params['playQueueItemID'] = info['playQueueItemID']
-            params['key'] = (self.lastkey or "/library/metadata/900000")
-            params['ratingKey'] = (self.ratingkey or "900000")
-            params['state'] = info['state']
-            params['time'] = info['time']
-            params['duration'] = info['duration']
+            self._sendNotification(info)
+            self.lastinfo[typus] = info
+            # Cross the one of the list
+            try:
+                del self.lastplayers[typus]
+            except KeyError:
+                pass
+        # Process the players we have left (to signal a stop)
+        for typus, p in self.lastplayers.iteritems():
+            self._sendNotification(self.lastinfo[typus])
 
-            serv = self.getServerByHost(self.server)
-            url = serv.get('protocol', 'http') + '://' \
-                + serv.get('server', 'localhost') + ':' \
-                + serv.get('port', '32400') + "/:/timeline"
-            self.doUtils(url, parameters=params)
-            # requests.getwithparams(serv.get('server', 'localhost'), serv.get('port', 32400), "/:/timeline", params, getPlexHeaders(), serv.get('protocol', 'http'))
-            self.logMsg("sent server notification with parameters: %s"
-                        % params, 2)
+    def _sendNotification(self, info):
+        params = {
+            'containerKey': self.containerKey or "/library/metadata/900000",
+            'key': self.lastkey or "/library/metadata/900000",
+            'ratingKey': self.ratingkey or "900000",
+            'state': info['state'],
+            'time': info['time'],
+            'duration': info['duration']
+        }
+        if info.get('playQueueID'):
+            params['containerKey'] = '/playQueues/%s' % info['playQueueID']
+            params['playQueueVersion'] = info['playQueueVersion']
+            params['playQueueItemID'] = info['playQueueItemID']
+        serv = self.getServerByHost(self.server)
+        url = '%s://%s:%s/:/timeline' % (serv.get('protocol', 'http'),
+                                         serv.get('server', 'localhost'),
+                                         serv.get('port', '32400'))
+        self.doUtils(url, parameters=params)
+        self.logMsg("Sent server notification with parameters: %s to %s"
+                    % (params, url), 2)
 
     def controllable(self):
         return "volume,shuffle,repeat,audioStream,videoStream,subtitleStream,skipPrevious,skipNext,seekTo,stepBack,stepForward,stop,playPause"
