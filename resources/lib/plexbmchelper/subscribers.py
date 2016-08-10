@@ -142,7 +142,8 @@ class SubscriptionManager:
         self.cleanup()
         # Don't tell anyone if we don't know a Plex ID and are still playing
         # (e.g. no stop called). Used for e.g. PVR/TV without PKC usage
-        if not window('Plex_currently_playing_itemid'):
+        if (not window('Plex_currently_playing_itemid')
+                and not self.lastplayers):
             return True
         players = self.js.getPlayers()
         # fetch the message, subscribers or not, since the server
@@ -168,6 +169,7 @@ class SubscriptionManager:
                 pass
         # Process the players we have left (to signal a stop)
         for typus, p in self.lastplayers.iteritems():
+            self.lastinfo[typus]['state'] = 'stopped'
             self._sendNotification(self.lastinfo[typus])
 
     def _sendNotification(self, info):
