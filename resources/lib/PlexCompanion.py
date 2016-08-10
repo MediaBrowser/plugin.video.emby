@@ -180,6 +180,7 @@ class PlexCompanion(threading.Thread):
                 message_count += 1
                 if httpd:
                     if not t.isAlive():
+                        # Use threads cause the method will stall
                         t = threading.Thread(target=httpd.handle_request)
                         t.start()
 

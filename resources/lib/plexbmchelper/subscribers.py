@@ -15,7 +15,7 @@ class SubscriptionManager:
         self.info = {}
         self.lastkey = ""
         self.containerKey = ""
-        self.lastratingkey = ""
+        self.ratingkey = ""
         self.volume = 0
         self.mute = '0'
         self.server = ""
@@ -60,7 +60,7 @@ class SubscriptionManager:
         msg += self.getTimelineXML(self.js.getVideoPlayerId(players), plex_video())
         msg += "\r\n</MediaContainer>"
         return msg
-        
+
     def getTimelineXML(self, playerid, ptype):
         if playerid is not None:
             info = self.getPlayerProperties(playerid)
@@ -93,21 +93,21 @@ class SubscriptionManager:
             xbmc.sleep(100)
             count += 1
         if keyid:
-            self.lastkey = "/library/metadata/%s"%keyid
-            self.lastratingkey = keyid
-            ret += ' location="%s"' % (self.mainlocation)
-            ret += ' key="%s"' % (self.lastkey)
-            ret += ' ratingKey="%s"' % (self.lastratingkey)
+            self.lastkey = "/library/metadata/%s" % keyid
+            self.ratingkey = keyid
+            ret += ' location="%s"' % self.mainlocation
+            ret += ' key="%s"' % self.lastkey
+            ret += ' ratingKey="%s"' % self.ratingkey
         serv = self.getServerByHost(self.server)
         if info.get('playQueueID'):
             self.containerKey = "/playQueues/%s" % info.get('playQueueID')
             ret += ' playQueueID="%s"' % info.get('playQueueID')
             ret += ' playQueueVersion="%s"' % info.get('playQueueVersion')
-            ret += ' playQueueItemID="%s"' % (info.get('playQueueItemID'))
+            ret += ' playQueueItemID="%s"' % info.get('playQueueItemID')
             ret += ' containerKey="%s"' % self.containerKey
         elif keyid:
             self.containerKey = self.lastkey
-            ret += ' containerKey="%s"' % (self.containerKey)
+            ret += ' containerKey="%s"' % self.containerKey
 
         ret += ' duration="%s"' % info['duration']
         ret += ' seekRange="0-%s"' % info['duration']
@@ -130,9 +130,9 @@ class SubscriptionManager:
 
     def updateCommandID(self, uuid, commandID):
         if commandID and self.subscribers.get(uuid, False):
-            self.subscribers[uuid].commandID = int(commandID)            
-        
-    def notify(self, event = False):
+            self.subscribers[uuid].commandID = int(commandID)
+
+    def notify(self, event=False):
         self.cleanup()
         # Don't tell anyone if we don't know a Plex ID and are still playing
         # (e.g. no stop called). Used for e.g. PVR/TV without PKC usage
@@ -145,10 +145,10 @@ class SubscriptionManager:
         if self.subscribers:
             with threading.RLock():
                 for sub in self.subscribers.values():
-                    sub.send_update(msg, len(players)==0)
+                    sub.send_update(msg, len(players) == 0)
         self.notifyServer(players)
         return True
-    
+
     def notifyServer(self, players):
         for p in players.values():
             info = self.playerprops[p.get('playerid')]
@@ -159,7 +159,7 @@ class SubscriptionManager:
                 params['playQueueVersion'] = info['playQueueVersion']
                 params['playQueueItemID'] = info['playQueueItemID']
             params['key'] = (self.lastkey or "/library/metadata/900000")
-            params['ratingKey'] = (self.lastratingkey or "900000")
+            params['ratingKey'] = (self.ratingkey or "900000")
             params['state'] = info['state']
             params['time'] = info['time']
             params['duration'] = info['duration']
