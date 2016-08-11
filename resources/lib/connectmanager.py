@@ -68,6 +68,7 @@ class ConnectManager():
             'user_name': user.get('DisplayName',""),
             'user_image': user.get('ImageUrl'),
             'servers': self._connect.getAvailableServers(),
+            'emby_connect': True if user is None else False
         }
         dialog = serverconnect.ServerConnect("script-emby-connect-server.xml", addon.getAddonInfo('path'), "default", "1080i", **kwargs)
         dialog.doModal()
