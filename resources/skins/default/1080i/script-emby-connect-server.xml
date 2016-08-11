@@ -73,10 +73,10 @@
 				<control type="image">
 					<description>separator</description>
 					<width>102%</width>
-					<height>0.5</height>
+					<height>1</height>
 					<top>165</top>
 					<left>-10</left>
-					<texture colordiffuse="ff222222" border="90,3,90,3">separator.png</texture>
+					<texture colordiffuse="ff525252" border="90,3,90,3">separator.png</texture>
 				</control>
 
 				<control type="label">
