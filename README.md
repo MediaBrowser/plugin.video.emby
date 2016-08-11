@@ -10,8 +10,8 @@ Have a look at [some screenshots](https://github.com/croneter/PlexKodiConnect/wi
 
 The easiest way to install PKC is via our PlexKodiConnect Kodi repository (we cannot use the official Kodi repository as PKC messes with Kodi's databases). See the [installation guideline on how to do this](https://github.com/croneter/PlexKodiConnect/wiki/Installation).
 
-#Danger Zone#
-If you feel lucky, use the beta repository to download the PKC Beta version. Before new updates are released for the general public, they're first tested here. Uninstall the "normal" PKC first!
+**Danger Zone**
+If you feel lucky, use the beta repository to download the PKC Beta version. Before new updates are released for the general public, they're first tested here. Uninstall the "normal" PKC first!    
 BETA VERSION: [ ![Download](https://api.bintray.com/packages/croneter/PlexKodiConnect_BETA/PlexKodiConnect_BETA/images/download.svg) ](https://dl.bintray.com/croneter/PlexKodiConnect_BETA/bin-BETA/repository.plexkodiconnect/:repository.plexkodiconnect-1.0.0.zip)
 
 ### Donations
