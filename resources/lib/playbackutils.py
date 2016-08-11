@@ -278,11 +278,6 @@ class PlaybackUtils():
         window('%s.itemid' % embyitem, value=itemid)
         window('%s.playcount' % embyitem, value=str(userdata['PlayCount']))
 
-        # We need to keep track of playQueueItemIDs for Plex Companion
-        window('plex_%s.playQueueItemID'
-               % playurl, self.API.GetPlayQueueItemID())
-        window('plex_%s.guid' % playurl, self.API.getGuid())
-
         if itemtype == "episode":
             window('%s.refreshid' % embyitem,
                    value=self.API.getParentRatingKey())

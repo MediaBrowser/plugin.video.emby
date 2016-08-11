@@ -232,9 +232,6 @@ class Player(xbmc.Player):
                 self.logMsg('Could not get kodi runtime, setting to zero', -1)
                 runtime = 0
 
-        playQueueVersion = window('playQueueVersion')
-        playQueueID = window('playQueueID')
-        playQueueItemID = window('plex_%s.playQueueItemID' % currentFile)
         with embydb.GetEmbyDB() as emby_db:
             emby_dbitem = emby_db.getItem_byId(itemId)
         try:
@@ -244,9 +241,6 @@ class Player(xbmc.Player):
             fileid = None
         # Save data map for updates and position calls
         data = {
-            'playQueueVersion': playQueueVersion,
-            'playQueueID': playQueueID,
-            'playQueueItemID': playQueueItemID,
             'runtime': runtime,
             'item_id': itemId,
             'refresh_id': refresh_id,
@@ -415,9 +409,7 @@ class Player(xbmc.Player):
                 'emby_%s.type' % filename,
                 'emby_%s.runtime' % filename,
                 'emby_%s.playcount' % filename,
-                'plex_%s.playQueueItemID' % filename,
-                'plex_%s.playlistPosition' % filename,
-                'plex_%s.guid' % filename
+                'plex_%s.playlistPosition' % filename
             )
             for item in cleanup:
                 utils.window(item, clear=True)
