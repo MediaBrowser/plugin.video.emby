@@ -1,3 +1,11 @@
+version 1.2.12
+- Complete redesign of playlist handling
+- Improvements to Plex Companion daemon 
+- Try reducing strain on PMS for metadata
+- Don't let PMS crash: download one item at a time
+- fix 'raspberry pi' spelling and capitalisation (thanks @milaq)
+- sync: dont force show "full library sync finished" (thanks @milaq)
+
 version 1.2.11
 -  Fix PKC not releasing connections to the PMS. Should fix memory, connection and PMS issues
 -  Fix TypeError for playlists
