@@ -63,14 +63,13 @@ class ConnectManager():
     def select_servers(self):
 
         user = self.state.get('ConnectUser')
-
-        dialog = serverconnect.ServerConnect("script-emby-connect-server.xml", addon.getAddonInfo('path'), "default", "1080i")
-        dialog.setConnectManager(self._connect)
-        dialog.setName(user.get('DisplayName',""))
-        if user.get('ImageUrl'):
-            dialog.setImage(user['ImageUrl'])
-        dialog.setServers(self._connect.getAvailableServers())
-
+        kwargs = {
+            'connect_manager': self._connect,
+            'user_name': user.get('DisplayName',""),
+            'user_image': user.get('ImageUrl'),
+            'servers': self._connect.getAvailableServers(),
+        }
+        dialog = serverconnect.ServerConnect("script-emby-connect-server.xml", addon.getAddonInfo('path'), "default", "1080i", **kwargs)
         dialog.doModal()
 
         if dialog.isServerSelected():

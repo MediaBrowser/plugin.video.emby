@@ -28,6 +28,7 @@ CANCEL = 201
 MESSAGE_BOX = 202
 MESSAGE = 203
 BUSY = 204
+EMBY_CONNECT = 205
 ConnectionState = connectionmanager.ConnectionState
 
 ##################################################################################################
@@ -43,19 +44,13 @@ class ServerConnect(xbmcgui.WindowXMLDialog):
 
     def __init__(self, *args, **kwargs):
 
+        self._connect_manager = kwargs.pop('connect_manager')
+        self.user_image = kwargs.pop('user_image')
+        self.servers = kwargs.pop('servers', [])
+        self.name = kwargs.pop('user_name', [])
+        self.emby_connect = kwargs.pop('emby_connect')
+
         xbmcgui.WindowXMLDialog.__init__(self, *args, **kwargs)
-
-    def setConnectManager(self, connect_manager):
-        self._connect_manager = connect_manager
-
-    def setServers(self, servers):
-        self.servers = servers or []
-
-    def setName(self, name):
-        self.name = name
-
-    def setImage(self, image):
-        self.user_image = image
 
     def isServerSelected(self):
         return True if self.selected_server else False
@@ -67,6 +62,8 @@ class ServerConnect(xbmcgui.WindowXMLDialog):
 
         if self.user_image is not None:
             self.getControl(USER_IMAGE).setImage(self.user_image)
+
+        self.getControl(EMBY_CONNECT).setVisibleCondition(str(self.emby_connect))
 
         self.getControl(USER_NAME).setLabel("%s %s" % (lang(33000), self.name.decode('utf-8')))
         self.message = self.getControl(MESSAGE)
@@ -113,7 +110,7 @@ class ServerConnect(xbmcgui.WindowXMLDialog):
     def _connect_server(self, server_id):
 
         server = self._connect_manager.getServerInfo(server_id)
-        self.message.setLabel("Connecting...")
+        self.message.setLabel("Connecting to %s..." % server['Name'])
         self.message_box.setVisibleCondition("True")
         self.busy.setVisibleCondition("True")
         result = self._connect_manager.connectToServer(server)
