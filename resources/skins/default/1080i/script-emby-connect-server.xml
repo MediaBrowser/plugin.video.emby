@@ -19,7 +19,7 @@
 				<description>Background box</description>
 				<texture border="6" colordiffuse="ff111111">box.png</texture>
 				<width>450</width>
-				<height>650</height>
+				<height>710</height>
 			</control>
 
 			<control type="image">
@@ -105,8 +105,9 @@
 					<left>55</left>
 					<onup>155</onup>
 					<ondown condition="Control.IsVisible(205)">205</ondown>
-					<ondown condition="!Control.IsVisible(205)">201</ondown>
-					<onleft>155</onleft>
+					<ondown condition="!Control.IsVisible(205)">206</ondown>
+					<onleft condition="Control.IsVisible(205)">205</onleft>
+					<onleft condition="!Control.IsVisible(205)">206</onleft>
 					<onright>155</onright>
 					<pagecontrol>60</pagecontrol>
 					<scrolltime tween="sine" easing="out">250</scrolltime>
@@ -182,12 +183,12 @@
 
 				<control type="group">
 					<top>100%</top>
-					<height>160</height>
+					<height>220</height>
 					<control type="group">
-						<top>50</top>
-						<height>100</height>
+						<top>45</top>
+						<height>150</height>
 						<control type="button" id="205">
-							<visible>False</visible>
+							<visible>True</visible>
 							<description>Sign in Connect</description>
 							<texturenofocus border="5" colordiffuse="ff0b8628">box.png</texturenofocus>
 							<texturefocus border="5" colordiffuse="ff13a134">box.png</texturefocus>
@@ -200,6 +201,24 @@
 							<height>50</height>
 							<left>50</left>
 							<onup>155</onup>
+							<ondown>206</ondown>
+						</control>
+
+						<control type="button" id="206">
+							<description>Manually add server</description>
+							<texturenofocus border="5" colordiffuse="ff464646">box.png</texturenofocus>
+							<texturefocus border="5" colordiffuse="ff525252">box.png</texturefocus>
+							<label>[UPPERCASE][B]$ADDON[plugin.video.emby 30611][/B][/UPPERCASE]</label>
+							<font>font10</font>
+							<textcolor>ffa6a6a6</textcolor>
+							<focusedcolor>white</focusedcolor>
+							<align>center</align>
+							<top>55</top>
+							<width>350</width>
+							<height>50</height>
+							<left>50</left>
+							<onup condition="Control.IsVisible(205)">205</onup>
+							<onup condition="!Control.IsVisible(205)">155</onup>
 							<ondown>201</ondown>
 						</control>
 
@@ -212,12 +231,11 @@
 							<textcolor>ffa6a6a6</textcolor>
 							<focusedcolor>white</focusedcolor>
 							<align>center</align>
-							<top>55</top>
+							<top>110</top>
 							<width>350</width>
 							<height>50</height>
 							<left>50</left>
-							<onup condition="Control.IsVisible(205)">205</onup>
-							<onup condition="!Control.IsVisible(205)">155</onup>
+							<onup>206</onup>
 						</control>
 					</control>
 

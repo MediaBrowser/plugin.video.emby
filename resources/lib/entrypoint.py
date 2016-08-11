@@ -18,11 +18,8 @@ import artwork
 import utils
 import clientinfo
 import connectmanager
-import connect.connectionmanager as connectM
 import downloadutils
 import librarysync
-import dialog.loginconnect as loginconnect
-import dialog.serverconnect as serverconnect
 import read_embyserver as embyserver
 import embydb_functions as embydb
 import playlist
@@ -122,15 +119,23 @@ def doMainListing():
 
 def emby_connect():
     
+    # Login user to emby connect - this will be used for identification only.
     addon = xbmcaddon.Addon(id='plugin.video.emby')
-    CONNECT = connectmanager.ConnectManager()
-    #connectm = connectM.ConnectionManager("Kodi", "2.2.19", "Kodi", "6D0FB919859F46009E33EA046C5599CF")
-    #connectm.setFilePath(xbmc.translatePath(addon.getAddonInfo('profile')).decode('utf-8'))
-    #state = connectmanager.ConnectionState
+    connect = connectmanager.ConnectManager()
 
-    #result  = connectm.connect()
-    #user = result.get('ConnectUser')
-    result = CONNECT.select_servers()
+    try:
+        user = connect.login_connect()
+    except Exception:
+        pass
+    else: # User selected
+        pass # Decide what to do once plugged into user client
+
+    try:
+        result = connect.select_servers()
+    except Exception as e:
+        log.exception(e)
+        pass
+        
     return 
     if result.get('State') == state['ServerSignIn']: # Manual sign in or offer emby connect sign in
         log.info("Manual login")

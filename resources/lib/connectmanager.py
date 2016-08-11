@@ -62,13 +62,13 @@ class ConnectManager():
 
     def select_servers(self):
 
-        user = self.state.get('ConnectUser')
+        user = self.state.get('ConnectUser') or {}
         kwargs = {
             'connect_manager': self._connect,
             'user_name': user.get('DisplayName',""),
             'user_image': user.get('ImageUrl'),
             'servers': self._connect.getAvailableServers(),
-            'emby_connect': True if user is None else False
+            'emby_connect': False if user else True
         }
         dialog = serverconnect.ServerConnect("script-emby-connect-server.xml", addon.getAddonInfo('path'), "default", "1080i", **kwargs)
         dialog.doModal()
@@ -76,6 +76,12 @@ class ConnectManager():
         if dialog.isServerSelected():
             self.getState()
             return dialog.getServer()
+        elif dialog.isEmbyConnectLogin():
+            try:
+                self.login_connect()
+            except Exception:
+                pass
+            return self.select_servers()
         else:
             raise Exception("No server selected")
 

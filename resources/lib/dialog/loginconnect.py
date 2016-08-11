@@ -51,9 +51,9 @@ class LoginConnect(xbmcgui.WindowXMLDialog):
 
     def onInit(self):
         
-        self.user_field = self._add_editcontrol(685,385,40,500)
+        self.user_field = self._add_editcontrol(725,385,40,500)
         self.setFocus(self.user_field)
-        self.password_field = self._add_editcontrol(685,470,40,500, password=1)
+        self.password_field = self._add_editcontrol(725,470,40,500, password=1)
         self.signin_button = self.getControl(SIGN_IN)
         self.remind_button = self.getControl(CANCEL)
         self.error_toggle = self.getControl(ERROR_TOGGLE)

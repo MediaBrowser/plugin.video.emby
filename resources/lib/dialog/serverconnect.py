@@ -40,6 +40,7 @@ class ServerConnect(xbmcgui.WindowXMLDialog):
     user_image = None
     servers = []
     selected_server = None
+    isEmbyLogin = False
 
 
     def __init__(self, *args, **kwargs):
@@ -55,6 +56,9 @@ class ServerConnect(xbmcgui.WindowXMLDialog):
     def isServerSelected(self):
         return True if self.selected_server else False
 
+    def isEmbyConnectLogin(self):
+        return self.isEmbyLogin
+
     def getServer(self):
         return self.selected_server
 
@@ -63,6 +67,7 @@ class ServerConnect(xbmcgui.WindowXMLDialog):
         if self.user_image is not None:
             self.getControl(USER_IMAGE).setImage(self.user_image)
 
+        # Display emby connect login option
         self.getControl(EMBY_CONNECT).setVisibleCondition(str(self.emby_connect))
 
         self.getControl(USER_NAME).setLabel("%s %s" % (lang(33000), self.name.decode('utf-8')))
@@ -74,8 +79,6 @@ class ServerConnect(xbmcgui.WindowXMLDialog):
         for server in self.servers:
             server_type = "wifi" if server.get('ExchangeToken') else "network"
             list_.addItem(self._add_listitem(server['Name'], server['Id'], server_type))
-        
-        self.setFocus(list_)
 
     def onAction(self, action):
 
@@ -96,7 +99,11 @@ class ServerConnect(xbmcgui.WindowXMLDialog):
 
     def onClick(self, control):
 
-        if control == CANCEL:
+        if control == EMBY_CONNECT:
+            self.isEmbyLogin = True
+            self.close()
+
+        elif control == CANCEL:
             self.close()
 
     def _add_listitem(self, label, server_id, server_type):
