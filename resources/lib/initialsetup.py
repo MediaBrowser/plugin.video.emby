@@ -474,7 +474,7 @@ class InitialSetup():
             self.logMsg("User opted to use FanArtTV", 1)
             utils.settings('FanartTV', value="true")
 
-        # Is your Kodi installed on a low-powered device like a raspberry pie?
+        # Is your Kodi installed on a low-powered device like a Raspberry Pi?
         # If yes, then we will reduce the strain on Kodi to prevent it from
         # crashing.
         if dialog.yesno(heading=self.addonName,
