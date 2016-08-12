@@ -250,7 +250,11 @@ class VideoNodes(object):
             if mediatype == "photos":
                 windowpath = "ActivateWindow(Pictures,%s,return)" % path
             else:
-                windowpath = "ActivateWindow(Video,%s,return)" % path
+                if self.kodiversion >= 17:
+                    # Krypton
+                    windowpath = "ActivateWindow(Videos,%s,return)" % path
+                else:
+                    windowpath = "ActivateWindow(Video,%s,return)" % path
             
             if nodetype == "all":
 
@@ -370,7 +374,11 @@ class VideoNodes(object):
             "special://profile/library/video/"))
         nodeXML = "%splex_%s.xml" % (nodepath, cleantagname)
         path = "library://video/plex_%s.xml" % cleantagname
-        windowpath = "ActivateWindow(Video,%s,return)" % path
+        if self.kodiversion >= 17:
+            # Krypton
+            windowpath = "ActivateWindow(Videos,%s,return)" % path
+        else:
+            windowpath = "ActivateWindow(Video,%s,return)" % path
 
         # Create the video node directory
         if not xbmcvfs.exists(nodepath):
