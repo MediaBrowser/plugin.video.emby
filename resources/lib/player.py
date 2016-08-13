@@ -13,8 +13,6 @@ import downloadutils
 import embydb_functions as embydb
 import kodidb_functions as kodidb
 
-from urllib import urlencode
-
 ###############################################################################
 
 
