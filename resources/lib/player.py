@@ -397,7 +397,6 @@ class Player(xbmc.Player):
                         url = "{server}/emby/Items/%s?format=json" % itemid
                         self.logMsg("Deleting request: %s" % itemid, 1)
                         self.doUtils(url, action_type="DELETE")
-                self.stopPlayback(data)
 
         # Clean the WINDOW properties
         for filename in self.played_info:
@@ -422,15 +421,3 @@ class Player(xbmc.Player):
                 parameters={'session': self.clientInfo.getDeviceId()})
 
         self.played_info.clear()
-
-    def stopPlayback(self, data):
-        self.logMsg("stopPlayback called", 1)
-        args = {
-            'ratingKey': data['item_id'],
-            'state': 'stopped',   # 'stopped', 'paused', 'buffering', 'playing'
-            'time': int(data['currentPosition']),
-            'duration': int(data.get('runtime', 0))
-        }
-        self.logMsg('Informing PMS about our state: %s' % args, 2)
-        self.doUtils("{server}/:/timeline?" + urlencode(args),
-                     action_type="GET")
