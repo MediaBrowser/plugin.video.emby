@@ -73,22 +73,41 @@ class ClientInfo():
 
     def getDeviceId(self, reset=False):
 
+        EMBY_id = xbmc.translatePath("special://temp/emby.id").decode('utf-8')
+        
+        #######################################
+        ## machine_guid -> emby.id migration ##
+        #######################################
+        addon_path = self.addon.getAddonInfo('path').decode('utf-8')
+        if os.path.supports_unicode_filenames:
+            path = os.path.join(addon_path, "machine_guid")
+        else:
+            path = os.path.join(addon_path.encode('utf-8'), "machine_guid")
+        
+        GUID_file = xbmc.translatePath(path).decode('utf-8')
+
+        if xbmcvfs.exists(GUID_file):
+            xbmcvfs.copy(GUID_file, EMBY_id)
+            xbmcvfs.delete(GUID_file)
+            xbmcvfs.close(GUID_file)
+        #######################################
+        ##           end migration           ##
+        #######################################
+        
         clientId = window('emby_deviceId')
         if clientId:
             return clientId
         
-        GUID_file = xbmc.translatePath("special://temp/emby.id").decode('utf-8')
-        
-        if reset and xbmcvfs.exists(GUID_file):
+        if reset and xbmcvfs.exists(EMBY_id):
             # Reset the file
-            xbmcvfs.delete(GUID_file)
+            xbmcvfs.delete(EMBY_id)
 
-        GUID = xbmcvfs.File(GUID_file)
+        GUID = xbmcvfs.File(EMBY_id)
         clientId = GUID.read()
         if not clientId:
             log.info("Generating a new deviceid...")
             clientId = str("%012X" % uuid4())
-            GUID = xbmcvfs.File(GUID_file, 'w')
+            GUID = xbmcvfs.File(EMBY_id, 'w')
             GUID.write(clientId)
 
         GUID.close()
