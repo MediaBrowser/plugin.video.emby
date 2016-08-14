@@ -101,7 +101,7 @@ class LoginConnect(xbmcgui.WindowXMLDialog):
         control = xbmcgui.ControlEdit(0,0,0,0,
                             label="User",
                             font="font10",
-                            textColor="ff464646",
+                            textColor="ff525252",
                             focusTexture=os.path.join(media, "button-focus.png"),
                             noFocusTexture=os.path.join(media, "button-focus.png"),
                             isPassword=password)

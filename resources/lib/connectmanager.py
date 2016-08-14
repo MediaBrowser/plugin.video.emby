@@ -6,11 +6,16 @@ import logging
 
 import xbmc
 import xbmcaddon
+import xbmcgui
 
 import clientinfo
-import connect.connectionmanager as connectmanager
+import connect.connectionmanager as connectionmanager
 import dialog.loginconnect as loginconnect
 import dialog.serverconnect as serverconnect
+import dialog.usersconnect as usersconnect
+import read_embyserver as embyserver
+
+from utils import language as lang
 
 ##################################################################################################
 
@@ -20,11 +25,10 @@ addon = xbmcaddon.Addon(id='plugin.video.emby')
 ##################################################################################################
 
 
-class ConnectManager():
+class ConnectManager(object):
 
     # Borg - multiple instances, shared state
     _shared_state = {}
-
     state = {}
 
 
@@ -37,7 +41,7 @@ class ConnectManager():
         deviceName = clientInfo.getDeviceName()
         deviceId = clientInfo.getDeviceId()
 
-        self._connect = connectmanager.ConnectionManager("Kodi", version, deviceName, deviceId)
+        self._connect = connectionmanager.ConnectionManager("Kodi", version, deviceName, deviceId)
         self._connect.setFilePath(xbmc.translatePath(addon.getAddonInfo('profile')).decode('utf-8'))
         self.state = self._connect.connect()
         log.info("cred: %s" %self.state)
@@ -85,10 +89,28 @@ class ConnectManager():
         else:
             raise Exception("No server selected")
 
-    def login_manual(self):
-        # server login
+    def manual_server(self):
+        # Present dialog with server + port
         pass
 
-    def server_discovery(self):
-        # Lan options
-        pass 
+    def login_manual(self):
+        # server login with user + pass input
+        pass
+
+    def user_selection(self):
+        # Present user list
+        # Process the list of users
+        server = connectionmanager.getServerAddress(self.state['Servers'][0], self.state['Servers'][0]['LastConnectionMode'])
+        users = embyserver.Read_EmbyServer().getUsers(server)
+
+        dialog = usersconnect.UsersConnect("script-emby-connect-users.xml", addon.getAddonInfo('path'), "default", "1080i")
+        dialog.setUsers(users)
+        dialog.doModal()
+
+        if dialog.isUserSelected():
+            return dialog.getUser()
+        elif dialog.isEmbyConnectLogin():
+            # Run manual login
+            pass
+        else:
+            raise Exception("No user selected")

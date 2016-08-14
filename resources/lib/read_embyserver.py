@@ -572,3 +572,10 @@ class Read_EmbyServer():
 
         url = "{server}/emby/Items/%s?format=json" % itemid
         self.doUtils(url, action_type="DELETE")
+
+    def getUsers(self, server):
+
+        url = "%s/emby/Users/Public?format=json" % server
+        users = self.doUtils(url, authenticate=False)
+
+        return users or []

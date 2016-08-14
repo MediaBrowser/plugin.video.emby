@@ -80,6 +80,8 @@ class ServerConnect(xbmcgui.WindowXMLDialog):
             server_type = "wifi" if server.get('ExchangeToken') else "network"
             list_.addItem(self._add_listitem(server['Name'], server['Id'], server_type))
 
+        self.setFocus(list_)
+
     def onAction(self, action):
 
         if action in (ACTION_BACK, ACTION_PREVIOUS_MENU, ACTION_PARENT_DIR):

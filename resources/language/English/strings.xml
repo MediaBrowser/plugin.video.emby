@@ -243,6 +243,7 @@
     <string id="30609">Unable to connect to the selected server</string>
     <string id="30610">Connect to</string><!-- Connect to {server} -->
     <string id="30611">Manually add server</string>
+    <string id="30612">Please sign in</string>
 
     <!-- service add-on -->
     <string id="33000">Welcome</string>

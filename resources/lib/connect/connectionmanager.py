@@ -7,6 +7,7 @@ import json
 import logging
 import requests
 import socket
+import time
 from datetime import datetime
 
 import credentials as cred
@@ -105,7 +106,10 @@ class ConnectionManager(object):
         if not len(servers):
             return
 
-        servers.sort(key=lambda x: datetime.strptime(x['DateLastAccessed'], "%Y-%m-%dT%H:%M:%SZ"), reverse=True)
+        try:
+            servers.sort(key=lambda x: datetime.strptime(x['DateLastAccessed'], "%Y-%m-%dT%H:%M:%SZ"), reverse=True)
+        except TypeError:
+            servers.sort(key=lambda x: datetime(*(time.strptime(x['DateLastAccessed'], "%Y-%m-%dT%H:%M:%SZ")[0:6])))
 
         return servers[0]
 
@@ -376,7 +380,10 @@ class ConnectionManager(object):
 
         servers = self._filterServers(servers, connectServers)
 
-        servers.sort(key=lambda x: datetime.strptime(x['DateLastAccessed'], "%Y-%m-%dT%H:%M:%SZ"), reverse=True)
+        try:
+            servers.sort(key=lambda x: datetime.strptime(x['DateLastAccessed'], "%Y-%m-%dT%H:%M:%SZ"), reverse=True)
+        except TypeError:
+            servers.sort(key=lambda x: datetime(*(time.strptime(x['DateLastAccessed'], "%Y-%m-%dT%H:%M:%SZ")[0:6])))
 
         credentials['Servers'] = servers
         self.credentialProvider.getCredentials(credentials)

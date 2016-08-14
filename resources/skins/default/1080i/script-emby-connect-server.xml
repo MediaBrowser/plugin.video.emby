@@ -95,7 +95,7 @@
 			<control type="group">
 				<top>290</top>
 				<width>100%</width>
-				<height>180</height>
+				<height>184</height>
 				<control type="list" id="155">
 					<description>Connect servers</description>
 					<focusposition>0</focusposition>
@@ -163,6 +163,16 @@
 							<font>font10</font>
 							<textcolor>white</textcolor>
 							<info>ListItem.Label</info>
+							<visible>Control.HasFocus(155)</visible>
+						</control>
+						<control type="label">
+							<width>300</width>
+							<height>40</height>
+							<left>55</left>
+							<font>font10</font>
+							<textcolor>ff838383</textcolor>
+							<info>ListItem.Label</info>
+							<visible>!Control.HasFocus(155)</visible>
 						</control>
 					</focusedlayout>
 				</control>
@@ -247,7 +257,7 @@
 							<texture border="6" colordiffuse="ff222222">box.png</texture>
 							<width>100%</width>
 							<height>50</height>
-							<top>25</top>
+							<top>20</top>
 						</control>
 
 						<control type="label" id="203">
@@ -257,7 +267,7 @@
 							<aligny>center</aligny>
 							<align>center</align>
 							<height>50</height>
-							<top>25</top>
+							<top>20</top>
 						</control>
 					</control>
 				</control>
