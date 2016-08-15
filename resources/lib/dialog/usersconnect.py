@@ -23,7 +23,7 @@ ACTION_BACK = 92
 ACTION_SELECT_ITEM = 7
 ACTION_MOUSE_LEFT_CLICK = 100
 LIST = 155
-MANUAL = 202
+MANUAL = 200
 CANCEL = 201
 
 ##################################################################################################
@@ -31,8 +31,8 @@ CANCEL = 201
 
 class UsersConnect(xbmcgui.WindowXMLDialog):
 
-    user = None
-    isManualLogin = False
+    _user = None
+    _isManualLogin = False
 
 
     def __init__(self, *args, **kwargs):
@@ -40,16 +40,16 @@ class UsersConnect(xbmcgui.WindowXMLDialog):
         xbmcgui.WindowXMLDialog.__init__(self, *args, **kwargs)
 
     def isUserSelected(self):
-        return True if self.user else False
+        return True if self._user else False
 
     def isManualConnectLogin(self):
-        return self.isManualLogin
+        return self._isManualLogin
 
     def setUsers(self, users):
         self.users = users
 
     def getUser(self):
-        return self.user
+        return self._user
 
     def onInit(self):
 
@@ -75,7 +75,7 @@ class UsersConnect(xbmcgui.WindowXMLDialog):
                 
                 for user in self.users:
                     if user['Id'] == selected_id:
-                        self.user = user
+                        self._user = user
                         break
 
                 self.close()
@@ -83,7 +83,7 @@ class UsersConnect(xbmcgui.WindowXMLDialog):
     def onClick(self, control):
 
         if control == MANUAL:
-            self.isManualLogin = True
+            self._isManualLogin = True
             self.close()
 
         elif control == CANCEL:

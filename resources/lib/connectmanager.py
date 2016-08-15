@@ -13,6 +13,7 @@ import connect.connectionmanager as connectionmanager
 import dialog.loginconnect as loginconnect
 import dialog.serverconnect as serverconnect
 import dialog.usersconnect as usersconnect
+import dialog.loginmanual as loginmanual
 import read_embyserver as embyserver
 
 from utils import language as lang
@@ -36,6 +37,7 @@ class ConnectManager(object):
 
         self.__dict__ = self._shared_state
         clientInfo = clientinfo.ClientInfo()
+        self.emby = embyserver.Read_EmbyServer()
         
         version = clientInfo.getVersion()
         deviceName = clientInfo.getDeviceName()
@@ -46,9 +48,12 @@ class ConnectManager(object):
         self.state = self._connect.connect()
         log.info("cred: %s" %self.state)
 
-    def getState(self):
+    def updateState(self):
 
         self.state = self._connect.connect({'updateDateLastAccessed': False})
+        return self.state
+
+    def getState(self):
         return self.state
 
     def login_connect(self):
@@ -59,10 +64,10 @@ class ConnectManager(object):
         dialog.doModal()
 
         if dialog.isLoggedIn():
-            self.getState()
+            self.updateState()
             return dialog.getUser()
         else:
-            raise Exception("Connect user is not logged in")
+            raise RuntimeError("Connect user is not logged in")
 
     def select_servers(self):
 
@@ -78,39 +83,59 @@ class ConnectManager(object):
         dialog.doModal()
 
         if dialog.isServerSelected():
-            self.getState()
+            self.updateState()
             return dialog.getServer()
         elif dialog.isEmbyConnectLogin():
             try:
-                self.login_connect()
-            except Exception:
+                user = self.login_connect()
+                log.info(user)
+            except RuntimeError:
                 pass
             return self.select_servers()
         else:
-            raise Exception("No server selected")
+            raise RuntimeError("No server selected")
 
     def manual_server(self):
         # Present dialog with server + port
         pass
 
-    def login_manual(self):
-        # server login with user + pass input
-        pass
-
-    def user_selection(self):
+    def login(self, server=None):
         # Present user list
-        # Process the list of users
-        server = connectionmanager.getServerAddress(self.state['Servers'][0], self.state['Servers'][0]['LastConnectionMode'])
-        users = embyserver.Read_EmbyServer().getUsers(server)
+        server = server or self.state['Servers'][0]
+        server = connectionmanager.getServerAddress(server, server['LastConnectionMode'])
+
+        users = self.emby.getUsers(server)
 
         dialog = usersconnect.UsersConnect("script-emby-connect-users.xml", addon.getAddonInfo('path'), "default", "1080i")
         dialog.setUsers(users)
         dialog.doModal()
 
         if dialog.isUserSelected():
-            return dialog.getUser()
-        elif dialog.isEmbyConnectLogin():
-            # Run manual login
-            pass
+            user = dialog.getUser()
+            if user['HasPassword']:
+                log.info("User has password, present manual login")
+                try:
+                    return self.login_manual(server, user)
+                except RuntimeError:
+                    return self.login()
+            else:
+                return self.emby.loginUser(server, user['Name'])
+        elif dialog.isManualConnectLogin():
+            try:
+                return self.login_manual(server)
+            except RuntimeError: # User selected cancel
+                return self.login()
         else:
-            raise Exception("No user selected")
+            raise RuntimeError("No user selected")
+
+    def login_manual(self, server, user=None):
+        
+        dialog = loginmanual.LoginManual("script-emby-connect-login-manual.xml", addon.getAddonInfo('path'), "default", "1080i")
+        dialog.setServer(server)
+        dialog.setUser(user)
+        dialog.doModal()
+
+        if dialog.isLoggedIn():
+            return dialog.getUser()
+        else:
+            raise RuntimeError("User is not authenticated")

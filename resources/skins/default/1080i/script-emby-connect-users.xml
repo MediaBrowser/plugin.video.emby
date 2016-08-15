@@ -17,7 +17,7 @@
 			<top>20%</top>
 			<control type="image">
 				<description>Background box</description>
-				<texture border="6" colordiffuse="ff111111">box.png</texture>
+				<texture border="6" colordiffuse="ff111111">white.png</texture>
 				<width>100%</width>
 				<height>525</height>
 			</control>
@@ -55,7 +55,7 @@
 					<top>40</top>
 					<onleft>155</onleft>
 					<onright>155</onright>
-					<ondown>202</ondown>
+					<ondown>200</ondown>
 					<pagecontrol>60</pagecontrol>
 					<orientation>horizontal</orientation>
 					<scrolltime tween="sine" easing="out">250</scrolltime>
@@ -156,11 +156,11 @@
 				</control>
 
 				<control type="group">
-					<width>100%</width>
+					<width>615</width>
 					<height>325</height>
 					<top>100%</top>
 					<control type="group">
-						<control type="button" id="202">
+						<control type="button" id="200">
 							<description>Manual Login button</description>
 							<texturenofocus border="5" colordiffuse="ff464646">box.png</texturenofocus>
 							<texturefocus border="5" colordiffuse="ff585858">box.png</texturefocus>
@@ -188,7 +188,7 @@
 							<width>100%</width>
 							<height>50</height>
 							<top>90</top>
-							<onup>202</onup>
+							<onup>200</onup>
 						</control>
 					</control>
 				</control>

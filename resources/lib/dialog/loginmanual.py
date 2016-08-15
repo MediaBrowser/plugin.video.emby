@@ -3,11 +3,14 @@
 ##################################################################################################
 
 import logging
+import hashlib
 import os
 
 import xbmcgui
 import xbmcaddon
 
+import downloadutils
+import read_embyserver as embyserver
 from utils import language as lang
 
 ##################################################################################################
@@ -30,7 +33,7 @@ ERROR = {
 ##################################################################################################
 
 
-class LoginConnect(xbmcgui.WindowXMLDialog):
+class LoginManual(xbmcgui.WindowXMLDialog):
 
     _user = None
     error = None
@@ -38,33 +41,43 @@ class LoginConnect(xbmcgui.WindowXMLDialog):
 
     def __init__(self, *args, **kwargs):
 
+        self.doutils = downloadutils.DownloadUtils()
+        self.emby = embyserver.Read_EmbyServer()
         xbmcgui.WindowXMLDialog.__init__(self, *args, **kwargs)
-
-    def setConnectManager(self, connect_manager):
-        self._connect_manager = connect_manager
 
     def isLoggedIn(self):
         return True if self._user else False
+
+    def setServer(self, server):
+        self.server = server
+
+    def setUser(self, user):
+        self.user = user or {}
 
     def getUser(self):
         return self._user
 
     def onInit(self):
         
-        self.user_field = self._add_editcontrol(725,385,40,500)
-        self.setFocus(self.user_field)
-        self.password_field = self._add_editcontrol(725,470,40,500, password=1)
         self.signin_button = self.getControl(SIGN_IN)
-        self.remind_button = self.getControl(CANCEL)
+        self.cancel_button = self.getControl(CANCEL)
         self.error_toggle = self.getControl(ERROR_TOGGLE)
         self.error_msg = self.getControl(ERROR_MSG)
+        self.user_field = self._add_editcontrol(725,400,40,500)
+        self.password_field = self._add_editcontrol(725,475,40,500, password=1)
+        
+        if self.user.get('Name'):
+            self.user_field.setText(self.user['Name'])
+            self.setFocus(self.password_field)
+        else:
+            self.setFocus(self.user_field)
 
-        self.user_field.controlUp(self.remind_button)
+        self.user_field.controlUp(self.cancel_button)
         self.user_field.controlDown(self.password_field)
         self.password_field.controlUp(self.user_field)
         self.password_field.controlDown(self.signin_button)
         self.signin_button.controlUp(self.password_field)
-        self.remind_button.controlDown(self.user_field)
+        self.cancel_button.controlDown(self.user_field)
 
     def onClick(self, control):
 
@@ -75,10 +88,10 @@ class LoginConnect(xbmcgui.WindowXMLDialog):
             user = self.user_field.getText()
             password = self.password_field.getText()
 
-            if not user or not password:
+            if not user:
                 # Display error
-                self._error(ERROR['Empty'], lang(30608))
-                log.error("Username or password cannot be null")
+                self._error(ERROR['Empty'], lang(30613))
+                log.error("Username cannot be null")
             
             elif self._login(user, password):
                 self.close()
@@ -115,8 +128,8 @@ class LoginConnect(xbmcgui.WindowXMLDialog):
 
     def _login(self, username, password):
 
-        result = self._connect_manager.loginToConnect(username, password)
-        if result is False:
+        result = self.emby.loginUser(self.server, username, password)
+        if not result:
             self._error(ERROR['Invalid'], lang(33009))
             return False
         else:

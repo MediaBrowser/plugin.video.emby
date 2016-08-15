@@ -17,7 +17,7 @@
 			<top>15%</top>
 			<control type="image">
 				<description>Background box</description>
-				<texture border="6" colordiffuse="ff111111">box.png</texture>
+				<texture colordiffuse="ff111111">white.png</texture>
 				<width>450</width>
 				<height>710</height>
 			</control>
@@ -254,7 +254,7 @@
 						<visible>False</visible>
 						<control type="image">
 							<description>Message box</description>
-							<texture border="6" colordiffuse="ff222222">box.png</texture>
+							<texture colordiffuse="ff222222">white.png</texture>
 							<width>100%</width>
 							<height>50</height>
 							<top>20</top>
