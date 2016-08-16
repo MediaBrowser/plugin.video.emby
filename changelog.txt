@@ -1,3 +1,6 @@
+version 1.2.14
+- New setting to lower the number of PMS items to cache. Hopefully fixes Wetek crashes
+
 version 1.2.13
 - Compatibility with latest Kodi Krypton
 - fix 'raspberry pi' spelling and capitalisation (thanks @milaq)
