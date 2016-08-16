@@ -832,7 +832,8 @@ class LibrarySync(Thread):
         # Initiate threads
         self.logMsg("Starting sync threads", 1)
         getMetadataQueue = Queue.Queue()
-        processMetadataQueue = Queue.Queue(maxsize=100)
+        processMetadataQueue = Queue.Queue(
+            maxsize=int(utils.settings('xmlCacheLimit')))
         getMetadataLock = Lock()
         processMetadataLock = Lock()
         # To keep track
