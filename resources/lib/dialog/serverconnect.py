@@ -29,6 +29,7 @@ MESSAGE_BOX = 202
 MESSAGE = 203
 BUSY = 204
 EMBY_CONNECT = 205
+MANUAL_SERVER = 206
 ConnectionState = connectionmanager.ConnectionState
 
 ##################################################################################################
@@ -41,6 +42,7 @@ class ServerConnect(xbmcgui.WindowXMLDialog):
     servers = []
     selected_server = None
     isEmbyLogin = False
+    isManualServer = False
 
 
     def __init__(self, *args, **kwargs):
@@ -58,6 +60,9 @@ class ServerConnect(xbmcgui.WindowXMLDialog):
 
     def isEmbyConnectLogin(self):
         return self.isEmbyLogin
+
+    def isManualServerLogin(self):
+        return self.isManualServer
 
     def getServer(self):
         return self.selected_server
@@ -105,6 +110,10 @@ class ServerConnect(xbmcgui.WindowXMLDialog):
             self.isEmbyLogin = True
             self.close()
 
+        elif control == MANUAL_SERVER:
+            self.isManualServer = True
+            self.close()
+
         elif control == CANCEL:
             self.close()
 
@@ -119,7 +128,7 @@ class ServerConnect(xbmcgui.WindowXMLDialog):
     def _connect_server(self, server_id):
 
         server = self._connect_manager.getServerInfo(server_id)
-        self.message.setLabel("Connecting to %s..." % server['Name'])
+        self.message.setLabel("%s %s..." % (lang(30610), server['Name']))
         self.message_box.setVisibleCondition("True")
         self.busy.setVisibleCondition("True")
         result = self._connect_manager.connectToServer(server)

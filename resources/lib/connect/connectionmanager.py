@@ -288,7 +288,7 @@ class ConnectionManager(object):
 
         return address
 
-    def connectToAddress(self, address, options):
+    def connectToAddress(self, address, options={}):
 
         if not address:
             return False
@@ -310,8 +310,11 @@ class ConnectionManager(object):
                 'LastConnectionMode': ConnectionMode['Manual']
             }
             self._updateServerInfo(server, publicInfo)
-            if self.connectToServer(server, options) is False:
+            server = self.connectToServer(server, options)
+            if server is False:
                 return _onFail()
+            else:
+                return server
 
     def _tryConnect(self, url, timeout=None):
 

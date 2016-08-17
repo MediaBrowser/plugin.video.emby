@@ -13,7 +13,7 @@
 		
 		<control type="group">
 			<width>450</width>
-			<left>40%</left>
+			<left>38%</left>
 			<top>15%</top>
 			<control type="image">
 				<description>Background box</description>

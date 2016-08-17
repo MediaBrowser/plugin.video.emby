@@ -245,6 +245,10 @@
     <string id="30611">Manually add server</string>
     <string id="30612">Please sign in</string>
     <string id="30613">Username cannot be empty</string>
+    <string id="30614">Connect to server</string>
+    <string id="30615">Host</string>
+    <string id="30616">Connect</string>
+    <string id="30617">Server or port cannot be empty</string>
 
     <!-- service add-on -->
     <string id="33000">Welcome</string>
