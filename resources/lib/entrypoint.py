@@ -137,15 +137,16 @@ def emby_connect():
     except RuntimeError as e:
         log.exception(e)
     else:
-        state = connect.getState()
-        if state['ConnectUser'] is None: # Manual login process
+        if server.get('AccessToken') is None: # Manual login process
             try:
-                user = connect.login()
+                user = connect.login(server)
                 log.info("User authenticated: %s" % user)
             except RuntimeError as e:
                 log.exception(e)
-        else: # Emby connect login process
-            log.info([server, state])
+        else: # emby connect
+            userid = server['UserId']
+            token = server['AccessToken']
+
 
 
         
