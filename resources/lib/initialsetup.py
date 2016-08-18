@@ -137,7 +137,7 @@ class InitialSetup():
                 answer = False
         return answer
 
-    def __getServerList(self):
+    def _getServerList(self):
         """
         Returns a list of servers from GDM and possibly plex.tv
         """
@@ -147,7 +147,7 @@ class InitialSetup():
         self.logMsg('PMS serverlist: %s' % serverlist, 2)
         return serverlist
 
-    def __checkServerCon(self, server):
+    def _checkServerCon(self, server):
         """
         Checks for server's connectivity. Returns CheckConnection result
         """
@@ -195,12 +195,12 @@ class InitialSetup():
         if not self.server or not self.serverid:
             showDialog = True
         if showDialog is True:
-            server = self.__UserPickPMS()
+            server = self._UserPickPMS()
         else:
-            server = self.__AutoPickPMS()
+            server = self._AutoPickPMS()
         return server
 
-    def __AutoPickPMS(self):
+    def _AutoPickPMS(self):
         """
         Will try to pick PMS based on machineIdentifier saved in file settings
         but only once
@@ -212,7 +212,7 @@ class InitialSetup():
         server = None
         while True:
             if httpsUpdated is False:
-                serverlist = self.__getServerList()
+                serverlist = self._getServerList()
                 for item in serverlist:
                     if item.get('machineIdentifier') == self.serverid:
                         server = item
@@ -229,7 +229,7 @@ class InitialSetup():
                                              7000,
                                              False)
                     return
-            chk = self.__checkServerCon(server)
+            chk = self._checkServerCon(server)
             if chk == 504 and httpsUpdated is False:
                 # Not able to use HTTP, try HTTPs for now
                 server['scheme'] = 'https'
@@ -261,7 +261,7 @@ class InitialSetup():
                         % server['name'], 1)
             return server
 
-    def __UserPickPMS(self):
+    def _UserPickPMS(self):
         """
         Lets user pick his/her PMS from a list
 
@@ -270,7 +270,7 @@ class InitialSetup():
         httpsUpdated = False
         while True:
             if httpsUpdated is False:
-                serverlist = self.__getServerList()
+                serverlist = self._getServerList()
                 # Exit if no servers found
                 if len(serverlist) == 0:
                     self.logMsg('No plex media servers found!', -1)
@@ -299,7 +299,7 @@ class InitialSetup():
                 resp = self.dialog.select(self.string(39012), dialoglist)
 
             server = serverlist[resp]
-            chk = self.__checkServerCon(server)
+            chk = self._checkServerCon(server)
             if chk == 504 and httpsUpdated is False:
                 # Not able to use HTTP, try HTTPs for now
                 serverlist[resp]['scheme'] = 'https'
@@ -413,17 +413,11 @@ class InitialSetup():
 
         server = self.PickPMS()
         if server is not None:
-            goToSettings = False
             # Write our chosen server to Kodi settings file
             self.WritePMStoSettings(server)
-        else:
-            goToSettings = True
 
         # User already answered the installation questions
         if utils.settings('InstallQuestionsAnswered') == 'true':
-            if goToSettings:
-                xbmc.executebuiltin(
-                    'Addon.OpenSettings(plugin.video.plexkodiconnect)')
             return
 
         # Additional settings where the user needs to choose
