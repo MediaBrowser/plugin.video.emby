@@ -40,7 +40,6 @@
 		<setting id="limitindex" type="number" label="30515" default="200" option="int" /><!-- Maximum items to request from the server at once -->
 		<setting id="enableTextureCache" label="30512"  type="bool" default="true" /> <!-- Force Artwork Caching -->
         <setting id="imageCacheLimit" type="enum" label="30513" values="Disabled|5|10|15|20|25" default="5" visible="eq(-1,true)" subsetting="true" /> <!-- Limit artwork cache threads -->
-        <setting id="xmlCacheLimit" type="slider" label="39075" default="100" option="int" range="10,10,200" visible="true"/>
 		<setting id="serverSync" type="bool" label="30514" default="true" visible="false"/><!-- Enable fast startup (requires server plugin) -->
 
 		<setting type="lsep" label="39052" /><!-- Background Sync -->
