@@ -745,6 +745,10 @@ class ConnectionManager(object):
             if result and result.get('State') == ConnectionState['SignedIn']:
                 return result
 
+        # Return loaded credentials if exists
+        credentials = self.credentialProvider.getCredentials()
+        self._ensureConnectUser(credentials)
+
         return {
             'Servers': servers,
             'State': ConnectionState['ConnectSignIn'] if (not len(servers) and not self._connectUser()) else ConnectionState['ServerSelection'],

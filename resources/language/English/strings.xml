@@ -249,6 +249,7 @@
     <string id="30615">Host</string>
     <string id="30616">Connect</string>
     <string id="30617">Server or port cannot be empty</string>
+    <string id="30618">Change Emby Connect user</string>
 
     <!-- service add-on -->
     <string id="33000">Welcome</string>
