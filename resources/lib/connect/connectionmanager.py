@@ -110,7 +110,7 @@ class ConnectionManager(object):
             servers.sort(key=lambda x: datetime.strptime(x['DateLastAccessed'], "%Y-%m-%dT%H:%M:%SZ"), reverse=True)
         except TypeError:
             servers.sort(key=lambda x: datetime(*(time.strptime(x['DateLastAccessed'], "%Y-%m-%dT%H:%M:%SZ")[0:6])), reverse=True)
-        log.info("Servers: %s" % servers)
+
         return servers[0]
 
     def _mergeServers(self, list1, list2):
