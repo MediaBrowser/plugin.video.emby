@@ -73,7 +73,8 @@ class ServerConnect(xbmcgui.WindowXMLDialog):
             self.getControl(USER_IMAGE).setImage(self.user_image)
 
         # Display emby connect login option
-        self.getControl(EMBY_CONNECT).setVisibleCondition(str(self.emby_connect))
+        if not self.emby_connect: # Change
+            self.getControl(EMBY_CONNECT).setLabel("[UPPERCASE][B]"+lang(30618)+"[/B][/UPPERCASE]")
 
         self.getControl(USER_NAME).setLabel("%s %s" % (lang(33000), self.name.decode('utf-8')))
         self.message = self.getControl(MESSAGE)
@@ -107,6 +108,7 @@ class ServerConnect(xbmcgui.WindowXMLDialog):
     def onClick(self, control):
 
         if control == EMBY_CONNECT:
+            self._connect_manager.clearData()
             self.isEmbyLogin = True
             self.close()
 

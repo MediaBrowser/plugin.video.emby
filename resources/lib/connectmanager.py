@@ -47,7 +47,7 @@ class ConnectManager(object):
         self._connect = connectionmanager.ConnectionManager("Kodi", version, deviceName, deviceId)
         self._connect.setFilePath(xbmc.translatePath(addon.getAddonInfo('profile')).decode('utf-8'))
         self.state = self._connect.connect()
-        log.info("cred: %s" %self.state)
+        log.info("Started with: %s" % self.state)
 
     def updateState(self):
 
@@ -59,12 +59,13 @@ class ConnectManager(object):
 
     def select_servers(self):
         # Will return selected server or raise error
-        user = self.state.get('ConnectUser') or {}
+        state = self._connect.connect({'enableAutoLogin': False})
+        user = state.get('ConnectUser') or {}
         kwargs = {
             'connect_manager': self._connect,
             'user_name': user.get('DisplayName',""),
             'user_image': user.get('ImageUrl'),
-            'servers': self._connect.getAvailableServers(),
+            'servers': state['Servers'],
             'emby_connect': False if user else True
         }
         dialog = serverconnect.ServerConnect("script-emby-connect-server.xml", addon.getAddonInfo('path'), "default", "1080i", **kwargs)
@@ -118,9 +119,9 @@ class ConnectManager(object):
     def login(self, server=None):
         # Return user
         server = server or self.state['Servers'][0]
-        server = connectionmanager.getServerAddress(server, server['LastConnectionMode'])
+        server_address = connectionmanager.getServerAddress(server, server['LastConnectionMode'])
 
-        users = self.emby.getUsers(server)
+        users = self.emby.getUsers(server_address)
 
         dialog = usersconnect.UsersConnect("script-emby-connect-users.xml", addon.getAddonInfo('path'), "default", "1080i")
         dialog.setUsers(users)
@@ -131,16 +132,16 @@ class ConnectManager(object):
             if user['HasPassword']:
                 log.info("User has password, present manual login")
                 try:
-                    return self.login_manual(server, user)
+                    return self.login_manual(server_address, user)
                 except RuntimeError:
-                    return self.login()
+                    return self.login(server)
             else:
-                return self.emby.loginUser(server, user['Name'])
+                return self.emby.loginUser(server_address, user['Name'])
         elif dialog.isManualConnectLogin():
             try:
-                return self.login_manual(server)
+                return self.login_manual(server_address)
             except RuntimeError: # User selected cancel
-                return self.login()
+                return self.login(server)
         else:
             raise RuntimeError("No user selected")
 
