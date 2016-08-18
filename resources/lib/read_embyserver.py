@@ -124,7 +124,7 @@ class Read_EmbyServer():
         return [viewName, viewId, mediatype]
     
     def getFilteredSection(self, parentid, itemtype=None, sortby="SortName", recursive=True,
-                        limit=None, sortorder="Ascending", filter=""):
+                        limit=None, sortorder="Ascending", filter_type=""):
         params = {
 
             'ParentId': parentid,
