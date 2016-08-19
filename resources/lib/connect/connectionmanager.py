@@ -15,9 +15,10 @@ import credentials as cred
 #################################################################################################
 
 # Disable requests logging
-from requests.packages.urllib3.exceptions import InsecureRequestWarning, InsecurePlatformWarning
+from requests.packages.urllib3.exceptions import InsecureRequestWarning, InsecurePlatformWarning, SNIMissingWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 requests.packages.urllib3.disable_warnings(InsecurePlatformWarning)
+requests.packages.urllib3.disable_warnings(SNIMissingWarning)
 
 log = logging.getLogger("EMBY."+__name__.split('.')[-1])
 
@@ -341,7 +342,6 @@ class ConnectionManager(object):
         if not credentials.get('ConnectAccessToken') or not credentials.get('ConnectUserId'):
             return servers
 
-        # TODO: Comment out once testing is over.
         url = self.getConnectUrl("servers?userId=%s" % credentials['ConnectUserId'])
         request = {
 
@@ -367,7 +367,7 @@ class ConnectionManager(object):
 
         return servers
 
-    def getAvailableServers(self):
+    def _getAvailableServers(self):
         
         log.info("Begin getAvailableServers")
 
@@ -646,6 +646,26 @@ class ConnectionManager(object):
         
         return result
 
+    def onAuthenticated(self, result, options={}):
+
+        credentials = self.credentialProvider.getCredentials()
+        for s in credentials['Servers']:
+            if s['Id'] == result['ServerId']:
+                server = s
+                break
+        else: # Server not found?
+            return
+
+        if options.get('updateDateLastAccessed') is not False:
+            server['DateLastAccessed'] = datetime.now().strftime('%Y-%m-%dT%H:%M:%SZ')
+
+        server['UserId'] = result['User']['Id']
+        server['AccessToken'] = result['AccessToken']
+
+        self.credentialProvider.addOrUpdateServer(credentials['Servers'], server)
+        self._saveUserInfoIntoCredentials(server, result['User'])
+        self.credentialProvider.getCredentials(credentials)
+
     def _onConnectUserSignIn(self, user):
 
         self.connectUser = user
@@ -722,7 +742,7 @@ class ConnectionManager(object):
 
         log.info("Begin connect")
 
-        servers = self.getAvailableServers()
+        servers = self._getAvailableServers()
         return self._connectToServers(servers, options)
 
     def _connectToServers(self, servers, options):
