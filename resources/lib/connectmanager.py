@@ -10,8 +10,8 @@ import xbmcgui
 
 import clientinfo
 import connect.connectionmanager as connectionmanager
+from dialog.serverconnect import ServerConnect
 import dialog.loginconnect as loginconnect
-import dialog.serverconnect as serverconnect
 import dialog.servermanual as servermanual
 import dialog.usersconnect as usersconnect
 import dialog.loginmanual as loginmanual
@@ -23,6 +23,8 @@ from utils import language as lang
 
 log = logging.getLogger("EMBY."+__name__)
 addon = xbmcaddon.Addon(id='plugin.video.emby')
+
+ADDON_PATH = addon.getAddonInfo('path')
 
 ##################################################################################################
 
@@ -59,23 +61,25 @@ class ConnectManager(object):
 
     def select_servers(self):
         # Will return selected server or raise error
+        dialog = ServerConnect("script-emby-connect-server.xml", ADDON_PATH, "default", "1080i")
+
         state = self._connect.connect({'enableAutoLogin': False})
         user = state.get('ConnectUser') or {}
         kwargs = {
             'connect_manager': self._connect,
-            'user_name': user.get('DisplayName',""),
+            'username': user.get('DisplayName', ""),
             'user_image': user.get('ImageUrl'),
             'servers': state['Servers'],
             'emby_connect': False if user else True
         }
-        dialog = serverconnect.ServerConnect("script-emby-connect-server.xml", addon.getAddonInfo('path'), "default", "1080i", **kwargs)
+        dialog.set_args(**kwargs)
         dialog.doModal()
 
-        if dialog.isServerSelected():
+        if dialog.is_server_selected():
             log.debug("Server selected")
-            return dialog.getServer()
+            return dialog.get_server()
 
-        elif dialog.isEmbyConnectLogin():
+        elif dialog.is_connect_login():
             log.debug("Login with Emby Connect")
             try: # Login to emby connect
                 self.login_connect()
@@ -83,7 +87,7 @@ class ConnectManager(object):
                 pass
             return self.select_servers()
 
-        elif dialog.isManualServerLogin():
+        elif dialog.is_manual_server():
             log.debug("Add manual server")
             try: # Add manual server address
                 return self.manual_server()
@@ -94,7 +98,7 @@ class ConnectManager(object):
 
     def manual_server(self):
         # Return server
-        dialog = servermanual.ServerManual("script-emby-connect-server-manual.xml", addon.getAddonInfo('path'), "default", "1080i")
+        dialog = servermanual.ServerManual("script-emby-connect-server-manual.xml", ADDON_PATH, "default", "1080i")
         dialog.setConnectManager(self._connect)
         dialog.doModal()
 
@@ -105,7 +109,7 @@ class ConnectManager(object):
 
     def login_connect(self):
         # Return connect user
-        dialog = loginconnect.LoginConnect("script-emby-connect-login.xml", addon.getAddonInfo('path'), "default", "1080i")
+        dialog = loginconnect.LoginConnect("script-emby-connect-login.xml", ADDON_PATH, "default", "1080i")
         dialog.setConnectManager(self._connect)
         dialog.doModal()
 
@@ -123,20 +127,23 @@ class ConnectManager(object):
 
         users = self.emby.getUsers(server_address)
 
-        dialog = usersconnect.UsersConnect("script-emby-connect-users.xml", addon.getAddonInfo('path'), "default", "1080i")
+        dialog = usersconnect.UsersConnect("script-emby-connect-users.xml", ADDON_PATH, "default", "1080i")
+        dialog.setServer(server_address)
         dialog.setUsers(users)
         dialog.doModal()
 
         if dialog.isUserSelected():
             user = dialog.getUser()
             if user['HasPassword']:
-                log.info("User has password, present manual login")
+                log.debug("User has password, present manual login")
                 try:
                     return self.login_manual(server_address, user)
                 except RuntimeError:
                     return self.login(server)
             else:
-                return self.emby.loginUser(server_address, user['Name'])
+                user = self.emby.loginUser(server_address, user['Name'])
+                self._connect.onAuthenticated(user)
+                return user
         elif dialog.isManualConnectLogin():
             try:
                 return self.login_manual(server_address)
@@ -147,12 +154,14 @@ class ConnectManager(object):
 
     def login_manual(self, server, user=None):
         
-        dialog = loginmanual.LoginManual("script-emby-connect-login-manual.xml", addon.getAddonInfo('path'), "default", "1080i")
+        dialog = loginmanual.LoginManual("script-emby-connect-login-manual.xml", ADDON_PATH, "default", "1080i")
         dialog.setServer(server)
         dialog.setUser(user)
         dialog.doModal()
 
         if dialog.isLoggedIn():
-            return dialog.getUser()
+            user = dialog.getUser()
+            self._connect.onAuthenticated(user)
+            return user
         else:
             raise RuntimeError("User is not authenticated")

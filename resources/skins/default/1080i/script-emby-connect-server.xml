@@ -41,17 +41,17 @@
 					<description>User image</description>
 					<texture diffuse="user_image.png">userflyoutdefault.png</texture> 
 					<aspectratio>keep</aspectratio>
-					<width>70</width>
+					<align>center</align>
+					<width>100%</width>
 					<height>70</height>
 					<top>40</top>
-					<left>40%</left>
 				</control>
 
 				<control type="image" id="204">
 					<description>Busy animation</description>
-					<left>35%</left>
+					<align>center</align>
 					<top>23</top>
-					<width>105</width>
+					<width>100%</width>
 					<height>105</height>
 					<visible>False</visible>
 					<texture colordiffuse="ff13a134">fading_circle.png</texture>
