@@ -59,7 +59,7 @@ class ServerManual(xbmcgui.WindowXMLDialog):
         self.error_msg = self.getControl(ERROR_MSG)
         self.host_field = self._add_editcontrol(725, 400, 40, 500)
         self.port_field = self._add_editcontrol(725, 525, 40, 500)
-        
+
         self.port_field.setText('8096')
         self.setFocus(self.host_field)
 
