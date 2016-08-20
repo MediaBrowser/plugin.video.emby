@@ -4,6 +4,7 @@ version 1.3.0
 - Improvements to Plex Companion daemon
 - Try reducing strain on PMS for metadata
 - Don't let PMS crash: download one item at a time
+- Don't open PKC settings if PMS not found
 - sync: dont force show "full library sync finished" (thanks @milaq)
 - fix 'raspberry pi' spelling and capitalisation (thanks @milaq)
 - Revert: New setting to lower the number of PMS items to cache
