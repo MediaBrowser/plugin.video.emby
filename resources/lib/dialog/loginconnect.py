@@ -40,20 +40,21 @@ class LoginConnect(xbmcgui.WindowXMLDialog):
 
         xbmcgui.WindowXMLDialog.__init__(self, *args, **kwargs)
 
-    def setConnectManager(self, connect_manager):
-        self._connect_manager = connect_manager
+    def set_connect_manager(self, connect_manager):
+        self.connect_manager = connect_manager
 
-    def isLoggedIn(self):
+    def is_logged_in(self):
         return True if self._user else False
 
-    def getUser(self):
+    def get_user(self):
         return self._user
 
+
     def onInit(self):
-        
-        self.user_field = self._add_editcontrol(725,385,40,500)
+
+        self.user_field = self._add_editcontrol(725, 385, 40, 500)
         self.setFocus(self.user_field)
-        self.password_field = self._add_editcontrol(725,470,40,500, password=1)
+        self.password_field = self._add_editcontrol(725, 470, 40, 500, password=1)
         self.signin_button = self.getControl(SIGN_IN)
         self.remind_button = self.getControl(CANCEL)
         self.error_toggle = self.getControl(ERROR_TOGGLE)
@@ -79,7 +80,7 @@ class LoginConnect(xbmcgui.WindowXMLDialog):
                 # Display error
                 self._error(ERROR['Empty'], lang(30608))
                 log.error("Username or password cannot be null")
-            
+
             elif self._login(user, password):
                 self.close()
 
@@ -89,24 +90,24 @@ class LoginConnect(xbmcgui.WindowXMLDialog):
 
     def onAction(self, action):
 
-        if self.error == ERROR['Empty'] and self.user_field.getText() and self.password_field.getText():
+        if (self.error == ERROR['Empty']
+                and self.user_field.getText() and self.password_field.getText()):
             self._disable_error()
 
         if action in (ACTION_BACK, ACTION_PARENT_DIR, ACTION_PREVIOUS_MENU):
             self.close()
 
     def _add_editcontrol(self, x, y, height, width, password=0):
-        
+
         media = os.path.join(addon.getAddonInfo('path'), 'resources', 'skins', 'default', 'media')
         control = xbmcgui.ControlEdit(0,0,0,0,
-                            label="User",
-                            font="font10",
-                            textColor="ff525252",
-                            focusTexture=os.path.join(media, "button-focus.png"),
-                            noFocusTexture=os.path.join(media, "button-focus.png"),
-                            isPassword=password)
-
-        control.setPosition(x,y)
+                                      label="User",
+                                      font="font10",
+                                      textColor="ff525252",
+                                      focusTexture=os.path.join(media, "button-focus.png"),
+                                      noFocusTexture=os.path.join(media, "button-focus.png"),
+                                      isPassword=password)
+        control.setPosition(x, y)
         control.setHeight(height)
         control.setWidth(width)
 
@@ -115,7 +116,7 @@ class LoginConnect(xbmcgui.WindowXMLDialog):
 
     def _login(self, username, password):
 
-        result = self._connect_manager.loginToConnect(username, password)
+        result = self.connect_manager.loginToConnect(username, password)
         if result is False:
             self._error(ERROR['Invalid'], lang(33009))
             return False

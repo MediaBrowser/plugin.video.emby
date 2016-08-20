@@ -12,7 +12,7 @@ import clientinfo
 import connect.connectionmanager as connectionmanager
 from dialog.serverconnect import ServerConnect
 from dialog.usersconnect import UsersConnect
-import dialog.loginconnect as loginconnect
+from dialog.loginconnect import LoginConnect
 import dialog.servermanual as servermanual
 import dialog.loginmanual as loginmanual
 import read_embyserver as embyserver
@@ -109,14 +109,14 @@ class ConnectManager(object):
 
     def login_connect(self):
         # Return connect user
-        dialog = loginconnect.LoginConnect("script-emby-connect-login.xml", ADDON_PATH, "default", "1080i")
-        dialog.setConnectManager(self._connect)
+        dialog = LoginConnect("script-emby-connect-login.xml", ADDON_PATH, "default", "1080i")
+        dialog.set_connect_manager(self._connect)
         dialog.doModal()
 
         self.updateState()
 
-        if dialog.isLoggedIn():
-            return dialog.getUser()
+        if dialog.is_logged_in():
+            return dialog.get_user()
         else:
             raise RuntimeError("Connect user is not logged in")
 
