@@ -87,18 +87,27 @@ class ServerConnect(xbmcgui.WindowXMLDialog):
 
         self.setFocus(self.list_)
 
+    @classmethod
+    def _add_listitem(cls, label, server_id, server_type):
+
+        item = xbmcgui.ListItem(label)
+        item.setProperty('id', server_id)
+        item.setProperty('server_type', server_type)
+
+        return item
+
     def onAction(self, action):
 
         if action in (ACTION_BACK, ACTION_PREVIOUS_MENU, ACTION_PARENT_DIR):
             self.close()
 
         if action in (ACTION_SELECT_ITEM, ACTION_MOUSE_LEFT_CLICK):
-            
+
             if self.getFocusId() == LIST:
                 server = self.list_.getSelectedItem()
                 selected_id = server.getProperty('id')
-                log.info('Server Id selected: %s' % selected_id)
-                
+                log.info('Server Id selected: %s', selected_id)
+
                 if self._connect_server(selected_id):
                     self.message_box.setVisibleCondition('False')
                     self.close()
@@ -116,14 +125,6 @@ class ServerConnect(xbmcgui.WindowXMLDialog):
 
         elif control == CANCEL:
             self.close()
-
-    def _add_listitem(self, label, server_id, server_type):
-
-        item = xbmcgui.ListItem(label)
-        item.setProperty('id', server_id)
-        item.setProperty('server_type', server_type)
-
-        return item
 
     def _connect_server(self, server_id):
 
