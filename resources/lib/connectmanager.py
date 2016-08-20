@@ -155,12 +155,12 @@ class ConnectManager(object):
     def login_manual(self, server, user=None):
         
         dialog = loginmanual.LoginManual("script-emby-connect-login-manual.xml", ADDON_PATH, "default", "1080i")
-        dialog.setServer(server)
-        dialog.setUser(user)
+        dialog.set_server(server)
+        dialog.set_user(user)
         dialog.doModal()
 
-        if dialog.isLoggedIn():
-            user = dialog.getUser()
+        if dialog.is_logged_in():
+            user = dialog.get_user()
             self._connect.onAuthenticated(user)
             return user
         else:

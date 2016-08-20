@@ -3,13 +3,11 @@
 ##################################################################################################
 
 import logging
-import hashlib
 import os
 
 import xbmcgui
 import xbmcaddon
 
-import downloadutils
 import read_embyserver as embyserver
 from utils import language as lang
 
@@ -41,32 +39,31 @@ class LoginManual(xbmcgui.WindowXMLDialog):
 
     def __init__(self, *args, **kwargs):
 
-        self.doutils = downloadutils.DownloadUtils()
         self.emby = embyserver.Read_EmbyServer()
         xbmcgui.WindowXMLDialog.__init__(self, *args, **kwargs)
 
-    def isLoggedIn(self):
+    def is_logged_in(self):
         return True if self._user else False
 
-    def setServer(self, server):
+    def set_server(self, server):
         self.server = server
 
-    def setUser(self, user):
+    def set_user(self, user):
         self.user = user or {}
 
-    def getUser(self):
+    def get_user(self):
         return self._user
 
     def onInit(self):
-        
+
         self.signin_button = self.getControl(SIGN_IN)
         self.cancel_button = self.getControl(CANCEL)
         self.error_toggle = self.getControl(ERROR_TOGGLE)
         self.error_msg = self.getControl(ERROR_MSG)
-        self.user_field = self._add_editcontrol(725,400,40,500)
-        self.password_field = self._add_editcontrol(725,475,40,500, password=1)
-        
-        if self.user.get('Name'):
+        self.user_field = self._add_editcontrol(725, 400, 40, 500)
+        self.password_field = self._add_editcontrol(725, 475, 40, 500, password=1)
+
+        if "Name" in self.user:
             self.user_field.setText(self.user['Name'])
             self.setFocus(self.password_field)
         else:
@@ -92,7 +89,7 @@ class LoginManual(xbmcgui.WindowXMLDialog):
                 # Display error
                 self._error(ERROR['Empty'], lang(30613))
                 log.error("Username cannot be null")
-            
+
             elif self._login(user, password):
                 self.close()
 
@@ -102,7 +99,7 @@ class LoginManual(xbmcgui.WindowXMLDialog):
 
     def onAction(self, action):
 
-        if self.error == ERROR['Empty'] and self.user_field.getText() and self.password_field.getText():
+        if self.error == ERROR['Empty'] and self.user_field.getText():
             self._disable_error()
 
         if action in (ACTION_BACK, ACTION_PARENT_DIR, ACTION_PREVIOUS_MENU):
@@ -111,15 +108,14 @@ class LoginManual(xbmcgui.WindowXMLDialog):
     def _add_editcontrol(self, x, y, height, width, password=0):
         
         media = os.path.join(addon.getAddonInfo('path'), 'resources', 'skins', 'default', 'media')
-        control = xbmcgui.ControlEdit(0,0,0,0,
-                            label="User",
-                            font="font10",
-                            textColor="ff525252",
-                            focusTexture=os.path.join(media, "button-focus.png"),
-                            noFocusTexture=os.path.join(media, "button-focus.png"),
-                            isPassword=password)
-
-        control.setPosition(x,y)
+        control = xbmcgui.ControlEdit(0, 0, 0, 0,
+                                      label="User",
+                                      font="font10",
+                                      textColor="ff525252",
+                                      focusTexture=os.path.join(media, "button-focus.png"),
+                                      noFocusTexture=os.path.join(media, "button-focus.png"),
+                                      isPassword=password)
+        control.setPosition(x, y)
         control.setHeight(height)
         control.setWidth(width)
 
