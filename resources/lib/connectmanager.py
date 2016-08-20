@@ -6,18 +6,15 @@ import logging
 
 import xbmc
 import xbmcaddon
-import xbmcgui
 
 import clientinfo
 import connect.connectionmanager as connectionmanager
+import read_embyserver as embyserver
 from dialog.serverconnect import ServerConnect
 from dialog.usersconnect import UsersConnect
 from dialog.loginconnect import LoginConnect
 from dialog.loginmanual import LoginManual
 from dialog.servermanual import ServerManual
-import read_embyserver as embyserver
-
-from utils import language as lang
 
 ##################################################################################################
 
@@ -39,24 +36,24 @@ class ConnectManager(object):
     def __init__(self):
 
         self.__dict__ = self._shared_state
-        clientInfo = clientinfo.ClientInfo()
+        client_info = clientinfo.ClientInfo()
         self.emby = embyserver.Read_EmbyServer()
-        
-        version = clientInfo.getVersion()
-        deviceName = clientInfo.getDeviceName()
-        deviceId = clientInfo.getDeviceId()
 
-        self._connect = connectionmanager.ConnectionManager("Kodi", version, deviceName, deviceId)
+        version = client_info.getVersion()
+        device_name = client_info.getDeviceName()
+        device_id = client_info.getDeviceId()
+
+        self._connect = connectionmanager.ConnectionManager("Kodi", version, device_name, device_id)
         self._connect.setFilePath(xbmc.translatePath(addon.getAddonInfo('profile')).decode('utf-8'))
         self.state = self._connect.connect()
-        log.info("Started with: %s" % self.state)
+        log.info("Started with: %s", self.state)
 
-    def updateState(self):
+    def update_state(self):
 
         self.state = self._connect.connect({'updateDateLastAccessed': False})
         return self.state
 
-    def getState(self):
+    def get_state(self):
         return self.state
 
     def select_servers(self):
@@ -113,7 +110,7 @@ class ConnectManager(object):
         dialog.set_connect_manager(self._connect)
         dialog.doModal()
 
-        self.updateState()
+        self.update_state()
 
         if dialog.is_logged_in():
             return dialog.get_user()
@@ -144,6 +141,7 @@ class ConnectManager(object):
                 user = self.emby.loginUser(server_address, user['Name'])
                 self._connect.onAuthenticated(user)
                 return user
+
         elif dialog.is_manual_login():
             try:
                 return self.login_manual(server_address)
@@ -153,7 +151,7 @@ class ConnectManager(object):
             raise RuntimeError("No user selected")
 
     def login_manual(self, server, user=None):
-        
+
         dialog = LoginManual("script-emby-connect-login-manual.xml", ADDON_PATH, "default", "1080i")
         dialog.set_server(server)
         dialog.set_user(user)
