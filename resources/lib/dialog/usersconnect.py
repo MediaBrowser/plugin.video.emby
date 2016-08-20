@@ -53,7 +53,7 @@ class UsersConnect(xbmcgui.WindowXMLDialog):
         self.list_ = self.getControl(LIST)
         for user in self.users:
             user_image = ("userflyoutdefault2.png" if not user.get('PrimaryImageTag')
-                        else self._get_user_artwork(user['Id'], 'Primary'))
+                          else self._get_user_artwork(user['Id'], 'Primary'))
             self.list_.addItem(self._add_listitem(user['Name'], user['Id'], user_image))
 
         self.setFocus(self.list_)
