@@ -106,7 +106,7 @@ class LoginManual(xbmcgui.WindowXMLDialog):
             self.close()
 
     def _add_editcontrol(self, x, y, height, width, password=0):
-        
+
         media = os.path.join(addon.getAddonInfo('path'), 'resources', 'skins', 'default', 'media')
         control = xbmcgui.ControlEdit(0, 0, 0, 0,
                                       label="User",

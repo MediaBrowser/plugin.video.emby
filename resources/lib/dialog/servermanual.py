@@ -3,7 +3,6 @@
 ##################################################################################################
 
 import logging
-import hashlib
 import os
 
 import xbmcgui
@@ -17,6 +16,7 @@ from utils import language as lang
 log = logging.getLogger("EMBY."+__name__)
 addon = xbmcaddon.Addon('plugin.video.emby')
 
+CONN_STATE = connectionmanager.ConnectionState
 ACTION_PARENT_DIR = 9
 ACTION_PREVIOUS_MENU = 10
 ACTION_BACK = 92
@@ -28,7 +28,6 @@ ERROR = {
     'Invalid': 1,
     'Empty': 2
 }
-ConnectionState = connectionmanager.ConnectionState
 
 ##################################################################################################
 
@@ -43,23 +42,23 @@ class ServerManual(xbmcgui.WindowXMLDialog):
 
         xbmcgui.WindowXMLDialog.__init__(self, *args, **kwargs)
 
-    def setConnectManager(self, connect_manager):
-        self._connect_manager = connect_manager
+    def set_connect_manager(self, connect_manager):
+        self.connect_manager = connect_manager
 
-    def isConnected(self):
+    def is_connected(self):
         return True if self._server else False
 
-    def getServer(self):
+    def get_server(self):
         return self._server
 
     def onInit(self):
-        
+
         self.connect_button = self.getControl(CONNECT)
         self.cancel_button = self.getControl(CANCEL)
         self.error_toggle = self.getControl(ERROR_TOGGLE)
         self.error_msg = self.getControl(ERROR_MSG)
-        self.host_field = self._add_editcontrol(725,400,40,500)
-        self.port_field = self._add_editcontrol(725,525,40,500)
+        self.host_field = self._add_editcontrol(725, 400, 40, 500)
+        self.port_field = self._add_editcontrol(725, 525, 40, 500)
         
         self.port_field.setText('8096')
         self.setFocus(self.host_field)
@@ -84,8 +83,8 @@ class ServerManual(xbmcgui.WindowXMLDialog):
                 # Display error
                 self._error(ERROR['Empty'], lang(30617))
                 log.error("Server or port cannot be null")
-            
-            elif self._connectToServer(server, port):
+
+            elif self._connect_to_server(server, port):
                 self.close()
 
         elif control == CANCEL:
@@ -101,29 +100,28 @@ class ServerManual(xbmcgui.WindowXMLDialog):
             self.close()
 
     def _add_editcontrol(self, x, y, height, width):
-        
-        media = os.path.join(addon.getAddonInfo('path'), 'resources', 'skins', 'default', 'media')
-        control = xbmcgui.ControlEdit(0,0,0,0,
-                            label="User",
-                            font="font10",
-                            textColor="ffc2c2c2",
-                            focusTexture=os.path.join(media, "button-focus.png"),
-                            noFocusTexture=os.path.join(media, "button-focus.png"))
 
-        control.setPosition(x,y)
+        media = os.path.join(addon.getAddonInfo('path'), 'resources', 'skins', 'default', 'media')
+        control = xbmcgui.ControlEdit(0, 0, 0, 0,
+                                      label="User",
+                                      font="font10",
+                                      textColor="ffc2c2c2",
+                                      focusTexture=os.path.join(media, "button-focus.png"),
+                                      noFocusTexture=os.path.join(media, "button-focus.png"))
+        control.setPosition(x, y)
         control.setHeight(height)
         control.setWidth(width)
 
         self.addControl(control)
         return control
 
-    def _connectToServer(self, server, port):
-        
+    def _connect_to_server(self, server, port):
+
         server_address = "%s:%s" % (server, port)
         self._message("%s %s..." % (lang(30610), server_address))
-        result = self._connect_manager.connectToAddress(server_address)
-        
-        if result.get('State') == ConnectionState['Unavailable']:
+        result = self.connect_manager.connectToAddress(server_address)
+
+        if result['State'] == CONN_STATE['Unavailable']:
             self._message(lang(30609))
             return False
         else:

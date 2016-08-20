@@ -13,8 +13,8 @@ import connect.connectionmanager as connectionmanager
 from dialog.serverconnect import ServerConnect
 from dialog.usersconnect import UsersConnect
 from dialog.loginconnect import LoginConnect
-import dialog.servermanual as servermanual
-import dialog.loginmanual as loginmanual
+from dialog.loginmanual import LoginManual
+from dialog.servermanual import ServerManual
 import read_embyserver as embyserver
 
 from utils import language as lang
@@ -98,12 +98,12 @@ class ConnectManager(object):
 
     def manual_server(self):
         # Return server
-        dialog = servermanual.ServerManual("script-emby-connect-server-manual.xml", ADDON_PATH, "default", "1080i")
-        dialog.setConnectManager(self._connect)
+        dialog = ServerManual("script-emby-connect-server-manual.xml", ADDON_PATH, "default", "1080i")
+        dialog.set_connect_manager(self._connect)
         dialog.doModal()
 
-        if dialog.isConnected():
-            return dialog.getServer()
+        if dialog.is_connected():
+            return dialog.get_server()
         else:
             raise RuntimeError("Server is not connected")
 
@@ -154,7 +154,7 @@ class ConnectManager(object):
 
     def login_manual(self, server, user=None):
         
-        dialog = loginmanual.LoginManual("script-emby-connect-login-manual.xml", ADDON_PATH, "default", "1080i")
+        dialog = LoginManual("script-emby-connect-login-manual.xml", ADDON_PATH, "default", "1080i")
         dialog.set_server(server)
         dialog.set_user(user)
         dialog.doModal()
