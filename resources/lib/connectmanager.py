@@ -11,9 +11,9 @@ import xbmcgui
 import clientinfo
 import connect.connectionmanager as connectionmanager
 from dialog.serverconnect import ServerConnect
+from dialog.usersconnect import UsersConnect
 import dialog.loginconnect as loginconnect
 import dialog.servermanual as servermanual
-import dialog.usersconnect as usersconnect
 import dialog.loginmanual as loginmanual
 import read_embyserver as embyserver
 
@@ -127,13 +127,13 @@ class ConnectManager(object):
 
         users = self.emby.getUsers(server_address)
 
-        dialog = usersconnect.UsersConnect("script-emby-connect-users.xml", ADDON_PATH, "default", "1080i")
-        dialog.setServer(server_address)
-        dialog.setUsers(users)
+        dialog = UsersConnect("script-emby-connect-users.xml", ADDON_PATH, "default", "1080i")
+        dialog.set_server(server_address)
+        dialog.set_users(users)
         dialog.doModal()
 
-        if dialog.isUserSelected():
-            user = dialog.getUser()
+        if dialog.is_user_selected():
+            user = dialog.get_user()
             if user['HasPassword']:
                 log.debug("User has password, present manual login")
                 try:
@@ -144,7 +144,7 @@ class ConnectManager(object):
                 user = self.emby.loginUser(server_address, user['Name'])
                 self._connect.onAuthenticated(user)
                 return user
-        elif dialog.isManualConnectLogin():
+        elif dialog.is_manual_login():
             try:
                 return self.login_manual(server_address)
             except RuntimeError: # User selected cancel
