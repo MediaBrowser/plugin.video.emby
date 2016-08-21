@@ -9,7 +9,7 @@ import xbmcaddon
 
 import clientinfo
 import read_embyserver as embyserver
-from connect.connectionmanager import ConnectionManager
+import connect.connectionmanager as connectionmanager
 from dialog import ServerConnect
 from dialog import UsersConnect
 from dialog import LoginConnect
@@ -39,7 +39,7 @@ class ConnectManager(object):
         device_name = client_info.getDeviceName()
         device_id = client_info.getDeviceId()
 
-        self._connect = ConnectionManager("Kodi", version, device_name, device_id)
+        self._connect = connectionmanager.ConnectionManager("Kodi", version, device_name, device_id)
         self._connect.setFilePath(xbmc.translatePath(addon.getAddonInfo('profile')).decode('utf-8'))
         self.state = self._connect.connect()
         log.info("Started with: %s", self.state)
