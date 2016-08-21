@@ -21,7 +21,7 @@ from dialog.servermanual import ServerManual
 log = logging.getLogger("EMBY."+__name__)
 addon = xbmcaddon.Addon(id='plugin.video.emby')
 
-ADDON_PATH = addon.getAddonInfo('path')
+XML_PATH = (addon.getAddonInfo('path'), "default", "1080i")
 
 ##################################################################################################
 
@@ -58,7 +58,7 @@ class ConnectManager(object):
 
     def select_servers(self):
         # Will return selected server or raise error
-        dialog = ServerConnect("script-emby-connect-server.xml", ADDON_PATH, "default", "1080i")
+        dialog = ServerConnect("script-emby-connect-server.xml", *XML_PATH)
 
         state = self._connect.connect({'enableAutoLogin': False})
         user = state.get('ConnectUser') or {}
@@ -95,7 +95,7 @@ class ConnectManager(object):
 
     def manual_server(self):
         # Return server
-        dialog = ServerManual("script-emby-connect-server-manual.xml", ADDON_PATH, "default", "1080i")
+        dialog = ServerManual("script-emby-connect-server-manual.xml", *XML_PATH)
         dialog.set_connect_manager(self._connect)
         dialog.doModal()
 
@@ -106,7 +106,7 @@ class ConnectManager(object):
 
     def login_connect(self):
         # Return connect user
-        dialog = LoginConnect("script-emby-connect-login.xml", ADDON_PATH, "default", "1080i")
+        dialog = LoginConnect("script-emby-connect-login.xml", *XML_PATH)
         dialog.set_connect_manager(self._connect)
         dialog.doModal()
 
@@ -121,10 +121,9 @@ class ConnectManager(object):
         # Return user
         server = server or self.state['Servers'][0]
         server_address = connectionmanager.getServerAddress(server, server['LastConnectionMode'])
-
         users = self.emby.getUsers(server_address)
 
-        dialog = UsersConnect("script-emby-connect-users.xml", ADDON_PATH, "default", "1080i")
+        dialog = UsersConnect("script-emby-connect-users.xml", *XML_PATH)
         dialog.set_server(server_address)
         dialog.set_users(users)
         dialog.doModal()
@@ -152,7 +151,7 @@ class ConnectManager(object):
 
     def login_manual(self, server, user=None):
 
-        dialog = LoginManual("script-emby-connect-login-manual.xml", ADDON_PATH, "default", "1080i")
+        dialog = LoginManual("script-emby-connect-login-manual.xml", *XML_PATH)
         dialog.set_server(server)
         dialog.set_user(user)
         dialog.doModal()
