@@ -118,72 +118,12 @@ def doMainListing():
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
 def emby_connect():
-    
-    # Login user to emby connect - this will be used for identification only.
-    addon = xbmcaddon.Addon(id='plugin.video.emby')
+    # Login user to emby connect
     connect = connectmanager.ConnectManager()
-    doutils = downloadutils.DownloadUtils()
-
-    '''try:
-        user = connect.login_connect()
-    except Exception:
-        pass
-    else: # User selected
-        pass # Decide what to do once plugged into user client'''
-
     try:
-        server = connect.select_servers()
-        log.info("Server: %s" % server)
-    except RuntimeError as e:
-        log.exception(e)
-    else:
-        if server.get('AccessToken') is None: # Manual login process
-            try:
-                user = connect.login(server)
-                log.info("User authenticated: %s" % user)
-            except RuntimeError as e:
-                log.exception(e)
-        else: # emby connect
-            userid = server['UserId']
-            token = server['AccessToken']
-
-
-
-        
-    return 
-    if result.get('State') == state['ServerSignIn']: # Manual sign in or offer emby connect sign in
-        log.info("Manual login")
+        connect.login_connect()
+    except RuntimeError:
         pass
-
-    if result.get('State') == state['SignedIn']:
-        log.info("Logged in: %s" % result)
-
-
-    elif result.get('State') == state['ConnectSignIn']: # Sign in
-
-        result = CONNECT.login()
-        log.info(CONNECT.state)
-
-
-    result = CONNECT.select_servers()
-    return 
-    if CONNECT.state.get('State') == state['ServerSelection']: # Server selection
-
-        log.info("Connect server selection")
-        result = CONNECT.select_servers()
-        log.info(result)
-        '''server = serverconnect.ServerConnect("script-emby-connect-server.xml", addon.getAddonInfo('path'), "default", "1080i")
-        server.set_name(user['DisplayName'])
-        server.set_image(user['ImageUrl'])
-        server.set_servers(result['Servers'])
-
-        server.doModal()
-        selected_server = server.selected_id
-        del server
-
-        if selected_server:
-            serverm = connectm.getServerInfo(selected_server)
-            test = connectm.connectToServer(serverm)'''
 
 ##### Generate a new deviceId
 def resetDeviceId():
