@@ -8,8 +8,8 @@ import xbmc
 import xbmcaddon
 
 import clientinfo
-import connect.connectionmanager as connectionmanager
 import read_embyserver as embyserver
+from connect.connectionmanager import ConnectionManager
 from dialog.serverconnect import ServerConnect
 from dialog.usersconnect import UsersConnect
 from dialog.loginconnect import LoginConnect
@@ -25,17 +25,13 @@ XML_PATH = (addon.getAddonInfo('path'), "default", "1080i")
 
 ##################################################################################################
 
-
 class ConnectManager(object):
 
-    # Borg - multiple instances, shared state
-    _shared_state = {}
     state = {}
 
 
     def __init__(self):
 
-        self.__dict__ = self._shared_state
         client_info = clientinfo.ClientInfo()
         self.emby = embyserver.Read_EmbyServer()
 
@@ -43,10 +39,11 @@ class ConnectManager(object):
         device_name = client_info.getDeviceName()
         device_id = client_info.getDeviceId()
 
-        self._connect = connectionmanager.ConnectionManager("Kodi", version, device_name, device_id)
+        self._connect = ConnectionManager("Kodi", version, device_name, device_id)
         self._connect.setFilePath(xbmc.translatePath(addon.getAddonInfo('profile')).decode('utf-8'))
         self.state = self._connect.connect()
         log.info("Started with: %s", self.state)
+
 
     def update_state(self):
 
@@ -58,10 +55,10 @@ class ConnectManager(object):
 
     def select_servers(self):
         # Will return selected server or raise error
-        dialog = ServerConnect("script-emby-connect-server.xml", *XML_PATH)
-
         state = self._connect.connect({'enableAutoLogin': False})
         user = state.get('ConnectUser') or {}
+
+        dialog = ServerConnect("script-emby-connect-server.xml", *XML_PATH)
         kwargs = {
             'connect_manager': self._connect,
             'username': user.get('DisplayName', ""),
@@ -94,7 +91,7 @@ class ConnectManager(object):
             raise RuntimeError("No server selected")
 
     def manual_server(self):
-        # Return server
+        # Return server or raise error
         dialog = ServerManual("script-emby-connect-server-manual.xml", *XML_PATH)
         dialog.set_connect_manager(self._connect)
         dialog.doModal()
@@ -105,7 +102,7 @@ class ConnectManager(object):
             raise RuntimeError("Server is not connected")
 
     def login_connect(self):
-        # Return connect user
+        # Return connect user or raise error
         dialog = LoginConnect("script-emby-connect-login.xml", *XML_PATH)
         dialog.set_connect_manager(self._connect)
         dialog.doModal()
@@ -118,7 +115,7 @@ class ConnectManager(object):
             raise RuntimeError("Connect user is not logged in")
 
     def login(self, server=None):
-        # Return user
+        # Return user or raise error
         server = server or self.state['Servers'][0]
         server_address = connectionmanager.getServerAddress(server, server['LastConnectionMode'])
         users = self.emby.getUsers(server_address)
@@ -144,13 +141,13 @@ class ConnectManager(object):
         elif dialog.is_manual_login():
             try:
                 return self.login_manual(server_address)
-            except RuntimeError: # User selected cancel
+            except RuntimeError:
                 return self.login(server)
         else:
             raise RuntimeError("No user selected")
 
     def login_manual(self, server, user=None):
-
+        # Return manual login user authenticated or raise error
         dialog = LoginManual("script-emby-connect-login-manual.xml", *XML_PATH)
         dialog.set_server(server)
         dialog.set_user(user)
