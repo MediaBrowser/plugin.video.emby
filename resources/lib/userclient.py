@@ -82,13 +82,13 @@ class UserClient(threading.Thread):
 
         username = self.getUsername()
         w_userId = window('emby_currUser')
-        s_userId = settings('userId%s' % username)
+        s_userId = settings('userId')
 
         # Verify the window property
         if w_userId:
             if not s_userId:
                 # Save access token if it's missing from settings
-                settings('userId%s' % username, value=w_userId)
+                settings('userId', value=w_userId)
             log.debug("Returning userId from WINDOW for username: %s UserId: %s"
                 % (username, w_userId))
             return w_userId
@@ -279,7 +279,7 @@ class UserClient(threading.Thread):
         addondir = xbmc.translatePath(self.addon.getAddonInfo('profile')).decode('utf-8')
         hasSettings = xbmcvfs.exists("%ssettings.xml" % addondir)
 
-        username = self.getUsername()
+        user_id = self.getUserId()
         server = self.getServer()
 
         # If there's no settings.xml
@@ -288,7 +288,7 @@ class UserClient(threading.Thread):
             self.auth = False
             return
         # If no user information
-        elif not server or not username:
+        elif not server or not user_id:
             log.info("Missing server information.")
             self.auth = False
             return

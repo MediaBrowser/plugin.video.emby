@@ -114,7 +114,8 @@ class InitialSetup(object):
                     log.info("User opted to direct stream music.")
                     settings('streamMusic', value="true")
 
-    def _set_server(self, server):
+    @classmethod
+    def _set_server(cls, server):
 
         server_address = connectionmanager.getServerAddress(server, server['LastConnectionMode'])
         prefix, ip, port = server_address.replace("/", "").split(':')
@@ -126,3 +127,10 @@ class InitialSetup(object):
             settings('https', value="true")
 
         log.info("Saved server information: %s", server_address)
+
+    @classmethod
+    def _set_user(cls, username, user_id, token):
+
+        settings('username', value=username)
+        settings('userId', value=user_id)
+        settings('token', value=token)
