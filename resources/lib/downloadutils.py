@@ -2,12 +2,13 @@
 
 ###############################################################################
 
+import logging
 import requests
 import xml.etree.ElementTree as etree
 
 import xbmcgui
 
-from utils import logging, settings, window
+from utils import settings, window
 import clientinfo
 
 ###############################################################################
@@ -16,10 +17,11 @@ import clientinfo
 import requests.packages.urllib3
 requests.packages.urllib3.disable_warnings()
 
+log = logging.getLogger("PLEX."+__name__)
+
 ###############################################################################
 
 
-@logging
 class DownloadUtils():
     """
     Manages any up/downloads with PKC. Careful to initiate correctly
@@ -45,21 +47,21 @@ class DownloadUtils():
         Reserved for userclient only
         """
         self.username = username
-        self.logMsg("Set username: %s" % username, 0)
+        log.debug("Set username: %s" % username)
 
     def setUserId(self, userId):
         """
         Reserved for userclient only
         """
         self.userId = userId
-        self.logMsg("Set userId: %s" % userId, 0)
+        log.debug("Set userId: %s" % userId)
 
     def setServer(self, server):
         """
         Reserved for userclient only
         """
         self.server = server
-        self.logMsg("Set server: %s" % server, 0)
+        log.debug("Set server: %s" % server)
 
     def setToken(self, token):
         """
@@ -67,9 +69,9 @@ class DownloadUtils():
         """
         self.token = token
         if token == '':
-            self.logMsg('Set token: empty token!', 0)
+            log.debug('Set token: empty token!')
         else:
-            self.logMsg("Set token: xxxxxxx", 0)
+            log.debug("Set token: xxxxxxx")
 
     def setSSL(self, verifySSL=None, certificate=None):
         """
@@ -83,8 +85,8 @@ class DownloadUtils():
             verifySSL = settings('sslverify')
         if certificate is None:
             certificate = settings('sslcert')
-        self.logMsg("Verify SSL certificates set to: %s" % verifySSL, 0)
-        self.logMsg("SSL client side certificate set to: %s" % certificate, 0)
+        log.debug("Verify SSL certificates set to: %s" % verifySSL)
+        log.debug("SSL client side certificate set to: %s" % certificate)
         if verifySSL != 'true':
             self.s.verify = False
         if certificate != 'None':
@@ -123,18 +125,18 @@ class DownloadUtils():
         self.s.mount("http://", requests.adapters.HTTPAdapter(max_retries=1))
         self.s.mount("https://", requests.adapters.HTTPAdapter(max_retries=1))
 
-        self.logMsg("Requests session started on: %s" % self.server, 0)
+        log.info("Requests session started on: %s" % self.server)
 
     def stopSession(self):
         try:
             self.s.close()
         except:
-            self.logMsg("Requests session already closed", 0)
+            log.info("Requests session already closed")
         try:
             del self.s
         except:
             pass
-        self.logMsg('Request session stopped', 0)
+        log.info('Request session stopped')
 
     def getHeader(self, options=None):
         header = clientinfo.ClientInfo().getXArgsDeviceInfo()
@@ -142,7 +144,7 @@ class DownloadUtils():
             header.update(options)
         return header
 
-    def __doDownload(self, s, action_type, **kwargs):
+    def _doDownload(self, s, action_type, **kwargs):
         if action_type == "GET":
             r = s.get(**kwargs)
         elif action_type == "POST":
@@ -178,7 +180,7 @@ class DownloadUtils():
             try:
                 s = self.s
             except AttributeError:
-                self.logMsg("Request session does not exist: start one", 0)
+                log.info("Request session does not exist: start one")
                 self.startSession()
                 s = self.s
             # Replace for the real values
@@ -207,42 +209,42 @@ class DownloadUtils():
 
         # ACTUAL DOWNLOAD HAPPENING HERE
         try:
-            r = self.__doDownload(s, action_type, **kwargs)
+            r = self._doDownload(s, action_type, **kwargs)
 
         # THE EXCEPTIONS
         except requests.exceptions.ConnectionError as e:
             # Connection error
-            self.logMsg("Server unreachable at: %s" % url, -1)
-            self.logMsg(e, 1)
+            log.warn("Server unreachable at: %s" % url)
+            log.warn(e)
 
         except requests.exceptions.ConnectTimeout as e:
-            self.logMsg("Server timeout at: %s" % url, -1)
-            self.logMsg(e, 1)
+            log.warn("Server timeout at: %s" % url)
+            log.warn(e)
 
         except requests.exceptions.HTTPError as e:
-            self.logMsg('HTTP Error at %s' % url, -1)
-            self.logMsg(e, 1)
+            log.warn('HTTP Error at %s' % url)
+            log.warn(e)
 
         except requests.exceptions.SSLError as e:
-            self.logMsg("Invalid SSL certificate for: %s" % url, -1)
-            self.logMsg(e, 1)
+            log.warn("Invalid SSL certificate for: %s" % url)
+            log.warn(e)
 
         except requests.exceptions.TooManyRedirects as e:
-            self.logMsg("Too many redirects connecting to: %s" % url, -1)
-            self.logMsg(e, 1)
+            log.warn("Too many redirects connecting to: %s" % url)
+            log.warn(e)
 
         except requests.exceptions.RequestException as e:
-            self.logMsg("Unknown error connecting to: %s" % url, -1)
-            self.logMsg(e, 1)
+            log.warn("Unknown error connecting to: %s" % url)
+            log.warn(e)
 
         except SystemExit:
-            self.logMsg('SystemExit detected, aborting download', 0)
+            log.info('SystemExit detected, aborting download')
             self.stopSession()
 
         except:
-            self.logMsg('Unknown error while downloading. Traceback:', -1)
+            log.warn('Unknown error while downloading. Traceback:')
             import traceback
-            self.logMsg(traceback.format_exc(), 0)
+            log.warn(traceback.format_exc())
 
         # THE RESPONSE #####
         else:
@@ -264,20 +266,20 @@ class DownloadUtils():
                     # Called when checking a connect - no need for rash action
                     return 401
                 r.encoding = 'utf-8'
-                self.logMsg('HTTP error 401 from PMS %s' % url, -1)
-                self.logMsg(r.text, 1)
+                log.warn('HTTP error 401 from PMS %s' % url)
+                log.info(r.text)
                 if '401 Unauthorized' in r.text:
                     # Truly unauthorized
                     window('countUnauthorized',
                            value=str(int(window('countUnauthorized')) + 1))
                     if (int(window('countUnauthorized')) >=
                             self.unauthorizedAttempts):
-                        self.logMsg('We seem to be truly unauthorized for PMS'
-                                    ' %s ' % url, -1)
+                        log.warn('We seem to be truly unauthorized for PMS'
+                                 ' %s ' % url)
                         if window('plex_serverStatus') not in ('401', 'Auth'):
                             # Tell userclient token has been revoked.
-                            self.logMsg('Setting PMS server status to '
-                                        'unauthorized', 0)
+                            log.debug('Setting PMS server status to '
+                                      'unauthorized')
                             window('plex_serverStatus', value="401")
                             xbmcgui.Dialog().notification(
                                 self.addonName,
@@ -285,7 +287,7 @@ class DownloadUtils():
                                 xbmcgui.NOTIFICATION_ERROR)
                 else:
                     # there might be other 401 where e.g. PMS under strain
-                    self.logMsg('PMS might only be under strain', 0)
+                    log.info('PMS might only be under strain')
                 return 401
 
             elif r.status_code in (200, 201):
@@ -310,18 +312,17 @@ class DownloadUtils():
                             # update
                             pass
                         else:
-                            self.logMsg("Unable to convert the response for: "
-                                        "%s" % url, -1)
-                            self.logMsg("Received headers were: %s"
-                                        % r.headers, -1)
-                            self.logMsg('Received text:', -1)
-                            self.logMsg(r.text, -1)
+                            log.error("Unable to convert the response for: "
+                                      "%s" % url)
+                            log.info("Received headers were: %s" % r.headers)
+                            log.info('Received text:')
+                            log.info(r.text)
                         return True
             else:
-                self.logMsg('Unknown answer from PMS %s with status code %s. '
-                            'Message:' % (url, r.status_code), -1)
+                log.error('Unknown answer from PMS %s with status code %s. '
+                          'Message:' % (url, r.status_code))
                 r.encoding = 'utf-8'
-                self.logMsg(r.text, 1)
+                log.info(r.text)
                 return True
 
         # And now deal with the consequences of the exceptions
@@ -331,8 +332,8 @@ class DownloadUtils():
                 window('countError',
                        value=str(int(window('countError')) + 1))
                 if int(window('countError')) >= self.connectionAttempts:
-                    self.logMsg('Failed to connect to %s too many times. '
-                                'Declare PMS dead' % url, -1)
+                    log.warn('Failed to connect to %s too many times. '
+                             'Declare PMS dead' % url)
                     window('plex_online', value="false")
             except:
                 # 'countError' not yet set
