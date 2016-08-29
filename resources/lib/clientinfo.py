@@ -3,18 +3,20 @@
 ###############################################################################
 
 import logging
-import os
 from uuid import uuid4
 
 import xbmc
 import xbmcaddon
 
-from utils import logging, window, settings, tryDecode
+from utils import window, settings, tryDecode
+
+###############################################################################
+
+log = logging.getLogger("PLEX."+__name__)
 
 ###############################################################################
 
 
-@logging
 class ClientInfo():
 
     def __init__(self):
@@ -114,13 +116,12 @@ class ClientInfo():
         # Because Kodi appears to cache file settings!!
         if clientId != "" and reset is False:
             window('plex_client_Id', value=clientId)
-            self.logMsg("Unique device Id plex_client_Id loaded: %s"
-                        % clientId, 1)
+            log.warn("Unique device Id plex_client_Id loaded: %s" % clientId)
             return clientId
 
-        self.logMsg("Generating a new deviceid.", 0)
+        log.warn("Generating a new deviceid.")
         clientId = str(uuid4())
         settings('plex_client_Id', value=clientId)
         window('plex_client_Id', value=clientId)
-        self.logMsg("Unique device Id plex_client_Id loaded: %s" % clientId, 1)
+        log.warn("Unique device Id plex_client_Id loaded: %s" % clientId)
         return clientId
