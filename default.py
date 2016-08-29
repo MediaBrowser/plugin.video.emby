@@ -33,7 +33,6 @@ sys.path.append(_base_resource)
 
 import entrypoint
 import utils
-from utils import window, language as lang
 
 ###############################################################################
 
