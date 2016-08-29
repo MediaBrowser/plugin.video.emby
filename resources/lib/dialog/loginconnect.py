@@ -9,7 +9,7 @@ import xbmcaddon
 
 ##################################################################################################
 
-addon = xbmcaddon.Addon('plugin.video.emby')
+addon = xbmcaddon.Addon('plugin.video.plexkodiconnect')
 
 ACTION_BACK = 92
 SIGN_IN = 200
