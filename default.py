@@ -12,26 +12,22 @@ import xbmcaddon
 import xbmcgui
 
 
-_addon = xbmcaddon.Addon(id='plugin.video.emby')
-_addon_path = _addon.getAddonInfo('path').decode('utf-8')
-_base_resource = xbmc.translatePath(os.path.join(_addon_path, 'resources', 'lib')).decode('utf-8')
-sys.path.append(_base_resource)
-
 _addon = xbmcaddon.Addon(id='plugin.video.plexkodiconnect')
 try:
-    addon_path = _addon.getAddonInfo('path').decode('utf-8')
+    _addon_path = _addon.getAddonInfo('path').decode('utf-8')
 except TypeError:
-    addon_path = _addon.getAddonInfo('path').decode()
+    _addon_path = _addon.getAddonInfo('path').decode()
 try:
-    base_resource = xbmc.translatePath(os.path.join(
-        addon_path,
+    _base_resource = xbmc.translatePath(os.path.join(
+        _addon_path,
         'resources',
         'lib')).decode('utf-8')
 except TypeError:
-    base_resource = xbmc.translatePath(os.path.join(
-        addon_path,
+    _base_resource = xbmc.translatePath(os.path.join(
+        _addon_path,
         'resources',
         'lib')).decode()
+sys.path.append(_base_resource)
 
 ###############################################################################
 
@@ -44,9 +40,9 @@ from utils import window, language as lang
 import loghandler
 
 loghandler.config()
-log = logging.getLogger("EMBY.default")
+log = logging.getLogger("PLEX.default")
 
-#################################################################################################
+###############################################################################
 
 
 class Main():
@@ -55,10 +51,9 @@ class Main():
     #@utils.profiling()
     def __init__(self):
         # Parse parameters
-        xbmc.log("PlexKodiConnect - Full sys.argv received: %s" % sys.argv)
+        log.warn("Full sys.argv received: %s" % sys.argv)
         base_url = sys.argv[0]
         params = urlparse.parse_qs(sys.argv[2][1:])
-        log.warn("Parameter string: %s" % sys.argv[2])
         try:
             mode = params['mode'][0]
             itemid = params.get('id', '')
@@ -104,7 +99,7 @@ class Main():
             plexpath = sys.argv[2][1:]
             plexid = params.get('id', [""])[0]
             entrypoint.getExtraFanArt(plexid, plexpath)
-            entrypoint.getVideoFiles(embyid, embypath)
+            entrypoint.getVideoFiles(plexid, plexpath)
             return
 
         # Called by e.g. 3rd party plugin video extras
@@ -163,16 +158,15 @@ class Main():
                         "PlexKodiConnect",
                         "Unable to run the sync, the add-on is not connected "
                         "to a Plex server.")
-                    utils.logMsg("PLEX",
-                                 "Not connected to a PMS.", -1)
+                    log.error("Not connected to a PMS.")
                     return
                     
                 else:
                     if mode == 'repair':
                         utils.window('plex_runLibScan', value="repair")
-                        utils.logMsg("PLEX", "Requesting repair lib sync", 1)
+                        log.warn("Requesting repair lib sync")
                     elif mode == 'manualsync':
-                        utils.logMsg("PLEX", "Requesting full library scan", 1)
+                        log.warn("Requesting full library scan")
                         utils.window('plex_runLibScan', value="full")
                     
             elif mode == "texturecache":
@@ -182,32 +176,7 @@ class Main():
             else:
                 entrypoint.doMainListing()
 
-                      
-if ( __name__ == "__main__" ):
-    xbmc.log('plugin.video.plexkodiconnect started')
-
-    if enableProfiling:
-        import cProfile
-        import pstats
-        import random
-        from time import gmtime, strftime
-        addonid      = utils.tryDecode(addon_.getAddonInfo('id'))
-        datapath     = os.path.join(utils.tryDecode(xbmc.translatePath( "special://profile/" )), "addon_data", addonid )
-        
-        filename = os.path.join( datapath, strftime( "%Y%m%d%H%M%S",gmtime() ) + "-" + str( random.randrange(0,100000) ) + ".log" )
-        cProfile.run( 'Main()', filename )
-        
-        stream = open( filename + ".txt", 'w')
-        p = pstats.Stats( filename, stream = stream )
-        p.sort_stats( "cumulative" )
-        p.print_stats()
-    
-    else:
-        Main()
-    
-    xbmc.log('plugin.video.plexkodiconnect stopped')
-           
 if __name__ == "__main__":
-    log.info('plugin.video.emby started')
+    log.info('plugin.video.plexkodiconnect started')
     Main()
-    log.info('plugin.video.emby stopped')
+    log.info('plugin.video.plexkodiconnect stopped')
