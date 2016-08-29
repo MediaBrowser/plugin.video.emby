@@ -2,13 +2,12 @@
 
 ###############################################################################
 
-from utils import logging, kodiSQL
+from utils import kodiSQL
 import logging
-from sqlite3 import OperationalError
 
-##################################################################################################
+###############################################################################
 
-log = logging.getLogger("EMBY."+__name__)
+log = logging.getLogger("PLEX."+__name__)
 
 ###############################################################################
 
@@ -31,7 +30,6 @@ class GetEmbyDB():
         self.embyconn.close()
 
 
-@logging
 class Embydb_Functions():
 
     def __init__(self, embycursor):
