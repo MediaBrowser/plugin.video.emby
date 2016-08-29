@@ -12,7 +12,7 @@ from utils import window
 
 def config():
 
-    logger = logging.getLogger('EMBY')
+    logger = logging.getLogger('PLEX')
     logger.addHandler(LogHandler())
     logger.setLevel(logging.DEBUG)
 
@@ -42,7 +42,7 @@ class LogHandler(logging.StreamHandler):
             logging.DEBUG: 2
         }
         try:
-            log_level = int(window('emby_logLevel'))
+            log_level = int(window('plex_logLevel'))
         except ValueError:
             log_level = 0
 
