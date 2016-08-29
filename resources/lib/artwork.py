@@ -15,19 +15,18 @@ import xbmcvfs
 
 import image_cache_thread
 from utils import window, settings, language as lang, kodiSQL
+from utils import tryEncode, tryDecode, IfExists
 
 # Disable annoying requests warnings
 import requests.packages.urllib3
 requests.packages.urllib3.disable_warnings()
-##################################################################################################
+###############################################################################
 
-log = logging.getLogger("EMBY."+__name__)
+log = logging.getLogger("PLEX."+__name__)
 
 ###############################################################################
-##################################################################################################
 
 
-@utils.logging
 class Artwork():
     xbmc_host = 'localhost'
     xbmc_port = None
@@ -48,8 +47,8 @@ class Artwork():
         if not self.xbmc_port and self.enableTextureCache:
             self.setKodiWebServerDetails()
 
-        self.userId = utils.window('currUserId')
-        self.server = utils.window('pms_server')
+        self.userId = window('currUserId')
+        self.server = window('pms_server')
 
     def double_urlencode(self, text):
         text = self.single_urlencode(text)
@@ -59,10 +58,10 @@ class Artwork():
 
     def single_urlencode(self, text):
 
-        text = urllib.urlencode({'blahblahblah': utils.tryEncode(text)}) #urlencode needs a utf- string
+        text = urllib.urlencode({'blahblahblah': tryEncode(text)}) #urlencode needs a utf- string
         text = text[13:]
 
-        return utils.tryDecode(text) #return the result again as unicode
+        return tryDecode(text) #return the result again as unicode
 
     def setKodiWebServerDetails(self):
         # Get the Kodi webserver details - used to set the texture cache
@@ -178,27 +177,27 @@ class Artwork():
 
         log.info("Doing Image Cache Sync")
 
-        dialog = xbmcgui.DialogProgress()
-        dialog.create("PlexKodiConnect", "Image Cache Sync")
+        pdialog = xbmcgui.DialogProgress()
+        pdialog.create("PlexKodiConnect", "Image Cache Sync")
 
         # ask to rest all existing or not
         if xbmcgui.Dialog().yesno(
                 "Image Texture Cache", string(39251), ""):
-            self.logMsg("Resetting all cache data first", 1)
+            log.info("Resetting all cache data first")
             # Remove all existing textures first
-            path = utils.tryDecode(xbmc.translatePath("special://thumbnails/"))
-            if utils.IfExists(path):
+            path = tryDecode(xbmc.translatePath("special://thumbnails/"))
+            if IfExists(path):
                 allDirs, allFiles = xbmcvfs.listdir(path)
                 for dir in allDirs:
                     allDirs, allFiles = xbmcvfs.listdir(path+dir)
                     for file in allFiles:
                         if os.path.supports_unicode_filenames:
                             xbmcvfs.delete(os.path.join(
-                                path + utils.tryDecode(dir),
-                                utils.tryDecode(file)))
+                                path + tryDecode(dir),
+                                tryDecode(file)))
                         else:
                             xbmcvfs.delete(os.path.join(
-                                utils.tryEncode(path) + dir,
+                                tryEncode(path) + dir,
                                 file))
 
             # remove all existing data from texture DB
@@ -292,8 +291,6 @@ class Artwork():
     def cacheTexture(self, url):
         # Cache a single image url to the texture cache
         if url and self.enableTextureCache:
-            self.logMsg("Processing: %s" % url, 2)
-
             log.debug("Processing: %s" % url)
 
             if not self.imageCacheLimitThreads:
@@ -427,7 +424,7 @@ class Artwork():
                     cacheimage = True
 
                     # Only for the main backdrop, poster
-                    if (utils.window('plex_initialScan') != "true" and
+                    if (window('plex_initialScan') != "true" and
                             imageType in ("fanart", "poster")):
                         # Delete current entry before updating with the new one
                         self.deleteCachedArtwork(url)
@@ -483,7 +480,7 @@ class Artwork():
             log.info("Database is locked. Skip deletion process.")
 
         else: # Delete thumbnail as well as the entry
-            thumbnails = utils.tryDecode(
+            thumbnails = tryDecode(
                 xbmc.translatePath("special://thumbnails/%s" % cachedurl))
             log.info("Deleting cached thumbnail: %s" % thumbnails)
             xbmcvfs.delete(thumbnails)
