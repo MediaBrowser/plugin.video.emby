@@ -1,43 +1,56 @@
+# -*- coding: utf-8 -*-
+
+#################################################################################################
+
+import logging
 import threading
-import utils
-import xbmc
 import requests
 
 # Disable annoying requests warnings
 import requests.packages.urllib3
 requests.packages.urllib3.disable_warnings()
+#################################################################################################
+
+log = logging.getLogger("EMBY."+__name__)
+
+#################################################################################################
 
 
 @utils.logging
-class image_cache_thread(threading.Thread):
+class ImageCacheThread(threading.Thread):
 
-    urlToProcess = None
-    isFinished = False
-    
+    url_to_process = None
+    is_finished = False
+
     xbmc_host = ""
     xbmc_port = ""
     xbmc_username = ""
     xbmc_password = ""
-    
+
+
     def __init__(self):
-        self.monitor = xbmc.Monitor()
+
         threading.Thread.__init__(self)
 
-    def setUrl(self, url):
-        self.urlToProcess = url
-        
-    def setHost(self, host, port):
+
+    def set_url(self, url):
+
+        self.url_to_process = url
+
+    def set_host(self, host, port):
+
         self.xbmc_host = host
         self.xbmc_port = port
-        
-    def setAuth(self, user, pwd):
-        self.xbmc_username = user
-        self.xbmc_password = pwd
-         
+
+    def set_auth(self, username, password):
+
+        self.xbmc_username = username
+        self.xbmc_password = password
+
     def run(self):
-        
-        self.logMsg("Image Caching Thread Processing : " + self.urlToProcess, 2)
-        
+
+        log.debug("Image Caching Thread Processing: %s", self.url_to_process)
+
         try:
             response = requests.head(
                                 url=(
@@ -46,9 +59,8 @@ class image_cache_thread(threading.Thread):
                                 auth=(self.xbmc_username, self.xbmc_password),
                                 timeout=(5, 5))
         # We don't need the result
-        except: pass
-        
-        self.logMsg("Image Caching Thread Exited", 2)
-        
-        self.isFinished = True
-        
+        except Exception:
+            pass
+
+        log.debug("Image Caching Thread Exited")
+        self.is_finished = True

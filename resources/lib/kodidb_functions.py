@@ -2,6 +2,8 @@
 
 ###############################################################################
 
+import logging
+
 import xbmc
 from ntpath import dirname
 
@@ -31,11 +33,13 @@ class GetKodiDB():
         self.kodiconn = kodiSQL(self.itemType)
         self.emby_db = Kodidb_Functions(self.kodiconn.cursor())
         return self.emby_db
+#################################################################################################
 
     def __exit__(self, type, value, traceback):
         self.kodiconn.commit()
         self.kodiconn.close()
 
+#################################################################################################
 
 @logging
 class Kodidb_Functions():
@@ -43,12 +47,11 @@ class Kodidb_Functions():
     kodiversion = int(xbmc.getInfoLabel("System.BuildVersion")[:2])
 
     def __init__(self, cursor):
-
+        
         self.cursor = cursor
         
         self.clientInfo = clientinfo.ClientInfo()
         self.artwork = artwork.Artwork()
-
     def pathHack(self):
         """
         Use with Kodi video DB
@@ -232,7 +235,7 @@ class Kodidb_Functions():
 
                     query = "INSERT INTO country(country_id, name) values(?, ?)"
                     self.cursor.execute(query, (country_id, country))
-                    self.logMsg("Add country to media, processing: %s" % country, 2)
+                    log.debug("Add country to media, processing: %s" % country)
 
                 finally: # Assign country to content
                     query = (
@@ -266,7 +269,7 @@ class Kodidb_Functions():
 
                     query = "INSERT INTO country(idCountry, strCountry) values(?, ?)"
                     self.cursor.execute(query, (idCountry, country))
-                    self.logMsg("Add country to media, processing: %s" % country, 2)
+                    log.debug("Add country to media, processing: %s" % country)
                 
                 finally:
                     # Only movies have a country field
@@ -311,7 +314,7 @@ class Kodidb_Functions():
 
                     query = "INSERT INTO actor(actor_id, name) values(?, ?)"
                     self.cursor.execute(query, (actorid, name))
-                    self.logMsg("Add people to media, processing: %s" % name, 2)
+                    log.debug("Add people to media, processing: %s" % name)
 
                 finally:
                     # Link person to content
@@ -381,7 +384,7 @@ class Kodidb_Functions():
 
                     query = "INSERT INTO actors(idActor, strActor) values(?, ?)"
                     self.cursor.execute(query, (actorid, name))
-                    self.logMsg("Add people to media, processing: %s" % name, 2)
+                    log.debug("Add people to media, processing: %s" % name)
 
                 finally:
                     # Link person to content
@@ -541,7 +544,7 @@ class Kodidb_Functions():
                     
                     query = "INSERT INTO genre(genre_id, name) values(?, ?)"
                     self.cursor.execute(query, (genre_id, genre))
-                    self.logMsg("Add Genres to media, processing: %s" % genre, 2)
+                    log.debug("Add Genres to media, processing: %s" % genre)
                 
                 finally:
                     # Assign genre to item
@@ -586,7 +589,7 @@ class Kodidb_Functions():
 
                     query = "INSERT INTO genre(idGenre, strGenre) values(?, ?)"
                     self.cursor.execute(query, (idGenre, genre))
-                    self.logMsg("Add Genres to media, processing: %s" % genre, 2)
+                    log.debug("Add Genres to media, processing: %s" % genre)
                 
                 finally:
                     # Assign genre to item
@@ -645,7 +648,7 @@ class Kodidb_Functions():
 
                     query = "INSERT INTO studio(studio_id, name) values(?, ?)"
                     self.cursor.execute(query, (studioid, studio))
-                    self.logMsg("Add Studios to media, processing: %s" % studio, 2)
+                    log.debug("Add Studios to media, processing: %s" % studio)
 
                 finally: # Assign studio to item
                     query = (
@@ -676,7 +679,7 @@ class Kodidb_Functions():
 
                     query = "INSERT INTO studio(idstudio, strstudio) values(?, ?)"
                     self.cursor.execute(query, (studioid, studio))
-                    self.logMsg("Add Studios to media, processing: %s" % studio, 2)
+                    log.debug("Add Studios to media, processing: %s" % studio)
 
                 finally: # Assign studio to item
                     if "movie" in mediatype:
@@ -966,7 +969,7 @@ class Kodidb_Functions():
             self.cursor.execute(query, (kodiid, mediatype))
     
         # Add tags
-        self.logMsg("Adding Tags: %s" % tags, 2)
+        log.debug("Adding Tags: %s" % tags)
         for tag in tags:
             self.addTag(kodiid, tag, mediatype)
 
@@ -988,7 +991,7 @@ class Kodidb_Functions():
             except TypeError:
                 # Create the tag, because it does not exist
                 tag_id = self.createTag(tag)
-                self.logMsg("Adding tag: %s" % tag, 2)
+                log.debug("Adding tag: %s" % tag)
 
             finally:
                 # Assign tag to item
@@ -1017,7 +1020,7 @@ class Kodidb_Functions():
             except TypeError:
                 # Create the tag
                 tag_id = self.createTag(tag)
-                self.logMsg("Adding tag: %s" % tag, 2)
+                log.debug("Adding tag: %s" % tag)
             
             finally:
                 # Assign tag to item
@@ -1053,7 +1056,7 @@ class Kodidb_Functions():
 
                 query = "INSERT INTO tag(tag_id, name) values(?, ?)"
                 self.cursor.execute(query, (tag_id, name))
-                self.logMsg("Create tag_id: %s name: %s" % (tag_id, name), 2)
+                log.debug("Create tag_id: %s name: %s" % (tag_id, name))
         else:
             # Kodi Helix
             query = ' '.join((
@@ -1073,13 +1076,13 @@ class Kodidb_Functions():
 
                 query = "INSERT INTO tag(idTag, strTag) values(?, ?)"
                 self.cursor.execute(query, (tag_id, name))
-                self.logMsg("Create idTag: %s name: %s" % (tag_id, name), 2)
+                log.debug("Create idTag: %s name: %s" % (tag_id, name))
 
         return tag_id
 
     def updateTag(self, oldtag, newtag, kodiid, mediatype):
 
-        self.logMsg("Updating: %s with %s for %s: %s" % (oldtag, newtag, mediatype, kodiid), 2)
+        log.debug("Updating: %s with %s for %s: %s" % (oldtag, newtag, mediatype, kodiid))
         
         if self.kodiversion in (15, 16, 17):
             # Kodi Isengard, Jarvis, Krypton
@@ -1096,7 +1099,6 @@ class Kodidb_Functions():
             except Exception as e:
                 # The new tag we are going to apply already exists for this item
                 # delete current tag instead
-                self.logMsg("Exception: %s" % e, 1)
                 query = ' '.join((
 
                     "DELETE FROM tag_link",
@@ -1120,7 +1122,6 @@ class Kodidb_Functions():
             except Exception as e:
                 # The new tag we are going to apply already exists for this item
                 # delete current tag instead
-                self.logMsg("Exception: %s" % e, 1)
                 query = ' '.join((
 
                     "DELETE FROM taglinks",
@@ -1192,7 +1193,7 @@ class Kodidb_Functions():
 
     def createBoxset(self, boxsetname):
 
-        self.logMsg("Adding boxset: %s" % boxsetname, 2)
+        log.debug("Adding boxset: %s" % boxsetname)
         query = ' '.join((
 
             "SELECT idSet",

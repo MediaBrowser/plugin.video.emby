@@ -2,6 +2,7 @@
 
 ###############################################################################
 
+import logging
 import shutil
 import xml.etree.ElementTree as etree
 
@@ -9,8 +10,13 @@ import xbmc
 import xbmcvfs
 
 import utils
+from utils import window, language as lang
 
-###############################################################################
+#################################################################################################
+
+log = logging.getLogger("EMBY."+__name__)
+
+#################################################################################################
 
 
 @utils.logging
@@ -53,8 +59,6 @@ class VideoNodes(object):
         }
         mediatype = mediatypes[mediatype]
 
-        window = utils.window
-
         if viewtype == "mixed":
             dirname = "%s-%s" % (viewid, mediatype)
         else:
@@ -88,9 +92,8 @@ class VideoNodes(object):
                         xbmcvfs.delete(utils.tryEncode(
                             (nodepath + utils.tryDecode(file))))
 
-                    self.logMsg("Sucessfully removed videonode: %s."
-                                % tagname, 1)
-                    return
+                log.info("Sucessfully removed videonode: %s." % tagname)
+                return
 
         # Create index entry
         nodeXML = "%sindex.xml" % nodepath
@@ -210,7 +213,7 @@ class VideoNodes(object):
             # Get label
             stringid = nodes[node]
             if node != "1":
-                label = utils.language(stringid)
+                label = lang(stringid)
                 if not label:
                     label = xbmc.getLocalizedString(stringid)
             else:
@@ -366,8 +369,6 @@ class VideoNodes(object):
 
     def singleNode(self, indexnumber, tagname, mediatype, itemtype):
 
-        window = utils.window
-
         tagname = utils.tryEncode(tagname)
         cleantagname = utils.normalize_nodes(tagname)
         nodepath = utils.tryDecode(xbmc.translatePath(
@@ -396,7 +397,7 @@ class VideoNodes(object):
             'Favorite tvshows': 30181,
             'channels': 30173
         }
-        label = utils.language(labels[tagname])
+        label = lang(labels[tagname])
         embynode = "Plex.nodes.%s" % indexnumber
         window('%s.title' % embynode, value=label)
         window('%s.path' % embynode, value=windowpath)
@@ -423,9 +424,7 @@ class VideoNodes(object):
 
     def clearProperties(self):
 
-        window = utils.window
-
-        self.logMsg("Clearing nodes properties.", 1)
+        log.info("Clearing nodes properties.")
         plexprops = window('Plex.nodes.total')
         propnames = [
         

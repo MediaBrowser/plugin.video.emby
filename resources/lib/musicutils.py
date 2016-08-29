@@ -2,6 +2,7 @@
 
 #################################################################################################
 
+import logging
 import os
 
 import xbmc
@@ -12,20 +13,21 @@ from mutagen.id3 import ID3
 from mutagen import id3
 
 import read_embyserver as embyserver
-import utils
+from utils import window
+
+#################################################################################################
+
+log = logging.getLogger("EMBY."+__name__)
 
 #################################################################################################
 
 # Helper for the music library, intended to fix missing song ID3 tags on Emby
 
-def logMsg(msg, lvl=1):
-    utils.logMsg("%s %s" % ("Emby", "musictools"), msg, lvl)
-
 def getRealFileName(filename, isTemp=False):
     #get the filename path accessible by python if possible...
     
     if not xbmcvfs.exists(filename):
-        logMsg( "File does not exist! %s" %(filename), 0)
+        log.warn("File does not exist! %s" % filename)
         return (False, "")
     
     #if we use os.path method on older python versions (sunch as some android builds), we need to pass arguments as string
@@ -181,7 +183,7 @@ def getSongTags(file):
     hasEmbeddedCover = False
     
     isTemp,filename = getRealFileName(file)
-    logMsg( "getting song ID3 tags for " + filename)
+    log.info( "getting song ID3 tags for " + filename)
     
     try:
         ###### FLAC FILES #############
@@ -215,14 +217,14 @@ def getSongTags(file):
                     #POPM rating is 0-255 and needs to be converted to 0-5 range
                     if rating > 5: rating = (rating / 255) * 5
         else:
-            logMsg( "Not supported fileformat or unable to access file: %s" %(filename))
+            log.info( "Not supported fileformat or unable to access file: %s" %(filename))
         
         #the rating must be a round value
         rating = int(round(rating,0))
     
     except Exception as e:
         #file in use ?
-        utils.logMsg("Exception in getSongTags", str(e),0)
+        log.error("Exception in getSongTags %s" % e)
         rating = None
     
     #remove tempfile if needed....
@@ -244,7 +246,7 @@ def updateRatingToFile(rating, file):
     xbmcvfs.copy(file, tempfile)
     tempfile = utils.tryDecode(xbmc.translatePath(tempfile))
     
-    logMsg( "setting song rating: %s for filename: %s - using tempfile: %s" %(rating,file,tempfile))
+    log.info( "setting song rating: %s for filename: %s - using tempfile: %s" %(rating,file,tempfile))
     
     if not tempfile:
         return
@@ -261,7 +263,7 @@ def updateRatingToFile(rating, file):
             audio.add(id3.POPM(email="Windows Media Player 9 Series", rating=calcrating, count=1))
             audio.save()
         else:
-            logMsg( "Not supported fileformat: %s" %(tempfile))
+            log.info( "Not supported fileformat: %s" %(tempfile))
             
         #once we have succesfully written the flags we move the temp file to destination, otherwise not proceeding and just delete the temp
         #safety check: we check the file size of the temp file before proceeding with overwite of original file
@@ -272,14 +274,14 @@ def updateRatingToFile(rating, file):
             xbmcvfs.delete(file)
             xbmcvfs.copy(tempfile,file)
         else:
-            logMsg( "Checksum mismatch for filename: %s - using tempfile: %s  -  not proceeding with file overwite!" %(rating,file,tempfile))
+            log.info( "Checksum mismatch for filename: %s - using tempfile: %s  -  not proceeding with file overwite!" %(rating,file,tempfile))
         
         #always delete the tempfile
         xbmcvfs.delete(tempfile)
             
     except Exception as e:
         #file in use ?
-        logMsg("Exception in updateRatingToFile %s" %e,0)
+        log.error("Exception in updateRatingToFile %s" % e)
         
     
     

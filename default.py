@@ -2,6 +2,7 @@
 
 ###############################################################################
 
+import logging
 import os
 import sys
 import urlparse
@@ -11,7 +12,10 @@ import xbmcaddon
 import xbmcgui
 
 
-###############################################################################
+_addon = xbmcaddon.Addon(id='plugin.video.emby')
+_addon_path = _addon.getAddonInfo('path').decode('utf-8')
+_base_resource = xbmc.translatePath(os.path.join(_addon_path, 'resources', 'lib')).decode('utf-8')
+sys.path.append(_base_resource)
 
 _addon = xbmcaddon.Addon(id='plugin.video.plexkodiconnect')
 try:
@@ -28,26 +32,33 @@ except TypeError:
         addon_path,
         'resources',
         'lib')).decode()
-sys.path.append(base_resource)
 
 ###############################################################################
 
 import entrypoint
 import utils
+from utils import window, language as lang
 
 ###############################################################################
 
-enableProfiling = False
+import loghandler
+
+loghandler.config()
+log = logging.getLogger("EMBY.default")
+
+#################################################################################################
 
 
-class Main:
+class Main():
 
     # MAIN ENTRY POINT
+    #@utils.profiling()
     def __init__(self):
         # Parse parameters
         xbmc.log("PlexKodiConnect - Full sys.argv received: %s" % sys.argv)
         base_url = sys.argv[0]
         params = urlparse.parse_qs(sys.argv[2][1:])
+        log.warn("Parameter string: %s" % sys.argv[2])
         try:
             mode = params['mode'][0]
             itemid = params.get('id', '')
@@ -93,6 +104,8 @@ class Main:
             plexpath = sys.argv[2][1:]
             plexid = params.get('id', [""])[0]
             entrypoint.getExtraFanArt(plexid, plexpath)
+            entrypoint.getVideoFiles(embyid, embypath)
+            return
 
         # Called by e.g. 3rd party plugin video extras
         if ("/Extras" in sys.argv[0] or "/VideoFiles" in sys.argv[0] or
@@ -111,11 +124,11 @@ class Main:
                 limit = int(params['limit'][0])
                 modes[mode](itemid, limit)
             
-            elif mode in ["channels","getsubfolders"]:
+            elif mode in ("channels","getsubfolders"):
                 modes[mode](itemid)
                 
             elif mode == "browsecontent":
-                modes[mode]( itemid, params.get('type',[""])[0], params.get('folderid',[""])[0] )
+                modes[mode](itemid, params.get('type',[""])[0], params.get('folderid',[""])[0])
 
             elif mode == 'browseplex':
                 modes[mode](
@@ -164,7 +177,8 @@ class Main:
                     
             elif mode == "texturecache":
                 import artwork
-                artwork.Artwork().FullTextureCacheSync()
+                artwork.Artwork().fullTextureCacheSync()
+            
             else:
                 entrypoint.doMainListing()
 
@@ -192,3 +206,8 @@ if ( __name__ == "__main__" ):
         Main()
     
     xbmc.log('plugin.video.plexkodiconnect stopped')
+           
+if __name__ == "__main__":
+    log.info('plugin.video.emby started')
+    Main()
+    log.info('plugin.video.emby stopped')

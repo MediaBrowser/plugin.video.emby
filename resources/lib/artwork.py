@@ -3,6 +3,7 @@
 ###############################################################################
 
 import json
+import logging
 import requests
 import os
 import urllib
@@ -12,14 +13,18 @@ import xbmc
 import xbmcgui
 import xbmcvfs
 
-import utils
 import image_cache_thread
+from utils import window, settings, language as lang, kodiSQL
 
 # Disable annoying requests warnings
 import requests.packages.urllib3
 requests.packages.urllib3.disable_warnings()
+##################################################################################################
+
+log = logging.getLogger("EMBY."+__name__)
 
 ###############################################################################
+##################################################################################################
 
 
 @utils.logging
@@ -32,12 +37,13 @@ class Artwork():
     imageCacheThreads = []
     imageCacheLimitThreads = 0
 
+
     def __init__(self):
 
-        self.enableTextureCache = utils.settings('enableTextureCache') == "true"
-        self.imageCacheLimitThreads = int(utils.settings("imageCacheLimit"))
+        self.enableTextureCache = settings('enableTextureCache') == "true"
+        self.imageCacheLimitThreads = int(settings('imageCacheLimit'))
         self.imageCacheLimitThreads = int(self.imageCacheLimitThreads * 5)
-        utils.logMsg("Using Image Cache Thread Count: " + str(self.imageCacheLimitThreads), 1)
+        log.info("Using Image Cache Thread Count: %s" % self.imageCacheLimitThreads)
 
         if not self.xbmc_port and self.enableTextureCache:
             self.setKodiWebServerDetails()
@@ -123,7 +129,7 @@ class Artwork():
         result = json.loads(result)
         try:
             self.xbmc_port = result['result']['value']
-        except TypeError:
+        except (TypeError, KeyError):
             pass
 
         web_user = {
@@ -160,7 +166,7 @@ class Artwork():
         except TypeError:
             pass
 
-    def FullTextureCacheSync(self):
+    def fullTextureCacheSync(self):
         # This method will sync all Kodi artwork to textures13.db
         # and cache them locally. This takes diskspace!
         import xbmcaddon
@@ -170,7 +176,7 @@ class Artwork():
                 "Image Texture Cache", string(39250)):
             return
 
-        self.logMsg("Doing Image Cache Sync", 1)
+        log.info("Doing Image Cache Sync")
 
         dialog = xbmcgui.DialogProgress()
         dialog.create("PlexKodiConnect", "Image Cache Sync")
@@ -196,100 +202,107 @@ class Artwork():
                                 file))
 
             # remove all existing data from texture DB
-            textureconnection = utils.kodiSQL('texture')
-            texturecursor = textureconnection.cursor()
-            texturecursor.execute('SELECT tbl_name FROM sqlite_master WHERE type="table"')
-            rows = texturecursor.fetchall()
+            connection = kodiSQL('texture')
+            cursor = connection.cursor()
+            cursor.execute('SELECT tbl_name FROM sqlite_master WHERE type="table"')
+            rows = cursor.fetchall()
             for row in rows:
                 tableName = row[0]
-                if(tableName != "version"):
-                    texturecursor.execute("DELETE FROM " + tableName)
-            textureconnection.commit()
-            texturecursor.close()
+                if tableName != "version":
+                    cursor.execute("DELETE FROM " + tableName)
+            connection.commit()
+            cursor.close()
 
         # Cache all entries in video DB
-        connection = utils.kodiSQL('video')
+        connection = kodiSQL('video')
         cursor = connection.cursor()
         cursor.execute("SELECT url FROM art WHERE media_type != 'actor'") # dont include actors
         result = cursor.fetchall()
         total = len(result)
-        count = 1
-        percentage = 0
-        self.logMsg("Image cache sync about to process " + str(total) + " images", 1)
-        for url in result:
-            if dialog.iscanceled():
-                break
-            percentage = int((float(count) / float(total))*100)
-            textMessage = str(count) + " of " + str(total) + " (" + str(len(self.imageCacheThreads)) + ")"
-            dialog.update(percentage, "Updating Image Cache: " + textMessage)
-            self.CacheTexture(url[0])
-            count += 1
+        log.info("Image cache sync about to process %s images" % total)
         cursor.close()
 
+        count = 0
+        for url in result:
+            
+            if pdialog.iscanceled():
+                break
+
+            percentage = int((float(count) / float(total))*100)
+            message = "%s of %s (%s)" % (count, total, self.imageCacheThreads)
+            pdialog.update(percentage, "%s %s" % (lang(33045), message))
+            self.cacheTexture(url[0])
+            count += 1
+        
         # Cache all entries in music DB
-        connection = utils.kodiSQL('music')
+        connection = kodiSQL('music')
         cursor = connection.cursor()
         cursor.execute("SELECT url FROM art")
         result = cursor.fetchall()
         total = len(result)
-        count = 1
-        percentage = 0
-        self.logMsg("Image cache sync about to process " + str(total) + " images", 1)
-        for url in result:
-            if dialog.iscanceled():
-                break
-            percentage = int((float(count) / float(total))*100)
-            textMessage = str(count) + " of " + str(total)
-            dialog.update(percentage, "Updating Image Cache: " + textMessage)
-            self.CacheTexture(url[0])
-            count += 1
+        log.info("Image cache sync about to process %s images" % total)
         cursor.close()
 
-        dialog.update(100, "Waiting for all threads to exit: " + str(len(self.imageCacheThreads)))
-        self.logMsg("Waiting for all threads to exit", 1)
-        while len(self.imageCacheThreads) > 0:
+        count = 0
+        for url in result:
+            
+            if pdialog.iscanceled():
+                break
+
+            percentage = int((float(count) / float(total))*100)
+            message = "%s of %s" % (count, total)
+            pdialog.update(percentage, "%s %s" % (lang(33045), message))
+            self.cacheTexture(url[0])
+            count += 1
+        
+        pdialog.update(100, "%s %s" % (lang(33046), len(self.imageCacheThreads)))
+        log.info("Waiting for all threads to exit")
+        
+        while len(self.imageCacheThreads):
             for thread in self.imageCacheThreads:
-                if thread.isFinished:
+                if thread.is_finished:
                     self.imageCacheThreads.remove(thread)
-            dialog.update(100, "Waiting for all threads to exit: " + str(len(self.imageCacheThreads)))
-            self.logMsg("Waiting for all threads to exit: " + str(len(self.imageCacheThreads)), 1)
+            pdialog.update(100, "%s %s" % (lang(33046), len(self.imageCacheThreads)))
+            log.info("Waiting for all threads to exit: %s" % len(self.imageCacheThreads))
             xbmc.sleep(500)
 
-        dialog.close()
+        pdialog.close()
 
-    def addWorkerImageCacheThread(self, urlToAdd):
+    def addWorkerImageCacheThread(self, url):
 
-        while(True):
+        while True:
             # removed finished
             for thread in self.imageCacheThreads:
-                if thread.isFinished:
+                if thread.is_finished:
                     self.imageCacheThreads.remove(thread)
 
             # add a new thread or wait and retry if we hit our limit
-            if(len(self.imageCacheThreads) < self.imageCacheLimitThreads):
-                newThread = image_cache_thread.image_cache_thread()
-                newThread.setUrl(self.double_urlencode(urlToAdd))
-                newThread.setHost(self.xbmc_host, self.xbmc_port)
-                newThread.setAuth(self.xbmc_username, self.xbmc_password)
+            if len(self.imageCacheThreads) < self.imageCacheLimitThreads:
+                newThread = image_cache_thread.ImageCacheThread()
+                newThread.set_url(self.double_urlencode(url))
+                newThread.set_host(self.xbmc_host, self.xbmc_port)
+                newThread.set_auth(self.xbmc_username, self.xbmc_password)
                 newThread.start()
                 self.imageCacheThreads.append(newThread)
                 return
             else:
-                self.logMsg("Waiting for empty queue spot: " + str(len(self.imageCacheThreads)), 2)
+                log.info("Waiting for empty queue spot: %s" % len(self.imageCacheThreads))
                 xbmc.sleep(50)
 
-
-    def CacheTexture(self, url):
+    def cacheTexture(self, url):
         # Cache a single image url to the texture cache
         if url and self.enableTextureCache:
-            if(self.imageCacheLimitThreads == 0 or self.imageCacheLimitThreads == None):
-                #Add image to texture cache by simply calling it at the http endpoint
+            self.logMsg("Processing: %s" % url, 2)
+
+            log.debug("Processing: %s" % url)
+
+            if not self.imageCacheLimitThreads:
+                # Add image to texture cache by simply calling it at the http endpoint
 
                 url = self.double_urlencode(url)
                 try: # Extreme short timeouts so we will have a exception.
                     response = requests.head(
-                                        url=(
-                                            "http://%s:%s/image/image://%s"
+                                        url=("http://%s:%s/image/image://%s"
                                             % (self.xbmc_host, self.xbmc_port, url)),
                                         auth=(self.xbmc_username, self.xbmc_password),
                                         timeout=(0.01, 0.01))
@@ -398,7 +411,7 @@ class Artwork():
 
             except TypeError: # Add the artwork
                 cacheimage = True
-                self.logMsg("Adding Art Link for kodiId: %s (%s)" % (kodiId, imageUrl), 2)
+                log.debug("Adding Art Link for kodiId: %s (%s)" % (kodiId, imageUrl))
 
                 query = (
                     '''
@@ -419,9 +432,8 @@ class Artwork():
                         # Delete current entry before updating with the new one
                         self.deleteCachedArtwork(url)
 
-                    self.logMsg(
-                        "Updating Art url for %s kodiId: %s (%s) -> (%s)"
-                        % (imageType, kodiId, url, imageUrl), 1)
+                    log.info("Updating Art url for %s kodiId: %s (%s) -> (%s)"
+                        % (imageType, kodiId, url, imageUrl))
 
                     query = ' '.join((
 
@@ -435,9 +447,9 @@ class Artwork():
 
             # Cache fanart and poster in Kodi texture cache
             if cacheimage:
-                self.CacheTexture(imageUrl)
+                self.cacheTexture(imageUrl)
 
-    def deleteArtwork(self, kodiid, mediatype, cursor):
+    def deleteArtwork(self, kodiId, mediaType, cursor):
 
         query = ' '.join((
 
@@ -446,18 +458,18 @@ class Artwork():
             "WHERE media_id = ?",
             "AND media_type = ?"
         ))
-        cursor.execute(query, (kodiid, mediatype,))
+        cursor.execute(query, (kodiId, mediaType,))
         rows = cursor.fetchall()
         for row in rows:
 
             url = row[0]
-            imagetype = row[1]
-            if imagetype in ("poster", "fanart"):
+            imageType = row[1]
+            if imageType in ("poster", "fanart"):
                 self.deleteCachedArtwork(url)
 
     def deleteCachedArtwork(self, url):
         # Only necessary to remove and apply a new backdrop or poster
-        connection = utils.kodiSQL('texture')
+        connection = kodiSQL('texture')
         cursor = connection.cursor()
 
         try:
@@ -465,22 +477,22 @@ class Artwork():
             cachedurl = cursor.fetchone()[0]
 
         except TypeError:
-            self.logMsg("Could not find cached url.", 1)
+            log.info("Could not find cached url.")
 
         except OperationalError:
-            self.logMsg("Database is locked. Skip deletion process.", 1)
+            log.info("Database is locked. Skip deletion process.")
 
         else: # Delete thumbnail as well as the entry
             thumbnails = utils.tryDecode(
                 xbmc.translatePath("special://thumbnails/%s" % cachedurl))
-            self.logMsg("Deleting cached thumbnail: %s" % thumbnails, 1)
+            log.info("Deleting cached thumbnail: %s" % thumbnails)
             xbmcvfs.delete(thumbnails)
 
             try:
                 cursor.execute("DELETE FROM texture WHERE url = ?", (url,))
                 connection.commit()
             except OperationalError:
-                self.logMsg("Issue deleting url from cache. Skipping.", 2)
+                log.debug("Issue deleting url from cache. Skipping.")
 
         finally:
             cursor.close()
@@ -503,10 +515,10 @@ class Artwork():
 
         return people
 
-    def getUserArtwork(self, itemid, itemtype):
+    def getUserArtwork(self, itemId, itemType):
         # Load user information set by UserClient
         image = ("%s/emby/Users/%s/Images/%s?Format=original"
-                    % (self.server, itemid, itemtype))
+                    % (self.server, itemId, itemType))
         return image
 
 
@@ -514,7 +526,7 @@ def getAllArtwork(self, item, parentInfo=False):
 
         itemid = item['Id']
         artworks = item['ImageTags']
-        backdrops = item.get('BackdropImageTags',[])
+        backdrops = item.get('BackdropImageTags', [])
 
         maxHeight = 10000
         maxWidth = 10000
