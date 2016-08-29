@@ -2,6 +2,7 @@
 
 ###############################################################################
 
+import logging
 import os
 import sys
 import Queue
@@ -14,25 +15,24 @@ import xbmcgui
 
 _addon = xbmcaddon.Addon(id='plugin.video.plexkodiconnect')
 try:
-    addon_path = _addon.getAddonInfo('path').decode('utf-8')
+    _addon_path = _addon.getAddonInfo('path').decode('utf-8')
 except TypeError:
-    addon_path = _addon.getAddonInfo('path').decode()
+    _addon_path = _addon.getAddonInfo('path').decode()
 try:
-    base_resource = xbmc.translatePath(os.path.join(
-        addon_path,
+    _base_resource = xbmc.translatePath(os.path.join(
+        _addon_path,
         'resources',
         'lib')).decode('utf-8')
 except TypeError:
-    base_resource = xbmc.translatePath(os.path.join(
-        addon_path,
+    _base_resource = xbmc.translatePath(os.path.join(
+        _addon_path,
         'resources',
         'lib')).decode()
-
-sys.path.append(base_resource)
+sys.path.append(_base_resource)
 
 ###############################################################################
 
-import utils
+from utils import settings, window, language as lang
 import userclient
 import clientinfo
 import initialsetup
@@ -47,8 +47,14 @@ import PlexCompanion
 
 ###############################################################################
 
+import loghandler
 
-@utils.logging
+loghandler.config()
+log = logging.getLogger("PLEX.default")
+
+###############################################################################
+
+
 class Service():
 
     welcome_msg = True
@@ -63,24 +69,23 @@ class Service():
 
     def __init__(self):
 
-        log = self.logMsg
-        window = utils.window
-
         self.clientInfo = clientinfo.ClientInfo()
         logLevel = self.getLogLevel()
         self.monitor = xbmc.Monitor()
 
         window('plex_logLevel', value=str(logLevel))
-        window('plex_kodiProfile', value=xbmc.translatePath("special://profile"))
-        window('plex_pluginpath', value=utils.settings('useDirectPaths'))
+        window('plex_kodiProfile',
+               value=xbmc.translatePath("special://profile"))
 
         # Initial logging
-        log("======== START %s ========" % self.addonName, 0)
-        log("Platform: %s" % (self.clientInfo.getPlatform()), 0)
-        log("KODI Version: %s" % xbmc.getInfoLabel('System.BuildVersion'), 0)
-        log("%s Version: %s" % (self.addonName, self.clientInfo.getVersion()), 0)
-        log("Using plugin paths: %s" % (utils.settings('useDirectPaths') != "true"), 0)
-        log("Log Level: %s" % logLevel, 0)
+        log.warn("======== START %s ========" % self.addonName)
+        log.warn("Platform: %s" % (self.clientInfo.getPlatform()))
+        log.warn("KODI Version: %s" % xbmc.getInfoLabel('System.BuildVersion'))
+        log.warn("%s Version: %s" % (self.addonName,
+                                     self.clientInfo.getVersion()))
+        log.warn("Using plugin paths: %s"
+                 % (settings('useDirectPaths') != "true"))
+        log.warn("Log Level: %s" % logLevel)
 
         # Reset window props for profile switch
         properties = [
@@ -109,17 +114,12 @@ class Service():
 
     def getLogLevel(self):
         try:
-            logLevel = int(utils.settings('logLevel'))
+            logLevel = int(settings('logLevel'))
         except ValueError:
             logLevel = 0
         return logLevel
 
     def ServiceEntryPoint(self):
-
-        log = self.logMsg
-        window = utils.window
-        lang = utils.language
-
         # Important: Threads depending on abortRequest will not trigger
         # if profile switch happens more than once.
         monitor = self.monitor
@@ -131,7 +131,7 @@ class Service():
         # Queue for background sync
         queue = Queue.Queue(maxsize=200)
 
-        connectMsg = True if utils.settings('connectMsg') == 'true' else False
+        connectMsg = True if settings('connectMsg') == 'true' else False
 
         # Initialize important threads
         user = userclient.UserClient()
@@ -144,9 +144,9 @@ class Service():
 
             if window('plex_kodiProfile') != kodiProfile:
                 # Profile change happened, terminate this thread and others
-                log("Kodi profile was: %s and changed to: %s. Terminating old "
-                    "PlexKodiConnect thread."
-                    % (kodiProfile, utils.window('plex_kodiProfile')), 1)
+                log.warn("Kodi profile was: %s and changed to: %s. "
+                         "Terminating old PlexKodiConnect thread."
+                         % (kodiProfile, window('plex_kodiProfile')))
                 break
 
             # Before proceeding, need to make sure:
@@ -190,7 +190,7 @@ class Service():
                     if (user.currUser is None) and self.warn_auth:
                         # Alert user is not authenticated and suppress future warning
                         self.warn_auth = False
-                        log("Not authenticated yet.", 1)
+                        log.warn("Not authenticated yet.")
 
                     # User access is restricted.
                     # Keep verifying until access is granted
@@ -219,7 +219,7 @@ class Service():
                         # Server is offline or cannot be reached
                         # Alert the user and suppress future warning
                         if self.server_online:
-                            log("Server is offline.", -1)
+                            log.error("Server is offline.")
                             window('plex_online', value="false")
                             # Suspend threads
                             window('suspend_LibraryThread', value='true')
@@ -257,7 +257,7 @@ class Service():
                                 time=5000,
                                 sound=False)
                         self.server_online = True
-                        log("Server %s is online and ready." % server, 1)
+                        log.warn("Server %s is online and ready." % server)
                         window('plex_online', value="true")
                         if window('plex_authenticated') == 'true':
                             # Server got offline when we were authenticated.
@@ -282,41 +282,41 @@ class Service():
         # Terminating PlexKodiConnect
 
         # Tell all threads to terminate (e.g. several lib sync threads)
-        utils.window('plex_terminateNow', value='true')
+        window('plex_terminateNow', value='true')
 
         try:
             plexCompanion.stopThread()
         except:
-            xbmc.log('plexCompanion already shut down')
+            log.warn('plexCompanion already shut down')
 
         try:
             library.stopThread()
         except:
-            xbmc.log('Library sync already shut down')
+            log.warn('Library sync already shut down')
 
         try:
             ws.stopThread()
         except:
-            xbmc.log('Websocket client already shut down')
+            log.warn('Websocket client already shut down')
 
         try:
             user.stopThread()
         except:
-            xbmc.log('User client already shut down')
+            log.warn('User client already shut down')
 
         try:
             downloadutils.DownloadUtils().stopSession()
         except:
             pass
 
-        log("======== STOP %s ========" % self.addonName, 0)
+        log.warn("======== STOP %s ========" % self.addonName)
 
 # Delay option
-delay = int(utils.settings('startupDelay'))
+delay = int(settings('startupDelay'))
 
-xbmc.log("Delaying Plex startup by: %s sec..." % delay)
+log.warn("Delaying Plex startup by: %s sec..." % delay)
 if delay and xbmc.Monitor().waitForAbort(delay):
     # Start the service
-    xbmc.log("Abort requested while waiting. PKC not started.")
+    log.warn("Abort requested while waiting. PKC not started.")
 else:
     Service().ServiceEntryPoint()
