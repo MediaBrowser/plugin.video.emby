@@ -7,13 +7,6 @@
 		<setting id="https" label="30243" type="bool" default="false" />
 		<setting id="sslverify" subsetting="true" label="30500" type="bool" default="false" visible="eq(-1,true)" />
 		<setting id="sslcert" subsetting="true" label="30501" type="file" default="None" visible="eq(-2,true)" />
-		<!-- Secondary address -->
-		<setting id="altip" label="30502" type="bool" default="false" />
-		<setting id="secondipaddress" subsetting="true" label="30503" type="text" default="" visible="eq(-1,true)" />
-		<setting id="secondport" subsetting="true" label="30030" type="number" default="8096" visible="eq(-2,true)" />
-		<setting id="secondhttps" subsetting="true" label="30243" type="bool" default="false" visible="eq(-3,true)" />
-		<setting id="secondsslverify" subsetting="true" label="30500" type="bool" default="false" visible="eq(-1,true)" />
-		<setting id="secondsslcert" subsetting="true" label="30501" type="file" default="None" visible="eq(-2,true)" />
 		<!-- User settings -->
 		<setting id="username" label="30024" type="text" default="" />
 		<setting type="sep" />
@@ -22,6 +15,7 @@
 		<setting label="30505" type="action" visible="eq(1,) + !eq(-15,)" action="RunPlugin(plugin://plugin.video.emby?mode=resetauth)" option="close" />
 		<setting id="accessToken" type="text" visible="false" default="" />
 		<setting id="pathsub" type="bool" visible="false" default="false" />
+		<setting id="serverId" type="text" visible="false" default="" />
 	</category>
 
 	<category label="30506"><!-- Sync Options -->
