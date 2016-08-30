@@ -11,12 +11,11 @@ import requests.packages.urllib3
 requests.packages.urllib3.disable_warnings()
 #################################################################################################
 
-log = logging.getLogger("EMBY."+__name__)
+log = logging.getLogger("PLEX."+__name__)
 
 #################################################################################################
 
 
-@utils.logging
 class ImageCacheThread(threading.Thread):
 
     url_to_process = None
