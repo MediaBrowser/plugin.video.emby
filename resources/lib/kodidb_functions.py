@@ -9,8 +9,11 @@ from ntpath import dirname
 
 import artwork
 import clientinfo
-from utils import settings
-from utils import logging, kodiSQL
+from utils import settings, kodiSQL
+
+###############################################################################
+
+log = logging.getLogger("PLEX."+__name__)
 
 ###############################################################################
 
@@ -33,25 +36,22 @@ class GetKodiDB():
         self.kodiconn = kodiSQL(self.itemType)
         self.emby_db = Kodidb_Functions(self.kodiconn.cursor())
         return self.emby_db
-#################################################################################################
 
     def __exit__(self, type, value, traceback):
         self.kodiconn.commit()
         self.kodiconn.close()
 
-#################################################################################################
 
-@logging
 class Kodidb_Functions():
 
     kodiversion = int(xbmc.getInfoLabel("System.BuildVersion")[:2])
 
     def __init__(self, cursor):
-        
         self.cursor = cursor
-        
+
         self.clientInfo = clientinfo.ClientInfo()
         self.artwork = artwork.Artwork()
+
     def pathHack(self):
         """
         Use with Kodi video DB
@@ -811,7 +811,7 @@ class Kodidb_Functions():
         self.cursor.execute(query, (filename,))
         files = self.cursor.fetchall()
         if len(files) == 0:
-            self.logMsg('Did not find any file, abort', 1)
+            log.info('Did not find any file, abort')
             return
         query = ' '.join((
             "SELECT strPath",
@@ -835,17 +835,17 @@ class Kodidb_Functions():
             if strPath == path:
                 result.append(file[0])
         if len(result) == 0:
-            self.logMsg('Did not find matching paths, abort', 1)
+            log.info('Did not find matching paths, abort')
             return
-        self.logMsg('Result: %s' % result)
+        log.debug('Result: %s' % result)
         # Kodi seems to make ONE temporary entry; we only want the earlier,
         # permanent one
         if len(result) > 2:
-            self.logMsg('We found too many items with matching filenames and '
-                        ' paths, aborting', 1)
+            log.warn('We found too many items with matching filenames and '
+                     ' paths, aborting')
             return
         idFile = result[0]
-        self.logMsg('idFile: %s' % idFile)
+        log.debug('idFile: %s' % idFile)
 
         # Try movies first
         query = ' '.join((
@@ -869,7 +869,7 @@ class Kodidb_Functions():
                 itemId = self.cursor.fetchone()[0]
                 typus = 'episode'
             except TypeError:
-                self.logMsg('Unexpectantly did not find a match!', 1)
+                log.warn('Unexpectantly did not find a match!')
                 return
         return itemId, typus
 
