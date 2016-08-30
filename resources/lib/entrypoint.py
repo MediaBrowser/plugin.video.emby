@@ -221,10 +221,9 @@ def doPlayback(itemid, dbid):
 ##### DO RESET AUTH #####
 def resetAuth():
     # User tried login and failed too many times
-    string = xbmcaddon.Addon().getLocalizedString
     resp = xbmcgui.Dialog().yesno(
         heading="Warning",
-        line1=string(39206))
+        line1=lang(39206))
     if resp == 1:
         log.info("Reset login attempts.")
         window('plex_serverStatus', value="Auth")
