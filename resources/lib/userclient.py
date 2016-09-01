@@ -22,6 +22,57 @@ log = logging.getLogger("EMBY."+__name__)
 
 ##################################################################################################
 
+class UserClient(threading.Thread):
+
+    _shared_state = {} # Borg
+
+    _stop_thread = False
+    _user = None
+    _server = None
+
+
+    def __init__(self):
+
+        self.__dict__ = self._shared_state
+
+        threading.Thread.__init__(self)
+
+
+    def get_user(self, data=None):
+        
+        if data is not None:
+            self._set_user(data)
+
+    def _set_user(self, data):
+        pass
+
+    def get_server(self, data=None):
+        pass
+
+    def get_ssl(self):
+
+        certificate = settings('sslcert')
+        if certificate:
+            return certificate
+
+        return True if settings('sslverify') == "true" else False
+
+    def run(self):
+
+        log.warn("----===## Starting UserClient ##===----")
+
+        while not self._stop_thread:
+
+
+            if monitor.waitForAbort(1):
+                # Abort was requested while waiting. We should exit
+                break
+
+        log.warn("##===---- UserClient Stopped ----===##")
+
+    def stop_client(self):
+        self._stop_thread = True
+
 
 class UserClient(threading.Thread):
 

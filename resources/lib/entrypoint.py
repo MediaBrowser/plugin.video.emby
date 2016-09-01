@@ -103,8 +103,6 @@ def doMainListing():
         addDirectoryItem(lang(33052),
             "plugin://plugin.video.emby/?mode=browsecontent&type=recordings&folderid=root")
 
-    # some extra entries for settings and stuff. TODO --> localize the labels
-    addDirectoryItem("Emby connect", "plugin://plugin.video.emby/?mode=connect")
     addDirectoryItem(lang(30517), "plugin://plugin.video.emby/?mode=passwords")
     addDirectoryItem(lang(33053), "plugin://plugin.video.emby/?mode=settings")
     addDirectoryItem(lang(33054), "plugin://plugin.video.emby/?mode=adduser")
@@ -121,9 +119,21 @@ def emby_connect():
     # Login user to emby connect
     connect = connectmanager.ConnectManager()
     try:
-        connect.login_connect()
+        connectUser = connect.login_connect()
     except RuntimeError:
-        pass
+        return
+    else:
+        user = connectUser['User']
+        token = connectUser['AccessToken']
+        username = user['Name']
+        icon = user.get('ImageUrl') or "special://home/addons/plugin.video.emby/icon.png"
+        xbmcgui.Dialog().notification(heading=lang(29999),
+                                      message="%s %s" % (lang(33000), username.decode('utf-8')),
+                                      icon=icon,
+                                      time=1500,
+                                      sound=False)
+        
+        settings('connectUsername', value=username)
 
 ##### Generate a new deviceId
 def resetDeviceId():

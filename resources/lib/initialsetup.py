@@ -65,19 +65,18 @@ class InitialSetup(object):
         else:
             self._set_server(server)
 
-            user_id = None
-            token = None
             if not server.get('AccessToken') and not server.get('UserId'):
                 try:
                     user = self.connectmanager.login(server)
                     log.info("User authenticated: %s" % user)
                 except RuntimeError:
                     return
-                settings('accessToken', value=user['AccessToken'])
-                settings('userId', value=user['User']['Id'])
+                settings('username', value=user['User']['Name'])
+                self._set_user(user['User']['Id'], user['AccessToken'])
             else:
-                settings('accessToken', value=server['AccessToken'])
-                settings('userId', value=server['UserId'])
+                user = self.connectmanager.get_state()
+                settings('connectUsername', value=user['ConnectUser']['Name'])
+                self._set_user(server['UserId'], server['AccessToken'])
 
         ##### ADDITIONAL PROMPTS #####
 
@@ -129,8 +128,7 @@ class InitialSetup(object):
         log.info("Saved server information: %s", server_address)
 
     @classmethod
-    def _set_user(cls, username, user_id, token):
+    def _set_user(cls, user_id, token):
 
-        settings('username', value=username)
         settings('userId', value=user_id)
         settings('token', value=token)

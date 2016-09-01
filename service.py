@@ -43,7 +43,7 @@ log = logging.getLogger("EMBY.service")
 #################################################################################################
 
 
-class Service():
+class Service(object):
 
     welcome_msg = True
     server_online = True

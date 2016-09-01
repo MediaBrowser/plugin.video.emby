@@ -232,7 +232,6 @@
 
     <!-- dialogs -->
     <string id="30600">Sign in with Emby Connect</string>
-    <string id="30601">Username or email</string>
     <string id="30602">Password</string>
     <string id="30603">Please see our terms of use. The use of any Emby software constitutes acceptance of these terms.</string>
     <string id="30604">Scan me</string>

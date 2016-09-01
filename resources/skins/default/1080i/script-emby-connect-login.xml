@@ -67,7 +67,7 @@
 					<top>190</top>
 					<control type="label">
 						<description>Username email</description>
-						<label>$ADDON[plugin.video.emby 30601]</label>
+						<label>$ADDON[plugin.video.emby 30543]</label>
 						<textcolor>ffa6a6a6</textcolor>
 						<font>font10</font>
 						<aligny>top</aligny>
