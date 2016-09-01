@@ -62,19 +62,22 @@ class ClientInfo():
             return "iOS"
         elif xbmc.getCondVisibility('system.platform.windows'):
             return "Windows"
-        elif xbmc.getCondVisibility('system.platform.linux'):
-            return "Linux/RPi"
         elif xbmc.getCondVisibility('system.platform.android'): 
             return "Linux/Android"
+        elif xbmc.getCondVisibility('system.platform.linux.raspberrypi'):
+            return "Linux/RPi"            
+        elif xbmc.getCondVisibility('system.platform.linux'):
+            return "Linux"
         else:
             return "Unknown"
 
     def getDeviceId(self, reset=False):
 
-        clientId = window('emby_deviceId')
-        if clientId:
-            return clientId
-
+        EMBY_id = xbmc.translatePath("special://temp/emby.id").decode('utf-8')
+        
+        #######################################
+        ## machine_guid -> emby.id migration ##
+        #######################################
         addon_path = self.addon.getAddonInfo('path').decode('utf-8')
         if os.path.supports_unicode_filenames:
             path = os.path.join(addon_path, "machine_guid")
@@ -82,17 +85,27 @@ class ClientInfo():
             path = os.path.join(addon_path.encode('utf-8'), "machine_guid")
         
         GUID_file = xbmc.translatePath(path).decode('utf-8')
-        
-        if reset and xbmcvfs.exists(GUID_file):
-            # Reset the file
-            xbmcvfs.delete(GUID_file)
 
-        GUID = xbmcvfs.File(GUID_file)
+        if xbmcvfs.exists(GUID_file):
+            xbmcvfs.rename(GUID_file, EMBY_id)
+        #######################################
+        ##           end migration           ##
+        #######################################
+        
+        clientId = window('emby_deviceId')
+        if clientId:
+            return clientId
+        
+        if reset and xbmcvfs.exists(EMBY_id):
+            # Reset the file
+            xbmcvfs.delete(EMBY_id)
+
+        GUID = xbmcvfs.File(EMBY_id)
         clientId = GUID.read()
         if not clientId:
             log.info("Generating a new deviceid...")
             clientId = str("%012X" % uuid4())
-            GUID = xbmcvfs.File(GUID_file, 'w')
+            GUID = xbmcvfs.File(EMBY_id, 'w')
             GUID.write(clientId)
 
         GUID.close()
