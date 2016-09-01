@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
-#################################################################################################
+###############################################################################
 
+import logging
 import json
 import sys
 from urllib import urlencode
@@ -15,16 +16,20 @@ import clientinfo
 import playutils as putils
 import playlist
 import read_embyserver as embyserver
-import utils
+from utils import window, settings, tryEncode, tryDecode
 import downloadutils
 
 import PlexAPI
 import PlexFunctions as PF
 
-#################################################################################################
+
+###############################################################################
+
+log = logging.getLogger("PLEX."+__name__)
+
+###############################################################################
 
 
-@utils.logging
 class PlaybackUtils():
 
     def __init__(self, item):
@@ -35,8 +40,8 @@ class PlaybackUtils():
         self.clientInfo = clientinfo.ClientInfo()
         self.addonName = self.clientInfo.getAddonName()
 
-        self.userid = utils.window('currUserId')
-        self.server = utils.window('pms_server')
+        self.userid = window('currUserId')
+        self.server = window('pms_server')
 
         self.artwork = artwork.Artwork()
         self.emby = embyserver.Read_EmbyServer()
@@ -47,9 +52,6 @@ class PlaybackUtils():
 
     def play(self, itemid, dbid=None):
 
-        window = utils.window
-        settings = utils.settings
-
         item = self.item
         # Hack to get only existing entry in PMS response for THIS instance of
         # playbackutils :-)
@@ -58,7 +60,7 @@ class PlaybackUtils():
         listitem = xbmcgui.ListItem()
         playutils = putils.PlayUtils(item[0])
 
-        self.logMsg("Play called.", 1)
+        log.info("Play called.")
         playurl = playutils.getPlayUrl()
         if not playurl:
             return xbmcplugin.setResolvedUrl(int(sys.argv[1]), False, listitem)
@@ -74,28 +76,28 @@ class PlaybackUtils():
                 xml = downloadutils.DownloadUtils().downloadUrl(
                     '{server}%s' % item[0][0][0].attrib.get('key'))
                 if xml in (None, 401):
-                    self.logMsg('Could not download %s'
-                        % item[0][0][0].attrib.get('key'), -1)
+                    log.error('Could not download %s'
+                              % item[0][0][0].attrib.get('key'))
                     return xbmcplugin.setResolvedUrl(
                         int(sys.argv[1]), False, listitem)
-                playurl = utils.tryEncode(xml[0].attrib.get('key'))
+                playurl = tryEncode(xml[0].attrib.get('key'))
                 window('emby_%s.playmethod' % playurl, value='DirectStream')
 
             playmethod = window('emby_%s.playmethod' % playurl)
             if playmethod == "Transcode":
                 window('emby_%s.playmethod' % playurl, clear=True)
-                playurl = utils.tryEncode(playutils.audioSubsPref(
-                    listitem, utils.tryDecode(playurl)))
+                playurl = tryEncode(playutils.audioSubsPref(
+                    listitem, tryDecode(playurl)))
                 window('emby_%s.playmethod' % playurl, "Transcode")
             listitem.setPath(playurl)
             self.setProperties(playurl, listitem)
             return xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, listitem)
 
         ############### ORGANIZE CURRENT PLAYLIST ################
-        
         homeScreen = xbmc.getCondVisibility('Window.IsActive(home)')
         playlist = self.pl.playlist
-        startPos = max(playlist.getposition(), 0) # Can return -1
+        # Can return -1
+        startPos = max(playlist.getposition(), 0)
         sizePlaylist = playlist.size()
         self.currentPosition = startPos
 
@@ -103,12 +105,11 @@ class PlaybackUtils():
         introsPlaylist = False
         dummyPlaylist = False
 
-        self.logMsg("Playlist start position: %s" % startPos, 2)
-        self.logMsg("Playlist plugin position: %s" % self.currentPosition, 2)
-        self.logMsg("Playlist size: %s" % sizePlaylist, 2)
+        log.info("Playlist start position: %s" % startPos)
+        log.info("Playlist plugin position: %s" % self.currentPosition)
+        log.info("Playlist size: %s" % sizePlaylist)
 
         ############### RESUME POINT ################
-        
         seektime, runtime = API.getRuntime()
 
         # We need to ensure we add the intro and additional parts only once.
@@ -116,11 +117,11 @@ class PlaybackUtils():
         if not propertiesPlayback:
 
             window('plex_playbackProps', value="true")
-            self.logMsg("Setting up properties in playlist.", 1)
+            log.info("Setting up properties in playlist.")
 
             if (not homeScreen and not seektime and
                     window('plex_customplaylist') != "true"):
-                self.logMsg("Adding dummy file to playlist.", 2)
+                log.debug("Adding dummy file to playlist.")
                 dummyPlaylist = True
                 playlist.add(playurl, listitem, index=startPos)
                 # Remove the original item from playlist 
@@ -131,9 +132,8 @@ class PlaybackUtils():
                     dbid,
                     PF.GetKodiTypeFromPlex(API.getType()))
                 self.currentPosition += 1
-            
-            ############### -- CHECK FOR INTROS ################
 
+            ############### -- CHECK FOR INTROS ################
             if (settings('enableCinema') == "true" and not seektime):
                 # if we have any play them when the movie/show is not being resumed
                 xml = PF.GetPlexPlaylist(
@@ -142,12 +142,12 @@ class PlaybackUtils():
                     mediatype=API.getType())
                 introsPlaylist = self.AddTrailers(xml)
 
-            ############### -- ADD MAIN ITEM ONLY FOR HOMESCREEN ###############
+            ############### -- ADD MAIN ITEM ONLY FOR HOMESCREEN ##############
 
             if homeScreen and not seektime and not sizePlaylist:
                 # Extend our current playlist with the actual item to play
                 # only if there's no playlist first
-                self.logMsg("Adding main item to playlist.", 1)
+                log.info("Adding main item to playlist.")
                 self.pl.addtoPlaylist(
                     dbid,
                     PF.GetKodiTypeFromPlex(API.getType()))
@@ -156,7 +156,6 @@ class PlaybackUtils():
             self.currentPosition += 1
 
             ############### -- CHECK FOR ADDITIONAL PARTS ################
-            
             if len(item[0][0]) > 1:
                 # Only add to the playlist after intros have played
                 for counter, part in enumerate(item[0][0]):
@@ -168,7 +167,7 @@ class PlaybackUtils():
                     additionalListItem = xbmcgui.ListItem()
                     additionalPlayurl = playutils.getPlayUrl(
                         partNumber=counter)
-                    self.logMsg("Adding additional part: %s" % counter, 1)
+                    log.debug("Adding additional part: %s" % counter)
 
                     self.setProperties(additionalPlayurl, additionalListItem)
                     self.setArtwork(additionalListItem)
@@ -183,43 +182,40 @@ class PlaybackUtils():
             if dummyPlaylist:
                 # Added a dummy file to the playlist,
                 # because the first item is going to fail automatically.
-                self.logMsg("Processed as a playlist. First item is skipped.", 1)
+                log.info("Processed as a playlist. First item is skipped.")
                 return xbmcplugin.setResolvedUrl(int(sys.argv[1]), False, listitem)
-                
 
         # We just skipped adding properties. Reset flag for next time.
         elif propertiesPlayback:
-            self.logMsg("Resetting properties playback flag.", 2)
+            log.debug("Resetting properties playback flag.")
             window('plex_playbackProps', clear=True)
 
         #self.pl.verifyPlaylist()
         ########## SETUP MAIN ITEM ##########
-
         # For transcoding only, ask for audio/subs pref
         if window('emby_%s.playmethod' % playurl) == "Transcode":
             window('emby_%s.playmethod' % playurl, clear=True)
-            playurl = utils.tryEncode(playutils.audioSubsPref(
-                listitem, utils.tryDecode(playurl)))
+            playurl = tryEncode(playutils.audioSubsPref(
+                listitem, tryDecode(playurl)))
             window('emby_%s.playmethod' % playurl, value="Transcode")
 
         listitem.setPath(playurl)
         self.setProperties(playurl, listitem)
 
         ############### PLAYBACK ################
-
         if homeScreen and seektime and window('plex_customplaylist') != "true":
-            self.logMsg("Play as a widget item.", 1)
+            log.info("Play as a widget item.")
             API.CreateListItemFromPlexItem(listitem)
             xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, listitem)
 
         elif ((introsPlaylist and window('plex_customplaylist') == "true") or
                 (homeScreen and not sizePlaylist)):
             # Playlist was created just now, play it.
-            self.logMsg("Play playlist.", 1)
+            log.info("Play playlist.")
             xbmc.Player().play(playlist, startpos=startPos)
 
         else:
-            self.logMsg("Play as a regular item.", 1)
+            log.info("Play as a regular item.")
             xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, listitem)
 
     def AddTrailers(self, xml):
@@ -234,11 +230,11 @@ class PlaybackUtils():
         if xml.attrib.get('size') == '1':
             return False
 
-        if utils.settings('askCinema') == "true":
+        if settings('askCinema') == "true":
             resp = xbmcgui.Dialog().yesno(self.addonName, "Play trailers?")
             if not resp:
                 # User selected to not play trailers
-                self.logMsg("Skip trailers.", 1)
+                log.info("Skip trailers.")
                 return False
 
         # Playurl needs to point back so we can get metadata!
@@ -258,7 +254,7 @@ class PlaybackUtils():
             params['id'] = introAPI.getRatingKey()
             params['filename'] = introAPI.getKey()
             introPlayurl = path + '?' + urlencode(params)
-            self.logMsg("Adding Intro: %s" % introPlayurl, 1)
+            log.info("Adding Intro: %s" % introPlayurl)
 
             self.pl.insertintoPlaylist(self.currentPosition, url=introPlayurl)
             self.currentPosition += 1
@@ -266,7 +262,6 @@ class PlaybackUtils():
         return True
 
     def setProperties(self, playurl, listitem):
-        window = utils.window
         # Set all properties necessary for plugin path playback
         itemid = self.API.getRatingKey()
         itemtype = self.API.getType()
@@ -285,7 +280,7 @@ class PlaybackUtils():
             window('%s.refreshid' % embyitem, value=itemid)
 
         # Append external subtitles to stream
-        playmethod = utils.window('%s.playmethod' % embyitem)
+        playmethod = window('%s.playmethod' % embyitem)
         if playmethod in ("DirectStream", "DirectPlay"):
             subtitles = self.API.externalSubs(playurl)
             listitem.setSubtitles(subtitles)
@@ -293,7 +288,6 @@ class PlaybackUtils():
         self.setArtwork(listitem)
 
     def externalSubs(self, playurl):
-
         externalsubs = []
         mapping = {}
 
@@ -304,23 +298,20 @@ class PlaybackUtils():
         for stream in mediastreams:
 
             index = stream['Index']
-            # Since Emby returns all possible tracks together, have to pull only external subtitles.
-            # IsTextSubtitleStream if true, is available to download from emby.
-            if (stream['Type'] == "Subtitle" and 
+            # Since Emby returns all possible tracks together, have to pull
+            # only external subtitles. IsTextSubtitleStream if true, is
+            # available to download from emby.
+            if (stream['Type'] == "Subtitle" and
                     stream['IsExternal'] and stream['IsTextSubtitleStream']):
-
                 # Direct stream
                 url = ("%s/Videos/%s/%s/Subtitles/%s/Stream.srt"
-                        % (self.server, itemid, itemid, index))
-                
+                       % (self.server, itemid, itemid, index))
                 # map external subtitles for mapping
                 mapping[kodiindex] = index
                 externalsubs.append(url)
                 kodiindex += 1
-        
         mapping = json.dumps(mapping)
-        utils.window('emby_%s.indexMapping' % playurl, value=mapping)
-
+        window('emby_%s.indexMapping' % playurl, value=mapping)
         return externalsubs
 
     def setArtwork(self, listItem):
