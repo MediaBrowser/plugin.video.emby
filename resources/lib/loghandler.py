@@ -5,7 +5,7 @@
 import logging
 import xbmc
 
-from utils import window
+from utils import window, tryEncode
 
 ##################################################################################################
 
@@ -30,7 +30,7 @@ class LogHandler(logging.StreamHandler):
             try:
                 xbmc.log(self.format(record), level=xbmc.LOGNOTICE)
             except UnicodeEncodeError:
-                xbmc.log(self.format(record).encode('utf-8'), level=xbmc.LOGNOTICE)
+                xbmc.log(tryEncode(self.format(record)), level=xbmc.LOGNOTICE)
 
     @classmethod
     def _get_log_level(cls, level):
