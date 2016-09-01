@@ -2,6 +2,7 @@
 
 ###############################################################################
 
+import logging
 import json
 from urllib import urlencode
 from threading import Lock
@@ -10,10 +11,14 @@ from functools import wraps
 import xbmc
 
 import embydb_functions as embydb
-import utils
+from utils import window, tryEncode
 import playbackutils
 import PlexFunctions
 import PlexAPI
+
+###############################################################################
+
+log = logging.getLogger("PLEX."+__name__)
 
 ###############################################################################
 
@@ -37,7 +42,6 @@ class lockMethod:
         return wrapper
 
 
-@utils.logging
 class Playlist():
     """
     Initiate with Playlist(typus='video' or 'music')
@@ -59,23 +63,23 @@ class Playlist():
         # Borg
         self.__dict__ = self._shared_state
 
-        self.userid = utils.window('currUserId')
-        self.server = utils.window('pms_server')
+        self.userid = window('currUserId')
+        self.server = window('pms_server')
         # Construct the Kodi playlist instance
         if self.typus == typus:
             return
         if typus == 'video':
             self.playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
             self.typus = 'video'
-            self.logMsg('Initiated video playlist', 1)
+            log.info('Initiated video playlist')
         elif typus == 'music':
             self.playlist = xbmc.PlayList(xbmc.PLAYLIST_MUSIC)
             self.typus = 'music'
-            self.logMsg('Initiated music playlist', 1)
+            log.info('Initiated music playlist')
         else:
             self.playlist = None
             self.typus = None
-            self.logMsg('Empty playlist initiated', 1)
+            log.info('Empty playlist initiated')
         if self.playlist is not None:
             self.playlistId = self.playlist.getPlayListId()
 
@@ -116,7 +120,7 @@ class Playlist():
         """
         Empties current Kodi playlist and associated variables
         """
-        self.logMsg('Clearing playlist', 1)
+        log.info('Clearing playlist')
         self.playlist.clear()
         self.items = []
         self.queueId = None
@@ -124,7 +128,7 @@ class Playlist():
         self.guid = None
 
     def _initiatePlaylist(self):
-        self.logMsg('Initiating playlist', 1)
+        log.info('Initiating playlist')
         playlist = None
         with embydb.GetEmbyDB() as emby_db:
             for item in self.items:
@@ -133,29 +137,28 @@ class Playlist():
                 try:
                     mediatype = embydb_item[4]
                 except TypeError:
-                    self.logMsg('Couldnt find item %s in Kodi db'
-                                % itemid, 1)
+                    log.info('Couldnt find item %s in Kodi db' % itemid)
                     item = PlexFunctions.GetPlexMetadata(itemid)
                     if item in (None, 401):
-                        self.logMsg('Couldnt find item %s on PMS, trying next'
-                                    % itemid, 1)
+                        log.info('Couldnt find item %s on PMS, trying next'
+                                 % itemid)
                         continue
                     if PlexAPI.API(item[0]).getType() == 'track':
                         playlist = xbmc.PlayList(xbmc.PLAYLIST_MUSIC)
-                        self.logMsg('Music playlist initiated', 1)
+                        log.info('Music playlist initiated')
                         self.typus = 'music'
                     else:
                         playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
-                        self.logMsg('Video playlist initiated', 1)
+                        log.info('Video playlist initiated')
                         self.typus = 'video'
                 else:
                     if mediatype == 'song':
                         playlist = xbmc.PlayList(xbmc.PLAYLIST_MUSIC)
-                        self.logMsg('Music playlist initiated', 1)
+                        log.info('Music playlist initiated')
                         self.typus = 'music'
                     else:
                         playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
-                        self.logMsg('Video playlist initiated', 1)
+                        log.info('Video playlist initiated')
                         self.typus = 'video'
                 break
         self.playlist = playlist
@@ -173,18 +176,17 @@ class Playlist():
                     kodiId = embydb_item[0]
                     mediatype = embydb_item[4]
                 except TypeError:
-                    self.logMsg('Couldnt find item %s in Kodi db' % plexId, 1)
+                    log.info('Couldnt find item %s in Kodi db' % plexId)
                     xml = PlexFunctions.GetPlexMetadata(plexId)
                     if xml in (None, 401):
-                        self.logMsg('Could not download plexId %s'
-                                    % plexId, -1)
+                        log.error('Could not download plexId %s' % plexId)
                     else:
-                        self.logMsg('Downloaded xml metadata, adding now', 1)
+                        log.debug('Downloaded xml metadata, adding now')
                         self._addtoPlaylist_xbmc(xml[0])
                 else:
                     # Add to playlist
-                    self.logMsg("Adding %s PlexId %s, KodiId %s to playlist."
-                                % (mediatype, plexId, kodiId), 1)
+                    log.debug("Adding %s PlexId %s, KodiId %s to playlist."
+                              % (mediatype, plexId, kodiId))
                     self._addtoPlaylist(kodiId, mediatype)
                 # Add the kodiId
                 if kodiId is not None:
@@ -196,8 +198,8 @@ class Playlist():
             if startpos is not None:
                 self.player.play(self.playlist, startpos=startpos)
             else:
-                self.logMsg('Never received a starting item for playlist, '
-                            'starting with the first entry', 1)
+                log.info('Never received a starting item for playlist, '
+                         'starting with the first entry')
                 self.player.play(self.playlist)
 
     @lockMethod.decorate
@@ -215,29 +217,29 @@ class Playlist():
                     id as a string
         offset:     First item's time offset to play in Kodi time (an int)
         """
-        self.logMsg("---*** PLAY ALL ***---", 1)
-        self.logMsg('Startitem: %s, offset: %s, items: %s'
-                    % (startitem, offset, items), 1)
+        log.info("---*** PLAY ALL ***---")
+        log.debug('Startitem: %s, offset: %s, items: %s'
+                  % (startitem, offset, items))
         self.items = items
         if self.playlist is None:
             self._initiatePlaylist()
         if self.playlist is None:
-            self.logMsg('Could not create playlist, abort', -1)
+            log.error('Could not create playlist, abort')
             return
 
-        utils.window('plex_customplaylist', value="true")
+        window('plex_customplaylist', value="true")
         if offset != 0:
             # Seek to the starting position
-            utils.window('plex_customplaylist.seektime', str(offset))
+            window('plex_customplaylist.seektime', str(offset))
         self._processItems(startitem, startPlayer=True)
         # Log playlist
         self._verifyPlaylist()
-        self.logMsg('Internal playlist: %s' % self.items, 2)
+        log.debug('Internal playlist: %s' % self.items)
 
     @lockMethod.decorate
     def modifyPlaylist(self, itemids):
-        self.logMsg("---*** ADD TO PLAYLIST ***---", 1)
-        self.logMsg("Items: %s" % itemids, 1)
+        log.info("---*** MODIFY PLAYLIST ***---")
+        log.debug("Items: %s" % itemids)
 
         self._initiatePlaylist(itemids)
         self._processItems(itemids, startPlayer=True)
@@ -262,11 +264,10 @@ class Playlist():
             }
         }
         if dbid is not None:
-            pl['params']['item'] = {'%sid' % utils.tryEncode(mediatype):
-                                    int(dbid)}
+            pl['params']['item'] = {'%sid' % tryEncode(mediatype): int(dbid)}
         else:
             pl['params']['item'] = {'file': url}
-        self.logMsg(xbmc.executeJSONRPC(json.dumps(pl)), 2)
+        log.debug(xbmc.executeJSONRPC(json.dumps(pl)))
 
     def _addtoPlaylist_xbmc(self, item):
         API = PlexAPI.API(item)
@@ -285,26 +286,26 @@ class Playlist():
         self.playlist.add(playurl, listitem)
 
     @lockMethod.decorate
-    def insertintoPlaylist(self, position, dbid=None, mediatype=None, url=None):
-
+    def insertintoPlaylist(self,
+                           position,
+                           dbid=None,
+                           mediatype=None,
+                           url=None):
         pl = {
-
             'jsonrpc': "2.0",
             'id': 1,
             'method': "Playlist.Insert",
             'params': {
-
                 'playlistid': self.playlistId,
                 'position': position
             }
         }
         if dbid is not None:
-            pl['params']['item'] = {'%sid' % utils.tryEncode(mediatype):
-                                    int(dbid)}
+            pl['params']['item'] = {'%sid' % tryEncode(mediatype): int(dbid)}
         else:
             pl['params']['item'] = {'file': url}
 
-        self.logMsg(xbmc.executeJSONRPC(json.dumps(pl)), 2)
+        log.debug(xbmc.executeJSONRPC(json.dumps(pl)))
 
     @lockMethod.decorate
     def verifyPlaylist(self):
@@ -312,30 +313,25 @@ class Playlist():
 
     def _verifyPlaylist(self):
         pl = {
-
             'jsonrpc': "2.0",
             'id': 1,
             'method': "Playlist.GetItems",
             'params': {
-
                 'playlistid': self.playlistId,
                 'properties': ['title', 'file']
             }
         }
-        self.logMsg(xbmc.executeJSONRPC(json.dumps(pl)), 2)
+        log.debug(xbmc.executeJSONRPC(json.dumps(pl)))
 
     @lockMethod.decorate
     def removefromPlaylist(self, position):
-
         pl = {
-
             'jsonrpc': "2.0",
             'id': 1,
             'method': "Playlist.Remove",
             'params': {
-
                 'playlistid': self.playlistId,
                 'position': position
             }
         }
-        self.logMsg(xbmc.executeJSONRPC(json.dumps(pl)), 2)
+        log.debug(xbmc.executeJSONRPC(json.dumps(pl)))
