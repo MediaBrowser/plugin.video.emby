@@ -6,11 +6,13 @@ import logging
 import os
 
 import xbmc
+import xbmcaddon
 import xbmcvfs
 
-from mutagen.flac import FLAC
+from mutagen.flac import FLAC, Picture
 from mutagen.id3 import ID3
 from mutagen import id3
+import base64
 
 import read_embyserver as embyserver
 from utils import window
@@ -34,7 +36,7 @@ def getRealFileName(filename, isTemp=False):
     if os.path.supports_unicode_filenames:
         checkfile = filename
     else:
-        checkfile = utils.tryEncode(filename)
+        checkfile = filename.encode("utf-8")
     
     # determine if our python module is able to access the file directly...
     if os.path.exists(checkfile):
@@ -48,7 +50,7 @@ def getRealFileName(filename, isTemp=False):
         else: filepart = filename.split("\\")[-1]
         tempfile = "special://temp/"+filepart
         xbmcvfs.copy(filename, tempfile)
-        filename = utils.tryDecode(xbmc.translatePath(tempfile))
+        filename = xbmc.translatePath(tempfile).decode("utf-8")
         
     return (isTemp,filename)
 
@@ -67,14 +69,14 @@ def getEmbyRatingFromKodiRating(rating):
     if (rating >= 5): favourite = True
     return(like, favourite, deletelike)
 
-def getAdditionalSongTags(plexid, plex_rating, API, kodicursor, emby_db, enableimportsongrating, enableexportsongrating, enableupdatesongrating):
+def getAdditionalSongTags(embyid, emby_rating, API, kodicursor, emby_db, enableimportsongrating, enableexportsongrating, enableupdatesongrating):
     
     emby = embyserver.Read_EmbyServer()
 
     previous_values = None
     filename = API.getFilePath()
     rating = 0
-    plex_rating = int(round(plex_rating, 0))
+    emby_rating = int(round(emby_rating, 0))
     
     #get file rating and comment tag from file itself.
     if enableimportsongrating:
@@ -85,7 +87,7 @@ def getAdditionalSongTags(plexid, plex_rating, API, kodicursor, emby_db, enablei
         hasEmbeddedCover = False
         
 
-    emby_dbitem = emby_db.getItem_byId(plexid)
+    emby_dbitem = emby_db.getItem_byId(embyid)
     try:
         kodiid = emby_dbitem[0]
     except TypeError:
@@ -102,44 +104,44 @@ def getAdditionalSongTags(plexid, plex_rating, API, kodicursor, emby_db, enablei
     if file_rating is None and currentvalue:
         return (currentvalue, comment, False)
     elif file_rating is None and not currentvalue:
-        return (plex_rating, comment, False)
+        return (emby_rating, comment, False)
     
-    logMsg("getAdditionalSongTags --> plexid: %s - plex_rating: %s - file_rating: %s - current rating in kodidb: %s" %(plexid, plex_rating, file_rating, currentvalue))
+    log.info("getAdditionalSongTags --> embyid: %s - emby_rating: %s - file_rating: %s - current rating in kodidb: %s" %(embyid, emby_rating, file_rating, currentvalue))
     
     updateFileRating = False
     updateEmbyRating = False
 
     if currentvalue != None:
         # we need to translate the emby values...
-        if plex_rating == 1 and currentvalue == 2:
-            plex_rating = 2
-        if plex_rating == 3 and currentvalue == 4:
-            plex_rating = 4
+        if emby_rating == 1 and currentvalue == 2:
+            emby_rating = 2
+        if emby_rating == 3 and currentvalue == 4:
+            emby_rating = 4
             
         #if updating rating into file is disabled, we ignore the rating in the file...
         if not enableupdatesongrating:
             file_rating = currentvalue
         #if convert emby likes/favourites convert to song rating is disabled, we ignore the emby rating...
         if not enableexportsongrating:
-            plex_rating = currentvalue
+            emby_rating = currentvalue
             
-        if (plex_rating == file_rating) and (file_rating != currentvalue):
+        if (emby_rating == file_rating) and (file_rating != currentvalue):
             #the rating has been updated from kodi itself, update change to both emby ands file
             rating = currentvalue
             updateFileRating = True
             updateEmbyRating = True
-        elif (plex_rating != currentvalue) and (file_rating == currentvalue):
+        elif (emby_rating != currentvalue) and (file_rating == currentvalue):
             #emby rating changed - update the file
-            rating = plex_rating
+            rating = emby_rating
             updateFileRating = True  
-        elif (file_rating != currentvalue) and (plex_rating == currentvalue):
+        elif (file_rating != currentvalue) and (emby_rating == currentvalue):
             #file rating was updated, sync change to emby
             rating = file_rating
             updateEmbyRating = True
-        elif (plex_rating != currentvalue) and (file_rating != currentvalue):
+        elif (emby_rating != currentvalue) and (file_rating != currentvalue):
             #both ratings have changed (corner case) - the highest rating wins...
-            if plex_rating > file_rating:
-                rating = plex_rating
+            if emby_rating > file_rating:
+                rating = emby_rating
                 updateFileRating = True
             else:
                 rating = file_rating
@@ -154,16 +156,16 @@ def getAdditionalSongTags(plexid, plex_rating, API, kodicursor, emby_db, enablei
             rating = file_rating
             #determine if we should also send the rating to emby server
             if enableexportsongrating:
-                if plex_rating == 1 and file_rating == 2:
-                    plex_rating = 2
-                if plex_rating == 3 and file_rating == 4:
-                    plex_rating = 4
-                if plex_rating != file_rating:
+                if emby_rating == 1 and file_rating == 2:
+                    emby_rating = 2
+                if emby_rating == 3 and file_rating == 4:
+                    emby_rating = 4
+                if emby_rating != file_rating:
                     updateEmbyRating = True
                 
         elif enableexportsongrating:
             #set the initial rating to emby value
-            rating = plex_rating
+            rating = emby_rating
         
     if updateFileRating and enableupdatesongrating:
         updateRatingToFile(rating, filename)
@@ -171,8 +173,8 @@ def getAdditionalSongTags(plexid, plex_rating, API, kodicursor, emby_db, enablei
     if updateEmbyRating and enableexportsongrating:
         # sync details to emby server. Translation needed between ID3 rating and emby likes/favourites:
         like, favourite, deletelike = getEmbyRatingFromKodiRating(rating)
-        utils.window("ignore-update-%s" %plexid, "true") #set temp windows prop to ignore the update from webclient update
-        emby.updateUserRating(plexid, like, favourite, deletelike)
+        window("ignore-update-%s" %embyid, "true") #set temp windows prop to ignore the update from webclient update
+        emby.updateUserRating(embyid, favourite)
     
     return (rating, comment, hasEmbeddedCover)
         
@@ -244,7 +246,7 @@ def updateRatingToFile(rating, file):
     else: filepart = file.split("\\")[-1]
     tempfile = "special://temp/"+filepart
     xbmcvfs.copy(file, tempfile)
-    tempfile = utils.tryDecode(xbmc.translatePath(tempfile))
+    tempfile = xbmc.translatePath(tempfile).decode("utf-8")
     
     log.info( "setting song rating: %s for filename: %s - using tempfile: %s" %(rating,file,tempfile))
     
