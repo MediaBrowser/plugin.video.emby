@@ -12,7 +12,6 @@ import xbmcgui
 import xbmcplugin
 
 import artwork
-import clientinfo
 import playutils as putils
 import playlist
 import read_embyserver as embyserver
@@ -22,10 +21,11 @@ import downloadutils
 import PlexAPI
 import PlexFunctions as PF
 
-
 ###############################################################################
 
 log = logging.getLogger("PLEX."+__name__)
+
+addonName = "PlexKodiConnect"
 
 ###############################################################################
 
@@ -36,9 +36,6 @@ class PlaybackUtils():
 
         self.item = item
         self.API = PlexAPI.API(item)
-
-        self.clientInfo = clientinfo.ClientInfo()
-        self.addonName = self.clientInfo.getAddonName()
 
         self.userid = window('currUserId')
         self.server = window('pms_server')
@@ -231,7 +228,7 @@ class PlaybackUtils():
             return False
 
         if settings('askCinema') == "true":
-            resp = xbmcgui.Dialog().yesno(self.addonName, "Play trailers?")
+            resp = xbmcgui.Dialog().yesno(addonName, "Play trailers?")
             if not resp:
                 # User selected to not play trailers
                 log.info("Skip trailers.")
