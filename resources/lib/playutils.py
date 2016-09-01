@@ -2,21 +2,23 @@
 
 ###############################################################################
 
+import logging
 from urllib import urlencode
 
 import xbmcgui
 import xbmcvfs
 
-import clientinfo
-import utils
+from utils import window, settings, tryEncode, language as lang
 
 import PlexAPI
 
+###############################################################################
+
+log = logging.getLogger("PLEX."+__name__)
 
 ###############################################################################
 
 
-@utils.logging
 class PlayUtils():
 
     def __init__(self, item):
@@ -24,11 +26,9 @@ class PlayUtils():
         self.item = item
         self.API = PlexAPI.API(item)
 
-        self.clientInfo = clientinfo.ClientInfo()
-
-        self.userid = utils.window('currUserId')
-        self.server = utils.window('pms_server')
-        self.machineIdentifier = utils.window('plex_machineIdentifier')
+        self.userid = window('currUserId')
+        self.server = window('pms_server')
+        self.machineIdentifier = window('plex_machineIdentifier')
 
     def getPlayUrl(self, partNumber=None):
         """
@@ -41,21 +41,21 @@ class PlayUtils():
         playurl = self.isDirectPlay()
 
         if playurl is not None:
-            self.logMsg("File is direct playing.", 1)
-            playurl = utils.tryEncode(playurl)
+            log.info("File is direct playing.")
+            playurl = tryEncode(playurl)
             # Set playmethod property
-            utils.window('emby_%s.playmethod' % playurl, "DirectPlay")
+            window('emby_%s.playmethod' % playurl, "DirectPlay")
 
         elif self.isDirectStream():
-            self.logMsg("File is direct streaming.", 1)
-            playurl = utils.tryEncode(
+            log.info("File is direct streaming.")
+            playurl = tryEncode(
                 self.API.getTranscodeVideoPath('DirectStream'))
             # Set playmethod property
-            utils.window('emby_%s.playmethod' % playurl, "DirectStream")
+            window('emby_%s.playmethod' % playurl, "DirectStream")
 
         else:
-            self.logMsg("File is transcoding.", 1)
-            playurl = utils.tryEncode(self.API.getTranscodeVideoPath(
+            log.info("File is transcoding.")
+            playurl = tryEncode(self.API.getTranscodeVideoPath(
                 'Transcode',
                 quality={
                     'maxVideoBitrate': self.getBitrate(),
@@ -63,9 +63,9 @@ class PlayUtils():
                     'videoQuality': '100'
                 }))
             # Set playmethod property
-            utils.window('emby_%s.playmethod' % playurl, value="Transcode")
+            window('emby_%s.playmethod' % playurl, value="Transcode")
 
-        self.logMsg("The playurl is: %s" % playurl, 1)
+        log.info("The playurl is: %s" % playurl)
         return playurl
 
     def httpPlay(self):
@@ -87,13 +87,13 @@ class PlayUtils():
         """
         # True for e.g. plex.tv watch later
         if self.API.shouldStream() is True:
-            self.logMsg("Plex item optimized for direct streaming", 1)
+            log.info("Plex item optimized for direct streaming")
             return
         # set to either 'Direct Stream=1' or 'Transcode=2'
         # and NOT to 'Direct Play=0'
-        if utils.settings('playType') != "0":
+        if settings('playType') != "0":
             # User forcing to play via HTTP
-            self.logMsg("User chose to not direct play", 1)
+            log.info("User chose to not direct play")
             return
         if self.mustTranscode():
             return
@@ -134,18 +134,18 @@ class PlayUtils():
 
         # Convert path to direct play
         path = self.directPlay()
-        self.logMsg("Verifying path: %s" % path, 1)
+        log.info("Verifying path: %s" % path)
 
         if xbmcvfs.exists(path):
-            self.logMsg("Path exists.", 1)
+            log.info("Path exists.")
             return True
 
         elif ":" not in path:
-            self.logMsg("Can't verify path, assumed linux. Still try to direct play.", 1)
+            log.info("Can't verify path, assumed linux. Still try to direct play.")
             return True
 
         else:
-            self.logMsg("Failed to find file.", 1)
+            log.info("Failed to find file.")
             return False
 
     def mustTranscode(self):
@@ -157,29 +157,29 @@ class PlayUtils():
         if the corresponding file settings are set to 'true'
         """
         videoCodec = self.API.getVideoCodec()
-        self.logMsg("videoCodec: %s" % videoCodec, 2)
-        if (utils.settings('transcodeHi10P') == 'true' and
+        log.info("videoCodec: %s" % videoCodec)
+        if (settings('transcodeHi10P') == 'true' and
                 videoCodec['bitDepth'] == '10'):
-            self.logMsg('Option to transcode 10bit video content enabled.', 1)
+            log.info('Option to transcode 10bit video content enabled.')
             return True
         codec = videoCodec['videocodec']
-        if (utils.settings('transcodeHEVC') == 'true' and codec == 'hevc'):
-            self.logMsg('Option to transcode HEVC video codec enabled.', 1)
+        if (settings('transcodeHEVC') == 'true' and codec == 'hevc'):
+            log.info('Option to transcode HEVC video codec enabled.')
             return True
         if codec is None:
             # e.g. trailers. Avoids TypeError with "'h265' in codec"
-            self.logMsg('No codec from PMS, not transcoding.', 1)
+            log.info('No codec from PMS, not transcoding.')
             return False
         try:
             resolution = int(videoCodec['resolution'])
         except (TypeError, ValueError):
-            self.logMsg('No video resolution from PMS, not transcoding.', 1)
+            log.info('No video resolution from PMS, not transcoding.')
             return False
         if 'h265' in codec:
             if resolution >= self.getH265():
-                self.logMsg("Option to transcode h265 enabled. Resolution of "
-                            "the media: %s, transcoding limit resolution: %s"
-                            % (str(resolution), str(self.getH265())), 1)
+                log.info("Option to transcode h265 enabled. Resolution of "
+                         "the media: %s, transcoding limit resolution: %s"
+                         % (str(resolution), str(self.getH265())))
                 return True
         return False
 
@@ -188,16 +188,16 @@ class PlayUtils():
         if self.API.getType() == 'track':
             return True
         # set to 'Transcode=2'
-        if utils.settings('playType') == "2":
+        if settings('playType') == "2":
             # User forcing to play via HTTP
-            self.logMsg("User chose to transcode", 1)
+            log.info("User chose to transcode")
             return False
         if self.mustTranscode():
             return False
         # Verify the bitrate
         if not self.isNetworkSufficient():
-            self.logMsg("The network speed is insufficient to direct stream "
-                        "file. Transcoding", 1)
+            log.info("The network speed is insufficient to direct stream "
+                     "file. Transcoding")
             return False
         return True
 
@@ -208,19 +208,19 @@ class PlayUtils():
         try:
             sourceBitrate = int(self.API.getDataFromPartOrMedia('bitrate'))
         except:
-            self.logMsg('Could not detect source bitrate. It is assumed to be'
-                        'sufficient', 1)
+            log.info('Could not detect source bitrate. It is assumed to be'
+                     'sufficient')
             return True
         settings = self.getBitrate()
-        self.logMsg("The add-on settings bitrate is: %s, the video bitrate"
-                    "required is: %s" % (settings, sourceBitrate), 1)
+        log.info("The add-on settings bitrate is: %s, the video bitrate"
+                 "required is: %s" % (settings, sourceBitrate))
         if settings < sourceBitrate:
             return False
         return True
 
     def getBitrate(self):
         # get the addon video quality
-        videoQuality = utils.settings('transcoderVideoQualities')
+        videoQuality = settings('transcoderVideoQualities')
         bitrate = {
             '0': 320,
             '1': 720,
@@ -250,10 +250,10 @@ class PlayUtils():
             '2': 720,
             '3': 1080
         }
-        return H265[utils.settings('transcodeH265')]
+        return H265[settings('transcodeH265')]
 
     def getResolution(self):
-        chosen = utils.settings('transcoderVideoQualities')
+        chosen = settings('transcoderVideoQualities')
         res = {
             '0': '420x420',
             '1': '576x320',
@@ -270,7 +270,6 @@ class PlayUtils():
         return res[chosen]
 
     def audioSubsPref(self, listitem, url, part=None):
-        lang = utils.language
         dialog = xbmcgui.Dialog()
         # For transcoding only
         # Present the list of audio to select from
@@ -297,7 +296,8 @@ class PlayUtils():
         # Remember 'no subtitles'
         subNum = 1
         for stream in mediastreams:
-            # Since Emby returns all possible tracks together, have to sort them.
+            # Since Plex returns all possible tracks together, have to sort
+            # them.
             index = stream.attrib.get('id')
             type = stream.attrib.get('streamType')
 
@@ -310,10 +310,8 @@ class PlayUtils():
                     track = "%s %s - %s %s" % (audioNum+1, stream.attrib['language'], codec, channelLayout)
                 except:
                     track = "%s 'unknown' - %s %s" % (audioNum+1, codec, channelLayout)
-                
-                #audioStreamsChannelsList[audioNum] = stream.attrib['channels']
                 audioStreamsList.append(index)
-                audioStreams.append(utils.tryEncode(track))
+                audioStreams.append(tryEncode(track))
                 audioNum += 1
 
             # Subtitles
@@ -337,7 +335,7 @@ class PlayUtils():
                     downloadableStreams.append(index)
 
                 subtitleStreamsList.append(index)
-                subtitleStreams.append(utils.tryEncode(track))
+                subtitleStreams.append(tryEncode(track))
                 subNum += 1
 
         if audioNum > 1:
@@ -351,7 +349,7 @@ class PlayUtils():
             playurlprefs['audioStreamID'] = audioStreamsList[0]
 
         # Add audio boost
-        playurlprefs['audioBoost'] = utils.settings('audioBoost')
+        playurlprefs['audioBoost'] = settings('audioBoost')
 
         if subNum > 1:
             resp = dialog.select(lang(33014), subtitleStreams)
@@ -368,12 +366,12 @@ class PlayUtils():
                     url = "%s/library/streams/%s" \
                           % (self.server, selectSubsIndex)
                     url = self.API.addPlexHeadersToUrl(url)
-                    self.logMsg("Downloadable sub: %s: %s" % (selectSubsIndex, url), 1)
-                    listitem.setSubtitles([utils.tryEncode(url)])
+                    log.info("Downloadable sub: %s: %s" % (selectSubsIndex, url))
+                    listitem.setSubtitles([tryEncode(url)])
                 else:
-                    self.logMsg('Need to burn in subtitle %s' % selectSubsIndex, 1)
+                    log.info('Need to burn in subtitle %s' % selectSubsIndex)
                     playurlprefs["subtitleStreamID"] = selectSubsIndex
-                    playurlprefs["subtitleSize"] = utils.settings('subtitleSize')
+                    playurlprefs["subtitleSize"] = settings('subtitleSize')
 
             else: # User backed out of selection
                 pass
