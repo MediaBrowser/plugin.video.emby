@@ -6,7 +6,6 @@ import logging
 
 import xbmc
 
-import utils
 import downloadutils
 from utils import window, settings, kodiSQL
 
@@ -14,17 +13,21 @@ from utils import window, settings, kodiSQL
 
 log = logging.getLogger("EMBY."+__name__)
 
-@utils.logging
+#################################################################################################
+
+
 class Read_EmbyServer():
 
-    # limitIndex = int(utils.settings('limitindex'))
+    limitIndex = int(settings('limitindex'))
+
 
     def __init__(self):
 
         self.doUtils = downloadutils.DownloadUtils().downloadUrl
 
-        self.userId = utils.window('currUserId')
-        self.server = utils.window('pms_server')
+        self.userId = window('emby_currUser')
+        self.server = window('emby_server%s' % self.userId)
+
 
     def split_list(self, itemlist, size):
         # Split up list in pieces of size. Will generate a list of lists
@@ -86,8 +89,8 @@ class Read_EmbyServer():
 
         return items
 
-    def getView_plexid(self, itemid):
-        # Returns ancestors using plexid
+    def getView_embyId(self, itemid):
+        # Returns ancestors using embyId
         viewId = None
 
         url = "{server}/emby/Items/%s/Ancestors?UserId={UserId}&format=json" % itemid
@@ -267,7 +270,7 @@ class Read_EmbyServer():
                         log.debug("Set jump limit to recover: %s" % jump)
                     
                     retry = 0
-                    while utils.window('plex_online') != "true":
+                    while window('emby_online') != "true":
                         # Wait server to come back online
                         if retry == 5:
                             log.info("Unable to reconnect to server. Abort process.")

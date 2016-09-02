@@ -20,7 +20,6 @@ import downloadutils
 import itemtypes
 import embydb_functions as embydb
 import kodidb_functions as kodidb
-import read_embyserver as embyserver
 import userclient
 import videonodes
 
@@ -283,7 +282,6 @@ class LibrarySync(Thread):
 
         self.clientInfo = clientinfo.ClientInfo()
         self.user = userclient.UserClient()
-        self.emby = embyserver.Read_EmbyServer()
         self.vnodes = videonodes.VideoNodes()
         self.dialog = xbmcgui.Dialog()
 

@@ -15,7 +15,6 @@ from utils import settings, window, kodiSQL, CatchExceptions
 from utils import tryEncode, tryDecode
 import embydb_functions as embydb
 import kodidb_functions as kodidb
-import read_embyserver as embyserver
 
 import PlexAPI
 from PlexFunctions import GetPlexMetadata
@@ -41,7 +40,6 @@ class Items(object):
         self.directpath = window('useDirectPaths') == 'true'
 
         self.artwork = artwork.Artwork()
-        self.emby = embyserver.Read_EmbyServer()
         self.userid = window('currUserId')
         self.server = window('pms_server')
 

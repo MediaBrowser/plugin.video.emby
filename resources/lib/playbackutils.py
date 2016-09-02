@@ -14,7 +14,6 @@ import xbmcplugin
 import artwork
 import playutils as putils
 import playlist
-import read_embyserver as embyserver
 from utils import window, settings, tryEncode, tryDecode
 import downloadutils
 
@@ -41,7 +40,6 @@ class PlaybackUtils():
         self.server = window('pms_server')
 
         self.artwork = artwork.Artwork()
-        self.emby = embyserver.Read_EmbyServer()
         if self.API.getType() == 'track':
             self.pl = playlist.Playlist(typus='music')
         else:

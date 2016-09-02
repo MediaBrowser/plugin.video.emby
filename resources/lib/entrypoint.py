@@ -9,7 +9,6 @@ import sys
 import urllib
 
 import xbmc
-import xbmcaddon
 import xbmcgui
 import xbmcvfs
 import xbmcplugin
@@ -19,7 +18,6 @@ from utils import window, settings, language as lang
 from utils import tryDecode, tryEncode, CatchExceptions
 import clientinfo
 import downloadutils
-import read_embyserver as embyserver
 import embydb_functions as embydb
 import playbackutils as pbutils
 import playlist
