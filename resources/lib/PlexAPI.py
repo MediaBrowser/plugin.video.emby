@@ -1,4 +1,4 @@
-
+# -*- coding: utf-8 -*-
 """
 Taken from iBaa, https://github.com/iBaa/PlexConnect
 Point of time: December 22, 2015
@@ -29,6 +29,8 @@ http://stackoverflow.com/questions/2407126/python-urllib2-basic-auth-problem
 http://stackoverflow.com/questions/111945/is-there-any-way-to-do-http-put-in-python
 (and others...)
 """
+
+import logging
 import time
 import urllib2
 import socket
@@ -44,33 +46,41 @@ import xbmc
 import xbmcvfs
 
 import clientinfo
-import utils
 import downloadutils
+from utils import window, settings, language as lang, tryDecode, tryEncode, \
+    DateToKodi
 from PlexFunctions import PlexToKodiTimefactor, PMSHttpsEnabled
 import embydb_functions as embydb
 
+###############################################################################
 
-@utils.logging
+log = logging.getLogger("PLEX."+__name__)
+
+addonName = 'PlexKodiConnect'
+
+###############################################################################
+
+
 class PlexAPI():
     # CONSTANTS
     # Timeout for POST/GET commands, I guess in seconds
     timeout = 10
 
     def __init__(self):
-        self.__language__ = xbmcaddon.Addon().getLocalizedString
         self.g_PMS = {}
         self.doUtils = downloadutils.DownloadUtils().downloadUrl
+        self.client = clientinfo.ClientInfo()
 
     def GetPlexLoginFromSettings(self):
         """
         Returns a dict:
-            'plexLogin': utils.settings('plexLogin'),
-            'plexToken': utils.settings('plexToken'),
-            'plexhome': utils.settings('plexhome'),
-            'plexid': utils.settings('plexid'),
-            'myplexlogin': utils.settings('myplexlogin'),
-            'plexAvatar': utils.settings('plexAvatar'),
-            'plexHomeSize': utils.settings('plexHomeSize')
+            'plexLogin': settings('plexLogin'),
+            'plexToken': settings('plexToken'),
+            'plexhome': settings('plexhome'),
+            'plexid': settings('plexid'),
+            'myplexlogin': settings('myplexlogin'),
+            'plexAvatar': settings('plexAvatar'),
+            'plexHomeSize': settings('plexHomeSize')
 
         Returns strings or unicode
 
@@ -80,13 +90,13 @@ class PlexAPI():
         plexhome is 'true' if plex home is used (the default)
         """
         return {
-            'plexLogin': utils.settings('plexLogin'),
-            'plexToken': utils.settings('plexToken'),
-            'plexhome': utils.settings('plexhome'),
-            'plexid': utils.settings('plexid'),
-            'myplexlogin': utils.settings('myplexlogin'),
-            'plexAvatar': utils.settings('plexAvatar'),
-            'plexHomeSize': utils.settings('plexHomeSize')
+            'plexLogin': settings('plexLogin'),
+            'plexToken': settings('plexToken'),
+            'plexhome': settings('plexhome'),
+            'plexid': settings('plexid'),
+            'myplexlogin': settings('myplexlogin'),
+            'plexAvatar': settings('plexAvatar'),
+            'plexHomeSize': settings('plexHomeSize')
         }
 
     def GetPlexLoginAndPassword(self):
@@ -103,36 +113,33 @@ class PlexAPI():
         Also writes 'plexLogin' and 'token_plex.tv' to Kodi settings file
         If not logged in, empty strings are returned for both.
         """
-        string = self.__language__
-
         retrievedPlexLogin = ''
         plexLogin = 'dummy'
         authtoken = ''
         dialog = xbmcgui.Dialog()
         while retrievedPlexLogin == '' and plexLogin != '':
             # Enter plex.tv username. Or nothing to cancel.
-            plexLogin = dialog.input(self.addonName + string(39300),
+            plexLogin = dialog.input(addonName + lang(39300),
                                      type=xbmcgui.INPUT_ALPHANUM)
             if plexLogin != "":
                 # Enter password for plex.tv user
                 plexPassword = dialog.input(
-                    string(39301) + plexLogin,
+                    lang(39301) + plexLogin,
                     type=xbmcgui.INPUT_ALPHANUM,
                     option=xbmcgui.ALPHANUM_HIDE_INPUT)
                 retrievedPlexLogin, authtoken = self.MyPlexSignIn(
                     plexLogin,
                     plexPassword,
-                    {'X-Plex-Client-Identifier':
-                        clientinfo.ClientInfo().getDeviceId()})
-                self.logMsg("plex.tv username and token: %s, %s"
-                            % (plexLogin, authtoken), 1)
+                    {'X-Plex-Client-Identifier': self.client.getDeviceId()})
+                log.debug("plex.tv username and token: %s, %s"
+                          % (plexLogin, authtoken))
                 if plexLogin == '':
                     # Could not sign in user
-                    dialog.ok(self.addonName,
-                              string(39302) + plexLogin)
+                    dialog.ok(addonName,
+                              lang(39302) + plexLogin)
         # Write to Kodi settings file
-        utils.settings('plexLogin', value=retrievedPlexLogin)
-        utils.settings('plexToken', value=authtoken)
+        settings('plexLogin', value=retrievedPlexLogin)
+        settings('plexToken', value=authtoken)
         return (retrievedPlexLogin, authtoken)
 
     def PlexTvSignInWithPin(self):
@@ -150,20 +157,18 @@ class PlexAPI():
         }
         Returns False if authentication did not work.
         """
-        string = self.__language__
-
         code, identifier = self.GetPlexPin()
         dialog = xbmcgui.Dialog()
         if not code:
             # Problems trying to contact plex.tv. Try again later
-            dialog.ok(self.addonName, string(39303))
+            dialog.ok(addonName, lang(39303))
             return False
         # Go to https://plex.tv/pin and enter the code:
         # Or press No to cancel the sign in.
-        answer = dialog.yesno(self.addonName,
-                              string(39304) + "\n\n",
+        answer = dialog.yesno(addonName,
+                              lang(39304) + "\n\n",
                               code + "\n\n",
-                              string(39311))
+                              lang(39311))
         if not answer:
             return False
         count = 0
@@ -177,7 +182,7 @@ class PlexAPI():
             count += 1
         if xml is False:
             # Could not sign in to plex.tv Try again later
-            dialog.ok(self.addonName, string(39305))
+            dialog.ok(addonName, lang(39305))
             return False
         # Parse xml
         userid = xml.attrib.get('id')
@@ -198,15 +203,15 @@ class PlexAPI():
             'plexid': userid,
             'homesize': homeSize
         }
-        utils.settings('plexLogin', username)
-        utils.settings('plexToken', token)
-        utils.settings('plexhome', home)
-        utils.settings('plexid', userid)
-        utils.settings('plexAvatar', avatar)
-        utils.settings('plexHomeSize', homeSize)
+        settings('plexLogin', username)
+        settings('plexToken', token)
+        settings('plexhome', home)
+        settings('plexid', userid)
+        settings('plexAvatar', avatar)
+        settings('plexHomeSize', homeSize)
         # Let Kodi log into plex.tv on startup from now on
-        utils.settings('myplexlogin', 'true')
-        utils.settings('plex_status', value='Logged in to plex.tv')
+        settings('myplexlogin', 'true')
+        settings('plex_status', value='Logged in to plex.tv')
         return result
 
     def CheckPlexTvSignin(self, identifier):
@@ -221,9 +226,8 @@ class PlexAPI():
         try:
             temp_token = xml.find('auth_token').text
         except:
-            self.logMsg("Could not find token in plex.tv answer.", -1)
+            log.error("Could not find token in plex.tv answer")
             return False
-        self.logMsg("temp token from plex.tv is: %s" % temp_token, 2)
         if not temp_token:
             return False
         # Use temp token to get the final plex credentials
@@ -245,11 +249,11 @@ class PlexAPI():
         try:
             xml.attrib
         except:
-            self.logMsg("Error, no PIN from plex.tv provided", -1)
+            log.error("Error, no PIN from plex.tv provided")
             return None, None
         code = xml.find('code').text
         identifier = xml.find('id').text
-        self.logMsg('Successfully retrieved code and id from plex.tv', 1)
+        log.info('Successfully retrieved code and id from plex.tv')
         return code, identifier
 
     def CheckConnection(self, url, token=None, verifySSL=None):
@@ -277,14 +281,14 @@ class PlexAPI():
         if token is not None:
             headerOptions = {'X-Plex-Token': token}
         if verifySSL is True:
-            verifySSL = None if utils.settings('sslverify') == 'true' \
+            verifySSL = None if settings('sslverify') == 'true' \
                 else False
         if 'plex.tv' in url:
             url = 'https://plex.tv/api/home/users'
         else:
             url = url + '/library/onDeck'
-        self.logMsg("Checking connection to server %s with verifySSL=%s"
-                    % (url, verifySSL), 1)
+        log.info("Checking connection to server %s with verifySSL=%s"
+                 % (url, verifySSL))
         # Check up to 3 times before giving up
         count = 0
         while count < 3:
@@ -294,7 +298,7 @@ class PlexAPI():
                                   verifySSL=verifySSL,
                                   timeout=4)
             if answer is None:
-                self.logMsg("Could not connect to %s" % url, 0)
+                log.info("Could not connect to %s" % url)
                 count += 1
                 xbmc.sleep(500)
                 continue
@@ -309,11 +313,9 @@ class PlexAPI():
                 # Success - we downloaded an xml!
                 answer = 200
             # We could connect but maybe were not authenticated. No worries
-            self.logMsg("Checking connection successfull. Answer: %s"
-                        % answer, 1)
+            log.debug("Checking connection successfull. Answer: %s" % answer)
             return answer
-        self.logMsg('Failed to connect to %s too many times. PMS is dead'
-                    % url, 0)
+        log.info('Failed to connect to %s too many times. PMS is dead' % url)
         return False
 
     def GetgPMSKeylist(self):
@@ -417,7 +419,7 @@ class PlexAPI():
         try:
             self.g_PMS[uuid][tag] = value
         except:
-            self.logMsg('%s has not yet been declared ' % uuid, -1)
+            log.error('%s has not yet been declared ' % uuid)
             return False
 
     def getPMSProperty(self, uuid, tag):
@@ -425,7 +427,7 @@ class PlexAPI():
         try:
             answ = self.g_PMS[uuid].get(tag, '')
         except:
-            self.logMsg('%s not found in PMS catalogue' % uuid, -1)
+            log.error('%s not found in PMS catalogue' % uuid)
             answ = False
         return answ
 
@@ -486,8 +488,8 @@ class PlexAPI():
                 elif "Resource-Identifier:" in each:
                     update['uuid'] = each.split(':')[1].strip()
                 elif "Name:" in each:
-                    update['serverName'] = utils.tryDecode(each.split(
-                        ':')[1].strip())
+                    update['serverName'] = tryDecode(
+                        each.split(':')[1].strip())
                 elif "Port:" in each:
                     update['port'] = each.split(':')[1].strip()
                 elif "Updated-At:" in each:
@@ -495,7 +497,6 @@ class PlexAPI():
                 elif "Version:" in each:
                     update['version'] = each.split(':')[1].strip()
             pmsList[update['uuid']] = update
-
         return pmsList
 
     def discoverPMS(self, IP_self, plexToken=None):
@@ -510,28 +511,28 @@ class PlexAPI():
         self.g_PMS = {}
         # "Searching for Plex Server"
         xbmcgui.Dialog().notification(
-            heading=self.addonName,
-            message=self.__language__(39055),
+            heading=addonName,
+            message=lang(39055),
             icon="special://home/addons/plugin.video.plexkodiconnect/icon.png",
             time=4000,
             sound=False)
 
         # Look first for local PMS in the LAN
         pmsList = self.PlexGDM()
-        self.logMsg('PMS found in the local LAN via GDM: %s' % pmsList, 2)
+        log.debug('PMS found in the local LAN via GDM: %s' % pmsList)
 
         # Get PMS from plex.tv
         if plexToken:
-            self.logMsg('Checking with plex.tv for more PMS to connect to', 1)
+            log.info('Checking with plex.tv for more PMS to connect to')
             self.getPMSListFromMyPlex(plexToken)
         else:
-            self.logMsg('No plex token supplied, only checked LAN for PMS', 1)
+            log.info('No plex token supplied, only checked LAN for PMS')
 
         for uuid in pmsList:
             PMS = pmsList[uuid]
             if PMS['uuid'] in self.g_PMS:
-                self.logMsg('We already know of PMS %s from plex.tv'
-                            % PMS['serverName'], 1)
+                log.debug('We already know of PMS %s from plex.tv'
+                          % PMS['serverName'])
                 continue
             self.declarePMS(PMS['uuid'], PMS['serverName'], 'http',
                             PMS['ip'], PMS['port'])
@@ -571,7 +572,7 @@ class PlexAPI():
         try:
             xml.attrib
         except AttributeError:
-            self.logMsg('Could not get list of PMS from plex.tv', -1)
+            log.error('Could not get list of PMS from plex.tv')
             return
 
         import Queue
@@ -592,8 +593,8 @@ class PlexAPI():
             PMS['name'] = Dir.get('name')
             infoAge = time.time() - int(Dir.get('lastSeenAt'))
             if infoAge > maxAgeSeconds:
-                self.logMsg("Server %s not seen for 2 days - skipping."
-                            % PMS['name'], 1)
+                log.debug("Server %s not seen for 2 days - skipping."
+                          % PMS['name'])
                 continue
 
             PMS['uuid'] = Dir.get('clientIdentifier')
@@ -619,7 +620,7 @@ class PlexAPI():
                        args=(PMS, queue))
             threadQueue.append(t)
 
-        maxThreads = int(utils.settings('imageCacheLimit'))
+        maxThreads = int(settings('imageCacheLimit'))
         threads = []
         # poke PMS, own thread for each PMS
         while(True):
@@ -637,7 +638,6 @@ class PlexAPI():
                     t.start()
                     threads.append(t)
             else:
-                self.logMsg('Waiting for queue spot to poke PMS', 1)
                 xbmc.sleep(50)
 
         # wait for requests being answered
@@ -698,9 +698,9 @@ class PlexAPI():
                 PMS['port'] = port
                 queue.put(PMS)
                 return
-        self.logMsg('Found a PMS at %s, but the expected machineIdentifier of '
-                    '%s did not match the one we found: %s'
-                    % (url, PMS['uuid'], xml.get('machineIdentifier')), -1)
+        log.info('Found a PMS at %s, but the expected machineIdentifier of '
+                 '%s did not match the one we found: %s'
+                 % (url, PMS['uuid'], xml.get('machineIdentifier')))
 
     def MyPlexSignIn(self, username, password, options):
         """
@@ -720,28 +720,10 @@ class PlexAPI():
         MyPlexURL = 'https://' + MyPlexHost + MyPlexSignInPath
 
         # create POST request
-        xargs = clientinfo.ClientInfo().getXArgsDeviceInfo(options)
-        self.logMsg("Header is: %s" % xargs, 1)
+        xargs = self.client.getXArgsDeviceInfo(options)
         request = urllib2.Request(MyPlexURL, None, xargs)
         request.get_method = lambda: 'POST'
-        # turn into 'POST'
-        # done automatically with data!=None. But we don't have data.
 
-        # no certificate, will fail with "401 - Authentification required"
-        """
-        try:
-            f = urllib2.urlopen(request)
-        except urllib2.HTTPError, e:
-            print e.headers
-            print "has WWW_Authenticate:", e.headers.has_key('WWW-Authenticate')
-            print
-        """
-
-        # provide credentials
-        # optional... when 'realm' is unknown
-        ##passmanager = urllib2.HTTPPasswordMgrWithDefaultRealm()
-        # passmanager.add_password(None, address, username, password)  # None:
-        # default "realm"
         passmanager = urllib2.HTTPPasswordMgr()
         passmanager.add_password(MyPlexHost, MyPlexURL, username, password)
         authhandler = urllib2.HTTPBasicAuthHandler(passmanager)
@@ -752,7 +734,7 @@ class PlexAPI():
             response = urlopener.open(request).read()
         except urllib2.HTTPError as e:
             if e.code == 401:
-                self.logMsg("Authentication failed", 0)
+                log.info("Authentication failed")
                 return ('', '')
             else:
                 raise
@@ -771,6 +753,9 @@ class PlexAPI():
         return (username, authtoken)
 
     def MyPlexSignOut(self, authtoken):
+        """
+        TO BE DONE!
+        """
         # MyPlex web address
         MyPlexHost = 'plex.tv'
         MyPlexSignOutPath = '/users/sign_out.xml'
@@ -785,28 +770,22 @@ class PlexAPI():
 
         response = urllib2.urlopen(request).read()
 
-        dprint(__name__, 1, "====== MyPlex sign out XML ======")
-        dprint(__name__, 1, response)
-        dprint(__name__, 1, "====== MyPlex sign out XML finished ======")
-        dprint(__name__, 0, 'MyPlex Sign Out done')
-
     def GetUserArtworkURL(self, username):
         """
         Returns the URL for the user's Avatar. Or False if something went
         wrong.
         """
-        plexToken = utils.settings('plexToken')
+        plexToken = settings('plexToken')
         users = self.MyPlexListHomeUsers(plexToken)
         url = ''
         # If an error is encountered, set to False
         if not users:
-            self.logMsg("Could not get userlist from plex.tv.", 1)
-            self.logMsg("No URL for user avatar.", 1)
+            log.info("Couldnt get user from plex.tv. No URL for user avatar")
             return False
         for user in users:
             if username in user['title']:
                 url = user['thumb']
-        self.logMsg("Avatar url for user %s is: %s" % (username, url), 1)
+        log.debug("Avatar url for user %s is: %s" % (username, url))
         return url
 
     def ChoosePlexHomeUser(self, plexToken):
@@ -824,13 +803,12 @@ class PlexAPI():
 
         Will return False if something went wrong (wrong PIN, no connection)
         """
-        string = self.__language__
         dialog = xbmcgui.Dialog()
 
         # Get list of Plex home users
         users = self.MyPlexListHomeUsers(plexToken)
         if not users:
-            self.logMsg("User download failed.", -1)
+            log.error("User download failed.")
             return False
 
         userlist = []
@@ -839,7 +817,7 @@ class PlexAPI():
             username = user['title']
             userlist.append(username)
             # To take care of non-ASCII usernames
-            userlistCoded.append(utils.tryEncode(username))
+            userlistCoded.append(tryEncode(username))
         usernumber = len(userlist)
 
         username = ''
@@ -849,26 +827,26 @@ class PlexAPI():
             if usernumber > 1:
                 # Select user
                 user_select = dialog.select(
-                    self.addonName + string(39306),
+                    addonName + lang(39306),
                     userlistCoded)
                 if user_select == -1:
-                    self.logMsg("No user selected.", 0)
-                    utils.settings('username', value='')
+                    log.info("No user selected.")
+                    settings('username', value='')
                     xbmc.executebuiltin('Addon.OpenSettings(%s)'
-                                        % clientinfo.ClientInfo().getAddonId())
+                                        % self.client.getAddonId())
                     return False
             # Only 1 user received, choose that one
             else:
                 user_select = 0
             selected_user = userlist[user_select]
-            self.logMsg("Selected user: %s" % selected_user, 0)
+            log.info("Selected user: %s" % selected_user)
             user = users[user_select]
             # Ask for PIN, if protected:
             pin = None
             if user['protected'] == '1':
-                self.logMsg('Asking for users PIN', 1)
+                log.debug('Asking for users PIN')
                 pin = dialog.input(
-                    string(39307) + selected_user,
+                    lang(39307) + selected_user,
                     '',
                     xbmcgui.INPUT_NUMERIC,
                     xbmcgui.ALPHANUM_HIDE_INPUT)
@@ -882,7 +860,7 @@ class PlexAPI():
                 user['id'],
                 pin,
                 plexToken,
-                utils.settings('plex_machineIdentifier'))
+                settings('plex_machineIdentifier'))
             if result:
                 # Successfully retrieved username: break out of while loop
                 username = result['username']
@@ -892,18 +870,16 @@ class PlexAPI():
             else:
                 trials += 1
                 # Could not login user, please try again
-                if not dialog.yesno(self.addonName,
-                                    string(39308) + selected_user,
-                                    string(39309)):
+                if not dialog.yesno(addonName,
+                                    lang(39308) + selected_user,
+                                    lang(39309)):
                     # User chose to cancel
                     break
-
         if not username:
-            self.logMsg('Failed signing in a user to plex.tv', -1)
+            log.error('Failed signing in a user to plex.tv')
             xbmc.executebuiltin('Addon.OpenSettings(%s)'
-                                % clientinfo.ClientInfo().getAddonId())
+                                % self.client.getAddonId())
             return False
-
         return {
             'username': username,
             'userid': user['id'],
@@ -930,10 +906,10 @@ class PlexAPI():
 
         settings('userid') and settings('username') with new plex token
         """
+        log.info('Switching to user %s' % userId)
         url = 'https://plex.tv/api/home/users/' + userId + '/switch'
         if pin:
             url += '?pin=' + pin
-        self.logMsg('Switching to user %s' % userId, 0)
         answer = self.doUtils(url,
                               authenticate=False,
                               action_type="POST",
@@ -941,20 +917,19 @@ class PlexAPI():
         try:
             answer.attrib
         except:
-            self.logMsg('Error: plex.tv switch HomeUser change failed', -1)
+            log.error('Error: plex.tv switch HomeUser change failed')
             return False
 
         username = answer.attrib.get('title', '')
         token = answer.attrib.get('authenticationToken', '')
 
         # Write to settings file
-        utils.settings('username', username)
-        utils.settings('accessToken', token)
-        utils.settings('userid',
-                       answer.attrib.get('id', ''))
-        utils.settings('plex_restricteduser',
-                       'true' if answer.attrib.get('restricted', '0') == '1'
-                       else 'false')
+        settings('username', username)
+        settings('accessToken', token)
+        settings('userid', answer.attrib.get('id', ''))
+        settings('plex_restricteduser',
+                 'true' if answer.attrib.get('restricted', '0') == '1'
+                 else 'false')
 
         # Get final token to the PMS we've chosen
         url = 'https://plex.tv/api/resources?includeHttps=1'
@@ -964,15 +939,15 @@ class PlexAPI():
         try:
             xml.attrib
         except:
-            self.logMsg('Answer from plex.tv not as excepted', -1)
+            log.error('Answer from plex.tv not as excepted')
             # Set to empty iterable list for loop
             xml = []
 
         found = 0
-        self.logMsg('Our machineIdentifier is %s' % machineIdentifier, 0)
+        log.debug('Our machineIdentifier is %s' % machineIdentifier)
         for device in xml:
             identifier = device.attrib.get('clientIdentifier')
-            self.logMsg('Found a Plex machineIdentifier: %s' % identifier, 0)
+            log.debug('Found a Plex machineIdentifier: %s' % identifier)
             if (identifier in machineIdentifier or
                     machineIdentifier in identifier):
                 found += 1
@@ -982,14 +957,12 @@ class PlexAPI():
             'username': username,
         }
         if found == 0:
-            self.logMsg('No tokens found for your server!', 0)
-            self.logMsg('Using empty string as token', 0)
+            log.info('No tokens found for your server! Using empty string')
             result['usertoken'] = ''
         else:
             result['usertoken'] = token
-
-        self.logMsg('Plex.tv switch HomeUser change successfull for user %s'
-                    % username, 0)
+        log.info('Plex.tv switch HomeUser change successfull for user %s'
+                 % username)
         return result
 
     def MyPlexListHomeUsers(self, token):
@@ -1019,7 +992,7 @@ class PlexAPI():
         try:
             xml.attrib
         except:
-            self.logMsg('Download of Plex home users failed.', -1)
+            log.error('Download of Plex home users failed.')
             return False
         users = []
         for user in xml:
@@ -1072,7 +1045,7 @@ class PlexAPI():
             path = 'http://127.0.0.1:32400' + key
         else:  # internal path, add-on
             path = 'http://127.0.0.1:32400' + path + '/' + key
-        path = utils.tryEncode(path)
+        path = tryEncode(path)
 
         # This is bogus (note the extra path component) but ATV is stupid when it comes to caching images, it doesn't use querystrings.
         # Fortunately PMS is lenient...
@@ -1131,7 +1104,7 @@ class PlexAPI():
         args['protocol'] = 'http'
         args['maxAudioBitrate'] = maxAudioBitrate
 
-        xargs = clientinfo.ClientInfo().getXArgsDeviceInfo(options)
+        xargs = self.client.getXArgsDeviceInfo(options)
         if not AuthToken == '':
             xargs['X-Plex-Token'] = AuthToken
 
@@ -1198,7 +1171,6 @@ class PlexAPI():
         return serverlist
 
 
-@utils.logging
 class API():
     """
     API(item)
@@ -1212,8 +1184,8 @@ class API():
         self.item = item
         # which media part in the XML response shall we look at?
         self.part = 0
-        self.__language__ = xbmcaddon.Addon().getLocalizedString
-        self.server = utils.window('pms_server')
+        self.server = window('pms_server')
+        self.client = clientinfo.ClientInfo()
 
     def setPartNumber(self, number=None):
         """
@@ -1268,14 +1240,14 @@ class API():
         """
         try:
             if forceFirstMediaStream is False:
-                ans = self.item[self.__getMedia()][self.part].attrib['file']
+                ans = self.item[self._getMedia()][self.part].attrib['file']
             else:
                 ans = self.item[0][self.part].attrib['file']
         except:
             ans = None
         if ans is not None:
             try:
-                ans = utils.tryDecode(unquote(ans))
+                ans = tryDecode(unquote(ans))
             except UnicodeDecodeError:
                 # Sometimes, Plex seems to have encoded in latin1
                 ans = unquote(ans).decode('latin1')
@@ -1306,7 +1278,7 @@ class API():
         """
         res = self.item.attrib.get('addedAt')
         if res is not None:
-            res = utils.DateToKodi(res)
+            res = DateToKodi(res)
         else:
             res = '2000-01-01 10:00:00'
         return res
@@ -1339,7 +1311,7 @@ class API():
             played = False
 
         try:
-            lastPlayedDate = utils.DateToKodi(int(item['lastViewedAt']))
+            lastPlayedDate = DateToKodi(int(item['lastViewedAt']))
         except:
             lastPlayedDate = None
 
@@ -1581,7 +1553,7 @@ class API():
         """
         Returns the "originallyAvailableAt" or None
         """
-        return self.item.attrib.get('originallyAvailableAt', None)
+        return self.item.attrib.get('originallyAvailableAt')
 
     def getMusicStudio(self):
         return self.item.attrib.get('studio', '')
@@ -1648,7 +1620,7 @@ class API():
 
         arguments overrule everything
         """
-        xargs = clientinfo.ClientInfo().getXArgsDeviceInfo()
+        xargs = self.client.getXArgsDeviceInfo()
         xargs.update(arguments)
         if '?' not in url:
             url = "%s?%s" % (url, urlencode(xargs))
@@ -1662,12 +1634,12 @@ class API():
 
         url may or may not already contain a '?'
         """
-        if utils.window('pms_token') == '':
+        if window('pms_token') == '':
             return url
         if '?' not in url:
-            url = "%s?X-Plex-Token=%s" % (url, utils.window('pms_token'))
+            url = "%s?X-Plex-Token=%s" % (url, window('pms_token'))
         else:
-            url = "%s&X-Plex-Token=%s" % (url, utils.window('pms_token'))
+            url = "%s&X-Plex-Token=%s" % (url, window('pms_token'))
         return url
 
     def GetPlayQueueItemID(self):
@@ -1756,13 +1728,15 @@ class API():
             originallyAvailableAt = extra.attrib.get(
                 'originallyAvailableAt', None)
             elements.append(
-                {'key': key,
-                 'title': title,
-                 'thumb': thumb,
-                 'duration': int(duration * PlexToKodiTimefactor()),
-                 'extraType': extraType,
-                 'originallyAvailableAt': originallyAvailableAt,
-                 'year': year})
+                {
+                    'key': key,
+                    'title': title,
+                    'thumb': thumb,
+                    'duration': int(duration * PlexToKodiTimefactor()),
+                    'extraType': extraType,
+                    'originallyAvailableAt': originallyAvailableAt,
+                    'year': year
+                })
         return elements
 
     def getMediaStreams(self):
@@ -1822,14 +1796,14 @@ class API():
                     audiotrack['channels'] = mediaStream.get('channels')
                     # 'unknown' if we cannot get language
                     audiotrack['language'] = mediaStream.get(
-                        'languageCode', self.__language__(39310)).lower()
+                        'languageCode', lang(39310)).lower()
                     audiotracks.append(audiotrack)
 
                 elif mediaType == 3:  # Subtitle streams
                     # 'unknown' if we cannot get language
                     subtitlelanguages.append(
                         mediaStream.get('languageCode',
-                                        self.__language__(39310)).lower())
+                                        lang(39310)).lower())
         return {
             'video': videotracks,
             'audio': audiotracks,
@@ -1896,7 +1870,7 @@ class API():
 
         # Plex does not get much artwork - go ahead and get the rest from
         # fanart tv only for movie or tv show
-        if utils.settings('FanartTV') == 'true':
+        if settings('FanartTV') == 'true':
             if item.get('type') in ('movie', 'show'):
                 externalId = self.getExternalItemId()
                 if externalId is not None:
@@ -1925,13 +1899,13 @@ class API():
                 mediaId = self.getProvider('tvdb')
             if mediaId is not None:
                 return mediaId
-            self.logMsg('Plex did not provide ID for IMDB or TVDB. Start '
-                        'lookup process', 1)
+            log.info('Plex did not provide ID for IMDB or TVDB. Start '
+                     'lookup process')
         else:
-            self.logMsg('Start movie set/collection lookup on themoviedb', 1)
+            log.info('Start movie set/collection lookup on themoviedb')
 
         KODILANGUAGE = xbmc.getLanguage(xbmc.ISO_639_1)
-        apiKey = utils.settings('themoviedbAPIKey')
+        apiKey = settings('themoviedbAPIKey')
         if media_type == 'show':
             media_type = 'tv'
         title = item.get('title', '')
@@ -1942,7 +1916,7 @@ class API():
         parameters = {
             'api_key': apiKey,
             'language': KODILANGUAGE,
-            'query': utils.tryEncode(title)
+            'query': tryEncode(title)
         }
         data = downloadutils.DownloadUtils().downloadUrl(
             url,
@@ -1952,11 +1926,11 @@ class API():
         try:
             data.get('test')
         except:
-            self.logMsg('Could not download data from FanartTV', -1)
+            log.error('Could not download data from FanartTV')
             return
         if data.get('results') is None:
-            self.logMsg('No match found on themoviedb for type: %s, title: %s'
-                        % (media_type, title), 1)
+            log.info('No match found on themoviedb for type: %s, title: %s'
+                     % (media_type, title))
             return
 
         year = item.get('year')
@@ -1972,7 +1946,7 @@ class API():
                     break
         # find exact match based on title, if we haven't found a year match
         if matchFound is None:
-            self.logMsg('No themoviedb match found using year %s' % year, 1)
+            log.info('No themoviedb match found using year %s' % year)
             replacements = (
                 ' ',
                 '-',
@@ -2003,21 +1977,21 @@ class API():
 
         # if a match was not found, we accept the closest match from TMDB
         if matchFound is None and len(data.get("results")) > 0:
-            self.logMsg('Using very first match from themoviedb', 1)
+            log.info('Using very first match from themoviedb')
             matchFound = entry = data.get("results")[0]
 
         if matchFound is None:
-            self.logMsg('Still no themoviedb match for type: %s, title: %s, '
-                        'year: %s' % (media_type, title, year), 1)
-            self.logMsg('themoviedb answer was %s' % data['results'], 1)
+            log.info('Still no themoviedb match for type: %s, title: %s, '
+                     'year: %s' % (media_type, title, year))
+            log.debug('themoviedb answer was %s' % data['results'])
             return
 
-        self.logMsg('Found themoviedb match for %s: %s'
-                    % (item.get('title'), matchFound), 1)
+        log.info('Found themoviedb match for %s: %s'
+                 % (item.get('title'), matchFound))
 
         tmdbId = str(entry.get("id", ""))
         if tmdbId == '':
-            self.logMsg('No themoviedb ID found, aborting', -1)
+            log.error('No themoviedb ID found, aborting')
             return
 
         if media_type == "multi" and entry.get("media_type"):
@@ -2043,8 +2017,8 @@ class API():
             try:
                 data.get('test')
             except:
-                self.logMsg('Could not download %s with parameters %s'
-                            % (url, parameters), -1)
+                log.error('Could not download %s with parameters %s'
+                          % (url, parameters))
                 continue
             if collection is False:
                 if data.get("imdb_id") is not None:
@@ -2056,8 +2030,7 @@ class API():
             else:
                 if data.get("belongs_to_collection") is not None:
                     mediaId = str(data.get("belongs_to_collection").get("id"))
-                    self.logMsg('Retrieved collections tmdb id %s'
-                                % mediaId, 1)
+                    log.debug('Retrieved collections tmdb id %s' % mediaId)
         return mediaId
 
     def getFanartTVArt(self, mediaId, allartworks, setInfo=False):
@@ -2068,7 +2041,7 @@ class API():
         """
         item = self.item.attrib
         KODILANGUAGE = xbmc.getLanguage(xbmc.ISO_639_1)
-        api_key = utils.settings('FanArtTVAPIKey')
+        api_key = settings('FanArtTVAPIKey')
         typus = item.get('type')
         if typus == 'show':
             typus = 'tv'
@@ -2089,7 +2062,7 @@ class API():
         try:
             data.get('test')
         except:
-            self.logMsg('Could not download data from FanartTV', -1)
+            log.error('Could not download data from FanartTV')
             return allartworks
 
         # we need to use a little mapping between fanart.tv arttypes and kodi
@@ -2152,7 +2125,6 @@ class API():
                     if xbmcvfs.exists(entry.get("url")):
                         allartworks['Backdrop'].append(entry.get("url"))
                         fanartcount += 1
-
         return allartworks
 
     def getSetArtwork(self, parentInfo=False):
@@ -2197,7 +2169,7 @@ class API():
         """
         return self.item[0].attrib.get('optimizedForStreaming') == '1'
 
-    def __getMedia(self):
+    def _getMedia(self):
         """
         Returns the Media stream as an int (mostly 0). Will let the user choose
         if several media streams are present for a PMS item (if settings are
@@ -2209,10 +2181,10 @@ class API():
             count += 1
         if (count > 1 and (
                 (self.getType() != 'clip' and
-                 utils.settings('bestQuality') == 'false')
+                 settings('bestQuality') == 'false')
                 or
                 (self.getType() == 'clip' and
-                 utils.settings('bestTrailer') == 'false'))):
+                 settings('bestTrailer') == 'false'))):
             # Several streams/files available.
             dialoglist = []
             for entry in self.item.findall('./Media'):
@@ -2251,11 +2223,11 @@ class API():
         """
         if quality is None:
             quality = {}
-        xargs = clientinfo.ClientInfo().getXArgsDeviceInfo()
+        xargs = self.client.getXArgsDeviceInfo()
         # For DirectPlay, path/key of PART is needed
         # trailers are 'clip' with PMS xmls
         if action == "DirectStream":
-            path = self.item[self.__getMedia()][self.part].attrib['key']
+            path = self.item[self._getMedia()][self.part].attrib['key']
             url = self.server + path
             # e.g. Trailers already feature an '?'!
             if '?' in url:
@@ -2271,7 +2243,7 @@ class API():
             '/video/:/transcode/universal/start.m3u8?'
         args = {
             'protocol': 'hls',   # seen in the wild: 'dash', 'http', 'hls'
-            'session':  clientinfo.ClientInfo().getDeviceId(),
+            'session':  self.client.getDeviceId(),
             'fastSeek': 1,
             'path': path,
             'mediaIndex': 0,       # Probably refering to XML reply sheme
@@ -2281,7 +2253,6 @@ class API():
         }
         # Seem like PHT to let the PMS use the transcoding profile
         xargs['X-Plex-Device'] = 'Plex Home Theater'
-
         # Currently not used!
         if action == "DirectStream":
             argsUpdate = {
@@ -2294,23 +2265,20 @@ class API():
                 'directPlay': '0',
                 'directStream': '0'
             }
-            self.logMsg("Setting transcode quality to: %s" % quality, 1)
+            log.debug("Setting transcode quality to: %s" % quality)
             args.update(quality)
             args.update(argsUpdate)
-
         url = transcodePath + urlencode(xargs) + '&' + urlencode(args)
         return url
 
     def externalSubs(self, playurl):
         externalsubs = []
         mapping = {}
-
         item = self.item
         try:
             mediastreams = item[0][self.part]
         except (TypeError, KeyError, IndexError):
             return
-
         kodiindex = 0
         for stream in mediastreams:
             index = stream.attrib['id']
@@ -2319,7 +2287,6 @@ class API():
             key = stream.attrib.get('key')
             # IsTextSubtitleStream if true, is available to download from emby.
             if stream.attrib.get('streamType') == "3" and key:
-
                 # Direct stream
                 url = ("%s%s" % (self.server, key))
                 url = self.addPlexCredentialsToUrl(url)
@@ -2328,8 +2295,8 @@ class API():
                 externalsubs.append(url)
                 kodiindex += 1
         mapping = json.dumps(mapping)
-        utils.window('emby_%s.indexMapping' % playurl, value=mapping)
-        self.logMsg('Found external subs: %s' % externalsubs)
+        window('emby_%s.indexMapping' % playurl, value=mapping)
+        log.info('Found external subs: %s' % externalsubs)
         return externalsubs
 
     def CreateListItemFromPlexItem(self,
@@ -2337,11 +2304,11 @@ class API():
                                    appendShowTitle=False,
                                    appendSxxExx=False):
         if self.getType() == 'photo':
-            listItem = self.__createPhotoListItem(listItem)
+            listItem = self._createPhotoListItem(listItem)
         else:
-            listItem = self.__createVideoListItem(listItem,
-                                                  appendShowTitle,
-                                                  appendSxxExx)
+            listItem = self._createVideoListItem(listItem,
+                                                 appendShowTitle,
+                                                 appendSxxExx)
         return listItem
 
     def GetKodiPremierDate(self):
@@ -2358,7 +2325,7 @@ class API():
             date = None
         return date
 
-    def __createPhotoListItem(self, listItem=None):
+    def _createPhotoListItem(self, listItem=None):
         """
         Use for photo items only
         """
@@ -2368,17 +2335,17 @@ class API():
         else:
             listItem.setLabel(title)
         listItem.setProperty('IsPlayable', 'true')
-        if utils.settings('useDirectPaths') == '0':
+        if settings('useDirectPaths') == '0':
             # Addon paths
             path = self.addPlexCredentialsToUrl(
-                '%s%s' % (utils.window('pms_server'),
+                '%s%s' % (window('pms_server'),
                           self.item[0][0].attrib['key']))
         else:
             # Native direct paths
             path = self.validatePlayurl(
                 self.getFilePath(forceFirstMediaStream=True),
                 'photo')
-        path = utils.tryEncode(path)
+        path = tryEncode(path)
         metadata = {
             'date': self.GetKodiPremierDate(),
             'picturepath': path,
@@ -2406,10 +2373,10 @@ class API():
         listItem.setIconImage('DefaultPicture.png')
         return listItem
 
-    def __createVideoListItem(self,
-                              listItem=None,
-                              appendShowTitle=False,
-                              appendSxxExx=False):
+    def _createVideoListItem(self,
+                             listItem=None,
+                             appendShowTitle=False,
+                             appendSxxExx=False):
         """
         Use for video items only
         Call on a child level of PMS xml response (e.g. in a for loop)
@@ -2532,44 +2499,44 @@ class API():
             'photo': 'photo'
         }
         typus = types[typus]
-        if utils.window('remapSMB') == 'true':
-            path = path.replace(utils.window('remapSMB%sOrg' % typus),
-                                utils.window('remapSMB%sNew' % typus),
+        if window('remapSMB') == 'true':
+            path = path.replace(window('remapSMB%sOrg' % typus),
+                                window('remapSMB%sNew' % typus),
                                 1)
             # There might be backslashes left over:
             path = path.replace('\\', '/')
-        elif utils.window('replaceSMB') == 'true':
+        elif window('replaceSMB') == 'true':
             if path.startswith('\\\\'):
                 path = 'smb:' + path.replace('\\', '/')
-        if utils.window('plex_pathverified') == 'true' and forceCheck is False:
+        if window('plex_pathverified') == 'true' and forceCheck is False:
             return path
 
         # exist() needs a / or \ at the end to work for directories
         if folder is False:
             # files
-            check = xbmcvfs.exists(utils.tryEncode(path)) == 1
+            check = xbmcvfs.exists(tryEncode(path)) == 1
         else:
             # directories
             if "\\" in path:
                 # Add the missing backslash
-                check = xbmcvfs.exists(utils.tryEncode(path + "\\")) == 1
+                check = xbmcvfs.exists(tryEncode(path + "\\")) == 1
             else:
-                check = xbmcvfs.exists(utils.tryEncode(path + "/")) == 1
+                check = xbmcvfs.exists(tryEncode(path + "/")) == 1
 
         if check is False:
             if forceCheck is False:
                 # Validate the path is correct with user intervention
                 if self.askToValidate(path):
-                    utils.window('plex_shouldStop', value="true")
+                    window('plex_shouldStop', value="true")
                     path = None
-                utils.window('plex_pathverified', value='true')
-                utils.settings('plex_pathverified', value='true')
+                window('plex_pathverified', value='true')
+                settings('plex_pathverified', value='true')
             else:
                 path = None
         elif forceCheck is False:
-            if utils.window('plex_pathverified') != 'true':
-                utils.window('plex_pathverified', value='true')
-                utils.settings('plex_pathverified', value='true')
+            if window('plex_pathverified') != 'true':
+                window('plex_pathverified', value='true')
+                settings('plex_pathverified', value='true')
         return path
 
     def askToValidate(self, url):
@@ -2581,11 +2548,9 @@ class API():
 
         Returns True if sync should stop, else False
         """
-        self.logMsg('Cannot access file: %s' % url, -1)
-        import xbmcaddon
-        string = xbmcaddon.Addon().getLocalizedString
+        log.warn('Cannot access file: %s' % url)
         resp = xbmcgui.Dialog().yesno(
-            heading=self.addonName,
-            line1=string(39031) + url,
-            line2=string(39032))
+            heading=addonName,
+            line1=lang(39031) + url,
+            line2=lang(39032))
         return resp
