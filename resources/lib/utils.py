@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 
 ###############################################################################
-
+import logging
 import cProfile
-import inspect
 import json
 import pstats
 import sqlite3
@@ -24,7 +23,86 @@ import xbmcvfs
 
 ###############################################################################
 
+log = logging.getLogger("PLEX."+__name__)
+
 addonName = 'PlexKodiConnect'
+WINDOW = xbmcgui.Window(10000)
+ADDON = xbmcaddon.Addon(id='plugin.video.plexkodiconnect')
+
+###############################################################################
+# Main methods
+
+
+def window(property, value=None, clear=False, windowid=10000):
+    """
+    Get or set window property - thread safe!
+
+    Returns unicode.
+
+    Property and value may be string or unicode
+    """
+    if windowid != 10000:
+        win = xbmcgui.Window(windowid)
+    else:
+        win = WINDOW
+
+    if clear:
+        win.clearProperty(property)
+    elif value is not None:
+        win.setProperty(tryEncode(property), tryEncode(value))
+    else:
+        return tryDecode(win.getProperty(property))
+
+
+def settings(setting, value=None):
+    """
+    Get or add addon setting. Returns unicode
+
+    setting and value can either be unicode or string
+    """
+    if value is not None:
+        # Takes string or unicode by default!
+        ADDON.setSetting(tryEncode(setting), tryEncode(value))
+    else:
+        # Should return unicode by default, but just in case
+        return tryDecode(ADDON.getSetting(setting))
+
+
+def language(stringid):
+    # Central string retrieval
+    return ADDON.getLocalizedString(stringid)
+
+
+def tryEncode(uniString, encoding='utf-8'):
+    """
+    Will try to encode uniString (in unicode) to encoding. This possibly
+    fails with e.g. Android TV's Python, which does not accept arguments for
+    string.encode()
+    """
+    if isinstance(uniString, str):
+        # already encoded
+        return uniString
+    try:
+        uniString = uniString.encode(encoding, "ignore")
+    except TypeError:
+        uniString = uniString.encode()
+    return uniString
+
+
+def tryDecode(string, encoding='utf-8'):
+    """
+    Will try to decode string (encoded) using encoding. This possibly
+    fails with e.g. Android TV's Python, which does not accept arguments for
+    string.encode()
+    """
+    if isinstance(string, unicode):
+        # already decoded
+        return string
+    try:
+        string = string.decode(encoding, "ignore")
+    except TypeError:
+        string = string.decode()
+    return string
 
 
 def DateToKodi(stamp):
@@ -43,52 +121,6 @@ def DateToKodi(stamp):
         except:
             localdate = None
         return localdate
-
-
-def changePlayState(itemType, kodiId, playCount, lastplayed):
-    """
-    YET UNUSED
-
-    kodiId: int or str
-    playCount: int or str
-    lastplayed: str or int unix timestamp
-    """
-    logMsg("changePlayState", "start", 1)
-    lastplayed = DateToKodi(lastplayed)
-
-    kodiId = int(kodiId)
-    playCount = int(playCount)
-    method = {
-        'movie': ' VideoLibrary.SetMovieDetails',
-        'episode': 'VideoLibrary.SetEpisodeDetails',
-        'musicvideo': ' VideoLibrary.SetMusicVideoDetails',  # TODO
-        'show': 'VideoLibrary.SetTVShowDetails',  # TODO
-        '': 'AudioLibrary.SetAlbumDetails',  # TODO
-        '': 'AudioLibrary.SetArtistDetails',  # TODO
-        'track': 'AudioLibrary.SetSongDetails'
-    }
-    params = {
-        'movie': {
-            'movieid': kodiId,
-            'playcount': playCount,
-            'lastplayed': lastplayed
-        },
-        'episode': {
-            'episodeid': kodiId,
-            'playcount': playCount,
-            'lastplayed': lastplayed
-        }
-    }
-    query = {
-        "jsonrpc": "2.0",
-        "id": 1,
-    }
-    query['method'] = method[itemType]
-    query['params'] = params[itemType]
-    result = xbmc.executeJSONRPC(json.dumps(query))
-    result = json.loads(result)
-    result = result.get('result')
-    logMsg("changePlayState", "JSON result was: %s" % result, 1)
 
 
 def IfExists(path):
@@ -110,160 +142,6 @@ def IfExists(path):
         xbmcvfs.delete(dummyfile)
         answer = True
     return answer
-
-
-def forEveryMethod(decorator):
-    """
-    Wrapper for classes to add the decorator "decorator" to all methods of the
-    class
-    """
-    def decorate(cls):
-        for attr in cls.__dict__:  # there's propably a better way to do this
-            if callable(getattr(cls, attr)):
-                setattr(cls, attr, decorator(getattr(cls, attr)))
-        return cls
-    return decorate
-
-
-def CatchExceptions(warnuser=False):
-    """
-    Decorator for methods to catch exceptions and log them. Useful for e.g.
-    librarysync threads using itemtypes.py, because otherwise we would not
-    get informed of crashes
-
-    warnuser=True:      sets the window flag 'plex_scancrashed' to true
-                        which will trigger a Kodi infobox to inform user
-    """
-    def decorate(func):
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-            try:
-                return func(*args, **kwargs)
-            except Exception as e:
-                logMsg(addonName, '%s has crashed' % func.__name__, -1)
-                logMsg(addonName, e, -1)
-                import traceback
-                logMsg(addonName, "Traceback:\n%s"
-                       % traceback.format_exc(), -1)
-                if warnuser:
-                    window('plex_scancrashed', value='true')
-                return
-        return wrapper
-    return decorate
-
-
-def LogTime(func):
-    """
-    Decorator for functions and methods to log the time it took to run the code
-    """
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        starttotal = datetime.now()
-        result = func(*args, **kwargs)
-        elapsedtotal = datetime.now() - starttotal
-        logMsg('%s %s' % (addonName, func.__name__),
-               'It took %s to run the function.' % (elapsedtotal), 1)
-        return result
-    return wrapper
-
-
-def ThreadMethodsAdditionalStop(windowAttribute):
-    """
-    Decorator to replace stopThread method to include the Kodi windowAttribute
-
-    Use with any sync threads. @ThreadMethods still required FIRST
-    """
-    def wrapper(cls):
-        def threadStopped(self):
-            return (self._threadStopped or
-                    (window('plex_terminateNow') == "true") or
-                    window(windowAttribute) == "true")
-        cls.threadStopped = threadStopped
-        return cls
-    return wrapper
-
-
-def ThreadMethodsAdditionalSuspend(windowAttribute):
-    """
-    Decorator to replace threadSuspended(): thread now also suspends if a
-    Kodi windowAttribute is set to 'true', e.g. 'suspend_LibraryThread'
-
-    Use with any library sync threads. @ThreadMethods still required FIRST
-    """
-    def wrapper(cls):
-        def threadSuspended(self):
-            return (self._threadSuspended or
-                    window(windowAttribute) == 'true')
-        cls.threadSuspended = threadSuspended
-        return cls
-    return wrapper
-
-
-def ThreadMethods(cls):
-    """
-    Decorator to add the following methods to a threading class:
-
-    suspendThread():    pauses the thread
-    resumeThread():     resumes the thread
-    stopThread():       stopps/kills the thread
-
-    threadSuspended():  returns True if thread is suspend_thread
-    threadStopped():    returns True if thread is stopped (or should stop ;-))
-                        ALSO stops if Kodi is exited
-
-    Also adds the following class attributes:
-        _threadStopped
-        _threadSuspended
-    """
-    # Attach new attributes to class
-    cls._threadStopped = False
-    cls._threadSuspended = False
-
-    # Define new class methods and attach them to class
-    def stopThread(self):
-        self._threadStopped = True
-    cls.stopThread = stopThread
-
-    def suspendThread(self):
-        self._threadSuspended = True
-    cls.suspendThread = suspendThread
-
-    def resumeThread(self):
-        self._threadSuspended = False
-    cls.resumeThread = resumeThread
-
-    def threadSuspended(self):
-        return self._threadSuspended
-    cls.threadSuspended = threadSuspended
-
-    def threadStopped(self):
-        return self._threadStopped or (window('plex_terminateNow') == 'true')
-    cls.threadStopped = threadStopped
-
-    # Return class to render this a decorator
-    return cls
-
-
-def logging(cls):
-    """
-    A decorator adding logging capabilities to classes.
-    Also adds self.addonName to the class
-
-    Syntax: self.logMsg(message, loglevel)
-
-    Loglevel: -2 (Error) to 2 (DB debug)
-    """
-    # Attach new attributes to class
-    cls.addonName = addonName
-
-    # Define new class methods and attach them to class
-    def newFunction(self, msg, lvl=0):
-        title = "%s %s" % (addonName, cls.__name__)
-        logMsg(title, msg, lvl)
-    cls.logMsg = newFunction
-
-    # Return class to render this a decorator
-    return cls
 
 
 def IntFromStr(string):
@@ -291,85 +169,6 @@ def getUnixTimestamp(secondsIntoTheFuture=None):
         future = datetime.utcnow()
     return timegm(future.timetuple())
 
-
-def logMsg(title, msg, level=1):
-    # Get the logLevel set in UserClient
-    try:
-        logLevel = int(window('plex_logLevel'))
-    except ValueError:
-        logLevel = 0
-    kodiLevel = {
-        -1: xbmc.LOGERROR,
-        0: xbmc.LOGNOTICE,
-        1: xbmc.LOGNOTICE,
-        2: xbmc.LOGNOTICE
-    }
-    if logLevel >= level:
-        if logLevel == 2:  # inspect is expensive
-            func = inspect.currentframe().f_back.f_back.f_code
-            try:
-                xbmc.log("%s -> %s : %s" % (
-                    title, func.co_name, msg), level=kodiLevel[level])
-            except UnicodeEncodeError:
-                try:
-                    xbmc.log("%s -> %s : %s" % (
-                        title, func.co_name, tryEncode(msg)),
-                        level=kodiLevel[level])
-                except:
-                    xbmc.log("%s -> %s : %s" % (
-                        title, func.co_name, 'COULDNT LOG'),
-                        level=kodiLevel[level])
-        else:
-            try:
-                xbmc.log("%s -> %s" % (title, msg), level=kodiLevel[level])
-            except UnicodeEncodeError:
-                try:
-                    xbmc.log("%s -> %s" % (title, tryEncode(msg)),
-                             level=kodiLevel[level])
-                except:
-                    xbmc.log("%s -> %s " % (title, 'COULDNT LOG'),
-                             level=kodiLevel[level])
-
-
-def window(property, value=None, clear=False, windowid=10000):
-    """
-    Get or set window property - thread safe!
-
-    Returns unicode.
-
-    Property needs to be string; value may be string or unicode
-    """
-    WINDOW = xbmcgui.Window(windowid)
-
-    #setproperty accepts both string and unicode but utf-8 strings are adviced by kodi devs because some unicode can give issues
-    if clear:
-        WINDOW.clearProperty(property)
-    elif value is not None:
-        WINDOW.setProperty(property, tryEncode(value))
-    else:
-        return tryDecode(WINDOW.getProperty(property))
-
-def settings(setting, value=None):
-    """
-    Get or add addon setting. Returns unicode
-
-    Settings needs to be string
-    Value can either be unicode or string
-    """
-    addon = xbmcaddon.Addon(id='plugin.video.plexkodiconnect')
-
-    if value is not None:
-        # Takes string or unicode by default!
-        addon.setSetting(setting, tryEncode(value))
-    else:
-        # Should return unicode by default, but just in case
-        return tryDecode(addon.getSetting(setting))
-
-def language(stringid):
-    # Central string retrieval
-    addon = xbmcaddon.Addon(id='plugin.video.plexkodiconnect')
-    string = addon.getLocalizedString(stringid) #returns unicode object
-    return string
 
 def kodiSQL(media_type="video"):
 
@@ -445,7 +244,8 @@ def setScreensaver(value):
             'value': value
         }
     }
-    logMsg("PLEX", "Toggling screensaver: %s %s" % (value, xbmc.executeJSONRPC(json.dumps(query))), 1)
+    log.debug("Toggling screensaver: %s %s"
+              % (value, xbmc.executeJSONRPC(json.dumps(query))))
 
 def reset():
 
@@ -458,7 +258,7 @@ def reset():
     window('plex_shouldStop', value="true")
     count = 10
     while window('plex_dbScan') == "true":
-        logMsg("PLEX", "Sync is running, will retry: %s..." % count)
+        log.debug("Sync is running, will retry: %s..." % count)
         count -= 1
         if count == 0:
             dialog.ok("Warning", "Could not stop the database from running. Try again.")
@@ -472,7 +272,7 @@ def reset():
     deleteNodes()
 
     # Wipe the kodi databases
-    logMsg("Plex", "Resetting the Kodi video database.", 0)
+    log.info("Resetting the Kodi video database.")
     connection = kodiSQL('video')
     cursor = connection.cursor()
     cursor.execute('SELECT tbl_name FROM sqlite_master WHERE type="table"')
@@ -485,7 +285,7 @@ def reset():
     cursor.close()
 
     if settings('enableMusic') == "true":
-        logMsg("Plex", "Resetting the Kodi music database.")
+        log.info("Resetting the Kodi music database.")
         connection = kodiSQL('music')
         cursor = connection.cursor()
         cursor.execute('SELECT tbl_name FROM sqlite_master WHERE type="table"')
@@ -498,7 +298,7 @@ def reset():
         cursor.close()
 
     # Wipe the Plex database
-    logMsg("Plex", "Resetting the Emby database.", 0)
+    log.info("Resetting the Plex database.")
     connection = kodiSQL('emby')
     cursor = connection.cursor()
     cursor.execute('SELECT tbl_name FROM sqlite_master WHERE type="table"')
@@ -515,7 +315,7 @@ def reset():
     # Offer to wipe cached thumbnails
     resp = dialog.yesno("Warning", "Remove all cached artwork?")
     if resp:
-        logMsg("EMBY", "Resetting all cached artwork.", 0)
+        log.info("Resetting all cached artwork.")
         # Remove all existing textures first
         path = tryDecode(xbmc.translatePath("special://thumbnails/"))
         if xbmcvfs.exists(path):
@@ -555,7 +355,7 @@ def reset():
         addondir = tryDecode(xbmc.translatePath(addon.getAddonInfo('profile')))
         dataPath = "%ssettings.xml" % addondir
         xbmcvfs.delete(tryEncode(dataPath))
-        logMsg("PLEX", "Deleting: settings.xml", 1)
+        log.info("Deleting: settings.xml")
 
     dialog.ok(
         heading=addonName,
@@ -576,7 +376,7 @@ def profiling(sortby="cumulative"):
             s = StringIO.StringIO()
             ps = pstats.Stats(pr, stream=s).sort_stats(sortby)
             ps.print_stats()
-            logMsg("EMBY Profiling", s.getvalue(), 1)
+            log.debug(s.getvalue())
 
             return result
 
@@ -785,7 +585,6 @@ def passwordsXML():
     # To add network credentials
     path = tryDecode(xbmc.translatePath("special://userdata/"))
     xmlpath = "%spasswords.xml" % path
-    logMsg('passwordsXML', 'Path to passwords.xml: %s' % xmlpath, 1)
 
     try:
         xmlparse = etree.parse(xmlpath)
@@ -813,13 +612,13 @@ def passwordsXML():
                 for path in paths:
                     if path.find('.//from').text == "smb://%s/" % credentials:
                         paths.remove(path)
-                        logMsg("passwordsXML",
-                               "Successfully removed credentials for: %s"
-                               % credentials, 1)
+                        log.info("Successfully removed credentials for: %s"
+                                 % credentials)
                         etree.ElementTree(root).write(xmlpath)
                         break
             else:
-                logMsg("Plex", "Failed to find saved server: %s in passwords.xml" % credentials, 1)
+                log.error("Failed to find saved server: %s in passwords.xml"
+                          % credentials)
 
             settings('networkCreds', value="")
             xbmcgui.Dialog().notification(
@@ -876,7 +675,7 @@ def passwordsXML():
 
     # Add credentials
     settings('networkCreds', value="%s" % server)
-    logMsg("PLEX", "Added server: %s to passwords.xml" % server, 1)
+    log.info("Added server: %s to passwords.xml" % server)
     # Prettify and write to file
     try:
         indent(root)
@@ -904,15 +703,15 @@ def playlistXSP(mediatype, tagname, viewid, viewtype="", delete=False):
 
     # Create the playlist directory
     if not xbmcvfs.exists(tryEncode(path)):
-        logMsg("PLEX", "Creating directory: %s" % path, 1)
+        log.info("Creating directory: %s" % path)
         xbmcvfs.mkdirs(tryEncode(path))
 
     # Only add the playlist if it doesn't already exists
     if xbmcvfs.exists(tryEncode(xsppath)):
-        logMsg('Path %s does exist' % xsppath, 1)
+        log.info('Path %s does exist' % xsppath)
         if delete:
             xbmcvfs.delete(tryEncode(xsppath))
-            logMsg("PLEX", "Successfully removed playlist: %s." % tagname, 1)
+            log.info("Successfully removed playlist: %s." % tagname)
 
         return
 
@@ -922,11 +721,11 @@ def playlistXSP(mediatype, tagname, viewid, viewtype="", delete=False):
         'movie': 'movies',
         'show': 'tvshows'
     }
-    logMsg("Plex", "Writing playlist file to: %s" % xsppath, 1)
+    log.info("Writing playlist file to: %s" % xsppath)
     try:
         f = xbmcvfs.File(tryEncode(xsppath), 'wb')
     except:
-        logMsg("Plex", "Failed to create playlist: %s" % xsppath, -1)
+        log.error("Failed to create playlist: %s" % xsppath)
         return
     else:
         f.write(tryEncode(
@@ -940,7 +739,7 @@ def playlistXSP(mediatype, tagname, viewid, viewtype="", delete=False):
             '</smartplaylist>\n'
             % (itemtypes.get(mediatype, mediatype), plname, tagname)))
         f.close()
-    logMsg("Plex", "Successfully added playlist: %s" % tagname)
+    log.info("Successfully added playlist: %s" % tagname)
 
 def deletePlaylists():
 
@@ -962,43 +761,180 @@ def deleteNodes():
             try:
                 shutil.rmtree("%s%s" % (path, tryDecode(dir)))
             except:
-                logMsg("PLEX", "Failed to delete directory: %s"
-                       % tryDecode(dir))
+                log.error("Failed to delete directory: %s" % tryDecode(dir))
     for file in files:
         if tryDecode(file).startswith('plex'):
             try:
                 xbmcvfs.delete(tryEncode("%s%s" % (path, tryDecode(file))))
             except:
-                logMsg("PLEX", "Failed to file: %s" % tryDecode(file))
+                log.error("Failed to file: %s" % tryDecode(file))
 
 
-def tryEncode(uniString, encoding='utf-8'):
+###############################################################################
+# WRAPPERS
+
+def CatchExceptions(warnuser=False):
     """
-    Will try to encode uniString (in unicode) to encoding. This possibly
-    fails with e.g. Android TV's Python, which does not accept arguments for
-    string.encode()
+    Decorator for methods to catch exceptions and log them. Useful for e.g.
+    librarysync threads using itemtypes.py, because otherwise we would not
+    get informed of crashes
+
+    warnuser=True:      sets the window flag 'plex_scancrashed' to true
+                        which will trigger a Kodi infobox to inform user
     """
-    try:
-        uniString = uniString.encode(encoding, "ignore")
-    except TypeError:
-        uniString = uniString.encode()
-    except UnicodeDecodeError:
-        # already encoded
-        pass
-    return uniString
+    def decorate(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            try:
+                return func(*args, **kwargs)
+            except Exception as e:
+                log.error('%s has crashed' % func.__name__)
+                log.error(addonName, e)
+                import traceback
+                log.error(addonName, "Traceback:\n%s"
+                          % traceback.format_exc())
+                if warnuser:
+                    window('plex_scancrashed', value='true')
+                return
+        return wrapper
+    return decorate
 
 
-def tryDecode(string, encoding='utf-8'):
+def LogTime(func):
     """
-    Will try to decode string (encoded) using encoding. This possibly
-    fails with e.g. Android TV's Python, which does not accept arguments for
-    string.encode()
+    Decorator for functions and methods to log the time it took to run the code
     """
-    try:
-        string = string.decode(encoding, "ignore")
-    except TypeError:
-        string = string.decode()
-    except UnicodeEncodeError:
-        # Already in unicode - e.g. sometimes file paths
-        pass
-    return string
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        starttotal = datetime.now()
+        result = func(*args, **kwargs)
+        elapsedtotal = datetime.now() - starttotal
+        log.debug('%s %s' % (addonName, func.__name__),
+                  'It took %s to run the function.' % (elapsedtotal))
+        return result
+    return wrapper
+
+
+def ThreadMethodsAdditionalStop(windowAttribute):
+    """
+    Decorator to replace stopThread method to include the Kodi windowAttribute
+
+    Use with any sync threads. @ThreadMethods still required FIRST
+    """
+    def wrapper(cls):
+        def threadStopped(self):
+            return (self._threadStopped or
+                    (window('plex_terminateNow') == "true") or
+                    window(windowAttribute) == "true")
+        cls.threadStopped = threadStopped
+        return cls
+    return wrapper
+
+
+def ThreadMethodsAdditionalSuspend(windowAttribute):
+    """
+    Decorator to replace threadSuspended(): thread now also suspends if a
+    Kodi windowAttribute is set to 'true', e.g. 'suspend_LibraryThread'
+
+    Use with any library sync threads. @ThreadMethods still required FIRST
+    """
+    def wrapper(cls):
+        def threadSuspended(self):
+            return (self._threadSuspended or
+                    window(windowAttribute) == 'true')
+        cls.threadSuspended = threadSuspended
+        return cls
+    return wrapper
+
+
+def ThreadMethods(cls):
+    """
+    Decorator to add the following methods to a threading class:
+
+    suspendThread():    pauses the thread
+    resumeThread():     resumes the thread
+    stopThread():       stopps/kills the thread
+
+    threadSuspended():  returns True if thread is suspend_thread
+    threadStopped():    returns True if thread is stopped (or should stop ;-))
+                        ALSO stops if Kodi is exited
+
+    Also adds the following class attributes:
+        _threadStopped
+        _threadSuspended
+    """
+    # Attach new attributes to class
+    cls._threadStopped = False
+    cls._threadSuspended = False
+
+    # Define new class methods and attach them to class
+    def stopThread(self):
+        self._threadStopped = True
+    cls.stopThread = stopThread
+
+    def suspendThread(self):
+        self._threadSuspended = True
+    cls.suspendThread = suspendThread
+
+    def resumeThread(self):
+        self._threadSuspended = False
+    cls.resumeThread = resumeThread
+
+    def threadSuspended(self):
+        return self._threadSuspended
+    cls.threadSuspended = threadSuspended
+
+    def threadStopped(self):
+        return self._threadStopped or (window('plex_terminateNow') == 'true')
+    cls.threadStopped = threadStopped
+
+    # Return class to render this a decorator
+    return cls
+
+
+###############################################################################
+# UNUSED METHODS
+
+def changePlayState(itemType, kodiId, playCount, lastplayed):
+    """
+    YET UNUSED
+
+    kodiId: int or str
+    playCount: int or str
+    lastplayed: str or int unix timestamp
+    """
+    lastplayed = DateToKodi(lastplayed)
+
+    kodiId = int(kodiId)
+    playCount = int(playCount)
+    method = {
+        'movie': ' VideoLibrary.SetMovieDetails',
+        'episode': 'VideoLibrary.SetEpisodeDetails',
+        'musicvideo': ' VideoLibrary.SetMusicVideoDetails',  # TODO
+        'show': 'VideoLibrary.SetTVShowDetails',  # TODO
+        '': 'AudioLibrary.SetAlbumDetails',  # TODO
+        '': 'AudioLibrary.SetArtistDetails',  # TODO
+        'track': 'AudioLibrary.SetSongDetails'
+    }
+    params = {
+        'movie': {
+            'movieid': kodiId,
+            'playcount': playCount,
+            'lastplayed': lastplayed
+        },
+        'episode': {
+            'episodeid': kodiId,
+            'playcount': playCount,
+            'lastplayed': lastplayed
+        }
+    }
+    query = {
+        "jsonrpc": "2.0",
+        "id": 1,
+    }
+    query['method'] = method[itemType]
+    query['params'] = params[itemType]
+    result = xbmc.executeJSONRPC(json.dumps(query))
+    result = json.loads(result)
+    result = result.get('result')
+    log.debug("JSON result was: %s" % result)
