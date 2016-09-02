@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import logging
 from urllib import urlencode
 from ast import literal_eval
 from urlparse import urlparse, parse_qsl
@@ -6,11 +7,15 @@ import re
 from copy import deepcopy
 
 import downloadutils
-from utils import logMsg, settings
+from utils import settings
 
+###############################################################################
+
+log = logging.getLogger("PLEX."+__name__)
 
 addonName = 'PlexKodiConnect'
-title = "%s %s" % (addonName, __name__)
+
+###############################################################################
 
 
 def PlexToKodiTimefactor():
@@ -193,7 +198,7 @@ def GetPlexMetadata(key):
         xml.attrib
     # Nope we did not receive a valid XML
     except AttributeError:
-        logMsg(title, "Error retrieving metadata for %s" % url, -1)
+        log.error("Error retrieving metadata for %s" % url)
         xml = None
     return xml
 
@@ -244,7 +249,7 @@ def DownloadChunks(url, containerSize):
             xml.attrib
         except AttributeError:
             # Nope, not an XML, abort
-            logMsg(title, "Error getting url %s" % url[:-1], -1)
+            log.error("Error getting url %s" % url[:-1])
             return None
         else:
             return xml
@@ -263,8 +268,8 @@ def DownloadChunks(url, containerSize):
         try:
             xmlpart.attrib
         except AttributeError:
-            logMsg(title, 'Error while downloading chunks: %s'
-                   % (url + urlencode(args)), -1)
+            log.error('Error while downloading chunks: %s'
+                      % (url + urlencode(args)))
             pos += containerSize
             errorCounter += 1
             continue
@@ -285,7 +290,7 @@ def DownloadChunks(url, containerSize):
             break
         pos += containerSize
     if errorCounter == 10:
-        logMsg(title, 'Fatal error while downloading chunks for %s' % url, -1)
+        log.error('Fatal error while downloading chunks for %s' % url)
         return None
     return xml
 
@@ -354,7 +359,7 @@ def GetPlexCollections(mediatype):
     try:
         xml.attrib
     except AttributeError:
-        logMsg(title, 'Could not download PMS sections for %s' % url, -1)
+        log.error('Could not download PMS sections for %s' % url)
         return {}
     for item in xml:
         contentType = item['type']
@@ -381,8 +386,8 @@ def GetPlexPlaylist(itemid, librarySectionUUID, mediatype='movie'):
     url = "{server}/playQueues"
     args = {
         'type': mediatype,
-        'uri': 'library://' + librarySectionUUID +
-                    '/item/%2Flibrary%2Fmetadata%2F' + itemid,
+        'uri': 'library://%s/item/%2Flibrary%2Fmetadata%2F%s'
+            % (librarySectionUUID, itemid),
         'includeChapters': '1',
         'extrasPrefixCount': trailerNumber,
         'shuffle': '0',
@@ -393,7 +398,7 @@ def GetPlexPlaylist(itemid, librarySectionUUID, mediatype='movie'):
     try:
         xml[0].tag
     except (IndexError, TypeError, AttributeError):
-        logMsg(title, "Error retrieving metadata for %s" % url, -1)
+        log.error("Error retrieving metadata for %s" % url)
         return None
     return xml
 
@@ -433,7 +438,7 @@ def PMSHttpsEnabled(url):
         try:
             res.attrib
         except AttributeError:
-            logMsg(title, "Could not contact PMS %s" % url, -1)
+            log.error("Could not contact PMS %s" % url)
             return None
         else:
             # Received a valid XML. Server wants to talk HTTP
@@ -456,11 +461,10 @@ def GetMachineIdentifier(url):
     try:
         machineIdentifier = xml.attrib['machineIdentifier']
     except (AttributeError, KeyError):
-        logMsg(title, 'Could not get the PMS machineIdentifier for %s'
-               % url, -1)
+        log.error('Could not get the PMS machineIdentifier for %s' % url)
         return None
-    logMsg(title, 'Found machineIdentifier %s for the PMS %s'
-           % (machineIdentifier, url), 1)
+    log.debug('Found machineIdentifier %s for the PMS %s'
+              % (machineIdentifier, url))
     return machineIdentifier
 
 
@@ -521,4 +525,4 @@ def scrobble(ratingKey, state):
     else:
         return
     downloadutils.DownloadUtils().downloadUrl(url)
-    logMsg(title, "Toggled watched state for Plex item %s" % ratingKey, 1)
+    log.info("Toggled watched state for Plex item %s" % ratingKey)
