@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import logging
 import threading
 import traceback
 import socket
@@ -6,35 +7,37 @@ import Queue
 
 import xbmc
 
-import utils
+from utils import settings, ThreadMethodsAdditionalSuspend, ThreadMethods
 from plexbmchelper import listener, plexgdm, subscribers, functions, \
-    httppersist, settings
+    httppersist, plexsettings
 from PlexFunctions import ParseContainerKey, GetPlayQueue, \
     ConvertPlexToKodiTime
 import playlist
 import player
 
+###############################################################################
 
-@utils.logging
-@utils.ThreadMethodsAdditionalSuspend('plex_serverStatus')
-@utils.ThreadMethods
+log = logging.getLogger("PLEX."+__name__)
+
+###############################################################################
+
+
+@ThreadMethodsAdditionalSuspend('plex_serverStatus')
+@ThreadMethods
 class PlexCompanion(threading.Thread):
     """
     Initialize with a Queue for callbacks
     """
     def __init__(self):
-        self.logMsg("----===## Starting PlexCompanion ##===----", 1)
-        self.settings = settings.getSettings()
-
+        log.info("----===## Starting PlexCompanion ##===----")
+        self.settings = plexsettings.getSettings()
         # Start GDM for server/client discovery
         self.client = plexgdm.plexgdm()
         self.client.clientDetails(self.settings)
-        self.logMsg("Registration string is: %s "
-                    % self.client.getClientDetails(), 2)
-
+        log.debug("Registration string is: %s "
+                  % self.client.getClientDetails())
         # Initialize playlist/queue stuff
         self.playlist = playlist.Playlist('video')
-
         # kodi player instance
         self.player = player.Player()
 
@@ -54,7 +57,7 @@ class PlexCompanion(threading.Thread):
             except IndexError:
                 string = ''
         else:
-            self.logMsg('Unknown string! %s' % string, -1)
+            log.error('Unknown string! %s' % string)
         return typus, string
 
     def processTasks(self, task):
@@ -66,37 +69,32 @@ class PlexCompanion(threading.Thread):
             'data':         as received from Plex companion
         }
         """
-        self.logMsg('Processing: %s' % task, 2)
+        log.debug('Processing: %s' % task)
         data = task['data']
 
         if task['action'] == 'playlist':
             try:
                 _, queueId, query = ParseContainerKey(data['containerKey'])
             except Exception as e:
-                self.logMsg('Exception while processing: %s' % e, -1)
+                log.error('Exception while processing: %s' % e)
                 import traceback
-                self.logMsg("Traceback:\n%s" % traceback.format_exc(), -1)
+                log.error("Traceback:\n%s" % traceback.format_exc())
                 return
             if self.playlist is not None:
                 if self.playlist.Typus() != data.get('type'):
-                    self.logMsg('Switching to Kodi playlist of type %s'
-                                % data.get('type'), 1)
+                    log.debug('Switching to Kodi playlist of type %s'
+                              % data.get('type'))
                     self.playlist = None
             if self.playlist is None:
                 if data.get('type') == 'music':
                     self.playlist = playlist.Playlist('music')
-                elif data.get('type') == 'video':
-                    self.playlist = playlist.Playlist('video')
                 else:
-                    self.playlist = playlist.Playlist()
-            if self.playlist is None:
-                self.logMsg('Could not initialize playlist', -1)
-                return
+                    self.playlist = playlist.Playlist('video')
             if queueId != self.playlist.QueueId():
-                self.logMsg('New playlist received, updating!', 1)
+                log.info('New playlist received, updating!')
                 xml = GetPlayQueue(queueId)
                 if xml in (None, 401):
-                    self.logMsg('Could not download Plex playlist.', -1)
+                    log.error('Could not download Plex playlist.')
                     return
                 # Clear existing playlist on the Kodi side
                 self.playlist.clear()
@@ -115,16 +113,15 @@ class PlexCompanion(threading.Thread):
                     items,
                     startitem=self._getStartItem(data.get('key', '')),
                     offset=ConvertPlexToKodiTime(data.get('offset', 0)))
-                self.logMsg('Initiated playlist no %s with version %s'
-                            % (self.playlist.QueueId(),
-                               self.playlist.PlayQueueVersion()))
+                log.info('Initiated playlist no %s with version %s'
+                         % (self.playlist.QueueId(),
+                            self.playlist.PlayQueueVersion()))
             else:
-                self.logMsg('This has never happened before!', -1)
+                log.error('This has never happened before!')
 
     def run(self):
         httpd = False
         # Cache for quicker while loops
-        log = self.logMsg
         client = self.client
         threadStopped = self.threadStopped
         threadSuspended = self.threadSuspended
@@ -137,8 +134,7 @@ class PlexCompanion(threading.Thread):
 
         queue = Queue.Queue(maxsize=100)
 
-        if utils.settings('plexCompanion') == 'true':
-            self.logMsg('User activated Plex Companion', 0)
+        if settings('plexCompanion') == 'true':
             # Start up httpd
             start_count = 0
             while True:
@@ -154,19 +150,19 @@ class PlexCompanion(threading.Thread):
                     httpd.timeout = 0.95
                     break
                 except:
-                    log("Unable to start PlexCompanion. Traceback:", -1)
-                    log(traceback.print_exc(), -1)
+                    log.error("Unable to start PlexCompanion. Traceback:")
+                    log.error(traceback.print_exc())
 
                 xbmc.sleep(3000)
 
                 if start_count == 3:
-                    log("Error: Unable to start web helper.", -1)
+                    log.error("Error: Unable to start web helper.")
                     httpd = False
                     break
 
                 start_count += 1
         else:
-            self.logMsg('User deactivated Plex Companion', 0)
+            log.info('User deactivated Plex Companion')
 
         client.start_all()
 
@@ -193,12 +189,11 @@ class PlexCompanion(threading.Thread):
                     if message_count == 3000:
                         message_count = 0
                         if client.check_client_registration():
-                            log("Client is still registered", 1)
+                            log.debug("Client is still registered")
                         else:
-                            log("Client is no longer registered", 1)
-                            log("Plex Companion still running on port %s"
-                                % self.settings['myport'], 1)
-
+                            log.info("Client is no longer registered"
+                                     "Plex Companion still running on port %s"
+                                     % self.settings['myport'])
                 # Get and set servers
                 if message_count % 30 == 0:
                     subscriptionManager.serverlist = client.getServerList()
@@ -206,8 +201,8 @@ class PlexCompanion(threading.Thread):
                     if not httpd:
                         message_count = 0
             except:
-                log("Error in loop, continuing anyway. Traceback:", 1)
-                log(traceback.format_exc(), 1)
+                log.warn("Error in loop, continuing anyway. Traceback:")
+                log.warn(traceback.format_exc())
             # See if there's anything we need to process
             try:
                 task = queue.get(block=False)
@@ -229,4 +224,4 @@ class PlexCompanion(threading.Thread):
                 pass
             finally:
                 httpd.socket.close()
-        log("----===## Plex Companion stopped ##===----", 0)
+        log.info("----===## Plex Companion stopped ##===----")

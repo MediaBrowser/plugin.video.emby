@@ -1,13 +1,17 @@
+import logging
 import httplib
 import traceback
 import string
 import errno
 from socket import error as socket_error
 
-from utils import logging
+###############################################################################
+
+log = logging.getLogger("PLEX."+__name__)
+
+###############################################################################
 
 
-@logging
 class RequestMgr:
     def __init__(self):
         self.conns = {}
@@ -41,7 +45,7 @@ class RequestMgr:
             conn.request("POST", path, body, header)
             data = conn.getresponse()
             if int(data.status) >= 400:
-                self.logMsg("HTTP response error: %s" % str(data.status), -1)
+                log.error("HTTP response error: %s" % str(data.status))
                 # this should return false, but I'm hacking it since iOS
                 # returns 404 no matter what
                 return data.read() or True
@@ -52,8 +56,8 @@ class RequestMgr:
             if serr.errno in (errno.WSAECONNABORTED, errno.WSAECONNREFUSED):
                 pass
             else:
-                self.logMsg("Unable to connect to %s\nReason:" % host, -1)
-                self.logMsg(traceback.print_exc(), -1)
+                log.error("Unable to connect to %s\nReason:" % host)
+                log.error(traceback.print_exc())
             self.conns.pop(protocol+host+str(port), None)
             if conn:
                 conn.close()
@@ -75,7 +79,7 @@ class RequestMgr:
             conn.request("GET", path, headers=header)
             data = conn.getresponse()
             if int(data.status) >= 400:
-                self.logMsg("HTTP response error: %s" % str(data.status), -1)
+                log.error("HTTP response error: %s" % str(data.status))
                 return False
             else:
                 return data.read() or True
@@ -84,8 +88,8 @@ class RequestMgr:
             if serr.errno in (errno.WSAECONNABORTED, errno.WSAECONNREFUSED):
                 pass
             else:
-                self.logMsg("Unable to connect to %s\nReason:" % host, -1)
-                self.logMsg(traceback.print_exc(), -1)
+                log.error("Unable to connect to %s\nReason:" % host)
+                log.error(traceback.print_exc())
             self.conns.pop(protocol+host+str(port), None)
             conn.close()
             return False

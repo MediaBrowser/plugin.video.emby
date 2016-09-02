@@ -21,8 +21,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 MA 02110-1301, USA.
 """
-
-
+import logging
 import socket
 import threading
 import time
@@ -30,10 +29,15 @@ import time
 from xbmc import sleep
 
 import downloadutils
-from utils import window, logging, settings
+from utils import window, settings
+
+###############################################################################
+
+log = logging.getLogger("PLEX."+__name__)
+
+###############################################################################
 
 
-@logging
 class plexgdm:
 
     def __init__(self):
@@ -80,10 +84,6 @@ class plexgdm:
         self.client_id = options['uuid']
 
     def getClientDetails(self):
-        if not self.client_data:
-            self.logMsg("Client data has not been initialised.  Please use "
-                        "PlexGDM.clientDetails()", -1)
-
         return self.client_data
 
     def client_update(self):
@@ -104,8 +104,8 @@ class plexgdm:
         try:
             update_sock.bind(('0.0.0.0', self.client_update_port))
         except:
-            self.logMsg("Unable to bind to port [%s] - client will not be "
-                        "registered" % self.client_update_port, -1)
+            log.error("Unable to bind to port [%s] - client will not be "
+                      "registered" % self.client_update_port)
             return
 
         update_sock.setsockopt(socket.IPPROTO_IP,
@@ -117,8 +117,8 @@ class plexgdm:
                                    self._multicast_address) +
                                socket.inet_aton('0.0.0.0'))
         update_sock.setblocking(0)
-        self.logMsg("Sending registration data: HELLO %s\r\n%s"
-                    % (self.client_header, self.client_data), 2)
+        log.debug("Sending registration data: HELLO %s\r\n%s"
+                  % (self.client_header, self.client_data))
 
         # Send initial client registration
         try:
@@ -126,54 +126,49 @@ class plexgdm:
                                % (self.client_header, self.client_data),
                                self.client_register_group)
         except:
-            self.logMsg("Unable to send registration message", -1)
+            log.error("Unable to send registration message")
 
-        # Now, listen for client discovery reguests and respond.
+        # Now, listen format client discovery reguests and respond.
         while self._registration_is_running:
             try:
                 data, addr = update_sock.recvfrom(1024)
-                self.logMsg("Recieved UDP packet from [%s] containing [%s]"
-                            % (addr, data.strip()), 2)
+                log.debug("Recieved UDP packet from [%s] containing [%s]"
+                          % (addr, data.strip()))
             except socket.error:
                 pass
             else:
                 if "M-SEARCH * HTTP/1." in data:
-                    self.logMsg("Detected client discovery request from %s. "
-                                " Replying" % str(addr), 2)
+                    log.debug("Detected client discovery request from %s. "
+                              " Replying" % str(addr))
                     try:
                         update_sock.sendto("HTTP/1.0 200 OK\r\n%s"
                                            % self.client_data,
                                            addr)
                     except:
-                        self.logMsg("Unable to send client update message", -1)
+                        log.error("Unable to send client update message")
 
-                    self.logMsg("Sending registration data HTTP/1.0 200 OK", 2)
+                    log.debug("Sending registration data HTTP/1.0 200 OK")
                     self.client_registered = True
             sleep(500)
-
-        self.logMsg("Client Update loop stopped", 1)
-
+        log.info("Client Update loop stopped")
         # When we are finished, then send a final goodbye message to
         # deregister cleanly.
-        self.logMsg("Sending registration data: BYE %s\r\n%s"
-                    % (self.client_header, self.client_data), 2)
+        log.debug("Sending registration data: BYE %s\r\n%s"
+                  % (self.client_header, self.client_data))
         try:
             update_sock.sendto("BYE %s\r\n%s"
                                % (self.client_header, self.client_data),
                                self.client_register_group)
         except:
-            self.logMsg("Unable to send client update message", -1)
-
+            log.error("Unable to send client update message")
         self.client_registered = False
 
     def check_client_registration(self):
 
         if self.client_registered and self.discovery_complete:
-
             if not self.server_list:
-                self.logMsg("Server list is empty. Unable to check", 1)
+                log.info("Server list is empty. Unable to check")
                 return False
-
             try:
                 for server in self.server_list:
                     if server['uuid'] == window('plex_machineIdentifier'):
@@ -182,11 +177,11 @@ class plexgdm:
                         scheme = server['protocol']
                         break
                 else:
-                    self.logMsg("Did not find our server!", 0)
+                    log.info("Did not find our server!")
                     return False
 
-                self.logMsg("Checking server [%s] on port [%s]"
-                            % (media_server, media_port), 2)
+                log.debug("Checking server [%s] on port [%s]"
+                          % (media_server, media_port))
                 client_result = self.download(
                     '%s://%s:%s/clients' % (scheme, media_server, media_port))
                 registered = False
@@ -195,17 +190,15 @@ class plexgdm:
                             self.client_id):
                         registered = True
                 if registered:
-                    self.logMsg("Client registration successful", 1)
-                    self.logMsg("Client data is: %s" % client_result, 2)
+                    log.debug("Client registration successful. "
+                              "Client data is: %s" % client_result)
                     return True
                 else:
-                    self.logMsg("Client registration not found", 1)
-                    self.logMsg("Client data is: %s" % client_result, 1)
-
+                    log.info("Client registration not found. "
+                             "Client data is: %s" % client_result)
             except:
-                self.logMsg("Unable to check status", 0)
+                log.error("Unable to check status")
                 pass
-
         return False
 
     def getServerList(self):
@@ -244,21 +237,21 @@ class plexgdm:
 
     def stop_discovery(self):
         if self._discovery_is_running:
-            self.logMsg("Discovery shutting down", 0)
+            log.info("Discovery shutting down")
             self._discovery_is_running = False
             self.discover_t.join()
             del self.discover_t
         else:
-            self.logMsg("Discovery not running", 0)
+            log.info("Discovery not running")
 
     def stop_registration(self):
         if self._registration_is_running:
-            self.logMsg("Registration shutting down", 0)
+            log.info("Registration shutting down")
             self._registration_is_running = False
             self.register_t.join()
             del self.register_t
         else:
-            self.logMsg("Registration not running", 0)
+            log.info("Registration not running")
 
     def run_discovery_loop(self):
         # Run initial discovery
@@ -274,23 +267,23 @@ class plexgdm:
 
     def start_discovery(self, daemon=False):
         if not self._discovery_is_running:
-            self.logMsg("Discovery starting up", 0)
+            log.info("Discovery starting up")
             self._discovery_is_running = True
             self.discover_t = threading.Thread(target=self.run_discovery_loop)
             self.discover_t.setDaemon(daemon)
             self.discover_t.start()
         else:
-            self.logMsg("Discovery already running", 0)
+            log.info("Discovery already running")
 
     def start_registration(self, daemon=False):
         if not self._registration_is_running:
-            self.logMsg("Registration starting up", 0)
+            log.info("Registration starting up")
             self._registration_is_running = True
             self.register_t = threading.Thread(target=self.client_update)
             self.register_t.setDaemon(daemon)
             self.register_t.start()
         else:
-            self.logMsg("Registration already running", 0)
+            log.info("Registration already running")
 
     def start_all(self, daemon=False):
         self.start_discovery(daemon)

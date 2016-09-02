@@ -1,13 +1,19 @@
+import logging
 import re
 import threading
 
 import downloadutils
-from utils import window, logging
+from utils import window
 import PlexFunctions as pf
 from functions import *
 
+###############################################################################
 
-@logging
+log = logging.getLogger("PLEX."+__name__)
+
+###############################################################################
+
+
 class SubscriptionManager:
     def __init__(self, jsonClass, RequestMgr, player, playlist):
         self.serverlist = []
@@ -191,8 +197,8 @@ class SubscriptionManager:
                                          serv.get('server', 'localhost'),
                                          serv.get('port', '32400'))
         self.doUtils(url, parameters=params)
-        self.logMsg("Sent server notification with parameters: %s to %s"
-                    % (params, url), 2)
+        log.debug("Sent server notification with parameters: %s to %s"
+                  % (params, url))
 
     def controllable(self):
         return "volume,shuffle,repeat,audioStream,videoStream,subtitleStream,skipPrevious,skipNext,seekTo,stepBack,stepForward,stop,playPause"
@@ -256,8 +262,7 @@ class SubscriptionManager:
                         self.playlist.getQueueIdFromPosition(pos['position'])
         except:
             import traceback
-            self.logMsg("Traceback:\n%s"
-                   % traceback.format_exc(), -1)
+            log.error("Traceback:\n%s" % traceback.format_exc())
             info = {
                 'time': 0,
                 'duration': 0,
@@ -273,7 +278,6 @@ class SubscriptionManager:
         return info
 
 
-@logging
 class Subscriber:
     def __init__(self, protocol, host, port, uuid, commandID,
                  subMgr, RequestMgr):
@@ -306,8 +310,7 @@ class Subscriber:
         else:
             self.navlocationsent = True
         msg = re.sub(r"INSERTCOMMANDID", str(self.commandID), msg)
-        self.logMsg("sending xml to subscriber %s: %s"
-                    % (self.tostr(), msg), 2)
+        log.debug("sending xml to subscriber %s: %s" % (self.tostr(), msg))
         url = self.protocol + '://' + self.host + ':' + self.port \
             + "/:/timeline"
         t = threading.Thread(target=self.threadedSend, args=(url, msg))

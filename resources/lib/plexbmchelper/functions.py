@@ -1,11 +1,17 @@
+import logging
 import base64
 import json
 import string
 
 import xbmc
 
-from utils import logging
 import embydb_functions as embydb
+
+###############################################################################
+
+log = logging.getLogger("PLEX."+__name__)
+
+###############################################################################
 
 
 def xbmc_photo():
@@ -82,7 +88,6 @@ def textFromXml(element):
     return element.firstChild.data
 
 
-@logging
 class jsonClass():
 
     def __init__(self, requestMgr, settings):
@@ -139,7 +144,6 @@ class jsonClass():
         return result
 
     def skipTo(self, plexId, typus):
-        self.logMsg('players: %s' % self.getPlayers())
         # playlistId = self.getPlaylistId(tryDecode(xbmc_type(typus)))
         # playerId = self.
         with embydb.GetEmbyDB() as emby_db:
@@ -148,10 +152,10 @@ class jsonClass():
                 dbid = embydb_item[0]
                 mediatype = embydb_item[4]
             except TypeError:
-                self.logMsg('Couldnt find item %s in Kodi db' % plexId, 1)
+                log.info('Couldnt find item %s in Kodi db' % plexId)
                 return
-        self.logMsg('plexid: %s, kodi id: %s, type: %s'
-                    % (plexId, dbid, mediatype))
+        log.debug('plexid: %s, kodi id: %s, type: %s'
+                  % (plexId, dbid, mediatype))
 
     def getPlexHeaders(self):
         h = {
@@ -172,12 +176,12 @@ class jsonClass():
 
     def parseJSONRPC(self, jsonraw):
         if not jsonraw:
-            self.logMsg("Empty response from XBMC", 1)
+            log.debug("Empty response from Kodi")
             return {}
         else:
             parsed = json.loads(jsonraw)
         if parsed.get('error', False):
-            self.logMsg("XBMC returned an error: %s" % parsed.get('error'), -1)
+            log.error("Kodi returned an error: %s" % parsed.get('error'))
         return parsed.get('result', {})
 
     def getPlayers(self):

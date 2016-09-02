@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+import logging
 import re
 from SocketServer import ThreadingMixIn
 from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
@@ -6,10 +8,15 @@ from urlparse import urlparse, parse_qs
 from xbmc import sleep
 
 from functions import *
-from utils import logging
 
 
-@logging
+###############################################################################
+
+log = logging.getLogger("PLEX."+__name__)
+
+###############################################################################
+
+
 class MyHandler(BaseHTTPRequestHandler):
     protocol_version = 'HTTP/1.1'
     regex = re.compile(r'''/playQueues/(\d+)$''')
@@ -28,11 +35,11 @@ class MyHandler(BaseHTTPRequestHandler):
         return {}
 
     def do_HEAD(self):
-        self.logMsg("Serving HEAD request...", 2)
+        log.debug("Serving HEAD request...")
         self.answer_request(0)
 
     def do_GET(self):
-        self.logMsg("Serving GET request...", 2)
+        log.debug("Serving GET request...")
         self.answer_request(1)
 
     def do_OPTIONS(self):
@@ -86,8 +93,8 @@ class MyHandler(BaseHTTPRequestHandler):
             params = {}
             for key in paramarrays:
                 params[key] = paramarrays[key][0]
-            self.logMsg("remote request_path: %s" % request_path, 2)
-            self.logMsg("params received from remote: %s" % params, 2)
+            log.debug("remote request_path: %s" % request_path)
+            log.debug("params received from remote: %s" % params)
             subMgr.updateCommandID(self.headers.get(
                 'X-Plex-Client-Identifier',
                 self.client_address[0]),
@@ -119,7 +126,7 @@ class MyHandler(BaseHTTPRequestHandler):
                            settings['uuid'],
                            settings['platform'],
                            settings['plexbmc_version']))
-                self.logMsg("crafted resources response: %s" % resp, 2)
+                log.debug("crafted resources response: %s" % resp)
                 self.response(resp, js.getPlexHeaders())
             elif "/subscribe" in request_path:
                 self.response(getOKMsg(), js.getPlexHeaders())
@@ -157,7 +164,7 @@ class MyHandler(BaseHTTPRequestHandler):
                 self.response(getOKMsg(), js.getPlexHeaders())
                 if 'volume' in params:
                     volume = int(params['volume'])
-                    self.logMsg("adjusting the volume to %s%%" % volume, 2)
+                    log.debug("adjusting the volume to %s%%" % volume)
                     js.jsonrpc("Application.SetVolume",
                                {"volume": volume})
             elif "/playMedia" in request_path:
@@ -266,31 +273,12 @@ class MyHandler(BaseHTTPRequestHandler):
                 self.response(getOKMsg(), js.getPlexHeaders())
                 js.jsonrpc("Input.Back")
             else:
-                self.logMsg('Unknown request path: %s' % request_path, -1)
-            # elif 'player/mirror/details' in request_path:
-            #     # Detailed e.g. Movie information page was opened
-            #     # CURRENTLY NOT POSSIBLE DUE TO KODI RESTRICTIONS
-            #     plexId = params.get('key', params.get('ratingKey'))
-            #     if plexId is None:
-            #         self.logMsg('Could not get plex id from params: %s'
-            #                     % params, -1)
-            #         return
-            #     if 'library/metadata' in plexId:
-            #         plexId = plexId.rsplit('/', 1)[1]
-            #     with embydb.GetEmbyDB() as emby_db:
-            #         emby_dbitem = emby_db.getItem_byId(plexId)
-            #     try:
-            #         kodiid = emby_dbitem[0]
-            #         mediatype = emby_dbitem[4]
-            #     except TypeError:
-            #         self.log("No Plex id returned for plexId %s" % plexId, 0)
-            #         return
-            #     getDBfromPlexType(mediatype)
+                log.error('Unknown request path: %s' % request_path)
 
         except:
-            self.logMsg('Error encountered. Traceback:', -1)
+            log.error('Error encountered. Traceback:')
             import traceback
-            self.logMsg(traceback.print_exc(), -1)
+            log.error(traceback.print_exc())
 
 
 class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
