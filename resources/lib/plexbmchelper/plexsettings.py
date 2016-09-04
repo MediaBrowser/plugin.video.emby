@@ -45,7 +45,7 @@ def getSettings():
     options['user'] = getGUI('webserverusername')
     options['passwd'] = getGUI('webserverpassword')
     log.info('Webserver username: %s, password: %s'
-             % (options['user'], options['passwd']), 1)
+             % (options['user'], options['passwd']))
 
     options['addonName'] = client.getAddonName()
     options['uuid'] = settings('plex_client_Id')
