@@ -239,7 +239,7 @@ class DownloadUtils():
             })
 
             ##### THE RESPONSE #####
-            log.info(kwargs)
+            log.debug(kwargs)
             r = self._requests(action_type, session, **kwargs)
 
             if r.status_code == 204:
