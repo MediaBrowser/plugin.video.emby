@@ -67,7 +67,6 @@ class Items(object):
 
     def itemsbyId(self, items, process, pdialog=None):
         # Process items by itemid. Process can be added, update, userdata, remove
-        emby = self.emby
         embycursor = self.embycursor
         kodicursor = self.kodicursor
         music_enabled = self.music_enabled
@@ -1475,7 +1474,6 @@ class Music(Items):
     def add_updateSong(self, item, viewtag=None, viewid=None):
         # Process single song
         kodicursor = self.kodicursor
-        emby = self.emby
         emby_db = self.emby_db
         artwork = self.artwork
         API = PlexAPI.API(item)
@@ -1700,7 +1698,6 @@ class Music(Items):
                 artistid = artist_edb[0]
             except TypeError:
                 # Artist is missing from emby database, add it.
-                artist_full = emby.getItem(artist_eid)
                 artistXml = GetPlexMetadata(artist_eid)
                 if artistXml is None or artistXml == 401:
                     log.error('Error getting artist, abort')
@@ -1747,8 +1744,11 @@ class Music(Items):
                 artistid = artist_edb[0]
             except TypeError:
                 # Artist is missing from emby database, add it.
-                artist_full = emby.getItem(artist_eid)
-                self.add_updateArtist(artist_full)
+                artistXml = GetPlexMetadata(artist_eid)
+                if artistXml is None or artistXml == 401:
+                    log.error('Error getting artist, abort')
+                    return
+                self.add_updateArtist(artistXml)
                 artist_edb = emby_db.getItem_byId(artist_eid)
                 artistid = artist_edb[0]
             finally:
