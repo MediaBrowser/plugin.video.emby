@@ -42,7 +42,8 @@ class UserClient(threading.Thread):
 
         threading.Thread.__init__(self)
 
-    def get_username(self):
+    @classmethod
+    def get_username(cls):
         return settings('username') or settings('connectUsername') or None
 
     def get_user(self, data=None):
@@ -56,7 +57,8 @@ class UserClient(threading.Thread):
     def get_server_details(self):
         return self._server
 
-    def get_server(self):
+    @classmethod
+    def get_server(cls):
 
         ###$ Begin transition phase $###
         if settings('server') == "":
@@ -80,7 +82,8 @@ class UserClient(threading.Thread):
             # Server connection failed
             return False
 
-    def get_ssl(self):
+    @classmethod
+    def get_ssl(cls):
         """
             Returns boolean value or path to certificate
             True: Verify ssl
@@ -103,8 +106,8 @@ class UserClient(threading.Thread):
 
         try:
             self.download("{server}/emby/Users?format=json")
-        except Warning as e:
-            if self._has_access and "restricted" in e:
+        except Warning as error:
+            if self._has_access and "restricted" in error:
                 self._has_access = False
                 log.info("Access is restricted")
         else:
@@ -114,7 +117,8 @@ class UserClient(threading.Thread):
                 log.info("Access is granted")
                 xbmcgui.Dialog().notification(lang(29999), lang(33007))
 
-    def get_userid(self):
+    @classmethod
+    def get_userid(cls):
 
         ###$ Begin transition phase $###
         if settings('userId') == "":
@@ -123,7 +127,8 @@ class UserClient(threading.Thread):
 
         return settings('userId') or None
 
-    def get_token(self):
+    @classmethod
+    def get_token(cls):
 
         ###$ Begin transition phase $###
         if settings('token') == "":
@@ -202,8 +207,8 @@ class UserClient(threading.Thread):
         if not authenticated:
             try:
                 self.download("{server}/emby/Users/{UserId}?format=json")
-            except Warning as e:
-                if "401" in e:
+            except Warning as error:
+                if "401" in error:
                     # Token is not longer valid
                     raise
 
