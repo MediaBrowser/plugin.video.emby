@@ -48,6 +48,12 @@ import sys
 
 import utils
 
+###############################################################################
+
+log = logging.getLogger("PLEX."+__name__)
+
+###############################################################################
+
 """
 websocket python client.
 =========================
@@ -73,8 +79,6 @@ STATUS_MESSAGE_TOO_BIG = 1009
 STATUS_INVALID_EXTENSION = 1010
 STATUS_UNEXPECTED_CONDITION = 1011
 STATUS_TLS_HANDSHAKE_ERROR = 1015
-
-log = logging.getlog("PLEX."+__name__)
 
 
 class WebSocketException(Exception):
