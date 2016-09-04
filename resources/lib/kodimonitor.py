@@ -48,7 +48,7 @@ class KodiMonitor(xbmc.Monitor):
         '''currentPath = settings('useDirectPaths')
         if window('plex_pluginpath') != currentPath:
             # Plugin path value changed. Offer to reset
-            self.logMsg("Changed to playback mode detected", 1)
+            log.info("Changed to playback mode detected")
             window('plex_pluginpath', value=currentPath)
             resp = xbmcgui.Dialog().yesno(
                                 heading="Playback mode change detected",
@@ -119,7 +119,7 @@ class KodiMonitor(xbmc.Monitor):
                 kodiid = data['id']
                 type = data['type']
             except (KeyError, TypeError):
-                self.logMsg("Item is invalid for emby deletion.", 1)
+                log.info("Item is invalid for emby deletion.")
             else:
                 # Send the delete action to the server.
                 embyconn = utils.kodiSQL('emby')
@@ -129,19 +129,19 @@ class KodiMonitor(xbmc.Monitor):
                 try:
                     itemid = emby_dbitem[0]
                 except TypeError:
-                    self.logMsg("Could not find itemid in emby database.", 1)
+                    log.info("Could not find itemid in emby database.")
                 else:
                     if settings('skipContextMenu') != "true":
                         resp = xbmcgui.Dialog().yesno(
                                                 heading="Confirm delete",
                                                 line1="Delete file on Emby Server?")
                         if not resp:
-                            self.logMsg("User skipped deletion.", 1)
+                            log.info("User skipped deletion.")
                             embycursor.close()
                             return
 
                     url = "{server}/emby/Items/%s?format=json" % itemid
-                    self.logMsg("Deleting request: %s" % itemid)
+                    log.info("Deleting request: %s" % itemid)
                     doUtils.downloadUrl(url, action_type="DELETE")
                 finally:
                     embycursor.close()'''

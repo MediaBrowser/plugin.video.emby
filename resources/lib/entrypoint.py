@@ -41,7 +41,7 @@ def plexCompanion(fullurl, params):
         log.error("Command was not for us, machineIdentifier controller: %s, "
                   "our machineIdentifier : %s"
                   % (params['machineIdentifier'],
-                     window('plex_machineIdentifier')), -1)
+                     window('plex_machineIdentifier')))
         return
 
     library, key, query = PlexFunctions.ParseContainerKey(

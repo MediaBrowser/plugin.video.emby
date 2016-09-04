@@ -374,7 +374,7 @@ class InitialSetup():
         log.debug("Writing to Kodi user settings file")
         log.debug("PMS machineIdentifier: %s, ip: %s, port: %s, https: %s "
                   % (server['machineIdentifier'], server['ip'],
-                     server['port'], server['scheme']), 0)
+                     server['port'], server['scheme']))
 
     def setup(self):
         """

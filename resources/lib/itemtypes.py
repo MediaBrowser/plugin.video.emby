@@ -866,7 +866,7 @@ class TVShows(Items):
             # try:
             #     showid = show[0]
             # except TypeError:
-            #     self.logMsg("Skipping: %s. Unable to add series: %s." % (itemid, seriesId), -1)
+            #     log.error("Skipping: %s. Unable to add series: %s." % (itemid, seriesId))
             log.error("Parent tvshow now found, skip item")
             return False
         seasonid = self.kodi_db.addSeason(showid, season)

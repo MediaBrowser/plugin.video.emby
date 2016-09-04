@@ -1489,8 +1489,7 @@ class LibrarySync(Thread):
             self.run_internal()
         except Exception as e:
             window('plex_dbScan', clear=True)
-            log.error('LibrarySync thread crashed')
-            self.logMsg('Error message: %s' % e, -1)
+            log.error('LibrarySync thread crashed. Error message: %s' % e)
             import traceback
             log.error("Traceback:\n%s" % traceback.format_exc())
             # Library sync thread has crashed
