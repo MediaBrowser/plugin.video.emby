@@ -9,17 +9,16 @@ import xml.etree.ElementTree as etree
 import xbmc
 import xbmcvfs
 
-import utils
-from utils import window, language as lang
+from utils import window, settings, language as lang, IfExists, tryDecode, \
+    tryEncode, indent, normalize_nodes
 
-#################################################################################################
+###############################################################################
 
-log = logging.getLogger("EMBY."+__name__)
+log = logging.getLogger("PLEX."+__name__)
 
-#################################################################################################
+###############################################################################
 
 
-@utils.logging
 class VideoNodes(object):
 
     def __init__(self):
@@ -64,33 +63,33 @@ class VideoNodes(object):
         else:
             dirname = viewid
         
-        path = utils.tryDecode(xbmc.translatePath(
+        path = tryDecode(xbmc.translatePath(
             "special://profile/library/video/"))
-        nodepath = utils.tryDecode(xbmc.translatePath(
+        nodepath = tryDecode(xbmc.translatePath(
             "special://profile/library/video/Plex-%s/" % dirname))
 
         # Verify the video directory
         # KODI BUG
         # Kodi caches the result of exists for directories
         #  so try creating a file
-        if utils.IfExists(path) is False:
+        if IfExists(path) is False:
             shutil.copytree(
-                src=utils.tryDecode(xbmc.translatePath(
+                src=tryDecode(xbmc.translatePath(
                     "special://xbmc/system/library/video")),
-                dst=utils.tryDecode(xbmc.translatePath(
+                dst=tryDecode(xbmc.translatePath(
                     "special://profile/library/video")))
 
         # Create the node directory
         if mediatype != "photos":
-            if utils.IfExists(nodepath) is False:
+            if IfExists(nodepath) is False:
                 # folder does not exist yet
-                self.logMsg('Creating folder %s' % nodepath, 1)
-                xbmcvfs.mkdirs(utils.tryEncode(nodepath))
+                log.debug('Creating folder %s' % nodepath)
+                xbmcvfs.mkdirs(tryEncode(nodepath))
                 if delete:
-                    dirs, files = xbmcvfs.listdir(utils.tryEncode(nodepath))
+                    dirs, files = xbmcvfs.listdir(tryEncode(nodepath))
                     for file in files:
-                        xbmcvfs.delete(utils.tryEncode(
-                            (nodepath + utils.tryDecode(file))))
+                        xbmcvfs.delete(tryEncode(
+                            (nodepath + tryDecode(file))))
 
                 log.info("Sucessfully removed videonode: %s." % tagname)
                 return
@@ -117,7 +116,7 @@ class VideoNodes(object):
             else:
                 root = self.commonRoot(order=0, label=tagname, tagname=tagname, roottype=0)
             try:
-                utils.indent(root)
+                indent(root)
             except: pass
             etree.ElementTree(root).write(nodeXML)
 
@@ -283,7 +282,7 @@ class VideoNodes(object):
                 # To do: add our photos nodes to kodi picture sources somehow
                 continue
             
-            if xbmcvfs.exists(utils.tryEncode(nodeXML)):
+            if xbmcvfs.exists(tryEncode(nodeXML)):
                 # Don't recreate xml if already exists
                 continue
 
@@ -307,7 +306,7 @@ class VideoNodes(object):
                 elif nodetype == "recent":
                     etree.SubElement(root, 'order', {'direction': "descending"}).text = "dateadded"
                     etree.SubElement(root, 'limit').text = limit
-                    if utils.settings('MovieShowWatched') == 'false':
+                    if settings('MovieShowWatched') == 'false':
                         rule = etree.SubElement(root,
                                                 'rule',
                                                 {'field': "playcount",
@@ -363,15 +362,15 @@ class VideoNodes(object):
                         attrib={'field': "inprogress", 'operator':"true"})
 
             try:
-                utils.indent(root)
+                indent(root)
             except: pass
             etree.ElementTree(root).write(nodeXML)
 
     def singleNode(self, indexnumber, tagname, mediatype, itemtype):
 
-        tagname = utils.tryEncode(tagname)
-        cleantagname = utils.normalize_nodes(tagname)
-        nodepath = utils.tryDecode(xbmc.translatePath(
+        tagname = tryEncode(tagname)
+        cleantagname = normalize_nodes(tagname)
+        nodepath = tryDecode(xbmc.translatePath(
             "special://profile/library/video/"))
         nodeXML = "%splex_%s.xml" % (nodepath, cleantagname)
         path = "library://video/plex_%s.xml" % cleantagname
@@ -385,9 +384,9 @@ class VideoNodes(object):
         if not xbmcvfs.exists(nodepath):
             # We need to copy over the default items
             shutil.copytree(
-                src=utils.tryDecode(xbmc.translatePath(
+                src=tryDecode(xbmc.translatePath(
                     "special://xbmc/system/library/video")),
-                dst=utils.tryDecode(xbmc.translatePath(
+                dst=tryDecode(xbmc.translatePath(
                     "special://profile/library/video")))
             xbmcvfs.exists(path)
 
@@ -418,7 +417,7 @@ class VideoNodes(object):
         etree.SubElement(root, 'content').text = mediatype
 
         try:
-            utils.indent(root)
+            indent(root)
         except: pass
         etree.ElementTree(root).write(nodeXML)
 
