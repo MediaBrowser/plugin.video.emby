@@ -134,6 +134,7 @@
 							<height>40</height>
 							<left>55</left>
 							<font>font10</font>
+							<aligny>center</aligny>
 							<textcolor>ff838383</textcolor>
 							<info>ListItem.Label</info>
 						</control>
@@ -161,6 +162,7 @@
 							<height>40</height>
 							<left>55</left>
 							<font>font10</font>
+							<aligny>center</aligny>
 							<textcolor>white</textcolor>
 							<info>ListItem.Label</info>
 							<visible>Control.HasFocus(155)</visible>
@@ -170,6 +172,7 @@
 							<height>40</height>
 							<left>55</left>
 							<font>font10</font>
+							<aligny>center</aligny>
 							<textcolor>ff838383</textcolor>
 							<info>ListItem.Label</info>
 							<visible>!Control.HasFocus(155)</visible>
