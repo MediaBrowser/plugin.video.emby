@@ -60,7 +60,8 @@ class ConnectManager(object):
     def get_server(self, server):
         return self._connect.connectToAddress(server)
 
-    def get_address(self, server):
+    @classmethod
+    def get_address(cls, server):
         return connectionmanager.getServerAddress(server, server['LastConnectionMode'])
 
     def clear_data(self):
