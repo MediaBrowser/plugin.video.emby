@@ -90,10 +90,10 @@ class PlaybackUtils():
 
         ############### ORGANIZE CURRENT PLAYLIST ################
         homeScreen = xbmc.getCondVisibility('Window.IsActive(home)')
-        playlist = self.pl.playlist
+        kodiPl = self.pl.playlist
         # Can return -1
-        startPos = max(playlist.getposition(), 0)
-        sizePlaylist = playlist.size()
+        startPos = max(kodiPl.getposition(), 0)
+        sizePlaylist = kodiPl.size()
         self.currentPosition = startPos
 
         propertiesPlayback = window('plex_playbackProps') == "true"
@@ -118,7 +118,7 @@ class PlaybackUtils():
                     window('plex_customplaylist') != "true"):
                 log.debug("Adding dummy file to playlist.")
                 dummyPlaylist = True
-                playlist.add(playurl, listitem, index=startPos)
+                kodiPl.add(playurl, listitem, index=startPos)
                 # Remove the original item from playlist 
                 self.pl.removefromPlaylist(startPos+1)
                 # Readd the original item to playlist - via jsonrpc so we have full metadata
@@ -169,7 +169,8 @@ class PlaybackUtils():
                     # NEW to Plex
                     API.CreateListItemFromPlexItem(additionalListItem)
 
-                    playlist.add(additionalPlayurl, additionalListItem, index=self.currentPosition)
+                    kodiPl.add(additionalPlayurl, additionalListItem,
+                               index=self.currentPosition)
                     self.pl.verifyPlaylist()
                     self.currentPosition += 1
                 API.setPartNumber = 0
@@ -207,7 +208,7 @@ class PlaybackUtils():
                 (homeScreen and not sizePlaylist)):
             # Playlist was created just now, play it.
             log.info("Play playlist.")
-            xbmc.Player().play(playlist, startpos=startPos)
+            xbmc.Player().play(kodiPl, startpos=startPos)
 
         else:
             log.info("Play as a regular item.")
