@@ -42,17 +42,24 @@ class InitialSetup(object):
         
         log.debug("Initial setup called.")
 
+        ###$ Begin transition phase $###
+        if settings('server') == "":
+            current_server = self.userClient.get_server()
+            current_userid = self.userClient.get_userid()
+            current_token = self.userClient.get_token()
+            self.connectmanager.get_server(current_server)
+        ###$ End transition phase $###
+
         current_state = self.connectmanager.get_state()
         if current_state['State'] == STATE['SignedIn']:
-            server_id = settings('serverId')
-            current_server = current_state['Servers'][0]['Id']
-            if current_server == server_id:
-                self._set_server(current_server)
-            else:
-                for server in current_state['Servers']:
-                    if server['Id'] == server_id:
-                        self._set_server(server)
-                        return
+            server = current_state['Servers'][0]
+            server_address = self.connectmanager.get_address(server)
+            log.info("Starting with: %s", server)
+            log.info("Last server used: %s", server_address)
+            self._set_server(server_address, server['Name'])
+            self._set_user(server['UserId'], server['AccessToken'])
+            return
+
         try:
             server = self.connectmanager.select_servers()
             log.info("Server: %s" % server)
@@ -63,7 +70,7 @@ class InitialSetup(object):
             return
 
         else:
-            self._set_server(server)
+            self._set_server(server, server['Name'])
 
             if not server.get('AccessToken') and not server.get('UserId'):
                 try:
@@ -114,18 +121,11 @@ class InitialSetup(object):
                     settings('streamMusic', value="true")
 
     @classmethod
-    def _set_server(cls, server):
+    def _set_server(cls, server, name):
 
-        server_address = connectionmanager.getServerAddress(server, server['LastConnectionMode'])
-        prefix, ip, port = server_address.replace("/", "").split(':')
-        
-        settings('serverId', value=server['Id'])
-        settings('ipaddress', value=ip)
-        settings('port', value=port)
-        if prefix == "https":
-            settings('https', value="true")
-
-        log.info("Saved server information: %s", server_address)
+        settings('serverName', value=name)
+        settings('server', value=server)
+        log.info("Saved server information: %s", server)
 
     @classmethod
     def _set_user(cls, user_id, token):
