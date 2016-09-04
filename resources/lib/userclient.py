@@ -7,11 +7,8 @@ import threading
 
 import xbmc
 import xbmcgui
-import xbmcaddon
-import xbmcvfs
 
 import artwork
-import clientinfo
 import connectmanager
 import downloadutils
 import read_embyserver as embyserver
@@ -39,7 +36,6 @@ class UserClient(threading.Thread):
 
         self.__dict__ = self._shared_state
 
-        self.connectmanager = connectmanager.ConnectManager()
         self.doutils = downloadutils.DownloadUtils()
         self.download = self.doutils.downloadUrl
         self.emby = embyserver.Read_EmbyServer()
@@ -50,6 +46,11 @@ class UserClient(threading.Thread):
         return settings('username') or settings('connectUsername') or None
 
     def get_user(self, data=None):
+
+        if data is not None:
+            self._user = data
+            self._set_user_server()
+
         return self._user
 
     def get_server_details(self):
@@ -103,7 +104,7 @@ class UserClient(threading.Thread):
         try:
             self.download("{server}/emby/Users?format=json")
         except Warning as e:
-            if self._has_access and e == "restricted":
+            if self._has_access and "restricted" in e:
                 self._has_access = False
                 log.info("Access is restricted")
         else:
@@ -142,7 +143,7 @@ class UserClient(threading.Thread):
                    value=artwork.Artwork().getUserArtwork(self._user['Id'], 'Primary'))
 
     def _authenticate(self):
-        
+
         if not self.get_server() or not self.get_username():
             log.info('missing server or user information')
             self._auth = False
@@ -171,7 +172,7 @@ class UserClient(threading.Thread):
         try:
             user = self.connectmanager.login_manual(server, user_found)
         except RuntimeError:
-            window('emby_serverStatus', value="Stop")
+            window('emby_serverStatus', value="stop")
             self._auth = False
             return
         else:
@@ -212,14 +213,16 @@ class UserClient(threading.Thread):
         doutils.setToken(token)
         doutils.setSSL(self.get_ssl())
 
-        # verify user access
-        self._set_access()
-
         # Start downloadutils.py session
         doutils.startSession()
 
         # Set _user and _server
-        self._set_user_server()
+        # verify user access
+        try:
+            self._set_access()
+            self._set_user_server()
+        except Warning: # We don't need to raise any exceptions
+            pass
 
     def _reset_client(self):
 
@@ -236,6 +239,8 @@ class UserClient(threading.Thread):
     def run(self):
 
         monitor = xbmc.Monitor()
+        self.connectmanager = connectmanager.ConnectManager()
+
         log.warn("----===## Starting UserClient ##===----")
 
         while not self._stop_thread:
@@ -268,7 +273,7 @@ class UserClient(threading.Thread):
                 status = window('emby_serverStatus')
 
                 # The status Stop is for when user cancelled password dialog.
-                if server and username and status != "Stop":
+                if server and username and status != "stop":
                     # Only if there's information found to login
                     log.info("Server found: %s", server)
                     log.info("Username found: %s", username)
@@ -278,6 +283,7 @@ class UserClient(threading.Thread):
                 # Abort was requested while waiting. We should exit
                 break
 
+        self.doutils.stopSession()
         log.warn("##===---- UserClient Stopped ----===##")
 
     def stop_client(self):

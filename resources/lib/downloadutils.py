@@ -10,7 +10,7 @@ import xbmc
 import xbmcgui
 
 import clientinfo
-from utils import window, settings
+from utils import window, settings, language as lang
 
 ##################################################################################################
 
@@ -285,12 +285,14 @@ class DownloadUtils():
                     # Emby server errors
                     if r.headers['X-Application-Error-Code'] == "ParentalControl":
                         # Parental control - access restricted
+                        if status != "restricted":
+                            xbmcgui.Dialog().notification(
+                                                    heading=lang(29999),
+                                                    message="Access restricted.",
+                                                    icon=xbmcgui.NOTIFICATION_ERROR,
+                                                    time=5000)
+                        
                         window('emby_serverStatus', value="restricted")
-                        xbmcgui.Dialog().notification(
-                                                heading=lang(29999),
-                                                message="Access restricted.",
-                                                icon=xbmcgui.NOTIFICATION_ERROR,
-                                                time=5000)
                         raise Warning('restricted')
 
                     elif r.headers['X-Application-Error-Code'] == "UnauthorizedAccessException":

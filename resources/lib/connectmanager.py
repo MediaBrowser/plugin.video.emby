@@ -23,22 +23,30 @@ XML_PATH = (addon.getAddonInfo('path'), "default", "1080i")
 
 class ConnectManager(object):
 
+    _shared_state = {} # Borg
     state = {}
 
 
     def __init__(self):
 
-        client_info = clientinfo.ClientInfo()
-        self.emby = embyserver.Read_EmbyServer()
+        self.__dict__ = self._shared_state
 
-        version = client_info.getVersion()
-        device_name = client_info.getDeviceName()
-        device_id = client_info.getDeviceId()
+        if not self.state:
+            client_info = clientinfo.ClientInfo()
+            self.emby = embyserver.Read_EmbyServer()
 
-        self._connect = connectionmanager.ConnectionManager("Kodi", version, device_name, device_id)
-        self._connect.setFilePath(xbmc.translatePath(addon.getAddonInfo('profile')).decode('utf-8'))
-        self.state = self._connect.connect()
-        log.info("Started with: %s", self.state)
+            version = client_info.getVersion()
+            device_name = client_info.getDeviceName()
+            device_id = client_info.getDeviceId()
+
+            self._connect = connectionmanager.ConnectionManager(appName="Kodi",
+                                                                appVersion=version,
+                                                                deviceName=device_name,
+                                                                deviceId=device_id)
+            self._connect.setFilePath(xbmc.translatePath(
+                                      addon.getAddonInfo('profile')).decode('utf-8'))
+            self.state = self._connect.connect()
+            log.info("Started with: %s", self.state)
 
 
     def update_state(self):

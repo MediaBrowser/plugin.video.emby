@@ -54,7 +54,6 @@ class InitialSetup(object):
         if current_state['State'] == STATE['SignedIn']:
             server = current_state['Servers'][0]
             server_address = self.connectmanager.get_address(server)
-            log.info("Starting with: %s", server)
             self._set_server(server_address, server['Name'])
             self._set_user(server['UserId'], server['AccessToken'])
             return
