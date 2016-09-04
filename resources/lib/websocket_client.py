@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ###############################################################################
-
+import logging
 import json
 import threading
 import Queue
@@ -10,15 +10,18 @@ import ssl
 
 import xbmc
 
-import utils
+from utils import window, settings, ThreadMethodsAdditionalSuspend, \
+    ThreadMethods
 
+###############################################################################
+
+log = logging.getLogger("PLEX."+__name__)
 
 ###############################################################################
 
 
-@utils.logging
-@utils.ThreadMethodsAdditionalSuspend('suspend_LibraryThread')
-@utils.ThreadMethods
+@ThreadMethodsAdditionalSuspend('suspend_LibraryThread')
+@ThreadMethods
 class WebSocket(threading.Thread):
     opcode_data = (websocket.ABNF.OPCODE_TEXT, websocket.ABNF.OPCODE_BINARY)
 
@@ -35,16 +38,16 @@ class WebSocket(threading.Thread):
         try:
             message = json.loads(message)
         except Exception as ex:
-            self.logMsg('Error decoding message from websocket: %s' % ex, -1)
-            self.logMsg(message, -1)
+            log.error('Error decoding message from websocket: %s' % ex)
+            log.error(message)
             return False
 
         # Triage
         typus = message.get('type')
         if typus is None:
-            self.logMsg('No message type, dropping message: %s' % message, -1)
+            log.error('No message type, dropping message: %s' % message)
             return False
-        self.logMsg('Received message from PMS server: %s' % message, 2)
+        log.debug('Received message from PMS server: %s' % message)
         # Drop everything we're not interested in
         if typus not in ('playing', 'timeline'):
             return True
@@ -55,7 +58,7 @@ class WebSocket(threading.Thread):
             return True
         except Queue.Full:
             # Queue only takes 200 messages. No worries if we miss one or two
-            self.logMsg('Queue is full, dropping PMS message %s' % message, 0)
+            log.info('Queue is full, dropping PMS message %s' % message)
             return False
 
     def receive(self, ws):
@@ -77,9 +80,9 @@ class WebSocket(threading.Thread):
         return None, None
 
     def getUri(self):
-        server = utils.window('pms_server')
+        server = window('pms_server')
         # Need to use plex.tv token, if any. NOT user token
-        token = utils.window('plex_token')
+        token = window('plex_token')
         # Get the appropriate prefix for the websocket
         if "https" in server:
             server = server.replace('https', "wss")
@@ -89,13 +92,12 @@ class WebSocket(threading.Thread):
         if token:
             uri += '?X-Plex-Token=%s' % token
         sslopt = {}
-        if utils.settings('sslverify') == "false":
+        if settings('sslverify') == "false":
             sslopt["cert_reqs"] = ssl.CERT_NONE
         return uri, sslopt
 
     def run(self):
-        log = self.logMsg
-        log("----===## Starting WebSocketClient ##===----", 0)
+        log.info("----===## Starting WebSocketClient ##===----")
 
         counter = 0
         threadStopped = self.threadStopped
@@ -112,7 +114,7 @@ class WebSocket(threading.Thread):
                     self.ws = None
                 if threadStopped():
                     # Abort was requested while waiting. We should exit
-                    log("##===---- WebSocketClient Stopped ----===##", 0)
+                    log.info("##===---- WebSocketClient Stopped ----===##")
                     return
                 xbmc.sleep(1000)
             try:
@@ -121,7 +123,7 @@ class WebSocket(threading.Thread):
                 # No worries if read timed out
                 pass
             except websocket.WebSocketConnectionClosedException:
-                log("Connection closed, (re)connecting", 0)
+                log.info("Connection closed, (re)connecting")
                 uri, sslopt = self.getUri()
                 try:
                     # Low timeout - let's us shut this thread down!
@@ -132,40 +134,41 @@ class WebSocket(threading.Thread):
                         enable_multithread=True)
                 except IOError:
                     # Server is probably offline
-                    log("Error connecting", 0)
+                    log.info("Error connecting")
                     self.ws = None
                     counter += 1
                     if counter > 10:
-                        log("Repeatedly could not connect to PMS, declaring "
-                            "the connection dead", -1)
-                        utils.window('plex_online', value='false')
+                        log.warn("Repeatedly could not connect to PMS, "
+                                 "declaring the connection dead")
+                        window('plex_online', value='false')
                         counter = 0
                     xbmc.sleep(1000)
                 except websocket.WebSocketTimeoutException:
-                    log("timeout while connecting, trying again", 0)
+                    log.info("timeout while connecting, trying again")
                     self.ws = None
                     xbmc.sleep(1000)
                 except Exception as e:
-                    log("Unknown exception encountered in connecting: %s" % e)
+                    log.error("Unknown exception encountered in connecting: %s"
+                             % e)
                     self.ws = None
                     xbmc.sleep(1000)
                 else:
                     counter = 0
             except Exception as e:
-                log("Unknown exception encountered: %s" % e)
+                log.error("Unknown exception encountered: %s" % e)
                 try:
                     self.ws.shutdown()
                 except:
                     pass
                 self.ws = None
 
-        log("##===---- WebSocketClient Stopped ----===##", 0)
+        log.info("##===---- WebSocketClient Stopped ----===##")
 
     def stopThread(self):
         """
         Overwrite this method from ThreadMethods to close websockets
         """
-        self.logMsg("Stopping websocket client thread.", 1)
+        log.info("Stopping websocket client thread.")
         self._threadStopped = True
         try:
             self.ws.shutdown()
