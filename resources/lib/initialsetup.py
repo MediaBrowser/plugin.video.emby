@@ -419,6 +419,7 @@ class InitialSetup():
 
         # Additional settings where the user needs to choose
         # Direct paths (\\NAS\mymovie.mkv) or addon (http)?
+        goToSettings = False
         if dialog.yesno(addonName,
                         lang(39027),
                         lang(39028),
