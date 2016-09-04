@@ -191,7 +191,7 @@ class PlexCompanion(threading.Thread):
                         if client.check_client_registration():
                             log.debug("Client is still registered")
                         else:
-                            log.info("Client is no longer registered"
+                            log.info("Client is no longer registered. "
                                      "Plex Companion still running on port %s"
                                      % self.settings['myport'])
                 # Get and set servers
