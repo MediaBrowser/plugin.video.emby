@@ -10,7 +10,6 @@ import xbmcgui
 import clientinfo
 import connectmanager
 import connect.connectionmanager as connectionmanager
-import downloadutils
 import userclient
 from utils import settings, language as lang, passwordsXML
 
@@ -27,27 +26,26 @@ class InitialSetup(object):
 
     def __init__(self):
 
-        self.addonId = clientinfo.ClientInfo().getAddonId()
-        self.doUtils = downloadutils.DownloadUtils().downloadUrl
-        self.userClient = userclient.UserClient()
+        self.addon_id = clientinfo.ClientInfo().getAddonId()
+        self.user_client = userclient.UserClient()
         self.connectmanager = connectmanager.ConnectManager()
 
 
     def setup(self):
         # Check server, user, direct paths, music, direct stream if not direct path.
-        addonId = self.addonId
+        addon_id = self.addon_id
         dialog = xbmcgui.Dialog()
 
         ##### SERVER INFO #####
-        
+
         log.debug("Initial setup called.")
 
         ###$ Begin transition phase $###
         if settings('server') == "":
-            current_server = self.userClient.get_server()
-            current_userid = self.userClient.get_userid()
-            current_token = self.userClient.get_token()
+            current_server = self.user_client.get_server()
             self.connectmanager.get_server(current_server)
+            self.user_client.get_userid()
+            self.user_client.get_token()
         ###$ End transition phase $###
 
         current_state = self.connectmanager.get_state()
@@ -60,11 +58,11 @@ class InitialSetup(object):
 
         try:
             server = self.connectmanager.select_servers()
-            log.info("Server: %s" % server)
+            log.info("Server: %s", server)
         
-        except RuntimeError as e:
-            log.exception(e)
-            xbmc.executebuiltin('Addon.OpenSettings(%s)' % addonId)
+        except RuntimeError as error:
+            log.exception(error)
+            xbmc.executebuiltin('Addon.OpenSettings(%s)' % addon_id)
             return
 
         else:
@@ -74,10 +72,10 @@ class InitialSetup(object):
             if not server.get('AccessToken') and not server.get('UserId'):
                 try:
                     user = self.connectmanager.login(server)
-                    log.info("User authenticated: %s" % user)
-                except RuntimeError as e:
-                    log.exception(e)
-                    xbmc.executebuiltin('Addon.OpenSettings(%s)' % addonId)
+                    log.info("User authenticated: %s", user)
+                except RuntimeError as error:
+                    log.exception(error)
+                    xbmc.executebuiltin('Addon.OpenSettings(%s)' % addon_id)
                     return
                 settings('username', value=user['User']['Name'])
                 self._set_user(user['User']['Id'], user['AccessToken'])
@@ -88,36 +86,29 @@ class InitialSetup(object):
 
         ##### ADDITIONAL PROMPTS #####
 
-        directPaths = dialog.yesno(
-                            heading=lang(30511),
-                            line1=lang(33035),
-                            nolabel=lang(33036),
-                            yeslabel=lang(33037))
-        if directPaths:
+        direct_paths = dialog.yesno(heading=lang(30511),
+                                   line1=lang(33035),
+                                   nolabel=lang(33036),
+                                   yeslabel=lang(33037))
+        if direct_paths:
             log.info("User opted to use direct paths.")
             settings('useDirectPaths', value="1")
 
             # ask for credentials
-            credentials = dialog.yesno(
-                                heading=lang(30517),
-                                line1= lang(33038))
+            credentials = dialog.yesno(heading=lang(30517), line1= lang(33038))
             if credentials:
                 log.info("Presenting network credentials dialog.")
                 passwordsXML()
-        
-        musicDisabled = dialog.yesno(
-                            heading=lang(29999),
-                            line1=lang(33039))
-        if musicDisabled:
+
+        music_disabled = dialog.yesno(heading=lang(29999), line1=lang(33039))
+        if music_disabled:
             log.info("User opted to disable Emby music library.")
             settings('enableMusic', value="false")
         else:
             # Only prompt if the user didn't select direct paths for videos
             if not directPaths:
-                musicAccess = dialog.yesno(
-                                    heading=lang(29999),
-                                    line1=lang(33040))
-                if musicAccess:
+                music_access = dialog.yesno(heading=lang(29999), line1=lang(33040))
+                if music_access:
                     log.info("User opted to direct stream music.")
                     settings('streamMusic', value="true")
 

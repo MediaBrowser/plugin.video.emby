@@ -62,12 +62,12 @@ class UserClient(threading.Thread):
 
         ###$ Begin transition phase $###
         if settings('server') == "":
-            HTTP = "https" if settings('https') == "true" else "http"
+            http = "https" if settings('https') == "true" else "http"
             host = settings('ipaddress')
             port = settings('port')
 
             if host and port:
-                settings('server', value="%s://%s:%s" % (HTTP, host, port))
+                settings('server', value="%s://%s:%s" % (http, host, port))
         ###$ End transition phase $###
 
         return settings('server') or None
@@ -76,7 +76,7 @@ class UserClient(threading.Thread):
 
         url = "%s/emby/Users/Public?format=json" % self.get_server()
         result = self.download(url, authenticate=False)
-        if result != "":
+        if result != "": # Specific verification, due to possibility of returning empty dict
             return True
         else:
             # Server connection failed
