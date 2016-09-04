@@ -55,6 +55,9 @@ class ConnectManager(object):
     def get_address(self, server):
         return connectionmanager.getServerAddress(server, server['LastConnectionMode'])
 
+    def clear_data(self):
+        self._connect.clearData()
+
     def select_servers(self):
         # Will return selected server or raise error
         state = self._connect.connect({'enableAutoLogin': False})

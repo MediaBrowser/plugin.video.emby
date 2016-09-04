@@ -174,7 +174,7 @@ class Service(object):
                             xbmcgui.Dialog().notification(
                                         heading=lang(29999),
                                         message=("%s %s%s!"
-                                                % (lang(33000), settings('username').decode('utf-8'),
+                                                % (lang(33000), user.get_username().decode('utf-8'),
                                                     add.decode('utf-8'))),
                                         icon="special://home/addons/plugin.video.emby/icon.png",
                                         time=2000,

@@ -55,7 +55,6 @@ class InitialSetup(object):
             server = current_state['Servers'][0]
             server_address = self.connectmanager.get_address(server)
             log.info("Starting with: %s", server)
-            log.info("Last server used: %s", server_address)
             self._set_server(server_address, server['Name'])
             self._set_user(server['UserId'], server['AccessToken'])
             return
@@ -70,13 +69,16 @@ class InitialSetup(object):
             return
 
         else:
-            self._set_server(server, server['Name'])
+            server_address = self.connectmanager.get_address(server)
+            self._set_server(server_address, server['Name'])
 
             if not server.get('AccessToken') and not server.get('UserId'):
                 try:
                     user = self.connectmanager.login(server)
                     log.info("User authenticated: %s" % user)
-                except RuntimeError:
+                except RuntimeError as e:
+                    log.exception(e)
+                    xbmc.executebuiltin('Addon.OpenSettings(%s)' % addonId)
                     return
                 settings('username', value=user['User']['Name'])
                 self._set_user(user['User']['Id'], user['AccessToken'])

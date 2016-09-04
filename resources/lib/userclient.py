@@ -47,7 +47,7 @@ class UserClient(threading.Thread):
         threading.Thread.__init__(self)
 
     def get_username(self):
-        return settings('username') or None
+        return settings('username') or settings('connectUsername') or None
 
     def get_user(self, data=None):
         return self._user
