@@ -788,11 +788,9 @@ def CatchExceptions(warnuser=False):
             try:
                 return func(*args, **kwargs)
             except Exception as e:
-                log.error('%s has crashed' % func.__name__)
-                log.error(addonName, e)
+                log.error('%s has crashed. Error: %s' % (func.__name__, e))
                 import traceback
-                log.error(addonName, "Traceback:\n%s"
-                          % traceback.format_exc())
+                log.error("Traceback:\n%s" % traceback.format_exc())
                 if warnuser:
                     window('plex_scancrashed', value='true')
                 return
