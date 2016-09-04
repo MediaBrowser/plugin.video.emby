@@ -74,7 +74,7 @@ STATUS_INVALID_EXTENSION = 1010
 STATUS_UNEXPECTED_CONDITION = 1011
 STATUS_TLS_HANDSHAKE_ERROR = 1015
 
-logger = logging.getLogger()
+log = logging.getlog("PLEX."+__name__)
 
 
 class WebSocketException(Exception):
@@ -110,9 +110,9 @@ def enableTrace(tracable):
     global traceEnabled
     traceEnabled = tracable
     if tracable:
-        if not logger.handlers:
-            logger.addHandler(logging.StreamHandler())
-        logger.setLevel(logging.DEBUG)
+        if not log.handlers:
+            log.addHandler(logging.StreamHandler())
+        log.setLevel(logging.DEBUG)
 
 
 def setdefaulttimeout(timeout):
@@ -484,9 +484,9 @@ class WebSocket(object):
         header_str = "\r\n".join(headers)
         self._send(header_str)
         if traceEnabled:
-            logger.debug("--- request header ---")
-            logger.debug(header_str)
-            logger.debug("-----------------------")
+            log.debug("--- request header ---")
+            log.debug(header_str)
+            log.debug("-----------------------")
 
         status, resp_headers = self._read_headers()
         if status != 101:
@@ -522,7 +522,7 @@ class WebSocket(object):
         status = None
         headers = {}
         if traceEnabled:
-            logger.debug("--- response header ---")
+            log.debug("--- response header ---")
 
         while True:
             line = self._recv_line()
@@ -530,7 +530,7 @@ class WebSocket(object):
                 break
             line = line.strip()
             if traceEnabled:
-                logger.debug(line)
+                log.debug(line)
             if not status:
                 status_info = line.split(" ", 2)
                 status = int(status_info[1])
@@ -543,7 +543,7 @@ class WebSocket(object):
                     raise WebSocketException("Invalid header")
 
         if traceEnabled:
-            logger.debug("-----------------------")
+            log.debug("-----------------------")
 
         return status, headers
 
@@ -563,7 +563,7 @@ class WebSocket(object):
         data = frame.format()
         length = len(data)
         if traceEnabled:
-            logger.debug("send: " + repr(data))
+            log.debug("send: " + repr(data))
         while data:
             l = self._send(data)
             data = data[l:]
@@ -706,10 +706,10 @@ class WebSocket(object):
                 self.sock.settimeout(3)
                 try:
                     frame = self.recv_frame()
-                    if logger.isEnabledFor(logging.ERROR):
+                    if log.isEnabledFor(logging.ERROR):
                         recv_status = struct.unpack("!H", frame.data)[0]
                         if recv_status != STATUS_NORMAL:
-                            logger.error("close status: " + repr(recv_status))
+                            log.error("close status: " + repr(recv_status))
                 except:
                     pass
                 self.sock.settimeout(timeout)
@@ -895,8 +895,8 @@ class WebSocketApp(object):
             try:
                 callback(self, *args)
             except Exception, e:
-                logger.error(e)
-                if True:#logger.isEnabledFor(logging.DEBUG):
+                log.error(e)
+                if True:#log.isEnabledFor(logging.DEBUG):
                     _, _, tb = sys.exc_info()
                     traceback.print_tb(tb)
 
