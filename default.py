@@ -71,7 +71,6 @@ class Main():
             'resetauth': entrypoint.resetAuth,
             'play': entrypoint.doPlayback,
             'passwords': utils.passwordsXML,
-            'adduser': entrypoint.addUser,
             'thememedia': entrypoint.getThemeMedia,
             'channels': entrypoint.BrowseChannels,
             'channelsfolder': entrypoint.BrowseChannels,
