@@ -59,7 +59,7 @@ class InitialSetup(object):
         try:
             server = self.connectmanager.select_servers()
             log.info("Server: %s", server)
-        
+
         except RuntimeError as error:
             log.exception(error)
             xbmc.executebuiltin('Addon.OpenSettings(%s)' % addon_id)
@@ -87,15 +87,15 @@ class InitialSetup(object):
         ##### ADDITIONAL PROMPTS #####
 
         direct_paths = dialog.yesno(heading=lang(30511),
-                                   line1=lang(33035),
-                                   nolabel=lang(33036),
-                                   yeslabel=lang(33037))
+                                    line1=lang(33035),
+                                    nolabel=lang(33036),
+                                    yeslabel=lang(33037))
         if direct_paths:
             log.info("User opted to use direct paths.")
             settings('useDirectPaths', value="1")
 
             # ask for credentials
-            credentials = dialog.yesno(heading=lang(30517), line1= lang(33038))
+            credentials = dialog.yesno(heading=lang(30517), line1=lang(33038))
             if credentials:
                 log.info("Presenting network credentials dialog.")
                 passwordsXML()
@@ -106,7 +106,7 @@ class InitialSetup(object):
             settings('enableMusic', value="false")
         else:
             # Only prompt if the user didn't select direct paths for videos
-            if not directPaths:
+            if not direct_paths:
                 music_access = dialog.yesno(heading=lang(29999), line1=lang(33040))
                 if music_access:
                     log.info("User opted to direct stream music.")
