@@ -14,7 +14,7 @@ from utils import window, settings, getUnixTimestamp, kodiSQL, sourcesXML,\
     ThreadMethods, ThreadMethodsAdditionalStop, LogTime, getScreensaver,\
     setScreensaver, playlistXSP, language as lang, DateToKodi, reset,\
     advancedSettingsXML, getKodiVideoDBPath, tryDecode, deletePlaylists,\
-    deleteNodes
+    deleteNodes, ThreadMethodsAdditionalSuspend
 import clientinfo
 import downloadutils
 import itemtypes
