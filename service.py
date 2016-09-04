@@ -51,6 +51,7 @@ import loghandler
 
 loghandler.config()
 log = logging.getLogger("PLEX.default")
+addonName = 'PlexKodiConnect'
 
 ###############################################################################
 
@@ -78,11 +79,10 @@ class Service():
                value=xbmc.translatePath("special://profile"))
 
         # Initial logging
-        log.warn("======== START %s ========" % self.addonName)
+        log.warn("======== START %s ========" % addonName)
         log.warn("Platform: %s" % (self.clientInfo.getPlatform()))
         log.warn("KODI Version: %s" % xbmc.getInfoLabel('System.BuildVersion'))
-        log.warn("%s Version: %s" % (self.addonName,
-                                     self.clientInfo.getVersion()))
+        log.warn("%s Version: %s" % (addonName, self.clientInfo.getVersion()))
         log.warn("Using plugin paths: %s"
                  % (settings('useDirectPaths') != "true"))
         log.warn("Log Level: %s" % logLevel)
@@ -165,7 +165,7 @@ class Service():
                             # Reset authentication warnings
                             self.welcome_msg = False
                             xbmcgui.Dialog().notification(
-                                heading=self.addonName,
+                                heading=addonName,
                                 message="%s %s" % (lang(33000), user.currUser),
                                 icon="special://home/addons/plugin.video.plexkodiconnect/icon.png",
                                 time=2000,
@@ -226,7 +226,7 @@ class Service():
                             xbmcgui.Dialog().notification(
                                 heading=lang(33001),
                                 message="%s %s"
-                                        % (self.addonName, lang(33002)),
+                                        % (addonName, lang(33002)),
                                 icon="special://home/addons/plugin.video."
                                      "plexkodiconnect/icon.png",
                                 sound=False)
@@ -250,7 +250,7 @@ class Service():
                                 break
                             # Alert the user that server is online.
                             xbmcgui.Dialog().notification(
-                                heading=self.addonName,
+                                heading=addonName,
                                 message=lang(33003),
                                 icon="special://home/addons/plugin.video."
                                      "plexkodiconnect/icon.png",
@@ -309,7 +309,7 @@ class Service():
         except:
             pass
 
-        log.warn("======== STOP %s ========" % self.addonName)
+        log.warn("======== STOP %s ========" % addonName)
 
 # Delay option
 delay = int(settings('startupDelay'))

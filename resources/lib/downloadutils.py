@@ -18,6 +18,7 @@ import requests.packages.urllib3
 requests.packages.urllib3.disable_warnings()
 
 log = logging.getLogger("PLEX."+__name__)
+addonName = 'PlexKodiConnect'
 
 ###############################################################################
 
@@ -282,7 +283,7 @@ class DownloadUtils():
                                       'unauthorized')
                             window('plex_serverStatus', value="401")
                             xbmcgui.Dialog().notification(
-                                self.addonName,
+                                addonName,
                                 "Unauthorized for PMS",
                                 xbmcgui.NOTIFICATION_ERROR)
                 else:
