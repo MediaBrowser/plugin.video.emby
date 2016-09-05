@@ -309,6 +309,7 @@ class Player(xbmc.Player):
         window('plex_customplaylist', clear=True)
         window('plex_customplaylist.seektime', clear=True)
         window('plex_customplaylist.seektime', clear=True)
+        window('plex_playbackProps', clear=True)
         log.debug("Cleared playlist properties.")
 
     def onPlayBackEnded(self):

@@ -252,7 +252,7 @@ class Playlist():
         mediatype: Kodi type: 'movie', 'episode', 'musicvideo', 'artist',
                               'album', 'song', 'genre'
         """
-        self._addtoPlaylist(dbid=None, mediatype=None, url=None)
+        self._addtoPlaylist(dbid, mediatype, url)
 
     def _addtoPlaylist(self, dbid=None, mediatype=None, url=None):
         pl = {
