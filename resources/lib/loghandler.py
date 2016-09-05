@@ -25,7 +25,6 @@ class LogHandler(logging.StreamHandler):
         self.setFormatter(MyFormatter())
 
     def emit(self, record):
-
         if self._get_log_level(record.levelno):
             try:
                 xbmc.log(self.format(record), level=xbmc.LOGNOTICE)
@@ -67,6 +66,8 @@ class MyFormatter(logging.Formatter):
 
         # Call the original formatter class to do the grunt work
         result = logging.Formatter.format(self, record)
+        if window('pms_token'):
+            result = result.replace(window('pms_token'), '<PLEX-PMS-TOKEN>')
 
         # Restore the original format configured by the user
         self._fmt = format_orig
