@@ -30,8 +30,6 @@ class DownloadUtils():
     # Borg - multiple instances, shared state
     _shared_state = {}
 
-    # Requests session
-    timeout = 30
     # How many failed attempts before declaring PMS dead?
     connectionAttempts = 2
     # How many 401 returns before declaring unauthorized?
@@ -39,6 +37,8 @@ class DownloadUtils():
 
     def __init__(self):
         self.__dict__ = self._shared_state
+        # Requests session
+        self.timeout = 30.0
 
     def setUsername(self, username):
         """
@@ -142,21 +142,22 @@ class DownloadUtils():
             header.update(options)
         return header
 
-    def __doDownload(self, s, type, **kwargs):
-        if type == "GET":
+    def __doDownload(self, s, action_type, **kwargs):
+        if action_type == "GET":
             r = s.get(**kwargs)
-        elif type == "POST":
+        elif action_type == "POST":
             r = s.post(**kwargs)
-        elif type == "DELETE":
+        elif action_type == "DELETE":
             r = s.delete(**kwargs)
-        elif type == "OPTIONS":
+        elif action_type == "OPTIONS":
             r = s.options(**kwargs)
-        elif type == "PUT":
+        elif action_type == "PUT":
             r = s.put(**kwargs)
         return r
 
-    def downloadUrl(self, url, type="GET", postBody=None, parameters=None,
-                    authenticate=True, headerOptions=None, verifySSL=True):
+    def downloadUrl(self, url, action_type="GET", postBody=None,
+                    parameters=None, authenticate=True, headerOptions=None,
+                    verifySSL=True, timeout=None):
         """
         Override SSL check with verifySSL=False
 
@@ -164,14 +165,14 @@ class DownloadUtils():
         Otherwise, 'empty' request will be made
 
         Returns:
-            False              If an error occured
+            None              If an error occured
             True               If connection worked but no body was received
             401, ...           integer if PMS answered with HTTP error 401
                                (unauthorized) or other http error codes
             xml                xml etree root object, if applicable
             JSON               json() object, if applicable
         """
-        kwargs = {}
+        kwargs = {'timeout': self.timeout}
         if authenticate is True:
             # Get requests session
             try:
@@ -187,7 +188,6 @@ class DownloadUtils():
             # plex.tv and to check for PMS servers
             s = requests
             headerOptions = self.getHeader(options=headerOptions)
-            kwargs['timeout'] = self.timeout
             if settings('sslcert') != 'None':
                 kwargs['cert'] = settings('sslcert')
 
@@ -202,10 +202,12 @@ class DownloadUtils():
             kwargs['data'] = postBody
         if parameters is not None:
             kwargs['params'] = parameters
+        if timeout is not None:
+            kwargs['timeout'] = timeout
 
         # ACTUAL DOWNLOAD HAPPENING HERE
         try:
-            r = self.__doDownload(s, type, **kwargs)
+            r = self.__doDownload(s, action_type, **kwargs)
 
         # THE EXCEPTIONS
         except requests.exceptions.ConnectionError as e:
@@ -252,6 +254,9 @@ class DownloadUtils():
 
             if r.status_code == 204:
                 # No body in the response
+                # But read (empty) content to release connection back to pool
+                # (see requests: keep-alive documentation)
+                r.content
                 return True
 
             elif r.status_code == 401:
@@ -269,11 +274,11 @@ class DownloadUtils():
                             self.unauthorizedAttempts):
                         self.logMsg('We seem to be truly unauthorized for PMS'
                                     ' %s ' % url, -1)
-                        if window('emby_serverStatus') not in ('401', 'Auth'):
+                        if window('plex_serverStatus') not in ('401', 'Auth'):
                             # Tell userclient token has been revoked.
                             self.logMsg('Setting PMS server status to '
                                         'unauthorized', 0)
-                            window('emby_serverStatus', value="401")
+                            window('plex_serverStatus', value="401")
                             xbmcgui.Dialog().notification(
                                 self.addonName,
                                 "Unauthorized for PMS",
@@ -328,7 +333,7 @@ class DownloadUtils():
                 if int(window('countError')) >= self.connectionAttempts:
                     self.logMsg('Failed to connect to %s too many times. '
                                 'Declare PMS dead' % url, -1)
-                    window('emby_online', value="false")
+                    window('plex_online', value="false")
             except:
                 # 'countError' not yet set
                 pass

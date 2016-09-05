@@ -1,8 +1,6 @@
 import re
 import threading
 
-from xbmc import Player
-
 import downloadutils
 from utils import window, logging
 import PlexFunctions as pf
@@ -11,13 +9,19 @@ from functions import *
 
 @logging
 class SubscriptionManager:
-    def __init__(self, jsonClass, RequestMgr):
+    def __init__(self, jsonClass, RequestMgr, player, playlist):
         self.serverlist = []
         self.subscribers = {}
         self.info = {}
         self.lastkey = ""
         self.containerKey = ""
-        self.lastratingkey = ""
+        self.ratingkey = ""
+        self.lastplayers = {}
+        self.lastinfo = {
+            'video': {},
+            'audio': {},
+            'picture': {}
+        }
         self.volume = 0
         self.mute = '0'
         self.server = ""
@@ -25,7 +29,8 @@ class SubscriptionManager:
         self.port = ""
         self.playerprops = {}
         self.doUtils = downloadutils.DownloadUtils().downloadUrl
-        self.xbmcplayer = Player()
+        self.xbmcplayer = player
+        self.playlist = playlist
 
         self.js = jsonClass
         self.RequestMgr = RequestMgr
@@ -62,7 +67,7 @@ class SubscriptionManager:
         msg += self.getTimelineXML(self.js.getVideoPlayerId(players), plex_video())
         msg += "\r\n</MediaContainer>"
         return msg
-        
+
     def getTimelineXML(self, playerid, ptype):
         if playerid is not None:
             info = self.getPlayerProperties(playerid)
@@ -95,21 +100,22 @@ class SubscriptionManager:
             xbmc.sleep(100)
             count += 1
         if keyid:
-            self.lastkey = "/library/metadata/%s"%keyid
-            self.lastratingkey = keyid
-            ret += ' location="%s"' % (self.mainlocation)
-            ret += ' key="%s"' % (self.lastkey)
-            ret += ' ratingKey="%s"' % (self.lastratingkey)
+            self.lastkey = "/library/metadata/%s" % keyid
+            self.ratingkey = keyid
+            ret += ' location="%s"' % self.mainlocation
+            ret += ' key="%s"' % self.lastkey
+            ret += ' ratingKey="%s"' % self.ratingkey
         serv = self.getServerByHost(self.server)
         if info.get('playQueueID'):
             self.containerKey = "/playQueues/%s" % info.get('playQueueID')
             ret += ' playQueueID="%s"' % info.get('playQueueID')
             ret += ' playQueueVersion="%s"' % info.get('playQueueVersion')
-            ret += ' playQueueItemID="%s"' % (info.get('playQueueItemID'))
+            ret += ' playQueueItemID="%s"' % info.get('playQueueItemID')
             ret += ' containerKey="%s"' % self.containerKey
+            ret += ' guid="%s"' % info['guid']
         elif keyid:
             self.containerKey = self.lastkey
-            ret += ' containerKey="%s"' % (self.containerKey)
+            ret += ' containerKey="%s"' % self.containerKey
 
         ret += ' duration="%s"' % info['duration']
         ret += ' seekRange="0-%s"' % info['duration']
@@ -118,7 +124,6 @@ class SubscriptionManager:
         ret += ' protocol="%s"' % serv.get('protocol', "http")
         ret += ' address="%s"' % serv.get('server', self.server)
         ret += ' port="%s"' % serv.get('port', self.port)
-        ret += ' guid="%s"' % info['guid']
         ret += ' volume="%s"' % info['volume']
         ret += ' shuffle="%s"' % info['shuffle']
         ret += ' mute="%s"' % self.mute
@@ -132,13 +137,14 @@ class SubscriptionManager:
 
     def updateCommandID(self, uuid, commandID):
         if commandID and self.subscribers.get(uuid, False):
-            self.subscribers[uuid].commandID = int(commandID)            
-        
-    def notify(self, event = False):
+            self.subscribers[uuid].commandID = int(commandID)
+
+    def notify(self, event=False):
         self.cleanup()
         # Don't tell anyone if we don't know a Plex ID and are still playing
         # (e.g. no stop called). Used for e.g. PVR/TV without PKC usage
-        if not window('Plex_currently_playing_itemid'):
+        if (not window('Plex_currently_playing_itemid')
+                and not self.lastplayers):
             return True
         players = self.js.getPlayers()
         # fetch the message, subscribers or not, since the server
@@ -147,35 +153,46 @@ class SubscriptionManager:
         if self.subscribers:
             with threading.RLock():
                 for sub in self.subscribers.values():
-                    sub.send_update(msg, len(players)==0)
+                    sub.send_update(msg, len(players) == 0)
         self.notifyServer(players)
+        self.lastplayers = players
         return True
-    
-    def notifyServer(self, players):
-        if not players:
-            return True
-        for p in players.values():
-            info = self.playerprops[p.get('playerid')]
-            params = {'state': 'stopped'}
-            params['containerKey'] = (self.containerKey or "/library/metadata/900000")
-            if info.get('playQueueID'):
-                params['containerKey'] = '/playQueues/' + info['playQueueID']
-                params['playQueueVersion'] = info['playQueueVersion']
-                params['playQueueItemID'] = info['playQueueItemID']
-            params['key'] = (self.lastkey or "/library/metadata/900000")
-            params['ratingKey'] = (self.lastratingkey or "900000")
-            params['state'] = info['state']
-            params['time'] = info['time']
-            params['duration'] = info['duration']
 
-            serv = self.getServerByHost(self.server)
-            url = serv.get('protocol', 'http') + '://' \
-                + serv.get('server', 'localhost') + ':' \
-                + serv.get('port', '32400') + "/:/timeline"
-            self.doUtils(url, type="GET", parameters=params)
-            # requests.getwithparams(serv.get('server', 'localhost'), serv.get('port', 32400), "/:/timeline", params, getPlexHeaders(), serv.get('protocol', 'http'))
-            self.logMsg("sent server notification with state = %s"
-                        % params['state'], 2)
+    def notifyServer(self, players):
+        for typus, p in players.iteritems():
+            info = self.playerprops[p.get('playerid')]
+            self._sendNotification(info)
+            self.lastinfo[typus] = info
+            # Cross the one of the list
+            try:
+                del self.lastplayers[typus]
+            except KeyError:
+                pass
+        # Process the players we have left (to signal a stop)
+        for typus, p in self.lastplayers.iteritems():
+            self.lastinfo[typus]['state'] = 'stopped'
+            self._sendNotification(self.lastinfo[typus])
+
+    def _sendNotification(self, info):
+        params = {
+            'containerKey': self.containerKey or "/library/metadata/900000",
+            'key': self.lastkey or "/library/metadata/900000",
+            'ratingKey': self.ratingkey or "900000",
+            'state': info['state'],
+            'time': info['time'],
+            'duration': info['duration']
+        }
+        if info.get('playQueueID'):
+            params['containerKey'] = '/playQueues/%s' % info['playQueueID']
+            params['playQueueVersion'] = info['playQueueVersion']
+            params['playQueueItemID'] = info['playQueueItemID']
+        serv = self.getServerByHost(self.server)
+        url = '%s://%s:%s/:/timeline' % (serv.get('protocol', 'http'),
+                                         serv.get('server', 'localhost'),
+                                         serv.get('port', '32400'))
+        self.doUtils(url, parameters=params)
+        self.logMsg("Sent server notification with parameters: %s to %s"
+                    % (params, url), 2)
 
     def controllable(self):
         return "volume,shuffle,repeat,audioStream,videoStream,subtitleStream,skipPrevious,skipNext,seekTo,stepBack,stepForward,stop,playPause"
@@ -205,30 +222,50 @@ class SubscriptionManager:
                 if sub.age > 30:
                     sub.cleanup()
                     del self.subscribers[sub.uuid]
-            
+
     def getPlayerProperties(self, playerid):
-        info = {}
         try:
             # get info from the player
-            props = self.js.jsonrpc("Player.GetProperties", {"playerid": playerid, "properties": ["time", "totaltime", "speed", "shuffled", "repeat"]})
-            self.logMsg(self.js.jsonrpc("Player.GetItem", {"playerid": playerid, "properties": ["file", "showlink", "episode", "season"]}), 2)
-            info['time'] = timeToMillis(props['time'])
-            info['duration'] = timeToMillis(props['totaltime'])
-            info['state'] = ("paused", "playing")[int(props['speed'])]
-            info['shuffle'] = ("0","1")[props.get('shuffled', False)]
-            info['repeat'] = pf.getPlexRepeat(props.get('repeat'))
-            # New PMS playQueue attributes
-            cf = self.xbmcplayer.getPlayingFile()
-            info['playQueueID'] = window('playQueueID')
-            info['playQueueVersion'] = window('playQueueVersion')
-            info['playQueueItemID'] = window('plex_%s.playQueueItemID' % cf)
-            info['guid'] = window('plex_%s.guid' % cf)
+            props = self.js.jsonrpc(
+                "Player.GetProperties",
+                {"playerid": playerid,
+                 "properties": ["time",
+                                "totaltime",
+                                "speed",
+                                "shuffled",
+                                "repeat"]})
 
+            info = {
+                'time': timeToMillis(props['time']),
+                'duration': timeToMillis(props['totaltime']),
+                'state': ("paused", "playing")[int(props['speed'])],
+                'shuffle': ("0", "1")[props.get('shuffled', False)],
+                'repeat': pf.getPlexRepeat(props.get('repeat')),
+            }
+            if self.playlist is not None:
+                if self.playlist.QueueId() is not None:
+                    info['playQueueID'] = self.playlist.QueueId()
+                    info['playQueueVersion'] = self.playlist.PlayQueueVersion()
+                    info['guid'] = self.playlist.Guid()
+                    # Get the playlist position
+                    pos = self.js.jsonrpc(
+                        "Player.GetProperties",
+                        {"playerid": playerid,
+                         "properties": ["position"]})
+                    info['playQueueItemID'] = \
+                        self.playlist.getQueueIdFromPosition(pos['position'])
         except:
-            info['time'] = 0
-            info['duration'] = 0
-            info['state'] = "stopped"
-            info['shuffle'] = False
+            import traceback
+            self.logMsg("Traceback:\n%s"
+                   % traceback.format_exc(), -1)
+            info = {
+                'time': 0,
+                'duration': 0,
+                'state': 'stopped',
+                'shuffle': False,
+                'repeat': 0
+            }
+
         # get the volume from the application
         info['volume'] = self.volume
         info['mute'] = self.mute
@@ -283,6 +320,6 @@ class Subscriber:
         """
         response = self.doUtils(url,
                                 postBody=msg,
-                                type="POST")
+                                action_type="POST")
         if response in [False, None, 401]:
             self.subMgr.removeSubscriber(self.uuid)

@@ -7,7 +7,7 @@ from uuid import uuid4
 import xbmc
 import xbmcaddon
 
-from utils import logging, window, settings
+from utils import logging, window, settings, tryDecode
 
 ###############################################################################
 
@@ -67,8 +67,7 @@ class ClientInfo():
     def getDeviceName(self):
         if settings('deviceNameOpt') == "false":
             # Use Kodi's deviceName
-            deviceName = xbmc.getInfoLabel(
-                'System.FriendlyName').decode('utf-8')
+            deviceName = tryDecode(xbmc.getInfoLabel('System.FriendlyName'))
         else:
             deviceName = settings('deviceName')
             deviceName = deviceName.replace("\"", "_")

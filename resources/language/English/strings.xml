@@ -2,7 +2,7 @@
 <strings>
     <!-- Add-on settings -->
     <string id="30000">Server Address (IP)</string><!-- Verified -->
-    <string id="30002">Prefered playback method</string><!-- Verified -->
+    <string id="30002">Preferred playback method</string><!-- Verified -->
     <string id="30004">Log level</string><!-- Verified -->
     <string id="30005">Username: </string>
     <string id="30006">Password: </string>
@@ -131,7 +131,7 @@
     <string id="30157">Enable Enhanced Images (eg CoverArt)</string><!-- Verified -->
     <string id="30158">Metadata</string>
     <string id="30159">Artwork</string>
-    <string id="30160">Video Quality for Transcoding</string><!-- Verified -->
+    <string id="30160">Video Quality if Transcoding necessary</string><!-- Verified -->
     
     <string id="30161">Enable Suggested Loader (Requires Restart)</string>
     <string id="30162">Add Season Number</string>     
@@ -302,6 +302,10 @@
     <string id="30536">Users must log in every time Kodi restarts</string>
     <string id="30537">RESTART KODI IF YOU MAKE ANY CHANGES</string>
     <string id="30538">Complete Re-Sync necessary</string>
+    <string id="30539">Download additional art from FanArtTV (slower!)</string>
+    <string id="30540">Download movie set/collection art from FanArtTV</string>
+    <string id="30541">Don't ask to pick a certain stream/quality</string>
+    <string id="30542">Always pick best quality for trailers</string>
 
 
     <!-- service add-on -->
@@ -328,7 +332,7 @@
     <string id="33020">Gathering tv shows from:</string>
     <string id="33021">Gathering:</string>
     <string id="33022">Detected the database needs to be recreated for this version of Emby for Kodi. Proceed?</string>
-    <string id="33023">Emby for Kod may not work correctly until the database is reset.</string>
+    <string id="33023">Emby for Kodi may not work correctly until the database is reset.</string>
     <string id="33024">Cancelling the database syncing process. The current Kodi version is unsupported.</string>
     <string id="33025">completed in:</string>
     <string id="33026">Comparing movies from:</string>
@@ -338,7 +342,7 @@
     <string id="33030">Comparing episodes from:</string>
     <string id="33031">Comparing:</string>
     <string id="33032">Failed to generate a new device Id. See your logs for more information.</string>
-    <string id="33033">A new device Id has been generated. Kodi will now restart.</string>
+    <string id="33033">Kodi will now restart to apply the changes.</string>
 
     <!-- New to Plex -->
     <string id="39000">- Number of trailers to play before a movie</string>
@@ -366,7 +370,8 @@
     <string id="39021">[COLOR yellow]Sync Emby Theme Media to Kodi[/COLOR]</string>
     <string id="39022">local</string>
     <string id="39023">Failed to authenticate. Did you login to plex.tv?</string>
-    <string id="39024">[COLOR yellow]Reset PMS and plex.tv connections to re-login[/COLOR]</string>
+    
+
     <string id="39025">Automatically log into plex.tv on startup</string>
     <string id="39026">Enable constant background sync</string>
     <string id="39027">Playback Mode</string>
@@ -387,11 +392,10 @@
     <string id="39042">Replace Plex MUSIC with:</string>
     <string id="39043">Go a step further and completely replace all original Plex library paths (/volume1/media) with custom SMB paths (smb://NAS/MyStuff)?</string>
     <string id="39044">Please enter your custom smb paths in the settings under "Sync Options" and then restart Kodi</string>
-
-    <string id="39045">Appearance Tweaks</string>
-    <string id="39046">TV Shows</string>
+    <string id="39045">Original Plex PHOTO path to replace:</string>
+    <string id="39046">Replace Plex PHOTO with:</string>
     <string id="39047">On Deck: Append show title to episode</string>
-    <string id="39048">On Deck: Append season- and episode-number (e.g. S3E2)</string>
+    <string id="39048">On Deck: Append season- and episode-number SxxExx</string>
     <string id="39049">Nothing works? Try a full reset!</string>
     <string id="39050">[COLOR yellow]Choose Plex Server from a list[/COLOR]</string>
     <string id="39051">Wait before sync new/changed PMS item [s]</string>
@@ -402,6 +406,22 @@
     <string id="39056">Used by Sync and when attempting to Direct Play</string>
     <string id="39057">Customize Paths</string>
     <string id="39058">Extend Plex TV Series "On Deck" view to all shows</string>
+    <string id="39059">Recently Added: Append show title to episode</string>
+    <string id="39060">Recently Added: Append season- and episode-number SxxExx</string>
+    <string id="39061">Would you like to download additional artwork from FanArtTV? Sync will be slower!</string>
+    <string id="39062">Sync when screensaver is deactivated</string>
+    <string id="39063">Force Transcode Hi10P</string>
+    <string id="39064">Recently Added: Also show already watched episodes</string>
+    <string id="39065">Force Transcode HEVC</string>
+    <string id="39066">Recently Added: Also show already watched movies (Refresh Plex playlist/nodes!)</string>
+    <string id="39067">Your current Plex Media Server:</string>
+    <string id="39068">[COLOR yellow]Manually enter Plex Media Server address[/COLOR]</string>
+    <string id="39069">Current address:</string>
+    <string id="39070">Current port:</string>
+    <string id="39071">Current plex.tv status:</string>
+    <string id="39072">Is your Kodi installed on a low-powered device like a Raspberry Pi? If yes, then we will reduce the strain on Kodi to prevent it from crashing.</string>
+    <string id="39073">Appearance Tweaks</string>
+    <string id="39074">TV Shows</string>
 
     <!-- Plex Entrypoint.py -->
     <string id="39200">Log-out Plex Home User </string>
@@ -411,11 +431,20 @@
     <string id="39204">Perform manual library sync</string>
     <string id="39205">Unable to run the sync, the add-on is not connected to a Plex server.</string>
     <string id="39206">Plex might lock your account if you fail to log in too many times. Proceed anyway?</string>
-    <string id="39207">Reseting PMS connections, please wait</string>
-    <string id="39208">Failed to reset PMS and plex.tv connects. Try to restart Kodi.</string>
-    <string id="39209">[COLOR yellow]Log-in to plex.tv[/COLOR]</string>
+    <string id="39207">Resetting PMS connections, please wait</string>
+    <string id="39208">Failed to reset PKC. Try to restart Kodi.</string>
+    <string id="39209">[COLOR yellow]Toggle plex.tv login (sign in or sign out)[/COLOR]</string>
     <string id="39210">Not yet connected to Plex Server</string>
     <string id="39211">Watch later</string>
+    <string id="39213">is offline</string>
+    <string id="39214">Even though we signed in to plex.tv, we could not authorize for PMS</string>
+    <string id="39215">Enter your Plex Media Server's IP or URL, Examples are:</string>
+
+    <string id="39217">Does your Plex Media Server support SSL connections? (https instead of http)?</string>
+    <string id="39218">Error contacting PMS</string>
+    <string id="39219">Abort (Yes) or save address anyway (No)?</string>
+    <string id="39220">connected</string>
+    <string id="39221">plex.tv toggle successful</string>
 
 
     <!-- Plex Artwork.py -->

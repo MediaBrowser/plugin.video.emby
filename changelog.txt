@@ -1,3 +1,139 @@
+version 1.3.0
+- Compatibility with latest Kodi Krypton
+- Complete redesign of Plex Companion playlist handling
+- Improvements to Plex Companion daemon
+- Try reducing strain on PMS for metadata
+- Don't let PMS crash: download one item at a time
+- Don't open PKC settings if PMS not found
+- sync: dont force show "full library sync finished" (thanks @milaq)
+- fix 'raspberry pi' spelling and capitalisation (thanks @milaq)
+- Revert: New setting to lower the number of PMS items to cache
+
+version 1.2.14 (beta only)
+- New setting to lower the number of PMS items to cache. Hopefully fixes Wetek crashes
+
+version 1.2.13 (beta only)
+- Compatibility with latest Kodi Krypton
+- fix 'raspberry pi' spelling and capitalisation (thanks @milaq)
+
+version 1.2.12 (beta only)
+- Complete redesign of playlist handling
+- Improvements to Plex Companion daemon 
+- Try reducing strain on PMS for metadata
+- Don't let PMS crash: download one item at a time
+- sync: dont force show "full library sync finished" (thanks @milaq)
+
+version 1.2.11
+-  Fix PKC not releasing connections to the PMS. Should fix memory, connection and PMS issues
+-  Fix TypeError for playlists
+
+version 1.2.10
+- Hotfix: Fix ValueError for playing certain files
+
+version 1.2.9
+- Don't let the PMS force scan the media when requesting PMS item metadata
+- Improve detection of the need to transcode
+- Increase (and enforce) a higher connection timeout
+- Enable stream/media selection for direct play (e.g. if you have several files for the same movie item on the PMS)
+
+version 1.2.8
+- Fix PKC playstate updates for widgets on Krypton
+- Let user choose to always play trailer in highest quality
+- Fixes to choice of media stream
+- Plex Companion: fix skipping forward and backward
+
+version 1.2.7
+- Let the user pick between several streams or if you have, several different files for the same movie (can be deactivated in the settings)
+- Use the playing item's filename and path to figure out the Plex id. Now Plex should really always be informed what you're currently playing
+
+version 1.2.6
+- Fix Watch Later TypeError
+
+version 1.2.5
+-  Plex Photos! Choose "Refresh Plex playlists/nodes" to use the new feature.
+-  Compatibility with latest Kodi Krypton (which is still under heavy development and in an alpha state). If PKC stops working for you, update your Kodi Krypton to the latest version.
+-   Fixes to getExtraFanart. If not using the PKC repository, you will have to manually update plugin.video.plexkodiconnect.movies and plugin.video.plexkodiconnect.tvshows to profit from these changes.
+- Use language codes ('spa'), not verbose 'español' for audio streams and subtitles. You will have to reset your Kodi DB manually to profit from this change.
+- Fix fanart.tv fallback to English not working.
+- Fix plex.tv Watch Later ignored resume points.
+- Fix double PKC settings strings.
+
+version 1.2.4
+- Automatically download Plex collection artwork from FanArtTv! Many thanks to @im85288
+- A dedicated PKC setting to download this set fanart (independent of the other FanArtTv download)
+
+version 1.2.3
+- Improvements to resume points. PKC should now correctly mark an item as completely watched.
+- Get rid of obsolete setting markPlayed. Mark a video item as played after 90%, just like Plex.
+
+version 1.2.2
+- Fix filename change recognition for episodes and movies - finally! If you experienced this, you will have to manually reset the Kodi database in the PKC settings
+- Fix PKC resume points set way too high
+- Clarify that transcode settings are TARGET quality
+
+version 1.2.1
+- Fix crash when Kodi not playing as expected
+- Improve player.py stability
+- Background sync: don't try to process infinitely
+- Only tell PMS we're connected to what we're playing. This should enable the Plex Media Server to fall to sleep because PKC is not constantly bugging it
+- Ensure credentials are known when reconnecting
+- Remove some emby references
+- Ask on first run if we have a low powered device
+
+version 1.2.0
+- Re-wired connection manager completely
+- Periodically check if PMS address has changed
+- Smarter, faster way to tell that PMS went offline
+- Fix DTS-HD audio is not correctly identified (you will need to manually reset your Kodi DB)
+- Improvements to PMS connection checks
+- Fix default transcoding quality / network speed (so that PKC won't transcode initially)
+- Fix direct path replacing possibly several times
+- Initialize Kodi DBs only once
+- Correctly update views on server switch
+
+version 1.1.11
+- Episodes and movies should now correctly be marked as watched in Kodi
+
+version 1.1.10
+- A donation link is up. Your support is much appreciated :-)
+- Movie sets are working (without set art as this is missing from Plex). Many thanks to mattsch!
+- Fix playback report and marking an item played. Should fix issues with e.g. episodes not correctly being set to watched in Kodi in the On Deck view
+- Fix UnicodeEncodeError for file paths
+- New setting: show watched movies in recently added
+- New setting: don't show already watched episodes
+- New setting: Force transcode HEVC
+- New setting: Force transcode 10bit
+- New setting: do a sync after screensaver deactivated. Very useful for Kodi for Android as Android may put Kodi in a weird kind of sleep
+- Merge with plugin.video.emby up to 417b8d3b2237f982d1eab462c130e8a4f445dd8b
+
+version 1.1.9
+- Fix new episodes not being detected 
+- Use direct file paths for on deck shows if enabled
+- Added Python requests to the PKC repo (should fix install problems)
+
+version 1.1.8
+- Account for string.encode() not allowing args. This will hopefully fix any sync problems now, especially for Android TV
+- Also show already watched recently added episodes
+- Increase logging for background updates
+
+version 1.1.7
+- Fix UnicodeDecodeError with file paths on sync
+- Remove Emby reference from logs
+
+version 1.1.6
+- Corrected the addon's folder name from `PlexKodiConnect-develop` to `plugin.video.plexkodiconnect` in the Kodi addon folder. If you still experience issues, check your addon folder and delete `PlexKodiConnect-develop`
+- Fix TypeError during Plex user switch
+- Fix TypeError when trying to transcode
+
+version 1.1.5
+(you will need to rescan your library)
+- A Kodi repository for easy installation and updating is now available. Download the [ZIP file from Github](https://github.com/croneter/PlexKodiConnect). Instructions can be found [in the Wiki](https://github.com/croneter/PlexKodiConnect/wiki/Installation)
+- Additional artwork download from FanartTV! Enable it in the PKC settings under Sync Options
+- New setting: Add TV show name and SxxExx to an episode in Recently Added 
+- Fix UnicodeEncodeError during sync
+- Plex Companion now always reports playstate. Should increase stability
+- Merge Emby for Kodi commits up to 3dbdab79a9d213aab3cb6347af0b8fb905bb6e45
+
 version 1.1.4
 (you will need to rescan your library)
 - Plex Watch Later available as a separate Video Node!

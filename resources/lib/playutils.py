@@ -37,100 +37,82 @@ class PlayUtils():
 
         playurl is utf-8 encoded!
         """
-        log = self.logMsg
-        window = utils.window
-
         self.API.setPartNumber(partNumber)
         playurl = self.isDirectPlay()
 
-        if playurl:
-            log("File is direct playing.", 1)
-            playurl = playurl.encode('utf-8')
+        if playurl is not None:
+            self.logMsg("File is direct playing.", 1)
+            playurl = utils.tryEncode(playurl)
             # Set playmethod property
-            window('emby_%s.playmethod' % playurl, "DirectPlay")
+            utils.window('emby_%s.playmethod' % playurl, "DirectPlay")
 
         elif self.isDirectStream():
             self.logMsg("File is direct streaming.", 1)
-            playurl = self.API.getTranscodeVideoPath('DirectStream').encode('utf-8')
+            playurl = utils.tryEncode(
+                self.API.getTranscodeVideoPath('DirectStream'))
             # Set playmethod property
             utils.window('emby_%s.playmethod' % playurl, "DirectStream")
 
-        elif self.isTranscoding():
-            log("File is transcoding.", 1)
-            quality = {
-                'maxVideoBitrate': self.getBitrate(),
-                'videoResolution': self.getResolution(),
-                'videoQuality': '100'
-            }
-            playurl = self.API.getTranscodeVideoPath(
+        else:
+            self.logMsg("File is transcoding.", 1)
+            playurl = utils.tryEncode(self.API.getTranscodeVideoPath(
                 'Transcode',
-                quality=quality).encode('utf-8')
+                quality={
+                    'maxVideoBitrate': self.getBitrate(),
+                    'videoResolution': self.getResolution(),
+                    'videoQuality': '100'
+                }))
             # Set playmethod property
-            window('emby_%s.playmethod' % playurl, value="Transcode")
+            utils.window('emby_%s.playmethod' % playurl, value="Transcode")
 
-        log("The playurl is: %s" % playurl, 1)
+        self.logMsg("The playurl is: %s" % playurl, 1)
         return playurl
 
     def httpPlay(self):
         # Audio, Video, Photo
-        item = self.item
-        server = self.server
 
-        itemid = item['Id']
-        mediatype = item['MediaType']
+        itemid = self.item['Id']
+        mediatype = self.item['MediaType']
 
         if mediatype == "Audio":
-            playurl = "%s/emby/Audio/%s/stream" % (server, itemid)
+            playurl = "%s/emby/Audio/%s/stream" % (self.server, itemid)
         else:
-            playurl = "%s/emby/Videos/%s/stream?static=true" % (server, itemid)
+            playurl = "%s/emby/Videos/%s/stream?static=true" % (self.server, itemid)
 
         return playurl
 
     def isDirectPlay(self):
         """
-        Returns the path/playurl if successful, False otherwise
+        Returns the path/playurl if we can direct play, None otherwise
         """
         # True for e.g. plex.tv watch later
         if self.API.shouldStream() is True:
             self.logMsg("Plex item optimized for direct streaming", 1)
-            return False
-
+            return
         # set to either 'Direct Stream=1' or 'Transcode=2'
+        # and NOT to 'Direct Play=0'
         if utils.settings('playType') != "0":
             # User forcing to play via HTTP
             self.logMsg("User chose to not direct play", 1)
-            return False
-
-        if self.h265enabled():
-            return False
-
-        path = self.API.validatePlayurl(self.API.getFilePath(),
+            return
+        if self.mustTranscode():
+            return
+        return self.API.validatePlayurl(self.API.getFilePath(),
                                         self.API.getType(),
                                         forceCheck=True)
-        if path is None:
-            self.logMsg('Kodi cannot access file %s - no direct play'
-                        % path, 1)
-            return False
-        else:
-            self.logMsg('Kodi can access file %s - direct playing' % path, 1)
-            return path
 
     def directPlay(self):
 
-        item = self.item
-
         try:
-            playurl = item['MediaSources'][0]['Path']
+            playurl = self.item['MediaSources'][0]['Path']
         except (IndexError, KeyError):
-            playurl = item['Path']
+            playurl = self.item['Path']
 
-        if item.get('VideoType'):
+        if self.item.get('VideoType'):
             # Specific format modification
-            type = item['VideoType']
-
-            if type == "Dvd":
+            if self.item['VideoType'] == "Dvd":
                 playurl = "%s/VIDEO_TS/VIDEO_TS.IFO" % playurl
-            elif type == "BluRay":
+            elif self.item['VideoType'] == "BluRay":
                 playurl = "%s/BDMV/index.bdmv" % playurl
 
         # Assign network protocol
@@ -146,59 +128,71 @@ class PlayUtils():
 
     def fileExists(self):
 
-        log = self.logMsg
-
         if 'Path' not in self.item:
             # File has no path defined in server
             return False
 
         # Convert path to direct play
         path = self.directPlay()
-        log("Verifying path: %s" % path, 1)
+        self.logMsg("Verifying path: %s" % path, 1)
 
         if xbmcvfs.exists(path):
-            log("Path exists.", 1)
+            self.logMsg("Path exists.", 1)
             return True
 
         elif ":" not in path:
-            log("Can't verify path, assumed linux. Still try to direct play.", 1)
+            self.logMsg("Can't verify path, assumed linux. Still try to direct play.", 1)
             return True
 
         else:
-            log("Failed to find file.", 1)
+            self.logMsg("Failed to find file.", 1)
             return False
 
-    def h265enabled(self):
+    def mustTranscode(self):
         """
-        Returns True if we need to transcode
+        Returns True if we need to transcode because
+            - codec is in h265
+            - 10bit video codec
+            - HEVC codec
+        if the corresponding file settings are set to 'true'
         """
         videoCodec = self.API.getVideoCodec()
         self.logMsg("videoCodec: %s" % videoCodec, 2)
-        codec = videoCodec['videocodec']
-        resolution = videoCodec['resolution']
-        h265 = self.getH265()
-        try:
-            if not ('h265' in codec or 'hevc' in codec) or (h265 is None):
-                return False
-        # E.g. trailers without a codec of None
-        except TypeError:
-            return False
-
-        if resolution >= h265:
-            self.logMsg("Option to transcode h265 enabled. Resolution media: "
-                        "%s, transcoding limit resolution: %s"
-                        % (resolution, h265), 1)
+        if (utils.settings('transcodeHi10P') == 'true' and
+                videoCodec['bitDepth'] == '10'):
+            self.logMsg('Option to transcode 10bit video content enabled.', 1)
             return True
-
+        codec = videoCodec['videocodec']
+        if (utils.settings('transcodeHEVC') == 'true' and codec == 'hevc'):
+            self.logMsg('Option to transcode HEVC video codec enabled.', 1)
+            return True
+        if codec is None:
+            # e.g. trailers. Avoids TypeError with "'h265' in codec"
+            self.logMsg('No codec from PMS, not transcoding.', 1)
+            return False
+        try:
+            resolution = int(videoCodec['resolution'])
+        except (TypeError, ValueError):
+            self.logMsg('No video resolution from PMS, not transcoding.', 1)
+            return False
+        if 'h265' in codec:
+            if resolution >= self.getH265():
+                self.logMsg("Option to transcode h265 enabled. Resolution of "
+                            "the media: %s, transcoding limit resolution: %s"
+                            % (str(resolution), str(self.getH265())), 1)
+                return True
         return False
 
     def isDirectStream(self):
+        # Never transcode Music
+        if self.API.getType() == 'track':
+            return True
         # set to 'Transcode=2'
         if utils.settings('playType') == "2":
             # User forcing to play via HTTP
             self.logMsg("User chose to transcode", 1)
             return False
-        if self.h265enabled():
+        if self.mustTranscode():
             return False
         # Verify the bitrate
         if not self.isNetworkSufficient():
@@ -206,25 +200,6 @@ class PlayUtils():
                         "file. Transcoding", 1)
             return False
         return True
-
-    def directStream(self):
-
-        server = self.server
-
-        itemid = self.API.getRatingKey()
-        type = self.API.getType()
-
-        # if 'Path' in item and item['Path'].endswith('.strm'):
-        #     # Allow strm loading when direct streaming
-        #     playurl = self.directPlay()
-        if type == "Audio":
-            playurl = "%s/emby/Audio/%s/stream.mp3" % (server, itemid)
-        else:
-            playurl = "%s/emby/Videos/%s/stream?static=true" % (server, itemid)
-            playurl = "{server}/player/playback/playMedia?key=%2Flibrary%2Fmetadata%2F%s&offset=0&X-Plex-Client-Identifier={clientId}&machineIdentifier={SERVER ID}&address={SERVER IP}&port={SERVER PORT}&protocol=http&path=http%3A%2F%2F{SERVER IP}%3A{SERVER PORT}%2Flibrary%2Fmetadata%2F{MEDIA ID}" % (itemid)
-            playurl = self.API.replaceURLtags()
-
-        return playurl
 
     def isNetworkSufficient(self):
         """
@@ -242,38 +217,6 @@ class PlayUtils():
         if settings < sourceBitrate:
             return False
         return True
-
-    def isTranscoding(self):
-        # I hope Plex transcodes everything
-        return True
-        item = self.item
-
-        canTranscode = item['MediaSources'][0]['SupportsTranscoding']
-        # Make sure the server supports it
-        if not canTranscode:
-            return False
-
-        return True
-
-    def transcoding(self):
-
-        item = self.item
-
-        if 'Path' in item and item['Path'].endswith('.strm'):
-            # Allow strm loading when transcoding
-            playurl = self.directPlay()
-        else:
-            itemid = item['Id']
-            deviceId = self.clientInfo.getDeviceId()
-            playurl = (
-                "%s/emby/Videos/%s/master.m3u8?MediaSourceId=%s"
-                % (self.server, itemid, itemid)
-            )
-            playurl = (
-                "%s&VideoCodec=h264&AudioCodec=ac3&MaxAudioChannels=6&deviceId=%s&VideoBitrate=%s"
-                % (playurl, deviceId, self.getBitrate()*1000))
-
-        return playurl
 
     def getBitrate(self):
         # get the addon video quality
@@ -295,14 +238,19 @@ class PlayUtils():
         return bitrate.get(videoQuality, 2147483)
 
     def getH265(self):
-        chosen = utils.settings('transcodeH265')
+        """
+        Returns the user settings for transcoding h265: boundary resolutions
+        of 480, 720 or 1080 as an int
+
+        OR 9999999 (int) if user chose not to transcode
+        """
         H265 = {
-            '0': None,
+            '0': 9999999,
             '1': 480,
             '2': 720,
             '3': 1080
         }
-        return H265.get(chosen, None)
+        return H265[utils.settings('transcodeH265')]
 
     def getResolution(self):
         chosen = utils.settings('transcoderVideoQualities')
@@ -365,7 +313,7 @@ class PlayUtils():
                 
                 #audioStreamsChannelsList[audioNum] = stream.attrib['channels']
                 audioStreamsList.append(index)
-                audioStreams.append(track.encode('utf-8'))
+                audioStreams.append(utils.tryEncode(track))
                 audioNum += 1
 
             # Subtitles
@@ -389,7 +337,7 @@ class PlayUtils():
                     downloadableStreams.append(index)
 
                 subtitleStreamsList.append(index)
-                subtitleStreams.append(track.encode('utf-8'))
+                subtitleStreams.append(utils.tryEncode(track))
                 subNum += 1
 
         if audioNum > 1:
@@ -421,7 +369,7 @@ class PlayUtils():
                           % (self.server, selectSubsIndex)
                     url = self.API.addPlexHeadersToUrl(url)
                     self.logMsg("Downloadable sub: %s: %s" % (selectSubsIndex, url), 1)
-                    listitem.setSubtitles([url.encode('utf-8')])
+                    listitem.setSubtitles([utils.tryEncode(url)])
                 else:
                     self.logMsg('Need to burn in subtitle %s' % selectSubsIndex, 1)
                     playurlprefs["subtitleStreamID"] = selectSubsIndex

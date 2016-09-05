@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from urllib import urlencode
 from ast import literal_eval
-from urlparse import urlparse, parse_qs
+from urlparse import urlparse, parse_qsl
 import re
 from copy import deepcopy
 
@@ -86,13 +86,13 @@ def GetPlexKeyNumber(plexKey):
 def ParseContainerKey(containerKey):
     """
     Parses e.g. /playQueues/3045?own=1&repeat=0&window=200 to:
-    'playQueues', '3045', {'window': ['200'], 'own': ['1'], 'repeat': ['0']}
+    'playQueues', '3045', {'window': '200', 'own': '1', 'repeat': '0'}
 
-    Output hence: library, key, query       (query as a special dict)
+    Output hence: library, key, query       (str, str, dict)
     """
     result = urlparse(containerKey)
     library, key = GetPlexKeyNumber(result.path)
-    query = parse_qs(result.query)
+    query = dict(parse_qsl(result.query))
     return library, key, query
 
 
@@ -139,7 +139,7 @@ def SelectStreams(url, args):
     chosen.
     """
     downloadutils.DownloadUtils().downloadUrl(
-        url + '?' + urlencode(args), type='PUT')
+        url + '?' + urlencode(args), action_type='PUT')
 
 
 def GetPlayQueue(playQueueID):
@@ -165,7 +165,7 @@ def GetPlexMetadata(key):
     Can be called with either Plex key '/library/metadata/xxxx'metadata
     OR with the digits 'xxxx' only.
 
-    Returns None if something went wrong
+    Returns None or 401 if something went wrong
     """
     key = str(key)
     if '/library/metadata/' in key:
@@ -173,14 +173,15 @@ def GetPlexMetadata(key):
     else:
         url = "{server}/library/metadata/" + key
     arguments = {
-        'checkFiles': 1,            # No idea
+        'checkFiles': 0,
         'includeExtras': 1,         # Trailers and Extras => Extras
-        # 'includeRelated': 1,        # Similar movies => Video -> Related
-        # 'includeRelatedCount': 5,
+        'includeReviews': 1,
+        'includeRelated': 0,        # Similar movies => Video -> Related
+        # 'includeRelatedCount': 0,
         # 'includeOnDeck': 1,
-        'includeChapters': 1,
-        'includePopularLeaves': 1,
-        'includeConcerts': 1
+        # 'includeChapters': 1,
+        # 'includePopularLeaves': 1,
+        # 'includeConcerts': 1
     }
     url = url + '?' + urlencode(arguments)
     xml = downloadutils.DownloadUtils().downloadUrl(url)
@@ -388,7 +389,7 @@ def GetPlexPlaylist(itemid, librarySectionUUID, mediatype='movie'):
         'repeat': '0'
     }
     xml = downloadutils.DownloadUtils().downloadUrl(
-        url + '?' + urlencode(args), type="POST")
+        url + '?' + urlencode(args), action_type="POST")
     try:
         xml[0].tag
     except (IndexError, TypeError, AttributeError):
@@ -424,14 +425,14 @@ def PMSHttpsEnabled(url):
                   verifySSL=False)
     try:
         res.attrib
-    except:
+    except AttributeError:
         # Might have SSL deactivated. Try with http
         res = doUtils('http://%s/identity' % url,
                       authenticate=False,
                       verifySSL=False)
         try:
             res.attrib
-        except:
+        except AttributeError:
             logMsg(title, "Could not contact PMS %s" % url, -1)
             return None
         else:
@@ -448,16 +449,17 @@ def GetMachineIdentifier(url):
 
     Returns None if something went wrong
     """
-    xml = downloadutils.DownloadUtils().downloadUrl(
-        url + '/identity', type="GET")
+    xml = downloadutils.DownloadUtils().downloadUrl('%s/identity' % url,
+                                                    authenticate=False,
+                                                    verifySSL=False,
+                                                    timeout=4)
     try:
-        xml.attrib
-    except:
+        machineIdentifier = xml.attrib['machineIdentifier']
+    except (AttributeError, KeyError):
         logMsg(title, 'Could not get the PMS machineIdentifier for %s'
                % url, -1)
         return None
-    machineIdentifier = xml.attrib.get('machineIdentifier')
-    logMsg(title, 'Found machineIdentifier %s for %s'
+    logMsg(title, 'Found machineIdentifier %s for the PMS %s'
            % (machineIdentifier, url), 1)
     return machineIdentifier
 
@@ -480,7 +482,6 @@ def GetPMSStatus(token):
     answer = {}
     xml = downloadutils.DownloadUtils().downloadUrl(
         '{server}/status/sessions',
-        type="GET",
         headerOptions={'X-Plex-Token': token})
     try:
         xml.attrib
@@ -519,5 +520,5 @@ def scrobble(ratingKey, state):
         url = "{server}/:/unscrobble?" + urlencode(args)
     else:
         return
-    downloadutils.DownloadUtils().downloadUrl(url, type="GET")
+    downloadutils.DownloadUtils().downloadUrl(url)
     logMsg(title, "Toggled watched state for Plex item %s" % ratingKey, 1)

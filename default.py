@@ -10,11 +10,24 @@ import xbmc
 import xbmcaddon
 import xbmcgui
 
+
 ###############################################################################
 
-addon_ = xbmcaddon.Addon(id='plugin.video.plexkodiconnect')
-addon_path = addon_.getAddonInfo('path').decode('utf-8')
-base_resource = xbmc.translatePath(os.path.join(addon_path, 'resources', 'lib')).decode('utf-8')
+_addon = xbmcaddon.Addon(id='plugin.video.plexkodiconnect')
+try:
+    addon_path = _addon.getAddonInfo('path').decode('utf-8')
+except TypeError:
+    addon_path = _addon.getAddonInfo('path').decode()
+try:
+    base_resource = xbmc.translatePath(os.path.join(
+        addon_path,
+        'resources',
+        'lib')).decode('utf-8')
+except TypeError:
+    base_resource = xbmc.translatePath(os.path.join(
+        addon_path,
+        'resources',
+        'lib')).decode()
 sys.path.append(base_resource)
 
 ###############################################################################
@@ -35,7 +48,6 @@ class Main:
         xbmc.log("PlexKodiConnect - Full sys.argv received: %s" % sys.argv)
         base_url = sys.argv[0]
         params = urlparse.parse_qs(sys.argv[2][1:])
-        xbmc.log("PlexKodiConnect - Parameter string: %s" % sys.argv[2])
         try:
             mode = params['mode'][0]
             itemid = params.get('id', '')
@@ -67,18 +79,20 @@ class Main:
             'companion': entrypoint.plexCompanion,
             'switchuser': entrypoint.switchPlexUser,
             'deviceid': entrypoint.resetDeviceId,
-            'reConnect': entrypoint.reConnect,
             'delete': entrypoint.deleteItem,
             'browseplex': entrypoint.BrowsePlexContent,
             'ondeck': entrypoint.getOnDeck,
             'chooseServer': entrypoint.chooseServer,
-            'watchlater': entrypoint.watchlater
+            'watchlater': entrypoint.watchlater,
+            'enterPMS': entrypoint.enterPMS,
+            'togglePlexTV': entrypoint.togglePlexTV,
+            'playwatchlater': entrypoint.playWatchLater
         }
 
         if "/extrafanart" in sys.argv[0]:
-            embypath = sys.argv[2][1:]
-            embyid = params.get('id',[""])[0]
-            entrypoint.getExtraFanArt(embyid,embypath)
+            plexpath = sys.argv[2][1:]
+            plexid = params.get('id', [""])[0]
+            entrypoint.getExtraFanArt(plexid, plexpath)
 
         # Called by e.g. 3rd party plugin video extras
         if ("/Extras" in sys.argv[0] or "/VideoFiles" in sys.argv[0] or
@@ -121,6 +135,8 @@ class Main:
                 modes[mode](itemid, folderid)
             elif mode == "companion":
                 modes[mode](itemid, params=sys.argv[2])
+            elif mode == 'playwatchlater':
+                modes[mode](params.get('id')[0], params.get('viewOffset')[0])
             else:
                 modes[mode]()
         else:
@@ -128,12 +144,14 @@ class Main:
             if mode == "settings":
                 xbmc.executebuiltin('Addon.OpenSettings(plugin.video.plexkodiconnect)')
             elif mode in ("manualsync", "repair"):
-                if utils.window('emby_online') != "true":
+                if utils.window('plex_online') != "true":
                     # Server is not online, do not run the sync
-                    xbmcgui.Dialog().ok(heading="PlexKodiConnect",
-                                        line1=("Unable to run the sync, the add-on is not "
-                                               "connected to the Emby server."))
-                    utils.logMsg("PLEX", "Not connected to the emby server.", 1)
+                    xbmcgui.Dialog().ok(
+                        "PlexKodiConnect",
+                        "Unable to run the sync, the add-on is not connected "
+                        "to a Plex server.")
+                    utils.logMsg("PLEX",
+                                 "Not connected to a PMS.", -1)
                     return
                     
                 else:
@@ -159,8 +177,8 @@ if ( __name__ == "__main__" ):
         import pstats
         import random
         from time import gmtime, strftime
-        addonid      = addon_.getAddonInfo('id').decode( 'utf-8' )
-        datapath     = os.path.join( xbmc.translatePath( "special://profile/" ).decode( 'utf-8' ), "addon_data", addonid )
+        addonid      = utils.tryDecode(addon_.getAddonInfo('id'))
+        datapath     = os.path.join(utils.tryDecode(xbmc.translatePath( "special://profile/" )), "addon_data", addonid )
         
         filename = os.path.join( datapath, strftime( "%Y%m%d%H%M%S",gmtime() ) + "-" + str( random.randrange(0,100000) ) + ".log" )
         cProfile.run( 'Main()', filename )

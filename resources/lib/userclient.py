@@ -114,8 +114,6 @@ class UserClient(threading.Thread):
         # url = "{server}/emby/System/Configuration?format=json"
         # result = doUtils.downloadUrl(url)
 
-        # utils.settings('markPlayed', value=str(result['MaxResumePct']))
-
     def hasAccess(self):
         # Plex: always return True for now
         return True
@@ -126,19 +124,19 @@ class UserClient(threading.Thread):
         url = "{server}/emby/Users?format=json"
         result = self.doUtils.downloadUrl(url)
 
-        if result == False:
+        if result is False:
             # Access is restricted, set in downloadutils.py via exception
             log("Access is restricted.", 1)
             self.HasAccess = False
 
-        elif window('emby_online') != "true":
+        elif window('plex_online') != "true":
             # Server connection failed
             pass
 
-        elif window('emby_serverStatus') == "restricted":
+        elif window('plex_serverStatus') == "restricted":
             log("Access is granted.", 1)
             self.HasAccess = True
-            window('emby_serverStatus', clear=True)
+            window('plex_serverStatus', clear=True)
             xbmcgui.Dialog().notification(self.addonName,
                                           utils.language(33007))
 
@@ -239,7 +237,7 @@ class UserClient(threading.Thread):
         # Give attempts at entering password / selecting user
         if self.retry >= 2:
             log("Too many retries to login.", -1)
-            window('emby_serverStatus', value="Stop")
+            window('plex_serverStatus', value="Stop")
             dialog.ok(lang(33001),
                       lang(39023))
             xbmc.executebuiltin(
@@ -247,8 +245,8 @@ class UserClient(threading.Thread):
             return False
 
         # Get /profile/addon_data
-        addondir = xbmc.translatePath(
-            self.addon.getAddonInfo('profile')).decode('utf-8')
+        addondir = utils.tryDecode(xbmc.translatePath(
+            self.addon.getAddonInfo('profile')))
         hasSettings = xbmcvfs.exists("%ssettings.xml" % addondir)
 
         # If there's no settings.xml
@@ -358,7 +356,7 @@ class UserClient(threading.Thread):
                     break
                 xbmc.sleep(1000)
 
-            status = window('emby_serverStatus')
+            status = window('plex_serverStatus')
 
             if status == "Stop":
                 xbmc.sleep(500)
@@ -371,7 +369,7 @@ class UserClient(threading.Thread):
 
             elif status == "401":
                 # Unauthorized access, revoke token
-                window('emby_serverStatus', value="Auth")
+                window('plex_serverStatus', value="Auth")
                 self.resetClient()
                 xbmc.sleep(2000)
 
@@ -389,7 +387,7 @@ class UserClient(threading.Thread):
                         log("Current accessToken: xxxx", 1)
                         self.retry = 0
                         window('suspend_LibraryThread', clear=True)
-                        window('emby_serverStatus', clear=True)
+                        window('plex_serverStatus', clear=True)
 
             if not self.auth and (self.currUser is None):
                 # Loop if no server found

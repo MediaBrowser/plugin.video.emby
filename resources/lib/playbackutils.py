@@ -40,11 +40,13 @@ class PlaybackUtils():
 
         self.artwork = artwork.Artwork()
         self.emby = embyserver.Read_EmbyServer()
-        self.pl = playlist.Playlist()
+        if self.API.getType() == 'track':
+            self.pl = playlist.Playlist(typus='music')
+        else:
+            self.pl = playlist.Playlist(typus='video')
 
     def play(self, itemid, dbid=None):
 
-        log = self.logMsg
         window = utils.window
         settings = utils.settings
 
@@ -56,7 +58,7 @@ class PlaybackUtils():
         listitem = xbmcgui.ListItem()
         playutils = putils.PlayUtils(item[0])
 
-        log("Play called.", 1)
+        self.logMsg("Play called.", 1)
         playurl = playutils.getPlayUrl()
         if not playurl:
             return xbmcplugin.setResolvedUrl(int(sys.argv[1]), False, listitem)
@@ -72,18 +74,18 @@ class PlaybackUtils():
                 xml = downloadutils.DownloadUtils().downloadUrl(
                     '{server}%s' % item[0][0][0].attrib.get('key'))
                 if xml in (None, 401):
-                    log('Could not download %s'
+                    self.logMsg('Could not download %s'
                         % item[0][0][0].attrib.get('key'), -1)
                     return xbmcplugin.setResolvedUrl(
                         int(sys.argv[1]), False, listitem)
-                playurl = xml[0].attrib.get('key').encode('utf-8')
+                playurl = utils.tryEncode(xml[0].attrib.get('key'))
                 window('emby_%s.playmethod' % playurl, value='DirectStream')
 
             playmethod = window('emby_%s.playmethod' % playurl)
             if playmethod == "Transcode":
                 window('emby_%s.playmethod' % playurl, clear=True)
-                playurl = playutils.audioSubsPref(
-                    listitem, playurl.decode('utf-8')).encode('utf-8')
+                playurl = utils.tryEncode(playutils.audioSubsPref(
+                    listitem, utils.tryDecode(playurl)))
                 window('emby_%s.playmethod' % playurl, "Transcode")
             listitem.setPath(playurl)
             self.setProperties(playurl, listitem)
@@ -92,18 +94,18 @@ class PlaybackUtils():
         ############### ORGANIZE CURRENT PLAYLIST ################
         
         homeScreen = xbmc.getCondVisibility('Window.IsActive(home)')
-        playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
+        playlist = self.pl.playlist
         startPos = max(playlist.getposition(), 0) # Can return -1
         sizePlaylist = playlist.size()
         self.currentPosition = startPos
 
-        propertiesPlayback = window('emby_playbackProps') == "true"
+        propertiesPlayback = window('plex_playbackProps') == "true"
         introsPlaylist = False
         dummyPlaylist = False
 
-        log("Playlist start position: %s" % startPos, 1)
-        log("Playlist plugin position: %s" % self.currentPosition, 1)
-        log("Playlist size: %s" % sizePlaylist, 1)
+        self.logMsg("Playlist start position: %s" % startPos, 2)
+        self.logMsg("Playlist plugin position: %s" % self.currentPosition, 2)
+        self.logMsg("Playlist size: %s" % sizePlaylist, 2)
 
         ############### RESUME POINT ################
         
@@ -113,12 +115,12 @@ class PlaybackUtils():
         # Otherwise we get a loop.
         if not propertiesPlayback:
 
-            window('emby_playbackProps', value="true")
-            log("Setting up properties in playlist.", 1)
+            window('plex_playbackProps', value="true")
+            self.logMsg("Setting up properties in playlist.", 1)
 
             if (not homeScreen and not seektime and
-                    window('emby_customPlaylist') != "true"):
-                log("Adding dummy file to playlist.", 2)
+                    window('plex_customplaylist') != "true"):
+                self.logMsg("Adding dummy file to playlist.", 2)
                 dummyPlaylist = True
                 playlist.add(playurl, listitem, index=startPos)
                 # Remove the original item from playlist 
@@ -145,7 +147,7 @@ class PlaybackUtils():
             if homeScreen and not seektime and not sizePlaylist:
                 # Extend our current playlist with the actual item to play
                 # only if there's no playlist first
-                log("Adding main item to playlist.", 1)
+                self.logMsg("Adding main item to playlist.", 1)
                 self.pl.addtoPlaylist(
                     dbid,
                     PF.GetKodiTypeFromPlex(API.getType()))
@@ -166,7 +168,7 @@ class PlaybackUtils():
                     additionalListItem = xbmcgui.ListItem()
                     additionalPlayurl = playutils.getPlayUrl(
                         partNumber=counter)
-                    log("Adding additional part: %s" % counter, 1)
+                    self.logMsg("Adding additional part: %s" % counter, 1)
 
                     self.setProperties(additionalPlayurl, additionalListItem)
                     self.setArtwork(additionalListItem)
@@ -181,14 +183,14 @@ class PlaybackUtils():
             if dummyPlaylist:
                 # Added a dummy file to the playlist,
                 # because the first item is going to fail automatically.
-                log("Processed as a playlist. First item is skipped.", 1)
+                self.logMsg("Processed as a playlist. First item is skipped.", 1)
                 return xbmcplugin.setResolvedUrl(int(sys.argv[1]), False, listitem)
                 
 
         # We just skipped adding properties. Reset flag for next time.
         elif propertiesPlayback:
-            log("Resetting properties playback flag.", 2)
-            window('emby_playbackProps', clear=True)
+            self.logMsg("Resetting properties playback flag.", 2)
+            window('plex_playbackProps', clear=True)
 
         #self.pl.verifyPlaylist()
         ########## SETUP MAIN ITEM ##########
@@ -196,8 +198,8 @@ class PlaybackUtils():
         # For transcoding only, ask for audio/subs pref
         if window('emby_%s.playmethod' % playurl) == "Transcode":
             window('emby_%s.playmethod' % playurl, clear=True)
-            playurl = playutils.audioSubsPref(
-                listitem, playurl.decode('utf-8')).encode('utf-8')
+            playurl = utils.tryEncode(playutils.audioSubsPref(
+                listitem, utils.tryDecode(playurl)))
             window('emby_%s.playmethod' % playurl, value="Transcode")
 
         listitem.setPath(playurl)
@@ -205,19 +207,19 @@ class PlaybackUtils():
 
         ############### PLAYBACK ################
 
-        if homeScreen and seektime and window('emby_customPlaylist') != "true":
-            log("Play as a widget item.", 1)
+        if homeScreen and seektime and window('plex_customplaylist') != "true":
+            self.logMsg("Play as a widget item.", 1)
             API.CreateListItemFromPlexItem(listitem)
             xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, listitem)
 
-        elif ((introsPlaylist and window('emby_customPlaylist') == "true") or
+        elif ((introsPlaylist and window('plex_customplaylist') == "true") or
                 (homeScreen and not sizePlaylist)):
             # Playlist was created just now, play it.
-            log("Play playlist.", 1)
+            self.logMsg("Play playlist.", 1)
             xbmc.Player().play(playlist, startpos=startPos)
 
         else:
-            log("Play as a regular item.", 1)
+            self.logMsg("Play as a regular item.", 1)
             xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, listitem)
 
     def AddTrailers(self, xml):
@@ -268,17 +270,13 @@ class PlaybackUtils():
         # Set all properties necessary for plugin path playback
         itemid = self.API.getRatingKey()
         itemtype = self.API.getType()
-        resume, runtime = self.API.getRuntime()
+        userdata = self.API.getUserData()
 
         embyitem = "emby_%s" % playurl
-        window('%s.runtime' % embyitem, value=str(runtime))
+        window('%s.runtime' % embyitem, value=str(userdata['Runtime']))
         window('%s.type' % embyitem, value=itemtype)
         window('%s.itemid' % embyitem, value=itemid)
-
-        # We need to keep track of playQueueItemIDs for Plex Companion
-        window('plex_%s.playQueueItemID'
-               % playurl, self.API.GetPlayQueueItemID())
-        window('plex_%s.guid' % playurl, self.API.getGuid())
+        window('%s.playcount' % embyitem, value=str(userdata['PlayCount']))
 
         if itemtype == "episode":
             window('%s.refreshid' % embyitem,

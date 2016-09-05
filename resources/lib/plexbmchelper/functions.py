@@ -5,6 +5,7 @@ import string
 import xbmc
 
 from utils import logging
+import embydb_functions as embydb
 
 
 def xbmc_photo():
@@ -58,7 +59,9 @@ def getOKMsg():
 
 
 def timeToMillis(time):
-    return (time['hours']*3600 + time['minutes']*60 + time['seconds'])*1000 + time['milliseconds']
+    return (time['hours']*3600 +
+            time['minutes']*60 +
+            time['seconds'])*1000 + time['milliseconds']
 
 
 def millisToTime(t):
@@ -69,7 +72,10 @@ def millisToTime(t):
     seconds = seconds % 60
     minutes = minutes % 60
     millis = millis % 1000
-    return {'hours':hours,'minutes':minutes,'seconds':seconds,'milliseconds':millis}
+    return {'hours': hours,
+            'minutes': minutes,
+            'seconds': seconds,
+            'milliseconds': millis}
 
 
 def textFromXml(element):
@@ -86,44 +92,70 @@ class jsonClass():
     def jsonrpc(self, action, arguments={}):
         """ put some JSON together for the JSON-RPC APIv6 """
         if action.lower() == "sendkey":
-            request=json.dumps({ "jsonrpc" : "2.0" , "method" : "Input.SendText", "params" : { "text" : arguments[0], "done" : False }} )
+            request = json.dumps({
+                "jsonrpc": "2.0",
+                "method": "Input.SendText",
+                "params": {
+                    "text": arguments[0],
+                    "done": False
+                }
+            })
         elif action.lower() == "ping":
-            request=json.dumps({ "jsonrpc" : "2.0",
-                                 "id" : 1 ,
-                                 "method"  : "JSONRPC.Ping" })
-        elif action.lower() == "playmedia":
-            xbmc.Player().play("plugin://plugin.video.plexkodiconnect/"
-                               "?mode=companion&arguments=%s"
-                               % arguments)
-            return True
+            request = json.dumps({
+                "jsonrpc": "2.0",
+                "id": 1,
+                "method": "JSONRPC.Ping"
+            })
         elif arguments:
-            request=json.dumps({ "id" : 1,
-                                 "jsonrpc" : "2.0",
-                                 "method"  : action,
-                                 "params"  : arguments})
+            request = json.dumps({
+                "id": 1,
+                "jsonrpc": "2.0",
+                "method": action,
+                "params": arguments})
         else:
-            request=json.dumps({ "id" : 1,
-                                 "jsonrpc" : "2.0",
-                                 "method"  : action})
+            request = json.dumps({
+                "id": 1,
+                "jsonrpc": "2.0",
+                "method": action
+            })
 
         result = self.parseJSONRPC(xbmc.executeJSONRPC(request))
 
         if not result and self.settings['webserver_enabled']:
-            # xbmc.executeJSONRPC appears to fail on the login screen, but going
-            # through the network stack works, so let's try the request again
+            # xbmc.executeJSONRPC appears to fail on the login screen, but
+            # going through the network stack works, so let's try the request
+            # again
             result = self.parseJSONRPC(self.requestMgr.post(
                 "127.0.0.1",
                 self.settings['port'],
                 "/jsonrpc",
                 request,
-                { 'Content-Type' : 'application/json',
-                  'Authorization' : 'Basic ' + string.strip(base64.encodestring(self.settings['user'] + ':' + self.settings['passwd'])) }))
-
+                {'Content-Type': 'application/json',
+                 'Authorization': 'Basic %s' % string.strip(
+                     base64.encodestring('%s:%s'
+                                         % (self.settings['user'],
+                                            self.settings['passwd'])))
+                 }))
         return result
+
+    def skipTo(self, plexId, typus):
+        self.logMsg('players: %s' % self.getPlayers())
+        # playlistId = self.getPlaylistId(tryDecode(xbmc_type(typus)))
+        # playerId = self.
+        with embydb.GetEmbyDB() as emby_db:
+            embydb_item = emby_db.getItem_byId(plexId)
+            try:
+                dbid = embydb_item[0]
+                mediatype = embydb_item[4]
+            except TypeError:
+                self.logMsg('Couldnt find item %s in Kodi db' % plexId, 1)
+                return
+        self.logMsg('plexid: %s, kodi id: %s, type: %s'
+                    % (plexId, dbid, mediatype))
 
     def getPlexHeaders(self):
         h = {
-            "Content-type": "application/x-www-form-urlencoded",
+            "Content-type": "text/xml",
             "Access-Control-Allow-Origin": "*",
             "X-Plex-Version": self.settings['version'],
             "X-Plex-Client-Identifier": self.settings['uuid'],
@@ -143,7 +175,7 @@ class jsonClass():
             self.logMsg("Empty response from XBMC", 1)
             return {}
         else:
-            parsed=json.loads(jsonraw)
+            parsed = json.loads(jsonraw)
         if parsed.get('error', False):
             self.logMsg("XBMC returned an error: %s" % parsed.get('error'), -1)
         return parsed.get('result', {})
@@ -155,6 +187,27 @@ class jsonClass():
             player['playerid'] = int(player['playerid'])
             ret[player['type']] = player
         return ret
+
+    def getPlaylistId(self, typus):
+        """
+        typus: one of the Kodi types, e.g. audio or video
+
+        Returns None if nothing was found
+        """
+        for playlist in self.getPlaylists():
+            if playlist.get('type') == typus:
+                return playlist.get('playlistid')
+
+    def getPlaylists(self):
+        """
+        Returns a list, e.g.
+            [
+                {u'playlistid': 0, u'type': u'audio'},
+                {u'playlistid': 1, u'type': u'video'},
+                {u'playlistid': 2, u'type': u'picture'}
+            ]
+        """
+        return self.jsonrpc('Playlist.GetPlaylists')
 
     def getPlayerIds(self):
         ret = []
@@ -178,7 +231,10 @@ class jsonClass():
         return players.get(xbmc_photo(), {}).get('playerid', None)
 
     def getVolume(self):
-        answ = self.jsonrpc('Application.GetProperties', { "properties": [ "volume", 'muted' ] })
+        answ = self.jsonrpc('Application.GetProperties',
+                            {
+                                "properties": ["volume", 'muted']
+                            })
         vol = str(answ.get('volume', 100))
         mute = ("0", "1")[answ.get('muted', False)]
         return (vol, mute)

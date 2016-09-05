@@ -1,37 +1,30 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <settings>
 	<category label="30014"><!-- Connection -->
-		<!-- Primary address -->
 		<setting label="39050" type="action" action="RunPlugin(plugin://plugin.video.plexkodiconnect?mode=chooseServer)" option="close" /><!-- Choose Plex Server from a list -->
-		<setting id="ipaddress" label="30000" type="text" default="" />
-		<setting id="port" label="30030" type="number" default="32400" />
+		<setting label="39068" type="action" action="RunPlugin(plugin://plugin.video.plexkodiconnect?mode=enterPMS)" option="close" /><!-- Manually enter Plex Media Server IP -->
+		<setting id="plex_servername" label="39067" type="text" default="" enable="false" /><!-- Your current PMS server: -->
+		<setting id="ipaddress" label="39069" type="text" default="" enable="false" /><!-- Current address: -->
+		<setting id="port" label="39070" type="text" default="" enable="false" /><!-- Current port: -->
 		<setting id="plex_serverowned" label="30031" type="bool" default="true" /><!-- I own this PMS -->
 		<setting id="https" label="30243" type="bool" default="false" />
 		<setting id="sslverify" subsetting="true" label="30500" type="bool" default="false" visible="eq(-1,true)" />
 		<setting id="sslcert" subsetting="true" label="30501" type="file" default="None" visible="eq(-2,true)" />
-		<!-- Secondary address -->
-		<setting id="altip" label="30502" type="bool" default="false" visible="false"/>
-		<setting id="secondipaddress" subsetting="true" label="30503" type="text" default="" visible="eq(-1,true)" />
-		<setting id="secondport" subsetting="true" label="30030" type="number" default="8096" visible="eq(-2,true)" />
-		<setting id="secondhttps" subsetting="true" label="30243" type="bool" default="false" visible="eq(-3,true)" />
-		<setting id="secondsslverify" subsetting="true" label="30500" type="bool" default="false" visible="eq(-1,true)" />
-		<setting id="secondsslcert" subsetting="true" label="30501" type="file" default="None" visible="eq(-2,true)" />
-		<!-- User settings -->
-		<setting type="sep" />
+
+		<setting type="sep" text=""/>
 
 		<setting id="enforceUserLogin" label="30536" type="bool" default="false" />
-
-		<setting label="30505" type="action" visible="eq(1,) + !eq(-15,)" action="RunPlugin(plugin://plugin.video.plexkodiconnect?mode=resetauth)" option="close" />
 		<setting label="30517" type="action" action="RunPlugin(plugin://plugin.video.plexkodiconnect?mode=passwords)" option="close" /><!-- Network credentials -->
+		<setting label="30505" type="action" action="RunPlugin(plugin://plugin.video.plexkodiconnect?mode=resetauth)" option="close" /><!-- reset connection attempts -->
 		<setting id="accessToken" type="text" visible="false" default="" />
-		<setting id="pathsub" type="bool" visible="false" default="false" />
-		<setting label="39024" type="action" action="RunPlugin(plugin://plugin.video.plexkodiconnect?mode=reConnect)" option="close" />
 	</category>
 
 	<category label="plex.tv"><!-- plex.tv -->
-		<!-- Primary address -->
+		<setting id="plex_status" label="39071" type="text" default="Not logged in to plex.tv" enable="false" /><!-- Current plex.tv status: -->
+		<setting type="sep" text=""/>
+
 		<setting id="myplexlogin" label="39025" type="bool" default="true" /> <!-- Log into plex.tv on startup -->
-		<setting label="39209" type="action" action="RunPlugin(plugin://plugin.video.plexkodiconnect?mode=reConnect)" option="close" />
+		<setting label="39209" type="action" action="RunPlugin(plugin://plugin.video.plexkodiconnect?mode=togglePlexTV)" option="close" />
 
 		<setting id="plexLogin" label="plex.tv username" type="text" default="" visible="false" />
 		<setting id="plexhome" label="Plex home in use" type="bool" default="" visible="false" />
@@ -47,18 +40,19 @@
 		<setting id="limitindex" type="number" label="30515" default="200" option="int" /><!-- Maximum items to request from the server at once -->
 		<setting id="enableTextureCache" label="30512"  type="bool" default="true" /> <!-- Force Artwork Caching -->
         <setting id="imageCacheLimit" type="enum" label="30513" values="Disabled|5|10|15|20|25" default="5" visible="eq(-1,true)" subsetting="true" /> <!-- Limit artwork cache threads -->
-		<setting id="syncThreadNumber" type="slider" label="39003" default="5" option="int" range="1,1,20"/>
 		<setting id="serverSync" type="bool" label="30514" default="true" visible="false"/><!-- Enable fast startup (requires server plugin) -->
 
 		<setting type="lsep" label="39052" /><!-- Background Sync -->
 		<setting id="enableBackgroundSync" type="bool" label="39026" default="true" visible="true"/>
-		<setting id="saftyMargin" type="slider" label="39051" default="30" option="int" range="10,1,300" visible="eq(-1,true)"/>
+		<setting id="saftyMargin" type="slider" label="39051" default="60" option="int" range="10,1,300" visible="eq(-1,true)"/>
 		<setting id="fullSyncInterval" type="number" label="39053" default="60" option="int" />
+		<setting id="dbSyncScreensaver" type="bool" label="39062" default="false" /><!--Sync when screensaver is deactivated-->
 
 		<setting type="lsep" label="30538" /><!-- Complete Re-Sync necessary -->
+		<setting id="FanartTV" label="30539" type="bool" default="false" /><!-- Download additional art from FanArtTV -->
+		<setting id="setFanartTV" label="30540" type="bool" default="true" /><!-- Download movie set/collection art from FanArtTV -->
 		<setting id="enableMusic" type="bool" label="30509" default="true" />
 		<setting id="useDirectPaths" type="enum" label="30511" values="Addon(Default)|Native(Direct paths)" default="0" visible="true"/> <!-- Playback mode -->
-		
 
 		<setting id="streamMusic" type="bool" label="30510" default="false" visible="false" subsetting="true"/> <!-- Direct stream Music library -->
 		<setting type="lsep" label="30523" visible="false"/> <!-- Music metadata options -->
@@ -66,7 +60,9 @@
         <setting id="enableExportSongRating" type="bool" label="30525" default="false" visible="false" />
         <setting id="kodiplextimeoffset" type="number" label="Time difference in seconds (Koditime - Plextime)" default="0" visible="false" option="int" />
         <setting id="enableUpdateSongRating" type="bool" label="30526" default="false" visible="false" />
-        <setting id="emby_pathverified" type="bool" default="false" visible="false" /> <!-- If 'false': one single warning message pops up if PKC cannot verify direct paths -->
+        <setting id="plex_pathverified" type="bool" default="false" visible="false" /> <!-- If 'false': one single warning message pops up if PKC cannot verify direct paths -->
+        <setting id="themoviedbAPIKey" type="text" default="ae06df54334aa653354e9a010f4b81cb" visible="false"/>
+        <setting id="FanArtTVAPIKey" type="text" default="639191cb0774661597f28a47e7e2bad5" visible="false"/>
 	</category>
 
 	<category label="39057"><!-- Customize Paths -->
@@ -79,10 +75,14 @@
 		<setting id="remapSMBtvNew" type="text" label="39040" default="smb://" visible="eq(-4,true)"/> <!-- Replace Plex TV SHOWS with: -->
 		<setting id="remapSMBmusicOrg" type="text" label="39041" default="" visible="eq(-5,true)"/> <!-- Original Plex MUSIC path to replace: -->
 		<setting id="remapSMBmusicNew" type="text" label="39042" default="smb://" visible="eq(-6,true)"/> <!-- Replace Plex MUSIC with: -->
+		<setting id="remapSMBphotoOrg" type="text" label="39045" default="" visible="eq(-7,true)"/> <!-- Original Plex MUSIC path to replace: -->
+		<setting id="remapSMBphotoNew" type="text" label="39046" default="smb://" visible="eq(-8,true)"/> <!-- Replace Plex MUSIC with: -->
 	</category>
 
 	<category label="30516"><!-- Playback -->
 		<setting type="sep" />
+		<setting id="bestQuality" type="bool" label="30541" default="false" />
+		<setting id="bestTrailer" type="bool" label="30542" default="true" />
 		<setting id="enableCinema" type="bool" label="30518" default="true" />
 		<setting id="askCinema" type="bool" label="30519" default="false" visible="eq(-1,true)" subsetting="true" />
         <setting id="trailerNumber" type="slider" label="39000" default="3" visible="eq(-2,true)" range="1,1,15" option="int" />
@@ -93,11 +93,12 @@
 		<setting id="resumeJumpBack" type="slider" label="30521" default="10" range="0,1,120" option="int" />
 		<setting type="sep" />
 	    <setting id="playType" type="enum" label="30002" values="Direct Play (default)|Direct Stream|Force Transcode" default="0" />
-	    <setting id="transcoderVideoQualities" type="enum" label="30160" values="420x420, 320Kbps|576x320, 720Kbps|720x480, 1.5Mbps|1024x768, 2Mbps|1280x720, 3Mbps|1280x720, 4Mbps|1920x1080, 8Mbps|1920x1080, 10Mbps|1920x1080, 12Mbps|1920x1080, 20Mbps|1920x1080, 40Mbps" default="11" />
+	    <setting id="transcoderVideoQualities" type="enum" label="30160" values="420x420, 320Kbps|576x320, 720Kbps|720x480, 1.5Mbps|1024x768, 2Mbps|1280x720, 3Mbps|1280x720, 4Mbps|1920x1080, 8Mbps|1920x1080, 10Mbps|1920x1080, 12Mbps|1920x1080, 20Mbps|1920x1080, 40Mbps" default="10" />
 	    <setting id="transcodeH265" type="enum" label="30522" default="0" values="Disabled (default)|480p (and higher)|720p (and higher)|1080p" />
+	    <setting id="transcodeHi10P" type="bool" label="39063" default="false"/>
+	    <setting id="transcodeHEVC" type="bool" label="39065" default="false"/>
 	    <setting id="audioBoost" type="slider" label="39001" default="0" range="0,10,100" option="int"/>
 	    <setting id="subtitleSize" label="39002" type="slider" option="int" range="0,30,300" default="100" />
-	    <setting id="markPlayed" type="number" visible="false" default="95" />
 	    <setting id="failedCount" type="number" visible="false" default="0" />
 	    <setting id="networkCreds" type="text" visible="false" default="" />
 	</category>
@@ -125,12 +126,17 @@
 
 	</category>
 
-	<category label="39045"><!-- Appearance Tweaks -->
+	<category label="39073"><!-- Appearance Tweaks -->
 		<setting id="connectMsg" type="bool" label="30249" default="true" />
-		<setting type="lsep" label="39046" />
+		<setting type="lsep" label="39074" /><!-- TV Shows -->
 		<setting id="OnDeckTVextended" type="bool" label="39058" default="true" /><!-- Extend Plex TV Series "On Deck" view to all shows -->
 		<setting id="OnDeckTvAppendShow" type="bool" label="39047" default="false" /><!--On Deck view: Append show title to episode-->
 		<setting id="OnDeckTvAppendSeason" type="bool" label="39048" default="false" /><!--On Deck view: Append season number to episode-->
+		<setting id="TVShowWatched" type="bool" label="39064" default="true" /><!--Recently Added: Also show already watched episodes-->
+		<setting id="RecentTvAppendShow" type="bool" label="39059" default="false" /><!--Recently added: Append show title to episode-->
+		<setting id="RecentTvAppendSeason" type="bool" label="39060" default="false" /><!--Recently Added: Append season- and episode-number SxxExx-->
+		<setting type="lsep" label="30302" /><!-- Movies -->
+		<setting id="MovieShowWatched" type="bool" label="39066" default="true" /><!--Recently Added: Also show already watched episodes-->
 	</category>
 
 	<category label="30022"><!-- Advanced -->

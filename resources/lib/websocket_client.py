@@ -44,6 +44,7 @@ class WebSocket(threading.Thread):
         if typus is None:
             self.logMsg('No message type, dropping message: %s' % message, -1)
             return False
+        self.logMsg('Received message from PMS server: %s' % message, 2)
         # Drop everything we're not interested in
         if typus not in ('playing', 'timeline'):
             return True
@@ -87,17 +88,16 @@ class WebSocket(threading.Thread):
         uri = "%s/:/websockets/notifications" % server
         if token:
             uri += '?X-Plex-Token=%s' % token
-        return uri
-
-    def run(self):
-        log = self.logMsg
-        # Currently not working due to missing SSL environment
         sslopt = {}
         if utils.settings('sslverify') == "false":
             sslopt["cert_reqs"] = ssl.CERT_NONE
+        return uri, sslopt
 
+    def run(self):
+        log = self.logMsg
         log("----===## Starting WebSocketClient ##===----", 0)
 
+        counter = 0
         threadStopped = self.threadStopped
         threadSuspended = self.threadSuspended
         while not threadStopped():
@@ -122,7 +122,7 @@ class WebSocket(threading.Thread):
                 pass
             except websocket.WebSocketConnectionClosedException:
                 log("Connection closed, (re)connecting", 0)
-                uri = self.getUri()
+                uri, sslopt = self.getUri()
                 try:
                     # Low timeout - let's us shut this thread down!
                     self.ws = websocket.create_connection(
@@ -131,8 +131,15 @@ class WebSocket(threading.Thread):
                         sslopt=sslopt,
                         enable_multithread=True)
                 except IOError:
+                    # Server is probably offline
                     log("Error connecting", 0)
                     self.ws = None
+                    counter += 1
+                    if counter > 10:
+                        log("Repeatedly could not connect to PMS, declaring "
+                            "the connection dead", -1)
+                        utils.window('plex_online', value='false')
+                        counter = 0
                     xbmc.sleep(1000)
                 except websocket.WebSocketTimeoutException:
                     log("timeout while connecting, trying again", 0)
@@ -142,6 +149,8 @@ class WebSocket(threading.Thread):
                     log("Unknown exception encountered in connecting: %s" % e)
                     self.ws = None
                     xbmc.sleep(1000)
+                else:
+                    counter = 0
             except Exception as e:
                 log("Unknown exception encountered: %s" % e)
                 try:

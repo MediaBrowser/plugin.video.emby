@@ -54,16 +54,16 @@ class VideoNodes(object):
         mediatype = mediatypes[mediatype]
 
         window = utils.window
-        kodiversion = self.kodiversion
 
         if viewtype == "mixed":
             dirname = "%s-%s" % (viewid, mediatype)
         else:
             dirname = viewid
         
-        path = xbmc.translatePath("special://profile/library/video/").decode('utf-8')
-        nodepath = xbmc.translatePath(
-                    "special://profile/library/video/Plex-%s/" % dirname).decode('utf-8')
+        path = utils.tryDecode(xbmc.translatePath(
+            "special://profile/library/video/"))
+        nodepath = utils.tryDecode(xbmc.translatePath(
+            "special://profile/library/video/Plex-%s/" % dirname))
 
         # Verify the video directory
         # KODI BUG
@@ -71,20 +71,22 @@ class VideoNodes(object):
         #  so try creating a file
         if utils.IfExists(path) is False:
             shutil.copytree(
-                src=xbmc.translatePath("special://xbmc/system/library/video").decode('utf-8'),
-                dst=xbmc.translatePath("special://profile/library/video").decode('utf-8'))
+                src=utils.tryDecode(xbmc.translatePath(
+                    "special://xbmc/system/library/video")),
+                dst=utils.tryDecode(xbmc.translatePath(
+                    "special://profile/library/video")))
 
         # Create the node directory
-        if mediatype != "photo":
+        if mediatype != "photos":
             if utils.IfExists(nodepath) is False:
                 # folder does not exist yet
                 self.logMsg('Creating folder %s' % nodepath, 1)
-                xbmcvfs.mkdirs(nodepath.encode('utf-8'))
+                xbmcvfs.mkdirs(utils.tryEncode(nodepath))
                 if delete:
-                    dirs, files = xbmcvfs.listdir(nodepath.encode('utf-8'))
+                    dirs, files = xbmcvfs.listdir(utils.tryEncode(nodepath))
                     for file in files:
-                        xbmcvfs.delete(
-                            (nodepath + file.decode('utf-8')).encode('utf-8'))
+                        xbmcvfs.delete(utils.tryEncode(
+                            (nodepath + utils.tryDecode(file))))
 
                     self.logMsg("Sucessfully removed videonode: %s."
                                 % tagname, 1)
@@ -96,16 +98,16 @@ class VideoNodes(object):
         path = "library://video/Plex-%s/" % dirname
         for i in range(1, indexnumber):
             # Verify to make sure we don't create duplicates
-            if window('Emby.nodes.%s.index' % i) == path:
+            if window('Plex.nodes.%s.index' % i) == path:
                 return
 
-        if mediatype == "photo":
+        if mediatype == "photos":
             path = "plugin://plugin.video.plexkodiconnect/?id=%s&mode=getsubfolders" % indexnumber
             
-        window('Emby.nodes.%s.index' % indexnumber, value=path)
+        window('Plex.nodes.%s.index' % indexnumber, value=path)
         
         # Root
-        if not mediatype == "photo":
+        if not mediatype == "photos":
             if viewtype == "mixed":
                 specialtag = "%s-%s" % (tagname, mediatype)
                 root = self.commonRoot(order=0, label=specialtag, tagname=tagname, roottype=0)
@@ -215,14 +217,14 @@ class VideoNodes(object):
                 label = stringid
 
             # Set window properties
-            if (mediatype == "homevideos" or mediatype == "photo") and nodetype == "all":
+            if (mediatype == "homevideos" or mediatype == "photos") and nodetype == "all":
                 # Custom query
-                path = ("plugin://plugin.video.plexkodiconnect/?id=%s&mode=browsecontent&type=%s"
-                        % (tagname, mediatype))
-            elif (mediatype == "homevideos" or mediatype == "photo"):
+                path = ("plugin://plugin.video.plexkodiconnect/?id=%s&mode=browseplex&type=%s"
+                        % (viewid, mediatype))
+            elif (mediatype == "homevideos" or mediatype == "photos"):
                 # Custom query
-                path = ("plugin://plugin.video.plexkodiconnect/?id=%s&mode=browsecontent&type=%s&folderid=%s"
-                        % (tagname, mediatype, nodetype))
+                path = ("plugin://plugin.video.plexkodiconnect/?id=%s&mode=browseplex&type=%s&folderid=%s"
+                        % (viewid, mediatype, nodetype))
             elif nodetype == "nextepisodes":
                 # Custom query
                 path = "plugin://plugin.video.plexkodiconnect/?id=%s&mode=nextup&limit=%s" % (tagname, limit)
@@ -231,7 +233,7 @@ class VideoNodes(object):
                 # Custom query
                 path = ("plugin://plugin.video.plexkodiconnect/?id=%s&mode=recentepisodes&type=%s&tagname=%s&limit=%s"
                     % (viewid, mediatype, tagname, limit))
-            elif kodiversion == 14 and nodetype == "inprogressepisodes":
+            elif self.kodiversion == 14 and nodetype == "inprogressepisodes":
                 # Custom query
                 path = "plugin://plugin.video.plexkodiconnect/?id=%s&mode=inprogressepisodes&limit=%s" % (tagname, limit)
             elif nodetype == 'ondeck':
@@ -245,10 +247,14 @@ class VideoNodes(object):
             else:
                 path = "library://video/Plex-%s/%s_%s.xml" % (dirname, viewid, nodetype)
             
-            if mediatype == "photo":
+            if mediatype == "photos":
                 windowpath = "ActivateWindow(Pictures,%s,return)" % path
             else:
-                windowpath = "ActivateWindow(Video,%s,return)" % path
+                if self.kodiversion >= 17:
+                    # Krypton
+                    windowpath = "ActivateWindow(Videos,%s,return)" % path
+                else:
+                    windowpath = "ActivateWindow(Video,%s,return)" % path
             
             if nodetype == "all":
 
@@ -257,24 +263,24 @@ class VideoNodes(object):
                 else:
                     templabel = label
 
-                embynode = "Emby.nodes.%s" % indexnumber
+                embynode = "Plex.nodes.%s" % indexnumber
                 window('%s.title' % embynode, value=templabel)
                 window('%s.path' % embynode, value=windowpath)
                 window('%s.content' % embynode, value=path)
                 window('%s.type' % embynode, value=mediatype)
             else:
-                embynode = "Emby.nodes.%s.%s" % (indexnumber, nodetype)
+                embynode = "Plex.nodes.%s.%s" % (indexnumber, nodetype)
                 window('%s.title' % embynode, value=label)
                 window('%s.path' % embynode, value=windowpath)
                 window('%s.content' % embynode, value=path)
 
-            if mediatype == "photo":
+            if mediatype == "photos":
                 # For photos, we do not create a node in videos but we do want the window props
                 # to be created.
                 # To do: add our photos nodes to kodi picture sources somehow
                 continue
             
-            if xbmcvfs.exists(nodeXML.encode('utf-8')):
+            if xbmcvfs.exists(utils.tryEncode(nodeXML)):
                 # Don't recreate xml if already exists
                 continue
 
@@ -298,8 +304,12 @@ class VideoNodes(object):
                 elif nodetype == "recent":
                     etree.SubElement(root, 'order', {'direction': "descending"}).text = "dateadded"
                     etree.SubElement(root, 'limit').text = limit
-                    rule = etree.SubElement(root, 'rule', {'field': "playcount", 'operator': "is"})
-                    etree.SubElement(rule, 'value').text = "0"
+                    if utils.settings('MovieShowWatched') == 'false':
+                        rule = etree.SubElement(root,
+                                                'rule',
+                                                {'field': "playcount",
+                                                 'operator': "is"})
+                        etree.SubElement(rule, 'value').text = "0"
                 
                 elif nodetype == "inprogress":
                     etree.SubElement(root, 'rule', {'field': "inprogress", 'operator': "true"})
@@ -358,19 +368,26 @@ class VideoNodes(object):
 
         window = utils.window
 
-        tagname = tagname.encode('utf-8')
+        tagname = utils.tryEncode(tagname)
         cleantagname = utils.normalize_nodes(tagname)
-        nodepath = xbmc.translatePath("special://profile/library/video/").decode('utf-8')
+        nodepath = utils.tryDecode(xbmc.translatePath(
+            "special://profile/library/video/"))
         nodeXML = "%splex_%s.xml" % (nodepath, cleantagname)
         path = "library://video/plex_%s.xml" % cleantagname
-        windowpath = "ActivateWindow(Video,%s,return)" % path
-        
+        if self.kodiversion >= 17:
+            # Krypton
+            windowpath = "ActivateWindow(Videos,%s,return)" % path
+        else:
+            windowpath = "ActivateWindow(Video,%s,return)" % path
+
         # Create the video node directory
         if not xbmcvfs.exists(nodepath):
             # We need to copy over the default items
             shutil.copytree(
-                src=xbmc.translatePath("special://xbmc/system/library/video").decode('utf-8'),
-                dst=xbmc.translatePath("special://profile/library/video").decode('utf-8'))
+                src=utils.tryDecode(xbmc.translatePath(
+                    "special://xbmc/system/library/video")),
+                dst=utils.tryDecode(xbmc.translatePath(
+                    "special://profile/library/video")))
             xbmcvfs.exists(path)
 
         labels = {
@@ -380,7 +397,7 @@ class VideoNodes(object):
             'channels': 30173
         }
         label = utils.language(labels[tagname])
-        embynode = "Emby.nodes.%s" % indexnumber
+        embynode = "Plex.nodes.%s" % indexnumber
         window('%s.title' % embynode, value=label)
         window('%s.path' % embynode, value=windowpath)
         window('%s.content' % embynode, value=path)
@@ -409,7 +426,7 @@ class VideoNodes(object):
         window = utils.window
 
         self.logMsg("Clearing nodes properties.", 1)
-        embyprops = window('Emby.nodes.total')
+        plexprops = window('Plex.nodes.total')
         propnames = [
         
             "index","path","title","content",
@@ -424,8 +441,8 @@ class VideoNodes(object):
             "inprogressepisodes.content","inprogressepisodes.path"
         ]
 
-        if embyprops:
-            totalnodes = int(embyprops)
+        if plexprops:
+            totalnodes = int(plexprops)
             for i in range(totalnodes):
                 for prop in propnames:
-                    window('Emby.nodes.%s.%s' % (str(i), prop), clear=True)
+                    window('Plex.nodes.%s.%s' % (str(i), prop), clear=True)

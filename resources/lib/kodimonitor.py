@@ -24,28 +24,28 @@ class KodiMonitor(xbmc.Monitor):
 
         self.doUtils = downloadutils.DownloadUtils().downloadUrl
         self.xbmcplayer = xbmc.Player()
-
+        xbmc.Monitor.__init__(self)
         self.logMsg("Kodi monitor started.", 1)
 
     def onScanStarted(self, library):
         self.logMsg("Kodi library scan %s running." % library, 2)
         if library == "video":
-            utils.window('emby_kodiScan', value="true")
+            utils.window('plex_kodiScan', value="true")
 
     def onScanFinished(self, library):
         self.logMsg("Kodi library scan %s finished." % library, 2)
         if library == "video":
-            utils.window('emby_kodiScan', clear=True)
+            utils.window('plex_kodiScan', clear=True)
 
     def onSettingsChanged(self):
         # Monitor emby settings
         # Review reset setting at a later time, need to be adjusted to account for initial setup
         # changes.
         '''currentPath = utils.settings('useDirectPaths')
-        if utils.window('emby_pluginpath') != currentPath:
+        if utils.window('plex_pluginpath') != currentPath:
             # Plugin path value changed. Offer to reset
             self.logMsg("Changed to playback mode detected", 1)
-            utils.window('emby_pluginpath', value=currentPath)
+            utils.window('plex_pluginpath', value=currentPath)
             resp = xbmcgui.Dialog().yesno(
                                 heading="Playback mode change detected",
                                 line1=(
@@ -56,17 +56,17 @@ class KodiMonitor(xbmc.Monitor):
                 utils.reset()'''
 
         currentLog = utils.settings('logLevel')
-        if utils.window('emby_logLevel') != currentLog:
+        if utils.window('plex_logLevel') != currentLog:
             # The log level changed, set new prop
             self.logMsg("New log level: %s" % currentLog, 1)
-            utils.window('emby_logLevel', value=currentLog)
+            utils.window('plex_logLevel', value=currentLog)
 
+    @utils.CatchExceptions(warnuser=False)
     def onNotification(self, sender, method, data):
-        if method not in ("Playlist.OnAdd"):
-            self.logMsg("Method: %s Data: %s" % (method, data), 1)
 
         if data:
             data = json.loads(data, 'utf-8')
+            self.logMsg("Method: %s Data: %s" % (method, data), 1)
 
         if method == "Player.OnPlay":
             self.PlayBackStart(data)
@@ -82,13 +82,13 @@ class KodiMonitor(xbmc.Monitor):
             item = data.get('item')
             try:
                 kodiid = item['id']
-                type = item['type']
+                item_type = item['type']
             except (KeyError, TypeError):
                 self.logMsg("Item is invalid for playstate update.", 1)
             else:
                 # Send notification to the server.
                 with embydb.GetEmbyDB() as emby_db:
-                    emby_dbitem = emby_db.getItem_byKodiId(kodiid, type)
+                    emby_dbitem = emby_db.getItem_byKodiId(kodiid, item_type)
                 try:
                     itemid = emby_dbitem[0]
                 except TypeError:
@@ -137,14 +137,19 @@ class KodiMonitor(xbmc.Monitor):
 
                     url = "{server}/emby/Items/%s?format=json" % itemid
                     self.logMsg("Deleting request: %s" % itemid)
-                    doUtils.downloadUrl(url, type="DELETE")
+                    doUtils.downloadUrl(url, action_type="DELETE")
                 finally:
                     embycursor.close()'''
 
         elif method == "System.OnWake":
             # Allow network to wake up
             xbmc.sleep(10000)
-            utils.window('emby_onWake', value="true")
+            utils.window('plex_onWake', value="true")
+
+        elif method == "GUI.OnScreensaverDeactivated":
+            if utils.settings('dbSyncScreensaver') == "true":
+                xbmc.sleep(5000)
+                utils.window('plex_runLibScan', value="full")
 
         elif method == "Playlist.OnClear":
             pass
@@ -155,7 +160,6 @@ class KodiMonitor(xbmc.Monitor):
         """
         log = self.logMsg
         window = utils.window
-
         # Get currently playing file - can take a while. Will be utf-8!
         try:
             currentFile = self.xbmcplayer.getPlayingFile()
@@ -173,53 +177,77 @@ class KodiMonitor(xbmc.Monitor):
                     return
                 else:
                     count += 1
-        log("Currently playing file is: %s" % currentFile.decode('utf-8'), 1)
+        # Just to be on the safe side
+        currentFile = utils.tryDecode(currentFile)
+        log("Currently playing file is: %s" % currentFile, 1)
 
-        # Try to get a Kodi ID
-        item = data.get('item')
+        # Get the type of media we're playing
         try:
-            type = item['type']
-        except:
+            typus = data['item']['type']
+        except (TypeError, KeyError):
             log("Item is invalid for PMS playstate update.", 0)
             return
-        try:
-            kodiid = item['id']
-        except (KeyError, TypeError):
-            itemType = window("emby_%s.type" % currentFile)
-            log("No kodi id passed. Playing itemtype is: %s" % itemType, 1)
-            if itemType in ('movie', 'episode'):
-                # Window was setup by PKC and is NOT a trailer ('clip')
-                with kodidb.GetKodiDB('video') as kodi_db:
-                    kodiid = kodi_db.getIdFromTitle(data.get('item'))
-                    if kodiid is None:
-                        log("Skip playstate update. No unique Kodi title found"
-                            " for %s" % data.get('item'), 0)
-                        return
-            else:
-                log("Item is invalid for PMS playstate update.", 0)
-                return
+        log("Playing itemtype is (or appears to be): %s" % typus, 1)
 
-        # Get Plex' item id
-        with embydb.GetEmbyDB() as emby_db:
-            emby_dbitem = emby_db.getItem_byKodiId(kodiid, type)
-        try:
-            plexid = emby_dbitem[0]
-        except TypeError:
-            log("No Plex id returned for kodiid %s" % kodiid, 0)
-            return
-        log("Found Plex id %s for Kodi id %s" % (plexid, kodiid), 1)
+        # Try to get a Kodi ID
+        # If PKC was used - native paths, not direct paths
+        plexid = utils.window('emby_%s.itemid'
+                              % utils.tryEncode(currentFile))
+        # Get rid of the '' if the window property was not set
+        plexid = None if not plexid else plexid
+        kodiid = None
+        if plexid is None:
+            log('Did not get Plex id from window properties', 1)
+            try:
+                kodiid = data['item']['id']
+            except (TypeError, KeyError):
+                log('Did not get a Kodi id from Kodi, darn', 1)
+        # For direct paths, if we're not streaming something
+        # When using Widgets, Kodi doesn't tell us shit so we need this hack
+        if (kodiid is None and plexid is None and typus != 'song'
+                and not currentFile.startswith('http')):
+            try:
+                filename = currentFile.rsplit('/', 1)[1]
+                path = currentFile.rsplit('/', 1)[0] + '/'
+            except IndexError:
+                filename = currentFile.rsplit('\\', 1)[1]
+                path = currentFile.rsplit('\\', 1)[0] + '\\'
+            log('Trying to figure out playing item from filename: %s and '
+                'path: %s' % (filename, path), 1)
+            with kodidb.GetKodiDB('video') as kodi_db:
+                try:
+                    kodiid, typus = kodi_db.getIdFromFilename(filename, path)
+                except TypeError:
+                    log('Aborting playback report', 1)
+                    return
+
+        if plexid is None:
+            # Get Plex' item id
+            with embydb.GetEmbyDB() as emby_db:
+                emby_dbitem = emby_db.getItem_byKodiId(kodiid, typus)
+            try:
+                plexid = emby_dbitem[0]
+            except TypeError:
+                log("No Plex id returned for kodiid %s" % kodiid, 1)
+                log('Aborting playback report', 1)
+                return
+        log("Found Plex id %s for Kodi id %s for type %s"
+            % (plexid, kodiid, typus), 1)
 
         # Set some stuff if Kodi initiated playback
-        if ((utils.settings('useDirectPaths') == "1" and not type == "song") or
-                (type == "song" and utils.settings('enableMusic') == "true")):
-            if self.StartDirectPath(plexid, type, currentFile) is False:
+        if ((utils.settings('useDirectPaths') == "1" and not typus == "song")
+                or
+                (typus == "song" and utils.settings('enableMusic') == "true")):
+            if self.StartDirectPath(plexid,
+                                    typus,
+                                    utils.tryEncode(currentFile)) is False:
                 log('Could not initiate monitoring; aborting', -1)
                 return
 
         # Save currentFile for cleanup later and to be able to access refs
-        window('plex_lastPlayedFiled', value=currentFile.decode('utf-8'))
+        window('plex_lastPlayedFiled', value=currentFile)
         window('Plex_currently_playing_itemid', value=plexid)
-        window("emby_%s.itemid" % currentFile, value=plexid)
+        window("emby_%s.itemid" % utils.tryEncode(currentFile), value=plexid)
         log('Finish playback startup', 1)
 
     def StartDirectPath(self, plexid, type, currentFile):

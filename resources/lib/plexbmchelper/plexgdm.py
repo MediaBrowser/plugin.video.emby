@@ -22,18 +22,15 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 MA 02110-1301, USA.
 """
 
-__author__ = 'DHJ (hippojay) <plex@h-jay.com>'
 
 import socket
-import struct
 import threading
 import time
 
 from xbmc import sleep
 
 import downloadutils
-from PlexFunctions import PMSHttpsEnabled
-from utils import window, logging
+from utils import window, logging, settings
 
 
 @logging
@@ -60,7 +57,7 @@ class plexgdm:
         self.client_registered = False
         self.download = downloadutils.DownloadUtils().downloadUrl
 
-    def clientDetails(self, settings):
+    def clientDetails(self, options):
         self.client_data = (
             "Content-Type: plex/media-player\r\n"
             "Resource-Identifier: %s\r\n"
@@ -74,13 +71,13 @@ class plexgdm:
             "mirror,playqueues\r\n"
             "Device-Class: HTPC"
         ) % (
-            settings['uuid'],
-            settings['client_name'],
-            settings['myport'],
-            settings['addonName'],
-            settings['version']
+            options['uuid'],
+            options['client_name'],
+            options['myport'],
+            options['addonName'],
+            options['version']
         )
-        self.client_id = settings['uuid']
+        self.client_id = options['uuid']
 
     def getClientDetails(self):
         if not self.client_data:
@@ -215,119 +212,28 @@ class plexgdm:
         return self.server_list
 
     def discover(self):
-        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-
-        # Set a timeout so the socket does not block indefinitely
-        sock.settimeout(0.6)
-
-        # Set the time-to-live for messages to 1 for local network
-        ttl = struct.pack('b', 1)
-        sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, ttl)
-
-        returnData = []
-        try:
-            # Send data to the multicast group
-            self.logMsg("Sending discovery messages: %s"
-                        % self.discover_message, 2)
-            sock.sendto(self.discover_message, self.discover_group)
-
-            # Look for responses from all recipients
-            while True:
-                try:
-                    data, server = sock.recvfrom(1024)
-                    self.logMsg("Received data from %s, %s" % server, 2)
-                    returnData.append({'from': server,
-                                       'data': data})
-                except socket.timeout:
-                    break
-        except:
-            # if we can't send our discovery query, just abort and try again
-            # on the next loop
-            return
-        finally:
-            sock.close()
-
-        self.discovery_complete = True
-
-        discovered_servers = []
-
-        if returnData:
-
-            for response in returnData:
-                update = {'server': response.get('from')[0]}
-
-                # Check if we had a positive HTTP reponse
-                if "200 OK" in response.get('data'):
-                    for each in response.get('data').split('\r\n'):
-                        update['discovery'] = "auto"
-                        update['owned'] = '1'
-                        update['master'] = 1
-                        update['role'] = 'master'
-                        update['class'] = None
-                        if "Content-Type:" in each:
-                            update['content-type'] = each.split(':')[1].strip()
-                        elif "Resource-Identifier:" in each:
-                            update['uuid'] = each.split(':')[1].strip()
-                        elif "Name:" in each:
-                            update['serverName'] = each.split(':')[1].strip()
-                        elif "Port:" in each:
-                            update['port'] = each.split(':')[1].strip()
-                        elif "Updated-At:" in each:
-                            update['updated'] = each.split(':')[1].strip()
-                        elif "Version:" in each:
-                            update['version'] = each.split(':')[1].strip()
-                        elif "Server-Class:" in each:
-                            update['class'] = each.split(':')[1].strip()
-
-                # Quickly test if we need https
-                https = PMSHttpsEnabled(
-                    '%s:%s' % (update['server'], update['port']))
-                if https is None:
-                    # Error contacting server
-                    continue
-                elif https:
-                    update['protocol'] = 'https'
-                else:
-                    update['protocol'] = 'http'
-                discovered_servers.append(update)
-
-        # Append REMOTE PMS that we haven't found yet; if necessary
         currServer = window('pms_server')
-        if currServer:
-            currServerProt, currServerIP, currServerPort = \
-                currServer.split(':')
-            currServerIP = currServerIP.replace('/', '')
-            for server in discovered_servers:
-                if server['server'] == currServerIP:
-                    break
-            else:
-                # Currently active server was not discovered via GDM; ADD
-                update = {
-                    'port': currServerPort,
-                    'protocol': currServerProt,
-                    'class': None,
-                    'content-type': 'plex/media-server',
-                    'discovery': 'auto',
-                    'master': 1,
-                    'owned': '1',
-                    'role': 'master',
-                    'server': currServerIP,
-                    'serverName': window('plex_servername'),
-                    'updated': int(time.time()),
-                    'uuid': window('plex_machineIdentifier'),
-                    'version': 'irrelevant'
-                }
-                discovered_servers.append(update)
-
-        self.server_list = discovered_servers
-
-        if not self.server_list:
-            self.logMsg("No servers have been discovered", 0)
-        else:
-            self.logMsg("Number of servers Discovered: %s"
-                        % len(self.server_list), 2)
-            for items in self.server_list:
-                self.logMsg("Server Discovered: %s" % items, 2)
+        if not currServer:
+            return
+        currServerProt, currServerIP, currServerPort = \
+            currServer.split(':')
+        currServerIP = currServerIP.replace('/', '')
+        # Currently active server was not discovered via GDM; ADD
+        self.server_list = [{
+            'port': currServerPort,
+            'protocol': currServerProt,
+            'class': None,
+            'content-type': 'plex/media-server',
+            'discovery': 'auto',
+            'master': 1,
+            'owned': '1',
+            'role': 'master',
+            'server': currServerIP,
+            'serverName': window('plex_servername'),
+            'updated': int(time.time()),
+            'uuid': window('plex_machineIdentifier'),
+            'version': 'irrelevant'
+        }]
 
     def setInterval(self, interval):
         self.discovery_interval = interval
@@ -388,4 +294,5 @@ class plexgdm:
 
     def start_all(self, daemon=False):
         self.start_discovery(daemon)
-        self.start_registration(daemon)
+        if settings('plexCompanion') == 'true':
+            self.start_registration(daemon)

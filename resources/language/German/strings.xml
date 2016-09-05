@@ -28,8 +28,10 @@
     <string id="30536">Benutzer müssen sich bei jedem Neustart von Kodi neu anmelden</string>
     <string id="30537">BEI ÄNDERUNGEN KODI NEU STARTEN</string>
     <string id="30538">Komplette Neusynchronisierung nötig</string>
-
-
+    <string id="30539">Zusätzliche Bilder von FanArtTV herunterladen (langsamer!)</string>
+    <string id="30540">FanArtTV Film-Sets/Collections Bilder herunterladen</string>
+    <string id="30541">Nicht fragen, welcher Stream/Qualität gespielt wird</string>
+    <string id="30542">Trailer immer in der besten Qualität abspielen</string>
 
     <string id="30014">Verbindung</string>
     <string id="30015">Netzwerk</string>
@@ -164,7 +166,7 @@
     <string id="30157">Deaktiviere erweiterte Bilder (z.B. CoverArt)</string>
     <string id="30158">Metadaten</string>
     <string id="30159">Grafiken</string>
-    <string id="30160">Videoqualität für Transkodierung</string>
+    <string id="30160">Videoqualität falls Transkodierung nötig</string>
 
     <string id="30161">'Empfohlen'-Loader aktivieren (Erfordert Neustart)</string>
     <string id="30162">Staffelnummer hinzufügen</string>
@@ -278,6 +280,8 @@
     <string id="30311">Musikstücke</string>
     <string id="30312">Kanäle</string>
 
+    <string id="33033">Kodi wird jetzt neu gestartet um die Änderungen anzuwenden.</string>
+
     <!-- New to Plex -->
     <string id="39000">- Anzahl abzuspielender Trailer vor einem Film</string>
     <string id="39001">Audio Verstärkung (audio boost) wenn transkodiert wird</string>
@@ -304,7 +308,8 @@
     <string id="39021">[COLOR yellow]Plex Themes zu Kodi synchronisieren[/COLOR]</string>
     <string id="39022">lokal</string>
     <string id="39023">Plex Media Server Authentifizierung fehlgeschlagen. Haben Sie sich bei plex.tv eingeloggt?</string>
-    <string id="39024">[COLOR yellow]PMS und plex.tv Verbindungen zurücksetzen für erneuten Login[/COLOR]</string>
+
+
     <string id="39025">Automatisch beim Starten bei plex.tv einloggen</string>
     <string id="39026">Laufende Synchronisierung im Hintergrund aktivieren</string>
     <string id="39027">Playback Modus</string>
@@ -325,11 +330,10 @@
     <string id="39042">Plex MUSIK Pfade ersetzen durch:</string>
     <string id="39043">Sollen sogar sämtliche Plex Pfade wie /volume1/Hans/medien durch benutzerdefinierte smb Pfade wie smb://NAS/Filme ersetzt werden?</string>
     <string id="39044">Bitte geben Sie Ihre benutzerdefinierten SMB Pfade nun in den Einstellungen unter Sync Optionen ein. Starten Sie dann Kodi neu.</string>
-
-    <string id="39045">Erscheinung</string>
-    <string id="39046">TV Serien</string>
+    <string id="39045">Ursprünglicher Plex Pfad für PHOTOS:</string>
+    <string id="39046">Plex PHOTO Pfade ersetzen durch:</string>
     <string id="39047">"Aktuell": Serien- an Episoden-Titel anfügen</string>
-    <string id="39048">"Aktuell": Staffel und Episode anfügen (z.B. S3E2)</string>
+    <string id="39048">"Aktuell": Staffel und Episode anfügen, SxxExx</string>
     <string id="39049">Nichts funktioniert? Setze mal alles zurück!</string>
     <string id="39050">[COLOR yellow]Plex Server aus Liste auswählen[/COLOR]</string>
     <string id="39051">Warten bevor neue/geänderte PMS Einträge gesynct werden [s]</string>
@@ -340,8 +344,22 @@
     <string id="39056">Verwendet für Synchronisierung sowie beim Versuch, Direct Play zu nutzen</string>
     <string id="39057">Pfade ändern</string>
     <string id="39058">Standard Plex Ansicht "Aktuell" auf alle TV Shows erweitern</string>
-
-
+    <string id="39059">"Zuletzt hinzugefügt": Serien- an Episoden-Titel anfügen</string>
+    <string id="39060">"Zuletzt hinzugefügt": Staffel und Episode anfügen, SxxExx</string>
+    <string id="39061">Zusätzliche Bilder von FanArtTV herunterladen? Die Synchronisierung wird länger dauern!</string>
+    <string id="39062">Sync wenn Bildschirmschoner deaktiviert wird</string>
+    <string id="39063">Hi10p Codec Transkodierung erzwingen</string>
+    <string id="39064">"Zuletzt hinzugefügt": gesehene Folgen anzeigen</string>
+    <string id="39065">HEVC Codec Transkodierung erzwingen</string>
+    <string id="39066">"Zuletzt hinzugefügt": gesehene Filme anzeigen (Plex Playlisten und Nodes zurücksetzen!)</string>
+    <string id="39067">Aktueller Plex Media Server:</string>
+    <string id="39068">[COLOR yellow]Plex Media Server Adresse manuell eingeben[/COLOR]</string>
+    <string id="39069">Aktuelle Adresse:</string>
+    <string id="39070">Aktueller Port:</string>
+    <string id="39071">Aktueller plex.tv Status:</string>
+    <string id="39072">Läuft Kodi auf einem Raspberry Pi oder ähnlichem Gerät mit äusserst wenig Rechenleistung? Falls ja, wird die Rechenlast reduziert, damit Kodi nicht abstürzt.</string>
+    <string id="39073">Tweaks Aussehen</string>
+    <string id="39074">TV Serien</string>
 
     <!-- Plex Entrypoint.py -->
     <string id="39200">Plex Home Benutzer abmelden: </string>
@@ -352,10 +370,19 @@
     <string id="39205">Plex Bibliothek kann nicht gescannt werden, da keine Verbindung mit einem Plex Server besteht.</string>
     <string id="39206">Plex könnte möglicherweise Ihren Account sperren, wenn Sie zu oft versuchen, sich erfolglos anzumelden. Trotzdem fortfahren?</string>
     <string id="39207">PMS Verbindungen werden zurückgesetzt</string>
-    <string id="39208">PMS und plex.tv Verbindungen konnten nicht zurückgesetzt werden. Bitte versuchen Sie, Kodi neu zu starten, um das Problem zu beheben.</string>
-    <string id="39209">[COLOR yellow]Bei plex.tv einloggen[/COLOR]</string>
+    <string id="39208">PKC konnte nicht zurückgesetzt werden. Bitte versuchen Sie, Kodi neu zu starten, um das Problem zu beheben.</string>
+    <string id="39209">[COLOR yellow]plex.tv Login wechseln (ein- resp. ausloggen)[/COLOR]</string>
     <string id="39210">Noch nicht mit Plex Server verbunden</string>
     <string id="39211">Später ansehen</string>
+    <string id="39213">ist offline</string>
+    <string id="39214">Obwohl mit plex.tv verbunden, konnte keine Verbindung hergestellt werden mit</string>
+    <string id="39215">Plex Media Server IP oder URL eingeben. Zum Beispiel:</string>
+
+    <string id="39217">Unterstützt der Plex Media Server sichere SSL Verbindungen (https anstelle von http)?</string>
+    <string id="39218">Error beim Verbinden mit PMS</string>
+    <string id="39219">Abbrechen (Ja) oder PMS Adresse trotzdem speichern (Nein)?</string>
+    <string id="39220">verbunden</string>
+    <string id="39221">plex.tv wechsel OK</string>
 
     <!-- Plex Artwork.py -->
     <string id="39250">Alle Plex Bilder in Kodi zwischenzuspeichern kann sehr lange dauern. Möchten Sie wirklich fortfahren?</string>
