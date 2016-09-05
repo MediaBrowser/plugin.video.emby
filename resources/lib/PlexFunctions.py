@@ -386,8 +386,8 @@ def GetPlexPlaylist(itemid, librarySectionUUID, mediatype='movie'):
     url = "{server}/playQueues"
     args = {
         'type': mediatype,
-        'uri': 'library://%s/item/%2Flibrary%2Fmetadata%2F%s'
-            % (librarySectionUUID, itemid),
+        'uri': ('library://' + librarySectionUUID +
+                '/item/%2Flibrary%2Fmetadata%2F' + itemid),
         'includeChapters': '1',
         'extrasPrefixCount': trailerNumber,
         'shuffle': '0',
