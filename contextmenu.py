@@ -64,7 +64,7 @@ class ContextMenu(object):
 
             if self._select_menu():
                 self._action_menu()
-                
+
                 xbmc.sleep(500)
                 xbmc.executebuiltin('Container.Refresh')
 
@@ -107,7 +107,7 @@ class ContextMenu(object):
 
         return item_id
 
-    def _select_menu(self, options):
+    def _select_menu(self):
         # Display select dialog
         userdata = self.api.getUserData()
         options = []
