@@ -111,7 +111,7 @@ class WebSocketClient(threading.Thread):
 
         if command == 'PlayNow':
             startat = data.get('StartPositionTicks', 0)
-            playlist_.playAll(item_ids, startat)
+            playlist_.play_all(item_ids, startat)
             dialog(type_="notification",
                    heading="{emby}",
                    message="%s %s" % (len(item_ids), lang(33004)),
@@ -119,7 +119,7 @@ class WebSocketClient(threading.Thread):
                    sound=False)
 
         elif command == 'PlayNext':
-            new_playlist = playlist_.modifyPlaylist(item_ids)
+            new_playlist = playlist_.modify_playlist(item_ids)
             dialog(type_="notification",
                    heading="{emby}",
                    message="%s %s" % (len(item_ids), lang(33005)),

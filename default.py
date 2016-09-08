@@ -21,7 +21,6 @@ sys.path.append(_BASE_LIB)
 
 import entrypoint
 import loghandler
-import utils
 from utils import window, dialog, language as lang
 
 #################################################################################################
@@ -41,8 +40,9 @@ class Main(object):
 
         # Parse parameters
         base_url = sys.argv[0]
-        params = urlparse.parse_qs(sys.argv[2][1:])
-        log.warn("Parameter string: %s", sys.argv[2])
+        path = sys.argv[2]
+        params = urlparse.parse_qs(path[1:])
+        log.warn("Parameter string: %s", path)
         try:
             mode = params['mode'][0]
         except (IndexError, KeyError):
@@ -50,13 +50,13 @@ class Main(object):
 
         if "/extrafanart" in base_url:
 
-            emby_path = sys.argv[2][1:]
+            emby_path = path[1:]
             emby_id = params.get('id', [""])[0]
             entrypoint.getExtraFanArt(emby_id, emby_path)
 
         elif "/Extras" in base_url or "/VideoFiles" in base_url:
 
-            emby_path = sys.argv[2][1:]
+            emby_path = path[1:]
             emby_id = params.get('id', [""])[0]
             entrypoint.getVideoFiles(emby_id, emby_path)
 
@@ -76,7 +76,7 @@ class Main(object):
 
     @classmethod
     def _modes(cls, mode, params):
-
+        import utils
         modes = {
 
             'reset': utils.reset,
