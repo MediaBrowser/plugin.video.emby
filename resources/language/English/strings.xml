@@ -422,6 +422,7 @@
     <string id="39072">Is your Kodi installed on a low-powered device like a Raspberry Pi? If yes, then we will reduce the strain on Kodi to prevent it from crashing.</string>
     <string id="39073">Appearance Tweaks</string>
     <string id="39074">TV Shows</string>
+    <string id="39075">Always use default Plex subtitle if possible</string>
 
     <!-- Plex Entrypoint.py -->
     <string id="39200">Log-out Plex Home User </string>

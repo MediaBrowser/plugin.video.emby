@@ -295,6 +295,7 @@ class PlayUtils():
         audioNum = 0
         # Remember 'no subtitles'
         subNum = 1
+        defaultSub = None
         for stream in mediastreams:
             # Since Plex returns all possible tracks together, have to sort
             # them.
@@ -316,8 +317,6 @@ class PlayUtils():
 
             # Subtitles
             elif type == "3":
-                '''if stream['IsExternal']:
-                    continue'''
                 try:
                     track = "%s %s" % (subNum+1, stream.attrib['language'])
                 except:
@@ -333,6 +332,10 @@ class PlayUtils():
                     track = "%s - Forced" % track
                 if downloadable:
                     downloadableStreams.append(index)
+                if stream.attrib.get('selected') == '1' and downloadable:
+                    # Only show subs without asking user if they can be
+                    # turned off
+                    defaultSub = index
                 else:
                     track = "%s (burn-in)" % track
 
@@ -353,35 +356,35 @@ class PlayUtils():
         # Add audio boost
         playurlprefs['audioBoost'] = settings('audioBoost')
 
+        selectSubsIndex = None
         if subNum > 1:
-            resp = dialog.select(lang(33014), subtitleStreams)
-            if resp == 0:
-                # User selected no subtitles
-                playurlprefs["skipSubtitles"] = 1
-            elif resp > -1:
-                # User selected subtitles
-                selectSubsIndex = subtitleStreamsList[resp-1]
-
+            if (settings('pickPlexSubtitles') == 'true' and
+                    defaultSub is not None):
+                log.info('Using default Plex subtitle: %s' % defaultSub)
+                selectSubsIndex = defaultSub
+            else:
+                resp = dialog.select(lang(33014), subtitleStreams)
+                if resp > 0:
+                    selectSubsIndex = subtitleStreamsList[resp-1]
+                else:
+                    # User selected no subtitles or backed out of dialog
+                    playurlprefs["skipSubtitles"] = 1
+            if selectSubsIndex is not None:
                 # Load subtitles in the listitem if downloadable
                 if selectSubsIndex in downloadableStreams:
-
                     sub_url = self.API.addPlexHeadersToUrl(
                         "%s/library/streams/%s"
                         % (self.server, selectSubsIndex))
                     log.info("Downloadable sub: %s: %s"
                              % (selectSubsIndex, sub_url))
                     listitem.setSubtitles([tryEncode(sub_url)])
+                    # Don't additionally burn in subtitles
+                    playurlprefs["skipSubtitles"] = 1
                 else:
                     log.info('Need to burn in subtitle %s' % selectSubsIndex)
                     playurlprefs["subtitleStreamID"] = selectSubsIndex
                     playurlprefs["subtitleSize"] = settings('subtitleSize')
 
-            else: # User backed out of selection
-                pass
-
-        # Tell the PMS what we want with a PUT request
-        # url = self.server + '/library/parts/' + self.item[0][part].attrib['id']
-        # PlexFunctions.SelectStreams(url, playurlprefs)
         url += '&' + urlencode(playurlprefs)
 
         # Get number of channels for selected audio track

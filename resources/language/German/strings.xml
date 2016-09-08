@@ -360,6 +360,7 @@
     <string id="39072">Läuft Kodi auf einem Raspberry Pi oder ähnlichem Gerät mit äusserst wenig Rechenleistung? Falls ja, wird die Rechenlast reduziert, damit Kodi nicht abstürzt.</string>
     <string id="39073">Tweaks Aussehen</string>
     <string id="39074">TV Serien</string>
+    <string id="39075">Falls möglich, Plex Standard-Untertitel anzeigen</string>
 
     <!-- Plex Entrypoint.py -->
     <string id="39200">Plex Home Benutzer abmelden: </string>
