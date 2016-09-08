@@ -56,7 +56,7 @@ class ContextMenu(object):
         self.item_id = self._get_item_id(self.kodi_id, self.item_type)
 
         log.info("Found item_id: %s item_type: %s", self.item_id, self.item_type)
-        
+
         if self.item_id:
 
             self.item = self.emby.getItem(self.item_id)
@@ -94,7 +94,7 @@ class ContextMenu(object):
         item_id = xbmc.getInfoLabel('ListItem.Property(embyid)')
 
         if not item_id and kodi_id and item_type:
-            
+
             conn = kodiSQL('emby')
             cursor = conn.cursor()
             emby_db = embydb.Embydb_Functions(cursor)
@@ -143,60 +143,65 @@ class ContextMenu(object):
     def _action_menu(self):
 
         selected = self._selected_option
-        item_id = self.item_id
 
         if selected == OPTIONS['Refresh']:
-            self.emby.refreshItem(item_id)
+            self.emby.refreshItem(self.item_id)
 
         elif selected == OPTIONS['AddFav']:
-            self.emby.updateUserRating(item_id, favourite=True)
+            self.emby.updateUserRating(self.item_id, favourite=True)
 
         elif selected == OPTIONS['RemoveFav']:
-            self.emby.updateUserRating(item_id, favourite=False)
+            self.emby.updateUserRating(self.item_id, favourite=False)
 
         elif selected == OPTIONS['RateSong']:
-
-            conn = kodiSQL('music')
-            cursor = conn.cursor()
-            query = "SELECT rating FROM song WHERE idSong = ?"
-            cursor.execute(query, (self.kodi_id,))
-            try:
-                value = cursor.fetchone()[0]
-                current_value = int(round(float(value), 0))
-            except TypeError:
-                pass
-            else:
-                new_value = dialog.numeric(0, lang(30411), str(current_value))
-                if new_value > -1:
-
-                    new_value = int(new_value)
-                    if new_value > 5:
-                        new_value = 5
-
-                    if settings('enableUpdateSongRating') == "true":
-                        musicutils.updateRatingToFile(new_value, self.api.getFilePath())
-
-                    query = "UPDATE song SET rating = ? WHERE idSong = ?"
-                    cursor.execute(query, (new_value, self.kodi_id,))
-                    conn.commit()
-            finally:
-                cursor.close()
+            self._rate_song()
 
         elif selected == OPTIONS['Addon']:
             xbmc.executebuiltin('Addon.OpenSettings(plugin.video.emby)')
 
         elif selected == OPTIONS['Delete']:
+            self._delete_item()
 
-            delete = True
-            if settings('skipContextMenu') != "true":
+    def _rate_song(self):
 
-                if not dialog(type_="yesno", heading="{emby}", line1=lang(33041)):
-                    log.info("User skipped deletion for: %s", item_id)
-                    delete = False
+        conn = kodiSQL('music')
+        cursor = conn.cursor()
+        query = "SELECT rating FROM song WHERE idSong = ?"
+        cursor.execute(query, (self.kodi_id,))
+        try:
+            value = cursor.fetchone()[0]
+            current_value = int(round(float(value), 0))
+        except TypeError:
+            pass
+        else:
+            new_value = dialog("numeric", 0, lang(30411), str(current_value))
+            if new_value > -1:
 
-            if delete:
-                log.info("Deleting request: %s", item_id)
-                self.emby.deleteItem(item_id)
+                new_value = int(new_value)
+                if new_value > 5:
+                    new_value = 5
+
+                if settings('enableUpdateSongRating') == "true":
+                    musicutils.updateRatingToFile(new_value, self.api.getFilePath())
+
+                query = "UPDATE song SET rating = ? WHERE idSong = ?"
+                cursor.execute(query, (new_value, self.kodi_id,))
+                conn.commit()
+        finally:
+            cursor.close()
+
+    def _delete_item(self):
+
+        delete = True
+        if settings('skipContextMenu') != "true":
+
+            if not dialog(type_="yesno", heading="{emby}", line1=lang(33041)):
+                log.info("User skipped deletion for: %s", self.item_id)
+                delete = False
+
+        if delete:
+            log.info("Deleting request: %s", self.item_id)
+            self.emby.deleteItem(self.item_id)
 
 
 # Kodi contextmenu item to configure the emby settings
