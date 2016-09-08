@@ -25,14 +25,13 @@ import clientinfo
 import initialsetup
 import kodimonitor
 import librarysync
+import loghandler
 import player
 import videonodes
 import websocket_client as wsc
 from utils import window, settings, dialog, language as lang
 
 #################################################################################################
-
-import loghandler
 
 loghandler.config()
 log = logging.getLogger("EMBY.service")
@@ -168,10 +167,10 @@ class Service(object):
                             else:
                                 add = ""
                             dialog(type_="notification",
-                                   heading=lang(29999),
+                                   heading="{emby}",
                                    message=("%s %s%s!"
                                             % (lang(33000), user.get_username().decode('utf-8'),
-                                                add.decode('utf-8'))),
+                                               add.decode('utf-8'))),
                                    icon="{emby}",
                                    time=2000,
                                    sound=False)
@@ -254,7 +253,7 @@ class Service(object):
                                 break
                             # Alert the user that server is online.
                             dialog(type_="notification",
-                                   heading=lang(29999),
+                                   heading="{emby}",
                                    message=lang(33003),
                                    icon="{emby}",
                                    time=2000,

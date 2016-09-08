@@ -57,6 +57,8 @@ def dialog(type_, **kwargs):
     if "icon" in kwargs:
         kwargs['icon'] = kwargs['icon'].replace("{emby}",
                                                 "special://home/addons/plugin.video.emby/icon.png")
+    if "heading" in kwargs:
+        kwargs['heading'] = kwargs['heading'].replace("{emby}", language(29999))
 
     types = {
         'yesno': d.yesno,
