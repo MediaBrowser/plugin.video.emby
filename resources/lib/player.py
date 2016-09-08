@@ -289,7 +289,7 @@ class Player(xbmc.Player):
     def onPlayBackSeek(self, time, seekOffset):
         # Make position when seeking a bit more accurate
         currentFile = self.currentFile
-        self.info("PLAYBACK_SEEK: %s" % currentFile)
+        log.info("PLAYBACK_SEEK: %s" % currentFile)
 
         if self.played_info.get(currentFile):
             try:
