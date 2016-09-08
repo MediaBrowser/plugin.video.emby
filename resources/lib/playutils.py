@@ -333,6 +333,8 @@ class PlayUtils():
                     track = "%s - Forced" % track
                 if downloadable:
                     downloadableStreams.append(index)
+                else:
+                    track = "%s (burn-in)" % track
 
                 subtitleStreamsList.append(index)
                 subtitleStreams.append(tryEncode(track))
