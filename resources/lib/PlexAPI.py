@@ -1184,6 +1184,7 @@ class API():
         self.item = item
         # which media part in the XML response shall we look at?
         self.part = 0
+        self.media = 0
         self.server = window('pms_server')
         self.client = clientinfo.ClientInfo()
 
@@ -2198,6 +2199,7 @@ class API():
             media = xbmcgui.Dialog().select('Select stream', dialoglist)
         else:
             media = 0
+        self.media = media
         return media
 
     def getTranscodeVideoPath(self, action, quality=None):
@@ -2221,13 +2223,14 @@ class API():
 
         TODO: mediaIndex
         """
+        media_stream = self._getMedia()
         if quality is None:
             quality = {}
         xargs = self.client.getXArgsDeviceInfo()
         # For DirectPlay, path/key of PART is needed
         # trailers are 'clip' with PMS xmls
         if action == "DirectStream":
-            path = self.item[self._getMedia()][self.part].attrib['key']
+            path = self.item[media_stream][self.part].attrib['key']
             url = self.server + path
             # e.g. Trailers already feature an '?'!
             if '?' in url:
@@ -2246,7 +2249,7 @@ class API():
             'session':  self.client.getDeviceId(),
             'fastSeek': 1,
             'path': path,
-            'mediaIndex': 0,       # Probably refering to XML reply sheme
+            'mediaIndex': media_stream,
             'partIndex': self.part,
             # 'copyts': 1,
             # 'offset': 0,           # Resume point
