@@ -23,7 +23,7 @@ log = logging.getLogger("EMBY."+__name__)
 ##################################################################################################
 
 
-class WebSocket_Client(threading.Thread):
+class WebSocketClient(threading.Thread):
 
     _shared_state = {}
 
@@ -35,12 +35,12 @@ class WebSocket_Client(threading.Thread):
 
         self.__dict__ = self._shared_state
         self.monitor = xbmc.Monitor()
-        
+
         self.doutils = downloadutils.DownloadUtils()
         self.client_info = clientinfo.ClientInfo()
         self.device_id = self.client_info.get_device_id()
         self.library_sync = librarysync.LibrarySync()
-        
+
         threading.Thread.__init__(self)
 
 
@@ -158,8 +158,7 @@ class WebSocket_Client(threading.Thread):
 
         window('emby_command', value="true")
 
-    @classmethod
-    def _library_changed(cls, data):
+    def _library_changed(self, data):
 
         process_list = {
 
@@ -192,26 +191,26 @@ class WebSocket_Client(threading.Thread):
                 index = int(arguments['Index'])
                 player.setAudioStream(index - 1)
             elif command == "SetSubtitleStreamIndex":
-                embyindex = int(arguments['Index'])
-                currentFile = player.getPlayingFile()
+                emby_index = int(arguments['Index'])
+                current_file = player.getPlayingFile()
 
-                mapping = window('emby_%s.indexMapping' % currentFile)
+                mapping = window('emby_%s.indexMapping' % current_file)
                 if mapping:
-                    externalIndex = json.loads(mapping)
+                    external_index = json.loads(mapping)
                     # If there's external subtitles added via playbackutils
-                    for index in externalIndex:
-                        if externalIndex[index] == embyindex:
+                    for index in external_index:
+                        if external_index[index] == emby_index:
                             player.setSubtitleStream(int(index))
                             break
                     else:
                         # User selected internal subtitles
-                        external = len(externalIndex)
-                        audioTracks = len(player.getAvailableAudioStreams())
-                        player.setSubtitleStream(external + embyindex - audioTracks - 1)
+                        external = len(external_index)
+                        audio_tracks = len(player.getAvailableAudioStreams())
+                        player.setSubtitleStream(external + emby_index - audio_tracks - 1)
                 else:
                     # Emby merges audio and subtitle index together
-                    audioTracks = len(player.getAvailableAudioStreams())
-                    player.setSubtitleStream(index - audioTracks - 1)
+                    audio_tracks = len(player.getAvailableAudioStreams())
+                    player.setSubtitleStream(index - audio_tracks - 1)
 
             # Let service know
             window('emby_command', value="true")
@@ -287,7 +286,7 @@ class WebSocket_Client(threading.Thread):
         self.doutils.postCapabilities(self.device_id)
 
     def on_error(self, ws, error):
-        
+
         if "10061" in str(error):
             # Server is offline
             pass

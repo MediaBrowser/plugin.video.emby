@@ -100,7 +100,7 @@ class Service(object):
 
         # Initialize important threads
         user = userclient.UserClient()
-        ws = wsc.WebSocket_Client()
+        ws = wsc.WebSocketClient()
         library = librarysync.LibrarySync()
         kplayer = player.Player()
         # Sync and progress report
@@ -235,7 +235,7 @@ class Service(object):
                         # device going to sleep
                         if self.websocket_running:
                             ws.stop_client()
-                            ws = wsc.WebSocket_Client()
+                            ws = wsc.WebSocketClient()
                             self.websocket_running = False
 
                         if self.library_running:
