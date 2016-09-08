@@ -64,7 +64,8 @@ def dialog(type_, **kwargs):
         'yesno': d.yesno,
         'ok': d.ok,
         'notification': d.notification,
-        'input': d.input
+        'input': d.input,
+        'select': d.select
     }
     return types[type_](**kwargs)
 

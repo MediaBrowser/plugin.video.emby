@@ -5,7 +5,6 @@
 import logging
 import os
 import sys
-import urlparse
 
 import xbmc
 import xbmcaddon
@@ -13,121 +12,120 @@ import xbmcgui
 
 #################################################################################################
 
-_addon = xbmcaddon.Addon(id='plugin.video.emby')
-_addon_path = _addon.getAddonInfo('path').decode('utf-8')
-_base_resource = xbmc.translatePath(os.path.join(_addon_path, 'resources', 'lib')).decode('utf-8')
-sys.path.append(_base_resource)
+_ADDON = xbmcaddon.Addon(id='plugin.video.emby')
+_CWD = _ADDON.getAddonInfo('path').decode('utf-8')
+_BASE_LIB = xbmc.translatePath(os.path.join(_CWD, 'resources', 'lib')).decode('utf-8')
+sys.path.append(_BASE_LIB)
 
 #################################################################################################
 
 import api
-import artwork
-import downloadutils
-import librarysync
+import loghandler
 import read_embyserver as embyserver
 import embydb_functions as embydb
-import kodidb_functions as kodidb
 import musicutils as musicutils
-from utils import settings, language as lang, kodiSQL
+from utils import settings, dialog, language as lang, kodiSQL
 
 #################################################################################################
-
-import loghandler
 
 loghandler.config()
 log = logging.getLogger("EMBY.contextmenu")
 
 #################################################################################################
 
+OPTIONS = {
+    
+    'Refresh': lang(30410),
+    'Delete': lang(30409),
+    'Addon': lang(30408),
+    'AddFav': lang(30405),
+    'RemoveFav': lang(30406),
+    'RateSong': lang(30407)
+}
+
 # Kodi contextmenu item to configure the emby settings
 if __name__ == '__main__':
 
-    kodiId = xbmc.getInfoLabel('ListItem.DBID').decode('utf-8')
-    itemType = xbmc.getInfoLabel('ListItem.DBTYPE').decode('utf-8')
-    itemId = ""
-    
-    if not itemType:
+    kodi_id = xbmc.getInfoLabel('ListItem.DBID').decode('utf-8')
+    item_type = xbmc.getInfoLabel('ListItem.DBTYPE').decode('utf-8')
+    item_id = xbmc.getInfoLabel('ListItem.Property(embyid)')
+
+    if not item_type:
 
         if xbmc.getCondVisibility("Container.Content(albums)"):
-            itemType = "album"
+            item_type = "album"
         elif xbmc.getCondVisibility("Container.Content(artists)"):
-            itemType = "artist"
+            item_type = "artist"
         elif xbmc.getCondVisibility("Container.Content(songs)"):
-            itemType = "song"
+            item_type = "song"
         elif xbmc.getCondVisibility("Container.Content(pictures)"):
-            itemType = "picture"
+            item_type = "picture"
         else:
-            log.info("ItemType is unknown.")
+            log.info("item_type is unknown")
 
-    if (not kodiId or kodiId == "-1") and xbmc.getInfoLabel("ListItem.Property(embyid)"):
-        itemId = xbmc.getInfoLabel("ListItem.Property(embyid)")
-    
-    elif kodiId and itemType:
-        embyconn = kodiSQL('emby')
-        embycursor = embyconn.cursor()
-        emby_db = embydb.Embydb_Functions(embycursor)
-        item = emby_db.getItem_byKodiId(kodiId, itemType)
-        embycursor.close()
+    if not item_id and kodi_id and item_type:
+        conn = kodiSQL('emby')
+        cursor = conn.cursor()
+        emby_db = embydb.Embydb_Functions(cursor)
+        item = emby_db.getItem_byKodiId(kodi_id, item_type)
+        cursor.close()
         try:
-            itemId = item[0]
+            item_id = item[0]
         except TypeError:
             pass
 
-    
-    log.info("Found ItemId: %s ItemType: %s" % (itemId, itemType))
-    if itemId:
-
-        dialog = xbmcgui.Dialog()
+    log.info("Found item_id: %s item_type: %s", item_id, item_type)
+    if item_id:
 
         emby = embyserver.Read_EmbyServer()
-        item = emby.getItem(itemId)
+        item = emby.getItem(item_id)
         API = api.API(item)
         userdata = API.getUserData()
         likes = userdata['Likes']
         favourite = userdata['Favorite']
-        
+
         options = []
 
         if favourite:
             # Remove from emby favourites
-            options.append(lang(30406))
+            options.append(OPTIONS['RemoveFav'])
         else:
             # Add to emby favourites
-            options.append(lang(30405)) 
+            options.append(OPTIONS['AddFav']) 
 
-        if itemType == "song":
+        if item_type == "song":
             # Set custom song rating
-            options.append(lang(30407))
-        
+            options.append(OPTIONS['RateSong'])
+
         # Refresh item
-        options.append(lang(30410))
+        options.append(OPTIONS['Refresh'])
         # Delete item
-        options.append(lang(30409))
+        options.append(OPTIONS['Delete'])
         # Addon settings
-        options.append(lang(30408))
-        
+        options.append(OPTIONS['Addon'])
+
         # Display select dialog and process results
-        resp = xbmcgui.Dialog().select(lang(30401), options)
+        resp = dialog(type_="select", heading=lang(30401), list=options)
         if resp > -1:
             selected = options[resp]
 
-            if selected == lang(30410):
-                # Refresh item
-                emby.refreshItem(itemId)
-            elif selected == lang(30405):
-                # Add favourite
-                emby.updateUserRating(itemId, favourite=True)
-            elif selected == lang(30406):
-                # Delete favourite
-                emby.updateUserRating(itemId, favourite=False)
-            elif selected == lang(30407):
-                # Update song rating
-                kodiconn = kodiSQL('music')
-                kodicursor = kodiconn.cursor()
+            if selected == OPTIONS['Refresh']:
+                emby.refreshItem(item_id)
+
+            elif selected == OPTIONS['AddFav']:
+                emby.updateUserRating(item_id, favourite=True)
+
+            elif selected == OPTIONS['RemoveFav']:
+                emby.updateUserRating(item_id, favourite=False)
+
+            elif selected == OPTIONS['RateSong']:
+
+                conn = kodiSQL('music')
+                cursor = conn.cursor()
                 query = "SELECT rating FROM song WHERE idSong = ?"
-                kodicursor.execute(query, (kodiId,))
+                cursor.execute(query, (kodi_id,))
                 try:
-                    value = kodicursor.fetchone()[0]
+                    value = cursor.fetchone()[0]
                     current_value = int(round(float(value),0))
                 except TypeError:
                     pass
@@ -143,33 +141,30 @@ if __name__ == '__main__':
                             musicutils.updateRatingToFile(new_value, API.getFilePath())
 
                         query = "UPDATE song SET rating = ? WHERE idSong = ?"
-                        kodicursor.execute(query, (new_value, kodiId,))
-                        kodiconn.commit()
+                        cursor.execute(query, (new_value, kodi_id,))
+                        conn.commit()
                         
                         '''if settings('enableExportSongRating') == "true":
                             like, favourite, deletelike = musicutils.getEmbyRatingFromKodiRating(new_value)
-                            emby.updateUserRating(itemId, like, favourite, deletelike)'''
+                            emby.updateUserRating(item_id, like, favourite, deletelike)'''
                 finally:
-                    kodicursor.close()
+                    cursor.close()
 
-            elif selected == lang(30408):
-                # Open addon settings
-                xbmc.executebuiltin("Addon.OpenSettings(plugin.video.emby)")
-                
-            elif selected == lang(30409):
-                # delete item from the server
+            elif selected == OPTIONS['Addon']:
+                xbmc.executebuiltin('Addon.OpenSettings(plugin.video.emby)')
+
+            elif selected == OPTIONS['Delete']:
+
                 delete = True
                 if settings('skipContextMenu') != "true":
-                    resp = dialog.yesno(
-                                heading=lang(29999),
-                                line1=lang(33041))
-                    if not resp:
-                        log.info("User skipped deletion for: %s." % itemId)
+
+                    if not dialog(type_="yesno", heading="{emby}", line1=lang(33041)):
+                        log.info("User skipped deletion for: %s", item_id)
                         delete = False
-                
+
                 if delete:
-                    log.info("Deleting request: %s" % itemId)
-                    emby.deleteItem(itemId)
-            
+                    log.info("Deleting request: %s", item_id)
+                    emby.deleteItem(item_id)
+
             xbmc.sleep(500)
             xbmc.executebuiltin('Container.Refresh')
