@@ -363,11 +363,12 @@ class PlayUtils():
                 # Load subtitles in the listitem if downloadable
                 if selectSubsIndex in downloadableStreams:
 
-                    url = "%s/library/streams/%s" \
-                          % (self.server, selectSubsIndex)
-                    url = self.API.addPlexHeadersToUrl(url)
-                    log.info("Downloadable sub: %s: %s" % (selectSubsIndex, url))
-                    listitem.setSubtitles([tryEncode(url)])
+                    sub_url = self.API.addPlexHeadersToUrl(
+                        "%s/library/streams/%s"
+                        % (self.server, selectSubsIndex))
+                    log.info("Downloadable sub: %s: %s"
+                             % (selectSubsIndex, sub_url))
+                    listitem.setSubtitles([tryEncode(sub_url)])
                 else:
                     log.info('Need to burn in subtitle %s' % selectSubsIndex)
                     playurlprefs["subtitleStreamID"] = selectSubsIndex
