@@ -38,6 +38,7 @@ class PlayUtils():
         playurl is utf-8 encoded!
         """
         self.API.setPartNumber(partNumber)
+        self.API.getMediastreamNumber()
         playurl = self.isDirectPlay()
 
         if playurl is not None:

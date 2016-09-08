@@ -1184,7 +1184,7 @@ class API():
         self.item = item
         # which media part in the XML response shall we look at?
         self.part = 0
-        self.media = 0
+        self.mediastream = None
         self.server = window('pms_server')
         self.client = clientinfo.ClientInfo()
 
@@ -1239,9 +1239,11 @@ class API():
             will always use 1st media stream, e.g. when several different
             files are present for the same PMS item
         """
+        if self.mediastream is None and forceFirstMediaStream is False:
+            self.getMediastreamNumber()
         try:
             if forceFirstMediaStream is False:
-                ans = self.item[self._getMedia()][self.part].attrib['file']
+                ans = self.item[self.mediastream][self.part].attrib['file']
             else:
                 ans = self.item[0][self.part].attrib['file']
         except:
@@ -1697,7 +1699,7 @@ class API():
             'aspectratio': self.getDataFromPartOrMedia('aspectratio'),
             'bitrate': self.getDataFromPartOrMedia('bitrate'),
             'container': self.getDataFromPartOrMedia('container'),
-            'bitDepth': self.getDataFromPartOrMedia('bitDepth')
+            'bitDepth': self.item[0][self.part][self.mediastream].attrib.get('bitDepth')
         }
 
     def getExtras(self):
@@ -2170,7 +2172,7 @@ class API():
         """
         return self.item[0].attrib.get('optimizedForStreaming') == '1'
 
-    def _getMedia(self):
+    def getMediastreamNumber(self):
         """
         Returns the Media stream as an int (mostly 0). Will let the user choose
         if several media streams are present for a PMS item (if settings are
@@ -2199,7 +2201,7 @@ class API():
             media = xbmcgui.Dialog().select('Select stream', dialoglist)
         else:
             media = 0
-        self.media = media
+        self.mediastream = media
         return media
 
     def getTranscodeVideoPath(self, action, quality=None):
@@ -2223,14 +2225,15 @@ class API():
 
         TODO: mediaIndex
         """
-        media_stream = self._getMedia()
+        if self.mediastream is None:
+            self.getMediastreamNumber()
         if quality is None:
             quality = {}
         xargs = self.client.getXArgsDeviceInfo()
         # For DirectPlay, path/key of PART is needed
         # trailers are 'clip' with PMS xmls
         if action == "DirectStream":
-            path = self.item[media_stream][self.part].attrib['key']
+            path = self.item[self.mediastream][self.part].attrib['key']
             url = self.server + path
             # e.g. Trailers already feature an '?'!
             if '?' in url:
@@ -2249,7 +2252,7 @@ class API():
             'session':  self.client.getDeviceId(),
             'fastSeek': 1,
             'path': path,
-            'mediaIndex': media_stream,
+            'mediaIndex': self.mediastream,
             'partIndex': self.part,
             # 'copyts': 1,
             # 'offset': 0,           # Resume point
