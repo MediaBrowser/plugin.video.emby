@@ -66,26 +66,7 @@ class Main(object):
                 xbmc.executebuiltin('Addon.OpenSettings(plugin.video.emby)')
 
             elif mode in ('manualsync', 'fastsync', 'repair'):
-
-                if window('emby_online') != "true":
-                    # Server is not online, do not run the sync
-                    dialog(type_="ok",
-                           heading="{emby}",
-                           line1=lang(33034))
-                    log.warn("Not connected to the emby server.")
-
-                elif window('emby_dbScan') != "true":
-                    import librarysync
-                    library_sync = librarysync.LibrarySync()
-
-                    if mode == 'manualsync':
-                        library_sync.ManualSync().sync()
-                    elif mode == 'fastsync':
-                        library_sync.startSync()
-                    else:
-                        library_sync.fullSync(repair=True)
-                else:
-                    log.warn("Database scan is already running.")
+                self._library_sync(mode)
 
             elif mode == 'texturecache':
                 import artwork
@@ -146,6 +127,29 @@ class Main(object):
             return True
 
         return False
+
+    @classmethod
+    def _library_sync(cls, mode):
+
+        if window('emby_online') != "true":
+            # Server is not online, do not run the sync
+            dialog(type_="ok",
+                   heading="{emby}",
+                   line1=lang(33034))
+            log.warn("Not connected to the emby server.")
+
+        elif window('emby_dbScan') != "true":
+            import librarysync
+            library_sync = librarysync.LibrarySync()
+
+            if mode == 'manualsync':
+                librarysync.ManualSync().sync()
+            elif mode == 'fastsync':
+                library_sync.startSync()
+            else:
+                library_sync.fullSync(repair=True)
+        else:
+            log.warn("Database scan is already running.")
 
 
 if __name__ == "__main__":
