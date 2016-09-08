@@ -62,9 +62,9 @@ class ContextMenu(object):
             self.item = self.emby.getItem(self.item_id)
             self.api = api.API(self.item)
 
-            if self._select_menu(self._build_menu()):
-
+            if self._select_menu():
                 self._action_menu()
+                
                 xbmc.sleep(500)
                 xbmc.executebuiltin('Container.Refresh')
 
@@ -107,8 +107,8 @@ class ContextMenu(object):
 
         return item_id
 
-    def _build_menu(self):
-
+    def _select_menu(self, options):
+        # Display select dialog
         userdata = self.api.getUserData()
         options = []
 
@@ -130,10 +130,6 @@ class ContextMenu(object):
         # Addon settings
         options.append(OPTIONS['Addon'])
 
-        return options
-
-    def _select_menu(self, options):
-        # Display select dialog
         resp = dialog(type_="select", heading=lang(30401), list=options)
         if resp > -1:
             self._selected_option = options[resp]
