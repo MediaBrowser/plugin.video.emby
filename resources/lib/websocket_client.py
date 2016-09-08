@@ -109,7 +109,7 @@ class WebSocketClient(threading.Thread):
 
         playlist_ = playlist.Playlist()
 
-        if command == "PlayNow":
+        if command == 'PlayNow':
             startat = data.get('StartPositionTicks', 0)
             playlist_.playAll(item_ids, startat)
             dialog(type_="notification",
@@ -118,7 +118,7 @@ class WebSocketClient(threading.Thread):
                    icon="{emby}",
                    sound=False)
 
-        elif command == "PlayNext":
+        elif command == 'PlayNext':
             new_playlist = playlist_.modifyPlaylist(item_ids)
             dialog(type_="notification",
                    heading="{emby}",
@@ -144,14 +144,17 @@ class WebSocketClient(threading.Thread):
             'NextTrack': player.playnext,
             'PreviousTrack': player.playprevious
         }
-        if command == "Seek":
-            seekto = data['SeekPositionTicks']
-            seektime = seekto / 10000000.0
-            player.seekTime(seektime)
-            log.info("Seek to %s", seektime)
+        if command == 'Seek':
+
+            seek_to = data['SeekPositionTicks']
+            seek_time = seek_to / 10000000.0
+            player.seekTime(seek_time)
+            log.info("Seek to %s", seek_time)
+
         elif command in actions:
             actions[command]()
             log.info("Command: %s completed", command)
+
         else:
             log.info("Unknown command: %s", command)
             return
@@ -180,17 +183,21 @@ class WebSocketClient(threading.Thread):
 
             player = xbmc.Player()
             # These commands need to be reported back
-            if command == "Mute":
+            if command == 'Mute':
                 xbmc.executebuiltin('Mute')
-            elif command == "Unmute":
+            
+            elif command == 'Unmute':
                 xbmc.executebuiltin('Mute')
-            elif command == "SetVolume":
+            
+            elif command == 'SetVolume':
                 volume = arguments['Volume']
                 xbmc.executebuiltin('SetVolume(%s[,showvolumebar])' % volume)
-            elif command == "SetAudioStreamIndex":
+            
+            elif command == 'SetAudioStreamIndex':
                 index = int(arguments['Index'])
                 player.setAudioStream(index - 1)
-            elif command == "SetSubtitleStreamIndex":
+            
+            elif command == 'SetSubtitleStreamIndex':
                 emby_index = int(arguments['Index'])
                 current_file = player.getPlayingFile()
 
@@ -215,7 +222,7 @@ class WebSocketClient(threading.Thread):
             # Let service know
             window('emby_command', value="true")
 
-        elif command == "DisplayMessage":
+        elif command == 'DisplayMessage':
 
             header = arguments['Header']
             text = arguments['Text']
