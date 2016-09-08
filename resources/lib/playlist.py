@@ -2,7 +2,6 @@
 
 #################################################################################################
 
-import json
 import logging
 
 import xbmc
@@ -46,7 +45,7 @@ class Playlist(object):
 
         if start_at:
             # Seek to the starting position
-            window('emby_customplaylist.seektime', str(startat))
+            window('emby_customplaylist.seektime', str(start_at))
 
         for item_id in item_ids:
 
