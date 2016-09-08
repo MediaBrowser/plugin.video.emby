@@ -185,18 +185,18 @@ class WebSocketClient(threading.Thread):
             # These commands need to be reported back
             if command == 'Mute':
                 xbmc.executebuiltin('Mute')
-            
+
             elif command == 'Unmute':
                 xbmc.executebuiltin('Mute')
-            
+
             elif command == 'SetVolume':
                 volume = arguments['Volume']
                 xbmc.executebuiltin('SetVolume(%s[,showvolumebar])' % volume)
-            
+
             elif command == 'SetAudioStreamIndex':
                 index = int(arguments['Index'])
                 player.setAudioStream(index - 1)
-            
+
             elif command == 'SetSubtitleStreamIndex':
                 emby_index = int(arguments['Index'])
                 current_file = player.getPlayingFile()

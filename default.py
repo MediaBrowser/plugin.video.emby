@@ -9,7 +9,6 @@ import urlparse
 
 import xbmc
 import xbmcaddon
-import xbmcgui
 
 #################################################################################################
 
@@ -46,18 +45,14 @@ class Main(object):
         log.warn("Parameter string: %s", sys.argv[2])
         try:
             mode = params['mode'][0]
-            itemid = params.get('id')
-            if itemid:
-                itemid = itemid[0]
-        except:
-            params = {}
+        except (IndexError, KeyError):
             mode = ""
 
         if "/extrafanart" in base_url:
 
             emby_path = sys.argv[2][1:]
             emby_id = params.get('id', [""])[0]
-            entrypoint.getExtraFanArt(emby_id,emby_path)
+            entrypoint.getExtraFanArt(emby_id, emby_path)
 
         elif "/Extras" in base_url or "/VideoFiles" in base_url:
 
@@ -98,7 +93,8 @@ class Main(object):
             else:
                 entrypoint.doMainListing()
 
-    def _modes(self, mode, params):
+    @classmethod
+    def _modes(cls, mode, params):
 
         modes = {
 
@@ -122,25 +118,30 @@ class Main(object):
         }
         if mode in modes:
             # Simple functions
+            action = modes[mode]
+            item_id = params.get('id')
+            if item_id:
+                item_id = item_id[0]
+
             if mode == 'play':
-                dbid = params.get('dbid')
-                modes[mode](itemid, dbid)
+                database_id = params.get('dbid')
+                action(item_id, database_id)
 
             elif mode in ('nextup', 'inprogressepisodes', 'recentepisodes'):
                 limit = int(params['limit'][0])
-                modes[mode](itemid, limit)
+                action(item_id, limit)
 
             elif mode in ('channels', 'getsubfolders'):
-                modes[mode](itemid)
+                action(item_id)
 
             elif mode == 'browsecontent':
-                modes[mode](itemid, params.get('type', [""])[0], params.get('folderid', [""])[0])
+                action(item_id, params.get('type', [""])[0], params.get('folderid', [""])[0])
 
             elif mode == 'channelsfolder':
                 folderid = params['folderid'][0]
-                modes[mode](itemid, folderid)
+                action(item_id, folderid)
             else:
-                modes[mode]()
+                action()
 
             return True
 
