@@ -34,7 +34,7 @@ log = logging.getLogger("EMBY.contextmenu")
 #################################################################################################
 
 OPTIONS = {
-    
+
     'Refresh': lang(30410),
     'Delete': lang(30409),
     'Addon': lang(30408),
@@ -43,57 +43,77 @@ OPTIONS = {
     'RateSong': lang(30407)
 }
 
-# Kodi contextmenu item to configure the emby settings
-if __name__ == '__main__':
+class ContextMenu(object):
 
-    kodi_id = xbmc.getInfoLabel('ListItem.DBID').decode('utf-8')
-    item_type = xbmc.getInfoLabel('ListItem.DBTYPE').decode('utf-8')
-    item_id = xbmc.getInfoLabel('ListItem.Property(embyid)')
 
-    if not item_type:
+    def __init__(self):
 
-        if xbmc.getCondVisibility("Container.Content(albums)"):
-            item_type = "album"
-        elif xbmc.getCondVisibility("Container.Content(artists)"):
-            item_type = "artist"
-        elif xbmc.getCondVisibility("Container.Content(songs)"):
-            item_type = "song"
-        elif xbmc.getCondVisibility("Container.Content(pictures)"):
-            item_type = "picture"
-        else:
-            log.info("item_type is unknown")
+        self.kodi_id = xbmc.getInfoLabel('ListItem.DBID').decode('utf-8')
+        self.item_type = self._get_item_type()
+        self.item_id = self._get_item_id(self.kodi_id, self.item_type)
 
-    if not item_id and kodi_id and item_type:
-        conn = kodiSQL('emby')
-        cursor = conn.cursor()
-        emby_db = embydb.Embydb_Functions(cursor)
-        item = emby_db.getItem_byKodiId(kodi_id, item_type)
-        cursor.close()
-        try:
-            item_id = item[0]
-        except TypeError:
-            pass
+        log.info("Found item_id: %s item_type: %s", self.item_id, self.item_type)
+        if self.item_id:
+            self._build_menu()
 
-    log.info("Found item_id: %s item_type: %s", item_id, item_type)
-    if item_id:
+    @classmethod
+    def _get_item_type(cls):
+
+        item_type = xbmc.getInfoLabel('ListItem.DBTYPE').decode('utf-8')
+
+        if not item_type:
+
+            if xbmc.getCondVisibility('Container.Content(albums)'):
+                item_type = "album"
+            elif xbmc.getCondVisibility('Container.Content(artists)'):
+                item_type = "artist"
+            elif xbmc.getCondVisibility('Container.Content(songs)'):
+                item_type = "song"
+            elif xbmc.getCondVisibility('Container.Content(pictures)'):
+                item_type = "picture"
+            else:
+                log.info("item_type is unknown")
+
+        return item_type
+
+    @classmethod
+    def _get_item_id(cls, kodi_id, item_type):
+
+        item_id = xbmc.getInfoLabel('ListItem.Property(embyid)')
+
+        if not item_id and kodi_id and item_type:
+            
+            conn = kodiSQL('emby')
+            cursor = conn.cursor()
+            emby_db = embydb.Embydb_Functions(cursor)
+            item = emby_db.getItem_byKodiId(kodi_id, item_type)
+            cursor.close()
+            try:
+                item_id = item[0]
+            except TypeError:
+                pass
+
+        return item_id
+
+    def _build_menu(self):
+
+        item_id = self.item_id
 
         emby = embyserver.Read_EmbyServer()
         item = emby.getItem(item_id)
         API = api.API(item)
         userdata = API.getUserData()
-        likes = userdata['Likes']
-        favourite = userdata['Favorite']
 
         options = []
 
-        if favourite:
+        if userdata['Favorite']:
             # Remove from emby favourites
             options.append(OPTIONS['RemoveFav'])
         else:
             # Add to emby favourites
             options.append(OPTIONS['AddFav']) 
 
-        if item_type == "song":
+        if self.item_type == "song":
             # Set custom song rating
             options.append(OPTIONS['RateSong'])
 
@@ -123,7 +143,7 @@ if __name__ == '__main__':
                 conn = kodiSQL('music')
                 cursor = conn.cursor()
                 query = "SELECT rating FROM song WHERE idSong = ?"
-                cursor.execute(query, (kodi_id,))
+                cursor.execute(query, (self.kodi_id,))
                 try:
                     value = cursor.fetchone()[0]
                     current_value = int(round(float(value),0))
@@ -141,12 +161,8 @@ if __name__ == '__main__':
                             musicutils.updateRatingToFile(new_value, API.getFilePath())
 
                         query = "UPDATE song SET rating = ? WHERE idSong = ?"
-                        cursor.execute(query, (new_value, kodi_id,))
+                        cursor.execute(query, (new_value, self.kodi_id,))
                         conn.commit()
-                        
-                        '''if settings('enableExportSongRating') == "true":
-                            like, favourite, deletelike = musicutils.getEmbyRatingFromKodiRating(new_value)
-                            emby.updateUserRating(item_id, like, favourite, deletelike)'''
                 finally:
                     cursor.close()
 
@@ -168,3 +184,11 @@ if __name__ == '__main__':
 
             xbmc.sleep(500)
             xbmc.executebuiltin('Container.Refresh')
+
+
+# Kodi contextmenu item to configure the emby settings
+if __name__ == '__main__':
+
+    log.info("plugin.video.emby contextmenu started")
+    ContextMenu()
+    log.info("plugin.video.emby contextmenu stopped")
