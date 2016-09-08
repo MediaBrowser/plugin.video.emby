@@ -1,3 +1,12 @@
+version 1.3.2
+- Fix direct play & transcoding subtitles, finally! 
+- Fix getting Bit Depth from Plex metadata
+- Inform if subtitle needs to be burnt in
+- Consider several media streams if transcoding
+- Fix AttributeError
+- New setting to use Plex default subtitles
+- Clarify subtitle size
+
 version 1.3.1
 - Fix playing from widgets without direct paths
 - Fix UnboundLocalError on very first startup
