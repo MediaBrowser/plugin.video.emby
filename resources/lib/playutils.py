@@ -332,12 +332,12 @@ class PlayUtils():
                     track = "%s - Forced" % track
                 if downloadable:
                     downloadableStreams.append(index)
+                else:
+                    track = "%s (burn-in)" % track
                 if stream.attrib.get('selected') == '1' and downloadable:
                     # Only show subs without asking user if they can be
                     # turned off
                     defaultSub = index
-                else:
-                    track = "%s (burn-in)" % track
 
                 subtitleStreamsList.append(index)
                 subtitleStreams.append(tryEncode(track))
