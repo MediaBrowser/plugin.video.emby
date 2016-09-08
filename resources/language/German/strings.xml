@@ -285,7 +285,7 @@
     <!-- New to Plex -->
     <string id="39000">- Anzahl abzuspielender Trailer vor einem Film</string>
     <string id="39001">Audio Verstärkung (audio boost) wenn transkodiert wird</string>
-    <string id="39002">Grösse des Untertitels wenn transkodiert wird</string>
+    <string id="39002">Grösse des Untertitels, falls burnt-in</string>
     <string id="39003">Anzahl Download Sync Threads beschränken (Empfehlung für rpi: 1)</string>
     <string id="39004">Plex Companion aktivieren</string>
     <string id="39005">Plex Companion Port (nur bei Bedarf ändern)</string>
