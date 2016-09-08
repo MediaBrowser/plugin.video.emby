@@ -7,7 +7,6 @@ import logging
 
 import xbmc
 import xbmcgui
-import xbmcplugin
 
 import playutils
 import playbackutils

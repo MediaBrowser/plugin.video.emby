@@ -291,12 +291,14 @@ class Service(object):
 
         log.warn("======== STOP %s ========", self.addon_name)
 
-# Delay option
-DELAY = int(settings('startupDelay'))
-log.warn("Delaying emby startup by: %s sec...", DELAY)
 
-if DELAY and xbmc.Monitor().waitForAbort(DELAY):
-    # Start the service
-    log.warn("Abort requested while waiting. Emby for kodi not started.")
-else:
-    Service().service_entry_point()
+if __name__ == "__main__":
+    # Delay option
+    DELAY = int(settings('startupDelay'))
+    log.warn("Delaying emby startup by: %s sec...", DELAY)
+
+    if DELAY and xbmc.Monitor().waitForAbort(DELAY):
+        # Start the service
+        log.warn("Abort requested while waiting. Emby for kodi not started.")
+    else:
+        Service().service_entry_point()

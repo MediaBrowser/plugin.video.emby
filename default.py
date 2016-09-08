@@ -13,20 +13,19 @@ import xbmcgui
 
 #################################################################################################
 
-_addon = xbmcaddon.Addon(id='plugin.video.emby')
-_addon_path = _addon.getAddonInfo('path').decode('utf-8')
-_base_resource = xbmc.translatePath(os.path.join(_addon_path, 'resources', 'lib')).decode('utf-8')
-sys.path.append(_base_resource)
+_ADDON = xbmcaddon.Addon(id='plugin.video.emby')
+_CWD = _ADDON.getAddonInfo('path').decode('utf-8')
+_BASE_LIB = xbmc.translatePath(os.path.join(_CWD, 'resources', 'lib')).decode('utf-8')
+sys.path.append(_BASE_LIB)
 
 #################################################################################################
 
 import entrypoint
+import loghandler
 import utils
-from utils import window, language as lang
+from utils import window, dialog, language as lang
 
 #################################################################################################
-
-import loghandler
 
 loghandler.config()
 log = logging.getLogger("EMBY.default")
@@ -34,17 +33,17 @@ log = logging.getLogger("EMBY.default")
 #################################################################################################
 
 
-class Main():
-
+class Main(object):
 
     # MAIN ENTRY POINT
     #@utils.profiling()
+
     def __init__(self):
 
         # Parse parameters
         base_url = sys.argv[0]
         params = urlparse.parse_qs(sys.argv[2][1:])
-        log.warn("Parameter string: %s" % sys.argv[2])
+        log.warn("Parameter string: %s", sys.argv[2])
         try:
             mode = params['mode'][0]
             itemid = params.get('id')
@@ -54,6 +53,52 @@ class Main():
             params = {}
             mode = ""
 
+        if "/extrafanart" in base_url:
+
+            emby_path = sys.argv[2][1:]
+            emby_id = params.get('id', [""])[0]
+            entrypoint.getExtraFanArt(emby_id,emby_path)
+
+        elif "/Extras" in base_url or "/VideoFiles" in base_url:
+
+            emby_path = sys.argv[2][1:]
+            emby_id = params.get('id', [""])[0]
+            entrypoint.getVideoFiles(emby_id, emby_path)
+
+        elif not self._modes(mode, params):
+            # Other functions
+            if mode == 'settings':
+                xbmc.executebuiltin('Addon.OpenSettings(plugin.video.emby)')
+
+            elif mode in ('manualsync', 'fastsync', 'repair'):
+
+                if window('emby_online') != "true":
+                    # Server is not online, do not run the sync
+                    dialog(type_="ok",
+                           heading="{emby}",
+                           line1=lang(33034))
+                    log.warn("Not connected to the emby server.")
+
+                elif window('emby_dbScan') != "true":
+                    import librarysync
+                    library_sync = librarysync.LibrarySync()
+
+                    if mode == 'manualsync':
+                        library_sync.ManualSync().sync()
+                    elif mode == 'fastsync':
+                        library_sync.startSync()
+                    else:
+                        library_sync.fullSync(repair=True)
+                else:
+                    log.warn("Database scan is already running.")
+
+            elif mode == 'texturecache':
+                import artwork
+                artwork.Artwork().fullTextureCacheSync()
+            else:
+                entrypoint.doMainListing()
+
+    def _modes(self, mode, params):
 
         modes = {
 
@@ -75,76 +120,35 @@ class Main():
             'delete': entrypoint.deleteItem,
             'connect': entrypoint.emby_connect
         }
-        
-        if "/extrafanart" in sys.argv[0]:
-            embypath = sys.argv[2][1:]
-            embyid = params.get('id',[""])[0]
-            entrypoint.getExtraFanArt(embyid,embypath)
-            return
-            
-        if "/Extras" in sys.argv[0] or "/VideoFiles" in sys.argv[0]:
-            embypath = sys.argv[2][1:]
-            embyid = params.get('id',[""])[0]
-            entrypoint.getVideoFiles(embyid, embypath)
-            return
-
-        if modes.get(mode):
+        if mode in modes:
             # Simple functions
-            if mode == "play":
+            if mode == 'play':
                 dbid = params.get('dbid')
                 modes[mode](itemid, dbid)
 
-            elif mode in ("nextup", "inprogressepisodes", "recentepisodes"):
+            elif mode in ('nextup', 'inprogressepisodes', 'recentepisodes'):
                 limit = int(params['limit'][0])
                 modes[mode](itemid, limit)
-            
-            elif mode in ("channels","getsubfolders"):
-                modes[mode](itemid)
-                
-            elif mode == "browsecontent":
-                modes[mode](itemid, params.get('type',[""])[0], params.get('folderid',[""])[0])
 
-            elif mode == "channelsfolder":
+            elif mode in ('channels', 'getsubfolders'):
+                modes[mode](itemid)
+
+            elif mode == 'browsecontent':
+                modes[mode](itemid, params.get('type', [""])[0], params.get('folderid', [""])[0])
+
+            elif mode == 'channelsfolder':
                 folderid = params['folderid'][0]
                 modes[mode](itemid, folderid)
-            
             else:
                 modes[mode]()
-        else:
-            # Other functions
-            if mode == "settings":
-                xbmc.executebuiltin('Addon.OpenSettings(plugin.video.emby)')
-            
-            elif mode in ("manualsync", "fastsync", "repair"):
-                
-                if window('emby_online') != "true":
-                    # Server is not online, do not run the sync
-                    xbmcgui.Dialog().ok(heading=lang(29999),
-                                        line1=lang(33034))
-                    log.warn("Not connected to the emby server.")
-                    return
-                    
-                if window('emby_dbScan') != "true":
-                    import librarysync
-                    lib = librarysync.LibrarySync()
-                    if mode == "manualsync":
-                        librarysync.ManualSync().sync()
-                    elif mode == "fastsync":
-                        lib.startSync()
-                    else:
-                        lib.fullSync(repair=True)
-                else:
-                    log.warn("Database scan is already running.")
-                    
-            elif mode == "texturecache":
-                import artwork
-                artwork.Artwork().fullTextureCacheSync()
-            
-            else:
-                entrypoint.doMainListing()
 
-           
+            return True
+
+        return False
+
+
 if __name__ == "__main__":
-    log.info('plugin.video.emby started')
+
+    log.info("plugin.video.emby started")
     Main()
-    log.info('plugin.video.emby stopped')
+    log.info("plugin.video.emby stopped")
