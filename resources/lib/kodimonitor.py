@@ -55,10 +55,10 @@ class KodiMonitor(xbmc.Monitor):
             log.info("Method: %s Data: %s", method, data)
 
         if data:
-            data = json.loads(data,'utf-8')
+            data = json.loads(data, 'utf-8')
 
         if method == 'Player.OnPlay':
-            self._on_play_(data)            
+            self._on_play_(data)
 
         elif method == 'VideoLibrary.OnUpdate':
             self._video_update(data)
@@ -78,26 +78,26 @@ class KodiMonitor(xbmc.Monitor):
         # Set up report progress for emby playback
         item = data.get('item')
         try:
-            kodiid = item['id']
+            kodi_id = item['id']
             item_type = item['type']
         except (KeyError, TypeError):
-            log.info("Item is invalid for playstate update.")
+            log.info("Item is invalid for playstate update")
         else:
             if ((settings('useDirectPaths') == "1" and not item_type == "song") or
                     (item_type == "song" and settings('enableMusic') == "true")):
                 # Set up properties for player
-                embyconn = kodiSQL('emby')
-                embycursor = embyconn.cursor()
-                emby_db = embydb.Embydb_Functions(embycursor)
-                emby_dbitem = emby_db.getItem_byKodiId(kodiid, item_type)
+                conn = kodiSQL('emby')
+                cursor = conn.cursor()
+                emby_db = embydb.Embydb_Functions(cursor)
+                db_item = emby_db.getItem_byKodiId(kodi_id, item_type)
                 try:
-                    itemid = emby_dbitem[0]
+                    item_id = db_item[0]
                 except TypeError:
-                    log.info("No kodiId returned.")
+                    log.info("No kodi Id returned")
                 else:
-                    url = "{server}/emby/Users/{UserId}/Items/%s?format=json" % itemid
-                    result = doUtils.downloadUrl(url)
-                    log.debug("Item: %s" % result)
+                    url = "{server}/emby/Users/{UserId}/Items/%s?format=json" % item_id
+                    result = self.download(url)
+                    log.debug("Item: %s", result)
 
                     playurl = None
                     count = 0
@@ -108,7 +108,7 @@ class KodiMonitor(xbmc.Monitor):
                             count += 1
                             xbmc.sleep(200)
                         else:
-                            listItem = xbmcgui.ListItem()
+                            listitem = xbmcgui.ListItem()
                             playback = pbutils.PlaybackUtils(result)
 
                             if item_type == "song" and settings('streamMusic') == "true":
@@ -116,9 +116,9 @@ class KodiMonitor(xbmc.Monitor):
                             else:
                                 window('emby_%s.playmethod' % playurl, value="DirectPlay")
                             # Set properties for player.py
-                            playback.setProperties(playurl, listItem)
+                            playback.setProperties(playurl, listitem)
                 finally:
-                    embycursor.close()
+                    cursor.close()
 
     def _video_update(self, data):
 
@@ -126,36 +126,36 @@ class KodiMonitor(xbmc.Monitor):
         playcount = data.get('playcount')
         item = data.get('item')
         try:
-            kodiid = item['id']
+            kodi_id = item['id']
             item_type = item['type']
         except (KeyError, TypeError):
             log.info("Item is invalid for playstate update")
         else:
             # Send notification to the server.
-            embyconn = kodiSQL('emby')
-            embycursor = embyconn.cursor()
-            emby_db = embydb.Embydb_Functions(embycursor)
-            emby_dbitem = emby_db.getItem_byKodiId(kodiid, item_type)
+            conn = kodiSQL('emby')
+            cursor = conn.cursor()
+            emby_db = embydb.Embydb_Functions(cursor)
+            db_item = emby_db.getItem_byKodiId(kodi_id, item_type)
             try:
-                itemid = emby_dbitem[0]
+                item_id = db_item[0]
             except TypeError:
-                log.info("Could not find itemid in emby database.")
+                log.info("Could not find itemid in emby database")
             else:
                 # Stop from manually marking as watched unwatched, with actual playback.
-                if window('emby_skipWatched%s' % itemid) == "true":
+                if window('emby_skipWatched%s' % item_id) == "true":
                     # property is set in player.py
-                    window('emby_skipWatched%s' % itemid, clear=True)
+                    window('emby_skipWatched%s' % item_id, clear=True)
                 else:
                     # notify the server
-                    url = "{server}/emby/Users/{UserId}/PlayedItems/%s?format=json" % itemid
+                    url = "{server}/emby/Users/{UserId}/PlayedItems/%s?format=json" % item_id
                     if playcount != 0:
-                        doUtils.downloadUrl(url, action_type="POST")
-                        log.info("Mark as watched for itemid: %s", itemid)
+                        self.download(url, action_type="POST")
+                        log.info("Mark as watched for itemid: %s", item_id)
                     else:
-                        doUtils.downloadUrl(url, action_type="DELETE")
-                        log.info("Mark as unwatched for itemid: %s", itemid)
+                        self.download(url, action_type="DELETE")
+                        log.info("Mark as unwatched for itemid: %s", item_id)
             finally:
-                embycursor.close()
+                cursor.close()
 
     @classmethod
     def _system_wake(cls):
@@ -168,5 +168,5 @@ class KodiMonitor(xbmc.Monitor):
     def _screensaver_deactivated(cls):
 
         if settings('dbSyncScreensaver') == "true":
-                xbmc.sleep(5000)
-                window('emby_onWake', value="true")
+            xbmc.sleep(5000)
+            window('emby_onWake', value="true")
