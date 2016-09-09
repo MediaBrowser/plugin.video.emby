@@ -51,7 +51,7 @@ class KodiMonitor(xbmc.Monitor):
 
     def onNotification(self, sender, method, data):
 
-        if method not in ("Playlist.OnAdd"):
+        if method not in ('Playlist.OnAdd', 'Player.OnStop', 'Player.OnClear'):
             log.info("Method: %s Data: %s", method, data)
 
         if data:
@@ -76,8 +76,8 @@ class KodiMonitor(xbmc.Monitor):
 
     def _on_play_(self, data):
         # Set up report progress for emby playback
-        item = data.get('item')
         try:
+            item = data['item']
             kodi_id = item['id']
             item_type = item['type']
         except (KeyError, TypeError):
@@ -86,15 +86,8 @@ class KodiMonitor(xbmc.Monitor):
             if ((settings('useDirectPaths') == "1" and not item_type == "song") or
                     (item_type == "song" and settings('enableMusic') == "true")):
                 # Set up properties for player
-                conn = kodiSQL('emby')
-                cursor = conn.cursor()
-                emby_db = embydb.Embydb_Functions(cursor)
-                db_item = emby_db.getItem_byKodiId(kodi_id, item_type)
-                try:
-                    item_id = db_item[0]
-                except TypeError:
-                    log.info("No kodi Id returned")
-                else:
+                item_id = self._get_item_id(kodi_id, item_type)
+                if item_id:
                     url = "{server}/emby/Users/{UserId}/Items/%s?format=json" % item_id
                     result = self.download(url)
                     log.debug("Item: %s", result)
@@ -117,30 +110,19 @@ class KodiMonitor(xbmc.Monitor):
                                 window('emby_%s.playmethod' % playurl, value="DirectPlay")
                             # Set properties for player.py
                             playback.setProperties(playurl, listitem)
-                finally:
-                    cursor.close()
 
     def _video_update(self, data):
-
         # Manually marking as watched/unwatched
-        playcount = data.get('playcount')
-        item = data.get('item')
         try:
+            item = data['item']
             kodi_id = item['id']
             item_type = item['type']
         except (KeyError, TypeError):
             log.info("Item is invalid for playstate update")
         else:
             # Send notification to the server.
-            conn = kodiSQL('emby')
-            cursor = conn.cursor()
-            emby_db = embydb.Embydb_Functions(cursor)
-            db_item = emby_db.getItem_byKodiId(kodi_id, item_type)
-            try:
-                item_id = db_item[0]
-            except TypeError:
-                log.info("Could not find itemid in emby database")
-            else:
+            item_id = self._get_item_id(kodi_id, item_type)
+            if item_id:
                 # Stop from manually marking as watched unwatched, with actual playback.
                 if window('emby_skipWatched%s' % item_id) == "true":
                     # property is set in player.py
@@ -148,14 +130,12 @@ class KodiMonitor(xbmc.Monitor):
                 else:
                     # notify the server
                     url = "{server}/emby/Users/{UserId}/PlayedItems/%s?format=json" % item_id
-                    if playcount != 0:
+                    if data.get('playcount') != 0:
                         self.download(url, action_type="POST")
                         log.info("Mark as watched for itemid: %s", item_id)
                     else:
                         self.download(url, action_type="DELETE")
                         log.info("Mark as unwatched for itemid: %s", item_id)
-            finally:
-                cursor.close()
 
     @classmethod
     def _system_wake(cls):
@@ -170,3 +150,21 @@ class KodiMonitor(xbmc.Monitor):
         if settings('dbSyncScreensaver') == "true":
             xbmc.sleep(5000)
             window('emby_onWake', value="true")
+
+    @classmethod
+    def _get_item_id(cls, kodi_id, item_type):
+
+        item_id = None
+
+        conn = kodiSQL('emby')
+        cursor = conn.cursor()
+        emby_db = embydb.Embydb_Functions(cursor)
+        db_item = emby_db.getItem_byKodiId(kodi_id, item_type)
+        cursor.close()
+
+        try:
+            item_id = db_item[0]
+        except TypeError:
+            log.info("Could not retrieve item Id")
+
+        return item_id
