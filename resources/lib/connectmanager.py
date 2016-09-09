@@ -10,7 +10,11 @@ import xbmcaddon
 import clientinfo
 import read_embyserver as embyserver
 import connect.connectionmanager as connectionmanager
-from dialog import ServerConnect, UsersConnect, LoginConnect, LoginManual, ServerManual
+from dialog.serverconnect import ServerConnect
+from dialog.usersconnect import UsersConnect
+from dialog.loginconnect import LoginConnect
+from dialog.loginmanual import LoginManual
+from dialog.servermanual import ServerManual
 
 ##################################################################################################
 
@@ -173,3 +177,7 @@ class ConnectManager(object):
             return user
         else:
             raise RuntimeError("User is not authenticated")
+
+    def update_token(self, servers, server):
+        self._connect.credentialProvider.addOrUpdateServer(servers, server)
+        self.update_state()
