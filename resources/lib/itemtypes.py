@@ -11,8 +11,8 @@ import xbmc
 import xbmcgui
 
 import artwork
-from utils import settings, window, kodiSQL, CatchExceptions
-from utils import tryEncode, tryDecode
+from utils import tryEncode, tryDecode, settings, window, kodiSQL, \
+    CatchExceptions
 import embydb_functions as embydb
 import kodidb_functions as kodidb
 
