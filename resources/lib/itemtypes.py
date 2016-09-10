@@ -461,12 +461,12 @@ class Movies(Items):
         # Process countries
         self.kodi_db.addCountries(movieid, item['ProductionLocations'], "movie")
         # Process cast
-        people = artwork.getPeopleArtwork(item['People'])
+        people = artwork.get_people_artwork(item['People'])
         self.kodi_db.addPeople(movieid, people, "movie")
         # Process genres
         self.kodi_db.addGenres(movieid, genres, "movie")
         # Process artwork
-        artwork.addArtwork(artwork.getAllArtwork(item), movieid, "movie", kodicursor)
+        artwork.addArtwork(artwork.get_all_artwork(item), movieid, "movie", kodicursor)
         # Process stream details
         streams = API.getMediaStreams()
         self.kodi_db.addStreams(fileid, streams, runtime)
@@ -500,7 +500,7 @@ class Movies(Items):
             setid = self.kodi_db.createBoxset(title)
 
         # Process artwork
-        artwork.addArtwork(artwork.getAllArtwork(boxset), setid, "set", self.kodicursor)
+        artwork.addArtwork(artwork.get_all_artwork(boxset), setid, "set", self.kodicursor)
         
         # Process movies inside boxset
         current_movies = emby_db.getItemId_byParentId(setid, "movie")
@@ -604,7 +604,7 @@ class Movies(Items):
         # Remove the emby reference
         emby_db.removeItem(itemid)
         # Remove artwork
-        artwork.deleteArtwork(kodiid, mediatype, kodicursor)
+        artwork.delete_artwork(kodiid, mediatype, kodicursor)
 
         if mediatype == "movie":
             # Delete kodi movie and file
@@ -833,12 +833,12 @@ class MusicVideos(Items):
         for artist in artists:
             artist['Type'] = "Artist"
         people.extend(artists)
-        people = artwork.getPeopleArtwork(people)
+        people = artwork.get_people_artwork(people)
         self.kodi_db.addPeople(mvideoid, people, "musicvideo")
         # Process genres
         self.kodi_db.addGenres(mvideoid, genres, "musicvideo")
         # Process artwork
-        artwork.addArtwork(artwork.getAllArtwork(item), mvideoid, "musicvideo", kodicursor)
+        artwork.addArtwork(artwork.get_all_artwork(item), mvideoid, "musicvideo", kodicursor)
         # Process stream details
         streams = API.getMediaStreams()
         self.kodi_db.addStreams(fileid, streams, runtime)
@@ -922,7 +922,7 @@ class MusicVideos(Items):
             url = row[0]
             imagetype = row[1]
             if imagetype in ("poster", "fanart"):
-                artwork.deleteCachedArtwork(url)
+                artwork.delete_cached_artwork(url)
 
         kodicursor.execute("DELETE FROM musicvideo WHERE idMVideo = ?", (mvideoid,))
         kodicursor.execute("DELETE FROM files WHERE idFile = ?", (fileid,))
@@ -1142,12 +1142,12 @@ class TVShows(Items):
         kodicursor.execute(query, (path, None, None, 1, pathid))
         
         # Process cast
-        people = artwork.getPeopleArtwork(item['People'])
+        people = artwork.get_people_artwork(item['People'])
         self.kodi_db.addPeople(showid, people, "tvshow")
         # Process genres
         self.kodi_db.addGenres(showid, genres, "tvshow")
         # Process artwork
-        artwork.addArtwork(artwork.getAllArtwork(item), showid, "tvshow", kodicursor)
+        artwork.addArtwork(artwork.get_all_artwork(item), showid, "tvshow", kodicursor)
         # Process studios
         self.kodi_db.addStudios(showid, studios, "tvshow")
         # Process tags: view, emby tags
@@ -1164,7 +1164,7 @@ class TVShows(Items):
             # Finally, refresh the all season entry
             seasonid = self.kodi_db.addSeason(showid, -1)
             # Process artwork
-            artwork.addArtwork(artwork.getAllArtwork(item), seasonid, "season", kodicursor)
+            artwork.addArtwork(artwork.get_all_artwork(item), seasonid, "season", kodicursor)
 
         if force_episodes:
             # We needed to recreate the show entry. Re-add episodes now.
@@ -1199,7 +1199,7 @@ class TVShows(Items):
             emby_db.addReference(item['Id'], seasonid, "Season", "season", parentid=showid)
 
         # Process artwork
-        artwork.addArtwork(artwork.getAllArtwork(item), seasonid, "season", kodicursor)
+        artwork.addArtwork(artwork.get_all_artwork(item), seasonid, "season", kodicursor)
 
     def add_updateEpisode(self, item):
         # Process single episode
@@ -1431,10 +1431,10 @@ class TVShows(Items):
         kodicursor.execute(query, (pathid, filename, dateadded, fileid))
         
         # Process cast
-        people = artwork.getPeopleArtwork(item['People'])
+        people = artwork.get_people_artwork(item['People'])
         self.kodi_db.addPeople(episodeid, people, "episode")
         # Process artwork
-        artworks = artwork.getAllArtwork(item)
+        artworks = artwork.get_all_artwork(item)
         artwork.addOrUpdateArt(artworks['Primary'], episodeid, "episode", "thumb", kodicursor)
         # Process stream details
         streams = API.getMediaStreams()
@@ -1627,7 +1627,7 @@ class TVShows(Items):
     def removeShow(self, kodiid):
         
         kodicursor = self.kodicursor
-        self.artwork.deleteArtwork(kodiid, "tvshow", kodicursor)
+        self.artwork.delete_artwork(kodiid, "tvshow", kodicursor)
         kodicursor.execute("DELETE FROM tvshow WHERE idShow = ?", (kodiid,))
         log.debug("Removed tvshow: %s." % kodiid)
 
@@ -1635,7 +1635,7 @@ class TVShows(Items):
         
         kodicursor = self.kodicursor
 
-        self.artwork.deleteArtwork(kodiid, "season", kodicursor)
+        self.artwork.delete_artwork(kodiid, "season", kodicursor)
         kodicursor.execute("DELETE FROM seasons WHERE idSeason = ?", (kodiid,))
         log.debug("Removed season: %s." % kodiid)
 
@@ -1643,7 +1643,7 @@ class TVShows(Items):
 
         kodicursor = self.kodicursor
 
-        self.artwork.deleteArtwork(kodiid, "episode", kodicursor)
+        self.artwork.delete_artwork(kodiid, "episode", kodicursor)
         kodicursor.execute("DELETE FROM episode WHERE idEpisode = ?", (kodiid,))
         kodicursor.execute("DELETE FROM files WHERE idFile = ?", (fileid,))
         log.debug("Removed episode: %s." % kodiid)
@@ -1733,7 +1733,7 @@ class Music(Items):
         bio = API.getOverview()
 
         # Associate artwork
-        artworks = artwork.getAllArtwork(item, parentInfo=True)
+        artworks = artwork.get_all_artwork(item, parent_info=True)
         thumb = artworks['Primary']
         backdrops = artworks['Backdrop'] # List
 
@@ -1825,7 +1825,7 @@ class Music(Items):
         artistname = " / ".join(artistname)
 
         # Associate artwork
-        artworks = artwork.getAllArtwork(item, parentInfo=True)
+        artworks = artwork.get_all_artwork(item, parent_info=True)
         thumb = artworks['Primary']
         if thumb:
             thumb = "<thumb>%s</thumb>" % thumb
@@ -2257,7 +2257,7 @@ class Music(Items):
         self.kodi_db.addMusicGenres(songid, genres, "song")
         
         # Update artwork
-        allart = artwork.getAllArtwork(item, parentInfo=True)
+        allart = artwork.get_all_artwork(item, parent_info=True)
         if hasEmbeddedCover:
             allart["Primary"] = "image://music@" + artwork.single_urlencode( playurl )
         artwork.addArtwork(allart, songid, "song", kodicursor)
@@ -2401,15 +2401,15 @@ class Music(Items):
 
         kodicursor = self.kodicursor
 
-        self.artwork.deleteArtwork(kodiId, "song", self.kodicursor)
+        self.artwork.delete_artwork(kodiId, "song", self.kodicursor)
         self.kodicursor.execute("DELETE FROM song WHERE idSong = ?", (kodiId,))
 
     def removeAlbum(self, kodiId):
 
-        self.artwork.deleteArtwork(kodiId, "album", self.kodicursor)
+        self.artwork.delete_artwork(kodiId, "album", self.kodicursor)
         self.kodicursor.execute("DELETE FROM album WHERE idAlbum = ?", (kodiId,))
 
     def removeArtist(self, kodiId):
 
-        self.artwork.deleteArtwork(kodiId, "artist", self.kodicursor)
+        self.artwork.delete_artwork(kodiId, "artist", self.kodicursor)
         self.kodicursor.execute("DELETE FROM artist WHERE idArtist = ?", (kodiId,))

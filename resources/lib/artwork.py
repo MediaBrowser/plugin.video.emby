@@ -2,7 +2,6 @@
 
 #################################################################################################
 
-import json
 import logging
 import os
 import urllib
@@ -30,38 +29,39 @@ class Artwork(object):
     xbmc_username = None
     xbmc_password = None
 
-    imageCacheThreads = []
-    imageCacheLimitThreads = 0
+    image_cache_threads = []
+    image_cache_limit = 0
 
 
     def __init__(self):
 
-        self.enableTextureCache = settings('enableTextureCache') == "true"
-        self.imageCacheLimitThreads = int(settings('imageCacheLimit'))
-        self.imageCacheLimitThreads = int(self.imageCacheLimitThreads * 5)
-        log.info("Using Image Cache Thread Count: %s", self.imageCacheLimitThreads)
+        self.enable_texture_cache = settings('enableTextureCache') == "true"
+        self.image_cache_limit = int(settings('imageCacheLimit')) * 5
+        log.info("image cache thread count: %s", self.image_cache_limit)
 
-        if not self.xbmc_port and self.enableTextureCache:
-            self.set_webserver_details()
+        if not self.xbmc_port and self.enable_texture_cache:
+            self._set_webserver_details()
 
-        self.userId = window('emby_currUser')
-        self.server = window('emby_server%s' % self.userId)
+        self.user_id = window('emby_currUser')
+        self.server = window('emby_server%s' % self.user_id)
 
 
-    def double_urlencode(self, text):
-        text = self.single_urlencode(text)
-        text = self.single_urlencode(text)
+    def _double_urlencode(self, text):
+
+        text = self._single_urlencode(text)
+        text = self._single_urlencode(text)
 
         return text
 
-    def single_urlencode(self, text):
+    @classmethod
+    def _single_urlencode(cls, text):
         # urlencode needs a utf- string
-        text = urllib.urlencode({'blahblahblah':text.encode("utf-8")}) 
+        text = urllib.urlencode({'blahblahblah': text.encode('utf-8')})
         text = text[13:]
 
-        return text.decode("utf-8") #return the result again as unicode
+        return text.decode('utf-8') #return the result again as unicode
 
-    def set_webserver_details(self):
+    def _set_webserver_details(self):
         # Get the Kodi webserver details - used to set the texture cache
         get_setting_value = JSONRPC('Settings.GetSettingValue')
 
@@ -141,8 +141,8 @@ class Artwork(object):
 
         # ask to rest all existing or not
         if dialog(type_="yesno", heading="{emby}", line1=lang(33044)):
-            log.info("Resetting all cache data first.")
-            
+            log.info("Resetting all cache data first")
+
             # Remove all existing textures first
             path = xbmc.translatePath('special://thumbnails/').decode('utf-8')
             if xbmcvfs.exists(path):
@@ -174,28 +174,28 @@ class Artwork(object):
         cursor.execute("SELECT url FROM art WHERE media_type != 'actor'") # dont include actors
         result = cursor.fetchall()
         total = len(result)
-        log.info("Image cache sync about to process %s images" % total)
+        log.info("Image cache sync about to process %s images", total)
         cursor.close()
 
         count = 0
         for url in result:
-            
+
             if pdialog.iscanceled():
                 break
 
             percentage = int((float(count) / float(total))*100)
-            message = "%s of %s (%s)" % (count, total, self.imageCacheThreads)
+            message = "%s of %s (%s)" % (count, total, self.image_cache_threads)
             pdialog.update(percentage, "%s %s" % (lang(33045), message))
-            self.cacheTexture(url[0])
+            self.cache_texture(url[0])
             count += 1
-        
+
         # Cache all entries in music DB
         connection = kodiSQL('music')
         cursor = connection.cursor()
         cursor.execute("SELECT url FROM art")
         result = cursor.fetchall()
         total = len(result)
-        log.info("Image cache sync about to process %s images" % total)
+        log.info("Image cache sync about to process %s images", total)
         cursor.close()
 
         count = 0
@@ -207,18 +207,18 @@ class Artwork(object):
             percentage = int((float(count) / float(total))*100)
             message = "%s of %s" % (count, total)
             pdialog.update(percentage, "%s %s" % (lang(33045), message))
-            self.cacheTexture(url[0])
+            self.cache_texture(url[0])
             count += 1
-        
-        pdialog.update(100, "%s %s" % (lang(33046), len(self.imageCacheThreads)))
+
+        pdialog.update(100, "%s %s" % (lang(33046), len(self.image_cache_threads)))
         log.info("Waiting for all threads to exit")
-        
-        while len(self.imageCacheThreads):
-            for thread in self.imageCacheThreads:
+
+        while len(self.image_cache_threads):
+            for thread in self.image_cache_threads:
                 if thread.is_finished:
-                    self.imageCacheThreads.remove(thread)
-            pdialog.update(100, "%s %s" % (lang(33046), len(self.imageCacheThreads)))
-            log.info("Waiting for all threads to exit: %s" % len(self.imageCacheThreads))
+                    self.image_cache_threads.remove(thread)
+            pdialog.update(100, "%s %s" % (lang(33046), len(self.image_cache_threads)))
+            log.info("Waiting for all threads to exit: %s", len(self.image_cache_threads))
             xbmc.sleep(500)
 
         pdialog.close()
@@ -227,31 +227,33 @@ class Artwork(object):
 
         while True:
             # removed finished
-            for thread in self.imageCacheThreads:
+            for thread in self.image_cache_threads:
                 if thread.is_finished:
-                    self.imageCacheThreads.remove(thread)
+                    self.image_cache_threads.remove(thread)
 
             # add a new thread or wait and retry if we hit our limit
-            if len(self.imageCacheThreads) < self.imageCacheLimitThreads:
+            if len(self.image_cache_threads) < self.image_cache_limit:
+                
                 new_thread = image_cache_thread.ImageCacheThread()
-                new_thread.set_url(self.double_urlencode(url))
+                new_thread.set_url(self._double_urlencode(url))
                 new_thread.set_host(self.xbmc_host, self.xbmc_port)
                 new_thread.set_auth(self.xbmc_username, self.xbmc_password)
+                
                 new_thread.start()
-                self.imageCacheThreads.append(new_thread)
+                self.image_cache_threads.append(new_thread)
                 return
             else:
-                log.info("Waiting for empty queue spot: %s", len(self.imageCacheThreads))
+                log.info("Waiting for empty queue spot: %s", len(self.image_cache_threads))
                 xbmc.sleep(50)
 
-    def cacheTexture(self, url):
+    def cache_texture(self, url):
         # Cache a single image url to the texture cache
-        if url and self.enableTextureCache:
+        if url and self.enable_texture_cache:
             log.debug("Processing: %s", url)
 
-            if not self.imageCacheLimitThreads:
+            if not self.image_cache_limit:
 
-                url = self.double_urlencode(url)
+                url = self._double_urlencode(url)
                 try: # Add image to texture cache by simply calling it at the http endpoint
                     requests.head(url=("http://%s:%s/image/image://%s"
                                        % (self.xbmc_host, self.xbmc_port, url)),
@@ -261,7 +263,6 @@ class Artwork(object):
                     pass
             else:
                 self._add_worker_image_thread(url)
-
 
     def addArtwork(self, artwork, kodiId, mediaType, cursor):
         # Kodi conversion table
@@ -362,7 +363,7 @@ class Artwork(object):
 
             except TypeError: # Add the artwork
                 cacheimage = True
-                log.debug("Adding Art Link for kodiId: %s (%s)" % (kodiId, imageUrl))
+                log.debug("Adding Art Link for kodiId: %s (%s)", kodiId, imageUrl)
 
                 query = (
                     '''
@@ -381,10 +382,10 @@ class Artwork(object):
                     if (window('emby_initialScan') != "true" and
                             imageType in ("fanart", "poster")):
                         # Delete current entry before updating with the new one
-                        self.deleteCachedArtwork(url)
+                        self.delete_cached_artwork(url)
 
-                    log.info("Updating Art url for %s kodiId: %s (%s) -> (%s)"
-                        % (imageType, kodiId, url, imageUrl))
+                    log.info("Updating Art url for %s kodiId: %s (%s) -> (%s)",
+                             imageType, kodiId, url, imageUrl)
 
                     query = ' '.join((
 
@@ -398,9 +399,9 @@ class Artwork(object):
 
             # Cache fanart and poster in Kodi texture cache
             if cacheimage and imageType in ("fanart", "poster"):
-                self.cacheTexture(imageUrl)
+                self.cache_texture(imageUrl)
 
-    def deleteArtwork(self, kodiId, mediaType, cursor):
+    def delete_artwork(self, kodi_id, media_type, cursor):
 
         query = ' '.join((
 
@@ -409,57 +410,56 @@ class Artwork(object):
             "WHERE media_id = ?",
             "AND media_type = ?"
         ))
-        cursor.execute(query, (kodiId, mediaType,))
+        cursor.execute(query, (kodi_id, media_type,))
         rows = cursor.fetchall()
         for row in rows:
 
             url = row[0]
-            imageType = row[1]
-            if imageType in ("poster", "fanart"):
-                self.deleteCachedArtwork(url)
+            image_type = row[1]
+            if image_type in ("poster", "fanart"):
+                self.delete_cached_artwork(url)
 
-    def deleteCachedArtwork(self, url):
+    def delete_cached_artwork(self, url):
         # Only necessary to remove and apply a new backdrop or poster
-        connection = kodiSQL('texture')
-        cursor = connection.cursor()
+        conn = kodiSQL('texture')
+        cursor = conn.cursor()
 
         try:
             cursor.execute("SELECT cachedurl FROM texture WHERE url = ?", (url,))
-            cachedurl = cursor.fetchone()[0]
+            cached_url = cursor.fetchone()[0]
 
         except TypeError:
-            log.info("Could not find cached url.")
+            log.info("Could not find cached url")
 
         except OperationalError:
             log.info("Database is locked. Skip deletion process.")
 
         else: # Delete thumbnail as well as the entry
-            thumbnails = xbmc.translatePath("special://thumbnails/%s" % cachedurl).decode('utf-8')
+            thumbnails = xbmc.translatePath("special://thumbnails/%s", cached_url).decode('utf-8')
             log.info("Deleting cached thumbnail: %s" % thumbnails)
             xbmcvfs.delete(thumbnails)
 
             try:
                 cursor.execute("DELETE FROM texture WHERE url = ?", (url,))
-                connection.commit()
+                conn.commit()
             except OperationalError:
                 log.debug("Issue deleting url from cache. Skipping.")
 
         finally:
             cursor.close()
 
-    def getPeopleArtwork(self, people):
+    def get_people_artwork(self, people):
         # append imageurl if existing
         for person in people:
 
-            personId = person['Id']
-            tag = person.get('PrimaryImageTag')
-
             image = ""
-            if tag:
+            person_id = person['Id']
+
+            if "PrimaryImageTag" in person:
                 image = (
                     "%s/emby/Items/%s/Images/Primary?"
                     "MaxWidth=400&MaxHeight=400&Index=0&Tag=%s"
-                    % (self.server, personId, tag))
+                    % (self.server, person_id, person['PrimaryImageTag']))
 
             person['imageurl'] = image
 
@@ -469,23 +469,23 @@ class Artwork(object):
         # Load user information set by UserClient
         return "%s/emby/Users/%s/Images/%s?Format=original" % (self.server, item_id, item_type)
 
-    def getAllArtwork(self, item, parentInfo=False):
+    def get_all_artwork(self, item, parent_info=False):
 
-        itemid = item['Id']
+        item_id = item['Id']
         artworks = item['ImageTags']
         backdrops = item.get('BackdropImageTags', [])
 
-        maxHeight = 10000
-        maxWidth = 10000
-        customquery = ""
+        max_height = 10000
+        max_width = 10000
+        custom_query = ""
 
         if settings('compressArt') == "true":
-            customquery = "&Quality=90"
+            custom_query = "&Quality=90"
 
         if settings('enableCoverArt') == "false":
-            customquery += "&EnableImageEnhancers=false"
+            custom_query += "&EnableImageEnhancers=false"
 
-        allartworks = {
+        all_artwork = {
 
             'Primary': "",
             'Art': "",
@@ -501,8 +501,8 @@ class Artwork(object):
             artwork = (
                 "%s/emby/Items/%s/Images/Backdrop/%s?"
                 "MaxWidth=%s&MaxHeight=%s&Format=original&Tag=%s%s"
-                % (self.server, itemid, index, maxWidth, maxHeight, tag, customquery))
-            allartworks['Backdrop'].append(artwork)
+                % (self.server, item_id, index, max_width, max_height, tag, custom_query))
+            all_artwork['Backdrop'].append(artwork)
 
         # Process the rest of the artwork
         for art in artworks:
@@ -512,55 +512,54 @@ class Artwork(object):
                 artwork = (
                     "%s/emby/Items/%s/Images/%s/0?"
                     "MaxWidth=%s&MaxHeight=%s&Format=original&Tag=%s%s"
-                    % (self.server, itemid, art, maxWidth, maxHeight, tag, customquery))
-                allartworks[art] = artwork
+                    % (self.server, item_id, art, max_width, max_height, tag, custom_query))
+                all_artwork[art] = artwork
 
         # Process parent items if the main item is missing artwork
-        if parentInfo:
+        if parent_info:
 
             # Process parent backdrops
-            if not allartworks['Backdrop']:
+            if not all_artwork['Backdrop']:
 
-                parentId = item.get('ParentBackdropItemId')
-                if parentId:
+                parent_id = item.get('ParentBackdropItemId')
+                if parent_id:
                     # If there is a parentId, go through the parent backdrop list
-                    parentbackdrops = item['ParentBackdropImageTags']
+                    parent_backdrops = item['ParentBackdropImageTags']
 
-                    for index, tag in enumerate(parentbackdrops):
-                        artwork = (
-                            "%s/emby/Items/%s/Images/Backdrop/%s?"
-                            "MaxWidth=%s&MaxHeight=%s&Format=original&Tag=%s%s"
-                            % (self.server, parentId, index, maxWidth, maxHeight, tag, customquery))
-                        allartworks['Backdrop'].append(artwork)
+                    for index, tag in enumerate(parent_backdrops):
+                        artwork = ("%s/emby/Items/%s/Images/Backdrop/%s?"
+                                   "MaxWidth=%s&MaxHeight=%s&Format=original&Tag=%s%s"
+                                   % (self.server, parent_id, index, max_width, max_height,
+                                      tag, custom_query))
+                        all_artwork['Backdrop'].append(artwork)
 
             # Process the rest of the artwork
-            parentartwork = ['Logo', 'Art', 'Thumb']
-            for parentart in parentartwork:
+            parent_artwork = ['Logo', 'Art', 'Thumb']
+            for parent_art in parent_artwork:
 
-                if not allartworks[parentart]:
+                if not all_artwork[parent_art]:
 
-                    parentId = item.get('Parent%sItemId' % parentart)
-                    if parentId:
+                    parent_id = item.get('Parent%sItemId' % parent_art)
+                    if parent_id:
 
-                        parentTag = item['Parent%sImageTag' % parentart]
-                        artwork = (
-                            "%s/emby/Items/%s/Images/%s/0?"
-                            "MaxWidth=%s&MaxHeight=%s&Format=original&Tag=%s%s"
-                            % (self.server, parentId, parentart,
-                                maxWidth, maxHeight, parentTag, customquery))
-                        allartworks[parentart] = artwork
+                        parent_tag = item['Parent%sImageTag' % parent_art]
+                        artwork = ("%s/emby/Items/%s/Images/%s/0?"
+                                   "MaxWidth=%s&MaxHeight=%s&Format=original&Tag=%s%s"
+                                   % (self.server, parent_id, parent_art, max_width,
+                                      max_height, parent_tag, custom_query))
+                        all_artwork[parentart] = artwork
 
             # Parent album works a bit differently
-            if not allartworks['Primary']:
+            if not all_artwork['Primary']:
 
-                parentId = item.get('AlbumId')
-                if parentId and item.get('AlbumPrimaryImageTag'):
+                parent_id = item.get('AlbumId')
+                if parent_id and item.get('AlbumPrimaryImageTag'):
 
-                    parentTag = item['AlbumPrimaryImageTag']
-                    artwork = (
-                        "%s/emby/Items/%s/Images/Primary/0?"
-                        "MaxWidth=%s&MaxHeight=%s&Format=original&Tag=%s%s"
-                        % (self.server, parentId, maxWidth, maxHeight, parentTag, customquery))
-                    allartworks['Primary'] = artwork
+                    parent_tag = item['AlbumPrimaryImageTag']
+                    artwork = ("%s/emby/Items/%s/Images/Primary/0?"
+                               "MaxWidth=%s&MaxHeight=%s&Format=original&Tag=%s%s"
+                               % (self.server, parent_id, max_width, max_height,
+                                  parent_tag, custom_query))
+                    all_artwork['Primary'] = artwork
 
-        return allartworks
+        return all_artwork

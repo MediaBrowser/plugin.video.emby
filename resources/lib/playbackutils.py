@@ -309,7 +309,7 @@ class PlaybackUtils():
 
     def setArtwork(self, listItem):
         # Set up item and item info
-        allartwork = self.artwork.getAllArtwork(self.item, parentInfo=True)
+        allartwork = self.artwork.get_all_artwork(self.item, parent_info=True)
         # Set artwork for listitem
         arttypes = {
 

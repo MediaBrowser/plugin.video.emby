@@ -608,7 +608,7 @@ def createListItemFromEmbyItem(item,art=artwork.Artwork(),doUtils=downloadutils.
 
     li.setProperty("embyid",itemid)
     
-    allart = art.getAllArtwork(item)
+    allart = art.get_all_artwork(item)
     
     if item["Type"] == "Photo":
         #listitem setup for pictures...
@@ -1084,7 +1084,7 @@ def getExtraFanArt(embyId,embyPath):
                 xbmcvfs.mkdirs(fanartDir)
                 item = emby.getItem(embyId)
                 if item:
-                    backdrops = art.getAllArtwork(item)['Backdrop']
+                    backdrops = art.get_all_artwork(item)['Backdrop']
                     tags = item['BackdropImageTags']
                     count = 0
                     for backdrop in backdrops:
