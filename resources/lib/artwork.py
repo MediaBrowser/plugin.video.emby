@@ -140,7 +140,7 @@ class Artwork(object):
         pdialog.create(lang(29999), lang(33043))
 
         # ask to rest all existing or not
-        if dialog(type_="yesno", heading="{emby}", lang(33044)):
+        if dialog(type_="yesno", heading="{emby}", line1=lang(33044)):
             log.info("Resetting all cache data first.")
             
             # Remove all existing textures first
