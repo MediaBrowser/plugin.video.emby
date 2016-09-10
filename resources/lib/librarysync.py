@@ -62,7 +62,7 @@ class ThreadedGetMetadata(Thread):
             try:
                 self.queue.get(block=False)
             except Queue.Empty:
-                xbmc.sleep(50)
+                xbmc.sleep(10)
                 continue
             else:
                 self.queue.task_done()
@@ -73,7 +73,7 @@ class ThreadedGetMetadata(Thread):
                 try:
                     self.out_queue.get(block=False)
                 except Queue.Empty:
-                    xbmc.sleep(50)
+                    xbmc.sleep(10)
                     continue
                 else:
                     self.out_queue.task_done()
@@ -93,7 +93,7 @@ class ThreadedGetMetadata(Thread):
                 updateItem = queue.get(block=False)
             # Empty queue
             except Queue.Empty:
-                xbmc.sleep(100)
+                xbmc.sleep(10)
                 continue
             # Download Metadata
             plexXML = PF.GetPlexMetadata(updateItem['itemId'])
@@ -155,7 +155,7 @@ class ThreadedProcessMetadata(Thread):
             try:
                 self.queue.get(block=False)
             except Queue.Empty:
-                xbmc.sleep(100)
+                xbmc.sleep(10)
                 continue
             else:
                 self.queue.task_done()
@@ -175,7 +175,7 @@ class ThreadedProcessMetadata(Thread):
                 try:
                     updateItem = queue.get(block=False)
                 except Queue.Empty:
-                    xbmc.sleep(50)
+                    xbmc.sleep(10)
                     continue
                 # Do the work
                 plexitem = updateItem['XML']
@@ -250,7 +250,7 @@ class ThreadedShowSyncInfo(Thread):
                                      processMetadataProgress,
                                      viewName))
             # Sleep for x milliseconds
-            xbmc.sleep(500)
+            xbmc.sleep(200)
         dialog.close()
         log.debug('Dialog Infobox thread terminated')
 
