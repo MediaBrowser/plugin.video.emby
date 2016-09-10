@@ -319,7 +319,7 @@ def addUser():
         url = "{server}/emby/Users/%s?format=json" % userid
         result = doUtils.downloadUrl(url)
         window('EmbyAdditionalUserImage.%s' % count,
-            value=art.getUserArtwork(result['Id'], 'Primary'))
+            value=art.get_user_artwork(result['Id'], 'Primary'))
         window('EmbyAdditionalUserPosition.%s' % userid, value=str(count))
         count +=1
 

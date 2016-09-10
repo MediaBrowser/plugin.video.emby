@@ -4,7 +4,6 @@
 
 import json
 import logging
-import requests
 import os
 import urllib
 from sqlite3 import OperationalError
@@ -12,9 +11,10 @@ from sqlite3 import OperationalError
 import xbmc
 import xbmcgui
 import xbmcvfs
+import requests
 
 import image_cache_thread
-from utils import window, settings, language as lang, kodiSQL
+from utils import window, settings, dialog, language as lang, kodiSQL, JSONRPC
 
 ##################################################################################################
 
@@ -23,7 +23,7 @@ log = logging.getLogger("EMBY."+__name__)
 ##################################################################################################
 
 
-class Artwork():
+class Artwork(object):
 
     xbmc_host = 'localhost'
     xbmc_port = None
@@ -39,10 +39,10 @@ class Artwork():
         self.enableTextureCache = settings('enableTextureCache') == "true"
         self.imageCacheLimitThreads = int(settings('imageCacheLimit'))
         self.imageCacheLimitThreads = int(self.imageCacheLimitThreads * 5)
-        log.info("Using Image Cache Thread Count: %s" % self.imageCacheLimitThreads)
+        log.info("Using Image Cache Thread Count: %s", self.imageCacheLimitThreads)
 
         if not self.xbmc_port and self.enableTextureCache:
-            self.setKodiWebServerDetails()
+            self.set_webserver_details()
 
         self.userId = window('emby_currUser')
         self.server = window('emby_server%s' % self.userId)
@@ -61,20 +61,15 @@ class Artwork():
 
         return text.decode("utf-8") #return the result again as unicode
 
-    def setKodiWebServerDetails(self):
+    def set_webserver_details(self):
         # Get the Kodi webserver details - used to set the texture cache
+        get_setting_value = JSONRPC('Settings.GetSettingValue')
+
         web_query = {
 
-            "jsonrpc": "2.0",
-            "id": 1,
-            "method": "Settings.GetSettingValue",
-            "params": {
-
-                "setting": "services.webserver"
-            }
+            "setting": "services.webserver"
         }
-        result = xbmc.executeJSONRPC(json.dumps(web_query))
-        result = json.loads(result)
+        result = get_setting_value.execute(web_query)
         try:
             xbmc_webserver_enabled = result['result']['value']
         except (KeyError, TypeError):
@@ -82,48 +77,30 @@ class Artwork():
 
         if not xbmc_webserver_enabled:
             # Enable the webserver, it is disabled
+            set_setting_value = JSONRPC('Settings.SetSettingValue')
+
             web_port = {
 
-                "jsonrpc": "2.0",
-                "id": 1,
-                "method": "Settings.SetSettingValue",
-                "params": {
-
-                    "setting": "services.webserverport",
-                    "value": 8080
-                }
+                "setting": "services.webserverport",
+                "value": 8080
             }
-            result = xbmc.executeJSONRPC(json.dumps(web_port))
+            set_setting_value.execute(web_port)
             self.xbmc_port = 8080
 
             web_user = {
 
-                "jsonrpc": "2.0",
-                "id": 1,
-                "method": "Settings.SetSettingValue",
-                "params": {
-
-                    "setting": "services.webserver",
-                    "value": True
-                }
+                "setting": "services.webserver",
+                "value": True
             }
-            result = xbmc.executeJSONRPC(json.dumps(web_user))
+            set_setting_value.execute(web_user)
             self.xbmc_username = "kodi"
-
 
         # Webserver already enabled
         web_port = {
 
-            "jsonrpc": "2.0",
-            "id": 1,
-            "method": "Settings.GetSettingValue",
-            "params": {
-
-                "setting": "services.webserverport"
-            }
+            "setting": "services.webserverport"
         }
-        result = xbmc.executeJSONRPC(json.dumps(web_port))
-        result = json.loads(result)
+        result = get_setting_value.execute(web_port)
         try:
             self.xbmc_port = result['result']['value']
         except (TypeError, KeyError):
@@ -131,16 +108,9 @@ class Artwork():
 
         web_user = {
 
-            "jsonrpc": "2.0",
-            "id": 1,
-            "method": "Settings.GetSettingValue",
-            "params": {
-
-                "setting": "services.webserverusername"
-            }
+            "setting": "services.webserverusername"
         }
-        result = xbmc.executeJSONRPC(json.dumps(web_user))
-        result = json.loads(result)
+        result = get_setting_value.execute(web_user)
         try:
             self.xbmc_username = result['result']['value']
         except TypeError:
@@ -148,16 +118,9 @@ class Artwork():
 
         web_pass = {
 
-            "jsonrpc": "2.0",
-            "id": 1,
-            "method": "Settings.GetSettingValue",
-            "params": {
-
-                "setting": "services.webserverpassword"
-            }
+            "setting": "services.webserverpassword"
         }
-        result = xbmc.executeJSONRPC(json.dumps(web_pass))
-        result = json.loads(result)
+        result = get_setting_value.execute(web_pass)
         try:
             self.xbmc_password = result['result']['value']
         except TypeError:
@@ -166,11 +129,9 @@ class Artwork():
     def fullTextureCacheSync(self):
         # This method will sync all Kodi artwork to textures13.db
         # and cache them locally. This takes diskspace!
-        dialog = xbmcgui.Dialog()
-
-        if not dialog.yesno(
-                    heading=lang(29999),
-                    line1=lang(33042)):
+        if not dialog(type_="yesno",
+                      heading="{emby}",
+                      line1=lang(33042)):
             return
 
         log.info("Doing Image Cache Sync")
@@ -179,7 +140,7 @@ class Artwork():
         pdialog.create(lang(29999), lang(33043))
 
         # ask to rest all existing or not
-        if dialog.yesno(lang(29999), lang(33044)):
+        if dialog(type_="yesno", heading="{emby}", lang(33044)):
             log.info("Resetting all cache data first.")
             
             # Remove all existing textures first
@@ -262,7 +223,7 @@ class Artwork():
 
         pdialog.close()
 
-    def addWorkerImageCacheThread(self, url):
+    def _add_worker_image_thread(self, url):
 
         while True:
             # removed finished
@@ -272,37 +233,34 @@ class Artwork():
 
             # add a new thread or wait and retry if we hit our limit
             if len(self.imageCacheThreads) < self.imageCacheLimitThreads:
-                newThread = image_cache_thread.ImageCacheThread()
-                newThread.set_url(self.double_urlencode(url))
-                newThread.set_host(self.xbmc_host, self.xbmc_port)
-                newThread.set_auth(self.xbmc_username, self.xbmc_password)
-                newThread.start()
-                self.imageCacheThreads.append(newThread)
+                new_thread = image_cache_thread.ImageCacheThread()
+                new_thread.set_url(self.double_urlencode(url))
+                new_thread.set_host(self.xbmc_host, self.xbmc_port)
+                new_thread.set_auth(self.xbmc_username, self.xbmc_password)
+                new_thread.start()
+                self.imageCacheThreads.append(new_thread)
                 return
             else:
-                log.info("Waiting for empty queue spot: %s" % len(self.imageCacheThreads))
+                log.info("Waiting for empty queue spot: %s", len(self.imageCacheThreads))
                 xbmc.sleep(50)
 
     def cacheTexture(self, url):
         # Cache a single image url to the texture cache
         if url and self.enableTextureCache:
-            log.debug("Processing: %s" % url)
+            log.debug("Processing: %s", url)
 
             if not self.imageCacheLimitThreads:
-                # Add image to texture cache by simply calling it at the http endpoint
 
                 url = self.double_urlencode(url)
-                try: # Extreme short timeouts so we will have a exception.
-                    response = requests.head(
-                                        url=("http://%s:%s/image/image://%s"
-                                            % (self.xbmc_host, self.xbmc_port, url)),
-                                        auth=(self.xbmc_username, self.xbmc_password),
-                                        timeout=(0.01, 0.01))
-                # We don't need the result
-                except: pass
-
+                try: # Add image to texture cache by simply calling it at the http endpoint
+                    requests.head(url=("http://%s:%s/image/image://%s"
+                                       % (self.xbmc_host, self.xbmc_port, url)),
+                                  auth=(self.xbmc_username, self.xbmc_password),
+                                  timeout=(0.01, 0.01))
+                except Exception: # We don't need the result
+                    pass
             else:
-                self.addWorkerImageCacheThread(url)
+                self._add_worker_image_thread(url)
 
 
     def addArtwork(self, artwork, kodiId, mediaType, cursor):
@@ -507,11 +465,9 @@ class Artwork():
 
         return people
 
-    def getUserArtwork(self, itemId, itemType):
+    def get_user_artwork(self, item_id, item_type):
         # Load user information set by UserClient
-        image = ("%s/emby/Users/%s/Images/%s?Format=original"
-                    % (self.server, itemId, itemType))
-        return image
+        return "%s/emby/Users/%s/Images/%s?Format=original" % (self.server, item_id, item_type)
 
     def getAllArtwork(self, item, parentInfo=False):
 
