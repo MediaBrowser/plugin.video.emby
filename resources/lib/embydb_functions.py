@@ -372,4 +372,31 @@ class Embydb_Functions():
 
         query = "DELETE FROM emby WHERE emby_id LIKE ?"
         self.embycursor.execute(query, (plexid+"%",))
-        
+
+    def itemsByType(self, plextype):
+        """
+        Returns a list of dictionaries for all Kodi DB items present for
+        plextype. One dict is of the type
+
+        {
+            'plexId':       the Plex id
+            'kodiId':       the Kodi id
+            'kodi_type':    e.g. 'movie', 'tvshow'
+            'plex_type':    e.g. 'Movie', 'Series', the input plextype
+        }
+        """
+        query = ' '.join((
+            "SELECT emby_id, kodi_id, media_type",
+            "FROM emby",
+            "WHERE emby_type = ?",
+        ))
+        self.embycursor.execute(query, (plextype, ))
+        result = []
+        for row in self.embycursor.fetchall():
+            result.append({
+                'plexId': row[0],
+                'kodiId': row[1],
+                'kodi_type': row[2],
+                'plex_type': plextype
+            })
+        return result

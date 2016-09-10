@@ -1841,16 +1841,14 @@ class API():
             'Backdrop' : LIST with the first entry xml key "art"
         }
         """
-        item = self.item.attrib
-
         allartworks = {
-            'Primary': "",
+            'Primary': "",  # corresponds to Plex poster ('thumb')
             'Art': "",
-            'Banner': "",
+            'Banner': "",   # corresponds to Plex banner ('banner') for series
             'Logo': "",
-            'Thumb': "",
+            'Thumb': "",    # corresponds to Plex (grand)parent posters (thumb)
             'Disc': "",
-            'Backdrop': []
+            'Backdrop': []  # Corresponds to Plex fanart ('art')
         }
         # Process backdrops
         # Get background artwork URL
@@ -1870,14 +1868,26 @@ class API():
                     self.__getOneArtwork('parentArt'))
             if not allartworks['Primary']:
                 allartworks['Primary'] = self.__getOneArtwork('parentThumb')
+        return allartworks
 
-        # Plex does not get much artwork - go ahead and get the rest from
-        # fanart tv only for movie or tv show
-        if settings('FanartTV') == 'true':
-            if item.get('type') in ('movie', 'show'):
-                externalId = self.getExternalItemId()
-                if externalId is not None:
-                    allartworks = self.getFanartTVArt(externalId, allartworks)
+    def getFanartArtwork(self, allartworks, parentInfo=False):
+        """
+        Downloads additional fanart from third party sources (well, link to
+        fanart only).
+
+        allartworks = {
+            'Primary': "",
+            'Art': "",
+            'Banner': "",
+            'Logo': "",
+            'Thumb': "",
+            'Disc': "",
+            'Backdrop': []
+        }
+        """
+        externalId = self.getExternalItemId()
+        if externalId is not None:
+            allartworks = self.getFanartTVArt(externalId, allartworks)
         return allartworks
 
     def getExternalItemId(self, collection=False):

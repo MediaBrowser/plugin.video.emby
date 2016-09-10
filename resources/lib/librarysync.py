@@ -5,6 +5,7 @@
 import logging
 from threading import Thread, Lock
 import Queue
+from random import shuffle
 
 import xbmc
 import xbmcgui
@@ -258,6 +259,100 @@ class ThreadedShowSyncInfo(Thread):
 @ThreadMethodsAdditionalSuspend('suspend_LibraryThread')
 @ThreadMethodsAdditionalStop('plex_shouldStop')
 @ThreadMethods
+class ProcessFanartThread(Thread):
+    """
+    Threaded download of additional fanart in the background
+
+    Input:
+        queue           Queue.Queue() object that you will need to fill with
+                        dicts of the following form:
+            {
+              'itemId':                 the Plex id as a string
+              'class':                  the itemtypes class, e.g. 'Movies'
+              'mediaType':              the kodi media type, e.g. 'movie'
+              'refresh': True/False     if true, will overwrite any 3rd party
+                                        fanart. If False, will only get missing
+            }
+    """
+    def __init__(self, queue):
+        self.queue = queue
+        Thread.__init__(self)
+
+    def run(self):
+        threadStopped = self.threadStopped
+        threadSuspended = self.threadSuspended
+        queue = self.queue
+        log.debug('Started Fanart thread')
+        while not threadStopped():
+            # In the event the server goes offline
+            while threadSuspended():
+                # Set in service.py
+                if threadStopped():
+                    # Abort was requested while waiting. We should exit
+                    log.debug('Fanart thread terminated while suspended')
+                    break
+                xbmc.sleep(1000)
+            # grabs Plex item from queue
+            try:
+                item = queue.get(block=False)
+            except Queue.Empty:
+                xbmc.sleep(50)
+                continue
+            if item['refresh'] is True:
+                # Leave the Plex art untouched
+                allartworks = None
+            else:
+                with embydb.GetEmbyDB() as emby_db:
+                    try:
+                        kodiId = emby_db.getItem_byId(item['itemId'])[0]
+                    except TypeError:
+                        log.error('Could not get Kodi id for plex id %s'
+                                  % item['itemId'])
+                        queue.task_done()
+                        continue
+                with kodidb.GetKodiDB('video') as kodi_db:
+                    allartworks = kodi_db.existingArt(kodiId,
+                                                      item['mediaType'])
+                # Check if we even need to get additional art
+                needsupdate = False
+                for key, value in allartworks.iteritems():
+                    if not value and not key == 'BoxRear':
+                        needsupdate = True
+                if needsupdate is False:
+                    log.debug('Already got all art for Plex id %s'
+                              % item['itemId'])
+                    queue.task_done()
+                    continue
+
+            log.debug('Getting additional fanart for Plex id %s'
+                      % item['itemId'])
+            # Download Metadata
+            xml = PF.GetPlexMetadata(item['itemId'])
+            if xml is None:
+                # Did not receive a valid XML - skip that item for now
+                log.warn("Could not get metadata for %s. Skipping that item "
+                         "for now" % item['itemId'])
+                queue.task_done()
+                continue
+            elif xml == 401:
+                log.warn('HTTP 401 returned by PMS. Too much strain? '
+                         'Cancelling sync for now')
+                # Kill remaining items in queue (for main thread to cont.)
+                queue.task_done()
+                continue
+
+            # Do the work
+            with getattr(itemtypes, item['class'])() as cls:
+                cls.getfanart(xml[0], kodiId, item['mediaType'], allartworks)
+            # signals to queue job is done
+            log.debug('Done getting fanart for Plex id %s' % item['itemId'])
+            queue.task_done()
+        log.debug('Fanart thread terminated')
+
+
+@ThreadMethodsAdditionalSuspend('suspend_LibraryThread')
+@ThreadMethodsAdditionalStop('plex_shouldStop')
+@ThreadMethods
 class LibrarySync(Thread):
     """
     librarysync.LibrarySync(queue)
@@ -275,6 +370,9 @@ class LibrarySync(Thread):
         self.queue = queue
         self.itemsToProcess = []
         self.sessionKeys = []
+        if settings('FanartTV') == 'true':
+            self.fanartqueue = Queue.Queue()
+            self.fanartthread = ProcessFanartThread(self.fanartqueue)
         # How long should we wait at least to process new/changed PMS items?
         self.saftyMargin = int(settings('saftyMargin'))
 
@@ -887,6 +985,16 @@ class LibrarySync(Thread):
             except:
                 pass
         log.info("Sync threads finished")
+        if settings('FanartTV') == 'true':
+            # Save to queue for later processing
+            typus = {'Movies': 'movie', 'TVShows': 'tvshow'}[itemType]
+            for item in self.updatelist:
+                self.fanartqueue.put({
+                    'itemId': item['itemId'],
+                    'class': itemType,
+                    'mediaType': typus,
+                    'refresh': False
+                })
         self.updatelist = []
 
     @LogTime
@@ -1484,6 +1592,30 @@ class LibrarySync(Thread):
             with itemFkt() as Fkt:
                 Fkt.updatePlaystate(item)
 
+    def fanartSync(self, refresh=False):
+        """
+        Checks all Plex movies and TV shows whether they still need fanart
+
+        refresh=True        Force refresh all external fanart
+        """
+        items = []
+        typus = {
+            'Movie': 'Movies',
+            'Series': 'TVShows'
+        }
+        with embydb.GetEmbyDB() as emby_db:
+            for plextype in typus:
+                items.extend(emby_db.itemsByType(plextype))
+        # Shuffle the list to not always start out identically
+        items = shuffle(items)
+        for item in items:
+            self.fanartqueue.put({
+                'itemId': item['plexId'],
+                'mediaType': item['kodi_type'],
+                'class': typus[item['plex_type']],
+                'refresh': refresh
+            })
+
     def run(self):
         try:
             self.run_internal()
@@ -1508,6 +1640,7 @@ class LibrarySync(Thread):
         fullSyncInterval = self.fullSyncInterval
         lastSync = 0
         lastTimeSync = 0
+        lastFanartSync = 0
         lastProcessing = 0
         oneDay = 60*60*24
 
@@ -1526,6 +1659,9 @@ class LibrarySync(Thread):
 
         if self.enableMusic:
             advancedSettingsXML()
+
+        if settings('FanartTV') == 'true':
+            self.fanartthread.start()
 
         while not threadStopped():
 
@@ -1661,6 +1797,12 @@ class LibrarySync(Thread):
                         window('plex_dbScan', value="true")
                         self.syncPMStime()
                         window('plex_dbScan', clear=True)
+                    elif (now - lastFanartSync > oneDay and
+                            settings('FanartTV') == 'true'):
+                        lastFanartSync = now
+                        log.info('Starting daily fanart sync')
+                        self.fanartSync()
+                        log.info('Finished init of daily fanart sync')
                     elif enableBackgroundSync:
                         # Check back whether we should process something
                         # Only do this once every 10 seconds

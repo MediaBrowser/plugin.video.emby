@@ -65,6 +65,28 @@ class Items(object):
         self.kodiconn.close()
         return self
 
+    @CatchExceptions(warnuser=True)
+    def getfanart(self, item, kodiId, mediaType, allartworks=None):
+        """
+        """
+        API = PlexAPI.API(item)
+        if allartworks is None:
+            allartworks = API.getAllArtwork()
+        self.artwork.addArtwork(API.getFanartArtwork(allartworks),
+                                kodiId,
+                                mediaType,
+                                self.kodicursor)
+        # Also get artwork for collections/movie sets
+        if mediaType == 'movie':
+            for setname in API.getCollections():
+                log.debug('Getting artwork for movie set %s' % setname)
+                setid = self.kodi_db.createBoxset(setname)
+                self.artwork.addArtwork(API.getSetArtwork(),
+                                        setid,
+                                        "set",
+                                        self.kodicursor)
+                self.kodi_db.assignBoxset(setid, kodiId)
+
     def itemsbyId(self, items, process, pdialog=None):
         # Process items by itemid. Process can be added, update, userdata, remove
         embycursor = self.embycursor
@@ -485,7 +507,7 @@ class Movies(Items):
             tags.append("Favorite movies")
         self.kodi_db.addTags(movieid, tags, "movie")
         # Add any sets from Plex collection tags
-        self.kodi_db.addSets(movieid, collections, kodicursor, API)
+        self.kodi_db.addSets(movieid, collections, kodicursor)
         # Process playstates
         self.kodi_db.addPlaystate(fileid, resume, runtime, playcount, dateplayed)
 

@@ -508,6 +508,48 @@ class Kodidb_Functions():
 
                 self.artwork.addOrUpdateArt(thumb, actorid, arttype, "thumb", self.cursor)
 
+    def existingArt(self, kodiId, mediaType, refresh=False):
+        """
+        For kodiId, returns an artwork dict with already existing art from
+        the Kodi db
+        """
+        # Only get EITHER poster OR thumb (should have same URL)
+        kodiToPKC = {
+            'banner': 'Banner',
+            'clearart': 'Art',
+            'clearlogo': 'Logo',
+            'discart': 'Disc',
+            'landscape': 'Thumb',
+            'thumb': 'Primary'
+        }
+        # BoxRear yet unused
+        result = {'BoxRear': ''}
+        for art in kodiToPKC:
+            query = ' '.join((
+                "SELECT url",
+                "FROM art",
+                "WHERE media_id = ?",
+                "AND media_type = ?",
+                "AND type = ?"
+            ))
+            self.cursor.execute(query, (kodiId, mediaType, art,))
+            try:
+                url = self.cursor.fetchone()[0]
+            except TypeError:
+                url = ""
+            result[kodiToPKC[art]] = url
+        # There may be several fanart URLs saved
+        query = ' '.join((
+            "SELECT url",
+            "FROM art",
+            "WHERE media_id = ?",
+            "AND media_type = ?",
+            "AND type LIKE ?"
+        ))
+        data = self.cursor.execute(query, (kodiId, mediaType, "fanart%",))
+        result['Backdrop'] = [d[0] for d in data]
+        return result
+
     def addGenres(self, kodiid, genres, mediatype):
 
         
@@ -1180,15 +1222,9 @@ class Kodidb_Functions():
                 ))
                 self.cursor.execute(query, (kodiid, mediatype, tag_id,))
 
-    def addSets(self, movieid, collections, kodicursor, API):
+    def addSets(self, movieid, collections, kodicursor):
         for setname in collections:
             setid = self.createBoxset(setname)
-            # Process artwork
-            if settings('setFanartTV') == 'true':
-                self.artwork.addArtwork(API.getSetArtwork(),
-                                        setid,
-                                        "set",
-                                        kodicursor)
             self.assignBoxset(setid, movieid)
 
     def createBoxset(self, boxsetname):
