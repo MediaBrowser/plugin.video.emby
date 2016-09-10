@@ -3,7 +3,7 @@
 ###############################################################################
 
 import logging
-import urllib
+from urllib import urlencode
 from ntpath import dirname
 from datetime import datetime
 
@@ -394,7 +394,7 @@ class Movies(Items):
                 'dbid': movieid,
                 'mode': "play"
             }
-            filename = "%s?%s" % (path, urllib.urlencode(params))
+            filename = "%s?%s" % (path, urlencode(params))
             playurl = filename
 
         # movie table:
@@ -906,7 +906,7 @@ class TVShows(Items):
                 'dbid': episodeid,
                 'mode': "play"
             }
-            filename = "%s?%s" % (path, tryDecode(urllib.urlencode(params)))
+            filename = "%s?%s" % (path, tryDecode(urlencode(params)))
             playurl = filename
             parentPathId = self.kodi_db.addPath(
                 'plugin://plugin.video.plexkodiconnect.tvshows/')
