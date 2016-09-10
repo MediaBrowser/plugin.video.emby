@@ -200,7 +200,7 @@ class Artwork(object):
 
         count = 0
         for url in result:
-            
+
             if pdialog.iscanceled():
                 break
 
@@ -233,12 +233,12 @@ class Artwork(object):
 
             # add a new thread or wait and retry if we hit our limit
             if len(self.image_cache_threads) < self.image_cache_limit:
-                
+
                 new_thread = image_cache_thread.ImageCacheThread()
                 new_thread.set_url(self._double_urlencode(url))
                 new_thread.set_host(self.xbmc_host, self.xbmc_port)
                 new_thread.set_auth(self.xbmc_username, self.xbmc_password)
-                
+
                 new_thread.start()
                 self.image_cache_threads.append(new_thread)
                 return
@@ -419,7 +419,8 @@ class Artwork(object):
             if image_type in ("poster", "fanart"):
                 self.delete_cached_artwork(url)
 
-    def delete_cached_artwork(self, url):
+    @classmethod
+    def delete_cached_artwork(cls, url):
         # Only necessary to remove and apply a new backdrop or poster
         conn = kodiSQL('texture')
         cursor = conn.cursor()
@@ -436,7 +437,7 @@ class Artwork(object):
 
         else: # Delete thumbnail as well as the entry
             thumbnails = xbmc.translatePath("special://thumbnails/%s", cached_url).decode('utf-8')
-            log.info("Deleting cached thumbnail: %s" % thumbnails)
+            log.info("Deleting cached thumbnail: %s", thumbnails)
             xbmcvfs.delete(thumbnails)
 
             try:
@@ -496,24 +497,30 @@ class Artwork(object):
             'Backdrop': []
         }
 
+        def get_backdrops(backdrops):
+
+            for index, tag in enumerate(backdrops):
+                artwork = ("%s/emby/Items/%s/Images/Backdrop/%s?"
+                           "MaxWidth=%s&MaxHeight=%s&Format=original&Tag=%s%s"
+                           % (self.server, item_id, index, max_width, max_height,
+                              tag, custom_query))
+                all_artwork['Backdrop'].append(artwork)
+
+        def get_artwork(type_, tag):
+
+            artwork = ("%s/emby/Items/%s/Images/%s/0?"
+                       "MaxWidth=%s&MaxHeight=%s&Format=original&Tag=%s%s"
+                       % (self.server, item_id, type_, max_width, max_height, tag, custom_query))
+            all_artwork[type_] = artwork
+
         # Process backdrops
-        for index, tag in enumerate(backdrops):
-            artwork = (
-                "%s/emby/Items/%s/Images/Backdrop/%s?"
-                "MaxWidth=%s&MaxHeight=%s&Format=original&Tag=%s%s"
-                % (self.server, item_id, index, max_width, max_height, tag, custom_query))
-            all_artwork['Backdrop'].append(artwork)
+        get_backdrops(backdrops)
 
         # Process the rest of the artwork
-        for art in artworks:
+        for artwork in artworks:
             # Filter backcover
-            if art != "BoxRear":
-                tag = artworks[art]
-                artwork = (
-                    "%s/emby/Items/%s/Images/%s/0?"
-                    "MaxWidth=%s&MaxHeight=%s&Format=original&Tag=%s%s"
-                    % (self.server, item_id, art, max_width, max_height, tag, custom_query))
-                all_artwork[art] = artwork
+            if artwork != "BoxRear":
+                get_artwork(artwork, artworks[artwork])
 
         # Process parent items if the main item is missing artwork
         if parent_info:
@@ -521,45 +528,22 @@ class Artwork(object):
             # Process parent backdrops
             if not all_artwork['Backdrop']:
 
-                parent_id = item.get('ParentBackdropItemId')
-                if parent_id:
-                    # If there is a parentId, go through the parent backdrop list
-                    parent_backdrops = item['ParentBackdropImageTags']
-
-                    for index, tag in enumerate(parent_backdrops):
-                        artwork = ("%s/emby/Items/%s/Images/Backdrop/%s?"
-                                   "MaxWidth=%s&MaxHeight=%s&Format=original&Tag=%s%s"
-                                   % (self.server, parent_id, index, max_width, max_height,
-                                      tag, custom_query))
-                        all_artwork['Backdrop'].append(artwork)
+                if 'ParentBackdropItemId' in item:
+                    # If there is a parent_id, go through the parent backdrop list
+                    get_backdrops(item['ParentBackdropImageTags'])
 
             # Process the rest of the artwork
-            parent_artwork = ['Logo', 'Art', 'Thumb']
-            for parent_art in parent_artwork:
+            for parent_artwork in ('Logo', 'Art', 'Thumb'):
 
-                if not all_artwork[parent_art]:
+                if not all_artwork[parent_artwork]:
 
-                    parent_id = item.get('Parent%sItemId' % parent_art)
-                    if parent_id:
-
-                        parent_tag = item['Parent%sImageTag' % parent_art]
-                        artwork = ("%s/emby/Items/%s/Images/%s/0?"
-                                   "MaxWidth=%s&MaxHeight=%s&Format=original&Tag=%s%s"
-                                   % (self.server, parent_id, parent_art, max_width,
-                                      max_height, parent_tag, custom_query))
-                        all_artwork[parentart] = artwork
+                    if 'Parent%sItemId' % parent_artwork in item:
+                        get_artwork(parent_artwork, item['Parent%sImageTag' % parent_artwork])
 
             # Parent album works a bit differently
             if not all_artwork['Primary']:
 
-                parent_id = item.get('AlbumId')
-                if parent_id and item.get('AlbumPrimaryImageTag'):
-
-                    parent_tag = item['AlbumPrimaryImageTag']
-                    artwork = ("%s/emby/Items/%s/Images/Primary/0?"
-                               "MaxWidth=%s&MaxHeight=%s&Format=original&Tag=%s%s"
-                               % (self.server, parent_id, max_width, max_height,
-                                  parent_tag, custom_query))
-                    all_artwork['Primary'] = artwork
+                if 'AlbumId' in item and 'AlbumPrimaryImageTag' in item:
+                    get_artwork('Primary', item['AlbumPrimaryImageTag'])
 
         return all_artwork
