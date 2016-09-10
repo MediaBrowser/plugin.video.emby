@@ -466,7 +466,7 @@ class Movies(Items):
         # Process genres
         self.kodi_db.addGenres(movieid, genres, "movie")
         # Process artwork
-        artwork.addArtwork(artwork.get_all_artwork(item), movieid, "movie", kodicursor)
+        artwork.add_artwork(artwork.get_all_artwork(item), movieid, "movie", kodicursor)
         # Process stream details
         streams = API.getMediaStreams()
         self.kodi_db.addStreams(fileid, streams, runtime)
@@ -500,7 +500,7 @@ class Movies(Items):
             setid = self.kodi_db.createBoxset(title)
 
         # Process artwork
-        artwork.addArtwork(artwork.get_all_artwork(boxset), setid, "set", self.kodicursor)
+        artwork.add_artwork(artwork.get_all_artwork(boxset), setid, "set", self.kodicursor)
         
         # Process movies inside boxset
         current_movies = emby_db.getItemId_byParentId(setid, "movie")
@@ -838,7 +838,7 @@ class MusicVideos(Items):
         # Process genres
         self.kodi_db.addGenres(mvideoid, genres, "musicvideo")
         # Process artwork
-        artwork.addArtwork(artwork.get_all_artwork(item), mvideoid, "musicvideo", kodicursor)
+        artwork.add_artwork(artwork.get_all_artwork(item), mvideoid, "musicvideo", kodicursor)
         # Process stream details
         streams = API.getMediaStreams()
         self.kodi_db.addStreams(fileid, streams, runtime)
@@ -1147,7 +1147,7 @@ class TVShows(Items):
         # Process genres
         self.kodi_db.addGenres(showid, genres, "tvshow")
         # Process artwork
-        artwork.addArtwork(artwork.get_all_artwork(item), showid, "tvshow", kodicursor)
+        artwork.add_artwork(artwork.get_all_artwork(item), showid, "tvshow", kodicursor)
         # Process studios
         self.kodi_db.addStudios(showid, studios, "tvshow")
         # Process tags: view, emby tags
@@ -1164,7 +1164,7 @@ class TVShows(Items):
             # Finally, refresh the all season entry
             seasonid = self.kodi_db.addSeason(showid, -1)
             # Process artwork
-            artwork.addArtwork(artwork.get_all_artwork(item), seasonid, "season", kodicursor)
+            artwork.add_artwork(artwork.get_all_artwork(item), seasonid, "season", kodicursor)
 
         if force_episodes:
             # We needed to recreate the show entry. Re-add episodes now.
@@ -1199,7 +1199,7 @@ class TVShows(Items):
             emby_db.addReference(item['Id'], seasonid, "Season", "season", parentid=showid)
 
         # Process artwork
-        artwork.addArtwork(artwork.get_all_artwork(item), seasonid, "season", kodicursor)
+        artwork.add_artwork(artwork.get_all_artwork(item), seasonid, "season", kodicursor)
 
     def add_updateEpisode(self, item):
         # Process single episode
@@ -1435,7 +1435,7 @@ class TVShows(Items):
         self.kodi_db.addPeople(episodeid, people, "episode")
         # Process artwork
         artworks = artwork.get_all_artwork(item)
-        artwork.addOrUpdateArt(artworks['Primary'], episodeid, "episode", "thumb", kodicursor)
+        artwork.add_update_art(artworks['Primary'], episodeid, "episode", "thumb", kodicursor)
         # Process stream details
         streams = API.getMediaStreams()
         self.kodi_db.addStreams(fileid, streams, runtime)
@@ -1784,7 +1784,7 @@ class Music(Items):
 
 
         # Update artwork
-        artwork.addArtwork(artworks, artistid, "artist", kodicursor)
+        artwork.add_artwork(artworks, artistid, "artist", kodicursor)
 
     def add_updateAlbum(self, item):
         # Process a single artist
@@ -1952,7 +1952,7 @@ class Music(Items):
         # Add genres
         self.kodi_db.addMusicGenres(albumid, genres, "album")
         # Update artwork
-        artwork.addArtwork(artworks, albumid, "album", kodicursor)
+        artwork.add_artwork(artworks, albumid, "album", kodicursor)
 
     def add_updateSong(self, item):
         # Process single song
@@ -2260,11 +2260,11 @@ class Music(Items):
         allart = artwork.get_all_artwork(item, parent_info=True)
         if hasEmbeddedCover:
             allart["Primary"] = "image://music@" + artwork.single_urlencode( playurl )
-        artwork.addArtwork(allart, songid, "song", kodicursor)
+        artwork.add_artwork(allart, songid, "song", kodicursor)
 
         if item.get('AlbumId') is None:
             # Update album artwork
-            artwork.addArtwork(allart, albumid, "album", kodicursor)
+            artwork.add_artwork(allart, albumid, "album", kodicursor)
 
     def updateUserdata(self, item):
         # This updates: Favorite, LastPlayedDate, Playcount, PlaybackPositionTicks
