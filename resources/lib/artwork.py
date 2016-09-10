@@ -163,7 +163,7 @@ class Artwork(object):
         pdialog.close()
 
     def _cache_all_video_entries(self, pdialog):
-        
+
         conn = kodiSQL('video')
         cursor = conn.cursor()
         cursor.execute("SELECT url FROM art WHERE media_type != 'actor'") # dont include actors

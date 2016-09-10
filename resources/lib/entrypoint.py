@@ -621,16 +621,16 @@ def createListItemFromEmbyItem(item,art=artwork.Artwork(),doUtils=downloadutils.
                 li.setArt( {"fanart":  img_path}) #add image as fanart for use with skinhelper auto thumb/backgrund creation
             li.setInfo('pictures', infoLabels={ "picturepath": img_path, "date": premieredate, "size": picture.get("Size"), "exif:width": str(picture.get("Width")), "exif:height": str(picture.get("Height")), "title": title})
         li.setThumbnailImage(img_path)
-        li.setProperty("plot",API.getOverview())
+        li.setProperty("plot",API.get_overview())
         li.setIconImage('DefaultPicture.png')
     else:
         #normal video items
         li.setProperty('IsPlayable', 'true')
         path = "%s?id=%s&mode=play" % (sys.argv[0], item.get("Id"))
         li.setProperty("path",path)
-        genre = API.getGenres()
+        genre = API.get_genres()
         overlay = 0
-        userdata = API.getUserData()
+        userdata = API.get_userdata()
         runtime = item.get("RunTimeTicks",0)/ 10000000.0
         seektime = userdata['Resume']
         if seektime:
@@ -655,7 +655,7 @@ def createListItemFromEmbyItem(item,art=artwork.Artwork(),doUtils=downloadutils.
             'genre': genre,
             'playcount': str(playcount),
             'title': title,
-            'plot': API.getOverview(),
+            'plot': API.get_overview(),
             'Overlay': str(overlay),
             'duration': runtime
         }
@@ -672,7 +672,7 @@ def createListItemFromEmbyItem(item,art=artwork.Artwork(),doUtils=downloadutils.
         else:
             pbutils.PlaybackUtils(item).setArtwork(li)
 
-        mediastreams = API.getMediaStreams()
+        mediastreams = API.get_media_streams()
         videostreamFound = False
         if mediastreams:
             for key, value in mediastreams.iteritems():

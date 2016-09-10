@@ -307,31 +307,31 @@ class Movies(Items):
             log.debug("View tag found: %s" % viewtag)
 
         # fileId information
-        checksum = API.getChecksum()
-        dateadded = API.getDateCreated()
-        userdata = API.getUserData()
+        checksum = API.get_checksum()
+        dateadded = API.get_date_created()
+        userdata = API.get_userdata()
         playcount = userdata['PlayCount']
         dateplayed = userdata['LastPlayedDate']
 
         # item details
-        people = API.getPeople()
+        people = API.get_people()
         writer = " / ".join(people['Writer'])
         director = " / ".join(people['Director'])
         genres = item['Genres']
         title = item['Name']
-        plot = API.getOverview()
+        plot = API.get_overview()
         shortplot = item.get('ShortOverview')
-        tagline = API.getTagline()
+        tagline = API.get_tagline()
         votecount = item.get('VoteCount')
         rating = item.get('CommunityRating')
         year = item.get('ProductionYear')
-        imdb = API.getProvider('Imdb')
+        imdb = API.get_provider('Imdb')
         sorttitle = item['SortName']
-        runtime = API.getRuntime()
-        mpaa = API.getMpaa()
+        runtime = API.get_runtime()
+        mpaa = API.get_mpaa()
         genre = " / ".join(genres)
-        country = API.getCountry()
-        studios = API.getStudios()
+        country = API.get_country()
+        studios = API.get_studios()
         try:
             studio = studios[0]
         except IndexError:
@@ -366,7 +366,7 @@ class Movies(Items):
 
         
         ##### GET THE FILE AND PATH #####
-        playurl = API.getFilePath()
+        playurl = API.get_file_path()
 
         if "\\" in playurl:
             # Local path
@@ -468,7 +468,7 @@ class Movies(Items):
         # Process artwork
         artwork.add_artwork(artwork.get_all_artwork(item), movieid, "movie", kodicursor)
         # Process stream details
-        streams = API.getMediaStreams()
+        streams = API.get_media_streams()
         self.kodi_db.addStreams(fileid, streams, runtime)
         # Process studios
         self.kodi_db.addStudios(movieid, studios, "movie")
@@ -479,7 +479,7 @@ class Movies(Items):
             tags.append("Favorite movies")
         self.kodi_db.addTags(movieid, tags, "movie")
         # Process playstates
-        resume = API.adjustResume(userdata['Resume'])
+        resume = API.adjust_resume(userdata['Resume'])
         total = round(float(runtime), 6)
         self.kodi_db.addPlaystate(fileid, resume, total, playcount, dateplayed)
 
@@ -556,9 +556,9 @@ class Movies(Items):
         
         # Get emby information
         itemid = item['Id']
-        checksum = API.getChecksum()
-        userdata = API.getUserData()
-        runtime = API.getRuntime()
+        checksum = API.get_checksum()
+        userdata = API.get_userdata()
+        runtime = API.get_runtime()
 
         # Get Kodi information
         emby_dbitem = emby_db.getItem_byId(itemid)
@@ -578,7 +578,7 @@ class Movies(Items):
         # Process playstates
         playcount = userdata['PlayCount']
         dateplayed = userdata['LastPlayedDate']
-        resume = API.adjustResume(userdata['Resume'])
+        resume = API.adjust_resume(userdata['Resume'])
         total = round(float(runtime), 6)
 
         log.debug("%s New resume point: %s" % (itemid, resume))
@@ -693,30 +693,30 @@ class MusicVideos(Items):
             log.debug("View tag found: %s" % viewtag)
 
         # fileId information
-        checksum = API.getChecksum()
-        dateadded = API.getDateCreated()
-        userdata = API.getUserData()
+        checksum = API.get_checksum()
+        dateadded = API.get_date_created()
+        userdata = API.get_userdata()
         playcount = userdata['PlayCount']
         dateplayed = userdata['LastPlayedDate']
 
         # item details
-        runtime = API.getRuntime()
-        plot = API.getOverview()
+        runtime = API.get_runtime()
+        plot = API.get_overview()
         title = item['Name']
         year = item.get('ProductionYear')
         genres = item['Genres']
         genre = " / ".join(genres)
-        studios = API.getStudios()
+        studios = API.get_studios()
         studio = " / ".join(studios)
         artist = " / ".join(item.get('Artists'))
         album = item.get('Album')
         track = item.get('Track')
-        people = API.getPeople()
+        people = API.get_people()
         director = " / ".join(people['Director'])
 
         
         ##### GET THE FILE AND PATH #####
-        playurl = API.getFilePath()
+        playurl = API.get_file_path()
 
         if "\\" in playurl:
             # Local path
@@ -840,7 +840,7 @@ class MusicVideos(Items):
         # Process artwork
         artwork.add_artwork(artwork.get_all_artwork(item), mvideoid, "musicvideo", kodicursor)
         # Process stream details
-        streams = API.getMediaStreams()
+        streams = API.get_media_streams()
         self.kodi_db.addStreams(fileid, streams, runtime)
         # Process studios
         self.kodi_db.addStudios(mvideoid, studios, "musicvideo")
@@ -851,7 +851,7 @@ class MusicVideos(Items):
             tags.append("Favorite musicvideos")
         self.kodi_db.addTags(mvideoid, tags, "musicvideo")
         # Process playstates
-        resume = API.adjustResume(userdata['Resume'])
+        resume = API.adjust_resume(userdata['Resume'])
         total = round(float(runtime), 6)
         self.kodi_db.addPlaystate(fileid, resume, total, playcount, dateplayed)
 
@@ -863,9 +863,9 @@ class MusicVideos(Items):
         
         # Get emby information
         itemid = item['Id']
-        checksum = API.getChecksum()
-        userdata = API.getUserData()
-        runtime = API.getRuntime()
+        checksum = API.get_checksum()
+        userdata = API.get_userdata()
+        runtime = API.get_runtime()
 
         # Get Kodi information
         emby_dbitem = emby_db.getItem_byId(itemid)
@@ -887,7 +887,7 @@ class MusicVideos(Items):
         # Process playstates
         playcount = userdata['PlayCount']
         dateplayed = userdata['LastPlayedDate']
-        resume = API.adjustResume(userdata['Resume'])
+        resume = API.adjust_resume(userdata['Resume'])
         total = round(float(runtime), 6)
 
         self.kodi_db.addPlaystate(fileid, resume, total, playcount, dateplayed)
@@ -1033,28 +1033,28 @@ class TVShows(Items):
             log.debug("View tag found: %s" % viewtag)
 
         # fileId information
-        checksum = API.getChecksum()
-        dateadded = API.getDateCreated()
-        userdata = API.getUserData()
+        checksum = API.get_checksum()
+        dateadded = API.get_date_created()
+        userdata = API.get_userdata()
         playcount = userdata['PlayCount']
         dateplayed = userdata['LastPlayedDate']
 
         # item details
         genres = item['Genres']
         title = item['Name']
-        plot = API.getOverview()
+        plot = API.get_overview()
         rating = item.get('CommunityRating')
-        premieredate = API.getPremiereDate()
-        tvdb = API.getProvider('Tvdb')
+        premieredate = API.get_premiere_date()
+        tvdb = API.get_provider('Tvdb')
         sorttitle = item['SortName']
-        mpaa = API.getMpaa()
+        mpaa = API.get_mpaa()
         genre = " / ".join(genres)
-        studios = API.getStudios()
+        studios = API.get_studios()
         studio = " / ".join(studios)
 
         
         ##### GET THE FILE AND PATH #####
-        playurl = API.getFilePath()
+        playurl = API.get_file_path()
 
         if self.directpath:
             # Direct paths is set the Kodi way
@@ -1225,7 +1225,7 @@ class TVShows(Items):
         
         except TypeError:
             update_item = False
-            log.info("episodeid: %s not found." % itemid)
+            log.debug("episodeid: %s not found." % itemid)
             # episodeid
             kodicursor.execute("select coalesce(max(idEpisode),0) from episode")
             episodeid = kodicursor.fetchone()[0] + 1
@@ -1242,21 +1242,21 @@ class TVShows(Items):
                 log.info("episodeid: %s missing from Kodi, repairing the entry." % episodeid)
 
         # fileId information
-        checksum = API.getChecksum()
-        dateadded = API.getDateCreated()
-        userdata = API.getUserData()
+        checksum = API.get_checksum()
+        dateadded = API.get_date_created()
+        userdata = API.get_userdata()
         playcount = userdata['PlayCount']
         dateplayed = userdata['LastPlayedDate']
 
         # item details
-        people = API.getPeople()
+        people = API.get_people()
         writer = " / ".join(people['Writer'])
         director = " / ".join(people['Director'])
         title = item['Name']
-        plot = API.getOverview()
+        plot = API.get_overview()
         rating = item.get('CommunityRating')
-        runtime = API.getRuntime()
-        premieredate = API.getPremiereDate()
+        runtime = API.get_runtime()
+        premieredate = API.get_premiere_date()
 
         # episode details
         try:
@@ -1308,7 +1308,7 @@ class TVShows(Items):
 
         
         ##### GET THE FILE AND PATH #####
-        playurl = API.getFilePath()
+        playurl = API.get_file_path()
 
         if "\\" in playurl:
             # Local path
@@ -1437,10 +1437,10 @@ class TVShows(Items):
         artworks = artwork.get_all_artwork(item)
         artwork.add_update_art(artworks['Primary'], episodeid, "episode", "thumb", kodicursor)
         # Process stream details
-        streams = API.getMediaStreams()
+        streams = API.get_media_streams()
         self.kodi_db.addStreams(fileid, streams, runtime)
         # Process playstates
-        resume = API.adjustResume(userdata['Resume'])
+        resume = API.adjust_resume(userdata['Resume'])
         total = round(float(runtime), 6)
         self.kodi_db.addPlaystate(fileid, resume, total, playcount, dateplayed)
         if not self.directpath and resume:
@@ -1464,10 +1464,10 @@ class TVShows(Items):
         
         # Get emby information
         itemid = item['Id']
-        checksum = API.getChecksum()
-        userdata = API.getUserData()
-        runtime = API.getRuntime()
-        dateadded = API.getDateCreated()
+        checksum = API.get_checksum()
+        userdata = API.get_userdata()
+        runtime = API.get_runtime()
+        dateadded = API.get_date_created()
 
         # Get Kodi information
         emby_dbitem = emby_db.getItem_byId(itemid)
@@ -1491,7 +1491,7 @@ class TVShows(Items):
             # Process playstates
             playcount = userdata['PlayCount']
             dateplayed = userdata['LastPlayedDate']
-            resume = API.adjustResume(userdata['Resume'])
+            resume = API.adjust_resume(userdata['Resume'])
             total = round(float(runtime), 6)
 
             log.debug("%s New resume point: %s" % (itemid, resume))
@@ -1724,13 +1724,13 @@ class Music(Items):
 
         ##### The artist details #####
         lastScraped = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        dateadded = API.getDateCreated()
-        checksum = API.getChecksum()
+        dateadded = API.get_date_created()
+        checksum = API.get_checksum()
 
         name = item['Name']
-        musicBrainzId = API.getProvider('MusicBrainzArtist')
+        musicBrainzId = API.get_provider('MusicBrainzArtist')
         genres = " / ".join(item.get('Genres'))
-        bio = API.getOverview()
+        bio = API.get_overview()
 
         # Associate artwork
         artworks = artwork.get_all_artwork(item, parent_info=True)
@@ -1805,16 +1805,16 @@ class Music(Items):
 
         ##### The album details #####
         lastScraped = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        dateadded = API.getDateCreated()
-        userdata = API.getUserData()
-        checksum = API.getChecksum()
+        dateadded = API.get_date_created()
+        userdata = API.get_userdata()
+        checksum = API.get_checksum()
 
         name = item['Name']
-        musicBrainzId = API.getProvider('MusicBrainzAlbum')
+        musicBrainzId = API.get_provider('MusicBrainzAlbum')
         year = item.get('ProductionYear')
         genres = item.get('Genres')
         genre = " / ".join(genres)
-        bio = API.getOverview()
+        bio = API.get_overview()
         rating = userdata['UserRating']
         artists = item['AlbumArtists']
         if not artists:
@@ -1974,15 +1974,15 @@ class Music(Items):
             log.debug("songid: %s not found." % itemid)
             
         ##### The song details #####
-        checksum = API.getChecksum()
-        dateadded = API.getDateCreated()
-        userdata = API.getUserData()
+        checksum = API.get_checksum()
+        dateadded = API.get_date_created()
+        userdata = API.get_userdata()
         playcount = userdata['PlayCount']
         dateplayed = userdata['LastPlayedDate']
 
         # item details
         title = item['Name']
-        musicBrainzId = API.getProvider('MusicBrainzTrackId')
+        musicBrainzId = API.get_provider('MusicBrainzTrackId')
         genres = item.get('Genres')
         genre = " / ".join(genres)
         artists = " / ".join(item['Artists'])
@@ -1993,7 +1993,7 @@ class Music(Items):
         else:
             track = disc*2**16 + tracknumber
         year = item.get('ProductionYear')
-        duration = API.getRuntime()
+        duration = API.get_runtime()
         rating = userdata['UserRating']
 
         #if enabled, try to get the rating from file and/or emby
@@ -2001,7 +2001,7 @@ class Music(Items):
             rating, comment, hasEmbeddedCover = musicutils.getAdditionalSongTags(itemid, rating, API, kodicursor, emby_db, self.enableimportsongrating, self.enableexportsongrating, self.enableupdatesongrating)
         else:
             hasEmbeddedCover = False
-            comment = API.getOverview()
+            comment = API.get_overview()
             
             
         ##### GET THE FILE AND PATH #####
@@ -2009,7 +2009,7 @@ class Music(Items):
             path = "%s/emby/Audio/%s/" % (self.server, itemid)
             filename = "stream.mp3"
         else:
-            playurl = API.getFilePath()
+            playurl = API.get_file_path()
 
             if "\\" in playurl:
                 # Local path
@@ -2063,7 +2063,7 @@ class Music(Items):
                 album_name = item.get('Album')
                 if album_name:
                     log.info("Creating virtual music album for song: %s." % itemid)
-                    albumid = self.kodi_db.addAlbum(album_name, API.getProvider('MusicBrainzAlbum'))
+                    albumid = self.kodi_db.addAlbum(album_name, API.get_provider('MusicBrainzAlbum'))
                     emby_db.addReference("%salbum%s" % (itemid, albumid), albumid, "MusicAlbum_", "album")
                 else:
                     # No album Id associated to the song.
@@ -2275,9 +2275,9 @@ class Music(Items):
 
         # Get emby information
         itemid = item['Id']
-        checksum = API.getChecksum()
-        userdata = API.getUserData()
-        runtime = API.getRuntime()
+        checksum = API.get_checksum()
+        userdata = API.get_userdata()
+        runtime = API.get_runtime()
         rating = userdata['UserRating']
 
         # Get Kodi information
