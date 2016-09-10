@@ -142,41 +142,30 @@ class Artwork(object):
         # ask to rest all existing or not
         if dialog(type_="yesno", heading="{emby}", line1=lang(33044)):
             log.info("Resetting all cache data first")
-
-            # Remove all existing textures first
-            path = xbmc.translatePath('special://thumbnails/').decode('utf-8')
-            if xbmcvfs.exists(path):
-
-                dirs, ignore_files = xbmcvfs.listdir(path)
-                for directory in dirs:
-
-                    ignore_dirs, files = xbmcvfs.listdir(path + directory)
-                    for file in files:
-                        
-                        if os.path.supports_unicode_filenames:
-                            filename = os.path.join(path + directory.decode('utf-8'),
-                                                    file.decode('utf-8'))
-                        else:
-                            filename = os.path.join(path.encode('utf-8') + directory, file)
-                        
-                        xbmcvfs.delete(filename)
-                        log.info("deleted: %s", filename)
-
-            # remove all existing data from texture DB
-            connection = kodiSQL('texture')
-            cursor = connection.cursor()
-            cursor.execute('SELECT tbl_name FROM sqlite_master WHERE type="table"')
-            rows = cursor.fetchall()
-            for row in rows:
-                table_name = row[0]
-                if table_name != "version":
-                    cursor.execute("DELETE FROM " + table_name)
-            connection.commit()
-            cursor.close()
+            self._delete_cache()
 
         # Cache all entries in video DB
-        connection = kodiSQL('video')
-        cursor = connection.cursor()
+        self._cache_all_video_entries(pdialog)
+        # Cache all entries in music DB
+        self._cache_all_music_entries(pdialog)
+
+        pdialog.update(100, "%s %s" % (lang(33046), len(self.image_cache_threads)))
+        log.info("Waiting for all threads to exit")
+
+        while len(self.image_cache_threads):
+            for thread in self.image_cache_threads:
+                if thread.is_finished:
+                    self.image_cache_threads.remove(thread)
+            pdialog.update(100, "%s %s" % (lang(33046), len(self.image_cache_threads)))
+            log.info("Waiting for all threads to exit: %s", len(self.image_cache_threads))
+            xbmc.sleep(500)
+
+        pdialog.close()
+
+    def _cache_all_video_entries(self, pdialog):
+        
+        conn = kodiSQL('video')
+        cursor = conn.cursor()
         cursor.execute("SELECT url FROM art WHERE media_type != 'actor'") # dont include actors
         result = cursor.fetchall()
         total = len(result)
@@ -195,9 +184,10 @@ class Artwork(object):
             self.cache_texture(url[0])
             count += 1
 
-        # Cache all entries in music DB
-        connection = kodiSQL('music')
-        cursor = connection.cursor()
+    def _cache_all_music_entries(self, pdialog):
+
+        conn = kodiSQL('music')
+        cursor = conn.cursor()
         cursor.execute("SELECT url FROM art")
         result = cursor.fetchall()
         total = len(result)
@@ -216,18 +206,36 @@ class Artwork(object):
             self.cache_texture(url[0])
             count += 1
 
-        pdialog.update(100, "%s %s" % (lang(33046), len(self.image_cache_threads)))
-        log.info("Waiting for all threads to exit")
+    @classmethod
+    def _delete_cache(cls):
+        # Remove all existing textures first
+        path = xbmc.translatePath('special://thumbnails/').decode('utf-8')
+        if xbmcvfs.exists(path):
+            dirs, ignore_files = xbmcvfs.listdir(path)
+            for directory in dirs:
+                ignore_dirs, files = xbmcvfs.listdir(path + directory)
+                for file_ in files:
 
-        while len(self.image_cache_threads):
-            for thread in self.image_cache_threads:
-                if thread.is_finished:
-                    self.image_cache_threads.remove(thread)
-            pdialog.update(100, "%s %s" % (lang(33046), len(self.image_cache_threads)))
-            log.info("Waiting for all threads to exit: %s", len(self.image_cache_threads))
-            xbmc.sleep(500)
+                    if os.path.supports_unicode_filenames:
+                        filename = os.path.join(path + directory.decode('utf-8'),
+                                                file_.decode('utf-8'))
+                    else:
+                        filename = os.path.join(path.encode('utf-8') + directory, file_)
 
-        pdialog.close()
+                    xbmcvfs.delete(filename)
+                    log.info("deleted: %s", filename)
+
+        # remove all existing data from texture DB
+        conn = kodiSQL('texture')
+        cursor = conn.cursor()
+        cursor.execute('SELECT tbl_name FROM sqlite_master WHERE type="table"')
+        rows = cursor.fetchall()
+        for row in rows:
+            table_name = row[0]
+            if table_name != "version":
+                cursor.execute("DELETE FROM " + table_name)
+        conn.commit()
+        cursor.close()
 
     def _add_worker_image_thread(self, url):
 
@@ -374,12 +382,12 @@ class Artwork(object):
 
             else: # Only cache artwork if it changed
                 if url != image_url:
-                    
+
                     cache_image = True
 
                     # Only for the main backdrop, poster
                     if (window('emby_initialScan') != "true" and
-                        image_type in ("fanart", "poster")):
+                            image_type in ("fanart", "poster")):
                         # Delete current entry before updating with the new one
                         self.delete_cached_artwork(url)
 
