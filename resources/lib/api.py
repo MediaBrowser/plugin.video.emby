@@ -42,7 +42,7 @@ class API(object):
                 user_rating = 5
             elif likes:
                 user_rating = 3
-            elif likes == False:
+            elif likes is False:
                 user_rating = 0
             else:
                 user_rating = 1
@@ -107,7 +107,7 @@ class API(object):
         }
 
     def get_media_streams(self):
-        
+
         video_tracks = []
         audio_tracks = []
         subtitle_languages = []
@@ -123,8 +123,6 @@ class API(object):
         for media_stream in media_streams:
             # Sort through Video, Audio, Subtitle
             stream_type = media_stream['Type']
-            codec = media_stream.get('Codec', "").lower()
-            profile = media_stream.get('Profile', "").lower()
 
             if stream_type == "Video":
                 self._video_stream(video_tracks, media_stream)
@@ -184,7 +182,7 @@ class API(object):
             track['aspect'] = round(float(aspect_width) / float(aspect_height), 6)
 
         except (ValueError, ZeroDivisionError):
-            
+
             width = track.get('width')
             height = track.get('height')
 
@@ -253,7 +251,8 @@ class API(object):
 
         return studios
 
-    def verify_studio(self, studio_name):
+    @classmethod
+    def verify_studio(cls, studio_name):
         # Convert studio for Kodi to properly detect them
         studios = {
 
