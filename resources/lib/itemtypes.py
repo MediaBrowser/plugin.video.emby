@@ -469,16 +469,13 @@ class Movies(Items):
         # Process countries
         self.kodi_db.addCountries(movieid, countries, "movie")
         # Process cast
-        people = API.getPeopleList()
-        self.kodi_db.addPeople(movieid, people, "movie")
+        self.kodi_db.addPeople(movieid, API.getPeopleList(), "movie")
         # Process genres
         self.kodi_db.addGenres(movieid, genres, "movie")
         # Process artwork
-        allartworks = API.getAllArtwork()
-        artwork.addArtwork(allartworks, movieid, "movie", kodicursor)
+        artwork.addArtwork(API.getAllArtwork(), movieid, "movie", kodicursor)
         # Process stream details
-        streams = API.getMediaStreams()
-        self.kodi_db.addStreams(fileid, streams, runtime)
+        self.kodi_db.addStreams(fileid, API.getMediaStreams(), runtime)
         # Process studios
         self.kodi_db.addStudios(movieid, studios, "movie")
         # Process tags: view, Plex collection tags
