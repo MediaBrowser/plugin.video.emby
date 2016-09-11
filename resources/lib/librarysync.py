@@ -281,6 +281,7 @@ class ProcessFanartThread(Thread):
     def run(self):
         threadStopped = self.threadStopped
         threadSuspended = self.threadSuspended
+        queue = self.queue
         log.info("---===### Starting FanartSync ###===---")
         while not threadStopped():
             # In the event the server goes offline
@@ -1395,6 +1396,16 @@ class LibrarySync(Thread):
                 successful = self.process_newitems(item)
             if successful is True:
                 deleteListe.append(i)
+                if (settings('FanartTV') == 'true' and
+                        item['mediatype'] in ('movie')):
+                    mediaType = {'movie': 'Movie'}[item['mediatype']]
+                    cls = {'movie': 'Movies'}[item['mediatype']]
+                    self.fanartqueue.put({
+                        'itemId': item['ratingKey'],
+                        'class': cls,
+                        'mediaType': mediaType,
+                        'refresh': False
+                    })
             else:
                 # Safety net if we can't process an item
                 item['attempt'] += 1
@@ -1425,6 +1436,8 @@ class LibrarySync(Thread):
         viewtag = xml.attrib.get('librarySectionTitle')
         viewid = xml.attrib.get('librarySectionID')
         mediatype = xml[0].attrib.get('type')
+        # Attach mediatype for later
+        item['mediatype'] = mediatype
         if mediatype == 'movie':
             self.videoLibUpdate = True
             with itemtypes.Movies() as movie:
