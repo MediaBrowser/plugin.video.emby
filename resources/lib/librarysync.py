@@ -281,15 +281,14 @@ class ProcessFanartThread(Thread):
     def run(self):
         threadStopped = self.threadStopped
         threadSuspended = self.threadSuspended
-        queue = self.queue
-        log.debug('Started Fanart thread')
+        log.info("---===### Starting FanartSync ###===---")
         while not threadStopped():
             # In the event the server goes offline
             while threadSuspended():
                 # Set in service.py
                 if threadStopped():
                     # Abort was requested while waiting. We should exit
-                    log.debug('Fanart thread terminated while suspended')
+                    log.info("---===### Stopped FanartSync ###===---")
                     return
                 xbmc.sleep(1000)
             # grabs Plex item from queue
@@ -347,7 +346,7 @@ class ProcessFanartThread(Thread):
             # signals to queue job is done
             log.debug('Done getting fanart for Plex id %s' % item['itemId'])
             queue.task_done()
-        log.debug('Fanart thread terminated')
+        log.info("---===### Stopped FanartSync ###===---")
 
 
 @ThreadMethodsAdditionalSuspend('suspend_LibraryThread')
