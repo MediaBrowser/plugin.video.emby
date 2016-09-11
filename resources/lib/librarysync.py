@@ -1477,7 +1477,7 @@ class LibrarySync(Thread):
                 # Have we already added this element?
                 for existingItem in self.itemsToProcess:
                     if existingItem['ratingKey'] == itemId:
-                        break
+                        continue
                 else:
                     # Haven't added this element to the queue yet
                     self.itemsToProcess.append({
