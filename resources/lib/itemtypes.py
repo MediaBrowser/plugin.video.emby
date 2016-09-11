@@ -39,7 +39,6 @@ class Items(object):
         self.kodiversion = int(xbmc.getInfoLabel("System.BuildVersion")[:2])
         self.directpath = window('useDirectPaths') == 'true'
 
-        self.artwork = artwork.Artwork()
         self.userid = window('currUserId')
         self.server = window('pms_server')
 
@@ -73,19 +72,19 @@ class Items(object):
         API = PlexAPI.API(item)
         if allartworks is None:
             allartworks = API.getAllArtwork()
-        self.artwork.addArtwork(API.getFanartArtwork(allartworks),
-                                kodiId,
-                                mediaType,
-                                self.kodicursor)
+        with artwork.Artwork('video') as art:
+            art.addArtwork(API.getFanartArtwork(allartworks),
+                           kodiId,
+                           mediaType)
         # Also get artwork for collections/movie sets
         if mediaType == 'movie':
             for setname in API.getCollections():
                 log.debug('Getting artwork for movie set %s' % setname)
                 setid = self.kodi_db.createBoxset(setname)
-                self.artwork.addArtwork(API.getSetArtwork(),
-                                        setid,
-                                        "set",
-                                        self.kodicursor)
+                with artwork.Artwork('video') as art:
+                    art.addArtwork(API.getSetArtwork(),
+                                   setid,
+                                   "set")
                 self.kodi_db.assignBoxset(setid, kodiId)
 
     def itemsbyId(self, items, process, pdialog=None):
@@ -309,7 +308,6 @@ class Movies(Items):
         # Process single movie
         kodicursor = self.kodicursor
         emby_db = self.emby_db
-        artwork = self.artwork
         API = PlexAPI.API(item)
 
         # If the item already exist in the local Kodi DB we'll perform a full
@@ -496,7 +494,8 @@ class Movies(Items):
         # Process genres
         self.kodi_db.addGenres(movieid, genres, "movie")
         # Process artwork
-        artwork.addArtwork(API.getAllArtwork(), movieid, "movie", kodicursor)
+        with artwork.Artwork('video') as art:
+            art.addArtwork(API.getAllArtwork(), movieid, "movie")
         # Process stream details
         self.kodi_db.addStreams(fileid, API.getMediaStreams(), runtime)
         # Process studios
@@ -516,8 +515,6 @@ class Movies(Items):
         # Remove movieid, fileid, emby reference
         emby_db = self.emby_db
         kodicursor = self.kodicursor
-        artwork = self.artwork
-
         emby_dbitem = emby_db.getItem_byId(itemid)
         try:
             kodiid = emby_dbitem[0]
@@ -531,7 +528,8 @@ class Movies(Items):
         # Remove the emby reference
         emby_db.removeItem(itemid)
         # Remove artwork
-        artwork.deleteArtwork(kodiid, mediatype, kodicursor)
+        with artwork.Artwork('video') as art:
+            art.deleteArtwork(kodiid, mediatype)
 
         if mediatype == "movie":
             # Delete kodi movie and file
@@ -561,7 +559,6 @@ class TVShows(Items):
         # Process single tvshow
         kodicursor = self.kodicursor
         emby_db = self.emby_db
-        artwork = self.artwork
         API = PlexAPI.API(item)
 
         update_item = True
@@ -719,8 +716,8 @@ class TVShows(Items):
         # Process genres
         self.kodi_db.addGenres(showid, genres, "tvshow")
         # Process artwork
-        allartworks = API.getAllArtwork()
-        artwork.addArtwork(allartworks, showid, "tvshow", kodicursor)
+        with artwork.Artwork('video') as art:
+            art.addArtwork(API.getAllArtwork(), showid, "tvshow")
         # Process studios
         self.kodi_db.addStudios(showid, studios, "tvshow")
         # Process tags: view, PMS collection tags
@@ -743,7 +740,6 @@ class TVShows(Items):
             return
         kodicursor = self.kodicursor
         emby_db = self.emby_db
-        artwork = self.artwork
         seasonnum = API.getIndex()
         # Get parent tv show Plex id
         plexshowid = item.attrib.get('parentRatingKey')
@@ -767,8 +763,8 @@ class TVShows(Items):
             update_item = False
 
         # Process artwork
-        allartworks = API.getAllArtwork()
-        artwork.addArtwork(allartworks, seasonid, "season", kodicursor)
+        with artwork.Artwork('video') as art:
+            art.addArtwork(API.getAllArtwork(), seasonid, "season")
 
         if update_item:
             # Update a reference: checksum in emby table
@@ -790,7 +786,6 @@ class TVShows(Items):
         # Process single episode
         kodicursor = self.kodicursor
         emby_db = self.emby_db
-        artwork = self.artwork
         API = PlexAPI.API(item)
 
         # If the item already exist in the local Kodi DB we'll perform a full
@@ -1037,8 +1032,8 @@ class TVShows(Items):
         if poster:
             poster = API.addPlexCredentialsToUrl(
                 "%s%s" % (self.server, poster))
-            artwork.addOrUpdateArt(
-                poster, episodeid, "episode", "thumb", kodicursor)
+            with artwork.Artwork('video') as art:
+                art.addOrUpdateArt(poster, episodeid, "episode", "thumb")
         # poster of TV show itself
         # poster = item.attrib.get('grandparentThumb')
         # if poster:
@@ -1177,19 +1172,22 @@ class TVShows(Items):
 
     def removeShow(self, kodiid):
         kodicursor = self.kodicursor
-        self.artwork.deleteArtwork(kodiid, "tvshow", kodicursor)
+        with artwork.Artwork('video') as art:
+            art.deleteArtwork(kodiid, "tvshow")
         kodicursor.execute("DELETE FROM tvshow WHERE idShow = ?", (kodiid,))
         log.info("Removed tvshow: %s." % kodiid)
 
     def removeSeason(self, kodiid):
         kodicursor = self.kodicursor
-        self.artwork.deleteArtwork(kodiid, "season", kodicursor)
+        with artwork.Artwork('video') as art:
+            art.deleteArtwork(kodiid, "season")
         kodicursor.execute("DELETE FROM seasons WHERE idSeason = ?", (kodiid,))
         log.info("Removed season: %s." % kodiid)
 
     def removeEpisode(self, kodiid, fileid):
         kodicursor = self.kodicursor
-        self.artwork.deleteArtwork(kodiid, "episode", kodicursor)
+        with artwork.Artwork('video') as art:
+            art.deleteArtwork(kodiid, "episode")
         kodicursor.execute("DELETE FROM episode WHERE idEpisode = ?", (kodiid,))
         kodicursor.execute("DELETE FROM files WHERE idFile = ?", (fileid,))
         log.info("Removed episode: %s." % kodiid)
@@ -1224,7 +1222,6 @@ class Music(Items):
                          artisttype="MusicArtist"):
         kodicursor = self.kodicursor
         emby_db = self.emby_db
-        artwork = self.artwork
         API = PlexAPI.API(item)
 
         update_item = True
@@ -1299,13 +1296,13 @@ class Music(Items):
                                        dateadded, artistid))
 
         # Update artwork
-        artwork.addArtwork(artworks, artistid, "artist", kodicursor)
+        with artwork.Artwork('music') as art:
+            art.addArtwork(artworks, artistid, "artist")
 
     @CatchExceptions(warnuser=True)
     def add_updateAlbum(self, item, viewtag=None, viewid=None):
         kodicursor = self.kodicursor
         emby_db = self.emby_db
-        artwork = self.artwork
         API = PlexAPI.API(item)
 
         update_item = True
@@ -1488,14 +1485,14 @@ class Music(Items):
         # Add genres
         self.kodi_db.addMusicGenres(albumid, genres, "album")
         # Update artwork
-        artwork.addArtwork(artworks, albumid, "album", kodicursor)
+        with artwork.Artwork('music') as art:
+            art.addArtwork(artworks, albumid, "album")
 
     @CatchExceptions(warnuser=True)
     def add_updateSong(self, item, viewtag=None, viewid=None):
         # Process single song
         kodicursor = self.kodicursor
         emby_db = self.emby_db
-        artwork = self.artwork
         API = PlexAPI.API(item)
 
         update_item = True
@@ -1821,12 +1818,14 @@ class Music(Items):
         allart = API.getAllArtwork(parentInfo=True)
         if hasEmbeddedCover:
             allart["Primary"] = "image://music@" + artwork.single_urlencode( playurl )
-        artwork.addArtwork(allart, songid, "song", kodicursor)
+        with artwork.Artwork('music') as art:
+            art.addArtwork(allart, songid, "song")
 
         # if item.get('AlbumId') is None:
         if item.get('parentKey') is None:
             # Update album artwork
-            artwork.addArtwork(allart, albumid, "album", kodicursor)
+            with artwork.Artwork('music') as art:
+                art.addArtwork(allart, albumid, "album")
 
     def remove(self, itemid):
         # Remove kodiid, fileid, pathid, emby reference
@@ -1906,16 +1905,19 @@ class Music(Items):
         log.info("Deleted %s: %s from kodi database" % (mediatype, itemid))
 
     def removeSong(self, kodiid):
-        self.artwork.deleteArtwork(kodiid, "song", self.kodicursor)
+        with artwork.Artwork('music') as art:
+            art.deleteArtwork(kodiid, "song")
         self.kodicursor.execute("DELETE FROM song WHERE idSong = ?",
                                 (kodiid,))
 
     def removeAlbum(self, kodiid):
-        self.artwork.deleteArtwork(kodiid, "album", self.kodicursor)
+        with artwork.Artwork('music') as art:
+            art.deleteArtwork(kodiid, "album")
         self.kodicursor.execute("DELETE FROM album WHERE idAlbum = ?",
                                 (kodiid,))
 
     def removeArtist(self, kodiid):
-        self.artwork.deleteArtwork(kodiid, "artist", self.kodicursor)
+        with artwork.Artwork('music') as art:
+            art.deleteArtwork(kodiid, "artist")
         self.kodicursor.execute("DELETE FROM artist WHERE idArtist = ?",
                                 (kodiid,))

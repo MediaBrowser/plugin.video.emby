@@ -173,8 +173,8 @@ class Main():
                     
             elif mode == "texturecache":
                 import artwork
-                artwork.Artwork().fullTextureCacheSync()
-            
+                with artwork.Artwork('music') as art:
+                    art.fullTextureCacheSync()
             else:
                 entrypoint.doMainListing()
 

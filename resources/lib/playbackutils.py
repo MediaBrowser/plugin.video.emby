@@ -11,7 +11,6 @@ import xbmc
 import xbmcgui
 import xbmcplugin
 
-import artwork
 import playutils as putils
 import playlist
 from utils import window, settings, tryEncode, tryDecode
@@ -39,7 +38,6 @@ class PlaybackUtils():
         self.userid = window('currUserId')
         self.server = window('pms_server')
 
-        self.artwork = artwork.Artwork()
         if self.API.getType() == 'track':
             self.pl = playlist.Playlist(typus='music')
         else:

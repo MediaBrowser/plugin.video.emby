@@ -50,7 +50,6 @@ class Kodidb_Functions():
         self.cursor = cursor
 
         self.clientInfo = clientinfo.ClientInfo()
-        self.artwork = artwork.Artwork()
 
     def pathHack(self):
         """
@@ -506,7 +505,8 @@ class Kodidb_Functions():
                 if "writing" in arttype:
                     arttype = "writer"
 
-                self.artwork.addOrUpdateArt(thumb, actorid, arttype, "thumb", self.cursor)
+                with artwork.Artwork('video') as art:
+                    art.addOrUpdateArt(thumb, actorid, arttype, "thumb")
 
     def existingArt(self, kodiId, mediaType, refresh=False):
         """

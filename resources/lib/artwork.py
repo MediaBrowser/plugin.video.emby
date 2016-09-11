@@ -120,6 +120,13 @@ def setKodiWebServerDetails():
 
 
 class Artwork():
+    """
+    Use like this:
+        with Artwork(db_type) as art:
+            art.method()
+
+        db_type:      the Kodi db to open: 'video' or 'music'
+    """
     lock = Lock()
 
     enableTextureCache = settings('enableTextureCache') == "true"
@@ -135,6 +142,25 @@ class Artwork():
         xbmc_port, xbmc_username, xbmc_password = setKodiWebServerDetails()
 
     imageCacheThreads = []
+
+    def __init__(self, db_type):
+        self.db_type = db_type
+
+    def __enter__(self):
+        """
+        Open DB connections and cursors
+        """
+        self.connection = kodiSQL(self.db_type)
+        self.cursor = self.connection.cursor()
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """
+        Make sure DB changes are committed and connection to DB is closed.
+        """
+        self.connection.commit()
+        self.connection.close()
+        return self
 
     def double_urlencode(self, text):
         text = self.single_urlencode(text)
@@ -291,7 +317,7 @@ class Artwork():
             else:
                 self.addWorkerImageCacheThread(url)
 
-    def addArtwork(self, artwork, kodiId, mediaType, cursor):
+    def addArtwork(self, artwork, kodiId, mediaType):
         # Kodi conversion table
         kodiart = {
 
@@ -322,8 +348,8 @@ class Artwork():
                     "AND media_type = ?",
                     "AND type LIKE ?"
                 ))
-                cursor.execute(query, (kodiId, mediaType, "fanart%",))
-                rows = cursor.fetchall()
+                self.cursor.execute(query, (kodiId, mediaType, "fanart%",))
+                rows = self.cursor.fetchall()
 
                 if len(rows) > backdropsNumber:
                     # More backdrops in database. Delete extra fanart.
@@ -334,7 +360,7 @@ class Artwork():
                         "AND media_type = ?",
                         "AND type LIKE ?"
                     ))
-                    cursor.execute(query, (kodiId, mediaType, "fanart_",))
+                    self.cursor.execute(query, (kodiId, mediaType, "fanart_",))
 
                 # Process backdrops and extra fanart
                 index = ""
@@ -343,11 +369,11 @@ class Artwork():
                         imageUrl=backdrop,
                         kodiId=kodiId,
                         mediaType=mediaType,
-                        imageType="%s%s" % ("fanart", index),
-                        cursor=cursor)
+                        imageType="%s%s" % ("fanart", index))
 
                     if backdropsNumber > 1:
-                        try: # Will only fail on the first try, str to int.
+                        try:
+                            # Will only fail on the first try, str to int.
                             index += 1
                         except TypeError:
                             index = 1
@@ -359,19 +385,16 @@ class Artwork():
                         imageUrl=artwork[art],
                         kodiId=kodiId,
                         mediaType=mediaType,
-                        imageType=artType,
-                        cursor=cursor)
-
+                        imageType=artType)
             elif kodiart.get(art):
                 # Process the rest artwork type that Kodi can use
                 self.addOrUpdateArt(
                     imageUrl=artwork[art],
                     kodiId=kodiId,
                     mediaType=mediaType,
-                    imageType=kodiart[art],
-                    cursor=cursor)
+                    imageType=kodiart[art])
 
-    def addOrUpdateArt(self, imageUrl, kodiId, mediaType, imageType, cursor):
+    def addOrUpdateArt(self, imageUrl, kodiId, mediaType, imageType):
         if not imageUrl:
             # Possible that the imageurl is an empty string
             return
@@ -383,10 +406,10 @@ class Artwork():
             "AND media_type = ?",
             "AND type = ?"
         ))
-        cursor.execute(query, (kodiId, mediaType, imageType,))
+        self.cursor.execute(query, (kodiId, mediaType, imageType,))
         try:
             # Update the artwork
-            url = cursor.fetchone()[0]
+            url = self.cursor.fetchone()[0]
         except TypeError:
             # Add the artwork
             log.debug("Adding Art Link for kodiId: %s (%s)"
@@ -397,7 +420,8 @@ class Artwork():
                 VALUES (?, ?, ?, ?)
                 '''
             )
-            cursor.execute(query, (kodiId, mediaType, imageType, imageUrl))
+            self.cursor.execute(query,
+                                (kodiId, mediaType, imageType, imageUrl))
         else:
             if url == imageUrl:
                 # Only cache artwork if it changed
@@ -416,20 +440,21 @@ class Artwork():
                 "AND media_type = ?",
                 "AND type = ?"
             ))
-            cursor.execute(query, (imageUrl, kodiId, mediaType, imageType))
+            self.cursor.execute(query,
+                                (imageUrl, kodiId, mediaType, imageType))
 
         # Cache fanart and poster in Kodi texture cache
         self.cacheTexture(imageUrl)
 
-    def deleteArtwork(self, kodiId, mediaType, cursor):
+    def deleteArtwork(self, kodiId, mediaType):
         query = ' '.join((
             "SELECT url",
             "FROM art",
             "WHERE media_id = ?",
             "AND media_type = ?"
         ))
-        cursor.execute(query, (kodiId, mediaType,))
-        rows = cursor.fetchall()
+        self.cursor.execute(query, (kodiId, mediaType,))
+        rows = self.cursor.fetchall()
         for row in rows:
             self.deleteCachedArtwork(row[0])
 
