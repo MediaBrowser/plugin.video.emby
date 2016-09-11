@@ -99,6 +99,11 @@ class Main():
             entrypoint.getVideoFiles(plexid, plexpath)
             return
 
+        if mode == 'fanart':
+            log.info('User requested fanarttv refresh')
+            utils.window('plex_runLibScan', value='fanart')
+            return
+
         # Called by e.g. 3rd party plugin video extras
         if ("/Extras" in sys.argv[0] or "/VideoFiles" in sys.argv[0] or
                 "/Extras" in sys.argv[2]):

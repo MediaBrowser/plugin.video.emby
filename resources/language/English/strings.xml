@@ -446,6 +446,10 @@
     <string id="39219">Abort (Yes) or save address anyway (No)?</string>
     <string id="39220">connected</string>
     <string id="39221">plex.tv toggle successful</string>
+    <string id="39222">Look for missing fanart on FanartTV</string>
+    <string id="39223">Only look for missing fanart or refresh all fanart? The scan will take quite a while and happen in the background.</string>
+    <string id="39224">Refresh all</string>
+    <string id="39225">Missing only</string>    
 
 
     <!-- Plex Artwork.py -->

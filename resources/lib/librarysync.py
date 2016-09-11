@@ -1788,6 +1788,15 @@ class LibrarySync(Thread):
                                           forced=True,
                                           icon="error")
                     window('plex_dbScan', clear=True)
+                elif window('plex_runLibScan') == 'fanart':
+                    window('plex_runLibScan', clear=True)
+                    # Only look for missing fanart (No)
+                    # or refresh all fanart (Yes)
+                    self.fanartSync(refresh=self.dialog.yesno(
+                        heading=addonName,
+                        line1=lang(39223),
+                        nolabel=lang(39224),
+                        yeslabel=lang(39225)))
                 else:
                     now = getUnixTimestamp()
                     if (now - lastSync > fullSyncInterval and

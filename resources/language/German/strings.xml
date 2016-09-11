@@ -384,6 +384,11 @@
     <string id="39219">Abbrechen (Ja) oder PMS Adresse trotzdem speichern (Nein)?</string>
     <string id="39220">verbunden</string>
     <string id="39221">plex.tv wechsel OK</string>
+    <string id="39222">Nach zusätzlicher Fanart auf FanartTV suchen</string>
+    <string id="39223">Nur nach fehlender Fanart suchen oder alle Fanart neu herunterladen? Die Suche wird lange dauern und komplett im Hintergrund stattfinden!</string>
+    <string id="39224">Alle</string>
+    <string id="39225">Fehlend</string>    
+
 
     <!-- Plex Artwork.py -->
     <string id="39250">Alle Plex Bilder in Kodi zwischenzuspeichern kann sehr lange dauern. Möchten Sie wirklich fortfahren?</string>
