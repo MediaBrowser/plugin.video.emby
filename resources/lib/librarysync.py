@@ -370,8 +370,8 @@ class LibrarySync(Thread):
         self.queue = queue
         self.itemsToProcess = []
         self.sessionKeys = []
+        self.fanartqueue = Queue.Queue()
         if settings('FanartTV') == 'true':
-            self.fanartqueue = Queue.Queue()
             self.fanartthread = ProcessFanartThread(self.fanartqueue)
         # How long should we wait at least to process new/changed PMS items?
         self.saftyMargin = int(settings('saftyMargin'))
