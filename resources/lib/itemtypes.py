@@ -65,7 +65,8 @@ class Items(object):
         self.kodiconn.close()
         return self
 
-    @CatchExceptions(warnuser=True)
+    # Don't warn the user - ain't that bad
+    @CatchExceptions()
     def getfanart(self, item, kodiId, mediaType, allartworks=None):
         """
         """
