@@ -867,6 +867,7 @@ class LibrarySync(Thread):
                 'viewName': xxx,
                 'viewId': xxx,
                 'title': xxx
+                'mediaType': xxx, e.g. 'movie', 'episode'
 
             self.allPlexElementsId      APPENDED(!!) dict
                 = {itemid: checksum}
@@ -886,12 +887,15 @@ class LibrarySync(Thread):
                 # Only update if movie is not in Kodi or checksum is
                 # different
                 if kodi_checksum != plex_checksum:
-                    self.updatelist.append({'itemId': itemId,
-                                            'itemType': itemType,
-                                            'method': method,
-                                            'viewName': viewName,
-                                            'viewId': viewId,
-                                            'title': title})
+                    self.updatelist.append({
+                        'itemId': itemId,
+                        'itemType': itemType,
+                        'method': method,
+                        'viewName': viewName,
+                        'viewId': viewId,
+                        'title': title,
+                        'mediaType': item.attrib.get('type')
+                    })
         else:
             # Initial or repair sync: get all Plex movies
             for item in xml:
@@ -903,12 +907,15 @@ class LibrarySync(Thread):
                 plex_checksum = ("K%s%s"
                                  % (itemId, item.attrib.get('updatedAt', '')))
                 self.allPlexElementsId[itemId] = plex_checksum
-                self.updatelist.append({'itemId': itemId,
-                                        'itemType': itemType,
-                                        'method': method,
-                                        'viewName': viewName,
-                                        'viewId': viewId,
-                                        'title': title})
+                self.updatelist.append({
+                    'itemId': itemId,
+                    'itemType': itemType,
+                    'method': method,
+                    'viewName': viewName,
+                    'viewId': viewId,
+                    'title': title,
+                    'mediaType': item.attrib.get('type')
+                })
 
     def GetAndProcessXMLs(self, itemType, showProgress=True):
         """
@@ -999,12 +1006,13 @@ class LibrarySync(Thread):
             # Save to queue for later processing
             typus = {'Movies': 'movie', 'TVShows': 'tvshow'}[itemType]
             for item in self.updatelist:
-                self.fanartqueue.put({
-                    'itemId': item['itemId'],
-                    'class': itemType,
-                    'mediaType': typus,
-                    'refresh': False
-                })
+                if item['mediaType'] in ('movie', 'tvshow'):
+                    self.fanartqueue.put({
+                        'itemId': item['itemId'],
+                        'class': itemType,
+                        'mediaType': typus,
+                        'refresh': False
+                    })
         self.updatelist = []
 
     @LogTime
