@@ -985,17 +985,6 @@ class LibrarySync(Thread):
             except:
                 pass
         log.info("Sync threads finished")
-        if (settings('FanartTV') == 'true' and
-                itemType in ('Movies', 'TVShows')):
-            # Save to queue for later processing
-            typus = {'Movies': 'movie', 'TVShows': 'tvshow'}[itemType]
-            for item in self.updatelist:
-                self.fanartqueue.put({
-                    'itemId': item['itemId'],
-                    'class': itemType,
-                    'mediaType': typus,
-                    'refresh': False
-                })
         self.updatelist = []
 
     @LogTime
