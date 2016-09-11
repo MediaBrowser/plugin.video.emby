@@ -14,8 +14,8 @@ import xbmcgui
 import xbmcvfs
 
 import image_cache_thread
-from utils import window, settings, language as lang, kodiSQL
-from utils import tryEncode, tryDecode, IfExists
+from utils import window, settings, language as lang, kodiSQL, tryEncode, \
+    tryDecode, IfExists
 
 # Disable annoying requests warnings
 import requests.packages.urllib3
