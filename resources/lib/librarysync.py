@@ -290,7 +290,7 @@ class ProcessFanartThread(Thread):
                 if threadStopped():
                     # Abort was requested while waiting. We should exit
                     log.debug('Fanart thread terminated while suspended')
-                    break
+                    return
                 xbmc.sleep(1000)
             # grabs Plex item from queue
             try:
