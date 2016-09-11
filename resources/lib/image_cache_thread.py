@@ -47,9 +47,6 @@ class ImageCacheThread(threading.Thread):
         self.xbmc_password = password
 
     def run(self):
-
-        log.debug("Image Caching Thread Processing: %s", self.url_to_process)
-
         try:
             response = requests.head(
                                 url=(
@@ -60,6 +57,4 @@ class ImageCacheThread(threading.Thread):
         # We don't need the result
         except Exception:
             pass
-
-        log.debug("Image Caching Thread Exited")
         self.is_finished = True
