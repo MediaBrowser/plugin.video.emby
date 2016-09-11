@@ -292,11 +292,20 @@ class ProcessFanartThread(Thread):
                     log.info("---===### Stopped FanartSync ###===---")
                     return
                 xbmc.sleep(1000)
+            while window('plex_dbScan'):
+                # Don't do background sync if there is another sync
+                # going - otherwise we will have OperationalError for
+                # Kodi DB changes!
+                if threadStopped():
+                    # Abort was requested while waiting. We should exit
+                    log.info("---===### Stopped FanartSync ###===---")
+                    return
+                xbmc.sleep(1000)
             # grabs Plex item from queue
             try:
                 item = queue.get(block=False)
             except Queue.Empty:
-                xbmc.sleep(50)
+                xbmc.sleep(200)
                 continue
             if item['refresh'] is True:
                 # Leave the Plex art untouched
