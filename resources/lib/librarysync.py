@@ -1620,7 +1620,7 @@ class LibrarySync(Thread):
             for plextype in typus:
                 items.extend(emby_db.itemsByType(plextype))
         # Shuffle the list to not always start out identically
-        items = shuffle(items)
+        shuffle(items)
         for item in items:
             self.fanartqueue.put({
                 'itemId': item['plexId'],
