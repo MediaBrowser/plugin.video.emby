@@ -49,11 +49,10 @@ class ImageCacheThread(threading.Thread):
     def run(self):
         try:
             response = requests.head(
-                                url=(
-                                    "http://%s:%s/image/image://%s"
-                                    % (self.xbmc_host, self.xbmc_port, self.urlToProcess)),
-                                auth=(self.xbmc_username, self.xbmc_password),
-                                timeout=(5, 5))
+                url=("http://%s:%s/image/image://%s"
+                     % (self.xbmc_host, self.xbmc_port, self.url_to_process)),
+                auth=(self.xbmc_username, self.xbmc_password),
+                timeout=(5, 5))
         # We don't need the result
         except Exception:
             pass
