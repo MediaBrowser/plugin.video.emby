@@ -1653,7 +1653,6 @@ class LibrarySync(Thread):
         fullSyncInterval = self.fullSyncInterval
         lastSync = 0
         lastTimeSync = 0
-        lastFanartSync = 0
         lastProcessing = 0
         oneDay = 60*60*24
 
@@ -1810,12 +1809,6 @@ class LibrarySync(Thread):
                         window('plex_dbScan', value="true")
                         self.syncPMStime()
                         window('plex_dbScan', clear=True)
-                    elif (now - lastFanartSync > oneDay and
-                            settings('FanartTV') == 'true'):
-                        lastFanartSync = now
-                        log.info('Starting daily fanart sync')
-                        self.fanartSync()
-                        log.info('Finished init of daily fanart sync')
                     elif enableBackgroundSync:
                         # Check back whether we should process something
                         # Only do this once every 10 seconds
