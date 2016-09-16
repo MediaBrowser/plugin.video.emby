@@ -2515,16 +2515,16 @@ class API():
             'photo': 'photo'
         }
         typus = types[typus]
-        if window('remapSMB') == 'true':
-            path = path.replace(window('remapSMB%sOrg' % typus),
-                                window('remapSMB%sNew' % typus),
+        if settings('remapSMB') == 'true':
+            path = path.replace(settings('remapSMB%sOrg' % typus),
+                                settings('remapSMB%sNew' % typus),
                                 1)
             # There might be backslashes left over:
             path = path.replace('\\', '/')
-        elif window('replaceSMB') == 'true':
+        elif settings('replaceSMB') == 'true':
             if path.startswith('\\\\'):
                 path = 'smb:' + path.replace('\\', '/')
-        if window('plex_pathverified') == 'true' and forceCheck is False:
+        if settings('plex_pathverified') == 'true' and forceCheck is False:
             return path
 
         # exist() needs a / or \ at the end to work for directories
@@ -2545,13 +2545,12 @@ class API():
                 if self.askToValidate(path):
                     window('plex_shouldStop', value="true")
                     path = None
-                window('plex_pathverified', value='true')
+                settings('plex_pathverified', value='true')
                 settings('plex_pathverified', value='true')
             else:
                 path = None
         elif forceCheck is False:
-            if window('plex_pathverified') != 'true':
-                window('plex_pathverified', value='true')
+            if settings('plex_pathverified') != 'true':
                 settings('plex_pathverified', value='true')
         return path
 

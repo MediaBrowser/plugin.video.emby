@@ -97,9 +97,6 @@ class Service():
             "plex_runLibScan", "plex_username", "pms_token", "plex_token",
             "pms_server", "plex_machineIdentifier", "plex_servername",
             "plex_authenticated", "PlexUserImage", "useDirectPaths",
-            "replaceSMB", "remapSMB", "remapSMBmovieOrg", "remapSMBtvOrg",
-            "remapSMBmusicOrg", "remapSMBmovieNew", "remapSMBtvNew",
-            "remapSMBmusicNew", "remapSMBphotoOrg", "remapSMBphotoNew",
             "suspend_LibraryThread", "plex_terminateNow",
             "kodiplextimeoffset", "countError", "countUnauthorized"
         ]

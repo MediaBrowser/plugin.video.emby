@@ -399,9 +399,6 @@ class LibrarySync(Thread):
             'enableBackgroundSync') == "true"
         self.limitindex = int(settings('limitindex'))
 
-        if settings('plex_pathverified') == 'true':
-            window('plex_pathverified', value='true')
-
         # Just in case a time sync goes wrong
         self.timeoffset = int(settings('kodiplextimeoffset'))
         window('kodiplextimeoffset', value=str(self.timeoffset))
