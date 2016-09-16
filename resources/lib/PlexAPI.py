@@ -2546,7 +2546,6 @@ class API():
                     window('plex_shouldStop', value="true")
                     path = None
                 settings('plex_pathverified', value='true')
-                settings('plex_pathverified', value='true')
             else:
                 path = None
         elif forceCheck is False:
