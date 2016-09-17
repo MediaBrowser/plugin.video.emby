@@ -1,3 +1,11 @@
+version 1.3.4 (beta only)
+- Speed up sync - download all art in the background. This should especially speed up your initial sync. Remember to let Kodi sit for a while to let it download the artwork
+- New setting to look for missing artwork (the non-Plex stuff ;-))
+- Rearrange the PKC settings
+- Fix caching not working
+- Use file settings instead of window settings, should fix some errors on changing the PKC settings
+- Other small fixes
+
 version 1.3.3
 - 1.3.1 and 1.3.2 for everyone
 - Fix direct play & transcoding subtitles, finally! 
