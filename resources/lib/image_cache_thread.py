@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
-###############################################################################
+#################################################################################################
+
 import logging
 import threading
 import requests
@@ -8,30 +9,51 @@ import requests
 # Disable annoying requests warnings
 import requests.packages.urllib3
 requests.packages.urllib3.disable_warnings()
-###############################################################################
+#################################################################################################
 
 log = logging.getLogger("PLEX."+__name__)
 
-###############################################################################
+#################################################################################################
 
 
 class ImageCacheThread(threading.Thread):
-    def __init__(self, xbmc_username, xbmc_password, url):
-        self.xbmc_username = xbmc_username
-        self.xbmc_password = xbmc_password
-        self.url = url
+
+    url_to_process = None
+    is_finished = False
+
+    xbmc_host = ""
+    xbmc_port = ""
+    xbmc_username = ""
+    xbmc_password = ""
+
+
+    def __init__(self):
+
         threading.Thread.__init__(self)
+
+
+    def set_url(self, url):
+
+        self.url_to_process = url
+
+    def set_host(self, host, port):
+
+        self.xbmc_host = host
+        self.xbmc_port = port
+
+    def set_auth(self, username, password):
+
+        self.xbmc_username = username
+        self.xbmc_password = password
 
     def run(self):
         try:
-            requests.head(
-                url=self.url,
+            response = requests.head(
+                url=("http://%s:%s/image/image://%s"
+                     % (self.xbmc_host, self.xbmc_port, self.url_to_process)),
                 auth=(self.xbmc_username, self.xbmc_password),
-                timeout=(0.01, 0.01))
-        except requests.Timeout:
-            # We don't need the result, only trigger Kodi to start download
+                timeout=(5, 5))
+        # We don't need the result
+        except Exception:
             pass
-        except Exception as e:
-            log.error('Encountered exception: %s' % e)
-            import traceback
-            log.error("Traceback:\n%s" % traceback.format_exc())
+        self.is_finished = True
