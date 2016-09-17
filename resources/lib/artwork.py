@@ -132,6 +132,7 @@ def double_urldecode(text):
 class Image_Cache_Thread(Thread):
     xbmc_host = 'localhost'
     xbmc_port, xbmc_username, xbmc_password = setKodiWebServerDetails()
+    sleep_between = int(settings('sleep_between_art_downloads'))
 
     def __init__(self, queue):
         self.queue = queue
@@ -141,6 +142,7 @@ class Image_Cache_Thread(Thread):
         threadStopped = self.threadStopped
         threadSuspended = self.threadSuspended
         queue = self.queue
+        sleep_between = self.sleep_between
         while not threadStopped():
             # In the event the server goes offline
             while threadSuspended():
@@ -192,7 +194,7 @@ class Image_Cache_Thread(Thread):
             queue.task_done()
             log.debug('Downloaded art: %s' % double_urldecode(url))
             # Sleep for a bit to reduce CPU strain
-            xbmc.sleep(50)
+            xbmc.sleep(sleep_between)
         log.info("---===### Stopped Image_Cache_Thread ###===---")
 
 
