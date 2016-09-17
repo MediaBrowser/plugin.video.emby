@@ -10,6 +10,7 @@ import urlparse
 import xbmc
 import xbmcaddon
 import xbmcgui
+import xbmcplugin
 
 
 _addon = xbmcaddon.Addon(id='plugin.video.plexkodiconnect')
@@ -102,7 +103,6 @@ class Main():
         if mode == 'fanart':
             log.info('User requested fanarttv refresh')
             utils.window('plex_runLibScan', value='fanart')
-            return
 
         # Called by e.g. 3rd party plugin video extras
         if ("/Extras" in sys.argv[0] or "/VideoFiles" in sys.argv[0] or
@@ -161,21 +161,20 @@ class Main():
                         "Unable to run the sync, the add-on is not connected "
                         "to a Plex server.")
                     log.error("Not connected to a PMS.")
-                    return
-                    
                 else:
                     if mode == 'repair':
                         utils.window('plex_runLibScan', value="repair")
-                        log.warn("Requesting repair lib sync")
+                        log.info("Requesting repair lib sync")
                     elif mode == 'manualsync':
-                        log.warn("Requesting full library scan")
+                        log.info("Requesting full library scan")
                         utils.window('plex_runLibScan', value="full")
                     
             elif mode == "texturecache":
                 utils.window('plex_runLibScan', value='del_textures')
-            
             else:
                 entrypoint.doMainListing()
+        # Prevent Kodi from hanging in an infinite loop waiting for more
+        xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
 if __name__ == "__main__":
     log.info('plugin.video.plexkodiconnect started')

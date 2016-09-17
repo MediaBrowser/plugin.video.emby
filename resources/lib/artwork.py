@@ -269,7 +269,6 @@ class Artwork():
         connection.close()
         for url in result:
             self.cacheTexture(url[0])
-        log.info('Done throwing URLs to art download daemon')
 
     def cacheTexture(self, url):
         # Cache a single image url to the texture cache
