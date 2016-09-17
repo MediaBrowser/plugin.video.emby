@@ -8,8 +8,7 @@ import requests
 import os
 import urllib
 from sqlite3 import OperationalError
-from threading import Lock, Thread
-import Queue
+from threading import Lock
 
 import xbmc
 import xbmcgui
@@ -17,8 +16,7 @@ import xbmcvfs
 
 import image_cache_thread
 from utils import window, settings, language as lang, kodiSQL, tryEncode, \
-    tryDecode, IfExists, ThreadMethods, ThreadMethodsAdditionalSuspend, \
-    ThreadMethodsAdditionalStop
+    tryDecode, IfExists
 
 # Disable annoying requests warnings
 import requests.packages.urllib3
@@ -121,78 +119,22 @@ def setKodiWebServerDetails():
     return (xbmc_port, xbmc_username, xbmc_password)
 
 
-@ThreadMethodsAdditionalSuspend('suspend_LibraryThread')
-@ThreadMethodsAdditionalStop('plex_shouldStop')
-@ThreadMethods
-class Image_Cache_Thread(Thread):
+class Artwork():
+    lock = Lock()
+
+    enableTextureCache = settings('enableTextureCache') == "true"
     imageCacheLimitThreads = int(settings('imageCacheLimit'))
     imageCacheLimitThreads = imageCacheLimitThreads * 5
     log.info("Using Image Cache Thread Count: %s" % imageCacheLimitThreads)
-    xbmc_port, xbmc_username, xbmc_password = setKodiWebServerDetails()
-    threads = []
 
-    def __init__(self, queue):
-        self.queue = queue
-        Thread.__init__(self)
-
-    def run(self):
-        threadStopped = self.threadStopped
-        threadSuspended = self.threadSuspended
-        queue = self.queue
-        threads = self.threads
-        imageCacheLimitThreads = self.imageCacheLimitThreads
-        log.info("---===### Starting Image_Cache_Thread ###===---")
-        while not threadStopped():
-            # In the event the server goes offline
-            while threadSuspended():
-                # Set in service.py
-                if threadStopped():
-                    # Abort was requested while waiting. We should exit
-                    log.info("---===### Stopped Image_Cache_Thread ###===---")
-                    return
-                xbmc.sleep(1000)
-            try:
-                url = queue.get(block=False)
-            except Queue.Empty:
-                xbmc.sleep(200)
-                continue
-            while True:
-                for thread in threads:
-                    if thread.isAlive() is False:
-                        threads.remove(thread)
-                if len(threads) < imageCacheLimitThreads:
-                    log.debug('Downloading %s' % url)
-                    thread = Thread(target=self.download,
-                                    args=(url,))
-                    thread.setDaemon(True)
-                    thread.start()
-                    threads.append(thread)
-                    break
-        log.info("---===### Stopped Image_Cache_Thread ###===---")
-
-    def download(self):
-        try:
-            requests.head(
-                url=("http://%s:%s/image/image://%s"
-                     % (self.xbmc_host, self.xbmc_port, self.url)),
-                auth=(self.xbmc_username, self.xbmc_password),
-                timeout=(5, 5))
-        # We don't need the result
-        except Exception as e:
-            log.error('Image_Cache_Thread exception: %s' % e)
-            import traceback
-            log.error("Traceback:\n%s" % traceback.format_exc())
-
-
-class Artwork():
-    lock = Lock()
-    imageCacheLimitThreads = int(settings('imageCacheLimit'))
-    imageCacheLimitThreads = imageCacheLimitThreads * 5
-    enableTextureCache = settings('enableTextureCache') == "true"
+    xbmc_host = 'localhost'
+    xbmc_port = None
+    xbmc_username = None
+    xbmc_password = None
     if enableTextureCache:
-        queue = Queue.Queue()
-        download_thread = Image_Cache_Thread(queue)
-        log.info('Artwork initiated with caching textures = True')
+        xbmc_port, xbmc_username, xbmc_password = setKodiWebServerDetails()
+
+    imageCacheThreads = []
 
     def double_urlencode(self, text):
         text = self.single_urlencode(text)
@@ -307,6 +249,27 @@ class Artwork():
 
         pdialog.close()
 
+    def addWorkerImageCacheThread(self, url):
+        while True:
+            # removed finished
+            with self.lock:
+                for thread in self.imageCacheThreads:
+                    if thread.is_finished:
+                        self.imageCacheThreads.remove(thread)
+            # add a new thread or wait and retry if we hit our limit
+            with self.lock:
+                if len(self.imageCacheThreads) < self.imageCacheLimitThreads:
+                    newThread = image_cache_thread.ImageCacheThread()
+                    newThread.set_url(self.double_urlencode(url))
+                    newThread.set_host(self.xbmc_host, self.xbmc_port)
+                    newThread.set_auth(self.xbmc_username, self.xbmc_password)
+                    newThread.start()
+                    self.imageCacheThreads.append(newThread)
+                    return
+            log.debug("Waiting for empty queue spot: %s"
+                      % len(self.imageCacheThreads))
+            xbmc.sleep(50)
+
     def cacheTexture(self, url):
         # Cache a single image url to the texture cache
         if url and self.enableTextureCache:
@@ -326,7 +289,7 @@ class Artwork():
                 except:
                     pass
             else:
-                self.queue.put(url)
+                self.addWorkerImageCacheThread(url)
 
     def addArtwork(self, artwork, kodiId, mediaType, cursor):
         # Kodi conversion table
