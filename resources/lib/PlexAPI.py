@@ -620,10 +620,10 @@ class PlexAPI():
                        args=(PMS, queue))
             threadQueue.append(t)
 
-        maxThreads = int(settings('imageCacheLimit'))
+        maxThreads = 5
         threads = []
         # poke PMS, own thread for each PMS
-        while(True):
+        while True:
             # Remove finished threads
             for t in threads:
                 if not t.isAlive():

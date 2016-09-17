@@ -466,9 +466,6 @@ class InitialSetup():
         # Is your Kodi installed on a low-powered device like a Raspberry Pi?
         # If yes, then we will reduce the strain on Kodi to prevent it from
         # crashing.
-        if dialog.yesno(heading=addonName, line1=lang(39072)):
-            log.debug('User thinks that PKC runs on a raspi or similar')
-            settings('imageCacheLimit', value='1')
 
         # Make sure that we only ask these questions upon first installation
         settings('InstallQuestionsAnswered', value='true')
