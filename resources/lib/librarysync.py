@@ -1803,6 +1803,12 @@ class LibrarySync(Thread):
                         line1=lang(39223),
                         nolabel=lang(39224),
                         yeslabel=lang(39225)))
+                elif window('plex_runLibScan') == 'del_textures':
+                    window('plex_runLibScan', clear=True)
+                    window('plex_dbScan', value="true")
+                    import artwork
+                    artwork.Artwork().fullTextureCacheSync()
+                    window('plex_dbScan', clear=True)
                 else:
                     now = getUnixTimestamp()
                     if (now - lastSync > fullSyncInterval and

@@ -172,8 +172,7 @@ class Main():
                         utils.window('plex_runLibScan', value="full")
                     
             elif mode == "texturecache":
-                import artwork
-                artwork.Artwork().fullTextureCacheSync()
+                utils.window('plex_runLibScan', value='del_textures')
             
             else:
                 entrypoint.doMainListing()

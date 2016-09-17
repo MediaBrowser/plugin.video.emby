@@ -453,7 +453,7 @@
 
 
     <!-- Plex Artwork.py -->
-    <string id="39250">Running the image cache process can take some time. Are you sure you want continue?</string>
+    <string id="39250">Running the image cache process can take some time. It will happen in the background. Are you sure you want continue?</string>
     <string id="39251">Reset all existing cache data first?</string>
 
     <!-- Plex PlexAPI.py -->

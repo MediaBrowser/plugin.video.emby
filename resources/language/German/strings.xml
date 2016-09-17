@@ -391,7 +391,7 @@
 
 
     <!-- Plex Artwork.py -->
-    <string id="39250">Alle Plex Bilder in Kodi zwischenzuspeichern kann sehr lange dauern. Möchten Sie wirklich fortfahren?</string>
+    <string id="39250">Alle Plex Bilder in Kodi zwischenzuspeichern kann lange dauern. Es wird im Hintergrund stattfinden. Möchten Sie wirklich fortfahren?</string>
     <string id="39251">Sollen erst alle bestehenden Bilder im Cache gelöscht werden?</string>
 
     <!-- Plex PlexAPI.py -->

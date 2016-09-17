@@ -191,7 +191,7 @@ class Image_Cache_Thread(Thread):
                 break
             queue.task_done()
             # Sleep for a bit to reduce CPU strain
-            xbmc.sleep(20)
+            xbmc.sleep(50)
         log.info("---===### Stopped Image_Cache_Thread ###===---")
 
 
@@ -213,9 +213,6 @@ class Artwork():
             return
 
         log.info("Doing Image Cache Sync")
-
-        pdialog = xbmcgui.DialogProgress()
-        pdialog.create("PlexKodiConnect", "Image Cache Sync")
 
         # ask to rest all existing or not
         if xbmcgui.Dialog().yesno(
@@ -256,53 +253,22 @@ class Artwork():
         cursor.execute("SELECT url FROM art WHERE media_type != 'actor'")
         result = cursor.fetchall()
         total = len(result)
-        log.info("Image cache sync about to process %s images" % total)
+        log.info("Image cache sync about to process %s video images" % total)
         connection.close()
 
-        count = 0
         for url in result:
-            if pdialog.iscanceled():
-                break
-
-            percentage = int((float(count) / float(total))*100)
-            message = "%s of %s (%s)" % (count, total, self.imageCacheThreads)
-            pdialog.update(percentage, "%s %s" % (lang(33045), message))
             self.cacheTexture(url[0])
-            count += 1
         # Cache all entries in music DB
         connection = kodiSQL('music')
         cursor = connection.cursor()
         cursor.execute("SELECT url FROM art")
         result = cursor.fetchall()
         total = len(result)
-        log.info("Image cache sync about to process %s images" % total)
+        log.info("Image cache sync about to process %s music images" % total)
         connection.close()
-
-        count = 0
         for url in result:
-            if pdialog.iscanceled():
-                break
-
-            percentage = int((float(count) / float(total))*100)
-            message = "%s of %s" % (count, total)
-            pdialog.update(percentage, "%s %s" % (lang(33045), message))
             self.cacheTexture(url[0])
-            count += 1
-        pdialog.update(100, "%s %s"
-                       % (lang(33046), len(self.imageCacheThreads)))
-        log.info("Waiting for all threads to exit")
-        while len(self.imageCacheThreads):
-            with self.lock:
-                for thread in self.imageCacheThreads:
-                    if thread.is_finished:
-                        self.imageCacheThreads.remove(thread)
-            pdialog.update(100, "%s %s"
-                           % (lang(33046), len(self.imageCacheThreads)))
-            log.info("Waiting for all threads to exit: %s"
-                     % len(self.imageCacheThreads))
-            xbmc.sleep(500)
-
-        pdialog.close()
+        log.info('Done throwing URLs to art download daemon')
 
     def cacheTexture(self, url):
         # Cache a single image url to the texture cache
