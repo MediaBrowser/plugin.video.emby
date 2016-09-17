@@ -1399,19 +1399,19 @@ class LibrarySync(Thread):
             if item['state'] == 9:
                 successful = self.process_deleteditems(item)
             else:
-                successful = self.process_newitems(item)
+                successful, item = self.process_newitems(item)
+                if successful and settings('FanartTV') == 'true':
+                    if item['mediatype'] in ('movie', 'show'):
+                        mediaType = {'movie': 'Movie'}[item['mediatype']]
+                        cls = {'movie': 'Movies'}[item['mediatype']]
+                        self.fanartqueue.put({
+                            'itemId': item['ratingKey'],
+                            'class': cls,
+                            'mediaType': mediaType,
+                            'refresh': False
+                        })
             if successful is True:
                 deleteListe.append(i)
-                if (settings('FanartTV') == 'true' and
-                        item['mediatype'] in ('movie')):
-                    mediaType = {'movie': 'Movie'}[item['mediatype']]
-                    cls = {'movie': 'Movies'}[item['mediatype']]
-                    self.fanartqueue.put({
-                        'itemId': item['ratingKey'],
-                        'class': cls,
-                        'mediaType': mediaType,
-                        'refresh': False
-                    })
             else:
                 # Safety net if we can't process an item
                 item['attempt'] += 1
@@ -1437,7 +1437,7 @@ class LibrarySync(Thread):
         xml = PF.GetPlexMetadata(ratingKey)
         if xml in (None, 401):
             log.error('Could not download data for %s, skipping' % ratingKey)
-            return False
+            return False, item
         log.debug("Processing new/updated PMS item: %s" % ratingKey)
         viewtag = xml.attrib.get('librarySectionTitle')
         viewid = xml.attrib.get('librarySectionID')
@@ -1462,7 +1462,7 @@ class LibrarySync(Thread):
                 music.add_updateSong(xml[0],
                                      viewtag=viewtag,
                                      viewid=viewid)
-        return True
+        return True, item
 
     def process_deleteditems(self, item):
         if item.get('type') == 1:
