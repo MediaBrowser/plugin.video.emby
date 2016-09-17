@@ -19,17 +19,25 @@
 		<setting id="accessToken" type="text" visible="false" default="" />
 	</category>
 
-	<category label="plex.tv"><!-- plex.tv -->
+	<category label="Plex">
+		<setting type="lsep" label="plex.tv"/>
 		<setting id="plex_status" label="39071" type="text" default="Not logged in to plex.tv" enable="false" /><!-- Current plex.tv status: -->
+		<setting id="plexLogin" label="Plex user:" type="text" default="" enable="false" />
 		<setting type="sep" text=""/>
 
 		<setting id="myplexlogin" label="39025" type="bool" default="true" /> <!-- Log into plex.tv on startup -->
 		<setting label="39209" type="action" action="RunPlugin(plugin://plugin.video.plexkodiconnect?mode=togglePlexTV)" option="close" />
-
-		<setting id="plexLogin" label="plex.tv username" type="text" default="" visible="false" />
 		<setting id="plexhome" label="Plex home in use" type="bool" default="" visible="false" />
 		<setting id="plexToken" label="plexToken" type="text" default="" visible="false" />
 		<setting id="plexHomeSize" type="number" default="1" visible="false" />
+
+		<setting type="lsep" label="39008" />
+		<setting id="plexCompanion" label="39004" type="bool" default="true" />
+		<setting id="deviceNameOpt" label="30504" type="bool" default="false" />
+		<setting id="deviceName" label="30016" type="text" visible="eq(-1,true)" default="Kodi" />
+		<setting id="companionPort" label="39005" type="number" default="3005" option="int" visible="eq(-3,true)"/>
+
+		<setting id="plex_restricteduser" type="bool" default="false" visible="false"/>
 	</category>
 
 	<category label="30506"><!-- Sync Options -->
@@ -38,10 +46,6 @@
 		<setting id="dbSyncIndicator" label="30507" type="bool" default="true" />
 		<setting type="sep" /><!-- show syncing progress -->
 		<setting id="limitindex" type="number" label="30515" default="200" option="int" /><!-- Maximum items to request from the server at once -->
-		<setting id="enableTextureCache" label="30512"  type="bool" default="true" /> <!-- Force Artwork Caching -->
-		<setting id="sleep_between_art_downloads" type="slider" label="30543" default="50" option="int" range="10,10,1000" visible="eq(-1,true)"/>
-		<setting id="serverSync" type="bool" label="30514" default="true" visible="false"/><!-- Enable fast startup (requires server plugin) -->
-
 		<setting type="lsep" label="39052" /><!-- Background Sync -->
 		<setting id="enableBackgroundSync" type="bool" label="39026" default="true" visible="true"/>
 		<setting id="saftyMargin" type="slider" label="39051" default="60" option="int" range="10,1,300" visible="eq(-1,true)"/>
@@ -49,8 +53,6 @@
 		<setting id="dbSyncScreensaver" type="bool" label="39062" default="false" /><!--Sync when screensaver is deactivated-->
 
 		<setting type="lsep" label="30538" /><!-- Complete Re-Sync necessary -->
-		<setting id="FanartTV" label="30539" type="bool" default="false" /><!-- Download additional art from FanArtTV -->
-		<setting id="setFanartTV" label="30540" type="bool" default="true" /><!-- Download movie set/collection art from FanArtTV -->
 		<setting id="enableMusic" type="bool" label="30509" default="true" />
 		<setting id="useDirectPaths" type="enum" label="30511" values="Addon(Default)|Native(Direct paths)" default="0" visible="true"/> <!-- Playback mode -->
 
@@ -104,6 +106,13 @@
 	    <setting id="bestTrailer" type="bool" label="30542" default="true" />
 	</category>
 
+	<category label="30544"><!-- artwork -->
+		<setting id="enableTextureCache" label="30512"  type="bool" default="true" /> <!-- Force Artwork Caching -->
+		<setting id="sleep_between_art_downloads" type="slider" label="30543" default="50" option="int" range="10,10,1000" visible="eq(-1,true)"/> <!-- Sleep between art downloads [ms] -->
+		<setting id="FanartTV" label="30539" type="bool" default="false" /><!-- Download additional art from FanArtTV -->
+		<setting label="39222" type="action" action="RunPlugin(plugin://plugin.video.plexkodiconnect/?mode=fanart)" option="close" visible="eq(-1,true)" /> <!-- Look for missing fanart on FanartTV now -->
+		<setting label="39020" type="action" action="RunPlugin(plugin://plugin.video.plexkodiconnect/?mode=texturecache)" option="close" /> <!-- Cache all images to Kodi texture cache now -->
+	</category>
 	<!--
 	<category label="30235" visible="false">
 	    <setting id="enableCoverArt" type="bool" label="30157" default="true" visible="false"/>
@@ -116,16 +125,6 @@
         <setting id="newmusictime" type="number" label="30533" visible="false" default="2" option="int" subsetting="true" />
 	</category>
 	-->
-	<category label="Plex Companion">
-		<setting type="lsep" label="39008" />
-		<setting id="plexCompanion" label="39004" type="bool" default="true" />
-		<setting id="deviceNameOpt" label="30504" type="bool" default="false" />
-		<setting id="deviceName" label="30016" type="text" visible="eq(-1,true)" default="Kodi" />
-		<setting id="companionPort" label="39005" type="number" default="3005" option="int" visible="eq(-3,true)"/>
-
-		<setting id="plex_restricteduser" type="bool" default="false" visible="false"/>
-
-	</category>
 
 	<category label="39073"><!-- Appearance Tweaks -->
 		<setting id="connectMsg" type="bool" label="30249" default="true" />
@@ -144,7 +143,6 @@
 		<setting id="logLevel" type="enum" label="30004" values="Disabled|Info|Debug" default="1" />
 		<setting id="startupDelay" type="number" label="30529" default="0" option="int" />
 		<setting label="39018" type="action" action="RunPlugin(plugin://plugin.video.plexkodiconnect/?mode=repair)" option="close" /> <!-- Repair local database (force update all content) -->
-		<setting label="39020" type="action" action="RunPlugin(plugin://plugin.video.plexkodiconnect/?mode=texturecache)" option="close" /> <!-- Cache all images to Kodi texture cache -->
 		<setting label="30535" type="action" action="RunPlugin(plugin://plugin.video.plexkodiconnect?mode=deviceid)" /><!-- Reset device id uuid -->
 		<setting label="39021" type="action" action="RunPlugin(plugin://plugin.video.plexkodiconnect/?mode=thememedia)" option="close" visible="false" /> <!-- Sync Plex Theme Media to Kodi -->
 		<setting type="lsep" label="39049" /><!-- Nothing works? Try a full reset -->

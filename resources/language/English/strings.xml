@@ -302,12 +302,12 @@
     <string id="30536">Users must log in every time Kodi restarts</string>
     <string id="30537">RESTART KODI IF YOU MAKE ANY CHANGES</string>
     <string id="30538">Complete Re-Sync necessary</string>
-    <string id="30539">Download additional art from FanArtTV (slower!)</string>
+    <string id="30539">Download additional art from FanArtTV</string>
     <string id="30540">Download movie set/collection art from FanArtTV</string>
     <string id="30541">Don't ask to pick a certain stream/quality</string>
     <string id="30542">Always pick best quality for trailers</string>
     <string id="30543">Sleep between art downloads [ms]</string>
-
+    <string id="30544">Artwork</string>
 
     <!-- service add-on -->
     <string id="33000">Welcome</string>
@@ -354,7 +354,7 @@
     <string id="39005">Plex Companion Port (change only if needed)</string>
     <string id="39006">Activate Plex Companion debug log</string>
     <string id="39007">Activate Plex Companion GDM debug log</string>
-    <string id="39008">Allows flinging media to Kodi through Plex</string>
+    <string id="39008">Plex Companion: Allows flinging media to Kodi through Plex</string>
     <string id="39009">Could not login to plex.tv. Please try signing in again.</string>
     <string id="39010">Problems connecting to plex.tv. Network or internet issue?</string>
     <string id="39011">Could not find any Plex server in the network. Aborting...</string>
@@ -367,7 +367,7 @@
 
     <string id="39018">[COLOR yellow]Repair local database (force update all content)[/COLOR]</string>
     <string id="39019">[COLOR red]Partial or full reset of Database and PKC[/COLOR]</string>
-    <string id="39020">[COLOR yellow]Cache all images to Kodi texture cache[/COLOR]</string>
+    <string id="39020">[COLOR yellow]Cache all images to Kodi texture cache now[/COLOR]</string>
     <string id="39021">[COLOR yellow]Sync Emby Theme Media to Kodi[/COLOR]</string>
     <string id="39022">local</string>
     <string id="39023">Failed to authenticate. Did you login to plex.tv?</string>
@@ -409,7 +409,7 @@
     <string id="39058">Extend Plex TV Series "On Deck" view to all shows</string>
     <string id="39059">Recently Added: Append show title to episode</string>
     <string id="39060">Recently Added: Append season- and episode-number SxxExx</string>
-    <string id="39061">Would you like to download additional artwork from FanArtTV? Sync will be slower!</string>
+    <string id="39061">Would you like to download additional artwork from FanArtTV in the background?</string>
     <string id="39062">Sync when screensaver is deactivated</string>
     <string id="39063">Force Transcode Hi10P</string>
     <string id="39064">Recently Added: Also show already watched episodes</string>
@@ -447,7 +447,7 @@
     <string id="39219">Abort (Yes) or save address anyway (No)?</string>
     <string id="39220">connected</string>
     <string id="39221">plex.tv toggle successful</string>
-    <string id="39222">Look for missing fanart on FanartTV</string>
+    <string id="39222">[COLOR yellow]Look for missing fanart on FanartTV now[/COLOR]</string>
     <string id="39223">Only look for missing fanart or refresh all fanart? The scan will take quite a while and happen in the background.</string>
     <string id="39224">Refresh all</string>
     <string id="39225">Missing only</string>    

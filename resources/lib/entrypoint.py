@@ -275,8 +275,6 @@ def doMainListing():
     # addDirectoryItem("Add user to session", "plugin://plugin.video.plexkodiconnect/?mode=adduser")
     addDirectoryItem(lang(39203), "plugin://plugin.video.plexkodiconnect/?mode=refreshplaylist")
     addDirectoryItem(lang(39204), "plugin://plugin.video.plexkodiconnect/?mode=manualsync")
-    if settings('FanartTV') == 'true':
-        addDirectoryItem(lang(39222), "plugin://plugin.video.plexkodiconnect/?mode=fanart")
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
 

@@ -28,11 +28,12 @@
     <string id="30536">Benutzer müssen sich bei jedem Neustart von Kodi neu anmelden</string>
     <string id="30537">BEI ÄNDERUNGEN KODI NEU STARTEN</string>
     <string id="30538">Komplette Neusynchronisierung nötig</string>
-    <string id="30539">Zusätzliche Bilder von FanArtTV herunterladen (langsamer!)</string>
+    <string id="30539">Zusätzliche Bilder von FanArtTV herunterladen</string>
     <string id="30540">FanArtTV Film-Sets/Collections Bilder herunterladen</string>
     <string id="30541">Nicht fragen, welcher Stream/Qualität gespielt wird</string>
     <string id="30542">Trailer immer in der besten Qualität abspielen</string>
     <string id="30543">Wartezeit zwischen Bilder downloads [ms]</string>
+    <string id="30544">Artwork</string>
 
     <string id="30014">Verbindung</string>
     <string id="30015">Netzwerk</string>
@@ -292,7 +293,7 @@
     <string id="39005">Plex Companion Port (nur bei Bedarf ändern)</string>
     <string id="39006">Plex Companion debug log aktivieren</string>
     <string id="39007">Plex Companion GDM debug log aktivieren</string>
-    <string id="39008">Spiele Inhalt von anderen Plex Geräten ab</string>
+    <string id="39008">Plex Companion: Spiele Inhalt von anderen Plex Geräten ab</string>
     <string id="39009">Login bei plex.tv fehlgeschlagen. Bitte erneut versuchen.</string>
     <string id="39010">Netzwerk Verbindungsprobleme für plex.tv. Funktionieren Netzwerk und/oder Internet?</string>
     <string id="39011">Konnte keine Plex Server im Netzwerk finden. Abbruch...</string>
@@ -305,7 +306,7 @@
 
     <string id="39018">[COLOR yellow]Lokale Datenbank reparieren (allen Inhalt aktualisieren)[/COLOR]</string>
     <string id="39019">[COLOR red]Datenbank und auf Wunsch PKC zurücksetzen[/COLOR]</string>
-    <string id="39020">[COLOR yellow]Alle Plex Bilder in Kodi zwischenspeichern[/COLOR]</string>
+    <string id="39020">[COLOR yellow]Alle Plex Bilder jetzt in Kodi zwischenspeichern[/COLOR]</string>
     <string id="39021">[COLOR yellow]Plex Themes zu Kodi synchronisieren[/COLOR]</string>
     <string id="39022">lokal</string>
     <string id="39023">Plex Media Server Authentifizierung fehlgeschlagen. Haben Sie sich bei plex.tv eingeloggt?</string>
@@ -347,7 +348,7 @@
     <string id="39058">Standard Plex Ansicht "Aktuell" auf alle TV Shows erweitern</string>
     <string id="39059">"Zuletzt hinzugefügt": Serien- an Episoden-Titel anfügen</string>
     <string id="39060">"Zuletzt hinzugefügt": Staffel und Episode anfügen, SxxExx</string>
-    <string id="39061">Zusätzliche Bilder von FanArtTV herunterladen? Die Synchronisierung wird länger dauern!</string>
+    <string id="39061">Zusätzliche Bilder von FanArtTV im Hintergrund herunterladen?</string>
     <string id="39062">Sync wenn Bildschirmschoner deaktiviert wird</string>
     <string id="39063">Hi10p Codec Transkodierung erzwingen</string>
     <string id="39064">"Zuletzt hinzugefügt": gesehene Folgen anzeigen</string>
@@ -385,7 +386,7 @@
     <string id="39219">Abbrechen (Ja) oder PMS Adresse trotzdem speichern (Nein)?</string>
     <string id="39220">verbunden</string>
     <string id="39221">plex.tv wechsel OK</string>
-    <string id="39222">Nach zusätzlicher Fanart auf FanartTV suchen</string>
+    <string id="39222">[COLOR yellow]Jetzt zusätzliche Bilder auf FanartTV suchen[/COLOR]</string>
     <string id="39223">Nur nach fehlender Fanart suchen oder alle Fanart neu herunterladen? Die Suche wird lange dauern und komplett im Hintergrund stattfinden!</string>
     <string id="39224">Alle</string>
     <string id="39225">Fehlend</string>    
