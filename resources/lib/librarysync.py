@@ -285,17 +285,8 @@ class ProcessFanartThread(Thread):
         log.info("---===### Starting FanartSync ###===---")
         while not threadStopped():
             # In the event the server goes offline
-            while threadSuspended():
+            while threadSuspended() or window('plex_dbScan'):
                 # Set in service.py
-                if threadStopped():
-                    # Abort was requested while waiting. We should exit
-                    log.info("---===### Stopped FanartSync ###===---")
-                    return
-                xbmc.sleep(1000)
-            while window('plex_dbScan'):
-                # Don't do background sync if there is another sync
-                # going - otherwise we will have OperationalError for
-                # Kodi DB changes!
                 if threadStopped():
                     # Abort was requested while waiting. We should exit
                     log.info("---===### Stopped FanartSync ###===---")
