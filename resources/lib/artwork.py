@@ -14,7 +14,7 @@ import xbmc
 import xbmcgui
 import xbmcvfs
 
-import image_cache_thread
+from image_cache_thread import ImageCacheThread
 from utils import window, settings, language as lang, kodiSQL, tryEncode, \
     tryDecode, IfExists
 
@@ -254,20 +254,22 @@ class Artwork():
             # removed finished
             with self.lock:
                 for thread in self.imageCacheThreads:
-                    if thread.is_finished:
+                    if thread.isAlive() is False:
                         self.imageCacheThreads.remove(thread)
             # add a new thread or wait and retry if we hit our limit
             with self.lock:
                 if len(self.imageCacheThreads) < self.imageCacheLimitThreads:
-                    newThread = image_cache_thread.ImageCacheThread()
-                    newThread.set_url(self.double_urlencode(url))
-                    newThread.set_host(self.xbmc_host, self.xbmc_port)
-                    newThread.set_auth(self.xbmc_username, self.xbmc_password)
-                    newThread.start()
-                    self.imageCacheThreads.append(newThread)
+                    thread = ImageCacheThread(
+                        self.xbmc_username,
+                        self.xbmc_password,
+                        "http://%s:%s/image/image://%s"
+                        % (self.xbmc_host,
+                           self.xbmc_port,
+                           self.double_urlencode(url)))
+                    thread.start()
+                    self.imageCacheThreads.append(thread)
                     return
-            log.debug("Waiting for empty queue spot: %s"
-                      % len(self.imageCacheThreads))
+            log.error('Waiting for queue spot here')
             xbmc.sleep(50)
 
     def cacheTexture(self, url):
