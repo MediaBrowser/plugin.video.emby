@@ -318,6 +318,7 @@ class ProcessFanartThread(Thread):
                 for key, value in allartworks.iteritems():
                     if not value and not key == 'BoxRear':
                         needsupdate = True
+                        break
                 if needsupdate is False:
                     log.debug('Already got all art for Plex id %s'
                               % item['itemId'])
