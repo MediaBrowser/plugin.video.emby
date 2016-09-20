@@ -1,3 +1,25 @@
+version 2.2.33
+- Fix manual sync crashing
+- Update Portuguese translation
+- Add support for German MPAA rating. You will need to reset your local database to apply the change.
+- Add a backup option. Find out more: https://github.com/MediaBrowser/plugin.video.emby/wiki/Create-and-restore-from-backup
+
+version 2.2.32
+- Update the emby context menu
+- Add option to disable the context menu in the add-on settings > extras tab
+
+version 2.2.31
+- Support series pooling. Will require to reset local database. Once content is resynced, proceed with a manual sync to apply the series pooling.
+- Fix emby connect websocket issue, will also require updating server to beta 3.1.150 or higher
+- Fix initial sync artwork dialog for Isengard
+
+version 2.2.30
+- Update German translation
+- minor fixes
+
+version 2.2.28
+- Fix user selection when all users are hidden
+
 version 2.2.24
 - Filter music from fast sync response if music is disabled in the Kodi profile
 - Fix restart server behavior in the add-on to fix post capabilities

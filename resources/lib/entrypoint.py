@@ -5,6 +5,7 @@
 import json
 import logging
 import os
+import shutil
 import sys
 import urlparse
 
@@ -26,7 +27,7 @@ import playlist
 import playbackutils as pbutils
 import playutils
 import api
-from utils import window, settings, language as lang
+from utils import window, settings, dialog, language as lang
 
 #################################################################################################
 
@@ -112,6 +113,9 @@ def doMainListing():
     addDirectoryItem(lang(33058), "plugin://plugin.video.emby/?mode=reset")
     addDirectoryItem(lang(33059), "plugin://plugin.video.emby/?mode=texturecache")
     addDirectoryItem(lang(33060), "plugin://plugin.video.emby/?mode=thememedia")
+
+    if settings('backupPath'):
+        addDirectoryItem(lang(33092), "plugin://plugin.video.emby/?mode=backup")
     
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
@@ -126,14 +130,59 @@ def emby_connect():
         user = connectUser['User']
         token = connectUser['AccessToken']
         username = user['Name']
-        icon = user.get('ImageUrl') or "special://home/addons/plugin.video.emby/icon.png"
-        xbmcgui.Dialog().notification(heading=lang(29999),
-                                      message="%s %s" % (lang(33000), username.decode('utf-8')),
-                                      icon=icon,
-                                      time=1500,
-                                      sound=False)
+        dialog(type_="notification",
+               heading="{emby}",
+               message="%s %s" % (lang(33000), username.decode('utf-8')),
+               icon=user.get('ImageUrl') or "{emby}",
+               time=2000,
+               sound=False)
         
         settings('connectUsername', value=username)
+
+def emby_backup():
+    # Create a backup at specified location
+    path = settings('backupPath')
+
+    # filename
+    default_value = "Kodi%s.%s" % (xbmc.getInfoLabel('System.BuildVersion')[:2],
+                                   xbmc.getInfoLabel('System.Date(dd-mm-yy)'))
+    filename = dialog(type_="input",
+                      heading=lang(33089),
+                      defaultt=default_value)
+    if not filename:
+        return
+
+    backup = os.path.join(path, filename)
+    log.info("Backup: %s", backup)
+
+    # Create directory
+    if xbmcvfs.exists(backup+"\\"):
+        log.info("Existing directory!")
+        if not dialog(type_="yesno",
+                      heading="{emby}",
+                      line1=lang(33090)):
+            return emby_backup()
+        shutil.rmtree(backup)
+
+    # Addon_data
+    shutil.copytree(src=xbmc.translatePath(
+                        "special://profile/addon_data/plugin.video.emby").decode('utf-8'),
+                    dst=os.path.join(backup, "addon_data", "plugin.video.emby"))
+
+    # Database files
+    database = os.path.join(backup, "Database")
+    xbmcvfs.mkdir(database)
+
+    shutil.copy(src=utils.getKodiVideoDBPath(),
+                dst=database)
+    
+    if settings('enableMusic') == "true":
+        shutil.copy(src=utils.getKodiMusicDBPath(),
+                    dst=database)
+
+    dialog(type_="ok",
+           heading="{emby}",
+           line1="%s: %s" % (lang(33091), backup))
 
 ##### Generate a new deviceId
 def resetDeviceId():

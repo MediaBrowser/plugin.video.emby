@@ -50,7 +50,7 @@ def language(string_id):
     # Central string retrieval - unicode
     return xbmcaddon.Addon(id='plugin.video.emby').getLocalizedString(string_id)
 
-def dialog(type_, **kwargs):
+def dialog(type_, *args, **kwargs):
 
     d = xbmcgui.Dialog()
 
@@ -68,7 +68,7 @@ def dialog(type_, **kwargs):
         'select': d.select,
         'numeric': d.numeric
     }
-    return types[type_](**kwargs)
+    return types[type_](*args, **kwargs)
 
 
 class JSONRPC(object):
@@ -392,36 +392,16 @@ def reset():
             cursor.execute("DELETE FROM " + tablename)
     cursor.execute('DROP table IF EXISTS emby')
     cursor.execute('DROP table IF EXISTS view')
+    cursor.execute("DELETE FROM version")
     connection.commit()
     cursor.close()
 
     # Offer to wipe cached thumbnails
-    resp = dialog.yesno(language(29999), language(33086))
-    if resp:
-        log.warn("Resetting all cached artwork.")
+    if dialog.yesno(language(29999), language(33086)):
+        log.warn("Resetting all cached artwork")
         # Remove all existing textures first
-        path = xbmc.translatePath("special://thumbnails/").decode('utf-8')
-        if xbmcvfs.exists(path):
-            allDirs, allFiles = xbmcvfs.listdir(path)
-            for dir in allDirs:
-                allDirs, allFiles = xbmcvfs.listdir(path+dir)
-                for file in allFiles:
-                    if os.path.supports_unicode_filenames:
-                        xbmcvfs.delete(os.path.join(path+dir.decode('utf-8'),file.decode('utf-8')))
-                    else:
-                        xbmcvfs.delete(os.path.join(path.encode('utf-8')+dir,file))
-
-        # remove all existing data from texture DB
-        connection = kodiSQL('texture')
-        cursor = connection.cursor()
-        cursor.execute('SELECT tbl_name FROM sqlite_master WHERE type="table"')
-        rows = cursor.fetchall()
-        for row in rows:
-            tableName = row[0]
-            if(tableName != "version"):
-                cursor.execute("DELETE FROM " + tableName)
-        connection.commit()
-        cursor.close()
+        import artwork
+        artwork.Artwork().delete_cache()
 
     # reset the install run flag
     settings('SyncInstallRunDone', value="false")
@@ -432,10 +412,10 @@ def reset():
         import connectmanager
         # Delete the settings
         addon = xbmcaddon.Addon()
-        addondir = xbmc.translatePath(addon.getAddonInfo('profile')).decode('utf-8')
+        addondir = xbmc.translatePath(
+                   "special://profile/addon_data/plugin.video.emby/").decode('utf-8')
         dataPath = "%ssettings.xml" % addondir
         xbmcvfs.delete(dataPath)
-        log.info("Deleting: settings.xml")
         connectmanager.ConnectManager().clear_data()
 
     dialog.ok(heading=language(29999), line1=language(33088))

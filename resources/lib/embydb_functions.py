@@ -20,6 +20,21 @@ class Embydb_Functions():
         self.embycursor = embycursor
 
 
+    def get_version(self, version=None):
+
+        if version is not None:
+            query = "INSERT INTO version(idVersion) VALUES (?)"
+            self.embycursor.execute(query, (version,))
+        else:
+            query = "SELECT idVersion FROM version"
+            self.embycursor.execute(query)
+            try:
+                version = self.embycursor.fetchone()[0]
+            except TypeError:
+                pass
+
+        return version
+
     def getViews(self):
 
         views = []
@@ -159,7 +174,7 @@ class Embydb_Functions():
 
         query = ' '.join((
 
-            "SELECT emby_id, parent_id",
+            "SELECT emby_id, parent_id, media_folder",
             "FROM emby",
             "WHERE kodi_id = ?",
             "AND media_type = ?"

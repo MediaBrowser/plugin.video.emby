@@ -4,6 +4,7 @@
 
 import logging
 
+import xbmc
 import xbmcgui
 
 ##################################################################################################
@@ -30,6 +31,7 @@ class UsersConnect(xbmcgui.WindowXMLDialog):
 
     def __init__(self, *args, **kwargs):
 
+        self.kodi_version = int(xbmc.getInfoLabel('System.BuildVersion')[:2])
         xbmcgui.WindowXMLDialog.__init__(self, *args, **kwargs)
 
     def set_server(self, server):
@@ -52,18 +54,20 @@ class UsersConnect(xbmcgui.WindowXMLDialog):
 
         self.list_ = self.getControl(LIST)
         for user in self.users:
-            user_image = ("userflyoutdefault2.png" if not user.get('PrimaryImageTag')
+            user_image = ("userflyoutdefault2.png" if 'PrimaryImageTag' not in user
                           else self._get_user_artwork(user['Id'], 'Primary'))
             self.list_.addItem(self._add_listitem(user['Name'], user['Id'], user_image))
 
         self.setFocus(self.list_)
 
-    @classmethod
-    def _add_listitem(cls, label, user_id, user_image):
+    def _add_listitem(self, label, user_id, user_image):
 
         item = xbmcgui.ListItem(label)
         item.setProperty('id', user_id)
-        item.setArt({'Icon': user_image})
+        if self.kodi_version > 15:
+            item.setArt({'Icon': user_image})
+        else:
+            item.setIconImage(user_image)
 
         return item
 
@@ -95,6 +99,6 @@ class UsersConnect(xbmcgui.WindowXMLDialog):
         elif control == CANCEL:
             self.close()
 
-    def _get_user_artwork(self, user_id, art_type):
+    def _get_user_artwork(self, user_id, item_type):
         # Load user information set by UserClient
-        return "%s/emby/Users/%s/Images/%s?Format=original" % (self.server, user_id, art_type)
+        return "%s/emby/Users/%s/Images/%s?Format=original" % (self.server, user_id, item_type)

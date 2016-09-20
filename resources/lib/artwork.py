@@ -48,13 +48,13 @@ class Artwork(object):
 
     def _double_urlencode(self, text):
 
-        text = self._single_urlencode(text)
-        text = self._single_urlencode(text)
+        text = self.single_urlencode(text)
+        text = self.single_urlencode(text)
 
         return text
 
     @classmethod
-    def _single_urlencode(cls, text):
+    def single_urlencode(cls, text):
         # urlencode needs a utf- string
         text = urllib.urlencode({'blahblahblah': text.encode('utf-8')})
         text = text[13:]
@@ -142,7 +142,7 @@ class Artwork(object):
         # ask to rest all existing or not
         if dialog(type_="yesno", heading="{emby}", line1=lang(33044)):
             log.info("Resetting all cache data first")
-            self._delete_cache()
+            self.delete_cache()
 
         # Cache all entries in video DB
         self._cache_all_video_entries(pdialog)
@@ -207,7 +207,7 @@ class Artwork(object):
             count += 1
 
     @classmethod
-    def _delete_cache(cls):
+    def delete_cache(cls):
         # Remove all existing textures first
         path = xbmc.translatePath('special://thumbnails/').decode('utf-8')
         if xbmcvfs.exists(path):
@@ -223,7 +223,7 @@ class Artwork(object):
                         filename = os.path.join(path.encode('utf-8') + directory, file_)
 
                     xbmcvfs.delete(filename)
-                    log.info("deleted: %s", filename)
+                    log.debug("deleted: %s", filename)
 
         # remove all existing data from texture DB
         conn = kodiSQL('texture')
@@ -443,7 +443,7 @@ class Artwork(object):
             log.info("Database is locked. Skip deletion process.")
 
         else: # Delete thumbnail as well as the entry
-            thumbnails = xbmc.translatePath("special://thumbnails/%s", cached_url).decode('utf-8')
+            thumbnails = xbmc.translatePath("special://thumbnails/%s" % cached_url).decode('utf-8')
             log.info("Deleting cached thumbnail: %s", thumbnails)
             xbmcvfs.delete(thumbnails)
 
@@ -504,7 +504,7 @@ class Artwork(object):
             'Backdrop': []
         }
 
-        def get_backdrops(backdrops):
+        def get_backdrops(item_id, backdrops):
 
             for index, tag in enumerate(backdrops):
                 artwork = ("%s/emby/Items/%s/Images/Backdrop/%s?"
@@ -513,7 +513,7 @@ class Artwork(object):
                               tag, custom_query))
                 all_artwork['Backdrop'].append(artwork)
 
-        def get_artwork(type_, tag):
+        def get_artwork(item_id, type_, tag):
 
             artwork = ("%s/emby/Items/%s/Images/%s/0?"
                        "MaxWidth=%s&MaxHeight=%s&Format=original&Tag=%s%s"
@@ -521,13 +521,13 @@ class Artwork(object):
             all_artwork[type_] = artwork
 
         # Process backdrops
-        get_backdrops(backdrops)
+        get_backdrops(item_id, backdrops)
 
         # Process the rest of the artwork
         for artwork in artworks:
             # Filter backcover
             if artwork != "BoxRear":
-                get_artwork(artwork, artworks[artwork])
+                get_artwork(item_id, artwork, artworks[artwork])
 
         # Process parent items if the main item is missing artwork
         if parent_info:
@@ -536,7 +536,7 @@ class Artwork(object):
 
                 if 'ParentBackdropItemId' in item:
                     # If there is a parent_id, go through the parent backdrop list
-                    get_backdrops(item['ParentBackdropImageTags'])
+                    get_backdrops(item['ParentBackdropItemId'], item['ParentBackdropImageTags'])
 
             # Process the rest of the artwork
             for parent_artwork in ('Logo', 'Art', 'Thumb'):
@@ -544,12 +544,13 @@ class Artwork(object):
                 if not all_artwork[parent_artwork]:
 
                     if 'Parent%sItemId' % parent_artwork in item:
-                        get_artwork(parent_artwork, item['Parent%sImageTag' % parent_artwork])
+                        get_artwork(item['Parent%sItemId' % parent_artwork], parent_artwork,
+                                    item['Parent%sImageTag' % parent_artwork])
 
             # Parent album works a bit differently
             if not all_artwork['Primary']:
 
                 if 'AlbumId' in item and 'AlbumPrimaryImageTag' in item:
-                    get_artwork('Primary', item['AlbumPrimaryImageTag'])
+                    get_artwork(item['AlbumId'], 'Primary', item['AlbumPrimaryImageTag'])
 
         return all_artwork
