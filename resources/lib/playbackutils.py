@@ -259,8 +259,11 @@ class PlaybackUtils():
 
     def setProperties(self, playurl, listitem):
         # Set all properties necessary for plugin path playback
-        itemid = self.API.getRatingKey()
         itemtype = self.API.getType()
+        if itemtype == 'clip':
+            log.debug('Setting up a clip/trailer, skip window variables')
+            return
+        itemid = self.API.getRatingKey()
         userdata = self.API.getUserData()
 
         embyitem = "emby_%s" % playurl
