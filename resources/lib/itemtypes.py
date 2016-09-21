@@ -1058,14 +1058,13 @@ class TVShows(Items):
             query = "SELECT idShow FROM tvshow WHERE C12 = ?"
             kodicursor.execute(query, (tvdb,))
             try:
-                showid = kodicursor.fetchone()[0]
+                temp_showid = kodicursor.fetchone()[0]
             except TypeError:
                 pass
             else:
-                emby_other = emby_db.getItem_byKodiId(showid, "tvshow")
+                emby_other = emby_db.getItem_byKodiId(temp_showid, "tvshow")
                 if viewid == emby_other[2]:
                     log.info("Applying series pooling for %s", title)
-                    
                     emby_other_item = emby_db.getItem_byId(emby_other[0])
                     showid = emby_other_item[0]
                     pathid = emby_other_item[2]
@@ -1298,7 +1297,7 @@ class TVShows(Items):
                 season = 1
                 episode = item['AbsoluteEpisodeNumber']
             else:
-                season = -1
+                season = -1 if "Specials" not in item['Path'] else 0
 
         # Specials ordering within season
         if item.get('AirsAfterSeasonNumber'):
@@ -2030,7 +2029,12 @@ class Music(Items):
         ##### GET THE FILE AND PATH #####
         if self.directstream:
             path = "%s/emby/Audio/%s/" % (self.server, itemid)
-            filename = "stream.mp3?static=true"
+            extensions = ['mp3', 'aac', 'ogg', 'oga', 'webma', 'wma', 'flac']
+
+            if 'Container' in item and item['Container'].lower() in extensions:
+                filename = "stream.%s?static=true" % item['Container']
+            else:
+                filename = "stream.mp3?static=true"
         else:
             playurl = API.get_file_path()
 
