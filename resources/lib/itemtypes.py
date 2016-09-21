@@ -1749,7 +1749,7 @@ class Music(Items):
                         VALUES (?, ?, ?, ?)
                         '''
                     )
-            kodicursor.execute(query, (artistid, songid, index, artist_name))
+                    kodicursor.execute(query, (artistid, songid, index, artist_name))
 
         # Verify if album artist exists
         album_artists = []
