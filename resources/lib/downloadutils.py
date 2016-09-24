@@ -24,44 +24,65 @@ log = logging.getLogger("EMBY."+__name__)
 ##################################################################################################
 
 
-class DownloadUtils():
+class DownloadUtils(object):
 
     # Borg - multiple instances, shared state
     _shared_state = {}
-    clientInfo = clientinfo.ClientInfo()
 
     # Requests session
-    s = None
+    session = {
+
+        'ServerId': None,
+        'Session': None
+    }
+    other_servers = [] # Multi server setup
     default_timeout = 30
 
 
     def __init__(self):
 
         self.__dict__ = self._shared_state
+        self.clientInfo = clientinfo.ClientInfo()
 
 
-    def setUserId(self, userId):
+    def set_session(self, user_id, server, server_id, token, ssl):
         # Reserved for userclient only
-        self.userId = userId
-        log.debug("Set userId: %s" % userId)
+        info = {
+            'UserId': user_id,
+            'Server': server,
+            'ServerId': server_id,
+            'Token': token,
+            'SSL': ssl
+        }
+        self.session.update(info)
+        log.info("Set info for server %s: %s", self.session['ServerId'], self.session)
 
-    def setServer(self, server):
-        # Reserved for userclient only
-        self.server = server
-        log.debug("Set server: %s" % server)
+    def add_server(self, server_id, server, user_id, token, ssl):
 
-    def setToken(self, token):
-        # Reserved for userclient only
-        self.token = token
-        log.debug("Set token: %s" % token)
+        info = {
+            'UserId': user_id,
+            'Server': server,
+            'ServerId': server_id,
+            'Token': token,
+            'SSL': ssl
+        }
+        for s in self.other_servers:
+            if s['ServerId'] == server_id:
+                s.update(info)
+                log.info("updating %s to available servers: %s", server_id, s)
+                break
+        else:
+            self.other_servers.append(info)
+            log.info("adding %s to available servers", server_id)
 
-    def setSSL(self, ssl):
-        # Reserved for userclient only
-        self.sslverify = ssl
-        log.debug("Verify SSL verify/certificate: %s" % ssl)
+    def remove_server(self, server_id):
 
+        for s in self.other_servers:
+            if s['ServerId'] == server_id:
+                self.other_servers.remove(s)
+                log.info("removing %s from available servers", server_id)
 
-    def postCapabilities(self, deviceId):
+    def post_capabilities(self, device_id):
 
         # Post settings to session
         url = "{server}/emby/Sessions/Capabilities/Full?format=json"
@@ -83,14 +104,14 @@ class DownloadUtils():
             )
         }
 
-        log.debug("Capabilities URL: %s" % url)
+        log.debug("capabilities URL: %s" % url)
         log.debug("Postdata: %s" % data)
 
         self.downloadUrl(url, postBody=data, action_type="POST")
-        log.debug("Posted capabilities to %s" % self.server)
+        log.debug("Posted capabilities to %s" % self.session['Server'])
 
         # Attempt at getting sessionId
-        url = "{server}/emby/Sessions?DeviceId=%s&format=json" % deviceId
+        url = "{server}/emby/Sessions?DeviceId=%s&format=json" % device_id
         result = self.downloadUrl(url)
         try:
             sessionId = result[0]['Id']
@@ -138,22 +159,16 @@ class DownloadUtils():
         # Attach authenticated header to the session
         header = self.getHeader()
 
-        # If user enabled host certificate verification
-        try:
-            verify = self.sslverify
-        except:
-            verify = False
-            log.info("Could not load SSL settings.")
-
         # Start session
-        self.s = requests.Session()
-        self.s.headers = header
-        self.s.verify = verify
+        s = requests.Session()
+        s.headers = header
+        s.verify = self.session['SSL']
         # Retry connections to the server
-        self.s.mount("http://", requests.adapters.HTTPAdapter(max_retries=1))
-        self.s.mount("https://", requests.adapters.HTTPAdapter(max_retries=1))
+        s.mount("http://", requests.adapters.HTTPAdapter(max_retries=1))
+        s.mount("https://", requests.adapters.HTTPAdapter(max_retries=1))
+        self.session['Session'] = s
 
-        log.info("Requests session started on: %s" % self.server)
+        log.info("Requests session started on: %s" % self.session['Server'])
 
     def stopSession(self):
         try:
@@ -171,7 +186,7 @@ class DownloadUtils():
         if authenticate:
             auth = (
                 'MediaBrowser UserId="%s", Client="Kodi", Device="%s", DeviceId="%s", Version="%s"'
-                % (self.userId, deviceName, deviceId, version))
+                % (self.session['UserId'], deviceName, deviceId, version))
 
             header = {
 
@@ -179,7 +194,7 @@ class DownloadUtils():
                 'Accept-encoding': 'gzip',
                 'Accept-Charset': 'UTF-8,*',
                 'Authorization': auth,
-                'X-MediaBrowser-Token': self.token
+                'X-MediaBrowser-Token': self.session['Token']
             }
         else:
             # If user is not authenticated
@@ -207,14 +222,18 @@ class DownloadUtils():
         default_link = ""
 
         try:
-            if self.s is not None:
-                session = self.s
+            if self.session['Session'] is not None:
+                session = self.session['Session']
             else:
                 # request session does not exists
                 # Get user information
-                self.userId = window('emby_currUser')
-                self.server = window('emby_server%s' % self.userId)
-                self.token = window('emby_accessToken%s' % self.userId)
+                user_id = window('emby_currUser')
+                info = {
+                    'UserId': user_id,
+                    'Server': window('emby_server%s' % user_id),
+                    'Token': window('emby_accessToken%s' % user_id)
+                }
+
                 verifyssl = False
 
                 # IF user enables ssl verification
@@ -223,14 +242,17 @@ class DownloadUtils():
                 if settings('sslcert') != "None":
                     verifyssl = settings('sslcert')
 
+                info['SSL'] = verifyssl
+                self.session.update(info)
+
                 kwargs.update({
-                    'verify': verifyssl,
+                    'verify': self.session['SSL'],
                     'headers': self.getHeader(authenticate)
                 })
 
             # Replace for the real values
-            url = url.replace("{server}", self.server)
-            url = url.replace("{UserId}", self.userId)
+            url = url.replace("{server}", self.session['Server'])
+            url = url.replace("{UserId}", self.session['UserId'])
 
             ##### PREPARE REQUEST #####
             kwargs.update({

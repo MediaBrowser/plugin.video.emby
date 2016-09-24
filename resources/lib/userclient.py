@@ -213,10 +213,7 @@ class UserClient(threading.Thread):
                     raise
 
         # Set downloadutils.py values
-        doutils.setUserId(userid)
-        doutils.setServer(server)
-        doutils.setToken(token)
-        doutils.setSSL(self.get_ssl())
+        doutils.set_session(userid, server, settings('serverId'), token, self.get_ssl())
 
         # verify user access
         try:
@@ -228,6 +225,8 @@ class UserClient(threading.Thread):
         doutils.startSession()
         # Set _user and _server
         self._set_user_server()
+        # Set connect servers
+        servers = self.connectmanager.get_connect_servers()
 
     def _reset_client(self):
 
