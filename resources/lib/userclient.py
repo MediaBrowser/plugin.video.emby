@@ -225,8 +225,16 @@ class UserClient(threading.Thread):
         doutils.startSession()
         # Set _user and _server
         self._set_user_server()
+
+    def load_connect_servers(self):
         # Set connect servers
+        if not settings('connectUsername'):
+            return
+            
         servers = self.connectmanager.get_connect_servers()
+        for server in servers:
+            if server['Id'] != settings('serverId'):
+                self.doutils.add_server(server, False)
 
     def _reset_client(self):
 

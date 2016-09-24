@@ -10,6 +10,7 @@ import xbmc
 import xbmcgui
 
 import clientinfo
+import connect.connectionmanager as connectionmanager
 from utils import window, settings, language as lang
 
 ##################################################################################################
@@ -57,13 +58,14 @@ class DownloadUtils(object):
         self.session.update(info)
         log.info("Set info for server %s: %s", self.session['ServerId'], self.session)
 
-    def add_server(self, server_id, server, user_id, token, ssl):
+    def add_server(self, server, ssl):
 
+        server_id = server['Id']
         info = {
-            'UserId': user_id,
-            'Server': server,
+            'UserId': server['UserId'],
+            'Server': connectionmanager.getServerAddress(server, server['LastConnectionMode']),
             'ServerId': server_id,
-            'Token': token,
+            'Token': server['AccessToken'],
             'SSL': ssl
         }
         for s in self.other_servers:
@@ -73,7 +75,7 @@ class DownloadUtils(object):
                 break
         else:
             self.other_servers.append(info)
-            log.info("adding %s to available servers", server_id)
+            log.info("adding %s to available servers: %s", server_id, self.other_servers)
 
     def remove_server(self, server_id):
 
