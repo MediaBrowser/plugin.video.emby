@@ -232,13 +232,16 @@ class UserClient(threading.Thread):
             return
             
         servers = self.connectmanager.get_connect_servers()
+        added_servers = []
         for server in servers:
             if server['Id'] != settings('serverId'):
                 # TODO: SSL setup
                 self.doutils.add_server(server, False)
-                # Test
-                result = self.download("{server}/emby/Users/{UserId}?format=json", server_id=server['Id'])
-                log.info("Boom test: %s", result)
+                added_servers.append(server['Id'])
+        
+        # Set properties
+        log.info(added_servers)
+        window('emby_servers', value=str(added_servers))
 
     def _reset_client(self):
 

@@ -32,11 +32,8 @@ class DownloadUtils(object):
 
     # Requests session
     session = {
-
         'ServerId': None,
         'Session': None,
-        'UserId': None,
-        'Token': None
     }
     servers = {} # Multi server setup
     default_timeout = 30
@@ -59,6 +56,7 @@ class DownloadUtils(object):
         }
         self.session.update(info)
         log.info("Set info for server %s: %s", self.session['ServerId'], self.session)
+        log.info("servers: %s", self.servers)
 
     def add_server(self, server, ssl):
         # Reserved for userclient only
@@ -73,21 +71,27 @@ class DownloadUtils(object):
             if s == server_id:
                 s.update(info)
                 # Set window prop
-                window('emby_server%s.json' % server_id, value=json.dumps(info))
+                self._set_server_properties(server_id, server['Name'], json.dumps(info))
                 log.info("updating %s to available servers: %s", server_id, self.servers)
                 break
         else:
             self.servers[server_id] = info
-            window('emby_server%s.json' % server_id, value=json.dumps(info))
+            self._set_server_properties(server_id, server['Name'], json.dumps(info))
             log.info("adding %s to available servers: %s", server_id, self.servers)
 
-    def remove_server(self, server_id):
+    def reset_server(self, server_id):
         # Reserved for userclient only
         for s in self.servers:
             if s['ServerId'] == server_id:
                 self.servers.remove(s)
                 window('emby_server%s.json' % server_id, clear=True)
+                window('emby_server%s.name' % server_id, clear=True)
                 log.info("removing %s from available servers", server_id)
+
+    @staticmethod
+    def _set_server_properties(server_id, name, info):
+        window('emby_server%s.json' % server_id, value=info)
+        window('emby_server%s.name' % server_id, value=name)
 
     def post_capabilities(self, device_id):
 
@@ -269,7 +273,7 @@ class DownloadUtils(object):
             })
 
             ##### THE RESPONSE #####
-            log.info(kwargs)
+            log.debug(kwargs)
             r = self._requests(action_type, session, **kwargs)
 
             if r.status_code == 204:
@@ -365,7 +369,7 @@ class DownloadUtils(object):
             server = self._get_session_info()
             self.session.update(server)
 
-        elif server_id not in self.servers:
+        elif server_id and server_id not in self.servers:
             
             server = self._get_session_info(server_id)
             if server is None:

@@ -96,6 +96,11 @@ def doMainListing():
         addDirectoryItem(lang(33052),
             "plugin://plugin.video.emby/?mode=browsecontent&type=recordings&folderid=root")
 
+    servers = window('emby_servers')
+    if servers:
+        servers = list(servers)
+        log.info(servers)
+
     addDirectoryItem(lang(30517), "plugin://plugin.video.emby/?mode=passwords")
     addDirectoryItem(lang(33053), "plugin://plugin.video.emby/?mode=settings")
     addDirectoryItem(lang(33054), "plugin://plugin.video.emby/?mode=adduser")
