@@ -57,7 +57,8 @@ import embydb_functions as embydb
 log = logging.getLogger("PLEX."+__name__)
 
 addonName = 'PlexKodiConnect'
-
+REGEX_IMDB = re.compile(r'''/(tt\d+)''')
+REGEX_TVDB = re.compile(r'''tvdb://(\d+)''')
 ###############################################################################
 
 
@@ -1450,10 +1451,10 @@ class API():
             return None
 
         if providername == 'imdb':
-            regex = re.compile(r'''/(tt\d+)''')
+            regex = REGEX_IMDB
         elif providername == 'tvdb':
             # originally e.g. com.plexapp.agents.thetvdb://276564?lang=en
-            regex = re.compile(r'''tvdb://(\d+)''')
+            regex = REGEX_TVDB
         else:
             return None
 
