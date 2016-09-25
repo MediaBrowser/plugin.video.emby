@@ -97,9 +97,6 @@ class LibrarySync(threading.Thread):
             if not completed:
                 # Fast sync failed or server plugin is not found
                 completed = ManualSync().sync()
-
-            # Add other servers at this point
-            self.user.load_connect_servers()
         else:
             # Install sync is not completed
             completed = self.fullSync()
@@ -1035,7 +1032,6 @@ class LibrarySync(threading.Thread):
                             line1=lang(33024))
                     break                
 
-
                 # Run start up sync
                 log.warn("Database version: %s", window('emby_version'))
                 log.info("SyncDatabase (started)")
@@ -1044,6 +1040,9 @@ class LibrarySync(threading.Thread):
                 elapsedTime = datetime.now() - startTime
                 log.info("SyncDatabase (finished in: %s) %s"
                     % (str(elapsedTime).split('.')[0], librarySync))
+
+                # Add other servers at this point
+                self.user.load_connect_servers()
                 # Only try the initial sync once per kodi session regardless
                 # This will prevent an infinite loop in case something goes wrong.
                 startupComplete = True

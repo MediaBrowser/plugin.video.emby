@@ -34,16 +34,18 @@ class DownloadUtils(object):
     session = {
 
         'ServerId': None,
-        'Session': None
+        'Session': None,
+        'UserId': None,
+        'Token': None
     }
-    other_servers = [] # Multi server setup
+    servers = {} # Multi server setup
     default_timeout = 30
 
 
     def __init__(self):
 
         self.__dict__ = self._shared_state
-        self.clientInfo = clientinfo.ClientInfo()
+        self.client_info = clientinfo.ClientInfo()
 
 
     def set_session(self, user_id, server, server_id, token, ssl):
@@ -59,29 +61,32 @@ class DownloadUtils(object):
         log.info("Set info for server %s: %s", self.session['ServerId'], self.session)
 
     def add_server(self, server, ssl):
-
+        # Reserved for userclient only
         server_id = server['Id']
         info = {
             'UserId': server['UserId'],
             'Server': connectionmanager.getServerAddress(server, server['LastConnectionMode']),
-            'ServerId': server_id,
             'Token': server['AccessToken'],
             'SSL': ssl
         }
-        for s in self.other_servers:
-            if s['ServerId'] == server_id:
+        for s in self.servers:
+            if s == server_id:
                 s.update(info)
-                log.info("updating %s to available servers: %s", server_id, s)
+                # Set window prop
+                window('emby_server%s.json' % server_id, value=json.dumps(info))
+                log.info("updating %s to available servers: %s", server_id, self.servers)
                 break
         else:
-            self.other_servers.append(info)
-            log.info("adding %s to available servers: %s", server_id, self.other_servers)
+            self.servers[server_id] = info
+            window('emby_server%s.json' % server_id, value=json.dumps(info))
+            log.info("adding %s to available servers: %s", server_id, self.servers)
 
     def remove_server(self, server_id):
-
-        for s in self.other_servers:
+        # Reserved for userclient only
+        for s in self.servers:
             if s['ServerId'] == server_id:
-                self.other_servers.remove(s)
+                self.servers.remove(s)
+                window('emby_server%s.json' % server_id, clear=True)
                 log.info("removing %s from available servers", server_id)
 
     def post_capabilities(self, device_id):
@@ -154,16 +159,11 @@ class DownloadUtils(object):
 
 
     def startSession(self):
-
-        self.deviceId = self.clientInfo.get_device_id()
-
         # User is identified from this point
         # Attach authenticated header to the session
-        header = self.getHeader()
-
         # Start session
         s = requests.Session()
-        s.headers = header
+        s.headers = self.get_header()
         s.verify = self.session['SSL']
         # Retry connections to the server
         s.mount("http://", requests.adapters.HTTPAdapter(max_retries=1))
@@ -178,44 +178,56 @@ class DownloadUtils(object):
         except Exception:
             log.warn("Requests session could not be terminated.")
 
-    def getHeader(self, authenticate=True):
+    def get_header(self, server_id=None, authenticate=True):
 
-        deviceName = self.clientInfo.get_device_name()
-        deviceName = deviceName.encode('utf-8')
-        deviceId = self.clientInfo.get_device_id()
-        version = self.clientInfo.get_version()
+        device_name = self.client_info.get_device_name().encode('utf-8')
+        device_id = self.client_info.get_device_id()
+        version = self.client_info.get_version()
 
         if authenticate:
+
+            user = self.get_user(server_id)
+            user_id = user['UserId']
+            token = user['Token']
+
             auth = (
                 'MediaBrowser UserId="%s", Client="Kodi", Device="%s", DeviceId="%s", Version="%s"'
-                % (self.session['UserId'], deviceName, deviceId, version))
-
+                % (user_id, device_name, device_id, version)
+            )
             header = {
-
-                'Content-type': 'application/json',
-                'Accept-encoding': 'gzip',
-                'Accept-Charset': 'UTF-8,*',
                 'Authorization': auth,
-                'X-MediaBrowser-Token': self.session['Token']
+                'X-MediaBrowser-Token': token
             }
         else:
-            # If user is not authenticated
             auth = (
                 'MediaBrowser Client="Kodi", Device="%s", DeviceId="%s", Version="%s"'
-                % (deviceName, deviceId, version))
+                % (device_name, device_id, version)
+            )
+            header = {'Authorization': auth}
 
-            header = {
-
-                'Content-type': 'application/json',
-                'Accept-encoding': 'gzip',
-                'Accept-Charset': 'UTF-8,*',
-                'Authorization': auth
-            }
-
+        header.update({
+            'Content-type': 'application/json',
+            'Accept-encoding': 'gzip',
+            'Accept-Charset': 'UTF-8,*',
+        })
         return header
 
+    def get_user(self, server_id=None):
+
+        if server_id is None:
+            return {
+                'UserId': self.session['UserId'],
+                'Token': self.session['Token']
+            }
+        else:
+            server = self.servers[server_id]
+            return {
+                'UserId': server['UserId'],
+                'Token': server['Token']
+            }
+
     def downloadUrl(self, url, postBody=None, action_type="GET", parameters=None,
-                    authenticate=True):
+                    authenticate=True, server_id=None):
 
         log.debug("===== ENTER downloadUrl =====")
         
@@ -223,38 +235,30 @@ class DownloadUtils(object):
         kwargs = {}
         default_link = ""
 
-        try:
-            if self.session['Session'] is not None:
-                session = self.session['Session']
+        try: # Ensure server info is loaded
+            if not self._ensure_server(server_id):
+                raise AttributeError("unable to load server information: %s" % server_id)
+
+            if server_id is None:
+                if self.session['Session'] is not None:
+                    session = self.session['Session']
+                else:
+                    kwargs.update({
+                        'verify': self.session['SSL'],
+                        'headers': self.get_header(authenticate=authenticate)
+                    })
+                # Replace for the real values
+                url = url.replace("{server}", self.session['Server'])
+                url = url.replace("{UserId}", self.session['UserId'])
             else:
-                # request session does not exists
-                # Get user information
-                user_id = window('emby_currUser')
-                info = {
-                    'UserId': user_id,
-                    'Server': window('emby_server%s' % user_id),
-                    'Token': window('emby_accessToken%s' % user_id)
-                }
-
-                verifyssl = False
-
-                # IF user enables ssl verification
-                if settings('sslverify') == "true":
-                    verifyssl = True
-                if settings('sslcert') != "None":
-                    verifyssl = settings('sslcert')
-
-                info['SSL'] = verifyssl
-                self.session.update(info)
-
+                server = self.servers[server_id]
                 kwargs.update({
-                    'verify': self.session['SSL'],
-                    'headers': self.getHeader(authenticate)
+                    'verify': server['SSL'],
+                    'headers': self.get_header(server_id, authenticate)
                 })
-
-            # Replace for the real values
-            url = url.replace("{server}", self.session['Server'])
-            url = url.replace("{UserId}", self.session['UserId'])
+                # Replace for the real values
+                url = url.replace("{server}", server['Server'])
+                url = url.replace("{UserId}", server['UserId'])
 
             ##### PREPARE REQUEST #####
             kwargs.update({
@@ -265,7 +269,7 @@ class DownloadUtils(object):
             })
 
             ##### THE RESPONSE #####
-            log.debug(kwargs)
+            log.info(kwargs)
             r = self._requests(action_type, session, **kwargs)
 
             if r.status_code == 204:
@@ -348,15 +352,66 @@ class DownloadUtils(object):
         except requests.exceptions.RequestException as e:
             log.error("Unknown error connecting to: %s" % url)
 
+        except AttributeError as error:
+            log.error(error)
+
         return default_link
 
-    def _requests(self, action, session=requests, **kwargs):
+    
+    def _ensure_server(self, server_id=None):
+
+        if server_id is None and self.session['Session'] is None:
+            
+            server = self._get_session_info()
+            self.session.update(server)
+
+        elif server_id not in self.servers:
+            
+            server = self._get_session_info(server_id)
+            if server is None:
+                return False
+
+            self.servers[server_id] = server
+
+        return True
+
+    @classmethod
+    def _get_session_info(cls, server_id=None):
+        
+        info = {}
+
+        if server_id is None: # Main server
+
+            user_id = window('emby_currUser')
+            info.update({
+                'UserId': user_id,
+                'Server': window('emby_server%s' % user_id),
+                'Token': window('emby_accessToken%s' % user_id)
+            })
+            verifyssl = False
+            # If user enables ssl verification
+            if settings('sslverify') == "true":
+                verifyssl = True
+            if settings('sslcert') != "None":
+                verifyssl = settings('sslcert')
+
+            info['SSL'] = verifyssl
+
+        else: # Other connect servers
+            server = window('emby_server%s.json' % server_id)
+            if server:
+                info.update(json.loads(server))
+
+        return info
+
+    @classmethod
+    def _requests(cls, action, session=requests, **kwargs):
 
         if action == "GET":
-            r = session.get(**kwargs)
+            response = session.get(**kwargs)
         elif action == "POST":
-            r = session.post(**kwargs)
+            response = session.post(**kwargs)
         elif action == "DELETE":
-            r = session.delete(**kwargs)
+            response = session.delete(**kwargs)
 
-        return r
+        return response
