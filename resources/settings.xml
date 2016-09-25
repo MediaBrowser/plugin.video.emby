@@ -46,6 +46,7 @@
 		<setting id="dbSyncIndicator" label="30507" type="bool" default="true" />
 		<setting type="sep" /><!-- show syncing progress -->
 		<setting id="limitindex" type="number" label="30515" default="200" option="int" /><!-- Maximum items to request from the server at once -->
+        <setting id="syncThreadNumber" type="slider" label="39003" default="5" option="int" range="1,1,20"/>
 		<setting type="lsep" label="39052" /><!-- Background Sync -->
 		<setting id="enableBackgroundSync" type="bool" label="39026" default="true" visible="true"/>
 		<setting id="saftyMargin" type="slider" label="39051" default="60" option="int" range="10,1,300" visible="eq(-1,true)"/>

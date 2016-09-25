@@ -384,6 +384,7 @@ class LibrarySync(Thread):
         self.vnodes = videonodes.VideoNodes()
         self.dialog = xbmcgui.Dialog()
 
+        self.syncThreadNumber = int(settings('syncThreadNumber'))
         self.installSyncDone = settings('SyncInstallRunDone') == 'true'
         self.showDbSync = settings('dbSyncIndicator') == 'true'
         self.enableMusic = settings('enableMusic') == "true"
@@ -939,15 +940,16 @@ class LibrarySync(Thread):
         # Populate queue: GetMetadata
         for updateItem in self.updatelist:
             getMetadataQueue.put(updateItem)
-        # Spawn GetMetadata thread for downloading
+        # Spawn GetMetadata threads for downloading
         threads = []
-        thread = ThreadedGetMetadata(getMetadataQueue,
-                                     processMetadataQueue,
-                                     getMetadataLock,
-                                     processMetadataLock)
-        thread.setDaemon(True)
-        thread.start()
-        threads.append(thread)
+        for i in range(min(self.syncThreadNumber, itemNumber)):
+            thread = ThreadedGetMetadata(getMetadataQueue,
+                                         processMetadataQueue,
+                                         getMetadataLock,
+                                         processMetadataLock)
+            thread.setDaemon(True)
+            thread.start()
+            threads.append(thread)
         log.info("%s download threads spawned" % len(threads))
         # Spawn one more thread to process Metadata, once downloaded
         thread = ThreadedProcessMetadata(processMetadataQueue,
