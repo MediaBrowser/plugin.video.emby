@@ -206,6 +206,7 @@ class PlaybackUtils():
                 (homeScreen and not sizePlaylist)):
             # Playlist was created just now, play it.
             log.info("Play playlist.")
+            xbmcplugin.endOfDirectory(int(sys.argv[1]), True, False, False)
             xbmc.Player().play(kodiPl, startpos=startPos)
 
         else:
