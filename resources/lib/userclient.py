@@ -2,6 +2,7 @@
 
 ##################################################################################################
 
+import json
 import logging
 import threading
 
@@ -241,7 +242,7 @@ class UserClient(threading.Thread):
         
         # Set properties
         log.info(added_servers)
-        window('emby_servers', value=str(added_servers))
+        window('emby_servers', value=json.dumps(added_servers))
 
     def _reset_client(self):
 

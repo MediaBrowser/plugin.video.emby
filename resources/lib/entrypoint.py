@@ -98,8 +98,10 @@ def doMainListing():
 
     servers = window('emby_servers')
     if servers:
-        servers = list(servers)
-        log.info(servers)
+        servers = json.loads(servers)
+        for server in servers:
+            log.info(window('emby_server%s.name' % server))
+            addDirectoryItem(window('emby_server%s.name' % server), "plugin://plugin.video.emby/?mode=%s" % server)
 
     addDirectoryItem(lang(30517), "plugin://plugin.video.emby/?mode=passwords")
     addDirectoryItem(lang(33053), "plugin://plugin.video.emby/?mode=settings")

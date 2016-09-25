@@ -56,7 +56,6 @@ class DownloadUtils(object):
         }
         self.session.update(info)
         log.info("Set info for server %s: %s", self.session['ServerId'], self.session)
-        log.info("servers: %s", self.servers)
 
     def add_server(self, server, ssl):
         # Reserved for userclient only
@@ -81,8 +80,8 @@ class DownloadUtils(object):
 
     def reset_server(self, server_id):
         # Reserved for userclient only
-        for s in self.servers:
-            if s['ServerId'] == server_id:
+        for server in self.servers:
+            if server['ServerId'] == server_id:
                 self.servers.remove(s)
                 window('emby_server%s.json' % server_id, clear=True)
                 window('emby_server%s.name' % server_id, clear=True)
