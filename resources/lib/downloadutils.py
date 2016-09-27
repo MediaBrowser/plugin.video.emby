@@ -31,10 +31,8 @@ class DownloadUtils(object):
     _shared_state = {}
 
     # Requests session
-    session = {
-        'ServerId': None,
-        'Session': None,
-    }
+    session = {}
+    session_requests = None
     servers = {} # Multi server setup
     default_timeout = 30
 
@@ -45,15 +43,12 @@ class DownloadUtils(object):
         self.client_info = clientinfo.ClientInfo()
 
 
-    def set_session(self, user_id, server, server_id, token, ssl):
+    def _set_session(self, **kwargs):
         # Reserved for userclient only
-        info = {
-            'UserId': user_id,
-            'Server': server,
-            'ServerId': server_id,
-            'Token': token,
-            'SSL': ssl
-        }
+        info = {}
+        for key in kwargs:
+            info[key] = kwargs[key]
+
         self.session.update(info)
         log.info("Set info for server %s: %s", self.session['ServerId'], self.session)
 
@@ -161,7 +156,7 @@ class DownloadUtils(object):
                             self.downloadUrl(url, postBody={}, action_type="POST")
 
 
-    def startSession(self):
+    def start_session(self):
         # User is identified from this point
         # Attach authenticated header to the session
         # Start session
@@ -171,15 +166,16 @@ class DownloadUtils(object):
         # Retry connections to the server
         s.mount("http://", requests.adapters.HTTPAdapter(max_retries=1))
         s.mount("https://", requests.adapters.HTTPAdapter(max_retries=1))
-        self.session['Session'] = s
+        self.session_requests = s
 
         log.info("Requests session started on: %s" % self.session['Server'])
 
-    def stopSession(self):
+    def stop_session(self):
         try:
-            self.s.close()
-        except Exception:
-            log.warn("Requests session could not be terminated.")
+            self.session_requests.close()
+        except Exception as error:
+            log.error(error)
+            log.warn("requests session could not be terminated")
 
     def get_header(self, server_id=None, authenticate=True):
 
@@ -243,8 +239,8 @@ class DownloadUtils(object):
                 raise AttributeError("unable to load server information: %s" % server_id)
 
             if server_id is None:
-                if self.session['Session'] is not None:
-                    session = self.session['Session']
+                if self.session_requests is not None:
+                    session = self.session_requests
                 else:
                     kwargs.update({
                         'verify': self.session['SSL'],
@@ -363,7 +359,7 @@ class DownloadUtils(object):
     
     def _ensure_server(self, server_id=None):
 
-        if server_id is None and self.session['Session'] is None:
+        if server_id is None and self.session_requests is None:
             
             server = self._get_session_info()
             self.session.update(server)

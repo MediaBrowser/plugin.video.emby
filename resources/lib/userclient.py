@@ -214,7 +214,14 @@ class UserClient(threading.Thread):
                     raise
 
         # Set downloadutils.py values
-        doutils.set_session(userid, server, settings('serverId'), token, self.get_ssl())
+        session = {
+            'UserId': userid,
+            'Server': server,
+            'ServerId': settings('serverId'),
+            'Token': token,
+            'SSL': self.get_ssl()
+        }
+        doutils._set_session(**session)
 
         # verify user access
         try:
@@ -223,7 +230,7 @@ class UserClient(threading.Thread):
             pass
 
         # Start downloadutils.py session
-        doutils.startSession()
+        doutils.start_session()
         # Set _user and _server
         self._set_user_server()
 
@@ -310,7 +317,7 @@ class UserClient(threading.Thread):
                 # Abort was requested while waiting. We should exit
                 break
 
-        self.doutils.stopSession()
+        self.doutils.stop_session()
         log.warn("##===---- UserClient Stopped ----===##")
 
     def stop_client(self):
