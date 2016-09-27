@@ -224,7 +224,7 @@ class UserClient(threading.Thread):
                     raise
 
         # Set downloadutils.py values
-        doutils._set_session(**server_json)
+        doutils.set_session(**server_json)
 
         # verify user access
         try:
@@ -241,7 +241,7 @@ class UserClient(threading.Thread):
         # Set connect servers
         if not settings('connectUsername'):
             return
-            
+
         servers = self.connectmanager.get_connect_servers()
         added_servers = []
         for server in servers:
@@ -249,7 +249,7 @@ class UserClient(threading.Thread):
                 # TODO: SSL setup
                 self.doutils.add_server(server, False)
                 added_servers.append(server['Id'])
-        
+
         # Set properties
         log.info(added_servers)
         window('emby_servers', value=json.dumps(added_servers))

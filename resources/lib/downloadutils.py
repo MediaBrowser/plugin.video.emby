@@ -43,7 +43,7 @@ class DownloadUtils(object):
         self.client_info = clientinfo.ClientInfo()
 
 
-    def _set_session(self, **kwargs):
+    def set_session(self, **kwargs):
         # Reserved for userclient only
         info = {}
         for key in kwargs:
@@ -247,7 +247,7 @@ class DownloadUtils(object):
                     'verify': server['SSL'],
                     'headers': self.get_header(server_id, authenticate)
                 })
-                
+
             # Replace for the real values
             url = url.replace("{server}", server['Server'])
             url = url.replace("{UserId}", server['UserId'])
