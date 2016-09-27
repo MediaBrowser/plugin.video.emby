@@ -200,9 +200,19 @@ class UserClient(threading.Thread):
         token = self.get_token()
 
         # Set properties
+        # TODO: Remove old reference once code converted
         window('emby_currUser', value=userid)
         window('emby_server%s' % userid, value=server)
         window('emby_accessToken%s' % userid, value=token)
+
+        server_json = {
+            'UserId': userid,
+            'Server': server,
+            'ServerId': settings('serverId'),
+            'Token': token,
+            'SSL': self.get_ssl()
+        }
+        window('emby_server.json', value=json.dumps(server_json))
 
         # Test the validity of the current token
         if not authenticated:
@@ -214,14 +224,7 @@ class UserClient(threading.Thread):
                     raise
 
         # Set downloadutils.py values
-        session = {
-            'UserId': userid,
-            'Server': server,
-            'ServerId': settings('serverId'),
-            'Token': token,
-            'SSL': self.get_ssl()
-        }
-        doutils._set_session(**session)
+        doutils._set_session(**server_json)
 
         # verify user access
         try:
@@ -275,7 +278,7 @@ class UserClient(threading.Thread):
 
         monitor = xbmc.Monitor()
 
-        log.warn("----===## Starting UserClient ##===----")
+        log.warn("----====# Starting UserClient #====----")
 
         while not self._stop_thread:
 
@@ -318,7 +321,7 @@ class UserClient(threading.Thread):
                 break
 
         self.doutils.stop_session()
-        log.warn("##===---- UserClient Stopped ----===##")
+        log.warn("#====---- UserClient Stopped ----====#")
 
     def stop_client(self):
         self._stop_thread = True
