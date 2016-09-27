@@ -78,23 +78,15 @@ def doMainListing():
             ''' because we do not use seperate entrypoints for each content type,
                 we need to figure out which items to show in each listing.
                 for now we just only show picture nodes in the picture library
-                video nodes in the video library and all nodes in any other window '''
-
-            '''if path and xbmc.getCondVisibility("Window.IsActive(Pictures)") and node == "photos":
-                addDirectoryItem(label, path)
-            elif path and xbmc.getCondVisibility("Window.IsActive(VideoLibrary)")
-                and node != "photos":
-                addDirectoryItem(label, path)
-            elif path and not xbmc.getCondVisibility("Window.IsActive(VideoLibrary) |
-                 Window.IsActive(Pictures) | Window.IsActive(MusicLibrary)"):
-                addDirectoryItem(label, path)'''
+                video nodes in the video library and all nodes in any other window 
+            '''
 
             if path:
                 if xbmc.getCondVisibility("Window.IsActive(Pictures)") and node == "photos":
                     addDirectoryItem(label, path)
-                elif xbmc.getCondVisibility("Window.IsActive(VideoLibrary)") and node != "photos":
+                elif xbmc.getCondVisibility("Window.IsActive(Videos)") and node != "photos":
                     addDirectoryItem(label, path)
-                elif not xbmc.getCondVisibility("Window.IsActive(VideoLibrary) | Window.IsActive(Pictures) | Window.IsActive(MusicLibrary)"):
+                elif not xbmc.getCondVisibility("Window.IsActive(Videos) | Window.IsActive(Pictures) | Window.IsActive(Music)"):
                     addDirectoryItem(label, path)
 
     # experimental live tv nodes
@@ -103,6 +95,15 @@ def doMainListing():
             "plugin://plugin.video.emby/?mode=browsecontent&type=tvchannels&folderid=root")
         addDirectoryItem(lang(33052),
             "plugin://plugin.video.emby/?mode=browsecontent&type=recordings&folderid=root")
+
+    '''
+    TODO: Create plugin listing for servers
+    servers = window('emby_servers')
+    if servers:
+        servers = json.loads(servers)
+        for server in servers:
+            log.info(window('emby_server%s.name' % server))
+            addDirectoryItem(window('emby_server%s.name' % server), "plugin://plugin.video.emby/?mode=%s" % server)'''
 
     addDirectoryItem(lang(30517), "plugin://plugin.video.emby/?mode=passwords")
     addDirectoryItem(lang(33053), "plugin://plugin.video.emby/?mode=settings")
@@ -613,6 +614,9 @@ def BrowseContent(viewname, browse_type="", folderid=""):
             listing = emby.getFilteredSection(folderid, itemtype=itemtype.split(",")[0], sortby="Random", recursive=True, limit=150, sortorder="Descending")
         elif filter_type == "recommended":
             listing = emby.getFilteredSection(folderid, itemtype=itemtype.split(",")[0], sortby="SortName", recursive=True, limit=25, sortorder="Ascending", filter_type="IsFavorite")
+        elif folderid == "favepisodes":
+            xbmcplugin.setContent(int(sys.argv[1]), 'episodes')
+            listing = emby.getFilteredSection(None, itemtype="Episode", sortby="SortName", recursive=True, limit=25, sortorder="Ascending", filter_type="IsFavorite")
         elif filter_type == "sets":
             listing = emby.getFilteredSection(folderid, itemtype=itemtype.split(",")[1], sortby="SortName", recursive=True, limit=25, sortorder="Ascending", filter_type="IsFavorite")
         else:

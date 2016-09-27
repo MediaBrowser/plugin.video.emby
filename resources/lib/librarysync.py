@@ -582,6 +582,8 @@ class LibrarySync(threading.Thread):
             totalnodes += 1
             self.vnodes.singleNode(totalnodes, "Favorite tvshows", "tvshows", "favourites")
             totalnodes += 1
+            self.vnodes.singleNode(totalnodes, "Favorite episodes", "episodes", "favourites")
+            totalnodes += 1
             self.vnodes.singleNode(totalnodes, "channels", "movies", "channels")
             totalnodes += 1
             # Save total
@@ -1030,7 +1032,6 @@ class LibrarySync(threading.Thread):
                             line1=lang(33024))
                     break                
 
-
                 # Run start up sync
                 log.warn("Database version: %s", window('emby_version'))
                 log.info("SyncDatabase (started)")
@@ -1039,6 +1040,11 @@ class LibrarySync(threading.Thread):
                 elapsedTime = datetime.now() - startTime
                 log.info("SyncDatabase (finished in: %s) %s"
                     % (str(elapsedTime).split('.')[0], librarySync))
+
+                # Add other servers at this point
+                # TODO: re-add once plugin listing is created
+                # self.user.load_connect_servers()
+                
                 # Only try the initial sync once per kodi session regardless
                 # This will prevent an infinite loop in case something goes wrong.
                 startupComplete = True
