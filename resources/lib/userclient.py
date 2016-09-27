@@ -112,12 +112,12 @@ class UserClient(threading.Thread):
         except Warning as error:
             if self._has_access and "restricted" in error:
                 self._has_access = False
-                log.info("Access is restricted")
+                log.info("access is restricted")
         else:
             if not self._has_access:
                 self._has_access = True
                 window('emby_serverStatus', clear=True)
-                log.info("Access is granted")
+                log.info("access is granted")
                 xbmcgui.Dialog().notification(lang(29999), lang(33007))
 
     @classmethod
@@ -223,7 +223,7 @@ class UserClient(threading.Thread):
                 if "401" in error:
                     # Token is not longer valid
                     raise
-        
+
         try: # verify user access
             self._set_access()
         except Warning: # We don't need to raise any exceptions
