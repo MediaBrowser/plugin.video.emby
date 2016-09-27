@@ -52,7 +52,7 @@ class DownloadUtils(object):
         self.session.update(info)
         window('emby_server.json', value=json.dumps(self.session))
 
-        log.info("Set info for server %s: %s", self.session['ServerId'], self.session)
+        log.debug("Set info for server %s: %s", self.session['ServerId'], self.session)
 
     def add_server(self, server, ssl):
         # Reserved for userclient only
@@ -186,7 +186,7 @@ class DownloadUtils(object):
 
         if authenticate:
 
-            user = self.get_user(server_id)
+            user = self._get_session_info(server_id)
             user_id = user['UserId']
             token = user['Token']
 
@@ -211,20 +211,6 @@ class DownloadUtils(object):
             'Accept-Charset': 'UTF-8,*',
         })
         return header
-
-    def get_user(self, server_id=None):
-
-        if server_id is None:
-            return {
-                'UserId': self.session['UserId'],
-                'Token': self.session['Token']
-            }
-        else:
-            server = self.servers[server_id]
-            return {
-                'UserId': server['UserId'],
-                'Token': server['Token']
-            }
 
     def downloadUrl(self, url, postBody=None, action_type="GET", parameters=None,
                     authenticate=True, server_id=None):
@@ -295,7 +281,6 @@ class DownloadUtils(object):
                 window('emby_online', value="false")
 
         except requests.exceptions.ConnectTimeout as error:
-            log.error(error)
             log.error("Server timeout at: %s", url)
 
         except requests.exceptions.HTTPError as error:
@@ -333,11 +318,9 @@ class DownloadUtils(object):
                     raise Warning('401')
 
         except requests.exceptions.SSLError as error:
-            log.error(error)
             log.error("invalid SSL certificate for: %s", url)
 
         except requests.exceptions.RequestException as error:
-            log.error(error)
             log.error("unknown error connecting to: %s" % url)
 
         return default_link
@@ -346,14 +329,14 @@ class DownloadUtils(object):
     def _ensure_server(self, server_id=None):
 
         if server_id is None and self.session_requests is None:
-            
-            server = self._get_session_info()
-            self.session = server
+            if not self.session:
+                server = self._get_session_info()
+                self.session = server
 
         elif server_id and server_id not in self.servers:
-            
-            server = self._get_session_info(server_id)
-            self.servers[server_id] = server
+            if server_id not in self.servers:
+                server = self._get_session_info(server_id)
+                self.servers[server_id] = server
 
         return True
 

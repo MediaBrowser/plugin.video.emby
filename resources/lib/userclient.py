@@ -212,7 +212,8 @@ class UserClient(threading.Thread):
             'Token': token,
             'SSL': self.get_ssl()
         }
-        window('emby_server.json', value=json.dumps(server_json))
+        # Set downloadutils.py values
+        doutils.set_session(**server_json)
 
         # Test the validity of the current token
         if not authenticated:
@@ -222,12 +223,8 @@ class UserClient(threading.Thread):
                 if "401" in error:
                     # Token is not longer valid
                     raise
-
-        # Set downloadutils.py values
-        doutils.set_session(**server_json)
-
-        # verify user access
-        try:
+        
+        try: # verify user access
             self._set_access()
         except Warning: # We don't need to raise any exceptions
             pass
