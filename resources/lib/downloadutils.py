@@ -49,7 +49,7 @@ class DownloadUtils(object):
             info[key] = kwargs[key]
 
         self.session.update(info)
-        window('emby_server.json', value=json.dumps(self.session))
+        window('emby_server.json', value=self.session)
 
         log.debug("Set info for server %s: %s", self.session['ServerId'], self.session)
 
@@ -66,7 +66,7 @@ class DownloadUtils(object):
             if server_info == server_id:
                 server_info.update(info)
                 # Set window prop
-                self._set_server_properties(server_id, server['Name'], json.dumps(info))
+                self._set_server_properties(server_id, server['Name'], info)
                 log.info("updating %s to available servers: %s", server_id, self.servers)
                 break
         else:
@@ -240,6 +240,7 @@ class DownloadUtils(object):
             ##### THE RESPONSE #####
             log.debug(kwargs)
             response = self._requests(action_type, session, **kwargs)
+            #response = requests.get('http://httpbin.org/status/400')
 
             if response.status_code == 204:
                 # No body in the response
@@ -278,6 +279,10 @@ class DownloadUtils(object):
                 window('emby_online', value="false")
 
         except requests.exceptions.HTTPError as error:
+
+            if response.status_code == 400:
+                log.error("Malformed request: %s", error)
+                raise Warning('400')
 
             if response.status_code == 401:
                 # Unauthorized
@@ -344,7 +349,7 @@ class DownloadUtils(object):
             server = window('emby_server%s.json' % server_id)
 
         if server:
-            info.update(json.loads(server))
+            info.update(server)
 
         return info
 

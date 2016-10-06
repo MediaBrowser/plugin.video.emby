@@ -247,9 +247,13 @@ class Read_EmbyServer():
                         "Tags,ProviderIds,ParentId,RemoteTrailers,SpecialEpisodeNumbers,"
                         "MediaSources,VoteCount"
                     )
-                result = self.doUtils(url, parameters=params)
                 try:
+                    result = self.doUtils(url, parameters=params)
                     items['Items'].extend(result['Items'])
+                except Warning as error:
+                    if "400" in error:
+                        log.info("Something went wrong, aborting request.")
+                        break
                 except TypeError:
                     # Something happened to the connection
                     if not throttled:
