@@ -12,7 +12,7 @@ import common
 import downloadutils
 import embydb_functions as embydb
 import kodidb_functions as kodidb
-from utils import window, settings, language as lang
+from utils import window, settings, language as lang, catch_except
 
 ##################################################################################################
 
@@ -165,7 +165,7 @@ class Movies(common.Items):
                 count += 1
             self.add_updateBoxset(boxset)
 
-
+    @catch_except()
     def add_update(self, item, viewtag=None, viewid=None):
         # Process single movie
         kodicursor = self.kodicursor
