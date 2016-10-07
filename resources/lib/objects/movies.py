@@ -68,7 +68,74 @@ class Movies(common.Items):
             self.add_update(embymovie, view['name'], view['id'])
 
     def compare_all_movies(self, pdialog):
-        pass
+        # Pull the list of movies and boxsets in Kodi
+
+        views = self.emby_db.getView_byType('movies')
+        views += self.emby_db.getView_byType('mixed')
+        log.info("Media folders: %s" % views)
+
+        try:
+            all_kodimovies = dict(self.emby_db.get_checksum('Movie'))
+        except ValueError:
+            all_kodimovies = {}
+
+        all_embymoviesIds = set()
+        updatelist = []
+
+        for view in views:
+
+            if self.should_stop():
+                return False
+
+            # Get items per view
+            viewId = view['id']
+            viewName = view['name']
+
+            if pdialog:
+                pdialog.update(
+                        heading=lang(29999),
+                        message="%s %s..." % (lang(33026), viewName))
+
+            all_embymovies = self.emby.getMovies(viewId, basic=True, dialog=pdialog)
+            for embymovie in all_embymovies['Items']:
+
+                if self.should_stop():
+                    return False
+
+                API = api.API(embymovie)
+                itemid = embymovie['Id']
+                all_embymoviesIds.add(itemid)
+
+
+                if all_kodimovies.get(itemid) != API.get_checksum():
+                    # Only update if movie is not in Kodi or checksum is different
+                    updatelist.append(itemid)
+
+            log.info("Movies to update for %s: %s" % (viewName, updatelist))
+            embymovies = self.emby.getFullItems(updatelist)
+            total = len(updatelist)
+            del updatelist[:]
+
+            if pdialog:
+                pdialog.update(heading="Processing %s / %s items" % (viewName, total))
+
+            count = 0
+            for embymovie in embymovies:
+                # Process individual movies
+                if self.should_stop():
+                    return False
+
+                if pdialog:
+                    percentage = int((float(count) / float(total))*100)
+                    pdialog.update(percentage, message=embymovie['Name'])
+                    count += 1
+                self.add_update(embymovie, viewName, viewId)
+
+        for kodimovie in all_kodimovies:
+            if kodimovie not in all_embymoviesIds:
+                self.remove(kodimovie)
+        else:
+            log.info("Movies compare finished.")
 
 
     def added(self, items, pdialog):

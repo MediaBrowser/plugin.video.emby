@@ -1077,79 +1077,22 @@ class ManualSync(LibrarySync):
 
         # Get movies from emby
         emby_db = embydb.Embydb_Functions(embycursor)
-        movies = itemtypes.Movies(embycursor, kodicursor)
-
-        views = emby_db.getView_byType('movies')
-        views += emby_db.getView_byType('mixed')
-        log.info("Media folders: %s" % views)
-
-        # Pull the list of movies and boxsets in Kodi
-        try:
-            all_kodimovies = dict(emby_db.get_checksum('Movie'))
-        except ValueError:
-            all_kodimovies = {}
+        movies = Movies(embycursor, kodicursor)
 
         try:
             all_kodisets = dict(emby_db.get_checksum('BoxSet'))
         except ValueError:
             all_kodisets = {}
 
-        all_embymoviesIds = set()
         all_embyboxsetsIds = set()
         updatelist = []
 
         ##### PROCESS MOVIES #####
-        for view in views:
-
-            if should_stop():
-                return False
-
-            # Get items per view
-            viewId = view['id']
-            viewName = view['name']
-
-            if pdialog:
-                pdialog.update(
-                        heading=lang(29999),
-                        message="%s %s..." % (lang(33026), viewName))
-
-            all_embymovies = self.emby.getMovies(viewId, basic=True, dialog=pdialog)
-            for embymovie in all_embymovies['Items']:
-
-                if should_stop():
-                    return False
-
-                API = api.API(embymovie)
-                itemid = embymovie['Id']
-                all_embymoviesIds.add(itemid)
-
-
-                if all_kodimovies.get(itemid) != API.get_checksum():
-                    # Only update if movie is not in Kodi or checksum is different
-                    updatelist.append(itemid)
-
-            log.info("Movies to update for %s: %s" % (viewName, updatelist))
-            embymovies = self.emby.getFullItems(updatelist)
-            total = len(updatelist)
-            del updatelist[:]
-
-            if pdialog:
-                pdialog.update(heading="Processing %s / %s items" % (viewName, total))
-
-            count = 0
-            for embymovie in embymovies:
-                # Process individual movies
-                if should_stop():
-                    return False
-
-                if pdialog:
-                    percentage = int((float(count) / float(total))*100)
-                    pdialog.update(percentage, message=embymovie['Name'])
-                    count += 1
-                movies.add_update(embymovie, viewName, viewId)
+        #for view in views:
+        movies.compare_all_movies(pdialog)
 
         ##### PROCESS BOXSETS #####
-
+        movies = itemtypes.Movies(embycursor, kodicursor)
         boxsets = self.emby.getBoxset(dialog=pdialog)
         embyboxsets = []
 
@@ -1189,12 +1132,6 @@ class ManualSync(LibrarySync):
             movies.add_updateBoxset(boxset)
 
         ##### PROCESS DELETES #####
-
-        for kodimovie in all_kodimovies:
-            if kodimovie not in all_embymoviesIds:
-                movies.remove(kodimovie)
-        else:
-            log.info("Movies compare finished.")
 
         for boxset in all_kodisets:
             if boxset not in all_embyboxsetsIds:
