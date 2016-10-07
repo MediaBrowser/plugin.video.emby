@@ -109,6 +109,15 @@ class JSONRPC(object):
 #################################################################################################
 # Database related methods
 
+def should_stop():
+    # Checkpoint during the syncing process
+    if xbmc.Monitor().abortRequested():
+        return True
+    elif window('emby_shouldStop') == "true":
+        return True
+    else: # Keep going
+        return False
+
 def kodiSQL(media_type="video"):
 
     if media_type == "emby":
