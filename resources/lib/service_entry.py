@@ -119,7 +119,7 @@ class Service(object):
                     # If an item is playing
                     if self.kodi_player.isPlaying():
                         self._report_progress()
-                    
+
                     elif not self.startup:
                         self.startup = self._startup()
                 else:
@@ -258,28 +258,27 @@ class Service(object):
         kodi_player = self.kodi_player
         try:
             play_time = kodi_player.getTime()
-            total_time = kodi_player.getTotalTime()
             filename = kodi_player.currentFile
 
             # Update positionticks
             if filename in kodi_player.played_info:
                 kodi_player.played_info[filename]['currentPosition'] = play_time
-            
+
             difference = datetime.today() - self.last_progress
             difference_seconds = difference.seconds
-            
+
             # Report progress to Emby server
-            if (difference_seconds > 3):
+            if difference_seconds > 3:
                 kodi_player.reportPlayback()
                 self.last_progress = datetime.today()
-            
+
             elif window('emby_command') == "true":
                 # Received a remote control command that
                 # requires updating immediately
                 window('emby_command', clear=True)
                 kodi_player.reportPlayback()
                 self.last_progress = datetime.today()
-            
+
         except Exception as error:
             log.exception(error)
 
