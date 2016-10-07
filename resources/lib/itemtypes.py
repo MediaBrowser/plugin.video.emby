@@ -181,7 +181,7 @@ class Items(object):
                         actions[process](item)
 
                 elif process == "added":
-                    actions[process](itemlist, pdialog)
+                    actions[process](itemlist, pdialog=pdialog)
             
                 else:
                     processItems = emby.getFullItems(itemlist)

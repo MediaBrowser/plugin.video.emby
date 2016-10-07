@@ -33,10 +33,11 @@ class Movies(common.Items):
         
         common.Items.__init__(self)
 
+
     def add_all_movies(self, view, pdialog):
 
         log.info("Processing: %s", view)
-            
+
         if self.should_stop():
             return False
 
@@ -46,26 +47,13 @@ class Movies(common.Items):
                     heading=lang(29999),
                     message="%s %s..." % (lang(33017), view['name']))
 
-        # Initial or repair sync
-        all_embymovies = self.emby.getMovies(view['id'], dialog=pdialog)
-        total = all_embymovies['TotalRecordCount']
-        embymovies = all_embymovies['Items']
+        movies = self.emby.getMovies(view['id'], dialog=pdialog)
+        total_movies = movies['TotalRecordCount']
 
         if pdialog:
-            pdialog.update(heading="Processing %s / %s items" % (view['name'], total))
+            pdialog.update(heading="Processing %s / %s items" % (view['name'], total_movies))
 
-        count = 0
-        for embymovie in embymovies:
-            # Process individual movies
-            if self.should_stop():
-                return False
-
-            title = embymovie['Name']
-            if pdialog:
-                percentage = int((float(count) / float(total))*100)
-                pdialog.update(percentage, message=title)
-                count += 1
-            self.add_update(embymovie, view['name'], view['id'])
+        self.added(movies['Items'], total_movies, view, pdialog)
 
     def compare_all_movies(self, pdialog):
         # Pull the list of movies and boxsets in Kodi
@@ -119,17 +107,8 @@ class Movies(common.Items):
             if pdialog:
                 pdialog.update(heading="Processing %s / %s items" % (viewName, total))
 
-            count = 0
-            for embymovie in embymovies:
-                # Process individual movies
-                if self.should_stop():
-                    return False
+            self.added(embymovies, total, view, pdialog)
 
-                if pdialog:
-                    percentage = int((float(count) / float(total))*100)
-                    pdialog.update(percentage, message=embymovie['Name'])
-                    count += 1
-                self.add_update(embymovie, viewName, viewId)
 
         for kodimovie in all_kodimovies:
             if kodimovie not in all_embymoviesIds:
@@ -138,18 +117,21 @@ class Movies(common.Items):
             log.info("Movies compare finished.")
 
 
-    def added(self, items, pdialog):
+    def added(self, items, total=None, view=None, pdialog=None):
 
-        total = len(items)
+        total = total or len(items)
         count = 0
+
         for movie in items:
-                
             title = movie['Name']
+
             if pdialog:
                 percentage = int((float(count) / float(total))*100)
                 pdialog.update(percentage, message=title)
                 count += 1
-            self.add_update(movie)
+
+            self.add_update(movie, view)
+
             if not pdialog and self.content_msg:
                 self.content_pop(title, self.new_video_time)
 
@@ -166,7 +148,7 @@ class Movies(common.Items):
             self.add_updateBoxset(boxset)
 
     @catch_except()
-    def add_update(self, item, viewtag=None, viewid=None):
+    def add_update(self, item, view=None):
         # Process single movie
         kodicursor = self.kodicursor
         emby_db = self.emby_db
@@ -202,10 +184,13 @@ class Movies(common.Items):
                 update_item = False
                 log.info("movieid: %s missing from Kodi, repairing the entry." % movieid)
 
-        if not viewtag or not viewid:
+        if not view:
             # Get view tag from emby
             viewtag, viewid, mediatype = self.emby.getView_embyId(itemid)
             log.debug("View tag found: %s" % viewtag)
+        else:
+            viewtag = view['name']
+            viewid = view['id']
 
         # fileId information
         checksum = API.get_checksum()
