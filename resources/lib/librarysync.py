@@ -21,7 +21,8 @@ import kodidb_functions as kodidb
 import read_embyserver as embyserver
 import userclient
 import videonodes
-from utils import window, settings, language as lang
+from objects import Movies
+from utils import window, settings, language as lang, should_stop
 
 ##################################################################################################
 
@@ -180,15 +181,6 @@ class LibrarySync(threading.Thread):
         finally:
             settings('LastIncrementalSync', value=lastSync)
 
-    def shouldStop(self):
-        # Checkpoint during the syncing process
-        if self.monitor.abortRequested():
-            return True
-        elif window('emby_shouldStop') == "true":
-            return True
-        else: # Keep going
-            return False
-
     def dbCommit(self, connection):
         # Central commit, verifies if Kodi database update is running
         kodidb_scan = window('emby_kodiScan') == "true"
@@ -203,7 +195,7 @@ class LibrarySync(threading.Thread):
                 log.info("Flag still active, but will try to commit")
                 window('emby_kodiScan', clear=True)
 
-            if self.shouldStop():
+            if should_stop():
                 log.info("Commit unsuccessful. Sync terminated.")
                 break
 
@@ -612,7 +604,7 @@ class LibrarySync(threading.Thread):
 
         # Get movies from emby
         emby_db = embydb.Embydb_Functions(embycursor)
-        movies = itemtypes.Movies(embycursor, kodicursor)
+        movies = Movies(embycursor, kodicursor)
 
         views = emby_db.getView_byType('movies')
         views += emby_db.getView_byType('mixed')
@@ -620,42 +612,11 @@ class LibrarySync(threading.Thread):
 
         ##### PROCESS MOVIES #####
         for view in views:
-
-            log.info("Processing: %s", view)
-            
-            if self.shouldStop():
-                return False
-
-            # Get items per view
-            if pdialog:
-                pdialog.update(
-                        heading=lang(29999),
-                        message="%s %s..." % (lang(33017), view['name']))
-
-            # Initial or repair sync
-            all_embymovies = self.emby.getMovies(view['id'], dialog=pdialog)
-            total = all_embymovies['TotalRecordCount']
-            embymovies = all_embymovies['Items']
-
-            if pdialog:
-                pdialog.update(heading="Processing %s / %s items" % (view['name'], total))
-
-            count = 0
-            for embymovie in embymovies:
-                # Process individual movies
-                if self.shouldStop():
-                    return False
-
-                title = embymovie['Name']
-                if pdialog:
-                    percentage = int((float(count) / float(total))*100)
-                    pdialog.update(percentage, message=title)
-                    count += 1
-                movies.add_update(embymovie, view['name'], view['id'])
+            movies.add_all_movies(view, pdialog)
         else:
             log.debug("Movies finished.")
 
-
+        movies = itemtypes.Movies(embycursor, kodicursor)
         ##### PROCESS BOXSETS #####
         if pdialog:
             pdialog.update(heading=lang(29999), message=lang(33018))
@@ -670,7 +631,7 @@ class LibrarySync(threading.Thread):
         count = 0
         for boxset in embyboxsets:
             # Process individual boxset
-            if self.shouldStop():
+            if should_stop():
                 return False
 
             title = boxset['Name']
@@ -695,7 +656,7 @@ class LibrarySync(threading.Thread):
 
         for view in views:
 
-            if self.shouldStop():
+            if should_stop():
                 return False
 
             # Get items per view
@@ -718,7 +679,7 @@ class LibrarySync(threading.Thread):
             count = 0
             for embymvideo in embymvideos:
                 # Process individual musicvideo
-                if self.shouldStop():
+                if should_stop():
                     return False
 
                 title = embymvideo['Name']
@@ -744,7 +705,7 @@ class LibrarySync(threading.Thread):
 
         for view in views:
 
-            if self.shouldStop():
+            if should_stop():
                 return False
 
             # Get items per view
@@ -763,7 +724,7 @@ class LibrarySync(threading.Thread):
             count = 0
             for embytvshow in embytvshows:
                 # Process individual show
-                if self.shouldStop():
+                if should_stop():
                     return False
 
                 title = embytvshow['Name']
@@ -778,7 +739,7 @@ class LibrarySync(threading.Thread):
                 for episode in all_episodes['Items']:
 
                     # Process individual show
-                    if self.shouldStop():
+                    if should_stop():
                         return False
 
                     episodetitle = episode['Name']
@@ -818,7 +779,7 @@ class LibrarySync(threading.Thread):
             count = 0
             for embyitem in embyitems:
                 # Process individual item
-                if self.shouldStop():
+                if should_stop():
                     return False
                 if pdialog:
                     percentage = int((float(count) / float(total))*100)
@@ -1140,7 +1101,7 @@ class ManualSync(LibrarySync):
         ##### PROCESS MOVIES #####
         for view in views:
 
-            if self.shouldStop():
+            if should_stop():
                 return False
 
             # Get items per view
@@ -1155,7 +1116,7 @@ class ManualSync(LibrarySync):
             all_embymovies = self.emby.getMovies(viewId, basic=True, dialog=pdialog)
             for embymovie in all_embymovies['Items']:
 
-                if self.shouldStop():
+                if should_stop():
                     return False
 
                 API = api.API(embymovie)
@@ -1178,7 +1139,7 @@ class ManualSync(LibrarySync):
             count = 0
             for embymovie in embymovies:
                 # Process individual movies
-                if self.shouldStop():
+                if should_stop():
                     return False
 
                 if pdialog:
@@ -1197,7 +1158,7 @@ class ManualSync(LibrarySync):
 
         for boxset in boxsets['Items']:
 
-            if self.shouldStop():
+            if should_stop():
                 return False
 
             # Boxset has no real userdata, so using etag to compare
@@ -1218,7 +1179,7 @@ class ManualSync(LibrarySync):
         count = 0
         for boxset in embyboxsets:
             # Process individual boxset
-            if self.shouldStop():
+            if should_stop():
                 return False
 
             if pdialog:
@@ -1263,7 +1224,7 @@ class ManualSync(LibrarySync):
 
         for view in views:
 
-            if self.shouldStop():
+            if should_stop():
                 return False
 
             # Get items per view
@@ -1278,7 +1239,7 @@ class ManualSync(LibrarySync):
             all_embymvideos = self.emby.getMusicVideos(viewId, basic=True, dialog=pdialog)
             for embymvideo in all_embymvideos['Items']:
 
-                if self.shouldStop():
+                if should_stop():
                     return False
 
                 API = api.API(embymvideo)
@@ -1302,7 +1263,7 @@ class ManualSync(LibrarySync):
             count = 0
             for embymvideo in embymvideos:
                 # Process individual musicvideo
-                if self.shouldStop():
+                if should_stop():
                     return False
 
                 if pdialog:
@@ -1351,7 +1312,7 @@ class ManualSync(LibrarySync):
 
         for view in views:
 
-            if self.shouldStop():
+            if should_stop():
                 return False
 
             # Get items per view
@@ -1366,7 +1327,7 @@ class ManualSync(LibrarySync):
             all_embytvshows = self.emby.getShows(viewId, basic=True, dialog=pdialog)
             for embytvshow in all_embytvshows['Items']:
 
-                if self.shouldStop():
+                if should_stop():
                     return False
 
                 API = api.API(embytvshow)
@@ -1390,7 +1351,7 @@ class ManualSync(LibrarySync):
             count = 0
             for embytvshow in embytvshows:
                 # Process individual show
-                if self.shouldStop():
+                if should_stop():
                     return False
 
                 itemid = embytvshow['Id']
@@ -1412,7 +1373,7 @@ class ManualSync(LibrarySync):
                 all_embyepisodes = self.emby.getEpisodes(viewId, basic=True, dialog=pdialog)
                 for embyepisode in all_embyepisodes['Items']:
 
-                    if self.shouldStop():
+                    if should_stop():
                         return False
 
                     API = api.API(embyepisode)
@@ -1434,7 +1395,7 @@ class ManualSync(LibrarySync):
                 for episode in embyepisodes:
 
                     # Process individual episode
-                    if self.shouldStop():
+                    if should_stop():
                         return False
 
                     if pdialog:
@@ -1505,7 +1466,7 @@ class ManualSync(LibrarySync):
             else:
                 all_embyitems = process[data_type][0](dialog=pdialog)
             for embyitem in all_embyitems['Items']:
-                if self.shouldStop():
+                if should_stop():
                     return False
                 API = api.API(embyitem)
                 itemid = embyitem['Id']
@@ -1533,7 +1494,7 @@ class ManualSync(LibrarySync):
             count = 0
             for embyitem in embyitems:
                 # Process individual item
-                if self.shouldStop():
+                if should_stop():
                     return False
                 if pdialog:
                     percentage = int((float(count) / float(total))*100)
