@@ -37,6 +37,7 @@ class Movies(common.Items):
     def add_all_movies(self, view, pdialog):
 
         log.info("Processing: %s", view)
+        view_name = view['name']
 
         if self.should_stop():
             return False
@@ -45,15 +46,15 @@ class Movies(common.Items):
         if pdialog:
             pdialog.update(
                     heading=lang(29999),
-                    message="%s %s..." % (lang(33017), view['name']))
+                    message="%s %s..." % (lang(33017), view_name))
 
         movies = self.emby.getMovies(view['id'], dialog=pdialog)
-        total_movies = movies['TotalRecordCount']
+        total = movies['TotalRecordCount']
 
         if pdialog:
-            pdialog.update(heading="Processing %s / %s items" % (view['name'], total_movies))
+            pdialog.update(heading="Processing %s / %s items" % (view_name, total))
 
-        self.added(movies['Items'], total_movies, view, pdialog)
+        self.added(movies['Items'], total, view, pdialog)
 
     def compare_all_movies(self, pdialog):
         # Pull the list of movies and boxsets in Kodi
@@ -130,10 +131,9 @@ class Movies(common.Items):
                 pdialog.update(percentage, message=title)
                 count += 1
 
-            self.add_update(movie, view)
-
-            if not pdialog and self.content_msg:
-                self.content_pop(title, self.new_video_time)
+            if self.add_update(movie, view):
+                if not pdialog and self.content_msg:
+                    self.content_pop(title, self.new_video_time)
 
     def added_boxset(self, items, pdialog):
 
@@ -396,6 +396,8 @@ class Movies(common.Items):
         resume = API.adjust_resume(userdata['Resume'])
         total = round(float(runtime), 6)
         self.kodi_db.addPlaystate(fileid, resume, total, playcount, dateplayed)
+
+        return True
 
     def add_updateBoxset(self, boxset):
 
