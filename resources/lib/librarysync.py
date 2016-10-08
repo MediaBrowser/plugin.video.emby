@@ -612,7 +612,7 @@ class LibrarySync(threading.Thread):
 
         ##### PROCESS MOVIES #####
         for view in views:
-            movies.add_all_movies(view, pdialog)
+            movies.add_movies(view, pdialog)
         else:
             log.debug("Movies finished.")
 

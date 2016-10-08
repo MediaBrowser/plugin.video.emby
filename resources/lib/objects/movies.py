@@ -34,7 +34,7 @@ class Movies(common.Items):
         common.Items.__init__(self)
 
 
-    def add_all_movies(self, view, pdialog):
+    def add_movies(self, view, pdialog):
 
         log.info("Processing: %s", view)
         view_name = view['name']
