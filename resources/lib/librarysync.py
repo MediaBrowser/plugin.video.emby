@@ -612,36 +612,30 @@ class LibrarySync(threading.Thread):
 
         ##### PROCESS MOVIES #####
         for view in views:
-            movies.add_all(view, pdialog)
-        else:
-            log.debug("Movies finished.")
 
-        movies = itemtypes.Movies(embycursor, kodicursor)
+            log.info("Processing: %s", view)
+            view_name = view['name']
+
+            # Get items per view
+            if pdialog:
+                pdialog.update(
+                        heading=lang(29999),
+                        message="%s %s..." % (lang(33017), view_name))
+
+            all_movies = self.emby.getMovies(view['id'], dialog=pdialog)
+            movies.add_all("Movie", view, all_movies, pdialog)
+
+        log.debug("Movies finished.")
+
         ##### PROCESS BOXSETS #####
         if pdialog:
             pdialog.update(heading=lang(29999), message=lang(33018))
 
         boxsets = self.emby.getBoxset(dialog=pdialog)
         total = boxsets['TotalRecordCount']
-        embyboxsets = boxsets['Items']
 
-        if pdialog:
-            pdialog.update(heading="Processing Boxsets / %s items" % total)
-
-        count = 0
-        for boxset in embyboxsets:
-            # Process individual boxset
-            if should_stop():
-                return False
-
-            title = boxset['Name']
-            if pdialog:
-                percentage = int((float(count) / float(total))*100)
-                pdialog.update(percentage, message=title)
-                count += 1
-            movies.add_updateBoxset(boxset)
-        else:
-            log.debug("Boxsets finished.")
+        movies.process_all("BoxSet", "added", boxsets['Items'], total, pdialog=pdialog)
+        log.debug("Boxsets finished.")
 
         return True
 

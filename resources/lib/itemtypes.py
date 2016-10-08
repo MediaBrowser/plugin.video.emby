@@ -110,13 +110,8 @@ class Items(object):
                 update_videolibrary = True
                 items_process = itemtypes[itemtype](embycursor, kodicursor)
 
-            if itemtype == "Movie":
-                actions = {
-                    'added': items_process.added,
-                    'update': items_process.add_update,
-                    'userdata': items_process.updateUserdata,
-                    'remove': items_process.remove
-                }
+            '''if itemtype == "Movie":
+                pass
             elif itemtype == "BoxSet":
                 actions = {
                     'added': items_process.added_boxset,
@@ -176,28 +171,29 @@ class Items(object):
 
             if actions.get(process):
 
-                if process == "remove":
-                    for item in itemlist:
-                        actions[process](item)
+            if process == "remove":
+                for item in itemlist:
+                    actions[process](item)'''
 
-                elif process == "added":
-                    actions[process](itemlist, pdialog=pdialog)
-            
-                else:
-                    processItems = emby.getFullItems(itemlist)
-                    for item in processItems:
+            if process == "added":
+                actions[process](itemlist, pdialog=pdialog)
+        
+            else:
+                processItems = emby.getFullItems(itemlist)
+                items_process.process_all(itemtype, process, processItems)
+                '''for item in processItems:
 
-                        title = item['Name']
+                    title = item['Name']
 
-                        if itemtype == "Episode":
-                            title = "%s - %s" % (item.get('SeriesName', "Unknown"), title)
+                    if itemtype == "Episode":
+                        title = "%s - %s" % (item.get('SeriesName', "Unknown"), title)
 
-                        if pdialog:
-                            percentage = int((float(count) / float(total))*100)
-                            pdialog.update(percentage, message=title)
-                            count += 1
+                    if pdialog:
+                        percentage = int((float(count) / float(total))*100)
+                        pdialog.update(percentage, message=title)
+                        count += 1
 
-                        actions[process](item)
+                    actions[process](item)'''
 
 
             if musicconn is not None:

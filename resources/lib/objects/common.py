@@ -34,7 +34,6 @@ class Items(object):
         self.direct_path = settings('useDirectPaths') == "1"
 
         self.content_msg = settings('newContent') == "true"
-        self.new_video_time = int(settings('newvideotime'))*1000
         self.new_music_time = int(settings('newmusictime'))*1000
 
     def path_validation(self, path):
@@ -58,3 +57,39 @@ class Items(object):
                    icon="{emby}",
                    time=time,
                    sound=False)
+
+    def add_all(self, item_type, view, items, pdialog):
+
+        if self.should_stop():
+            return False
+
+        total = items['TotalRecordCount']
+
+        if pdialog:
+            pdialog.update(heading="Processing %s / %s items" % (view['name'], total))
+
+        action = self._get_func(item_type, "added")
+        action(items['Items'], total, view, pdialog)
+
+    def process_all(self, item_type, action, items, total=None, view=None, pdialog=None):
+
+        log.debug("Processing %s: %s", action, items)
+
+        process = self._get_func(item_type, action)
+        total = total or len(items)
+        count = 0
+
+        for item in items:
+
+            if self.should_stop():
+                return False
+
+            if not process:
+                continue
+
+            if pdialog:
+                percentage = int((float(count) / float(total))*100)
+                pdialog.update(percentage, message=item.get('Name', "unknown"))
+                count += 1
+
+            process(item)

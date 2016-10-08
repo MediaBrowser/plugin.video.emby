@@ -30,31 +30,31 @@ class Movies(common.Items):
         self.emby_db = embydb.Embydb_Functions(self.embycursor)
         self.kodicursor = kodicursor
         self.kodi_db = kodidb.Kodidb_Functions(self.kodicursor)
+
+        self.new_time = int(settings('newvideotime'))*1000
         
         common.Items.__init__(self)
 
+    def _get_func(self, item_type, action):
 
-    def add_all(self, view, pdialog):
+        if item_type == "Movie":
+            actions = {
+                'added': self.added,
+                'update': self.add_update,
+                'userdata': self.updateUserdata,
+                'remove': self.remove
+            }
+        elif item_type == "BoxSet":
+            actions = {
+                'added': self.add_updateBoxset,
+                'update': self.add_updateBoxset,
+                'remove': self.remove
+            }
+        else:
+            log.info("Unsupported item_type: %s", item_type)
+            actions = {}
 
-        log.info("Processing: %s", view)
-        view_name = view['name']
-
-        if self.should_stop():
-            return False
-
-        # Get items per view
-        if pdialog:
-            pdialog.update(
-                    heading=lang(29999),
-                    message="%s %s..." % (lang(33017), view_name))
-
-        movies = self.emby.getMovies(view['id'], dialog=pdialog)
-        total = movies['TotalRecordCount']
-
-        if pdialog:
-            pdialog.update(heading="Processing %s / %s items" % (view_name, total))
-
-        self.added(movies['Items'], total, view, pdialog)
+        return actions.get(action)
 
     def compare_all(self, pdialog):
         # Pull the list of movies and boxsets in Kodi
@@ -123,29 +123,17 @@ class Movies(common.Items):
         total = total or len(items)
         count = 0
 
-        for movie in items:
-            title = movie['Name']
+        for item in items:
+            title = item.get('Name', "unknown")
 
             if pdialog:
                 percentage = int((float(count) / float(total))*100)
                 pdialog.update(percentage, message=title)
                 count += 1
-
-            if self.add_update(movie, view):
+            
+            if self.add_update(item, view):
                 if not pdialog and self.content_msg:
-                    self.content_pop(title, self.new_video_time)
-
-    def added_boxset(self, items, pdialog):
-
-        total = len(items)
-        count = 0
-        for boxset in items:
-
-            if pdialog:
-                percentage = int((float(count) / float(total))*100)
-                pdialog.update(percentage, message=boxset['Name'])
-                count += 1
-            self.add_updateBoxset(boxset)
+                    self.content_pop(title, self.new_time)
 
     @catch_except()
     def add_update(self, item, view=None):
