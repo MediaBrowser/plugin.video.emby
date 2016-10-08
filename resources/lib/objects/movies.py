@@ -34,7 +34,7 @@ class Movies(common.Items):
         common.Items.__init__(self)
 
 
-    def add_movies(self, view, pdialog):
+    def add_all(self, view, pdialog):
 
         log.info("Processing: %s", view)
         view_name = view['name']
@@ -56,7 +56,7 @@ class Movies(common.Items):
 
         self.added(movies['Items'], total, view, pdialog)
 
-    def compare_all_movies(self, pdialog):
+    def compare_all(self, pdialog):
         # Pull the list of movies and boxsets in Kodi
 
         views = self.emby_db.getView_byType('movies')

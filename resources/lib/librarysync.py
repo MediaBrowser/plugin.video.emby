@@ -612,7 +612,7 @@ class LibrarySync(threading.Thread):
 
         ##### PROCESS MOVIES #####
         for view in views:
-            movies.add_movies(view, pdialog)
+            movies.add_all(view, pdialog)
         else:
             log.debug("Movies finished.")
 
@@ -1089,7 +1089,7 @@ class ManualSync(LibrarySync):
 
         ##### PROCESS MOVIES #####
         #for view in views:
-        movies.compare_all_movies(pdialog)
+        movies.compare_all(pdialog)
 
         ##### PROCESS BOXSETS #####
         movies = itemtypes.Movies(embycursor, kodicursor)
