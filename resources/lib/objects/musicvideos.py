@@ -33,72 +33,32 @@ class MusicVideos(common.Items):
         
         common.Items.__init__(self)
 
-    def add_all(self, view, pdialog):
+    def _get_func(self, item_type, action):
 
-        log.info("Processing: %s", view)
-        view_name = view['name']
+        if item_type == "MusicVideo":
+            actions = {
+                'added': self.added,
+                'update': self.add_update,
+                'userdata': self.updateUserdata,
+                'remove': self.remove
+            }
+        else:
+            log.info("Unsupported item_type: %s", item_type)
+            actions = {}
 
-        if self.should_stop():
-            return False
-
-        # Get items per view
-        if pdialog:
-            pdialog.update(
-                    heading=lang(29999),
-                    message="%s %s..." % (lang(33019), view_name))
-
-        movies = self.emby.getMovies(view['id'], dialog=pdialog)
-        total = movies['TotalRecordCount']
-
-        if pdialog:
-            pdialog.update(heading="Processing %s / %s items" % (view_name, total))
-
-        self.added(movies['Items'], total, view, pdialog)
-
-
-            # Get items per view
-            viewId = view['id']
-            viewName = view['name']
-
-            if pdialog:
-                pdialog.update(
-                        heading=lang(29999),
-                        message="%s %s..." % (lang(33019), viewName))
-
-            # Initial or repair sync
-            all_embymvideos = self.emby.getMusicVideos(viewId, dialog=pdialog)
-            total = all_embymvideos['TotalRecordCount']
-            embymvideos = all_embymvideos['Items']
-
-            if pdialog:
-                pdialog.update(heading="Processing %s / %s items" % (viewName, total))
-
-            count = 0
-            for embymvideo in embymvideos:
-                # Process individual musicvideo
-                if should_stop():
-                    return False
-
-                title = embymvideo['Name']
-                if pdialog:
-                    percentage = int((float(count) / float(total))*100)
-                    pdialog.update(percentage, message=title)
-                    count += 1
-                mvideos.add_update(embymvideo, viewName, viewId)
+        return actions.get(action)
 
     def compare_all(self, pdialog):
-        # Pull the list of movies and boxsets in Kodi
-
-        views = self.emby_db.getView_byType('movies')
-        views += self.emby_db.getView_byType('mixed')
+        # Pull the list of musicvideos in Kodi
+        views = self.emby_db.getView_byType('musicvideos')
         log.info("Media folders: %s" % views)
 
         try:
-            all_kodimovies = dict(self.emby_db.get_checksum('Movie'))
+            all_kodimvideos = dict(self.emby_db.get_checksum('MusicVideo'))
         except ValueError:
-            all_kodimovies = {}
+            all_kodimvideos = {}
 
-        all_embymoviesIds = set()
+        all_embymvideosIds = set()
         updatelist = []
 
         for view in views:
@@ -113,39 +73,53 @@ class MusicVideos(common.Items):
             if pdialog:
                 pdialog.update(
                         heading=lang(29999),
-                        message="%s %s..." % (lang(33026), viewName))
+                        message="%s %s..." % (lang(33028), viewName))
 
-            all_embymovies = self.emby.getMovies(viewId, basic=True, dialog=pdialog)
-            for embymovie in all_embymovies['Items']:
+            all_embymvideos = self.emby.getMusicVideos(viewId, basic=True, dialog=pdialog)
+            for embymvideo in all_embymvideos['Items']:
 
                 if self.should_stop():
                     return False
 
-                API = api.API(embymovie)
-                itemid = embymovie['Id']
-                all_embymoviesIds.add(itemid)
+                API = api.API(embymvideo)
+                itemid = embymvideo['Id']
+                all_embymvideosIds.add(itemid)
 
 
-                if all_kodimovies.get(itemid) != API.get_checksum():
-                    # Only update if movie is not in Kodi or checksum is different
+                if all_kodimvideos.get(itemid) != API.get_checksum():
+                    # Only update if musicvideo is not in Kodi or checksum is different
                     updatelist.append(itemid)
 
-            log.info("Movies to update for %s: %s" % (viewName, updatelist))
-            embymovies = self.emby.getFullItems(updatelist)
+            log.info("MusicVideos to update for %s: %s" % (viewName, updatelist))
+            embymvideos = self.emby.getFullItems(updatelist)
             total = len(updatelist)
             del updatelist[:]
+
 
             if pdialog:
                 pdialog.update(heading="Processing %s / %s items" % (viewName, total))
 
-            self.added(embymovies, total, view, pdialog)
+            count = 0
+            for embymvideo in embymvideos:
+                # Process individual musicvideo
+                if self.should_stop():
+                    return False
 
+                if pdialog:
+                    percentage = int((float(count) / float(total))*100)
+                    pdialog.update(percentage, message=embymvideo['Name'])
+                    count += 1
+                self.add_update(embymvideo, viewName, viewId)
 
-        for kodimovie in all_kodimovies:
-            if kodimovie not in all_embymoviesIds:
-                self.remove(kodimovie)
+        ##### PROCESS DELETES #####
+
+        for kodimvideo in all_kodimvideos:
+            if kodimvideo not in all_embymvideosIds:
+                self.remove(kodimvideo)
         else:
-            log.info("Movies compare finished.")
+            log.info("MusicVideos compare finished.")
+
+        return True
 
 
     def added(self, items, total=None, view=None, pdialog=None):
@@ -153,44 +127,25 @@ class MusicVideos(common.Items):
         total = total or len(items)
         count = 0
 
-        for movie in items:
-            title = movie['Name']
+        for item in items:
+            title = item.get('Name', "unknown")
 
             if pdialog:
                 percentage = int((float(count) / float(total))*100)
                 pdialog.update(percentage, message=title)
                 count += 1
-
-            if self.add_update(movie, view):
+            
+            if self.add_update(item, view):
                 if not pdialog and self.content_msg:
-                    self.content_pop(title, self.new_video_time)
-
-    def added(self, items, pdialog):
-
-        total = len(items)
-        count = 0
-        for mvideo in items:
-
-            title = mvideo['Name']
-            if pdialog:
-                percentage = int((float(count) / float(total))*100)
-                pdialog.update(percentage, message=title)
-                count += 1
-            self.add_update(mvideo)
-            if not pdialog and self.contentmsg:
-                self.contentPop(title, self.newvideo_time)
+                    self.content_pop(title, self.new_time)
 
     @catch_except
-    def add_update(self, item, viewtag=None, viewid=None):
+    def add_update(self, item, view=None):
         # Process single music video
         kodicursor = self.kodicursor
         emby_db = self.emby_db
         artwork = self.artwork
         API = api.API(item)
-
-        if item.get('LocationType') == "Virtual": # TODO: Filter via api instead
-            log.info("Skipping virtual episode: %s", item['Name'])
-            return
 
         # If the item already exist in the local Kodi DB we'll perform a full item update
         # If the item doesn't exist, we'll add it to the database
@@ -221,10 +176,13 @@ class MusicVideos(common.Items):
                 update_item = False
                 log.info("mvideoid: %s missing from Kodi, repairing the entry." % mvideoid)
 
-        if not viewtag or not viewid:
+        if not view:
             # Get view tag from emby
             viewtag, viewid, mediatype = self.emby.getView_embyId(itemid)
             log.debug("View tag found: %s" % viewtag)
+        else:
+            viewtag = view['name']
+            viewid = view['id']
 
         # fileId information
         checksum = API.get_checksum()
@@ -258,7 +216,7 @@ class MusicVideos(common.Items):
         else: # Network share
             filename = playurl.rsplit("/", 1)[1]
 
-        if self.directpath:
+        if self.direct_path:
             # Direct paths is set the Kodi way
             if not self.pathValidation(playurl):
                 return False
@@ -460,7 +418,7 @@ class MusicVideos(common.Items):
 
         kodicursor.execute("DELETE FROM musicvideo WHERE idMVideo = ?", (mvideoid,))
         kodicursor.execute("DELETE FROM files WHERE idFile = ?", (fileid,))
-        if self.directpath:
+        if self.direct_path:
             kodicursor.execute("DELETE FROM path WHERE idPath = ?", (pathid,))
         self.embycursor.execute("DELETE FROM emby WHERE emby_id = ?", (itemid,))
 

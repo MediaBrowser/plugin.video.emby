@@ -152,7 +152,7 @@ class Movies(common.Items):
                 percentage = int((float(count) / float(total))*100)
                 pdialog.update(percentage, message=boxset['Name'])
                 count += 1
-            movies.add_updateBoxset(boxset)
+            self.add_updateBoxset(boxset)
 
         ##### PROCESS DELETES #####
 
@@ -164,7 +164,7 @@ class Movies(common.Items):
 
         for boxset in all_kodisets:
             if boxset not in all_embyboxsetsIds:
-                movies.remove(boxset)
+                self.remove(boxset)
         else:
             log.info("Boxsets compare finished.")
 
