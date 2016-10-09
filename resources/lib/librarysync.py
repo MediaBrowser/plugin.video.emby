@@ -21,13 +21,9 @@ import kodidb_functions as kodidb
 import read_embyserver as embyserver
 import userclient
 import videonodes
-<<<<<<< HEAD
 from objects import Movies, MusicVideos, TVShows, Music
 from utils import window, settings, language as lang, should_stop
-=======
-from utils import window, settings, language as lang
 from ga_client import GoogleAnalytics
->>>>>>> refs/remotes/origin/develop
 
 ##################################################################################################
 
