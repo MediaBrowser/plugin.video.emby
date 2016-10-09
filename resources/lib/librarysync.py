@@ -21,8 +21,13 @@ import kodidb_functions as kodidb
 import read_embyserver as embyserver
 import userclient
 import videonodes
+<<<<<<< HEAD
 from objects import Movies, MusicVideos, TVShows, Music
 from utils import window, settings, language as lang, should_stop
+=======
+from utils import window, settings, language as lang
+from ga_client import GoogleAnalytics
+>>>>>>> refs/remotes/origin/develop
 
 ##################################################################################################
 
@@ -76,9 +81,13 @@ class LibrarySync(threading.Thread):
 
     def startSync(self):
 
+        ga = GoogleAnalytics()
+    
         # Run at start up - optional to use the server plugin
         if settings('SyncInstallRunDone') == "true":
-
+        
+            ga.sendEventData("SyncAction", "FastSync")
+        
             # Validate views
             self.refreshViews()
             completed = False
@@ -100,6 +109,7 @@ class LibrarySync(threading.Thread):
                 completed = ManualSync().sync()
         else:
             # Install sync is not completed
+            ga.sendEventData("SyncAction", "FullSync")
             completed = self.fullSync()
 
         return completed
