@@ -163,50 +163,35 @@ class Music(common.Items):
         return True
 
 
-    def added(self, items, total=None, view=None):
+    def added(self, items, total=None):
 
-        self.total += total or len(items)
-        self.count += 0
-
-        for item in items:
-            self.title = item.get('Name', "unknown")
-            self.update_pdialog()
-            
+        for item in super(Music, self).added(items, total):
             if self.add_updateArtist(item):
                 # Add albums
                 all_albums = self.emby.getAlbumsbyArtist(item['Id'])
                 self.added_album(all_albums['Items'])
 
-            self.count += 1
-
-    def added_album(self, items, total=None, view=None):
+    def added_album(self, items, total=None):
         
-        self.total += len(items)
-        self.count += 0
-        for album in items:
-            self.title = album.get('Name', "unknown")
-            self.update_pdialog()
+        update = True if not self.total else False
 
-            
-            self.add_updateAlbum(album)
-            # Add songs
-            all_songs = self.emby.getSongsbyAlbum(album['Id'])
-            self.added_song(all_songs['Items'])
-            self.count += 1
+        for item in super(Music, self).added(items, total, update):
+            self.title = "%s - %s" % (item.get('AlbumArtist', "unknown"), self.title)
 
-    def added_song(self, items, total=None, view=None):
+            if self.add_updateAlbum(item):
+                # Add songs
+                all_songs = self.emby.getSongsbyAlbum(item['Id'])
+                self.added_song(all_songs['Items'])
+
+    def added_song(self, items, total=None):
         
-        self.total += len(items)
-        self.count += 0
-        for song in items:
-            self.title = song['Name']
-            self.update_pdialog()
-            
-            self.add_updateSong(song)
-            if not self.pdialog and self.content_msg:
-                self.content_pop(song['Name'], self.new_time)
+        update = True if not self.total else False
 
-            self.count += 1
+        for item in super(Music, self).added(items, total, update):
+            self.title = "%s - %s" % (item.get('AlbumArtist', "unknown"), self.title)
+
+            if self.add_updateSong(item):
+                self.content_pop()
 
     @catch_except()
     def add_updateArtist(self, item, artisttype="MusicArtist"):
@@ -459,6 +444,8 @@ class Music(common.Items):
         self.kodi_db.addMusicGenres(albumid, genres, "album")
         # Update artwork
         artwork.add_artwork(artworks, albumid, "album", kodicursor)
+
+        return True
 
     @catch_except()
     def add_updateSong(self, item):
@@ -777,6 +764,8 @@ class Music(common.Items):
         if item.get('AlbumId') is None:
             # Update album artwork
             artwork.add_artwork(allart, albumid, "album", kodicursor)
+
+        return True
 
     def updateUserdata(self, item):
         # This updates: Favorite, LastPlayedDate, Playcount, PlaybackPositionTicks

@@ -123,19 +123,9 @@ class MusicVideos(common.Items):
 
 
     def added(self, items, total=None, view=None):
-
-        self.total = total or len(items)
-        self.count = 0
-
-        for item in items:
-
-            self.title = item.get('Name', "unknown")
-            self.update_pdialog()
-
+        for item in super(MusicVideos, self).added(items, total, True):
             if self.add_update(item, view):
-                if not self.pdialog and self.content_msg:
-                    self.content_pop(title, self.new_time)
-            self.count += 1
+                self.content_pop()
 
     @catch_except
     def add_update(self, item, view=None):

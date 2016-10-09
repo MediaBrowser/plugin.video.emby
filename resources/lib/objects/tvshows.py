@@ -200,58 +200,33 @@ class TVShows(common.Items):
 
     def added(self, items, total=None, view=None):
 
-        self.total = total or len(items)
-        self.count = 0
-
-        for item in items:
-            self.title = item.get('Name', "unknown")
-            self.update_pdialog()
-            
+        for item in super(TVShows, self).added(items, total):
             if self.add_update(item, view):
                 # Add episodes
                 all_episodes = self.emby.getEpisodesbyShow(item['Id'])
                 self.added_episode(all_episodes['Items'])
 
-            self.count += 1
-
     def added_season(self, items, total=None, view=None):
         
-        update = False
-        if not self.total:
-            self.total = total or len(items)
-            self.count = 0
-            update = True
+        update = True if not self.total else False
 
-        for season in items:
+        for item in super(TVShows, self).added(items, total, update):
+            self.title = "%s - %s" % (item.get('SeriesName', "Unknown"), self.title)
 
-            self.title = "%s - %s" % (season.get('SeriesName', "Unknown"), season['Name'])
-            self.update_pdialog()
-            self.add_updateSeason(season)
-            # Add episodes
-            all_episodes = self.emby.getEpisodesbySeason(season['Id'])
-            self.added_episode(all_episodes['Items'])
-            
-            if update:
-                self.count += 1
+            if self.add_updateSeason(item):
+                # Add episodes
+                all_episodes = self.emby.getEpisodesbySeason(item['Id'])
+                self.added_episode(all_episodes['Items'])
 
     def added_episode(self, items, total=None, view=None):
 
-        update = False
-        if not self.total:
-            self.total = len(items)
-            self.count = 0
-            update = True
+        update = True if not self.total else False
 
-        for episode in items:
-            self.title = "%s - %s" % (episode.get('SeriesName', "Unknown"), episode['Name'])
-            self.update_pdialog()
+        for item in super(TVShows, self).added(items, total, update):
+            self.title = "%s - %s" % (item.get('SeriesName', "Unknown"), self.title)
 
-            self.add_updateEpisode(episode)
-            if not self.pdialog and self.content_msg:
-                self.content_pop(title, self.new_time)
-
-            if update:
-                self.count += 1
+            if self.add_updateEpisode(item):
+                self.content_pop()
 
     @catch_except()
     def add_update(self, item, view=None):
@@ -495,6 +470,8 @@ class TVShows(common.Items):
 
         # Process artwork
         artwork.add_artwork(artwork.get_all_artwork(item), seasonid, "season", kodicursor)
+
+        return True
 
     @catch_except()
     def add_updateEpisode(self, item):
@@ -751,6 +728,8 @@ class TVShows(common.Items):
             ))
             kodicursor.execute(query, (temppathid, filename, dateadded, tempfileid))
             self.kodi_db.addPlaystate(tempfileid, resume, total, playcount, dateplayed)
+
+        return True
 
     def updateUserdata(self, item):
         # This updates: Favorite, LastPlayedDate, Playcount, PlaybackPositionTicks

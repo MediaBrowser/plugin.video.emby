@@ -51,9 +51,9 @@ class Items(object):
 
         return True
 
-    def content_pop(self, name, time=5000):
+    def content_pop(self):
         # It's possible for the time to be 0. It should be considered disabled in this case.
-        if time: 
+        if not self.pdialog and self.content_msg and self.new_time: 
             dialog(type_="notification",
                    heading="{emby}",
                    message="%s %s" % (lang(33049), name),
@@ -79,7 +79,10 @@ class Items(object):
             self.pdialog.update(heading="Processing %s / %s items" % (view['name'], total))
 
         action = self._get_func(item_type, "added")
-        action(items, total, view)
+        if view:
+            action(items, total, view)
+        else:
+            action(items, total)
 
     def process_all(self, item_type, action, items, total=None, view=None):
 
@@ -102,3 +105,22 @@ class Items(object):
 
             process(item)
             self.count += 1
+
+    def added(self, items, total=None, update=True):
+        # Generator for newly added content
+        if update:
+            self.total = total or len(items)
+            self.count = 0
+
+        for item in items:
+
+            if self.should_stop():
+                break
+
+            self.title = item.get('Name', "unknown")
+
+            yield item
+            self.update_pdialog()
+
+            if update:
+                self.count += 1
