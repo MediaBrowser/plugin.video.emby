@@ -32,9 +32,7 @@ class Items(object):
 
         self.kodi_version = int(xbmc.getInfoLabel('System.BuildVersion')[:2])
         self.direct_path = settings('useDirectPaths') == "1"
-
         self.content_msg = settings('newContent') == "true"
-        self.new_music_time = int(settings('newmusictime'))*1000
 
     def path_validation(self, path):
         # Verify if direct path is accessible or not
@@ -58,18 +56,19 @@ class Items(object):
                    time=time,
                    sound=False)
 
-    def add_all(self, item_type, view, items, pdialog):
+    def add_all(self, item_type, items, view=None, pdialog=None):
 
         if self.should_stop():
             return False
 
-        total = items['TotalRecordCount']
+        total = items['TotalRecordCount'] if 'TotalRecordCount' in items else len(items)
+        items = items['Items'] if 'Items' in items else items
 
-        if pdialog:
+        if pdialog and view:
             pdialog.update(heading="Processing %s / %s items" % (view['name'], total))
 
         action = self._get_func(item_type, "added")
-        action(items['Items'], total, view, pdialog)
+        action(items, total, view, pdialog)
 
     def process_all(self, item_type, action, items, total=None, view=None, pdialog=None):
 

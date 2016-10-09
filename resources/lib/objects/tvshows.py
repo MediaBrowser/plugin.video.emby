@@ -139,7 +139,7 @@ class TVShows(common.Items):
                     percentage = int((float(count) / float(total))*100)
                     pdialog.update(percentage, message=title)
                     count += 1
-                self.add_update(embytvshow, viewName, viewId)
+                self.add_update(embytvshow, view)
 
             else:
                 # Get all episodes in view
@@ -217,10 +217,10 @@ class TVShows(common.Items):
             
             if self.add_update(item, view):
                 # Add episodes
-                all_episodes = self.emby.getEpisodesbyShow(tvshow['Id'])
-                self.added_episode(all_episodes['Items'], pdialog)
+                all_episodes = self.emby.getEpisodesbyShow(item['Id'])
+                self.added_episode(all_episodes['Items'], total, pdialog=pdialog)
 
-    def added_season(self, items, pdialog):
+    def added_season(self, items, total=None, view=None, pdialog=None):
         
         total = len(items)
         count = 0
@@ -234,10 +234,10 @@ class TVShows(common.Items):
             self.add_updateSeason(season)
             # Add episodes
             all_episodes = self.emby.getEpisodesbySeason(season['Id'])
-            self.added_episode(all_episodes['Items'], pdialog)
+            self.added_episode(all_episodes['Items'], pdialog=pdialog)
 
-    def added_episode(self, items, pdialog):
-        
+    def added_episode(self, items, total=None, view=None, pdialog=None):
+
         total = len(items)
         count = 0
         for episode in items:
@@ -247,11 +247,11 @@ class TVShows(common.Items):
                 pdialog.update(percentage, message=title)
                 count += 1
             self.add_updateEpisode(episode)
-            if not pdialog and self.contentmsg:
-                self.contentPop(title, self.newvideo_time)
+            if not pdialog and self.content_msg:
+                self.content_pop(title, self.new_time)
 
     @catch_except()
-    def add_update(self, item, viewtag=None, viewid=None):
+    def add_update(self, item, view=None):
         # Process single tvshow
         kodicursor = self.kodicursor
         emby = self.emby
@@ -293,10 +293,13 @@ class TVShows(common.Items):
                 force_episodes = True
 
 
-        if viewtag is None or viewid is None:
+        if view is None:
             # Get view tag from emby
             viewtag, viewid, mediatype = emby.getView_embyId(itemid)
             log.debug("View tag found: %s" % viewtag)
+        else:
+            viewtag = view['name']
+            viewid = view['id']
 
         # fileId information
         checksum = API.get_checksum()
@@ -354,7 +357,7 @@ class TVShows(common.Items):
                 path = "%s/" % playurl
                 toplevelpath = "%s/" % dirname(dirname(path))
 
-            if not self.pathValidation(path):
+            if not self.path_validation(path):
                 return False
 
             window('emby_pathverified', value="true")
@@ -458,6 +461,8 @@ class TVShows(common.Items):
             log.info("Repairing episodes for showid: %s %s" % (showid, title))
             all_episodes = emby.getEpisodesbyShow(itemid)
             self.added_episode(all_episodes['Items'], None)
+
+        return True
 
     def add_updateSeason(self, item, showid=None):
 
@@ -606,7 +611,7 @@ class TVShows(common.Items):
 
         if self.direct_path:
             # Direct paths is set the Kodi way
-            if not self.pathValidation(playurl):
+            if not self.path_validation(playurl):
                 return False
             
             path = playurl.replace(filename, "")

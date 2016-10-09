@@ -109,7 +109,7 @@ class MusicVideos(common.Items):
                     percentage = int((float(count) / float(total))*100)
                     pdialog.update(percentage, message=embymvideo['Name'])
                     count += 1
-                self.add_update(embymvideo, viewName, viewId)
+                self.add_update(embymvideo, view)
 
         ##### PROCESS DELETES #####
 
@@ -218,7 +218,7 @@ class MusicVideos(common.Items):
 
         if self.direct_path:
             # Direct paths is set the Kodi way
-            if not self.pathValidation(playurl):
+            if not self.path_validation(playurl):
                 return False
             
             path = playurl.replace(filename, "")
@@ -346,6 +346,8 @@ class MusicVideos(common.Items):
         resume = API.adjust_resume(userdata['Resume'])
         total = round(float(runtime), 6)
         self.kodi_db.addPlaystate(fileid, resume, total, playcount, dateplayed)
+
+        return True
 
     def updateUserdata(self, item):
         # This updates: Favorite, LastPlayedDate, Playcount, PlaybackPositionTicks

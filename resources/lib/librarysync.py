@@ -21,7 +21,7 @@ import kodidb_functions as kodidb
 import read_embyserver as embyserver
 import userclient
 import videonodes
-from objects import Movies, MusicVideos, TVShows
+from objects import Movies, MusicVideos, TVShows, Music
 from utils import window, settings, language as lang, should_stop
 
 ##################################################################################################
@@ -623,7 +623,7 @@ class LibrarySync(threading.Thread):
                         message="%s %s..." % (lang(33017), view_name))
 
             all_movies = self.emby.getMovies(view['id'], dialog=pdialog)
-            movies.add_all("Movie", view, all_movies, pdialog)
+            movies.add_all("Movie", all_movies, view, pdialog)
 
         log.debug("Movies finished.")
 
@@ -662,7 +662,7 @@ class LibrarySync(threading.Thread):
 
             # Initial or repair sync
             all_mvideos = self.emby.getMusicVideos(viewId, dialog=pdialog)
-            mvideos.add_all("MusicVideo", view, all_mvideos, pdialog)
+            mvideos.add_all("MusicVideo", all_mvideos, view, pdialog)
 
         else:
             log.debug("MusicVideos finished.")
@@ -688,7 +688,7 @@ class LibrarySync(threading.Thread):
                         message="%s %s..." % (lang(33020), view['name']))
 
             all_tvshows = self.emby.getShows(view['id'], dialog=pdialog)
-            tvshows.add_all("Series", view, all_tvshows, pdialog)
+            tvshows.add_all("Series", all_tvshows, view, pdialog)
 
         else:
             log.debug("TVShows finished.")
@@ -698,41 +698,25 @@ class LibrarySync(threading.Thread):
     def music(self, embycursor, kodicursor, pdialog):
         # Get music from emby
         emby_db = embydb.Embydb_Functions(embycursor)
-        music = itemtypes.Music(embycursor, kodicursor)
+        music = Music(embycursor, kodicursor)
 
         process = {
 
-            'artists': [self.emby.getArtists, music.add_updateArtist],
-            'albums': [self.emby.getAlbums, music.add_updateAlbum],
-            'songs': [self.emby.getSongs, music.add_updateSong]
+            'MusicArtist': self.emby.getArtists,
+            'MusicAlbum': self.emby.getAlbums,
+            'Audio': self.emby.getSongs
         }
-        for itemtype in ['artists', 'albums', 'songs']:
+        for itemtype in ['MusicArtist', 'MusicAlbum', 'Audio']:
 
             if pdialog:
                 pdialog.update(
                     heading=lang(29999),
                     message="%s %s..." % (lang(33021), itemtype))
 
-            all_embyitems = process[itemtype][0](dialog=pdialog)
-            total = all_embyitems['TotalRecordCount']
-            embyitems = all_embyitems['Items']
+            all_embyitems = process[itemtype](dialog=pdialog)
+            music.add_all(itemtype, all_embyitems, pdialog=pdialog)
 
-            if pdialog:
-                pdialog.update(heading="Processing %s / %s items" % (itemtype, total))
-
-            count = 0
-            for embyitem in embyitems:
-                # Process individual item
-                if should_stop():
-                    return False
-                if pdialog:
-                    percentage = int((float(count) / float(total))*100)
-                    pdialog.update(percentage, message=embyitem['Name'])
-                    count += 1
-
-                process[itemtype][1](embyitem)
-            else:
-                log.debug("%s finished." % itemtype)
+            log.debug("%s finished." % itemtype)
 
         return True
 
@@ -1040,96 +1024,5 @@ class ManualSync(LibrarySync):
 
     def music(self, embycursor, kodicursor, pdialog):
 
-        # Get music from emby
-        emby_db = embydb.Embydb_Functions(embycursor)
-        music = itemtypes.Music(embycursor, kodicursor)
-
-        # Pull the list of artists, albums, songs
-        try:
-            all_kodiartists = dict(emby_db.get_checksum('MusicArtist'))
-        except ValueError:
-            all_kodiartists = {}
-
-        try:
-            all_kodialbums = dict(emby_db.get_checksum('MusicAlbum'))
-        except ValueError:
-            all_kodialbums = {}
-
-        try:
-            all_kodisongs = dict(emby_db.get_checksum('Audio'))
-        except ValueError:
-            all_kodisongs = {}
-
-        all_embyartistsIds = set()
-        all_embyalbumsIds = set()
-        all_embysongsIds = set()
-        updatelist = []
-
-        process = {
-
-            'artists': [self.emby.getArtists, music.add_updateArtist],
-            'albums': [self.emby.getAlbums, music.add_updateAlbum],
-            'songs': [self.emby.getSongs, music.add_updateSong]
-        }
-        for data_type in ['artists', 'albums', 'songs']:
-            if pdialog:
-                pdialog.update(
-                        heading=lang(29999),
-                        message="%s %s..." % (lang(33031), data_type))
-            if data_type != "artists":
-                all_embyitems = process[data_type][0](basic=True, dialog=pdialog)
-            else:
-                all_embyitems = process[data_type][0](dialog=pdialog)
-            for embyitem in all_embyitems['Items']:
-                if should_stop():
-                    return False
-                API = api.API(embyitem)
-                itemid = embyitem['Id']
-                if data_type == "artists":
-                    all_embyartistsIds.add(itemid)
-                    if all_kodiartists.get(itemid) != API.get_checksum():
-                        # Only update if artist is not in Kodi or checksum is different
-                        updatelist.append(itemid)
-                elif data_type == "albums":
-                    all_embyalbumsIds.add(itemid)
-                    if all_kodialbums.get(itemid) != API.get_checksum():
-                        # Only update if album is not in Kodi or checksum is different
-                        updatelist.append(itemid)
-                else:
-                    all_embysongsIds.add(itemid)
-                    if all_kodisongs.get(itemid) != API.get_checksum():
-                        # Only update if songs is not in Kodi or checksum is different
-                        updatelist.append(itemid)
-            log.info("%s to update: %s" % (data_type, updatelist))
-            embyitems = self.emby.getFullItems(updatelist)
-            total = len(updatelist)
-            del updatelist[:]
-            if pdialog:
-                pdialog.update(heading="Processing %s / %s items" % (data_type, total))
-            count = 0
-            for embyitem in embyitems:
-                # Process individual item
-                if should_stop():
-                    return False
-                if pdialog:
-                    percentage = int((float(count) / float(total))*100)
-                    pdialog.update(percentage, message=embyitem['Name'])
-                    count += 1
-                process[data_type][1](embyitem)
-        ##### PROCESS DELETES #####
-        for kodiartist in all_kodiartists:
-            if kodiartist not in all_embyartistsIds and all_kodiartists[kodiartist] is not None:
-                music.remove(kodiartist)
-        else:
-            log.info("Artist compare finished.")
-        for kodialbum in all_kodialbums:
-            if kodialbum not in all_embyalbumsIds:
-                music.remove(kodialbum)
-        else:
-            log.info("Albums compare finished.")
-        for kodisong in all_kodisongs:
-            if kodisong not in all_embysongsIds:
-                music.remove(kodisong)
-        else:
-            log.info("Songs compare finished.")
-        return True
+        music = Music(embycursor, kodicursor)
+        music.compare_all(pdialog)
