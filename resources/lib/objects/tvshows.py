@@ -24,12 +24,13 @@ log = logging.getLogger("EMBY."+__name__)
 class TVShows(common.Items):
 
     
-    def __init__(self, embycursor, kodicursor):
+    def __init__(self, embycursor, kodicursor, pdialog=None):
         
         self.embycursor = embycursor
         self.emby_db = embydb.Embydb_Functions(self.embycursor)
         self.kodicursor = kodicursor
         self.kodi_db = kodidb.Kodidb_Functions(self.kodicursor)
+        self.pdialog = pdialog
 
         self.new_time = int(settings('newvideotime'))*1000
         
@@ -63,9 +64,9 @@ class TVShows(common.Items):
 
         return actions.get(action)
 
-    def compare_all(self, pdialog):
+    def compare_all(self):
         # Pull the list of movies and boxsets in Kodi
-
+        pdialog = self.pdialog
         views = self.emby_db.getView_byType('tvshows')
         views += self.emby_db.getView_byType('mixed')
         log.info("Media folders: %s" % views)
@@ -119,14 +120,14 @@ class TVShows(common.Items):
 
             log.info("TVShows to update for %s: %s" % (viewName, updatelist))
             embytvshows = self.emby.getFullItems(updatelist)
-            total = len(updatelist)
+            self.total = len(updatelist)
             del updatelist[:]
 
 
             if pdialog:
-                pdialog.update(heading="Processing %s / %s items" % (viewName, total))
+                pdialog.update(heading="Processing %s / %s items" % (viewName, self.total))
 
-            count = 0
+            self.count = 0
             for embytvshow in embytvshows:
                 # Process individual show
                 if self.should_stop():
@@ -135,11 +136,10 @@ class TVShows(common.Items):
                 itemid = embytvshow['Id']
                 title = embytvshow['Name']
                 all_embytvshowsIds.add(itemid)
-                if pdialog:
-                    percentage = int((float(count) / float(total))*100)
-                    pdialog.update(percentage, message=title)
-                    count += 1
+                self.update_pdialog()
+                
                 self.add_update(embytvshow, view)
+                self.count += 1
 
             else:
                 # Get all episodes in view
@@ -166,22 +166,18 @@ class TVShows(common.Items):
 
                 log.info("Episodes to update for %s: %s" % (viewName, updatelist))
                 embyepisodes = self.emby.getFullItems(updatelist)
-                total = len(updatelist)
+                self.total = len(updatelist)
                 del updatelist[:]
 
-                count = 0
+                self.count = 0
                 for episode in embyepisodes:
 
                     # Process individual episode
                     if self.should_stop():
                         return False
-
-                    if pdialog:
-                        percentage = int((float(count) / float(total))*100)
-                        title = "%s - %s" % (episode.get('SeriesName', "Unknown"), episode['Name'])
-                        pdialog.update(percentage, message=title)
-                        count += 1
+                    self.title = "%s - %s" % (episode.get('SeriesName', "Unknown"), episode['Name'])
                     self.add_updateEpisode(episode)
+                    self.count += 1
 
         ##### PROCESS DELETES #####
 
@@ -202,53 +198,60 @@ class TVShows(common.Items):
         return True
 
 
-    def added(self, items, total=None, view=None, pdialog=None):
+    def added(self, items, total=None, view=None):
 
-        total = total or len(items)
-        count = 0
+        self.total = total or len(items)
+        self.count = 0
 
         for item in items:
-            title = item.get('Name', "unknown")
-
-            if pdialog:
-                percentage = int((float(count) / float(total))*100)
-                pdialog.update(percentage, message=title)
-                count += 1
+            self.title = item.get('Name', "unknown")
+            self.update_pdialog()
             
             if self.add_update(item, view):
                 # Add episodes
                 all_episodes = self.emby.getEpisodesbyShow(item['Id'])
-                self.added_episode(all_episodes['Items'], total, pdialog=pdialog)
+                self.added_episode(all_episodes['Items'])
 
-    def added_season(self, items, total=None, view=None, pdialog=None):
+            self.count += 1
+
+    def added_season(self, items, total=None, view=None):
         
-        total = len(items)
-        count = 0
+        update = False
+        if not self.total:
+            self.total = total or len(items)
+            self.count = 0
+            update = True
+
         for season in items:
 
-            title = "%s - %s" % (season.get('SeriesName', "Unknown"), season['Name'])
-            if pdialog:
-                percentage = int((float(count) / float(total))*100)
-                pdialog.update(percentage, message=title)
-                count += 1
+            self.title = "%s - %s" % (season.get('SeriesName', "Unknown"), season['Name'])
+            self.update_pdialog()
             self.add_updateSeason(season)
             # Add episodes
             all_episodes = self.emby.getEpisodesbySeason(season['Id'])
-            self.added_episode(all_episodes['Items'], pdialog=pdialog)
+            self.added_episode(all_episodes['Items'])
+            
+            if update:
+                self.count += 1
 
-    def added_episode(self, items, total=None, view=None, pdialog=None):
+    def added_episode(self, items, total=None, view=None):
 
-        total = len(items)
-        count = 0
+        update = False
+        if not self.total:
+            self.total = len(items)
+            self.count = 0
+            update = True
+
         for episode in items:
-            title = "%s - %s" % (episode.get('SeriesName', "Unknown"), episode['Name'])
-            if pdialog:
-                percentage = int((float(count) / float(total))*100)
-                pdialog.update(percentage, message=title)
-                count += 1
+            self.title = "%s - %s" % (episode.get('SeriesName', "Unknown"), episode['Name'])
+            self.update_pdialog()
+
             self.add_updateEpisode(episode)
-            if not pdialog and self.content_msg:
+            if not self.pdialog and self.content_msg:
                 self.content_pop(title, self.new_time)
+
+            if update:
+                self.count += 1
 
     @catch_except()
     def add_update(self, item, view=None):

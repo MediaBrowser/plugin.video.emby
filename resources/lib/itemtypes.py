@@ -103,13 +103,13 @@ class Items(object):
                 if music_enabled:
                     musicconn = kodiSQL('music')
                     musiccursor = musicconn.cursor()
-                    items_process = itemtypes[itemtype](embycursor, musiccursor)
+                    items_process = itemtypes[itemtype](embycursor, musiccursor, pdialog)
                 else:
                     # Music is not enabled, do not proceed with itemtype
                     continue
             else:
                 update_videolibrary = True
-                items_process = itemtypes[itemtype](embycursor, kodicursor)
+                items_process = itemtypes[itemtype](embycursor, kodicursor, pdialog)
 
             '''
 
@@ -121,10 +121,10 @@ class Items(object):
 
             if process == "added":
                 processItems = itemlist
-                items_process.add_all(itemtype, itemlist, pdialog=pdialog)
+                items_process.add_all(itemtype, itemlist)
             else:
                 processItems = emby.getFullItems(itemlist)
-                items_process.process_all(itemtype, process, processItems, total, pdialog=pdialog)
+                items_process.process_all(itemtype, process, processItems, total)
 
 
             if musicconn is not None:

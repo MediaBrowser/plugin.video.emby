@@ -604,7 +604,7 @@ class LibrarySync(threading.Thread):
 
         # Get movies from emby
         emby_db = embydb.Embydb_Functions(embycursor)
-        movies = Movies(embycursor, kodicursor)
+        movies = Movies(embycursor, kodicursor, pdialog)
 
         views = emby_db.getView_byType('movies')
         views += emby_db.getView_byType('mixed')
@@ -623,7 +623,7 @@ class LibrarySync(threading.Thread):
                         message="%s %s..." % (lang(33017), view_name))
 
             all_movies = self.emby.getMovies(view['id'], dialog=pdialog)
-            movies.add_all("Movie", all_movies, view, pdialog)
+            movies.add_all("Movie", all_movies, view)
 
         log.debug("Movies finished.")
 
@@ -634,7 +634,7 @@ class LibrarySync(threading.Thread):
         boxsets = self.emby.getBoxset(dialog=pdialog)
         total = boxsets['TotalRecordCount']
 
-        movies.process_all("BoxSet", "added", boxsets['Items'], total, pdialog=pdialog)
+        movies.process_all("BoxSet", "added", boxsets['Items'], total)
         log.debug("Boxsets finished.")
 
         return True
@@ -643,7 +643,7 @@ class LibrarySync(threading.Thread):
 
         # Get musicvideos from emby
         emby_db = embydb.Embydb_Functions(embycursor)
-        mvideos = MusicVideos(embycursor, kodicursor)
+        mvideos = MusicVideos(embycursor, kodicursor, pdialog)
 
         views = emby_db.getView_byType('musicvideos')
         log.info("Media folders: %s" % views)
@@ -662,7 +662,7 @@ class LibrarySync(threading.Thread):
 
             # Initial or repair sync
             all_mvideos = self.emby.getMusicVideos(viewId, dialog=pdialog)
-            mvideos.add_all("MusicVideo", all_mvideos, view, pdialog)
+            mvideos.add_all("MusicVideo", all_mvideos, view)
 
         else:
             log.debug("MusicVideos finished.")
@@ -673,7 +673,7 @@ class LibrarySync(threading.Thread):
 
         # Get shows from emby
         emby_db = embydb.Embydb_Functions(embycursor)
-        tvshows = TVShows(embycursor, kodicursor)
+        tvshows = TVShows(embycursor, kodicursor, pdialog)
 
         views = emby_db.getView_byType('tvshows')
         views += emby_db.getView_byType('mixed')
@@ -688,7 +688,7 @@ class LibrarySync(threading.Thread):
                         message="%s %s..." % (lang(33020), view['name']))
 
             all_tvshows = self.emby.getShows(view['id'], dialog=pdialog)
-            tvshows.add_all("Series", all_tvshows, view, pdialog)
+            tvshows.add_all("Series", all_tvshows, view)
 
         else:
             log.debug("TVShows finished.")
@@ -698,9 +698,9 @@ class LibrarySync(threading.Thread):
     def music(self, embycursor, kodicursor, pdialog):
         # Get music from emby
         emby_db = embydb.Embydb_Functions(embycursor)
-        music = Music(embycursor, kodicursor)
+        music = Music(embycursor, kodicursor, pdialog)
 
-        process = {
+        '''process = {
 
             'MusicArtist': self.emby.getArtists,
             'MusicAlbum': self.emby.getAlbums,
@@ -716,7 +716,17 @@ class LibrarySync(threading.Thread):
             all_embyitems = process[itemtype](dialog=pdialog)
             music.add_all(itemtype, all_embyitems, pdialog=pdialog)
 
-            log.debug("%s finished." % itemtype)
+            log.debug("%s finished." % itemtype)'''
+
+        # Add music artists and everything will fall into place
+        if pdialog:
+            pdialog.update(heading=lang(29999),
+                           message="%s Artists..." % lang(33021))
+
+        all_artists = self.emby.getArtists(dialog=pdialog)
+        music.add_all("MusicArtist", all_artists)
+
+        log.debug("Finished syncing music")
 
         return True
 
@@ -1002,27 +1012,13 @@ class ManualSync(LibrarySync):
 
 
     def movies(self, embycursor, kodicursor, pdialog):
-
-        movies = Movies(embycursor, kodicursor)
-        movies.compare_all(pdialog)
-
-        return True
+        return Movies(embycursor, kodicursor, pdialog).compare_all()
 
     def musicvideos(self, embycursor, kodicursor, pdialog):
-
-        mvideos = MusicVideos(embycursor, kodicursor)
-        mvideos.compare_all(pdialog)
-
-        return True
+        return MusicVideos(embycursor, kodicursor, pdialog).compare_all()
 
     def tvshows(self, embycursor, kodicursor, pdialog):
-
-        tvshows = TVShows(embycursor, kodicursor)
-        tvshows.compare_all(pdialog)
-
-        return True
+        return TVShows(embycursor, kodicursor, pdialog).compare_all()
 
     def music(self, embycursor, kodicursor, pdialog):
-
-        music = Music(embycursor, kodicursor)
-        music.compare_all(pdialog)
+        return Music(embycursor, kodicursor).compare_all()

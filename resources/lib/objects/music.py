@@ -25,12 +25,13 @@ log = logging.getLogger("EMBY."+__name__)
 class Music(common.Items):
 
     
-    def __init__(self, embycursor, kodicursor):
+    def __init__(self, embycursor, kodicursor, pdialog=None):
         
         self.embycursor = embycursor
         self.emby_db = embydb.Embydb_Functions(self.embycursor)
         self.kodicursor = kodicursor
         self.kodi_db = kodidb.Kodidb_Functions(self.kodicursor)
+        self.pdialog = pdialog
 
         self.new_time = int(settings('newmusictime'))*1000
         self.directstream = settings('streamMusic') == "true"
@@ -70,8 +71,9 @@ class Music(common.Items):
 
         return actions.get(action)
 
-    def compare_all(self, pdialog):
+    def compare_all(self):
         # Pull the list of artists, albums, songs
+        pdialog = self.pdialog
         try:
             all_kodiartists = dict(self.emby_db.get_checksum('MusicArtist'))
         except ValueError:
@@ -129,20 +131,19 @@ class Music(common.Items):
                         updatelist.append(itemid)
             log.info("%s to update: %s" % (data_type, updatelist))
             embyitems = self.emby.getFullItems(updatelist)
-            total = len(updatelist)
+            self.total = len(updatelist)
             del updatelist[:]
             if pdialog:
-                pdialog.update(heading="Processing %s / %s items" % (data_type, total))
-            count = 0
+                pdialog.update(heading="Processing %s / %s items" % (data_type, self.total))
+            self.count = 0
             for embyitem in embyitems:
                 # Process individual item
                 if self.should_stop():
                     return False
-                if pdialog:
-                    percentage = int((float(count) / float(total))*100)
-                    pdialog.update(percentage, message=embyitem['Name'])
-                    count += 1
+                self.title = embyitem['Name']
+                self.update_pdialog()
                 process[data_type][1](embyitem)
+                self.count += 1
         ##### PROCESS DELETES #####
         for kodiartist in all_kodiartists:
             if kodiartist not in all_embyartistsIds and all_kodiartists[kodiartist] is not None:
@@ -162,52 +163,50 @@ class Music(common.Items):
         return True
 
 
-    def added(self, items, total=None, view=None, pdialog=None):
+    def added(self, items, total=None, view=None):
 
-        total = total or len(items)
-        count = 0
+        self.total += total or len(items)
+        self.count += 0
 
         for item in items:
-            title = item.get('Name', "unknown")
-
-            if pdialog:
-                percentage = int((float(count) / float(total))*100)
-                pdialog.update(percentage, message=title)
-                count += 1
+            self.title = item.get('Name', "unknown")
+            self.update_pdialog()
             
             if self.add_updateArtist(item):
                 # Add albums
                 all_albums = self.emby.getAlbumsbyArtist(item['Id'])
-                self.added_album(all_albums['Items'], pdialog=pdialog)
+                self.added_album(all_albums['Items'])
 
-    def added_album(self, items, total=None, view=None, pdialog=None):
+            self.count += 1
+
+    def added_album(self, items, total=None, view=None):
         
-        total = len(items)
-        count = 0
+        self.total += len(items)
+        self.count += 0
         for album in items:
+            self.title = album.get('Name', "unknown")
+            self.update_pdialog()
 
-            if pdialog:
-                percentage = int((float(count) / float(total))*100)
-                pdialog.update(percentage, message=album['Name'])
-                count += 1
+            
             self.add_updateAlbum(album)
             # Add songs
             all_songs = self.emby.getSongsbyAlbum(album['Id'])
-            self.added_song(all_songs['Items'], pdialog=pdialog)
+            self.added_song(all_songs['Items'])
+            self.count += 1
 
-    def added_song(self, items, total=None, view=None, pdialog=None):
+    def added_song(self, items, total=None, view=None):
         
-        total = len(items)
-        count = 0
+        self.total += len(items)
+        self.count += 0
         for song in items:
-
-            if pdialog:
-                percentage = int((float(count) / float(total))*100)
-                pdialog.update(percentage, message=song['Name'])
-                count += 1
+            self.title = song['Name']
+            self.update_pdialog()
+            
             self.add_updateSong(song)
-            if not pdialog and self.content_msg:
+            if not self.pdialog and self.content_msg:
                 self.content_pop(song['Name'], self.new_time)
+
+            self.count += 1
 
     @catch_except()
     def add_updateArtist(self, item, artisttype="MusicArtist"):

@@ -24,12 +24,13 @@ log = logging.getLogger("EMBY."+__name__)
 class MusicVideos(common.Items):
 
     
-    def __init__(self, embycursor, kodicursor):
+    def __init__(self, embycursor, kodicursor, pdialog=None):
         
         self.embycursor = embycursor
         self.emby_db = embydb.Embydb_Functions(self.embycursor)
         self.kodicursor = kodicursor
         self.kodi_db = kodidb.Kodidb_Functions(self.kodicursor)
+        self.pdialog = pdialog
         
         common.Items.__init__(self)
 
@@ -48,7 +49,8 @@ class MusicVideos(common.Items):
 
         return actions.get(action)
 
-    def compare_all(self, pdialog):
+    def compare_all(self):
+        pdialog = self.pdialog
         # Pull the list of musicvideos in Kodi
         views = self.emby_db.getView_byType('musicvideos')
         log.info("Media folders: %s" % views)
@@ -92,24 +94,22 @@ class MusicVideos(common.Items):
 
             log.info("MusicVideos to update for %s: %s" % (viewName, updatelist))
             embymvideos = self.emby.getFullItems(updatelist)
-            total = len(updatelist)
+            self.total = len(updatelist)
             del updatelist[:]
 
 
             if pdialog:
-                pdialog.update(heading="Processing %s / %s items" % (viewName, total))
+                pdialog.update(heading="Processing %s / %s items" % (viewName, self.total))
 
-            count = 0
+            self.count = 0
             for embymvideo in embymvideos:
                 # Process individual musicvideo
                 if self.should_stop():
                     return False
-
-                if pdialog:
-                    percentage = int((float(count) / float(total))*100)
-                    pdialog.update(percentage, message=embymvideo['Name'])
-                    count += 1
+                self.title = embymvideo['Name']
+                self.update_pdialog()
                 self.add_update(embymvideo, view)
+                self.count += 1
 
         ##### PROCESS DELETES #####
 
@@ -122,22 +122,20 @@ class MusicVideos(common.Items):
         return True
 
 
-    def added(self, items, total=None, view=None, pdialog=None):
+    def added(self, items, total=None, view=None):
 
-        total = total or len(items)
-        count = 0
+        self.total = total or len(items)
+        self.count = 0
 
         for item in items:
-            title = item.get('Name', "unknown")
 
-            if pdialog:
-                percentage = int((float(count) / float(total))*100)
-                pdialog.update(percentage, message=title)
-                count += 1
-            
+            self.title = item.get('Name', "unknown")
+            self.update_pdialog()
+
             if self.add_update(item, view):
-                if not pdialog and self.content_msg:
+                if not self.pdialog and self.content_msg:
                     self.content_pop(title, self.new_time)
+            self.count += 1
 
     @catch_except
     def add_update(self, item, view=None):

@@ -22,6 +22,11 @@ log = logging.getLogger("EMBY."+__name__)
 
 class Items(object):
 
+    pdialog = None
+    title = None
+    count = 0
+    total = 0
+
 
     def __init__(self, **kwargs):
 
@@ -56,7 +61,13 @@ class Items(object):
                    time=time,
                    sound=False)
 
-    def add_all(self, item_type, items, view=None, pdialog=None):
+    def update_pdialog(self):
+
+        if self.pdialog:
+            percentage = int((float(self.count) / float(self.total))*100)
+            self.pdialog.update(percentage, message=self.title)
+
+    def add_all(self, item_type, items, view=None):
 
         if self.should_stop():
             return False
@@ -64,19 +75,19 @@ class Items(object):
         total = items['TotalRecordCount'] if 'TotalRecordCount' in items else len(items)
         items = items['Items'] if 'Items' in items else items
 
-        if pdialog and view:
-            pdialog.update(heading="Processing %s / %s items" % (view['name'], total))
+        if self.pdialog and view:
+            self.pdialog.update(heading="Processing %s / %s items" % (view['name'], total))
 
         action = self._get_func(item_type, "added")
-        action(items, total, view, pdialog)
+        action(items, total, view)
 
-    def process_all(self, item_type, action, items, total=None, view=None, pdialog=None):
+    def process_all(self, item_type, action, items, total=None, view=None):
 
         log.debug("Processing %s: %s", action, items)
 
         process = self._get_func(item_type, action)
-        total = total or len(items)
-        count = 0
+        self.total = total or len(items)
+        self.count = 0
 
         for item in items:
 
@@ -86,9 +97,8 @@ class Items(object):
             if not process:
                 continue
 
-            if pdialog:
-                percentage = int((float(count) / float(total))*100)
-                pdialog.update(percentage, message=item.get('Name', "unknown"))
-                count += 1
+            self.title = item.get('Name', "unknown")
+            self.update_pdialog()
 
             process(item)
+            self.count += 1
