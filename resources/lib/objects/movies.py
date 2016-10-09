@@ -64,11 +64,17 @@ class Movies(common.Items):
         log.info("Media folders: %s" % views)
 
         try:
+            all_kodisets = dict(self.emby_db.get_checksum('BoxSet'))
+        except ValueError:
+            all_kodisets = {}
+
+        try:
             all_kodimovies = dict(self.emby_db.get_checksum('Movie'))
         except ValueError:
             all_kodimovies = {}
 
         all_embymoviesIds = set()
+        all_embyboxsetsIds = set()
         updatelist = []
 
         for view in views:
@@ -110,12 +116,57 @@ class Movies(common.Items):
 
             self.added(embymovies, total, view, pdialog)
 
+        boxsets = self.emby.getBoxset(dialog=pdialog)
+        embyboxsets = []
+
+        if pdialog:
+            pdialog.update(heading=lang(29999), message=lang(33027))
+
+        for boxset in boxsets['Items']:
+
+            if self.should_stop():
+                return False
+
+            # Boxset has no real userdata, so using etag to compare
+            itemid = boxset['Id']
+            all_embyboxsetsIds.add(itemid)
+
+            if all_kodisets.get(itemid) != boxset['Etag']:
+                # Only update if boxset is not in Kodi or boxset['Etag'] is different
+                updatelist.append(itemid)
+                embyboxsets.append(boxset)
+
+        log.info("Boxsets to update: %s" % updatelist)
+        total = len(updatelist)
+
+        if pdialog:
+            pdialog.update(heading="Processing Boxsets / %s items" % total)
+
+        count = 0
+        for boxset in embyboxsets:
+            # Process individual boxset
+            if self.should_stop():
+                return False
+
+            if pdialog:
+                percentage = int((float(count) / float(total))*100)
+                pdialog.update(percentage, message=boxset['Name'])
+                count += 1
+            movies.add_updateBoxset(boxset)
+
+        ##### PROCESS DELETES #####
 
         for kodimovie in all_kodimovies:
             if kodimovie not in all_embymoviesIds:
                 self.remove(kodimovie)
         else:
             log.info("Movies compare finished.")
+
+        for boxset in all_kodisets:
+            if boxset not in all_embyboxsetsIds:
+                movies.remove(boxset)
+        else:
+            log.info("Boxsets compare finished.")
 
 
     def added(self, items, total=None, view=None, pdialog=None):
@@ -360,7 +411,8 @@ class Movies(common.Items):
         kodicursor.execute(query, (pathid, filename, dateadded, fileid))
         
         # Process countries
-        self.kodi_db.addCountries(movieid, item['ProductionLocations'], "movie")
+        if 'ProductionLocations' in item:
+            self.kodi_db.addCountries(movieid, item['ProductionLocations'], "movie")
         # Process cast
         people = artwork.get_people_artwork(item['People'])
         self.kodi_db.addPeople(movieid, people, "movie")

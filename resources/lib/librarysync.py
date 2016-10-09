@@ -1069,69 +1069,8 @@ class ManualSync(LibrarySync):
 
     def movies(self, embycursor, kodicursor, pdialog):
 
-        # Get movies from emby
-        emby_db = embydb.Embydb_Functions(embycursor)
         movies = Movies(embycursor, kodicursor)
-
-        try:
-            all_kodisets = dict(emby_db.get_checksum('BoxSet'))
-        except ValueError:
-            all_kodisets = {}
-
-        all_embyboxsetsIds = set()
-        updatelist = []
-
-        ##### PROCESS MOVIES #####
-        #for view in views:
         movies.compare_all(pdialog)
-
-        ##### PROCESS BOXSETS #####
-        movies = itemtypes.Movies(embycursor, kodicursor)
-        boxsets = self.emby.getBoxset(dialog=pdialog)
-        embyboxsets = []
-
-        if pdialog:
-            pdialog.update(heading=lang(29999), message=lang(33027))
-
-        for boxset in boxsets['Items']:
-
-            if should_stop():
-                return False
-
-            # Boxset has no real userdata, so using etag to compare
-            itemid = boxset['Id']
-            all_embyboxsetsIds.add(itemid)
-
-            if all_kodisets.get(itemid) != boxset['Etag']:
-                # Only update if boxset is not in Kodi or boxset['Etag'] is different
-                updatelist.append(itemid)
-                embyboxsets.append(boxset)
-
-        log.info("Boxsets to update: %s" % updatelist)
-        total = len(updatelist)
-
-        if pdialog:
-            pdialog.update(heading="Processing Boxsets / %s items" % total)
-
-        count = 0
-        for boxset in embyboxsets:
-            # Process individual boxset
-            if should_stop():
-                return False
-
-            if pdialog:
-                percentage = int((float(count) / float(total))*100)
-                pdialog.update(percentage, message=boxset['Name'])
-                count += 1
-            movies.add_updateBoxset(boxset)
-
-        ##### PROCESS DELETES #####
-
-        for boxset in all_kodisets:
-            if boxset not in all_embyboxsetsIds:
-                movies.remove(boxset)
-        else:
-            log.info("Boxsets compare finished.")
 
         return True
 
