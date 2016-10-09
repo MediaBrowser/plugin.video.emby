@@ -201,9 +201,12 @@ class WebSocketClient(threading.Thread):
             elif command == 'SetSubtitleStreamIndex':
                 emby_index = int(arguments['Index'])
                 current_file = player.getPlayingFile()
-
                 mapping = window('emby_%s.indexMapping' % current_file)
-                if mapping:
+
+                if emby_index == -1:
+                    player.showSubtitles(False)
+
+                elif mapping:
                     external_index = json.loads(mapping)
                     # If there's external subtitles added via playbackutils
                     for index in external_index:
@@ -218,7 +221,7 @@ class WebSocketClient(threading.Thread):
                 else:
                     # Emby merges audio and subtitle index together
                     audio_tracks = len(player.getAvailableAudioStreams())
-                    player.setSubtitleStream(index - audio_tracks - 1)
+                    player.setSubtitleStream(emby_index - audio_tracks - 1)
 
             # Let service know
             window('emby_command', value="true")
