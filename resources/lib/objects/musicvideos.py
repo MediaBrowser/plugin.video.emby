@@ -241,10 +241,10 @@ class MusicVideos(common.Items):
                 "WHERE idMVideo = ?"
             ))
             kodicursor.execute(query, (title, runtime, director, studio, year, plot, album,
-                               artist, genre, track, mvideoid))
+                                       artist, genre, track, mvideoid))
             # Update the checksum in emby table
             emby_db.updateReference(itemid, checksum)
-        
+
         ##### OR ADD THE MUSIC VIDEO #####
         else:
             log.info("ADD mvideo itemid: %s - Title: %s", itemid, title)
@@ -295,7 +295,7 @@ class MusicVideos(common.Items):
                 '''
             )
             kodicursor.execute(query, (mvideoid, fileid, title, runtime, director, studio,
-                               year, plot, album, artist, genre, track))
+                                       year, plot, album, artist, genre, track))
 
             # Create the reference in emby table
             emby_db.addReference(itemid, mvideoid, "MusicVideo", "musicvideo", fileid, pathid,
