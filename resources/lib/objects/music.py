@@ -74,6 +74,8 @@ class Music(common.Items):
     def compare_all(self):
         # Pull the list of artists, albums, songs
         pdialog = self.pdialog
+
+        views = self.emby_db.getView_byType('music')
         try:
             all_kodiartists = dict(self.emby_db.get_checksum('MusicArtist'))
         except ValueError:
@@ -100,50 +102,52 @@ class Music(common.Items):
             'albums': [self.emby.getAlbums, self.add_updateAlbum],
             'songs': [self.emby.getSongs, self.add_updateSong]
         }
-        for data_type in ['artists', 'albums', 'songs']:
-            if pdialog:
-                pdialog.update(
-                        heading=lang(29999),
-                        message="%s %s..." % (lang(33031), data_type))
-            if data_type != "artists":
-                all_embyitems = process[data_type][0](basic=True, dialog=pdialog)
-            else:
-                all_embyitems = process[data_type][0](dialog=pdialog)
-            for embyitem in all_embyitems['Items']:
-                if self.should_stop():
-                    return False
-                API = api.API(embyitem)
-                itemid = embyitem['Id']
-                if data_type == "artists":
-                    all_embyartistsIds.add(itemid)
-                    if all_kodiartists.get(itemid) != API.get_checksum():
-                        # Only update if artist is not in Kodi or checksum is different
-                        updatelist.append(itemid)
-                elif data_type == "albums":
-                    all_embyalbumsIds.add(itemid)
-                    if all_kodialbums.get(itemid) != API.get_checksum():
-                        # Only update if album is not in Kodi or checksum is different
-                        updatelist.append(itemid)
+        for view in views:
+            for data_type in ['artists', 'albums', 'songs']:
+                if pdialog:
+                    pdialog.update(
+                            heading=lang(29999),
+                            message="%s %s..." % (lang(33031), data_type))
+                if data_type != "artists":
+                    all_embyitems = process[data_type][0](basic=True, dialog=pdialog)
                 else:
-                    all_embysongsIds.add(itemid)
-                    if all_kodisongs.get(itemid) != API.get_checksum():
-                        # Only update if songs is not in Kodi or checksum is different
-                        updatelist.append(itemid)
-            log.info("%s to update: %s" % (data_type, updatelist))
-            embyitems = self.emby.getFullItems(updatelist)
-            self.total = len(updatelist)
-            del updatelist[:]
-            if pdialog:
-                pdialog.update(heading="Processing %s / %s items" % (data_type, self.total))
-            self.count = 0
-            for embyitem in embyitems:
-                # Process individual item
-                if self.should_stop():
-                    return False
-                self.title = embyitem['Name']
-                self.update_pdialog()
-                process[data_type][1](embyitem)
-                self.count += 1
+                    all_embyitems = process[data_type][0](view['id'], dialog=pdialog)
+
+                for embyitem in all_embyitems['Items']:
+                    if self.should_stop():
+                        return False
+                    API = api.API(embyitem)
+                    itemid = embyitem['Id']
+                    if data_type == "artists":
+                        all_embyartistsIds.add(itemid)
+                        if all_kodiartists.get(itemid) != API.get_checksum():
+                            # Only update if artist is not in Kodi or checksum is different
+                            updatelist.append(itemid)
+                    elif data_type == "albums":
+                        all_embyalbumsIds.add(itemid)
+                        if all_kodialbums.get(itemid) != API.get_checksum():
+                            # Only update if album is not in Kodi or checksum is different
+                            updatelist.append(itemid)
+                    else:
+                        all_embysongsIds.add(itemid)
+                        if all_kodisongs.get(itemid) != API.get_checksum():
+                            # Only update if songs is not in Kodi or checksum is different
+                            updatelist.append(itemid)
+                log.info("%s to update: %s" % (data_type, updatelist))
+                embyitems = self.emby.getFullItems(updatelist)
+                self.total = len(updatelist)
+                del updatelist[:]
+                if pdialog:
+                    pdialog.update(heading="Processing %s / %s items" % (data_type, self.total))
+                self.count = 0
+                for embyitem in embyitems:
+                    # Process individual item
+                    if self.should_stop():
+                        return False
+                    self.title = embyitem['Name']
+                    self.update_pdialog()
+                    process[data_type][1](embyitem)
+                    self.count += 1
         ##### PROCESS DELETES #####
         for kodiartist in all_kodiartists:
             if kodiartist not in all_embyartistsIds and all_kodiartists[kodiartist] is not None:
@@ -308,8 +312,6 @@ class Music(common.Items):
         bio = API.get_overview()
         rating = userdata['UserRating']
         artists = item['AlbumArtists']
-        if not artists:
-            artists = item['ArtistItems']
         artistname = []
         for artist in artists:
             artistname.append(artist['Name'])
@@ -383,26 +385,8 @@ class Music(common.Items):
             kodicursor.execute(query, (artistname, year, genre, bio, thumb, rating, lastScraped,
                 dateadded, albumid))
 
-        # Associate the parentid for emby reference
-        parentId = item.get('ParentId')
-        if parentId is not None:
-            emby_dbartist = emby_db.getItem_byId(parentId)
-            try:
-                artistid = emby_dbartist[0]
-            except TypeError:
-                # Artist does not exist in emby database.
-                artist = emby.getItem(parentId)
-                # Item may not be an artist, verification necessary.
-                if artist.get('Type') == "MusicArtist":
-                    # Update with the parentId, for remove reference
-                    emby_db.addReference(parentId, parentId, "MusicArtist", "artist")
-                    emby_db.updateParentId(itemid, parentId)
-            else:
-                # Update emby reference with the artistid
-                emby_db.updateParentId(itemid, artistid)
-
         # Assign main artists to album
-        for artist in artists:
+        for artist in item['AlbumArtists']:
             artistname = artist['Name']
             artistId = artist['Id']
             emby_dbartist = emby_db.getItem_byId(artistId)
@@ -428,17 +412,26 @@ class Music(common.Items):
                 '''
             )
             kodicursor.execute(query, (artistid, albumid, artistname))
-            # Update discography
-            query = (
-                '''
-                INSERT OR REPLACE INTO discography(idArtist, strAlbum, strYear)
-
-                VALUES (?, ?, ?)
-                '''
-            )
-            kodicursor.execute(query, (artistid, name, year))
             # Update emby reference with parentid
             emby_db.updateParentId(artistId, albumid)
+
+        for artist in item['ArtistItems']:
+            artistId = artist['Id']
+            emby_dbartist = emby_db.getItem_byId(artistId)
+            try:
+                artistid = emby_dbartist[0]
+            except TypeError:
+                pass
+            else:
+                # Update discography
+                query = (
+                    '''
+                    INSERT OR REPLACE INTO discography(idArtist, strAlbum, strYear)
+
+                    VALUES (?, ?, ?)
+                    '''
+                )
+                kodicursor.execute(query, (artistid, name, year))
 
         # Add genres
         self.kodi_db.addMusicGenres(albumid, genres, "album")

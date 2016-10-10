@@ -706,31 +706,17 @@ class LibrarySync(threading.Thread):
         emby_db = embydb.Embydb_Functions(embycursor)
         music = Music(embycursor, kodicursor, pdialog)
 
-        '''process = {
-
-            'MusicArtist': self.emby.getArtists,
-            'MusicAlbum': self.emby.getAlbums,
-            'Audio': self.emby.getSongs
-        }
-        for itemtype in ['MusicArtist', 'MusicAlbum', 'Audio']:
-
-            if pdialog:
-                pdialog.update(
-                    heading=lang(29999),
-                    message="%s %s..." % (lang(33021), itemtype))
-
-            all_embyitems = process[itemtype](dialog=pdialog)
-            music.add_all(itemtype, all_embyitems, pdialog=pdialog)
-
-            log.debug("%s finished." % itemtype)'''
+        views = emby_db.getView_byType('music')
+        log.info("Media folders: %s", views)
 
         # Add music artists and everything will fall into place
         if pdialog:
             pdialog.update(heading=lang(29999),
-                           message="%s Artists..." % lang(33021))
+                           message="%s Music..." % lang(33021))
 
-        all_artists = self.emby.getArtists(dialog=pdialog)
-        music.add_all("MusicArtist", all_artists)
+        for view in views:
+            all_artists = self.emby.getArtists(view['id'], dialog=pdialog)
+            music.add_all("MusicArtist", all_artists)
 
         log.debug("Finished syncing music")
 
