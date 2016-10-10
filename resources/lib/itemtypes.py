@@ -3,23 +3,11 @@
 ##################################################################################################
 
 import logging
-import urllib
-from ntpath import dirname
-from datetime import datetime
 
 import xbmc
-import xbmcgui
-import xbmcvfs
 
-import api
-import artwork
-import downloadutils
-import embydb_functions as embydb
-import kodidb_functions as kodidb
-import read_embyserver as embyserver
-import musicutils
 from objects import Movies, MusicVideos, TVShows, Music
-from utils import window, settings, language as lang, kodiSQL
+from utils import settings, kodiSQL
 
 #################################################################################################
 
@@ -36,27 +24,13 @@ class Items(object):
         self.embycursor = embycursor
         self.kodicursor = kodicursor
 
-        self.doUtils = downloadutils.DownloadUtils()
-
-        self.kodiversion = int(xbmc.getInfoLabel('System.BuildVersion')[:2])
-        self.directpath = settings('useDirectPaths') == "1"
         self.music_enabled = settings('enableMusic') == "true"
-        self.contentmsg = settings('newContent') == "true"
-        self.newvideo_time = int(settings('newvideotime'))*1000
-        self.newmusic_time = int(settings('newmusictime'))*1000
-
-        self.artwork = artwork.Artwork()
-        self.emby = embyserver.Read_EmbyServer()
-        self.emby_db = embydb.Embydb_Functions(embycursor)
-        self.kodi_db = kodidb.Kodidb_Functions(kodicursor)
 
 
     def itemsbyId(self, items, process, pdialog=None):
         # Process items by itemid. Process can be added, update, userdata, remove
-        emby = self.emby
         embycursor = self.embycursor
         kodicursor = self.kodicursor
-        music_enabled = self.music_enabled
         
         itemtypes = {
 
@@ -100,7 +74,7 @@ class Items(object):
             musicconn = None
 
             if itemtype in ('MusicAlbum', 'MusicArtist', 'AlbumArtist', 'Audio'):
-                if music_enabled:
+                if self.music_enabled:
                     musicconn = kodiSQL('music')
                     musiccursor = musicconn.cursor()
                     items_process = itemtypes[itemtype](embycursor, musiccursor, pdialog)
