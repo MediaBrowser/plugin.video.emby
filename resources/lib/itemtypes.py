@@ -4,8 +4,7 @@
 
 import logging
 
-import xbmc
-
+import read_embyserver as embyserver
 from objects import Movies, MusicVideos, TVShows, Music
 from utils import settings, kodiSQL
 
@@ -24,6 +23,7 @@ class Items(object):
         self.embycursor = embycursor
         self.kodicursor = kodicursor
 
+        self.emby = embyserver.Read_EmbyServer()
         self.music_enabled = settings('enableMusic') == "true"
 
 
@@ -31,7 +31,7 @@ class Items(object):
         # Process items by itemid. Process can be added, update, userdata, remove
         embycursor = self.embycursor
         kodicursor = self.kodicursor
-        
+
         itemtypes = {
 
             'Movie': Movies,
@@ -54,11 +54,10 @@ class Items(object):
         if total == 0:
             return False
 
-        log.info("Processing %s: %s" % (process, items))
+        log.info("Processing %s: %s", process, items)
         if pdialog:
             pdialog.update(heading="Processing %s: %s items" % (process, total))
 
-        count = 0
         for itemtype in items:
 
             # Safety check
@@ -87,18 +86,17 @@ class Items(object):
 
 
             if process == "added":
-                processItems = itemlist
                 items_process.add_all(itemtype, itemlist)
             elif process == "remove":
                 items_process.remove_all(itemtype, itemlist)
             else:
-                processItems = emby.getFullItems(itemlist)
-                items_process.process_all(itemtype, process, processItems, total)
+                process_items = self.emby.getFullItems(itemlist)
+                items_process.process_all(itemtype, process, process_items, total)
 
 
             if musicconn is not None:
                 # close connection for special types
-                log.info("Updating music database.")
+                log.info("updating music database")
                 musicconn.commit()
                 musiccursor.close()
 
