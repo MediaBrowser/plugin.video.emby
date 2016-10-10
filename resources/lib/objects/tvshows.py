@@ -695,7 +695,7 @@ class TVShows(common.Items):
             "WHERE idFile = ?"
         ))
         kodicursor.execute(query, (pathid, filename, dateadded, fileid))
-        
+
         # Process cast
         people = artwork.get_people_artwork(item['People'])
         self.kodi_db.addPeople(episodeid, people, "episode")
@@ -729,7 +729,7 @@ class TVShows(common.Items):
         # Poster with progress bar
         emby_db = self.emby_db
         API = api.API(item)
-        
+
         # Get emby information
         itemid = item['Id']
         checksum = API.get_checksum()
@@ -743,9 +743,7 @@ class TVShows(common.Items):
             kodiid = emby_dbitem[0]
             fileid = emby_dbitem[1]
             mediatype = emby_dbitem[4]
-            log.info(
-                "Update playstate for %s: %s fileid: %s"
-                % (mediatype, item['Name'], fileid))
+            log.info("Update playstate for %s: %s fileid: %s", mediatype, item['Name'], fileid)
         except TypeError:
             return
 
@@ -762,7 +760,7 @@ class TVShows(common.Items):
             resume = API.adjust_resume(userdata['Resume'])
             total = round(float(runtime), 6)
 
-            log.debug("%s New resume point: %s" % (itemid, resume))
+            log.debug("%s New resume point: %s", itemid, resume)
 
             self.kodi_db.addPlaystate(fileid, resume, total, playcount, dateplayed)
             if not self.direct_path and not resume:
@@ -789,18 +787,15 @@ class TVShows(common.Items):
     def remove(self, itemid):
         # Remove showid, fileid, pathid, emby reference
         emby_db = self.emby_db
-        embycursor = self.embycursor
         kodicursor = self.kodicursor
-        artwork = self.artwork
 
         emby_dbitem = emby_db.getItem_byId(itemid)
         try:
             kodiid = emby_dbitem[0]
             fileid = emby_dbitem[1]
-            pathid = emby_dbitem[2]
             parentid = emby_dbitem[3]
             mediatype = emby_dbitem[4]
-            log.info("Removing %s kodiid: %s fileid: %s" % (mediatype, kodiid, fileid))
+            log.info("Removing %s kodiid: %s fileid: %s", mediatype, kodiid, fileid)
         except TypeError:
             return
 
@@ -808,7 +803,6 @@ class TVShows(common.Items):
 
         # Remove the emby reference
         emby_db.removeItem(itemid)
-
 
         ##### IF EPISODE #####
 
@@ -822,7 +816,7 @@ class TVShows(common.Items):
                 showid = season[1]
             except TypeError:
                 return
-            
+
             season_episodes = emby_db.getItem_byParentId(parentid, "episode")
             if not season_episodes:
                 self.removeSeason(parentid)
@@ -879,7 +873,7 @@ class TVShows(common.Items):
             else:
                 # Remove emby episodes
                 emby_db.removeItems_byParentId(kodiid, "episode")
-            
+
             # Remove season
             self.removeSeason(kodiid)
 
@@ -890,14 +884,14 @@ class TVShows(common.Items):
                 self.removeShow(parentid)
                 emby_db.removeItem_byKodiId(parentid, "tvshow")
 
-        log.info("Deleted %s: %s from kodi database" % (mediatype, itemid))
+        log.info("Deleted %s: %s from kodi database", mediatype, itemid)
 
     def removeShow(self, kodiid):
         
         kodicursor = self.kodicursor
         self.artwork.delete_artwork(kodiid, "tvshow", kodicursor)
         kodicursor.execute("DELETE FROM tvshow WHERE idShow = ?", (kodiid,))
-        log.debug("Removed tvshow: %s." % kodiid)
+        log.debug("Removed tvshow: %s", kodiid)
 
     def removeSeason(self, kodiid):
         
@@ -905,7 +899,7 @@ class TVShows(common.Items):
 
         self.artwork.delete_artwork(kodiid, "season", kodicursor)
         kodicursor.execute("DELETE FROM seasons WHERE idSeason = ?", (kodiid,))
-        log.debug("Removed season: %s." % kodiid)
+        log.debug("Removed season: %s", kodiid)
 
     def removeEpisode(self, kodiid, fileid):
 
@@ -914,4 +908,4 @@ class TVShows(common.Items):
         self.artwork.delete_artwork(kodiid, "episode", kodicursor)
         kodicursor.execute("DELETE FROM episode WHERE idEpisode = ?", (kodiid,))
         kodicursor.execute("DELETE FROM files WHERE idFile = ?", (fileid,))
-        log.debug("Removed episode: %s." % kodiid)
+        log.debug("Removed episode: %s", kodiid)

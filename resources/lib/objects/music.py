@@ -293,7 +293,7 @@ class Music(common.Items):
             albumid = emby_dbitem[0]
         except TypeError:
             update_item = False
-            log.debug("albumid: %s not found." % itemid)
+            log.debug("albumid: %s not found", itemid)
 
         ##### The album details #####
         lastScraped = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -664,14 +664,14 @@ class Music(common.Items):
                     kodicursor.execute(query, (artistid, songid, 1, index, artist_name))
 
                     # May want to look into only doing this once?
-                    query = ( 
+                    query = (
                         '''
                         INSERT OR REPLACE INTO role(idRole, strRole)
 
                         VALUES (?, ?)
                         '''
                     )
-                    kodicursor.execute(query, (1, 'Composer'))                
+                    kodicursor.execute(query, (1, 'Composer'))
                 else:
                     query = (
                         '''
@@ -744,11 +744,11 @@ class Music(common.Items):
 
         # Add genres
         self.kodi_db.addMusicGenres(songid, genres, "song")
-        
+
         # Update artwork
         allart = artwork.get_all_artwork(item, parent_info=True)
         if hasEmbeddedCover:
-            allart["Primary"] = "image://music@" + artwork.single_urlencode( playurl )
+            allart["Primary"] = "image://music@" + artwork.single_urlencode(playurl)
         artwork.add_artwork(allart, songid, "song", kodicursor)
 
         if item.get('AlbumId') is None:
@@ -768,7 +768,6 @@ class Music(common.Items):
         itemid = item['Id']
         checksum = API.get_checksum()
         userdata = API.get_userdata()
-        runtime = API.get_runtime()
         rating = userdata['UserRating']
 
         # Get Kodi information
@@ -776,25 +775,25 @@ class Music(common.Items):
         try:
             kodiid = emby_dbitem[0]
             mediatype = emby_dbitem[4]
-            log.info("Update playstate for %s: %s" % (mediatype, item['Name']))
+            log.info("Update playstate for %s: %s", mediatype, item['Name'])
         except TypeError:
             return
 
         if mediatype == "song":
-            
+
             #should we ignore this item ?
             #happens when userdata updated by ratings method
             if window("ignore-update-%s" %itemid):
                 window("ignore-update-%s" %itemid,clear=True)
                 return
-                
+
             # Process playstates
             playcount = userdata['PlayCount']
             dateplayed = userdata['LastPlayedDate']
-            
+
             #process item ratings
             rating, comment, hasEmbeddedCover = musicutils.getAdditionalSongTags(itemid, rating, API, kodicursor, emby_db, self.enableimportsongrating, self.enableexportsongrating, self.enableupdatesongrating)
-            
+
             query = "UPDATE song SET iTimesPlayed = ?, lastplayed = ?, rating = ? WHERE idSong = ?"
             kodicursor.execute(query, (playcount, dateplayed, rating, kodiid))
 
@@ -803,7 +802,7 @@ class Music(common.Items):
             if self.kodi_version >= 17:
                 query = "UPDATE album SET fRating = ? WHERE idAlbum = ?"
             else:
-                query = "UPDATE album SET iRating = ? WHERE idAlbum = ?"            
+                query = "UPDATE album SET iRating = ? WHERE idAlbum = ?"
             kodicursor.execute(query, (rating, kodiid))
 
         emby_db.updateReference(itemid, checksum)
@@ -811,14 +810,12 @@ class Music(common.Items):
     def remove(self, itemid):
         # Remove kodiid, fileid, pathid, emby reference
         emby_db = self.emby_db
-        kodicursor = self.kodicursor
-        artwork = self.artwork
 
         emby_dbitem = emby_db.getItem_byId(itemid)
         try:
             kodiid = emby_dbitem[0]
             mediatype = emby_dbitem[4]
-            log.info("Removing %s kodiid: %s" % (mediatype, kodiid))
+            log.info("Removing %s kodiid: %s", mediatype, kodiid)
         except TypeError:
             return
 
@@ -834,7 +831,7 @@ class Music(common.Items):
             # Delete song
             self.removeSong(kodiid)
             # This should only address single song scenario, where server doesn't actually
-            # create an album for the song. 
+            # create an album for the song.
             emby_db.removeWildItem(itemid)
 
             for item in emby_db.getItem_byWildId(itemid):
