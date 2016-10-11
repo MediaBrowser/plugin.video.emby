@@ -1491,10 +1491,13 @@ class LibrarySync(Thread):
         "processing queue" for later
         """
         for item in data:
-            typus = item.get('type')
-            state = item.get('state')
+            typus = int(item.get('type', 0))
+            state = int(item.get('state', 0))
             if state == 9 or typus in (1, 4, 10):
-                itemId = item.get('itemID')
+                itemId = str(item.get('itemID', '0'))
+                if itemId == '0':
+                    log.warn('Received malformed PMS message: %s' % item)
+                    continue
                 # Have we already added this element?
                 for existingItem in self.itemsToProcess:
                     if existingItem['ratingKey'] == itemId:
