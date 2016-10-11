@@ -1492,9 +1492,15 @@ class LibrarySync(Thread):
         "processing queue" for later
         """
         for item in data:
+            if 'tv.plex' in item.get('identifier', ''):
+                # Ommit Plex DVR messages - the Plex IDs are not corresponding
+                # (DVR ratingKeys are not unique and might correspond to a
+                # movie or episode)
+                continue
             typus = int(item.get('type', 0))
             state = int(item.get('state', 0))
             if state == 9 or typus in (1, 4, 10):
+                # Only process deleted items OR movies, episodes, tracks/songs
                 itemId = str(item.get('itemID', '0'))
                 if itemId == '0':
                     log.warn('Received malformed PMS message: %s' % item)
