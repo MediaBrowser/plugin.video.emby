@@ -6,7 +6,7 @@ import logging
 import urllib
 
 import api
-import common
+import _common
 import embydb_functions as embydb
 import kodidb_functions as kodidb
 from utils import window, language as lang, catch_except
@@ -18,7 +18,7 @@ log = logging.getLogger("EMBY."+__name__)
 ##################################################################################################
 
 
-class MusicVideos(common.Items):
+class MusicVideos(_common.Items):
 
 
     def __init__(self, embycursor, kodicursor, pdialog=None):
@@ -29,7 +29,7 @@ class MusicVideos(common.Items):
         self.kodi_db = kodidb.Kodidb_Functions(self.kodicursor)
         self.pdialog = pdialog
 
-        common.Items.__init__(self)
+        _common.Items.__init__(self)
 
     def _get_func(self, item_type, action):
 

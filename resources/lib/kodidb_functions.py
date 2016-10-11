@@ -836,7 +836,7 @@ class Kodidb_Functions():
         return tag_id
 
     def updateTag(self, oldtag, newtag, kodiid, mediatype):
-
+        # TODO: Move to video nodes eventually
         log.debug("Updating: %s with %s for %s: %s" % (oldtag, newtag, mediatype, kodiid))
         
         if self.kodiversion in (15, 16, 17):
@@ -887,7 +887,7 @@ class Kodidb_Functions():
                 self.cursor.execute(query, (kodiid, mediatype, oldtag,))
 
     def removeTag(self, kodiid, tagname, mediatype):
-
+        # TODO: Move to video nodes eventually
         if self.kodiversion in (15, 16, 17):
             # Kodi Isengard, Jarvis, Krypton
             query = ' '.join((

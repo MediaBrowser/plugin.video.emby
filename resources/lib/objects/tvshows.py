@@ -7,7 +7,7 @@ import urllib
 from ntpath import dirname
 
 import api
-import common
+import _common
 import embydb_functions as embydb
 import kodidb_functions as kodidb
 from utils import window, settings, language as lang, catch_except
@@ -19,7 +19,7 @@ log = logging.getLogger("EMBY."+__name__)
 ##################################################################################################
 
 
-class TVShows(common.Items):
+class TVShows(_common.Items):
 
 
     def __init__(self, embycursor, kodicursor, pdialog=None):
@@ -32,7 +32,7 @@ class TVShows(common.Items):
 
         self.new_time = int(settings('newvideotime'))*1000
 
-        common.Items.__init__(self)
+        _common.Items.__init__(self)
 
     def _get_func(self, item_type, action):
 
