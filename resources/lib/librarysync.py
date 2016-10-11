@@ -1440,10 +1440,14 @@ class LibrarySync(Thread):
         if xml in (None, 401):
             log.error('Could not download data for %s, skipping' % ratingKey)
             return False, item
+        try:
+            mediatype = xml[0].attrib['type']
+        except (IndexError, KeyError):
+            log.error('Could not download metadata for %s' % ratingKey)
+            return False, item
         log.debug("Processing new/updated PMS item: %s" % ratingKey)
         viewtag = xml.attrib.get('librarySectionTitle')
         viewid = xml.attrib.get('librarySectionID')
-        mediatype = xml[0].attrib.get('type')
         # Attach mediatype for later
         item['mediatype'] = mediatype
         if mediatype == 'movie':
