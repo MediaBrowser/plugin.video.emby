@@ -119,7 +119,7 @@ class MusicVideos(common.Items):
 
 
     def added(self, items, total=None, view=None):
-        for item in super(MusicVideos, self).added(items, total, True):
+        for item in super(MusicVideos, self).added(items, total):
             if self.add_update(item, view):
                 self.content_pop(item.get('Name', "unknown"))
 
