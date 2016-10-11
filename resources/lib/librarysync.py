@@ -1437,12 +1437,9 @@ class LibrarySync(Thread):
     def process_newitems(self, item):
         ratingKey = item['ratingKey']
         xml = PF.GetPlexMetadata(ratingKey)
-        if xml in (None, 401):
-            log.error('Could not download data for %s, skipping' % ratingKey)
-            return False, item
         try:
             mediatype = xml[0].attrib['type']
-        except (IndexError, KeyError):
+        except (IndexError, KeyError, TypeError):
             log.error('Could not download metadata for %s' % ratingKey)
             return False, item
         log.debug("Processing new/updated PMS item: %s" % ratingKey)
