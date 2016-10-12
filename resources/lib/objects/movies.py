@@ -343,10 +343,9 @@ class Movies(Items):
                                  checksum, viewid)
 
         # Update the path
-        self.kodi_db.update_path(path, "movies", "metadata.local")
-
+        self.kodi_db.update_path(pathid, path, "movies", "metadata.local")
         # Update the file
-        self.kodi_db.update_file(filename, pathid, dateadded)
+        self.kodi_db.update_file(fileid, filename, pathid, dateadded)
 
         # Process countries
         if 'ProductionLocations' in item:

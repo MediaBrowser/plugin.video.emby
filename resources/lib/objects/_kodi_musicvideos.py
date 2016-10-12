@@ -4,9 +4,6 @@
 
 import logging
 
-import xbmc
-
-import api
 from _kodi_common import KodiItems
 
 ##################################################################################################

@@ -4,9 +4,6 @@
 
 import logging
 
-import xbmc
-
-import api
 from _kodi_common import KodiItems
 
 ##################################################################################################
@@ -26,6 +23,12 @@ class KodiTVShows(KodiItems):
 
     def create_entry(self):
         self.cursor.execute("select coalesce(max(idShow),0) from tvshow")
+        kodi_id = self.cursor.fetchone()[0] + 1
+
+        return kodi_id
+
+    def create_entry_season(self):
+        self.cursor.execute("select coalesce(max(idSeason),0) from seasons")
         kodi_id = self.cursor.fetchone()[0] + 1
 
         return kodi_id
@@ -106,8 +109,7 @@ class KodiTVShows(KodiItems):
 
     def _add_season(self, show_id, number):
 
-        self.cursor.execute("select coalesce(max(idSeason),0) from seasons")
-        season_id = self.cursor.fetchone()[0] + 1
+        season_id = self.create_entry_season()
         query = "INSERT INTO seasons(idSeason, idShow, season) values(?, ?, ?)"
         self.cursor.execute(query, (season_id, show_id, number))
 

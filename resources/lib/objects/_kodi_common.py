@@ -24,13 +24,54 @@ class KodiItems(object):
         self.artwork = artwork.Artwork()
         self.kodi_version = int(xbmc.getInfoLabel('System.BuildVersion')[:2])
 
+    def create_entry_path(self):
+        self.cursor.execute("select coalesce(max(idPath),0) from path")
+        kodi_id = self.cursor.fetchone()[0] + 1
+
+        return kodi_id
+
+    def create_entry_file(self):
+        self.cursor.execute("select coalesce(max(idFile),0) from files")
+        kodi_id = self.cursor.fetchone()[0] + 1
+
+        return kodi_id
+
+    def create_entry_person(self):
+        self.cursor.execute("select coalesce(max(actor_id),0) from actor")
+        kodi_id = self.cursor.fetchone()[0] + 1
+
+        return kodi_id
+
+    def create_entry_genre(self):
+        self.cursor.execute("select coalesce(max(genre_id),0) from genre")
+        kodi_id = self.cursor.fetchone()[0] + 1
+
+        return kodi_id
+
+    def create_entry_studio(self):
+        self.cursor.execute("select coalesce(max(studio_id),0) from studio")
+        kodi_id = self.cursor.fetchone()[0] + 1
+
+        return kodi_id
+
+    def create_entry_bookmark(self):
+        self.cursor.execute("select coalesce(max(idBookmark),0) from bookmark")
+        kodi_id = self.cursor.fetchone()[0] + 1
+
+        return kodi_id
+
+    def create_entry_tag(self):
+        self.cursor.execute("select coalesce(max(tag_id),0) from tag")
+        kodi_id = self.cursor.fetchone()[0] + 1
+
+        return kodi_id
+
     def add_path(self, path):
 
         path_id = self.get_path(path)
         if path_id is None:
             # Create a new entry
-            self.cursor.execute("select coalesce(max(idPath),0) from path")
-            path_id = self.cursor.fetchone()[0] + 1
+            path_id = self.create_entry_path()
             query = (
                 '''
                 INSERT INTO path(idPath, strPath)
@@ -58,9 +99,8 @@ class KodiItems(object):
 
         return path_id
 
-    def update_path(self, path, media_type, scraper):
+    def update_path(self, path_id, path, media_type, scraper):
 
-        path_id = self.get_path(path)
         query = ' '.join((
 
             "UPDATE path",
@@ -86,8 +126,7 @@ class KodiItems(object):
             file_id = self.cursor.fetchone()[0]
         except TypeError:
             # Create a new entry
-            self.cursor.execute("select coalesce(max(idFile),0) from files")
-            file_id = self.cursor.fetchone()[0] + 1
+            file_id = self.create_entry_file()
             query = (
                 '''
                 INSERT INTO files(idFile, idPath, strFilename)
@@ -99,9 +138,8 @@ class KodiItems(object):
 
         return file_id
 
-    def update_file(self, filename, path_id, date_added):
+    def update_file(self, file_id, filename, path_id, date_added):
 
-        file_id = self.add_file(filename, path_id)
         query = ' '.join((
 
             "UPDATE files",
@@ -329,9 +367,7 @@ class KodiItems(object):
     
     def _add_person(self, name):
 
-        self.cursor.execute("select coalesce(max(actor_id),0) from actor")
-        person_id = self.cursor.fetchone()[0] + 1
-
+        person_id = self.create_entry_person()
         query = "INSERT INTO actor(actor_id, name) values(?, ?)"
         self.cursor.execute(query, (person_id, name))
         log.debug("Add people to media, processing: %s", name)
@@ -444,9 +480,7 @@ class KodiItems(object):
 
     def _add_genre(self, genre):
 
-        self.cursor.execute("select coalesce(max(genre_id),0) from genre")
-        genre_id = self.cursor.fetchone()[0] + 1
-
+        genre_id = self.create_entry_genre()
         query = "INSERT INTO genre(genre_id, name) values(?, ?)"
         self.cursor.execute(query, (genre_id, genre))
         log.debug("Add Genres to media, processing: %s", genre)
@@ -539,9 +573,7 @@ class KodiItems(object):
 
     def _add_studio(self, studio):
 
-        self.cursor.execute("select coalesce(max(studio_id),0) from studio")
-        studio_id = self.cursor.fetchone()[0] + 1
-
+        studio_id = self.create_entry_studio()
         query = "INSERT INTO studio(studio_id, name) values(?, ?)"
         self.cursor.execute(query, (studio_id, studio))
         log.debug("Add Studios to media, processing: %s", studio)
@@ -613,8 +645,7 @@ class KodiItems(object):
         self.set_playcount(file_id, playcount, date_played)
 
         if resume:
-            self.cursor.execute("select coalesce(max(idBookmark),0) from bookmark")
-            bookmark_id =  self.cursor.fetchone()[0] + 1
+            bookmark_id = self.create_entry_bookmark()
             query = (
                 '''
                 INSERT INTO bookmark(
@@ -668,9 +699,7 @@ class KodiItems(object):
 
     def _add_tag(self, tag):
 
-        self.cursor.execute("select coalesce(max(tag_id),0) from tag")
-        tag_id = self.cursor.fetchone()[0] + 1
-
+        tag_id = self.create_entry_tag()
         query = "INSERT INTO tag(tag_id, name) values(?, ?)"
         self.cursor.execute(query, (tag_id, tag))
         log.debug("Create tag_id: %s name: %s", tag_id, tag)

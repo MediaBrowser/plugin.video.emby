@@ -243,9 +243,9 @@ class MusicVideos(Items):
                                  checksum=checksum, mediafolderid=viewid)
 
         # Update the path
-        self.kodi_db.update_path(path, "musicvideos", "metadata.local")
+        self.kodi_db.update_path(pathid, path, "musicvideos", "metadata.local")
         # Update the file
-        self.kodi_db.update_file(filename, pathid, dateadded)
+        self.kodi_db.update_file(fileid, filename, pathid, dateadded)
 
         # Process cast
         people = item['People']

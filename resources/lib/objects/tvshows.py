@@ -353,7 +353,7 @@ class TVShows(Items):
 
             # Add top path
             toppathid = self.kodi_db.add_path(toplevelpath)
-            self.kodi_db.update_path(toplevelpath, "tvshows", "metadata.local")
+            self.kodi_db.update_path(toppathid, toplevelpath, "tvshows", "metadata.local")
 
             # Add path
             pathid = self.kodi_db.add_path(path)
@@ -371,7 +371,7 @@ class TVShows(Items):
         self.kodi_db.link_tvshow(showid, pathid)
 
         # Update the path
-        self.kodi_db.update_path(path, None, None)
+        self.kodi_db.update_path(pathid, path, None, None)
 
         # Process cast
         people = artwork.get_people_artwork(item['People'])
@@ -613,9 +613,9 @@ class TVShows(Items):
                                  seasonid, checksum)
 
         # Update the path
-        self.kodi_db.update_path(path, None, None)
+        self.kodi_db.update_path(pathid, path, None, None)
         # Update the file
-        self.kodi_db.update_file(filename, pathid, dateadded)
+        self.kodi_db.update_file(fileid, filename, pathid, dateadded)
 
         # Process cast
         people = artwork.get_people_artwork(item['People'])
@@ -634,7 +634,7 @@ class TVShows(Items):
             # Create additional entry for widgets. This is only required for plugin/episode.
             temppathid = self.kodi_db.get_path("plugin://plugin.video.emby.tvshows/")
             tempfileid = self.kodi_db.add_file(filename, temppathid)
-            self.kodi_db.update_file(filename, temppathid, dateadded)
+            self.kodi_db.update_file(tempfileid, filename, temppathid, dateadded)
             self.kodi_db.add_playstate(tempfileid, resume, total, playcount, dateplayed)
 
         return True
@@ -688,7 +688,7 @@ class TVShows(Items):
                 filename = self.kodi_db.get_filename(fileid)
                 temppathid = self.kodi_db.get_path("plugin://plugin.video.emby.tvshows/")
                 tempfileid = self.kodi_db.add_file(filename, temppathid)
-                self.kodi_db.update_file(filename, temppathid, dateadded)
+                self.kodi_db.update_file(tempfileid, filename, temppathid, dateadded)
                 self.kodi_db.add_playstate(tempfileid, resume, total, playcount, dateplayed)
 
         emby_db.updateReference(itemid, checksum)

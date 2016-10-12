@@ -4,9 +4,6 @@
 
 import logging
 
-import xbmc
-
-import api
 from _kodi_common import KodiItems
 
 ##################################################################################################
@@ -26,6 +23,18 @@ class KodiMovies(KodiItems):
 
     def create_entry(self):
         self.cursor.execute("select coalesce(max(idMovie),0) from movie")
+        kodi_id = self.cursor.fetchone()[0] + 1
+
+        return kodi_id
+
+    def create_entry_set(self):
+        self.cursor.execute("select coalesce(max(idSet),0) from sets")
+        kodi_id = self.cursor.fetchone()[0] + 1
+
+        return kodi_id
+
+    def create_entry_country(self):
+        self.cursor.execute("select coalesce(max(country_id),0) from country")
         kodi_id = self.cursor.fetchone()[0] + 1
 
         return kodi_id
@@ -142,12 +151,12 @@ class KodiMovies(KodiItems):
     
     def _add_country(self, country):
 
-        self.cursor.execute("select coalesce(max(country_id),0) from country")
-        country_id = self.cursor.fetchone()[0] + 1
-
+        country_id = self.create_entry_country()
         query = "INSERT INTO country(country_id, name) values(?, ?)"
         self.cursor.execute(query, (country_id, country))
         log.debug("Add country to media, processing: %s", country)
+
+        return country_id
 
     def _get_country(self, country):
 
@@ -185,9 +194,7 @@ class KodiMovies(KodiItems):
 
     def _add_boxset(self, boxset):
 
-        self.cursor.execute("select coalesce(max(idSet),0) from sets")
-        set_id = self.cursor.fetchone()[0] + 1
-
+        set_id = self.create_entry_set()
         query = "INSERT INTO sets(idSet, strSet) values(?, ?)"
         self.cursor.execute(query, (set_id, boxset))
         log.debug("Adding boxset: %s", boxset)

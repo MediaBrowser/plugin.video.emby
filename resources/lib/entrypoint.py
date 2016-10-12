@@ -698,7 +698,7 @@ def createListItemFromEmbyItem(item,art=artwork.Artwork(),doUtils=downloadutils.
             playcount = 0
             
         rating = item.get('CommunityRating')
-        if not rating: rating = userdata['UserRating']
+        if not rating: rating = 0
 
         # Populate the extradata list and artwork
         extradata = {
