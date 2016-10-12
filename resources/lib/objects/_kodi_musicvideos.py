@@ -35,11 +35,11 @@ class KodiMusicVideos(KodiItems):
         query = "SELECT * FROM musicvideo WHERE idMVideo = ?"
         self.cursor.execute(query, (kodi_id,))
         try:
-            movie_id = self.cursor.fetchone()[0]
+            kodi_id = self.cursor.fetchone()[0]
         except TypeError:
-            movie_id = None
+            kodi_id = None
 
-        return movie_id
+        return kodi_id
 
     def add_musicvideo(self, *args):
 
