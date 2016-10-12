@@ -7,7 +7,6 @@ import urllib
 
 import api
 import embydb_functions as embydb
-import kodidb_functions as kodidb
 import _kodi_movies
 from _common import Items
 from utils import window, settings, language as lang, catch_except

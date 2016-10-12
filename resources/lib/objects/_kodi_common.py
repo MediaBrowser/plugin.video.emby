@@ -69,6 +69,9 @@ class KodiItems(object):
         ))
         self.cursor.execute(query, (path, media_type, scraper, 1, path_id))
 
+    def remove_path(self, path_id):
+        kodicursor.execute("DELETE FROM path WHERE idPath = ?", (path_id,))
+
     def add_file(self, filename, path_id):
 
         query = ' '.join((

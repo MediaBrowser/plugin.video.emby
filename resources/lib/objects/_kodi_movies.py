@@ -26,9 +26,9 @@ class KodiMovies(KodiItems):
 
     def create_entry(self):
         self.cursor.execute("select coalesce(max(idMovie),0) from movie")
-        movie_id = self.cursor.fetchone()[0] + 1
+        kodi_id = self.cursor.fetchone()[0] + 1
 
-        return movie_id
+        return kodi_id
 
     def get_movie(self, kodi_id):
 
