@@ -6,10 +6,10 @@ import logging
 from datetime import datetime
 
 import api
-import _common
 import embydb_functions as embydb
 import kodidb_functions as kodidb
 import musicutils
+from _common import Items
 from utils import window, settings, language as lang, catch_except
 
 ##################################################################################################
@@ -19,7 +19,7 @@ log = logging.getLogger("EMBY."+__name__)
 ##################################################################################################
 
 
-class Music(_common.Items):
+class Music(Items):
 
 
     def __init__(self, embycursor, kodicursor, pdialog=None):
@@ -38,7 +38,7 @@ class Music(_common.Items):
         self.userid = window('emby_currUser')
         self.server = window('emby_server%s' % self.userid)
 
-        _common.Items.__init__(self)
+        Items.__init__(self)
 
     def _get_func(self, item_type, action):
 
