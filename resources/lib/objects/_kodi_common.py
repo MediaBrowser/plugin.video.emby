@@ -90,12 +90,12 @@ class KodiItems(object):
             file_id = self.cursor.fetchone()[0] + 1
             query = (
                 '''
-                INSERT INTO files(idFile, strFilename)
+                INSERT INTO files(idFile, idPath, strFilename)
 
-                VALUES (?, ?)
+                VALUES (?, ?, ?)
                 '''
             )
-            self.cursor.execute(query, (file_id, filename))
+            self.cursor.execute(query, (file_id, path_id, filename))
 
         return file_id
 

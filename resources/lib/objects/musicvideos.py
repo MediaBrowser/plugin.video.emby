@@ -146,8 +146,7 @@ class MusicVideos(Items):
             update_item = False
             log.debug("mvideoid: %s not found", itemid)
             # mvideoid
-            kodicursor.execute("select coalesce(max(idMVideo),0) from musicvideo")
-            mvideoid = kodicursor.fetchone()[0] + 1
+            mvideoid = self.kodi_db.create_entry()
 
         else:
             if self.kodi_db.get_musicvideo(mvideoid) is None:
