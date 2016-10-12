@@ -548,7 +548,7 @@ def refreshPlaylist():
                 sound=False)
 
     except Exception as e:
-        log.error("Refresh playlists/nodes failed: %s" % e)
+        log.exception("Refresh playlists/nodes failed: %s" % e)
         dialog.notification(
             heading=lang(29999),
             message=lang(33070),
