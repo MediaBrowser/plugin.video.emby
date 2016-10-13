@@ -1721,7 +1721,7 @@ class API():
             'year':
         """
         elements = []
-        for extra in self.item.find('Extras'):
+        for extra in self.item.findall('Extras'):
             # Trailer:
             key = extra.attrib.get('key', None)
             title = extra.attrib.get('title', None)
