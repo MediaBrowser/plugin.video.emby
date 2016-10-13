@@ -18,6 +18,8 @@ version 1.4.0
 - Don't double-update playstate of a playing item
 - Rearrange the PKC settings
 - Use file settings instead of window settings, should fix some errors on changing the PKC settings
+- Remove size limitation on sync queue 
+- Fix TypeError if no extras available
 - Other small fixes
 
 version 1.3.9 (beta only)
