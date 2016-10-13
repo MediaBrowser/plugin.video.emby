@@ -1,3 +1,25 @@
+version 1.4.0
+- Compatibility with new DVR component of the Plex Media Server
+- Speed up sync - download all art in the background. This should especially speed up your initial sync. Remember to let Kodi sit for a while to let it download the artwork
+- New setting to look for missing artwork (the non-Plex stuff ;-))
+- Fix caching not working
+- Ommit DVR status messages from the PMS. This should fix duplicate movies appearing
+- Fix possible IndexError on deleting items
+- Fix TypeError for manually entering PMS address
+- Fix "Opening Stream..." dialog not closing
+- Try to prevent OperationalError: database is locked
+- Revert "Download one item at a time"
+- Remove obsolete import
+- Compile regex only once
+- Music sync: Fix ProgrammingError
+- Don't set-up clips/trailers like other videos (Should fix PKC trying to tell the PMS where we are playing that item)
+- Fix capitalization
+- Fix backgroundsync KeyError
+- Don't double-update playstate of a playing item
+- Rearrange the PKC settings
+- Use file settings instead of window settings, should fix some errors on changing the PKC settings
+- Other small fixes
+
 version 1.3.9 (beta only)
 - Hopefully maximum compatibility with the new DVR component of the Plex Media Server :-)
 - Ommit DVR status messages from the PMS. This should fix duplicate movies appearing
