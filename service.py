@@ -126,7 +126,7 @@ class Service():
         initialsetup.InitialSetup().setup()
 
         # Queue for background sync
-        queue = Queue.Queue(maxsize=200)
+        queue = Queue.Queue()
 
         connectMsg = True if settings('connectMsg') == 'true' else False
 
