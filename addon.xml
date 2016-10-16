@@ -19,10 +19,10 @@
     <platform>all</platform>
     <language>en</language>
     <license>GNU GENERAL PUBLIC LICENSE. Version 2, June 1991</license>
-    <forum></forum>
+    <forum>https://forums.plex.tv</forum>
     <website>https://github.com/croneter/PlexKodiConnect</website>
-    <source></source>
+    <source>https://github.com/croneter/PlexKodiConnect</source>
     <summary lang="en"></summary>
-    <description lang="en">Connect Kodi to your Plex Media Server</description>
+    <description lang="en">Connect Kodi to your Plex Media Server. This plugin assumes that you manage all your videos with Plex (and none with Kodi). You might lose data already stored in the Kodi video and music databases (as this plugin directly changes them). Use at your own risk!</description>
   </extension>
 </addon>
