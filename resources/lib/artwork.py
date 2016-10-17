@@ -126,7 +126,6 @@ def double_urldecode(text):
     return unquote(unquote(text))
 
 
-@ThreadMethodsAdditionalSuspend('suspend_LibraryThread')
 @ThreadMethodsAdditionalStop('plex_shouldStop')
 @ThreadMethods
 class Image_Cache_Thread(Thread):
@@ -144,6 +143,12 @@ class Image_Cache_Thread(Thread):
     def __init__(self, queue):
         self.queue = queue
         Thread.__init__(self)
+
+    def threadSuspended(self):
+        # Overwrite method to add TWO additional suspends
+        return (self._threadSuspended or
+                window('suspend_LibraryThread') or
+                window('plex_dbScan'))
 
     def run(self):
         threadStopped = self.threadStopped
