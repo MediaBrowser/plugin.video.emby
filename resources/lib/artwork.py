@@ -180,7 +180,6 @@ class Image_Cache_Thread(Thread):
                 except requests.Timeout:
                     # We don't need the result, only trigger Kodi to start the
                     # download. All is well
-                    log.debug('Caching art initiated: %s' % url)
                     break
                 except requests.ConnectionError:
                     # Server thinks its a DOS attack, ('error 10053')
@@ -203,7 +202,6 @@ class Image_Cache_Thread(Thread):
                     log.error("Traceback:\n%s" % traceback.format_exc())
                     break
                 # We did not even get a timeout
-                log.debug('Cached art: %s' % url)
                 break
             queue.task_done()
             log.debug('Downloaded art: %s' % double_urldecode(url))
