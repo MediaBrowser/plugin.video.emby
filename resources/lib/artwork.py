@@ -132,7 +132,14 @@ def double_urldecode(text):
 class Image_Cache_Thread(Thread):
     xbmc_host = 'localhost'
     xbmc_port, xbmc_username, xbmc_password = setKodiWebServerDetails()
-    sleep_between = int(settings('sleep_between_art_downloads'))
+    sleep_between = 50
+    if settings('low_powered_device') == 'true':
+        # Low CPU, potentially issues with limited number of threads
+        # Hence let Kodi wait till download is successful
+        timeout = (35.1, 35.1)
+    else:
+        # High CPU, no issue with limited number of threads
+        timeout = (0.01, 0.01)
 
     def __init__(self, queue):
         self.queue = queue
@@ -164,7 +171,7 @@ class Image_Cache_Thread(Thread):
                         url="http://%s:%s/image/image://%s"
                             % (self.xbmc_host, self.xbmc_port, url),
                         auth=(self.xbmc_username, self.xbmc_password),
-                        timeout=(0.01, 0.01))
+                        timeout=self.timeout)
                 except requests.Timeout:
                     # We don't need the result, only trigger Kodi to start the
                     # download. All is well
