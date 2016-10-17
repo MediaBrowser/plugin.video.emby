@@ -204,7 +204,7 @@ class Image_Cache_Thread(Thread):
                 # We did not even get a timeout
                 break
             queue.task_done()
-            log.debug('Downloaded art: %s' % double_urldecode(url))
+            log.debug('Cached art: %s' % double_urldecode(url))
             # Sleep for a bit to reduce CPU strain
             xbmc.sleep(sleep_between)
         log.info("---===### Stopped Image_Cache_Thread ###===---")

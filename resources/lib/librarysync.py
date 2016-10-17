@@ -1850,9 +1850,7 @@ class LibrarySync(Thread):
                         # Only do this once every 10 seconds
                         if now - lastProcessing > 10:
                             lastProcessing = now
-                            window('plex_dbScan', value="true")
                             processItems()
-                            window('plex_dbScan', clear=True)
                         # See if there is a PMS message we need to handle
                         try:
                             message = queue.get(block=False)
@@ -1861,10 +1859,8 @@ class LibrarySync(Thread):
                             continue
                         # Got a message from PMS; process it
                         else:
-                            window('plex_dbScan', value="true")
                             processMessage(message)
                             queue.task_done()
-                            window('plex_dbScan', clear=True)
                             # NO sleep!
                             continue
                     else:
