@@ -1,3 +1,10 @@
+version 1.4.1 (beta only)
+- Fix Kodi crashing on low powered devices
+- Fix movie year for Krypton (reset your Kodi DB!)
+- Only start downloading art AFTER sync completed
+- Add warning to addon description
+- Revert "Don't set-up clips/trailers like other videos"
+
 version 1.4.0
 - Compatibility with new DVR component of the Plex Media Server
 - Speed up sync - download all art in the background. This should especially speed up your initial sync. Remember to let Kodi sit for a while to let it download the artwork
