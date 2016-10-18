@@ -430,17 +430,32 @@ class Movies(Items):
                      % (itemid, title))
 
             # Update the movie entry
-            query = ' '.join((
-                
-                "UPDATE movie",
-                "SET c00 = ?, c01 = ?, c02 = ?, c03 = ?, c04 = ?, c05 = ?, c06 = ?,",
-                    "c07 = ?, c09 = ?, c10 = ?, c11 = ?, c12 = ?, c14 = ?, c15 = ?,",
-                    "c16 = ?, c18 = ?, c19 = ?, c21 = ?, c22 = ?, c23 = ?",
-                "WHERE idMovie = ?"
-            ))
-            kodicursor.execute(query, (title, plot, shortplot, tagline, votecount, rating, writer,
-                year, imdb, sorttitle, runtime, mpaa, genre, director, title, studio, trailer,
-                country, playurl, pathid, movieid))
+            if self.kodiversion > 16:
+                query = ' '.join((
+                    "UPDATE movie",
+                    "SET c00 = ?, c01 = ?, c02 = ?, c03 = ?, c04 = ?, c05 = ?,"
+                    "c06 = ?, c07 = ?, c09 = ?, c10 = ?, c11 = ?, c12 = ?,"
+                    "c14 = ?, c15 = ?, c16 = ?, c18 = ?, c19 = ?, c21 = ?,"
+                    "c22 = ?, c23 = ?, premiered = ?",
+                    "WHERE idMovie = ?"
+                ))
+                kodicursor.execute(query, (title, plot, shortplot, tagline,
+                    votecount, rating, writer, year, imdb, sorttitle, runtime,
+                    mpaa, genre, director, title, studio, trailer, country,
+                    playurl, pathid, year, movieid))
+            else:
+                query = ' '.join((
+                    "UPDATE movie",
+                    "SET c00 = ?, c01 = ?, c02 = ?, c03 = ?, c04 = ?, c05 = ?,"
+                    "c06 = ?, c07 = ?, c09 = ?, c10 = ?, c11 = ?, c12 = ?,"
+                    "c14 = ?, c15 = ?, c16 = ?, c18 = ?, c19 = ?, c21 = ?,"
+                    "c22 = ?, c23 = ?",
+                    "WHERE idMovie = ?"
+                ))
+                kodicursor.execute(query, (title, plot, shortplot, tagline,
+                    votecount, rating, writer, year, imdb, sorttitle, runtime,
+                    mpaa, genre, director, title, studio, trailer, country,
+                    playurl, pathid, movieid))
 
             # Update the checksum in emby table
             emby_db.updateReference(itemid, checksum)
