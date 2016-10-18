@@ -14,8 +14,7 @@ import xbmcgui
 import xbmcvfs
 
 from utils import window, settings, language as lang, kodiSQL, tryEncode, \
-    tryDecode, IfExists, ThreadMethods, ThreadMethodsAdditionalSuspend, \
-    ThreadMethodsAdditionalStop
+    tryDecode, IfExists, ThreadMethods, ThreadMethodsAdditionalStop
 
 # Disable annoying requests warnings
 import requests.packages.urllib3
