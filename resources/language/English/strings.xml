@@ -349,7 +349,7 @@
     <string id="39000">- Number of trailers to play before a movie</string>
     <string id="39001">Boost audio when transcoding</string>
     <string id="39002">Burnt-in subtitle size</string>
-    <string id="39003">Limit download sync threads (recommended for rpi: 1)</string>
+    <string id="39003">Limit download sync threads (rec. for rpi: 1)</string>
     <string id="39004">Enable Plex Companion</string>
     <string id="39005">Plex Companion Port (change only if needed)</string>
     <string id="39006">Activate Plex Companion debug log</string>

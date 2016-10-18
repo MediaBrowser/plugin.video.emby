@@ -422,6 +422,7 @@ class InitialSetup():
         # crashing.
         if dialog.yesno(heading=addonName, line1=lang(39072)):
             settings('low_powered_device', value="true")
+            settings('syncThreadNumber', value="1")
         else:
             settings('low_powered_device', value="false")
 
