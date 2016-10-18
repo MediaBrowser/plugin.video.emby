@@ -6,7 +6,7 @@ import logging
 import requests
 import os
 from urllib import quote_plus, unquote
-from threading import Lock, Thread
+from threading import Thread
 import Queue
 
 import xbmc
@@ -210,7 +210,6 @@ class Image_Cache_Thread(Thread):
 
 
 class Artwork():
-    lock = Lock()
     enableTextureCache = settings('enableTextureCache') == "true"
     if enableTextureCache:
         queue = Queue.Queue()
