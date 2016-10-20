@@ -1,3 +1,6 @@
+version 1.4.2
+Make previous version available for everyone
+
 version 1.4.1 (beta only)
 - Fix Kodi crashing on low powered devices
 - Fix movie year for Krypton (reset your Kodi DB!)
