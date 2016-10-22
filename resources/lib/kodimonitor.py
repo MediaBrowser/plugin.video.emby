@@ -42,28 +42,18 @@ class KodiMonitor(xbmc.Monitor):
             window('plex_kodiScan', clear=True)
 
     def onSettingsChanged(self):
-        # Monitor emby settings
-        # Review reset setting at a later time, need to be adjusted to account for initial setup
-        # changes.
-        '''currentPath = settings('useDirectPaths')
-        if window('plex_pluginpath') != currentPath:
-            # Plugin path value changed. Offer to reset
-            log.info("Changed to playback mode detected")
-            window('plex_pluginpath', value=currentPath)
-            resp = xbmcgui.Dialog().yesno(
-                                heading="Playback mode change detected",
-                                line1=(
-                                    "Detected the playback mode has changed. The database "
-                                    "needs to be recreated for the change to be applied. "
-                                    "Proceed?"))
-            if resp:
-                utils.reset()'''
-
+        """
+        Monitor the PKC settings for changes made by the user
+        """
         currentLog = settings('logLevel')
         if window('plex_logLevel') != currentLog:
             # The log level changed, set new prop
             log.debug("New log level: %s" % currentLog)
             window('plex_logLevel', value=currentLog)
+        current_context = "true" if settings('enableContext') == "true" else ""
+        if window('plex_context') != current_context:
+            log.info("New context setting: %s", current_context)
+            window('plex_context', value=current_context)
 
     @CatchExceptions(warnuser=False)
     def onNotification(self, sender, method, data):

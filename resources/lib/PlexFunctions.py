@@ -526,3 +526,22 @@ def scrobble(ratingKey, state):
         return
     downloadutils.DownloadUtils().downloadUrl(url)
     log.info("Toggled watched state for Plex item %s" % ratingKey)
+
+
+def delete_item_from_pms(plexid):
+    """
+    Deletes the item plexid from the Plex Media Server (and the harddrive!).
+    Do make sure that the currently logged in user has the credentials
+
+    Returns True if successful, False otherwise
+    """
+    xml = downloadutils.DownloadUtils().downloadUrl(
+        '{server}/library/metadata/%s' % plexid,
+        action_type="DELETE")
+    try:
+        xml.attrib
+    except AttributeError:
+        log.error('Could not delete Plex id %s' % plexid)
+        return False
+    log.info(xml.dump)
+    return True

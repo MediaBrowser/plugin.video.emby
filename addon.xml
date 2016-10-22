@@ -15,6 +15,13 @@
   </extension>
   <extension point="xbmc.service" library="service.py" start="login">
   </extension>
+  <extension point="kodi.context.item" library="contextmenu.py">
+      <item>
+        <label>30401</label>
+              <description>Settings for the Plex Server</description>
+              <visible>[!IsEmpty(ListItem.DBID) + !StringCompare(ListItem.DBID,-1) | !IsEmpty(ListItem.Property(plexid))] + !IsEmpty(Window(10000).Property(plex_context))</visible>
+      </item>
+  </extension>
   <extension point="xbmc.addon.metadata">
     <platform>all</platform>
     <language>en</language>

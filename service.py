@@ -50,7 +50,7 @@ import PlexCompanion
 import loghandler
 
 loghandler.config()
-log = logging.getLogger("PLEX.default")
+log = logging.getLogger("PLEX.service")
 addonName = 'PlexKodiConnect'
 
 ###############################################################################
@@ -77,6 +77,8 @@ class Service():
         window('plex_logLevel', value=str(logLevel))
         window('plex_kodiProfile',
                value=xbmc.translatePath("special://profile"))
+        window('plex_context',
+               value='true' if settings('enableContext') == "true" else "")
 
         # Initial logging
         log.warn("======== START %s ========" % addonName)

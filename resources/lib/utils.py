@@ -73,6 +73,29 @@ def language(stringid):
     return ADDON.getLocalizedString(stringid)
 
 
+def dialog(type_, *args, **kwargs):
+
+    d = xbmcgui.Dialog()
+
+    if "icon" in kwargs:
+        kwargs['icon'] = kwargs['icon'].replace(
+            "{plex}",
+            "special://home/addons/plugin.video.plexkodiconnect/icon.png")
+    if "heading" in kwargs:
+        kwargs['heading'] = kwargs['heading'].replace("{plex}",
+                                                      language(29999))
+
+    types = {
+        'yesno': d.yesno,
+        'ok': d.ok,
+        'notification': d.notification,
+        'input': d.input,
+        'select': d.select,
+        'numeric': d.numeric
+    }
+    return types[type_](*args, **kwargs)
+
+
 def tryEncode(uniString, encoding='utf-8'):
     """
     Will try to encode uniString (in unicode) to encoding. This possibly

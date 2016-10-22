@@ -1,6 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <strings>
     <!-- Add-on settings -->
+    <string id="29999">PlexKodiConnect</string>
     <string id="30000">Server Address (IP)</string><!-- Verified -->
     <string id="30002">Preferred playback method</string><!-- Verified -->
     <string id="30004">Log level</string><!-- Verified -->
@@ -260,7 +261,11 @@
     <string id="30406">Remove from Plex favorites</string>
     <string id="30407">Set custom song rating</string>
     <string id="30408">Plex addon settings</string>
-    <string id="30409">Delete item from the server</string>
+    <string id="30409">Delete item from server</string>
+    <string id="30410">Refresh this item</string>
+    <string id="30411">Set custom song rating (0-5)</string>
+    <string id="30412">Force transcode</string>
+    <string id="30413">Enable Plex context menu in Kodi</string>
 
     <!-- add-on settings -->
     <string id="30500">Verify Host SSL Certificate (more secure)</string>
@@ -283,7 +288,7 @@
     <string id="30517">[COLOR yellow]Enter network credentials[/COLOR]</string>
     <string id="30518">Enable Plex Trailers (Plexpass is needed)</string>
     <string id="30519">Ask to play trailers</string>
-    <string id="30520">Skip Emby delete confirmation for the context menu (use at your own risk)</string>
+    <string id="30520">Skip Plex delete confirmation for the context menu (use at your own risk)</string>
     <string id="30521">Jump back on resume (in seconds)</string>
     <string id="30522">Force transcode H265</string>
     <string id="30523">Music metadata options (not compatible with direct stream)</string>
@@ -344,6 +349,7 @@
     <string id="33031">Comparing:</string>
     <string id="33032">Failed to generate a new device Id. See your logs for more information.</string>
     <string id="33033">Kodi will now restart to apply the changes.</string>
+    <string id="33041">Delete file(s) from Plex Server? This will also delete the file(s) from disk!</string>
 
     <!-- New to Plex -->
     <string id="39000">- Number of trailers to play before a movie</string>

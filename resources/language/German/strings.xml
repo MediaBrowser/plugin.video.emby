@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <strings>
+    <string id="29999">PlexKodiConnect</string>
     <string id="30000">IP-Adresse des Servers</string>
     <string id="30001">Automatisches Öffnen von Ordnern mit einem Eintrag</string>
     <string id="30002">Gewünschte Wiedergabe-Methode</string>
@@ -21,6 +22,7 @@
     <string id="30517">Netzwerk Credentials eingeben</string>
     <string id="30529">PlexKodiConnect Start Verzögerung (in Sekunden)</string>
     <string id="30527">Extras ignorieren, wenn Nächste Episode gespielt wird</string>
+    <string id="30520">Sicherheitsabfrage bei Löschen des Plex Elements deaktivieren</string>
     <string id="30521">Bei Wiederaufnahme zurückspulen (in Sekunden)</string>
     <string id="30505">[COLOR yellow]Anzahl Login-Versuche zurücksetzen[/COLOR]</string>
 
@@ -282,7 +284,24 @@
     <string id="30311">Musikstücke</string>
     <string id="30312">Kanäle</string>
 
+    <!-- contextmenu -->
+    <string id="30401">Plex Optionen</string>
+    <string id="30402">Clear like for this item</string>
+    <string id="30403">Like this item</string>
+    <string id="30404">Dislike this item</string>
+    <string id="30405">Add to Plex favorites</string>
+    <string id="30406">Remove from Plex favorites</string>
+    <string id="30407">Set custom song rating</string>
+    <string id="30408">Plex Addon Optionen</string>
+    <string id="30409">Element in Plex Server löschen</string>
+    <string id="30410">Element neu laden</string>
+    <string id="30411">Set custom song rating (0-5)</string>
+    <string id="30412">Transkodieren erzwingen</string>
+    <string id="30413">Plex Kontextmenu in Kodi aktivieren</string>
+
+
     <string id="33033">Kodi wird jetzt neu gestartet um die Änderungen anzuwenden.</string>
+    <string id="33041">Eintrag vom Plex Server löschen? Dies wird die Dateien auch endgültig von der Festplatte löschen!</string>
 
     <!-- New to Plex -->
     <string id="39000">- Anzahl abzuspielender Trailer vor einem Film</string>
