@@ -1575,12 +1575,12 @@ class LibrarySync(Thread):
                     elif not (currSess['userId'] == window('currUserId')
                               or
                               currSess['username'] == window('plex_username')):
-                        log.info('Our username %s, userid %s did not match '
-                                 'the session username %s with userid %s'
-                                 % (window('plex_username'),
-                                    window('currUserId'),
-                                    currSess['username'],
-                                    currSess['userId']))
+                        log.debug('Our username %s, userid %s did not match '
+                                  'the session username %s with userid %s'
+                                  % (window('plex_username'),
+                                     window('currUserId'),
+                                     currSess['username'],
+                                     currSess['userId']))
                         continue
 
                 # Get an up-to-date XML from the PMS
