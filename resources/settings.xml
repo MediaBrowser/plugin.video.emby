@@ -35,9 +35,9 @@
 
 		<setting type="lsep" label="39008" />
 		<setting id="plexCompanion" label="39004" type="bool" default="true" />
-		<setting id="deviceNameOpt" label="30504" type="bool" default="false" />
-		<setting id="deviceName" label="30016" type="text" visible="eq(-1,true)" default="Kodi" />
-		<setting id="companionPort" label="39005" type="number" default="3005" option="int" visible="eq(-3,true)"/>
+		<setting id="deviceNameOpt" label="30504" type="bool" default="false" subsetting="true" visible="eq(-1,true)" />
+		<setting id="deviceName" label="30016" type="text" visible="eq(-1,true)" default="Kodi" subsetting="true" />
+		<setting id="companionPort" label="39005" type="number" default="3005" option="int" visible="eq(-3,true)" subsetting="true" />
 
 		<setting id="plex_restricteduser" type="bool" default="false" visible="false"/>
 	</category>
@@ -52,7 +52,7 @@
 		<setting id="limitindex" type="number" label="30515" default="200" option="int" /><!-- Maximum items to request from the server at once -->
 		<setting type="lsep" label="39052" /><!-- Background Sync -->
 		<setting id="enableBackgroundSync" type="bool" label="39026" default="true" visible="true"/>
-		<setting id="saftyMargin" type="slider" label="39051" default="60" option="int" range="10,1,300" visible="eq(-1,true)"/>
+		<setting id="saftyMargin" type="slider" label="39051" default="60" option="int" range="10,1,300" visible="eq(-1,true)" subsetting="true" />
 		<setting id="fullSyncInterval" type="number" label="39053" default="60" option="int" />
 		<setting id="dbSyncScreensaver" type="bool" label="39062" default="false" /><!--Sync when screensaver is deactivated-->
 
@@ -75,14 +75,14 @@
 		<setting type="lsep" label="39056" /><!-- Used by Sync and to attempt to direct play -->
 		<setting id="replaceSMB" type="bool" label="39034" default="true" /> <!-- replace all Plex paths with SMB paths -->
 		<setting id="remapSMB" type="bool" label="39035" default="false" /> <!-- replace Plex paths /volume1/media or \\myserver\media with a custom SMB path smb://NAS/mystuff -->
-		<setting id="remapSMBmovieOrg" type="text" label="39037" default="" visible="eq(-1,true)"/> <!-- Original Plex MOVIE path to replace -->
-		<setting id="remapSMBmovieNew" type="text" label="39038" default="smb://" visible="eq(-2,true)"/> <!-- Replace Plex MOVIE with: -->
-		<setting id="remapSMBtvOrg" type="text" label="39039" default="" visible="eq(-3,true)"/> <!-- Original Plex TV SHOWS path to replace: -->
-		<setting id="remapSMBtvNew" type="text" label="39040" default="smb://" visible="eq(-4,true)"/> <!-- Replace Plex TV SHOWS with: -->
-		<setting id="remapSMBmusicOrg" type="text" label="39041" default="" visible="eq(-5,true)"/> <!-- Original Plex MUSIC path to replace: -->
-		<setting id="remapSMBmusicNew" type="text" label="39042" default="smb://" visible="eq(-6,true)"/> <!-- Replace Plex MUSIC with: -->
-		<setting id="remapSMBphotoOrg" type="text" label="39045" default="" visible="eq(-7,true)"/> <!-- Original Plex MUSIC path to replace: -->
-		<setting id="remapSMBphotoNew" type="text" label="39046" default="smb://" visible="eq(-8,true)"/> <!-- Replace Plex MUSIC with: -->
+		<setting id="remapSMBmovieOrg" type="text" label="39037" default="" visible="eq(-1,true)" subsetting="true" /> <!-- Original Plex MOVIE path to replace -->
+		<setting id="remapSMBmovieNew" type="text" label="39038" default="smb://" visible="eq(-2,true)" subsetting="true" /> <!-- Replace Plex MOVIE with: -->
+		<setting id="remapSMBtvOrg" type="text" label="39039" default="" visible="eq(-3,true)" subsetting="true" /> <!-- Original Plex TV SHOWS path to replace: -->
+		<setting id="remapSMBtvNew" type="text" label="39040" default="smb://" visible="eq(-4,true)" subsetting="true" /> <!-- Replace Plex TV SHOWS with: -->
+		<setting id="remapSMBmusicOrg" type="text" label="39041" default="" visible="eq(-5,true)" subsetting="true" /> <!-- Original Plex MUSIC path to replace: -->
+		<setting id="remapSMBmusicNew" type="text" label="39042" default="smb://" visible="eq(-6,true)" subsetting="true" /> <!-- Replace Plex MUSIC with: -->
+		<setting id="remapSMBphotoOrg" type="text" label="39045" default="" visible="eq(-7,true)" subsetting="true" /> <!-- Original Plex MUSIC path to replace: -->
+		<setting id="remapSMBphotoNew" type="text" label="39046" default="smb://" visible="eq(-8,true)" subsetting="true" /> <!-- Replace Plex MUSIC with: -->
 	</category>
 
 	<category label="30516"><!-- Playback -->
@@ -113,7 +113,7 @@
 	<category label="30544"><!-- artwork -->
 		<setting id="enableTextureCache" label="30512"  type="bool" default="true" /> <!-- Force Artwork Caching -->
 		<setting id="FanartTV" label="30539" type="bool" default="false" /><!-- Download additional art from FanArtTV -->
-		<setting label="39222" type="action" action="RunPlugin(plugin://plugin.video.plexkodiconnect/?mode=fanart)" option="close" visible="eq(-1,true)" /> <!-- Look for missing fanart on FanartTV now -->
+		<setting label="39222" type="action" action="RunPlugin(plugin://plugin.video.plexkodiconnect/?mode=fanart)" option="close" visible="eq(-1,true)" subsetting="true" /> <!-- Look for missing fanart on FanartTV now -->
 		<setting label="39020" type="action" action="RunPlugin(plugin://plugin.video.plexkodiconnect/?mode=texturecache)" option="close" /> <!-- Cache all images to Kodi texture cache now -->
 	</category>
 	<!--
