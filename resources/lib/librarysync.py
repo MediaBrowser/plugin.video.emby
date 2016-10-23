@@ -1847,8 +1847,9 @@ class LibrarySync(Thread):
                         window('plex_dbScan', clear=True)
                     elif enableBackgroundSync:
                         # Check back whether we should process something
-                        # Only do this once every 10 seconds
-                        if now - lastProcessing > 10:
+                        # Only do this once every while (otherwise, potentially
+                        # many screen refreshes lead to flickering)
+                        if now - lastProcessing > 5:
                             lastProcessing = now
                             processItems()
                         # See if there is a PMS message we need to handle
