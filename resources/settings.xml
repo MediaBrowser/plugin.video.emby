@@ -20,6 +20,8 @@
 	</category>
 
 	<category label="Plex">
+		<setting id="enableContext" type="bool" label="30413" default="true" />
+		<setting id="skipContextMenu" type="bool" label="30520" default="false" visible="eq(-1,true)" subsetting="true" />
 		<setting type="lsep" label="plex.tv"/>
 		<setting id="plex_status" label="39071" type="text" default="Not logged in to plex.tv" enable="false" /><!-- Current plex.tv status: -->
 		<setting id="plexLogin" label="Plex user:" type="text" default="" enable="false" />
@@ -38,8 +40,6 @@
 		<setting id="companionPort" label="39005" type="number" default="3005" option="int" visible="eq(-3,true)"/>
 
 		<setting id="plex_restricteduser" type="bool" default="false" visible="false"/>
-		<setting id="enableContext" type="bool" label="30413" default="true" />
-		<setting id="skipContextMenu" type="bool" label="30520" default="false" visible="eq(-1,true)" subsetting="true" />
 	</category>
 
 	<category label="30506"><!-- Sync Options -->
