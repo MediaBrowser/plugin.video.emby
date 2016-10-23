@@ -1394,9 +1394,10 @@ class LibrarySync(Thread):
         now = getUnixTimestamp()
         deleteListe = []
         for i, item in enumerate(self.itemsToProcess):
-            if now - item['timestamp'] < self.saftyMargin:
+            if (now - item['timestamp'] < self.saftyMargin and
+                    item['state'] != 9):
                 # We haven't waited long enough for the PMS to finish
-                # processing the item. Do it later
+                # processing the item. Do it later (excepting deletions)
                 continue
             if item['state'] == 9:
                 successful = self.process_deleteditems(item)
