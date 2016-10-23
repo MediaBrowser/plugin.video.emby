@@ -191,4 +191,5 @@ class ContextMenu(object):
 
         if delete:
             log.info("Deleting Plex item with id %s", self.item_id)
-            delete_item_from_pms(self.item_id)
+            if delete_item_from_pms(self.item_id) is False:
+                dialog(type_="ok", heading="{plex}", line1=lang(30414))

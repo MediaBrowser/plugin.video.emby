@@ -535,13 +535,11 @@ def delete_item_from_pms(plexid):
 
     Returns True if successful, False otherwise
     """
-    xml = downloadutils.DownloadUtils().downloadUrl(
-        '{server}/library/metadata/%s' % plexid,
-        action_type="DELETE")
-    try:
-        xml.attrib
-    except AttributeError:
-        log.error('Could not delete Plex id %s' % plexid)
+    if downloadutils.DownloadUtils().downloadUrl(
+            '{server}/library/metadata/%s' % plexid,
+            action_type="DELETE") is True:
+        log.info('Successfully deleted Plex id %s from the PMS' % plexid)
+        return True
+    else:
+        log.error('Could not delete Plex id %s from the PMS' % plexid)
         return False
-    log.info(xml.dump)
-    return True

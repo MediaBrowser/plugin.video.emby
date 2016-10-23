@@ -319,6 +319,10 @@ class DownloadUtils():
                             log.info('Received text:')
                             log.info(r.text)
                         return True
+            elif r.status_code == 403:
+                # E.g. deleting a PMS item
+                log.error('PMS sent 403: Forbidden error for url %s' % url)
+                return None
             else:
                 log.error('Unknown answer from PMS %s with status code %s. '
                           'Message:' % (url, r.status_code))

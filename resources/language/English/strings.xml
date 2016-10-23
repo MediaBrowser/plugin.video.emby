@@ -266,6 +266,7 @@
     <string id="30411">Set custom song rating (0-5)</string>
     <string id="30412">Force transcode</string>
     <string id="30413">Enable Plex context menu in Kodi</string>
+    <string id="30414">Could not delete the Plex item. Is item deletion enabled on the Plex Media Server?</string>
 
     <!-- add-on settings -->
     <string id="30500">Verify Host SSL Certificate (more secure)</string>
