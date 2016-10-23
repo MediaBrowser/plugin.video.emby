@@ -45,15 +45,17 @@ class KodiMonitor(xbmc.Monitor):
         """
         Monitor the PKC settings for changes made by the user
         """
-        currentLog = settings('logLevel')
-        if window('plex_logLevel') != currentLog:
-            # The log level changed, set new prop
-            log.debug("New log level: %s" % currentLog)
-            window('plex_logLevel', value=currentLog)
-        current_context = "true" if settings('enableContext') == "true" else ""
-        if window('plex_context') != current_context:
-            log.info("New context setting: %s", current_context)
-            window('plex_context', value=current_context)
+        # settings: window-variable
+        items = {
+            'logLevel': 'plex_logLevel',
+            'enableContext': 'plex_context',
+            'plex_restricteduser': 'plex_restricteduser'
+        }
+        for settings_value, window_value in items.iteritems():
+            if window(window_value) != settings(settings_value):
+                log.debug('PKC settings changed: %s is now %s'
+                          % (settings_value, settings(settings_value)))
+                window(window_value, value=settings(settings_value))
 
     @CatchExceptions(warnuser=False)
     def onNotification(self, sender, method, data):
