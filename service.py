@@ -85,6 +85,8 @@ class Service():
         log.warn("%s Version: %s" % (addonName, self.clientInfo.getVersion()))
         log.warn("Using plugin paths: %s"
                  % (settings('useDirectPaths') != "true"))
+        log.warn("Using a low powered device: %s"
+                 % settings('low_powered_device'))
         log.warn("Log Level: %s" % logLevel)
 
         # Reset window props for profile switch
@@ -97,9 +99,6 @@ class Service():
             "plex_runLibScan", "plex_username", "pms_token", "plex_token",
             "pms_server", "plex_machineIdentifier", "plex_servername",
             "plex_authenticated", "PlexUserImage", "useDirectPaths",
-            "replaceSMB", "remapSMB", "remapSMBmovieOrg", "remapSMBtvOrg",
-            "remapSMBmusicOrg", "remapSMBmovieNew", "remapSMBtvNew",
-            "remapSMBmusicNew", "remapSMBphotoOrg", "remapSMBphotoNew",
             "suspend_LibraryThread", "plex_terminateNow",
             "kodiplextimeoffset", "countError", "countUnauthorized"
         ]
@@ -129,7 +128,7 @@ class Service():
         initialsetup.InitialSetup().setup()
 
         # Queue for background sync
-        queue = Queue.Queue(maxsize=200)
+        queue = Queue.Queue()
 
         connectMsg = True if settings('connectMsg') == 'true' else False
 

@@ -182,7 +182,7 @@ def kodiSQL(media_type="video"):
     else:
         dbPath = getKodiVideoDBPath()
 
-    connection = sqlite3.connect(dbPath)
+    connection = sqlite3.connect(dbPath, timeout=15.0)
     return connection
 
 def getKodiVideoDBPath():

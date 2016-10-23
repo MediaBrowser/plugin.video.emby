@@ -57,7 +57,8 @@ import embydb_functions as embydb
 log = logging.getLogger("PLEX."+__name__)
 
 addonName = 'PlexKodiConnect'
-
+REGEX_IMDB = re.compile(r'''/(tt\d+)''')
+REGEX_TVDB = re.compile(r'''tvdb://(\d+)''')
 ###############################################################################
 
 
@@ -620,10 +621,10 @@ class PlexAPI():
                        args=(PMS, queue))
             threadQueue.append(t)
 
-        maxThreads = int(settings('imageCacheLimit'))
+        maxThreads = 5
         threads = []
         # poke PMS, own thread for each PMS
-        while(True):
+        while True:
             # Remove finished threads
             for t in threads:
                 if not t.isAlive():
@@ -1450,10 +1451,10 @@ class API():
             return None
 
         if providername == 'imdb':
-            regex = re.compile(r'''/(tt\d+)''')
+            regex = REGEX_IMDB
         elif providername == 'tvdb':
             # originally e.g. com.plexapp.agents.thetvdb://276564?lang=en
-            regex = re.compile(r'''tvdb://(\d+)''')
+            regex = REGEX_TVDB
         else:
             return None
 
@@ -1720,7 +1721,7 @@ class API():
             'year':
         """
         elements = []
-        for extra in self.item.find('Extras'):
+        for extra in self.item.findall('Extras'):
             # Trailer:
             key = extra.attrib.get('key', None)
             title = extra.attrib.get('title', None)
@@ -1841,16 +1842,14 @@ class API():
             'Backdrop' : LIST with the first entry xml key "art"
         }
         """
-        item = self.item.attrib
-
         allartworks = {
-            'Primary': "",
+            'Primary': "",  # corresponds to Plex poster ('thumb')
             'Art': "",
-            'Banner': "",
+            'Banner': "",   # corresponds to Plex banner ('banner') for series
             'Logo': "",
-            'Thumb': "",
+            'Thumb': "",    # corresponds to Plex (grand)parent posters (thumb)
             'Disc': "",
-            'Backdrop': []
+            'Backdrop': []  # Corresponds to Plex fanart ('art')
         }
         # Process backdrops
         # Get background artwork URL
@@ -1870,14 +1869,26 @@ class API():
                     self.__getOneArtwork('parentArt'))
             if not allartworks['Primary']:
                 allartworks['Primary'] = self.__getOneArtwork('parentThumb')
+        return allartworks
 
-        # Plex does not get much artwork - go ahead and get the rest from
-        # fanart tv only for movie or tv show
-        if settings('FanartTV') == 'true':
-            if item.get('type') in ('movie', 'show'):
-                externalId = self.getExternalItemId()
-                if externalId is not None:
-                    allartworks = self.getFanartTVArt(externalId, allartworks)
+    def getFanartArtwork(self, allartworks, parentInfo=False):
+        """
+        Downloads additional fanart from third party sources (well, link to
+        fanart only).
+
+        allartworks = {
+            'Primary': "",
+            'Art': "",
+            'Banner': "",
+            'Logo': "",
+            'Thumb': "",
+            'Disc': "",
+            'Backdrop': []
+        }
+        """
+        externalId = self.getExternalItemId()
+        if externalId is not None:
+            allartworks = self.getFanartTVArt(externalId, allartworks)
         return allartworks
 
     def getExternalItemId(self, collection=False):
@@ -2505,16 +2516,16 @@ class API():
             'photo': 'photo'
         }
         typus = types[typus]
-        if window('remapSMB') == 'true':
-            path = path.replace(window('remapSMB%sOrg' % typus),
-                                window('remapSMB%sNew' % typus),
+        if settings('remapSMB') == 'true':
+            path = path.replace(settings('remapSMB%sOrg' % typus),
+                                settings('remapSMB%sNew' % typus),
                                 1)
             # There might be backslashes left over:
             path = path.replace('\\', '/')
-        elif window('replaceSMB') == 'true':
+        elif settings('replaceSMB') == 'true':
             if path.startswith('\\\\'):
                 path = 'smb:' + path.replace('\\', '/')
-        if window('plex_pathverified') == 'true' and forceCheck is False:
+        if settings('plex_pathverified') == 'true' and forceCheck is False:
             return path
 
         # exist() needs a / or \ at the end to work for directories
@@ -2535,13 +2546,11 @@ class API():
                 if self.askToValidate(path):
                     window('plex_shouldStop', value="true")
                     path = None
-                window('plex_pathverified', value='true')
                 settings('plex_pathverified', value='true')
             else:
                 path = None
         elif forceCheck is False:
-            if window('plex_pathverified') != 'true':
-                window('plex_pathverified', value='true')
+            if settings('plex_pathverified') != 'true':
                 settings('plex_pathverified', value='true')
         return path
 

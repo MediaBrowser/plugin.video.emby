@@ -254,7 +254,7 @@ class KodiMonitor(xbmc.Monitor):
 
         # Save currentFile for cleanup later and to be able to access refs
         window('plex_lastPlayedFiled', value=currentFile)
-        window('Plex_currently_playing_itemid', value=plexid)
+        window('plex_currently_playing_itemid', value=plexid)
         window("emby_%s.itemid" % tryEncode(currentFile), value=plexid)
         log.info('Finish playback startup')
 

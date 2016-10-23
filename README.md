@@ -5,6 +5,9 @@ PKC combines the best of Kodi - ultra smooth navigation, beautiful and highly cu
 
 Have a look at [some screenshots](https://github.com/croneter/PlexKodiConnect/wiki/Some-PKC-Screenshots) to see what's possible. 
 
+### Warning
+This plugin assumes that you manage all your videos with Plex (and none with Kodi). You might lose data already stored in the Kodi video and music databases (as this plugin directly changes them). Use at your own risk!
+
 ### Download and Installation
 [ ![Download](https://api.bintray.com/packages/croneter/PlexKodiConnect/PlexKodiConnect/images/download.svg) ](https://dl.bintray.com/croneter/PlexKodiConnect/bin/repository.plexkodiconnect/repository.plexkodiconnect-1.0.0.zip)
 
@@ -20,9 +23,9 @@ I'm not in any way affiliated with Plex. Thank you very much for a small donatio
 
 ### IMPORTANT NOTES
 
-1. If your are using a **low CPU device like a Raspberry Pi or a CuBox**, PKC might be instable or crash during initial sync. Lower the number of threads in the [PKC settings under Sync Options](https://github.com/croneter/PlexKodiConnect/wiki/PKC-settings#sync-options): `Limit artwork cache threads: 5`
+1. If you are using a **low CPU device like a Raspberry Pi or a CuBox**, PKC might be instable or crash during initial sync. Lower the number of threads in the [PKC settings under Sync Options](https://github.com/croneter/PlexKodiConnect/wiki/PKC-settings#sync-options): `Limit artwork cache threads: 5`
 Don't forget to reboot Kodi after that.
-2. If you post logs, your **Plex tokens** might be included. Be sure to double and tripple check for tokens before posting any logs anywhere by searching for `token`
+2. If you post logs, your **Plex tokens** might be included. Be sure to double and triple check for tokens before posting any logs anywhere by searching for `token`
 3. **Compatibility**: PKC is currently not compatible with Kodi's Video Extras plugin. **Deactivate Video Extras** if trailers/movies start randomly playing. 
 
 
@@ -107,5 +110,5 @@ The addon is not (and will not be) compatible with the MySQL database replacemen
 ### Credits
 
 - PlexKodiConnect shamelessly uses pretty much all the code of "Emby for Kodi" by the awesome Emby team (see https://github.com/MediaBrowser/plugin.video.emby). Thanks for sharing guys!!
-- Plex Companion ("PlexBMC Helper") and other stuff was adapted from @Hippojay 's great work (see https://github.com/hippojay).
+- Plex Companion ("PlexBMC Helper") and other stuff were adapted from @Hippojay 's great work (see https://github.com/hippojay).
 - The foundation of the Plex API is all iBaa's work (https://github.com/iBaa/PlexConnect).

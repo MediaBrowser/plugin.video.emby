@@ -3,7 +3,7 @@
 ###############################################################################
 
 import logging
-import urllib
+from urllib import urlencode
 from ntpath import dirname
 from datetime import datetime
 
@@ -11,8 +11,8 @@ import xbmc
 import xbmcgui
 
 import artwork
-from utils import settings, window, kodiSQL, CatchExceptions
-from utils import tryEncode, tryDecode
+from utils import tryEncode, tryDecode, settings, window, kodiSQL, \
+    CatchExceptions
 import embydb_functions as embydb
 import kodidb_functions as kodidb
 
@@ -64,6 +64,28 @@ class Items(object):
         self.embyconn.close()
         self.kodiconn.close()
         return self
+
+    @CatchExceptions(warnuser=True)
+    def getfanart(self, item, kodiId, mediaType, allartworks=None):
+        """
+        """
+        API = PlexAPI.API(item)
+        if allartworks is None:
+            allartworks = API.getAllArtwork()
+        self.artwork.addArtwork(API.getFanartArtwork(allartworks),
+                                kodiId,
+                                mediaType,
+                                self.kodicursor)
+        # Also get artwork for collections/movie sets
+        if mediaType == 'movie':
+            for setname in API.getCollections():
+                log.debug('Getting artwork for movie set %s' % setname)
+                setid = self.kodi_db.createBoxset(setname)
+                self.artwork.addArtwork(API.getSetArtwork(),
+                                        setid,
+                                        "set",
+                                        self.kodicursor)
+                self.kodi_db.assignBoxset(setid, kodiId)
 
     def itemsbyId(self, items, process, pdialog=None):
         # Process items by itemid. Process can be added, update, userdata, remove
@@ -394,7 +416,7 @@ class Movies(Items):
                 'dbid': movieid,
                 'mode': "play"
             }
-            filename = "%s?%s" % (path, urllib.urlencode(params))
+            filename = "%s?%s" % (path, urlencode(params))
             playurl = filename
 
         # movie table:
@@ -408,17 +430,32 @@ class Movies(Items):
                      % (itemid, title))
 
             # Update the movie entry
-            query = ' '.join((
-                
-                "UPDATE movie",
-                "SET c00 = ?, c01 = ?, c02 = ?, c03 = ?, c04 = ?, c05 = ?, c06 = ?,",
-                    "c07 = ?, c09 = ?, c10 = ?, c11 = ?, c12 = ?, c14 = ?, c15 = ?,",
-                    "c16 = ?, c18 = ?, c19 = ?, c21 = ?, c22 = ?, c23 = ?",
-                "WHERE idMovie = ?"
-            ))
-            kodicursor.execute(query, (title, plot, shortplot, tagline, votecount, rating, writer,
-                year, imdb, sorttitle, runtime, mpaa, genre, director, title, studio, trailer,
-                country, playurl, pathid, movieid))
+            if self.kodiversion > 16:
+                query = ' '.join((
+                    "UPDATE movie",
+                    "SET c00 = ?, c01 = ?, c02 = ?, c03 = ?, c04 = ?, c05 = ?,"
+                    "c06 = ?, c07 = ?, c09 = ?, c10 = ?, c11 = ?, c12 = ?,"
+                    "c14 = ?, c15 = ?, c16 = ?, c18 = ?, c19 = ?, c21 = ?,"
+                    "c22 = ?, c23 = ?, premiered = ?",
+                    "WHERE idMovie = ?"
+                ))
+                kodicursor.execute(query, (title, plot, shortplot, tagline,
+                    votecount, rating, writer, year, imdb, sorttitle, runtime,
+                    mpaa, genre, director, title, studio, trailer, country,
+                    playurl, pathid, year, movieid))
+            else:
+                query = ' '.join((
+                    "UPDATE movie",
+                    "SET c00 = ?, c01 = ?, c02 = ?, c03 = ?, c04 = ?, c05 = ?,"
+                    "c06 = ?, c07 = ?, c09 = ?, c10 = ?, c11 = ?, c12 = ?,"
+                    "c14 = ?, c15 = ?, c16 = ?, c18 = ?, c19 = ?, c21 = ?,"
+                    "c22 = ?, c23 = ?",
+                    "WHERE idMovie = ?"
+                ))
+                kodicursor.execute(query, (title, plot, shortplot, tagline,
+                    votecount, rating, writer, year, imdb, sorttitle, runtime,
+                    mpaa, genre, director, title, studio, trailer, country,
+                    playurl, pathid, movieid))
 
             # Update the checksum in emby table
             emby_db.updateReference(itemid, checksum)
@@ -469,16 +506,13 @@ class Movies(Items):
         # Process countries
         self.kodi_db.addCountries(movieid, countries, "movie")
         # Process cast
-        people = API.getPeopleList()
-        self.kodi_db.addPeople(movieid, people, "movie")
+        self.kodi_db.addPeople(movieid, API.getPeopleList(), "movie")
         # Process genres
         self.kodi_db.addGenres(movieid, genres, "movie")
         # Process artwork
-        allartworks = API.getAllArtwork()
-        artwork.addArtwork(allartworks, movieid, "movie", kodicursor)
+        artwork.addArtwork(API.getAllArtwork(), movieid, "movie", kodicursor)
         # Process stream details
-        streams = API.getMediaStreams()
-        self.kodi_db.addStreams(fileid, streams, runtime)
+        self.kodi_db.addStreams(fileid, API.getMediaStreams(), runtime)
         # Process studios
         self.kodi_db.addStudios(movieid, studios, "movie")
         # Process tags: view, Plex collection tags
@@ -488,7 +522,7 @@ class Movies(Items):
             tags.append("Favorite movies")
         self.kodi_db.addTags(movieid, tags, "movie")
         # Add any sets from Plex collection tags
-        self.kodi_db.addSets(movieid, collections, kodicursor, API)
+        self.kodi_db.addSets(movieid, collections, kodicursor)
         # Process playstates
         self.kodi_db.addPlaystate(fileid, resume, runtime, playcount, dateplayed)
 
@@ -906,7 +940,7 @@ class TVShows(Items):
                 'dbid': episodeid,
                 'mode': "play"
             }
-            filename = "%s?%s" % (path, tryDecode(urllib.urlencode(params)))
+            filename = "%s?%s" % (path, tryDecode(urlencode(params)))
             playurl = filename
             parentPathId = self.kodi_db.addPath(
                 'plugin://plugin.video.plexkodiconnect.tvshows/')
@@ -1730,7 +1764,7 @@ class Music(Items):
                         VALUES (?, ?, ?, ?)
                         '''
                     )
-            kodicursor.execute(query, (artistid, songid, index, artist_name))
+                    kodicursor.execute(query, (artistid, songid, index, artist_name))
 
         # Verify if album artist exists
         album_artists = []

@@ -305,7 +305,7 @@ class Player(xbmc.Player):
 
         self.stopAll()
 
-        window('Plex_currently_playing_itemid', clear=True)
+        window('plex_currently_playing_itemid', clear=True)
         window('plex_customplaylist', clear=True)
         window('plex_customplaylist.seektime', clear=True)
         window('plex_customplaylist.seektime', clear=True)

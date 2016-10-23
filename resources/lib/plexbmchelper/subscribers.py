@@ -102,7 +102,7 @@ class SubscriptionManager:
         while not keyid:
             if count > 300:
                 break
-            keyid = window('Plex_currently_playing_itemid')
+            keyid = window('plex_currently_playing_itemid')
             xbmc.sleep(100)
             count += 1
         if keyid:
@@ -149,7 +149,7 @@ class SubscriptionManager:
         self.cleanup()
         # Don't tell anyone if we don't know a Plex ID and are still playing
         # (e.g. no stop called). Used for e.g. PVR/TV without PKC usage
-        if (not window('Plex_currently_playing_itemid')
+        if (not window('plex_currently_playing_itemid')
                 and not self.lastplayers):
             return True
         players = self.js.getPlayers()

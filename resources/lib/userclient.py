@@ -174,26 +174,9 @@ class UserClient(threading.Thread):
         window('plex_machineIdentifier', value=self.machineIdentifier)
         window('plex_servername', value=self.servername)
         window('plex_authenticated', value='true')
-        window('plex_serverowned', value=settings('plex_serverowned'))
 
         window('useDirectPaths', value='true'
                if settings('useDirectPaths') == "1" else 'false')
-        window('replaceSMB', value='true'
-               if settings('replaceSMB') == "true" else 'false')
-        window('remapSMB', value='true'
-               if settings('remapSMB') == "true" else 'false')
-        if window('remapSMB') == 'true':
-            items = ('movie', 'tv', 'music')
-            for item in items:
-                # Normalize! Get rid of potential (back)slashes at the end
-                org = settings('remapSMB%sOrg' % item)
-                new = settings('remapSMB%sNew' % item)
-                if org.endswith('\\') or org.endswith('/'):
-                    org = org[:-1]
-                if new.endswith('\\') or new.endswith('/'):
-                    new = new[:-1]
-                window('remapSMB%sOrg' % item, value=org)
-                window('remapSMB%sNew' % item, value=new)
 
         # Start DownloadUtils session
         doUtils.startSession(reset=True)

@@ -275,7 +275,6 @@ def doMainListing():
     # addDirectoryItem("Add user to session", "plugin://plugin.video.plexkodiconnect/?mode=adduser")
     addDirectoryItem(lang(39203), "plugin://plugin.video.plexkodiconnect/?mode=refreshplaylist")
     addDirectoryItem(lang(39204), "plugin://plugin.video.plexkodiconnect/?mode=manualsync")
-
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
 
@@ -1363,7 +1362,7 @@ def enterPMS():
             settings('plex_machineIdentifier', '')
     else:
         settings('plex_machineIdentifier', machineIdentifier)
-    log.info('Setting new PMS to https %s, ip %s, port %s, machineIdentifier '
+    log.info('Set new PMS to https %s, ip %s, port %s, machineIdentifier %s'
              % (https, ip, port, machineIdentifier))
     settings('https', value=https)
     settings('ipaddress', value=ip)
