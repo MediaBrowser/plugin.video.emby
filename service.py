@@ -102,7 +102,8 @@ class Service():
             "pms_server", "plex_machineIdentifier", "plex_servername",
             "plex_authenticated", "PlexUserImage", "useDirectPaths",
             "suspend_LibraryThread", "plex_terminateNow",
-            "kodiplextimeoffset", "countError", "countUnauthorized"
+            "kodiplextimeoffset", "countError", "countUnauthorized",
+            "plex_restricteduser", "plex_allows_mediaDeletion"
         ]
         for prop in properties:
             window(prop, clear=True)

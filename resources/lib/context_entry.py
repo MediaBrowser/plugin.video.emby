@@ -10,7 +10,7 @@ import xbmcaddon
 import PlexAPI
 from PlexFunctions import GetPlexMetadata, delete_item_from_pms
 import embydb_functions as embydb
-from utils import settings, dialog, language as lang, kodiSQL
+from utils import window, settings, dialog, language as lang, kodiSQL
 from dialogs import context
 
 ###############################################################################
@@ -110,7 +110,8 @@ class ContextMenu(object):
         # Refresh item
         options.append(OPTIONS['Refresh'])
         # Delete item, only if the Plex Home main user is logged in
-        if settings('plex_restricteduser') != 'true':
+        if (window('plex_restricteduser') != 'true' and
+                window('plex_allows_mediaDeletion') == 'true'):
             options.append(OPTIONS['Delete'])
         # Addon settings
         options.append(OPTIONS['Addon'])

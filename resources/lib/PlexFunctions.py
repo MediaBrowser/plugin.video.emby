@@ -543,3 +543,16 @@ def delete_item_from_pms(plexid):
     else:
         log.error('Could not delete Plex id %s from the PMS' % plexid)
         return False
+
+
+def get_PMS_settings(url, token):
+    """
+    Retrieve the PMS' settings via <url>/:/
+
+    Call with url: scheme://ip:port
+    """
+    return downloadutils.DownloadUtils().downloadUrl(
+        '%s/:/prefs' % url,
+        authenticate=False,
+        verifySSL=False,
+        headerOptions={'X-Plex-Token': token} if token else None)

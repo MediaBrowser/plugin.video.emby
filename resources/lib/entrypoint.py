@@ -1290,7 +1290,7 @@ def watchlater():
     if window('plex_token') == '':
         log.error('No watch later - not signed in to plex.tv')
         return xbmcplugin.endOfDirectory(int(sys.argv[1]), False)
-    if settings('plex_restricteduser') == 'true':
+    if window('plex_restricteduser') == 'true':
         log.error('No watch later - restricted user')
         return xbmcplugin.endOfDirectory(int(sys.argv[1]), False)
 

@@ -170,6 +170,7 @@ class UserClient(threading.Thread):
         # This is the token for plex.tv for the current user
         # Is only '' if user is not signed in to plex.tv
         window('plex_token', value=settings('plexToken'))
+        window('plex_restricteduser', value=settings('plex_restricteduser'))
         window('pms_server', value=self.currServer)
         window('plex_machineIdentifier', value=self.machineIdentifier)
         window('plex_servername', value=self.servername)
@@ -298,6 +299,7 @@ class UserClient(threading.Thread):
         window('plex_servername', clear=True)
         window('currUserId', clear=True)
         window('plex_username', clear=True)
+        window('plex_restricteduser', clear=True)
 
         settings('username', value='')
         settings('userid', value='')

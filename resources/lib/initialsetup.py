@@ -12,7 +12,7 @@ import downloadutils
 import userclient
 
 import PlexAPI
-from PlexFunctions import GetMachineIdentifier
+from PlexFunctions import GetMachineIdentifier, get_PMS_settings
 
 ###############################################################################
 
@@ -42,6 +42,8 @@ class InitialSetup():
         self.plexLogin = plexdict['plexLogin']
         self.plexToken = plexdict['plexToken']
         self.plexid = plexdict['plexid']
+        # Token for the PMS, not plex.tv
+        self.pms_token = settings('accessToken')
         if self.plexToken:
             log.debug('Found a plex.tv token in the settings')
 
@@ -197,7 +199,27 @@ class InitialSetup():
             server = self._UserPickPMS()
         else:
             server = self._AutoPickPMS()
+        if server is not None:
+            self._write_PMS_settings(server['baseURL'], server['accesstoken'])
         return server
+
+    def _write_PMS_settings(self, url, token):
+        """
+        Sets certain settings for server by asking for the PMS' settings
+        Call with url: scheme://ip:port
+        """
+        xml = get_PMS_settings(url, token)
+        try:
+            xml.attrib
+        except AttributeError:
+            log.error('Could not get PMS settings for %s' % url)
+            return
+        for entry in xml:
+            if entry.attrib.get('id', '') == 'allowMediaDeletion':
+                settings('plex_allows_mediaDeletion',
+                         value=entry.attrib.get('value', 'true'))
+                window('plex_allows_mediaDeletion',
+                       value=entry.attrib.get('value', 'true'))
 
     def _AutoPickPMS(self):
         """
@@ -401,6 +423,7 @@ class InitialSetup():
             if getNewIP is False:
                 log.info("Using PMS %s with machineIdentifier %s"
                          % (self.server, self.serverid))
+                self._write_PMS_settings(self.server, self.pms_token)
                 return
 
         # If not already retrieved myplex info, optionally let user sign in
