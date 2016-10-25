@@ -173,8 +173,6 @@ class Main():
                 utils.window('plex_runLibScan', value='del_textures')
             else:
                 entrypoint.doMainListing()
-        # Prevent Kodi from hanging in an infinite loop waiting for more
-        xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
 if __name__ == "__main__":
     log.info('plugin.video.plexkodiconnect started')
