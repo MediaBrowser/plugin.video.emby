@@ -1692,7 +1692,7 @@ class API():
                 'bitDepth': xxx          e.g. '8', '10'
             }
         """
-        return {
+        answ = {
             'videocodec': self.getDataFromPartOrMedia('videoCodec'),
             'resolution': self.getDataFromPartOrMedia('videoResolution'),
             'height': self.getDataFromPartOrMedia('height'),
@@ -1700,8 +1700,12 @@ class API():
             'aspectratio': self.getDataFromPartOrMedia('aspectratio'),
             'bitrate': self.getDataFromPartOrMedia('bitrate'),
             'container': self.getDataFromPartOrMedia('container'),
-            'bitDepth': self.item[0][self.part][self.mediastream].attrib.get('bitDepth')
         }
+        try:
+            answ['bitDepth'] = self.item[0][self.part][self.mediastream].attrib.get('bitDepth')
+        except:
+            answ['bitDepth'] = None
+        return answ
 
     def getExtras(self):
         """
