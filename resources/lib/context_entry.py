@@ -92,8 +92,8 @@ class ContextMenu(object):
         # Display select dialog
         options = []
 
-        if self.item_type in ("movie", "episode", "song"):
-            options.append(OPTIONS['Transcode'])
+        # if self.item_type in ("movie", "episode", "song"):
+        #     options.append(OPTIONS['Transcode'])
 
         # userdata = self.api.getUserData()
         # if userdata['Favorite']:
@@ -108,7 +108,7 @@ class ContextMenu(object):
         #     options.append(OPTIONS['RateSong'])
 
         # Refresh item
-        options.append(OPTIONS['Refresh'])
+        # options.append(OPTIONS['Refresh'])
         # Delete item, only if the Plex Home main user is logged in
         if (window('plex_restricteduser') != 'true' and
                 window('plex_allows_mediaDeletion') == 'true'):
