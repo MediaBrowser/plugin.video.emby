@@ -961,6 +961,11 @@ class TVShows(Items):
         # c19 - pathid
         # This information is used later by file browser.
 
+        # add/retrieve pathid and fileid
+        # if the path or file already exists, the calls return current value
+        pathid = self.kodi_db.addPath(path)
+        fileid = self.kodi_db.addFile(filename, pathid)
+
         # UPDATE THE EPISODE #####
         if update_item:
             log.info("UPDATE episode itemid: %s" % (itemid))
@@ -969,40 +974,35 @@ class TVShows(Items):
             if self.kodiversion in (16, 17):
                 # Kodi Jarvis, Krypton
                 query = ' '.join((
-                
                     "UPDATE episode",
-                    "SET c00 = ?, c01 = ?, c03 = ?, c04 = ?, c05 = ?, c09 = ?, c10 = ?,",
-                        "c12 = ?, c13 = ?, c14 = ?, c15 = ?, c16 = ?, c18 = ?, c19 = ?,",
-                        "idSeason = ?",
+                    "SET c00 = ?, c01 = ?, c03 = ?, c04 = ?, c05 = ?, c09 = ?,"
+                    "c10 = ?, c12 = ?, c13 = ?, c14 = ?, c15 = ?, c16 = ?,"
+                    "c18 = ?, c19 = ?, idFile=?, idSeason = ?",
                     "WHERE idEpisode = ?"
                 ))
-                kodicursor.execute(query, (title, plot, rating, writer, premieredate,
-                    runtime, director, season, episode, title, airsBeforeSeason,
-                    airsBeforeEpisode, playurl, pathid, seasonid, episodeid))
+                kodicursor.execute(query, (title, plot, rating, writer,
+                    premieredate, runtime, director, season, episode, title,
+                    airsBeforeSeason, airsBeforeEpisode, playurl, pathid,
+                    fileid, seasonid, episodeid))
             else:
                 query = ' '.join((
                     
                     "UPDATE episode",
-                    "SET c00 = ?, c01 = ?, c03 = ?, c04 = ?, c05 = ?, c09 = ?, c10 = ?,",
-                        "c12 = ?, c13 = ?, c14 = ?, c15 = ?, c16 = ?, c18 = ?, c19 = ?",
+                    "SET c00 = ?, c01 = ?, c03 = ?, c04 = ?, c05 = ?, c09 = ?,"
+                    "c10 = ?, c12 = ?, c13 = ?, c14 = ?, c15 = ?, c16 = ?,"
+                    "c18 = ?, c19 = ?, idFile = ?",
                     "WHERE idEpisode = ?"
                 ))
-                kodicursor.execute(query, (title, plot, rating, writer, premieredate,
-                    runtime, director, season, episode, title, airsBeforeSeason,
-                    airsBeforeEpisode, playurl, pathid, episodeid))
-
-            # Update the checksum in emby table
-            emby_db.updateReference(itemid, checksum)
+                kodicursor.execute(query, (title, plot, rating, writer,
+                    premieredate, runtime, director, season, episode, title,
+                    airsBeforeSeason, airsBeforeEpisode, playurl, pathid,
+                    fileid, episodeid))
             # Update parentid reference
             emby_db.updateParentId(itemid, seasonid)
         
         ##### OR ADD THE EPISODE #####
         else:
             log.info("ADD episode itemid: %s - Title: %s" % (itemid, title))
-            # Add path
-            pathid = self.kodi_db.addPath(path)
-            # Add the file
-            fileid = self.kodi_db.addFile(filename, pathid)
             # Create the episode entry
             if self.kodiversion in (16, 17):
                 # Kodi Jarvis, Krypton
@@ -1032,9 +1032,11 @@ class TVShows(Items):
                     premieredate, runtime, director, season, episode, title, showid,
                     airsBeforeSeason, airsBeforeEpisode, playurl, pathid))
 
-            # Create the reference in emby table
-            emby_db.addReference(itemid, episodeid, "Episode", "episode", fileid, pathid,
-                seasonid, checksum)
+        # Create or update the reference in emby table Add reference is
+        # idempotent; the call here updates also fileid and pathid when item is
+        # moved or renamed
+        emby_db.addReference(itemid, episodeid, "Episode", "episode", fileid,
+            pathid, seasonid, checksum)
 
         # Update the path
         query = ' '.join((
