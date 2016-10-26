@@ -10,7 +10,6 @@ import urlparse
 import xbmc
 import xbmcaddon
 import xbmcgui
-import xbmcplugin
 
 
 _addon = xbmcaddon.Addon(id='plugin.video.plexkodiconnect')
