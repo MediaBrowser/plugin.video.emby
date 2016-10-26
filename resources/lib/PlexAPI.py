@@ -1709,11 +1709,13 @@ class API():
 
     def getExtras(self):
         """
+        Currently ONLY returns the very first trailer found!
+
         Returns a list of trailer and extras from PMS XML. Returns [] if
         no extras are found.
         Extratypes:
-            '1':    Trailer
-            '5':    Behind the scenes
+            1:    Trailer
+            5:    Behind the scenes
 
         Output: list of dicts with one entry of the form:
             'key':                     e.g. /library/metadata/xxxx
@@ -1725,14 +1727,21 @@ class API():
             'year':
         """
         elements = []
-        for extra in self.item.findall('Extras'):
-            # Trailer:
+        extras = self.item.find('Extras')
+        if extras is None:
+            return elements
+        for extra in extras:
+            try:
+                extraType = int(extra.attrib['extraType'])
+            except:
+                extraType = None
+            if extraType != 1:
+                continue
             key = extra.attrib.get('key', None)
             title = extra.attrib.get('title', None)
             thumb = extra.attrib.get('thumb', None)
             duration = float(extra.attrib.get('duration', 0.0))
             year = extra.attrib.get('year', None)
-            extraType = extra.attrib.get('extraType', None)
             originallyAvailableAt = extra.attrib.get(
                 'originallyAvailableAt', None)
             elements.append(
@@ -1745,6 +1754,7 @@ class API():
                     'originallyAvailableAt': originallyAvailableAt,
                     'year': year
                 })
+            break
         return elements
 
     def getMediaStreams(self):

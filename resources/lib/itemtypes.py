@@ -383,7 +383,7 @@ class Movies(Items):
         extras = API.getExtras()
         for extra in extras:
             # Only get 1st trailer element
-            if extra['extraType'] == '1':
+            if extra['extraType'] == 1:
                 trailer = ("plugin://plugin.video.plexkodiconnect/trailer/?"
                            "id=%s&mode=play") % extra['key']
                 break
