@@ -668,6 +668,9 @@ class TVShows(Items):
 
         # Add top path
         toppathid = self.kodi_db.addPath(toplevelpath)
+        # add/retrieve pathid and fileid
+        # if the path or file already exists, the calls return current value
+        pathid = self.kodi_db.addPath(path)
         # UPDATE THE TVSHOW #####
         if update_item:
             log.info("UPDATE tvshow itemid: %s - Title: %s"
@@ -684,8 +687,15 @@ class TVShows(Items):
             kodicursor.execute(query, (title, plot, rating, premieredate, genre, title,
                 tvdb, mpaa, studio, sorttitle, showid))
 
-            # Update the checksum in emby table
-            emby_db.updateReference(itemid, checksum)
+            # Add reference is idempotent; the call here updates also fileid
+            # and pathid when item is moved or renamed
+            emby_db.addReference(itemid,
+                                 showid,
+                                 "Series",
+                                 "tvshow",
+                                 pathid=pathid,
+                                 checksum=checksum,
+                                 mediafolderid=viewid)
         
         ##### OR ADD THE TVSHOW #####
         else:
@@ -698,10 +708,7 @@ class TVShows(Items):
                 "WHERE idPath = ?"
             ))
             kodicursor.execute(query, (toplevelpath, "tvshows", "metadata.local", 1, toppathid))
-            
-            # Add path
-            pathid = self.kodi_db.addPath(path)
-            
+
             # Create the tvshow entry
             query = (
                 '''
