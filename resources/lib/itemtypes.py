@@ -462,11 +462,6 @@ class Movies(Items):
                     mpaa, genre, director, title, studio, trailer, country,
                     playurl, pathid, fileid, movieid))
 
-            # Update the checksum in emby table
-            # emby_db.updateReference(itemid, checksum)
-            # Add reference is idempotent; the call here updates also fileid and pathid when item
-            # is moved or renamed
-            emby_db.addReference(itemid, movieid, "Movie", "movie", fileid, pathid, None, checksum, viewid)
 
         ##### OR ADD THE MOVIE #####
         else:
@@ -486,8 +481,11 @@ class Movies(Items):
                 rating, writer, year, imdb, sorttitle, runtime, mpaa, genre, director, title,
                 studio, trailer, country, playurl, pathid))
 
-            # Create the reference in emby table
-            emby_db.addReference(itemid, movieid, "Movie", "movie", fileid, pathid, None, checksum, viewid)
+        # Create or update the reference in emby table Add reference is
+        # idempotent; the call here updates also fileid and pathid when item is
+        # moved or renamed
+        emby_db.addReference(itemid, movieid, "Movie", "movie", fileid, pathid,
+            None, checksum, viewid)
 
         # Update the path
         query = ' '.join((
