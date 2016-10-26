@@ -13,7 +13,6 @@ import xbmcgui
 import xbmcvfs
 import xbmcplugin
 
-import artwork
 from utils import window, settings, language as lang
 from utils import tryDecode, tryEncode, CatchExceptions
 import clientinfo
@@ -469,7 +468,8 @@ def BrowseContent(viewname, browse_type="", folderid=""):
     xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
 
 ##### CREATE LISTITEM FROM EMBY METADATA #####
-def createListItemFromEmbyItem(item,art=artwork.Artwork(),doUtils=downloadutils.DownloadUtils()):
+# def createListItemFromEmbyItem(item,art=artwork.Artwork(),doUtils=downloadutils.DownloadUtils()):
+def createListItemFromEmbyItem(item,art=None,doUtils=downloadutils.DownloadUtils()):
     API = PlexAPI.API(item)
     itemid = item['Id']
     
