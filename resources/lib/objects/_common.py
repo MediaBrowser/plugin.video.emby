@@ -68,7 +68,7 @@ class Items(object):
         if window('emby_pathverified') != "true" and not xbmcvfs.exists(path):
             if dialog(type_="yesno",
                       heading="{emby}",
-                      line1="%s %s. %s" % (lang(33047), path, lang(33048)))
+                      line1="%s %s. %s" % (lang(33047), path, lang(33048))):
 
                 window('emby_shouldStop', value="true")
                 return False
