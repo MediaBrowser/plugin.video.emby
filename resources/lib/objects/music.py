@@ -529,7 +529,10 @@ class Music(Items):
                 self.add_updateArtist(artist_full)
                 artist_edb = emby_db.getItem_byId(artist_eid)
                 artistid = artist_edb[0]
-            finally:
+            except Exception:
+                artistid = None
+
+            if artistid:
                 # Link song to artist
                 self.kodi_db.link_song_artist(artistid, songid, index, artist_name)
 
