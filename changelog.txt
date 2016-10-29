@@ -1,3 +1,8 @@
+version 1.4.4 (beta only)
+- PKC should now be updated automatically again
+- New setting: Display message if PMS goes offline
+- Fix smb credentials password not being url-encoded
+
 version 1.4.3 (beta only)
 - Contextmenu! Delete media from the Plex Media Server. Make sure to enable the setting on your PMS
 - Fix a really ugly bug that had crept in and caused some weird behavior
