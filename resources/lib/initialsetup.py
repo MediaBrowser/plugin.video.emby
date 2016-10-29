@@ -243,12 +243,13 @@ class InitialSetup():
                              'machineIdentifier of %s and name %s is '
                              'offline' % (self.serverid, name))
                     # "PMS xyz offline"
-                    self.dialog.notification(addonName,
-                                             '%s %s'
-                                             % (name, lang(39213)),
-                                             xbmcgui.NOTIFICATION_ERROR,
-                                             7000,
-                                             False)
+                    if settings('show_pms_offline') == 'true':
+                        self.dialog.notification(addonName,
+                                                 '%s %s'
+                                                 % (name, lang(39213)),
+                                                 xbmcgui.NOTIFICATION_ERROR,
+                                                 7000,
+                                                 False)
                     return
             chk = self._checkServerCon(server)
             if chk == 504 and httpsUpdated is False:

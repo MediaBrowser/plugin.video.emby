@@ -43,7 +43,7 @@
 
     <string id="30022">Erweitert</string>
     <string id="30024">Benutzername:</string>
-    <string id="30025">Passwort:</string>
+    <string id="30025">Nachricht anzeigen falls PMS offline</string>
     <string id="30026">Benutze 'SIMPLEJSON' anstelle von 'JSON'</string>
 
     <string id="30030">Portnummer:</string>

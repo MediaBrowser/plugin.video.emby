@@ -10,6 +10,7 @@
 		<setting id="https" label="30243" type="bool" default="false" />
 		<setting id="sslverify" subsetting="true" label="30500" type="bool" default="false" visible="eq(-1,true)" />
 		<setting id="sslcert" subsetting="true" label="30501" type="file" default="None" visible="eq(-2,true)" />
+		<setting id="show_pms_offline" label="30025" type="bool" default="true" /><!-- Display message if PMS goes offline -->
 
 		<setting type="sep" text=""/>
 

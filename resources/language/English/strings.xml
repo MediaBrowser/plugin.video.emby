@@ -19,6 +19,8 @@
 
     <string id="30022">Advanced</string>
     <string id="30024">Username</string><!-- Verified -->
+
+    <string id="30025">Display message if PMS goes offline</string>
     
     <string id="30030">Port Number</string><!-- Verified -->
     <string id="30031">I own this Plex Media Server</string>
