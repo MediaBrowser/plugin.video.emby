@@ -528,7 +528,7 @@ class Music(Items):
                 artist_full = emby.getItem(artist_eid)
                 self.add_updateArtist(artist_full)
                 artist_edb = emby_db.getItem_byId(artist_eid)
-                artistid = artist_edb[0]
+                artistid = artist_edb[0] if artist_edb else None
             except Exception:
                 artistid = None
 
