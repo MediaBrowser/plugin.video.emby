@@ -677,7 +677,9 @@ def passwordsXML():
                             '',  # Default input
                             xbmcgui.INPUT_ALPHANUM,
                             xbmcgui.ALPHANUM_HIDE_INPUT)
-
+    # Need to url-encode the password
+    from urllib import quote_plus
+    password = quote_plus(password)
     # Add elements. Annoying etree bug where findall hangs forever
     if skipFind is False:
         skipFind = True
