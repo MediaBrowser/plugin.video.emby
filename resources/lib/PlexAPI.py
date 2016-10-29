@@ -49,7 +49,7 @@ import clientinfo
 import downloadutils
 from utils import window, settings, language as lang, tryDecode, tryEncode, \
     DateToKodi
-from PlexFunctions import PlexToKodiTimefactor, PMSHttpsEnabled
+from PlexFunctions import PLEX_TO_KODI_TIMEFACTOR, PMSHttpsEnabled
 import embydb_functions as embydb
 
 ###############################################################################
@@ -1528,8 +1528,8 @@ class API():
         except (KeyError, ValueError):
             resume = 0.0
 
-        runtime = int(runtime * PlexToKodiTimefactor())
-        resume = int(resume * PlexToKodiTimefactor())
+        runtime = int(runtime * PLEX_TO_KODI_TIMEFACTOR)
+        resume = int(resume * PLEX_TO_KODI_TIMEFACTOR)
         return resume, runtime
 
     def getMpaa(self):
@@ -1749,7 +1749,7 @@ class API():
                     'key': key,
                     'title': title,
                     'thumb': thumb,
-                    'duration': int(duration * PlexToKodiTimefactor()),
+                    'duration': int(duration * PLEX_TO_KODI_TIMEFACTOR),
                     'extraType': extraType,
                     'originallyAvailableAt': originallyAvailableAt,
                     'year': year

@@ -171,7 +171,7 @@ def playWatchLater(itemid, viewOffset):
             int(sys.argv[1]), False, xbmcgui.ListItem())
     if viewOffset != '0':
         try:
-            viewOffset = int(PlexFunctions.PlexToKodiTimefactor() *
+            viewOffset = int(PlexFunctions.PLEX_TO_KODI_TIMEFACTOR *
                              float(viewOffset))
         except:
             pass

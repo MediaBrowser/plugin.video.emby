@@ -17,12 +17,7 @@ addonName = 'PlexKodiConnect'
 
 ###############################################################################
 
-
-def PlexToKodiTimefactor():
-    """
-    Kodi measures time in seconds, but Plex in milliseconds
-    """
-    return 1.0 / 1000.0
+PLEX_TO_KODI_TIMEFACTOR = 1.0 / 1000.0
 
 
 def ConvertPlexToKodiTime(plexTime):
@@ -31,7 +26,7 @@ def ConvertPlexToKodiTime(plexTime):
     """
     if plexTime is None:
         return None
-    return int(float(plexTime) * PlexToKodiTimefactor())
+    return int(float(plexTime) * PLEX_TO_KODI_TIMEFACTOR)
 
 
 def GetItemClassFromType(itemType):
