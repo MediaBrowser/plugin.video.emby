@@ -36,11 +36,14 @@ class Credentials(object):
             try:
                 with open(os.path.join(self.path, 'data.txt')) as infile:
                     self.credentials = json.load(infile)
-            
+
+                if not isinstance(self.credentials, dict):
+                    raise ValueError("invalid credentials format")
+
             except Exception as e: # File is either empty or missing
                 log.warn(e)
                 self.credentials = {}
-            
+
             log.info("credentials initialized with: %s" % self.credentials)
             self.credentials['Servers'] = self.credentials.setdefault('Servers', [])
 
