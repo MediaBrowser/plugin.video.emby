@@ -3,6 +3,7 @@
 #################################################################################################
 
 import json
+import io
 import logging
 import os
 import time
@@ -34,7 +35,7 @@ class Credentials(object):
         if self.credentials is None:
             try:
                 with open(os.path.join(self.path, 'data.txt')) as infile:
-                    self.credentials = json.load(unicode(infile))
+                    self.credentials = json.load(infile)
             
             except Exception as e: # File is either empty or missing
                 log.warn(e)
@@ -53,8 +54,8 @@ class Credentials(object):
         if data:
             self.credentials = data
             # Set credentials to file
-            with open(os.path.join(self.path, 'data.txt'), 'w') as outfile:
-                json.dump(unicode(data), outfile, indent=4, ensure_ascii=False)
+            with io.open(os.path.join(self.path, 'data.txt'), 'w', encoding='utf-8') as outfile:
+                outfile.write(json.dumps(data, ensure_ascii=False))
         else:
             self._clear()
 
