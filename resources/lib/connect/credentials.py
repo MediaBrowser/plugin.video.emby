@@ -3,7 +3,6 @@
 #################################################################################################
 
 import json
-import io
 import logging
 import os
 import time
@@ -57,8 +56,10 @@ class Credentials(object):
         if data:
             self.credentials = data
             # Set credentials to file
-            with io.open(os.path.join(self.path, 'data.txt'), 'w', encoding='utf-8') as outfile:
-                outfile.write(json.dumps(data, ensure_ascii=False))
+            with open(os.path.join(self.path, 'data.txt'), 'w') as outfile:
+                for server in data['Servers']:
+                    server['Name'] = server['Name'].encode('utf-8')
+                json.dump(data, outfile, ensure_ascii=False)
         else:
             self._clear()
 
