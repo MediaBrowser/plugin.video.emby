@@ -1,3 +1,18 @@
+version 1.4.5
+Make previous version available for everyone
+- Contextmenu! Delete media from the Plex Media Server. Make sure to enable the setting on your PMS
+- Fix a really ugly bug that had crept in and caused some weird behavior
+- Fix Plex trailers not being synced
+- Fix for missing Plex item bitDepth
+- Fix Movie filename and paths not updating, many thanks @piotrsmolinski
+- Fix TV show paths not updating
+- Fix episode filename & path not being updated
+- Fix Plex user switch not working
+- PKC should now be updated automatically again
+- New setting: Display message if PMS goes offline
+- Fix smb credentials password not being url-encoded
+- Fix not updating new user settings
+
 version 1.4.4 (beta only)
 - PKC should now be updated automatically again
 - New setting: Display message if PMS goes offline
