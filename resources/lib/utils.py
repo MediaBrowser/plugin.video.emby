@@ -60,12 +60,14 @@ def settings(setting, value=None):
 
     setting and value can either be unicode or string
     """
+    # We need to instantiate every single time to read changed variables!
+    addon = xbmcaddon.Addon(id='plugin.video.plexkodiconnect')
     if value is not None:
         # Takes string or unicode by default!
-        ADDON.setSetting(tryEncode(setting), tryEncode(value))
+        addon.setSetting(tryEncode(setting), tryEncode(value))
     else:
         # Should return unicode by default, but just in case
-        return tryDecode(ADDON.getSetting(setting))
+        return tryDecode(addon.getSetting(setting))
 
 
 def language(stringid):
