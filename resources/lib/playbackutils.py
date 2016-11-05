@@ -275,10 +275,8 @@ class PlaybackUtils():
             window('%s.refreshid' % embyitem, value=itemid)
 
         # Append external subtitles to stream
-        playmethod = window('%s.playmethod' % embyitem)
-        if playmethod in ("DirectStream", "DirectPlay"):
-            subtitles = self.API.externalSubs(playurl)
-            listitem.setSubtitles(subtitles)
+        subtitles = self.API.externalSubs(playurl)
+        listitem.setSubtitles(subtitles)
 
         self.setArtwork(listitem)
 
