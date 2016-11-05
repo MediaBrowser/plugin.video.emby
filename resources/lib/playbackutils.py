@@ -280,33 +280,6 @@ class PlaybackUtils():
 
         self.setArtwork(listitem)
 
-    def externalSubs(self, playurl):
-        externalsubs = []
-        mapping = {}
-
-        itemid = self.API.getRatingKey()
-        mediastreams = self.API.getMediaStreams()
-
-        kodiindex = 0
-        for stream in mediastreams:
-
-            index = stream['Index']
-            # Since Emby returns all possible tracks together, have to pull
-            # only external subtitles. IsTextSubtitleStream if true, is
-            # available to download from emby.
-            if (stream['Type'] == "Subtitle" and
-                    stream['IsExternal'] and stream['IsTextSubtitleStream']):
-                # Direct stream
-                url = ("%s/Videos/%s/%s/Subtitles/%s/Stream.srt"
-                       % (self.server, itemid, itemid, index))
-                # map external subtitles for mapping
-                mapping[kodiindex] = index
-                externalsubs.append(url)
-                kodiindex += 1
-        mapping = json.dumps(mapping)
-        window('emby_%s.indexMapping' % playurl, value=mapping)
-        return externalsubs
-
     def setArtwork(self, listItem):
         allartwork = self.API.getAllArtwork(parentInfo=True)
         arttypes = {

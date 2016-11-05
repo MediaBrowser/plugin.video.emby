@@ -2305,9 +2305,8 @@ class API():
     def externalSubs(self, playurl):
         externalsubs = []
         mapping = {}
-        item = self.item
         try:
-            mediastreams = item[0][self.part]
+            mediastreams = self.item[0][self.part]
         except (TypeError, KeyError, IndexError):
             return
         kodiindex = 0
