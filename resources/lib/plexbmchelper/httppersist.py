@@ -62,6 +62,14 @@ class RequestMgr:
             if conn:
                 conn.close()
             return False
+        except Exception as e:
+            log.error("Exception encountered: %s" % e)
+            # Close connection just in case
+            try:
+                conn.close()
+            except:
+                pass
+            return False
 
     def getwithparams(self, host, port, path, params, header={},
                       protocol="http"):
