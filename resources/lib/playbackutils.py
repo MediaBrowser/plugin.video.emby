@@ -177,7 +177,7 @@ class PlaybackUtils():
                                index=self.currentPosition)
                     self.pl.verifyPlaylist()
                     self.currentPosition += 1
-                API.setPartNumber = 0
+                API.setPartNumber(0)
 
             if dummyPlaylist:
                 # Added a dummy file to the playlist,
