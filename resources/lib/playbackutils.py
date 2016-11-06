@@ -91,15 +91,20 @@ class PlaybackUtils():
         homeScreen = (xbmc.getCondVisibility('Window.IsActive(home)') or
                       contextmenu_play)
         kodiPl = self.pl.playlist
-        # Can return -1
-        startPos = max(kodiPl.getposition(), 0)
         sizePlaylist = kodiPl.size()
+        if contextmenu_play:
+            # Need to start with the items we're inserting here
+            startPos = sizePlaylist
+        else:
+            # Can return -1
+            startPos = max(kodiPl.getposition(), 0)
         self.currentPosition = startPos
 
         propertiesPlayback = window('plex_playbackProps') == "true"
         introsPlaylist = False
         dummyPlaylist = False
 
+        log.info("Playing from contextmenu: %s" % contextmenu_play)
         log.info("Playlist start position: %s" % startPos)
         log.info("Playlist plugin position: %s" % self.currentPosition)
         log.info("Playlist size: %s" % sizePlaylist)
