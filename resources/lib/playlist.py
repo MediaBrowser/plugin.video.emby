@@ -82,6 +82,7 @@ class Playlist():
             log.info('Empty playlist initiated')
         if self.playlist is not None:
             self.playlistId = self.playlist.getPlayListId()
+            self.playlist.clear()
 
     @lockMethod.decorate
     def getQueueIdFromPosition(self, playlistPosition):
