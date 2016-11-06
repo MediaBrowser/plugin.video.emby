@@ -86,7 +86,10 @@ class PlaybackUtils():
             return xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, listitem)
 
         ############### ORGANIZE CURRENT PLAYLIST ################
-        homeScreen = xbmc.getCondVisibility('Window.IsActive(home)')
+        contextmenu_play = window('plex_contextplay') == 'true'
+        window('plex_contextplay', clear=True)
+        homeScreen = (xbmc.getCondVisibility('Window.IsActive(home)') or
+                      contextmenu_play)
         kodiPl = self.pl.playlist
         # Can return -1
         startPos = max(kodiPl.getposition(), 0)
@@ -136,13 +139,17 @@ class PlaybackUtils():
 
             ############### -- ADD MAIN ITEM ONLY FOR HOMESCREEN ##############
 
-            if homeScreen and not seektime and not sizePlaylist:
+            if ((homeScreen and not seektime and not sizePlaylist) or
+                    contextmenu_play):
                 # Extend our current playlist with the actual item to play
                 # only if there's no playlist first
                 log.info("Adding main item to playlist.")
                 self.pl.addtoPlaylist(
                     dbid,
                     PF.KODITYPE_FROM_PLEXTYPE[API.getType()])
+                if seektime:
+                    # Start from contextmenu only
+                    window('plex_customplaylist.seektime', value=str(seektime))
 
             # Ensure that additional parts are played after the main item
             self.currentPosition += 1
@@ -196,14 +203,17 @@ class PlaybackUtils():
         self.setProperties(playurl, listitem)
 
         ############### PLAYBACK ################
-        if homeScreen and seektime and window('plex_customplaylist') != "true":
+        if (homeScreen and seektime and window('plex_customplaylist') != "true"
+                and not contextmenu_play):
             log.info("Play as a widget item.")
             API.CreateListItemFromPlexItem(listitem)
             xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, listitem)
 
         elif ((introsPlaylist and window('plex_customplaylist') == "true") or
-                (homeScreen and not sizePlaylist)):
+                (homeScreen and not sizePlaylist) or
+                contextmenu_play):
             # Playlist was created just now, play it.
+            # Contextmenu plays always need this
             log.info("Play playlist.")
             xbmcplugin.endOfDirectory(int(sys.argv[1]), True, False, False)
             xbmc.Player().play(kodiPl, startpos=startPos)

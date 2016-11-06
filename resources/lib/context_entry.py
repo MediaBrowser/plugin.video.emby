@@ -203,7 +203,7 @@ class ContextMenu(object):
         """
         For using direct paths: Initiates playback using the PMS
         """
-        window('plex_customplaylist', value='true')
+        window('plex_contextplay', value='true')
         params = {
             'filename': '/library/metadata/%s' % self.item_id,
             'id': self.item_id,
