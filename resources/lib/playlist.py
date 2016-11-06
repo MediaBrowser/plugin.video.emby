@@ -273,7 +273,7 @@ class Playlist():
         API = PlexAPI.API(item)
         params = {
             'mode': "play",
-            'dbid': 999999999,
+            'dbid': 'plextrailer',
             'id': API.getRatingKey(),
             'filename': API.getKey()
         }

@@ -57,7 +57,7 @@ class PlaybackUtils():
         if not playurl:
             return xbmcplugin.setResolvedUrl(int(sys.argv[1]), False, listitem)
 
-        if dbid in (None, '999999999', 'plexnode'):
+        if dbid in (None, 'plextrailer', 'plexnode'):
             # Item is not in Kodi database, is a trailer or plex redirect
             # e.g. plex.tv watch later
             API.CreateListItemFromPlexItem(listitem)
@@ -235,7 +235,7 @@ class PlaybackUtils():
         path = "plugin://plugin.video.plexkodiconnect.movies/"
         params = {
             'mode': "play",
-            'dbid': 999999999
+            'dbid': 'plextrailer'
         }
         for counter, intro in enumerate(xml):
             # Don't process the last item - it's the original movie
