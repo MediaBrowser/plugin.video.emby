@@ -155,6 +155,8 @@ class PlayUtils():
             - codec is in h265
             - 10bit video codec
             - HEVC codec
+            - window variable 'plex_forcetranscode' set to 'true'
+                (excepting trailers etc.)
         if the corresponding file settings are set to 'true'
         """
         videoCodec = self.API.getVideoCodec()
@@ -171,6 +173,9 @@ class PlayUtils():
             # e.g. trailers. Avoids TypeError with "'h265' in codec"
             log.info('No codec from PMS, not transcoding.')
             return False
+        if window('plex_forcetranscode') == 'true':
+            log.info('User chose to force-transcode')
+            return True
         try:
             resolution = int(videoCodec['resolution'])
         except (TypeError, ValueError):

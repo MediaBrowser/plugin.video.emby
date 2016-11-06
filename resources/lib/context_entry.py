@@ -92,8 +92,8 @@ class ContextMenu(object):
                 self.item_type in PF.KODI_VIDEOTYPES):
             options.append(OPTIONS['PMS_Play'])
 
-        # if self.item_type in ("movie", "episode", "song"):
-        #     options.append(OPTIONS['Transcode'])
+        if self.item_type in PF.KODI_VIDEOTYPES:
+            options.append(OPTIONS['Transcode'])
 
         # userdata = self.api.getUserData()
         # if userdata['Favorite']:
@@ -134,7 +134,8 @@ class ContextMenu(object):
         selected = self._selected_option
 
         if selected == OPTIONS['Transcode']:
-            pass
+            window('plex_forcetranscode', value='true')
+            self._PMS_play()
 
         elif selected == OPTIONS['PMS_Play']:
             self._PMS_play()
