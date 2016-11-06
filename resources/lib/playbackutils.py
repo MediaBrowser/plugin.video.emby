@@ -3,7 +3,6 @@
 ###############################################################################
 
 import logging
-import json
 import sys
 from urllib import urlencode
 
@@ -123,7 +122,7 @@ class PlaybackUtils():
                 self.pl.insertintoPlaylist(
                     self.currentPosition+1,
                     dbid,
-                    PF.GetKodiTypeFromPlex(API.getType()))
+                    PF.KODITYPE_FROM_PLEXTYPE[API.getType()])
                 self.currentPosition += 1
 
             ############### -- CHECK FOR INTROS ################
@@ -143,7 +142,7 @@ class PlaybackUtils():
                 log.info("Adding main item to playlist.")
                 self.pl.addtoPlaylist(
                     dbid,
-                    PF.GetKodiTypeFromPlex(API.getType()))
+                    PF.KODITYPE_FROM_PLEXTYPE[API.getType()])
 
             # Ensure that additional parts are played after the main item
             self.currentPosition += 1

@@ -17,7 +17,48 @@ addonName = 'PlexKodiConnect'
 
 ###############################################################################
 
+# Multiply Plex time by this factor to receive Kodi time
 PLEX_TO_KODI_TIMEFACTOR = 1.0 / 1000.0
+
+# Possible output of Kodi's ListItem.DBTYPE for all video items
+KODI_VIDEOTYPES = (
+    'video',
+    'movie',
+    'set',
+    'tvshow',
+    'season',
+    'episode',
+    'musicvideo'
+)
+
+# Possible output of Kodi's ListItem.DBTYPE for all audio items
+KODI_AUDIOTYPES = (
+    'music',
+    'song',
+    'album',
+    'artist'
+)
+
+ITEMTYPE_FROM_PLEXTYPE = {
+    'movie': 'Movies',
+    'season': 'TVShows',
+    'episode': 'TVShows',
+    'show': 'TVShows',
+    'artist': 'Music',
+    'album': 'Music',
+    'track': 'Music',
+    'song': 'Music'
+}
+
+KODITYPE_FROM_PLEXTYPE = {
+    'movie': 'movie',
+    'episode': 'episode',
+    'track': 'song',
+    'artist': 'artist',
+    'album': 'album',
+    'XXXXXX': 'musicvideo',
+    'XXXXXXX': 'genre'
+}
 
 
 def ConvertPlexToKodiTime(plexTime):
@@ -27,44 +68,6 @@ def ConvertPlexToKodiTime(plexTime):
     if plexTime is None:
         return None
     return int(float(plexTime) * PLEX_TO_KODI_TIMEFACTOR)
-
-
-def GetItemClassFromType(itemType):
-    classes = {
-        'movie': 'Movies',
-        'season': 'TVShows',
-        'episode': 'TVShows',
-        'show': 'TVShows',
-        'artist': 'Music',
-        'album': 'Music',
-        'track': 'Music',
-        'song': 'Music'
-    }
-    return classes[itemType]
-
-
-def GetItemClassFromNumber(itemType):
-    classes = {
-        1: 'Movies',
-        4: 'TVShows',
-    }
-    return classes[itemType]
-
-
-def GetKodiTypeFromPlex(plexItemType):
-    """
-    As used in playlist.item here: http://kodi.wiki/view/JSON-RPC_API
-    """
-    classes = {
-        'movie': 'movie',
-        'episode': 'episode',
-        'track': 'song',
-        'artist': 'artist',
-        'album': 'album',
-        'XXXXXX': 'musicvideo',
-        'XXXXXXX': 'genre'
-    }
-    return classes[plexItemType.lower()]
 
 
 def GetPlexKeyNumber(plexKey):

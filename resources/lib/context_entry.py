@@ -7,8 +7,7 @@ import logging
 import xbmc
 import xbmcaddon
 
-import PlexAPI
-from PlexFunctions import GetPlexMetadata, delete_item_from_pms
+import PlexFunctions as PF
 import embydb_functions as embydb
 from utils import window, settings, dialog, language as lang, kodiSQL
 from dialogs import context
@@ -25,7 +24,8 @@ OPTIONS = {
     # 'AddFav': lang(30405),
     # 'RemoveFav': lang(30406),
     # 'RateSong': lang(30407),
-    'Transcode': lang(30412)
+    'Transcode': lang(30412),
+    'PMS_Play': lang(30415)  # Use PMS to start playback
 }
 
 ###############################################################################
@@ -46,9 +46,6 @@ class ContextMenu(object):
         if not self.item_id:
             return
 
-        self.item = GetPlexMetadata(self.item_id)
-        self.api = PlexAPI.API(self.item)
-
         if self._select_menu():
             self._action_menu()
 
@@ -61,7 +58,6 @@ class ContextMenu(object):
     @classmethod
     def _get_item_type(cls):
         item_type = xbmc.getInfoLabel('ListItem.DBTYPE').decode('utf-8')
-
         if not item_type:
             if xbmc.getCondVisibility('Container.Content(albums)'):
                 item_type = "album"
@@ -73,7 +69,6 @@ class ContextMenu(object):
                 item_type = "picture"
             else:
                 log.info("item_type is unknown")
-
         return item_type
 
     @classmethod
@@ -91,6 +86,11 @@ class ContextMenu(object):
     def _select_menu(self):
         # Display select dialog
         options = []
+
+        # if user uses direct paths, give option to initiate playback via PMS
+        if (window('useDirectPaths') == 'true' and
+                self.item_type in PF.KODI_VIDEOTYPES):
+            options.append(OPTIONS['PMS_Play'])
 
         # if self.item_type in ("movie", "episode", "song"):
         #     options.append(OPTIONS['Transcode'])
@@ -116,10 +116,11 @@ class ContextMenu(object):
         # Addon settings
         options.append(OPTIONS['Addon'])
 
-        addon = xbmcaddon.Addon('plugin.video.plexkodiconnect')
-        context_menu = context.ContextMenu("script-emby-context.xml",
-                                           addon.getAddonInfo('path'),
-                                           "default", "1080i")
+        context_menu = context.ContextMenu(
+            "script-emby-context.xml",
+            xbmcaddon.Addon(
+                'plugin.video.plexkodiconnect').getAddonInfo('path'),
+            "default", "1080i")
         context_menu.set_options(options)
         context_menu.doModal()
 
@@ -134,6 +135,9 @@ class ContextMenu(object):
 
         if selected == OPTIONS['Transcode']:
             pass
+
+        elif selected == OPTIONS['PMS_Play']:
+            self._PMS_play()
 
         elif selected == OPTIONS['Refresh']:
             self.emby.refreshItem(self.item_id)
@@ -192,5 +196,20 @@ class ContextMenu(object):
 
         if delete:
             log.info("Deleting Plex item with id %s", self.item_id)
-            if delete_item_from_pms(self.item_id) is False:
+            if PF.delete_item_from_pms(self.item_id) is False:
                 dialog(type_="ok", heading="{plex}", line1=lang(30414))
+
+    def _PMS_play(self):
+        """
+        For using direct paths: Initiates playback using the PMS
+        """
+        params = {
+            'filename': '/library/metadata/%s' % self.item_id,
+            'id': self.item_id,
+            'dbid': self.kodi_id,
+            'mode': "play"
+        }
+        from urllib import urlencode
+        handle = ("plugin://plugin.video.plexkodiconnect.movies?%s"
+                  % urlencode(params))
+        xbmc.executebuiltin('RunPlugin(%s)' % handle)
