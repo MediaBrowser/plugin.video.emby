@@ -182,8 +182,7 @@ class PlaybackUtils():
             self.currentPosition += 1
 
             ############### -- CHECK FOR ADDITIONAL PARTS ################
-            if (len(item[0][0]) > 1 and
-                    window('emby_%s.playmethod' % playurl) != "Transcode"):
+            if len(item[0][0]) > 1:
                 # Only add to the playlist after intros have played
                 for counter, part in enumerate(item[0][0]):
                     # Never add first part
@@ -194,7 +193,8 @@ class PlaybackUtils():
                     additionalListItem = xbmcgui.ListItem()
                     additionalPlayurl = playutils.getPlayUrl(
                         partNumber=counter)
-                    log.debug("Adding additional part: %s" % counter)
+                    log.debug("Adding additional part: %s, url: %s"
+                              % (counter, additionalPlayurl))
 
                     self.setProperties(additionalPlayurl, additionalListItem)
                     self.setArtwork(additionalListItem)
