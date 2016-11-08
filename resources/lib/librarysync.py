@@ -1559,9 +1559,6 @@ class LibrarySync(Thread):
                             continue
 
                 currSess = self.sessionKeys[sessionKey]
-                if window('plex_currently_playing_itemid') == ratingKey:
-                    # Don't update what we already know
-                    continue
                 if settings('plex_serverowned') != 'false':
                     # Identify the user - same one as signed on with PKC? Skip
                     # update if neither session's username nor userid match
