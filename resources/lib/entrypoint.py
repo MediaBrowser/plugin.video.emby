@@ -39,11 +39,11 @@ log = logging.getLogger("EMBY."+__name__)
 #################################################################################################
 
 
-def doPlayback(itemId, dbId):
+def doPlayback(itemId, dbId, playOnStart = False):
 
     emby = embyserver.Read_EmbyServer()
     item = emby.getItem(itemId)
-    pbutils.PlaybackUtils(item).play(itemId, dbId)
+    pbutils.PlaybackUtils(item).play(itemId, dbId, playOnStart = playOnStart)
 
 ##### DO RESET AUTH #####
 def resetAuth():
@@ -66,7 +66,7 @@ def addDirectoryItem(label, path, folder=True):
 
 def doMainListing():
 
-    xbmcplugin.setContent(int(sys.argv[1]), 'files')    
+    xbmcplugin.setContent(int(sys.argv[1]), 'files')
     # Get emby nodes from the window props
     embyprops = window('Emby.nodes.total')
     if embyprops:
@@ -77,11 +77,11 @@ def doMainListing():
                 path = window('Emby.nodes.%s.content' % i)
             label = window('Emby.nodes.%s.title' % i)
             node = window('Emby.nodes.%s.type' % i)
-            
+
             ''' because we do not use seperate entrypoints for each content type,
                 we need to figure out which items to show in each listing.
                 for now we just only show picture nodes in the picture library
-                video nodes in the video library and all nodes in any other window 
+                video nodes in the video library and all nodes in any other window
             '''
 
             if path:
@@ -119,7 +119,7 @@ def doMainListing():
 
     if settings('backupPath'):
         addDirectoryItem(lang(33092), "plugin://plugin.video.emby/?mode=backup")
-    
+
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
 def emby_connect():
@@ -140,7 +140,7 @@ def emby_connect():
                icon=user.get('ImageUrl') or "{emby}",
                time=2000,
                sound=False)
-        
+
         settings('connectUsername', value=username)
 
 def emby_backup():
@@ -265,7 +265,7 @@ def deleteItem():
         if not resp:
             log.info("User skipped deletion for: %s." % itemId)
             return
-    
+
     embyserver.Read_EmbyServer().deleteItem(itemId)
 
 ##### ADD ADDITIONAL USERS #####
@@ -285,7 +285,6 @@ def addUser():
 
     # Get session
     url = "{server}/emby/Sessions?DeviceId=%s&format=json" % deviceId
-
     try:
         result = doUtils.downloadUrl(url)
         sessionId = result[0]['Id']
@@ -433,7 +432,7 @@ def getThemeMedia():
         dialog.ok(heading=lang(29999), line1=lang(33073))
         xbmc.executebuiltin('Addon.OpenSettings(script.tvtunes)')
         return
-        
+
     # Get every user view Id
     with database.DatabaseConn('emby') as cursor:
         emby_db = embydb.Embydb_Functions(cursor)
@@ -475,13 +474,14 @@ def getThemeMedia():
             else:
                 playurl = putils.directStream()
             pathstowrite += ('<file>%s</file>' % playurl.encode('utf-8'))
-        
-        # Check if the item has theme songs and add them   
+
+        # Check if the item has theme songs and add them
         url = "{server}/emby/Items/%s/ThemeSongs?format=json" % itemId
         result = doUtils.downloadUrl(url)
 
         # May be more than one theme
-        for theme in result['Items']: 
+        for theme in result['Items']:
+            putils = playutils.PlayUtils(theme)
             if playback == "DirectPlay":
                 playurl = api.API(theme).get_file_path()
             else:
@@ -508,11 +508,11 @@ def getThemeMedia():
 
     # Get paths
     for itemId in musicitemIds:
-        
+
         # if the item was already processed with video themes back out
         if itemId in itemIds:
             continue
-        
+
         nfo_path = xbmc.translatePath(
             "special://profile/addon_data/plugin.video.emby/library/%s/" % musicitemIds[itemId])
         # Create folders for each content
@@ -520,7 +520,7 @@ def getThemeMedia():
             xbmcvfs.mkdir(nfo_path)
         # Where to put the nfos
         nfo_path = "%s%s" % (nfo_path, "tvtunes.nfo")
-        
+
         url = "{server}/emby/Items/%s/ThemeSongs?format=json" % itemId
         result = doUtils.downloadUrl(url)
 
@@ -528,7 +528,8 @@ def getThemeMedia():
         nfo_file = xbmcvfs.File(nfo_path, 'w')
         pathstowrite = ""
         # May be more than one theme
-        for theme in result['Items']: 
+        for theme in result['Items']:
+            putils = playutils.PlayUtils(theme)
             if playback == "DirectPlay":
                 playurl = api.API(theme).get_file_path()
             else:
@@ -589,21 +590,21 @@ def GetSubFolders(nodeindex):
             path = window('Emby.nodes.%s%s.content' %(nodeindex,node))
             addDirectoryItem(title, path)
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
-              
-##### BROWSE EMBY NODES DIRECTLY #####    
+
+##### BROWSE EMBY NODES DIRECTLY #####
 def BrowseContent(viewname, browse_type="", folderid=""):
-    
+
     emby = embyserver.Read_EmbyServer()
     art = artwork.Artwork()
     doUtils = downloadutils.DownloadUtils()
-    
+
     #folderid used as filter ?
     if folderid in ["recent","recentepisodes","inprogress","inprogressepisodes","unwatched","nextepisodes","sets","genres","random","recommended"]:
         filter_type = folderid
         folderid = ""
     else:
         filter_type = ""
-    
+
     xbmcplugin.setPluginCategory(int(sys.argv[1]), viewname)
     #get views for root level
     if not folderid:
@@ -612,7 +613,7 @@ def BrowseContent(viewname, browse_type="", folderid=""):
             if view.get("name") == viewname.decode('utf-8'):
                 folderid = view.get("id")
                 break
-    
+
     if viewname is not None:
         log.info("viewname: %s - type: %s - folderid: %s - filter: %s" %(viewname.decode('utf-8'), browse_type.decode('utf-8'), folderid.decode('utf-8'), filter_type.decode('utf-8')))
     #set the correct params for the content type
@@ -626,7 +627,7 @@ def BrowseContent(viewname, browse_type="", folderid=""):
             itemtype = "Photo,PhotoAlbum,Folder"
         else:
             itemtype = ""
-        
+
         #get the actual listing
         if browse_type == "recordings":
             listing = emby.getTvRecordings(folderid)
@@ -645,7 +646,7 @@ def BrowseContent(viewname, browse_type="", folderid=""):
             listing = emby.getFilteredSection(folderid, itemtype=itemtype.split(",")[1], sortby="SortName", recursive=True, limit=25, sortorder="Ascending", filter_type="IsFavorite")
         else:
             listing = emby.getFilteredSection(folderid, itemtype=itemtype, recursive=False)
-        
+
         #process the listing
         if listing:
             for item in listing.get("Items"):
@@ -673,10 +674,10 @@ def BrowseContent(viewname, browse_type="", folderid=""):
 def createListItemFromEmbyItem(item,art=artwork.Artwork(),doUtils=downloadutils.DownloadUtils()):
     API = api.API(item)
     itemid = item['Id']
-    
+
     title = item.get('Name')
     li = xbmcgui.ListItem(title)
-    
+
     premieredate = item.get('PremiereDate',"")
     if not premieredate: premieredate = item.get('DateCreated',"")
     if premieredate:
@@ -684,9 +685,9 @@ def createListItemFromEmbyItem(item,art=artwork.Artwork(),doUtils=downloadutils.
         premieredate = "%s.%s.%s" %(premieredatelst[2],premieredatelst[1],premieredatelst[0])
 
     li.setProperty("embyid",itemid)
-    
+
     allart = art.get_all_artwork(item)
-    
+
     if item["Type"] == "Photo":
         #listitem setup for pictures...
         img_path = allart.get('Primary')
@@ -718,14 +719,14 @@ def createListItemFromEmbyItem(item,art=artwork.Artwork(),doUtils=downloadutils.
         if seektime:
             li.setProperty("resumetime", str(seektime))
             li.setProperty("totaltime", str(runtime))
-        
+
         played = userdata['Played']
         if played: overlay = 7
-        else: overlay = 6       
+        else: overlay = 6
         playcount = userdata['PlayCount']
         if playcount is None:
             playcount = 0
-            
+
         rating = item.get('CommunityRating')
         if not rating: rating = 0
 
@@ -763,12 +764,12 @@ def createListItemFromEmbyItem(item,art=artwork.Artwork(),doUtils=downloadutils.
         if not videostreamFound:
             #just set empty streamdetails to prevent errors in the logs
             li.addStreamInfo("video", {'duration': runtime})
-        
+
     return li
-    
-##### BROWSE EMBY CHANNELS #####    
+
+##### BROWSE EMBY CHANNELS #####
 def BrowseChannels(itemid, folderid=None):
-    
+
     _addon_id   =   int(sys.argv[1])
     _addon_url  =   sys.argv[0]
     doUtils = downloadutils.DownloadUtils()
@@ -796,7 +797,7 @@ def BrowseChannels(itemid, folderid=None):
             itemid = item['Id']
             itemtype = item['Type']
             li = createListItemFromEmbyItem(item,art,doUtils)
-            
+
             isFolder = item.get('IsFolder', False)
 
             channelId = item.get('ChannelId', "")
@@ -820,7 +821,7 @@ def createListItem(item):
     title = item['title']
     li = xbmcgui.ListItem(title)
     li.setProperty('IsPlayable', "true")
-    
+
     metadata = {
 
         'Title': title,
@@ -871,7 +872,7 @@ def createListItem(item):
         metadata['Cast'] = cast
         metadata['CastAndRole'] = castandrole
 
-    li.setInfo(type="Video", infoLabels=metadata)  
+    li.setInfo(type="Video", infoLabels=metadata)
     li.setProperty('resumetime', str(item['resume']['position']))
     li.setProperty('totaltime', str(item['resume']['total']))
     li.setArt(item['art'])
@@ -885,9 +886,9 @@ def createListItem(item):
 
     return li
 
-##### GET NEXTUP EPISODES FOR TAGNAME #####    
+##### GET NEXTUP EPISODES FOR TAGNAME #####
 def getNextUpEpisodes(tagname, limit):
-    
+
     count = 0
     # if the addon is called with nextup parameter,
     # we return the nextepisodes list of the given tagname
@@ -983,9 +984,9 @@ def getNextUpEpisodes(tagname, limit):
 
     xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
 
-##### GET INPROGRESS EPISODES FOR TAGNAME #####    
+##### GET INPROGRESS EPISODES FOR TAGNAME #####
 def getInProgressEpisodes(tagname, limit):
-    
+
     count = 0
     # if the addon is called with inprogressepisodes parameter,
     # we return the inprogressepisodes list of the given tagname
@@ -1054,9 +1055,9 @@ def getInProgressEpisodes(tagname, limit):
 
     xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
 
-##### GET RECENT EPISODES FOR TAGNAME #####    
+##### GET RECENT EPISODES FOR TAGNAME #####
 def getRecentEpisodes(tagname, limit):
-    
+
     count = 0
     # if the addon is called with recentepisodes parameter,
     # we return the recentepisodes list of the given tagname
@@ -1149,21 +1150,21 @@ def getVideoFiles(embyId,embyPath):
                 li = xbmcgui.ListItem(dir, path=dir)
                 xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=dir, listitem=li, isFolder=True)
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
-    
+
 ##### GET EXTRAFANART FOR LISTITEM #####
 def getExtraFanArt(embyId,embyPath):
-    
+
     emby = embyserver.Read_EmbyServer()
     art = artwork.Artwork()
-    
-    # Get extrafanart for listitem 
+
+    # Get extrafanart for listitem
     # will be called by skinhelper script to get the extrafanart
     try:
         # for tvshows we get the embyid just from the path
         if not embyId:
             if "plugin.video.emby" in embyPath:
                 embyId = embyPath.split("/")[-2]
-        
+
         if embyId:
             #only proceed if we actually have a emby id
             log.info("Requesting extrafanart for Id: %s" % embyId)
@@ -1171,7 +1172,7 @@ def getExtraFanArt(embyId,embyPath):
             # We need to store the images locally for this to work
             # because of the caching system in xbmc
             fanartDir = xbmc.translatePath("special://thumbnails/emby/%s/" % embyId).decode('utf-8')
-            
+
             if not xbmcvfs.exists(fanartDir):
                 # Download the images to the cache directory
                 xbmcvfs.mkdirs(fanartDir)
@@ -1192,8 +1193,8 @@ def getExtraFanArt(embyId,embyPath):
                                             handle=int(sys.argv[1]),
                                             url=fanartFile,
                                             listitem=li)
-                        xbmcvfs.copy(backdrop, fanartFile) 
-                        count += 1               
+                        xbmcvfs.copy(backdrop, fanartFile)
+                        count += 1
             else:
                 log.debug("Found cached backdrop.")
                 # Use existing cached images
@@ -1207,6 +1208,6 @@ def getExtraFanArt(embyId,embyPath):
                                             listitem=li)
     except Exception as e:
         log.error("Error getting extrafanart: %s" % e)
-    
+
     # Always do endofdirectory to prevent errors in the logs
     xbmcplugin.endOfDirectory(int(sys.argv[1]))

@@ -31,8 +31,8 @@ log = logging.getLogger("EMBY."+__name__)
 
 
 class PlaybackUtils():
-    
-    
+
+
     def __init__(self, item):
 
         self.item = item
@@ -48,7 +48,7 @@ class PlaybackUtils():
         self.pl = playlist.Playlist()
 
 
-    def play(self, itemid, dbid=None):
+    def play(self, itemid, dbid=None, playOnStart = False):
 
         listitem = xbmcgui.ListItem()
         playutils = putils.PlayUtils(self.item)
@@ -67,7 +67,7 @@ class PlaybackUtils():
         # TODO: Review once Krypton is RC, no need for workaround.
 
         ############### ORGANIZE CURRENT PLAYLIST ################
-        
+
         homeScreen = xbmc.getCondVisibility('Window.IsActive(home)')
         playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
         startPos = max(playlist.getposition(), 0) # Can return -1
@@ -83,7 +83,7 @@ class PlaybackUtils():
         log.debug("Playlist size: %s" % sizePlaylist)
 
         ############### RESUME POINT ################
-        
+
         userdata = self.API.get_userdata()
         seektime = self.API.adjust_resume(userdata['Resume'])
 
@@ -95,21 +95,21 @@ class PlaybackUtils():
             log.info("Setting up properties in playlist.")
 
             if not homeScreen and not seektime and window('emby_customPlaylist') != "true":
-                
+
                 log.debug("Adding dummy file to playlist.")
                 dummyPlaylist = True
                 playlist.add(playurl, listitem, index=startPos)
-                # Remove the original item from playlist 
+                # Remove the original item from playlist
                 self.pl.remove_from_playlist(startPos+1)
                 # Readd the original item to playlist - via jsonrpc so we have full metadata
                 self.pl.insert_to_playlist(currentPosition+1, dbid, self.item['Type'].lower())
                 currentPosition += 1
-            
+
             ############### -- CHECK FOR INTROS ################
 
             if settings('enableCinema') == "true" and not seektime:
                 # if we have any play them when the movie/show is not being resumed
-                url = "{server}/emby/Users/{UserId}/Items/%s/Intros?format=json" % itemid    
+                url = "{server}/emby/Users/{UserId}/Items/%s/Intros?format=json" % itemid
                 intros = self.doUtils(url)
 
                 if intros['TotalRecordCount'] != 0:
@@ -121,7 +121,7 @@ class PlaybackUtils():
                             # User selected to not play trailers
                             getTrailers = False
                             log.info("Skip trailers.")
-                    
+
                     if getTrailers:
                         for intro in intros['Items']:
                             # The server randomly returns intros, process them.
@@ -150,7 +150,7 @@ class PlaybackUtils():
             currentPosition += 1
 
             ############### -- CHECK FOR ADDITIONAL PARTS ################
-            
+
             if self.item.get('PartCount'):
                 # Only add to the playlist after intros have played
                 partcount = self.item['PartCount']
@@ -176,7 +176,7 @@ class PlaybackUtils():
                 # because the first item is going to fail automatically.
                 log.info("Processed as a playlist. First item is skipped.")
                 return xbmcplugin.setResolvedUrl(int(sys.argv[1]), False, listitem)
-                
+
 
         # We just skipped adding properties. Reset flag for next time.
         elif propertiesPlayback:
@@ -200,7 +200,7 @@ class PlaybackUtils():
 
         ############### PLAYBACK ################
 
-        if homeScreen and seektime and window('emby_customPlaylist') != "true":
+        if playOnStart or (homeScreen and seektime and window('emby_customPlaylist') != "true"):
             log.info("Play as a widget item.")
             self.setListItem(listitem)
             xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, listitem)
@@ -261,7 +261,7 @@ class PlaybackUtils():
             index = stream['Index']
             # Since Emby returns all possible tracks together, have to pull only external subtitles.
             # IsTextSubtitleStream if true, is available to download from emby.
-            if (stream['Type'] == "Subtitle" and 
+            if (stream['Type'] == "Subtitle" and
                     stream['IsExternal'] and stream['IsTextSubtitleStream']):
 
                 # Direct stream
@@ -269,7 +269,7 @@ class PlaybackUtils():
                         % (self.server, itemid, itemid, index))
 
                 if "Language" in stream:
-                    
+
                     filename = "Stream.%s.srt" % stream['Language']
                     try:
                         path = self._download_external_subs(url, temp, filename)
@@ -279,11 +279,11 @@ class PlaybackUtils():
                         externalsubs.append(url)
                 else:
                     externalsubs.append(url)
-                
+
                 # map external subtitles for mapping
                 mapping[kodiindex] = index
                 kodiindex += 1
-        
+
         mapping = json.dumps(mapping)
         window('emby_%s.indexMapping' % playurl, value=mapping)
 
@@ -336,12 +336,12 @@ class PlaybackUtils():
                 self.setArtProp(listItem, arttype, allartwork[art])
 
     def setArtProp(self, listItem, arttype, path):
-        
+
         if arttype in (
                 'thumb', 'fanart_image', 'small_poster', 'tiny_poster',
                 'medium_landscape', 'medium_poster', 'small_fanartimage',
                 'medium_fanartimage', 'fanart_noindicators'):
-            
+
             listItem.setProperty(arttype, path)
         else:
             listItem.setArt({arttype: path})
@@ -352,7 +352,7 @@ class PlaybackUtils():
         studios = self.API.get_studios()
 
         metadata = {
-            
+
             'title': self.item.get('Name', "Missing name"),
             'year': self.item.get('ProductionYear'),
             'plot': self.API.get_overview(),
