@@ -88,8 +88,7 @@ class PlaybackUtils():
         ############### ORGANIZE CURRENT PLAYLIST ################
         contextmenu_play = window('plex_contextplay') == 'true'
         window('plex_contextplay', clear=True)
-        homeScreen = (xbmc.getCondVisibility('Window.IsActive(home)') or
-                      contextmenu_play)
+        homeScreen = xbmc.getCondVisibility('Window.IsActive(home)')
         kodiPl = self.pl.playlist
         sizePlaylist = kodiPl.size()
         if contextmenu_play:
@@ -120,11 +119,12 @@ class PlaybackUtils():
             log.info("Setting up properties in playlist.")
 
             if (not homeScreen and not seektime and
-                    window('plex_customplaylist') != "true"):
+                    window('plex_customplaylist') != "true" and
+                    not contextmenu_play):
                 log.debug("Adding dummy file to playlist.")
                 dummyPlaylist = True
                 kodiPl.add(playurl, listitem, index=startPos)
-                # Remove the original item from playlist 
+                # Remove the original item from playlist
                 self.pl.removefromPlaylist(startPos+1)
                 # Readd the original item to playlist - via jsonrpc so we have full metadata
                 self.pl.insertintoPlaylist(
@@ -144,23 +144,46 @@ class PlaybackUtils():
 
             ############### -- ADD MAIN ITEM ONLY FOR HOMESCREEN ##############
 
-            if ((homeScreen and not seektime and not sizePlaylist) or
-                    contextmenu_play):
+            if homeScreen and not seektime and not sizePlaylist:
                 # Extend our current playlist with the actual item to play
                 # only if there's no playlist first
                 log.info("Adding main item to playlist.")
                 self.pl.addtoPlaylist(
                     dbid,
                     PF.KODITYPE_FROM_PLEXTYPE[API.getType()])
+
+            elif contextmenu_play:
+                if window('useDirectPaths') == 'true':
+                    # Cannot add via JSON with full metadata because then we
+                    # Would be using the direct path
+                    log.debug("Adding contextmenu item for direct paths")
+                    if window('emby_%s.playmethod' % playurl) == "Transcode":
+                        window('emby_%s.playmethod' % playurl,
+                               clear=True)
+                        playurl = tryEncode(playutils.audioSubsPref(
+                            listitem, tryDecode(playurl)))
+                        window('emby_%s.playmethod' % playurl,
+                               value="Transcode")
+                    self.setProperties(playurl, listitem)
+                    self.setArtwork(listitem)
+                    API.CreateListItemFromPlexItem(listitem)
+                    kodiPl.add(playurl, listitem, index=self.currentPosition+1)
+                else:
+                    # Full metadata
+                    self.pl.insertintoPlaylist(
+                        self.currentPosition+1,
+                        dbid,
+                        PF.KODITYPE_FROM_PLEXTYPE[API.getType()])
+                self.currentPosition += 1
                 if seektime:
-                    # Start from contextmenu only
                     window('plex_customplaylist.seektime', value=str(seektime))
 
             # Ensure that additional parts are played after the main item
             self.currentPosition += 1
 
             ############### -- CHECK FOR ADDITIONAL PARTS ################
-            if len(item[0][0]) > 1:
+            if (len(item[0][0]) > 1 and
+                    window('emby_%s.playmethod' % playurl) != "Transcode"):
                 # Only add to the playlist after intros have played
                 for counter, part in enumerate(item[0][0]):
                     # Never add first part
@@ -198,7 +221,8 @@ class PlaybackUtils():
         #self.pl.verifyPlaylist()
         ########## SETUP MAIN ITEM ##########
         # For transcoding only, ask for audio/subs pref
-        if window('emby_%s.playmethod' % playurl) == "Transcode":
+        if (window('emby_%s.playmethod' % playurl) == "Transcode" and
+                not contextmenu_play):
             window('emby_%s.playmethod' % playurl, clear=True)
             playurl = tryEncode(playutils.audioSubsPref(
                 listitem, tryDecode(playurl)))
