@@ -1,3 +1,8 @@
+version 1.4.6 (beta only)
+- New contextmenu: Force transcode video
+- New contextmenu: force playback from PMS. Shows up if you use direct paths. Can be useful if you want trailers before a movie. Or if you have a movie with several different parts/versions. 
+- Close Plex companion connection on exceptions
+
 version 1.4.5
 Make previous version available for everyone
 - Contextmenu! Delete media from the Plex Media Server. Make sure to enable the setting on your PMS
