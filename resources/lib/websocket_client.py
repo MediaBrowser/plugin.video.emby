@@ -84,16 +84,17 @@ class WebSocket(threading.Thread):
         # Need to use plex.tv token, if any. NOT user token
         token = window('plex_token')
         # Get the appropriate prefix for the websocket
-        if "https" in server:
-            server = server.replace('https', "wss")
+        if server.startswith('https'):
+            server = "wss%s" % server[5:]
         else:
-            server = server.replace('http', "ws")
+            server = "ws%s" % server[4:]
         uri = "%s/:/websockets/notifications" % server
         if token:
             uri += '?X-Plex-Token=%s' % token
         sslopt = {}
         if settings('sslverify') == "false":
             sslopt["cert_reqs"] = ssl.CERT_NONE
+        log.debug("Uri: %s, sslopt: %s" % (uri, sslopt))
         return uri, sslopt
 
     def run(self):
