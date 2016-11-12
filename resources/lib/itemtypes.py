@@ -466,20 +466,36 @@ class Movies(Items):
         ##### OR ADD THE MOVIE #####
         else:
             log.info("ADD movie itemid: %s - Title: %s" % (itemid, title))
+            if self.kodiversion > 16:
+                query = (
+                    '''
+                    INSERT INTO movie( idMovie, idFile, c00, c01, c02, c03,
+                        c04, c05, c06, c07, c09, c10, c11, c12, c14, c15, c16,
+                        c18, c19, c21, c22, c23, premiered)
 
-            # Create the movie entry
-            query = (
-                '''
-                INSERT INTO movie(
-                    idMovie, idFile, c00, c01, c02, c03, c04, c05, c06, c07, 
-                    c09, c10, c11, c12, c14, c15, c16, c18, c19, c21, c22, c23)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+                    ?, ?, ?, ?, ?, ?)
+                    '''
+                )
+                kodicursor.execute(query, (movieid, fileid, title, plot,
+                    shortplot, tagline, votecount, rating, writer, year, imdb,
+                    sorttitle, runtime, mpaa, genre, director, title, studio,
+                    trailer, country, playurl, pathid, year))
+            else:
+                query = (
+                    '''
+                    INSERT INTO movie( idMovie, idFile, c00, c01, c02, c03,
+                        c04, c05, c06, c07, c09, c10, c11, c12, c14, c15, c16,
+                        c18, c19, c21, c22, c23)
 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                '''
-            )
-            kodicursor.execute(query, (movieid, fileid, title, plot, shortplot, tagline, votecount,
-                rating, writer, year, imdb, sorttitle, runtime, mpaa, genre, director, title,
-                studio, trailer, country, playurl, pathid))
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+                    ?, ?, ?, ?, ?)
+                    '''
+                )
+                kodicursor.execute(query, (movieid, fileid, title, plot,
+                    shortplot, tagline, votecount, rating, writer, year, imdb,
+                    sorttitle, runtime, mpaa, genre, director, title, studio,
+                    trailer, country, playurl, pathid))
 
         # Create or update the reference in emby table Add reference is
         # idempotent; the call here updates also fileid and pathid when item is
