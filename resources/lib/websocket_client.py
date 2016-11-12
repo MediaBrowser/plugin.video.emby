@@ -143,14 +143,14 @@ class WebSocket(threading.Thread):
                                  "declaring the connection dead")
                         window('plex_online', value='false')
                         counter = 0
-                    xbmc.sleep(1000)
+                    xbmc.sleep(5000)
                 except websocket.WebSocketTimeoutException:
                     log.info("timeout while connecting, trying again")
                     self.ws = None
                     xbmc.sleep(1000)
                 except Exception as e:
                     log.error("Unknown exception encountered in connecting: %s"
-                             % e)
+                              % e)
                     self.ws = None
                     xbmc.sleep(1000)
                 else:
