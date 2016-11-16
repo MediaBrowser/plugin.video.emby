@@ -29,6 +29,8 @@ addonName = 'PlexKodiConnect'
 WINDOW = xbmcgui.Window(10000)
 ADDON = xbmcaddon.Addon(id='plugin.video.plexkodiconnect')
 
+KODILANGUAGE = xbmc.getLanguage(xbmc.ISO_639_1)
+
 ###############################################################################
 # Main methods
 

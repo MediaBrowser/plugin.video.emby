@@ -48,7 +48,7 @@ import xbmcvfs
 import clientinfo
 import downloadutils
 from utils import window, settings, language as lang, tryDecode, tryEncode, \
-    DateToKodi
+    DateToKodi, KODILANGUAGE
 from PlexFunctions import PLEX_TO_KODI_TIMEFACTOR, PMSHttpsEnabled
 import embydb_functions as embydb
 
@@ -1932,7 +1932,6 @@ class API():
         else:
             log.info('Start movie set/collection lookup on themoviedb')
 
-        KODILANGUAGE = xbmc.getLanguage(xbmc.ISO_639_1)
         apiKey = settings('themoviedbAPIKey')
         if media_type == 'show':
             media_type = 'tv'
@@ -2068,7 +2067,6 @@ class API():
         mediaId: IMDB id for movies, tvdb id for TV shows
         """
         item = self.item.attrib
-        KODILANGUAGE = xbmc.getLanguage(xbmc.ISO_639_1)
         api_key = settings('FanArtTVAPIKey')
         typus = item.get('type')
         if typus == 'show':
