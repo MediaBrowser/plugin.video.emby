@@ -2129,14 +2129,14 @@ class API():
                 # select image in preferred language
                 for entry in data[fanarttvimage]:
                     if entry.get("lang") == KODILANGUAGE:
-                        allartworks[fanarttype[1]] = entry.get("url")
+                        allartworks[fanarttype[1]] = entry.get("url", "").replace(' ', '%20')
                         break
                 # just grab the first english OR undefinded one as fallback
                 # (so we're actually grabbing the more popular one)
                 if not allartworks.get(fanarttype[1]):
                     for entry in data[fanarttvimage]:
                         if entry.get("lang") in ("en", "00"):
-                            allartworks[fanarttype[1]] = entry.get("url")
+                            allartworks[fanarttype[1]] = entry.get("url", "").replace(' ', '%20')
                             break
 
         # grab extrafanarts in list
@@ -2149,7 +2149,8 @@ class API():
             for entry in data[fanarttvimage]:
                 if fanartcount < maxfanarts:
                     if xbmcvfs.exists(entry.get("url")):
-                        allartworks['Backdrop'].append(entry.get("url"))
+                        allartworks['Backdrop'].append(
+                            entry.get("url", "").replace(' ', '%20'))
                         fanartcount += 1
         return allartworks
 
