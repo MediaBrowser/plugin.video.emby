@@ -101,6 +101,7 @@ class WebSocket(threading.Thread):
         log.info("----===## Starting WebSocketClient ##===----")
 
         counter = 0
+        handshake_counter = 0
         threadStopped = self.threadStopped
         threadSuspended = self.threadSuspended
         while not threadStopped():
@@ -148,13 +149,26 @@ class WebSocket(threading.Thread):
                     log.info("timeout while connecting, trying again")
                     self.ws = None
                     xbmc.sleep(1000)
+                except websocket.WebSocketException as e:
+                    log.info('WebSocketException: %s' % e)
+                    if 'Handshake Status 401' in e.args:
+                        handshake_counter += 1
+                        if handshake_counter >= 5:
+                            log.info('Error in handshake detected. Stopping '
+                                     'WebSocketClient now')
+                            break
+                    self.ws = None
+                    xbmc.sleep(1000)
                 except Exception as e:
                     log.error("Unknown exception encountered in connecting: %s"
-                             % e)
+                              % e)
+                    import traceback
+                    log.error("Traceback:\n%s" % traceback.format_exc())
                     self.ws = None
                     xbmc.sleep(1000)
                 else:
                     counter = 0
+                    handshake_counter = 0
             except Exception as e:
                 log.error("Unknown exception encountered: %s" % e)
                 try:
