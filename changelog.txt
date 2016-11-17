@@ -1,3 +1,8 @@
+version 1.4.8 (beta only)
+- Fix for not getting tv show additional fanart
+- Fix for fanart url containing spaces
+- Catch websocket handshake errors correctly
+
 version 1.4.7
 - Fix for Krypton premiered synch for new items
 Make previous version available for everyone
