@@ -997,7 +997,7 @@ class LibrarySync(Thread):
             # Save to queue for later processing
             typus = {'Movies': 'movie', 'TVShows': 'tvshow'}[itemType]
             for item in self.updatelist:
-                if item['mediaType'] in ('movie', 'tvshow'):
+                if item['mediaType'] in ('movie', 'show'):
                     self.fanartqueue.put({
                         'itemId': item['itemId'],
                         'class': itemType,
