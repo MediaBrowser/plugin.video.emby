@@ -403,7 +403,7 @@ def profiling(sortby="cumulative"):
             s = StringIO.StringIO()
             ps = pstats.Stats(pr, stream=s).sort_stats(sortby)
             ps.print_stats()
-            log.debug(s.getvalue())
+            log.info(s.getvalue())
 
             return result
 
