@@ -12,7 +12,7 @@ import xbmcgui
 
 import artwork
 from utils import tryEncode, tryDecode, settings, window, kodiSQL, \
-    CatchExceptions
+    CatchExceptions, copy_database
 import embydb_functions as embydb
 import kodidb_functions as kodidb
 
@@ -33,23 +33,35 @@ class Items(object):
 
     Input:
         kodiType:       optional argument; e.g. 'video' or 'music'
+        inmemory:       Do the work in-memory (copying the Kodi DB around!)
     """
 
-    def __init__(self):
+    def __init__(self, inmemory=False):
         self.kodiversion = int(xbmc.getInfoLabel("System.BuildVersion")[:2])
         self.directpath = window('useDirectPaths') == 'true'
 
         self.artwork = artwork.Artwork()
         self.userid = window('currUserId')
         self.server = window('pms_server')
+        self.inmemory = inmemory
 
     def __enter__(self):
         """
         Open DB connections and cursors
         """
-        self.embyconn = kodiSQL('emby')
+        if self.inmemory is True:
+            # Copy the databases into memory first
+            log.info('Processing in-memory!')
+            embyconn = kodiSQL('emby')
+            self.embyconn = copy_database(embyconn, dest_conn=':memory:')
+            embyconn.close()
+            kodiconn = kodiSQL('video')
+            self.kodiconn = copy_database(kodiconn, dest_conn=':memory:')
+            kodiconn.close()
+        else:
+            self.embyconn = kodiSQL('emby')
+            self.kodiconn = kodiSQL('video')
         self.embycursor = self.embyconn.cursor()
-        self.kodiconn = kodiSQL('video')
         self.kodicursor = self.kodiconn.cursor()
         self.emby_db = embydb.Embydb_Functions(self.embycursor)
         self.kodi_db = kodidb.Kodidb_Functions(self.kodicursor)
@@ -61,6 +73,15 @@ class Items(object):
         """
         self.embyconn.commit()
         self.kodiconn.commit()
+        if self.inmemory is True:
+            # Copy the in-memory db back to disk
+            embyconn = kodiSQL('emby')
+            self.embyconn = copy_database(self.embyconn, embyconn)
+            embyconn.close()
+            kodiconn = kodiSQL('video')
+            self.kodiconn = copy_database(self.kodiconn, kodiconn)
+            kodiconn.close()
+            log.info('Processed in-memory finished')
         self.embyconn.close()
         self.kodiconn.close()
         return self
