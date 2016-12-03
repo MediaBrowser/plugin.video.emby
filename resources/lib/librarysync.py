@@ -392,6 +392,13 @@ class LibrarySync(Thread):
             'enableBackgroundSync') == "true"
         self.limitindex = int(settings('limitindex'))
 
+        # Init for replacing paths
+        window('remapSMB', value=settings('remapSMB'))
+        window('replaceSMB', value=settings('replaceSMB'))
+        for typus in PF.REMAP_TYPE_FROM_PLEXTYPE.values():
+            for arg in ('Org', 'New'):
+                key = 'remapSMB%s%s' % (typus, arg)
+                window(key, value=settings(key))
         # Just in case a time sync goes wrong
         self.timeoffset = int(settings('kodiplextimeoffset'))
         window('kodiplextimeoffset', value=str(self.timeoffset))

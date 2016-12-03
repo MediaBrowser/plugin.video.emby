@@ -49,7 +49,8 @@ import clientinfo
 import downloadutils
 from utils import window, settings, language as lang, tryDecode, tryEncode, \
     DateToKodi, KODILANGUAGE
-from PlexFunctions import PLEX_TO_KODI_TIMEFACTOR, PMSHttpsEnabled
+from PlexFunctions import PLEX_TO_KODI_TIMEFACTOR, PMSHttpsEnabled, \
+    REMAP_TYPE_FROM_PLEXTYPE
 import embydb_functions as embydb
 
 ###############################################################################
@@ -2515,29 +2516,17 @@ class API():
         """
         if path is None:
             return None
-        types = {
-            'movie': 'movie',
-            'show': 'tv',
-            'season': 'tv',
-            'episode': 'tv',
-            'artist': 'music',
-            'album': 'music',
-            'song': 'music',
-            'track': 'music',
-            'clip': 'clip',
-            'photo': 'photo'
-        }
-        typus = types[typus]
-        if settings('remapSMB') == 'true':
-            path = path.replace(settings('remapSMB%sOrg' % typus),
-                                settings('remapSMB%sNew' % typus),
+        typus = REMAP_TYPE_FROM_PLEXTYPE[typus]
+        if window('remapSMB') == 'true':
+            path = path.replace(window('remapSMB%sOrg' % typus),
+                                window('remapSMB%sNew' % typus),
                                 1)
             # There might be backslashes left over:
             path = path.replace('\\', '/')
-        elif settings('replaceSMB') == 'true':
+        elif window('replaceSMB') == 'true':
             if path.startswith('\\\\'):
                 path = 'smb:' + path.replace('\\', '/')
-        if settings('plex_pathverified') == 'true' and forceCheck is False:
+        if window('plex_pathverified') == 'true' and forceCheck is False:
             return path
 
         # exist() needs a / or \ at the end to work for directories
@@ -2558,12 +2547,12 @@ class API():
                 if self.askToValidate(path):
                     window('plex_shouldStop', value="true")
                     path = None
-                settings('plex_pathverified', value='true')
+                window('plex_pathverified', value='true')
             else:
                 path = None
         elif forceCheck is False:
-            if settings('plex_pathverified') != 'true':
-                settings('plex_pathverified', value='true')
+            if window('plex_pathverified') != 'true':
+                window('plex_pathverified', value='true')
         return path
 
     def askToValidate(self, url):

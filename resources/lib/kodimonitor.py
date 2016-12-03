@@ -13,7 +13,7 @@ import embydb_functions as embydb
 import kodidb_functions as kodidb
 import playbackutils as pbutils
 from utils import window, settings, CatchExceptions, tryDecode, tryEncode
-from PlexFunctions import scrobble
+from PlexFunctions import scrobble, REMAP_TYPE_FROM_PLEXTYPE
 
 ###############################################################################
 
@@ -50,8 +50,16 @@ class KodiMonitor(xbmc.Monitor):
             'logLevel': 'plex_logLevel',
             'enableContext': 'plex_context',
             'plex_restricteduser': 'plex_restricteduser',
-            'dbSyncIndicator': 'dbSyncIndicator'
+            'dbSyncIndicator': 'dbSyncIndicator',
+            'remapSMB': 'remapSMB',
+            'replaceSMB': 'replaceSMB',
         }
+        # Path replacement
+        for typus in REMAP_TYPE_FROM_PLEXTYPE.values():
+            for arg in ('Org', 'New'):
+                key = 'remapSMB%s%s' % (typus, arg)
+                items[key] = key
+        # Reset the window variables from the settings variables
         for settings_value, window_value in items.iteritems():
             if window(window_value) != settings(settings_value):
                 log.debug('PKC settings changed: %s is now %s'

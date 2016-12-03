@@ -61,6 +61,20 @@ KODITYPE_FROM_PLEXTYPE = {
 }
 
 
+REMAP_TYPE_FROM_PLEXTYPE = {
+    'movie': 'movie',
+    'show': 'tv',
+    'season': 'tv',
+    'episode': 'tv',
+    'artist': 'music',
+    'album': 'music',
+    'song': 'music',
+    'track': 'music',
+    'clip': 'clip',
+    'photo': 'photo'
+}
+
+
 def ConvertPlexToKodiTime(plexTime):
     """
     Converts Plextime to Koditime. Returns an int (in seconds).
