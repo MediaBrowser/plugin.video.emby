@@ -583,6 +583,8 @@ class LibrarySync(Thread):
         # Do the processing
         for itemtype in process:
             if self.threadStopped():
+                xbmc.executebuiltin('InhibitIdleShutdown(false)')
+                setScreensaver(value=screensaver)
                 return False
             if not process[itemtype]():
                 xbmc.executebuiltin('InhibitIdleShutdown(false)')
