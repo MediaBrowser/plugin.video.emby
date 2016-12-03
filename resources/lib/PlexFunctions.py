@@ -60,6 +60,17 @@ KODITYPE_FROM_PLEXTYPE = {
     'XXXXXXX': 'genre'
 }
 
+KODIAUDIOVIDEO_FROM_MEDIA_TYPE = {
+    'movie': 'video',
+    'episode': 'video',
+    'season': 'video',
+    'tvshow': 'video',
+    'artist': 'audio',
+    'album': 'audio',
+    'track': 'audio',
+    'song': 'audio'
+}
+
 
 def ConvertPlexToKodiTime(plexTime):
     """

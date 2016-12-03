@@ -7,20 +7,30 @@ import json
 from urllib import urlencode
 from threading import Lock
 from functools import wraps
+from urllib import quote, urlencode
 
 import xbmc
 
 import embydb_functions as embydb
-from utils import window, tryEncode
+import kodidb_functions as kodidb
+from utils import window, tryEncode, JSONRPC
 import playbackutils
-import PlexFunctions
+import PlexFunctions as PF
 import PlexAPI
+from downloadutils import DownloadUtils
 
 ###############################################################################
 
 log = logging.getLogger("PLEX."+__name__)
 
 ###############################################################################
+
+PLEX_PLAYQUEUE_ARGS = (
+    'playQueueID',
+    'playQueueVersion',
+    'playQueueSelectedItemID',
+    'playQueueSelectedItemOffset'
+)
 
 
 class lockMethod:
@@ -45,43 +55,115 @@ class lockMethod:
 class Playlist():
     """
     Initiate with Playlist(typus='video' or 'music')
+
+    ATTRIBUTES:
+    id: integer
+    position: integer, default -1
+    type: string, default "unknown"
+        "unknown",
+        "video",
+        "audio",
+        "picture",
+        "mixed"
+    size: integer
     """
     # Borg - multiple instances, shared state
     _shared_state = {}
 
-    typus = None
-    queueId = None
-    playQueueVersion = None
-    guid = None
-    playlistId = None
     player = xbmc.Player()
-    # "interal" PKC playlist
-    items = []
+
+    playlists = None
 
     @lockMethod.decorate
     def __init__(self, typus=None):
         # Borg
         self.__dict__ = self._shared_state
 
-        self.userid = window('currUserId')
-        self.server = window('pms_server')
-        # Construct the Kodi playlist instance
-        if self.typus == typus:
+        # If already initiated, return
+        if self.playlists is not None:
             return
-        if typus == 'video':
-            self.playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
-            self.typus = 'video'
-            log.info('Initiated video playlist')
-        elif typus == 'music':
-            self.playlist = xbmc.PlayList(xbmc.PLAYLIST_MUSIC)
-            self.typus = 'music'
-            log.info('Initiated music playlist')
-        else:
-            self.playlist = None
-            self.typus = None
-            log.info('Empty playlist initiated')
-        if self.playlist is not None:
-            self.playlistId = self.playlist.getPlayListId()
+
+        self.doUtils = DownloadUtils().downloadUrl
+        # Get all playlists from Kodi
+        self.playlists = JSONRPC('Playlist.GetPlaylists').execute()
+        try:
+            self.playlists = self.playlists['result']
+        except KeyError:
+            log.error('Could not get Kodi playlists. JSON Result was: %s'
+                      % self.playlists)
+            self.playlists = None
+            return
+        # Example return: [{u'playlistid': 0, u'type': u'audio'},
+        #                  {u'playlistid': 1, u'type': u'video'},
+        #                  {u'playlistid': 2, u'type': u'picture'}]
+        # Initiate the Kodi playlists
+        for playlist in self.playlists:
+            # Initialize each Kodi playlist
+            if playlist['type'] == 'audio':
+                playlist['kodi_pl'] = xbmc.PlayList(xbmc.PLAYLIST_MUSIC)
+            elif playlist['type'] == 'video':
+                playlist['kodi_pl'] = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
+            else:
+                # Currently, only video or audio playlists available
+                playlist['kodi_pl'] = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
+
+            # Initialize Plex info on the playQueue
+            for arg in PLEX_PLAYQUEUE_ARGS:
+                playlist[arg] = None
+
+            # Build a list of all items within each playlist
+            playlist['items'] = []
+            for item in self._get_kodi_items(playlist['playlistid']):
+                playlist['items'].append({
+                    'kodi_id': item.get('id'),
+                    'type': item['type'],
+                    'file': item['file'],
+                    'playQueueItemID': None,
+                    'plex_id': self._get_plexid(item)
+                })
+            log.debug('self.playlist: %s' % playlist)
+
+    def _init_pl_item(self):
+        return {
+            'plex_id': None,
+            'kodi_id': None,
+            'file': None,
+            'type': None,  # 'audio' or 'video'
+            'playQueueItemID': None,
+            'uri': None,
+            # To be able to drag Kodi JSON data along:
+            'playlistid': None,
+            'position': None,
+            'item': None,
+        }
+
+    def _get_plexid(self, item):
+        """
+        Supply with data['item'] as returned from Kodi JSON-RPC interface
+        """
+        with embydb.GetEmbyDB() as emby_db:
+            emby_dbitem = emby_db.getItem_byKodiId(item.get('id'),
+                                                   item.get('type'))
+        try:
+            plex_id = emby_dbitem[0]
+        except TypeError:
+            plex_id = None
+        return plex_id
+
+    def _get_kodi_items(self, playlistid):
+        params = {
+            'playlistid': playlistid,
+            'properties': ["title", "file"]
+        }
+        answ = JSONRPC('Playlist.GetItems').execute(params)
+        # returns e.g. [{u'title': u'3 Idiots', u'type': u'movie', u'id': 3,
+        # u'file': u'smb://nas/PlexMovies/3 Idiots 2009 pt1.mkv', u'label':
+        # u'3 Idiots'}]
+        try:
+            answ = answ['result']['items']
+        except KeyError:
+            answ = []
+        return answ
 
     @lockMethod.decorate
     def getQueueIdFromPosition(self, playlistPosition):
@@ -138,7 +220,7 @@ class Playlist():
                     mediatype = embydb_item[4]
                 except TypeError:
                     log.info('Couldnt find item %s in Kodi db' % itemid)
-                    item = PlexFunctions.GetPlexMetadata(itemid)
+                    item = PF.GetPlexMetadata(itemid)
                     if item in (None, 401):
                         log.info('Couldnt find item %s on PMS, trying next'
                                  % itemid)
@@ -177,7 +259,7 @@ class Playlist():
                     mediatype = embydb_item[4]
                 except TypeError:
                     log.info('Couldnt find item %s in Kodi db' % plexId)
-                    xml = PlexFunctions.GetPlexMetadata(plexId)
+                    xml = PF.GetPlexMetadata(plexId)
                     if xml in (None, 401):
                         log.error('Could not download plexId %s' % plexId)
                     else:
@@ -335,3 +417,149 @@ class Playlist():
             }
         }
         log.debug(xbmc.executeJSONRPC(json.dumps(pl)))
+
+    def _get_uri(self, plex_id=None, item=None):
+        """
+        Supply with either plex_id or data['item'] as received from Kodi JSON-
+        RPC
+        """
+        uri = None
+        if plex_id is None:
+            plex_id = self._get_plexid(item)
+            self._cur_item['plex_id'] = plex_id
+        if plex_id is not None:
+            xml = PF.GetPlexMetadata(plex_id)
+            try:
+                uri = ('library://%s/item/%s%s' %
+                       (xml.attrib.get('librarySectionUUID'),
+                        quote('library/metadata/', safe=''), plex_id))
+            except:
+                pass
+        if uri is None:
+            try:
+                uri = 'library://whatever/item/%s' % quote(item['file'],
+                                                           safe='')
+            except:
+                raise KeyError('Could not get file/url with item: %s' % item)
+        self._cur_item['uri'] = uri
+        return uri
+
+    def _init_plex_playQueue(self, plex_id=None, data=None):
+        """
+        Supply either plex_id or the data supplied by Kodi JSON-RPC
+        """
+        if plex_id is None:
+            plex_id = self._get_plexid(data['item'])
+        self._cur_item['plex_id'] = plex_id
+
+        if data is not None:
+            playlistid = data['playlistid']
+            plex_type = self.playlists[playlistid]['type']
+        else:
+            with embydb.GetEmbyDB() as emby_db:
+                plex_type = emby_db.getItem_byId(plex_id)
+            try:
+                plex_type = PF.KODIAUDIOVIDEO_FROM_MEDIA_TYPE[plex_type[4]]
+            except TypeError:
+                raise KeyError('Unknown plex_type %s' % plex_type)
+            for playlist in self.playlists:
+                if playlist['type'] == plex_type:
+                    playlistid = playlist['playlistid']
+            self._cur_item['playlistid'] = playlistid
+            self._cur_item['type'] = plex_type
+
+        params = {
+            'next': 0,
+            'type': plex_type,
+            'uri': self._get_uri(plex_id=plex_id, item=data['item'])
+        }
+        log.debug('params: %s' % urlencode(params))
+        xml = self.doUtils(url="{server}/playQueues",
+                           action_type="POST",
+                           parameters=params)
+        try:
+            xml.attrib
+        except (TypeError, AttributeError):
+            raise KeyError('Could not post to PMS, received: %s' % xml)
+        self._Plex_item_updated(xml)
+
+    def _Plex_item_updated(self, xml):
+        """
+        Called if a new item has just been added/updated @ Plex playQueue
+
+        Call with the PMS' xml reply
+        """
+        # Update the ITEM
+        log.debug('xml.attrib: %s' % xml.attrib)
+        args = {
+            'playQueueItemID': 'playQueueLastAddedItemID',  # for playlist PUT
+            'playQueueItemID': 'playQueueSelectedItemID'  # for playlist INIT
+        }
+        for old, new in args.items():
+            if new in xml.attrib:
+                self._cur_item[old] = xml.attrib[new]
+        # Update the PLAYLIST
+        for arg in PLEX_PLAYQUEUE_ARGS:
+            if arg in xml.attrib:
+                self.playlists[self._cur_item['playlistid']][arg] = xml.attrib[arg]
+
+    def _init_Kodi_item(self, item):
+        """
+        Call with Kodi's JSON-RPC data['item']
+        """
+        self._cur_item['kodi_id'] = item.get('id')
+        try:
+            self._cur_item['type'] = PF.KODIAUDIOVIDEO_FROM_MEDIA_TYPE[
+                item.get('type')]
+        except KeyError:
+            log.error('Could not get media_type for %s' % item)
+
+    def _add_curr_item(self):
+        self.playlists[self._cur_item['playlistid']]['items'].insert(
+            self._cur_item['position'],
+            self._cur_item)
+
+    @lockMethod.decorate
+    def kodi_onadd(self, data):
+        """
+        Called if Kodi playlist is modified. Data is Kodi JSON-RPC output, e.g.
+            {
+                u'item': {u'type': u'movie', u'id': 3},
+                u'playlistid': 1,
+                u'position': 0
+            }
+        """
+        self._cur_item = self._init_pl_item()
+        self._cur_item.update(data)
+        self._init_Kodi_item(data['item'])
+
+        pl = self.playlists[data['playlistid']]
+        if pl['playQueueID'] is None:
+            # Playlist needs to be initialized!
+            try:
+                self._init_plex_playQueue(data=data)
+            except KeyError as e:
+                log.error('Error encountered while init playQueue: %s' % e)
+                return
+        else:
+            next_item = data['position']
+            if next_item != 0:
+                next_item = pl['items'][data['position']-1]['playQueueItemID']
+            params = {
+                'next': next_item,
+                'type': pl['type'],
+                'uri': self._get_uri(item=data['item'])
+            }
+            xml = self.doUtils(url="{server}/playQueues/%s"
+                               % pl['playQueueID'],
+                               action_type="PUT",
+                               parameters=params)
+            try:
+                xml.attrib
+            except AttributeError:
+                log.error('Could not add item %s to playQueue' % data)
+                return
+            self._Plex_item_updated(xml)
+        # Add the new item to our playlist
+        self._add_curr_item()
+        log.debug('self.playlists are now: %s' % self.playlists)
