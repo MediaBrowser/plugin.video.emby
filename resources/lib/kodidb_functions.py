@@ -314,7 +314,6 @@ class Kodidb_Functions():
 
                     query = "INSERT INTO actor(actor_id, name) values(?, ?)"
                     self.cursor.execute(query, (actorid, name))
-                    log.debug("Add people to media, processing: %s" % name)
 
                 finally:
                     # Link person to content
@@ -384,7 +383,6 @@ class Kodidb_Functions():
 
                     query = "INSERT INTO actors(idActor, strActor) values(?, ?)"
                     self.cursor.execute(query, (actorid, name))
-                    log.debug("Add people to media, processing: %s" % name)
 
                 finally:
                     # Link person to content
