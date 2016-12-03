@@ -49,7 +49,8 @@ class KodiMonitor(xbmc.Monitor):
         items = {
             'logLevel': 'plex_logLevel',
             'enableContext': 'plex_context',
-            'plex_restricteduser': 'plex_restricteduser'
+            'plex_restricteduser': 'plex_restricteduser',
+            'dbSyncIndicator': 'dbSyncIndicator'
         }
         for settings_value, window_value in items.iteritems():
             if window(window_value) != settings(settings_value):
