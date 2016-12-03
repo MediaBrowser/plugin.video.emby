@@ -143,13 +143,11 @@ class ThreadedProcessMetadata(Thread):
         itemType:   as used to call functions in itemtypes.py
                     e.g. 'Movies' => itemtypes.Movies()
         lock:       Lock(), used for counting where we are
-        inmemory:   Do the work in-memory (copying the Kodi DB around!)
     """
-    def __init__(self, queue, itemType, lock, inmemory=False):
+    def __init__(self, queue, itemType, lock):
         self.queue = queue
         self.lock = lock
         self.itemType = itemType
-        self.inmemory = inmemory
         Thread.__init__(self)
 
     def terminateNow(self):
@@ -172,7 +170,7 @@ class ThreadedProcessMetadata(Thread):
         threadStopped = self.threadStopped
         global processMetadataCount
         global processingViewName
-        with itemFkt(inmemory=self.inmemory) as item:
+        with itemFkt() as item:
             while threadStopped() is False:
                 # grabs item from queue
                 try:
@@ -987,17 +985,14 @@ class LibrarySync(Thread):
             thread.start()
             threads.append(thread)
         log.info("%s download threads spawned" % len(threads))
-        # Process the Kodi DB in-memory if we got a lot of items
-        inmemory = True if itemNumber > 50 else False
         # Spawn one more thread to process Metadata, once downloaded
         thread = ThreadedProcessMetadata(processMetadataQueue,
                                          itemType,
-                                         processMetadataLock,
-                                         inmemory=inmemory)
+                                         processMetadataLock)
         thread.setDaemon(True)
         thread.start()
         threads.append(thread)
-        log.info("Processing thread spawned with inmemory=%s" % inmemory)
+        log.info("Processing thread spawned")
         # Start one thread to show sync progress ONLY for new PMS items
         if self.new_items_only is True and window('dbSyncIndicator') == 'true':
             dialog = xbmcgui.DialogProgressBG()

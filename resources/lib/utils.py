@@ -212,20 +212,6 @@ def kodiSQL(media_type="video"):
     connection = sqlite3.connect(dbPath, timeout=15.0)
     return connection
 
-
-def copy_database(source_conn, dest_conn=':memory:'):
-    '''
-    Returns a connection to a new copy of an existing database. Raises an
-    sqlite3.OperationalError if the destination already exists.
-
-    dest_conn=':memory:'      causes the destination db to reside in-memory
-    '''
-    if dest_conn == ':memory:':
-        dest_conn = sqlite3.connect(dest_conn, timeout=15.0)
-    dest_conn.executescript(''.join(source_conn.iterdump()))
-    return dest_conn
-
-
 def getKodiVideoDBPath():
 
     dbVersion = {
