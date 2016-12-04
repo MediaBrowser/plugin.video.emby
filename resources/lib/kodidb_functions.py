@@ -283,7 +283,8 @@ class Kodidb_Functions():
             "SELECT actor_id",
             "FROM actor",
             "WHERE name = ?",
-            "COLLATE NOCASE"
+            "COLLATE NOCASE",
+            "LIMIT 1"
         ))
         self.cursor.execute(query, (name,))
         try:
@@ -292,7 +293,7 @@ class Kodidb_Functions():
             # Cast entry does not exists
             self.cursor.execute("select coalesce(max(actor_id),0) from actor")
             actorid = self.cursor.fetchone()[0] + 1
-            query = "INSERT INTO actor(actor_id, name) values(?, ?)"
+            query = "INSERT INTO actor(actor_id, name) VALUES (?, ?)"
             self.cursor.execute(query, (actorid, name))
         return actorid
 
