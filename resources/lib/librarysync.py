@@ -15,7 +15,7 @@ from utils import window, settings, getUnixTimestamp, kodiSQL, sourcesXML,\
     ThreadMethods, ThreadMethodsAdditionalStop, LogTime, getScreensaver,\
     setScreensaver, playlistXSP, language as lang, DateToKodi, reset,\
     advancedSettingsXML, getKodiVideoDBPath, tryDecode, deletePlaylists,\
-    deleteNodes, ThreadMethodsAdditionalSuspend, create_actor_db_index
+    deleteNodes, ThreadMethodsAdditionalSuspend, create_actor_db_index, profiling
 import clientinfo
 import downloadutils
 import itemtypes
@@ -161,6 +161,7 @@ class ThreadedProcessMetadata(Thread):
             else:
                 self.queue.task_done()
 
+    @profiling()
     def run(self):
         # Constructs the method name, e.g. itemtypes.Movies
         itemFkt = getattr(itemtypes, self.itemType)
