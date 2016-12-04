@@ -229,6 +229,25 @@ def getKodiVideoDBPath():
         % dbVersion.get(xbmc.getInfoLabel('System.BuildVersion')[:2], "")))
     return dbPath
 
+
+def create_actor_db_index():
+    """
+    Index the "actors" because we got a TON - speed up SELECT and WHEN
+    """
+    conn = kodiSQL('video')
+    cursor = conn.cursor()
+    try:
+        cursor.execute("""
+            CREATE UNIQUE INDEX index_name
+            ON actor (name);
+        """)
+    except sqlite3.OperationalError:
+        # Index already exists
+        pass
+    conn.commit()
+    conn.close()
+
+
 def getKodiMusicDBPath():
 
     dbVersion = {

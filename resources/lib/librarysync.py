@@ -15,7 +15,7 @@ from utils import window, settings, getUnixTimestamp, kodiSQL, sourcesXML,\
     ThreadMethods, ThreadMethodsAdditionalStop, LogTime, getScreensaver,\
     setScreensaver, playlistXSP, language as lang, DateToKodi, reset,\
     advancedSettingsXML, getKodiVideoDBPath, tryDecode, deletePlaylists,\
-    deleteNodes, ThreadMethodsAdditionalSuspend
+    deleteNodes, ThreadMethodsAdditionalSuspend, create_actor_db_index
 import clientinfo
 import downloadutils
 import itemtypes
@@ -557,6 +557,9 @@ class LibrarySync(Thread):
 
         # content sync: movies, tvshows, musicvideos, music
         embyconn.close()
+
+        # Create an index for actors to speed up sync
+        create_actor_db_index()
 
     @LogTime
     def fullSync(self, repair=False):
