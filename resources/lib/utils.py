@@ -30,6 +30,7 @@ WINDOW = xbmcgui.Window(10000)
 ADDON = xbmcaddon.Addon(id='plugin.video.plexkodiconnect')
 
 KODILANGUAGE = xbmc.getLanguage(xbmc.ISO_639_1)
+KODIVERSION = int(xbmc.getInfoLabel("System.BuildVersion")[:2])
 
 ###############################################################################
 # Main methods

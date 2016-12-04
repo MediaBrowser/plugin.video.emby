@@ -3,13 +3,10 @@
 ###############################################################################
 
 import logging
-
-import xbmc
 from ntpath import dirname
 
 import artwork
-import clientinfo
-from utils import kodiSQL
+from utils import kodiSQL, KODIVERSION
 
 ###############################################################################
 
@@ -43,13 +40,8 @@ class GetKodiDB():
 
 
 class Kodidb_Functions():
-
-    kodiversion = int(xbmc.getInfoLabel("System.BuildVersion")[:2])
-
     def __init__(self, cursor):
         self.cursor = cursor
-
-        self.clientInfo = clientinfo.ClientInfo()
         self.artwork = artwork.Artwork()
 
     def pathHack(self):
@@ -212,8 +204,7 @@ class Kodidb_Functions():
             self.cursor.execute(query, (pathid, filename,))
 
     def addCountries(self, kodiid, countries, mediatype):
-        
-        if self.kodiversion in (15, 16, 17):
+        if KODIVERSION > 14:
             # Kodi Isengard, Jarvis, Krypton
             for country in countries:
                 query = ' '.join((
@@ -284,84 +275,74 @@ class Kodidb_Functions():
                         )
                         self.cursor.execute(query, (idCountry, kodiid))
 
+    def _getactorid(self, name):
+        """
+        Crucial für sync speed!
+        """
+        query = ' '.join((
+            "SELECT actor_id",
+            "FROM actor",
+            "WHERE name = ?",
+            "COLLATE NOCASE"
+        ))
+        self.cursor.execute(query, (name,))
+        try:
+            actorid = self.cursor.fetchone()[0]
+        except TypeError:
+            # Cast entry does not exists
+            self.cursor.execute("select coalesce(max(actor_id),0) from actor")
+            actorid = self.cursor.fetchone()[0] + 1
+            query = "INSERT INTO actor(actor_id, name) values(?, ?)"
+            self.cursor.execute(query, (actorid, name))
+        return actorid
+
+    def _addPerson(self, role, person_type, actorid, kodiid, mediatype,
+                   castorder):
+        if "Actor" == person_type:
+            query = '''
+                INSERT OR REPLACE INTO actor_link(
+                    actor_id, media_id, media_type, role, cast_order)
+                VALUES (?, ?, ?, ?, ?)
+            '''
+            self.cursor.execute(query, (actorid, kodiid, mediatype, role,
+                                        castorder))
+            castorder += 1
+        elif "Director" == person_type:
+            query = '''
+                INSERT OR REPLACE INTO director_link(
+                    actor_id, media_id, media_type)
+                VALUES (?, ?, ?)
+                '''
+            self.cursor.execute(query, (actorid, kodiid, mediatype))
+        elif person_type == "Writer":
+            query = '''
+                INSERT OR REPLACE INTO writer_link(
+                    actor_id, media_id, media_type)
+                VALUES (?, ?, ?)
+            '''
+            self.cursor.execute(query, (actorid, kodiid, mediatype))
+        elif "Artist" == person_type:
+            query = '''
+                INSERT OR REPLACE INTO actor_link(
+                    actor_id, media_id, media_type)
+                VALUES (?, ?, ?)
+            '''
+            self.cursor.execute(query, (actorid, kodiid, mediatype))
+        return castorder
+
     def addPeople(self, kodiid, people, mediatype):
-        
         castorder = 1
         for person in people:
-
-            name = person['Name']
-            person_type = person['Type']
-            thumb = person['imageurl']
-            
             # Kodi Isengard, Jarvis, Krypton
-            if self.kodiversion in (15, 16, 17):
-                query = ' '.join((
-
-                    "SELECT actor_id",
-                    "FROM actor",
-                    "WHERE name = ?",
-                    "COLLATE NOCASE"
-                ))
-                self.cursor.execute(query, (name,))
-                
-                try:
-                    actorid = self.cursor.fetchone()[0]
-
-                except TypeError:
-                    # Cast entry does not exists
-                    self.cursor.execute("select coalesce(max(actor_id),0) from actor")
-                    actorid = self.cursor.fetchone()[0] + 1
-
-                    query = "INSERT INTO actor(actor_id, name) values(?, ?)"
-                    self.cursor.execute(query, (actorid, name))
-
-                finally:
-                    # Link person to content
-                    if "Actor" in person_type:
-                        role = person.get('Role')
-                        query = (
-                            '''
-                            INSERT OR REPLACE INTO actor_link(
-                                actor_id, media_id, media_type, role, cast_order)
-
-                            VALUES (?, ?, ?, ?, ?)
-                            '''
-                        )
-                        self.cursor.execute(query, (actorid, kodiid, mediatype, role, castorder))
-                        castorder += 1
-                    
-                    elif "Director" in person_type:
-                        query = (
-                            '''
-                            INSERT OR REPLACE INTO director_link(
-                                actor_id, media_id, media_type)
-
-                            VALUES (?, ?, ?)
-                            '''
-                        )
-                        self.cursor.execute(query, (actorid, kodiid, mediatype))
-                    
-                    elif person_type in ("Writing", "Writer"):
-                        query = (
-                            '''
-                            INSERT OR REPLACE INTO writer_link(
-                                actor_id, media_id, media_type)
-
-                            VALUES (?, ?, ?)
-                            '''
-                        )
-                        self.cursor.execute(query, (actorid, kodiid, mediatype))
-
-                    elif "Artist" in person_type:
-                        query = (
-                            '''
-                            INSERT OR REPLACE INTO actor_link(
-                                actor_id, media_id, media_type)
-                            
-                            VALUES (?, ?, ?)
-                            '''
-                        )
-                        self.cursor.execute(query, (actorid, kodiid, mediatype))
+            if KODIVERSION > 14:
+                actorid = self._getactorid(person['Name'])
+                # Link person to content
+                castorder = self._addPerson(person.get('Role'),
+                                            person['Type'],
+                                            actorid,
+                                            kodiid,
+                                            mediatype,
+                                            castorder)
             # Kodi Helix
             else:
                 query = ' '.join((
@@ -371,22 +352,19 @@ class Kodidb_Functions():
                     "WHERE strActor = ?",
                     "COLLATE NOCASE"
                 ))
-                self.cursor.execute(query, (name,))
-                
+                self.cursor.execute(query, (person['Name'],))
                 try:
                     actorid = self.cursor.fetchone()[0]
-
                 except TypeError:
                     # Cast entry does not exists
                     self.cursor.execute("select coalesce(max(idActor),0) from actors")
                     actorid = self.cursor.fetchone()[0] + 1
 
                     query = "INSERT INTO actors(idActor, strActor) values(?, ?)"
-                    self.cursor.execute(query, (actorid, name))
-
+                    self.cursor.execute(query, (actorid, person['Name']))
                 finally:
                     # Link person to content
-                    if "Actor" in person_type:
+                    if "Actor" == person['Type']:
                         role = person.get('Role')
 
                         if "movie" in mediatype:
@@ -416,12 +394,13 @@ class Kodidb_Functions():
                                 VALUES (?, ?, ?, ?)
                                 '''
                             )
-                        else: return # Item is invalid
-                            
+                        else:
+                            # Item is invalid
+                            return
                         self.cursor.execute(query, (actorid, kodiid, role, castorder))
                         castorder += 1
 
-                    elif "Director" in person_type:
+                    elif "Director" == person['Type']:
                         if "movie" in mediatype:
                             query = (
                                 '''
@@ -463,7 +442,7 @@ class Kodidb_Functions():
 
                         self.cursor.execute(query, (actorid, kodiid))
 
-                    elif person_type in ("Writing", "Writer"):
+                    elif person['Type'] == "Writer":
                         if "movie" in mediatype:
                             query = (
                                 '''
@@ -482,29 +461,25 @@ class Kodidb_Functions():
                                 VALUES (?, ?)
                                 '''
                             )
-                        else: return # Item is invalid
-                            
+                        else:
+                            # Item is invalid
+                            return
                         self.cursor.execute(query, (actorid, kodiid))
-
-                    elif "Artist" in person_type:
+                    elif "Artist" == person['Type']:
                         query = (
                             '''
                             INSERT OR REPLACE INTO artistlinkmusicvideo(
                                 idArtist, idMVideo)
-                            
                             VALUES (?, ?)
                             '''
                         )
                         self.cursor.execute(query, (actorid, kodiid))
 
             # Add person image to art table
-            if thumb:
-                arttype = person_type.lower()
-
-                if "writing" in arttype:
-                    arttype = "writer"
-
-                self.artwork.addOrUpdateArt(thumb, actorid, arttype, "thumb", self.cursor)
+            if person['imageurl']:
+                self.artwork.addOrUpdateArt(person['imageurl'], actorid,
+                                            person['Type'].lower(), "thumb",
+                                            self.cursor)
 
     def existingArt(self, kodiId, mediaType, refresh=False):
         """
@@ -552,7 +527,7 @@ class Kodidb_Functions():
 
         
         # Kodi Isengard, Jarvis, Krypton
-        if self.kodiversion in (15, 16, 17):
+        if KODIVERSION > 14:
             # Delete current genres for clean slate
             query = ' '.join((
 
@@ -665,10 +640,8 @@ class Kodidb_Functions():
                     self.cursor.execute(query, (idGenre, kodiid))
 
     def addStudios(self, kodiid, studios, mediatype):
-
         for studio in studios:
-
-            if self.kodiversion in (15, 16, 17):
+            if KODIVERSION > 14:
                 # Kodi Isengard, Jarvis, Krypton
                 query = ' '.join((
 
@@ -987,9 +960,8 @@ class Kodidb_Functions():
                 "DVDPlayer", 1))
 
     def addTags(self, kodiid, tags, mediatype):
-        
         # First, delete any existing tags associated to the id
-        if self.kodiversion in (15, 16, 17):
+        if KODIVERSION > 14:
             # Kodi Isengard, Jarvis, Krypton
             query = ' '.join((
 
@@ -1014,8 +986,7 @@ class Kodidb_Functions():
             self.addTag(kodiid, tag, mediatype)
 
     def addTag(self, kodiid, tag, mediatype):
-
-        if self.kodiversion in (15, 16, 17):
+        if KODIVERSION > 14:
             # Kodi Isengard, Jarvis, Krypton
             query = ' '.join((
 
@@ -1075,9 +1046,8 @@ class Kodidb_Functions():
                 self.cursor.execute(query, (tag_id, kodiid, mediatype))
 
     def createTag(self, name):
-        
         # This will create and return the tag_id
-        if self.kodiversion in (15, 16, 17):
+        if KODIVERSION > 14:
             # Kodi Isengard, Jarvis, Krypton
             query = ' '.join((
 
@@ -1121,12 +1091,9 @@ class Kodidb_Functions():
         return tag_id
 
     def updateTag(self, oldtag, newtag, kodiid, mediatype):
-
-        log.debug("Updating: %s with %s for %s: %s" % (oldtag, newtag, mediatype, kodiid))
-        
-        if self.kodiversion in (15, 16, 17):
+        if KODIVERSION > 14:
             # Kodi Isengard, Jarvis, Krypton
-            try: 
+            try:
                 query = ' '.join((
 
                     "UPDATE tag_link",
@@ -1172,8 +1139,7 @@ class Kodidb_Functions():
                 self.cursor.execute(query, (kodiid, mediatype, oldtag,))
 
     def removeTag(self, kodiid, tagname, mediatype):
-
-        if self.kodiversion in (15, 16, 17):
+        if KODIVERSION > 14:
             # Kodi Isengard, Jarvis, Krypton
             query = ' '.join((
 
@@ -1347,7 +1313,7 @@ class Kodidb_Functions():
             # Create the album
             self.cursor.execute("select coalesce(max(idAlbum),0) from album")
             albumid = self.cursor.fetchone()[0] + 1
-            if self.kodiversion in (15, 16, 17):
+            if KODIVERSION > 14:
                 query = (
                     '''
                     INSERT INTO album(idAlbum, strAlbum, strMusicBrainzAlbumID, strReleaseType)
