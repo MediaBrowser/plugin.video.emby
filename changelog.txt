@@ -1,3 +1,6 @@
+version 1.4.10 (beta only)
+- Fix library AttributeError
+
 version 1.4.9 (beta only)
 - Greatly speed up the database sync. Please report if you experience any issues!
 - Only show database sync progress for NEW PMS items
