@@ -414,7 +414,7 @@ class LibrarySync(Thread):
 
         forced: always show popup, even if user setting to off
         """
-        if not self.showDbSync:
+        if settings('dbSyncIndicator') != 'true':
             if not forced:
                 return
         if icon == "plex":
