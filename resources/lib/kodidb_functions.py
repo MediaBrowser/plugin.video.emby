@@ -283,7 +283,6 @@ class Kodidb_Functions():
             "SELECT actor_id",
             "FROM actor",
             "WHERE name = ?",
-            "COLLATE NOCASE",
             "LIMIT 1"
         ))
         self.cursor.execute(query, (name,))
