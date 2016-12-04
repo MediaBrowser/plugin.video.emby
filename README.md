@@ -1,17 +1,17 @@
 # PlexKodiConnect (PKC)
 **Combine the best frontend media player Kodi with the best multimedia backend server Plex**
 
-PKC combines the best of Kodi - ultra smooth navigation, beautiful and highly customizable user interfaces and playback of any file under the sun, and the Plex Media Server to manage all your media without lifting a finger.
+PKC combines the best of Kodi - ultra smooth navigation, beautiful and highly customizable user interfaces and playback of any file under the sun - and the Plex Media Server.
 
 Have a look at [some screenshots](https://github.com/croneter/PlexKodiConnect/wiki/Some-PKC-Screenshots) to see what's possible. 
 
 ### Warning
-This plugin assumes that you manage all your videos with Plex (and none with Kodi). You might lose data already stored in the Kodi video and music databases (as this plugin directly changes them). Use at your own risk!
+Use at your own risk! This plugin assumes that you manage all your videos with Plex (and none with Kodi). You might lose data already stored in the Kodi video and music databases as this plugin directly changes them. Don't worry if you want Plex to manage all your media (like you should ;-)). 
 
 ### Download and Installation
 [ ![Download](https://api.bintray.com/packages/croneter/PlexKodiConnect/PlexKodiConnect/images/download.svg) ](https://dl.bintray.com/croneter/PlexKodiConnect/bin/repository.plexkodiconnect/repository.plexkodiconnect-1.0.0.zip)
 
-The easiest way to install PKC is via our PlexKodiConnect Kodi repository (we cannot use the official Kodi repository as PKC messes with Kodi's databases). See the [installation guideline on how to do this](https://github.com/croneter/PlexKodiConnect/wiki/Installation).
+Install PKC via the PlexKodiConnect Kodi repository (we cannot use the official Kodi repository as PKC messes with Kodi's databases). See the [installation guideline on how to do this](https://github.com/croneter/PlexKodiConnect/wiki/Installation).
 
 **Possibly UNSTABLE BETA version:** [ ![Download](https://api.bintray.com/packages/croneter/PlexKodiConnect_BETA/PlexKodiConnect_BETA/images/download.svg) ](https://dl.bintray.com/croneter/PlexKodiConnect_BETA/bin-BETA/repository.plexkodiconnectbeta/repository.plexkodiconnectbeta-1.0.0.zip)
 
@@ -26,14 +26,14 @@ I'm not in any way affiliated with Plex. Thank you very much for a small donatio
 1. If you are using a **low CPU device like a Raspberry Pi or a CuBox**, PKC might be instable or crash during initial sync. Lower the number of threads in the [PKC settings under Sync Options](https://github.com/croneter/PlexKodiConnect/wiki/PKC-settings#sync-options): `Limit artwork cache threads: 5`
 Don't forget to reboot Kodi after that.
 2. If you post logs, your **Plex tokens** might be included. Be sure to double and triple check for tokens before posting any logs anywhere by searching for `token`
-3. **Compatibility**: PKC is currently not compatible with Kodi's Video Extras plugin. **Deactivate Video Extras** if trailers/movies start randomly playing. 
+3. **Compatibility**: 
+    * PKC is currently not compatible with Kodi's Video Extras plugin. **Deactivate Video Extras** if trailers/movies start randomly playing. 
+    * PKC is not (and will never be) compatible with the MySQL database replacement in Kodi. In fact, PKC takes over the point of having a MySQL database because it acts as a "man in the middle" for your entire media library.
+    * If another plugin is not working like it's supposed to, try to use [PKC direct paths](https://github.com/croneter/PlexKodiConnect/wiki/Direct-Paths)
 
 
-### Checkout the PKC Wiki
-The [Wiki can be found here](https://github.com/croneter/PlexKodiConnect/wiki) and will hopefully answer all your questions.
 
-
-### What does PKC do?
+### What does PKC do and how is it different from the official ['Plex for Kod'](https://www.plex.tv/apps/computer/kodi/)?
 
 With other addons for Kodi there are a couple of issues:
 - 3rd party addons such as NextAired, remote apps etc. won't work
@@ -45,6 +45,10 @@ PKC synchronizes your media from your Plex server to the native Kodi database. B
 - You can browse your media full speed, images are cached
 - All other Kodi addons will be able to "see" your media, thinking it's normal Kodi stuff
 - Use any Kodi skin you want!
+
+
+### Checkout the PKC Wiki
+The [Wiki can be found here](https://github.com/croneter/PlexKodiConnect/wiki) and will hopefully answer all your questions.
 
 
 ### What is currently supported?
@@ -71,14 +75,14 @@ PKC currently provides the following features:
     + Extra fanart backgrounds
 - Automatically group movies into [movie sets](http://kodi.wiki/view/movie_sets)
 - Direct play from network paths (e.g. "\\\\server\\Plex\\movie.mkv") instead of streaming from slow HTTP (e.g. "192.168.1.1:32400"). You have to setup all your Plex libraries to point to such network paths. Do have a look at [the wiki here](https://github.com/croneter/PlexKodiConnect/wiki/Direct-Paths)
-
+- Delete PMS items from the Kodi context menu
 
 ### Known Larger Issues
 
 Solutions are unlikely due to the nature of these issues
+- A Plex Media Server "bug" leads to frequent and slow syncs, see [here for more info](https://github.com/croneter/PlexKodiConnect/issues/135)
 - *Plex Music when using Addon paths instead of Native Direct Paths:* Kodi tries to scan every(!) single Plex song on startup. This leads to errors in the Kodi log file and potentially even crashes. See the [Github issue](https://github.com/croneter/PlexKodiConnect/issues/14) for more details
 - *Plex Music when using Addon paths instead of Native Direct Paths:* You must have a static IP address for your Plex media server if you plan to use Plex Music features
-- If something on the PMS has changed, this change is synced to Kodi. Hence if you rescan your entire library, a long PlexKodiConnect re-sync is triggered. You can [change your PMS settings to avoid that](https://github.com/croneter/PlexKodiConnect/wiki/Configure-PKC-on-the-First-Run#deactivate-frequent-updates)
 - External Plex subtitles (in separate files, e.g. mymovie.srt) can be used, but it is impossible to label them correctly and tell what language they are in. However, this is not the case if you use direct paths
 
 *Background Sync:*
@@ -96,16 +100,9 @@ Have a look at the [Github Issues Page](https://github.com/croneter/PlexKodiConn
 
 ### What could be in the pipeline for future development?
 
+- Movie extras (trailers already work)
 - Playlists
 - Music Videos
-- Deleting PMS items from Kodi
-- TV Shows Theme Music (ultra-low prio)
-
-
-### Important note about MySQL database in Kodi
-
-The addon is not (and will not be) compatible with the MySQL database replacement in Kodi. In fact, PlexKodiConnect takes over the point of having a MySQL database because it acts as a "man in the middle" for your entire media library.
-
 
 ### Credits
 
