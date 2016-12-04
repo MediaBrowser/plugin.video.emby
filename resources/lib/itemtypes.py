@@ -7,12 +7,11 @@ from urllib import urlencode
 from ntpath import dirname
 from datetime import datetime
 
-import xbmc
 import xbmcgui
 
 import artwork
 from utils import tryEncode, tryDecode, settings, window, kodiSQL, \
-    CatchExceptions
+    CatchExceptions, KODIVERSION
 import embydb_functions as embydb
 import kodidb_functions as kodidb
 
@@ -36,7 +35,6 @@ class Items(object):
     """
 
     def __init__(self):
-        self.kodiversion = int(xbmc.getInfoLabel("System.BuildVersion")[:2])
         self.directpath = window('useDirectPaths') == 'true'
 
         self.artwork = artwork.Artwork()
@@ -435,7 +433,7 @@ class Movies(Items):
                      % (itemid, title))
 
             # Update the movie entry
-            if self.kodiversion > 16:
+            if KODIVERSION > 16:
                 query = ' '.join((
                     "UPDATE movie",
                     "SET c00 = ?, c01 = ?, c02 = ?, c03 = ?, c04 = ?, c05 = ?,"
@@ -466,7 +464,7 @@ class Movies(Items):
         ##### OR ADD THE MOVIE #####
         else:
             log.info("ADD movie itemid: %s - Title: %s" % (itemid, title))
-            if self.kodiversion > 16:
+            if KODIVERSION > 16:
                 query = (
                     '''
                     INSERT INTO movie( idMovie, idFile, c00, c01, c02, c03,
@@ -985,7 +983,7 @@ class TVShows(Items):
             log.info("UPDATE episode itemid: %s" % (itemid))
 
             # Update the movie entry
-            if self.kodiversion in (16, 17):
+            if KODIVERSION in (16, 17):
                 # Kodi Jarvis, Krypton
                 query = ' '.join((
                     "UPDATE episode",
@@ -1018,7 +1016,7 @@ class TVShows(Items):
         else:
             log.info("ADD episode itemid: %s - Title: %s" % (itemid, title))
             # Create the episode entry
-            if self.kodiversion in (16, 17):
+            if KODIVERSION in (16, 17):
                 # Kodi Jarvis, Krypton
                 query = (
                     '''
@@ -1318,7 +1316,7 @@ class Music(Items):
                 itemid, artistid, artisttype, "artist", checksum=checksum)
 
         # Process the artist
-        if self.kodiversion in (16, 17):
+        if KODIVERSION in (16, 17):
             query = ' '.join((
 
                 "UPDATE artist",
@@ -1411,7 +1409,7 @@ class Music(Items):
                 itemid, albumid, "MusicAlbum", "album", checksum=checksum)
 
         # Process the album info
-        if self.kodiversion == 17:
+        if KODIVERSION == 17:
             # Kodi Krypton
             query = ' '.join((
 
@@ -1424,7 +1422,7 @@ class Music(Items):
             kodicursor.execute(query, (artistname, year, genre, bio, thumb,
                                        rating, lastScraped, "album", studio,
                                        albumid))
-        elif self.kodiversion == 16:
+        elif KODIVERSION == 16:
             # Kodi Jarvis
             query = ' '.join((
 
@@ -1437,7 +1435,7 @@ class Music(Items):
             kodicursor.execute(query, (artistname, year, genre, bio, thumb,
                                        rating, lastScraped, "album", studio,
                                        albumid))
-        elif self.kodiversion == 15:
+        elif KODIVERSION == 15:
             # Kodi Isengard
             query = ' '.join((
 
@@ -1679,7 +1677,7 @@ class Music(Items):
                     log.info("Failed to add album. Creating singles.")
                     kodicursor.execute("select coalesce(max(idAlbum),0) from album")
                     albumid = kodicursor.fetchone()[0] + 1
-                    if self.kodiversion == 16:
+                    if KODIVERSION == 16:
                         # Kodi Jarvis
                         query = (
                             '''
@@ -1689,7 +1687,7 @@ class Music(Items):
                             '''
                         )
                         kodicursor.execute(query, (albumid, genre, year, "single"))
-                    elif self.kodiversion == 15:
+                    elif KODIVERSION == 15:
                         # Kodi Isengard
                         query = (
                             '''
@@ -1767,7 +1765,7 @@ class Music(Items):
                 artist_edb = emby_db.getItem_byId(artist_eid)
                 artistid = artist_edb[0]
             finally:
-                if self.kodiversion >= 17:
+                if KODIVERSION >= 17:
                     # Kodi Krypton
                     query = (
                         '''
@@ -1842,11 +1840,11 @@ class Music(Items):
             result = kodicursor.fetchone()
             if result and result[0] != album_artists:
                 # Field is empty
-                if self.kodiversion in (16, 17):
+                if KODIVERSION in (16, 17):
                     # Kodi Jarvis, Krypton
                     query = "UPDATE album SET strArtists = ? WHERE idAlbum = ?"
                     kodicursor.execute(query, (album_artists, albumid))
-                elif self.kodiversion == 15:
+                elif KODIVERSION == 15:
                     # Kodi Isengard
                     query = "UPDATE album SET strArtists = ? WHERE idAlbum = ?"
                     kodicursor.execute(query, (album_artists, albumid))
