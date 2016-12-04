@@ -1,3 +1,9 @@
+version 1.4.9 (beta only)
+- Greatly speed up the database sync. Please report if you experience any issues!
+- Only show database sync progress for NEW PMS items
+- Speed up the pathname verifications
+- Update readme to reflect the advent of the official Plex for Kodi
+
 version 1.4.8 (beta only)
 - Fix for not getting tv show additional fanart
 - Fix for fanart url containing spaces
