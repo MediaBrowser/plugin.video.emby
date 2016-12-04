@@ -10,13 +10,13 @@ Have a look at [some screenshots](https://github.com/croneter/PlexKodiConnect/wi
 * [**Warning**](https://github.com/croneter/PlexKodiConnect/tree/hotfixes#warning)
 * [**What does PKC do and how is it different from the official 'Plex for Kodi'**](https://github.com/croneter/PlexKodiConnect/tree/hotfixes#what-does-pkc-do-and-how-is-it-different-from-the-official-plex-for-kod)
 * [**Download and Installation**](https://github.com/croneter/PlexKodiConnect/tree/hotfixes#download-and-installation)
+* [**Important notes**](https://github.com/croneter/PlexKodiConnect/tree/hotfixes#important-notes)
 * [**Donations**](https://github.com/croneter/PlexKodiConnect/tree/hotfixes#donations)
-* [**IMPORTANT NOTES**](https://github.com/croneter/PlexKodiConnect/tree/hotfixes#important-notes)
-* [**Checkout the PKC Wiki**](https://github.com/croneter/PlexKodiConnect/tree/hotfixes#checkout-the-pkc-wiki)
 * [**What is currently supported?**](https://github.com/croneter/PlexKodiConnect/tree/hotfixes#what-is-currently-supported)
 * [**Known Larger Issues**](https://github.com/croneter/PlexKodiConnect/tree/hotfixes#known-larger-issues)
 * [**Issues being worked on**](https://github.com/croneter/PlexKodiConnect/tree/hotfixes#issues-being-worked-on)
 * [**Pipeline for future development**](https://github.com/croneter/PlexKodiConnect/tree/hotfixes#what-could-be-in-the-pipeline-for-future-development)
+* [**Checkout the PKC Wiki**](https://github.com/croneter/PlexKodiConnect/tree/hotfixes#checkout-the-pkc-wiki)
 * [**Credits**](https://github.com/croneter/PlexKodiConnect/tree/hotfixes#credits)
 
 ### Warning
@@ -24,16 +24,18 @@ Use at your own risk! This plugin assumes that you manage all your videos with P
 
 ### What does PKC do and how is it different from the official ['Plex for Kodi'](https://www.plex.tv/apps/computer/kodi/)?
 
-With other addons for Kodi there are a couple of issues:
-- 3rd party addons such as NextAired, remote apps etc. won't work
-- Slow speed: when browsing the data has to be retrieved from the server. Especially on slower devices this can take too much time
+With other Plex addons for Kodi such as the official [Plex for Kodi](https://www.plex.tv/apps/computer/kodi/) or [PlexBMC](https://forums.plex.tv/discussion/106593/plexbmc-xbmc-add-on-to-connect-to-plex-media-server) there are a couple of issues:
+- Other Kodi addons such as NextAired, remote apps and others won't work
 - You can only use special Kodi skins
+- Slow speed: when browsing data has to be retrieved from the server. Especially on slower devices this can take too much time and you will notice artwork being loaded slowly while you browse the library
 - All kinds of workarounds are needed to get the best experience on Kodi clients
 
 PKC synchronizes your media from your Plex server to the native Kodi database. Because PKC uses the native Kodi database, the above limitations are gone! 
-- You can browse your media full speed, images are cached
-- All other Kodi addons will be able to "see" your media, thinking it's normal Kodi stuff
 - Use any Kodi skin you want!
+- You can browse your media at full speed, images are cached
+- All other Kodi addons will be able to "see" your media, thinking it's normal Kodi stuff
+
+Some people argue that PKC is 'hacky' because of the way it directly accesses the Kodi database. See [here for a more thorough discussion](https://github.com/croneter/PlexKodiConnect/wiki/Is-PKC-'hacky'%3F). 
 
 ### Download and Installation
 [ ![Download](https://api.bintray.com/packages/croneter/PlexKodiConnect/PlexKodiConnect/images/download.svg) ](https://dl.bintray.com/croneter/PlexKodiConnect/bin/repository.plexkodiconnect/repository.plexkodiconnect-1.0.0.zip)
@@ -42,7 +44,7 @@ Install PKC via the PlexKodiConnect Kodi repository (we cannot use the official 
 
 **Possibly UNSTABLE BETA version:** [ ![Download](https://api.bintray.com/packages/croneter/PlexKodiConnect_BETA/PlexKodiConnect_BETA/images/download.svg) ](https://dl.bintray.com/croneter/PlexKodiConnect_BETA/bin-BETA/repository.plexkodiconnectbeta/repository.plexkodiconnectbeta-1.0.0.zip)
 
-### IMPORTANT NOTES
+### Important Notes
 
 1. If you are using a **low CPU device like a Raspberry Pi or a CuBox**, PKC might be instable or crash during initial sync. Lower the number of threads in the [PKC settings under Sync Options](https://github.com/croneter/PlexKodiConnect/wiki/PKC-settings#sync-options): `Limit artwork cache threads: 5`
 Don't forget to reboot Kodi after that.
@@ -57,9 +59,6 @@ I'm not in any way affiliated with Plex. Thank you very much for a small donatio
 **Full disclaimer:** I will see your name and address on my PayPal account. Rest assured that I will not share this with anyone. 
 
 [ ![Download](https://az743702.vo.msecnd.net/cdn/kofi1.png?v=a|alt=Buy Me a Coffee)](https://ko-fi.com/A8182EB)
-
-### Checkout the PKC Wiki
-The [Wiki can be found here](https://github.com/croneter/PlexKodiConnect/wiki) and will hopefully answer all your questions. You can even edit the wiki yourself!
 
 ### What is currently supported?
 
@@ -105,7 +104,7 @@ However, some changes to individual items are instantly detected, e.g. if you ma
 
 ### Issues being worked on
 
-Have a look at the [Github Issues Page](https://github.com/croneter/PlexKodiConnect/issues).
+Have a look at the [Github Issues Page](https://github.com/croneter/PlexKodiConnect/issues). Before you open your own issue, please read [How to report a bug](https://github.com/croneter/PlexKodiConnect/wiki/How-to-Report-A-Bug).
 
 
 ### What could be in the pipeline for future development?
@@ -114,6 +113,9 @@ Have a look at the [Github Issues Page](https://github.com/croneter/PlexKodiConn
 - Movie extras (trailers already work)
 - Playlists
 - Music Videos
+
+### Checkout the PKC Wiki
+The [Wiki can be found here](https://github.com/croneter/PlexKodiConnect/wiki) and will hopefully answer all your questions. You can even edit the wiki yourself!
 
 ### Credits
 
