@@ -9,7 +9,7 @@ from ntpath import dirname
 
 import artwork
 import clientinfo
-from utils import settings, kodiSQL
+from utils import kodiSQL
 
 ###############################################################################
 
