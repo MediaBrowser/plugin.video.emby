@@ -218,7 +218,7 @@ class DownloadUtils():
             log.warn("Server unreachable at: %s" % url)
             log.warn(e)
 
-        except requests.exceptions.ConnectTimeout as e:
+        except requests.exceptions.Timeout as e:
             log.warn("Server timeout at: %s" % url)
             log.warn(e)
 
