@@ -1,3 +1,14 @@
+version 1.5.0
+Out for everyone:
+- reatly speed up the database sync. Please report if you experience any issues!
+- Only show database sync progress for NEW PMS items
+- Speed up the pathname verifications
+- Update readme to reflect the advent of the official Plex for Kodi
+- Fix for not getting tv show additional fanart
+- Fix for fanart url containing spaces
+- Fix library AttributeError
+- Catch websocket handshake errors correctly
+
 version 1.4.10 (beta only)
 - Fix library AttributeError
 
