@@ -18,7 +18,7 @@
     <string id="30509">Plex Musik-Bibliotheken aktivieren</string>
     <string id="30518">Plex Trailer aktivieren (Plexpass benötigt)</string>
     <string id="30519">Nachfragen, ob Trailer gespielt werden sollen</string>
-    <string id="30522">H265 Codec Transkodierung erzwingen</string>
+    <string id="30522">h265/HEVC Codec Transkodierung erzwingen</string>
     <string id="30517">Netzwerk Credentials eingeben</string>
     <string id="30529">PlexKodiConnect Start Verzögerung (in Sekunden)</string>
     <string id="30527">Extras ignorieren, wenn Nächste Episode gespielt wird</string>
@@ -374,7 +374,6 @@
     <string id="39062">Sync wenn Bildschirmschoner deaktiviert wird</string>
     <string id="39063">Hi10p Codec Transkodierung erzwingen</string>
     <string id="39064">"Zuletzt hinzugefügt": gesehene Folgen anzeigen</string>
-    <string id="39065">HEVC Codec Transkodierung erzwingen</string>
     <string id="39066">"Zuletzt hinzugefügt": gesehene Filme anzeigen (Plex Playlisten und Nodes zurücksetzen!)</string>
     <string id="39067">Aktueller Plex Media Server:</string>
     <string id="39068">[COLOR yellow]Plex Media Server Adresse manuell eingeben[/COLOR]</string>

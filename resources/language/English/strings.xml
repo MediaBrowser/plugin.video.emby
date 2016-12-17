@@ -296,7 +296,7 @@
     <string id="30519">Ask to play trailers</string>
     <string id="30520">Skip Plex delete confirmation for the context menu (use at your own risk)</string>
     <string id="30521">Jump back on resume (in seconds)</string>
-    <string id="30522">Force transcode H265</string>
+    <string id="30522">Force transcode h265/HEVC</string>
     <string id="30523">Music metadata options (not compatible with direct stream)</string>
     <string id="30524">Import music song rating directly from files</string>
     <string id="30525">Convert music song rating to Emby rating</string>
@@ -425,7 +425,6 @@
     <string id="39062">Sync when screensaver is deactivated</string>
     <string id="39063">Force Transcode Hi10P</string>
     <string id="39064">Recently Added: Also show already watched episodes</string>
-    <string id="39065">Force Transcode HEVC</string>
     <string id="39066">Recently Added: Also show already watched movies (Refresh Plex playlist/nodes!)</string>
     <string id="39067">Your current Plex Media Server:</string>
     <string id="39068">[COLOR yellow]Manually enter Plex Media Server address[/COLOR]</string>

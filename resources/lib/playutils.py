@@ -173,9 +173,6 @@ class PlayUtils():
             log.info('Option to transcode 10bit video content enabled.')
             return True
         codec = videoCodec['videocodec']
-        if (settings('transcodeHEVC') == 'true' and codec == 'hevc'):
-            log.info('Option to transcode HEVC video codec enabled.')
-            return True
         if codec is None:
             # e.g. trailers. Avoids TypeError with "'h265' in codec"
             log.info('No codec from PMS, not transcoding.')
@@ -195,10 +192,10 @@ class PlayUtils():
         except (TypeError, ValueError):
             log.info('No video resolution from PMS, not transcoding.')
             return False
-        if 'h265' in codec:
+        if 'h265' in codec or 'hevc' in codec:
             if resolution >= self.getH265():
-                log.info("Option to transcode h265 enabled. Resolution of "
-                         "the media: %s, transcoding limit resolution: %s"
+                log.info("Option to transcode h265/HEVC enabled. Resolution "
+                         "of the media: %s, transcoding limit resolution: %s"
                          % (str(resolution), str(self.getH265())))
                 return True
         return False
