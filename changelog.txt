@@ -1,3 +1,17 @@
+version 1.5.1 (beta only)
+- Fix playstate and PMS item changes not working/not propagating anymore (caused by a change Plex made with the websocket interface). UPGRADE YOUR PMS!!
+- Improvements to the way PKC behaves if the PMS goes offline
+- New setting to always transcode if the video bitrate is above a certain threshold (will not work with direct paths)
+- Be smarter when deciding when to transcode
+- Only sign the user out if the PMS says so
+- Improvements to PMS on/offline notifications
+- Note to PLEASE read the Wiki if one is using several Plex libraries (shows on first PKC install only)
+- Get rid of low powered device option (always use low powered option)
+- Don't show a notification when searching for PMS 
+- Combine h265 und HEVC into one setting
+- Less traffic when PKC is checking whether a PMS is still offline
+- Improve logging
+
 version 1.5.0
 Out for everyone:
 - reatly speed up the database sync. Please report if you experience any issues!
