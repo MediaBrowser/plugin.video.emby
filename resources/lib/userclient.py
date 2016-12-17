@@ -157,7 +157,7 @@ class UserClient(threading.Thread):
                 return False
             elif res == 401:
                 log.warn('Token is no longer valid')
-                return False
+                return 401
             elif res >= 400:
                 log.error('Answer from PMS is not as expected. Retrying')
                 return False
@@ -244,18 +244,21 @@ class UserClient(threading.Thread):
         # Found a user in the settings, try to authenticate
         if username and enforceLogin == 'false':
             log.info('Trying to authenticate with old settings')
-            if self.loadCurrUser(username,
-                                 userId,
-                                 usertoken,
-                                 authenticated=False):
+            answ = self.loadCurrUser(username,
+                                     userId,
+                                     usertoken,
+                                     authenticated=False)
+            if answ is True:
                 # SUCCESS: loaded a user from the settings
                 return True
-            else:
-                # Failed to use the settings - delete them!
-                log.info("Failed to use settings credentials. Deleting them")
+            elif answ == 401:
+                log.info("User token no longer valid. Sign user out")
                 settings('username', value='')
                 settings('userid', value='')
                 settings('accessToken', value='')
+            else:
+                log.info("Could not yet authenticate user")
+                return False
 
         plx = PlexAPI.PlexAPI()
 
