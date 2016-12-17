@@ -511,13 +511,6 @@ class PlexAPI():
             self.g_PMS      dict set
         """
         self.g_PMS = {}
-        # "Searching for Plex Server"
-        xbmcgui.Dialog().notification(
-            heading=addonName,
-            message=lang(39055),
-            icon="special://home/addons/plugin.video.plexkodiconnect/icon.png",
-            time=4000,
-            sound=False)
 
         # Look first for local PMS in the LAN
         pmsList = self.PlexGDM()
