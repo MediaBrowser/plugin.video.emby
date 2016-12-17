@@ -215,12 +215,12 @@ class DownloadUtils():
         # THE EXCEPTIONS
         except requests.exceptions.ConnectionError as e:
             # Connection error
-            log.warn("Server unreachable at: %s" % url)
-            log.warn(e)
+            log.debug("Server unreachable at: %s" % url)
+            log.debug(e)
 
         except requests.exceptions.Timeout as e:
-            log.warn("Server timeout at: %s" % url)
-            log.warn(e)
+            log.debug("Server timeout at: %s" % url)
+            log.debug(e)
 
         except requests.exceptions.HTTPError as e:
             log.warn('HTTP Error at %s' % url)

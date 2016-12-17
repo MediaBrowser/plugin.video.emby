@@ -221,10 +221,11 @@ class Service():
                         # Server is offline or cannot be reached
                         # Alert the user and suppress future warning
                         if self.server_online:
-                            log.error("Server is offline.")
+                            self.server_online = False
                             window('plex_online', value="false")
                             # Suspend threads
                             window('suspend_LibraryThread', value='true')
+                            log.error("Plex Media Server went offline")
                             xbmcgui.Dialog().notification(
                                 heading=lang(33001),
                                 message="%s %s"
@@ -232,10 +233,9 @@ class Service():
                                 icon="special://home/addons/plugin.video."
                                      "plexkodiconnect/icon.png",
                                 sound=False)
-                        self.server_online = False
                         counter += 1
                         # Periodically check if the IP changed, e.g. per minute
-                        if counter > 30:
+                        if counter > 20:
                             counter = 0
                             setup = initialsetup.InitialSetup()
                             tmp = setup.PickPMS()
@@ -258,8 +258,8 @@ class Service():
                                      "plexkodiconnect/icon.png",
                                 time=5000,
                                 sound=False)
-                        self.server_online = True
-                        log.warn("Server %s is online and ready." % server)
+                            self.server_online = True
+                        log.info("Server %s is online and ready." % server)
                         window('plex_online', value="true")
                         if window('plex_authenticated') == 'true':
                             # Server got offline when we were authenticated.
@@ -273,7 +273,7 @@ class Service():
 
                         break
 
-                    if monitor.waitForAbort(2):
+                    if monitor.waitForAbort(3):
                         # Abort was requested while waiting.
                         break
 
