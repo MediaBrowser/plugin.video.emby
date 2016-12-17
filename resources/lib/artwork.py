@@ -131,13 +131,9 @@ class Image_Cache_Thread(Thread):
     xbmc_host = 'localhost'
     xbmc_port, xbmc_username, xbmc_password = setKodiWebServerDetails()
     sleep_between = 50
-    if settings('low_powered_device') == 'true':
-        # Low CPU, potentially issues with limited number of threads
-        # Hence let Kodi wait till download is successful
-        timeout = (35.1, 35.1)
-    else:
-        # High CPU, no issue with limited number of threads
-        timeout = (0.01, 0.01)
+    # Potentially issues with limited number of threads
+    # Hence let Kodi wait till download is successful
+    timeout = (35.1, 35.1)
 
     def __init__(self, queue):
         self.queue = queue

@@ -433,15 +433,6 @@ class InitialSetup():
         if settings('InstallQuestionsAnswered') == 'true':
             return
 
-        # Is your Kodi installed on a low-powered device like a Raspberry Pi?
-        # If yes, then we will reduce the strain on Kodi to prevent it from
-        # crashing.
-        if dialog.yesno(heading=addonName, line1=lang(39072)):
-            settings('low_powered_device', value="true")
-            settings('syncThreadNumber', value="1")
-        else:
-            settings('low_powered_device', value="false")
-
         # Additional settings where the user needs to choose
         # Direct paths (\\NAS\mymovie.mkv) or addon (http)?
         goToSettings = False

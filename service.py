@@ -86,8 +86,8 @@ class Service():
         log.warn("%s Version: %s" % (addonName, self.clientInfo.getVersion()))
         log.warn("Using plugin paths: %s"
                  % (settings('useDirectPaths') != "true"))
-        log.warn("Using a low powered device: %s"
-                 % settings('low_powered_device'))
+        log.warn("Number of sync threads: %s"
+                 % settings('syncThreadNumber'))
         log.warn("Log Level: %s" % logLevel)
 
         # Reset window props for profile switch
