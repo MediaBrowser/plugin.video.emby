@@ -856,7 +856,7 @@ def LogTime(func):
         starttotal = datetime.now()
         result = func(*args, **kwargs)
         elapsedtotal = datetime.now() - starttotal
-        log.debug('It took %s to run the function %s'
+        log.info('It took %s to run the function %s'
                   % (elapsedtotal, func.__name__))
         return result
     return wrapper
