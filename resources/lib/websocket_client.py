@@ -45,7 +45,7 @@ class WebSocket(threading.Thread):
         # Triage
         typus = message.get('type')
         if typus is None:
-            log.error('No message type, dropping message: %s' % message)
+            log.debug('No message type, dropping message: %s' % message)
             return False
         log.debug('Received message from PMS server: %s' % message)
         # Drop everything we're not interested in
