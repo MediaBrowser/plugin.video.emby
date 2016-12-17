@@ -190,19 +190,6 @@ class UserClient(threading.Thread):
         settings('username', value=username)
         settings('userid', value=userId)
         settings('accessToken', value=usertoken)
-
-        dialog = xbmcgui.Dialog()
-        if settings('connectMsg') == "true":
-            if username:
-                dialog.notification(
-                    heading=addonName,
-                    message="Welcome " + username,
-                    icon="special://home/addons/plugin.video.plexkodiconnect/icon.png")
-            else:
-                dialog.notification(
-                    heading=addonName,
-                    message="Welcome",
-                    icon="special://home/addons/plugin.video.plexkodiconnect/icon.png")
         return True
 
     def authenticate(self):

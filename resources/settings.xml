@@ -130,7 +130,6 @@
 	-->
 
 	<category label="39073"><!-- Appearance Tweaks -->
-		<setting id="connectMsg" type="bool" label="30249" default="true" />
 		<setting type="lsep" label="39074" /><!-- TV Shows -->
 		<setting id="OnDeckTVextended" type="bool" label="39058" default="true" /><!-- Extend Plex TV Series "On Deck" view to all shows -->
 		<setting id="OnDeckTvAppendShow" type="bool" label="39047" default="false" /><!--On Deck view: Append show title to episode-->

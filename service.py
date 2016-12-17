@@ -58,7 +58,6 @@ addonName = 'PlexKodiConnect'
 
 class Service():
 
-    welcome_msg = True
     server_online = True
     warn_auth = True
 
@@ -133,14 +132,13 @@ class Service():
         # Queue for background sync
         queue = Queue.Queue()
 
-        connectMsg = True if settings('connectMsg') == 'true' else False
-
         # Initialize important threads
         user = userclient.UserClient()
         ws = wsc.WebSocket(queue)
         library = librarysync.LibrarySync(queue)
         plx = PlexAPI.PlexAPI()
 
+        welcome_msg = True
         counter = 0
         while not monitor.abortRequested():
 
@@ -163,9 +161,9 @@ class Service():
                     if not self.kodimonitor_running:
                         # Start up events
                         self.warn_auth = True
-                        if connectMsg and self.welcome_msg:
+                        if welcome_msg is True:
                             # Reset authentication warnings
-                            self.welcome_msg = False
+                            welcome_msg = False
                             xbmcgui.Dialog().notification(
                                 heading=addonName,
                                 message="%s %s" % (lang(33000), user.currUser),
@@ -226,13 +224,14 @@ class Service():
                             # Suspend threads
                             window('suspend_LibraryThread', value='true')
                             log.error("Plex Media Server went offline")
-                            xbmcgui.Dialog().notification(
-                                heading=lang(33001),
-                                message="%s %s"
-                                        % (addonName, lang(33002)),
-                                icon="special://home/addons/plugin.video."
-                                     "plexkodiconnect/icon.png",
-                                sound=False)
+                            if settings('show_pms_offline') == 'true':
+                                xbmcgui.Dialog().notification(
+                                    heading=lang(33001),
+                                    message="%s %s"
+                                            % (addonName, lang(33002)),
+                                    icon="special://home/addons/plugin.video."
+                                         "plexkodiconnect/icon.png",
+                                    sound=False)
                         counter += 1
                         # Periodically check if the IP changed, e.g. per minute
                         if counter > 20:
@@ -250,15 +249,17 @@ class Service():
                             if monitor.waitForAbort(5):
                                 # Abort was requested while waiting.
                                 break
-                            # Alert the user that server is online.
-                            xbmcgui.Dialog().notification(
-                                heading=addonName,
-                                message=lang(33003),
-                                icon="special://home/addons/plugin.video."
-                                     "plexkodiconnect/icon.png",
-                                time=5000,
-                                sound=False)
                             self.server_online = True
+                            # Alert the user that server is online.
+                            if (welcome_msg is False and
+                                    settings('show_pms_offline') == 'true'):
+                                xbmcgui.Dialog().notification(
+                                    heading=addonName,
+                                    message=lang(33003),
+                                    icon="special://home/addons/plugin.video."
+                                         "plexkodiconnect/icon.png",
+                                    time=5000,
+                                    sound=False)
                         log.info("Server %s is online and ready." % server)
                         window('plex_online', value="true")
                         if window('plex_authenticated') == 'true':
