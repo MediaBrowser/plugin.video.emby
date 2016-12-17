@@ -479,6 +479,9 @@ class InitialSetup():
             log.debug("User opted to use FanArtTV")
             settings('FanartTV', value="true")
 
+        # If you use several Plex libraries of one kind, e.g. "Kids Movies" and
+        # "Parents Movies", be sure to check https://goo.gl/JFtQV9
+        dialog.ok(heading=addonName, line1=lang(39076))
         # Make sure that we only ask these questions upon first installation
         settings('InstallQuestionsAnswered', value='true')
 

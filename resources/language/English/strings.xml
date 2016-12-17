@@ -434,6 +434,7 @@
     <string id="39073">Appearance Tweaks</string>
     <string id="39074">TV Shows</string>
     <string id="39075">Always use default Plex subtitle if possible</string>
+    <string id="39076">If you use several Plex libraries of one kind, e.g. "Kids Movies" and "Parents Movies", be sure to check the Wiki: https://goo.gl/JFtQV9</string>
 
     <!-- Plex Entrypoint.py -->
     <string id="39200">Log-out Plex Home User </string>

@@ -384,6 +384,7 @@
     <string id="39073">Tweaks Aussehen</string>
     <string id="39074">TV Serien</string>
     <string id="39075">Falls möglich, Plex Standard-Untertitel anzeigen</string>
+    <string id="39076">Falls du mehrere Plex Bibliotheken einer Art nutzt, z.B. "Filme Kinder" und "Filme Eltern", lies unbedingt das Wiki unter https://goo.gl/JFtQV9</string>
 
     <!-- Plex Entrypoint.py -->
     <string id="39200">Plex Home Benutzer abmelden: </string>
