@@ -41,11 +41,15 @@ class WebSocket(threading.Thread):
             log.error('Error decoding message from websocket: %s' % ex)
             log.error(message)
             return False
-
+        try:
+            message = message['NotificationContainer']
+        except KeyError:
+            log.error('Could not parse PMS message: %s' % message)
+            return False
         # Triage
         typus = message.get('type')
         if typus is None:
-            log.debug('No message type, dropping message: %s' % message)
+            log.error('No message type, dropping message: %s' % message)
             return False
         log.debug('Received message from PMS server: %s' % message)
         # Drop everything we're not interested in

@@ -1392,9 +1392,9 @@ class LibrarySync(Thread):
         """
         typus = message.get('type')
         if typus == 'playing':
-            self.process_playing(message['_children'])
+            self.process_playing(message['PlaySessionStateNotification'])
         elif typus == 'timeline':
-            self.process_timeline(message['_children'])
+            self.process_timeline(message['TimelineEntry'])
 
     def multi_delete(self, liste, deleteListe):
         """
