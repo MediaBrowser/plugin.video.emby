@@ -151,7 +151,8 @@
     <string id="30140"> - Themen-Musik in Schleife abspielen</string>
     <string id="30141">Laden im Hintergrund aktivieren (Erfordert Neustart)</string>
     <string id="30142">Dienste</string>
-    <string id="30143">Info-Loader aktivieren (Erfordert Neustart)</string>
+    <string id="30143">Immer transkodieren falls Bitrate höher als</string>
+
     <string id="30144">Menü-Loader aktivieren (Erfordert Neustart)</string>
     <string id="30145">WebSocket Fernbedienung aktivieren (Erfordert Neustart)</string>
     <string id="30146">'Laufende Medien'-Loader aktivieren (Erfordert Neustart)</string>

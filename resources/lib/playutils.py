@@ -59,8 +59,8 @@ class PlayUtils():
             playurl = tryEncode(self.API.getTranscodeVideoPath(
                 'Transcode',
                 quality={
-                    'maxVideoBitrate': self.getBitrate(),
-                    'videoResolution': self.getResolution(),
+                    'maxVideoBitrate': self.get_bitrate(),
+                    'videoResolution': self.get_resolution(),
                     'videoQuality': '100'
                 }))
             # Set playmethod property
@@ -157,10 +157,17 @@ class PlayUtils():
             - HEVC codec
             - window variable 'plex_forcetranscode' set to 'true'
                 (excepting trailers etc.)
+            - video bitrate above specified settings bitrate
         if the corresponding file settings are set to 'true'
         """
         videoCodec = self.API.getVideoCodec()
         log.info("videoCodec: %s" % videoCodec)
+        if self.API.getType() in ('clip', 'track'):
+            log.info('Plex clip or music track, not transcoding')
+            return False
+        if window('plex_forcetranscode') == 'true':
+            log.info('User chose to force-transcode')
+            return True
         if (settings('transcodeHi10P') == 'true' and
                 videoCodec['bitDepth'] == '10'):
             log.info('Option to transcode 10bit video content enabled.')
@@ -173,8 +180,15 @@ class PlayUtils():
             # e.g. trailers. Avoids TypeError with "'h265' in codec"
             log.info('No codec from PMS, not transcoding.')
             return False
-        if window('plex_forcetranscode') == 'true':
-            log.info('User chose to force-transcode')
+        try:
+            bitrate = int(videoCodec['bitrate'])
+        except (TypeError, ValueError):
+            log.info('No video bitrate from PMS, not transcoding.')
+            return False
+        if bitrate > self.get_max_bitrate():
+            log.info('Video bitrate of %s is higher than the maximal video'
+                     'bitrate of %s that the user chose. Transcoding'
+                     % (bitrate, self.get_max_bitrate()))
             return True
         try:
             resolution = int(videoCodec['resolution'])
@@ -200,32 +214,47 @@ class PlayUtils():
             return False
         if self.mustTranscode():
             return False
-        # Verify the bitrate
-        if not self.isNetworkSufficient():
-            log.info("The network speed is insufficient to direct stream "
-                     "file. Transcoding")
-            return False
         return True
 
-    def isNetworkSufficient(self):
-        """
-        Returns True if the network is sufficient (set in file settings)
-        """
-        try:
-            sourceBitrate = int(self.API.getDataFromPartOrMedia('bitrate'))
-        except:
-            log.info('Could not detect source bitrate. It is assumed to be'
-                     'sufficient')
-            return True
-        settings = self.getBitrate()
-        log.info("The add-on settings bitrate is: %s, the video bitrate"
-                 "required is: %s" % (settings, sourceBitrate))
-        if settings < sourceBitrate:
-            return False
-        return True
-
-    def getBitrate(self):
+    def get_max_bitrate(self):
         # get the addon video quality
+        videoQuality = settings('maxVideoQualities')
+        bitrate = {
+            '0': 320,
+            '1': 720,
+            '2': 1500,
+            '3': 2000,
+            '4': 3000,
+            '5': 4000,
+            '6': 8000,
+            '7': 10000,
+            '8': 12000,
+            '9': 20000,
+            '10': 40000,
+            '11': 99999999  # deactivated
+        }
+        # max bit rate supported by server (max signed 32bit integer)
+        return bitrate.get(videoQuality, 2147483)
+
+    def getH265(self):
+        """
+        Returns the user settings for transcoding h265: boundary resolutions
+        of 480, 720 or 1080 as an int
+
+        OR 9999999 (int) if user chose not to transcode
+        """
+        H265 = {
+            '0': 99999999,
+            '1': 480,
+            '2': 720,
+            '3': 1080
+        }
+        return H265[settings('transcodeH265')]
+
+    def get_bitrate(self):
+        """
+        Get the desired transcoding bitrate from the settings
+        """
         videoQuality = settings('transcoderVideoQualities')
         bitrate = {
             '0': 320,
@@ -243,22 +272,10 @@ class PlayUtils():
         # max bit rate supported by server (max signed 32bit integer)
         return bitrate.get(videoQuality, 2147483)
 
-    def getH265(self):
+    def get_resolution(self):
         """
-        Returns the user settings for transcoding h265: boundary resolutions
-        of 480, 720 or 1080 as an int
-
-        OR 9999999 (int) if user chose not to transcode
+        Get the desired transcoding resolutions from the settings
         """
-        H265 = {
-            '0': 9999999,
-            '1': 480,
-            '2': 720,
-            '3': 1080
-        }
-        return H265[settings('transcodeH265')]
-
-    def getResolution(self):
         chosen = settings('transcoderVideoQualities')
         res = {
             '0': '420x420',

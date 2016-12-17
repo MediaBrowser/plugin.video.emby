@@ -126,6 +126,8 @@
     <string id="30140"> - Loop Theme Music</string>
     <string id="30141">Enable Background Image (Requires Restart)</string>
     <string id="30142">Services</string>
+
+    <string id="30143">Always transcode if video bitrate is above</string>
     
     <string id="30150">Skin does not support setting views</string>
     <string id="30151">Select item action (Requires Restart)</string>
