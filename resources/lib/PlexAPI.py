@@ -293,7 +293,7 @@ class PlexAPI():
                  % (url, verifySSL))
         # Check up to 3 times before giving up
         count = 0
-        while count < 3:
+        while count < 1:
             answer = self.doUtils(url,
                                   authenticate=False,
                                   headerOptions=headerOptions,
