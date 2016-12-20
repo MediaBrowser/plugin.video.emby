@@ -2,12 +2,12 @@
 
 ###############################################################################
 import logging
-from json import loads
-import threading
 import websocket
-import ssl
+from json import loads
+from threading import Thread
+from ssl import CERT_NONE
 
-import xbmc
+from xbmc import sleep
 
 from utils import window, settings, ThreadMethodsAdditionalSuspend, \
     ThreadMethods
@@ -21,14 +21,14 @@ log = logging.getLogger("PLEX."+__name__)
 
 @ThreadMethodsAdditionalSuspend('suspend_LibraryThread')
 @ThreadMethods
-class WebSocket(threading.Thread):
+class WebSocket(Thread):
     opcode_data = (websocket.ABNF.OPCODE_TEXT, websocket.ABNF.OPCODE_BINARY)
 
     def __init__(self, queue):
         self.ws = None
         # Communication with librarysync
         self.queue = queue
-        threading.Thread.__init__(self)
+        Thread.__init__(self)
 
     def process(self, opcode, message):
         if opcode not in self.opcode_data:
@@ -91,7 +91,7 @@ class WebSocket(threading.Thread):
             uri += '?X-Plex-Token=%s' % token
         sslopt = {}
         if settings('sslverify') == "false":
-            sslopt["cert_reqs"] = ssl.CERT_NONE
+            sslopt["cert_reqs"] = CERT_NONE
         log.debug("Uri: %s, sslopt: %s" % (uri, sslopt))
         return uri, sslopt
 
@@ -116,7 +116,7 @@ class WebSocket(threading.Thread):
                     # Abort was requested while waiting. We should exit
                     log.info("##===---- WebSocketClient Stopped ----===##")
                     return
-                xbmc.sleep(1000)
+                sleep(1000)
             try:
                 self.process(*self.receive(self.ws))
             except websocket.WebSocketTimeoutException:
@@ -142,11 +142,11 @@ class WebSocket(threading.Thread):
                                  "declaring the connection dead")
                         window('plex_online', value='false')
                         counter = 0
-                    xbmc.sleep(1000)
+                    sleep(1000)
                 except websocket.WebSocketTimeoutException:
                     log.info("timeout while connecting, trying again")
                     self.ws = None
-                    xbmc.sleep(1000)
+                    sleep(1000)
                 except websocket.WebSocketException as e:
                     log.info('WebSocketException: %s' % e)
                     if 'Handshake Status 401' in e.args:
@@ -156,14 +156,14 @@ class WebSocket(threading.Thread):
                                      'WebSocketClient now')
                             break
                     self.ws = None
-                    xbmc.sleep(1000)
+                    sleep(1000)
                 except Exception as e:
                     log.error("Unknown exception encountered in connecting: %s"
                               % e)
                     import traceback
                     log.error("Traceback:\n%s" % traceback.format_exc())
                     self.ws = None
-                    xbmc.sleep(1000)
+                    sleep(1000)
                 else:
                     counter = 0
                     handshake_counter = 0
