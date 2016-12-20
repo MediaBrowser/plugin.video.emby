@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 import logging
-import threading
-import traceback
-import socket
+from threading import Thread
 import Queue
+from socket import SHUT_RDWR
 
-import xbmc
+from xbmc import sleep
 
 from utils import settings, ThreadMethodsAdditionalSuspend, ThreadMethods
 from plexbmchelper import listener, plexgdm, subscribers, functions, \
@@ -24,7 +23,7 @@ log = logging.getLogger("PLEX."+__name__)
 
 @ThreadMethodsAdditionalSuspend('plex_serverStatus')
 @ThreadMethods
-class PlexCompanion(threading.Thread):
+class PlexCompanion(Thread):
     """
     Initialize with a Queue for callbacks
     """
@@ -41,7 +40,7 @@ class PlexCompanion(threading.Thread):
         # kodi player instance
         self.player = player.Player()
 
-        threading.Thread.__init__(self)
+        Thread.__init__(self)
 
     def _getStartItem(self, string):
         """
@@ -151,9 +150,10 @@ class PlexCompanion(threading.Thread):
                     break
                 except:
                     log.error("Unable to start PlexCompanion. Traceback:")
+                    import traceback
                     log.error(traceback.print_exc())
 
-                xbmc.sleep(3000)
+                sleep(3000)
 
                 if start_count == 3:
                     log.error("Error: Unable to start web helper.")
@@ -168,7 +168,7 @@ class PlexCompanion(threading.Thread):
 
         message_count = 0
         if httpd:
-            t = threading.Thread(target=httpd.handle_request)
+            t = Thread(target=httpd.handle_request)
 
         while not threadStopped():
             # If we are not authorized, sleep
@@ -177,13 +177,13 @@ class PlexCompanion(threading.Thread):
             while threadSuspended():
                 if threadStopped():
                     break
-                xbmc.sleep(1000)
+                sleep(1000)
             try:
                 message_count += 1
                 if httpd:
                     if not t.isAlive():
                         # Use threads cause the method will stall
-                        t = threading.Thread(target=httpd.handle_request)
+                        t = Thread(target=httpd.handle_request)
                         t.start()
 
                     if message_count == 3000:
@@ -202,6 +202,7 @@ class PlexCompanion(threading.Thread):
                         message_count = 0
             except:
                 log.warn("Error in loop, continuing anyway. Traceback:")
+                import traceback
                 log.warn(traceback.format_exc())
             # See if there's anything we need to process
             try:
@@ -214,12 +215,12 @@ class PlexCompanion(threading.Thread):
                 queue.task_done()
                 # Don't sleep
                 continue
-            xbmc.sleep(20)
+            sleep(20)
 
         client.stop_all()
         if httpd:
             try:
-                httpd.socket.shutdown(socket.SHUT_RDWR)
+                httpd.socket.shutdown(SHUT_RDWR)
             except:
                 pass
             finally:
