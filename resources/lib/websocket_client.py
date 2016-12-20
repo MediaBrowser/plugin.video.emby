@@ -2,9 +2,8 @@
 
 ###############################################################################
 import logging
-import json
+from json import loads
 import threading
-import Queue
 import websocket
 import ssl
 
@@ -36,7 +35,7 @@ class WebSocket(threading.Thread):
             return False
 
         try:
-            message = json.loads(message)
+            message = loads(message)
         except Exception as ex:
             log.error('Error decoding message from websocket: %s' % ex)
             log.error(message)
@@ -57,13 +56,8 @@ class WebSocket(threading.Thread):
             return True
 
         # Put PMS message on queue and let libsync take care of it
-        try:
-            self.queue.put(message)
-            return True
-        except Queue.Full:
-            # Queue only takes 200 messages. No worries if we miss one or two
-            log.info('Queue is full, dropping PMS message %s' % message)
-            return False
+        self.queue.put(message)
+        return True
 
     def receive(self, ws):
         # Not connected yet
