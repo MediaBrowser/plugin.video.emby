@@ -58,7 +58,6 @@ addonName = 'PlexKodiConnect'
 
 class Service():
 
-    welcome_msg = True
     server_online = True
     warn_auth = True
 
@@ -87,8 +86,8 @@ class Service():
         log.warn("%s Version: %s" % (addonName, self.clientInfo.getVersion()))
         log.warn("Using plugin paths: %s"
                  % (settings('useDirectPaths') != "true"))
-        log.warn("Using a low powered device: %s"
-                 % settings('low_powered_device'))
+        log.warn("Number of sync threads: %s"
+                 % settings('syncThreadNumber'))
         log.warn("Log Level: %s" % logLevel)
 
         # Reset window props for profile switch
@@ -133,14 +132,13 @@ class Service():
         # Queue for background sync
         queue = Queue.Queue()
 
-        connectMsg = True if settings('connectMsg') == 'true' else False
-
         # Initialize important threads
         user = userclient.UserClient()
         ws = wsc.WebSocket(queue)
         library = librarysync.LibrarySync(queue)
         plx = PlexAPI.PlexAPI()
 
+        welcome_msg = True
         counter = 0
         while not monitor.abortRequested():
 
@@ -163,9 +161,9 @@ class Service():
                     if not self.kodimonitor_running:
                         # Start up events
                         self.warn_auth = True
-                        if connectMsg and self.welcome_msg:
+                        if welcome_msg is True:
                             # Reset authentication warnings
-                            self.welcome_msg = False
+                            welcome_msg = False
                             xbmcgui.Dialog().notification(
                                 heading=addonName,
                                 message="%s %s" % (lang(33000), user.currUser),
@@ -221,21 +219,22 @@ class Service():
                         # Server is offline or cannot be reached
                         # Alert the user and suppress future warning
                         if self.server_online:
-                            log.error("Server is offline.")
+                            self.server_online = False
                             window('plex_online', value="false")
                             # Suspend threads
                             window('suspend_LibraryThread', value='true')
-                            xbmcgui.Dialog().notification(
-                                heading=lang(33001),
-                                message="%s %s"
-                                        % (addonName, lang(33002)),
-                                icon="special://home/addons/plugin.video."
-                                     "plexkodiconnect/icon.png",
-                                sound=False)
-                        self.server_online = False
+                            log.error("Plex Media Server went offline")
+                            if settings('show_pms_offline') == 'true':
+                                xbmcgui.Dialog().notification(
+                                    heading=lang(33001),
+                                    message="%s %s"
+                                            % (addonName, lang(33002)),
+                                    icon="special://home/addons/plugin.video."
+                                         "plexkodiconnect/icon.png",
+                                    sound=False)
                         counter += 1
                         # Periodically check if the IP changed, e.g. per minute
-                        if counter > 30:
+                        if counter > 20:
                             counter = 0
                             setup = initialsetup.InitialSetup()
                             tmp = setup.PickPMS()
@@ -250,16 +249,18 @@ class Service():
                             if monitor.waitForAbort(5):
                                 # Abort was requested while waiting.
                                 break
+                            self.server_online = True
                             # Alert the user that server is online.
-                            xbmcgui.Dialog().notification(
-                                heading=addonName,
-                                message=lang(33003),
-                                icon="special://home/addons/plugin.video."
-                                     "plexkodiconnect/icon.png",
-                                time=5000,
-                                sound=False)
-                        self.server_online = True
-                        log.warn("Server %s is online and ready." % server)
+                            if (welcome_msg is False and
+                                    settings('show_pms_offline') == 'true'):
+                                xbmcgui.Dialog().notification(
+                                    heading=addonName,
+                                    message=lang(33003),
+                                    icon="special://home/addons/plugin.video."
+                                         "plexkodiconnect/icon.png",
+                                    time=5000,
+                                    sound=False)
+                        log.info("Server %s is online and ready." % server)
                         window('plex_online', value="true")
                         if window('plex_authenticated') == 'true':
                             # Server got offline when we were authenticated.
@@ -273,7 +274,7 @@ class Service():
 
                         break
 
-                    if monitor.waitForAbort(2):
+                    if monitor.waitForAbort(3):
                         # Abort was requested while waiting.
                         break
 

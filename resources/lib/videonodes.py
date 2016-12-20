@@ -10,7 +10,7 @@ import xbmc
 import xbmcvfs
 
 from utils import window, settings, language as lang, IfExists, tryDecode, \
-    tryEncode, indent, normalize_nodes
+    tryEncode, indent, normalize_nodes, KODIVERSION
 
 ###############################################################################
 
@@ -20,9 +20,6 @@ log = logging.getLogger("PLEX."+__name__)
 
 
 class VideoNodes(object):
-
-    def __init__(self):
-        self.kodiversion = int(xbmc.getInfoLabel('System.BuildVersion')[:2])
 
     def commonRoot(self, order, label, tagname, roottype=1):
 
@@ -235,7 +232,7 @@ class VideoNodes(object):
                 # Custom query
                 path = ("plugin://plugin.video.plexkodiconnect/?id=%s&mode=recentepisodes&type=%s&tagname=%s&limit=%s"
                     % (viewid, mediatype, tagname, limit))
-            elif self.kodiversion == 14 and nodetype == "inprogressepisodes":
+            elif KODIVERSION == 14 and nodetype == "inprogressepisodes":
                 # Custom query
                 path = "plugin://plugin.video.plexkodiconnect/?id=%s&mode=inprogressepisodes&limit=%s" % (tagname, limit)
             elif nodetype == 'ondeck':
@@ -252,7 +249,7 @@ class VideoNodes(object):
             if mediatype == "photos":
                 windowpath = "ActivateWindow(Pictures,%s,return)" % path
             else:
-                if self.kodiversion >= 17:
+                if KODIVERSION >= 17:
                     # Krypton
                     windowpath = "ActivateWindow(Videos,%s,return)" % path
                 else:
@@ -374,7 +371,7 @@ class VideoNodes(object):
             "special://profile/library/video/"))
         nodeXML = "%splex_%s.xml" % (nodepath, cleantagname)
         path = "library://video/plex_%s.xml" % cleantagname
-        if self.kodiversion >= 17:
+        if KODIVERSION >= 17:
             # Krypton
             windowpath = "ActivateWindow(Videos,%s,return)" % path
         else:

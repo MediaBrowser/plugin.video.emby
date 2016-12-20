@@ -29,6 +29,7 @@ WINDOW = xbmcgui.Window(10000)
 ADDON = xbmcaddon.Addon(id='plugin.video.plexkodiconnect')
 
 KODILANGUAGE = xbmc.getLanguage(xbmc.ISO_639_1)
+KODIVERSION = int(xbmc.getInfoLabel("System.BuildVersion")[:2])
 
 ###############################################################################
 # Main methods
@@ -227,6 +228,25 @@ def getKodiVideoDBPath():
         % dbVersion.get(xbmc.getInfoLabel('System.BuildVersion')[:2], "")))
     return dbPath
 
+
+def create_actor_db_index():
+    """
+    Index the "actors" because we got a TON - speed up SELECT and WHEN
+    """
+    conn = kodiSQL('video')
+    cursor = conn.cursor()
+    try:
+        cursor.execute("""
+            CREATE UNIQUE INDEX index_name
+            ON actor (name);
+        """)
+    except sqlite3.OperationalError:
+        # Index already exists
+        pass
+    conn.commit()
+    conn.close()
+
+
 def getKodiMusicDBPath():
 
     dbVersion = {
@@ -402,7 +422,7 @@ def profiling(sortby="cumulative"):
             s = StringIO.StringIO()
             ps = pstats.Stats(pr, stream=s).sort_stats(sortby)
             ps.print_stats()
-            log.debug(s.getvalue())
+            log.info(s.getvalue())
 
             return result
 
@@ -835,7 +855,8 @@ def LogTime(func):
         starttotal = datetime.now()
         result = func(*args, **kwargs)
         elapsedtotal = datetime.now() - starttotal
-        log.debug('It took %s to run the function.' % (elapsedtotal))
+        log.info('It took %s to run the function %s'
+                  % (elapsedtotal, func.__name__))
         return result
     return wrapper
 

@@ -126,6 +126,8 @@
     <string id="30140"> - Loop Theme Music</string>
     <string id="30141">Enable Background Image (Requires Restart)</string>
     <string id="30142">Services</string>
+
+    <string id="30143">Always transcode if video bitrate is above</string>
     
     <string id="30150">Skin does not support setting views</string>
     <string id="30151">Select item action (Requires Restart)</string>
@@ -294,7 +296,7 @@
     <string id="30519">Ask to play trailers</string>
     <string id="30520">Skip Plex delete confirmation for the context menu (use at your own risk)</string>
     <string id="30521">Jump back on resume (in seconds)</string>
-    <string id="30522">Force transcode H265</string>
+    <string id="30522">Force transcode h265/HEVC</string>
     <string id="30523">Music metadata options (not compatible with direct stream)</string>
     <string id="30524">Import music song rating directly from files</string>
     <string id="30525">Convert music song rating to Emby rating</string>
@@ -423,7 +425,6 @@
     <string id="39062">Sync when screensaver is deactivated</string>
     <string id="39063">Force Transcode Hi10P</string>
     <string id="39064">Recently Added: Also show already watched episodes</string>
-    <string id="39065">Force Transcode HEVC</string>
     <string id="39066">Recently Added: Also show already watched movies (Refresh Plex playlist/nodes!)</string>
     <string id="39067">Your current Plex Media Server:</string>
     <string id="39068">[COLOR yellow]Manually enter Plex Media Server address[/COLOR]</string>
@@ -434,6 +435,7 @@
     <string id="39073">Appearance Tweaks</string>
     <string id="39074">TV Shows</string>
     <string id="39075">Always use default Plex subtitle if possible</string>
+    <string id="39076">If you use several Plex libraries of one kind, e.g. "Kids Movies" and "Parents Movies", be sure to check the Wiki: https://goo.gl/JFtQV9</string>
 
     <!-- Plex Entrypoint.py -->
     <string id="39200">Log-out Plex Home User </string>

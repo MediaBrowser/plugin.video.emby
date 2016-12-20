@@ -41,7 +41,11 @@ class WebSocket(threading.Thread):
             log.error('Error decoding message from websocket: %s' % ex)
             log.error(message)
             return False
-
+        try:
+            message = message['NotificationContainer']
+        except KeyError:
+            log.error('Could not parse PMS message: %s' % message)
+            return False
         # Triage
         typus = message.get('type')
         if typus is None:
@@ -139,7 +143,7 @@ class WebSocket(threading.Thread):
                     log.info("Error connecting")
                     self.ws = None
                     counter += 1
-                    if counter > 10:
+                    if counter > 3:
                         log.warn("Repeatedly could not connect to PMS, "
                                  "declaring the connection dead")
                         window('plex_online', value='false')

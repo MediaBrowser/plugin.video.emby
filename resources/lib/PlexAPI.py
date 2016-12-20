@@ -49,7 +49,8 @@ import clientinfo
 import downloadutils
 from utils import window, settings, language as lang, tryDecode, tryEncode, \
     DateToKodi, KODILANGUAGE
-from PlexFunctions import PLEX_TO_KODI_TIMEFACTOR, PMSHttpsEnabled
+from PlexFunctions import PLEX_TO_KODI_TIMEFACTOR, PMSHttpsEnabled, \
+    REMAP_TYPE_FROM_PLEXTYPE
 import embydb_functions as embydb
 
 ###############################################################################
@@ -288,18 +289,18 @@ class PlexAPI():
             url = 'https://plex.tv/api/home/users'
         else:
             url = url + '/library/onDeck'
-        log.info("Checking connection to server %s with verifySSL=%s"
-                 % (url, verifySSL))
+        log.debug("Checking connection to server %s with verifySSL=%s"
+                  % (url, verifySSL))
         # Check up to 3 times before giving up
         count = 0
-        while count < 3:
+        while count < 1:
             answer = self.doUtils(url,
                                   authenticate=False,
                                   headerOptions=headerOptions,
                                   verifySSL=verifySSL,
                                   timeout=4)
             if answer is None:
-                log.info("Could not connect to %s" % url)
+                log.debug("Could not connect to %s" % url)
                 count += 1
                 xbmc.sleep(500)
                 continue
@@ -316,7 +317,7 @@ class PlexAPI():
             # We could connect but maybe were not authenticated. No worries
             log.debug("Checking connection successfull. Answer: %s" % answer)
             return answer
-        log.info('Failed to connect to %s too many times. PMS is dead' % url)
+        log.debug('Failed to connect to %s too many times. PMS is dead' % url)
         return False
 
     def GetgPMSKeylist(self):
@@ -510,13 +511,6 @@ class PlexAPI():
             self.g_PMS      dict set
         """
         self.g_PMS = {}
-        # "Searching for Plex Server"
-        xbmcgui.Dialog().notification(
-            heading=addonName,
-            message=lang(39055),
-            icon="special://home/addons/plugin.video.plexkodiconnect/icon.png",
-            time=4000,
-            sound=False)
 
         # Look first for local PMS in the LAN
         pmsList = self.PlexGDM()
@@ -2515,29 +2509,17 @@ class API():
         """
         if path is None:
             return None
-        types = {
-            'movie': 'movie',
-            'show': 'tv',
-            'season': 'tv',
-            'episode': 'tv',
-            'artist': 'music',
-            'album': 'music',
-            'song': 'music',
-            'track': 'music',
-            'clip': 'clip',
-            'photo': 'photo'
-        }
-        typus = types[typus]
-        if settings('remapSMB') == 'true':
-            path = path.replace(settings('remapSMB%sOrg' % typus),
-                                settings('remapSMB%sNew' % typus),
+        typus = REMAP_TYPE_FROM_PLEXTYPE[typus]
+        if window('remapSMB') == 'true':
+            path = path.replace(window('remapSMB%sOrg' % typus),
+                                window('remapSMB%sNew' % typus),
                                 1)
             # There might be backslashes left over:
             path = path.replace('\\', '/')
-        elif settings('replaceSMB') == 'true':
+        elif window('replaceSMB') == 'true':
             if path.startswith('\\\\'):
                 path = 'smb:' + path.replace('\\', '/')
-        if settings('plex_pathverified') == 'true' and forceCheck is False:
+        if window('plex_pathverified') == 'true' and forceCheck is False:
             return path
 
         # exist() needs a / or \ at the end to work for directories
@@ -2558,12 +2540,12 @@ class API():
                 if self.askToValidate(path):
                     window('plex_shouldStop', value="true")
                     path = None
-                settings('plex_pathverified', value='true')
+                window('plex_pathverified', value='true')
             else:
                 path = None
         elif forceCheck is False:
-            if settings('plex_pathverified') != 'true':
-                settings('plex_pathverified', value='true')
+            if window('plex_pathverified') != 'true':
+                window('plex_pathverified', value='true')
         return path
 
     def askToValidate(self, url):

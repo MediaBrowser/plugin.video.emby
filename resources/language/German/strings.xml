@@ -18,7 +18,7 @@
     <string id="30509">Plex Musik-Bibliotheken aktivieren</string>
     <string id="30518">Plex Trailer aktivieren (Plexpass benötigt)</string>
     <string id="30519">Nachfragen, ob Trailer gespielt werden sollen</string>
-    <string id="30522">H265 Codec Transkodierung erzwingen</string>
+    <string id="30522">h265/HEVC Codec Transkodierung erzwingen</string>
     <string id="30517">Netzwerk Credentials eingeben</string>
     <string id="30529">PlexKodiConnect Start Verzögerung (in Sekunden)</string>
     <string id="30527">Extras ignorieren, wenn Nächste Episode gespielt wird</string>
@@ -151,7 +151,8 @@
     <string id="30140"> - Themen-Musik in Schleife abspielen</string>
     <string id="30141">Laden im Hintergrund aktivieren (Erfordert Neustart)</string>
     <string id="30142">Dienste</string>
-    <string id="30143">Info-Loader aktivieren (Erfordert Neustart)</string>
+    <string id="30143">Immer transkodieren falls Bitrate höher als</string>
+
     <string id="30144">Menü-Loader aktivieren (Erfordert Neustart)</string>
     <string id="30145">WebSocket Fernbedienung aktivieren (Erfordert Neustart)</string>
     <string id="30146">'Laufende Medien'-Loader aktivieren (Erfordert Neustart)</string>
@@ -373,7 +374,6 @@
     <string id="39062">Sync wenn Bildschirmschoner deaktiviert wird</string>
     <string id="39063">Hi10p Codec Transkodierung erzwingen</string>
     <string id="39064">"Zuletzt hinzugefügt": gesehene Folgen anzeigen</string>
-    <string id="39065">HEVC Codec Transkodierung erzwingen</string>
     <string id="39066">"Zuletzt hinzugefügt": gesehene Filme anzeigen (Plex Playlisten und Nodes zurücksetzen!)</string>
     <string id="39067">Aktueller Plex Media Server:</string>
     <string id="39068">[COLOR yellow]Plex Media Server Adresse manuell eingeben[/COLOR]</string>
@@ -384,6 +384,7 @@
     <string id="39073">Tweaks Aussehen</string>
     <string id="39074">TV Serien</string>
     <string id="39075">Falls möglich, Plex Standard-Untertitel anzeigen</string>
+    <string id="39076">Falls du mehrere Plex Bibliotheken einer Art nutzt, z.B. "Filme Kinder" und "Filme Eltern", lies unbedingt das Wiki unter https://goo.gl/JFtQV9</string>
 
     <!-- Plex Entrypoint.py -->
     <string id="39200">Plex Home Benutzer abmelden: </string>

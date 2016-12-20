@@ -15,7 +15,7 @@ from utils import window, settings, getUnixTimestamp, kodiSQL, sourcesXML,\
     ThreadMethods, ThreadMethodsAdditionalStop, LogTime, getScreensaver,\
     setScreensaver, playlistXSP, language as lang, DateToKodi, reset,\
     advancedSettingsXML, getKodiVideoDBPath, tryDecode, deletePlaylists,\
-    deleteNodes, ThreadMethodsAdditionalSuspend
+    deleteNodes, ThreadMethodsAdditionalSuspend, create_actor_db_index
 import clientinfo
 import downloadutils
 import itemtypes
@@ -386,12 +386,19 @@ class LibrarySync(Thread):
 
         self.syncThreadNumber = int(settings('syncThreadNumber'))
         self.installSyncDone = settings('SyncInstallRunDone') == 'true'
-        self.showDbSync = settings('dbSyncIndicator') == 'true'
+        window('dbSyncIndicator', value=settings('dbSyncIndicator'))
         self.enableMusic = settings('enableMusic') == "true"
         self.enableBackgroundSync = settings(
             'enableBackgroundSync') == "true"
         self.limitindex = int(settings('limitindex'))
 
+        # Init for replacing paths
+        window('remapSMB', value=settings('remapSMB'))
+        window('replaceSMB', value=settings('replaceSMB'))
+        for typus in PF.REMAP_TYPE_FROM_PLEXTYPE.values():
+            for arg in ('Org', 'New'):
+                key = 'remapSMB%s%s' % (typus, arg)
+                window(key, value=settings(key))
         # Just in case a time sync goes wrong
         self.timeoffset = int(settings('kodiplextimeoffset'))
         window('kodiplextimeoffset', value=str(self.timeoffset))
@@ -407,7 +414,7 @@ class LibrarySync(Thread):
 
         forced: always show popup, even if user setting to off
         """
-        if not self.showDbSync:
+        if settings('dbSyncIndicator') != 'true':
             if not forced:
                 return
         if icon == "plex":
@@ -551,6 +558,9 @@ class LibrarySync(Thread):
         # content sync: movies, tvshows, musicvideos, music
         embyconn.close()
 
+        # Create an index for actors to speed up sync
+        create_actor_db_index()
+
     @LogTime
     def fullSync(self, repair=False):
         """
@@ -560,18 +570,32 @@ class LibrarySync(Thread):
         # True: we're syncing only the delta, e.g. different checksum
         self.compare = not repair
 
+        self.new_items_only = True
+        log.info('Running fullsync for NEW PMS items with rapair=%s' % repair)
+        if self._fullSync() is False:
+            return False
+        self.new_items_only = False
+        log.info('Running fullsync for CHANGED PMS items with repair=%s'
+                 % repair)
+        if self._fullSync() is False:
+            return False
+        return True
+
+    def _fullSync(self):
         xbmc.executebuiltin('InhibitIdleShutdown(true)')
         screensaver = getScreensaver()
         setScreensaver(value="")
 
-        # Add sources
-        sourcesXML()
+        if self.new_items_only is True:
+            # Only do the following once for new items
+            # Add sources
+            sourcesXML()
 
-        # Set views. Abort if unsuccessful
-        if not self.maintainViews():
-            xbmc.executebuiltin('InhibitIdleShutdown(false)')
-            setScreensaver(value=screensaver)
-            return False
+            # Set views. Abort if unsuccessful
+            if not self.maintainViews():
+                xbmc.executebuiltin('InhibitIdleShutdown(false)')
+                setScreensaver(value=screensaver)
+                return False
 
         process = {
             'movies': self.PlexMovies,
@@ -583,6 +607,8 @@ class LibrarySync(Thread):
         # Do the processing
         for itemtype in process:
             if self.threadStopped():
+                xbmc.executebuiltin('InhibitIdleShutdown(false)')
+                setScreensaver(value=screensaver)
                 return False
             if not process[itemtype]():
                 xbmc.executebuiltin('InhibitIdleShutdown(false)')
@@ -862,14 +888,34 @@ class LibrarySync(Thread):
             self.allPlexElementsId      APPENDED(!!) dict
                 = {itemid: checksum}
         """
+        if self.new_items_only is True:
+            # Only process Plex items that Kodi does not already have in lib
+            for item in xml:
+                itemId = item.attrib.get('ratingKey')
+                if not itemId:
+                    # Skipping items 'title=All episodes' without a 'ratingKey'
+                    continue
+                self.allPlexElementsId[itemId] = ("K%s%s" %
+                    (itemId, item.attrib.get('updatedAt', '')))
+                if itemId not in self.allKodiElementsId:
+                    self.updatelist.append({
+                        'itemId': itemId,
+                        'itemType': itemType,
+                        'method': method,
+                        'viewName': viewName,
+                        'viewId': viewId,
+                        'title': item.attrib.get('title', 'Missing Title'),
+                        'mediaType': item.attrib.get('type')
+                    })
+            return
+
         if self.compare:
             # Only process the delta - new or changed items
             for item in xml:
                 itemId = item.attrib.get('ratingKey')
-                # Skipping items 'title=All episodes' without a 'ratingKey'
                 if not itemId:
+                    # Skipping items 'title=All episodes' without a 'ratingKey'
                     continue
-                title = item.attrib.get('title', 'Missing Title Name')
                 plex_checksum = ("K%s%s"
                                  % (itemId, item.attrib.get('updatedAt', '')))
                 self.allPlexElementsId[itemId] = plex_checksum
@@ -883,31 +929,29 @@ class LibrarySync(Thread):
                         'method': method,
                         'viewName': viewName,
                         'viewId': viewId,
-                        'title': title,
+                        'title': item.attrib.get('title', 'Missing Title'),
                         'mediaType': item.attrib.get('type')
                     })
         else:
             # Initial or repair sync: get all Plex movies
             for item in xml:
                 itemId = item.attrib.get('ratingKey')
-                # Skipping items 'title=All episodes' without a 'ratingKey'
                 if not itemId:
+                    # Skipping items 'title=All episodes' without a 'ratingKey'
                     continue
-                title = item.attrib.get('title', 'Missing Title Name')
-                plex_checksum = ("K%s%s"
-                                 % (itemId, item.attrib.get('updatedAt', '')))
-                self.allPlexElementsId[itemId] = plex_checksum
+                self.allPlexElementsId[itemId] = ("K%s%s"
+                    % (itemId, item.attrib.get('updatedAt', '')))
                 self.updatelist.append({
                     'itemId': itemId,
                     'itemType': itemType,
                     'method': method,
                     'viewName': viewName,
                     'viewId': viewId,
-                    'title': title,
+                    'title': item.attrib.get('title', 'Missing Title'),
                     'mediaType': item.attrib.get('type')
                 })
 
-    def GetAndProcessXMLs(self, itemType, showProgress=True):
+    def GetAndProcessXMLs(self, itemType):
         """
         Downloads all XMLs for itemType (e.g. Movies, TV-Shows). Processes them
         by then calling itemtypes.<itemType>()
@@ -959,19 +1003,18 @@ class LibrarySync(Thread):
         thread.start()
         threads.append(thread)
         log.info("Processing thread spawned")
-        # Start one thread to show sync progress
-        if showProgress:
-            if self.showDbSync:
-                dialog = xbmcgui.DialogProgressBG()
-                thread = ThreadedShowSyncInfo(
-                    dialog,
-                    [getMetadataLock, processMetadataLock],
-                    itemNumber,
-                    itemType)
-                thread.setDaemon(True)
-                thread.start()
-                threads.append(thread)
-                log.info("Kodi Infobox thread spawned")
+        # Start one thread to show sync progress ONLY for new PMS items
+        if self.new_items_only is True and window('dbSyncIndicator') == 'true':
+            dialog = xbmcgui.DialogProgressBG()
+            thread = ThreadedShowSyncInfo(
+                dialog,
+                [getMetadataLock, processMetadataLock],
+                itemNumber,
+                itemType)
+            thread.setDaemon(True)
+            thread.start()
+            threads.append(thread)
+            log.info("Kodi Infobox thread spawned")
 
         # Wait until finished
         getMetadataQueue.join()
@@ -1349,9 +1392,9 @@ class LibrarySync(Thread):
         """
         typus = message.get('type')
         if typus == 'playing':
-            self.process_playing(message['_children'])
+            self.process_playing(message['PlaySessionStateNotification'])
         elif typus == 'timeline':
-            self.process_timeline(message['_children'])
+            self.process_timeline(message['TimelineEntry'])
 
     def multi_delete(self, liste, deleteListe):
         """

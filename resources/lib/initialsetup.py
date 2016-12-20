@@ -242,14 +242,6 @@ class InitialSetup():
                     log.warn('The PMS you have used before with a unique '
                              'machineIdentifier of %s and name %s is '
                              'offline' % (self.serverid, name))
-                    # "PMS xyz offline"
-                    if settings('show_pms_offline') == 'true':
-                        self.dialog.notification(addonName,
-                                                 '%s %s'
-                                                 % (name, lang(39213)),
-                                                 xbmcgui.NOTIFICATION_ERROR,
-                                                 7000,
-                                                 False)
                     return
             chk = self._checkServerCon(server)
             if chk == 504 and httpsUpdated is False:
@@ -441,15 +433,6 @@ class InitialSetup():
         if settings('InstallQuestionsAnswered') == 'true':
             return
 
-        # Is your Kodi installed on a low-powered device like a Raspberry Pi?
-        # If yes, then we will reduce the strain on Kodi to prevent it from
-        # crashing.
-        if dialog.yesno(heading=addonName, line1=lang(39072)):
-            settings('low_powered_device', value="true")
-            settings('syncThreadNumber', value="1")
-        else:
-            settings('low_powered_device', value="false")
-
         # Additional settings where the user needs to choose
         # Direct paths (\\NAS\mymovie.mkv) or addon (http)?
         goToSettings = False
@@ -496,6 +479,9 @@ class InitialSetup():
             log.debug("User opted to use FanArtTV")
             settings('FanartTV', value="true")
 
+        # If you use several Plex libraries of one kind, e.g. "Kids Movies" and
+        # "Parents Movies", be sure to check https://goo.gl/JFtQV9
+        dialog.ok(heading=addonName, line1=lang(39076))
         # Make sure that we only ask these questions upon first installation
         settings('InstallQuestionsAnswered', value='true')
 
