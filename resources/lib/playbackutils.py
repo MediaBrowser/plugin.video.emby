@@ -11,7 +11,7 @@ import xbmcgui
 import xbmcplugin
 
 import playutils as putils
-import playlist
+from playqueue import Playqueue
 from utils import window, settings, tryEncode, tryDecode
 import downloadutils
 
@@ -37,10 +37,7 @@ class PlaybackUtils():
         self.userid = window('currUserId')
         self.server = window('pms_server')
 
-        if self.API.getType() == 'track':
-            self.pl = playlist.Playlist(typus='music')
-        else:
-            self.pl = playlist.Playlist(typus='video')
+        self.pl = Playqueue().get_playqueue_from_plextype(self.API.getType())
 
     def play(self, itemid, dbid=None):
 
@@ -89,7 +86,7 @@ class PlaybackUtils():
         contextmenu_play = window('plex_contextplay') == 'true'
         window('plex_contextplay', clear=True)
         homeScreen = xbmc.getCondVisibility('Window.IsActive(home)')
-        kodiPl = self.pl.playlist
+        kodiPl = self.pl.kodi_pl
         sizePlaylist = kodiPl.size()
         if contextmenu_play:
             # Need to start with the items we're inserting here

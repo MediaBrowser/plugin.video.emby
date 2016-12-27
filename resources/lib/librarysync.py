@@ -356,19 +356,10 @@ class ProcessFanartThread(Thread):
 @ThreadMethods
 class LibrarySync(Thread):
     """
-    librarysync.LibrarySync(queue)
-
-    where (communication with websockets)
-        queue:      Queue object for background sync
     """
-    # Borg, even though it's planned to only have 1 instance up and running!
-    _shared_state = {}
+    def __init__(self, callback=None):
+        self.mgr = callback
 
-    def __init__(self, queue):
-        self.__dict__ = self._shared_state
-
-        # Communication with websockets
-        self.queue = queue
         self.itemsToProcess = []
         self.sessionKeys = []
         self.fanartqueue = Queue.Queue()
@@ -1720,7 +1711,8 @@ class LibrarySync(Thread):
 
         xbmcplayer = xbmc.Player()
 
-        queue = self.queue
+        # Link to Websocket queue
+        queue = self.mgr.ws.queue
 
         startupComplete = False
         self.views = []

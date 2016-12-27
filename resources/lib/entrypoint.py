@@ -19,7 +19,6 @@ import clientinfo
 import downloadutils
 import embydb_functions as embydb
 import playbackutils as pbutils
-import playlist
 
 import PlexFunctions
 import PlexAPI

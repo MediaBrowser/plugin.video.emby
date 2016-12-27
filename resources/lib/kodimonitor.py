@@ -14,7 +14,6 @@ import kodidb_functions as kodidb
 import playbackutils as pbutils
 from utils import window, settings, CatchExceptions, tryDecode, tryEncode
 from PlexFunctions import scrobble, REMAP_TYPE_FROM_PLEXTYPE
-from playlist import Playlist
 
 ###############################################################################
 
@@ -25,11 +24,11 @@ log = logging.getLogger("PLEX."+__name__)
 
 class KodiMonitor(xbmc.Monitor):
 
-    def __init__(self):
-
+    def __init__(self, callback):
+        self.mgr = callback
         self.doUtils = downloadutils.DownloadUtils().downloadUrl
         self.xbmcplayer = xbmc.Player()
-        self.playlist = Playlist('video')
+        self.playqueue = self.mgr.playqueue
         xbmc.Monitor.__init__(self)
         log.info("Kodi monitor started.")
 
@@ -173,7 +172,6 @@ class KodiMonitor(xbmc.Monitor):
             # Data : {u'item': {u'type': u'movie', u'id': 3}, u'playlistid': 1,
             #         u'position': 0}
             self.playlist.kodi_onadd(data)
-            Playlist()
 
     def PlayBackStart(self, data):
         """

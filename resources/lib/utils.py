@@ -133,21 +133,21 @@ def tryDecode(string, encoding='utf-8'):
 
 
 def DateToKodi(stamp):
-        """
-        converts a Unix time stamp (seconds passed sinceJanuary 1 1970) to a
-        propper, human-readable time stamp used by Kodi
+    """
+    converts a Unix time stamp (seconds passed sinceJanuary 1 1970) to a
+    propper, human-readable time stamp used by Kodi
 
-        Output: Y-m-d h:m:s = 2009-04-05 23:16:04
+    Output: Y-m-d h:m:s = 2009-04-05 23:16:04
 
-        None if an error was encountered
-        """
-        try:
-            stamp = float(stamp) + float(window('kodiplextimeoffset'))
-            date_time = time.localtime(stamp)
-            localdate = time.strftime('%Y-%m-%d %H:%M:%S', date_time)
-        except:
-            localdate = None
-        return localdate
+    None if an error was encountered
+    """
+    try:
+        stamp = float(stamp) + float(window('kodiplextimeoffset'))
+        date_time = time.localtime(stamp)
+        localdate = time.strftime('%Y-%m-%d %H:%M:%S', date_time)
+    except:
+        localdate = None
+    return localdate
 
 
 def IfExists(path):
@@ -938,8 +938,32 @@ def ThreadMethods(cls):
     return cls
 
 
+class Lock_Function:
+    """
+    Decorator for class methods and functions to lock them with lock.
+
+    Initialize this class first
+    lockfunction = Lock_Function(lock), where lock is a threading.Lock() object
+
+    To then lock a function or method:
+
+    @lockfunction.lockthis
+    def some_function(args, kwargs)
+    """
+    def __init__(self, lock):
+        self.lock = lock
+
+    def lockthis(self, func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            with self.lock:
+                result = func(*args, **kwargs)
+            return result
+        return wrapper
+
 ###############################################################################
 # UNUSED METHODS
+
 
 def changePlayState(itemType, kodiId, playCount, lastplayed):
     """

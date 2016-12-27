@@ -11,7 +11,6 @@ from plexbmchelper import listener, plexgdm, subscribers, functions, \
     httppersist, plexsettings
 from PlexFunctions import ParseContainerKey, GetPlayQueue, \
     ConvertPlexToKodiTime
-import playlist
 import player
 
 ###############################################################################
@@ -25,18 +24,18 @@ log = logging.getLogger("PLEX."+__name__)
 @ThreadMethods
 class PlexCompanion(Thread):
     """
-    Initialize with a Queue for callbacks
     """
-    def __init__(self):
+    def __init__(self, callback=None):
         log.info("----===## Starting PlexCompanion ##===----")
+        if callback is not None:
+            self.mgr = callback
+        self.playqueue = self.mgr.playqueue
         self.settings = plexsettings.getSettings()
         # Start GDM for server/client discovery
         self.client = plexgdm.plexgdm()
         self.client.clientDetails(self.settings)
         log.debug("Registration string is: %s "
                   % self.client.getClientDetails())
-        # Initialize playlist/queue stuff
-        self.playlist = playlist.Playlist('video')
         # kodi player instance
         self.player = player.Player()
 
@@ -72,49 +71,44 @@ class PlexCompanion(Thread):
         data = task['data']
 
         if task['action'] == 'playlist':
+            # Get the playqueue ID
             try:
-                _, queueId, query = ParseContainerKey(data['containerKey'])
+                _, ID, query = ParseContainerKey(data['containerKey'])
             except Exception as e:
                 log.error('Exception while processing: %s' % e)
                 import traceback
                 log.error("Traceback:\n%s" % traceback.format_exc())
                 return
-            if self.playlist is not None:
-                if self.playlist.Typus() != data.get('type'):
-                    log.debug('Switching to Kodi playlist of type %s'
-                              % data.get('type'))
-                    self.playlist = None
-            if self.playlist is None:
-                if data.get('type') == 'music':
-                    self.playlist = playlist.Playlist('music')
-                else:
-                    self.playlist = playlist.Playlist('video')
-            if queueId != self.playlist.QueueId():
+            self.mgr.playqueue.update_playqueue_with_companion(data)
+
+            self.playqueue = self.mgr.playqueue.get_playqueue_from_plextype(
+                data.get('type'))
+            if queueId != self.playqueue.ID:
                 log.info('New playlist received, updating!')
                 xml = GetPlayQueue(queueId)
                 if xml in (None, 401):
                     log.error('Could not download Plex playlist.')
                     return
                 # Clear existing playlist on the Kodi side
-                self.playlist.clear()
+                self.playqueue.clear()
                 # Set new values
-                self.playlist.QueueId(queueId)
-                self.playlist.PlayQueueVersion(int(
+                self.playqueue.QueueId(queueId)
+                self.playqueue.PlayQueueVersion(int(
                     xml.attrib.get('playQueueVersion')))
-                self.playlist.Guid(xml.attrib.get('guid'))
+                self.playqueue.Guid(xml.attrib.get('guid'))
                 items = []
                 for item in xml:
                     items.append({
                         'playQueueItemID': item.get('playQueueItemID'),
                         'plexId': item.get('ratingKey'),
                         'kodiId': None})
-                self.playlist.playAll(
+                self.playqueue.playAll(
                     items,
                     startitem=self._getStartItem(data.get('key', '')),
                     offset=ConvertPlexToKodiTime(data.get('offset', 0)))
                 log.info('Initiated playlist no %s with version %s'
-                         % (self.playlist.QueueId(),
-                            self.playlist.PlayQueueVersion()))
+                         % (self.playqueue.QueueId(),
+                            self.playqueue.PlayQueueVersion()))
             else:
                 log.error('This has never happened before!')
 
@@ -129,7 +123,7 @@ class PlexCompanion(Thread):
         requestMgr = httppersist.RequestMgr()
         jsonClass = functions.jsonClass(requestMgr, self.settings)
         subscriptionManager = subscribers.SubscriptionManager(
-            jsonClass, requestMgr, self.player, self.playlist)
+            jsonClass, requestMgr, self.player, self.playqueue)
 
         queue = Queue.Queue(maxsize=100)
 

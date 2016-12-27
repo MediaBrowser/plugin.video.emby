@@ -5,6 +5,7 @@ import logging
 import websocket
 from json import loads
 from threading import Thread
+from Queue import Queue
 from ssl import CERT_NONE
 
 from xbmc import sleep
@@ -24,10 +25,12 @@ log = logging.getLogger("PLEX."+__name__)
 class WebSocket(Thread):
     opcode_data = (websocket.ABNF.OPCODE_TEXT, websocket.ABNF.OPCODE_BINARY)
 
-    def __init__(self, queue):
+    def __init__(self, callback=None):
+        if callback is not None:
+            self.mgr = callback
         self.ws = None
         # Communication with librarysync
-        self.queue = queue
+        self.queue = Queue()
         Thread.__init__(self)
 
     def process(self, opcode, message):

@@ -60,11 +60,12 @@ KODITYPE_FROM_PLEXTYPE = {
     'XXXXXXX': 'genre'
 }
 
-KODIAUDIOVIDEO_FROM_MEDIA_TYPE = {
+KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE = {
     'movie': 'video',
     'episode': 'video',
     'season': 'video',
     'tvshow': 'video',
+    'clip': 'video',
     'artist': 'audio',
     'album': 'audio',
     'track': 'audio',
