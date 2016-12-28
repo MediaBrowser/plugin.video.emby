@@ -94,7 +94,7 @@ class Playqueue(Thread):
         """
         log.info('New playqueue received from the PMS, updating!')
         PL.update_playlist_from_PMS(playqueue, playqueue_id)
-        playqueue.repeat = repeat
+        playqueue.repeat = 0 if not repeat else int(repeat)
         log.debug('Updated playqueue: %s' % playqueue)
 
         window('plex_customplaylist', value="true")
@@ -124,7 +124,7 @@ class Playqueue(Thread):
         # Still need to get new playQueue from the server - don't know what has
         # been selected
         PL.refresh_playlist_from_PMS(playqueue)
-        playqueue.repeat = repeat
+        playqueue.repeat = 0 if not repeat else int(repeat)
         window('plex_customplaylist', value="true")
         if offset not in (None, "0"):
             window('plex_customplaylist.seektime',
@@ -153,6 +153,13 @@ class Playqueue(Thread):
             }
         """
         playqueue = self.playqueues[data['playlistid']]
+        if data['item'].get('id') is None and data['item'].get('file') is None:
+            # Kodi screwed up. Let's try to get the data anyway
+            items = PL.get_kodi_playlist_items(playqueue)
+            if items[data['position']].get('id') is not None:
+                data['item']['id'] = items[data['position']].get('id')
+            else:
+                data['item']['file'] = items[data['position']].get('file')
         if playqueue.PKC_playlist_edits:
             old = (data['item'].get('id') if data['item'].get('id')
                    else data['item'].get('file'))
@@ -212,17 +219,24 @@ class Playqueue(Thread):
         # monitor!
         log.debug('New playqueue: %s' % playqueue)
 
-    def run(self):
-        threadStopped = self.threadStopped
-        threadSuspended = self.threadSuspended
-        log.info("----===## Starting PlayQueue client ##===----")
-        # Initialize the playqueues, if Kodi already got items in them
+    def init_playlists(self):
+        """
+        Initializes the playqueues with already existing items.
+        Called on startup AND for addon paths!
+        """
         for playqueue in self.playqueues:
             for i, item in enumerate(PL.get_kodi_playlist_items(playqueue)):
                 if i == 0:
                     PL.init_Plex_playlist(playqueue, kodi_item=item)
                 else:
                     PL.add_playlist_item(playqueue, item, i)
+
+    def run(self):
+        threadStopped = self.threadStopped
+        threadSuspended = self.threadSuspended
+        log.info("----===## Starting PlayQueue client ##===----")
+        # Initialize the playqueues, if Kodi already got items in them
+        self.init_playlists()
         while not threadStopped():
             while threadSuspended():
                 if threadStopped():

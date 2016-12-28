@@ -17,6 +17,7 @@ import downloadutils
 
 import PlexAPI
 import PlexFunctions as PF
+import playlist_func as PL
 
 ###############################################################################
 
@@ -36,9 +37,12 @@ class PlaybackUtils():
 
         self.userid = window('currUserId')
         self.server = window('pms_server')
-
-        self.pl = Playqueue().get_playqueue_from_type(
-            PF.KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[self.API.getType()])
+        playqueue = Playqueue()
+        # We need to initialize already existing items as we have a completely
+        # different Python instance!
+        playqueue.init_playlists()
+        self.pl = playqueue.get_playqueue_from_type(
+            PF.KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[item[0].attrib.get('type')])
 
     def play(self, itemid, dbid=None):
 
@@ -51,6 +55,7 @@ class PlaybackUtils():
         playutils = putils.PlayUtils(item[0])
 
         log.info("Play called.")
+        log.debug('Playqueue: %s' % self.pl)
         playurl = playutils.getPlayUrl()
         if not playurl:
             return xbmcplugin.setResolvedUrl(int(sys.argv[1]), False, listitem)
@@ -108,6 +113,9 @@ class PlaybackUtils():
 
         ############### RESUME POINT ################
         seektime, runtime = API.getRuntime()
+        if window('plex_customplaylist.seektime'):
+            # Already got seektime, e.g. from playqueue & Plex companion
+            seektime = int(window('plex_customplaylist.seektime'))
 
         # We need to ensure we add the intro and additional parts only once.
         # Otherwise we get a loop.
@@ -120,12 +128,20 @@ class PlaybackUtils():
                     window('plex_customplaylist') != "true" and
                     not contextmenu_play):
                 log.debug("Adding dummy file to playlist.")
+                # Make sure Kodimonitor recognizes dummy
+                listitem.setLabel('plex_dummyfile')
                 dummyPlaylist = True
-                kodiPl.add(playurl, listitem, index=startPos)
+                PL.add_listitem_to_Kodi_playlist(
+                    self.pl,
+                    listitem,
+                    playurl,
+                    startPos)
                 # Remove the original item from playlist
-                self.pl.removefromPlaylist(startPos+1)
-                # Readd the original item to playlist - via jsonrpc so we have full metadata
-                self.pl.insertintoPlaylist(
+                PL.remove_from_Kodi_playlist(self.pl, startPos+1)
+                # Readd the original item to playlist - via jsonrpc so we have
+                # full metadata
+                PL.insert_into_Kodi_playlist(
+                    self.pl,
                     self.currentPosition+1,
                     dbid,
                     PF.KODITYPE_FROM_PLEXTYPE[API.getType()])
@@ -146,9 +162,10 @@ class PlaybackUtils():
                 # Extend our current playlist with the actual item to play
                 # only if there's no playlist first
                 log.info("Adding main item to playlist.")
-                self.pl.addtoPlaylist(
-                    dbid,
-                    PF.KODITYPE_FROM_PLEXTYPE[API.getType()])
+                PL.add_dbid_to_Kodi_playlist(
+                    self.pl,
+                    dbid=dbid,
+                    mediatype=PF.KODITYPE_FROM_PLEXTYPE[API.getType()])
 
             elif contextmenu_play:
                 if window('useDirectPaths') == 'true':
@@ -168,10 +185,11 @@ class PlaybackUtils():
                     kodiPl.add(playurl, listitem, index=self.currentPosition+1)
                 else:
                     # Full metadata
-                    self.pl.insertintoPlaylist(
+                    PL.insert_into_Kodi_playlist(
+                        self.pl,
                         self.currentPosition+1,
-                        dbid,
-                        PF.KODITYPE_FROM_PLEXTYPE[API.getType()])
+                        dbid=dbid,
+                        mediatype=PF.KODITYPE_FROM_PLEXTYPE[API.getType()])
                 self.currentPosition += 1
                 if seektime:
                     window('plex_customplaylist.seektime', value=str(seektime))
@@ -201,7 +219,6 @@ class PlaybackUtils():
 
                     kodiPl.add(additionalPlayurl, additionalListItem,
                                index=self.currentPosition)
-                    self.pl.verifyPlaylist()
                     self.currentPosition += 1
                 API.setPartNumber(0)
 
@@ -287,7 +304,10 @@ class PlaybackUtils():
             introPlayurl = path + '?' + urlencode(params)
             log.info("Adding Intro: %s" % introPlayurl)
 
-            self.pl.insertintoPlaylist(self.currentPosition, url=introPlayurl)
+            PL.insert_into_Kodi_playlist(
+                self.pl,
+                self.currentPosition,
+                url=introPlayurl)
             self.currentPosition += 1
 
         return True

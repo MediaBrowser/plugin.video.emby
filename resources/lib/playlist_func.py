@@ -3,7 +3,7 @@ from urllib import quote
 
 import embydb_functions as embydb
 from downloadutils import DownloadUtils as DU
-from utils import JSONRPC, tryEncode
+from utils import window, JSONRPC, tryEncode
 from PlexAPI import API
 
 ###############################################################################
@@ -250,6 +250,57 @@ def move_playlist_item(playlist, before_pos, after_pos):
     playlist.items.insert(after_pos, playlist.items.pop(before_pos))
 
 
+def get_PMS_playlist(playlist, playlist_id=None):
+    """
+    Fetches the PMS playlist/playqueue as an XML. Pass in playlist_id if we
+    need to fetch a new playlist
+
+    Returns None if something went wrong
+    """
+    playlist_id = playlist_id if playlist_id else playlist.ID
+    xml = DU().downloadUrl(
+        "{server}/%ss/%s" % (playlist.kind, playlist_id),
+        headerOptions={'Accept': 'application/xml'})
+    try:
+        xml.attrib['%sID' % playlist.kind]
+    except (AttributeError, KeyError):
+        xml = None
+    return xml
+
+
+def refresh_playlist_from_PMS(playlist):
+    """
+    Only updates the selected item from the PMS side (e.g.
+    playQueueSelectedItemID). Will NOT check whether items still make sense.
+    """
+    xml = get_PMS_playlist(playlist)
+    try:
+        xml.attrib['%sVersion' % playlist.kind]
+    except:
+        log.error('Could not download Plex playlist.')
+        return
+    _get_playlist_details_from_xml(playlist, xml)
+
+
+def update_playlist_from_PMS(playlist, playlist_id=None):
+    """
+    Updates Kodi playlist using a new PMS playlist. Pass in playlist_id if we
+    need to fetch a new playqueue
+    """
+    xml = get_PMS_playlist(playlist, playlist_id)
+    try:
+        xml.attrib['%sVersion' % playlist.kind]
+    except:
+        log.error('Could not download Plex playlist.')
+        return
+    # Clear our existing playlist and the associated Kodi playlist
+    playlist.clear()
+    # Set new values
+    _get_playlist_details_from_xml(playlist, xml)
+    for plex_item in xml:
+        playlist.items.append(add_to_Kodi_playlist(playlist, plex_item))
+
+
 def delete_playlist_item(playlist, pos):
     """
     Delete the item at position pos [int]
@@ -333,13 +384,43 @@ def add_to_Kodi_playlist(playlist, xml_video_element):
     return item
 
 
-def insertintoPlaylist(self,
-                       position,
-                       dbid=None,
-                       mediatype=None,
-                       url=None):
+def add_listitem_to_Kodi_playlist(playlist, listitem, file, index):
+    """
+    Adds an xbmc listitem to the Kodi playlist. Will be ignored by kodimonitor
+    by settings window('plex_ignore_Playlist.OnAdd')
+    """
+    playlist.kodi_pl.add(file, listitem, index=index)
+
+
+def add_dbid_to_Kodi_playlist(playlist, dbid=None, mediatype=None, url=None):
     params = {
-        'playlistid': self.playlistId,
+        'playlistid': playlist.playlistid
+    }
+    if dbid is not None:
+        params['item'] = {'%sid' % tryEncode(mediatype): int(dbid)}
+    else:
+        params['item'] = {'file': url}
+    log.debug(JSONRPC('Playlist.Add').execute(params))
+
+
+def remove_from_Kodi_playlist(playlist, position):
+    """
+    Removes the item at position from the Kodi playlist using JSON. Will be
+    ignored by kodimonitor by settings window('plex_ignore_Playlist.OnRemove')
+    """
+    log.debug('Removing position %s from playlist %s' % (position, playlist))
+    log.debug(JSONRPC('Playlist.Remove').execute({
+        'playlistid': playlist.playlistid,
+        'position': position
+    }))
+
+
+def insert_into_Kodi_playlist(playlist, position, dbid=None, mediatype=None,
+                              url=None):
+    """
+    """
+    params = {
+        'playlistid': playlist.playlistid,
         'position': position
     }
     if dbid is not None:
@@ -349,64 +430,7 @@ def insertintoPlaylist(self,
     JSONRPC('Playlist.Insert').execute(params)
 
 
-def removefromPlaylist(self, position):
-    params = {
-        'playlistid': self.playlistId,
-        'position': position
-    }
-    log.debug(JSONRPC('Playlist.Remove').execute(params))
-
-
-def get_PMS_playlist(playlist, playlist_id=None):
-    """
-    Fetches the PMS playlist/playqueue as an XML. Pass in playlist_id if we
-    need to fetch a new playlist
-
-    Returns None if something went wrong
-    """
-    playlist_id = playlist_id if playlist_id else playlist.ID
-    xml = DU().downloadUrl(
-        "{server}/%ss/%s" % (playlist.kind, playlist_id),
-        headerOptions={'Accept': 'application/xml'})
-    try:
-        xml.attrib['%sID' % playlist.kind]
-    except (AttributeError, KeyError):
-        xml = None
-    return xml
-
-
-def refresh_playlist_from_PMS(playlist):
-    """
-    Only updates the selected item from the PMS side (e.g.
-    playQueueSelectedItemID). Will NOT check whether items still make sense.
-    """
-    xml = get_PMS_playlist(playlist)
-    try:
-        xml.attrib['%sVersion' % playlist.kind]
-    except:
-        log.error('Could not download Plex playlist.')
-        return
-    _get_playlist_details_from_xml(playlist, xml)
-
-
-def update_playlist_from_PMS(playlist, playlist_id=None):
-    """
-    Updates Kodi playlist using a new PMS playlist. Pass in playlist_id if we
-    need to fetch a new playqueue
-    """
-    xml = get_PMS_playlist(playlist, playlist_id)
-    try:
-        xml.attrib['%sVersion' % playlist.kind]
-    except:
-        log.error('Could not download Plex playlist.')
-        return
-    # Clear our existing playlist and the associated Kodi playlist
-    playlist.clear()
-    # Set new values
-    _get_playlist_details_from_xml(playlist, xml)
-    for plex_item in xml:
-        playlist.items.append(add_to_Kodi_playlist(playlist, plex_item))
-
+# NOT YET UPDATED!!
 
 def _processItems(self, startitem, startPlayer=False):
     startpos = None
