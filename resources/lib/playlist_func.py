@@ -32,7 +32,7 @@ class Playlist_Object_Baseclase(object):
         answ = "<%s: " % (self.__class__.__name__)
         # For some reason, can't use dir directly
         answ += "ID: %s, " % self.ID
-        answ += "items: %s" % self.items
+        answ += "items: %s, " % self.items
         for key in self.__dict__:
             if key not in ("ID", 'items'):
                 answ += '%s: %s, ' % (key, getattr(self, key))
