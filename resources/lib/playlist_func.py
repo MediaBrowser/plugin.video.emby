@@ -375,7 +375,21 @@ def get_PMS_playlist(playlist, playlist_id=None):
     return xml
 
 
-def update_playlist_from_PMS(playlist, playlist_id=None, repeat=None):
+def refresh_playlist_from_PMS(playlist):
+    """
+    Only updates the selected item from the PMS side (e.g.
+    playQueueSelectedItemID). Will NOT check whether items still make sense.
+    """
+    xml = get_PMS_playlist(playlist)
+    try:
+        xml.attrib['%sVersion' % playlist.kind]
+    except:
+        log.error('Could not download Plex playlist.')
+        return
+    _get_playlist_details_from_xml(playlist, xml)
+
+
+def update_playlist_from_PMS(playlist, playlist_id=None):
     """
     Updates Kodi playlist using a new PMS playlist. Pass in playlist_id if we
     need to fetch a new playqueue
@@ -390,8 +404,6 @@ def update_playlist_from_PMS(playlist, playlist_id=None, repeat=None):
     playlist.clear()
     # Set new values
     _get_playlist_details_from_xml(playlist, xml)
-    if repeat:
-        playlist.repeat = repeat
     for plex_item in xml:
         playlist.items.append(add_to_Kodi_playlist(playlist, plex_item))
 

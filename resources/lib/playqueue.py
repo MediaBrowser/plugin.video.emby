@@ -93,9 +93,38 @@ class Playqueue(Thread):
         offset = time offset in Plextime
         """
         log.info('New playqueue received from the PMS, updating!')
-        PL.update_playlist_from_PMS(playqueue, playqueue_id, repeat)
+        PL.update_playlist_from_PMS(playqueue, playqueue_id)
+        playqueue.repeat = repeat
         log.debug('Updated playqueue: %s' % playqueue)
 
+        window('plex_customplaylist', value="true")
+        if offset not in (None, "0"):
+            window('plex_customplaylist.seektime',
+                   str(ConvertPlexToKodiTime(offset)))
+        for startpos, item in enumerate(playqueue.items):
+            if item.ID == playqueue.selectedItemID:
+                break
+        else:
+            startpos = None
+        # Start playback
+        if startpos:
+            self.player.play(playqueue.kodi_pl, startpos=startpos)
+        else:
+            self.player.play(playqueue.kodi_pl)
+        playqueue.log_Kodi_playlist()
+
+    @lockmethod.lockthis
+    def start_playqueue_initiated_by_companion(self,
+                                               playqueue,
+                                               playqueue_id=None,
+                                               repeat=None,
+                                               offset=None):
+        log.info('Plex companion wants to restart playback of playqueue %s'
+                 % playqueue)
+        # Still need to get new playQueue from the server - don't know what has
+        # been selected
+        PL.refresh_playlist_from_PMS(playqueue)
+        playqueue.repeat = repeat
         window('plex_customplaylist', value="true")
         if offset not in (None, "0"):
             window('plex_customplaylist.seektime',

@@ -86,10 +86,13 @@ class PlexCompanion(Thread):
             playqueue = self.mgr.playqueue.get_playqueue_from_type(
                 data['type'])
             if ID != playqueue.ID:
+                # playqueue changed somehow
                 self.mgr.playqueue.update_playqueue_from_PMS(
                     playqueue, ID, int(query['repeat']), data['offset'])
             else:
-                log.error('This has never happened before!')
+                # No change to the playqueue
+                self.mgr.playqueue.start_playqueue_initiated_by_companion(
+                    playqueue, int(query['repeat']), data['offset'])
 
     def run(self):
         httpd = False
