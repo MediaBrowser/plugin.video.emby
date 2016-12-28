@@ -87,7 +87,7 @@ class PlexCompanion(Thread):
                 data['type'])
             if ID != playqueue.ID:
                 self.mgr.playqueue.update_playqueue_from_PMS(
-                    playqueue, ID, int(query['repeat']))
+                    playqueue, ID, int(query['repeat']), data['offset'])
             else:
                 log.error('This has never happened before!')
 

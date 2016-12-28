@@ -83,21 +83,23 @@ class Playqueue(Thread):
     def update_playqueue_from_PMS(self,
                                   playqueue,
                                   playqueue_id=None,
-                                  repeat=None):
+                                  repeat=None,
+                                  offset=None):
         """
         Completely updates the Kodi playqueue with the new Plex playqueue. Pass
         in playqueue_id if we need to fetch a new playqueue
 
         repeat = 0, 1, 2
+        offset = time offset in Plextime
         """
         log.info('New playqueue received from the PMS, updating!')
         PL.update_playlist_from_PMS(playqueue, playqueue_id, repeat)
         log.debug('Updated playqueue: %s' % playqueue)
 
         window('plex_customplaylist', value="true")
-        if playqueue.selectedItemOffset not in (None, "0"):
+        if offset not in (None, "0"):
             window('plex_customplaylist.seektime',
-                   str(ConvertPlexToKodiTime(playqueue.selectedItemOffset)))
+                   str(ConvertPlexToKodiTime(offset)))
         for startpos, item in enumerate(playqueue.items):
             if item.ID == playqueue.selectedItemID:
                 break
