@@ -168,10 +168,10 @@ class KodiMonitor(xbmc.Monitor):
             pass
 
         elif method == "Playlist.OnAdd":
-            # User manipulated Kodi playlist
+            # User (or PKC) manipulated Kodi playlist
             # Data : {u'item': {u'type': u'movie', u'id': 3}, u'playlistid': 1,
             #         u'position': 0}
-            self.playlist.kodi_onadd(data)
+            self.playqueue.kodi_onadd(data)
 
     def PlayBackStart(self, data):
         """

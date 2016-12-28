@@ -5,10 +5,10 @@ from threading import Lock, Thread
 
 import xbmc
 
-from utils import ThreadMethods, ThreadMethodsAdditionalSuspend, Lock_Function
+from utils import window, ThreadMethods, ThreadMethodsAdditionalSuspend, \
+    Lock_Function
 import playlist_func as PL
-from PlexFunctions import KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE, GetPlayQueue, \
-    ParseContainerKey
+from PlexFunctions import ConvertPlexToKodiTime
 
 ###############################################################################
 log = logging.getLogger("PLEX."+__name__)
@@ -36,6 +36,7 @@ class Playqueue(Thread):
         if self.playqueues is not None:
             return
         self.mgr = callback
+        self.player = xbmc.Player()
 
         # Initialize Kodi playqueues
         self.playqueues = []
@@ -52,7 +53,63 @@ class Playqueue(Thread):
                 # Currently, only video or audio playqueues available
                 playqueue.kodi_pl = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
             self.playqueues.append(playqueue)
+        # sort the list by their playlistid, just in case
+        self.playqueues = sorted(
+            self.playqueues, key=lambda i: i.playlistid)
         log.debug('Initialized the Kodi play queues: %s' % self.playqueues)
+
+    def get_playqueue_from_type(self, typus):
+        """
+        Returns the playqueue according to the typus ('video', 'audio',
+        'picture') passed in
+        """
+        for playqueue in self.playqueues:
+            if playqueue.type == typus:
+                break
+        else:
+            raise ValueError('Wrong type was passed in: %s' % typus)
+        return playqueue
+
+    def get_playqueue_from_playerid(self, kodi_player_id):
+        for playqueue in self.playqueues:
+            if playqueue.playlistid == kodi_player_id:
+                break
+        else:
+            raise ValueError('Wrong kodi_player_id passed was passed in: %s'
+                             % kodi_player_id)
+        return playqueue
+
+    @lockmethod.lockthis
+    def update_playqueue_from_PMS(self,
+                                  playqueue,
+                                  playqueue_id=None,
+                                  repeat=None):
+        """
+        Completely updates the Kodi playqueue with the new Plex playqueue. Pass
+        in playqueue_id if we need to fetch a new playqueue
+
+        repeat = 0, 1, 2
+        """
+        log.info('New playqueue received, updating!')
+        PL.update_playlist_from_PMS(playqueue, playqueue_id, repeat)
+        log.debug('Updated playqueue: %s' % playqueue)
+
+        window('plex_customplaylist', value="true")
+        if playqueue.selectedItemOffset not in (None, "0"):
+            window('plex_customplaylist.seektime',
+                   str(ConvertPlexToKodiTime(playqueue.selectedItemOffset)))
+        for startpos, item in enumerate(playqueue.items):
+            if item.ID == playqueue.selectedItemID:
+                break
+        else:
+            startpos = None
+        # Start playback
+        if startpos:
+            self.player.play(playqueue.kodi_pl, startpos=startpos)
+        else:
+            self.player.play(playqueue.kodi_pl)
+        log.debug('Playqueue at the end: %s' % playqueue)
+        playqueue.log_Kodi_playlist()
 
     @lockmethod.lockthis
     def update_playqueue_with_companion(self, data):
@@ -61,10 +118,6 @@ class Playqueue(Thread):
         """
 
         # Get the correct queue
-        for playqueue in self.playqueues:
-            if playqueue.type == KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[
-                    data['type']]:
-                break
 
     @lockmethod.lockthis
     def kodi_onadd(self, data):
@@ -80,11 +133,20 @@ class Playqueue(Thread):
         for playqueue in self.playqueues:
             if playqueue.playlistid == data['playlistid']:
                 break
+        if playqueue.PKC_playlist_edits:
+            old = (data['item'].get('id') if data['item'].get('id')
+                   else data['item'].get('file'))
+            for i, item in enumerate(playqueue.PKC_playlist_edits):
+                if old == item:
+                    log.debug('kodimonitor told us of a PKC edit - ignore.')
+                    del playqueue.PKC_playlist_edits[i]
+                    return
         if playqueue.ID is None:
             # Need to initialize the queue for the first time
             PL.init_Plex_playlist(playqueue, kodi_item=data['item'])
         else:
             PL.add_playlist_item(playqueue, data['item'], data['position'])
+            log.debug('Added a new item to the playqueue: %s' % playqueue)
 
     @lockmethod.lockthis
     def _compare_playqueues(self, playqueue, new):

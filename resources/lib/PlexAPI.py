@@ -1646,7 +1646,7 @@ class API():
 
         If not found, empty str is returned
         """
-        return self.item.attrib.get('playQueueItemID', '')
+        return self.item.attrib.get('playQueueItemID')
 
     def getDataFromPartOrMedia(self, key):
         """

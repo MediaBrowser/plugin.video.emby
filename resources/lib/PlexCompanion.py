@@ -9,8 +9,7 @@ from xbmc import sleep
 from utils import settings, ThreadMethodsAdditionalSuspend, ThreadMethods
 from plexbmchelper import listener, plexgdm, subscribers, functions, \
     httppersist, plexsettings
-from PlexFunctions import ParseContainerKey, GetPlayQueue, \
-    ConvertPlexToKodiTime
+from PlexFunctions import ParseContainerKey
 import player
 
 ###############################################################################
@@ -29,7 +28,6 @@ class PlexCompanion(Thread):
         log.info("----===## Starting PlexCompanion ##===----")
         if callback is not None:
             self.mgr = callback
-        self.playqueue = self.mgr.playqueue
         self.settings = plexsettings.getSettings()
         # Start GDM for server/client discovery
         self.client = plexgdm.plexgdm()
@@ -60,12 +58,18 @@ class PlexCompanion(Thread):
 
     def processTasks(self, task):
         """
-        Processes tasks picked up e.g. by Companion listener
-
-        task = {
-            'action':       'playlist'
-            'data':         as received from Plex companion
-        }
+        Processes tasks picked up e.g. by Companion listener, e.g.
+        {'action': 'playlist',
+         'data': {'address': 'xyz.plex.direct',
+                  'commandID': '7',
+                  'containerKey': '/playQueues/6669?own=1&repeat=0&window=200',
+                  'key': '/library/metadata/220493',
+                  'machineIdentifier': 'xyz',
+                  'offset': '0',
+                  'port': '32400',
+                  'protocol': 'https',
+                  'token': 'transient-cd2527d1-0484-48e0-a5f7-f5caa7d591bd',
+                  'type': 'video'}}
         """
         log.debug('Processing: %s' % task)
         data = task['data']
@@ -79,36 +83,11 @@ class PlexCompanion(Thread):
                 import traceback
                 log.error("Traceback:\n%s" % traceback.format_exc())
                 return
-            self.mgr.playqueue.update_playqueue_with_companion(data)
-
-            self.playqueue = self.mgr.playqueue.get_playqueue_from_plextype(
-                data.get('type'))
-            if queueId != self.playqueue.ID:
-                log.info('New playlist received, updating!')
-                xml = GetPlayQueue(queueId)
-                if xml in (None, 401):
-                    log.error('Could not download Plex playlist.')
-                    return
-                # Clear existing playlist on the Kodi side
-                self.playqueue.clear()
-                # Set new values
-                self.playqueue.QueueId(queueId)
-                self.playqueue.PlayQueueVersion(int(
-                    xml.attrib.get('playQueueVersion')))
-                self.playqueue.Guid(xml.attrib.get('guid'))
-                items = []
-                for item in xml:
-                    items.append({
-                        'playQueueItemID': item.get('playQueueItemID'),
-                        'plexId': item.get('ratingKey'),
-                        'kodiId': None})
-                self.playqueue.playAll(
-                    items,
-                    startitem=self._getStartItem(data.get('key', '')),
-                    offset=ConvertPlexToKodiTime(data.get('offset', 0)))
-                log.info('Initiated playlist no %s with version %s'
-                         % (self.playqueue.QueueId(),
-                            self.playqueue.PlayQueueVersion()))
+            playqueue = self.mgr.playqueue.get_playqueue_from_type(
+                data['type'])
+            if ID != playqueue.ID:
+                self.mgr.playqueue.update_playqueue_from_PMS(
+                    playqueue, ID, int(query['repeat']))
             else:
                 log.error('This has never happened before!')
 
@@ -123,7 +102,7 @@ class PlexCompanion(Thread):
         requestMgr = httppersist.RequestMgr()
         jsonClass = functions.jsonClass(requestMgr, self.settings)
         subscriptionManager = subscribers.SubscriptionManager(
-            jsonClass, requestMgr, self.player, self.playqueue)
+            jsonClass, requestMgr, self.player, self.mgr)
 
         queue = Queue.Queue(maxsize=100)
 

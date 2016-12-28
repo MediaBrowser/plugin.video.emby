@@ -37,7 +37,8 @@ class PlaybackUtils():
         self.userid = window('currUserId')
         self.server = window('pms_server')
 
-        self.pl = Playqueue().get_playqueue_from_plextype(self.API.getType())
+        self.pl = Playqueue().get_playqueue_from_type(
+            PF.KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[self.API.getType()])
 
     def play(self, itemid, dbid=None):
 

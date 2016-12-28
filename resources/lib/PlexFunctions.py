@@ -171,22 +171,6 @@ def SelectStreams(url, args):
         url + '?' + urlencode(args), action_type='PUT')
 
 
-def GetPlayQueue(playQueueID):
-    """
-    Fetches the PMS playqueue with the playQueueID as an XML
-
-    Returns None if something went wrong
-    """
-    url = "{server}/playQueues/%s" % playQueueID
-    args = {'Accept': 'application/xml'}
-    xml = downloadutils.DownloadUtils().downloadUrl(url, headerOptions=args)
-    try:
-        xml.attrib['playQueueID']
-    except (AttributeError, KeyError):
-        return None
-    return xml
-
-
 def GetPlexMetadata(key):
     """
     Returns raw API metadata for key as an etree XML.
