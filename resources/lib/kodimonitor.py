@@ -173,6 +173,11 @@ class KodiMonitor(xbmc.Monitor):
             #         u'position': 0}
             self.playqueue.kodi_onadd(data)
 
+        elif method == "Playlist.OnRemove":
+            # User (or PKC) deleted a playlist item
+            # Data: {u'position': 2, u'playlistid': 1}
+            self.playqueue.kodi_onremove(data)
+
     def PlayBackStart(self, data):
         """
         Called whenever a playback is started

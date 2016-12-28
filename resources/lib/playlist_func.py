@@ -30,8 +30,12 @@ class Playlist_Object_Baseclase(object):
 
     def __repr__(self):
         answ = "<%s: " % (self.__class__.__name__)
+        # For some reason, can't use dir directly
+        answ += "ID: %s, " % self.ID
+        answ += "items: %s" % self.items
         for key in self.__dict__:
-            answ += '%s: %s, ' % (key, getattr(self, key))
+            if key not in ("ID", 'items'):
+                answ += '%s: %s, ' % (key, getattr(self, key))
         return answ[:-2] + ">"
 
     def clear(self):
@@ -88,8 +92,8 @@ def playlist_item_from_kodi_item(kodi_item):
     kodi_item dict contains keys 'id', 'type', 'file' (if applicable)
     """
     item = Playlist_Item()
-    if kodi_item.get('id'):
-        item.kodi_id = kodi_item['id']
+    item.kodi_id = kodi_item.get('id')
+    if item.kodi_id:
         with embydb.GetEmbyDB() as emby_db:
             emby_dbitem = emby_db.getItem_byKodiId(kodi_item['id'],
                                                    kodi_item['type'])
@@ -227,6 +231,7 @@ def move_playlist_item(playlist, before_pos, after_pos):
     """
     Moves playlist item from before_pos [int] to after_pos [int]
     """
+    log.debug('Moving item from %s to %s' % (before_pos, after_pos))
     if after_pos == 0:
         url = "{server}/%ss/%s/items/%s/move?after=0" % \
               (playlist.kind,
@@ -256,7 +261,7 @@ def delete_playlist_item(playlist, pos):
                             playlist.repeat),
                            action_type="DELETE")
     _get_playListVersion_from_xml(playlist, xml)
-    del playlist.items[pos]
+    del playlist.items[pos], playlist.old_kodi_pl[pos]
 
 
 def get_kodi_playlist_items(playlist):

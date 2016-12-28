@@ -90,7 +90,7 @@ class Playqueue(Thread):
 
         repeat = 0, 1, 2
         """
-        log.info('New playqueue received, updating!')
+        log.info('New playqueue received from the PMS, updating!')
         PL.update_playlist_from_PMS(playqueue, playqueue_id, repeat)
         log.debug('Updated playqueue: %s' % playqueue)
 
@@ -108,16 +108,7 @@ class Playqueue(Thread):
             self.player.play(playqueue.kodi_pl, startpos=startpos)
         else:
             self.player.play(playqueue.kodi_pl)
-        log.debug('Playqueue at the end: %s' % playqueue)
         playqueue.log_Kodi_playlist()
-
-    @lockmethod.lockthis
-    def update_playqueue_with_companion(self, data):
-        """
-        Feed with Plex companion data
-        """
-
-        # Get the correct queue
 
     @lockmethod.lockthis
     def kodi_onadd(self, data):
@@ -130,15 +121,13 @@ class Playqueue(Thread):
                 u'position': 0
             }
         """
-        for playqueue in self.playqueues:
-            if playqueue.playlistid == data['playlistid']:
-                break
+        playqueue = self.playqueues[data['playlistid']]
         if playqueue.PKC_playlist_edits:
             old = (data['item'].get('id') if data['item'].get('id')
                    else data['item'].get('file'))
             for i, item in enumerate(playqueue.PKC_playlist_edits):
                 if old == item:
-                    log.debug('kodimonitor told us of a PKC edit - ignore.')
+                    log.debug('kodimonitor told us of a PKC edit - ignore')
                     del playqueue.PKC_playlist_edits[i]
                     return
         if playqueue.ID is None:
@@ -149,14 +138,29 @@ class Playqueue(Thread):
             log.debug('Added a new item to the playqueue: %s' % playqueue)
 
     @lockmethod.lockthis
+    def kodi_onremove(self, data):
+        """
+        Called if an item is removed from a Kodi playqueue. Data is Kodi JSON-
+        RPC output, e.g.
+            {u'position': 2, u'playlistid': 1}
+        """
+        playqueue = self.playqueues[data['playlistid']]
+        PL.delete_playlist_item(playqueue, data['position'])
+        log.debug('Deleted item at position %s. New playqueue: %s'
+                  % (data['position'], playqueue))
+
+    @lockmethod.lockthis
     def _compare_playqueues(self, playqueue, new):
         """
         Used to poll the Kodi playqueue and update the Plex playqueue if needed
         """
+        if self.threadStopped():
+            # Chances are that we got an empty Kodi playlist due to Kodi exit
+            return
         old = playqueue.old_kodi_pl
+        index = list(range(0, len(old)))
         log.debug('Comparing new Kodi playqueue %s with our play queue %s'
                   % (new, playqueue))
-        index = list(range(0, len(old)))
         for i, new_item in enumerate(new):
             for j, old_item in enumerate(old):
                 if old_item.get('id') is None:
@@ -171,16 +175,10 @@ class Playqueue(Thread):
                     # item now at pos i has been moved from original pos i+j
                     PL.move_playlist_item(playqueue, i + j, i)
                     # Delete the item we just found
-                    del old[i + j], index[i + j]
+                    del old[j], index[j]
                     break
-            else:
-                # Did not find element i in the old list - Kodi monitor should
-                # pick this up!
-                # PL.add_playlist_item(playqueue, new_item, i-1)
-                pass
-        for i in index:
-            # Still got some old items left that need deleting
-            PL.delete_playlist_item(playqueue, i)
+        # New elements and left-over elements will be taken care of by the kodi
+        # monitor!
         log.debug('New playqueue: %s' % playqueue)
 
     def run(self):
