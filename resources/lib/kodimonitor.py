@@ -10,10 +10,10 @@ import xbmcgui
 
 import downloadutils
 import embydb_functions as embydb
-import kodidb_functions as kodidb
 import playbackutils as pbutils
 from utils import window, settings, CatchExceptions, tryDecode, tryEncode
 from PlexFunctions import scrobble, REMAP_TYPE_FROM_PLEXTYPE
+from kodidb_functions import get_kodiid_from_filename
 
 ###############################################################################
 
@@ -227,20 +227,9 @@ class KodiMonitor(xbmc.Monitor):
         # When using Widgets, Kodi doesn't tell us shit so we need this hack
         if (kodiid is None and plexid is None and typus != 'song'
                 and not currentFile.startswith('http')):
-            try:
-                filename = currentFile.rsplit('/', 1)[1]
-                path = currentFile.rsplit('/', 1)[0] + '/'
-            except IndexError:
-                filename = currentFile.rsplit('\\', 1)[1]
-                path = currentFile.rsplit('\\', 1)[0] + '\\'
-            log.debug('Trying to figure out playing item from filename: %s '
-                      'and path: %s' % (filename, path))
-            with kodidb.GetKodiDB('video') as kodi_db:
-                try:
-                    kodiid, typus = kodi_db.getIdFromFilename(filename, path)
-                except TypeError:
-                    log.info('Abort playback report, could not id kodi item')
-                    return
+            (kodiid, typus) = get_kodiid_from_filename(currentFile)
+            if kodiid is None:
+                return
 
         if plexid is None:
             # Get Plex' item id

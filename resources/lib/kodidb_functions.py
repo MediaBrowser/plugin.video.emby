@@ -1397,3 +1397,26 @@ class Kodidb_Functions():
 
                 query = "INSERT OR REPLACE INTO song_genre(idGenre, idSong) values(?, ?)"
                 self.cursor.execute(query, (genreid, kodiid))
+
+
+def get_kodiid_from_filename(file):
+    """
+    Returns the tuple (kodiid, type) if we have a video in the database with
+    said filename, or (None, None)
+    """
+    kodiid = None
+    typus = None
+    try:
+        filename = file.rsplit('/', 1)[1]
+        path = file.rsplit('/', 1)[0] + '/'
+    except IndexError:
+        filename = file.rsplit('\\', 1)[1]
+        path = file.rsplit('\\', 1)[0] + '\\'
+    log.debug('Trying to figure out playing item from filename: %s '
+              'and path: %s' % (filename, path))
+    with GetKodiDB('video') as kodi_db:
+        try:
+            kodiid, typus = kodi_db.getIdFromFilename(filename, path)
+        except TypeError:
+            log.info('No kodi video element found with filename %s' % filename)
+    return (kodiid, typus)
