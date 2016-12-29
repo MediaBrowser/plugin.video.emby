@@ -37,11 +37,7 @@ class PlaybackUtils():
 
         self.userid = window('currUserId')
         self.server = window('pms_server')
-        playqueue = Playqueue()
-        # We need to initialize already existing items as we have a completely
-        # different Python instance!
-        playqueue.init_playlists()
-        self.pl = playqueue.get_playqueue_from_type(
+        self.pl = Playqueue().get_playqueue_from_type(
             PF.KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[item[0].attrib.get('type')])
 
     def play(self, itemid, dbid=None):
@@ -124,6 +120,22 @@ class PlaybackUtils():
             window('plex_playbackProps', value="true")
             log.info("Setting up properties in playlist.")
 
+            # Post playQueue to PMS
+            trailers = False
+            if settings('enableCinema') == "true":
+                if settings('askCinema') == "true":
+                    trailers = xbmcgui.Dialog().yesno(addonName,
+                                                      "Play trailers?")
+                else:
+                    trailers = True
+            xml = PF.GetPlexPlaylist(
+                itemid,
+                item.attrib.get('librarySectionUUID'),
+                mediatype=API.getType(),
+                trailers=trailers)
+            # Save playQueueID for other PKC python instance & kodimonitor
+            window('plex_playQueueID', value=xml.attrib.get('playQueueID'))
+
             if (not homeScreen and not seektime and
                     window('plex_customplaylist') != "true" and
                     not contextmenu_play):
@@ -148,12 +160,8 @@ class PlaybackUtils():
                 self.currentPosition += 1
 
             ############### -- CHECK FOR INTROS ################
-            if (settings('enableCinema') == "true" and not seektime):
+            if trailers and not seektime:
                 # if we have any play them when the movie/show is not being resumed
-                xml = PF.GetPlexPlaylist(
-                    itemid,
-                    item.attrib.get('librarySectionUUID'),
-                    mediatype=API.getType())
                 introsPlaylist = self.AddTrailers(xml)
 
             ############### -- ADD MAIN ITEM ONLY FOR HOMESCREEN ##############
@@ -277,13 +285,6 @@ class PlaybackUtils():
         # Failure when getting trailers, e.g. when no plex pass
         if xml.attrib.get('size') == '1':
             return False
-
-        if settings('askCinema') == "true":
-            resp = xbmcgui.Dialog().yesno(addonName, "Play trailers?")
-            if not resp:
-                # User selected to not play trailers
-                log.info("Skip trailers.")
-                return False
 
         # Playurl needs to point back so we can get metadata!
         path = "plugin://plugin.video.plexkodiconnect.movies/"

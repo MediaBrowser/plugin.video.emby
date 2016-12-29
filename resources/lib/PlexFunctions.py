@@ -384,23 +384,22 @@ def GetPlexCollections(mediatype):
     return collections
 
 
-def GetPlexPlaylist(itemid, librarySectionUUID, mediatype='movie'):
+def GetPlexPlaylist(itemid, librarySectionUUID, mediatype='movie',
+                    trailers=False):
     """
     Returns raw API metadata XML dump for a playlist with e.g. trailers.
    """
-    trailerNumber = settings('trailerNumber')
-    if not trailerNumber:
-        trailerNumber = '3'
     url = "{server}/playQueues"
     args = {
         'type': mediatype,
         'uri': ('library://' + librarySectionUUID +
                 '/item/%2Flibrary%2Fmetadata%2F' + itemid),
         'includeChapters': '1',
-        'extrasPrefixCount': trailerNumber,
         'shuffle': '0',
         'repeat': '0'
     }
+    if trailers is True:
+        args['extrasPrefixCount'] = settings('trailerNumber')
     xml = downloadutils.DownloadUtils().downloadUrl(
         url + '?' + urlencode(args), action_type="POST")
     try:

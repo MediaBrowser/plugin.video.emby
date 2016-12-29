@@ -79,6 +79,13 @@ class Playqueue(Thread):
                              % kodi_player_id)
         return playqueue
 
+    def _grab_PMS_playqueue(self, playqueue, playqueue_id=None, repeat=None):
+        """
+        For initiating out playqueues from the PMS because another PKC Python
+        instance already is setting up the Kodi playlists
+        """
+        PL.grab_PMS_playqueue(playqueue, playqueue_id)
+
     @lockmethod.lockthis
     def update_playqueue_from_PMS(self,
                                   playqueue,
@@ -96,7 +103,6 @@ class Playqueue(Thread):
         PL.update_playlist_from_PMS(playqueue, playqueue_id)
         playqueue.repeat = 0 if not repeat else int(repeat)
         log.debug('Updated playqueue: %s' % playqueue)
-
         window('plex_customplaylist', value="true")
         if offset not in (None, "0"):
             window('plex_customplaylist.seektime',
@@ -153,13 +159,14 @@ class Playqueue(Thread):
             }
         """
         playqueue = self.playqueues[data['playlistid']]
-        if data['item'].get('id') is None and data['item'].get('file') is None:
-            # Kodi screwed up. Let's try to get the data anyway
-            items = PL.get_kodi_playlist_items(playqueue)
-            if items[data['position']].get('id') is not None:
-                data['item']['id'] = items[data['position']].get('id')
-            else:
-                data['item']['file'] = items[data['position']].get('file')
+        if window('plex_playbackProps') == 'true':
+            log.debug('kodi_onadd called during PKC playback setup')
+            if window('plex_playQueueID'):
+                self._grab_PMS_playqueue(playqueue, window('plex_playQueueID'))
+                window('plex_playQueueID', clear=True)
+                log.debug('Done setting up playQueue')
+            return
+
         if playqueue.PKC_playlist_edits:
             old = (data['item'].get('id') if data['item'].get('id')
                    else data['item'].get('file'))
@@ -182,6 +189,9 @@ class Playqueue(Thread):
         RPC output, e.g.
             {u'position': 2, u'playlistid': 1}
         """
+        if window('plex_playbackProps') == 'true':
+            log.debug('kodi_onremove called during PKC playback setup')
+            return
         playqueue = self.playqueues[data['playlistid']]
         PL.delete_playlist_item(playqueue, data['position'])
         log.debug('Deleted item at position %s. New playqueue: %s'
