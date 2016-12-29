@@ -135,7 +135,8 @@ def _log_xml(xml):
         log.error('Did not receive an XML. Answer was: %s' % xml)
     else:
         from xml.etree.ElementTree import dump
-        log.error('XML received from the PMS: %s' % dump(xml))
+        log.error('XML received from the PMS:')
+        dump(xml)
 
 
 def _get_playListVersion_from_xml(playlist, xml):
