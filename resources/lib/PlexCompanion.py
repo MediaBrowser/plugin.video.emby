@@ -11,6 +11,7 @@ from plexbmchelper import listener, plexgdm, subscribers, functions, \
     httppersist, plexsettings
 from PlexFunctions import ParseContainerKey
 import player
+from entrypoint import Plex_Node
 
 ###############################################################################
 
@@ -74,7 +75,16 @@ class PlexCompanion(Thread):
         log.debug('Processing: %s' % task)
         data = task['data']
 
-        if task['action'] == 'playlist':
+        if (task['action'] == 'playlist' and
+                data.get('address') == 'node.plexapp.com'):
+            # E.g. watch later initiated by Companion
+            thread = Thread(target=Plex_Node,
+                            args=(data.get('key'),
+                                  data.get('offset'),
+                                  data.get('type')))
+            thread.setDaemon(True)
+            thread.start()
+        elif task['action'] == 'playlist':
             # Get the playqueue ID
             try:
                 _, ID, query = ParseContainerKey(data['containerKey'])

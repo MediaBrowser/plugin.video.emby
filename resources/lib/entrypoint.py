@@ -22,6 +22,7 @@ import playbackutils as pbutils
 
 import PlexFunctions
 import PlexAPI
+from playqueue import Playqueue
 
 ###############################################################################
 
@@ -119,19 +120,18 @@ def PassPlaylist(xml, resume=None):
         resumeId=xml.attrib.get('playQueueSelectedItemID', None))
 
 
-def playWatchLater(itemid, viewOffset):
+def Plex_Node(url, viewOffset, playlist_type):
     """
     Called only for a SINGLE element for Plex.tv watch later
 
     Always to return with a "setResolvedUrl"
     """
-    log.info('playWatchLater called with id: %s, viewOffset: %s'
-             % (itemid, viewOffset))
+    log.info('Plex_Node called with url: %s, viewOffset: %s'
+             % (url, viewOffset))
     # Plex redirect, e.g. watch later. Need to get actual URLs
-    xml = downloadutils.DownloadUtils().downloadUrl(itemid,
-                                                    authenticate=False)
+    xml = downloadutils.DownloadUtils().downloadUrl('{server}%s' % url)
     if xml in (None, 401):
-        log.error("Could not resolve url %s" % itemid)
+        log.error("Could not resolve url %s" % url)
         return xbmcplugin.setResolvedUrl(
             int(sys.argv[1]), False, xbmcgui.ListItem())
     if viewOffset != '0':
@@ -143,7 +143,9 @@ def playWatchLater(itemid, viewOffset):
         else:
             window('plex_customplaylist.seektime', value=str(viewOffset))
             log.info('Set resume point to %s' % str(viewOffset))
-    return pbutils.PlaybackUtils(xml).play(None, 'plexnode')
+    pbutils.PlaybackUtils(xml, playlist_type=playlist_type).play(
+        None, 'plexnode')
+    return
 
 
 ##### DO RESET AUTH #####
@@ -1237,7 +1239,7 @@ def watchlater():
     xbmcplugin.setContent(int(sys.argv[1]), 'movies')
     url = "plugin://plugin.video.plexkodiconnect/"
     params = {
-        'mode': "playwatchlater",
+        'mode': "Plex_Node",
     }
     for item in xml:
         API = PlexAPI.API(item)

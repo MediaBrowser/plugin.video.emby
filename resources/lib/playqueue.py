@@ -29,7 +29,6 @@ class Playqueue(Thread):
 
     def __init__(self, callback=None):
         self.__dict__ = self.__shared_state
-        Thread.__init__(self)
         if self.playqueues is not None:
             return
         self.mgr = callback
@@ -54,6 +53,7 @@ class Playqueue(Thread):
             self.playqueues = sorted(
                 self.playqueues, key=lambda i: i.playlistid)
         log.debug('Initialized the Kodi play queues: %s' % self.playqueues)
+        Thread.__init__(self)
 
     def get_playqueue_from_type(self, typus):
         """

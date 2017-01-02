@@ -20,7 +20,7 @@ from PKC_listitem import PKC_ListItem as ListItem
 from playlist_func import add_item_to_kodi_playlist, \
     get_playlist_details_from_xml, add_listitem_to_Kodi_playlist, \
     add_listitem_to_playlist, remove_from_Kodi_playlist
-from playqueue import lock
+from playqueue import lock, Playqueue
 from pickler import Playback_Successful
 
 ###############################################################################
@@ -34,13 +34,16 @@ addonName = "PlexKodiConnect"
 
 class PlaybackUtils():
 
-    def __init__(self, item, callback=None):
+    def __init__(self, item, callback=None, playlist_type=None):
+        self.item = item
+        self.api = API(item)
+        playlist_type = playlist_type if playlist_type else KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[self.api.getType()]
         if callback:
             self.mgr = callback
             self.playqueue = self.mgr.playqueue.get_playqueue_from_type(
-                KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[self.api.getType()])
-        self.item = item
-        self.api = API(item)
+                playlist_type)
+        else:
+            self.playqueue = Playqueue().get_playqueue_from_type(playlist_type)
 
     def play(self, plex_id, kodi_id=None, plex_lib_UUID=None):
         """
