@@ -32,40 +32,6 @@ addonName = "PlexKodiConnect"
 ###############################################################################
 
 
-def plexCompanion(fullurl, params):
-    params = PlexFunctions.LiteralEval(params[26:])
-
-    if params['machineIdentifier'] != window('plex_machineIdentifier'):
-        log.error("Command was not for us, machineIdentifier controller: %s, "
-                  "our machineIdentifier : %s"
-                  % (params['machineIdentifier'],
-                     window('plex_machineIdentifier')))
-        return
-
-    library, key, query = PlexFunctions.ParseContainerKey(
-        params['containerKey'])
-    # Construct a container key that works always (get rid of playlist args)
-    window('containerKey', '/'+library+'/'+key)
-
-    if 'playQueues' in library:
-        log.debug("Playing a playQueue. Query was: %s" % query)
-        # Playing a playlist that we need to fetch from PMS
-        xml = PlexFunctions.GetPlayQueue(key)
-        if xml is None:
-            log.error("Error getting PMS playlist for key %s" % key)
-            return
-        else:
-            resume = PlexFunctions.ConvertPlexToKodiTime(
-                params.get('offset', 0))
-            itemids = []
-            for item in xml:
-                itemids.append(item.get('ratingKey'))
-            return playlist.Playlist().playAll(itemids, resume)
-
-    else:
-        log.error("Not knowing what to do for now - no playQueue sent")
-
-
 def chooseServer():
     """
     Lets user choose from list of PMS
@@ -178,40 +144,6 @@ def playWatchLater(itemid, viewOffset):
             window('plex_customplaylist.seektime', value=str(viewOffset))
             log.info('Set resume point to %s' % str(viewOffset))
     return pbutils.PlaybackUtils(xml).play(None, 'plexnode')
-
-
-def doPlayback(itemid, dbid):
-    """
-    Called only for a SINGLE element, not playQueues
-
-    Always to return with a "setResolvedUrl"
-    """
-    if window('plex_authenticated') != "true":
-        log.error('Not yet authenticated for a PMS, abort starting playback')
-        # Not yet connected to a PMS server
-        xbmcgui.Dialog().notification(
-            addonName,
-            lang(39210),
-            xbmcgui.NOTIFICATION_ERROR,
-            7000,
-            True)
-        return xbmcplugin.setResolvedUrl(
-            int(sys.argv[1]), False, xbmcgui.ListItem())
-
-    xml = PlexFunctions.GetPlexMetadata(itemid)
-    if xml in (None, 401):
-        return xbmcplugin.setResolvedUrl(
-            int(sys.argv[1]), False, xbmcgui.ListItem())
-    if xml[0].attrib.get('type') == 'photo':
-        # Photo
-        API = PlexAPI.API(xml[0])
-        listitem = API.CreateListItemFromPlexItem()
-        API.AddStreamInfo(listitem)
-        pbutils.PlaybackUtils(xml[0]).setArtwork(listitem)
-        return xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, listitem)
-    else:
-        # Video
-        return pbutils.PlaybackUtils(xml).play(itemid, dbid)
 
 
 ##### DO RESET AUTH #####
@@ -497,7 +429,7 @@ def createListItemFromEmbyItem(item,art=None,doUtils=downloadutils.DownloadUtils
             li.setInfo('pictures', infoLabels={ "picturepath": img_path, "date": premieredate, "size": picture.get("Size"), "exif:width": str(picture.get("Width")), "exif:height": str(picture.get("Height")), "title": title})
         li.setThumbnailImage(img_path)
         li.setProperty("plot",API.getOverview())
-        li.setIconImage('DefaultPicture.png')
+        li.setArt({'icon': 'DefaultPicture.png'})
     else:
         #normal video items
         li.setProperty('IsPlayable', 'true')
@@ -541,7 +473,7 @@ def createListItemFromEmbyItem(item,art=None,doUtils=downloadutils.DownloadUtils
         if allart.get('Primary'):
             li.setThumbnailImage(allart.get('Primary'))
         else: li.setThumbnailImage('DefaultTVShows.png')
-        li.setIconImage('DefaultTVShows.png')
+        li.setArt({'icon': 'DefaultTVShows.png'})
         if not allart.get('Background'): #add image as fanart for use with skinhelper auto thumb/backgrund creation
             li.setArt( {"fanart": allart.get('Primary') } )
         else:
@@ -663,7 +595,7 @@ def createListItem(item, appendShowTitle=False, appendSxxExx=False):
     li.setProperty('totaltime', str(item['resume']['total']))
     li.setArt(item['art'])
     li.setThumbnailImage(item['art'].get('thumb',''))
-    li.setIconImage('DefaultTVShows.png')
+    li.setArt({'icon': 'DefaultTVShows.png'})
     li.setProperty('dbid', str(item['episodeid']))
     li.setProperty('fanart_image', item['art'].get('tvshow.fanart',''))
     for key, value in item['streamdetails'].iteritems():
@@ -1167,7 +1099,7 @@ def getOnDeck(viewid, mediatype, tagname, limit):
                     'id': API.getRatingKey(),
                     'dbid': listitem.getProperty('dbid')
                 }
-                url = "plugin://plugin.video.plexkodiconnect.tvshows/?%s" \
+                url = "plugin://plugin.video.plexkodiconnect/tvshows/?%s" \
                       % urllib.urlencode(params)
             xbmcplugin.addDirectoryItem(
                 handle=int(sys.argv[1]),

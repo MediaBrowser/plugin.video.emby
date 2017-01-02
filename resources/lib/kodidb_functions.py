@@ -61,7 +61,7 @@ class Kodidb_Functions():
         self.cursor.execute(
             query, ('movies',
                     'metadata.local',
-                    'plugin://plugin.video.plexkodiconnect.movies%%'))
+                    'plugin://plugin.video.plexkodiconnect/movies%%'))
 
     def getParentPathId(self, path):
         """

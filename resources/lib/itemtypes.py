@@ -407,7 +407,7 @@ class Movies(Items):
                 path = playurl.replace(filename, "")
         if doIndirect:
             # Set plugin path and media flags using real filename
-            path = "plugin://plugin.video.plexkodiconnect.movies/"
+            path = "plugin://plugin.video.plexkodiconnect/movies/"
             params = {
                 'filename': API.getKey(),
                 'id': itemid,
@@ -675,7 +675,7 @@ class TVShows(Items):
                     toplevelpath = "%s/" % dirname(dirname(path))
         if doIndirect:
             # Set plugin path
-            toplevelpath = "plugin://plugin.video.plexkodiconnect.tvshows/"
+            toplevelpath = "plugin://plugin.video.plexkodiconnect/tvshows/"
             path = "%s%s/" % (toplevelpath, itemid)
 
         # Add top path
@@ -956,7 +956,7 @@ class TVShows(Items):
                     filename = playurl.rsplit('/', 1)[1]
             else:
                 filename = 'file_not_found.mkv'
-            path = "plugin://plugin.video.plexkodiconnect.tvshows/%s/" % seriesId
+            path = "plugin://plugin.video.plexkodiconnect/tvshows/%s/" % seriesId
             params = {
                 'filename': tryEncode(filename),
                 'id': itemid,
@@ -966,7 +966,7 @@ class TVShows(Items):
             filename = "%s?%s" % (path, tryDecode(urlencode(params)))
             playurl = filename
             parentPathId = self.kodi_db.addPath(
-                'plugin://plugin.video.plexkodiconnect.tvshows/')
+                'plugin://plugin.video.plexkodiconnect/tvshows/')
 
         # episodes table:
         # c18 - playurl
@@ -1093,7 +1093,7 @@ class TVShows(Items):
         self.kodi_db.addPlaystate(fileid, resume, runtime, playcount, dateplayed)
         if not self.directpath and resume:
             # Create additional entry for widgets. This is only required for plugin/episode.
-            temppathid = self.kodi_db.getPath("plugin://plugin.video.plexkodiconnect.tvshows/")
+            temppathid = self.kodi_db.getPath("plugin://plugin.video.plexkodiconnect/tvshows/")
             tempfileid = self.kodi_db.addFile(filename, temppathid)
             query = ' '.join((
 

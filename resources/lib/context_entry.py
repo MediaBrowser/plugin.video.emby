@@ -212,6 +212,6 @@ class ContextMenu(object):
             'mode': "play"
         }
         from urllib import urlencode
-        handle = ("plugin://plugin.video.plexkodiconnect.movies?%s"
+        handle = ("plugin://plugin.video.plexkodiconnect/movies?%s"
                   % urlencode(params))
         xbmc.executebuiltin('RunPlugin(%s)' % handle)

@@ -44,6 +44,8 @@ from playqueue import Playqueue
 
 import PlexAPI
 from PlexCompanion import PlexCompanion
+from monitor_kodi_play import Monitor_Kodi_Play
+from playback_starter import Playback_Starter
 
 ###############################################################################
 
@@ -73,6 +75,7 @@ class Service():
     plexCompanion_running = False
     playqueue_running = False
     kodimonitor_running = False
+    playback_starter_running = False
 
     def __init__(self):
 
@@ -109,7 +112,8 @@ class Service():
             "plex_authenticated", "PlexUserImage", "useDirectPaths",
             "suspend_LibraryThread", "plex_terminateNow",
             "kodiplextimeoffset", "countError", "countUnauthorized",
-            "plex_restricteduser", "plex_allows_mediaDeletion"
+            "plex_restricteduser", "plex_allows_mediaDeletion",
+            "plex_play_new_item", "plex_result"
         ]
         for prop in properties:
             window(prop, clear=True)
@@ -133,6 +137,10 @@ class Service():
         monitor = self.monitor
         kodiProfile = xbmc.translatePath("special://profile")
 
+        # Detect playback start early on
+        self.monitor_kodi_play = Monitor_Kodi_Play(self)
+        self.monitor_kodi_play.start()
+
         # Server auto-detect
         initialsetup.InitialSetup().setup()
 
@@ -142,6 +150,7 @@ class Service():
         self.library = LibrarySync(self)
         self.plexCompanion = PlexCompanion(self)
         self.playqueue = Playqueue(self)
+        self.playback_starter = Playback_Starter(self)
 
         plx = PlexAPI.PlexAPI()
 
@@ -197,6 +206,9 @@ class Service():
                         if not self.plexCompanion_running:
                             self.plexCompanion_running = True
                             self.plexCompanion.start()
+                        if not self.playback_starter_running:
+                            self.playback_starter_running = True
+                            self.playback_starter.start()
                 else:
                     if (self.user.currUser is None) and self.warn_auth:
                         # Alert user is not authenticated and suppress future

@@ -56,6 +56,24 @@ def window(property, value=None, clear=False, windowid=10000):
         return tryDecode(win.getProperty(property))
 
 
+def pickl_window(property, value=None, clear=False, windowid=10000):
+    """
+    Get or set window property - thread safe! For use with Pickle
+    Property and value must be string
+    """
+    if windowid != 10000:
+        win = xbmcgui.Window(windowid)
+    else:
+        win = WINDOW
+
+    if clear:
+        win.clearProperty(property)
+    elif value is not None:
+        win.setProperty(property, value)
+    else:
+        return win.getProperty(property)
+
+
 def settings(setting, value=None):
     """
     Get or add addon setting. Returns unicode

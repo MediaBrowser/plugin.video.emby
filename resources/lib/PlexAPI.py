@@ -2393,7 +2393,7 @@ class API():
         # listItem.setProperty('isPlayable', 'true')
         # listItem.setProperty('isFolder', 'true')
         # Further stuff
-        listItem.setIconImage('DefaultPicture.png')
+        listItem.setArt({'icon': 'DefaultPicture.png'})
         return listItem
 
     def _createVideoListItem(self,
@@ -2456,14 +2456,14 @@ class API():
                                      "s%.2de%.2d" % (season, episode))
                 if appendSxxExx is True:
                     title = "S%.2dE%.2d - %s" % (season, episode, title)
-            listItem.setIconImage('DefaultTVShows.png')
+            listItem.setArt({'icon': 'DefaultTVShows.png'})
             if appendShowTitle is True:
                 title = "%s - %s " % (show, title)
         elif typus == "movie":
-            listItem.setIconImage('DefaultMovies.png')
+            listItem.setArt({'icon': 'DefaultMovies.png'})
         else:
             # E.g. clips, trailers, ...
-            listItem.setIconImage('DefaultVideo.png')
+            listItem.setArt({'icon': 'DefaultVideo.png'})
 
         plexId = self.getRatingKey()
         listItem.setProperty('plexid', plexId)

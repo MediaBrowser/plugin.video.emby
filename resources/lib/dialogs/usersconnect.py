@@ -67,7 +67,7 @@ class UsersConnect(xbmcgui.WindowXMLDialog):
         if self.kodi_version > 15:
             item.setArt({'Icon': user_image})
         else:
-            item.setIconImage(user_image)
+            item.setArt({'icon': user_image})
 
         return item
 

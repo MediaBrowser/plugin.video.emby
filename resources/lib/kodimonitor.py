@@ -164,20 +164,6 @@ class KodiMonitor(xbmc.Monitor):
                 xbmc.sleep(5000)
                 window('plex_runLibScan', value="full")
 
-        elif method == "Playlist.OnClear":
-            pass
-
-        elif method == "Playlist.OnAdd":
-            # User (or PKC) manipulated Kodi playlist
-            # Data : {u'item': {u'type': u'movie', u'id': 3}, u'playlistid': 1,
-            #         u'position': 0}
-            self.playqueue.kodi_onadd(data)
-
-        elif method == "Playlist.OnRemove":
-            # User (or PKC) deleted a playlist item
-            # Data: {u'position': 2, u'playlistid': 1}
-            self.playqueue.kodi_onremove(data)
-
     def PlayBackStart(self, data):
         """
         Called whenever a playback is started
