@@ -61,6 +61,7 @@ KODITYPE_FROM_PLEXTYPE = {
 }
 
 KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE = {
+    'video': 'video',
     'movie': 'video',
     'episode': 'video',
     'season': 'video',

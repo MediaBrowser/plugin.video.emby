@@ -22,7 +22,7 @@ import playbackutils as pbutils
 
 import PlexFunctions
 import PlexAPI
-from playqueue import Playqueue
+from PKC_listitem import convert_PKC_to_listitem
 
 ###############################################################################
 
@@ -120,7 +120,7 @@ def PassPlaylist(xml, resume=None):
         resumeId=xml.attrib.get('playQueueSelectedItemID', None))
 
 
-def Plex_Node(url, viewOffset, playlist_type):
+def Plex_Node(url, viewOffset, plex_type, playdirectly=False):
     """
     Called only for a SINGLE element for Plex.tv watch later
 
@@ -129,11 +129,12 @@ def Plex_Node(url, viewOffset, playlist_type):
     log.info('Plex_Node called with url: %s, viewOffset: %s'
              % (url, viewOffset))
     # Plex redirect, e.g. watch later. Need to get actual URLs
-    xml = downloadutils.DownloadUtils().downloadUrl('{server}%s' % url)
-    if xml in (None, 401):
-        log.error("Could not resolve url %s" % url)
-        return xbmcplugin.setResolvedUrl(
-            int(sys.argv[1]), False, xbmcgui.ListItem())
+    xml = downloadutils.DownloadUtils().downloadUrl(url)
+    try:
+        xml[0].attrib
+    except:
+        log.error('Could not download PMS metadata')
+        return
     if viewOffset != '0':
         try:
             viewOffset = int(PlexFunctions.PLEX_TO_KODI_TIMEFACTOR *
@@ -143,9 +144,19 @@ def Plex_Node(url, viewOffset, playlist_type):
         else:
             window('plex_customplaylist.seektime', value=str(viewOffset))
             log.info('Set resume point to %s' % str(viewOffset))
-    pbutils.PlaybackUtils(xml, playlist_type=playlist_type).play(
-        None, 'plexnode')
-    return
+    typus = PlexFunctions.KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[plex_type]
+    result = pbutils.PlaybackUtils(xml[0],playlist_type=typus).play(
+        None,
+        kodi_id='plexnode',
+        plex_lib_UUID=xml.attrib.get('librarySectionUUID'))
+    if result.listitem:
+        listitem = convert_PKC_to_listitem(result.listitem)
+    else:
+        return
+    if playdirectly:
+        xbmc.Player().play(listitem.getfilename(), listitem)
+    else:
+        xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, listitem)
 
 
 ##### DO RESET AUTH #####
@@ -1248,6 +1259,7 @@ def watchlater():
         pbutils.PlaybackUtils(item).setArtwork(listitem)
         params['id'] = item.attrib.get('key')
         params['viewOffset'] = item.attrib.get('viewOffset', '0')
+        params['plex_type'] = item.attrib.get('type')
         xbmcplugin.addDirectoryItem(
             handle=int(sys.argv[1]),
             url="%s?%s" % (url, urllib.urlencode(params)),

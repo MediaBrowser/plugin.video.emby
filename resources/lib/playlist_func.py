@@ -185,11 +185,11 @@ def get_playlist_details_from_xml(playlist, xml):
     try:
         playlist.ID = xml.attrib['%sID' % playlist.kind]
         playlist.version = xml.attrib['%sVersion' % playlist.kind]
-        playlist.selectedItemID = xml.attrib['%sSelectedItemID'
-                                             % playlist.kind]
-        playlist.selectedItemOffset = xml.attrib['%sSelectedItemOffset'
-                                                 % playlist.kind]
         playlist.shuffled = xml.attrib['%sShuffled' % playlist.kind]
+        playlist.selectedItemID = xml.attrib.get(
+            '%sSelectedItemID' % playlist.kind)
+        playlist.selectedItemOffset = xml.attrib.get(
+            '%sSelectedItemOffset' % playlist.kind)
     except:
         log.error('Could not parse xml answer from PMS for playlist %s'
                   % playlist)
@@ -309,6 +309,8 @@ def add_item_to_PMS_playlist(playlist, pos, plex_id=None, kodi_item=None):
     xml = DU().downloadUrl(url, action_type="PUT")
     try:
         item.ID = xml[-1].attrib['%sItemID' % playlist.kind]
+    except IndexError:
+        log.info('Could not get playlist children. Adding a dummy')
     except (TypeError, AttributeError, KeyError):
         log.error('Could not add item %s to playlist %s'
                   % (kodi_item, playlist))

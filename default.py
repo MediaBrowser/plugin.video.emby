@@ -159,7 +159,9 @@ class Main():
             elif mode == "companion":
                 modes[mode](itemid, params=ARGV[2])
             elif mode == 'Plex_Node':
-                modes[mode](params.get('id'), params.get('viewOffset'))
+                modes[mode](params.get('id'),
+                            params.get('viewOffset'),
+                            params.get('plex_type'))
             else:
                 modes[mode]()
         else:

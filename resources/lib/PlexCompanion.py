@@ -79,9 +79,10 @@ class PlexCompanion(Thread):
                 data.get('address') == 'node.plexapp.com'):
             # E.g. watch later initiated by Companion
             thread = Thread(target=Plex_Node,
-                            args=(data.get('key'),
+                            args=('{server}%s' % data.get('key'),
                                   data.get('offset'),
-                                  data.get('type')))
+                                  data.get('type'),
+                                  True),)
             thread.setDaemon(True)
             thread.start()
         elif task['action'] == 'playlist':
