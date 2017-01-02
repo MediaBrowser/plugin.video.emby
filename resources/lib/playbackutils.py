@@ -150,7 +150,7 @@ class PlaybackUtils():
             get_playlist_details_from_xml(playqueue, xml=xml)
             log.debug('finished ')
 
-            if (not homeScreen and not seektime and
+            if (not homeScreen and not seektime and sizePlaylist < 2 and
                     window('plex_customplaylist') != "true" and
                     not contextmenu_play):
                 # Need to add a dummy file because the first item will fail
