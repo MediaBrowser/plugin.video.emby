@@ -34,12 +34,13 @@ addonName = "PlexKodiConnect"
 
 class PlaybackUtils():
 
-    def __init__(self, item, callback):
-        self.mgr = callback
+    def __init__(self, item, callback=None):
+        if callback:
+            self.mgr = callback
+            self.playqueue = self.mgr.playqueue.get_playqueue_from_type(
+                KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[self.api.getType()])
         self.item = item
         self.api = API(item)
-        self.playqueue = self.mgr.playqueue.get_playqueue_from_type(
-            KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[self.api.getType()])
 
     def play(self, plex_id, kodi_id=None, plex_lib_UUID=None):
         """
