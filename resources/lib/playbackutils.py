@@ -132,8 +132,8 @@ class PlaybackUtils():
             # Where will the player need to start?
             # Do we need to get trailers?
             trailers = False
-            if (api.getType() == 'movie' and not seektime and
-                    settings('enableCinema') == "true"):
+            if (api.getType() == 'movie' and not seektime and sizePlaylist < 2
+                    and settings('enableCinema') == "true"):
                 if settings('askCinema') == "true":
                     trailers = xbmcgui.Dialog().yesno(
                         addonName,
