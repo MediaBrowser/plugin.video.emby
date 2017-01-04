@@ -21,7 +21,7 @@ class GetEmbyDB():
     and the db gets closed
     """
     def __enter__(self):
-        self.embyconn = kodiSQL('emby')
+        self.embyconn = kodiSQL('plex')
         self.emby_db = Embydb_Functions(self.embyconn.cursor())
         return self.emby_db
 

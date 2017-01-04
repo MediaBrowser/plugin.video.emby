@@ -124,7 +124,7 @@ class KodiMonitor(xbmc.Monitor):
                 log.info("Item is invalid for emby deletion.")
             else:
                 # Send the delete action to the server.
-                embyconn = utils.kodiSQL('emby')
+                embyconn = utils.kodiSQL('plex')
                 embycursor = embyconn.cursor()
                 emby_db = embydb.Embydb_Functions(embycursor)
                 emby_dbitem = emby_db.getItem_byKodiId(kodiid, type)

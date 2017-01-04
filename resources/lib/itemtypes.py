@@ -45,7 +45,7 @@ class Items(object):
         """
         Open DB connections and cursors
         """
-        self.embyconn = kodiSQL('emby')
+        self.embyconn = kodiSQL('plex')
         self.embycursor = self.embyconn.cursor()
         self.kodiconn = kodiSQL('video')
         self.kodicursor = self.kodiconn.cursor()
@@ -1249,7 +1249,7 @@ class Music(Items):
         OVERWRITE this method, because we need to open another DB.
         Open DB connections and cursors
         """
-        self.embyconn = kodiSQL('emby')
+        self.embyconn = kodiSQL('plex')
         self.embycursor = self.embyconn.cursor()
         # Here it is, not 'video' but 'music'
         self.kodiconn = kodiSQL('music')

@@ -532,7 +532,7 @@ class LibrarySync(Thread):
         """
         Run once during startup to verify that emby db exists.
         """
-        embyconn = kodiSQL('emby')
+        embyconn = kodiSQL('plex')
         embycursor = embyconn.cursor()
         # Create the tables for the emby database
         # emby, view, version

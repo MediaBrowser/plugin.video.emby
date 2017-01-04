@@ -101,7 +101,7 @@ class Read_EmbyServer():
                 viewId = view['Id']
 
         # Compare to view table in emby database
-        emby = kodiSQL('emby')
+        emby = kodiSQL('plex')
         cursor_emby = emby.cursor()
         query = ' '.join((
 

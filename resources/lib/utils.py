@@ -217,8 +217,8 @@ def getUnixTimestamp(secondsIntoTheFuture=None):
 
 def kodiSQL(media_type="video"):
 
-    if media_type == "emby":
-        dbPath = tryDecode(xbmc.translatePath("special://database/emby.db"))
+    if media_type == "plex":
+        dbPath = tryDecode(xbmc.translatePath("special://database/plex.db"))
     elif media_type == "music":
         dbPath = getKodiMusicDBPath()
     elif media_type == "texture":
@@ -363,7 +363,7 @@ def reset():
 
     # Wipe the Plex database
     log.info("Resetting the Plex database.")
-    connection = kodiSQL('emby')
+    connection = kodiSQL('plex')
     cursor = connection.cursor()
     cursor.execute('SELECT tbl_name FROM sqlite_master WHERE type="table"')
     rows = cursor.fetchall()

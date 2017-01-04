@@ -264,7 +264,7 @@ def deleteItem():
                 return
 
         from utils import kodiSQL
-        embyconn = kodiSQL('emby')
+        embyconn = kodiSQL('plex')
         embycursor = embyconn.cursor()
         emby_db = embydb.Embydb_Functions(embycursor)
         item = emby_db.getItem_byKodiId(dbid, itemtype)
