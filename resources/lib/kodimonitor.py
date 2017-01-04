@@ -9,7 +9,7 @@ import xbmc
 import xbmcgui
 
 import downloadutils
-import embydb_functions as embydb
+import plexdb_functions as plexdb
 import playbackutils as pbutils
 from utils import window, settings, CatchExceptions, tryDecode, tryEncode
 from PlexFunctions import scrobble, REMAP_TYPE_FROM_PLEXTYPE
@@ -93,12 +93,12 @@ class KodiMonitor(xbmc.Monitor):
                 log.info("Item is invalid for playstate update.")
             else:
                 # Send notification to the server.
-                with embydb.GetEmbyDB() as emby_db:
-                    emby_dbitem = emby_db.getItem_byKodiId(kodiid, item_type)
+                with plexdb.Get_Plex_DB() as plexcur:
+                    plex_dbitem = plexcur.getItem_byKodiId(kodiid, item_type)
                 try:
-                    itemid = emby_dbitem[0]
+                    itemid = plex_dbitem[0]
                 except TypeError:
-                    log.error("Could not find itemid in emby database for a "
+                    log.error("Could not find itemid in plex database for a "
                               "video library update")
                 else:
                     # Stop from manually marking as watched unwatched, with actual playback.
@@ -113,40 +113,7 @@ class KodiMonitor(xbmc.Monitor):
                             scrobble(itemid, 'unwatched')
 
         elif method == "VideoLibrary.OnRemove":
-            # Removed function, because with plugin paths + clean library, it will wipe
-            # entire library if user has permissions. Instead, use the emby context menu available
-            # in Isengard and higher version
             pass
-            '''try:
-                kodiid = data['id']
-                type = data['type']
-            except (KeyError, TypeError):
-                log.info("Item is invalid for emby deletion.")
-            else:
-                # Send the delete action to the server.
-                embyconn = utils.kodiSQL('plex')
-                embycursor = embyconn.cursor()
-                emby_db = embydb.Embydb_Functions(embycursor)
-                emby_dbitem = emby_db.getItem_byKodiId(kodiid, type)
-                try:
-                    itemid = emby_dbitem[0]
-                except TypeError:
-                    log.info("Could not find itemid in emby database.")
-                else:
-                    if settings('skipContextMenu') != "true":
-                        resp = xbmcgui.Dialog().yesno(
-                                                heading="Confirm delete",
-                                                line1="Delete file on Emby Server?")
-                        if not resp:
-                            log.info("User skipped deletion.")
-                            embycursor.close()
-                            return
-
-                    url = "{server}/emby/Items/%s?format=json" % itemid
-                    log.info("Deleting request: %s" % itemid)
-                    doUtils.downloadUrl(url, action_type="DELETE")
-                finally:
-                    embycursor.close()'''
 
         elif method == "System.OnSleep":
             # Connection is going to sleep
@@ -219,10 +186,10 @@ class KodiMonitor(xbmc.Monitor):
 
         if plexid is None:
             # Get Plex' item id
-            with embydb.GetEmbyDB() as emby_db:
-                emby_dbitem = emby_db.getItem_byKodiId(kodiid, typus)
+            with plexdb.Get_Plex_DB() as plexcursor:
+                plex_dbitem = plexcursor.getItem_byKodiId(kodiid, typus)
             try:
-                plexid = emby_dbitem[0]
+                plexid = plex_dbitem[0]
             except TypeError:
                 log.info("No Plex id returned for kodiid %s. Aborting playback"
                          " report" % kodiid)

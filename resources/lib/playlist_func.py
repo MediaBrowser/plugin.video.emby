@@ -1,9 +1,9 @@
 import logging
 from urllib import quote
 
-import embydb_functions as embydb
+import plexdb_functions as plexdb
 from downloadutils import DownloadUtils as DU
-from utils import JSONRPC, tryEncode, tryDecode
+from utils import JSONRPC, tryEncode
 from PlexAPI import API
 
 ###############################################################################
@@ -12,7 +12,7 @@ log = logging.getLogger("PLEX."+__name__)
 
 ###############################################################################
 
-# kodi_item:
+# kodi_item dict:
 # {u'type': u'movie', u'id': 3, 'file': path-to-file}
 
 
@@ -94,12 +94,12 @@ def playlist_item_from_kodi(kodi_item):
     item = Playlist_Item()
     item.kodi_id = kodi_item.get('id')
     if item.kodi_id:
-        with embydb.GetEmbyDB() as emby_db:
-            emby_dbitem = emby_db.getItem_byKodiId(kodi_item['id'],
+        with plexdb.Get_Plex_DB() as plex_db:
+            plex_dbitem = plex_db.getItem_byKodiId(kodi_item['id'],
                                                    kodi_item['type'])
         try:
-            item.plex_id = emby_dbitem[0]
-            item.plex_UUID = emby_dbitem[0]     # we dont need the uuid yet :-)
+            item.plex_id = plex_dbitem[0]
+            item.plex_UUID = plex_dbitem[0]     # we dont need the uuid yet :-)
         except TypeError:
             pass
     item.file = kodi_item.get('file')
@@ -121,11 +121,11 @@ def playlist_item_from_plex(plex_id):
     """
     item = Playlist_Item()
     item.plex_id = plex_id
-    with embydb.GetEmbyDB() as emby_db:
-        emby_dbitem = emby_db.getItem_byId(plex_id)
+    with plexdb.Get_Plex_DB() as plex_db:
+        plex_dbitem = plex_db.getItem_byId(plex_id)
     try:
-        item.kodi_id = emby_dbitem[0]
-        item.kodi_type = emby_dbitem[4]
+        item.kodi_id = plex_dbitem[0]
+        item.kodi_type = plex_dbitem[4]
     except:
         raise KeyError('Could not find plex_id %s in database' % plex_id)
     return item
@@ -141,8 +141,8 @@ def playlist_item_from_xml(playlist, xml_video_element):
     item.ID = xml_video_element.attrib['%sItemID' % playlist.kind]
     item.guid = xml_video_element.attrib.get('guid')
     if item.plex_id:
-        with embydb.GetEmbyDB() as emby_db:
-            db_element = emby_db.getItem_byId(item.plex_id)
+        with plexdb.Get_Plex_DB() as plex_db:
+            db_element = plex_db.getItem_byId(item.plex_id)
         try:
             item.kodi_id, item.kodi_type = int(db_element[0]), db_element[4]
         except TypeError:
@@ -517,59 +517,3 @@ def remove_from_Kodi_playlist(playlist, pos):
         'position': pos
     }))
     del playlist.items[pos]
-
-
-# NOT YET UPDATED!!
-
-def _processItems(self, startitem, startPlayer=False):
-    startpos = None
-    with embydb.GetEmbyDB() as emby_db:
-        for pos, item in enumerate(self.items):
-            kodiId = None
-            plexId = item['plexId']
-            embydb_item = emby_db.getItem_byId(plexId)
-            try:
-                kodiId = embydb_item[0]
-                mediatype = embydb_item[4]
-            except TypeError:
-                log.info('Couldnt find item %s in Kodi db' % plexId)
-                xml = PF.GetPlexMetadata(plexId)
-                if xml in (None, 401):
-                    log.error('Could not download plexId %s' % plexId)
-                else:
-                    log.debug('Downloaded xml metadata, adding now')
-                    self._addtoPlaylist_xbmc(xml[0])
-            else:
-                # Add to playlist
-                log.debug("Adding %s PlexId %s, KodiId %s to playlist."
-                          % (mediatype, plexId, kodiId))
-                self._addtoPlaylist(kodiId, mediatype)
-            # Add the kodiId
-            if kodiId is not None:
-                item['kodiId'] = str(kodiId)
-            if (startpos is None and startitem[1] == item[startitem[0]]):
-                startpos = pos
-
-    if startPlayer is True and len(self.playlist) > 0:
-        if startpos is not None:
-            self.player.play(self.playlist, startpos=startpos)
-        else:
-            log.info('Never received a starting item for playlist, '
-                     'starting with the first entry')
-            self.player.play(self.playlist)
-
-def _addtoPlaylist_xbmc(self, item):
-    API = PlexAPI.API(item)
-    params = {
-        'mode': "play",
-        'dbid': 'plextrailer',
-        'id': API.getRatingKey(),
-        'filename': API.getKey()
-    }
-    playurl = "plugin://plugin.video.plexkodiconnect/movies/?%s" \
-        % urlencode(params)
-
-    listitem = API.CreateListItemFromPlexItem()
-    playbackutils.PlaybackUtils(item).setArtwork(listitem)
-
-    self.playlist.add(playurl, listitem)

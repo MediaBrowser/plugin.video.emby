@@ -12,29 +12,29 @@ log = logging.getLogger("PLEX."+__name__)
 ###############################################################################
 
 
-class GetEmbyDB():
+class Get_Plex_DB():
     """
-    Usage: with GetEmbyDB() as emby_db:
-               do stuff with emby_db
+    Usage: with Get_Plex_DB() as plexcursor:
+               plexcursor.do_something()
 
     On exiting "with" (no matter what), commits get automatically committed
     and the db gets closed
     """
     def __enter__(self):
-        self.embyconn = kodiSQL('plex')
-        self.emby_db = Embydb_Functions(self.embyconn.cursor())
-        return self.emby_db
+        self.plexconn = kodiSQL('plex')
+        self.plexcursor = Plex_DB_Functions(self.plexconn.cursor())
+        return self.plexcursor
 
     def __exit__(self, type, value, traceback):
-        self.embyconn.commit()
-        self.embyconn.close()
+        self.plexconn.commit()
+        self.plexconn.close()
 
 
-class Embydb_Functions():
+class Plex_DB_Functions():
 
-    def __init__(self, embycursor):
+    def __init__(self, plexcursor):
 
-        self.embycursor = embycursor
+        self.plexcursor = plexcursor
 
     def getViews(self):
 
@@ -45,15 +45,15 @@ class Embydb_Functions():
             "SELECT view_id",
             "FROM view"
         ))
-        self.embycursor.execute(query)
-        rows = self.embycursor.fetchall()
+        self.plexcursor.execute(query)
+        rows = self.plexcursor.fetchall()
         for row in rows:
             views.append(row[0])
         return views
 
     def getAllViewInfo(self):
 
-        embycursor = self.embycursor
+        plexcursor = self.plexcursor
         views = []
 
         query = ' '.join((
@@ -61,8 +61,8 @@ class Embydb_Functions():
             "SELECT view_id, view_name, media_type",
             "FROM view"
         ))
-        embycursor.execute(query)
-        rows = embycursor.fetchall()
+        plexcursor.execute(query)
+        rows = plexcursor.fetchall()
         for row in rows:
             views.append({'id': row[0],
                           'name': row[1],
@@ -78,8 +78,8 @@ class Embydb_Functions():
             "FROM view",
             "WHERE view_id = ?"
         ))
-        self.embycursor.execute(query, (viewid,))
-        view = self.embycursor.fetchone()
+        self.plexcursor.execute(query, (viewid,))
+        view = self.plexcursor.fetchone()
         
         return view
 
@@ -93,8 +93,8 @@ class Embydb_Functions():
             "FROM view",
             "WHERE media_type = ?"
         ))
-        self.embycursor.execute(query, (mediatype,))
-        rows = self.embycursor.fetchall()
+        self.plexcursor.execute(query, (mediatype,))
+        rows = self.plexcursor.fetchall()
         for row in rows:
             views.append({
 
@@ -113,9 +113,9 @@ class Embydb_Functions():
             "FROM view",
             "WHERE view_name = ?"
         ))
-        self.embycursor.execute(query, (tagname,))
+        self.plexcursor.execute(query, (tagname,))
         try:
-            view = self.embycursor.fetchone()[0]
+            view = self.plexcursor.fetchone()[0]
         
         except TypeError:
             view = None
@@ -132,7 +132,7 @@ class Embydb_Functions():
             VALUES (?, ?, ?, ?)
             '''
         )
-        self.embycursor.execute(query, (plexid, name, mediatype, tagid))
+        self.plexcursor.execute(query, (plexid, name, mediatype, tagid))
 
     def updateView(self, name, tagid, mediafolderid):
 
@@ -142,7 +142,7 @@ class Embydb_Functions():
             "SET view_name = ?, kodi_tagid = ?",
             "WHERE view_id = ?"
         ))
-        self.embycursor.execute(query, (name, tagid, mediafolderid))
+        self.plexcursor.execute(query, (name, tagid, mediafolderid))
 
     def removeView(self, viewid):
 
@@ -151,7 +151,7 @@ class Embydb_Functions():
             "DELETE FROM view",
             "WHERE view_id = ?"
         ))
-        self.embycursor.execute(query, (viewid,))
+        self.plexcursor.execute(query, (viewid,))
 
     def getItem_byFileId(self, fileId, kodiType):
         """
@@ -165,8 +165,8 @@ class Embydb_Functions():
             "WHERE kodi_fileid = ? AND media_type = ?"
         ))
         try:
-            self.embycursor.execute(query, (fileId, kodiType))
-            item = self.embycursor.fetchone()[0]
+            self.plexcursor.execute(query, (fileId, kodiType))
+            item = self.plexcursor.fetchone()[0]
             return item
         except:
             return None
@@ -183,8 +183,8 @@ class Embydb_Functions():
             "WHERE kodi_id = ? AND media_type = ?"
         ))
         try:
-            self.embycursor.execute(query, (fileId, kodiType))
-            item = self.embycursor.fetchone()[0]
+            self.plexcursor.execute(query, (fileId, kodiType))
+            item = self.plexcursor.fetchone()[0]
             return item
         except:
             return None
@@ -198,8 +198,8 @@ class Embydb_Functions():
             "WHERE emby_id = ?"
         ))
         try:
-            self.embycursor.execute(query, (plexid,))
-            item = self.embycursor.fetchone()
+            self.plexcursor.execute(query, (plexid,))
+            item = self.plexcursor.fetchone()
             return item
         except: return None
 
@@ -211,8 +211,8 @@ class Embydb_Functions():
             "FROM emby",
             "WHERE emby_id LIKE ?"
         ))
-        self.embycursor.execute(query, (plexid+"%",))
-        return self.embycursor.fetchall()
+        self.plexcursor.execute(query, (plexid+"%",))
+        return self.plexcursor.fetchall()
 
     def getItem_byView(self, mediafolderid):
 
@@ -222,8 +222,8 @@ class Embydb_Functions():
             "FROM emby",
             "WHERE media_folder = ?"
         ))
-        self.embycursor.execute(query, (mediafolderid,))
-        return self.embycursor.fetchall()
+        self.plexcursor.execute(query, (mediafolderid,))
+        return self.plexcursor.fetchall()
 
     def getPlexId(self, kodiid, mediatype):
         """
@@ -236,8 +236,8 @@ class Embydb_Functions():
             "WHERE kodi_id = ? AND media_type = ?"
         ))
         try:
-            self.embycursor.execute(query, (kodiid, mediatype))
-            item = self.embycursor.fetchone()
+            self.plexcursor.execute(query, (kodiid, mediatype))
+            item = self.plexcursor.fetchone()
             return item
         except:
             return None
@@ -251,8 +251,8 @@ class Embydb_Functions():
             "WHERE kodi_id = ?",
             "AND media_type = ?"
         ))
-        self.embycursor.execute(query, (kodiid, mediatype,))
-        return self.embycursor.fetchone()
+        self.plexcursor.execute(query, (kodiid, mediatype,))
+        return self.plexcursor.fetchone()
 
     def getItem_byParentId(self, parentid, mediatype):
 
@@ -263,8 +263,8 @@ class Embydb_Functions():
             "WHERE parent_id = ?",
             "AND media_type = ?"
         ))
-        self.embycursor.execute(query, (parentid, mediatype,))
-        return self.embycursor.fetchall()
+        self.plexcursor.execute(query, (parentid, mediatype,))
+        return self.plexcursor.fetchall()
 
     def getItemId_byParentId(self, parentid, mediatype):
 
@@ -275,8 +275,8 @@ class Embydb_Functions():
             "WHERE parent_id = ?",
             "AND media_type = ?"
         ))
-        self.embycursor.execute(query, (parentid, mediatype,))
-        return self.embycursor.fetchall()
+        self.plexcursor.execute(query, (parentid, mediatype,))
+        return self.plexcursor.fetchall()
 
     def getChecksum(self, mediatype):
 
@@ -286,8 +286,8 @@ class Embydb_Functions():
             "FROM emby",
             "WHERE emby_type = ?"
         ))
-        self.embycursor.execute(query, (mediatype,))
-        return self.embycursor.fetchall()
+        self.plexcursor.execute(query, (mediatype,))
+        return self.plexcursor.fetchall()
 
     def getMediaType_byId(self, plexid):
 
@@ -297,9 +297,9 @@ class Embydb_Functions():
             "FROM emby",
             "WHERE emby_id = ?"
         ))
-        self.embycursor.execute(query, (plexid,))
+        self.plexcursor.execute(query, (plexid,))
         try:
-            itemtype = self.embycursor.fetchone()[0]
+            itemtype = self.plexcursor.fetchone()[0]
         
         except TypeError:
             itemtype = None
@@ -330,18 +330,18 @@ class Embydb_Functions():
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             '''
         )
-        self.embycursor.execute(query, (plexid, kodiid, fileid, pathid, embytype, mediatype,
+        self.plexcursor.execute(query, (plexid, kodiid, fileid, pathid, embytype, mediatype,
             parentid, checksum, mediafolderid))
 
     def updateReference(self, plexid, checksum):
 
         query = "UPDATE emby SET checksum = ? WHERE emby_id = ?"
-        self.embycursor.execute(query, (checksum, plexid))
+        self.plexcursor.execute(query, (checksum, plexid))
 
     def updateParentId(self, plexid, parent_kodiid):
         
         query = "UPDATE emby SET parent_id = ? WHERE emby_id = ?"
-        self.embycursor.execute(query, (parent_kodiid, plexid))
+        self.plexcursor.execute(query, (parent_kodiid, plexid))
 
     def removeItems_byParentId(self, parent_kodiid, mediatype):
 
@@ -351,7 +351,7 @@ class Embydb_Functions():
             "WHERE parent_id = ?",
             "AND media_type = ?"
         ))
-        self.embycursor.execute(query, (parent_kodiid, mediatype,))
+        self.plexcursor.execute(query, (parent_kodiid, mediatype,))
 
     def removeItem_byKodiId(self, kodiid, mediatype):
 
@@ -361,17 +361,17 @@ class Embydb_Functions():
             "WHERE kodi_id = ?",
             "AND media_type = ?"
         ))
-        self.embycursor.execute(query, (kodiid, mediatype,))
+        self.plexcursor.execute(query, (kodiid, mediatype,))
 
     def removeItem(self, plexid):
 
         query = "DELETE FROM emby WHERE emby_id = ?"
-        self.embycursor.execute(query, (plexid,))
+        self.plexcursor.execute(query, (plexid,))
 
     def removeWildItem(self, plexid):
 
         query = "DELETE FROM emby WHERE emby_id LIKE ?"
-        self.embycursor.execute(query, (plexid+"%",))
+        self.plexcursor.execute(query, (plexid+"%",))
 
     def itemsByType(self, plextype):
         """
@@ -390,9 +390,9 @@ class Embydb_Functions():
             "FROM emby",
             "WHERE emby_type = ?",
         ))
-        self.embycursor.execute(query, (plextype, ))
+        self.plexcursor.execute(query, (plextype, ))
         result = []
-        for row in self.embycursor.fetchall():
+        for row in self.plexcursor.fetchall():
             result.append({
                 'plexId': row[0],
                 'kodiId': row[1],

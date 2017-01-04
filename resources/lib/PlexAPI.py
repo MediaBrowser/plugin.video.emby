@@ -51,7 +51,7 @@ from utils import window, settings, language as lang, tryDecode, tryEncode, \
     DateToKodi, KODILANGUAGE
 from PlexFunctions import PLEX_TO_KODI_TIMEFACTOR, PMSHttpsEnabled, \
     REMAP_TYPE_FROM_PLEXTYPE
-import embydb_functions as embydb
+import plexdb_functions as plexdb
 
 ###############################################################################
 
@@ -2305,10 +2305,10 @@ class API():
         kodiindex = 0
         for stream in mediastreams:
             index = stream.attrib['id']
-            # Since Emby returns all possible tracks together, have to pull
+            # Since plex returns all possible tracks together, have to pull
             # only external subtitles.
             key = stream.attrib.get('key')
-            # IsTextSubtitleStream if true, is available to download from emby.
+            # IsTextSubtitleStream if true, is available to download from plex.
             if stream.attrib.get('streamType') == "3" and key:
                 # Direct stream
                 url = ("%s%s" % (self.server, key))
@@ -2467,10 +2467,10 @@ class API():
 
         plexId = self.getRatingKey()
         listItem.setProperty('plexid', plexId)
-        with embydb.GetEmbyDB() as emby_db:
+        with plexdb.Get_Plex_DB() as plex_db:
             try:
                 listItem.setProperty('dbid',
-                                     str(emby_db.getItem_byId(plexId)[0]))
+                                     str(plex_db.getItem_byId(plexId)[0]))
             except TypeError:
                 pass
         # Expensive operation

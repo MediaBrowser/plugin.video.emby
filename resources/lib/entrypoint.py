@@ -17,7 +17,7 @@ from utils import window, settings, language as lang
 from utils import tryDecode, tryEncode, CatchExceptions
 import clientinfo
 import downloadutils
-import embydb_functions as embydb
+import plexdb_functions as plexdb
 import playbackutils as pbutils
 
 import PlexFunctions
@@ -263,12 +263,8 @@ def deleteItem():
                 log.error("Unknown type, unable to proceed.")
                 return
 
-        from utils import kodiSQL
-        embyconn = kodiSQL('plex')
-        embycursor = embyconn.cursor()
-        emby_db = embydb.Embydb_Functions(embycursor)
-        item = emby_db.getItem_byKodiId(dbid, itemtype)
-        embycursor.close()
+        with plexdb.Get_Plex_DB() as plexcursor:
+            item = plexcursor.getItem_byKodiId(dbid, itemtype)
 
         try:
             plexid = item[0]
