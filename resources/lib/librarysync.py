@@ -1666,7 +1666,7 @@ class LibrarySync(Thread):
         # Now tell Kodi where we are
         for item in items:
             itemFkt = getattr(itemtypes,
-                              PF.ITEMTYPE_FROM_PLEXTYPE[item['kodi_type']])
+                              PF.ITEMTYPE_FROM_KODITYPE[item['kodi_type']])
             with itemFkt() as Fkt:
                 Fkt.updatePlaystate(item)
 
