@@ -50,7 +50,7 @@ import downloadutils
 from utils import window, settings, language as lang, tryDecode, tryEncode, \
     DateToKodi, KODILANGUAGE
 from PlexFunctions import PLEX_TO_KODI_TIMEFACTOR, PMSHttpsEnabled, \
-    REMAP_TYPE_FROM_PLEXTYPE
+    REMAP_TYPE_FROM_PLEXTYPE, PLEX_TYPE_MOVIE, PLEX_TYPE_SHOW
 import plexdb_functions as plexdb
 
 ###############################################################################
@@ -1915,9 +1915,9 @@ class API():
         # Return the saved Plex id's, if applicable
         # Always seek collection's ids since not provided by PMS
         if collection is False:
-            if media_type == 'movie':
+            if media_type == PLEX_TYPE_MOVIE:
                 mediaId = self.getProvider('imdb')
-            elif media_type == 'show':
+            elif media_type == PLEX_TYPE_SHOW:
                 mediaId = self.getProvider('tvdb')
             if mediaId is not None:
                 return mediaId
@@ -1927,7 +1927,7 @@ class API():
             log.info('Start movie set/collection lookup on themoviedb')
 
         apiKey = settings('themoviedbAPIKey')
-        if media_type == 'show':
+        if media_type == PLEX_TYPE_SHOW:
             media_type = 'tv'
         title = item.get('title', '')
         # if the title has the year in remove it as tmdb cannot deal with it...

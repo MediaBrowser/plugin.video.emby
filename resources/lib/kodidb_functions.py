@@ -7,6 +7,7 @@ from ntpath import dirname
 
 import artwork
 from utils import kodiSQL, KODIVERSION
+from PlexFunctions import KODI_TYPE_MOVIE, KODI_TYPE_EPISODE
 
 ###############################################################################
 
@@ -869,7 +870,7 @@ class Kodidb_Functions():
         self.cursor.execute(query, (idFile,))
         try:
             itemId = self.cursor.fetchone()[0]
-            typus = 'movie'
+            typus = KODI_TYPE_MOVIE
         except TypeError:
             # Try tv shows next
             query = ' '.join((
@@ -880,7 +881,7 @@ class Kodidb_Functions():
             self.cursor.execute(query, (idFile,))
             try:
                 itemId = self.cursor.fetchone()[0]
-                typus = 'episode'
+                typus = KODI_TYPE_EPISODE
             except TypeError:
                 log.warn('Unexpectantly did not find a match!')
                 return
@@ -907,13 +908,13 @@ class Kodidb_Functions():
         return ids
 
     def getVideoRuntime(self, kodiid, mediatype):
-        if mediatype == 'movie':
+        if mediatype == KODI_TYPE_MOVIE:
             query = ' '.join((
                 "SELECT c11",
                 "FROM movie",
                 "WHERE idMovie = ?",
             ))
-        elif mediatype == 'episode':
+        elif mediatype == KODI_TYPE_EPISODE:
             query = ' '.join((
                 "SELECT c09",
                 "FROM episode",

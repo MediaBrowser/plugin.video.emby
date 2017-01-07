@@ -20,71 +20,105 @@ addonName = 'PlexKodiConnect'
 # Multiply Plex time by this factor to receive Kodi time
 PLEX_TO_KODI_TIMEFACTOR = 1.0 / 1000.0
 
-# Possible output of Kodi's ListItem.DBTYPE for all video items
+
+# All the Plex types as communicated in the PMS xml replies
+PLEX_TYPE_VIDEO = 'video'
+PLEX_TYPE_MOVIE = 'movie'
+PLEX_TYPE_CLIP = 'clip'  # e.g. trailers
+
+PLEX_TYPE_EPISODE = 'episode'
+PLEX_TYPE_SEASON = 'season'
+PLEX_TYPE_SHOW = 'show'
+
+PLEX_TYPE_AUDIO = 'audio'
+PLEX_TYPE_SONG = 'track'
+PLEX_TYPE_ALBUM = 'album'
+PLEX_TYPE_ARTIST = 'artist'
+
+PLEX_TYPE_PHOTO = 'photo'
+
+
+# All the Kodi types as e.g. used in the JSON API
+KODI_TYPE_VIDEO = 'video'
+KODI_TYPE_MOVIE = 'movie'
+KODI_TYPE_SET = 'set'  # for movie sets of several movies
+KODI_TYPE_CLIP = 'clip'  # e.g. trailers
+
+KODI_TYPE_EPISODE = 'episode'
+KODI_TYPE_SEASON = 'season'
+KODI_TYPE_SHOW = 'tvshow'
+
+KODI_TYPE_AUDIO = 'audio'
+KODI_TYPE_SONG = 'song'
+KODI_TYPE_ALBUM = 'album'
+KODI_TYPE_ARTIST = 'artist'
+
+KODI_TYPE_PHOTO = 'photo'
+
+
+# Translation tables
+
 KODI_VIDEOTYPES = (
-    'video',
-    'movie',
-    'set',
-    'tvshow',
-    'season',
-    'episode',
-    'musicvideo'
+    KODI_TYPE_VIDEO,
+    KODI_TYPE_MOVIE,
+    KODI_TYPE_SHOW,
+    KODI_TYPE_SEASON,
+    KODI_TYPE_EPISODE,
+    KODI_TYPE_SET
 )
 
-# Possible output of Kodi's ListItem.DBTYPE for all audio items
 KODI_AUDIOTYPES = (
-    'music',
-    'song',
-    'album',
-    'artist'
+    KODI_TYPE_SONG,
+    KODI_TYPE_ALBUM,
+    KODI_TYPE_ARTIST,
 )
 
 ITEMTYPE_FROM_PLEXTYPE = {
-    'movie': 'Movies',
-    'season': 'TVShows',
-    'episode': 'TVShows',
-    'show': 'TVShows',
-    'artist': 'Music',
-    'album': 'Music',
-    'track': 'Music',
-    'song': 'Music'
+    PLEX_TYPE_MOVIE: 'Movies',
+    PLEX_TYPE_SEASON: 'TVShows',
+    KODI_TYPE_EPISODE: 'TVShows',
+    PLEX_TYPE_SHOW: 'TVShows',
+    PLEX_TYPE_ARTIST: 'Music',
+    PLEX_TYPE_ALBUM: 'Music',
+    PLEX_TYPE_SONG: 'Music',
 }
 
 KODITYPE_FROM_PLEXTYPE = {
-    'movie': 'movie',
-    'episode': 'episode',
-    'track': 'song',
-    'artist': 'artist',
-    'album': 'album',
+    PLEX_TYPE_MOVIE: KODI_TYPE_MOVIE,
+    PLEX_TYPE_EPISODE: KODI_TYPE_EPISODE,
+    PLEX_TYPE_SEASON: KODI_TYPE_SEASON,
+    PLEX_TYPE_SHOW: KODI_TYPE_SHOW,
+    PLEX_TYPE_SONG: KODI_TYPE_SONG,
+    PLEX_TYPE_ARTIST: KODI_TYPE_ARTIST,
+    PLEX_TYPE_ALBUM: KODI_TYPE_ALBUM,
+    PLEX_TYPE_PHOTO: KODI_TYPE_PHOTO,
     'XXXXXX': 'musicvideo',
     'XXXXXXX': 'genre'
 }
 
 KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE = {
-    'video': 'video',
-    'movie': 'video',
-    'episode': 'video',
-    'season': 'video',
-    'tvshow': 'video',
-    'clip': 'video',
-    'artist': 'audio',
-    'album': 'audio',
-    'track': 'audio',
-    'song': 'audio'
+    PLEX_TYPE_VIDEO: KODI_TYPE_VIDEO,
+    PLEX_TYPE_MOVIE: KODI_TYPE_VIDEO,
+    PLEX_TYPE_EPISODE: KODI_TYPE_VIDEO,
+    PLEX_TYPE_SEASON: KODI_TYPE_VIDEO,
+    PLEX_TYPE_SHOW: KODI_TYPE_VIDEO,
+    PLEX_TYPE_CLIP: KODI_TYPE_VIDEO,
+    PLEX_TYPE_ARTIST: KODI_TYPE_AUDIO,
+    PLEX_TYPE_ALBUM: KODI_TYPE_AUDIO,
+    PLEX_TYPE_SONG: KODI_TYPE_AUDIO
 }
 
 
 REMAP_TYPE_FROM_PLEXTYPE = {
-    'movie': 'movie',
-    'show': 'tv',
-    'season': 'tv',
-    'episode': 'tv',
-    'artist': 'music',
-    'album': 'music',
-    'song': 'music',
-    'track': 'music',
-    'clip': 'clip',
-    'photo': 'photo'
+    PLEX_TYPE_MOVIE: 'movie',
+    PLEX_TYPE_CLIP: 'clip',
+    PLEX_TYPE_SHOW: 'tv',
+    PLEX_TYPE_SEASON: 'tv',
+    PLEX_TYPE_EPISODE: 'tv',
+    PLEX_TYPE_ARTIST: 'music',
+    PLEX_TYPE_ALBUM: 'music',
+    PLEX_TYPE_SONG: 'music',
+    PLEX_TYPE_PHOTO: 'photo'
 }
 
 

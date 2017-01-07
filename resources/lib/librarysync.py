@@ -446,7 +446,9 @@ class LibrarySync(Thread):
             return False
 
         plexId = None
-        for mediatype in ('movie', 'show', 'artist'):
+        for mediatype in (PF.PLEX_TYPE_MOVIE,
+                          PF.PLEX_TYPE_SHOW,
+                          PF.PLEX_TYPE_ARTIST):
             if plexId is not None:
                 break
             for view in sections:
@@ -534,14 +536,28 @@ class LibrarySync(Thread):
         """
         with plexdb.Get_Plex_DB() as plex_db:
             # Create the tables for the plex database
-            plex_db.plexcursor.execute(
-                """CREATE TABLE IF NOT EXISTS emby(
-                emby_id TEXT UNIQUE, media_folder TEXT, emby_type TEXT, media_type TEXT, kodi_id INTEGER, 
-                kodi_fileid INTEGER, kodi_pathid INTEGER, parent_id INTEGER, checksum INTEGER)""")
-            plex_db.plexcursor.execute(
-                """CREATE TABLE IF NOT EXISTS view(
-                view_id TEXT UNIQUE, view_name TEXT, media_type TEXT, kodi_tagid INTEGER)""")
-            plex_db.plexcursor.execute("CREATE TABLE IF NOT EXISTS version(idVersion TEXT)")
+            plex_db.plexcursor.execute('''
+                CREATE TABLE IF NOT EXISTS plex(
+                plex_id TEXT UNIQUE,
+                view_id TEXT,
+                plex_type TEXT,
+                kodi_type TEXT,
+                kodi_id INTEGER,
+                kodi_fileid INTEGER,
+                kodi_pathid INTEGER,
+                parent_id INTEGER,
+                checksum INTEGER)
+            ''')
+            plex_db.plexcursor.execute('''
+                CREATE TABLE IF NOT EXISTS view(
+                view_id TEXT UNIQUE,
+                view_name TEXT,
+                kodi_type TEXT,
+                kodi_tagid INTEGER)
+            ''')
+            plex_db.plexcursor.execute('''
+                CREATE TABLE IF NOT EXISTS version(idVersion TEXT)
+            ''')
         # Create an index for actors to speed up sync
         create_actor_db_index()
 
@@ -632,7 +648,8 @@ class LibrarySync(Thread):
         folder = folderItem.attrib
         mediatype = folder['type']
         # Only process supported formats
-        if mediatype not in ('movie', 'show', 'artist', 'photo'):
+        if mediatype not in (PF.PLEX_TYPE_MOVIE, PF.PLEX_TYPE_SHOW,
+                             PF.PLEX_TYPE_ARTIST, PF.PLEX_TYPE_PHOTO):
             return totalnodes
 
         # Prevent duplicate for nodes of the same type
@@ -656,12 +673,12 @@ class LibrarySync(Thread):
             tagid = kodi_db.createTag(foldername)
             # Create playlist for the video library
             if (foldername not in playlists and
-                    mediatype in ('movie', 'show', 'musicvideos')):
+                    mediatype in (PF.PLEX_TYPE_MOVIE, PF.PLEX_TYPE_SHOW)):
                 playlistXSP(mediatype, foldername, folderid, viewtype)
                 playlists.append(foldername)
             # Create the video node
             if (foldername not in nodes and
-                    mediatype not in ("musicvideos", "artist")):
+                    mediatype != PF.PLEX_TYPE_ARTIST):
                 vnodes.viewNode(sorted_views.index(foldername),
                                 foldername,
                                 mediatype,
@@ -715,7 +732,7 @@ class LibrarySync(Thread):
                                 delete=True)
                     # Added new playlist
                     if (foldername not in playlists and
-                            mediatype in ('movie', 'show', 'musicvideos')):
+                            mediatype in (PF.PLEX_TYPE_MOVIE, PF.PLEX_TYPE_SHOW)):
                         playlistXSP(mediatype,
                                     foldername,
                                     folderid,
@@ -739,9 +756,9 @@ class LibrarySync(Thread):
                         current_tagid, tagid, item[0], current_viewtype[:-1])
             else:
                 # Validate the playlist exists or recreate it
-                if mediatype != "artist":
+                if mediatype != PF.PLEX_TYPE_ARTIST:
                     if (foldername not in playlists and
-                            mediatype in ('movie', 'show', 'musicvideos')):
+                            mediatype in (PF.PLEX_TYPE_MOVIE, PF.PLEX_TYPE_SHOW)):
                         playlistXSP(mediatype,
                                     foldername,
                                     folderid,
@@ -776,22 +793,22 @@ class LibrarySync(Thread):
 
         # For whatever freaking reason, .copy() or dict() does NOT work?!?!?!
         self.nodes = {
-            'movie': [],
-            'show': [],
-            'artist': [],
-            'photo': []
+            PF.PLEX_TYPE_MOVIE: [],
+            PF.PLEX_TYPE_SHOW: [],
+            PF.PLEX_TYPE_ARTIST: [],
+            PF.PLEX_TYPE_PHOTO: []
         }
         self.playlists = {
-            'movie': [],
-            'show': [],
-            'artist': [],
-            'photo': []
+            PF.PLEX_TYPE_MOVIE: [],
+            PF.PLEX_TYPE_SHOW: [],
+            PF.PLEX_TYPE_ARTIST: [],
+            PF.PLEX_TYPE_PHOTO: []
         }
         self.sorted_views = []
 
         for view in sections:
             itemType = view.attrib['type']
-            if itemType in ('movie', 'show', 'photo'):  # NOT artist for now
+            if itemType in (PF.PLEX_TYPE_MOVIE, PF.PLEX_TYPE_SHOW, PF.PLEX_TYPE_PHOTO):  # NOT artist for now
                 self.sorted_views.append(view.attrib['title'])
         log.debug('Sorted views: %s' % self.sorted_views)
 
@@ -1020,9 +1037,10 @@ class LibrarySync(Thread):
         if (settings('FanartTV') == 'true' and
                 itemType in ('Movies', 'TVShows')):
             # Save to queue for later processing
-            typus = {'Movies': 'movie', 'TVShows': 'tvshow'}[itemType]
+            typus = {'Movies': PF.KODI_TYPE_MOVIE,
+                     'TVShows': PF.KODI_TYPE_SHOW}[itemType]
             for item in self.updatelist:
-                if item['mediaType'] in ('movie', 'show'):
+                if item['mediaType'] in (PF.KODI_TYPE_MOVIE, PF.KODI_TYPE_SHOW):
                     self.fanartqueue.put({
                         'itemId': item['itemId'],
                         'class': itemType,
@@ -1038,7 +1056,7 @@ class LibrarySync(Thread):
 
         itemType = 'Movies'
 
-        views = [x for x in self.views if x['itemtype'] == 'movie']
+        views = [x for x in self.views if x['itemtype'] == PF.KODI_TYPE_MOVIE]
         log.info("Processing Plex %s. Libraries: %s" % (itemType, views))
 
         self.allKodiElementsId = {}
@@ -1047,7 +1065,8 @@ class LibrarySync(Thread):
                 # Get movies from Plex server
                 # Pull the list of movies and boxsets in Kodi
                 try:
-                    self.allKodiElementsId = dict(plex_db.getChecksum('Movie'))
+                    self.allKodiElementsId = dict(
+                        plex_db.getChecksum(PF.PLEX_TYPE_MOVIE))
                 except ValueError:
                     self.allKodiElementsId = {}
 
@@ -1132,7 +1151,9 @@ class LibrarySync(Thread):
         if self.compare:
             with plexdb.Get_Plex_DB() as plex:
                 # Pull the list of TV shows already in Kodi
-                for kind in ('Series', 'Season', 'Episode'):
+                for kind in (PF.PLEX_TYPE_SHOW,
+                             PF.PLEX_TYPE_SEASON,
+                             PF.PLEX_TYPE_EPISODE):
                     try:
                         elements = dict(plex.getChecksum(kind))
                         self.allKodiElementsId.update(elements)
@@ -1657,8 +1678,8 @@ class LibrarySync(Thread):
         """
         items = []
         typus = {
-            'Movie': 'Movies',
-            'Series': 'TVShows'
+            PF.PLEX_TYPE_MOVIE: 'Movies',
+            PF.PLEX_TYPE_SHOW: 'TVShows'
         }
         with plexdb.Get_Plex_DB() as plex_db:
             for plextype in typus:

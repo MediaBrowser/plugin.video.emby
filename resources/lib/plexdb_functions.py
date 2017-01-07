@@ -14,16 +14,15 @@ log = logging.getLogger("PLEX."+__name__)
 
 class Get_Plex_DB():
     """
-    Usage: with Get_Plex_DB() as plexcursor:
-               plexcursor.do_something()
+    Usage: with Get_Plex_DB() as plex_db:
+               plex_db.do_something()
 
     On exiting "with" (no matter what), commits get automatically committed
     and the db gets closed
     """
     def __enter__(self):
         self.plexconn = kodiSQL('plex')
-        self.plexcursor = Plex_DB_Functions(self.plexconn.cursor())
-        return self.plexcursor
+        return Plex_DB_Functions(self.plexconn.cursor())
 
     def __exit__(self, type, value, traceback):
         self.plexconn.commit()
@@ -33,18 +32,17 @@ class Get_Plex_DB():
 class Plex_DB_Functions():
 
     def __init__(self, plexcursor):
-
         self.plexcursor = plexcursor
 
     def getViews(self):
-
+        """
+        Returns a list of view_id
+        """
         views = []
-
-        query = ' '.join((
-
-            "SELECT view_id",
-            "FROM view"
-        ))
+        query = '''
+            SELECT view_id
+            FROM view
+        '''
         self.plexcursor.execute(query)
         rows = self.plexcursor.fetchall()
         for row in rows:
@@ -52,15 +50,16 @@ class Plex_DB_Functions():
         return views
 
     def getAllViewInfo(self):
-
+        """
+        Returns a list of dicts:
+            {'id': view_id, 'name': view_name, 'itemtype': kodi_type}
+        """
         plexcursor = self.plexcursor
         views = []
-
-        query = ' '.join((
-
-            "SELECT view_id, view_name, media_type",
-            "FROM view"
-        ))
+        query = '''
+            SELECT view_id, view_name, kodi_type
+            FROM view
+        '''
         plexcursor.execute(query)
         rows = plexcursor.fetchall()
         for row in rows:
@@ -69,334 +68,324 @@ class Plex_DB_Functions():
                           'itemtype': row[2]})
         return views
 
-    def getView_byId(self, viewid):
-
-
-        query = ' '.join((
-
-            "SELECT view_name, media_type, kodi_tagid",
-            "FROM view",
-            "WHERE view_id = ?"
-        ))
-        self.plexcursor.execute(query, (viewid,))
+    def getView_byId(self, view_id):
+        """
+        Returns tuple (view_name, kodi_type, kodi_tagid) for view_id
+        """
+        query = '''
+            SELECT view_name, kodi_type, kodi_tagid
+            FROM view
+            WHERE view_id = ?
+        '''
+        self.plexcursor.execute(query, (view_id,))
         view = self.plexcursor.fetchone()
-        
         return view
 
-    def getView_byType(self, mediatype):
-
+    def getView_byType(self, kodi_type):
+        """
+        Returns a list of dicts for kodi_type:
+            {'id': view_id, 'name': view_name, 'itemtype': kodi_type}
+        """
         views = []
-
-        query = ' '.join((
-
-            "SELECT view_id, view_name, media_type",
-            "FROM view",
-            "WHERE media_type = ?"
-        ))
-        self.plexcursor.execute(query, (mediatype,))
+        query = '''
+            SELECT view_id, view_name, kodi_type
+            FROM view
+            WHERE kodi_type = ?
+        '''
+        self.plexcursor.execute(query, (kodi_type,))
         rows = self.plexcursor.fetchall()
         for row in rows:
             views.append({
-
                 'id': row[0],
                 'name': row[1],
                 'itemtype': row[2]
             })
-
         return views
 
-    def getView_byName(self, tagname):
-
-        query = ' '.join((
-
-            "SELECT view_id",
-            "FROM view",
-            "WHERE view_name = ?"
-        ))
-        self.plexcursor.execute(query, (tagname,))
+    def getView_byName(self, view_name):
+        """
+        Returns the view_id for view_name (or None)
+        """
+        query = '''
+            SELECT view_id
+            FROM view
+            WHERE view_name = ?
+        '''
+        self.plexcursor.execute(query, (view_name,))
         try:
             view = self.plexcursor.fetchone()[0]
-        
         except TypeError:
             view = None
-
         return view
 
-    def addView(self, plexid, name, mediatype, tagid):
-
-        query = (
-            '''
+    def addView(self, view_id, view_name, kodi_type, kodi_tagid):
+        """
+        Appends an entry to the view table
+        """
+        query = '''
             INSERT INTO view(
-                view_id, view_name, media_type, kodi_tagid)
-
+                view_id, view_name, kodi_type, kodi_tagid)
             VALUES (?, ?, ?, ?)
             '''
-        )
-        self.plexcursor.execute(query, (plexid, name, mediatype, tagid))
+        self.plexcursor.execute(query,
+                                (view_id, view_name, kodi_type, kodi_tagid))
 
-    def updateView(self, name, tagid, mediafolderid):
-
-        query = ' '.join((
-
-            "UPDATE view",
-            "SET view_name = ?, kodi_tagid = ?",
-            "WHERE view_id = ?"
-        ))
-        self.plexcursor.execute(query, (name, tagid, mediafolderid))
-
-    def removeView(self, viewid):
-
-        query = ' '.join((
-
-            "DELETE FROM view",
-            "WHERE view_id = ?"
-        ))
-        self.plexcursor.execute(query, (viewid,))
-
-    def getItem_byFileId(self, fileId, kodiType):
+    def updateView(self, view_name, kodi_tagid, view_id):
         """
-        Returns the Plex itemId by using the Kodi fileId. VIDEO ONLY
-
-        kodiType: 'movie', 'episode', ...
+        Updates the view_id with view_name and kodi_tagid
         """
-        query = ' '.join((
-            "SELECT emby_id",
-            "FROM emby",
-            "WHERE kodi_fileid = ? AND media_type = ?"
-        ))
+        query = '''
+            UPDATE view
+            SET view_name = ?, kodi_tagid = ?
+            WHERE view_id = ?
+        '''
+        self.plexcursor.execute(query, (view_name, kodi_tagid, view_id))
+
+    def removeView(self, view_id):
+        query = '''
+            DELETE FROM view
+            WHERE view_id = ?
+        '''
+        self.plexcursor.execute(query, (view_id,))
+
+    def getItem_byFileId(self, kodi_fileid, kodi_type):
+        """
+        Returns plex_id for kodi_fileid and kodi_type
+
+        None if not found
+        """
+        query = '''
+            SELECT plex_id
+            FROM plex
+            WHERE kodi_fileid = ? AND kodi_type = ?
+        '''
         try:
-            self.plexcursor.execute(query, (fileId, kodiType))
+            self.plexcursor.execute(query, (kodi_fileid, kodi_type))
             item = self.plexcursor.fetchone()[0]
             return item
         except:
             return None
 
-    def getMusicItem_byFileId(self, fileId, kodiType):
+    def getMusicItem_byFileId(self, kodi_id, kodi_type):
         """
-        Returns the Plex itemId by using the Kodi fileId. MUSIC ONLY
+        Returns the plex_id for kodi_id and kodi_type
 
-        kodiType: 'song'
+        None if not found
         """
-        query = ' '.join((
-            "SELECT emby_id",
-            "FROM emby",
-            "WHERE kodi_id = ? AND media_type = ?"
-        ))
+        query = '''
+            SELECT plex_id
+            FROM plex
+            WHERE kodi_id = ? AND kodi_type = ?
+        '''
         try:
-            self.plexcursor.execute(query, (fileId, kodiType))
+            self.plexcursor.execute(query, (kodi_id, kodi_type))
             item = self.plexcursor.fetchone()[0]
             return item
         except:
             return None
 
-    def getItem_byId(self, plexid):
-
-        query = ' '.join((
-
-            "SELECT kodi_id, kodi_fileid, kodi_pathid, parent_id, media_type, emby_type",
-            "FROM emby",
-            "WHERE emby_id = ?"
-        ))
-        try:
-            self.plexcursor.execute(query, (plexid,))
-            item = self.plexcursor.fetchone()
-            return item
-        except: return None
-
-    def getItem_byWildId(self, plexid):
-
-        query = ' '.join((
-
-            "SELECT kodi_id, media_type",
-            "FROM emby",
-            "WHERE emby_id LIKE ?"
-        ))
-        self.plexcursor.execute(query, (plexid+"%",))
-        return self.plexcursor.fetchall()
-
-    def getItem_byView(self, mediafolderid):
-
-        query = ' '.join((
-
-            "SELECT kodi_id",
-            "FROM emby",
-            "WHERE media_folder = ?"
-        ))
-        self.plexcursor.execute(query, (mediafolderid,))
-        return self.plexcursor.fetchall()
-
-    def getPlexId(self, kodiid, mediatype):
+    def getItem_byId(self, plex_id):
         """
-        Returns the Plex ID usind the Kodiid. Result:
-            (Plex Id, Parent's Plex Id)
+        For plex_id, returns the tuple
+          (kodi_id, kodi_fileid, kodi_pathid, parent_id, kodi_type, plex_type)
+
+        None if not found
         """
-        query = ' '.join((
-            "SELECT emby_id, parent_id",
-            "FROM emby",
-            "WHERE kodi_id = ? AND media_type = ?"
-        ))
+        query = '''
+            SELECT kodi_id, kodi_fileid, kodi_pathid,
+                parent_id, kodi_type, plex_type
+            FROM plex
+            WHERE plex_id = ?
+        '''
         try:
-            self.plexcursor.execute(query, (kodiid, mediatype))
+            self.plexcursor.execute(query, (plex_id,))
             item = self.plexcursor.fetchone()
             return item
         except:
             return None
 
-    def getItem_byKodiId(self, kodiid, mediatype):
+    def getItem_byWildId(self, plex_id):
+        """
+        Returns a list of tuples (kodi_id, kodi_type) for plex_id (% appended)
+        """
+        query = '''
+            SELECT kodi_id, kodi_type
+            FROM plex
+            WHERE plex_id LIKE ?
+        '''
+        self.plexcursor.execute(query, (plex_id+"%",))
+        return self.plexcursor.fetchall()
 
-        query = ' '.join((
+    def getItem_byView(self, view_id):
+        """
+        Returns kodi_id for view_id
+        """
+        query = '''
+            SELECT kodi_id
+            FROM plex
+            WHERE view_id = ?
+        '''
+        self.plexcursor.execute(query, (view_id,))
+        return self.plexcursor.fetchall()
 
-            "SELECT emby_id, parent_id",
-            "FROM emby",
-            "WHERE kodi_id = ?",
-            "AND media_type = ?"
-        ))
-        self.plexcursor.execute(query, (kodiid, mediatype,))
+    def getItem_byKodiId(self, kodi_id, kodi_type):
+        """
+        Returns the tuple (plex_id, parent_id) for kodi_id and kodi_type
+        """
+        query = '''
+            SELECT plex_id, parent_id
+            FROM plex
+            WHERE kodi_id = ?
+            AND kodi_type = ?
+        '''
+        self.plexcursor.execute(query, (kodi_id, kodi_type,))
         return self.plexcursor.fetchone()
 
-    def getItem_byParentId(self, parentid, mediatype):
-
-        query = ' '.join((
-
-            "SELECT emby_id, kodi_id, kodi_fileid",
-            "FROM emby",
-            "WHERE parent_id = ?",
-            "AND media_type = ?"
-        ))
-        self.plexcursor.execute(query, (parentid, mediatype,))
+    def getItem_byParentId(self, parent_id, kodi_type):
+        """
+        Returns the tuple (plex_id, kodi_id, kodi_fileid) for parent_id,
+        kodi_type
+        """
+        query = '''
+            SELECT plex_id, kodi_id, kodi_fileid
+            FROM plex
+            WHERE parent_id = ?
+            AND kodi_type = ?"
+        '''
+        self.plexcursor.execute(query, (parent_id, kodi_type,))
         return self.plexcursor.fetchall()
 
-    def getItemId_byParentId(self, parentid, mediatype):
-
-        query = ' '.join((
-
-            "SELECT emby_id, kodi_id",
-            "FROM emby",
-            "WHERE parent_id = ?",
-            "AND media_type = ?"
-        ))
-        self.plexcursor.execute(query, (parentid, mediatype,))
+    def getItemId_byParentId(self, parent_id, kodi_type):
+        """
+        Returns the tuple (plex_id, kodi_id) for parent_id, kodi_type
+        """
+        query = '''
+            SELECT plex_id, kodi_id
+            FROM plex
+            WHERE parent_id = ?
+            AND kodi_type = ?
+        '''
+        self.plexcursor.execute(query, (parent_id, kodi_type,))
         return self.plexcursor.fetchall()
 
-    def getChecksum(self, mediatype):
-
-        query = ' '.join((
-
-            "SELECT emby_id, checksum",
-            "FROM emby",
-            "WHERE emby_type = ?"
-        ))
-        self.plexcursor.execute(query, (mediatype,))
+    def getChecksum(self, plex_type):
+        """
+        Returns a list of tuples (plex_id, checksum) for plex_type
+        """
+        query = '''
+            SELECT plex_id, checksum
+            FROM plex
+            WHERE plex_type = ?
+        '''
+        self.plexcursor.execute(query, (plex_type,))
         return self.plexcursor.fetchall()
 
-    def getMediaType_byId(self, plexid):
+    def getMediaType_byId(self, plex_id):
+        """
+        Returns plex_type for plex_id
 
-        query = ' '.join((
-
-            "SELECT emby_type",
-            "FROM emby",
-            "WHERE emby_id = ?"
-        ))
-        self.plexcursor.execute(query, (plexid,))
+        Or None if not found
+        """
+        query = '''
+            SELECT plex_type
+            FROM plex
+            WHERE plex_id = ?
+        '''
+        self.plexcursor.execute(query, (plex_id,))
         try:
             itemtype = self.plexcursor.fetchone()[0]
-        
         except TypeError:
             itemtype = None
-
         return itemtype
 
-    def sortby_mediaType(self, itemids, unsorted=True):
-
-        sorted_items = {}
-        
-        for itemid in itemids:
-            mediatype = self.getMediaType_byId(itemid)
-            if mediatype:
-                sorted_items.setdefault(mediatype, []).append(itemid)
-            elif unsorted:
-                sorted_items.setdefault('Unsorted', []).append(itemid)
-
-        return sorted_items
-
-    def addReference(self, plexid, kodiid, embytype, mediatype, fileid=None, pathid=None,
-                        parentid=None, checksum=None, mediafolderid=None):
-        query = (
-            '''
-            INSERT OR REPLACE INTO emby(
-                emby_id, kodi_id, kodi_fileid, kodi_pathid, emby_type, media_type, parent_id,
-                checksum, media_folder)
-
+    def addReference(self, plex_id, plex_type, kodi_id, kodi_type,
+                     kodi_fileid=None, kodi_pathid=None, parent_id=None,
+                     checksum=None, view_id=None):
+        """
+        Appends or replaces an entry into the plex table
+        """
+        query = '''
+            INSERT OR REPLACE INTO plex(
+                plex_id, kodi_id, kodi_fileid, kodi_pathid, plex_type,
+                kodi_type, parent_id, checksum, view_id)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             '''
-        )
-        self.plexcursor.execute(query, (plexid, kodiid, fileid, pathid, embytype, mediatype,
-            parentid, checksum, mediafolderid))
+        self.plexcursor.execute(query, (plex_id, kodi_id, kodi_fileid,
+                                        kodi_pathid, plex_type, kodi_type,
+                                        parent_id, checksum, view_id))
 
-    def updateReference(self, plexid, checksum):
-
-        query = "UPDATE emby SET checksum = ? WHERE emby_id = ?"
-        self.plexcursor.execute(query, (checksum, plexid))
+    def updateReference(self, plex_id, checksum):
+        """
+        Updates checksum for plex_id
+        """
+        query = "UPDATE plex SET checksum = ? WHERE plex_id = ?"
+        self.plexcursor.execute(query, (checksum, plex_id))
 
     def updateParentId(self, plexid, parent_kodiid):
-        
-        query = "UPDATE emby SET parent_id = ? WHERE emby_id = ?"
+        """
+        Updates parent_id for plex_id
+        """
+        query = "UPDATE plex SET parent_id = ? WHERE plex_id = ?"
         self.plexcursor.execute(query, (parent_kodiid, plexid))
 
-    def removeItems_byParentId(self, parent_kodiid, mediatype):
-
-        query = ' '.join((
-
-            "DELETE FROM emby",
-            "WHERE parent_id = ?",
-            "AND media_type = ?"
-        ))
-        self.plexcursor.execute(query, (parent_kodiid, mediatype,))
-
-    def removeItem_byKodiId(self, kodiid, mediatype):
-
-        query = ' '.join((
-
-            "DELETE FROM emby",
-            "WHERE kodi_id = ?",
-            "AND media_type = ?"
-        ))
-        self.plexcursor.execute(query, (kodiid, mediatype,))
-
-    def removeItem(self, plexid):
-
-        query = "DELETE FROM emby WHERE emby_id = ?"
-        self.plexcursor.execute(query, (plexid,))
-
-    def removeWildItem(self, plexid):
-
-        query = "DELETE FROM emby WHERE emby_id LIKE ?"
-        self.plexcursor.execute(query, (plexid+"%",))
-
-    def itemsByType(self, plextype):
+    def removeItems_byParentId(self, parent_id, kodi_type):
         """
-        Returns a list of dictionaries for all Kodi DB items present for
-        plextype. One dict is of the type
+        Removes all entries with parent_id and kodi_type
+        """
+        query = '''
+            DELETE FROM plex
+            WHERE parent_id = ?
+            AND kodi_type = ?
+        '''
+        self.plexcursor.execute(query, (parent_id, kodi_type,))
 
+    def removeItem_byKodiId(self, kodi_id, kodi_type):
+        """
+        Removes the one entry with kodi_id and kodi_type
+        """
+        query = '''
+            DELETE FROM plex
+            WHERE kodi_id = ?
+            AND kodi_type = ?
+        '''
+        self.plexcursor.execute(query, (kodi_id, kodi_type,))
+
+    def removeItem(self, plex_id):
+        """
+        Removes the one entry with plex_id
+        """
+        query = "DELETE FROM plex WHERE plex_id = ?"
+        self.plexcursor.execute(query, (plex_id,))
+
+    def removeWildItem(self, plex_id):
+        """
+        Removes all entries with plex_id with % added
+        """
+        query = "DELETE FROM plex WHERE plex_id LIKE ?"
+        self.plexcursor.execute(query, (plex_id+"%",))
+
+    def itemsByType(self, plex_type):
+        """
+        Returns a list of dicts for plex_type:
         {
-            'plexId':       the Plex id
-            'kodiId':       the Kodi id
-            'kodi_type':    e.g. 'movie', 'tvshow'
-            'plex_type':    e.g. 'Movie', 'Series', the input plextype
+            'plexId': plex_id
+            'kodiId': kodi_id
+            'kodi_type': kodi_type
+            'plex_type': plex_type
         }
         """
-        query = ' '.join((
-            "SELECT emby_id, kodi_id, media_type",
-            "FROM emby",
-            "WHERE emby_type = ?",
-        ))
-        self.plexcursor.execute(query, (plextype, ))
+        query = '''
+            SELECT plex_id, kodi_id, kodi_type
+            FROM plex
+            WHERE plex_type = ?
+        '''
+        self.plexcursor.execute(query, (plex_type, ))
         result = []
         for row in self.plexcursor.fetchall():
             result.append({
                 'plexId': row[0],
                 'kodiId': row[1],
                 'kodi_type': row[2],
-                'plex_type': plextype
+                'plex_type': plex_type
             })
         return result

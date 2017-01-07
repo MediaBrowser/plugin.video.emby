@@ -15,7 +15,7 @@ import downloadutils
 
 from PlexAPI import API
 from PlexFunctions import GetPlexPlaylist, KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE, \
-    KODITYPE_FROM_PLEXTYPE
+    KODITYPE_FROM_PLEXTYPE, PLEX_TYPE_MOVIE
 from PKC_listitem import PKC_ListItem as ListItem
 from playlist_func import add_item_to_kodi_playlist, \
     get_playlist_details_from_xml, add_listitem_to_Kodi_playlist, \
@@ -37,7 +37,8 @@ class PlaybackUtils():
     def __init__(self, item, callback=None, playlist_type=None):
         self.item = item
         self.api = API(item)
-        playlist_type = playlist_type if playlist_type else KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[self.api.getType()]
+        playlist_type = playlist_type if playlist_type else \
+            KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[self.api.getType()]
         if callback:
             self.mgr = callback
             self.playqueue = self.mgr.playqueue.get_playqueue_from_type(
@@ -132,8 +133,10 @@ class PlaybackUtils():
             # Where will the player need to start?
             # Do we need to get trailers?
             trailers = False
-            if (api.getType() == 'movie' and not seektime and sizePlaylist < 2
-                    and settings('enableCinema') == "true"):
+            if (api.getType() == PLEX_TYPE_MOVIE and
+                    not seektime and
+                    sizePlaylist < 2 and
+                    settings('enableCinema') == "true"):
                 if settings('askCinema') == "true":
                     trailers = xbmcgui.Dialog().yesno(
                         addonName,

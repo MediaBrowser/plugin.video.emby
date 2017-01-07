@@ -8,7 +8,7 @@ from PKC_listitem import PKC_ListItem
 from pickler import pickle_me, Playback_Successful
 from playbackutils import PlaybackUtils
 from utils import window
-from PlexFunctions import GetPlexMetadata
+from PlexFunctions import GetPlexMetadata, PLEX_TYPE_PHOTO
 from PlexAPI import API
 from playqueue import lock
 
@@ -38,7 +38,7 @@ class Playback_Starter(Thread):
             # Todo: Warn user with dialog
             return
         xml = GetPlexMetadata(plex_id)
-        if xml[0].attrib.get('type') == 'photo':
+        if xml[0].attrib.get('type') == PLEX_TYPE_PHOTO:
             # Photo
             result = Playback_Successful()
             listitem = PKC_ListItem()
