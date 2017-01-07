@@ -9,7 +9,7 @@ from xbmc import sleep
 from utils import settings, ThreadMethodsAdditionalSuspend, ThreadMethods
 from plexbmchelper import listener, plexgdm, subscribers, functions, \
     httppersist, plexsettings
-from PlexFunctions import ParseContainerKey
+from PlexFunctions import ParseContainerKey, KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE
 import player
 from entrypoint import Plex_Node
 
@@ -95,7 +95,7 @@ class PlexCompanion(Thread):
                 log.error("Traceback:\n%s" % traceback.format_exc())
                 return
             playqueue = self.mgr.playqueue.get_playqueue_from_type(
-                data['type'])
+                KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[data['type']])
             self.mgr.playqueue.update_playqueue_from_PMS(
                 playqueue,
                 ID,
