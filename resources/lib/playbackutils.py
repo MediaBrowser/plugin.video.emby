@@ -289,7 +289,7 @@ class PlaybackUtils():
                 contextmenu_play):
             # Playlist was created just now, play it.
             # Contextmenu plays always need this
-            log.info("Play playlist")
+            log.info("Play playlist from starting position %s" % startPos)
             # Need a separate thread because Player won't return in time
             thread = Thread(target=Player().play,
                             args=(playqueue.kodi_pl, None, False, startPos))
