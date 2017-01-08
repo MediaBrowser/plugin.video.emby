@@ -149,9 +149,7 @@ class PlaybackUtils():
                 plex_lib_UUID,
                 mediatype=api.getType(),
                 trailers=trailers)
-            log.debug('xml: ID: %s' % xml.attrib['playQueueID'])
             get_playlist_details_from_xml(playqueue, xml=xml)
-            log.debug('finished ')
 
             if (not homeScreen and not seektime and sizePlaylist < 2 and
                     window('plex_customplaylist') != "true" and
