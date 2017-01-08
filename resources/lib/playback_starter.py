@@ -43,11 +43,11 @@ class Playback_Starter(Thread):
         except (TypeError, AttributeError):
             log.error('Could not get a PMS xml for plex id %s' % plex_id)
             return
-        if xml[0].attrib.get('type') == PLEX_TYPE_PHOTO:
+        api = API(xml[0])
+        if api.getType() == PLEX_TYPE_PHOTO:
             # Photo
             result = Playback_Successful()
             listitem = PKC_ListItem()
-            api = API(xml[0])
             listitem = api.CreateListItemFromPlexItem(listitem)
             api.AddStreamInfo(listitem)
             api.set_listitem_artwork(listitem)
