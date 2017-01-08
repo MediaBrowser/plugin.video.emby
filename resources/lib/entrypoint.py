@@ -96,30 +96,6 @@ def togglePlexTV():
         sound=False)
 
 
-def PassPlaylist(xml, resume=None):
-    """
-    resume in KodiTime - seconds.
-    """
-    # Set window properties to make them available later for other threads
-    windowArgs = [
-        # 'containerKey'
-        'playQueueID',
-        'playQueueVersion']
-    for arg in windowArgs:
-        window(arg, value=xml.attrib.get(arg))
-
-    # Get resume point
-    from utils import IntFromStr
-    resume1 = PlexFunctions.ConvertPlexToKodiTime(IntFromStr(
-        xml.attrib.get('playQueueSelectedItemOffset', 0)))
-    resume2 = resume
-    resume = max(resume1, resume2)
-
-    pbutils.PlaybackUtils(xml).StartPlay(
-        resume=resume,
-        resumeId=xml.attrib.get('playQueueSelectedItemID', None))
-
-
 def Plex_Node(url, viewOffset, plex_type, playdirectly=False):
     """
     Called only for a SINGLE element for Plex.tv watch later
