@@ -101,14 +101,18 @@ class Playqueue(Thread):
                 startpos = None
             # Start playback. Player does not return in time
             if startpos:
+                log.debug('Start position Plex Companion playback: %s'
+                          % startpos)
                 thread = Thread(target=Player().play,
                                 args=(playqueue.kodi_pl,
                                       None,
                                       False,
                                       startpos))
             else:
+                log.debug('Start Plex Companion playback from beginning')
                 thread = Thread(target=Player().play,
                                 args=(playqueue.kodi_pl,))
+            log.debug('Playqueues are: %s' % self.playqueues)
             thread.setDaemon(True)
             thread.start()
 
