@@ -72,7 +72,7 @@ class plexgdm:
             "Protocol: plex\r\n"
             "Protocol-Version: 1\r\n"
             "Protocol-Capabilities: timeline,playback,navigation,"
-            "mirror,playqueues\r\n"
+            "playqueues\r\n"
             "Device-Class: HTPC"
         ) % (
             options['uuid'],
