@@ -1273,22 +1273,24 @@ class LibrarySync(Thread):
     def PlexMusic(self):
         itemType = 'Music'
 
-        views = [x for x in self.views if x['itemtype'] == 'artist']
+        views = [x for x in self.views if x['itemtype'] == PF.PLEX_TYPE_ARTIST]
         log.info("Media folders for %s: %s" % (itemType, views))
 
         methods = {
-            'MusicArtist': 'add_updateArtist',
-            'MusicAlbum': 'add_updateAlbum',
-            'Audio': 'add_updateSong'
+            PF.PLEX_TYPE_ARTIST: 'add_updateArtist',
+            PF.PLEX_TYPE_ALBUM: 'add_updateAlbum',
+            PF.PLEX_TYPE_SONG: 'add_updateSong'
         }
         urlArgs = {
-            'MusicArtist': {'type': 8},
-            'MusicAlbum': {'type': 9},
-            'Audio': {'type': 10}
+            PF.PLEX_TYPE_ARTIST: {'type': 8},
+            PF.PLEX_TYPE_ALBUM: {'type': 9},
+            PF.PLEX_TYPE_SONG: {'type': 10}
         }
 
         # Process artist, then album and tracks last to minimize overhead
-        for kind in ('MusicArtist', 'MusicAlbum', 'Audio'):
+        for kind in (PF.PLEX_TYPE_ARTIST,
+                     PF.PLEX_TYPE_ALBUM,
+                     PF.PLEX_TYPE_SONG):
             if self.threadStopped():
                 return False
             log.debug("Start processing music %s" % kind)
