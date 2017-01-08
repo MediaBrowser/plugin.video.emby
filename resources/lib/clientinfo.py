@@ -49,7 +49,7 @@ class ClientInfo():
             'X-Plex-Product': self.getAddonName(),
             'X-Plex-Version': self.getVersion(),
             'X-Plex-Client-Identifier': self.getDeviceId(),
-            'X-Plex-Provides': 'player',
+            'X-Plex-Provides': 'client,controller,player',
         }
 
         if window('pms_token'):
