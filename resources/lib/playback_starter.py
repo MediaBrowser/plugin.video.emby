@@ -38,11 +38,6 @@ class Playback_Starter(Thread):
             # Todo: Warn user with dialog
             return
         xml = GetPlexMetadata(plex_id)
-        try:
-            xml[0].attrib
-        except (TypeError, AttributeError):
-            log.error('Could not get a PMS xml for plex id %s' % plex_id)
-            return
         if xml[0].attrib.get('type') == PLEX_TYPE_PHOTO:
             # Photo
             result = Playback_Successful()

@@ -34,8 +34,9 @@ addonName = "PlexKodiConnect"
 
 class PlaybackUtils():
 
-    def __init__(self, xml, callback=None, playlist_type=None):
-        self.xml = xml
+    def __init__(self, item, callback=None, playlist_type=None):
+        self.item = item
+        self.api = API(item)
         playlist_type = playlist_type if playlist_type else \
             KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[self.api.getType()]
         if callback:
