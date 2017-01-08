@@ -77,11 +77,11 @@ class Player(xbmc.Player):
         self.currentFile = currentFile
         window('plex_lastPlayedFiled', value=currentFile)
         # We may need to wait for info to be set in kodi monitor
-        itemId = window("emby_%s.itemid" % currentFile)
+        itemId = window("plex_%s.itemid" % currentFile)
         count = 0
         while not itemId:
             xbmc.sleep(200)
-            itemId = window("emby_%s.itemid" % currentFile)
+            itemId = window("plex_%s.itemid" % currentFile)
             if count == 5:
                 log.warn("Could not find itemId, cancelling playback report!")
                 return
@@ -89,7 +89,7 @@ class Player(xbmc.Player):
 
         log.info("ONPLAYBACK_STARTED: %s itemid: %s" % (currentFile, itemId))
 
-        plexitem = "emby_%s" % currentFile
+        plexitem = "plex_%s" % currentFile
         runtime = window("%s.runtime" % plexitem)
         refresh_id = window("%s.refreshid" % plexitem)
         playMethod = window("%s.playmethod" % plexitem)
@@ -98,7 +98,7 @@ class Player(xbmc.Player):
             playcount = int(window("%s.playcount" % plexitem))
         except ValueError:
             playcount = 0
-        window('emby_skipWatched%s' % itemId, value="true")
+        window('plex_skipWatched%s' % itemId, value="true")
 
         log.debug("Playing itemtype is: %s" % itemType)
 
@@ -339,7 +339,7 @@ class Player(xbmc.Player):
                 playMethod = data['playmethod']
 
                 # Prevent manually mark as watched in Kodi monitor
-                window('emby_skipWatched%s' % itemid, value="true")
+                window('plex_skipWatched%s' % itemid, value="true")
 
                 if currentPosition and runtime:
                     try:
@@ -392,13 +392,13 @@ class Player(xbmc.Player):
         # Clean the WINDOW properties
         for filename in self.played_info:
             cleanup = (
-                'emby_%s.itemid' % filename,
-                'emby_%s.runtime' % filename,
-                'emby_%s.refreshid' % filename,
-                'emby_%s.playmethod' % filename,
-                'emby_%s.type' % filename,
-                'emby_%s.runtime' % filename,
-                'emby_%s.playcount' % filename,
+                'plex_%s.itemid' % filename,
+                'plex_%s.runtime' % filename,
+                'plex_%s.refreshid' % filename,
+                'plex_%s.playmethod' % filename,
+                'plex_%s.type' % filename,
+                'plex_%s.runtime' % filename,
+                'plex_%s.playcount' % filename,
                 'plex_%s.playlistPosition' % filename
             )
             for item in cleanup:

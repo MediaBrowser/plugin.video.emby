@@ -68,10 +68,10 @@ class PlaybackUtils():
             # Item is not in Kodi database, is a trailer/clip or plex redirect
             # e.g. plex.tv watch later
             api.CreateListItemFromPlexItem(listitem)
-            self.setArtwork(listitem)
+            api.set_listitem_artwork(listitem)
             if kodi_id == 'plexnode':
                 # Need to get yet another xml to get final url
-                window('emby_%s.playmethod' % playurl, clear=True)
+                window('plex_%s.playmethod' % playurl, clear=True)
                 xml = downloadutils.DownloadUtils().downloadUrl(
                     '{server}%s' % item[0][0].attrib.get('key'))
                 try:
@@ -81,16 +81,16 @@ class PlaybackUtils():
                               % item[0][0].attrib.get('key'))
                     return
                 playurl = tryEncode(xml[0].attrib.get('key'))
-                window('emby_%s.playmethod' % playurl, value='DirectStream')
+                window('plex_%s.playmethod' % playurl, value='DirectStream')
 
-            playmethod = window('emby_%s.playmethod' % playurl)
+            playmethod = window('plex_%s.playmethod' % playurl)
             if playmethod == "Transcode":
-                window('emby_%s.playmethod' % playurl, clear=True)
+                window('plex_%s.playmethod' % playurl, clear=True)
                 playurl = tryEncode(playutils.audioSubsPref(
                     listitem, tryDecode(playurl)))
-                window('emby_%s.playmethod' % playurl, "Transcode")
+                window('plex_%s.playmethod' % playurl, "Transcode")
             listitem.setPath(playurl)
-            self.setProperties(playurl, listitem)
+            api.set_playback_win_props(playurl, listitem)
             result.listitem = listitem
             return result
 
@@ -197,16 +197,16 @@ class PlaybackUtils():
                     # Cannot add via JSON with full metadata because then we
                     # Would be using the direct path
                     log.debug("Adding contextmenu item for direct paths")
-                    if window('emby_%s.playmethod' % playurl) == "Transcode":
-                        window('emby_%s.playmethod' % playurl,
+                    if window('plex_%s.playmethod' % playurl) == "Transcode":
+                        window('plex_%s.playmethod' % playurl,
                                clear=True)
                         playurl = tryEncode(playutils.audioSubsPref(
                             listitem, tryDecode(playurl)))
-                        window('emby_%s.playmethod' % playurl,
+                        window('plex_%s.playmethod' % playurl,
                                value="Transcode")
                     api.CreateListItemFromPlexItem(listitem)
-                    self.setProperties(playurl, listitem)
-                    self.setArtwork(listitem)
+                    api.set_playback_win_props(playurl, listitem)
+                    api.set_listitem_artwork(listitem)
                     kodiPl.add(playurl, listitem, index=self.currentPosition+1)
                 else:
                     # Full metadata
@@ -236,8 +236,9 @@ class PlaybackUtils():
                     log.debug("Adding additional part: %s, url: %s"
                               % (counter, additionalPlayurl))
                     api.CreateListItemFromPlexItem(additionalListItem)
-                    self.setProperties(additionalPlayurl, additionalListItem)
-                    self.setArtwork(additionalListItem)
+                    api.set_playback_win_props(additionalPlayurl,
+                                               additionalListItem)
+                    api.set_listitem_artwork(additionalListItem)
                     add_listitem_to_playlist(
                         playqueue,
                         self.currentPosition,
@@ -266,15 +267,16 @@ class PlaybackUtils():
 
         # SETUP MAIN ITEM ##########
         # For transcoding only, ask for audio/subs pref
-        if (window('emby_%s.playmethod' % playurl) == "Transcode" and
+        if (window('plex_%s.playmethod' % playurl) == "Transcode" and
                 not contextmenu_play):
-            window('emby_%s.playmethod' % playurl, clear=True)
+            window('plex_%s.playmethod' % playurl, clear=True)
             playurl = tryEncode(playutils.audioSubsPref(
                 listitem, tryDecode(playurl)))
-            window('emby_%s.playmethod' % playurl, value="Transcode")
+            window('plex_%s.playmethod' % playurl, value="Transcode")
 
         listitem.setPath(playurl)
-        self.setProperties(playurl, listitem)
+        api.set_playback_win_props(playurl, listitem)
+        api.set_listitem_artwork(listitem)
 
         # PLAYBACK ################
         if (homeScreen and seektime and window('plex_customplaylist') != "true"
@@ -325,7 +327,7 @@ class PlaybackUtils():
             params['id'] = introAPI.getRatingKey()
             params['filename'] = introAPI.getKey()
             introPlayurl = path + '?' + urlencode(params)
-            self.setArtwork(listitem, introAPI)
+            introAPI.set_listitem_artwork(listitem)
             # Overwrite the Plex url
             listitem.setPath(introPlayurl)
             log.info("Adding Intro: %s" % introPlayurl)
@@ -337,67 +339,3 @@ class PlaybackUtils():
                 intro)
             self.currentPosition += 1
         return True
-
-    def setProperties(self, playurl, listitem):
-        # Set all properties necessary for plugin path playback
-        itemid = self.api.getRatingKey()
-        itemtype = self.api.getType()
-        userdata = self.api.getUserData()
-
-        embyitem = "emby_%s" % playurl
-        window('%s.runtime' % embyitem, value=str(userdata['Runtime']))
-        window('%s.type' % embyitem, value=itemtype)
-        window('%s.itemid' % embyitem, value=itemid)
-        window('%s.playcount' % embyitem, value=str(userdata['PlayCount']))
-
-        if itemtype == "episode":
-            window('%s.refreshid' % embyitem,
-                   value=self.api.getParentRatingKey())
-        else:
-            window('%s.refreshid' % embyitem, value=itemid)
-
-        # Append external subtitles to stream
-        playmethod = window('%s.playmethod' % embyitem)
-        if playmethod in ("DirectStream", "DirectPlay"):
-            subtitles = self.api.externalSubs(playurl)
-            listitem.setSubtitles(subtitles)
-
-        self.setArtwork(listitem)
-
-    def setArtwork(self, listItem, api=None):
-        if api is None:
-            api = self.api
-        allartwork = api.getAllArtwork(parentInfo=True)
-        arttypes = {
-            'poster': "Primary",
-            'tvshow.poster': "Thumb",
-            'clearart': "Art",
-            'tvshow.clearart': "Art",
-            'clearart': "Primary",
-            'tvshow.clearart': "Primary",
-            'clearlogo': "Logo",
-            'tvshow.clearlogo': "Logo",
-            'discart': "Disc",
-            'fanart_image': "Backdrop",
-            'landscape': "Backdrop",
-            "banner": "Banner"
-        }
-        for arttype in arttypes:
-            art = arttypes[arttype]
-            if art == "Backdrop":
-                try:
-                    # Backdrop is a list, grab the first backdrop
-                    self.setArtProp(listItem, arttype, allartwork[art][0])
-                except:
-                    pass
-            else:
-                self.setArtProp(listItem, arttype, allartwork[art])
-
-    def setArtProp(self, listItem, arttype, path):
-        if arttype in (
-                'thumb', 'fanart_image', 'small_poster', 'tiny_poster',
-                'medium_landscape', 'medium_poster', 'small_fanartimage',
-                'medium_fanartimage', 'fanart_noindicators'):
-            listItem.setProperty(arttype, path)
-        else:
-            listItem.setArt({arttype: path})

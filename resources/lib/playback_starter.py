@@ -45,7 +45,7 @@ class Playback_Starter(Thread):
             api = API(xml[0])
             listitem = api.CreateListItemFromPlexItem(listitem)
             api.AddStreamInfo(listitem)
-            listitem = PlaybackUtils(xml[0], self.mgr).setArtwork(listitem)
+            api.set_listitem_artwork(listitem)
             result.listitem = listitem
         else:
             # Video and Music

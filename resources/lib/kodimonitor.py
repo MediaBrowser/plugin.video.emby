@@ -3,17 +3,16 @@
 ###############################################################################
 
 import logging
-import json
+from json import loads
 
-import xbmc
-import xbmcgui
+from xbmc import Monitor, Player, sleep
 
 import downloadutils
 import plexdb_functions as plexdb
-import playbackutils as pbutils
 from utils import window, settings, CatchExceptions, tryDecode, tryEncode
 from PlexFunctions import scrobble, REMAP_TYPE_FROM_PLEXTYPE
 from kodidb_functions import get_kodiid_from_filename
+from PlexAPI import API
 
 ###############################################################################
 
@@ -22,14 +21,14 @@ log = logging.getLogger("PLEX."+__name__)
 ###############################################################################
 
 
-class KodiMonitor(xbmc.Monitor):
+class KodiMonitor(Monitor):
 
     def __init__(self, callback):
         self.mgr = callback
         self.doUtils = downloadutils.DownloadUtils().downloadUrl
-        self.xbmcplayer = xbmc.Player()
+        self.xbmcplayer = Player()
         self.playqueue = self.mgr.playqueue
-        xbmc.Monitor.__init__(self)
+        Monitor.__init__(self)
         log.info("Kodi monitor started.")
 
     def onScanStarted(self, library):
@@ -71,7 +70,7 @@ class KodiMonitor(xbmc.Monitor):
     def onNotification(self, sender, method, data):
 
         if data:
-            data = json.loads(data, 'utf-8')
+            data = loads(data, 'utf-8')
             log.debug("Method: %s Data: %s" % (method, data))
 
         if method == "Player.OnPlay":
@@ -102,9 +101,9 @@ class KodiMonitor(xbmc.Monitor):
                               "video library update")
                 else:
                     # Stop from manually marking as watched unwatched, with actual playback.
-                    if window('emby_skipWatched%s' % itemid) == "true":
+                    if window('plex_skipWatched%s' % itemid) == "true":
                         # property is set in player.py
-                        window('emby_skipWatched%s' % itemid, clear=True)
+                        window('plex_skipWatched%s' % itemid, clear=True)
                     else:
                         # notify the server
                         if playcount != 0:
@@ -122,13 +121,13 @@ class KodiMonitor(xbmc.Monitor):
 
         elif method == "System.OnWake":
             # Allow network to wake up
-            xbmc.sleep(10000)
+            sleep(10000)
             window('plex_onWake', value="true")
             window('plex_online', value="false")
 
         elif method == "GUI.OnScreensaverDeactivated":
             if settings('dbSyncScreensaver') == "true":
-                xbmc.sleep(5000)
+                sleep(5000)
                 window('plex_runLibScan', value="full")
 
     def PlayBackStart(self, data):
@@ -142,7 +141,7 @@ class KodiMonitor(xbmc.Monitor):
             currentFile = None
             count = 0
             while currentFile is None:
-                xbmc.sleep(100)
+                sleep(100)
                 try:
                     currentFile = self.xbmcplayer.getPlayingFile()
                 except:
@@ -166,7 +165,7 @@ class KodiMonitor(xbmc.Monitor):
 
         # Try to get a Kodi ID
         # If PKC was used - native paths, not direct paths
-        plexid = window('emby_%s.itemid' % tryEncode(currentFile))
+        plexid = window('plex_%s.itemid' % tryEncode(currentFile))
         # Get rid of the '' if the window property was not set
         plexid = None if not plexid else plexid
         kodiid = None
@@ -210,24 +209,25 @@ class KodiMonitor(xbmc.Monitor):
         # Save currentFile for cleanup later and to be able to access refs
         window('plex_lastPlayedFiled', value=currentFile)
         window('plex_currently_playing_itemid', value=plexid)
-        window("emby_%s.itemid" % tryEncode(currentFile), value=plexid)
+        window("plex_%s.itemid" % tryEncode(currentFile), value=plexid)
         log.info('Finish playback startup')
 
     def StartDirectPath(self, plexid, type, currentFile):
         """
         Set some additional stuff if playback was initiated by Kodi, not PKC
         """
-        result = self.doUtils('{server}/library/metadata/%s' % plexid)
+        xml = self.doUtils('{server}/library/metadata/%s' % plexid)
         try:
-            result[0].attrib
+            xml[0].attrib
         except:
             log.error('Did not receive a valid XML for plexid %s.' % plexid)
             return False
         # Setup stuff, because playback was started by Kodi, not PKC
-        pbutils.PlaybackUtils(result[0]).setProperties(
-            currentFile, xbmcgui.ListItem())
+        api = API(xml[0])
+        listitem = api.CreateListItemFromPlexItem()
+        api.set_playback_win_props(currentFile, listitem)
         if type == "song" and settings('streamMusic') == "true":
-            window('emby_%s.playmethod' % currentFile, value="DirectStream")
+            window('plex_%s.playmethod' % currentFile, value="DirectStream")
         else:
-            window('emby_%s.playmethod' % currentFile, value="DirectPlay")
+            window('plex_%s.playmethod' % currentFile, value="DirectPlay")
         log.debug('Window properties set for direct paths!')

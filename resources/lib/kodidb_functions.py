@@ -32,8 +32,8 @@ class GetKodiDB():
 
     def __enter__(self):
         self.kodiconn = kodiSQL(self.itemType)
-        self.emby_db = Kodidb_Functions(self.kodiconn.cursor())
-        return self.emby_db
+        kodi_db = Kodidb_Functions(self.kodiconn.cursor())
+        return kodi_db
 
     def __exit__(self, type, value, traceback):
         self.kodiconn.commit()

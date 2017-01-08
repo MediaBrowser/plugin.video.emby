@@ -1035,14 +1035,14 @@ def BrowsePlexContent(viewid, mediatype="", folderid=""):
             li.setProperty('IsPlayable', 'false')
             path = "%s?id=%s&mode=browseplex&type=%s&folderid=%s" \
                    % (sys.argv[0], viewid, mediatype, API.getKey())
-            pbutils.PlaybackUtils(item).setArtwork(li)
+            API.set_listitem_artwork(li)
             xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),
                                         url=path,
                                         listitem=li,
                                         isFolder=True)
         else:
             li = API.CreateListItemFromPlexItem()
-            pbutils.PlaybackUtils(item).setArtwork(li)
+            API.set_listitem_artwork(li)
             xbmcplugin.addDirectoryItem(
                 handle=int(sys.argv[1]),
                 url=li.getProperty("path"),
@@ -1099,7 +1099,7 @@ def getOnDeck(viewid, mediatype, tagname, limit):
                 appendShowTitle=appendShowTitle,
                 appendSxxExx=appendSxxExx)
             API.AddStreamInfo(listitem)
-            pbutils.PlaybackUtils(item).setArtwork(listitem)
+            API.set_listitem_artwork(listitem)
             if directpaths:
                 url = API.getFilePath()
             else:
@@ -1252,7 +1252,7 @@ def watchlater():
         API = PlexAPI.API(item)
         listitem = API.CreateListItemFromPlexItem()
         API.AddStreamInfo(listitem)
-        pbutils.PlaybackUtils(item).setArtwork(listitem)
+        API.set_listitem_artwork(listitem)
         params['id'] = item.attrib.get('key')
         params['viewOffset'] = item.attrib.get('viewOffset', '0')
         params['plex_type'] = item.attrib.get('type')

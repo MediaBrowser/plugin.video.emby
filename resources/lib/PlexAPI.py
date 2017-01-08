@@ -50,7 +50,8 @@ import downloadutils
 from utils import window, settings, language as lang, tryDecode, tryEncode, \
     DateToKodi, KODILANGUAGE
 from PlexFunctions import PLEX_TO_KODI_TIMEFACTOR, PMSHttpsEnabled, \
-    REMAP_TYPE_FROM_PLEXTYPE, PLEX_TYPE_MOVIE, PLEX_TYPE_SHOW
+    REMAP_TYPE_FROM_PLEXTYPE, PLEX_TYPE_MOVIE, PLEX_TYPE_SHOW, \
+    PLEX_TYPE_EPISODE
 import plexdb_functions as plexdb
 
 ###############################################################################
@@ -2318,7 +2319,7 @@ class API():
                 externalsubs.append(url)
                 kodiindex += 1
         mapping = json.dumps(mapping)
-        window('emby_%s.indexMapping' % playurl, value=mapping)
+        window('plex_%s.indexMapping' % playurl, value=mapping)
         log.info('Found external subs: %s' % externalsubs)
         return externalsubs
 
@@ -2563,3 +2564,68 @@ class API():
             line1=lang(39031) + url,
             line2=lang(39032))
         return resp
+
+    def set_listitem_artwork(self, listitem):
+        """
+        Set all artwork to the listitem
+        """
+        allartwork = self.getAllArtwork(parentInfo=True)
+        arttypes = {
+            'poster': "Primary",
+            'tvshow.poster': "Thumb",
+            'clearart': "Art",
+            'tvshow.clearart': "Art",
+            'clearart': "Primary",
+            'tvshow.clearart': "Primary",
+            'clearlogo': "Logo",
+            'tvshow.clearlogo': "Logo",
+            'discart': "Disc",
+            'fanart_image': "Backdrop",
+            'landscape': "Backdrop",
+            "banner": "Banner"
+        }
+        for arttype in arttypes:
+            art = arttypes[arttype]
+            if art == "Backdrop":
+                try:
+                    # Backdrop is a list, grab the first backdrop
+                    self._set_listitem_artprop(listitem,
+                                               arttype,
+                                               allartwork[art][0])
+                except:
+                    pass
+            else:
+                self._set_listitem_artprop(listitem, arttype, allartwork[art])
+
+    def _set_listitem_artprop(self, listitem, arttype, path):
+        if arttype in (
+                'thumb', 'fanart_image', 'small_poster', 'tiny_poster',
+                'medium_landscape', 'medium_poster', 'small_fanartimage',
+                'medium_fanartimage', 'fanart_noindicators'):
+            listitem.setProperty(arttype, path)
+        else:
+            listitem.setArt({arttype: path})
+
+    def set_playback_win_props(self, playurl, listitem):
+        """
+        Set all properties necessary for plugin path playback for listitem
+        """
+        itemtype = self.getType()
+        userdata = self.getUserData()
+
+        plexitem = "plex_%s" % playurl
+        window('%s.runtime' % plexitem, value=str(userdata['Runtime']))
+        window('%s.type' % plexitem, value=itemtype)
+        window('%s.itemid' % plexitem, value=self.getRatingKey())
+        window('%s.playcount' % plexitem, value=str(userdata['PlayCount']))
+
+        if itemtype == PLEX_TYPE_EPISODE:
+            window('%s.refreshid' % plexitem, value=self.getParentRatingKey())
+        else:
+            window('%s.refreshid' % plexitem, value=self.getRatingKey())
+
+        # Append external subtitles to stream
+        playmethod = window('%s.playmethod' % plexitem)
+        if playmethod in ("DirectStream", "DirectPlay"):
+            subtitles = self.externalSubs(playurl)
+            listitem.setSubtitles(subtitles)

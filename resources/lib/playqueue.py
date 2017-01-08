@@ -85,7 +85,8 @@ class Playqueue(Thread):
         with lock:
             if playqueue_id != playqueue.ID:
                 log.debug('Need to fetch new playQueue from the PMS')
-                PL.update_playlist_from_PMS(playqueue, playqueue_id)
+                xml = PL.get_PMS_playlist(playqueue, playqueue_id)
+                PL.update_playlist_from_PMS(playqueue, playqueue_id, xml=xml)
             else:
                 log.debug('Restarting existing playQueue')
                 PL.refresh_playlist_from_PMS(playqueue)

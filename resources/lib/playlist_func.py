@@ -212,7 +212,7 @@ def update_playlist_from_PMS(playlist, playlist_id=None, xml=None):
     try:
         xml.attrib['%sVersion' % playlist.kind]
     except:
-        log.error('Could not download Plex playlist.')
+        log.error('Could not process Plex playlist')
         return
     # Clear our existing playlist and the associated Kodi playlist
     playlist.clear()
