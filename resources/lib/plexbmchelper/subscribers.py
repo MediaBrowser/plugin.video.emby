@@ -15,7 +15,7 @@ log = logging.getLogger("PLEX."+__name__)
 
 
 class SubscriptionManager:
-    def __init__(self, jsonClass, RequestMgr, player, playlist):
+    def __init__(self, jsonClass, RequestMgr, player, mgr):
         self.serverlist = []
         self.subscribers = {}
         self.info = {}
@@ -36,7 +36,7 @@ class SubscriptionManager:
         self.playerprops = {}
         self.doUtils = downloadutils.DownloadUtils().downloadUrl
         self.xbmcplayer = player
-        self.playlist = playlist
+        self.playqueue = mgr.playqueue
 
         self.js = jsonClass
         self.RequestMgr = RequestMgr
@@ -160,8 +160,8 @@ class SubscriptionManager:
             with threading.RLock():
                 for sub in self.subscribers.values():
                     sub.send_update(msg, len(players) == 0)
-        self.notifyServer(players)
-        self.lastplayers = players
+                self.notifyServer(players)
+                self.lastplayers = players
         return True
 
     def notifyServer(self, players):
@@ -231,6 +231,8 @@ class SubscriptionManager:
 
     def getPlayerProperties(self, playerid):
         try:
+            # Get the playqueue
+            playqueue = self.playqueue.playqueues[playerid]
             # get info from the player
             props = self.js.jsonrpc(
                 "Player.GetProperties",
@@ -248,18 +250,16 @@ class SubscriptionManager:
                 'shuffle': ("0", "1")[props.get('shuffled', False)],
                 'repeat': pf.getPlexRepeat(props.get('repeat')),
             }
-            if self.playlist is not None:
-                if self.playlist.QueueId() is not None:
-                    info['playQueueID'] = self.playlist.QueueId()
-                    info['playQueueVersion'] = self.playlist.PlayQueueVersion()
-                    info['guid'] = self.playlist.Guid()
-                    # Get the playlist position
-                    pos = self.js.jsonrpc(
-                        "Player.GetProperties",
-                        {"playerid": playerid,
-                         "properties": ["position"]})
-                    info['playQueueItemID'] = \
-                        self.playlist.getQueueIdFromPosition(pos['position'])
+            if playqueue.ID is not None:
+                info['playQueueID'] = playqueue.ID
+                info['playQueueVersion'] = playqueue.version
+                # Get the playlist position
+                pos = self.js.jsonrpc(
+                    "Player.GetProperties",
+                    {"playerid": playerid,
+                     "properties": ["position"]})['position']
+                info['playQueueItemID'] = playqueue.items[pos].ID
+                info['guid'] = playqueue.items[pos].guid
         except:
             import traceback
             log.error("Traceback:\n%s" % traceback.format_exc())

@@ -50,8 +50,9 @@ import downloadutils
 from utils import window, settings, language as lang, tryDecode, tryEncode, \
     DateToKodi, KODILANGUAGE
 from PlexFunctions import PLEX_TO_KODI_TIMEFACTOR, PMSHttpsEnabled, \
-    REMAP_TYPE_FROM_PLEXTYPE
-import embydb_functions as embydb
+    REMAP_TYPE_FROM_PLEXTYPE, PLEX_TYPE_MOVIE, PLEX_TYPE_SHOW, \
+    PLEX_TYPE_EPISODE
+import plexdb_functions as plexdb
 
 ###############################################################################
 
@@ -1646,7 +1647,7 @@ class API():
 
         If not found, empty str is returned
         """
-        return self.item.attrib.get('playQueueItemID', '')
+        return self.item.attrib.get('playQueueItemID')
 
     def getDataFromPartOrMedia(self, key):
         """
@@ -1915,9 +1916,9 @@ class API():
         # Return the saved Plex id's, if applicable
         # Always seek collection's ids since not provided by PMS
         if collection is False:
-            if media_type == 'movie':
+            if media_type == PLEX_TYPE_MOVIE:
                 mediaId = self.getProvider('imdb')
-            elif media_type == 'show':
+            elif media_type == PLEX_TYPE_SHOW:
                 mediaId = self.getProvider('tvdb')
             if mediaId is not None:
                 return mediaId
@@ -1927,7 +1928,7 @@ class API():
             log.info('Start movie set/collection lookup on themoviedb')
 
         apiKey = settings('themoviedbAPIKey')
-        if media_type == 'show':
+        if media_type == PLEX_TYPE_SHOW:
             media_type = 'tv'
         title = item.get('title', '')
         # if the title has the year in remove it as tmdb cannot deal with it...
@@ -2305,10 +2306,10 @@ class API():
         kodiindex = 0
         for stream in mediastreams:
             index = stream.attrib['id']
-            # Since Emby returns all possible tracks together, have to pull
+            # Since plex returns all possible tracks together, have to pull
             # only external subtitles.
             key = stream.attrib.get('key')
-            # IsTextSubtitleStream if true, is available to download from emby.
+            # IsTextSubtitleStream if true, is available to download from plex.
             if stream.attrib.get('streamType') == "3" and key:
                 # Direct stream
                 url = ("%s%s" % (self.server, key))
@@ -2318,7 +2319,7 @@ class API():
                 externalsubs.append(url)
                 kodiindex += 1
         mapping = json.dumps(mapping)
-        window('emby_%s.indexMapping' % playurl, value=mapping)
+        window('plex_%s.indexMapping' % playurl, value=mapping)
         log.info('Found external subs: %s' % externalsubs)
         return externalsubs
 
@@ -2393,7 +2394,7 @@ class API():
         # listItem.setProperty('isPlayable', 'true')
         # listItem.setProperty('isFolder', 'true')
         # Further stuff
-        listItem.setIconImage('DefaultPicture.png')
+        listItem.setArt({'icon': 'DefaultPicture.png'})
         return listItem
 
     def _createVideoListItem(self,
@@ -2456,21 +2457,21 @@ class API():
                                      "s%.2de%.2d" % (season, episode))
                 if appendSxxExx is True:
                     title = "S%.2dE%.2d - %s" % (season, episode, title)
-            listItem.setIconImage('DefaultTVShows.png')
+            listItem.setArt({'icon': 'DefaultTVShows.png'})
             if appendShowTitle is True:
                 title = "%s - %s " % (show, title)
         elif typus == "movie":
-            listItem.setIconImage('DefaultMovies.png')
+            listItem.setArt({'icon': 'DefaultMovies.png'})
         else:
             # E.g. clips, trailers, ...
-            listItem.setIconImage('DefaultVideo.png')
+            listItem.setArt({'icon': 'DefaultVideo.png'})
 
         plexId = self.getRatingKey()
         listItem.setProperty('plexid', plexId)
-        with embydb.GetEmbyDB() as emby_db:
+        with plexdb.Get_Plex_DB() as plex_db:
             try:
                 listItem.setProperty('dbid',
-                                     str(emby_db.getItem_byId(plexId)[0]))
+                                     str(plex_db.getItem_byId(plexId)[0]))
             except TypeError:
                 pass
         # Expensive operation
@@ -2563,3 +2564,68 @@ class API():
             line1=lang(39031) + url,
             line2=lang(39032))
         return resp
+
+    def set_listitem_artwork(self, listitem):
+        """
+        Set all artwork to the listitem
+        """
+        allartwork = self.getAllArtwork(parentInfo=True)
+        arttypes = {
+            'poster': "Primary",
+            'tvshow.poster': "Thumb",
+            'clearart': "Art",
+            'tvshow.clearart': "Art",
+            'clearart': "Primary",
+            'tvshow.clearart': "Primary",
+            'clearlogo': "Logo",
+            'tvshow.clearlogo': "Logo",
+            'discart': "Disc",
+            'fanart_image': "Backdrop",
+            'landscape': "Backdrop",
+            "banner": "Banner"
+        }
+        for arttype in arttypes:
+            art = arttypes[arttype]
+            if art == "Backdrop":
+                try:
+                    # Backdrop is a list, grab the first backdrop
+                    self._set_listitem_artprop(listitem,
+                                               arttype,
+                                               allartwork[art][0])
+                except:
+                    pass
+            else:
+                self._set_listitem_artprop(listitem, arttype, allartwork[art])
+
+    def _set_listitem_artprop(self, listitem, arttype, path):
+        if arttype in (
+                'thumb', 'fanart_image', 'small_poster', 'tiny_poster',
+                'medium_landscape', 'medium_poster', 'small_fanartimage',
+                'medium_fanartimage', 'fanart_noindicators'):
+            listitem.setProperty(arttype, path)
+        else:
+            listitem.setArt({arttype: path})
+
+    def set_playback_win_props(self, playurl, listitem):
+        """
+        Set all properties necessary for plugin path playback for listitem
+        """
+        itemtype = self.getType()
+        userdata = self.getUserData()
+
+        plexitem = "plex_%s" % playurl
+        window('%s.runtime' % plexitem, value=str(userdata['Runtime']))
+        window('%s.type' % plexitem, value=itemtype)
+        window('%s.itemid' % plexitem, value=self.getRatingKey())
+        window('%s.playcount' % plexitem, value=str(userdata['PlayCount']))
+
+        if itemtype == PLEX_TYPE_EPISODE:
+            window('%s.refreshid' % plexitem, value=self.getParentRatingKey())
+        else:
+            window('%s.refreshid' % plexitem, value=self.getRatingKey())
+
+        # Append external subtitles to stream
+        playmethod = window('%s.playmethod' % plexitem)
+        if playmethod in ("DirectStream", "DirectPlay"):
+            subtitles = self.externalSubs(playurl)
+            listitem.setSubtitles(subtitles)

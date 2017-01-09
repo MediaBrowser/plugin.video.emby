@@ -2,13 +2,13 @@
 
 ###############################################################################
 import logging
-import json
-import threading
-import Queue
 import websocket
-import ssl
+from json import loads
+from threading import Thread
+from Queue import Queue
+from ssl import CERT_NONE
 
-import xbmc
+from xbmc import sleep
 
 from utils import window, settings, ThreadMethodsAdditionalSuspend, \
     ThreadMethods
@@ -22,21 +22,23 @@ log = logging.getLogger("PLEX."+__name__)
 
 @ThreadMethodsAdditionalSuspend('suspend_LibraryThread')
 @ThreadMethods
-class WebSocket(threading.Thread):
+class WebSocket(Thread):
     opcode_data = (websocket.ABNF.OPCODE_TEXT, websocket.ABNF.OPCODE_BINARY)
 
-    def __init__(self, queue):
+    def __init__(self, callback=None):
+        if callback is not None:
+            self.mgr = callback
         self.ws = None
         # Communication with librarysync
-        self.queue = queue
-        threading.Thread.__init__(self)
+        self.queue = Queue()
+        Thread.__init__(self)
 
     def process(self, opcode, message):
         if opcode not in self.opcode_data:
             return False
 
         try:
-            message = json.loads(message)
+            message = loads(message)
         except Exception as ex:
             log.error('Error decoding message from websocket: %s' % ex)
             log.error(message)
@@ -57,13 +59,8 @@ class WebSocket(threading.Thread):
             return True
 
         # Put PMS message on queue and let libsync take care of it
-        try:
-            self.queue.put(message)
-            return True
-        except Queue.Full:
-            # Queue only takes 200 messages. No worries if we miss one or two
-            log.info('Queue is full, dropping PMS message %s' % message)
-            return False
+        self.queue.put(message)
+        return True
 
     def receive(self, ws):
         # Not connected yet
@@ -97,7 +94,7 @@ class WebSocket(threading.Thread):
             uri += '?X-Plex-Token=%s' % token
         sslopt = {}
         if settings('sslverify') == "false":
-            sslopt["cert_reqs"] = ssl.CERT_NONE
+            sslopt["cert_reqs"] = CERT_NONE
         log.debug("Uri: %s, sslopt: %s" % (uri, sslopt))
         return uri, sslopt
 
@@ -122,7 +119,7 @@ class WebSocket(threading.Thread):
                     # Abort was requested while waiting. We should exit
                     log.info("##===---- WebSocketClient Stopped ----===##")
                     return
-                xbmc.sleep(1000)
+                sleep(1000)
             try:
                 self.process(*self.receive(self.ws))
             except websocket.WebSocketTimeoutException:
@@ -148,11 +145,11 @@ class WebSocket(threading.Thread):
                                  "declaring the connection dead")
                         window('plex_online', value='false')
                         counter = 0
-                    xbmc.sleep(1000)
+                    sleep(1000)
                 except websocket.WebSocketTimeoutException:
                     log.info("timeout while connecting, trying again")
                     self.ws = None
-                    xbmc.sleep(1000)
+                    sleep(1000)
                 except websocket.WebSocketException as e:
                     log.info('WebSocketException: %s' % e)
                     if 'Handshake Status 401' in e.args:
@@ -162,14 +159,14 @@ class WebSocket(threading.Thread):
                                      'WebSocketClient now')
                             break
                     self.ws = None
-                    xbmc.sleep(1000)
+                    sleep(1000)
                 except Exception as e:
                     log.error("Unknown exception encountered in connecting: %s"
                               % e)
                     import traceback
                     log.error("Traceback:\n%s" % traceback.format_exc())
                     self.ws = None
-                    xbmc.sleep(1000)
+                    sleep(1000)
                 else:
                     counter = 0
                     handshake_counter = 0

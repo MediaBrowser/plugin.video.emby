@@ -15,7 +15,6 @@ from functools import wraps
 from calendar import timegm
 import os
 
-
 import xbmc
 import xbmcaddon
 import xbmcgui
@@ -55,6 +54,24 @@ def window(property, value=None, clear=False, windowid=10000):
         win.setProperty(tryEncode(property), tryEncode(value))
     else:
         return tryDecode(win.getProperty(property))
+
+
+def pickl_window(property, value=None, clear=False, windowid=10000):
+    """
+    Get or set window property - thread safe! For use with Pickle
+    Property and value must be string
+    """
+    if windowid != 10000:
+        win = xbmcgui.Window(windowid)
+    else:
+        win = WINDOW
+
+    if clear:
+        win.clearProperty(property)
+    elif value is not None:
+        win.setProperty(property, value)
+    else:
+        return win.getProperty(property)
 
 
 def settings(setting, value=None):
@@ -134,21 +151,21 @@ def tryDecode(string, encoding='utf-8'):
 
 
 def DateToKodi(stamp):
-        """
-        converts a Unix time stamp (seconds passed sinceJanuary 1 1970) to a
-        propper, human-readable time stamp used by Kodi
+    """
+    converts a Unix time stamp (seconds passed sinceJanuary 1 1970) to a
+    propper, human-readable time stamp used by Kodi
 
-        Output: Y-m-d h:m:s = 2009-04-05 23:16:04
+    Output: Y-m-d h:m:s = 2009-04-05 23:16:04
 
-        None if an error was encountered
-        """
-        try:
-            stamp = float(stamp) + float(window('kodiplextimeoffset'))
-            date_time = time.localtime(stamp)
-            localdate = time.strftime('%Y-%m-%d %H:%M:%S', date_time)
-        except:
-            localdate = None
-        return localdate
+    None if an error was encountered
+    """
+    try:
+        stamp = float(stamp) + float(window('kodiplextimeoffset'))
+        date_time = time.localtime(stamp)
+        localdate = time.strftime('%Y-%m-%d %H:%M:%S', date_time)
+    except:
+        localdate = None
+    return localdate
 
 
 def IfExists(path):
@@ -200,8 +217,8 @@ def getUnixTimestamp(secondsIntoTheFuture=None):
 
 def kodiSQL(media_type="video"):
 
-    if media_type == "emby":
-        dbPath = tryDecode(xbmc.translatePath("special://database/emby.db"))
+    if media_type == "plex":
+        dbPath = tryDecode(xbmc.translatePath("special://database/plex.db"))
     elif media_type == "music":
         dbPath = getKodiMusicDBPath()
     elif media_type == "texture":
@@ -346,7 +363,7 @@ def reset():
 
     # Wipe the Plex database
     log.info("Resetting the Plex database.")
-    connection = kodiSQL('emby')
+    connection = kodiSQL('plex')
     cursor = connection.cursor()
     cursor.execute('SELECT tbl_name FROM sqlite_master WHERE type="table"')
     rows = cursor.fetchall()
@@ -939,8 +956,32 @@ def ThreadMethods(cls):
     return cls
 
 
+class Lock_Function:
+    """
+    Decorator for class methods and functions to lock them with lock.
+
+    Initialize this class first
+    lockfunction = Lock_Function(lock), where lock is a threading.Lock() object
+
+    To then lock a function or method:
+
+    @lockfunction.lockthis
+    def some_function(args, kwargs)
+    """
+    def __init__(self, lock):
+        self.lock = lock
+
+    def lockthis(self, func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            with self.lock:
+                result = func(*args, **kwargs)
+            return result
+        return wrapper
+
 ###############################################################################
 # UNUSED METHODS
+
 
 def changePlayState(itemType, kodiId, playCount, lastplayed):
     """
@@ -985,3 +1026,27 @@ def changePlayState(itemType, kodiId, playCount, lastplayed):
     result = json.loads(result)
     result = result.get('result')
     log.debug("JSON result was: %s" % result)
+
+
+class JSONRPC(object):
+    id_ = 1
+    jsonrpc = "2.0"
+
+    def __init__(self, method, **kwargs):
+        self.method = method
+        for arg in kwargs:  # id_(int), jsonrpc(str)
+            self.arg = arg
+
+    def _query(self):
+        query = {
+            'jsonrpc': self.jsonrpc,
+            'id': self.id_,
+            'method': self.method,
+        }
+        if self.params is not None:
+            query['params'] = self.params
+        return json.dumps(query)
+
+    def execute(self, params=None):
+        self.params = params
+        return json.loads(xbmc.executeJSONRPC(self._query()))

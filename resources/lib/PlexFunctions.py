@@ -20,44 +20,116 @@ addonName = 'PlexKodiConnect'
 # Multiply Plex time by this factor to receive Kodi time
 PLEX_TO_KODI_TIMEFACTOR = 1.0 / 1000.0
 
-# Possible output of Kodi's ListItem.DBTYPE for all video items
+
+# All the Plex types as communicated in the PMS xml replies
+PLEX_TYPE_VIDEO = 'video'
+PLEX_TYPE_MOVIE = 'movie'
+PLEX_TYPE_CLIP = 'clip'  # e.g. trailers
+
+PLEX_TYPE_EPISODE = 'episode'
+PLEX_TYPE_SEASON = 'season'
+PLEX_TYPE_SHOW = 'show'
+
+PLEX_TYPE_AUDIO = 'music'
+PLEX_TYPE_SONG = 'track'
+PLEX_TYPE_ALBUM = 'album'
+PLEX_TYPE_ARTIST = 'artist'
+
+PLEX_TYPE_PHOTO = 'photo'
+
+
+# All the Kodi types as e.g. used in the JSON API
+KODI_TYPE_VIDEO = 'video'
+KODI_TYPE_MOVIE = 'movie'
+KODI_TYPE_SET = 'set'  # for movie sets of several movies
+KODI_TYPE_CLIP = 'clip'  # e.g. trailers
+
+KODI_TYPE_EPISODE = 'episode'
+KODI_TYPE_SEASON = 'season'
+KODI_TYPE_SHOW = 'tvshow'
+
+KODI_TYPE_AUDIO = 'audio'
+KODI_TYPE_SONG = 'song'
+KODI_TYPE_ALBUM = 'album'
+KODI_TYPE_ARTIST = 'artist'
+
+KODI_TYPE_PHOTO = 'photo'
+
+
+# Translation tables
+
 KODI_VIDEOTYPES = (
-    'video',
-    'movie',
-    'set',
-    'tvshow',
-    'season',
-    'episode',
-    'musicvideo'
+    KODI_TYPE_VIDEO,
+    KODI_TYPE_MOVIE,
+    KODI_TYPE_SHOW,
+    KODI_TYPE_SEASON,
+    KODI_TYPE_EPISODE,
+    KODI_TYPE_SET
 )
 
-# Possible output of Kodi's ListItem.DBTYPE for all audio items
 KODI_AUDIOTYPES = (
-    'music',
-    'song',
-    'album',
-    'artist'
+    KODI_TYPE_SONG,
+    KODI_TYPE_ALBUM,
+    KODI_TYPE_ARTIST,
 )
 
 ITEMTYPE_FROM_PLEXTYPE = {
-    'movie': 'Movies',
-    'season': 'TVShows',
-    'episode': 'TVShows',
-    'show': 'TVShows',
-    'artist': 'Music',
-    'album': 'Music',
-    'track': 'Music',
-    'song': 'Music'
+    PLEX_TYPE_MOVIE: 'Movies',
+    PLEX_TYPE_SEASON: 'TVShows',
+    KODI_TYPE_EPISODE: 'TVShows',
+    PLEX_TYPE_SHOW: 'TVShows',
+    PLEX_TYPE_ARTIST: 'Music',
+    PLEX_TYPE_ALBUM: 'Music',
+    PLEX_TYPE_SONG: 'Music',
+}
+
+ITEMTYPE_FROM_KODITYPE = {
+    KODI_TYPE_MOVIE: 'Movies',
+    KODI_TYPE_SEASON: 'TVShows',
+    KODI_TYPE_EPISODE: 'TVShows',
+    KODI_TYPE_SHOW: 'TVShows',
+    KODI_TYPE_ARTIST: 'Music',
+    KODI_TYPE_ALBUM: 'Music',
+    KODI_TYPE_SONG: 'Music',
 }
 
 KODITYPE_FROM_PLEXTYPE = {
-    'movie': 'movie',
-    'episode': 'episode',
-    'track': 'song',
-    'artist': 'artist',
-    'album': 'album',
+    PLEX_TYPE_MOVIE: KODI_TYPE_MOVIE,
+    PLEX_TYPE_EPISODE: KODI_TYPE_EPISODE,
+    PLEX_TYPE_SEASON: KODI_TYPE_SEASON,
+    PLEX_TYPE_SHOW: KODI_TYPE_SHOW,
+    PLEX_TYPE_SONG: KODI_TYPE_SONG,
+    PLEX_TYPE_ARTIST: KODI_TYPE_ARTIST,
+    PLEX_TYPE_ALBUM: KODI_TYPE_ALBUM,
+    PLEX_TYPE_PHOTO: KODI_TYPE_PHOTO,
     'XXXXXX': 'musicvideo',
     'XXXXXXX': 'genre'
+}
+
+KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE = {
+    PLEX_TYPE_VIDEO: KODI_TYPE_VIDEO,
+    PLEX_TYPE_MOVIE: KODI_TYPE_VIDEO,
+    PLEX_TYPE_EPISODE: KODI_TYPE_VIDEO,
+    PLEX_TYPE_SEASON: KODI_TYPE_VIDEO,
+    PLEX_TYPE_SHOW: KODI_TYPE_VIDEO,
+    PLEX_TYPE_CLIP: KODI_TYPE_VIDEO,
+    PLEX_TYPE_ARTIST: KODI_TYPE_AUDIO,
+    PLEX_TYPE_ALBUM: KODI_TYPE_AUDIO,
+    PLEX_TYPE_SONG: KODI_TYPE_AUDIO,
+    PLEX_TYPE_AUDIO: KODI_TYPE_AUDIO
+}
+
+
+REMAP_TYPE_FROM_PLEXTYPE = {
+    PLEX_TYPE_MOVIE: 'movie',
+    PLEX_TYPE_CLIP: 'clip',
+    PLEX_TYPE_SHOW: 'tv',
+    PLEX_TYPE_SEASON: 'tv',
+    PLEX_TYPE_EPISODE: 'tv',
+    PLEX_TYPE_ARTIST: 'music',
+    PLEX_TYPE_ALBUM: 'music',
+    PLEX_TYPE_SONG: 'music',
+    PLEX_TYPE_PHOTO: 'photo'
 }
 
 
@@ -157,22 +229,6 @@ def SelectStreams(url, args):
     """
     downloadutils.DownloadUtils().downloadUrl(
         url + '?' + urlencode(args), action_type='PUT')
-
-
-def GetPlayQueue(playQueueID):
-    """
-    Fetches the PMS playqueue with the playQueueID as an XML
-
-    Returns None if something went wrong
-    """
-    url = "{server}/playQueues/%s" % playQueueID
-    args = {'Accept': 'application/xml'}
-    xml = downloadutils.DownloadUtils().downloadUrl(url, headerOptions=args)
-    try:
-        xml.attrib['playQueueID']
-    except (AttributeError, KeyError):
-        return None
-    return xml
 
 
 def GetPlexMetadata(key):
@@ -388,23 +444,22 @@ def GetPlexCollections(mediatype):
     return collections
 
 
-def GetPlexPlaylist(itemid, librarySectionUUID, mediatype='movie'):
+def GetPlexPlaylist(itemid, librarySectionUUID, mediatype='movie',
+                    trailers=False):
     """
     Returns raw API metadata XML dump for a playlist with e.g. trailers.
    """
-    trailerNumber = settings('trailerNumber')
-    if not trailerNumber:
-        trailerNumber = '3'
     url = "{server}/playQueues"
     args = {
         'type': mediatype,
         'uri': ('library://' + librarySectionUUID +
                 '/item/%2Flibrary%2Fmetadata%2F' + itemid),
         'includeChapters': '1',
-        'extrasPrefixCount': trailerNumber,
         'shuffle': '0',
         'repeat': '0'
     }
+    if trailers is True:
+        args['extrasPrefixCount'] = settings('trailerNumber')
     xml = downloadutils.DownloadUtils().downloadUrl(
         url + '?' + urlencode(args), action_type="POST")
     try:

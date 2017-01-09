@@ -9,7 +9,7 @@ import xbmcgui
 from utils import settings, window, language as lang
 import clientinfo
 import downloadutils
-import userclient
+from userclient import UserClient
 
 import PlexAPI
 from PlexFunctions import GetMachineIdentifier, get_PMS_settings
@@ -30,11 +30,10 @@ class InitialSetup():
         self.clientInfo = clientinfo.ClientInfo()
         self.addonId = self.clientInfo.getAddonId()
         self.doUtils = downloadutils.DownloadUtils().downloadUrl
-        self.userClient = userclient.UserClient()
         self.plx = PlexAPI.PlexAPI()
         self.dialog = xbmcgui.Dialog()
 
-        self.server = self.userClient.getServer()
+        self.server = UserClient().getServer()
         self.serverid = settings('plex_machineIdentifier')
         # Get Plex credentials from settings file, if they exist
         plexdict = self.plx.GetPlexLoginFromSettings()

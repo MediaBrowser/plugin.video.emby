@@ -281,7 +281,7 @@ class Artwork():
     def cacheTexture(self, url):
         # Cache a single image url to the texture cache
         if url and self.enableTextureCache:
-            self.queue.put(double_urlencode(url))
+            self.queue.put(double_urlencode(tryEncode(url)))
 
     def addArtwork(self, artwork, kodiId, mediaType, cursor):
         # Kodi conversion table

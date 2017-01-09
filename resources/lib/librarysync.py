@@ -11,7 +11,7 @@ import xbmc
 import xbmcgui
 import xbmcvfs
 
-from utils import window, settings, getUnixTimestamp, kodiSQL, sourcesXML,\
+from utils import window, settings, getUnixTimestamp, sourcesXML,\
     ThreadMethods, ThreadMethodsAdditionalStop, LogTime, getScreensaver,\
     setScreensaver, playlistXSP, language as lang, DateToKodi, reset,\
     advancedSettingsXML, getKodiVideoDBPath, tryDecode, deletePlaylists,\
@@ -19,7 +19,7 @@ from utils import window, settings, getUnixTimestamp, kodiSQL, sourcesXML,\
 import clientinfo
 import downloadutils
 import itemtypes
-import embydb_functions as embydb
+import plexdb_functions as plexdb
 import kodidb_functions as kodidb
 import userclient
 import videonodes
@@ -302,9 +302,9 @@ class ProcessFanartThread(Thread):
                 # Leave the Plex art untouched
                 allartworks = None
             else:
-                with embydb.GetEmbyDB() as emby_db:
+                with plexdb.Get_Plex_DB() as plex_db:
                     try:
-                        kodiId = emby_db.getItem_byId(item['itemId'])[0]
+                        kodiId = plex_db.getItem_byId(item['itemId'])[0]
                     except TypeError:
                         log.error('Could not get Kodi id for plex id %s'
                                   % item['itemId'])
@@ -356,19 +356,10 @@ class ProcessFanartThread(Thread):
 @ThreadMethods
 class LibrarySync(Thread):
     """
-    librarysync.LibrarySync(queue)
-
-    where (communication with websockets)
-        queue:      Queue object for background sync
     """
-    # Borg, even though it's planned to only have 1 instance up and running!
-    _shared_state = {}
+    def __init__(self, callback=None):
+        self.mgr = callback
 
-    def __init__(self, queue):
-        self.__dict__ = self._shared_state
-
-        # Communication with websockets
-        self.queue = queue
         self.itemsToProcess = []
         self.sessionKeys = []
         self.fanartqueue = Queue.Queue()
@@ -455,7 +446,9 @@ class LibrarySync(Thread):
             return False
 
         plexId = None
-        for mediatype in ('movie', 'show', 'artist'):
+        for mediatype in (PF.PLEX_TYPE_MOVIE,
+                          PF.PLEX_TYPE_SHOW,
+                          PF.PLEX_TYPE_ARTIST):
             if plexId is not None:
                 break
             for view in sections:
@@ -539,24 +532,34 @@ class LibrarySync(Thread):
 
     def initializeDBs(self):
         """
-        Run once during startup to verify that emby db exists.
+        Run once during startup to verify that plex db exists.
         """
-        embyconn = kodiSQL('emby')
-        embycursor = embyconn.cursor()
-        # Create the tables for the emby database
-        # emby, view, version
-        embycursor.execute(
-            """CREATE TABLE IF NOT EXISTS emby(
-            emby_id TEXT UNIQUE, media_folder TEXT, emby_type TEXT, media_type TEXT, kodi_id INTEGER, 
-            kodi_fileid INTEGER, kodi_pathid INTEGER, parent_id INTEGER, checksum INTEGER)""")
-        embycursor.execute(
-            """CREATE TABLE IF NOT EXISTS view(
-            view_id TEXT UNIQUE, view_name TEXT, media_type TEXT, kodi_tagid INTEGER)""")
-        embycursor.execute("CREATE TABLE IF NOT EXISTS version(idVersion TEXT)")
-        embyconn.commit()
-
-        # content sync: movies, tvshows, musicvideos, music
-        embyconn.close()
+        with plexdb.Get_Plex_DB() as plex_db:
+            # Create the tables for the plex database
+            plex_db.plexcursor.execute('''
+                CREATE TABLE IF NOT EXISTS plex(
+                plex_id TEXT UNIQUE,
+                view_id TEXT,
+                plex_type TEXT,
+                kodi_type TEXT,
+                kodi_id INTEGER,
+                kodi_fileid INTEGER,
+                kodi_pathid INTEGER,
+                parent_id INTEGER,
+                checksum INTEGER)
+            ''')
+            plex_db.plexcursor.execute('''
+                CREATE TABLE IF NOT EXISTS view(
+                view_id TEXT UNIQUE,
+                view_name TEXT,
+                kodi_type TEXT,
+                kodi_tagid INTEGER)
+            ''')
+            plex_db.plexcursor.execute('''
+                CREATE TABLE IF NOT EXISTS version(idVersion TEXT)
+            ''')
+        # Create an index for actors to speed up sync
+        create_actor_db_index()
 
         # Create an index for actors to speed up sync
         create_actor_db_index()
@@ -643,12 +646,13 @@ class LibrarySync(Thread):
                 log.error('Path hack failed with error message: %s' % str(e))
         return True
 
-    def processView(self, folderItem, kodi_db, emby_db, totalnodes):
+    def processView(self, folderItem, kodi_db, plex_db, totalnodes):
         vnodes = self.vnodes
         folder = folderItem.attrib
         mediatype = folder['type']
         # Only process supported formats
-        if mediatype not in ('movie', 'show', 'artist', 'photo'):
+        if mediatype not in (PF.PLEX_TYPE_MOVIE, PF.PLEX_TYPE_SHOW,
+                             PF.PLEX_TYPE_ARTIST, PF.PLEX_TYPE_PHOTO):
             return totalnodes
 
         # Prevent duplicate for nodes of the same type
@@ -661,8 +665,8 @@ class LibrarySync(Thread):
         foldername = folder['title']
         viewtype = folder['type']
 
-        # Get current media folders from emby database
-        view = emby_db.getView_byId(folderid)
+        # Get current media folders from plex database
+        view = plex_db.getView_byId(folderid)
         try:
             current_viewname = view[0]
             current_viewtype = view[1]
@@ -672,12 +676,12 @@ class LibrarySync(Thread):
             tagid = kodi_db.createTag(foldername)
             # Create playlist for the video library
             if (foldername not in playlists and
-                    mediatype in ('movie', 'show', 'musicvideos')):
+                    mediatype in (PF.PLEX_TYPE_MOVIE, PF.PLEX_TYPE_SHOW)):
                 playlistXSP(mediatype, foldername, folderid, viewtype)
                 playlists.append(foldername)
             # Create the video node
             if (foldername not in nodes and
-                    mediatype not in ("musicvideos", "artist")):
+                    mediatype != PF.PLEX_TYPE_ARTIST):
                 vnodes.viewNode(sorted_views.index(foldername),
                                 foldername,
                                 mediatype,
@@ -685,8 +689,8 @@ class LibrarySync(Thread):
                                 folderid)
                 nodes.append(foldername)
                 totalnodes += 1
-            # Add view to emby database
-            emby_db.addView(folderid, foldername, viewtype, tagid)
+            # Add view to plex database
+            plex_db.addView(folderid, foldername, viewtype, tagid)
         else:
             log.info(' '.join((
                 "Found viewid: %s" % folderid,
@@ -708,10 +712,10 @@ class LibrarySync(Thread):
                 tagid = kodi_db.createTag(foldername)
 
                 # Update view with new info
-                emby_db.updateView(foldername, tagid, folderid)
+                plex_db.updateView(foldername, tagid, folderid)
 
                 if mediatype != "artist":
-                    if emby_db.getView_byName(current_viewname) is None:
+                    if plex_db.getView_byName(current_viewname) is None:
                         # The tag could be a combined view. Ensure there's
                         # no other tags with the same name before deleting
                         # playlist.
@@ -731,7 +735,7 @@ class LibrarySync(Thread):
                                 delete=True)
                     # Added new playlist
                     if (foldername not in playlists and
-                            mediatype in ('movie', 'show', 'musicvideos')):
+                            mediatype in (PF.PLEX_TYPE_MOVIE, PF.PLEX_TYPE_SHOW)):
                         playlistXSP(mediatype,
                                     foldername,
                                     folderid,
@@ -748,16 +752,16 @@ class LibrarySync(Thread):
                         totalnodes += 1
 
                 # Update items with new tag
-                items = emby_db.getItem_byView(folderid)
+                items = plex_db.getItem_byView(folderid)
                 for item in items:
                     # Remove the "s" from viewtype for tags
                     kodi_db.updateTag(
                         current_tagid, tagid, item[0], current_viewtype[:-1])
             else:
                 # Validate the playlist exists or recreate it
-                if mediatype != "artist":
+                if mediatype != PF.PLEX_TYPE_ARTIST:
                     if (foldername not in playlists and
-                            mediatype in ('movie', 'show', 'musicvideos')):
+                            mediatype in (PF.PLEX_TYPE_MOVIE, PF.PLEX_TYPE_SHOW)):
                         playlistXSP(mediatype,
                                     foldername,
                                     folderid,
@@ -792,22 +796,22 @@ class LibrarySync(Thread):
 
         # For whatever freaking reason, .copy() or dict() does NOT work?!?!?!
         self.nodes = {
-            'movie': [],
-            'show': [],
-            'artist': [],
-            'photo': []
+            PF.PLEX_TYPE_MOVIE: [],
+            PF.PLEX_TYPE_SHOW: [],
+            PF.PLEX_TYPE_ARTIST: [],
+            PF.PLEX_TYPE_PHOTO: []
         }
         self.playlists = {
-            'movie': [],
-            'show': [],
-            'artist': [],
-            'photo': []
+            PF.PLEX_TYPE_MOVIE: [],
+            PF.PLEX_TYPE_SHOW: [],
+            PF.PLEX_TYPE_ARTIST: [],
+            PF.PLEX_TYPE_PHOTO: []
         }
         self.sorted_views = []
 
         for view in sections:
             itemType = view.attrib['type']
-            if itemType in ('movie', 'show', 'photo'):  # NOT artist for now
+            if itemType in (PF.PLEX_TYPE_MOVIE, PF.PLEX_TYPE_SHOW, PF.PLEX_TYPE_PHOTO):  # NOT artist for now
                 self.sorted_views.append(view.attrib['title'])
         log.debug('Sorted views: %s' % self.sorted_views)
 
@@ -815,15 +819,15 @@ class LibrarySync(Thread):
         vnodes.clearProperties()
         totalnodes = len(self.sorted_views)
 
-        with embydb.GetEmbyDB() as emby_db:
+        with plexdb.Get_Plex_DB() as plex_db:
             # Backup old views to delete them later, if needed (at the end
             # of this method, only unused views will be left in oldviews)
-            self.old_views = emby_db.getViews()
+            self.old_views = plex_db.getViews()
             with kodidb.GetKodiDB('video') as kodi_db:
                 for folderItem in sections:
                     totalnodes = self.processView(folderItem,
                                                   kodi_db,
-                                                  emby_db,
+                                                  plex_db,
                                                   totalnodes)
                 # Add video nodes listings
                 # Plex: there seem to be no favorites/favorites tag
@@ -842,19 +846,17 @@ class LibrarySync(Thread):
                 #                   "movies",
                 #                   "channels")
                 # totalnodes += 1
-            with kodidb.GetKodiDB('music') as kodi_db:
-                pass
 
         # Save total
         window('Plex.nodes.total', str(totalnodes))
 
         # Reopen DB connection to ensure that changes were commited before
-        with embydb.GetEmbyDB() as emby_db:
+        with plexdb.Get_Plex_DB() as plex_db:
             log.info("Removing views: %s" % self.old_views)
             for view in self.old_views:
-                emby_db.removeView(view)
+                plex_db.removeView(view)
             # update views for all:
-            self.views = emby_db.getAllViewInfo()
+            self.views = plex_db.getAllViewInfo()
 
         log.info("Finished processing views. Views saved: %s" % self.views)
         return True
@@ -1038,9 +1040,10 @@ class LibrarySync(Thread):
         if (settings('FanartTV') == 'true' and
                 itemType in ('Movies', 'TVShows')):
             # Save to queue for later processing
-            typus = {'Movies': 'movie', 'TVShows': 'tvshow'}[itemType]
+            typus = {'Movies': PF.KODI_TYPE_MOVIE,
+                     'TVShows': PF.KODI_TYPE_SHOW}[itemType]
             for item in self.updatelist:
-                if item['mediaType'] in ('movie', 'show'):
+                if item['mediaType'] in (PF.KODI_TYPE_MOVIE, PF.KODI_TYPE_SHOW):
                     self.fanartqueue.put({
                         'itemId': item['itemId'],
                         'class': itemType,
@@ -1056,16 +1059,17 @@ class LibrarySync(Thread):
 
         itemType = 'Movies'
 
-        views = [x for x in self.views if x['itemtype'] == 'movie']
+        views = [x for x in self.views if x['itemtype'] == PF.KODI_TYPE_MOVIE]
         log.info("Processing Plex %s. Libraries: %s" % (itemType, views))
 
         self.allKodiElementsId = {}
         if self.compare:
-            with embydb.GetEmbyDB() as emby_db:
+            with plexdb.Get_Plex_DB() as plex_db:
                 # Get movies from Plex server
                 # Pull the list of movies and boxsets in Kodi
                 try:
-                    self.allKodiElementsId = dict(emby_db.getChecksum('Movie'))
+                    self.allKodiElementsId = dict(
+                        plex_db.getChecksum(PF.PLEX_TYPE_MOVIE))
                 except ValueError:
                     self.allKodiElementsId = {}
 
@@ -1148,11 +1152,13 @@ class LibrarySync(Thread):
 
         self.allKodiElementsId = {}
         if self.compare:
-            with embydb.GetEmbyDB() as emby_db:
+            with plexdb.Get_Plex_DB() as plex:
                 # Pull the list of TV shows already in Kodi
-                for kind in ('Series', 'Season', 'Episode'):
+                for kind in (PF.PLEX_TYPE_SHOW,
+                             PF.PLEX_TYPE_SEASON,
+                             PF.PLEX_TYPE_EPISODE):
                     try:
-                        elements = dict(emby_db.getChecksum(kind))
+                        elements = dict(plex.getChecksum(kind))
                         self.allKodiElementsId.update(elements)
                     # Yet empty/not yet synched
                     except ValueError:
@@ -1270,22 +1276,24 @@ class LibrarySync(Thread):
     def PlexMusic(self):
         itemType = 'Music'
 
-        views = [x for x in self.views if x['itemtype'] == 'artist']
+        views = [x for x in self.views if x['itemtype'] == PF.PLEX_TYPE_ARTIST]
         log.info("Media folders for %s: %s" % (itemType, views))
 
         methods = {
-            'MusicArtist': 'add_updateArtist',
-            'MusicAlbum': 'add_updateAlbum',
-            'Audio': 'add_updateSong'
+            PF.PLEX_TYPE_ARTIST: 'add_updateArtist',
+            PF.PLEX_TYPE_ALBUM: 'add_updateAlbum',
+            PF.PLEX_TYPE_SONG: 'add_updateSong'
         }
         urlArgs = {
-            'MusicArtist': {'type': 8},
-            'MusicAlbum': {'type': 9},
-            'Audio': {'type': 10}
+            PF.PLEX_TYPE_ARTIST: {'type': 8},
+            PF.PLEX_TYPE_ALBUM: {'type': 9},
+            PF.PLEX_TYPE_SONG: {'type': 10}
         }
 
         # Process artist, then album and tracks last to minimize overhead
-        for kind in ('MusicArtist', 'MusicAlbum', 'Audio'):
+        for kind in (PF.PLEX_TYPE_ARTIST,
+                     PF.PLEX_TYPE_ALBUM,
+                     PF.PLEX_TYPE_SONG):
             if self.threadStopped():
                 return False
             log.debug("Start processing music %s" % kind)
@@ -1318,10 +1326,10 @@ class LibrarySync(Thread):
 
         # Get a list of items already existing in Kodi db
         if self.compare:
-            with embydb.GetEmbyDB() as emby_db:
+            with plexdb.Get_Plex_DB() as plex_db:
                 # Pull the list of items already in Kodi
                 try:
-                    elements = dict(emby_db.getChecksum(kind))
+                    elements = dict(plex_db.getChecksum(kind))
                     self.allKodiElementsId.update(elements)
                 # Yet empty/nothing yet synched
                 except ValueError:
@@ -1569,14 +1577,14 @@ class LibrarySync(Thread):
         where
         """
         items = []
-        with embydb.GetEmbyDB() as emby_db:
+        with plexdb.Get_Plex_DB() as plex_db:
             for item in data:
                 # Drop buffering messages immediately
                 state = item.get('state')
                 if state == 'buffering':
                     continue
                 ratingKey = item.get('ratingKey')
-                kodiInfo = emby_db.getItem_byId(ratingKey)
+                kodiInfo = plex_db.getItem_byId(ratingKey)
                 if kodiInfo is None:
                     # Item not (yet) in Kodi library
                     continue
@@ -1663,7 +1671,7 @@ class LibrarySync(Thread):
         # Now tell Kodi where we are
         for item in items:
             itemFkt = getattr(itemtypes,
-                              PF.ITEMTYPE_FROM_PLEXTYPE[item['kodi_type']])
+                              PF.ITEMTYPE_FROM_KODITYPE[item['kodi_type']])
             with itemFkt() as Fkt:
                 Fkt.updatePlaystate(item)
 
@@ -1675,12 +1683,12 @@ class LibrarySync(Thread):
         """
         items = []
         typus = {
-            'Movie': 'Movies',
-            'Series': 'TVShows'
+            PF.PLEX_TYPE_MOVIE: 'Movies',
+            PF.PLEX_TYPE_SHOW: 'TVShows'
         }
-        with embydb.GetEmbyDB() as emby_db:
+        with plexdb.Get_Plex_DB() as plex_db:
             for plextype in typus:
-                items.extend(emby_db.itemsByType(plextype))
+                items.extend(plex_db.itemsByType(plextype))
         # Shuffle the list to not always start out identically
         shuffle(items)
         for item in items:
@@ -1720,7 +1728,8 @@ class LibrarySync(Thread):
 
         xbmcplayer = xbmc.Player()
 
-        queue = self.queue
+        # Link to Websocket queue
+        queue = self.mgr.ws.queue
 
         startupComplete = False
         self.views = []

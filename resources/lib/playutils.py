@@ -45,14 +45,14 @@ class PlayUtils():
             log.info("File is direct playing.")
             playurl = tryEncode(playurl)
             # Set playmethod property
-            window('emby_%s.playmethod' % playurl, "DirectPlay")
+            window('plex_%s.playmethod' % playurl, "DirectPlay")
 
         elif self.isDirectStream():
             log.info("File is direct streaming.")
             playurl = tryEncode(
                 self.API.getTranscodeVideoPath('DirectStream'))
             # Set playmethod property
-            window('emby_%s.playmethod' % playurl, "DirectStream")
+            window('plex_%s.playmethod' % playurl, "DirectStream")
 
         else:
             log.info("File is transcoding.")
@@ -64,7 +64,7 @@ class PlayUtils():
                     'videoQuality': '100'
                 }))
             # Set playmethod property
-            window('emby_%s.playmethod' % playurl, value="Transcode")
+            window('plex_%s.playmethod' % playurl, value="Transcode")
 
         log.info("The playurl is: %s" % playurl)
         return playurl

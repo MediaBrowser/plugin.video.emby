@@ -8,7 +8,7 @@ import xbmc
 import xbmcaddon
 
 import PlexFunctions as PF
-import embydb_functions as embydb
+import plexdb_functions as plexdb
 from utils import window, settings, dialog, language as lang, kodiSQL
 from dialogs import context
 
@@ -75,8 +75,8 @@ class ContextMenu(object):
     def _get_item_id(cls, kodi_id, item_type):
         item_id = xbmc.getInfoLabel('ListItem.Property(plexid)')
         if not item_id and kodi_id and item_type:
-            with embydb.GetEmbyDB() as emby_db:
-                item = emby_db.getItem_byKodiId(kodi_id, item_type)
+            with plexdb.Get_Plex_DB() as plexcursor:
+                item = plexcursor.getItem_byKodiId(kodi_id, item_type)
             try:
                 item_id = item[0]
             except TypeError:
@@ -140,8 +140,8 @@ class ContextMenu(object):
         elif selected == OPTIONS['PMS_Play']:
             self._PMS_play()
 
-        elif selected == OPTIONS['Refresh']:
-            self.emby.refreshItem(self.item_id)
+        # elif selected == OPTIONS['Refresh']:
+        #     self.emby.refreshItem(self.item_id)
 
         # elif selected == OPTIONS['AddFav']:
         #     self.emby.updateUserRating(self.item_id, favourite=True)
@@ -212,6 +212,6 @@ class ContextMenu(object):
             'mode': "play"
         }
         from urllib import urlencode
-        handle = ("plugin://plugin.video.plexkodiconnect.movies?%s"
+        handle = ("plugin://plugin.video.plexkodiconnect/movies?%s"
                   % urlencode(params))
         xbmc.executebuiltin('RunPlugin(%s)' % handle)

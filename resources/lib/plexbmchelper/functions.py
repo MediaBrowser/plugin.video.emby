@@ -5,7 +5,7 @@ import string
 
 import xbmc
 
-import embydb_functions as embydb
+import plexdb_functions as plexdb
 
 ###############################################################################
 
@@ -146,11 +146,11 @@ class jsonClass():
     def skipTo(self, plexId, typus):
         # playlistId = self.getPlaylistId(tryDecode(xbmc_type(typus)))
         # playerId = self.
-        with embydb.GetEmbyDB() as emby_db:
-            embydb_item = emby_db.getItem_byId(plexId)
+        with plexdb.Get_Plex_DB() as plex_db:
+            plexdb_item = plex_db.getItem_byId(plexId)
             try:
-                dbid = embydb_item[0]
-                mediatype = embydb_item[4]
+                dbid = plexdb_item[0]
+                mediatype = plexdb_item[4]
             except TypeError:
                 log.info('Couldnt find item %s in Kodi db' % plexId)
                 return
@@ -163,7 +163,7 @@ class jsonClass():
             "Access-Control-Allow-Origin": "*",
             "X-Plex-Version": self.settings['version'],
             "X-Plex-Client-Identifier": self.settings['uuid'],
-            "X-Plex-Provides": "player",
+            "X-Plex-Provides": "client,controller,player",
             "X-Plex-Product": "PlexKodiConnect",
             "X-Plex-Device-Name": self.settings['client_name'],
             "X-Plex-Platform": "Kodi",

@@ -7,6 +7,7 @@ from ntpath import dirname
 
 import artwork
 from utils import kodiSQL, KODIVERSION
+from PlexFunctions import KODI_TYPE_MOVIE, KODI_TYPE_EPISODE
 
 ###############################################################################
 
@@ -31,8 +32,8 @@ class GetKodiDB():
 
     def __enter__(self):
         self.kodiconn = kodiSQL(self.itemType)
-        self.emby_db = Kodidb_Functions(self.kodiconn.cursor())
-        return self.emby_db
+        kodi_db = Kodidb_Functions(self.kodiconn.cursor())
+        return kodi_db
 
     def __exit__(self, type, value, traceback):
         self.kodiconn.commit()
@@ -61,7 +62,7 @@ class Kodidb_Functions():
         self.cursor.execute(
             query, ('movies',
                     'metadata.local',
-                    'plugin://plugin.video.plexkodiconnect.movies%%'))
+                    'plugin://plugin.video.plexkodiconnect/movies%%'))
 
     def getParentPathId(self, path):
         """
@@ -869,7 +870,7 @@ class Kodidb_Functions():
         self.cursor.execute(query, (idFile,))
         try:
             itemId = self.cursor.fetchone()[0]
-            typus = 'movie'
+            typus = KODI_TYPE_MOVIE
         except TypeError:
             # Try tv shows next
             query = ' '.join((
@@ -880,7 +881,7 @@ class Kodidb_Functions():
             self.cursor.execute(query, (idFile,))
             try:
                 itemId = self.cursor.fetchone()[0]
-                typus = 'episode'
+                typus = KODI_TYPE_EPISODE
             except TypeError:
                 log.warn('Unexpectantly did not find a match!')
                 return
@@ -907,13 +908,13 @@ class Kodidb_Functions():
         return ids
 
     def getVideoRuntime(self, kodiid, mediatype):
-        if mediatype == 'movie':
+        if mediatype == KODI_TYPE_MOVIE:
             query = ' '.join((
                 "SELECT c11",
                 "FROM movie",
                 "WHERE idMovie = ?",
             ))
-        elif mediatype == 'episode':
+        elif mediatype == KODI_TYPE_EPISODE:
             query = ' '.join((
                 "SELECT c09",
                 "FROM episode",
@@ -1397,3 +1398,89 @@ class Kodidb_Functions():
 
                 query = "INSERT OR REPLACE INTO song_genre(idGenre, idSong) values(?, ?)"
                 self.cursor.execute(query, (genreid, kodiid))
+
+# Krypton only stuff ##############################
+
+    def create_entry_uniqueid(self):
+        self.cursor.execute(
+            "select coalesce(max(uniqueid_id),0) from uniqueid")
+        return self.cursor.fetchone()[0] + 1
+
+    def add_uniqueid(self, *args):
+        """
+        Feed with:
+            uniqueid_id, media_id, media_type, value, type
+
+        type: e.g. 'imdb'
+        """
+        query = '''
+            INSERT INTO uniqueid(
+                uniqueid_id, media_id, media_type, value, type)
+            VALUES (?, ?, ?, ?, ?)
+        '''
+        self.cursor.execute(query, (args))
+
+    def create_entry_rating(self):
+        self.cursor.execute("select coalesce(max(rating_id),0) from rating")
+        return self.cursor.fetchone()[0] + 1
+
+    def get_ratingid(self, media_id):
+        query = "SELECT rating_id FROM rating WHERE media_id = ?"
+        self.cursor.execute(query, (media_id,))
+        try:
+            ratingid = self.cursor.fetchone()[0]
+        except TypeError:
+            ratingid = None
+        return ratingid
+
+    def update_ratings(self, *args):
+        """
+        Feed with media_id, media_type, rating_type, rating, votes, rating_id
+        """
+        query = '''
+            UPDATE rating
+            SET media_id = ?,
+                media_type = ?,
+                rating_type = ?,
+                rating = ?,
+                votes = ?
+            WHERE rating_id = ?
+        '''
+        self.cursor.execute(query, (args))
+
+    def add_ratings(self, *args):
+        """
+        feed with:
+            rating_id, media_id, media_type, rating_type, rating, votes
+
+        rating_type = 'default'
+        """
+        query = '''
+            INSERT INTO rating(
+                rating_id, media_id, media_type, rating_type, rating, votes)
+            VALUES (?, ?, ?, ?, ?, ?)
+        '''
+        self.cursor.execute(query, (args))
+
+
+def get_kodiid_from_filename(file):
+    """
+    Returns the tuple (kodiid, type) if we have a video in the database with
+    said filename, or (None, None)
+    """
+    kodiid = None
+    typus = None
+    try:
+        filename = file.rsplit('/', 1)[1]
+        path = file.rsplit('/', 1)[0] + '/'
+    except IndexError:
+        filename = file.rsplit('\\', 1)[1]
+        path = file.rsplit('\\', 1)[0] + '\\'
+    log.debug('Trying to figure out playing item from filename: %s '
+              'and path: %s' % (filename, path))
+    with GetKodiDB('video') as kodi_db:
+        try:
+            kodiid, typus = kodi_db.getIdFromFilename(filename, path)
+        except TypeError:
+            log.info('No kodi video element found with filename %s' % filename)
+    return (kodiid, typus)

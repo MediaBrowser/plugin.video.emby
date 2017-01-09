@@ -11,8 +11,9 @@ from utils import window, settings, language as lang, DateToKodi, \
     getUnixTimestamp
 import clientinfo
 import downloadutils
-import embydb_functions as embydb
+import plexdb_functions as plexdb
 import kodidb_functions as kodidb
+from PlexFunctions import KODI_TYPE_MOVIE, KODI_TYPE_EPISODE
 
 ###############################################################################
 
@@ -76,11 +77,11 @@ class Player(xbmc.Player):
         self.currentFile = currentFile
         window('plex_lastPlayedFiled', value=currentFile)
         # We may need to wait for info to be set in kodi monitor
-        itemId = window("emby_%s.itemid" % currentFile)
+        itemId = window("plex_%s.itemid" % currentFile)
         count = 0
         while not itemId:
             xbmc.sleep(200)
-            itemId = window("emby_%s.itemid" % currentFile)
+            itemId = window("plex_%s.itemid" % currentFile)
             if count == 5:
                 log.warn("Could not find itemId, cancelling playback report!")
                 return
@@ -88,16 +89,16 @@ class Player(xbmc.Player):
 
         log.info("ONPLAYBACK_STARTED: %s itemid: %s" % (currentFile, itemId))
 
-        embyitem = "emby_%s" % currentFile
-        runtime = window("%s.runtime" % embyitem)
-        refresh_id = window("%s.refreshid" % embyitem)
-        playMethod = window("%s.playmethod" % embyitem)
-        itemType = window("%s.type" % embyitem)
+        plexitem = "plex_%s" % currentFile
+        runtime = window("%s.runtime" % plexitem)
+        refresh_id = window("%s.refreshid" % plexitem)
+        playMethod = window("%s.playmethod" % plexitem)
+        itemType = window("%s.type" % plexitem)
         try:
-            playcount = int(window("%s.playcount" % embyitem))
+            playcount = int(window("%s.playcount" % plexitem))
         except ValueError:
             playcount = 0
-        window('emby_skipWatched%s' % itemId, value="true")
+        window('plex_skipWatched%s' % itemId, value="true")
 
         log.debug("Playing itemtype is: %s" % itemType)
 
@@ -134,7 +135,7 @@ class Player(xbmc.Player):
         volume = result.get('volume')
         muted = result.get('muted')
 
-        # Postdata structure to send to Emby server
+        # Postdata structure to send to plex server
         url = "{server}/:/timeline?"
         postdata = {
 
@@ -154,7 +155,7 @@ class Player(xbmc.Player):
             postdata['AudioStreamIndex'] = window("%sAudioStreamIndex" % currentFile)
             postdata['SubtitleStreamIndex'] = window("%sSubtitleStreamIndex" % currentFile)
         else:
-            # Get the current kodi audio and subtitles and convert to Emby equivalent
+            # Get the current kodi audio and subtitles and convert to plex equivalent
             tracks_query = {
                 "jsonrpc": "2.0",
                 "id": 1,
@@ -190,9 +191,9 @@ class Player(xbmc.Player):
             # Postdata for the subtitles
             if subsEnabled and len(xbmc.Player().getAvailableSubtitleStreams()) > 0:
                 
-                # Number of audiotracks to help get Emby Index
+                # Number of audiotracks to help get plex Index
                 audioTracks = len(xbmc.Player().getAvailableAudioStreams())
-                mapping = window("%s.indexMapping" % embyitem)
+                mapping = window("%s.indexMapping" % plexitem)
 
                 if mapping: # Set in playbackutils.py
                     
@@ -229,10 +230,10 @@ class Player(xbmc.Player):
                 log.error('Could not get kodi runtime, setting to zero')
                 runtime = 0
 
-        with embydb.GetEmbyDB() as emby_db:
-            emby_dbitem = emby_db.getItem_byId(itemId)
+        with plexdb.Get_Plex_DB() as plex_db:
+            plex_dbitem = plex_db.getItem_byId(itemId)
         try:
-            fileid = emby_dbitem[1]
+            fileid = plex_dbitem[1]
         except TypeError:
             log.info("Could not find fileid in plex db.")
             fileid = None
@@ -338,7 +339,7 @@ class Player(xbmc.Player):
                 playMethod = data['playmethod']
 
                 # Prevent manually mark as watched in Kodi monitor
-                window('emby_skipWatched%s' % itemid, value="true")
+                window('plex_skipWatched%s' % itemid, value="true")
 
                 if currentPosition and runtime:
                     try:
@@ -353,7 +354,7 @@ class Player(xbmc.Player):
                     if percentComplete >= markPlayed:
                         # Tell Kodi that we've finished watching (Plex knows)
                         if (data['fileid'] is not None and
-                                data['itemType'] in ('movie', 'episode')):
+                                data['itemType'] in (KODI_TYPE_MOVIE, KODI_TYPE_EPISODE)):
                             with kodidb.GetKodiDB('video') as kodi_db:
                                 kodi_db.addPlaystate(
                                     data['fileid'],
@@ -391,13 +392,13 @@ class Player(xbmc.Player):
         # Clean the WINDOW properties
         for filename in self.played_info:
             cleanup = (
-                'emby_%s.itemid' % filename,
-                'emby_%s.runtime' % filename,
-                'emby_%s.refreshid' % filename,
-                'emby_%s.playmethod' % filename,
-                'emby_%s.type' % filename,
-                'emby_%s.runtime' % filename,
-                'emby_%s.playcount' % filename,
+                'plex_%s.itemid' % filename,
+                'plex_%s.runtime' % filename,
+                'plex_%s.refreshid' % filename,
+                'plex_%s.playmethod' % filename,
+                'plex_%s.type' % filename,
+                'plex_%s.runtime' % filename,
+                'plex_%s.playcount' % filename,
                 'plex_%s.playlistPosition' % filename
             )
             for item in cleanup:

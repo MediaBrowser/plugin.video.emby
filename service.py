@@ -5,7 +5,6 @@
 import logging
 import os
 import sys
-import Queue
 
 import xbmc
 import xbmcaddon
@@ -33,17 +32,20 @@ sys.path.append(_base_resource)
 ###############################################################################
 
 from utils import settings, window, language as lang
-import userclient
+from userclient import UserClient
 import clientinfo
 import initialsetup
-import kodimonitor
-import librarysync
+from kodimonitor import KodiMonitor
+from librarysync import LibrarySync
 import videonodes
-import websocket_client as wsc
+from websocket_client import WebSocket
 import downloadutils
+from playqueue import Playqueue
 
 import PlexAPI
-import PlexCompanion
+from PlexCompanion import PlexCompanion
+from monitor_kodi_play import Monitor_Kodi_Play
+from playback_starter import Playback_Starter
 
 ###############################################################################
 
@@ -61,11 +63,19 @@ class Service():
     server_online = True
     warn_auth = True
 
-    userclient_running = False
-    websocket_running = False
+    user = None
+    ws = None
+    library = None
+    plexCompanion = None
+    playqueue = None
+
+    user_running = False
+    ws_running = False
     library_running = False
-    kodimonitor_running = False
     plexCompanion_running = False
+    playqueue_running = False
+    kodimonitor_running = False
+    playback_starter_running = False
 
     def __init__(self):
 
@@ -96,13 +106,14 @@ class Service():
             "plex_online", "plex_serverStatus", "plex_onWake",
             "plex_dbCheck", "plex_kodiScan",
             "plex_shouldStop", "currUserId", "plex_dbScan",
-            "plex_initialScan", "plex_customplaylist", "plex_playbackProps",
+            "plex_initialScan", "plex_customplayqueue", "plex_playbackProps",
             "plex_runLibScan", "plex_username", "pms_token", "plex_token",
             "pms_server", "plex_machineIdentifier", "plex_servername",
             "plex_authenticated", "PlexUserImage", "useDirectPaths",
             "suspend_LibraryThread", "plex_terminateNow",
             "kodiplextimeoffset", "countError", "countUnauthorized",
-            "plex_restricteduser", "plex_allows_mediaDeletion"
+            "plex_restricteduser", "plex_allows_mediaDeletion",
+            "plex_play_new_item", "plex_result"
         ]
         for prop in properties:
             window(prop, clear=True)
@@ -111,7 +122,7 @@ class Service():
         videonodes.VideoNodes().clearProperties()
 
         # Set the minimum database version
-        window('plex_minDBVersion', value="1.1.5")
+        window('plex_minDBVersion', value="1.5.2")
 
     def getLogLevel(self):
         try:
@@ -126,16 +137,21 @@ class Service():
         monitor = self.monitor
         kodiProfile = xbmc.translatePath("special://profile")
 
+        # Detect playback start early on
+        self.monitor_kodi_play = Monitor_Kodi_Play(self)
+        self.monitor_kodi_play.start()
+
         # Server auto-detect
         initialsetup.InitialSetup().setup()
 
-        # Queue for background sync
-        queue = Queue.Queue()
+        # Initialize important threads, handing over self for callback purposes
+        self.user = UserClient(self)
+        self.ws = WebSocket(self)
+        self.library = LibrarySync(self)
+        self.plexCompanion = PlexCompanion(self)
+        self.playqueue = Playqueue(self)
+        self.playback_starter = Playback_Starter(self)
 
-        # Initialize important threads
-        user = userclient.UserClient()
-        ws = wsc.WebSocket(queue)
-        library = librarysync.LibrarySync(queue)
         plx = PlexAPI.PlexAPI()
 
         welcome_msg = True
@@ -157,7 +173,7 @@ class Service():
             if window('plex_online') == "true":
                 # Plex server is online
                 # Verify if user is set and has access to the server
-                if (user.currUser is not None) and user.HasAccess:
+                if (self.user.currUser is not None) and self.user.HasAccess:
                     if not self.kodimonitor_running:
                         # Start up events
                         self.warn_auth = True
@@ -166,38 +182,46 @@ class Service():
                             welcome_msg = False
                             xbmcgui.Dialog().notification(
                                 heading=addonName,
-                                message="%s %s" % (lang(33000), user.currUser),
-                                icon="special://home/addons/plugin.video.plexkodiconnect/icon.png",
+                                message="%s %s" % (lang(33000),
+                                                   self.user.currUser),
+                                icon="special://home/addons/plugin."
+                                     "video.plexkodiconnect/icon.png",
                                 time=2000,
                                 sound=False)
                         # Start monitoring kodi events
-                        self.kodimonitor_running = kodimonitor.KodiMonitor()
-
+                        self.kodimonitor_running = KodiMonitor(self)
+                        # Start playqueue client
+                        if not self.playqueue_running:
+                            self.playqueue_running = True
+                            self.playqueue.start()
                         # Start the Websocket Client
-                        if not self.websocket_running:
-                            self.websocket_running = True
-                            ws.start()
+                        if not self.ws_running:
+                            self.ws_running = True
+                            self.ws.start()
                         # Start the syncing thread
                         if not self.library_running:
                             self.library_running = True
-                            library.start()
+                            self.library.start()
                         # Start the Plex Companion thread
                         if not self.plexCompanion_running:
                             self.plexCompanion_running = True
-                            plexCompanion = PlexCompanion.PlexCompanion()
-                            plexCompanion.start()
+                            self.plexCompanion.start()
+                        if not self.playback_starter_running:
+                            self.playback_starter_running = True
+                            self.playback_starter.start()
                 else:
-                    if (user.currUser is None) and self.warn_auth:
-                        # Alert user is not authenticated and suppress future warning
+                    if (self.user.currUser is None) and self.warn_auth:
+                        # Alert user is not authenticated and suppress future
+                        # warning
                         self.warn_auth = False
                         log.warn("Not authenticated yet.")
 
                     # User access is restricted.
                     # Keep verifying until access is granted
                     # unless server goes offline or Kodi is shut down.
-                    while user.HasAccess == False:
+                    while self.user.HasAccess is False:
                         # Verify access with an API call
-                        user.hasAccess()
+                        self.user.hasAccess()
 
                         if window('plex_online') != "true":
                             # Server went offline
@@ -211,7 +235,7 @@ class Service():
                 # Wait until Plex server is online
                 # or Kodi is shut down.
                 while not monitor.abortRequested():
-                    server = user.getServer()
+                    server = self.user.getServer()
                     if server is False:
                         # No server info set in add-on settings
                         pass
@@ -268,9 +292,9 @@ class Service():
                             window('suspend_LibraryThread', clear=True)
 
                         # Start the userclient thread
-                        if not self.userclient_running:
-                            self.userclient_running = True
-                            user.start()
+                        if not self.user_running:
+                            self.user_running = True
+                            self.user.start()
 
                         break
 
@@ -286,27 +310,22 @@ class Service():
 
         # Tell all threads to terminate (e.g. several lib sync threads)
         window('plex_terminateNow', value='true')
-
         try:
-            plexCompanion.stopThread()
+            self.plexCompanion.stopThread()
         except:
             log.warn('plexCompanion already shut down')
-
         try:
-            library.stopThread()
+            self.library.stopThread()
         except:
             log.warn('Library sync already shut down')
-
         try:
-            ws.stopThread()
+            self.ws.stopThread()
         except:
             log.warn('Websocket client already shut down')
-
         try:
-            user.stopThread()
+            self.user.stopThread()
         except:
             log.warn('User client already shut down')
-
         try:
             downloadutils.DownloadUtils().stopSession()
         except:

@@ -17,12 +17,13 @@ from utils import window, settings, language as lang
 from utils import tryDecode, tryEncode, CatchExceptions
 import clientinfo
 import downloadutils
-import embydb_functions as embydb
+import plexdb_functions as plexdb
 import playbackutils as pbutils
-import playlist
 
 import PlexFunctions
 import PlexAPI
+from PKC_listitem import convert_PKC_to_listitem
+from playqueue import Playqueue
 
 ###############################################################################
 
@@ -31,40 +32,6 @@ log = logging.getLogger("PLEX."+__name__)
 addonName = "PlexKodiConnect"
 
 ###############################################################################
-
-
-def plexCompanion(fullurl, params):
-    params = PlexFunctions.LiteralEval(params[26:])
-
-    if params['machineIdentifier'] != window('plex_machineIdentifier'):
-        log.error("Command was not for us, machineIdentifier controller: %s, "
-                  "our machineIdentifier : %s"
-                  % (params['machineIdentifier'],
-                     window('plex_machineIdentifier')))
-        return
-
-    library, key, query = PlexFunctions.ParseContainerKey(
-        params['containerKey'])
-    # Construct a container key that works always (get rid of playlist args)
-    window('containerKey', '/'+library+'/'+key)
-
-    if 'playQueues' in library:
-        log.debug("Playing a playQueue. Query was: %s" % query)
-        # Playing a playlist that we need to fetch from PMS
-        xml = PlexFunctions.GetPlayQueue(key)
-        if xml is None:
-            log.error("Error getting PMS playlist for key %s" % key)
-            return
-        else:
-            resume = PlexFunctions.ConvertPlexToKodiTime(
-                params.get('offset', 0))
-            itemids = []
-            for item in xml:
-                itemids.append(item.get('ratingKey'))
-            return playlist.Playlist().playAll(itemids, resume)
-
-    else:
-        log.error("Not knowing what to do for now - no playQueue sent")
 
 
 def chooseServer():
@@ -130,45 +97,21 @@ def togglePlexTV():
         sound=False)
 
 
-def PassPlaylist(xml, resume=None):
-    """
-    resume in KodiTime - seconds.
-    """
-    # Set window properties to make them available later for other threads
-    windowArgs = [
-        # 'containerKey'
-        'playQueueID',
-        'playQueueVersion']
-    for arg in windowArgs:
-        window(arg, value=xml.attrib.get(arg))
-
-    # Get resume point
-    from utils import IntFromStr
-    resume1 = PlexFunctions.ConvertPlexToKodiTime(IntFromStr(
-        xml.attrib.get('playQueueSelectedItemOffset', 0)))
-    resume2 = resume
-    resume = max(resume1, resume2)
-
-    pbutils.PlaybackUtils(xml).StartPlay(
-        resume=resume,
-        resumeId=xml.attrib.get('playQueueSelectedItemID', None))
-
-
-def playWatchLater(itemid, viewOffset):
+def Plex_Node(url, viewOffset, plex_type, playdirectly=False):
     """
     Called only for a SINGLE element for Plex.tv watch later
 
     Always to return with a "setResolvedUrl"
     """
-    log.info('playWatchLater called with id: %s, viewOffset: %s'
-             % (itemid, viewOffset))
+    log.info('Plex_Node called with url: %s, viewOffset: %s'
+             % (url, viewOffset))
     # Plex redirect, e.g. watch later. Need to get actual URLs
-    xml = downloadutils.DownloadUtils().downloadUrl(itemid,
-                                                    authenticate=False)
-    if xml in (None, 401):
-        log.error("Could not resolve url %s" % itemid)
-        return xbmcplugin.setResolvedUrl(
-            int(sys.argv[1]), False, xbmcgui.ListItem())
+    xml = downloadutils.DownloadUtils().downloadUrl(url)
+    try:
+        xml[0].attrib
+    except:
+        log.error('Could not download PMS metadata')
+        return
     if viewOffset != '0':
         try:
             viewOffset = int(PlexFunctions.PLEX_TO_KODI_TIMEFACTOR *
@@ -178,41 +121,20 @@ def playWatchLater(itemid, viewOffset):
         else:
             window('plex_customplaylist.seektime', value=str(viewOffset))
             log.info('Set resume point to %s' % str(viewOffset))
-    return pbutils.PlaybackUtils(xml).play(None, 'plexnode')
-
-
-def doPlayback(itemid, dbid):
-    """
-    Called only for a SINGLE element, not playQueues
-
-    Always to return with a "setResolvedUrl"
-    """
-    if window('plex_authenticated') != "true":
-        log.error('Not yet authenticated for a PMS, abort starting playback')
-        # Not yet connected to a PMS server
-        xbmcgui.Dialog().notification(
-            addonName,
-            lang(39210),
-            xbmcgui.NOTIFICATION_ERROR,
-            7000,
-            True)
-        return xbmcplugin.setResolvedUrl(
-            int(sys.argv[1]), False, xbmcgui.ListItem())
-
-    xml = PlexFunctions.GetPlexMetadata(itemid)
-    if xml in (None, 401):
-        return xbmcplugin.setResolvedUrl(
-            int(sys.argv[1]), False, xbmcgui.ListItem())
-    if xml[0].attrib.get('type') == 'photo':
-        # Photo
-        API = PlexAPI.API(xml[0])
-        listitem = API.CreateListItemFromPlexItem()
-        API.AddStreamInfo(listitem)
-        pbutils.PlaybackUtils(xml[0]).setArtwork(listitem)
-        return xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, listitem)
+    typus = PlexFunctions.KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[plex_type]
+    playqueue = Playqueue().get_playqueue_from_type(typus)
+    result = pbutils.PlaybackUtils(xml, playqueue).play(
+        None,
+        kodi_id='plexnode',
+        plex_lib_UUID=xml.attrib.get('librarySectionUUID'))
+    if result.listitem:
+        listitem = convert_PKC_to_listitem(result.listitem)
     else:
-        # Video
-        return pbutils.PlaybackUtils(xml).play(itemid, dbid)
+        return
+    if playdirectly:
+        xbmc.Player().play(listitem.getfilename(), listitem)
+    else:
+        xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, listitem)
 
 
 ##### DO RESET AUTH #####
@@ -319,12 +241,8 @@ def deleteItem():
                 log.error("Unknown type, unable to proceed.")
                 return
 
-        from utils import kodiSQL
-        embyconn = kodiSQL('emby')
-        embycursor = embyconn.cursor()
-        emby_db = embydb.Embydb_Functions(embycursor)
-        item = emby_db.getItem_byKodiId(dbid, itemtype)
-        embycursor.close()
+        with plexdb.Get_Plex_DB() as plexcursor:
+            item = plexcursor.getItem_byKodiId(dbid, itemtype)
 
         try:
             plexid = item[0]
@@ -467,99 +385,6 @@ def BrowseContent(viewname, browse_type="", folderid=""):
 
     xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
 
-##### CREATE LISTITEM FROM EMBY METADATA #####
-# def createListItemFromEmbyItem(item,art=artwork.Artwork(),doUtils=downloadutils.DownloadUtils()):
-def createListItemFromEmbyItem(item,art=None,doUtils=downloadutils.DownloadUtils()):
-    API = PlexAPI.API(item)
-    itemid = item['Id']
-    
-    title = item.get('Name')
-    li = xbmcgui.ListItem(title)
-    
-    premieredate = item.get('PremiereDate',"")
-    if not premieredate: premieredate = item.get('DateCreated',"")
-    if premieredate:
-        premieredatelst = premieredate.split('T')[0].split("-")
-        premieredate = "%s.%s.%s" %(premieredatelst[2],premieredatelst[1],premieredatelst[0])
-
-    li.setProperty("plexid",itemid)
-    
-    allart = art.getAllArtwork(item)
-    
-    if item["Type"] == "Photo":
-        #listitem setup for pictures...
-        img_path = allart.get('Primary')
-        li.setProperty("path",img_path)
-        picture = doUtils.downloadUrl("{server}/Items/%s/Images" %itemid)
-        if picture:
-            picture = picture[0]
-            if picture.get("Width") > picture.get("Height"):
-                li.setArt( {"fanart":  img_path}) #add image as fanart for use with skinhelper auto thumb/backgrund creation
-            li.setInfo('pictures', infoLabels={ "picturepath": img_path, "date": premieredate, "size": picture.get("Size"), "exif:width": str(picture.get("Width")), "exif:height": str(picture.get("Height")), "title": title})
-        li.setThumbnailImage(img_path)
-        li.setProperty("plot",API.getOverview())
-        li.setIconImage('DefaultPicture.png')
-    else:
-        #normal video items
-        li.setProperty('IsPlayable', 'true')
-        path = "%s?id=%s&mode=play" % (sys.argv[0], item.get("Id"))
-        li.setProperty("path",path)
-        genre = API.getGenres()
-        overlay = 0
-        userdata = API.getUserData()
-        runtime = item.get("RunTimeTicks",0)/ 10000000.0
-        seektime = userdata['Resume']
-        if seektime:
-            li.setProperty("resumetime", str(seektime))
-            li.setProperty("totaltime", str(runtime))
-        
-        played = userdata['Played']
-        if played: overlay = 7
-        else: overlay = 6       
-        playcount = userdata['PlayCount']
-        if playcount is None:
-            playcount = 0
-            
-        rating = item.get('CommunityRating')
-        if not rating: rating = userdata['UserRating']
-
-        # Populate the extradata list and artwork
-        extradata = {
-            'id': itemid,
-            'rating': rating,
-            'year': item.get('ProductionYear'),
-            'genre': genre,
-            'playcount': str(playcount),
-            'title': title,
-            'plot': API.getOverview(),
-            'Overlay': str(overlay),
-            'duration': runtime
-        }
-        if premieredate:
-            extradata["premieredate"] = premieredate
-            extradata["date"] = premieredate
-        li.setInfo('video', infoLabels=extradata)
-        if allart.get('Primary'):
-            li.setThumbnailImage(allart.get('Primary'))
-        else: li.setThumbnailImage('DefaultTVShows.png')
-        li.setIconImage('DefaultTVShows.png')
-        if not allart.get('Background'): #add image as fanart for use with skinhelper auto thumb/backgrund creation
-            li.setArt( {"fanart": allart.get('Primary') } )
-        else:
-            pbutils.PlaybackUtils(item).setArtwork(li)
-
-        mediastreams = API.getMediaStreams()
-        videostreamFound = False
-        if mediastreams:
-            for key, value in mediastreams.iteritems():
-                if key == "video" and value: videostreamFound = True
-                if value: li.addStreamInfo(key, value[0])
-        if not videostreamFound:
-            #just set empty streamdetails to prevent errors in the logs
-            li.addStreamInfo("video", {'duration': runtime})
-        
-    return li
-    
 ##### BROWSE EMBY CHANNELS #####    
 def BrowseChannels(itemid, folderid=None):
     
@@ -664,7 +489,7 @@ def createListItem(item, appendShowTitle=False, appendSxxExx=False):
     li.setProperty('totaltime', str(item['resume']['total']))
     li.setArt(item['art'])
     li.setThumbnailImage(item['art'].get('thumb',''))
-    li.setIconImage('DefaultTVShows.png')
+    li.setArt({'icon': 'DefaultTVShows.png'})
     li.setProperty('dbid', str(item['episodeid']))
     li.setProperty('fanart_image', item['art'].get('tvshow.fanart',''))
     for key, value in item['streamdetails'].iteritems():
@@ -1095,14 +920,14 @@ def BrowsePlexContent(viewid, mediatype="", folderid=""):
             li.setProperty('IsPlayable', 'false')
             path = "%s?id=%s&mode=browseplex&type=%s&folderid=%s" \
                    % (sys.argv[0], viewid, mediatype, API.getKey())
-            pbutils.PlaybackUtils(item).setArtwork(li)
+            API.set_listitem_artwork(li)
             xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),
                                         url=path,
                                         listitem=li,
                                         isFolder=True)
         else:
             li = API.CreateListItemFromPlexItem()
-            pbutils.PlaybackUtils(item).setArtwork(li)
+            API.set_listitem_artwork(li)
             xbmcplugin.addDirectoryItem(
                 handle=int(sys.argv[1]),
                 url=li.getProperty("path"),
@@ -1159,7 +984,7 @@ def getOnDeck(viewid, mediatype, tagname, limit):
                 appendShowTitle=appendShowTitle,
                 appendSxxExx=appendSxxExx)
             API.AddStreamInfo(listitem)
-            pbutils.PlaybackUtils(item).setArtwork(listitem)
+            API.set_listitem_artwork(listitem)
             if directpaths:
                 url = API.getFilePath()
             else:
@@ -1168,7 +993,7 @@ def getOnDeck(viewid, mediatype, tagname, limit):
                     'id': API.getRatingKey(),
                     'dbid': listitem.getProperty('dbid')
                 }
-                url = "plugin://plugin.video.plexkodiconnect.tvshows/?%s" \
+                url = "plugin://plugin.video.plexkodiconnect/tvshows/?%s" \
                       % urllib.urlencode(params)
             xbmcplugin.addDirectoryItem(
                 handle=int(sys.argv[1]),
@@ -1306,15 +1131,16 @@ def watchlater():
     xbmcplugin.setContent(int(sys.argv[1]), 'movies')
     url = "plugin://plugin.video.plexkodiconnect/"
     params = {
-        'mode': "playwatchlater",
+        'mode': "Plex_Node",
     }
     for item in xml:
         API = PlexAPI.API(item)
         listitem = API.CreateListItemFromPlexItem()
         API.AddStreamInfo(listitem)
-        pbutils.PlaybackUtils(item).setArtwork(listitem)
+        API.set_listitem_artwork(listitem)
         params['id'] = item.attrib.get('key')
         params['viewOffset'] = item.attrib.get('viewOffset', '0')
+        params['plex_type'] = item.attrib.get('type')
         xbmcplugin.addDirectoryItem(
             handle=int(sys.argv[1]),
             url="%s?%s" % (url, urllib.urlencode(params)),
