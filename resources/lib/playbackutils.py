@@ -14,14 +14,14 @@ from utils import window, settings, tryEncode, tryDecode
 import downloadutils
 
 from PlexAPI import API
-from PlexFunctions import GetPlexPlaylist, KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE, \
-    KODITYPE_FROM_PLEXTYPE, PLEX_TYPE_MOVIE
+from PlexFunctions import GetPlexPlaylist, KODITYPE_FROM_PLEXTYPE, \
+    PLEX_TYPE_CLIP, PLEX_TYPE_MOVIE
 from PKC_listitem import PKC_ListItem as ListItem
 from playlist_func import add_item_to_kodi_playlist, \
     get_playlist_details_from_xml, add_listitem_to_Kodi_playlist, \
     add_listitem_to_playlist, remove_from_Kodi_playlist
-from playqueue import lock, Playqueue
 from pickler import Playback_Successful
+from plexdb_functions import Get_Plex_DB
 
 ###############################################################################
 
@@ -34,17 +34,9 @@ addonName = "PlexKodiConnect"
 
 class PlaybackUtils():
 
-    def __init__(self, item, callback=None, playlist_type=None):
-        self.item = item
-        self.api = API(item)
-        playlist_type = playlist_type if playlist_type else \
-            KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[self.api.getType()]
-        if callback:
-            self.mgr = callback
-            self.playqueue = self.mgr.playqueue.get_playqueue_from_type(
-                playlist_type)
-        else:
-            self.playqueue = Playqueue().get_playqueue_from_type(playlist_type)
+    def __init__(self, xml, playqueue):
+        self.xml = xml
+        self.playqueue = playqueue
 
     def play(self, plex_id, kodi_id=None, plex_lib_UUID=None):
         """
@@ -52,8 +44,8 @@ class PlaybackUtils():
         to the PMS
         """
         log.info("Playbackutils called")
-        item = self.item
-        api = self.api
+        item = self.xml[0]
+        api = API(item)
         playqueue = self.playqueue
         xml = None
         result = Playback_Successful()
@@ -179,7 +171,12 @@ class PlaybackUtils():
 
             # -- ADD TRAILERS ################
             if trailers:
-                introsPlaylist = self.AddTrailers(xml)
+                for i, item in enumerate(xml):
+                    if i == len(xml) - 1:
+                        # Don't add the main movie itself
+                        break
+                    self.add_trailer(item)
+                    introsPlaylist = True
 
             # -- ADD MAIN ITEM ONLY FOR HOMESCREEN ##############
             if homeScreen and not seektime and not sizePlaylist:
@@ -223,40 +220,14 @@ class PlaybackUtils():
 
             # -- CHECK FOR ADDITIONAL PARTS ################
             if len(item[0]) > 1:
-                # Only add to the playlist after intros have played
-                for counter, part in enumerate(item[0]):
-                    # Never add first part
-                    if counter == 0:
-                        continue
-                    # Set listitem and properties for each additional parts
-                    api.setPartNumber(counter)
-                    additionalListItem = xbmcgui.ListItem()
-                    additionalPlayurl = playutils.getPlayUrl(
-                        partNumber=counter)
-                    log.debug("Adding additional part: %s, url: %s"
-                              % (counter, additionalPlayurl))
-                    api.CreateListItemFromPlexItem(additionalListItem)
-                    api.set_playback_win_props(additionalPlayurl,
-                                               additionalListItem)
-                    api.set_listitem_artwork(additionalListItem)
-                    add_listitem_to_playlist(
-                        playqueue,
-                        self.currentPosition,
-                        additionalListItem,
-                        kodi_id=kodi_id,
-                        kodi_type=kodi_type,
-                        plex_id=plex_id,
-                        file=additionalPlayurl)
-                    self.currentPosition += 1
-                api.setPartNumber(0)
+                self.add_part(item, api, kodi_id, kodi_type)
 
             if dummyPlaylist:
                 # Added a dummy file to the playlist,
                 # because the first item is going to fail automatically.
                 log.info("Processed as a playlist. First item is skipped.")
                 # Delete the item that's gonna fail!
-                with lock:
-                    del playqueue.items[startPos]
+                del playqueue.items[startPos]
                 # Don't attach listitem
                 return result
 
@@ -304,38 +275,89 @@ class PlaybackUtils():
             result.listitem = listitem
             return result
 
-    def AddTrailers(self, xml):
+    def play_all(self):
         """
-        Adds trailers to a movie, if applicable. Returns True if trailers were
-        added
+        Play all items contained in the xml passed in. Called by Plex Companion
         """
-        # Failure when getting trailers, e.g. when no plex pass
-        if xml.attrib.get('size') == '1':
-            return False
+        log.info("Playbackutils play_all called")
+        window('plex_playbackProps', value="true")
+        self.currentPosition = 0
+        for item in self.xml:
+            log.debug('item.attrib: %s' % item.attrib)
+            api = API(item)
+            if api.getType() == PLEX_TYPE_CLIP:
+                self.add_trailer(item)
+                continue
+            with Get_Plex_DB() as plex_db:
+                db_item = plex_db.getItem_byId(api.getRatingKey())
+            try:
+                add_item_to_kodi_playlist(self.playqueue,
+                                          self.currentPosition,
+                                          kodi_id=db_item[0],
+                                          kodi_type=db_item[4])
+                self.currentPosition += 1
+                if len(item[0]) > 1:
+                    self.add_part(item,
+                                  api,
+                                  db_item[0],
+                                  db_item[4])
+            except TypeError:
+                # Item not in Kodi DB
+                self.add_trailer(item)
+                continue
+
+    def add_trailer(self, item):
         # Playurl needs to point back so we can get metadata!
         path = "plugin://plugin.video.plexkodiconnect/movies/"
         params = {
             'mode': "play",
             'dbid': 'plextrailer'
         }
-        for counter, intro in enumerate(xml):
-            # Don't process the last item - it's the original movie
-            if counter == len(xml)-1:
-                break
-            introAPI = API(intro)
-            listitem = introAPI.CreateListItemFromPlexItem()
-            params['id'] = introAPI.getRatingKey()
-            params['filename'] = introAPI.getKey()
-            introPlayurl = path + '?' + urlencode(params)
-            introAPI.set_listitem_artwork(listitem)
-            # Overwrite the Plex url
-            listitem.setPath(introPlayurl)
-            log.info("Adding Intro: %s" % introPlayurl)
-            add_listitem_to_Kodi_playlist(
+        introAPI = API(item)
+        listitem = introAPI.CreateListItemFromPlexItem()
+        params['id'] = introAPI.getRatingKey()
+        params['filename'] = introAPI.getKey()
+        introPlayurl = path + '?' + urlencode(params)
+        introAPI.set_listitem_artwork(listitem)
+        # Overwrite the Plex url
+        listitem.setPath(introPlayurl)
+        log.info("Adding Plex trailer: %s" % introPlayurl)
+        add_listitem_to_Kodi_playlist(
+            self.playqueue,
+            self.currentPosition,
+            listitem,
+            introPlayurl,
+            xml_video_element=item)
+        self.currentPosition += 1
+
+    def add_part(self, item, api, kodi_id, kodi_type):
+        """
+        Adds an additional part to the playlist
+        """
+        # Only add to the playlist after intros have played
+        for counter, part in enumerate(item[0]):
+            # Never add first part
+            if counter == 0:
+                continue
+            # Set listitem and properties for each additional parts
+            api.setPartNumber(counter)
+            additionalListItem = xbmcgui.ListItem()
+            playutils = putils.PlayUtils(item)
+            additionalPlayurl = playutils.getPlayUrl(
+                partNumber=counter)
+            log.debug("Adding additional part: %s, url: %s"
+                      % (counter, additionalPlayurl))
+            api.CreateListItemFromPlexItem(additionalListItem)
+            api.set_playback_win_props(additionalPlayurl,
+                                       additionalListItem)
+            api.set_listitem_artwork(additionalListItem)
+            add_listitem_to_playlist(
                 self.playqueue,
                 self.currentPosition,
-                listitem,
-                introPlayurl,
-                intro)
+                additionalListItem,
+                kodi_id=kodi_id,
+                kodi_type=kodi_type,
+                plex_id=api.getRatingKey(),
+                file=additionalPlayurl)
             self.currentPosition += 1
-        return True
+        api.setPartNumber(0)

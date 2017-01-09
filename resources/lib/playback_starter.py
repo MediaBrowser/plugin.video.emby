@@ -8,7 +8,8 @@ from PKC_listitem import PKC_ListItem
 from pickler import pickle_me, Playback_Successful
 from playbackutils import PlaybackUtils
 from utils import window
-from PlexFunctions import GetPlexMetadata, PLEX_TYPE_PHOTO
+from PlexFunctions import GetPlexMetadata, PLEX_TYPE_PHOTO, \
+    KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE
 from PlexAPI import API
 from playqueue import lock
 
@@ -54,8 +55,10 @@ class Playback_Starter(Thread):
             result.listitem = listitem
         else:
             # Video and Music
+            playqueue = self.playqueue.get_playqueue_from_type(
+                KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[api.getType()])
             with lock:
-                result = PlaybackUtils(xml[0], self.mgr).play(
+                result = PlaybackUtils(xml, playqueue).play(
                     plex_id,
                     kodi_id,
                     xml.attrib.get('librarySectionUUID'))

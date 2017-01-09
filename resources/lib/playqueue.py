@@ -8,6 +8,7 @@ from xbmc import sleep, Player, PlayList, PLAYLIST_MUSIC, PLAYLIST_VIDEO
 from utils import window, ThreadMethods, ThreadMethodsAdditionalSuspend
 import playlist_func as PL
 from PlexFunctions import ConvertPlexToKodiTime
+from playbackutils import PlaybackUtils
 
 ###############################################################################
 log = logging.getLogger("PLEX."+__name__)
@@ -86,7 +87,12 @@ class Playqueue(Thread):
             if playqueue_id != playqueue.ID:
                 log.debug('Need to fetch new playQueue from the PMS')
                 xml = PL.get_PMS_playlist(playqueue, playqueue_id)
-                PL.update_playlist_from_PMS(playqueue, playqueue_id, xml=xml)
+                if xml is None:
+                    log.error('Could not get playqueue ID %s' % playqueue_id)
+                    return
+                playqueue.clear()
+                PL.get_playlist_details_from_xml(playqueue, xml)
+                PlaybackUtils(xml, playqueue).play_all()
             else:
                 log.debug('Restarting existing playQueue')
                 PL.refresh_playlist_from_PMS(playqueue)
@@ -99,21 +105,17 @@ class Playqueue(Thread):
                 if item.ID == playqueue.selectedItemID:
                     break
             else:
-                startpos = None
+                startpos = 0
             # Start playback. Player does not return in time
-            if startpos:
-                log.debug('Start position Plex Companion playback: %s'
-                          % startpos)
-                thread = Thread(target=Player().play,
-                                args=(playqueue.kodi_pl,
-                                      None,
-                                      False,
-                                      startpos))
-            else:
-                log.debug('Start Plex Companion playback from beginning')
-                thread = Thread(target=Player().play,
-                                args=(playqueue.kodi_pl,))
-            log.debug('Playqueues are: %s' % self.playqueues)
+            log.debug('Playqueues after Plex Companion update are now: %s'
+                      % self.playqueues)
+            log.debug('Start position Plex Companion playback: %s'
+                      % startpos)
+            thread = Thread(target=Player().play,
+                            args=(playqueue.kodi_pl,
+                                  None,
+                                  False,
+                                  startpos))
             thread.setDaemon(True)
             thread.start()
 

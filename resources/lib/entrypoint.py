@@ -23,6 +23,7 @@ import playbackutils as pbutils
 import PlexFunctions
 import PlexAPI
 from PKC_listitem import convert_PKC_to_listitem
+from playqueue import Playqueue
 
 ###############################################################################
 
@@ -121,7 +122,8 @@ def Plex_Node(url, viewOffset, plex_type, playdirectly=False):
             window('plex_customplaylist.seektime', value=str(viewOffset))
             log.info('Set resume point to %s' % str(viewOffset))
     typus = PlexFunctions.KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[plex_type]
-    result = pbutils.PlaybackUtils(xml[0],playlist_type=typus).play(
+    playqueue = Playqueue().get_playqueue_from_type(typus)
+    result = pbutils.PlaybackUtils(xml, playqueue).play(
         None,
         kodi_id='plexnode',
         plex_lib_UUID=xml.attrib.get('librarySectionUUID'))
@@ -383,99 +385,6 @@ def BrowseContent(viewname, browse_type="", folderid=""):
 
     xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
 
-##### CREATE LISTITEM FROM EMBY METADATA #####
-# def createListItemFromEmbyItem(item,art=artwork.Artwork(),doUtils=downloadutils.DownloadUtils()):
-def createListItemFromEmbyItem(item,art=None,doUtils=downloadutils.DownloadUtils()):
-    API = PlexAPI.API(item)
-    itemid = item['Id']
-    
-    title = item.get('Name')
-    li = xbmcgui.ListItem(title)
-    
-    premieredate = item.get('PremiereDate',"")
-    if not premieredate: premieredate = item.get('DateCreated',"")
-    if premieredate:
-        premieredatelst = premieredate.split('T')[0].split("-")
-        premieredate = "%s.%s.%s" %(premieredatelst[2],premieredatelst[1],premieredatelst[0])
-
-    li.setProperty("plexid",itemid)
-    
-    allart = art.getAllArtwork(item)
-    
-    if item["Type"] == "Photo":
-        #listitem setup for pictures...
-        img_path = allart.get('Primary')
-        li.setProperty("path",img_path)
-        picture = doUtils.downloadUrl("{server}/Items/%s/Images" %itemid)
-        if picture:
-            picture = picture[0]
-            if picture.get("Width") > picture.get("Height"):
-                li.setArt( {"fanart":  img_path}) #add image as fanart for use with skinhelper auto thumb/backgrund creation
-            li.setInfo('pictures', infoLabels={ "picturepath": img_path, "date": premieredate, "size": picture.get("Size"), "exif:width": str(picture.get("Width")), "exif:height": str(picture.get("Height")), "title": title})
-        li.setThumbnailImage(img_path)
-        li.setProperty("plot",API.getOverview())
-        li.setArt({'icon': 'DefaultPicture.png'})
-    else:
-        #normal video items
-        li.setProperty('IsPlayable', 'true')
-        path = "%s?id=%s&mode=play" % (sys.argv[0], item.get("Id"))
-        li.setProperty("path",path)
-        genre = API.getGenres()
-        overlay = 0
-        userdata = API.getUserData()
-        runtime = item.get("RunTimeTicks",0)/ 10000000.0
-        seektime = userdata['Resume']
-        if seektime:
-            li.setProperty("resumetime", str(seektime))
-            li.setProperty("totaltime", str(runtime))
-        
-        played = userdata['Played']
-        if played: overlay = 7
-        else: overlay = 6       
-        playcount = userdata['PlayCount']
-        if playcount is None:
-            playcount = 0
-            
-        rating = item.get('CommunityRating')
-        if not rating: rating = userdata['UserRating']
-
-        # Populate the extradata list and artwork
-        extradata = {
-            'id': itemid,
-            'rating': rating,
-            'year': item.get('ProductionYear'),
-            'genre': genre,
-            'playcount': str(playcount),
-            'title': title,
-            'plot': API.getOverview(),
-            'Overlay': str(overlay),
-            'duration': runtime
-        }
-        if premieredate:
-            extradata["premieredate"] = premieredate
-            extradata["date"] = premieredate
-        li.setInfo('video', infoLabels=extradata)
-        if allart.get('Primary'):
-            li.setThumbnailImage(allart.get('Primary'))
-        else: li.setThumbnailImage('DefaultTVShows.png')
-        li.setArt({'icon': 'DefaultTVShows.png'})
-        if not allart.get('Background'): #add image as fanart for use with skinhelper auto thumb/backgrund creation
-            li.setArt( {"fanart": allart.get('Primary') } )
-        else:
-            pbutils.PlaybackUtils(item).setArtwork(li)
-
-        mediastreams = API.getMediaStreams()
-        videostreamFound = False
-        if mediastreams:
-            for key, value in mediastreams.iteritems():
-                if key == "video" and value: videostreamFound = True
-                if value: li.addStreamInfo(key, value[0])
-        if not videostreamFound:
-            #just set empty streamdetails to prevent errors in the logs
-            li.addStreamInfo("video", {'duration': runtime})
-        
-    return li
-    
 ##### BROWSE EMBY CHANNELS #####    
 def BrowseChannels(itemid, folderid=None):
     
