@@ -1399,6 +1399,69 @@ class Kodidb_Functions():
                 query = "INSERT OR REPLACE INTO song_genre(idGenre, idSong) values(?, ?)"
                 self.cursor.execute(query, (genreid, kodiid))
 
+# Krypton only stuff ##############################
+
+    def create_entry_uniqueid(self):
+        self.cursor.execute(
+            "select coalesce(max(uniqueid_id),0) from uniqueid")
+        return self.cursor.fetchone()[0] + 1
+
+    def add_uniqueid(self, *args):
+        """
+        Feed with:
+            uniqueid_id, media_id, media_type, value, type
+
+        type: e.g. 'imdb'
+        """
+        query = '''
+            INSERT INTO uniqueid(
+                uniqueid_id, media_id, media_type, value, type)
+            VALUES (?, ?, ?, ?, ?)
+        '''
+        self.cursor.execute(query, (args))
+
+    def create_entry_rating(self):
+        self.cursor.execute("select coalesce(max(rating_id),0) from rating")
+        return self.cursor.fetchone()[0] + 1
+
+    def get_ratingid(self, media_id):
+        query = "SELECT rating_id FROM rating WHERE media_id = ?"
+        self.cursor.execute(query, (media_id,))
+        try:
+            ratingid = self.cursor.fetchone()[0]
+        except TypeError:
+            ratingid = None
+        return ratingid
+
+    def update_ratings(self, *args):
+        """
+        Feed with media_id, media_type, rating_type, rating, votes, rating_id
+        """
+        query = '''
+            UPDATE rating
+            SET media_id = ?,
+                media_type = ?,
+                rating_type = ?,
+                rating = ?,
+                votes = ?
+            WHERE rating_id = ?
+        '''
+        self.cursor.execute(query, (args))
+
+    def add_ratings(self, *args):
+        """
+        feed with:
+            rating_id, media_id, media_type, rating_type, rating, votes
+
+        rating_type = 'default'
+        """
+        query = '''
+            INSERT INTO rating(
+                rating_id, media_id, media_type, rating_type, rating, votes)
+            VALUES (?, ?, ?, ?, ?, ?)
+        '''
+        self.cursor.execute(query, (args))
+
 
 def get_kodiid_from_filename(file):
     """

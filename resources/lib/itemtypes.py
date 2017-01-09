@@ -268,6 +268,22 @@ class Movies(Items):
 
             # Update the movie entry
             if KODIVERSION > 16:
+                # update new ratings Kodi 17
+                ratingid = self.kodi_db.get_ratingid(movieid)
+                self.kodi_db.update_ratings(movieid,
+                                            PF.KODI_TYPE_MOVIE,
+                                            "default",
+                                            rating,
+                                            votecount,
+                                            ratingid)
+                # update new uniqueid Kodi 17
+                uniqueid = self.kodi_db.get_uniqueid(movieid)
+                self.kodi_db.update_uniqueid(movieid,
+                                             PF.KODI_TYPE_MOVIE,
+                                             imdb,
+                                             "imdb",
+                                             uniqueid)
+
                 query = ' '.join((
                     "UPDATE movie",
                     "SET c00 = ?, c01 = ?, c02 = ?, c03 = ?, c04 = ?, c05 = ?,"
@@ -299,6 +315,22 @@ class Movies(Items):
         else:
             log.info("ADD movie itemid: %s - Title: %s" % (itemid, title))
             if KODIVERSION > 16:
+                # add new ratings Kodi 17
+                ratingid = self.kodi_db.create_entry_rating()
+                self.kodi_db.add_ratings(ratingid,
+                                         movieid,
+                                         PF.KODI_TYPE_MOVIE,
+                                         "default",
+                                         rating,
+                                         votecount)
+                # add new uniqueid Kodi 17
+                uniqueid = self.kodi_db.create_entry_uniqueid()
+                self.kodi_db.add_uniqueid(uniqueid,
+                                          movieid,
+                                          PF.KODI_TYPE_MOVIE,
+                                          imdb,
+                                          "imdb")
+
                 query = (
                     '''
                     INSERT INTO movie( idMovie, idFile, c00, c01, c02, c03,
