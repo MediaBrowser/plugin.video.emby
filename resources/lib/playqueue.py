@@ -84,18 +84,13 @@ class Playqueue(Thread):
         log.info('New playqueue %s received from Plex companion with offset '
                  '%s, repeat %s' % (playqueue_id, offset, repeat))
         with lock:
-            if playqueue_id != playqueue.ID:
-                log.debug('Need to fetch new playQueue from the PMS')
-                xml = PL.get_PMS_playlist(playqueue, playqueue_id)
-                if xml is None:
-                    log.error('Could not get playqueue ID %s' % playqueue_id)
-                    return
-                playqueue.clear()
-                PL.get_playlist_details_from_xml(playqueue, xml)
-                PlaybackUtils(xml, playqueue).play_all()
-            else:
-                log.debug('Restarting existing playQueue')
-                PL.refresh_playlist_from_PMS(playqueue)
+            xml = PL.get_PMS_playlist(playqueue, playqueue_id)
+            if xml is None:
+                log.error('Could not get playqueue ID %s' % playqueue_id)
+                return
+            playqueue.clear()
+            PL.get_playlist_details_from_xml(playqueue, xml)
+            PlaybackUtils(xml, playqueue).play_all()
             playqueue.repeat = 0 if not repeat else int(repeat)
             window('plex_customplaylist', value="true")
             if offset not in (None, "0"):
@@ -109,8 +104,6 @@ class Playqueue(Thread):
             # Start playback. Player does not return in time
             log.debug('Playqueues after Plex Companion update are now: %s'
                       % self.playqueues)
-            log.debug('Start position Plex Companion playback: %s'
-                      % startpos)
             thread = Thread(target=Player().play,
                             args=(playqueue.kodi_pl,
                                   None,
