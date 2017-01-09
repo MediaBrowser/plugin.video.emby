@@ -555,7 +555,22 @@ class TVShows(Items):
         if update_item:
             log.info("UPDATE tvshow itemid: %s - Title: %s"
                      % (itemid, title))
-
+            if KODIVERSION >= 17:
+                # update new ratings Kodi 17
+                ratingid = self.kodi_db.get_ratingid(showid)
+                self.kodi_db.update_ratings(showid,
+                                            PF.KODI_TYPE_SHOW,
+                                            "default",
+                                            rating,
+                                            None,  # votecount
+                                            ratingid)
+                # update new uniqueid Kodi 17
+                uniqueid = self.kodi_db.get_uniqueid(showid)
+                self.kodi_db.update_uniqueid(showid,
+                                             PF.KODI_TYPE_SHOW,
+                                             tvdb,
+                                             "tvdb",
+                                             uniqueid)
             # Update the tvshow entry
             query = ' '.join((
                 
@@ -580,7 +595,22 @@ class TVShows(Items):
         ##### OR ADD THE TVSHOW #####
         else:
             log.info("ADD tvshow itemid: %s - Title: %s" % (itemid, title))
-            
+            if KODIVERSION >= 17:
+                # add new ratings Kodi 17
+                ratingid = self.kodi_db.create_entry_rating()
+                self.kodi_db.add_ratings(ratingid,
+                                         showid,
+                                         PF.KODI_TYPE_SHOW,
+                                         "default",
+                                         rating,
+                                         None)  # votecount
+                # add new uniqueid Kodi 17
+                uniqueid = self.kodi_db.create_entry_uniqueid()
+                self.kodi_db.add_uniqueid(uniqueid,
+                                          showid,
+                                          PF.KODI_TYPE_SHOW,
+                                          tvdb,
+                                          "tvdb")
             query = ' '.join((
 
                 "UPDATE path",
