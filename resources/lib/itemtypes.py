@@ -848,7 +848,7 @@ class TVShows(Items):
             log.info("UPDATE episode itemid: %s" % (itemid))
 
             # Update the movie entry
-            if KODIVERSION in >= 16:
+            if KODIVERSION >= 16:
                 # Kodi Jarvis, Krypton
                 query = ' '.join((
                     "UPDATE episode",
