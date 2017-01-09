@@ -283,7 +283,6 @@ class PlaybackUtils():
         window('plex_playbackProps', value="true")
         self.currentPosition = 0
         for item in self.xml:
-            log.debug('item.attrib: %s' % item.attrib)
             api = API(item)
             if api.getType() == PLEX_TYPE_CLIP:
                 self.add_trailer(item)
