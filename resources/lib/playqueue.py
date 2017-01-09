@@ -141,7 +141,8 @@ class Playqueue(Thread):
                     del old[j], index[j]
                     break
             else:
-                log.debug('Detected new Kodi element: %s' % new_item)
+                log.debug('Detected new Kodi element at position %s: %s '
+                          % (i, new_item))
                 if playqueue.ID is None:
                     PL.init_Plex_playlist(playqueue,
                                           kodi_item=new_item)
@@ -149,6 +150,9 @@ class Playqueue(Thread):
                     PL.add_item_to_PMS_playlist(playqueue,
                                                 i,
                                                 kodi_item=new_item)
+                index.insert(i, i)
+                for j in range(i+1, len(index)):
+                    index[j] += 1
         for i in reversed(index):
             log.debug('Detected deletion of playqueue element at pos %s' % i)
             PL.delete_playlist_item_from_PMS(playqueue, i)
