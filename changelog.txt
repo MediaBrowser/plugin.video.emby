@@ -1,3 +1,14 @@
+version 1.5.2 (beta only)
+A DATABASE RESET IS ABSOLUTELY NECESSARY
+- Plex Companion is completely rewired and should now handly anything you throw at it
+- New playback startup mechanism for plugin paths
+- Krypton: add ratings and IMDB id for movies
+- Krypton: add ratings and theTvDB id for TV shows
+- Don't support Plex Companion mirror
+- Fix for Plex Companion not showing up
+- Code rebranding from Emby to Plex, including a plex.db database :-)
+- Lots of code refactoring and code optimizations
+
 version 1.5.1 (beta only)
 - Fix playstate and PMS item changes not working/not propagating anymore (caused by a change Plex made with the websocket interface). UPGRADE YOUR PMS!!
 - Improvements to the way PKC behaves if the PMS goes offline

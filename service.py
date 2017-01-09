@@ -122,7 +122,7 @@ class Service():
         videonodes.VideoNodes().clearProperties()
 
         # Set the minimum database version
-        window('plex_minDBVersion', value="1.1.5")
+        window('plex_minDBVersion', value="1.5.2")
 
     def getLogLevel(self):
         try:
