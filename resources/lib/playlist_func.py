@@ -253,7 +253,8 @@ def add_listitem_to_playlist(playlist, pos, listitem, kodi_id=None,
 
     If file is not None, file will overrule kodi_id!
     """
-    log.debug('add_listitem_to_playlist. Playlist before add: %s' % playlist)
+    log.debug('add_listitem_to_playlist at position %s. Playlist before add: '
+              '%s' % (pos, playlist))
     kodi_item = {'id': kodi_id, 'type': kodi_type, 'file': file}
     if playlist.ID is None:
         init_Plex_playlist(playlist, plex_id, kodi_item)

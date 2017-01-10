@@ -206,15 +206,15 @@ class PlaybackUtils():
                     api.set_listitem_artwork(listitem)
                     add_listitem_to_Kodi_playlist(
                         playqueue,
-                        self.currentPosition,
+                        self.currentPosition+1,
                         convert_PKC_to_listitem(listitem),
                         playurl,
-                        xml_video_element=item)
+                        kodi_item={'id': kodi_id, 'type': kodi_type})
                 else:
                     # Full metadata$
                     add_item_to_kodi_playlist(
                         playqueue,
-                        self.currentPosition,
+                        self.currentPosition+1,
                         kodi_id,
                         kodi_type)
                 self.currentPosition += 1
