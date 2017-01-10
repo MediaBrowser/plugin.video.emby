@@ -1420,6 +1420,26 @@ class Kodidb_Functions():
         '''
         self.cursor.execute(query, (args))
 
+    def get_uniqueid(self, media_id):
+        query = "SELECT uniqueid_id FROM uniqueid WHERE media_id = ?"
+        self.cursor.execute(query, (media_id,))
+        try:
+            uniqueid = self.cursor.fetchone()[0]
+        except TypeError:
+            uniqueid = None
+        return uniqueid
+
+    def update_uniqueid(self, *args):
+        """
+        Pass in media_id, media_type, value, type, uniqueid_id
+        """
+        query = '''
+            UPDATE uniqueid
+            SET media_id = ?, media_type = ?, value = ?, type = ?
+            WHERE uniqueid_id = ?
+        '''
+        self.cursor.execute(query, (args))
+
     def create_entry_rating(self):
         self.cursor.execute("select coalesce(max(rating_id),0) from rating")
         return self.cursor.fetchone()[0] + 1
