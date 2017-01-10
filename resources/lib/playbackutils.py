@@ -16,7 +16,7 @@ import downloadutils
 from PlexAPI import API
 from PlexFunctions import GetPlexPlaylist, KODITYPE_FROM_PLEXTYPE, \
     PLEX_TYPE_CLIP, PLEX_TYPE_MOVIE
-from PKC_listitem import PKC_ListItem as ListItem
+from PKC_listitem import PKC_ListItem as ListItem, convert_PKC_to_listitem
 from playlist_func import add_item_to_kodi_playlist, \
     get_playlist_details_from_xml, add_listitem_to_Kodi_playlist, \
     add_listitem_to_playlist, remove_from_Kodi_playlist
@@ -204,11 +204,17 @@ class PlaybackUtils():
                     api.CreateListItemFromPlexItem(listitem)
                     api.set_playback_win_props(playurl, listitem)
                     api.set_listitem_artwork(listitem)
-                    kodiPl.add(playurl, listitem, index=self.currentPosition+1)
+                    add_listitem_to_Kodi_playlist(
+                        playqueue,
+                        self.currentPosition,
+                        convert_PKC_to_listitem(listitem),
+                        playurl,
+                        xml_video_element=item)
                 else:
-                    # Full metadata
-                    self.pl.insertintoPlaylist(
-                        self.currentPosition+1,
+                    # Full metadata$
+                    add_item_to_kodi_playlist(
+                        playqueue,
+                        self.currentPosition,
                         kodi_id,
                         kodi_type)
                 self.currentPosition += 1
