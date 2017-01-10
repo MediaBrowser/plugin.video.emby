@@ -1,3 +1,7 @@
+version 1.5.3 (beta only)
+- Fix sync crashing due to AttributeError
+- Fix playback startup via PMS
+
 version 1.5.2 (beta only)
 A DATABASE RESET IS ABSOLUTELY NECESSARY
 - Plex Companion is completely rewired and should now handly anything you throw at it
