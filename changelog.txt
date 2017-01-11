@@ -1,3 +1,7 @@
+version 1.5.4 (beta only)
+- Fix IndexError for PKC communicating watch state
+- Fix for Plex Companion showing old video
+
 version 1.5.3 (beta only)
 - Fix sync crashing due to AttributeError
 - Fix playback startup via PMS
