@@ -150,7 +150,6 @@ class Playqueue(Thread):
                     PL.add_item_to_PMS_playlist(playqueue,
                                                 i,
                                                 kodi_item=new_item)
-                index.insert(i, i)
                 for j in range(i+1, len(index)):
                     index[j] += 1
         for i in reversed(index):
