@@ -242,6 +242,7 @@ def init_Plex_playlist(playlist, plex_id=None, kodi_item=None):
                            action_type="POST",
                            parameters=params)
     get_playlist_details_from_xml(playlist, xml)
+    item.ID = xml['lastAdded%sitemId' % playlist.type]
     playlist.items.append(item)
     log.debug('Initialized the playlist on the Plex side: %s' % playlist)
 
