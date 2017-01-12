@@ -667,7 +667,7 @@ class PlexAPI():
             url = '%s://%s:%s' % (protocol, address, port)
         else:
             url = data['uri']
-            protocol, address, port = url.split(':')
+            protocol, address, port = url.split(':', 2)
             address = address.replace('/', '')
 
         xml = self.doUtils('%s/identity' % url,
