@@ -250,16 +250,18 @@ class SubscriptionManager:
                 'shuffle': ("0", "1")[props.get('shuffled', False)],
                 'repeat': pf.getPlexRepeat(props.get('repeat')),
             }
-            if playqueue.ID is not None:
-                info['playQueueID'] = playqueue.ID
-                info['playQueueVersion'] = playqueue.version
-                # Get the playlist position
-                pos = self.js.jsonrpc(
-                    "Player.GetProperties",
-                    {"playerid": playerid,
-                     "properties": ["position"]})['position']
+            # Get the playlist position
+            pos = self.js.jsonrpc(
+                "Player.GetProperties",
+                {"playerid": playerid,
+                 "properties": ["position"]})['position']
+            try:
                 info['playQueueItemID'] = playqueue.items[pos].ID
                 info['guid'] = playqueue.items[pos].guid
+                info['playQueueID'] = playqueue.ID
+                info['playQueueVersion'] = playqueue.version
+            except:
+                pass
         except:
             import traceback
             log.error("Traceback:\n%s" % traceback.format_exc())
