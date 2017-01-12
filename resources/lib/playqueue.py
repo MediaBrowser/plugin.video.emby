@@ -150,7 +150,7 @@ class Playqueue(Thread):
                     PL.add_item_to_PMS_playlist(playqueue,
                                                 i,
                                                 kodi_item=new_item)
-                for j in range(i+1, len(index)):
+                for j in range(i, len(index)):
                     index[j] += 1
         for i in reversed(index):
             log.debug('Detected deletion of playqueue element at pos %s' % i)
