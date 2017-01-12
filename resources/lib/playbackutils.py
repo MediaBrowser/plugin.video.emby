@@ -292,24 +292,25 @@ class PlaybackUtils():
             api = API(item)
             if api.getType() == PLEX_TYPE_CLIP:
                 self.add_trailer(item)
-                continue
-            with Get_Plex_DB() as plex_db:
-                db_item = plex_db.getItem_byId(api.getRatingKey())
-            try:
-                add_item_to_kodi_playlist(self.playqueue,
-                                          self.currentPosition,
-                                          kodi_id=db_item[0],
-                                          kodi_type=db_item[4])
-                self.currentPosition += 1
-                if len(item[0]) > 1:
-                    self.add_part(item,
-                                  api,
-                                  db_item[0],
-                                  db_item[4])
-            except TypeError:
-                # Item not in Kodi DB
-                self.add_trailer(item)
-                continue
+            else:
+                with Get_Plex_DB() as plex_db:
+                    db_item = plex_db.getItem_byId(api.getRatingKey())
+                try:
+                    add_item_to_kodi_playlist(self.playqueue,
+                                              self.currentPosition,
+                                              kodi_id=db_item[0],
+                                              kodi_type=db_item[4])
+                    self.currentPosition += 1
+                    if len(item[0]) > 1:
+                        self.add_part(item,
+                                      api,
+                                      db_item[0],
+                                      db_item[4])
+                except TypeError:
+                    # Item not in Kodi DB
+                    self.add_trailer(item)
+            self.playqueue.items[self.currentPosition - 1].ID = item.get(
+                '%sItemID' % self.playqueue.kind)
 
     def add_trailer(self, item):
         # Playurl needs to point back so we can get metadata!
