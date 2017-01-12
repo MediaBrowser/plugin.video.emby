@@ -1,3 +1,11 @@
+version 1.5.5 (beta only)
+- Fix for Plex Companion showing last item played
+- Fix KeyError for playlists
+- Krypton: Fix playState notifications for 1 video
+- Fix Plex playQueue ID not being recorded 
+- Fix TypeError for Plex playQueue init
+- Fix ValueError for plex.tv URLs
+
 version 1.5.4 (beta only)
 - Fix IndexError for PKC communicating watch state
 - Fix for Plex Companion showing old video
