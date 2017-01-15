@@ -2372,7 +2372,7 @@ class API():
                 1080)
         else:
             # Don't transcode
-            if window('useDirectPaths') == '0':
+            if window('useDirectPaths') == 'true':
                 # Addon Mode. Just give the path of the file to Kodi
                 path = self.addPlexCredentialsToUrl(
                     '%s%s' % (window('pms_server'),
