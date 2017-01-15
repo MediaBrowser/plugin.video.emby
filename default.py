@@ -108,7 +108,7 @@ class Main():
 
         if "/extrafanart" in ARGV[0]:
             plexpath = ARGV[2][1:]
-            plexid = params.get('id', [""])
+            plexid = params.get('id')
             entrypoint.getExtraFanArt(plexid, plexpath)
             entrypoint.getVideoFiles(plexid, plexpath)
             return
@@ -138,20 +138,20 @@ class Main():
                 modes[mode](itemid)
                 
             elif mode == "browsecontent":
-                modes[mode](itemid, params.get('type',[""]), params.get('folderid',[""]))
+                modes[mode](itemid, params.get('type'), params.get('folderid'))
 
             elif mode == 'browseplex':
                 modes[mode](
                     itemid,
-                    params.get('type', [""]),
-                    params.get('folderid', [""]))
+                    params.get('type'),
+                    params.get('folderid'))
 
             elif mode in ('ondeck', 'recentepisodes'):
                 modes[mode](
                     itemid,
-                    params.get('type', [""]),
-                    params.get('tagname', [""]),
-                    int(params.get('limit', [""])))
+                    params.get('type'),
+                    params.get('tagname'),
+                    int(params.get('limit')))
 
             elif mode == "channelsfolder":
                 folderid = params['folderid']
