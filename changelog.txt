@@ -1,3 +1,10 @@
+version 1.5.6 (beta only)
+- Fix playstate not being reported to the PMS
+- Added logging to hopefully find Plex Cloud info. Please report back with your logs if you're trying to connect to Plex Cloud (do remove your tokens!)
+- Transcode pictures if Kodi does not support the format - thanks @Memesa!
+- Added setting to force transcode pictures
+- Fix to some playQueue errors
+
 version 1.5.5 (beta only)
 - Fix for Plex Companion showing last item played
 - Fix KeyError for playlists
