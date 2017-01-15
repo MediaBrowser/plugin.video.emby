@@ -53,6 +53,7 @@ class KodiMonitor(Monitor):
             'dbSyncIndicator': 'dbSyncIndicator',
             'remapSMB': 'remapSMB',
             'replaceSMB': 'replaceSMB',
+            'force_transcode_pix': 'plex_force_transcode_pix'
         }
         # Path replacement
         for typus in REMAP_TYPE_FROM_PLEXTYPE.values():

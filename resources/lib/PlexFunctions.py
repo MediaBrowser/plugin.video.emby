@@ -147,6 +147,23 @@ REMAP_TYPE_FROM_PLEXTYPE = {
 }
 
 
+# extensions from:
+# http://kodi.wiki/view/Features_and_supported_codecs#Format_support (RAW image
+# formats, BMP, JPEG, GIF, PNG, TIFF, MNG, ICO, PCX and Targa/TGA)
+KODI_SUPPORTED_IMAGES = (
+    '.bmp',
+    '.jpg',
+    '.jpeg',
+    '.gif',
+    '.png',
+    '.tiff',
+    '.mng',
+    '.ico',
+    '.pcx',
+    '.tga'
+)
+
+
 def ConvertPlexToKodiTime(plexTime):
     """
     Converts Plextime to Koditime. Returns an int (in seconds).

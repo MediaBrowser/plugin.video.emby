@@ -113,7 +113,7 @@ class Service():
             "suspend_LibraryThread", "plex_terminateNow",
             "kodiplextimeoffset", "countError", "countUnauthorized",
             "plex_restricteduser", "plex_allows_mediaDeletion",
-            "plex_play_new_item", "plex_result"
+            "plex_play_new_item", "plex_result", "plex_force_transcode_pix"
         ]
         for prop in properties:
             window(prop, clear=True)

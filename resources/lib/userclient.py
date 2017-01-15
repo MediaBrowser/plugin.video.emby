@@ -180,6 +180,8 @@ class UserClient(threading.Thread):
 
         window('useDirectPaths', value='true'
                if settings('useDirectPaths') == "1" else 'false')
+        window('plex_force_transcode_pix', value='true'
+               if settings('force_transcode_pix') == "1" else 'false')
 
         # Start DownloadUtils session
         doUtils.startSession(reset=True)
