@@ -2361,7 +2361,14 @@ class API():
         listItem.setProperty('IsPlayable', 'true')
         if settings('useDirectPaths') == '0':
             # Addon paths
-            path = self.addPlexCredentialsToUrl(
+            if not self.item[0][0].attrib['key'][self.item[0][0].attrib['key'].rfind('.'):].lower() in ('.bmp', '.jpg', '.jpeg', '.gif', '.png', '.tiff', '.mng', '.ico', '.pcx', '.tga'):
+                # Check if Kodi supports the file, if not transcode it by Plex
+                # extensions from: http://kodi.wiki/view/Features_and_supported_codecs#Format_support (RAW image formats, BMP, JPEG, GIF, PNG, TIFF, MNG, ICO, PCX and Targa/TGA)
+                path = str(self.server) + str(PlexAPI().getTranscodeImagePath(self.item[0][0].attrib.get('key'), window('pms_token'), "%s%s" % (self.server, self.item[0][0].attrib.get('key')), 1920, 1080))
+                # max width/height supported by plex image transcoder is 1920x1080
+            else:
+                # Just give the path of the file to Kodi
+                path = self.addPlexCredentialsToUrl(
                 '%s%s' % (window('pms_server'),
                           self.item[0][0].attrib['key']))
         else:
