@@ -160,8 +160,8 @@ class SubscriptionManager:
             with threading.RLock():
                 for sub in self.subscribers.values():
                     sub.send_update(msg, len(players) == 0)
-                self.notifyServer(players)
-                self.lastplayers = players
+        self.notifyServer(players)
+        self.lastplayers = players
         return True
 
     def notifyServer(self, players):
