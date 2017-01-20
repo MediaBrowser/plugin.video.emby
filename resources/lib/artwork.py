@@ -259,7 +259,7 @@ class Artwork():
         connection = kodiSQL('video')
         cursor = connection.cursor()
         # dont include actors
-        cursor.execute("SELECT url FROM art")
+        cursor.execute("SELECT url FROM art WHERE media_type != 'actor'")
         result = cursor.fetchall()
         total = len(result)
         log.info("Image cache sync about to process %s video images" % total)
