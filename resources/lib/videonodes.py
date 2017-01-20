@@ -59,11 +59,19 @@ class VideoNodes(object):
             dirname = "%s-%s" % (viewid, mediatype)
         else:
             dirname = viewid
-        
+
         path = tryDecode(xbmc.translatePath(
             "special://profile/library/video/"))
         nodepath = tryDecode(xbmc.translatePath(
             "special://profile/library/video/Plex-%s/" % dirname))
+
+        if delete:
+            dirs, files = xbmcvfs.listdir(tryEncode(nodepath))
+            for file in files:
+                xbmcvfs.delete(tryEncode(
+                    (nodepath + tryDecode(file))))
+            log.info("Sucessfully removed videonode: %s." % tagname)
+            return
 
         # Verify the video directory
         # KODI BUG
@@ -82,14 +90,6 @@ class VideoNodes(object):
                 # folder does not exist yet
                 log.debug('Creating folder %s' % nodepath)
                 xbmcvfs.mkdirs(tryEncode(nodepath))
-                if delete:
-                    dirs, files = xbmcvfs.listdir(tryEncode(nodepath))
-                    for file in files:
-                        xbmcvfs.delete(tryEncode(
-                            (nodepath + tryDecode(file))))
-
-                log.info("Sucessfully removed videonode: %s." % tagname)
-                return
 
         # Create index entry
         nodeXML = "%sindex.xml" % nodepath
