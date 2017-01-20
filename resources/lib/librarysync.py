@@ -15,7 +15,8 @@ from utils import window, settings, getUnixTimestamp, sourcesXML,\
     ThreadMethods, ThreadMethodsAdditionalStop, LogTime, getScreensaver,\
     setScreensaver, playlistXSP, language as lang, DateToKodi, reset,\
     advancedSettingsXML, getKodiVideoDBPath, tryDecode, deletePlaylists,\
-    deleteNodes, ThreadMethodsAdditionalSuspend, create_actor_db_index
+    deleteNodes, ThreadMethodsAdditionalSuspend, create_actor_db_index, \
+    tryEncode
 import clientinfo
 import downloadutils
 import itemtypes
@@ -23,6 +24,7 @@ import plexdb_functions as plexdb
 import kodidb_functions as kodidb
 import userclient
 import videonodes
+import artwork
 
 import PlexFunctions as PF
 import PlexAPI
@@ -1792,7 +1794,6 @@ class LibrarySync(Thread):
                     # "Current Kodi version is unsupported, cancel lib sync"
                     self.dialog.ok(heading=addonName, line1=lang(39403))
                     break
-
                 # Run start up sync
                 window('plex_dbScan', value="true")
                 log.info("Db version: %s" % settings('dbCreatedWithVersion'))
@@ -1800,6 +1801,11 @@ class LibrarySync(Thread):
                 # Initialize time offset Kodi - PMS
                 self.syncPMStime()
                 lastSync = getUnixTimestamp()
+                if settings('enableTextureCache') == "true":
+                    # Start caching artwork that has not been cached yet
+                    for url in artwork.get_uncached_artwork():
+                        artwork.ARTWORK_QUEUE.put(
+                            artwork.double_urlencode(tryEncode((url))))
                 log.info('Refreshing video nodes and playlists now')
                 deletePlaylists()
                 deleteNodes()
@@ -1874,7 +1880,6 @@ class LibrarySync(Thread):
                 elif window('plex_runLibScan') == 'del_textures':
                     window('plex_runLibScan', clear=True)
                     window('plex_dbScan', value="true")
-                    import artwork
                     artwork.Artwork().fullTextureCacheSync()
                     window('plex_dbScan', clear=True)
                 else:
