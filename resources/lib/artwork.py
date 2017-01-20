@@ -166,7 +166,7 @@ class Image_Cache_Thread(Thread):
             except Empty:
                 sleep(1000)
                 continue
-            sleep = 0
+            sleeptime = 0
             while True:
                 try:
                     requests.head(
@@ -181,16 +181,16 @@ class Image_Cache_Thread(Thread):
                 except requests.ConnectionError:
                     # Server thinks its a DOS attack, ('error 10053')
                     # Wait before trying again
-                    if sleep > 5:
+                    if sleeptime > 5:
                         log.error('Repeatedly got ConnectionError for url %s'
                                   % double_urldecode(url))
                         break
                     log.debug('Were trying too hard to download art, server '
                               'over-loaded. Sleep %s seconds before trying '
                               'again to download %s'
-                              % (2**sleep, double_urldecode(url)))
-                    sleep((2**sleep)*1000)
-                    sleep += 1
+                              % (2**sleeptime, double_urldecode(url)))
+                    sleep((2**sleeptime)*1000)
+                    sleeptime += 1
                     continue
                 except Exception as e:
                     log.error('Unknown exception for url %s: %s'
