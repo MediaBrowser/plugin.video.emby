@@ -88,6 +88,8 @@ class Service():
                value=xbmc.translatePath("special://profile"))
         window('plex_context',
                value='true' if settings('enableContext') == "true" else "")
+        window('fetch_pms_item_number',
+               value=settings('fetch_pms_item_number'))
 
         # Initial logging
         log.warn("======== START %s ========" % addonName)

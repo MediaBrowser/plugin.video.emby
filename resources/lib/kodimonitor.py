@@ -53,7 +53,8 @@ class KodiMonitor(Monitor):
             'dbSyncIndicator': 'dbSyncIndicator',
             'remapSMB': 'remapSMB',
             'replaceSMB': 'replaceSMB',
-            'force_transcode_pix': 'plex_force_transcode_pix'
+            'force_transcode_pix': 'plex_force_transcode_pix',
+            'fetch_pms_item_number': 'fetch_pms_item_number'
         }
         # Path replacement
         for typus in REMAP_TYPE_FROM_PLEXTYPE.values():
@@ -66,6 +67,9 @@ class KodiMonitor(Monitor):
                 log.debug('PKC settings changed: %s is now %s'
                           % (settings_value, settings(settings_value)))
                 window(window_value, value=settings(settings_value))
+                if settings_value == 'fetch_pms_item_number':
+                    log.info('Requesting playlist/nodes refresh')
+                    window('plex_runLibScan', value="views")
 
     @CatchExceptions(warnuser=False)
     def onNotification(self, sender, method, data):
