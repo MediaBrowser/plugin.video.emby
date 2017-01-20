@@ -411,7 +411,8 @@ class Artwork():
             cursor.execute(query, (imageUrl, kodiId, mediaType, imageType))
 
         # Cache fanart and poster in Kodi texture cache
-        self.cacheTexture(imageUrl)
+        if mediaType != 'actor':
+            self.cacheTexture(imageUrl)
 
     def deleteArtwork(self, kodiId, mediaType, cursor):
         query = ' '.join((
