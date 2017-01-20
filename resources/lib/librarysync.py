@@ -1797,11 +1797,19 @@ class LibrarySync(Thread):
                 window('plex_dbScan', value="true")
                 log.info("Db version: %s" % settings('dbCreatedWithVersion'))
                 lastTimeSync = getUnixTimestamp()
-                self.syncPMStime()
-                log.info("Initial start-up full sync starting")
-                lastSync = getUnixTimestamp()
-                librarySync = fullSync()
                 # Initialize time offset Kodi - PMS
+                self.syncPMStime()
+                lastSync = getUnixTimestamp()
+                log.info('Refreshing video nodes and playlists now')
+                deletePlaylists()
+                deleteNodes()
+                # Kick off refresh
+                if self.maintainViews() is True:
+                    log.info("Refresh playlists/nodes completed")
+                else:
+                    log.error("Refresh playlists/nodes failed")
+                log.info("Initial start-up full sync starting")
+                librarySync = fullSync()
                 window('plex_dbScan', clear=True)
                 if librarySync:
                     log.info("Initial start-up full sync successful")
