@@ -470,6 +470,11 @@ class PlexAPI():
                                        'data': data})
                 except socket.timeout:
                     break
+        except Exception as e:
+            # Probably error: (101, 'Network is unreachable')
+            log.error(e)
+            import traceback
+            log.error("Traceback:\n%s" % traceback.format_exc())
         finally:
             GDM.close()
 
