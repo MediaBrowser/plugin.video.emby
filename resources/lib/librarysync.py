@@ -1803,11 +1803,6 @@ class LibrarySync(Thread):
                 log.info('Refreshing video nodes and playlists now')
                 deletePlaylists()
                 deleteNodes()
-                # Kick off refresh
-                if self.maintainViews() is True:
-                    log.info("Refresh playlists/nodes completed")
-                else:
-                    log.error("Refresh playlists/nodes failed")
                 log.info("Initial start-up full sync starting")
                 librarySync = fullSync()
                 window('plex_dbScan', clear=True)
