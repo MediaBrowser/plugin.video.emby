@@ -1,3 +1,13 @@
+version 1.5.7 (beta only)
+- Cache missing artwork on PKC startup
+- Customize number of items fetched from PMS
+- Don't cache actor artwork 
+- Fix some connection issues 
+- Do a video node refresh on startup
+- More logging to find Plex Cloud info
+- Prevent OperationalError: database is locked
+- Rewire image cache thread to service.py
+
 version 1.5.6 (beta only)
 - Fix playstate not being reported to the PMS
 - Added logging to hopefully find Plex Cloud info. Please report back with your logs if you're trying to connect to Plex Cloud (do remove your tokens!)
