@@ -1,17 +1,17 @@
 # -*- coding: utf-8 -*-
 
 ###############################################################################
-import json
 import logging
+from json import dumps, loads
 import requests
-import os
+from os import path as os_path
 from urllib import quote_plus, unquote
 from threading import Thread
-import Queue
+from Queue import Queue, Empty
 
-import xbmc
-import xbmcgui
-import xbmcvfs
+from xbmc import executeJSONRPC, sleep, translatePath
+from xbmcgui import Dialog
+from xbmcvfs import listdir, delete
 
 from utils import window, settings, language as lang, kodiSQL, tryEncode, \
     tryDecode, IfExists, ThreadMethods, ThreadMethodsAdditionalStop
@@ -24,6 +24,8 @@ requests.packages.urllib3.disable_warnings()
 log = logging.getLogger("PLEX."+__name__)
 
 ###############################################################################
+
+ARTWORK_QUEUE = Queue()
 
 
 def setKodiWebServerDetails():
@@ -41,8 +43,8 @@ def setKodiWebServerDetails():
             "setting": "services.webserver"
         }
     }
-    result = xbmc.executeJSONRPC(json.dumps(web_query))
-    result = json.loads(result)
+    result = executeJSONRPC(dumps(web_query))
+    result = loads(result)
     try:
         xbmc_webserver_enabled = result['result']['value']
     except (KeyError, TypeError):
@@ -58,7 +60,7 @@ def setKodiWebServerDetails():
                 "value": 8080
             }
         }
-        result = xbmc.executeJSONRPC(json.dumps(web_port))
+        result = executeJSONRPC(dumps(web_port))
         xbmc_port = 8080
         web_user = {
             "jsonrpc": "2.0",
@@ -69,7 +71,7 @@ def setKodiWebServerDetails():
                 "value": True
             }
         }
-        result = xbmc.executeJSONRPC(json.dumps(web_user))
+        result = executeJSONRPC(dumps(web_user))
         xbmc_username = "kodi"
     # Webserver already enabled
     web_port = {
@@ -80,8 +82,8 @@ def setKodiWebServerDetails():
             "setting": "services.webserverport"
         }
     }
-    result = xbmc.executeJSONRPC(json.dumps(web_port))
-    result = json.loads(result)
+    result = executeJSONRPC(dumps(web_port))
+    result = loads(result)
     try:
         xbmc_port = result['result']['value']
     except (TypeError, KeyError):
@@ -94,8 +96,8 @@ def setKodiWebServerDetails():
             "setting": "services.webserverusername"
         }
     }
-    result = xbmc.executeJSONRPC(json.dumps(web_user))
-    result = json.loads(result)
+    result = executeJSONRPC(dumps(web_user))
+    result = loads(result)
     try:
         xbmc_username = result['result']['value']
     except TypeError:
@@ -108,8 +110,8 @@ def setKodiWebServerDetails():
             "setting": "services.webserverpassword"
         }
     }
-    result = xbmc.executeJSONRPC(json.dumps(web_pass))
-    result = json.loads(result)
+    result = executeJSONRPC(dumps(web_pass))
+    result = loads(result)
     try:
         xbmc_password = result['result']['value']
     except TypeError:
@@ -135,8 +137,8 @@ class Image_Cache_Thread(Thread):
     # Hence let Kodi wait till download is successful
     timeout = (35.1, 35.1)
 
-    def __init__(self, queue):
-        self.queue = queue
+    def __init__(self):
+        self.queue = ARTWORK_QUEUE
         Thread.__init__(self)
 
     def threadSuspended(self):
@@ -158,11 +160,11 @@ class Image_Cache_Thread(Thread):
                     # Abort was requested while waiting. We should exit
                     log.info("---===### Stopped Image_Cache_Thread ###===---")
                     return
-                xbmc.sleep(1000)
+                sleep(1000)
             try:
                 url = queue.get(block=False)
-            except Queue.Empty:
-                xbmc.sleep(1000)
+            except Empty:
+                sleep(1000)
                 continue
             sleep = 0
             while True:
@@ -187,7 +189,7 @@ class Image_Cache_Thread(Thread):
                               'over-loaded. Sleep %s seconds before trying '
                               'again to download %s'
                               % (2**sleep, double_urldecode(url)))
-                    xbmc.sleep((2**sleep)*1000)
+                    sleep((2**sleep)*1000)
                     sleep += 1
                     continue
                 except Exception as e:
@@ -201,45 +203,43 @@ class Image_Cache_Thread(Thread):
             queue.task_done()
             log.debug('Cached art: %s' % double_urldecode(url))
             # Sleep for a bit to reduce CPU strain
-            xbmc.sleep(sleep_between)
+            sleep(sleep_between)
         log.info("---===### Stopped Image_Cache_Thread ###===---")
 
 
 class Artwork():
     enableTextureCache = settings('enableTextureCache') == "true"
     if enableTextureCache:
-        queue = Queue.Queue()
-        download_thread = Image_Cache_Thread(queue)
-        download_thread.start()
+        queue = ARTWORK_QUEUE
 
     def fullTextureCacheSync(self):
         """
         This method will sync all Kodi artwork to textures13.db
         and cache them locally. This takes diskspace!
         """
-        if not xbmcgui.Dialog().yesno(
+        if not Dialog().yesno(
                 "Image Texture Cache", lang(39250)):
             return
 
         log.info("Doing Image Cache Sync")
 
         # ask to rest all existing or not
-        if xbmcgui.Dialog().yesno(
+        if Dialog().yesno(
                 "Image Texture Cache", lang(39251), ""):
             log.info("Resetting all cache data first")
             # Remove all existing textures first
-            path = tryDecode(xbmc.translatePath("special://thumbnails/"))
+            path = tryDecode(translatePath("special://thumbnails/"))
             if IfExists(path):
-                allDirs, allFiles = xbmcvfs.listdir(path)
+                allDirs, allFiles = listdir(path)
                 for dir in allDirs:
-                    allDirs, allFiles = xbmcvfs.listdir(path+dir)
+                    allDirs, allFiles = listdir(path+dir)
                     for file in allFiles:
-                        if os.path.supports_unicode_filenames:
-                            xbmcvfs.delete(os.path.join(
+                        if os_path.supports_unicode_filenames:
+                            delete(os_path.join(
                                 path + tryDecode(dir),
                                 tryDecode(file)))
                         else:
-                            xbmcvfs.delete(os.path.join(
+                            delete(os_path.join(
                                 tryEncode(path) + dir,
                                 file))
 
@@ -439,10 +439,10 @@ class Artwork():
         else:
             # Delete thumbnail as well as the entry
             thumbnails = tryDecode(
-                xbmc.translatePath("special://thumbnails/%s" % cachedurl))
+                translatePath("special://thumbnails/%s" % cachedurl))
             log.debug("Deleting cached thumbnail: %s" % thumbnails)
             try:
-                xbmcvfs.delete(thumbnails)
+                delete(thumbnails)
             except Exception as e:
                 log.error('Could not delete cached artwork %s. Error: %s'
                           % (thumbnails, e))

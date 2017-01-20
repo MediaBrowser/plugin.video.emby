@@ -46,6 +46,7 @@ import PlexAPI
 from PlexCompanion import PlexCompanion
 from monitor_kodi_play import Monitor_Kodi_Play
 from playback_starter import Playback_Starter
+from artwork import Image_Cache_Thread
 
 ###############################################################################
 
@@ -76,6 +77,7 @@ class Service():
     playqueue_running = False
     kodimonitor_running = False
     playback_starter_running = False
+    image_cache_thread_running = False
 
     def __init__(self):
 
@@ -153,6 +155,8 @@ class Service():
         self.plexCompanion = PlexCompanion(self)
         self.playqueue = Playqueue(self)
         self.playback_starter = Playback_Starter(self)
+        if settings('enableTextureCache') == "true":
+            self.image_cache_thread = Image_Cache_Thread()
 
         plx = PlexAPI.PlexAPI()
 
@@ -211,6 +215,9 @@ class Service():
                         if not self.playback_starter_running:
                             self.playback_starter_running = True
                             self.playback_starter.start()
+                        if not self.image_cache_thread_running:
+                            self.image_cache_thread_running = True
+                            self.image_cache_thread.start()
                 else:
                     if (self.user.currUser is None) and self.warn_auth:
                         # Alert user is not authenticated and suppress future
