@@ -337,9 +337,9 @@ def add_item_to_PMS_playlist(playlist, pos, plex_id=None, kodi_item=None):
 def add_item_to_kodi_playlist(playlist, pos, kodi_id=None, kodi_type=None,
                               file=None):
     """
-    Adds an item to the KODI playlist only
+    Adds an item to the KODI playlist only. WILL ALSO UPDATE OUR PLAYLISTS
 
-    WILL ALSO UPDATE OUR PLAYLISTS
+    Returns False if unsuccessful
     """
     log.debug('Adding new item kodi_id: %s, kodi_type: %s, file: %s to Kodi '
               'only at position %s for %s'
@@ -352,9 +352,14 @@ def add_item_to_kodi_playlist(playlist, pos, kodi_id=None, kodi_type=None,
         params['item'] = {'%sid' % kodi_type: int(kodi_id)}
     else:
         params['item'] = {'file': file}
-    log.debug(JSONRPC('Playlist.Insert').execute(params))
-    playlist.items.insert(pos, playlist_item_from_kodi(
-        {'id': kodi_id, 'type': kodi_type, 'file': file}))
+    reply = JSONRPC('Playlist.Insert').execute(params)
+    if reply.get('error') is not None:
+        log.error('Could not add item to playlist. Kodi reply. %s' % reply)
+        return False
+    else:
+        playlist.items.insert(pos, playlist_item_from_kodi(
+            {'id': kodi_id, 'type': kodi_type, 'file': file}))
+        return True
 
 
 def move_playlist_item(playlist, before_pos, after_pos):
