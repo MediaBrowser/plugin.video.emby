@@ -672,6 +672,8 @@ class PlexAPI():
             url = '%s://%s:%s' % (protocol, address, port)
         else:
             url = data['uri']
+            if url.count(':') == 1:
+                url = '%s:%s' % (url, data['port'])
             protocol, address, port = url.split(':', 2)
             address = address.replace('/', '')
 
