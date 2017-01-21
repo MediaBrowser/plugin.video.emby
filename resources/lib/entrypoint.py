@@ -162,7 +162,6 @@ def doMainListing():
     xbmcplugin.setContent(int(sys.argv[1]), 'files')
     # Get emby nodes from the window props
     plexprops = window('Plex.nodes.total')
-    log.debug('Plex.nodes.total: %s' % plexprops)
     if plexprops:
         totalnodes = int(plexprops)
         for i in range(totalnodes):
@@ -171,7 +170,6 @@ def doMainListing():
                 path = window('Plex.nodes.%s.content' % i)
             label = window('Plex.nodes.%s.title' % i)
             node_type = window('Plex.nodes.%s.type' % i)
-            log.debug('path %s, label: %s, node_type: %s' % (path, label, node_type))
             #because we do not use seperate entrypoints for each content type, we need to figure out which items to show in each listing.
             #for now we just only show picture nodes in the picture library video nodes in the video library and all nodes in any other window
             if path and xbmc.getCondVisibility("Window.IsActive(Pictures)") and node_type == "photos":
