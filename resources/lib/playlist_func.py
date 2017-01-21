@@ -219,7 +219,9 @@ def update_playlist_from_PMS(playlist, playlist_id=None, xml=None):
     # Set new values
     get_playlist_details_from_xml(playlist, xml)
     for plex_item in xml:
-        playlist.items.append(add_to_Kodi_playlist(playlist, plex_item))
+        playlist_item = add_to_Kodi_playlist(playlist, plex_item)
+        if playlist_item is not None:
+            playlist.items.append(playlist_item)
 
 
 def init_Plex_playlist(playlist, plex_id=None, kodi_item=None):
@@ -477,7 +479,7 @@ def add_to_Kodi_playlist(playlist, xml_video_element):
     Adds a new item to the Kodi playlist via JSON (at the end of the playlist).
     Pass in the PMS xml's video element (one level underneath MediaContainer).
 
-    Returns a Playlist_Item
+    Returns a Playlist_Item or None if it did not work
     """
     item = playlist_item_from_xml(playlist, xml_video_element)
     params = {
@@ -487,8 +489,13 @@ def add_to_Kodi_playlist(playlist, xml_video_element):
         params['item'] = {'%sid' % item.kodi_type: item.kodi_id}
     else:
         params['item'] = {'file': tryEncode(item.file)}
-    log.debug(JSONRPC('Playlist.Add').execute(params))
-    return item
+    reply = JSONRPC('Playlist.Add').execute(params)
+    if reply.get('error') is not None:
+        log.error('Could not add item %s to Kodi playlist. Error: %s'
+                  % (xml_video_element, reply))
+        return None
+    else:
+        return item
 
 
 def add_listitem_to_Kodi_playlist(playlist, pos, listitem, file,
@@ -519,8 +526,16 @@ def remove_from_Kodi_playlist(playlist, pos):
     WILL NOT UPDATE THE PLEX SIDE, BUT WILL UPDATE OUR PLAYLISTS
     """
     log.debug('Removing position %s from Kodi only from %s' % (pos, playlist))
-    log.debug(JSONRPC('Playlist.Remove').execute({
+    reply = JSONRPC('Playlist.Remove').execute({
         'playlistid': playlist.playlistid,
         'position': pos
-    }))
-    del playlist.items[pos]
+    })
+    if reply.get('error') is not None:
+        log.error('Could not delete the item from the playlist. Error: %s'
+                  % reply)
+        return
+    else:
+        try:
+            del playlist.items[pos]
+        except IndexError:
+            log.error('Cannot delete position %s for %s' % (pos, playlist))
