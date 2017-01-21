@@ -587,8 +587,6 @@ class PlexAPI():
         for item in xml:
             log.debug('Plex.tv entry name: %s, data: %s'
                       % (item.tag, item.attrib))
-            for con in item:
-                log.debug('Connection %s: %s' % (con.tag, con.attrib))
         for Dir in xml.findall('Device'):
             if 'server' not in Dir.get('provides'):
                 # No PMS - skip
