@@ -581,12 +581,6 @@ class PlexAPI():
         threadQueue = []
 
         maxAgeSeconds = 2*60*60*24
-        # Temporary increase logging to find Plex cloud info
-        log.debug('Listing all entries of plex.tv reply to hopefully find Plex'
-                  ' Cloud info. TREAT WITH CARE AND DONT SHARE!')
-        for item in xml:
-            log.debug('Plex.tv entry name: %s, data: %s'
-                      % (item.tag, item.attrib))
         for Dir in xml.findall('Device'):
             if 'server' not in Dir.get('provides'):
                 # No PMS - skip
