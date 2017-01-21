@@ -1,3 +1,8 @@
+version 1.5.8 (beta only)
+- Hopefully compatibility with Plex Cloud
+- Get rid of some logging
+- Add some error checking for playlists
+
 version 1.5.7 (beta only)
 - Cache missing artwork on PKC startup
 - Customize number of items fetched from PMS
