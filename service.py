@@ -33,7 +33,6 @@ sys.path.append(_base_resource)
 
 from utils import settings, window, language as lang
 from userclient import UserClient
-import clientinfo
 import initialsetup
 from kodimonitor import KodiMonitor
 from librarysync import LibrarySync
@@ -47,6 +46,7 @@ from PlexCompanion import PlexCompanion
 from monitor_kodi_play import Monitor_Kodi_Play
 from playback_starter import Playback_Starter
 from artwork import Image_Cache_Thread
+import variables as v
 
 ###############################################################################
 
@@ -80,7 +80,6 @@ class Service():
 
     def __init__(self):
 
-        self.clientInfo = clientinfo.ClientInfo()
         logLevel = self.getLogLevel()
         self.monitor = xbmc.Monitor()
 
@@ -93,11 +92,10 @@ class Service():
                value=settings('fetch_pms_item_number'))
 
         # Initial logging
-        log.warn("======== START %s ========" % lang(29999))
-        log.warn("Platform: %s" % (self.clientInfo.getPlatform()))
+        log.warn("======== START %s ========" % v.ADDON_NAME)
+        log.warn("Platform: %s" % v.PLATFORM)
         log.warn("KODI Version: %s" % xbmc.getInfoLabel('System.BuildVersion'))
-        log.warn("%s Version: %s"
-                 % (lang(29999), self.clientInfo.getVersion()))
+        log.warn("%s Version: %s" % (v.ADDON_NAME, v.ADDON_VERSION))
         log.warn("Using plugin paths: %s"
                  % (settings('useDirectPaths') != "true"))
         log.warn("Number of sync threads: %s"
@@ -340,7 +338,7 @@ class Service():
         except:
             pass
 
-        log.warn("======== STOP %s ========" % lang(29999))
+        log.warn("======== STOP %s ========" % v.ADDON_NAME)
 
 # Delay option
 delay = int(settings('startupDelay'))

@@ -17,7 +17,6 @@ from utils import window, settings, getUnixTimestamp, sourcesXML,\
     advancedSettingsXML, getKodiVideoDBPath, tryDecode, deletePlaylists,\
     deleteNodes, ThreadMethodsAdditionalSuspend, create_actor_db_index, \
     tryEncode
-import clientinfo
 import downloadutils
 import itemtypes
 import plexdb_functions as plexdb
@@ -372,7 +371,6 @@ class LibrarySync(Thread):
 
         self.fullSyncInterval = int(settings('fullSyncInterval')) * 60
 
-        self.clientInfo = clientinfo.ClientInfo()
         self.user = userclient.UserClient()
         self.vnodes = videonodes.VideoNodes()
         self.dialog = xbmcgui.Dialog()
@@ -1816,8 +1814,7 @@ class LibrarySync(Thread):
                     log.info("Initial start-up full sync successful")
                     startupComplete = True
                     settings('SyncInstallRunDone', value="true")
-                    settings("dbCreatedWithVersion",
-                             self.clientInfo.getVersion())
+                    settings("dbCreatedWithVersion", v.ADDON_VERSION)
                     installSyncDone = True
                 else:
                     log.error("Initial start-up full sync unsuccessful")

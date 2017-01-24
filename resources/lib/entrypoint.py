@@ -15,7 +15,6 @@ import xbmcplugin
 
 from utils import window, settings, language as lang
 from utils import tryDecode, tryEncode, CatchExceptions
-import clientinfo
 import downloadutils
 import plexdb_functions as plexdb
 import playbackutils as pbutils
@@ -204,8 +203,9 @@ def resetDeviceId():
     dialog = xbmcgui.Dialog()
 
     deviceId_old = window('plex_client_Id')
+    from clientinfo import getDeviceId
     try:
-        deviceId = clientinfo.ClientInfo().getDeviceId(reset=True)
+        deviceId = getDeviceId(reset=True)
     except Exception as e:
         log.error("Failed to generate a new device Id: %s" % e)
         dialog.ok(heading=lang(29999), line1=lang(33032))

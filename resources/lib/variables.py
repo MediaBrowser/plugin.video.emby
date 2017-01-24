@@ -1,8 +1,39 @@
 # -*- coding: utf-8 -*-
 import xbmc
+from xbmcaddon import Addon
+from utils import settings, tryDecode
+
+ADDON_NAME = 'PlexKodiConnect'
+ADDON_ID = 'plugin.video.plexkodiconnect'
+ADDON_VERSION = Addon().getAddonInfo('version')
 
 KODILANGUAGE = xbmc.getLanguage(xbmc.ISO_639_1)
 KODIVERSION = int(xbmc.getInfoLabel("System.BuildVersion")[:2])
+
+if xbmc.getCondVisibility('system.platform.osx'):
+    PLATFORM = "MacOSX"
+elif xbmc.getCondVisibility('system.platform.atv2'):
+    PLATFORM = "AppleTV2"
+elif xbmc.getCondVisibility('system.platform.ios'):
+    PLATFORM = "iOS"
+elif xbmc.getCondVisibility('system.platform.windows'):
+    PLATFORM = "Windows"
+elif xbmc.getCondVisibility('system.platform.raspberrypi'):
+    PLATFORM = "RaspberryPi"
+elif xbmc.getCondVisibility('system.platform.linux'):
+    PLATFORM = "Linux"
+elif xbmc.getCondVisibility('system.platform.android'):
+    PLATFORM = "Android"
+else:
+    PLATFORM = "Unknown"
+
+if settings('deviceNameOpt') == "false":
+    # Use Kodi's deviceName
+    DEVICENAME = tryDecode(xbmc.getInfoLabel('System.FriendlyName'))
+else:
+    DEVICENAME = settings('deviceName')
+    DEVICENAME = DEVICENAME.replace("\"", "_")
+    DEVICENAME = DEVICENAME.replace("/", "_")
 
 # Multiply Plex time by this factor to receive Kodi time
 PLEX_TO_KODI_TIMEFACTOR = 1.0 / 1000.0

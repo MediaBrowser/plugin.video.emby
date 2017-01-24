@@ -45,7 +45,7 @@ import xbmcgui
 import xbmc
 import xbmcvfs
 
-import clientinfo
+import clientinfo as client
 import downloadutils
 from utils import window, settings, language as lang, tryDecode, tryEncode, \
     DateToKodi
@@ -70,7 +70,6 @@ class PlexAPI():
     def __init__(self):
         self.g_PMS = {}
         self.doUtils = downloadutils.DownloadUtils().downloadUrl
-        self.client = clientinfo.ClientInfo()
 
     def GetPlexLoginFromSettings(self):
         """
@@ -131,7 +130,7 @@ class PlexAPI():
                 retrievedPlexLogin, authtoken = self.MyPlexSignIn(
                     plexLogin,
                     plexPassword,
-                    {'X-Plex-Client-Identifier': self.client.getDeviceId()})
+                    {'X-Plex-Client-Identifier': window('plex_client_Id')})
                 log.debug("plex.tv username and token: %s, %s"
                           % (plexLogin, authtoken))
                 if plexLogin == '':
@@ -721,7 +720,7 @@ class PlexAPI():
         MyPlexURL = 'https://' + MyPlexHost + MyPlexSignInPath
 
         # create POST request
-        xargs = self.client.getXArgsDeviceInfo(options)
+        xargs = client.getXArgsDeviceInfo(options)
         request = urllib2.Request(MyPlexURL, None, xargs)
         request.get_method = lambda: 'POST'
 
@@ -834,7 +833,7 @@ class PlexAPI():
                     log.info("No user selected.")
                     settings('username', value='')
                     xbmc.executebuiltin('Addon.OpenSettings(%s)'
-                                        % self.client.getAddonId())
+                                        % v.ADDON_ID)
                     return False
             # Only 1 user received, choose that one
             else:
@@ -878,8 +877,7 @@ class PlexAPI():
                     break
         if not username:
             log.error('Failed signing in a user to plex.tv')
-            xbmc.executebuiltin('Addon.OpenSettings(%s)'
-                                % self.client.getAddonId())
+            xbmc.executebuiltin('Addon.OpenSettings(%s)' % v.ADDON_ID)
             return False
         return {
             'username': username,
@@ -1105,7 +1103,7 @@ class PlexAPI():
         args['protocol'] = 'http'
         args['maxAudioBitrate'] = maxAudioBitrate
 
-        xargs = self.client.getXArgsDeviceInfo(options)
+        xargs = client.getXArgsDeviceInfo(options)
         if not AuthToken == '':
             xargs['X-Plex-Token'] = AuthToken
 
@@ -1187,7 +1185,6 @@ class API():
         self.part = 0
         self.mediastream = None
         self.server = window('pms_server')
-        self.client = clientinfo.ClientInfo()
 
     def setPartNumber(self, number=None):
         """
@@ -1624,7 +1621,7 @@ class API():
 
         arguments overrule everything
         """
-        xargs = self.client.getXArgsDeviceInfo()
+        xargs = client.getXArgsDeviceInfo()
         xargs.update(arguments)
         if '?' not in url:
             url = "%s?%s" % (url, urlencode(xargs))
@@ -2253,7 +2250,7 @@ class API():
             self.getMediastreamNumber()
         if quality is None:
             quality = {}
-        xargs = self.client.getXArgsDeviceInfo()
+        xargs = client.getXArgsDeviceInfo()
         # For DirectPlay, path/key of PART is needed
         # trailers are 'clip' with PMS xmls
         if action == "DirectStream":
@@ -2273,7 +2270,7 @@ class API():
             '/video/:/transcode/universal/start.m3u8?'
         args = {
             'protocol': 'hls',   # seen in the wild: 'dash', 'http', 'hls'
-            'session':  self.client.getDeviceId(),
+            'session':  window('plex_client_Id'),
             'fastSeek': 1,
             'path': path,
             'mediaIndex': self.mediastream,

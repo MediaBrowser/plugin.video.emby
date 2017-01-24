@@ -7,12 +7,12 @@ import xbmc
 import xbmcgui
 
 from utils import settings, window, language as lang
-import clientinfo
 import downloadutils
 from userclient import UserClient
 
-import PlexAPI
+from PlexAPI import PlexAPI
 from PlexFunctions import GetMachineIdentifier, get_PMS_settings
+import variables as v
 
 ###############################################################################
 
@@ -25,10 +25,8 @@ class InitialSetup():
 
     def __init__(self):
         log.debug('Entering initialsetup class')
-        self.clientInfo = clientinfo.ClientInfo()
-        self.addonId = self.clientInfo.getAddonId()
         self.doUtils = downloadutils.DownloadUtils().downloadUrl
-        self.plx = PlexAPI.PlexAPI()
+        self.plx = PlexAPI()
         self.dialog = xbmcgui.Dialog()
 
         self.server = UserClient().getServer()

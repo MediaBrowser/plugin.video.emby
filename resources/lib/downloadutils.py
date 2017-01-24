@@ -9,7 +9,7 @@ import xml.etree.ElementTree as etree
 import xbmcgui
 
 from utils import settings, window, language as lang
-import clientinfo
+import clientinfo as client
 
 ###############################################################################
 
@@ -100,7 +100,6 @@ class DownloadUtils():
         # Start session
         self.s = requests.Session()
 
-        client = clientinfo.ClientInfo()
         self.deviceId = client.getDeviceId()
         # Attach authenticated header to the session
         self.s.headers = client.getXArgsDeviceInfo()
@@ -139,7 +138,7 @@ class DownloadUtils():
         log.info('Request session stopped')
 
     def getHeader(self, options=None):
-        header = clientinfo.ClientInfo().getXArgsDeviceInfo()
+        header = client.getXArgsDeviceInfo()
         if options is not None:
             header.update(options)
         return header

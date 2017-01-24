@@ -20,8 +20,6 @@ import xbmcaddon
 import xbmcgui
 import xbmcvfs
 
-from variables import addonName
-
 ###############################################################################
 
 log = logging.getLogger("PLEX."+__name__)
@@ -420,7 +418,7 @@ def reset():
         log.info("Deleting: settings.xml")
 
     dialog.ok(
-        heading=addonName,
+        heading=language(29999),
         line1="Database reset has completed, Kodi will now restart to apply the changes.")
     xbmc.executebuiltin('RestartApp')
 

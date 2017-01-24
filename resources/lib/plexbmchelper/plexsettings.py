@@ -1,6 +1,6 @@
 import logging
 from utils import guisettingsXML, settings
-import clientinfo
+import variables as v
 
 ###############################################################################
 
@@ -21,7 +21,6 @@ def getGUI(name):
 
 
 def getSettings():
-    client = clientinfo.ClientInfo()
     options = {}
 
     options['gdm_debug'] = settings('companionGDMDebugging')
@@ -47,10 +46,10 @@ def getSettings():
     log.info('Webserver username: %s, password: %s'
              % (options['user'], options['passwd']))
 
-    options['addonName'] = client.getAddonName()
+    options['addonName'] = v.ADDON_NAME
     options['uuid'] = settings('plex_client_Id')
-    options['platform'] = client.getPlatform()
-    options['version'] = client.getVersion()
+    options['platform'] = v.PLATFORM
+    options['version'] = v.ADDON_VERSION
     options['plexbmc_version'] = options['version']
     options['myplex_user'] = settings('username')
     try:

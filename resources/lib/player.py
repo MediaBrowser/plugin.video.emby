@@ -9,7 +9,6 @@ import xbmcgui
 
 from utils import window, settings, language as lang, DateToKodi, \
     getUnixTimestamp
-import clientinfo
 import downloadutils
 import plexdb_functions as plexdb
 import kodidb_functions as kodidb
@@ -32,14 +31,9 @@ class Player(xbmc.Player):
     currentFile = None
 
     def __init__(self):
-
         self.__dict__ = self._shared_state
-
-        self.clientInfo = clientinfo.ClientInfo()
         self.doUtils = downloadutils.DownloadUtils().downloadUrl
-
         xbmc.Player.__init__(self)
-
         log.info("Started playback monitor.")
 
     def GetPlayStats(self):
@@ -409,6 +403,6 @@ class Player(xbmc.Player):
             log.info("Transcoding for %s terminating" % itemid)
             self.doUtils(
                 "{server}/video/:/transcode/universal/stop",
-                parameters={'session': self.clientInfo.getDeviceId()})
+                parameters={'session': window('plex_client_Id')})
 
         self.played_info.clear()
