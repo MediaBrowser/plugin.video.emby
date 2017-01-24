@@ -9,7 +9,7 @@ from datetime import datetime
 
 import artwork
 from utils import tryEncode, tryDecode, settings, window, kodiSQL, \
-    CatchExceptions, KODIVERSION
+    CatchExceptions
 import plexdb_functions as plexdb
 import kodidb_functions as kodidb
 
@@ -268,7 +268,7 @@ class Movies(Items):
                      % (itemid, title))
 
             # Update the movie entry
-            if KODIVERSION >= 17:
+            if v.KODIVERSION >= 17:
                 # update new ratings Kodi 17
                 ratingid = self.kodi_db.get_ratingid(movieid)
                 self.kodi_db.update_ratings(movieid,
@@ -315,7 +315,7 @@ class Movies(Items):
         ##### OR ADD THE MOVIE #####
         else:
             log.info("ADD movie itemid: %s - Title: %s" % (itemid, title))
-            if KODIVERSION >= 17:
+            if v.KODIVERSION >= 17:
                 # add new ratings Kodi 17
                 ratingid = self.kodi_db.create_entry_rating()
                 self.kodi_db.add_ratings(ratingid,
@@ -556,7 +556,7 @@ class TVShows(Items):
         if update_item:
             log.info("UPDATE tvshow itemid: %s - Title: %s"
                      % (itemid, title))
-            if KODIVERSION >= 17:
+            if v.KODIVERSION >= 17:
                 # update new ratings Kodi 17
                 ratingid = self.kodi_db.get_ratingid(showid)
                 self.kodi_db.update_ratings(showid,
@@ -596,7 +596,7 @@ class TVShows(Items):
         ##### OR ADD THE TVSHOW #####
         else:
             log.info("ADD tvshow itemid: %s - Title: %s" % (itemid, title))
-            if KODIVERSION >= 17:
+            if v.KODIVERSION >= 17:
                 # add new ratings Kodi 17
                 ratingid = self.kodi_db.create_entry_rating()
                 self.kodi_db.add_ratings(ratingid,
@@ -879,7 +879,7 @@ class TVShows(Items):
             log.info("UPDATE episode itemid: %s" % (itemid))
 
             # Update the movie entry
-            if KODIVERSION >= 16:
+            if v.KODIVERSION >= 16:
                 # Kodi Jarvis, Krypton
                 query = ' '.join((
                     "UPDATE episode",
@@ -912,7 +912,7 @@ class TVShows(Items):
         else:
             log.info("ADD episode itemid: %s - Title: %s" % (itemid, title))
             # Create the episode entry
-            if KODIVERSION >= 16:
+            if v.KODIVERSION >= 16:
                 # Kodi Jarvis, Krypton
                 query = (
                     '''
@@ -1230,7 +1230,7 @@ class Music(Items):
                                  checksum=checksum)
 
         # Process the artist
-        if KODIVERSION >= 16:
+        if v.KODIVERSION >= 16:
             query = ' '.join((
 
                 "UPDATE artist",
@@ -1326,7 +1326,7 @@ class Music(Items):
                                  checksum=checksum)
 
         # Process the album info
-        if KODIVERSION >= 17:
+        if v.KODIVERSION >= 17:
             # Kodi Krypton
             query = ' '.join((
 
@@ -1339,7 +1339,7 @@ class Music(Items):
             kodicursor.execute(query, (artistname, year, genre, bio, thumb,
                                        rating, lastScraped, "album", studio,
                                        albumid))
-        elif KODIVERSION == 16:
+        elif v.KODIVERSION == 16:
             # Kodi Jarvis
             query = ' '.join((
 
@@ -1352,7 +1352,7 @@ class Music(Items):
             kodicursor.execute(query, (artistname, year, genre, bio, thumb,
                                        rating, lastScraped, "album", studio,
                                        albumid))
-        elif KODIVERSION == 15:
+        elif v.KODIVERSION == 15:
             # Kodi Isengard
             query = ' '.join((
 
@@ -1599,7 +1599,7 @@ class Music(Items):
                     log.info("Failed to add album. Creating singles.")
                     kodicursor.execute("select coalesce(max(idAlbum),0) from album")
                     albumid = kodicursor.fetchone()[0] + 1
-                    if KODIVERSION >= 16:
+                    if v.KODIVERSION >= 16:
                         # Kodi Jarvis
                         query = (
                             '''
@@ -1609,7 +1609,7 @@ class Music(Items):
                             '''
                         )
                         kodicursor.execute(query, (albumid, genre, year, "single"))
-                    elif KODIVERSION == 15:
+                    elif v.KODIVERSION == 15:
                         # Kodi Isengard
                         query = (
                             '''
@@ -1689,7 +1689,7 @@ class Music(Items):
                 artist_edb = plex_db.getItem_byId(artist_eid)
                 artistid = artist_edb[0]
             finally:
-                if KODIVERSION >= 17:
+                if v.KODIVERSION >= 17:
                     # Kodi Krypton
                     query = (
                         '''
@@ -1764,11 +1764,11 @@ class Music(Items):
             result = kodicursor.fetchone()
             if result and result[0] != album_artists:
                 # Field is empty
-                if KODIVERSION >= 16:
+                if v.KODIVERSION >= 16:
                     # Kodi Jarvis, Krypton
                     query = "UPDATE album SET strArtists = ? WHERE idAlbum = ?"
                     kodicursor.execute(query, (album_artists, albumid))
-                elif KODIVERSION == 15:
+                elif v.KODIVERSION == 15:
                     # Kodi Isengard
                     query = "UPDATE album SET strArtists = ? WHERE idAlbum = ?"
                     kodicursor.execute(query, (album_artists, albumid))
