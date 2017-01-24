@@ -13,7 +13,7 @@ import clientinfo
 import downloadutils
 import plexdb_functions as plexdb
 import kodidb_functions as kodidb
-from PlexFunctions import KODI_TYPE_MOVIE, KODI_TYPE_EPISODE
+import variables as v
 
 ###############################################################################
 
@@ -354,7 +354,7 @@ class Player(xbmc.Player):
                     if percentComplete >= markPlayed:
                         # Tell Kodi that we've finished watching (Plex knows)
                         if (data['fileid'] is not None and
-                                data['itemType'] in (KODI_TYPE_MOVIE, KODI_TYPE_EPISODE)):
+                                data['itemType'] in (v.KODI_TYPE_MOVIE, v.KODI_TYPE_EPISODE)):
                             with kodidb.GetKodiDB('video') as kodi_db:
                                 kodi_db.addPlaystate(
                                     data['fileid'],

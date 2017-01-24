@@ -6,8 +6,8 @@ import logging
 from ntpath import dirname
 
 import artwork
-from utils import kodiSQL, KODIVERSION
-from PlexFunctions import KODI_TYPE_MOVIE, KODI_TYPE_EPISODE
+from utils import kodiSQL
+import variables as v
 
 ###############################################################################
 
@@ -205,7 +205,7 @@ class Kodidb_Functions():
             self.cursor.execute(query, (pathid, filename,))
 
     def addCountries(self, kodiid, countries, mediatype):
-        if KODIVERSION > 14:
+        if v.KODIVERSION > 14:
             # Kodi Isengard, Jarvis, Krypton
             for country in countries:
                 query = ' '.join((
@@ -335,7 +335,7 @@ class Kodidb_Functions():
         castorder = 1
         for person in people:
             # Kodi Isengard, Jarvis, Krypton
-            if KODIVERSION > 14:
+            if v.KODIVERSION > 14:
                 actorid = self._getactorid(person['Name'])
                 # Link person to content
                 castorder = self._addPerson(person.get('Role'),
@@ -528,7 +528,7 @@ class Kodidb_Functions():
 
         
         # Kodi Isengard, Jarvis, Krypton
-        if KODIVERSION > 14:
+        if v.KODIVERSION > 14:
             # Delete current genres for clean slate
             query = ' '.join((
 
@@ -642,7 +642,7 @@ class Kodidb_Functions():
 
     def addStudios(self, kodiid, studios, mediatype):
         for studio in studios:
-            if KODIVERSION > 14:
+            if v.KODIVERSION > 14:
                 # Kodi Isengard, Jarvis, Krypton
                 query = ' '.join((
 
@@ -870,7 +870,7 @@ class Kodidb_Functions():
         self.cursor.execute(query, (idFile,))
         try:
             itemId = self.cursor.fetchone()[0]
-            typus = KODI_TYPE_MOVIE
+            typus = v.KODI_TYPE_MOVIE
         except TypeError:
             # Try tv shows next
             query = ' '.join((
@@ -881,7 +881,7 @@ class Kodidb_Functions():
             self.cursor.execute(query, (idFile,))
             try:
                 itemId = self.cursor.fetchone()[0]
-                typus = KODI_TYPE_EPISODE
+                typus = v.KODI_TYPE_EPISODE
             except TypeError:
                 log.warn('Unexpectantly did not find a match!')
                 return
@@ -908,13 +908,13 @@ class Kodidb_Functions():
         return ids
 
     def getVideoRuntime(self, kodiid, mediatype):
-        if mediatype == KODI_TYPE_MOVIE:
+        if mediatype == v.KODI_TYPE_MOVIE:
             query = ' '.join((
                 "SELECT c11",
                 "FROM movie",
                 "WHERE idMovie = ?",
             ))
-        elif mediatype == KODI_TYPE_EPISODE:
+        elif mediatype == v.KODI_TYPE_EPISODE:
             query = ' '.join((
                 "SELECT c09",
                 "FROM episode",
@@ -962,7 +962,7 @@ class Kodidb_Functions():
 
     def addTags(self, kodiid, tags, mediatype):
         # First, delete any existing tags associated to the id
-        if KODIVERSION > 14:
+        if v.KODIVERSION > 14:
             # Kodi Isengard, Jarvis, Krypton
             query = ' '.join((
 
@@ -987,7 +987,7 @@ class Kodidb_Functions():
             self.addTag(kodiid, tag, mediatype)
 
     def addTag(self, kodiid, tag, mediatype):
-        if KODIVERSION > 14:
+        if v.KODIVERSION > 14:
             # Kodi Isengard, Jarvis, Krypton
             query = ' '.join((
 
@@ -1048,7 +1048,7 @@ class Kodidb_Functions():
 
     def createTag(self, name):
         # This will create and return the tag_id
-        if KODIVERSION > 14:
+        if v.KODIVERSION > 14:
             # Kodi Isengard, Jarvis, Krypton
             query = ' '.join((
 
@@ -1092,7 +1092,7 @@ class Kodidb_Functions():
         return tag_id
 
     def updateTag(self, oldtag, newtag, kodiid, mediatype):
-        if KODIVERSION > 14:
+        if v.KODIVERSION > 14:
             # Kodi Isengard, Jarvis, Krypton
             try:
                 query = ' '.join((
@@ -1140,7 +1140,7 @@ class Kodidb_Functions():
                 self.cursor.execute(query, (kodiid, mediatype, oldtag,))
 
     def removeTag(self, kodiid, tagname, mediatype):
-        if KODIVERSION > 14:
+        if v.KODIVERSION > 14:
             # Kodi Isengard, Jarvis, Krypton
             query = ' '.join((
 
@@ -1314,7 +1314,7 @@ class Kodidb_Functions():
             # Create the album
             self.cursor.execute("select coalesce(max(idAlbum),0) from album")
             albumid = self.cursor.fetchone()[0] + 1
-            if KODIVERSION > 14:
+            if v.KODIVERSION > 14:
                 query = (
                     '''
                     INSERT INTO album(idAlbum, strAlbum, strMusicBrainzAlbumID, strReleaseType)

@@ -24,12 +24,11 @@ import PlexFunctions
 import PlexAPI
 from PKC_listitem import convert_PKC_to_listitem
 from playqueue import Playqueue
+import variables as v
 
 ###############################################################################
 
 log = logging.getLogger("PLEX."+__name__)
-
-addonName = "PlexKodiConnect"
 
 ###############################################################################
 
@@ -66,7 +65,7 @@ def chooseServer():
     log.info("Choosing new PMS complete")
     # '<PMS> connected'
     xbmcgui.Dialog().notification(
-        heading=addonName,
+        heading=lang(29999),
         message='%s %s' % (server['name'], lang(39220)),
         icon="special://home/addons/plugin.video.plexkodiconnect/icon.png",
         time=3000,
@@ -90,7 +89,7 @@ def togglePlexTV():
         import initialsetup
         initialsetup.InitialSetup().PlexTVSignIn()
     xbmcgui.Dialog().notification(
-        heading=addonName,
+        heading=lang(29999),
         message=lang(39221),
         icon="special://home/addons/plugin.video.plexkodiconnect/icon.png",
         time=3000,
@@ -114,14 +113,14 @@ def Plex_Node(url, viewOffset, plex_type, playdirectly=False):
         return
     if viewOffset != '0':
         try:
-            viewOffset = int(PlexFunctions.PLEX_TO_KODI_TIMEFACTOR *
+            viewOffset = int(v.PLEX_TO_KODI_TIMEFACTOR *
                              float(viewOffset))
         except:
             pass
         else:
             window('plex_customplaylist.seektime', value=str(viewOffset))
             log.info('Set resume point to %s' % str(viewOffset))
-    typus = PlexFunctions.KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[plex_type]
+    typus = v.KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[plex_type]
     playqueue = Playqueue().get_playqueue_from_type(typus)
     result = pbutils.PlaybackUtils(xml, playqueue).play(
         None,
@@ -209,12 +208,12 @@ def resetDeviceId():
         deviceId = clientinfo.ClientInfo().getDeviceId(reset=True)
     except Exception as e:
         log.error("Failed to generate a new device Id: %s" % e)
-        dialog.ok(heading=addonName, line1=lang(33032))
+        dialog.ok(heading=lang(29999), line1=lang(33032))
     else:
         log.info("Successfully removed old deviceId: %s New deviceId: %s"
                  % (deviceId_old, deviceId))
         # "Kodi will now restart to apply the changes"
-        dialog.ok(heading=addonName, line1=lang(33033))
+        dialog.ok(heading=lang(29999), line1=lang(33033))
         xbmc.executebuiltin('RestartApp')
 
 
@@ -864,7 +863,7 @@ def getExtraFanArt(plexid, plexPath):
 def RunLibScan(mode):
     if window('plex_online') != "true":
         # Server is not online, do not run the sync
-        xbmcgui.Dialog().ok(heading=addonName,
+        xbmcgui.Dialog().ok(heading=lang(29999),
                             line1=lang(39205))
     else:
         window('plex_runLibScan', value='full')
@@ -1157,7 +1156,7 @@ def enterPMS():
     """
     dialog = xbmcgui.Dialog()
     # "Enter your Plex Media Server's IP or URL. Examples are:"
-    dialog.ok(addonName,
+    dialog.ok(lang(29999),
               lang(39215),
               '192.168.1.2',
               'plex.myServer.org')
@@ -1170,7 +1169,7 @@ def enterPMS():
     url = '%s:%s' % (ip, port)
     # "Does your Plex Media Server support SSL connections?
     # (https instead of http)"
-    https = dialog.yesno(addonName, lang(39217))
+    https = dialog.yesno(lang(29999), lang(39217))
     if https:
         url = 'https://%s' % url
     else:
@@ -1181,7 +1180,7 @@ def enterPMS():
     if machineIdentifier is None:
         # "Error contacting url
         # Abort (Yes) or save address anyway (No)"
-        if dialog.yesno(addonName, '%s %s. %s'
+        if dialog.yesno(lang(29999), '%s %s. %s'
                         % (lang(39218), url, lang(39219))):
             return
         else:
@@ -1226,7 +1225,7 @@ def __LogOut():
     dialog = xbmcgui.Dialog()
     # Resetting, please wait
     dialog.notification(
-        heading=addonName,
+        heading=lang(29999),
         message=lang(39207),
         icon="special://home/addons/plugin.video.plexkodiconnect/icon.png",
         time=3000,
@@ -1238,7 +1237,7 @@ def __LogOut():
     while window('plex_dbScan') == 'true':
         if counter > 200:
             # Failed to reset PMS and plex.tv connects. Try to restart Kodi.
-            dialog.ok(addonName, lang(39208))
+            dialog.ok(lang(29999), lang(39208))
             # Resuming threads, just in case
             window('suspend_LibraryThread', clear=True)
             log.error("Could not stop library sync, aborting")
@@ -1254,7 +1253,7 @@ def __LogOut():
     while window('plex_serverStatus') == "401":
         if counter > 100:
             # 'Failed to reset PKC. Try to restart Kodi.'
-            dialog.ok(addonName, lang(39208))
+            dialog.ok(lang(29999), lang(39208))
             log.error("Could not sign out user, aborting")
             return False
         counter += 1

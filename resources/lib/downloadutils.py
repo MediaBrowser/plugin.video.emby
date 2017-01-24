@@ -8,7 +8,7 @@ import xml.etree.ElementTree as etree
 
 import xbmcgui
 
-from utils import settings, window
+from utils import settings, window, language as lang
 import clientinfo
 
 ###############################################################################
@@ -18,7 +18,6 @@ import requests.packages.urllib3
 requests.packages.urllib3.disable_warnings()
 
 log = logging.getLogger("PLEX."+__name__)
-addonName = 'PlexKodiConnect'
 
 ###############################################################################
 
@@ -283,7 +282,7 @@ class DownloadUtils():
                                       'unauthorized')
                             window('plex_serverStatus', value="401")
                             xbmcgui.Dialog().notification(
-                                addonName,
+                                lang(29999),
                                 "Unauthorized for PMS",
                                 xbmcgui.NOTIFICATION_ERROR)
                 else:

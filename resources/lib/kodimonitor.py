@@ -10,9 +10,10 @@ from xbmc import Monitor, Player, sleep
 import downloadutils
 import plexdb_functions as plexdb
 from utils import window, settings, CatchExceptions, tryDecode, tryEncode
-from PlexFunctions import scrobble, REMAP_TYPE_FROM_PLEXTYPE
+from PlexFunctions import scrobble
 from kodidb_functions import get_kodiid_from_filename
 from PlexAPI import API
+from variables import REMAP_TYPE_FROM_PLEXTYPE
 
 ###############################################################################
 

@@ -8,10 +8,10 @@ from PKC_listitem import PKC_ListItem
 from pickler import pickle_me, Playback_Successful
 from playbackutils import PlaybackUtils
 from utils import window
-from PlexFunctions import GetPlexMetadata, PLEX_TYPE_PHOTO, \
-    KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE
+from PlexFunctions import GetPlexMetadata
 from PlexAPI import API
 from playqueue import lock
+import variables as v
 
 ###############################################################################
 log = logging.getLogger("PLEX."+__name__)
@@ -45,7 +45,7 @@ class Playback_Starter(Thread):
             log.error('Could not get a PMS xml for plex id %s' % plex_id)
             return
         api = API(xml[0])
-        if api.getType() == PLEX_TYPE_PHOTO:
+        if api.getType() == v.PLEX_TYPE_PHOTO:
             # Photo
             result = Playback_Successful()
             listitem = PKC_ListItem()
@@ -56,7 +56,7 @@ class Playback_Starter(Thread):
         else:
             # Video and Music
             playqueue = self.playqueue.get_playqueue_from_type(
-                KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[api.getType()])
+                v.KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[api.getType()])
             with lock:
                 result = PlaybackUtils(xml, playqueue).play(
                     plex_id,

@@ -7,15 +7,15 @@ import logging
 import xbmc
 import xbmcaddon
 
-import PlexFunctions as PF
 import plexdb_functions as plexdb
 from utils import window, settings, dialog, language as lang, kodiSQL
 from dialogs import context
+from PlexFunctions import delete_item_from_pms
+import variables as v
 
 ###############################################################################
 
 log = logging.getLogger("PLEX."+__name__)
-addonName = 'PlexKodiConnect'
 
 OPTIONS = {
     'Refresh': lang(30410),
@@ -89,10 +89,10 @@ class ContextMenu(object):
 
         # if user uses direct paths, give option to initiate playback via PMS
         if (window('useDirectPaths') == 'true' and
-                self.item_type in PF.KODI_VIDEOTYPES):
+                self.item_type in v.KODI_VIDEOTYPES):
             options.append(OPTIONS['PMS_Play'])
 
-        if self.item_type in PF.KODI_VIDEOTYPES:
+        if self.item_type in v.KODI_VIDEOTYPES:
             options.append(OPTIONS['Transcode'])
 
         # userdata = self.api.getUserData()
@@ -191,14 +191,14 @@ class ContextMenu(object):
         delete = True
         if settings('skipContextMenu') != "true":
 
-            if not dialog(type_="yesno", heading=addonName, line1=lang(33041)):
+            if not dialog("yesno", heading=v.addonName, line1=lang(33041)):
                 log.info("User skipped deletion for: %s", self.item_id)
                 delete = False
 
         if delete:
             log.info("Deleting Plex item with id %s", self.item_id)
-            if PF.delete_item_from_pms(self.item_id) is False:
-                dialog(type_="ok", heading="{plex}", line1=lang(30414))
+            if delete_item_from_pms(self.item_id) is False:
+                dialog("ok", heading="{plex}", line1=lang(30414))
 
     def _PMS_play(self):
         """

@@ -54,7 +54,6 @@ import loghandler
 
 loghandler.config()
 log = logging.getLogger("PLEX.service")
-addonName = 'PlexKodiConnect'
 
 ###############################################################################
 
@@ -94,10 +93,11 @@ class Service():
                value=settings('fetch_pms_item_number'))
 
         # Initial logging
-        log.warn("======== START %s ========" % addonName)
+        log.warn("======== START %s ========" % lang(29999))
         log.warn("Platform: %s" % (self.clientInfo.getPlatform()))
         log.warn("KODI Version: %s" % xbmc.getInfoLabel('System.BuildVersion'))
-        log.warn("%s Version: %s" % (addonName, self.clientInfo.getVersion()))
+        log.warn("%s Version: %s"
+                 % (lang(29999), self.clientInfo.getVersion()))
         log.warn("Using plugin paths: %s"
                  % (settings('useDirectPaths') != "true"))
         log.warn("Number of sync threads: %s"
@@ -187,7 +187,7 @@ class Service():
                             # Reset authentication warnings
                             welcome_msg = False
                             xbmcgui.Dialog().notification(
-                                heading=addonName,
+                                heading=lang(29999),
                                 message="%s %s" % (lang(33000),
                                                    self.user.currUser),
                                 icon="special://home/addons/plugin."
@@ -261,7 +261,7 @@ class Service():
                                 xbmcgui.Dialog().notification(
                                     heading=lang(33001),
                                     message="%s %s"
-                                            % (addonName, lang(33002)),
+                                            % (lang(29999), lang(33002)),
                                     icon="special://home/addons/plugin.video."
                                          "plexkodiconnect/icon.png",
                                     sound=False)
@@ -287,7 +287,7 @@ class Service():
                             if (welcome_msg is False and
                                     settings('show_pms_offline') == 'true'):
                                 xbmcgui.Dialog().notification(
-                                    heading=addonName,
+                                    heading=lang(29999),
                                     message=lang(33003),
                                     icon="special://home/addons/plugin.video."
                                          "plexkodiconnect/icon.png",
@@ -340,7 +340,7 @@ class Service():
         except:
             pass
 
-        log.warn("======== STOP %s ========" % addonName)
+        log.warn("======== STOP %s ========" % lang(29999))
 
 # Delay option
 delay = int(settings('startupDelay'))

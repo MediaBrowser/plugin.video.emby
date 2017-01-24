@@ -18,8 +18,6 @@ from PlexFunctions import GetMachineIdentifier, get_PMS_settings
 
 log = logging.getLogger("PLEX."+__name__)
 
-addonName = 'PlexKodiConnect'
-
 ###############################################################################
 
 
@@ -75,13 +73,13 @@ class InitialSetup():
             settings('plexToken', value='')
             settings('plexLogin', value='')
             # Could not login, please try again
-            self.dialog.ok(addonName, lang(39009))
+            self.dialog.ok(lang(29999), lang(39009))
             answer = self.PlexTVSignIn()
         elif chk is False or chk >= 400:
             # Problems connecting to plex.tv. Network or internet issue?
             log.info('Problems connecting to plex.tv; connection returned '
                      'HTTP %s' % str(chk))
-            self.dialog.ok(addonName, lang(39010))
+            self.dialog.ok(lang(29999), lang(39010))
             answer = False
         else:
             log.info('plex.tv connection with token successful')
@@ -260,7 +258,7 @@ class InitialSetup():
                     else:
                         log.warn('Not authorized even though we are signed '
                                  ' in to plex.tv correctly')
-                        self.dialog.ok(addonName, '%s %s'
+                        self.dialog.ok(lang(29999), '%s %s'
                                        % lang(39214) + server['name'])
                         return
                 else:
@@ -287,7 +285,7 @@ class InitialSetup():
                 # Exit if no servers found
                 if len(serverlist) == 0:
                     log.warn('No plex media servers found!')
-                    self.dialog.ok(addonName, lang(39011))
+                    self.dialog.ok(lang(29999), lang(39011))
                     return
                 # Get a nicer list
                 dialoglist = []
@@ -323,7 +321,7 @@ class InitialSetup():
                 log.warn('Not yet authorized for Plex server %s'
                          % server['name'])
                 # Please sign in to plex.tv
-                self.dialog.ok(addonName,
+                self.dialog.ok(lang(29999),
                                lang(39013) + server['name'],
                                lang(39014))
                 if self.PlexTVSignIn() is False:
@@ -332,7 +330,7 @@ class InitialSetup():
             # Problems connecting
             elif chk >= 400 or chk is False:
                 # Problems connecting to server. Pick another server?
-                answ = self.dialog.yesno(addonName,
+                answ = self.dialog.yesno(lang(29999),
                                          lang(39015))
                 # Exit while loop if user chooses No
                 if not answ:
@@ -435,7 +433,7 @@ class InitialSetup():
         # Additional settings where the user needs to choose
         # Direct paths (\\NAS\mymovie.mkv) or addon (http)?
         goToSettings = False
-        if dialog.yesno(addonName,
+        if dialog.yesno(lang(29999),
                         lang(39027),
                         lang(39028),
                         nolabel="Addon (Default)",
@@ -444,29 +442,29 @@ class InitialSetup():
             settings('useDirectPaths', value="1")
             # Are you on a system where you would like to replace paths
             # \\NAS\mymovie.mkv with smb://NAS/mymovie.mkv? (e.g. Windows)
-            if dialog.yesno(heading=addonName, line1=lang(39033)):
+            if dialog.yesno(heading=lang(29999), line1=lang(39033)):
                 log.debug("User chose to replace paths with smb")
             else:
                 settings('replaceSMB', value="false")
 
             # complete replace all original Plex library paths with custom SMB
-            if dialog.yesno(heading=addonName, line1=lang(39043)):
+            if dialog.yesno(heading=lang(29999), line1=lang(39043)):
                 log.debug("User chose custom smb paths")
                 settings('remapSMB', value="true")
                 # Please enter your custom smb paths in the settings under
                 # "Sync Options" and then restart Kodi
-                dialog.ok(heading=addonName, line1=lang(39044))
+                dialog.ok(heading=lang(29999), line1=lang(39044))
                 goToSettings = True
 
             # Go to network credentials?
-            if dialog.yesno(heading=addonName,
+            if dialog.yesno(heading=lang(29999),
                             line1=lang(39029),
                             line2=lang(39030)):
                 log.debug("Presenting network credentials dialog.")
                 from utils import passwordsXML
                 passwordsXML()
         # Disable Plex music?
-        if dialog.yesno(heading=addonName, line1=lang(39016)):
+        if dialog.yesno(heading=lang(29999), line1=lang(39016)):
             log.debug("User opted to disable Plex music library.")
             settings('enableMusic', value="false")
         else:
@@ -474,26 +472,26 @@ class InitialSetup():
             advancedSettingsXML()
 
         # Download additional art from FanArtTV
-        if dialog.yesno(heading=addonName, line1=lang(39061)):
+        if dialog.yesno(heading=lang(29999), line1=lang(39061)):
             log.debug("User opted to use FanArtTV")
             settings('FanartTV', value="true")
 
         # If you use several Plex libraries of one kind, e.g. "Kids Movies" and
         # "Parents Movies", be sure to check https://goo.gl/JFtQV9
-        dialog.ok(heading=addonName, line1=lang(39076))
+        dialog.ok(heading=lang(29999), line1=lang(39076))
         # Make sure that we only ask these questions upon first installation
         settings('InstallQuestionsAnswered', value='true')
 
         if goToSettings is False:
             # Open Settings page now? You will need to restart!
-            goToSettings = dialog.yesno(heading=addonName, line1=lang(39017))
+            goToSettings = dialog.yesno(heading=lang(29999), line1=lang(39017))
         if goToSettings:
             window('plex_serverStatus', value="Stop")
             xbmc.executebuiltin(
                 'Addon.OpenSettings(plugin.video.plexkodiconnect)')
         else:
             # "Kodi will now restart to apply the changes"
-            dialog.ok(heading=addonName, line1=lang(33033))
+            dialog.ok(heading=lang(29999), line1=lang(33033))
             xbmc.executebuiltin('RestartApp')
         # We should always restart to ensure e.g. Kodi settings for Music
         # are in use!

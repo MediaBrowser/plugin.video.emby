@@ -10,24 +10,22 @@ from xbmc import getCondVisibility, Player
 import xbmcgui
 
 import playutils as putils
-from utils import window, settings, tryEncode, tryDecode
+from utils import window, settings, tryEncode, tryDecode, language as lang
 import downloadutils
 
 from PlexAPI import API
-from PlexFunctions import GetPlexPlaylist, KODITYPE_FROM_PLEXTYPE, \
-    PLEX_TYPE_CLIP, PLEX_TYPE_MOVIE
+from PlexFunctions import GetPlexPlaylist
 from PKC_listitem import PKC_ListItem as ListItem, convert_PKC_to_listitem
 from playlist_func import add_item_to_kodi_playlist, \
     get_playlist_details_from_xml, add_listitem_to_Kodi_playlist, \
     add_listitem_to_playlist, remove_from_Kodi_playlist
 from pickler import Playback_Successful
 from plexdb_functions import Get_Plex_DB
+import variables as v
 
 ###############################################################################
 
 log = logging.getLogger("PLEX."+__name__)
-
-addonName = "PlexKodiConnect"
 
 ###############################################################################
 
@@ -86,7 +84,7 @@ class PlaybackUtils():
             result.listitem = listitem
             return result
 
-        kodi_type = KODITYPE_FROM_PLEXTYPE[api.getType()]
+        kodi_type = v.KODITYPE_FROM_PLEXTYPE[api.getType()]
         kodi_id = int(kodi_id)
 
         # ORGANIZE CURRENT PLAYLIST ################
@@ -125,13 +123,13 @@ class PlaybackUtils():
             # Where will the player need to start?
             # Do we need to get trailers?
             trailers = False
-            if (api.getType() == PLEX_TYPE_MOVIE and
+            if (api.getType() == v.PLEX_TYPE_MOVIE and
                     not seektime and
                     sizePlaylist < 2 and
                     settings('enableCinema') == "true"):
                 if settings('askCinema') == "true":
                     trailers = xbmcgui.Dialog().yesno(
-                        addonName,
+                        lang(29999),
                         "Play trailers?")
                 else:
                     trailers = True
@@ -290,7 +288,7 @@ class PlaybackUtils():
         self.currentPosition = 0
         for item in self.xml:
             api = API(item)
-            if api.getType() == PLEX_TYPE_CLIP:
+            if api.getType() == v.PLEX_TYPE_CLIP:
                 self.add_trailer(item)
             else:
                 with Get_Plex_DB() as plex_db:

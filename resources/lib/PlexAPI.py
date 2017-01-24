@@ -48,17 +48,15 @@ import xbmcvfs
 import clientinfo
 import downloadutils
 from utils import window, settings, language as lang, tryDecode, tryEncode, \
-    DateToKodi, KODILANGUAGE
-from PlexFunctions import PLEX_TO_KODI_TIMEFACTOR, PMSHttpsEnabled, \
-    REMAP_TYPE_FROM_PLEXTYPE, PLEX_TYPE_MOVIE, PLEX_TYPE_SHOW, \
-    PLEX_TYPE_EPISODE, KODI_SUPPORTED_IMAGES
+    DateToKodi
+from PlexFunctions import PMSHttpsEnabled
 import plexdb_functions as plexdb
+import variables as v
 
 ###############################################################################
 
 log = logging.getLogger("PLEX."+__name__)
 
-addonName = 'PlexKodiConnect'
 REGEX_IMDB = re.compile(r'''/(tt\d+)''')
 REGEX_TVDB = re.compile(r'''tvdb://(\d+)''')
 ###############################################################################
@@ -122,7 +120,7 @@ class PlexAPI():
         dialog = xbmcgui.Dialog()
         while retrievedPlexLogin == '' and plexLogin != '':
             # Enter plex.tv username. Or nothing to cancel.
-            plexLogin = dialog.input(addonName + lang(39300),
+            plexLogin = dialog.input(v.addonName + lang(39300),
                                      type=xbmcgui.INPUT_ALPHANUM)
             if plexLogin != "":
                 # Enter password for plex.tv user
@@ -138,7 +136,7 @@ class PlexAPI():
                           % (plexLogin, authtoken))
                 if plexLogin == '':
                     # Could not sign in user
-                    dialog.ok(addonName,
+                    dialog.ok(v.addonName,
                               lang(39302) + plexLogin)
         # Write to Kodi settings file
         settings('plexLogin', value=retrievedPlexLogin)
@@ -164,11 +162,11 @@ class PlexAPI():
         dialog = xbmcgui.Dialog()
         if not code:
             # Problems trying to contact plex.tv. Try again later
-            dialog.ok(addonName, lang(39303))
+            dialog.ok(v.addonName, lang(39303))
             return False
         # Go to https://plex.tv/pin and enter the code:
         # Or press No to cancel the sign in.
-        answer = dialog.yesno(addonName,
+        answer = dialog.yesno(v.addonName,
                               lang(39304) + "\n\n",
                               code + "\n\n",
                               lang(39311))
@@ -185,7 +183,7 @@ class PlexAPI():
             count += 1
         if xml is False:
             # Could not sign in to plex.tv Try again later
-            dialog.ok(addonName, lang(39305))
+            dialog.ok(v.addonName, lang(39305))
             return False
         # Parse xml
         userid = xml.attrib.get('id')
@@ -830,7 +828,7 @@ class PlexAPI():
             if usernumber > 1:
                 # Select user
                 user_select = dialog.select(
-                    addonName + lang(39306),
+                    v.addonName + lang(39306),
                     userlistCoded)
                 if user_select == -1:
                     log.info("No user selected.")
@@ -873,7 +871,7 @@ class PlexAPI():
             else:
                 trials += 1
                 # Could not login user, please try again
-                if not dialog.yesno(addonName,
+                if not dialog.yesno(v.addonName,
                                     lang(39308) + selected_user,
                                     lang(39309)):
                     # User chose to cancel
@@ -1530,8 +1528,8 @@ class API():
         except (KeyError, ValueError):
             resume = 0.0
 
-        runtime = int(runtime * PLEX_TO_KODI_TIMEFACTOR)
-        resume = int(resume * PLEX_TO_KODI_TIMEFACTOR)
+        runtime = int(runtime * v.PLEX_TO_KODI_TIMEFACTOR)
+        resume = int(resume * v.PLEX_TO_KODI_TIMEFACTOR)
         return resume, runtime
 
     def getMpaa(self):
@@ -1751,7 +1749,7 @@ class API():
                     'key': key,
                     'title': title,
                     'thumb': thumb,
-                    'duration': int(duration * PLEX_TO_KODI_TIMEFACTOR),
+                    'duration': int(duration * v.PLEX_TO_KODI_TIMEFACTOR),
                     'extraType': extraType,
                     'originallyAvailableAt': originallyAvailableAt,
                     'year': year
@@ -1923,9 +1921,9 @@ class API():
         # Return the saved Plex id's, if applicable
         # Always seek collection's ids since not provided by PMS
         if collection is False:
-            if media_type == PLEX_TYPE_MOVIE:
+            if media_type == v.PLEX_TYPE_MOVIE:
                 mediaId = self.getProvider('imdb')
-            elif media_type == PLEX_TYPE_SHOW:
+            elif media_type == v.PLEX_TYPE_SHOW:
                 mediaId = self.getProvider('tvdb')
             if mediaId is not None:
                 return mediaId
@@ -1935,7 +1933,7 @@ class API():
             log.info('Start movie set/collection lookup on themoviedb')
 
         apiKey = settings('themoviedbAPIKey')
-        if media_type == PLEX_TYPE_SHOW:
+        if media_type == v.PLEX_TYPE_SHOW:
             media_type = 'tv'
         title = item.get('title', '')
         # if the title has the year in remove it as tmdb cannot deal with it...
@@ -1944,7 +1942,7 @@ class API():
         url = 'http://api.themoviedb.org/3/search/%s' % media_type
         parameters = {
             'api_key': apiKey,
-            'language': KODILANGUAGE,
+            'language': v.KODILANGUAGE,
             'query': tryEncode(title)
         }
         data = downloadutils.DownloadUtils().downloadUrl(
@@ -2030,7 +2028,7 @@ class API():
         parameters = {
             'api_key': apiKey
         }
-        for language in [KODILANGUAGE, "en"]:
+        for language in [v.KODILANGUAGE, "en"]:
             parameters['language'] = language
             if media_type == "movie":
                 url = 'http://api.themoviedb.org/3/movie/%s' % tmdbId
@@ -2130,7 +2128,7 @@ class API():
                     continue
                 # select image in preferred language
                 for entry in data[fanarttvimage]:
-                    if entry.get("lang") == KODILANGUAGE:
+                    if entry.get("lang") == v.KODILANGUAGE:
                         allartworks[fanarttype[1]] = entry.get("url", "").replace(' ', '%20')
                         break
                 # just grab the first english OR undefinded one as fallback
@@ -2368,7 +2366,7 @@ class API():
         listItem.setProperty('IsPlayable', 'true')
         extension = self.item[0][0].attrib['key'][self.item[0][0].attrib['key'].rfind('.'):].lower()
         if (window('plex_force_transcode_pix') == 'true' or
-                extension not in KODI_SUPPORTED_IMAGES):
+                extension not in v.KODI_SUPPORTED_IMAGES):
             # Let Plex transcode
             # max width/height supported by plex image transcoder is 1920x1080
             path = self.server + PlexAPI().getTranscodeImagePath(
@@ -2531,7 +2529,7 @@ class API():
         """
         if path is None:
             return None
-        typus = REMAP_TYPE_FROM_PLEXTYPE[typus]
+        typus = v.REMAP_TYPE_FROM_PLEXTYPE[typus]
         if window('remapSMB') == 'true':
             path = path.replace(window('remapSMB%sOrg' % typus),
                                 window('remapSMB%sNew' % typus),
@@ -2581,7 +2579,7 @@ class API():
         """
         log.warn('Cannot access file: %s' % url)
         resp = xbmcgui.Dialog().yesno(
-            heading=addonName,
+            heading=v.addonName,
             line1=lang(39031) + url,
             line2=lang(39032))
         return resp
@@ -2640,7 +2638,7 @@ class API():
         window('%s.itemid' % plexitem, value=self.getRatingKey())
         window('%s.playcount' % plexitem, value=str(userdata['PlayCount']))
 
-        if itemtype == PLEX_TYPE_EPISODE:
+        if itemtype == v.PLEX_TYPE_EPISODE:
             window('%s.refreshid' % plexitem, value=self.getParentRatingKey())
         else:
             window('%s.refreshid' % plexitem, value=self.getRatingKey())

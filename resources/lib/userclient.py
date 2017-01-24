@@ -20,8 +20,6 @@ from PlexFunctions import GetMachineIdentifier
 
 log = logging.getLogger("PLEX."+__name__)
 
-addonName = 'PlexKodiConnect'
-
 ###############################################################################
 
 
@@ -136,7 +134,7 @@ class UserClient(threading.Thread):
             log.info("Access is granted.")
             self.HasAccess = True
             window('plex_serverStatus', clear=True)
-            xbmcgui.Dialog().notification(addonName,
+            xbmcgui.Dialog().notification(lang(29999),
                                           lang(33007))
 
     def loadCurrUser(self, username, userId, usertoken, authenticated=False):

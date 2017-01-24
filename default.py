@@ -32,7 +32,7 @@ sys_path.append(_base_resource)
 ###############################################################################
 
 import entrypoint
-from utils import window, pickl_window, reset, passwordsXML
+from utils import window, pickl_window, reset, passwordsXML, language as lang
 from pickler import unpickle_me
 from PKC_listitem import convert_PKC_to_listitem
 
@@ -172,7 +172,7 @@ class Main():
                 if window('plex_online') != "true":
                     # Server is not online, do not run the sync
                     Dialog().ok(
-                        "PlexKodiConnect",
+                        lang(29999),
                         "Unable to run the sync, the add-on is not connected "
                         "to a Plex server.")
                     log.error("Not connected to a PMS.")
