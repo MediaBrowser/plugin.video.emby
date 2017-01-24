@@ -1291,7 +1291,8 @@ class API():
         collections = []
         for child in self.item:
             if child.tag == 'Collection':
-                collections.append(child.attrib['tag'])
+                if child.attrib['tag']:
+                    collections.append(child.attrib['tag'])
         return collections
 
     def getPeople(self):
