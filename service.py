@@ -187,6 +187,7 @@ class Service():
                                    lang(29999),
                                    "%s %s" % (lang(33000),
                                               self.user.currUser),
+                                   icon='{plex}',
                                    time=2000,
                                    sound=False)
                         # Start monitoring kodi events
