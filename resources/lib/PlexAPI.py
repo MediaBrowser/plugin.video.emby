@@ -31,22 +31,21 @@ http://stackoverflow.com/questions/111945/is-there-any-way-to-do-http-put-in-pyt
 """
 
 import logging
-import time
+from time import time
 import urllib2
 import socket
 from threading import Thread
 import xml.etree.ElementTree as etree
-import re
-import json
+from re import compile as re_compile, sub
+from json import dumps
 from urllib import urlencode, quote_plus, unquote
 
-import xbmcaddon
 import xbmcgui
-import xbmc
-import xbmcvfs
+from xbmc import sleep, executebuiltin
+from xbmcvfs import exists
 
 import clientinfo as client
-import downloadutils
+from downloadutils import DownloadUtils
 from utils import window, settings, language as lang, tryDecode, tryEncode, \
     DateToKodi
 from PlexFunctions import PMSHttpsEnabled
@@ -57,8 +56,8 @@ import variables as v
 
 log = logging.getLogger("PLEX."+__name__)
 
-REGEX_IMDB = re.compile(r'''/(tt\d+)''')
-REGEX_TVDB = re.compile(r'''tvdb://(\d+)''')
+REGEX_IMDB = re_compile(r'''/(tt\d+)''')
+REGEX_TVDB = re_compile(r'''tvdb://(\d+)''')
 ###############################################################################
 
 
@@ -69,7 +68,7 @@ class PlexAPI():
 
     def __init__(self):
         self.g_PMS = {}
-        self.doUtils = downloadutils.DownloadUtils().downloadUrl
+        self.doUtils = DownloadUtils().downloadUrl
 
     def GetPlexLoginFromSettings(self):
         """
@@ -178,7 +177,7 @@ class PlexAPI():
             if xml is not False:
                 break
             # Wait for 1 seconds
-            xbmc.sleep(1000)
+            sleep(1000)
             count += 1
         if xml is False:
             # Could not sign in to plex.tv Try again later
@@ -300,7 +299,7 @@ class PlexAPI():
             if answer is None:
                 log.debug("Could not connect to %s" % url)
                 count += 1
-                xbmc.sleep(500)
+                sleep(500)
                 continue
             try:
                 # xml received?
@@ -335,61 +334,6 @@ class PlexAPI():
             'scheme'
         ]
         return keylist
-
-    def setgPMSToSettings(self, g_PMS):
-        """
-        PlexDB: takes an g_PMS list of Plex servers and saves them all to
-        the Kodi settings file. It does NOT save the ATV_udid as that id
-        seems to change with reboot. Settings are set using the Plex server
-        machineIdentifier.
-
-        Input:
-            g_PMS
-
-        Output:
-
-        Assumptions:
-            There is only one ATV_udid in g_PMS
-
-        Existing entries for servers with the same ID get overwritten.
-        New entries get added. Serverinfo already set in file are set to ''.
-
-        NOTE: it is currently not possible to delete entries in Kodi settings
-        file!
-        """
-        addon = xbmcaddon.Addon()
-        # Get rid of uppermost level ATV_udid in g_PMS
-        ATV_udid = list(g_PMS.keys())[0]
-        g_PMS = g_PMS[ATV_udid]
-
-        serverlist = []
-        keylist = self.getgPMSKeylist()
-        for serverid, servervalues in g_PMS.items():
-            serverlist.append(serverid)
-            # Set values in Kodi settings file
-            for item in keylist:
-                # Append the server's ID first, then immediatelly the setting
-                addon.setSetting(
-                    str(serverid) + str(item),      # the key
-                    str(g_PMS[serverid][item])      # the value
-                )
-        # Write a new or updated 'serverlist' string to settings
-        oldserverlist = addon.getSetting('serverlist')
-        # If no server has been saved yet, return
-        if oldserverlist == '':
-            serverlist = ','.join(serverlist)
-            addon.setSetting('serverlist', serverlist)
-            return
-        oldserverlist = oldserverlist.split(',')
-        for server in oldserverlist:
-            # Delete serverinfo that has NOT been passed in serverlist
-            if server not in serverlist:
-                # Set old value to '', because deleting is not possible
-                for item in keylist:
-                    addon.setSetting(str(server) + str(item), '')
-        serverlist = ','.join(serverlist)
-        addon.setSetting('serverlist', serverlist)
-        return
 
     def declarePMS(self, uuid, name, scheme, ip, port):
         """
@@ -589,7 +533,7 @@ class PlexAPI():
             # check MyPlex data age - skip if >2 days
             PMS = {}
             PMS['name'] = Dir.get('name')
-            infoAge = time.time() - int(Dir.get('lastSeenAt'))
+            infoAge = time() - int(Dir.get('lastSeenAt'))
             if infoAge > maxAgeSeconds:
                 log.debug("Server %s not seen for 2 days - skipping."
                           % PMS['name'])
@@ -636,7 +580,7 @@ class PlexAPI():
                     t.start()
                     threads.append(t)
             else:
-                xbmc.sleep(50)
+                sleep(50)
 
         # wait for requests being answered
         for t in threads:
@@ -832,8 +776,8 @@ class PlexAPI():
                 if user_select == -1:
                     log.info("No user selected.")
                     settings('username', value='')
-                    xbmc.executebuiltin('Addon.OpenSettings(%s)'
-                                        % v.ADDON_ID)
+                    executebuiltin('Addon.OpenSettings(%s)'
+                                   % v.ADDON_ID)
                     return False
             # Only 1 user received, choose that one
             else:
@@ -877,7 +821,7 @@ class PlexAPI():
                     break
         if not username:
             log.error('Failed signing in a user to plex.tv')
-            xbmc.executebuiltin('Addon.OpenSettings(%s)' % v.ADDON_ID)
+            executebuiltin('Addon.OpenSettings(%s)' % v.ADDON_ID)
             return False
         return {
             'username': username,
@@ -1935,14 +1879,14 @@ class API():
         title = item.get('title', '')
         # if the title has the year in remove it as tmdb cannot deal with it...
         # replace e.g. 'The Americans (2015)' with 'The Americans'
-        title = re.sub(r'\s*\(\d{4}\)$', '', title, count=1)
+        title = sub(r'\s*\(\d{4}\)$', '', title, count=1)
         url = 'http://api.themoviedb.org/3/search/%s' % media_type
         parameters = {
             'api_key': apiKey,
             'language': v.KODILANGUAGE,
             'query': tryEncode(title)
         }
-        data = downloadutils.DownloadUtils().downloadUrl(
+        data = DownloadUtils().downloadUrl(
             url,
             authenticate=False,
             parameters=parameters,
@@ -2033,7 +1977,7 @@ class API():
             elif media_type == "tv":
                 url = 'http://api.themoviedb.org/3/tv/%s' % tmdbId
                 parameters['append_to_response'] = 'external_ids,videos'
-            data = downloadutils.DownloadUtils().downloadUrl(
+            data = DownloadUtils().downloadUrl(
                 url,
                 authenticate=False,
                 parameters=parameters,
@@ -2145,7 +2089,7 @@ class API():
                 continue
             for entry in data[fanarttvimage]:
                 if fanartcount < maxfanarts:
-                    if xbmcvfs.exists(entry.get("url")):
+                    if exists(entry.get("url")):
                         allartworks['Backdrop'].append(
                             entry.get("url", "").replace(' ', '%20'))
                         fanartcount += 1
@@ -2320,7 +2264,7 @@ class API():
                 mapping[kodiindex] = index
                 externalsubs.append(url)
                 kodiindex += 1
-        mapping = json.dumps(mapping)
+        mapping = dumps(mapping)
         window('plex_%s.indexMapping' % playurl, value=mapping)
         log.info('Found external subs: %s' % externalsubs)
         return externalsubs
@@ -2346,7 +2290,7 @@ class API():
         if date is None:
             return
         try:
-            date = re.sub(r'(\d+)-(\d+)-(\d+)', r'\3.\2.\1', date)
+            date = sub(r'(\d+)-(\d+)-(\d+)', r'\3.\2.\1', date)
         except:
             date = None
         return date
@@ -2542,14 +2486,14 @@ class API():
         # exist() needs a / or \ at the end to work for directories
         if folder is False:
             # files
-            check = xbmcvfs.exists(tryEncode(path)) == 1
+            check = exists(tryEncode(path)) == 1
         else:
             # directories
             if "\\" in path:
                 # Add the missing backslash
-                check = xbmcvfs.exists(tryEncode(path + "\\")) == 1
+                check = exists(tryEncode(path + "\\")) == 1
             else:
-                check = xbmcvfs.exists(tryEncode(path + "/")) == 1
+                check = exists(tryEncode(path + "/")) == 1
 
         if check is False:
             if forceCheck is False:
