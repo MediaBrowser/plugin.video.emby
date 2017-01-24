@@ -6,9 +6,7 @@ import logging
 import requests
 import xml.etree.ElementTree as etree
 
-import xbmcgui
-
-from utils import settings, window, language as lang
+from utils import settings, window, language as lang, dialog
 import clientinfo as client
 
 ###############################################################################
@@ -280,10 +278,10 @@ class DownloadUtils():
                             log.debug('Setting PMS server status to '
                                       'unauthorized')
                             window('plex_serverStatus', value="401")
-                            xbmcgui.Dialog().notification(
-                                lang(29999),
-                                "Unauthorized for PMS",
-                                xbmcgui.NOTIFICATION_ERROR)
+                            dialog('notification',
+                                   lang(29999),
+                                   lang(30017),
+                                   icon='{error}')
                 else:
                     # there might be other 401 where e.g. PMS under strain
                     log.info('PMS might only be under strain')

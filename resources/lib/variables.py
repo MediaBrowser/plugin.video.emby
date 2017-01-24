@@ -9,6 +9,8 @@ ADDON_VERSION = Addon().getAddonInfo('version')
 
 KODILANGUAGE = xbmc.getLanguage(xbmc.ISO_639_1)
 KODIVERSION = int(xbmc.getInfoLabel("System.BuildVersion")[:2])
+KODILONGVERSION = xbmc.getInfoLabel('System.BuildVersion')
+KODI_PROFILE = xbmc.translatePath("special://profile")
 
 if xbmc.getCondVisibility('system.platform.osx'):
     PLATFORM = "MacOSX"

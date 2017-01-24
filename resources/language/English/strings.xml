@@ -17,7 +17,8 @@
 
     <string id="30014">Connection</string>
     <string id="30015">Network</string>    
-    <string id="30016">Device Name</string>        
+    <string id="30016">Device Name</string>
+    <string id="30017">Unauthorized for PMS</string>     
 
     <string id="30022">Advanced</string>
     <string id="30024">Username</string><!-- Verified -->

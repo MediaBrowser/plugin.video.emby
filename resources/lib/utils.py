@@ -91,14 +91,27 @@ def language(stringid):
     return ADDON.getLocalizedString(stringid)
 
 
-def dialog(type_, *args, **kwargs):
+def dialog(typus, *args, **kwargs):
+    """
+    Displays xbmcgui Dialog. Pass a string as typus:
+        'yesno', 'ok', 'notification', 'input', 'select', 'numeric'
 
+    Icons:
+        icon='{plex}'       Display Plex standard icon
+        icon='{info}'       xbmcgui.NOTIFICATION_INFO
+        icon='{warning}'    xbmcgui.NOTIFICATION_WARNING
+        icon='{error}'      xbmcgui.NOTIFICATION_ERROR
+    """
     d = xbmcgui.Dialog()
-
     if "icon" in kwargs:
-        kwargs['icon'] = kwargs['icon'].replace(
-            "{plex}",
-            "special://home/addons/plugin.video.plexkodiconnect/icon.png")
+        repl = {
+            '{plex}': 'special://home/addons/plugin.video.plexkodiconnect/icon.png',
+            '{info}': xbmcgui.NOTIFICATION_INFO,
+            '{warning}': xbmcgui.NOTIFICATION_WARNING,
+            '{error}': xbmcgui.NOTIFICATION_ERROR
+        }
+        for key, value in repl.iteritems():
+            kwargs['icon'] = kwargs['icon'].replace(key, value)
     if "heading" in kwargs:
         kwargs['heading'] = kwargs['heading'].replace("{plex}",
                                                       language(29999))
@@ -111,7 +124,7 @@ def dialog(type_, *args, **kwargs):
         'select': d.select,
         'numeric': d.numeric
     }
-    return types[type_](*args, **kwargs)
+    return types[typus](*args, **kwargs)
 
 
 def tryEncode(uniString, encoding='utf-8'):

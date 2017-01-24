@@ -3,35 +3,34 @@
 ###############################################################################
 
 import logging
-import os
-import sys
+from os import path as os_path
+from sys import path as sys_path
 
-import xbmc
-import xbmcaddon
-import xbmcgui
+from xbmc import translatePath, Monitor, sleep
+from xbmcaddon import Addon
 
 ###############################################################################
 
-_addon = xbmcaddon.Addon(id='plugin.video.plexkodiconnect')
+_addon = Addon(id='plugin.video.plexkodiconnect')
 try:
     _addon_path = _addon.getAddonInfo('path').decode('utf-8')
 except TypeError:
     _addon_path = _addon.getAddonInfo('path').decode()
 try:
-    _base_resource = xbmc.translatePath(os.path.join(
+    _base_resource = translatePath(os_path.join(
         _addon_path,
         'resources',
         'lib')).decode('utf-8')
 except TypeError:
-    _base_resource = xbmc.translatePath(os.path.join(
+    _base_resource = translatePath(os_path.join(
         _addon_path,
         'resources',
         'lib')).decode()
-sys.path.append(_base_resource)
+sys_path.append(_base_resource)
 
 ###############################################################################
 
-from utils import settings, window, language as lang
+from utils import settings, window, language as lang, dialog
 from userclient import UserClient
 import initialsetup
 from kodimonitor import KodiMonitor
@@ -81,11 +80,11 @@ class Service():
     def __init__(self):
 
         logLevel = self.getLogLevel()
-        self.monitor = xbmc.Monitor()
+        self.monitor = Monitor()
 
         window('plex_logLevel', value=str(logLevel))
         window('plex_kodiProfile',
-               value=xbmc.translatePath("special://profile"))
+               value=translatePath("special://profile"))
         window('plex_context',
                value='true' if settings('enableContext') == "true" else "")
         window('fetch_pms_item_number',
@@ -94,7 +93,7 @@ class Service():
         # Initial logging
         log.warn("======== START %s ========" % v.ADDON_NAME)
         log.warn("Platform: %s" % v.PLATFORM)
-        log.warn("KODI Version: %s" % xbmc.getInfoLabel('System.BuildVersion'))
+        log.warn("KODI Version: %s" % v.KODILONGVERSION)
         log.warn("%s Version: %s" % (v.ADDON_NAME, v.ADDON_VERSION))
         log.warn("Using plugin paths: %s"
                  % (settings('useDirectPaths') != "true"))
@@ -137,7 +136,7 @@ class Service():
         # Important: Threads depending on abortRequest will not trigger
         # if profile switch happens more than once.
         monitor = self.monitor
-        kodiProfile = xbmc.translatePath("special://profile")
+        kodiProfile = v.KODI_PROFILE
 
         # Detect playback start early on
         self.monitor_kodi_play = Monitor_Kodi_Play(self)
@@ -184,12 +183,10 @@ class Service():
                         if welcome_msg is True:
                             # Reset authentication warnings
                             welcome_msg = False
-                            xbmcgui.Dialog().notification(
-                                heading=lang(29999),
-                                message="%s %s" % (lang(33000),
-                                                   self.user.currUser),
-                                icon="special://home/addons/plugin."
-                                     "video.plexkodiconnect/icon.png",
+                            dialog.notification(
+                                lang(29999),
+                                "%s %s" % (lang(33000),
+                                           self.user.currUser),
                                 time=2000,
                                 sound=False)
                         # Start monitoring kodi events
@@ -237,7 +234,7 @@ class Service():
                         if monitor.waitForAbort(5):
                             # Abort was requested while waiting. We should exit
                             break
-                        xbmc.sleep(50)
+                        sleep(50)
             else:
                 # Wait until Plex server is online
                 # or Kodi is shut down.
@@ -256,13 +253,11 @@ class Service():
                             window('suspend_LibraryThread', value='true')
                             log.error("Plex Media Server went offline")
                             if settings('show_pms_offline') == 'true':
-                                xbmcgui.Dialog().notification(
-                                    heading=lang(33001),
-                                    message="%s %s"
-                                            % (lang(29999), lang(33002)),
-                                    icon="special://home/addons/plugin.video."
-                                         "plexkodiconnect/icon.png",
-                                    sound=False)
+                                dialog('notification',
+                                       lang(33001),
+                                       "%s %s" % (lang(29999), lang(33002)),
+                                       icon='{plex}',
+                                       sound=False)
                         counter += 1
                         # Periodically check if the IP changed, e.g. per minute
                         if counter > 20:
@@ -284,13 +279,12 @@ class Service():
                             # Alert the user that server is online.
                             if (welcome_msg is False and
                                     settings('show_pms_offline') == 'true'):
-                                xbmcgui.Dialog().notification(
-                                    heading=lang(29999),
-                                    message=lang(33003),
-                                    icon="special://home/addons/plugin.video."
-                                         "plexkodiconnect/icon.png",
-                                    time=5000,
-                                    sound=False)
+                                dialog('notification',
+                                       lang(29999),
+                                       lang(33003),
+                                       icon='{plex}',
+                                       time=5000,
+                                       sound=False)
                         log.info("Server %s is online and ready." % server)
                         window('plex_online', value="true")
                         if window('plex_authenticated') == 'true':
@@ -344,7 +338,7 @@ class Service():
 delay = int(settings('startupDelay'))
 
 log.warn("Delaying Plex startup by: %s sec..." % delay)
-if delay and xbmc.Monitor().waitForAbort(delay):
+if delay and Monitor().waitForAbort(delay):
     # Start the service
     log.warn("Abort requested while waiting. PKC not started.")
 else:

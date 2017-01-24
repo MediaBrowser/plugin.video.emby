@@ -14,6 +14,8 @@
     <string id="30011">Caching-Mechanismus</string>
     <string id="30012">OK</string>
     <string id="30013">Nie anzeigen</string>
+    <string id="30017">Nicht autorisiert für PMS</string>     
+
 
     <string id="30500">Host SSL Zertifikat überprüfen (sicherer)</string>
     <string id="30507">Synchronisations-Fortschritt anzeigen</string>
