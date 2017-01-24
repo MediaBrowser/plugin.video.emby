@@ -25,8 +25,11 @@ import variables as v
 ###############################################################################
 log = logging.getLogger("PLEX."+__name__)
 
-HANDLE = int(argv[1])
-ARGV_0 = argv[0]
+try:
+    HANDLE = int(argv[1])
+    ARGV_0 = argv[0]
+except IndexError:
+    pass
 ###############################################################################
 
 

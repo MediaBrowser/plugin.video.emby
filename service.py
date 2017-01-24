@@ -183,12 +183,12 @@ class Service():
                         if welcome_msg is True:
                             # Reset authentication warnings
                             welcome_msg = False
-                            dialog.notification(
-                                lang(29999),
-                                "%s %s" % (lang(33000),
-                                           self.user.currUser),
-                                time=2000,
-                                sound=False)
+                            dialog('notification',
+                                   lang(29999),
+                                   "%s %s" % (lang(33000),
+                                              self.user.currUser),
+                                   time=2000,
+                                   sound=False)
                         # Start monitoring kodi events
                         self.kodimonitor_running = KodiMonitor(self)
                         # Start playqueue client
