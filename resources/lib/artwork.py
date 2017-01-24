@@ -212,7 +212,7 @@ class Image_Cache_Thread(Thread):
                     # download. All is well
                     break
                 except requests.ConnectionError:
-                    if window('plex_terminateNow') == 'true':
+                    if threadStopped():
                         # Kodi terminated
                         break
                     # Server thinks its a DOS attack, ('error 10053')
