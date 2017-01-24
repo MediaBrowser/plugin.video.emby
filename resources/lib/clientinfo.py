@@ -13,7 +13,7 @@ log = logging.getLogger("PLEX."+__name__)
 ###############################################################################
 
 
-def getXArgsDeviceInfo(self, options=None):
+def getXArgsDeviceInfo(options=None):
     """
     Returns a dictionary that can be used as headers for GET and POST
     requests. An authentication option is NOT yet added.
@@ -38,7 +38,7 @@ def getXArgsDeviceInfo(self, options=None):
         # 'X-Plex-Model': 'unknown',
         'X-Plex-Product': v.ADDON_NAME,
         'X-Plex-Version': v.ADDON_VERSION,
-        'X-Plex-Client-Identifier': self.getDeviceId(),
+        'X-Plex-Client-Identifier': getDeviceId(),
         'X-Plex-Provides': 'client,controller,player',
     }
     if window('pms_token'):
@@ -48,7 +48,7 @@ def getXArgsDeviceInfo(self, options=None):
     return xargs
 
 
-def getDeviceId(self, reset=False):
+def getDeviceId(reset=False):
     """
     Returns a unique Plex client id "X-Plex-Client-Identifier" from Kodi
     settings file.
