@@ -2021,7 +2021,7 @@ class API():
         else:
             # Not supported artwork
             return allartworks
-        data = downloadutils.DownloadUtils().downloadUrl(
+        data = DownloadUtils().downloadUrl(
             url,
             authenticate=False,
             timeout=15)
