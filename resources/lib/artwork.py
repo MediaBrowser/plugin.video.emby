@@ -10,11 +10,10 @@ from threading import Thread
 from Queue import Queue, Empty
 
 from xbmc import executeJSONRPC, sleep, translatePath
-from xbmcgui import Dialog
 from xbmcvfs import listdir, delete
 
 from utils import window, settings, language as lang, kodiSQL, tryEncode, \
-    tryDecode, IfExists, ThreadMethods, ThreadMethodsAdditionalStop
+    tryDecode, IfExists, ThreadMethods, ThreadMethodsAdditionalStop, dialog
 
 # Disable annoying requests warnings
 import requests.packages.urllib3
@@ -251,15 +250,13 @@ class Artwork():
         This method will sync all Kodi artwork to textures13.db
         and cache them locally. This takes diskspace!
         """
-        if not Dialog().yesno(
-                "Image Texture Cache", lang(39250)):
+        if not dialog('yesno', "Image Texture Cache", lang(39250)):
             return
 
         log.info("Doing Image Cache Sync")
 
         # ask to rest all existing or not
-        if Dialog().yesno(
-                "Image Texture Cache", lang(39251), ""):
+        if dialog('yesno', "Image Texture Cache", lang(39251)):
             log.info("Resetting all cache data first")
             # Remove all existing textures first
             path = tryDecode(translatePath("special://thumbnails/"))

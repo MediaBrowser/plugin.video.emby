@@ -101,21 +101,40 @@ def dialog(typus, *args, **kwargs):
         icon='{info}'       xbmcgui.NOTIFICATION_INFO
         icon='{warning}'    xbmcgui.NOTIFICATION_WARNING
         icon='{error}'      xbmcgui.NOTIFICATION_ERROR
+
+    Input Types:
+        type='{alphanum}'   xbmcgui.INPUT_ALPHANUM (standard keyboard)
+        type='{numeric}'    xbmcgui.INPUT_NUMERIC (format: #)
+        type='{date}'       xbmcgui.INPUT_DATE (format: DD/MM/YYYY)
+        type='{time}'       xbmcgui.INPUT_TIME (format: HH:MM)
+        type='{ipaddress}'  xbmcgui.INPUT_IPADDRESS (format: #.#.#.#)
+        type='{password}'   xbmcgui.INPUT_PASSWORD
+                            (return md5 hash of input, input is masked)
     """
     d = xbmcgui.Dialog()
     if "icon" in kwargs:
-        repl = {
+        types = {
             '{plex}': 'special://home/addons/plugin.video.plexkodiconnect/icon.png',
             '{info}': xbmcgui.NOTIFICATION_INFO,
             '{warning}': xbmcgui.NOTIFICATION_WARNING,
             '{error}': xbmcgui.NOTIFICATION_ERROR
         }
-        for key, value in repl.iteritems():
+        for key, value in types.iteritems():
             kwargs['icon'] = kwargs['icon'].replace(key, value)
+    if 'type' in kwargs:
+        types = {
+            '{alphanum}': xbmcgui.INPUT_ALPHANUM,
+            '{numeric}': xbmcgui.INPUT_NUMERIC,
+            '{date}': xbmcgui.INPUT_DATE,
+            '{time}': xbmcgui.INPUT_TIME,
+            '{ipaddress}': xbmcgui.INPUT_IPADDRESS,
+            '{password}': xbmcgui.INPUT_PASSWORD
+        }
+        for key, value in types.iteritems():
+            kwargs['type'] = kwargs['type'].replace(key, value)
     if "heading" in kwargs:
         kwargs['heading'] = kwargs['heading'].replace("{plex}",
                                                       language(29999))
-
     types = {
         'yesno': d.yesno,
         'ok': d.ok,
