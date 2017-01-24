@@ -9,9 +9,10 @@ from xbmc import sleep
 from utils import settings, ThreadMethodsAdditionalSuspend, ThreadMethods
 from plexbmchelper import listener, plexgdm, subscribers, functions, \
     httppersist, plexsettings
-from PlexFunctions import ParseContainerKey, KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE
+from PlexFunctions import ParseContainerKey
 import player
 from entrypoint import Plex_Node
+from variables import KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE
 
 ###############################################################################
 
