@@ -191,7 +191,7 @@ class ContextMenu(object):
         delete = True
         if settings('skipContextMenu') != "true":
 
-            if not dialog("yesno", heading=v.addonName, line1=lang(33041)):
+            if not dialog("yesno", heading=lang(29999), line1=lang(33041)):
                 log.info("User skipped deletion for: %s", self.item_id)
                 delete = False
 

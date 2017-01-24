@@ -118,7 +118,7 @@ class PlexAPI():
         dialog = xbmcgui.Dialog()
         while retrievedPlexLogin == '' and plexLogin != '':
             # Enter plex.tv username. Or nothing to cancel.
-            plexLogin = dialog.input(v.addonName + lang(39300),
+            plexLogin = dialog.input(lang(29999) + lang(39300),
                                      type=xbmcgui.INPUT_ALPHANUM)
             if plexLogin != "":
                 # Enter password for plex.tv user
@@ -134,8 +134,7 @@ class PlexAPI():
                           % (plexLogin, authtoken))
                 if plexLogin == '':
                     # Could not sign in user
-                    dialog.ok(v.addonName,
-                              lang(39302) + plexLogin)
+                    dialog.ok(lang(29999), lang(39302) + plexLogin)
         # Write to Kodi settings file
         settings('plexLogin', value=retrievedPlexLogin)
         settings('plexToken', value=authtoken)
@@ -160,11 +159,11 @@ class PlexAPI():
         dialog = xbmcgui.Dialog()
         if not code:
             # Problems trying to contact plex.tv. Try again later
-            dialog.ok(v.addonName, lang(39303))
+            dialog.ok(lang(29999), lang(39303))
             return False
         # Go to https://plex.tv/pin and enter the code:
         # Or press No to cancel the sign in.
-        answer = dialog.yesno(v.addonName,
+        answer = dialog.yesno(lang(29999),
                               lang(39304) + "\n\n",
                               code + "\n\n",
                               lang(39311))
@@ -181,7 +180,7 @@ class PlexAPI():
             count += 1
         if xml is False:
             # Could not sign in to plex.tv Try again later
-            dialog.ok(v.addonName, lang(39305))
+            dialog.ok(lang(29999), lang(39305))
             return False
         # Parse xml
         userid = xml.attrib.get('id')
@@ -771,7 +770,7 @@ class PlexAPI():
             if usernumber > 1:
                 # Select user
                 user_select = dialog.select(
-                    v.addonName + lang(39306),
+                    lang(29999) + lang(39306),
                     userlistCoded)
                 if user_select == -1:
                     log.info("No user selected.")
@@ -814,7 +813,7 @@ class PlexAPI():
             else:
                 trials += 1
                 # Could not login user, please try again
-                if not dialog.yesno(v.addonName,
+                if not dialog.yesno(lang(29999),
                                     lang(39308) + selected_user,
                                     lang(39309)):
                     # User chose to cancel
@@ -2520,7 +2519,7 @@ class API():
         """
         log.warn('Cannot access file: %s' % url)
         resp = xbmcgui.Dialog().yesno(
-            heading=v.addonName,
+            heading=lang(29999),
             line1=lang(39031) + url,
             line2=lang(39032))
         return resp
