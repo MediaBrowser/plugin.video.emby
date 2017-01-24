@@ -10,7 +10,8 @@ import xbmc
 import xbmcvfs
 
 from utils import window, settings, language as lang, IfExists, tryDecode, \
-    tryEncode, indent, normalize_nodes, KODIVERSION
+    tryEncode, indent, normalize_nodes
+import variables as v
 
 ###############################################################################
 
@@ -227,12 +228,12 @@ class VideoNodes(object):
             elif nodetype == "nextepisodes":
                 # Custom query
                 path = "plugin://plugin.video.plexkodiconnect/?id=%s&mode=nextup&limit=%s" % (tagname, limit)
-            # elif kodiversion == 14 and nodetype == "recentepisodes":
+            # elif v.KODIVERSION == 14 and nodetype == "recentepisodes":
             elif nodetype == "recentepisodes":
                 # Custom query
                 path = ("plugin://plugin.video.plexkodiconnect/?id=%s&mode=recentepisodes&type=%s&tagname=%s&limit=%s"
                     % (viewid, mediatype, tagname, limit))
-            elif KODIVERSION == 14 and nodetype == "inprogressepisodes":
+            elif v.KODIVERSION == 14 and nodetype == "inprogressepisodes":
                 # Custom query
                 path = "plugin://plugin.video.plexkodiconnect/?id=%s&mode=inprogressepisodes&limit=%s" % (tagname, limit)
             elif nodetype == 'ondeck':
@@ -249,7 +250,7 @@ class VideoNodes(object):
             if mediatype == "photos":
                 windowpath = "ActivateWindow(Pictures,%s,return)" % path
             else:
-                if KODIVERSION >= 17:
+                if v.KODIVERSION >= 17:
                     # Krypton
                     windowpath = "ActivateWindow(Videos,%s,return)" % path
                 else:
@@ -371,7 +372,7 @@ class VideoNodes(object):
             "special://profile/library/video/"))
         nodeXML = "%splex_%s.xml" % (nodepath, cleantagname)
         path = "library://video/plex_%s.xml" % cleantagname
-        if KODIVERSION >= 17:
+        if v.KODIVERSION >= 17:
             # Krypton
             windowpath = "ActivateWindow(Videos,%s,return)" % path
         else:
