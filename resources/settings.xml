@@ -43,6 +43,7 @@
 
 		<setting id="plex_restricteduser" type="bool" default="false" visible="false"/>
 		<setting id="plex_allows_mediaDeletion" type="bool" default="true" visible="false"/>
+		<setting id="companion_show_gdm_port_warning" type="bool" default="true" visible="false"/>
 	</category>
 
 	<category label="30506"><!-- Sync Options -->

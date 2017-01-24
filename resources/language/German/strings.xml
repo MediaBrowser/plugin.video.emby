@@ -12,6 +12,9 @@
     <string id="30009">Transkodieren: </string>
     <string id="30010">Performancemessung aktivieren</string>
     <string id="30011">Caching-Mechanismus</string>
+    <string id="30012">OK</string>
+    <string id="30013">Nie anzeigen</string>
+
     <string id="30500">Host SSL Zertifikat überprüfen (sicherer)</string>
     <string id="30507">Synchronisations-Fortschritt anzeigen</string>
     <string id="30512">Zwischenspeichern von PMS Bildern erzwingen</string>
@@ -388,6 +391,7 @@
     <string id="39076">Falls du mehrere Plex Bibliotheken einer Art nutzt, z.B. "Filme Kinder" und "Filme Eltern", lies unbedingt das Wiki unter https://goo.gl/JFtQV9</string>
     <string id="39077">Anzahl anzuzeigender PMS Einträge in Widgets (z.B. "Aktuell")</string>
     <string id="39078">Plex Companion Update Port (nur bei Bedarf ändern)</string>
+    <string id="39079">Plex Companion konnte den GDM Port nicht öffnen. Bitte den Port in den PKC Einstellungen ändern.</string>
 
     <!-- Plex Entrypoint.py -->
     <string id="39200">Plex Home Benutzer abmelden: </string>
