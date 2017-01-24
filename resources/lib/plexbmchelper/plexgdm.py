@@ -49,7 +49,7 @@ class plexgdm:
         self._multicast_address = '239.0.0.250'
         self.discover_group = (self._multicast_address, 32414)
         self.client_register_group = (self._multicast_address, 32413)
-        self.client_update_port = 32412
+        self.client_update_port = int(settings('companionUpdatePort'))
 
         self.server_list = []
         self.discovery_interval = 120
@@ -104,8 +104,9 @@ class plexgdm:
         try:
             update_sock.bind(('0.0.0.0', self.client_update_port))
         except:
-            log.error("Unable to bind to port [%s] - client will not be "
-                      "registered" % self.client_update_port)
+            log.error("Unable to bind to port [%s] - Plex Companion will not "
+                      "be registered. Change the Plex Companion update port!"
+                      % self.client_update_port)
             return
 
         update_sock.setsockopt(socket.IPPROTO_IP,

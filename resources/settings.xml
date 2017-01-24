@@ -39,6 +39,7 @@
 		<setting id="deviceNameOpt" label="30504" type="bool" default="false" subsetting="true" visible="eq(-1,true)" />
 		<setting id="deviceName" label="30016" type="text" visible="eq(-1,true)" default="Kodi" subsetting="true" />
 		<setting id="companionPort" label="39005" type="number" default="3005" option="int" visible="eq(-3,true)" subsetting="true" />
+		<setting id="companionUpdatePort" label="39078" type="number" default="32412" option="int" visible="eq(-4,true)" subsetting="true" />
 
 		<setting id="plex_restricteduser" type="bool" default="false" visible="false"/>
 		<setting id="plex_allows_mediaDeletion" type="bool" default="true" visible="false"/>

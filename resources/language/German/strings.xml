@@ -312,7 +312,7 @@
     <string id="39001">Audio Verstärkung (audio boost) wenn transkodiert wird</string>
     <string id="39002">Grösse des Untertitels, falls burnt-in</string>
     <string id="39003">Download Sync Threads beschränken (Empfehlung RPI: 1)</string>
-    <string id="39004">Plex Companion aktivieren</string>
+    <string id="39004">Plex Companion aktivieren (Kodi neu starten!)</string>
     <string id="39005">Plex Companion Port (nur bei Bedarf ändern)</string>
     <string id="39006">Plex Companion debug log aktivieren</string>
     <string id="39007">Plex Companion GDM debug log aktivieren</string>
@@ -387,6 +387,7 @@
     <string id="39075">Falls möglich, Plex Standard-Untertitel anzeigen</string>
     <string id="39076">Falls du mehrere Plex Bibliotheken einer Art nutzt, z.B. "Filme Kinder" und "Filme Eltern", lies unbedingt das Wiki unter https://goo.gl/JFtQV9</string>
     <string id="39077">Anzahl anzuzeigender PMS Einträge in Widgets (z.B. "Aktuell")</string>
+    <string id="39078">Plex Companion Update Port (nur bei Bedarf ändern)</string>
 
     <!-- Plex Entrypoint.py -->
     <string id="39200">Plex Home Benutzer abmelden: </string>
