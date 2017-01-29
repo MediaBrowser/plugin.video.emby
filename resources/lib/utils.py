@@ -2,18 +2,18 @@
 
 ###############################################################################
 import logging
-import cProfile
-import json
-import pstats
-import sqlite3
+from cProfile import Profile
+from json import loads, dumps
+from pstats import Stats
+from sqlite3 import connect, OperationalError
 from datetime import datetime, timedelta
-import StringIO
-import time
-import unicodedata
+from StringIO import StringIO
+from time import localtime, strftime, strptime
+from unicodedata import normalize
 import xml.etree.ElementTree as etree
 from functools import wraps
 from calendar import timegm
-import os
+from os import path as os_path
 
 import xbmc
 import xbmcaddon
@@ -192,8 +192,8 @@ def DateToKodi(stamp):
     """
     try:
         stamp = float(stamp) + float(window('kodiplextimeoffset'))
-        date_time = time.localtime(stamp)
-        localdate = time.strftime('%Y-%m-%d %H:%M:%S', date_time)
+        date_time = localtime(stamp)
+        localdate = strftime('%Y-%m-%d %H:%M:%S', date_time)
     except:
         localdate = None
     return localdate
@@ -207,7 +207,7 @@ def IfExists(path):
 
     Returns True if path exists, else false
     """
-    dummyfile = tryEncode(os.path.join(path, 'dummyfile.txt'))
+    dummyfile = tryEncode(os_path.join(path, 'dummyfile.txt'))
     try:
         etree.ElementTree(etree.Element('test')).write(dummyfile)
     except:
@@ -255,7 +255,7 @@ def kodiSQL(media_type="video"):
         dbPath = DB_TEXTURE_PATH
     else:
         dbPath = DB_VIDEO_PATH
-    return sqlite3.connect(dbPath, timeout=60.0)
+    return connect(dbPath, timeout=60.0)
 
 
 def create_actor_db_index():
@@ -269,7 +269,7 @@ def create_actor_db_index():
             CREATE UNIQUE INDEX index_name
             ON actor (name);
         """)
-    except sqlite3.OperationalError:
+    except OperationalError:
         # Index already exists
         pass
     conn.commit()
@@ -288,7 +288,7 @@ def getScreensaver():
             'setting': "screensaver.mode"
         }
     }
-    return json.loads(xbmc.executeJSONRPC(json.dumps(query)))['result']['value']
+    return loads(xbmc.executeJSONRPC(dumps(query)))['result']['value']
 
 def setScreensaver(value):
     # Toggle the screensaver
@@ -304,7 +304,7 @@ def setScreensaver(value):
         }
     }
     log.debug("Toggling screensaver: %s %s"
-              % (value, xbmc.executeJSONRPC(json.dumps(query))))
+              % (value, xbmc.executeJSONRPC(dumps(query))))
 
 def reset():
 
@@ -382,12 +382,12 @@ def reset():
             for dir in allDirs:
                 allDirs, allFiles = xbmcvfs.listdir(path+dir)
                 for file in allFiles:
-                    if os.path.supports_unicode_filenames:
-                        xbmcvfs.delete(os.path.join(
+                    if os_path.supports_unicode_filenames:
+                        xbmcvfs.delete(os_path.join(
                             path + tryDecode(dir),
                             tryDecode(file)))
                     else:
-                        xbmcvfs.delete(os.path.join(
+                        xbmcvfs.delete(os_path.join(
                             tryEncode(path) + dir,
                             file))
 
@@ -426,14 +426,14 @@ def profiling(sortby="cumulative"):
     def decorator(func):
         def wrapper(*args, **kwargs):
 
-            pr = cProfile.Profile()
+            pr = Profile()
 
             pr.enable()
             result = func(*args, **kwargs)
             pr.disable()
 
-            s = StringIO.StringIO()
-            ps = pstats.Stats(pr, stream=s).sort_stats(sortby)
+            s = StringIO()
+            ps = Stats(pr, stream=s).sort_stats(sortby)
             ps.print_stats()
             log.info(s.getvalue())
 
@@ -448,7 +448,7 @@ def convertdate(date):
     except TypeError:
         # TypeError: attribute of type 'NoneType' is not callable
         # Known Kodi/python error
-        date = datetime(*(time.strptime(date, "%Y-%m-%dT%H:%M:%SZ")[0:6]))
+        date = datetime(*(strptime(date, "%Y-%m-%dT%H:%M:%SZ")[0:6]))
 
     return date
 
@@ -468,7 +468,7 @@ def normalize_nodes(text):
     # Remove dots from the last character as windows can not have directories
     # with dots at the end
     text = text.rstrip('.')
-    text = tryEncode(unicodedata.normalize('NFKD', unicode(text, 'utf-8')))
+    text = tryEncode(normalize('NFKD', unicode(text, 'utf-8')))
 
     return text
 
@@ -487,7 +487,7 @@ def normalize_string(text):
     # Remove dots from the last character as windows can not have directories
     # with dots at the end
     text = text.rstrip('.')
-    text = tryEncode(unicodedata.normalize('NFKD', unicode(text, 'utf-8')))
+    text = tryEncode(normalize('NFKD', unicode(text, 'utf-8')))
 
     return text
 
@@ -1017,8 +1017,8 @@ def changePlayState(itemType, kodiId, playCount, lastplayed):
     }
     query['method'] = method[itemType]
     query['params'] = params[itemType]
-    result = xbmc.executeJSONRPC(json.dumps(query))
-    result = json.loads(result)
+    result = xbmc.executeJSONRPC(dumps(query))
+    result = loads(result)
     result = result.get('result')
     log.debug("JSON result was: %s" % result)
 
@@ -1040,8 +1040,8 @@ class JSONRPC(object):
         }
         if self.params is not None:
             query['params'] = self.params
-        return json.dumps(query)
+        return dumps(query)
 
     def execute(self, params=None):
         self.params = params
-        return json.loads(xbmc.executeJSONRPC(self._query()))
+        return loads(xbmc.executeJSONRPC(self._query()))
