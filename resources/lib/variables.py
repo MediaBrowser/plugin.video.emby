@@ -1,11 +1,28 @@
 # -*- coding: utf-8 -*-
 import xbmc
 from xbmcaddon import Addon
-from utils import settings, tryDecode
 
+
+def tryDecode(string, encoding='utf-8'):
+    """
+    Will try to decode string (encoded) using encoding. This possibly
+    fails with e.g. Android TV's Python, which does not accept arguments for
+    string.encode()
+    """
+    if isinstance(string, unicode):
+        # already decoded
+        return string
+    try:
+        string = string.decode(encoding, "ignore")
+    except TypeError:
+        string = string.decode()
+    return string
+
+
+_ADDON = Addon()
 ADDON_NAME = 'PlexKodiConnect'
 ADDON_ID = 'plugin.video.plexkodiconnect'
-ADDON_VERSION = Addon().getAddonInfo('version')
+ADDON_VERSION = _ADDON.getAddonInfo('version')
 
 KODILANGUAGE = xbmc.getLanguage(xbmc.ISO_639_1)
 KODIVERSION = int(xbmc.getInfoLabel("System.BuildVersion")[:2])
@@ -29,11 +46,11 @@ elif xbmc.getCondVisibility('system.platform.android'):
 else:
     PLATFORM = "Unknown"
 
-if settings('deviceNameOpt') == "false":
+if _ADDON.getSetting('deviceNameOpt') == "false":
     # Use Kodi's deviceName
     DEVICENAME = tryDecode(xbmc.getInfoLabel('System.FriendlyName'))
 else:
-    DEVICENAME = settings('deviceName')
+    DEVICENAME = tryDecode(_ADDON.getSetting('deviceName'))
     DEVICENAME = DEVICENAME.replace("\"", "_")
     DEVICENAME = DEVICENAME.replace("/", "_")
 
