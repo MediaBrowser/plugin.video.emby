@@ -18,20 +18,20 @@ log = logging.getLogger("PLEX."+__name__)
 
 class GetKodiDB():
     """
-    Usage: with GetKodiDB(itemType) as kodi_db:
+    Usage: with GetKodiDB(db_type) as kodi_db:
                do stuff with kodi_db
 
     Parameters:
-        itemType:       itemtype for Kodi DB, e.g. 'video', 'music'
+        db_type:       DB to open: 'video', 'music', 'plex', 'texture'
 
     On exiting "with" (no matter what), commits get automatically committed
     and the db gets closed
     """
-    def __init__(self, itemType):
-        self.itemType = itemType
+    def __init__(self, db_type):
+        self.db_type = db_type
 
     def __enter__(self):
-        self.kodiconn = kodiSQL(self.itemType)
+        self.kodiconn = kodiSQL(self.db_type)
         kodi_db = Kodidb_Functions(self.kodiconn.cursor())
         return kodi_db
 
