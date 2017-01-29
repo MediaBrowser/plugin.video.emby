@@ -14,9 +14,8 @@ import xbmcvfs
 from utils import window, settings, getUnixTimestamp, sourcesXML,\
     ThreadMethods, ThreadMethodsAdditionalStop, LogTime, getScreensaver,\
     setScreensaver, playlistXSP, language as lang, DateToKodi, reset,\
-    advancedSettingsXML, getKodiVideoDBPath, tryDecode, deletePlaylists,\
-    deleteNodes, ThreadMethodsAdditionalSuspend, create_actor_db_index, \
-    tryEncode
+    advancedSettingsXML, tryDecode, deletePlaylists, deleteNodes, \
+    ThreadMethodsAdditionalSuspend, create_actor_db_index, tryEncode
 import downloadutils
 import itemtypes
 import plexdb_functions as plexdb
@@ -1782,7 +1781,7 @@ class LibrarySync(Thread):
             if not startupComplete:
                 # Also runs when first installed
                 # Verify the video database can be found
-                videoDb = getKodiVideoDBPath()
+                videoDb = v.DB_VIDEO_PATH
                 if not xbmcvfs.exists(videoDb):
                     # Database does not exists
                     log.error("The current Kodi version is incompatible "

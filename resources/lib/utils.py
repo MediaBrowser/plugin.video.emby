@@ -20,6 +20,9 @@ import xbmcaddon
 import xbmcgui
 import xbmcvfs
 
+from variables import DB_VIDEO_PATH, DB_MUSIC_PATH, DB_TEXTURE_PATH, \
+    DB_PLEX_PATH
+
 ###############################################################################
 
 log = logging.getLogger("PLEX."+__name__)
@@ -244,35 +247,15 @@ def getUnixTimestamp(secondsIntoTheFuture=None):
 
 
 def kodiSQL(media_type="video"):
-
     if media_type == "plex":
-        dbPath = tryDecode(xbmc.translatePath("special://database/plex.db"))
+        dbPath = DB_PLEX_PATH
     elif media_type == "music":
-        dbPath = getKodiMusicDBPath()
+        dbPath = DB_MUSIC_PATH
     elif media_type == "texture":
-        dbPath = tryDecode(xbmc.translatePath(
-            "special://database/Textures13.db"))
+        dbPath = DB_TEXTURE_PATH
     else:
-        dbPath = getKodiVideoDBPath()
-
-    connection = sqlite3.connect(dbPath, timeout=60.0)
-    return connection
-
-def getKodiVideoDBPath():
-
-    dbVersion = {
-
-        "13": 78,   # Gotham
-        "14": 90,   # Helix
-        "15": 93,   # Isengard
-        "16": 99,   # Jarvis
-        "17": 107   # Krypton
-    }
-
-    dbPath = tryDecode(xbmc.translatePath(
-        "special://database/MyVideos%s.db"
-        % dbVersion.get(xbmc.getInfoLabel('System.BuildVersion')[:2], "")))
-    return dbPath
+        dbPath = DB_VIDEO_PATH
+    return sqlite3.connect(dbPath, timeout=60.0)
 
 
 def create_actor_db_index():
@@ -292,22 +275,6 @@ def create_actor_db_index():
     conn.commit()
     conn.close()
 
-
-def getKodiMusicDBPath():
-
-    dbVersion = {
-
-        "13": 46,   # Gotham
-        "14": 48,   # Helix
-        "15": 52,   # Isengard
-        "16": 56,   # Jarvis
-        "17": 60    # Krypton
-    }
-
-    dbPath = tryDecode(xbmc.translatePath(
-        "special://database/MyMusic%s.db"
-        % dbVersion.get(xbmc.getInfoLabel('System.BuildVersion')[:2], "")))
-    return dbPath
 
 def getScreensaver():
     # Get the current screensaver value
