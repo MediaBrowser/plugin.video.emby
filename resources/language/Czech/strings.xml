@@ -283,7 +283,7 @@
     <string id="30503">Alternativní adresa serveru</string>
     <string id="30504">Použít alternativní název zařízení</string>
     <string id="30505">[COLOR yellow]Resetovat pokusy o přihlášení[/COLOR]</string>
-    <string id="30506">Nastavení synchronizace</string>
+    <string id="30506">Synchronizace</string>
     <string id="30507">Zobrazovat průběh synchronizace</string>
     <string id="30508">Synchronizovat prázdné seriály</string>
     <string id="30509">Povolit hudební knihovnu</string>
@@ -297,7 +297,7 @@
     <string id="30517">[COLOR yellow]Zadejte přihlašovací údaje k síťi[/COLOR]</string>
     <string id="30518">Povolit ukázky Plex Trailers (je vyžadován PlexPass)</string>
     <string id="30519">Zeptat se na přehrání ukázek</string>
-    <string id="30520">Přeskočit potvrzení Plexu o smazání z kontextové nabídky (používejte na vlastní riziko)</string>
+    <string id="30520">Přeskočit potvrzení Plexu o smazání (používejte na vlastní riziko)</string>
     <string id="30521">Poskočit vzad při obnovení přehrávání (v sekundách)</string>
     <string id="30522">Vynutit překódování h265/HEVC</string>
     <string id="30523">Nastavení hudebních metadat (není kompatibilní s přímým streamováním)</string>
@@ -325,7 +325,7 @@
     <string id="30545">Vynutit překódování obrázků</string>
 
     <!-- service add-on -->
-    <string id="33000">Vítáme Vás</string>
+    <string id="33000">Vítáme uživatele</string>
     <string id="33001">Chyba připojení</string>
     <string id="33002">Server je nedosažitelný</string>
     <string id="33003">Server je online</string>
@@ -408,21 +408,21 @@
     <string id="39041">Původní cesta k Plex HUDBĚ:</string>
     <string id="39042">Nahradit Plex HUDBU:</string>
     <string id="39043">Jít ještě o krok dále a kompletně nahradit původní cesty k Plex knihovnám (/volume1/media) vlastními SMB cestami (smb://NAS/MyStuff)?</string>
-    <string id="39044">Prosím zadejte vlastní SMB cesty v nastavení pod "Nastavení synchronizace" a restartujte Kodi</string>
+    <string id="39044">Prosím zadejte vlastní SMB cesty v nastavení pod "Synchronizace" a restartujte Kodi</string>
     <string id="39045">Původní cesta Plex FOTEK:</string>
     <string id="39046">Nahradit Plex FOTKY:</string>
-    <string id="39047">On Deck: Připojit název seriálu k epizodě</string>
-    <string id="39048">On Deck: Připojit číslo sezóny a epizody ve formátu SxxExx</string>
+    <string id="39047">Aktuální: Připojit název seriálu k epizodě</string>
+    <string id="39048">Aktuální: Připojit číslo sezóny a epizody ve formátu SxxExx</string>
     <string id="39049">Nic nefunguje? Zkuste plný reset!</string>
     <string id="39050">[COLOR yellow]Zvolte Plex server ze seznamu[/COLOR]</string>
-    <string id="39051">Počkat před synchronizací nových nebo změněných položek (s)</string>
+    <string id="39051">Počkat před synchronizací položek (s)</string>
     <string id="39052">Synchronizace na pozadí</string>
     <string id="39053">Plná synchronizace každých x minut</string>
     <string id="39054">vzdálené</string>
     <string id="39055">Vyhledávám Plex servery</string>
     <string id="39056">Použito při synchronizaci a při pokusu o přímé přehrávání</string>
     <string id="39057">Přizpůsobit cesty</string>
-    <string id="39058">Rozšířit seriály na obrazovce "On Deck" na všechny seriály</string>
+    <string id="39058">Rozšířit seriály na obrazovce "Aktuální" na všechny seriály</string>
     <string id="39059">Naposledy přidané: Připojit název seriálu k epizodě</string>
     <string id="39060">Naposledy přidané: Připojit číslo sezóny a epizody ve formátu SxxExx</string>
     <string id="39061">Chcete na pozadí stahovat další obrázky z FanArtTV?</string>
@@ -440,7 +440,7 @@
     <string id="39074">Seriály</string>
     <string id="39075">Vždy použít výchozí titulky Plexu, pokud je to možné</string>
     <string id="39076">Pokud máte několik knihoven jednoho druhu, např. "Filmy pro děti" a "Ostatní filmy", přečtěte si prosím následující stráku na Wiki: https://goo.gl/JFtQV9</string>
-    <string id="39077">Počet položek pro zobrazení ve widgetech (např. "On Deck")</string>
+    <string id="39077">Počet položek pro zobrazení ve widgetech (např. "Aktuální")</string>
     <string id="39078">Port aktualizace Plex Companion (změňte pouze pokud je nutné)</string>
     <string id="39079">Plex Companion nemůže otevřít GDM port. Prosím změňte ho v nastavení PKC.</string>
 
@@ -495,7 +495,7 @@
     <string id="39401">Zjištěná databáze Kodi musí být v této verzi znovu vytvořena. Toto může chvíli trvat. Pokračovat?</string>
     <string id="39402"> nemusí fungovat správně dokud neprovedete reset databáze.</string>
     <string id="39403">Ruším synchronizaci databáze. Tato verze Kodi není podporována. Pro více informací se podívejte do záznamů.</string>
-    <string id="39404">Startup syncing process failed repeatedly. Try restarting Kodi. Stopping Sync for now.</string>
+    <string id="39404">Synchronizace při startu opakovaně selhala. Zkuste restartovat Kodi. Prozatím zastavuji synchronizaci.</string>
     <string id="39405">Plex playlisty obnoveny</string>
     <string id="39406">Nemohu obnovit Plex playlisty</string>
     <string id="39407">Plná synchronizace knihovny dokončena</string>
@@ -504,7 +504,7 @@
     <string id="39410">CHYBA při synchronizaci knihovny</string>
 
     <!-- Plex videonodes.py -->
-    <string id="39500">On Deck</string>
+    <string id="39500">Aktuální</string>
     <string id="39501">Kolekce</string>
 
 
