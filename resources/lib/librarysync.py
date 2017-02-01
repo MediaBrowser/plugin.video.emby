@@ -863,21 +863,26 @@ class LibrarySync(Thread):
             for view in self.old_views:
                 plex_db.removeView(view)
                 delete_items.extend(plex_db.get_items_by_viewid(view))
-        # All video removals are the same, so pick Movies() class
-        with itemtypes.Movies() as movie:
-            for item in (i for i in delete_items
-                         if i['kodi_type'] == v.KODI_TYPE_MOVIE):
+        delete_movies = []
+        delete_tv = []
+        delete_music = []
+        for item in delete_items:
+            if item['kodi_type'] == v.KODI_TYPE_MOVIE:
+                delete_movies.append(item)
+            elif item['kodi_type'] in v.KODI_VIDEOTYPES:
+                delete_tv.append(item)
+            elif item['kodi_type'] in v.KODI_AUDIOTYPES:
+                delete_music.append(item)
+
+        for item in delete_movies:
+            with itemtypes.Movies() as movie:
                 movie.remove(item['plex_id'])
-        with itemtypes.TVShows() as tv:
-            for item in (i for i in delete_items
-                         if i['kodi_type'] in (v.KODI_TYPE_EPISODE,
-                                               v.KODI_TYPE_SEASON,
-                                               v.KODI_TYPE_SHOW)):
+        for item in delete_tv:
+            with itemtypes.TVShows() as tv:
                 tv.remove(item['plex_id'])
         # And for the music DB:
-        with itemtypes.Music() as music:
-            for item in (i for i in delete_items
-                         if i['kodi_type'] in v.KODI_AUDIOTYPES):
+        for item in delete_music:
+            with itemtypes.Music() as music:
                 music.remove(item['plex_id'])
 
     def GetUpdatelist(self, xml, itemType, method, viewName, viewId):
