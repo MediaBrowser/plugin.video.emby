@@ -1,3 +1,18 @@
+version 1.5.9 (beta only)
+A DATABASE RESET IS ABSOLUTELY NECESSARY
+- Early compatibility with Kodi 18 Leia
+- Add Czech language (thanks @Pavuucek)
+- Ignore empty Plex Collections
+- Fix additional artwork not downloading
+- Get missing fanart on Kodi startup
+- Add notification for Companion GDM port fail
+- Shutdown artwork thread correctly
+- Fix AttributeError if caching deactivated
+- Enable abort on choosing PMS from list
+- Delete items of a removed Plex library
+- Lots of code refactoring
+- Lots of small fixes
+
 version 1.5.8 (beta only)
 - Hopefully compatibility with Plex Cloud
 - Get rid of some logging
