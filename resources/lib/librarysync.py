@@ -560,9 +560,6 @@ class LibrarySync(Thread):
         # Create an index for actors to speed up sync
         create_actor_db_index()
 
-        # Create an index for actors to speed up sync
-        create_actor_db_index()
-
     @LogTime
     def fullSync(self, repair=False):
         """
