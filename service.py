@@ -211,7 +211,8 @@ class Service():
                         if not self.playback_starter_running:
                             self.playback_starter_running = True
                             self.playback_starter.start()
-                        if not self.image_cache_thread_running:
+                        if (not self.image_cache_thread_running and
+                                settings('enableTextureCache') == "true"):
                             self.image_cache_thread_running = True
                             self.image_cache_thread.start()
                 else:
