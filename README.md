@@ -71,6 +71,7 @@ PKC currently provides the following features:
 - Different PKC interface languages:
     + English
     + German
+    + Czech (thanks @Pavuucek)
     + More coming up
 - [Plex Watch Later / Plex It!](https://support.plex.tv/hc/en-us/sections/200211783-Plex-It-)
 - [Plex Companion](https://support.plex.tv/hc/en-us/sections/200276908-Plex-Companion): fling Plex media (or anything else) from other Plex devices to PlexKodiConnect
