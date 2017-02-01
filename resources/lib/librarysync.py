@@ -1230,8 +1230,8 @@ class LibrarySync(Thread):
             self.GetUpdatelist(seasons,
                                itemType,
                                'add_updateSeason',
-                               None,
-                               tvShowId)  # send showId instead of viewid
+                               viewName,
+                               viewId)
             log.debug("Analyzed all seasons of TV show with Plex Id %s"
                       % tvShowId)
 
@@ -1257,8 +1257,8 @@ class LibrarySync(Thread):
             self.GetUpdatelist(episodes,
                                itemType,
                                'add_updateEpisode',
-                               None,
-                               None)
+                               viewName,
+                               viewId)
             log.debug("Analyzed all episodes of TV show with Plex Id %s"
                       % view['id'])
 

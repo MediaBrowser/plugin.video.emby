@@ -727,7 +727,6 @@ class TVShows(Items):
     @CatchExceptions(warnuser=True)
     def add_updateEpisode(self, item, viewtag=None, viewid=None):
         """
-        viewtag and viewid are irrelevant!
         """
         # Process single episode
         kodicursor = self.kodicursor
@@ -1227,6 +1226,7 @@ class Music(Items):
                                  v.PLEX_TYPE_ARTIST,
                                  artistid,
                                  v.KODI_TYPE_ARTIST,
+                                 view_id=viewid,
                                  checksum=checksum)
 
         # Process the artist
@@ -1323,6 +1323,7 @@ class Music(Items):
                                  v.PLEX_TYPE_ALBUM,
                                  albumid,
                                  v.KODI_TYPE_ALBUM,
+                                 view_id=viewid,
                                  checksum=checksum)
 
         # Process the album info
@@ -1396,7 +1397,8 @@ class Music(Items):
                         plex_db.addReference(parentId,
                                              v.PLEX_TYPE_ARTIST,
                                              parentId,
-                                             v.KODI_TYPE_ARTIST)
+                                             v.KODI_TYPE_ARTIST,
+                                             view_id=viewid)
                         plex_db.updateParentId(itemid, parentId)
             else:
                 # Update plex reference with the artistid
@@ -1574,7 +1576,8 @@ class Music(Items):
                     plex_db.addReference("%salbum%s" % (itemid, albumid),
                                          v.PLEX_TYPE_ALBUM,
                                          albumid,
-                                         v.KODI_TYPE_ALBUM)
+                                         v.KODI_TYPE_ALBUM,
+                                         view_id=viewid)
                 else:
                     # No album Id associated to the song.
                     log.error("Song itemid: %s has no albumId associated."
@@ -1653,7 +1656,8 @@ class Music(Items):
                                  v.KODI_TYPE_SONG,
                                  kodi_pathid=pathid,
                                  parent_id=albumid,
-                                 checksum=checksum)
+                                 checksum=checksum,
+                                 view_id=viewid)
 
         # Link song to album
         query = (
