@@ -51,21 +51,26 @@ class Plex_DB_Functions():
 
     def getAllViewInfo(self):
         """
-        Returns a list of dicts:
-            {'id': view_id, 'name': view_name, 'itemtype': kodi_type}
+        Returns a list of dicts for all Plex libraries:
+        {
+            'id': view_id,
+            'name': view_name,
+            'itemtype': kodi_type
+            'kodi_tagid'
+            'sync_to_kodi'
+        }
         """
         plexcursor = self.plexcursor
         views = []
-        query = '''
-            SELECT view_id, view_name, kodi_type
-            FROM view
-        '''
+        query = '''SELECT * FROM view'''
         plexcursor.execute(query)
         rows = plexcursor.fetchall()
         for row in rows:
             views.append({'id': row[0],
                           'name': row[1],
-                          'itemtype': row[2]})
+                          'itemtype': row[2],
+                          'kodi_tagid': row[3],
+                          'sync_to_kodi': row[4]})
         return views
 
     def getView_byId(self, view_id):
@@ -118,17 +123,23 @@ class Plex_DB_Functions():
             view = None
         return view
 
-    def addView(self, view_id, view_name, kodi_type, kodi_tagid):
+    def addView(self, view_id, view_name, kodi_type, kodi_tagid, sync=True):
         """
         Appends an entry to the view table
+
+        sync=False: Plex library won't be synced to Kodi
         """
         query = '''
             INSERT INTO view(
-                view_id, view_name, kodi_type, kodi_tagid)
-            VALUES (?, ?, ?, ?)
+                view_id, view_name, kodi_type, kodi_tagid, sync_to_kodi)
+            VALUES (?, ?, ?, ?, ?)
             '''
         self.plexcursor.execute(query,
-                                (view_id, view_name, kodi_type, kodi_tagid))
+                                (view_id,
+                                 view_name,
+                                 kodi_type,
+                                 kodi_tagid,
+                                 1 if sync is True else 0))
 
     def updateView(self, view_name, kodi_tagid, view_id):
         """

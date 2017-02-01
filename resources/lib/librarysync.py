@@ -552,7 +552,8 @@ class LibrarySync(Thread):
                 view_id TEXT UNIQUE,
                 view_name TEXT,
                 kodi_type TEXT,
-                kodi_tagid INTEGER)
+                kodi_tagid INTEGER,
+                sync_to_kodi INTEGER)
             ''')
             plex_db.plexcursor.execute('''
                 CREATE TABLE IF NOT EXISTS version(idVersion TEXT)
