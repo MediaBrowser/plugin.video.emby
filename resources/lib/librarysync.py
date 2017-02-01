@@ -298,18 +298,18 @@ class ProcessFanartThread(Thread):
             except Queue.Empty:
                 xbmc.sleep(200)
                 continue
+            with plexdb.Get_Plex_DB() as plex_db:
+                try:
+                    kodiId = plex_db.getItem_byId(item['itemId'])[0]
+                except TypeError:
+                    log.error('Could not get Kodi id for plex id %s'
+                              % item['itemId'])
+                    queue.task_done()
+                    continue
             if item['refresh'] is True:
                 # Leave the Plex art untouched
                 allartworks = None
             else:
-                with plexdb.Get_Plex_DB() as plex_db:
-                    try:
-                        kodiId = plex_db.getItem_byId(item['itemId'])[0]
-                    except TypeError:
-                        log.error('Could not get Kodi id for plex id %s'
-                                  % item['itemId'])
-                        queue.task_done()
-                        continue
                 with kodidb.GetKodiDB('video') as kodi_db:
                     allartworks = kodi_db.existingArt(kodiId,
                                                       item['mediaType'])
