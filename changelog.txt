@@ -1,3 +1,6 @@
+version 1.5.10 (beta only)
+- Fix OperationalError upon database reset
+
 version 1.5.9 (beta only)
 A DATABASE RESET IS ABSOLUTELY NECESSARY
 - Early compatibility with Kodi 18 Leia
