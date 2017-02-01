@@ -15,7 +15,7 @@ from utils import window, settings, getUnixTimestamp, sourcesXML,\
     ThreadMethods, ThreadMethodsAdditionalStop, LogTime, getScreensaver,\
     setScreensaver, playlistXSP, language as lang, DateToKodi, reset,\
     advancedSettingsXML, tryDecode, deletePlaylists, deleteNodes, \
-    ThreadMethodsAdditionalSuspend, create_actor_db_index, tryEncode
+    ThreadMethodsAdditionalSuspend, create_actor_db_index, tryEncode, dialog
 import downloadutils
 import itemtypes
 import plexdb_functions as plexdb
@@ -874,6 +874,11 @@ class LibrarySync(Thread):
             elif item['kodi_type'] in v.KODI_AUDIOTYPES:
                 delete_music.append(item)
 
+        dialog('notification',
+               heading='{plex}',
+               message=lang(30052),
+               icon='{plex}',
+               sound=False)
         for item in delete_movies:
             with itemtypes.Movies() as movie:
                 movie.remove(item['plex_id'])
