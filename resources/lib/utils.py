@@ -366,7 +366,7 @@ def reset():
         tablename = row[0]
         if tablename != "version":
             cursor.execute("DELETE FROM " + tablename)
-    cursor.execute('DROP table IF EXISTS emby')
+    cursor.execute('DROP table IF EXISTS plex')
     cursor.execute('DROP table IF EXISTS view')
     connection.commit()
     cursor.close()
