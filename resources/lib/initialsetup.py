@@ -306,6 +306,9 @@ class InitialSetup():
                                           % (server['name'], msg))
                 # Let user pick server from a list
                 resp = self.dialog.select(lang(39012), dialoglist)
+                if resp == -1:
+                    # User cancelled
+                    return
 
             server = serverlist[resp]
             chk = self._checkServerCon(server)
