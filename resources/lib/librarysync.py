@@ -847,16 +847,38 @@ class LibrarySync(Thread):
         # Save total
         window('Plex.nodes.total', str(totalnodes))
 
-        # Reopen DB connection to ensure that changes were commited before
+        # Get rid of old items (view has been deleted on Plex side)
+        if self.old_views:
+            self.delete_views()
+        # update views for all:
         with plexdb.Get_Plex_DB() as plex_db:
-            log.info("Removing views: %s" % self.old_views)
-            for view in self.old_views:
-                plex_db.removeView(view)
-            # update views for all:
             self.views = plex_db.getAllViewInfo()
-
         log.info("Finished processing views. Views saved: %s" % self.views)
         return True
+
+    def delete_views(self):
+        log.info("Removing views: %s" % self.old_views)
+        delete_items = []
+        with plexdb.Get_Plex_DB() as plex_db:
+            for view in self.old_views:
+                plex_db.removeView(view)
+                delete_items.extend(plex_db.get_items_by_viewid(view))
+        # All video removals are the same, so pick Movies() class
+        with itemtypes.Movies() as movie:
+            for item in (i for i in delete_items
+                         if i['kodi_type'] == v.KODI_TYPE_MOVIE):
+                movie.remove(item['plex_id'])
+        with itemtypes.TVShows() as tv:
+            for item in (i for i in delete_items
+                         if i['kodi_type'] in (v.KODI_TYPE_EPISODE,
+                                               v.KODI_TYPE_SEASON,
+                                               v.KODI_TYPE_SHOW)):
+                tv.remove(item['plex_id'])
+        # And for the music DB:
+        with itemtypes.Music() as music:
+            for item in (i for i in delete_items
+                         if i['kodi_type'] in v.KODI_AUDIOTYPES):
+                music.remove(item['plex_id'])
 
     def GetUpdatelist(self, xml, itemType, method, viewName, viewId):
         """

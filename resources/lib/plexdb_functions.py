@@ -159,6 +159,22 @@ class Plex_DB_Functions():
         '''
         self.plexcursor.execute(query, (view_id,))
 
+    def get_items_by_viewid(self, view_id):
+        """
+        Returns a list for view_id with one item like this:
+        {
+            'plex_id': xxx
+            'kodi_type': xxx
+        }
+        """
+        query = '''SELECT plex_id, kodi_type FROM plex WHERE view_id = ?'''
+        self.plexcursor.execute(query, (view_id, ))
+        rows = self.plexcursor.fetchall()
+        res = []
+        for row in rows:
+            res.append({'plex_id': row[0], 'kodi_type': row[1]})
+        return res
+
     def getItem_byFileId(self, kodi_fileid, kodi_type):
         """
         Returns plex_id for kodi_fileid and kodi_type
