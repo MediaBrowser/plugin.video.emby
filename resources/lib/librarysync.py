@@ -347,6 +347,8 @@ class ProcessFanartThread(Thread):
                 cls.getfanart(xml[0], kodiId, item['mediaType'], allartworks)
             # signals to queue job is done
             log.debug('Done getting fanart for Plex id %s' % item['itemId'])
+            with plexdb.Get_Plex_DB() as plex_db:
+                plex_db.set_fanart_synched(item['itemId'])
             queue.task_done()
         log.info("---===### Stopped FanartSync ###===---")
 
@@ -545,7 +547,8 @@ class LibrarySync(Thread):
                 kodi_fileid INTEGER,
                 kodi_pathid INTEGER,
                 parent_id INTEGER,
-                checksum INTEGER)
+                checksum INTEGER,
+                fanart_synced INTEGER)
             ''')
             plex_db.plexcursor.execute('''
                 CREATE TABLE IF NOT EXISTS view(
@@ -1833,6 +1836,20 @@ class LibrarySync(Thread):
                     for url in artwork.get_uncached_artwork():
                         artwork.ARTWORK_QUEUE.put(
                             artwork.double_urlencode(tryEncode((url))))
+                if settings('FanartTV') == 'true':
+                    # Start getting additional missing artwork
+                    with plexdb.Get_Plex_DB() as plex_db:
+                        missing_fanart = plex_db.get_missing_fanart()
+                        log.debug('Trying to get %s additional fanart'
+                                  % len(missing_fanart))
+                        for item in missing_fanart:
+                            self.fanartqueue.put({
+                                'itemId': item['plex_id'],
+                                'mediaType': item['kodi_type'],
+                                'class': v.ITEMTYPE_FROM_KODITYPE[
+                                    item['kodi_type']],
+                                'refresh': True
+                            })
                 log.info('Refreshing video nodes and playlists now')
                 deletePlaylists()
                 deleteNodes()

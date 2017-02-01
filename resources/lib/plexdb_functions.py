@@ -4,6 +4,7 @@
 
 from utils import kodiSQL
 import logging
+import variables as v
 
 ###############################################################################
 
@@ -334,12 +335,12 @@ class Plex_DB_Functions():
         query = '''
             INSERT OR REPLACE INTO plex(
                 plex_id, kodi_id, kodi_fileid, kodi_pathid, plex_type,
-                kodi_type, parent_id, checksum, view_id)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                kodi_type, parent_id, checksum, view_id, fanart_synced)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             '''
         self.plexcursor.execute(query, (plex_id, kodi_id, kodi_fileid,
                                         kodi_pathid, plex_type, kodi_type,
-                                        parent_id, checksum, view_id))
+                                        parent_id, checksum, view_id, 0))
 
     def updateReference(self, plex_id, checksum):
         """
@@ -415,4 +416,32 @@ class Plex_DB_Functions():
                 'kodi_type': row[2],
                 'plex_type': plex_type
             })
+        return result
+
+    def set_fanart_synched(self, plex_id):
+        """
+        Sets the fanart_synced flag to 1 for plex_id
+        """
+        query = '''UPDATE plex SET fanart_synced = 1 WHERE plex_id = ?'''
+        self.plexcursor.execute(query, (plex_id,))
+
+    def get_missing_fanart(self):
+        """
+        Returns a list of {'plex_id': x, 'kodi_type': y} where fanart_synced
+        flag is set to 0
+
+        This only for plex_type is either movie or TV show
+        """
+        query = '''
+            SELECT plex_id, kodi_type FROM plex
+            WHERE fanart_synced = ?
+            AND (plex_type = ? OR plex_type = ?)
+        '''
+        self.plexcursor.execute(query,
+                                (0, v.PLEX_TYPE_MOVIE, v.PLEX_TYPE_SHOW))
+        rows = self.plexcursor.fetchall()
+        result = []
+        for row in rows:
+            result.append({'plex_id': row[0],
+                           'kodi_type': row[1]})
         return result
