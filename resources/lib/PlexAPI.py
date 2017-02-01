@@ -601,7 +601,8 @@ class PlexAPI():
                 PMS['uuid'], 'baseURL', PMS['baseURL'])
             self.updatePMSProperty(
                 PMS['uuid'], 'ownername', PMS['ownername'])
-            log.debug('Found PMS: %s' % self.g_PMS[PMS['uuid']])
+            log.debug('Found PMS %s: %s'
+                      % (PMS['uuid'], self.g_PMS[PMS['uuid']]))
             queue.task_done()
 
     def pokePMS(self, PMS, queue):
