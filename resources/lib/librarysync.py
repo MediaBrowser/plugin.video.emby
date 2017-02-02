@@ -267,10 +267,9 @@ class ProcessFanartThread(Thread):
         queue           Queue.Queue() object that you will need to fill with
                         dicts of the following form:
             {
-              'itemId':                 the Plex id as a string
-              'class':                  the itemtypes class, e.g. 'Movies'
-              'mediaType':              the kodi media type, e.g. 'movie'
-              'refresh': True/False     if true, will overwrite any 3rd party
+              'plex_id':                the Plex id as a string
+              'plex_type':              the Plex media type, e.g. 'movie'
+              'refresh': True/False     if True, will overwrite any 3rd party
                                         fanart. If False, will only get missing
             }
     """
@@ -298,57 +297,17 @@ class ProcessFanartThread(Thread):
             except Queue.Empty:
                 xbmc.sleep(200)
                 continue
-            with plexdb.Get_Plex_DB() as plex_db:
-                try:
-                    kodiId = plex_db.getItem_byId(item['itemId'])[0]
-                except TypeError:
-                    log.error('Could not get Kodi id for plex id %s'
-                              % item['itemId'])
-                    queue.task_done()
-                    continue
-            if item['refresh'] is True:
-                # Leave the Plex art untouched
-                allartworks = None
-            else:
-                with kodidb.GetKodiDB('video') as kodi_db:
-                    allartworks = kodi_db.existingArt(kodiId,
-                                                      item['mediaType'])
-                # Check if we even need to get additional art
-                needsupdate = False
-                for key, value in allartworks.iteritems():
-                    if not value and not key == 'BoxRear':
-                        needsupdate = True
-                        break
-                if needsupdate is False:
-                    log.debug('Already got all art for Plex id %s'
-                              % item['itemId'])
-                    queue.task_done()
-                    continue
 
-            log.debug('Getting additional fanart for Plex id %s'
-                      % item['itemId'])
-            # Download Metadata
-            xml = GetPlexMetadata(item['itemId'])
-            if xml is None:
-                # Did not receive a valid XML - skip that item for now
-                log.warn("Could not get metadata for %s. Skipping that item "
-                         "for now" % item['itemId'])
-                queue.task_done()
-                continue
-            elif xml == 401:
-                log.warn('HTTP 401 returned by PMS. Too much strain? '
-                         'Cancelling sync for now')
-                # Kill remaining items in queue (for main thread to cont.)
-                queue.task_done()
-                continue
-
-            # Do the work
-            with getattr(itemtypes, item['class'])() as cls:
-                cls.getfanart(xml[0], kodiId, item['mediaType'], allartworks)
-            # signals to queue job is done
-            log.debug('Done getting fanart for Plex id %s' % item['itemId'])
-            with plexdb.Get_Plex_DB() as plex_db:
-                plex_db.set_fanart_synched(item['itemId'])
+            log.debug('Get additional fanart for Plex id %s' % item['plex_id'])
+            with getattr(itemtypes,
+                         v.ITEMTYPE_FROM_PLEXTYPE[item['plex_type']])() as cls:
+                result = cls.getfanart(item['plex_id'],
+                                       refresh=item['refresh'])
+            if result is True:
+                log.debug('Done getting fanart for Plex id %s'
+                          % item['plex_id'])
+                with plexdb.Get_Plex_DB() as plex_db:
+                    plex_db.set_fanart_synched(item['plex_id'])
             queue.task_done()
         log.info("---===### Stopped FanartSync ###===---")
 
@@ -1071,15 +1030,11 @@ class LibrarySync(Thread):
         log.info("Sync threads finished")
         if (settings('FanartTV') == 'true' and
                 itemType in ('Movies', 'TVShows')):
-            # Save to queue for later processing
-            typus = {'Movies': v.KODI_TYPE_MOVIE,
-                     'TVShows': v.KODI_TYPE_SHOW}[itemType]
             for item in self.updatelist:
-                if item['mediaType'] in (v.KODI_TYPE_MOVIE, v.KODI_TYPE_SHOW):
+                if item['mediaType'] in (v.PLEX_TYPE_MOVIE, v.PLEX_TYPE_SHOW):
                     self.fanartqueue.put({
-                        'itemId': item['itemId'],
-                        'class': itemType,
-                        'mediaType': typus,
+                        'plex_id': item['itemId'],
+                        'plex_type': item['mediaType'],
                         'refresh': False
                     })
         self.updatelist = []
@@ -1484,15 +1439,13 @@ class LibrarySync(Thread):
                 # processing the item. Do it later (excepting deletions)
                 continue
             else:
-                successful, item = self.process_newitems(item)
+                successful = self.process_newitems(item)
                 if successful and settings('FanartTV') == 'true':
-                    if item['mediatype'] in ('movie', 'show'):
-                        mediaType = {'movie': 'Movie'}[item['mediatype']]
-                        cls = {'movie': 'Movies'}[item['mediatype']]
+                    plex_type = v.PLEX_TYPE_FROM_WEBSOCKET[item['type']]
+                    if plex_type in (v.PLEX_TYPE_MOVIE, v.PLEX_TYPE_SHOW):
                         self.fanartqueue.put({
-                            'itemId': item['ratingKey'],
-                            'class': cls,
-                            'mediaType': mediaType,
+                            'plex_id': item['ratingKey'],
+                            'plex_type': plex_type,
                             'refresh': False
                         })
             if successful is True:
@@ -1518,37 +1471,34 @@ class LibrarySync(Thread):
             xbmc.executebuiltin('UpdateLibrary(music)')
 
     def process_newitems(self, item):
-        ratingKey = item['ratingKey']
-        xml = GetPlexMetadata(ratingKey)
+        xml = GetPlexMetadata(item['ratingKey'])
         try:
             mediatype = xml[0].attrib['type']
         except (IndexError, KeyError, TypeError):
-            log.error('Could not download metadata for %s' % ratingKey)
-            return False, item
-        log.debug("Processing new/updated PMS item: %s" % ratingKey)
+            log.error('Could not download metadata for %s' % item['ratingKey'])
+            return False
+        log.debug("Processing new/updated PMS item: %s" % item['ratingKey'])
         viewtag = xml.attrib.get('librarySectionTitle')
         viewid = xml.attrib.get('librarySectionID')
-        # Attach mediatype for later
-        item['mediatype'] = mediatype
-        if mediatype == 'movie':
+        if mediatype == v.PLEX_TYPE_MOVIE:
             self.videoLibUpdate = True
             with itemtypes.Movies() as movie:
                 movie.add_update(xml[0],
                                  viewtag=viewtag,
                                  viewid=viewid)
-        elif mediatype == 'episode':
+        elif mediatype == v.PLEX_TYPE_EPISODE:
             self.videoLibUpdate = True
             with itemtypes.TVShows() as show:
                 show.add_updateEpisode(xml[0],
                                        viewtag=viewtag,
                                        viewid=viewid)
-        elif mediatype == 'track':
+        elif mediatype == v.PLEX_TYPE_SONG:
             self.musicLibUpdate = True
             with itemtypes.Music() as music:
                 music.add_updateSong(xml[0],
                                      viewtag=viewtag,
                                      viewid=viewid)
-        return True, item
+        return True
 
     def process_deleteditems(self, item):
         if item.get('type') == 1:
@@ -1713,20 +1663,15 @@ class LibrarySync(Thread):
         refresh=True        Force refresh all external fanart
         """
         items = []
-        typus = {
-            v.PLEX_TYPE_MOVIE: 'Movies',
-            v.PLEX_TYPE_SHOW: 'TVShows'
-        }
         with plexdb.Get_Plex_DB() as plex_db:
-            for plextype in typus:
-                items.extend(plex_db.itemsByType(plextype))
+            for plex_type in (v.PLEX_TYPE_MOVIE, v.PLEX_TYPE_SHOW):
+                items.extend(plex_db.itemsByType(plex_type))
         # Shuffle the list to not always start out identically
         shuffle(items)
         for item in items:
             self.fanartqueue.put({
-                'itemId': item['plexId'],
-                'mediaType': item['kodi_type'],
-                'class': typus[item['plex_type']],
+                'plex_id': item['plex_id'],
+                'plex_type': item['plex_type'],
                 'refresh': refresh
             })
 
@@ -1843,10 +1788,8 @@ class LibrarySync(Thread):
                                   % len(missing_fanart))
                         for item in missing_fanart:
                             self.fanartqueue.put({
-                                'itemId': item['plex_id'],
-                                'mediaType': item['kodi_type'],
-                                'class': v.ITEMTYPE_FROM_KODITYPE[
-                                    item['kodi_type']],
+                                'plex_id': item['plex_id'],
+                                'plex_type': item['plex_type'],
                                 'refresh': True
                             })
                 log.info('Refreshing video nodes and playlists now')

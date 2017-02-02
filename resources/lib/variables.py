@@ -221,6 +221,18 @@ REMAP_TYPE_FROM_PLEXTYPE = {
 }
 
 
+PLEX_TYPE_FROM_WEBSOCKET = {
+    1: PLEX_TYPE_MOVIE,
+    2: PLEX_TYPE_SHOW,
+    3: PLEX_TYPE_SEASON,
+    4: PLEX_TYPE_EPISODE,
+    8: PLEX_TYPE_ARTIST,
+    9: PLEX_TYPE_ALBUM,
+    10: PLEX_TYPE_SONG,
+    12: PLEX_TYPE_CLIP
+}
+
+
 # extensions from:
 # http://kodi.wiki/view/Features_and_supported_codecs#Format_support (RAW image
 # formats, BMP, JPEG, GIF, PNG, TIFF, MNG, ICO, PCX and Targa/TGA)

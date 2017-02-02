@@ -396,7 +396,7 @@ class Plex_DB_Functions():
         """
         Returns a list of dicts for plex_type:
         {
-            'plexId': plex_id
+            'plex_id': plex_id
             'kodiId': kodi_id
             'kodi_type': kodi_type
             'plex_type': plex_type
@@ -411,7 +411,7 @@ class Plex_DB_Functions():
         result = []
         for row in self.plexcursor.fetchall():
             result.append({
-                'plexId': row[0],
+                'plex_id': row[0],
                 'kodiId': row[1],
                 'kodi_type': row[2],
                 'plex_type': plex_type
@@ -427,13 +427,13 @@ class Plex_DB_Functions():
 
     def get_missing_fanart(self):
         """
-        Returns a list of {'plex_id': x, 'kodi_type': y} where fanart_synced
+        Returns a list of {'plex_id': x, 'plex_type': y} where fanart_synced
         flag is set to 0
 
         This only for plex_type is either movie or TV show
         """
         query = '''
-            SELECT plex_id, kodi_type FROM plex
+            SELECT plex_id, plex_type FROM plex
             WHERE fanart_synced = ?
             AND (plex_type = ? OR plex_type = ?)
         '''
@@ -443,5 +443,5 @@ class Plex_DB_Functions():
         result = []
         for row in rows:
             result.append({'plex_id': row[0],
-                           'kodi_type': row[1]})
+                           'plex_type': row[1]})
         return result
