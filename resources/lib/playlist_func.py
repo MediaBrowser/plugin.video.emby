@@ -368,7 +368,7 @@ def move_playlist_item(playlist, before_pos, after_pos):
     """
     Moves playlist item from before_pos [int] to after_pos [int] for Plex only.
 
-    WILL ALSO CHANGE OUR PLAYLISTS
+    WILL ALSO CHANGE OUR PLAYLISTS. Returns True if successful
     """
     log.debug('Moving item from %s to %s on the Plex side for %s'
               % (before_pos, after_pos, playlist))
@@ -383,12 +383,14 @@ def move_playlist_item(playlist, before_pos, after_pos):
                playlist.ID,
                playlist.items[before_pos].ID,
                playlist.items[after_pos - 1].ID)
-    xml = DU().downloadUrl(url, action_type="PUT")
     # We need to increment the playlistVersion
-    _get_playListVersion_from_xml(playlist, xml)
+    if _get_playListVersion_from_xml(
+            playlist, DU().downloadUrl(url, action_type="PUT")) is False:
+        return False
     # Move our item's position in our internal playlist
     playlist.items.insert(after_pos, playlist.items.pop(before_pos))
     log.debug('Done moving for %s' % playlist)
+    return True
 
 
 def get_PMS_playlist(playlist, playlist_id=None):
