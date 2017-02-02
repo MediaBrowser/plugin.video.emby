@@ -533,7 +533,7 @@ class LibrarySync(Thread):
         self.compare = not repair
 
         self.new_items_only = True
-        log.info('Running fullsync for NEW PMS items with rapair=%s' % repair)
+        log.info('Running fullsync for NEW PMS items with repair=%s' % repair)
         if self._fullSync() is False:
             return False
         self.new_items_only = False
