@@ -480,8 +480,8 @@ class Movies(Items):
             kodicursor.execute("DELETE FROM files WHERE idFile = ?",
                                (file_id,))
             if v.KODIVERSION >= 17:
-                plex_db.remove_uniqueid(kodi_id, kodi_type)
-                plex_db.remove_ratings(kodi_id, kodi_type)
+                self.kodi_db.remove_uniqueid(kodi_id, kodi_type)
+                self.kodi_db.remove_ratings(kodi_id, kodi_type)
         elif kodi_type == v.KODI_TYPE_SET:
             # Delete kodi boxset
             boxset_movies = plex_db.getItem_byParentId(kodi_id,
@@ -1189,8 +1189,8 @@ class TVShows(Items):
         self.artwork.deleteArtwork(kodi_id, v.KODI_TYPE_SHOW, kodicursor)
         kodicursor.execute("DELETE FROM tvshow WHERE idShow = ?", (kodi_id,))
         if v.KODIVERSION >= 17:
-            self.plex_db.remove_uniqueid(kodi_id, v.KODI_TYPE_SHOW)
-            self.plex_db.remove_ratings(kodi_id, v.KODI_TYPE_SHOW)
+            self.kodi_db.remove_uniqueid(kodi_id, v.KODI_TYPE_SHOW)
+            self.kodi_db.remove_ratings(kodi_id, v.KODI_TYPE_SHOW)
         log.info("Removed tvshow: %s." % kodi_id)
 
     def removeSeason(self, kodiid):
