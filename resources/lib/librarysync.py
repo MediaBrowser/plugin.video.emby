@@ -327,7 +327,7 @@ class LibrarySync(Thread):
         if settings('FanartTV') == 'true':
             self.fanartthread = ProcessFanartThread(self.fanartqueue)
         # How long should we wait at least to process new/changed PMS items?
-        self.saftyMargin = int(settings('saftyMargin'))
+        self.saftyMargin = int(settings('backgroundsync_saftyMargin'))
 
         self.fullSyncInterval = int(settings('fullSyncInterval')) * 60
 
