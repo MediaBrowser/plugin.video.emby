@@ -1432,6 +1432,9 @@ class LibrarySync(Thread):
         now = getUnixTimestamp()
         deleteListe = []
         for i, item in enumerate(self.itemsToProcess):
+            if self.threadStopped():
+                # Chances are that Kodi gets shut down
+                break
             if item['state'] == 9:
                 successful = self.process_deleteditems(item)
             elif now - item['timestamp'] < self.saftyMargin:
