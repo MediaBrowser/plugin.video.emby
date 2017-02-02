@@ -1784,8 +1784,8 @@ class LibrarySync(Thread):
                     # Start getting additional missing artwork
                     with plexdb.Get_Plex_DB() as plex_db:
                         missing_fanart = plex_db.get_missing_fanart()
-                        log.debug('Trying to get %s additional fanart'
-                                  % len(missing_fanart))
+                        log.info('Trying to get %s additional fanart'
+                                 % len(missing_fanart))
                         for item in missing_fanart:
                             self.fanartqueue.put({
                                 'plex_id': item['plex_id'],
