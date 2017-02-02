@@ -1,3 +1,15 @@
+version 1.5.11 (beta only)
+- Fix userratings for Kodi Krypton
+- Krypton: update userratings on startup and on user change
+- Overhaul of fanart sync download
+- Background sync: wait till PMS says its finished
+- Background sync: reduce std safety margin to 5s
+- Add error message for PKC playback failure
+- Better warnings when resetting the Kodi database
+- Update playstates and userratings only once
+- Shut down libsync thread correctly 
+- Remove uniqueid and ratings entries if item deleted
+
 version 1.5.10 (beta only)
 - Fix OperationalError upon database reset
 
