@@ -1477,13 +1477,12 @@ class LibrarySync(Thread):
         now = getUnixTimestamp()
         deleteListe = []
         for i, item in enumerate(self.itemsToProcess):
-            if (now - item['timestamp'] < self.saftyMargin and
-                    item['state'] != 9):
+            if item['state'] == 9:
+                successful = self.process_deleteditems(item)
+            elif now - item['timestamp'] < self.saftyMargin:
                 # We haven't waited long enough for the PMS to finish
                 # processing the item. Do it later (excepting deletions)
                 continue
-            if item['state'] == 9:
-                successful = self.process_deleteditems(item)
             else:
                 successful, item = self.process_newitems(item)
                 if successful and settings('FanartTV') == 'true':
@@ -1502,8 +1501,8 @@ class LibrarySync(Thread):
                 # Safety net if we can't process an item
                 item['attempt'] += 1
                 if item['attempt'] > 3:
-                    log.warn('Repeatedly could not process item %s, abort'
-                             % item)
+                    log.error('Repeatedly could not process item %s, abort'
+                              % item)
                     deleteListe.append(i)
 
         # Get rid of the items we just processed
@@ -1583,22 +1582,22 @@ class LibrarySync(Thread):
                 continue
             typus = int(item.get('type', 0))
             state = int(item.get('state', 0))
-            if state == 9 or typus in (1, 4, 10):
+            if state == 9 or (typus in (1, 4, 10) and state == 5):
                 # Only process deleted items OR movies, episodes, tracks/songs
-                itemId = str(item.get('itemID', '0'))
-                if itemId == '0':
-                    log.warn('Received malformed PMS message: %s' % item)
+                plex_id = str(item.get('itemID', '0'))
+                if plex_id == '0':
+                    log.error('Received malformed PMS message: %s' % item)
                     continue
                 # Have we already added this element?
                 for existingItem in self.itemsToProcess:
-                    if existingItem['ratingKey'] == itemId:
+                    if existingItem['ratingKey'] == plex_id:
                         break
                 else:
                     # Haven't added this element to the queue yet
                     self.itemsToProcess.append({
                         'state': state,
                         'type': typus,
-                        'ratingKey': itemId,
+                        'ratingKey': plex_id,
                         'timestamp': getUnixTimestamp(),
                         'attempt': 0
                     })
