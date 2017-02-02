@@ -533,10 +533,12 @@ class LibrarySync(Thread):
         self.compare = not repair
 
         self.new_items_only = True
+        # This will also update playstates and userratings!
         log.info('Running fullsync for NEW PMS items with repair=%s' % repair)
         if self._fullSync() is False:
             return False
         self.new_items_only = False
+        # This will NOT update playstates and userratings!
         log.info('Running fullsync for CHANGED PMS items with repair=%s'
                  % repair)
         if self._fullSync() is False:
@@ -1106,6 +1108,10 @@ class LibrarySync(Thread):
         also updates resume times.
         This is done by downloading one XML for ALL elements with viewId
         """
+        if self.new_items_only is False:
+            # Only do this once for fullsync: the first run where new items are
+            # added to Kodi
+            return
         xml = GetAllPlexLeaves(viewId,
                                lastViewedAt=lastViewedAt,
                                updatedAt=updatedAt,
