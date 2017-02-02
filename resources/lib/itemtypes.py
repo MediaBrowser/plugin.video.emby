@@ -134,9 +134,10 @@ class Items(object):
         for mediaitem in xml:
             API = PlexAPI.API(mediaitem)
             # Get key and db entry on the Kodi db side
+            db_item = self.plex_db.getItem_byId(API.getRatingKey())
             try:
-                fileid = self.plex_db.getItem_byId(API.getRatingKey())[1]
-            except:
+                fileid = db_item[1]
+            except TypeError:
                 continue
             # Grab the user's viewcount, resume points etc. from PMS' answer
             userdata = API.getUserData()
@@ -146,6 +147,10 @@ class Items(object):
                                       userdata['Runtime'],
                                       userdata['PlayCount'],
                                       userdata['LastPlayedDate'])
+            if v.KODIVERSION >= 17:
+                self.kodi_db.update_userrating(db_item[0],
+                                               db_item[4],
+                                               userdata['UserRating'])
 
     def updatePlaystate(self, item):
         """

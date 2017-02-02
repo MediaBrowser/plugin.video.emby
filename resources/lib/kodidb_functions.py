@@ -1401,6 +1401,20 @@ class Kodidb_Functions():
 
 # Krypton only stuff ##############################
 
+    def update_userrating(self, kodi_id, kodi_type, userrating):
+        """
+        Updates userrating for >=Krypton
+        """
+        if kodi_type == v.KODI_TYPE_MOVIE:
+            ID = 'idMovie'
+        elif kodi_type == v.KODI_TYPE_EPISODE:
+            ID = 'idEpisode'
+        elif kodi_type == v.KODI_TYPE_SONG:
+            ID = 'idSong'
+        query = ('''UPDATE %s SET userrating = ? WHERE %s = ?'''
+                 % (kodi_type, ID))
+        self.cursor.execute(query, (userrating, kodi_id))
+
     def create_entry_uniqueid(self):
         self.cursor.execute(
             "select coalesce(max(uniqueid_id),0) from uniqueid")
