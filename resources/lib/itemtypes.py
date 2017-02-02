@@ -306,7 +306,6 @@ class Movies(Items):
         if update_item:
             log.info("UPDATE movie itemid: %s - Title: %s"
                      % (itemid, title))
-
             # Update the movie entry
             if v.KODIVERSION >= 17:
                 # update new ratings Kodi 17
@@ -324,79 +323,71 @@ class Movies(Items):
                                              imdb,
                                              "imdb",
                                              uniqueid)
-
-                query = ' '.join((
-                    "UPDATE movie",
-                    "SET c00 = ?, c01 = ?, c02 = ?, c03 = ?, c04 = ?, c05 = ?,"
-                    "c06 = ?, c07 = ?, c09 = ?, c10 = ?, c11 = ?, c12 = ?,"
-                    "c14 = ?, c15 = ?, c16 = ?, c18 = ?, c19 = ?, c21 = ?,"
-                    "c22 = ?, c23 = ?, idFile=?, premiered = ?",
-                    "WHERE idMovie = ?"
-                ))
+                query = '''
+                    UPDATE movie
+                    SET c00 = ?, c01 = ?, c02 = ?, c03 = ?, c04 = ?, c05 = ?,
+                        c06 = ?, c07 = ?, c09 = ?, c10 = ?, c11 = ?, c12 = ?,
+                        c14 = ?, c15 = ?, c16 = ?, c18 = ?, c19 = ?, c21 = ?,
+                        c22 = ?, c23 = ?, idFile=?, premiered = ?,
+                        userrating = ?
+                    WHERE idMovie = ?
+                '''
                 kodicursor.execute(query, (title, plot, shortplot, tagline,
                     votecount, rating, writer, year, imdb, sorttitle, runtime,
                     mpaa, genre, director, title, studio, trailer, country,
-                    playurl, pathid, fileid, year, movieid))
+                    playurl, pathid, fileid, year, userdata['UserRating'],
+                    movieid))
             else:
-                query = ' '.join((
-                    "UPDATE movie",
-                    "SET c00 = ?, c01 = ?, c02 = ?, c03 = ?, c04 = ?, c05 = ?,"
-                    "c06 = ?, c07 = ?, c09 = ?, c10 = ?, c11 = ?, c12 = ?,"
-                    "c14 = ?, c15 = ?, c16 = ?, c18 = ?, c19 = ?, c21 = ?,"
-                    "c22 = ?, c23 = ?, idFile=?",
-                    "WHERE idMovie = ?"
-                ))
+                query = '''
+                    UPDATE movie
+                    SET c00 = ?, c01 = ?, c02 = ?, c03 = ?, c04 = ?, c05 = ?,
+                        c06 = ?, c07 = ?, c09 = ?, c10 = ?, c11 = ?, c12 = ?,
+                        c14 = ?, c15 = ?, c16 = ?, c18 = ?, c19 = ?, c21 = ?,
+                        c22 = ?, c23 = ?, idFile=?
+                    WHERE idMovie = ?
+                '''
                 kodicursor.execute(query, (title, plot, shortplot, tagline,
                     votecount, rating, writer, year, imdb, sorttitle, runtime,
                     mpaa, genre, director, title, studio, trailer, country,
                     playurl, pathid, fileid, movieid))
 
-
-        ##### OR ADD THE MOVIE #####
+        # OR ADD THE MOVIE #####
         else:
             log.info("ADD movie itemid: %s - Title: %s" % (itemid, title))
             if v.KODIVERSION >= 17:
                 # add new ratings Kodi 17
-                ratingid = self.kodi_db.create_entry_rating()
-                self.kodi_db.add_ratings(ratingid,
+                self.kodi_db.add_ratings(self.kodi_db.create_entry_rating(),
                                          movieid,
                                          v.KODI_TYPE_MOVIE,
                                          "default",
                                          rating,
                                          votecount)
                 # add new uniqueid Kodi 17
-                uniqueid = self.kodi_db.create_entry_uniqueid()
-                self.kodi_db.add_uniqueid(uniqueid,
+                self.kodi_db.add_uniqueid(self.kodi_db.create_entry_uniqueid(),
                                           movieid,
                                           v.KODI_TYPE_MOVIE,
                                           imdb,
                                           "imdb")
-
-                query = (
-                    '''
-                    INSERT INTO movie( idMovie, idFile, c00, c01, c02, c03,
+                query = '''
+                    INSERT INTO movie(idMovie, idFile, c00, c01, c02, c03,
                         c04, c05, c06, c07, c09, c10, c11, c12, c14, c15, c16,
-                        c18, c19, c21, c22, c23, premiered)
-
+                        c18, c19, c21, c22, c23, premiered, userrating)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
-                    ?, ?, ?, ?, ?, ?)
-                    '''
-                )
+                        ?, ?, ?, ?, ?, ?, ?)
+                '''
                 kodicursor.execute(query, (movieid, fileid, title, plot,
                     shortplot, tagline, votecount, rating, writer, year, imdb,
                     sorttitle, runtime, mpaa, genre, director, title, studio,
-                    trailer, country, playurl, pathid, year))
+                    trailer, country, playurl, pathid, year,
+                    userdata['UserRating']))
             else:
-                query = (
-                    '''
-                    INSERT INTO movie( idMovie, idFile, c00, c01, c02, c03,
+                query = '''
+                    INSERT INTO movie(idMovie, idFile, c00, c01, c02, c03,
                         c04, c05, c06, c07, c09, c10, c11, c12, c14, c15, c16,
                         c18, c19, c21, c22, c23)
-
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
-                    ?, ?, ?, ?, ?)
-                    '''
-                )
+                        ?, ?, ?, ?, ?)
+                '''
                 kodicursor.execute(query, (movieid, fileid, title, plot,
                     shortplot, tagline, votecount, rating, writer, year, imdb,
                     sorttitle, runtime, mpaa, genre, director, title, studio,
@@ -916,55 +907,80 @@ class TVShows(Items):
         # UPDATE THE EPISODE #####
         if update_item:
             log.info("UPDATE episode itemid: %s" % (itemid))
-
             # Update the movie entry
-            if v.KODIVERSION >= 16:
-                # Kodi Jarvis, Krypton
-                query = ' '.join((
-                    "UPDATE episode",
-                    "SET c00 = ?, c01 = ?, c03 = ?, c04 = ?, c05 = ?, c09 = ?,"
-                    "c10 = ?, c12 = ?, c13 = ?, c14 = ?, c15 = ?, c16 = ?,"
-                    "c18 = ?, c19 = ?, idFile=?, idSeason = ?",
-                    "WHERE idEpisode = ?"
-                ))
+            if v.KODIVERSION >= 17:
+                # Kodi Krypton
+                query = '''
+                    UPDATE episode
+                    SET c00 = ?, c01 = ?, c03 = ?, c04 = ?, c05 = ?, c09 = ?,
+                        c10 = ?, c12 = ?, c13 = ?, c14 = ?, c15 = ?, c16 = ?,
+                        c18 = ?, c19 = ?, idFile=?, idSeason = ?,
+                        userrating = ?
+                    WHERE idEpisode = ?"
+                '''
+                kodicursor.execute(query, (title, plot, rating, writer,
+                    premieredate, runtime, director, season, episode, title,
+                    airsBeforeSeason, airsBeforeEpisode, playurl, pathid,
+                    fileid, seasonid, userdata['UserRating'], episodeid))
+            elif v.KODIVERSION == 16:
+                # Kodi Jarvis
+                query = '''
+                    UPDATE episode
+                    SET c00 = ?, c01 = ?, c03 = ?, c04 = ?, c05 = ?, c09 = ?,
+                        c10 = ?, c12 = ?, c13 = ?, c14 = ?, c15 = ?, c16 = ?,
+                        c18 = ?, c19 = ?, idFile=?, idSeason = ?
+                    WHERE idEpisode = ?
+                '''
                 kodicursor.execute(query, (title, plot, rating, writer,
                     premieredate, runtime, director, season, episode, title,
                     airsBeforeSeason, airsBeforeEpisode, playurl, pathid,
                     fileid, seasonid, episodeid))
             else:
-                query = ' '.join((
-                    
-                    "UPDATE episode",
-                    "SET c00 = ?, c01 = ?, c03 = ?, c04 = ?, c05 = ?, c09 = ?,"
-                    "c10 = ?, c12 = ?, c13 = ?, c14 = ?, c15 = ?, c16 = ?,"
-                    "c18 = ?, c19 = ?, idFile = ?",
-                    "WHERE idEpisode = ?"
-                ))
+                query = '''
+                    UPDATE episode
+                    SET c00 = ?, c01 = ?, c03 = ?, c04 = ?, c05 = ?, c09 = ?,
+                        c10 = ?, c12 = ?, c13 = ?, c14 = ?, c15 = ?, c16 = ?,
+                        c18 = ?, c19 = ?, idFile = ?
+                    WHERE idEpisode = ?
+                '''
                 kodicursor.execute(query, (title, plot, rating, writer,
                     premieredate, runtime, director, season, episode, title,
                     airsBeforeSeason, airsBeforeEpisode, playurl, pathid,
                     fileid, episodeid))
             # Update parentid reference
             plex_db.updateParentId(itemid, seasonid)
-        
-        ##### OR ADD THE EPISODE #####
+
+        # OR ADD THE EPISODE #####
         else:
             log.info("ADD episode itemid: %s - Title: %s" % (itemid, title))
             # Create the episode entry
-            if v.KODIVERSION >= 16:
-                # Kodi Jarvis, Krypton
-                query = (
+            if v.KODIVERSION >= 17:
+                # Kodi Krypton
+                query = '''
+                    INSERT INTO episode( idEpisode, idFile, c00, c01, c03, c04,
+                        c05, c09, c10, c12, c13, c14, idShow, c15, c16, c18,
+                        c19, idSeason, userrating)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+                    ?, ?)
+                '''
+                kodicursor.execute(query, (episodeid, fileid, title, plot,
+                    rating, writer, premieredate, runtime, director, season,
+                    episode, title, showid, airsBeforeSeason,
+                    airsBeforeEpisode, playurl, pathid, seasonid,
+                    userdata['UserRating']))
+            elif v.KODIVERSION == 16:
+                # Kodi Jarvis
+                query = '''
+                    INSERT INTO episode( idEpisode, idFile, c00, c01, c03, c04,
+                        c05, c09, c10, c12, c13, c14, idShow, c15, c16, c18,
+                        c19, idSeason)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+                        ?)
                     '''
-                    INSERT INTO episode(
-                        idEpisode, idFile, c00, c01, c03, c04, c05, c09, c10, c12, c13, c14,
-                        idShow, c15, c16, c18, c19, idSeason)
-
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    '''
-                )
-                kodicursor.execute(query, (episodeid, fileid, title, plot, rating, writer,
-                    premieredate, runtime, director, season, episode, title, showid,
-                    airsBeforeSeason, airsBeforeEpisode, playurl, pathid, seasonid))
+                kodicursor.execute(query, (episodeid, fileid, title, plot,
+                    rating, writer, premieredate, runtime, director, season,
+                    episode, title, showid, airsBeforeSeason,
+                    airsBeforeEpisode, playurl, pathid, seasonid))
             else:
                 query = (
                     '''
@@ -1539,7 +1555,7 @@ class Music(Items):
             track = disc*2**16 + tracknumber
         year = API.getYear()
         resume, duration = API.getRuntime()
-        rating = int(userdata['UserRating'])
+        rating = userdata['UserRating']
 
         hasEmbeddedCover = False
         comment = None

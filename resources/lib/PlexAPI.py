@@ -1245,33 +1245,28 @@ class API():
         item = self.item.attrib
         # Default - attributes not found with Plex
         favorite = False
-
         try:
             playcount = int(item['viewCount'])
-        except:
+        except KeyError:
             playcount = None
-
-        if playcount:
-            played = True
-        else:
-            played = False
+        played = True if playcount else False
 
         try:
             lastPlayedDate = DateToKodi(int(item['lastViewedAt']))
-        except:
+        except KeyError:
             lastPlayedDate = None
 
         try:
-            userrating = float(item['userRating'])
-        except:
-            userrating = 0.0
+            userrating = int(float(item['userRating']))
+        except KeyError:
+            userrating = 0
 
         try:
             rating = float(item['audienceRating'])
-        except:
+        except KeyError:
             try:
                 rating = float(item['rating'])
-            except:
+            except KeyError:
                 rating = 0.0
 
         resume, runtime = self.getRuntime()
