@@ -460,38 +460,40 @@ class Movies(Items):
 
         plex_dbitem = plex_db.getItem_byId(itemid)
         try:
-            kodiid = plex_dbitem[0]
-            fileid = plex_dbitem[1]
-            mediatype = plex_dbitem[4]
-            log.info("Removing %sid: %s fileid: %s"
-                     % (mediatype, kodiid, fileid))
+            kodi_id = plex_dbitem[0]
+            file_id = plex_dbitem[1]
+            kodi_type = plex_dbitem[4]
+            log.info("Removing %sid: %s file_id: %s"
+                     % (kodi_type, kodi_id, file_id))
         except TypeError:
             return
 
         # Remove the plex reference
         plex_db.removeItem(itemid)
         # Remove artwork
-        artwork.deleteArtwork(kodiid, mediatype, kodicursor)
+        artwork.deleteArtwork(kodi_id, kodi_type, kodicursor)
 
-        if mediatype == "movie":
+        if kodi_type == v.KODI_TYPE_MOVIE:
             # Delete kodi movie and file
-            kodicursor.execute("DELETE FROM movie WHERE idMovie = ?", (kodiid,))
-            kodicursor.execute("DELETE FROM files WHERE idFile = ?", (fileid,))
-
-        elif mediatype == "set":
+            kodicursor.execute("DELETE FROM movie WHERE idMovie = ?",
+                               (kodi_id,))
+            kodicursor.execute("DELETE FROM files WHERE idFile = ?",
+                               (file_id,))
+            if v.KODIVERSION >= 17:
+                plex_db.remove_uniqueid(kodi_id, kodi_type)
+                plex_db.remove_ratings(kodi_id, kodi_type)
+        elif kodi_type == v.KODI_TYPE_SET:
             # Delete kodi boxset
-            boxset_movies = plex_db.getItem_byParentId(kodiid, "movie")
+            boxset_movies = plex_db.getItem_byParentId(kodi_id,
+                                                       v.KODI_TYPE_MOVIE)
             for movie in boxset_movies:
                 plexid = movie[0]
                 movieid = movie[1]
                 self.kodi_db.removefromBoxset(movieid)
                 # Update plex reference
                 plex_db.updateParentId(plexid, None)
-
-            kodicursor.execute("DELETE FROM sets WHERE idSet = ?", (kodiid,))
-
-        log.info("Deleted %s %s from kodi database"
-                 % (mediatype, itemid))
+            kodicursor.execute("DELETE FROM sets WHERE idSet = ?", (kodi_id,))
+        log.info("Deleted %s %s from kodi database" % (kodi_type, itemid))
 
 
 class TVShows(Items):
@@ -1081,7 +1083,6 @@ class TVShows(Items):
         try:
             kodiid = plex_dbitem[0]
             fileid = plex_dbitem[1]
-            pathid = plex_dbitem[2]
             parentid = plex_dbitem[3]
             mediatype = plex_dbitem[4]
             log.info("Removing %s kodiid: %s fileid: %s"
@@ -1093,7 +1094,6 @@ class TVShows(Items):
 
         # Remove the plex reference
         plex_db.removeItem(itemid)
-
 
         ##### IF EPISODE #####
 
@@ -1107,7 +1107,6 @@ class TVShows(Items):
                 showid = season[1]
             except TypeError:
                 return
-            
             season_episodes = plex_db.getItem_byParentId(parentid,
                                                          v.KODI_TYPE_EPISODE)
             if not season_episodes:
@@ -1139,14 +1138,14 @@ class TVShows(Items):
 
         ##### IF TVSHOW #####
 
-        elif mediatype == "tvshow":
+        elif mediatype == v.KODI_TYPE_SHOW:
             # Remove episodes, seasons, tvshow
             seasons = plex_db.getItem_byParentId(kodiid,
                                                  v.KODI_TYPE_SEASON)
             for season in seasons:
                 seasonid = season[1]
-                season_episodes = plex_db.getItem_byParentId(seasonid,
-                                                             v.KODI_TYPE_EPISODE)
+                season_episodes = plex_db.getItem_byParentId(
+                    seasonid, v.KODI_TYPE_EPISODE)
                 for episode in season_episodes:
                     self.removeEpisode(episode[1], episode[2])
                 else:
@@ -1185,11 +1184,14 @@ class TVShows(Items):
 
         log.debug("Deleted %s: %s from kodi database" % (mediatype, itemid))
 
-    def removeShow(self, kodiid):
+    def removeShow(self, kodi_id):
         kodicursor = self.kodicursor
-        self.artwork.deleteArtwork(kodiid, "tvshow", kodicursor)
-        kodicursor.execute("DELETE FROM tvshow WHERE idShow = ?", (kodiid,))
-        log.info("Removed tvshow: %s." % kodiid)
+        self.artwork.deleteArtwork(kodi_id, v.KODI_TYPE_SHOW, kodicursor)
+        kodicursor.execute("DELETE FROM tvshow WHERE idShow = ?", (kodi_id,))
+        if v.KODIVERSION >= 17:
+            self.plex_db.remove_uniqueid(kodi_id, v.KODI_TYPE_SHOW)
+            self.plex_db.remove_ratings(kodi_id, v.KODI_TYPE_SHOW)
+        log.info("Removed tvshow: %s." % kodi_id)
 
     def removeSeason(self, kodiid):
         kodicursor = self.kodicursor

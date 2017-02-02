@@ -1454,6 +1454,13 @@ class Kodidb_Functions():
         '''
         self.cursor.execute(query, (args))
 
+    def remove_uniqueid(self, kodi_id, kodi_type):
+        query = '''
+            DELETE FROM uniqueid
+            WHERE media_id = ? AND media_type = ?
+        '''
+        self.cursor.execute(query, (kodi_id, kodi_type))
+
     def create_entry_rating(self):
         self.cursor.execute("select coalesce(max(rating_id),0) from rating")
         return self.cursor.fetchone()[0] + 1
@@ -1495,6 +1502,13 @@ class Kodidb_Functions():
             VALUES (?, ?, ?, ?, ?, ?)
         '''
         self.cursor.execute(query, (args))
+
+    def remove_ratings(self, kodi_id, kodi_type):
+        query = '''
+            DELETE FROM rating
+            WHERE media_id = ? AND media_type = ?
+        '''
+        self.cursor.execute(query, (kodi_id, kodi_type))
 
 
 def get_kodiid_from_filename(file):
