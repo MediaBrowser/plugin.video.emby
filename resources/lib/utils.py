@@ -306,11 +306,12 @@ def setScreensaver(value):
     log.debug("Toggling screensaver: %s %s"
               % (value, xbmc.executeJSONRPC(dumps(query))))
 
+
 def reset():
-
-    dialog = xbmcgui.Dialog()
-
-    if dialog.yesno("Warning", "Are you sure you want to reset your local Kodi database?") == 0:
+    # Are you sure you want to reset your local Kodi database?
+    if not dialog('yesno',
+                  heading='{plex} %s ' % language(30132),
+                  line1=language(39600)):
         return
 
     # first stop any db sync
@@ -320,7 +321,10 @@ def reset():
         log.debug("Sync is running, will retry: %s..." % count)
         count -= 1
         if count == 0:
-            dialog.ok("Warning", "Could not stop the database from running. Try again.")
+            # Could not stop the database from running. Please try again later.
+            dialog('ok',
+                   heading='{plex} %s' % language(30132),
+                   line1=language(39601))
             return
         xbmc.sleep(1000)
 
@@ -371,9 +375,10 @@ def reset():
     connection.commit()
     cursor.close()
 
-    # Offer to wipe cached thumbnails
-    resp = dialog.yesno("Warning", "Remove all cached artwork?")
-    if resp:
+    # Remove all cached artwork? (recommended!)
+    if dialog('yesno',
+              heading='{plex} %s ' % language(30132),
+              line1=language(39602)):
         log.info("Resetting all cached artwork.")
         # Remove all existing textures first
         path = tryDecode(xbmc.translatePath("special://thumbnails/"))
@@ -390,7 +395,6 @@ def reset():
                         xbmcvfs.delete(os_path.join(
                             tryEncode(path) + dir,
                             file))
-
         # remove all existing data from texture DB
         connection = kodiSQL('texture')
         cursor = connection.cursor()
@@ -406,20 +410,24 @@ def reset():
     # reset the install run flag
     settings('SyncInstallRunDone', value="false")
 
-    # Remove emby info
-    resp = dialog.yesno("Warning", "Reset all Plex KodiConnect Addon settings?")
-    if resp:
+    # Reset all PlexKodiConnect Addon settings? (this is usually NOT
+    # recommended and unnecessary!)
+    if dialog('yesno',
+              heading='{plex} %s ' % language(30132),
+              line1=language(39603)):
         # Delete the settings
         addon = xbmcaddon.Addon()
         addondir = tryDecode(xbmc.translatePath(addon.getAddonInfo('profile')))
         dataPath = "%ssettings.xml" % addondir
-        xbmcvfs.delete(tryEncode(dataPath))
         log.info("Deleting: settings.xml")
+        xbmcvfs.delete(tryEncode(dataPath))
 
-    dialog.ok(
-        heading=language(29999),
-        line1="Database reset has completed, Kodi will now restart to apply the changes.")
+    # Kodi will now restart to apply the changes.
+    dialog('ok',
+           heading='{plex} %s ' % language(30132),
+           line1=language(33033))
     xbmc.executebuiltin('RestartApp')
+
 
 def profiling(sortby="cumulative"):
     # Will print results to Kodi log

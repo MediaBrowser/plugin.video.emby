@@ -458,5 +458,9 @@
     <string id="39500">Aktuell</string>
     <string id="39501">Kollektionen</string>
 
-
+    <!-- Plex utils.py -->
+    <string id="39600">Wirklich die lokale Kodi Datenbank zurücksetzen? Die anschliessende Synchronisation der Plex-Daten benötigt Zeit.</string>
+    <string id="39601">Kodi Datenbank konnte nicht gestoppt werden. Bitte später erneut versuchen.</string>
+    <string id="39602">Alle zwischengespeicherten Bilder löschen? (empfohlen!)</string>
+    <string id="39603">Alle PlexKodiConnect Einstellungen zurücksetzen? (normalerweise NICHT empfohlen und nicht nötig!)</string>
 </strings>
