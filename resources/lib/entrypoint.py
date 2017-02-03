@@ -754,6 +754,7 @@ def getOnDeck(viewid, mediatype, tagname, limit):
         if xml in (None, 401):
             log.error('Could not download PMS xml for view %s' % viewid)
             return xbmcplugin.endOfDirectory(HANDLE)
+        limitcounter = 0
         for item in xml:
             api = API(item)
             listitem = api.CreateListItemFromPlexItem(
@@ -775,6 +776,9 @@ def getOnDeck(viewid, mediatype, tagname, limit):
                 handle=HANDLE,
                 url=url,
                 listitem=listitem)
+            limitcounter += 1
+            if limitcounter == limit:
+                break
         return xbmcplugin.endOfDirectory(
             handle=HANDLE,
             cacheToDisc=settings('enableTextureCache') == 'true')
