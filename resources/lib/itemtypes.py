@@ -923,7 +923,7 @@ class TVShows(Items):
                         c10 = ?, c12 = ?, c13 = ?, c14 = ?, c15 = ?, c16 = ?,
                         c18 = ?, c19 = ?, idFile=?, idSeason = ?,
                         userrating = ?
-                    WHERE idEpisode = ?"
+                    WHERE idEpisode = ?
                 '''
                 kodicursor.execute(query, (title, plot, rating, writer,
                     premieredate, runtime, director, season, episode, title,
