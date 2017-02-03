@@ -113,7 +113,7 @@ class MyHandler(BaseHTTPRequestHandler):
                         ' title="%s"'
                         ' protocol="plex"'
                         ' protocolVersion="1"'
-                        ' protocolCapabilities="navigation,playback,timeline"'
+                        ' protocolCapabilities="timeline,playback,navigation,playqueues"'
                         ' machineIdentifier="%s"'
                         ' product="PlexKodiConnect"'
                         ' platform="%s"'
