@@ -16,21 +16,21 @@
     <string id="30013">Nezobrazovat</string>
 
     <string id="30014">Připojení</string>
-    <string id="30015">Síť</string>
+    <string id="30015">Síť</string>    
     <string id="30016">Název zařízení</string>
-    <string id="30017">Neověřeno u PMS</string>
+    <string id="30017">Neověřeno u PMS</string>     
 
     <string id="30022">Rozšířené</string>
     <string id="30024">Uživ. jméno</string><!-- Verified -->
 
     <string id="30025">Zobrazit zprávu při odpojení PMS</string>
-
+    
     <string id="30030">Číslo portu</string><!-- Verified -->
     <string id="30031">Tento Plex Media Server je můj</string>
-    <string id="30036">Zobrazit počet naposledy přidaných filmů:</string>
-    <string id="30037">Zobrazit počet naposledy přidaných epizod seriálů:</string>
-    <string id="30035">Zobrazit počet naposledy přidaných hudebních alb:</string>
-    <string id="30038">Označit jako shlédnuté po zahájení přehrávání:</string>
+    <string id="30036">Zobrazit počet naposledy přidaných filmů:</string>    
+    <string id="30037">Zobrazit počet naposledy přidaných epizod seriálů:</string>    
+    <string id="30035">Zobrazit počet naposledy přidaných hudebních alb:</string>    
+    <string id="30038">Označit jako shlédnuté po zahájení přehrávání:</string>    
     <string id="30039">Nastavit plakát sezóny pro epizody</string>
 
     <string id="30040">Filtr žánrů ...</string>
@@ -38,13 +38,13 @@
     <string id="30042">Obnovit</string>
     <string id="30043">Smazat</string>
     <string id="30046">Přidat film do CouchPotato</string>
-
+    
     <string id="30044">Nesprávné uživatelské jméno nebo heslo</string>
     <string id="30045">Uživatelské jméno nenalezeno</string>
-
+    
     <string id="30052">Mažu</string>
     <string id="30053">Čekám až server provede smazání</string>
-
+    
     <string id="30059">Výchozí nastavení serveru</string>
     <string id="30060">Název</string>
     <string id="30061">Rok</string>
@@ -55,9 +55,9 @@
     <string id="30066">Počet přehrání</string>
     <string id="30067">Rozpočet</string>
     <!-- Runtime added as 30226 below -->
-
+    
     <string id="30068">Třídit podle:</string>
-
+    
     <string id="30069">Žádný</string>
     <string id="30070">Akční</string>
     <string id="30071">Dobrodružný</string>
@@ -79,11 +79,11 @@
     <string id="30087">Suspense</string>
     <string id="30088">Thriller</string>
     <string id="30089">Western</string>
-
+    
     <string id="30090">Filtr žánrů</string>
     <string id="30091">Potvrdit smazání</string><!-- Verified -->
     <string id="30092">Smazat tuto položku? Touto akcí smažete média a všechny přiřazené datové soubory.</string>
-
+    
     <string id="30093">Označit jako shlédnuté</string>
     <string id="30094">Označit jako neshlédnuté</string>
     <string id="30095">Přidat k oblíbeným</string>
@@ -97,7 +97,7 @@
     <string id="30105">Pokračovat</string>
     <string id="30106">Pokračovat od</string>
     <string id="30107">Přehrát od začáku</string>
-
+    
     <string id="30110">Rozhraní</string>
     <string id="30111">Zobrazit info o proudu</string>
     <string id="30112">Zobrazit lidi</string>
@@ -114,7 +114,7 @@
     <string id="30125">Hotovo</string>
     <string id="30126">Zpracovávám položku : </string>
     <string id="30128">Chyba přehrávání</string>
-    <string id="30129">Tuto položku nelze přehrát</string>
+    <string id="30129">Tuto položku nelze přehrát</string>    
     <string id="30130">Zjištěna místní cesta</string>
     <string id="30131">Your MB3 Server contains local paths.  Please change server paths to UNC or change XBMB3C setting 'Play from Stream' to true.  Path: </string>
     <string id="30132">Varování</string>
@@ -124,85 +124,85 @@
     <string id="30136">Monitorovací služba neběží</string>
     <string id="30137">Pokud jste teď nainstalovali, restartujte Kodi</string>
     <string id="30138">Vyhledat</string>
-
+    
     <string id="30139">Povolit tématickou hudbu (vyžaduje restart)</string>
     <string id="30140"> - Opakovat tématickou hudbu</string>
     <string id="30141">Povolit obrázek na pozadí (vyžaduje restart)</string>
     <string id="30142">Služby</string>
 
     <string id="30143">Vždy překódovat video pokud je bitový tok větší než</string>
-
+    
     <string id="30150">Vzhled nepodporuje nastavení náhledů</string>
     <string id="30151">Zvolit akci na položce (vyžaduje restart)</string>
-
-    <string id="30156">Třídit další v pořadí podle názvu seriálu</string>
+    
+    <string id="30156">Třídit další v pořadí podle názvu seriálu</string>    
     <string id="30157">Povolit rozšířené obrázky (např. CoverArt)</string><!-- Verified -->
     <string id="30158">Metadata</string>
     <string id="30159">Obrázky</string>
     <string id="30160">Kvalita videa při překódování</string><!-- Verified -->
-
+    
     <string id="30161">Enable Suggested Loader (vyžaduje restart)</string>
-    <string id="30162">Přidat číslo sezóny</string>
-    <string id="30163">Sloučit sezóny</string>
-
-    <string id="30164">Přímé přehrávání - HTTP</string>
-    <string id="30165">Přímé přehrávání</string>
-    <string id="30166">Překódování</string>
-    <string id="30167">Zjištění serveru uspělo</string>
-    <string id="30168">Nalezen server</string>
-    <string id="30169">Addresa : </string>
-
+    <string id="30162">Přidat číslo sezóny</string>     
+    <string id="30163">Sloučit sezóny</string>     
+    
+    <string id="30164">Přímé přehrávání - HTTP</string>     
+    <string id="30165">Přímé přehrávání</string>     
+    <string id="30166">Překódování</string>     
+    <string id="30167">Zjištění serveru uspělo</string>     
+    <string id="30168">Nalezen server</string>     
+    <string id="30169">Addresa : </string>     
+    
     <!-- Video nodes -->
     <string id="30170">Naposledy přidané seriály</string><!-- Verified -->
     <string id="30171">Rozkoukané seriály</string><!-- Verified -->
-    <string id="30172">Všechna hudba</string>
+    <string id="30172">Všechna hudba</string>              
     <string id="30173">Kanály</string><!-- Verified -->
     <string id="30174">Naposledy přidané</string><!-- Verified -->
     <string id="30175">Naposledy přidané epizody</string><!-- Verified -->
-    <string id="30176">Naposledy přidaná alba</string>
+    <string id="30176">Naposledy přidaná alba</string>  
     <string id="30177">Rozkoukané filmy</string><!-- Verified -->
     <string id="30178">Rozkoukané epizody</string><!-- Verified -->
     <string id="30179">Další epizody</string><!-- Verified -->
-    <string id="30180">Oblíbené filmy</string><!-- Verified -->
+    <string id="30180">Oblíbené filmy</string><!-- Verified -->      
     <string id="30181">Oblíbené seriály</string><!-- Verified -->
-    <string id="30182">Oblíbené epizody</string>
-    <string id="30183">Často přehrávaná alba</string>
-    <string id="30184">Nadcházející epizody</string>
-    <string id="30185">Kolekce</string>
-    <string id="30186">Ukázky</string>
-    <string id="30187">Videoklipy</string>
-    <string id="30188">Fotky</string>
+    <string id="30182">Oblíbené epizody</string>      
+    <string id="30183">Často přehrávaná alba</string> 
+    <string id="30184">Nadcházející epizody</string>            
+    <string id="30185">Kolekce</string>                
+    <string id="30186">Ukázky</string>               
+    <string id="30187">Videoklipy</string>           
+    <string id="30188">Fotky</string>                 
     <string id="30189">Neshlédnuté filmy</string><!-- Verified -->
-    <string id="30190">Žánry filmů</string>
-    <string id="30191">Filmová studia</string>
-    <string id="30192">Filmoví herci</string>
-    <string id="30193">Neshlédnuté epizody</string>
-    <string id="30194">Žánry seriálů</string>
-    <string id="30195">Televizní stanice</string>
-    <string id="30196">Televizní herci</string>
-    <string id="30197">Playlisty</string>
-    <string id="30198">Hledání</string>
-    <string id="30199">Nastavit náhledy</string>
-
-    <string id="30200">Vybrat uživatele</string>
-    <string id="30201">Profilování povoleno.</string>
-    <string id="30202">Po ukončení testování toto prosím vypněte.</string>
-    <string id="30203">Chyba v ArtworkRotationThread</string>
-    <string id="30204">Nemohu se připojit k serveru</string>
-    <string id="30205">Chyba v LoadMenuOptionsThread</string>
-
-    <string id="30206">Povolit načítání playlistů (vyžaduje restart)</string>
-
+    <string id="30190">Žánry filmů</string>           
+    <string id="30191">Filmová studia</string>          
+    <string id="30192">Filmoví herci</string>           
+    <string id="30193">Neshlédnuté epizody</string>     
+    <string id="30194">Žánry seriálů</string>              
+    <string id="30195">Televizní stanice</string>            
+    <string id="30196">Televizní herci</string>              
+    <string id="30197">Playlisty</string>              
+    <string id="30198">Hledání</string>              
+    <string id="30199">Nastavit náhledy</string>              
+    
+    <string id="30200">Vybrat uživatele</string>              
+    <string id="30201">Profilování povoleno.</string>              
+    <string id="30202">Po ukončení testování toto prosím vypněte.</string>              
+    <string id="30203">Chyba v ArtworkRotationThread</string>              
+    <string id="30204">Nemohu se připojit k serveru</string>         
+    <string id="30205">Chyba v LoadMenuOptionsThread</string>     
+    
+    <string id="30206">Povolit načítání playlistů (vyžaduje restart)</string>   
+    
     <string id="30207">Skladby</string>
     <string id="30208">Alba</string>
     <string id="30209">Interpreti alba</string>
     <string id="30210">Interpreti</string>
     <string id="30211">Hudební žánry</string>
-
+    
     <string id="30212">Povolit tématická videa (vyžaduje restart)</string>
     <string id="30213"> - Opakovat tématická videa</string>
-
-    <string id="30216">Automaticky přehrát zbývající epizody v sezóně</string>
+    
+    <string id="30216">Automaticky přehrát zbývající epizody v sezóně</string> 
     <string id="30218">Komprimovat obrázky</string>
     <string id="30220">Poslední </string>
     <string id="30221">Rozkoukané </string>
@@ -211,54 +211,54 @@
     <string id="30224">Report Metrics</string>
     <string id="30225">Použít třídění Kodi</string>
     <string id="30226">Za běhu</string>
-
+    
     <string id="30227">Náhodně</string>
     <string id="30228">Naposledy vydané</string>
     <string id="30229">Náhodné položky</string><!-- Verified -->
     <string id="30230">Doporučené</string><!-- Verified -->
-
+    
     <string id="30235">Extra</string><!-- Verified -->
     <string id="30236">Synchronizovat tématickou hudbu</string>
     <string id="30237">Synchronizovat Extra Fanart</string>
     <string id="30238">Synchronizovat kolekce filmů</string>
-
+    
     <string id="30239">[COLOR yellow]Resetovat místní databázi Kodi[/COLOR]</string><!-- Verified -->
     <string id="30240">Povolit synchronizaci stavu shlédnuté/pokračovat</string>
     <string id="30241">Indikace synchronizace databáze:</string>
     <string id="30242">Indikace počtu přehrání:</string>
     <string id="30243">Povolit HTTPS</string><!-- Verified -->
     <string id="30245">Kodeky vynuceného překódování</string>
-
+    
     <string id="30246">Povolit upozornění na následující ve stylu Netflixu</string>
     <string id="30247">  - Sekund před koncem zobrazit upozornění</string>
     <string id="30248">Show Emby Info dialog on play/select action</string>
     <string id="30249">Povolit zprávu o připojení k serveru po spuštění</string><!-- Verified -->
-
+    
     <string id="30251">Naposledy přidaná domácí videa</string><!-- Verified -->
     <string id="30252">Naposledy přidané fotky</string><!-- Verified -->
     <string id="30253">Oblíbená domácí videa</string><!-- Verified -->
     <string id="30254">Oblíbené fotky</string><!-- Verified -->
     <string id="30255">Oblíbená alba</string>
-
+    
     <string id="30256">Naposledy přidané videoklipy</string><!-- Verified -->
     <string id="30257">Rozkoukané videoklipy</string><!-- Verified -->
     <string id="30258">Neshlédnuté videoklipy</string><!-- Verified -->
-
+    
     <!-- Default views -->
-    <string id="30300">Aktivní</string>
-    <string id="30301">Vyčistit nastavení</string>
-    <string id="30302">Filmy</string>
-    <string id="30303">Kolekce</string>
-    <string id="30304">Ukázky</string>
-    <string id="30305">Seriály</string>
-    <string id="30306">Sezóny</string>
-    <string id="30307">Episody</string>
-    <string id="30308">Hudební interpreti</string>
-    <string id="30309">Hudební alba</string>
-    <string id="30310">Videoklipy</string>
+    <string id="30300">Aktivní</string>              
+    <string id="30301">Vyčistit nastavení</string>              
+    <string id="30302">Filmy</string>              
+    <string id="30303">Kolekce</string>              
+    <string id="30304">Ukázky</string>              
+    <string id="30305">Seriály</string>              
+    <string id="30306">Sezóny</string>              
+    <string id="30307">Episody</string>              
+    <string id="30308">Hudební interpreti</string>              
+    <string id="30309">Hudební alba</string>              
+    <string id="30310">Videoklipy</string>              
     <string id="30311">Skladby</string>
-    <string id="30312">Kanály</string>
-
+    <string id="30312">Kanály</string>  
+    
     <!-- contextmenu -->
     <string id="30401">Nastavení Plexu</string>
     <string id="30402">Clear like for this item</string>
@@ -387,7 +387,7 @@
     <string id="39021">[COLOR yellow]Sync Emby Theme Media to Kodi[/COLOR]</string>
     <string id="39022">místní</string>
     <string id="39023">Nemohu provést autentifikaci. Přihlásili jste se na plex.tv?</string>
-
+    
 
     <string id="39025">Po spuštění automaticky přihlásit na plex.tv</string>
     <string id="39026">Povolit neustálou synchronizaci na pozadí</string>
@@ -469,7 +469,7 @@
     <string id="39222">[COLOR yellow]Teď vyhledat chybějící obrázky na FanartTV[/COLOR]</string>
     <string id="39223">Pouze vyhledat chybějící obrázky, nebo obnovit všechny? Skenování bude nějakou chvíli trvat a proběhne na pozadí.</string>
     <string id="39224">Obnovit vše</string>
-    <string id="39225">Pouze chybějící</string>
+    <string id="39225">Pouze chybějící</string>    
 
 
     <!-- Plex Artwork.py -->
@@ -508,8 +508,8 @@
     <string id="39501">Kolekce</string>
 
     <!-- Plex utils.py -->
-    <string id="39600">Are you sure you want to reset your local Kodi database? A re-sync of the Plex data will take time afterwards.</string><!-- PLEASE UPDATE -->
-    <string id="39601">Could not stop the database from running. Please try again later.</string><!-- PLEASE UPDATE -->
-    <string id="39602">Remove all cached artwork? (recommended!)</string><!-- PLEASE UPDATE -->
-    <string id="39603">Reset all PlexKodiConnect Addon settings? (this is usually NOT recommended and unnecessary!)</string><!-- PLEASE UPDATE -->
+    <string id="39600">Are you sure you want to reset your local Kodi database? A re-sync of the Plex data will take time afterwards.</string>
+    <string id="39601">Could not stop the database from running. Please try again later.</string>
+    <string id="39602">Remove all cached artwork? (recommended!)</string>
+    <string id="39603">Reset all PlexKodiConnect Addon settings? (this is usually NOT recommended and unnecessary!)</string>
 </strings>
