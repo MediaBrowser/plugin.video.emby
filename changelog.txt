@@ -1,3 +1,9 @@
+version 1.5.12 (beta only)
+- Possible compatibility with Alexa - do report back!
+- Setup crowdin translations. Please help out translating PlexKodiConnect: https://crowdin.com/project/plexkodiconnect/invite
+- Fix OperationalError on update sync
+- Apply item limit to On Deck if OnDeckTVextended not set, thanks @dettwild
+
 version 1.5.11 (beta only)
 - Fix userratings for Kodi Krypton
 - Krypton: update userratings on startup and on user change
