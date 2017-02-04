@@ -5,6 +5,10 @@ PKC combines the best of Kodi - ultra smooth navigation, beautiful and highly cu
 
 Have a look at [some screenshots](https://github.com/croneter/PlexKodiConnect/wiki/Some-PKC-Screenshots) to see what's possible. 
 
+### Call for Translations
+
+Please help translate PlexKodiConnect into your language: [visit crowdin.com](https://crowdin.com/project/plexkodiconnect/invite)
+
 
 ### Content
 * [**Warning**](https://github.com/croneter/PlexKodiConnect/tree/hotfixes#warning)
