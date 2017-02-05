@@ -1,3 +1,12 @@
+version 1.5.13 (beta only)
+- New Spanish translation, thanks @bartolomesoriano
+- Fix some possible connection issues
+- Fix screensaver not toggling back after full sync
+- Update addon.xml
+- Update readme
+- Updated installation instructions on the Wiki
+- Updated translations
+
 version 1.5.12 (beta only)
 - Possible compatibility with Alexa - do report back!
 - Setup crowdin translations. Please help out translating PlexKodiConnect: https://crowdin.com/project/plexkodiconnect/invite
