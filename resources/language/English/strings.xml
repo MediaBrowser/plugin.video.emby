@@ -275,6 +275,7 @@
     <string id="30413">Enable Plex context menu in Kodi</string>
     <string id="30414">Could not delete the Plex item. Is item deletion enabled on the Plex Media Server?</string>
     <string id="30415">Start playback via PMS</string>
+    <string id="30416">Settings for the Plex Server</string>
 
     <!-- add-on settings -->
     <string id="30500">Verify Host SSL Certificate (more secure)</string>

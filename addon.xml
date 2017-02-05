@@ -16,18 +16,24 @@
   <extension point="kodi.context.item" library="contextmenu.py">
       <item>
         <label>30401</label>
-              <description>Settings for the Plex Server</description>
+              <description>30416</description>
               <visible>[!IsEmpty(ListItem.DBID) + !StringCompare(ListItem.DBID,-1) | !IsEmpty(ListItem.Property(plexid))] + !IsEmpty(Window(10000).Property(plex_context))</visible>
       </item>
   </extension>
   <extension point="xbmc.addon.metadata">
     <platform>all</platform>
-    <language>en</language>
+    <language>en cs de es</language>
     <license>GNU GENERAL PUBLIC LICENSE. Version 2, June 1991</license>
     <forum>https://forums.plex.tv</forum>
     <website>https://github.com/croneter/PlexKodiConnect</website>
     <source>https://github.com/croneter/PlexKodiConnect</source>
     <summary lang="en">Native Integration of Plex into Kodi</summary>
     <description lang="en">Connect Kodi to your Plex Media Server. This plugin assumes that you manage all your videos with Plex (and none with Kodi). You might lose data already stored in the Kodi video and music databases (as this plugin directly changes them). Use at your own risk!</description>
+    <summary lang="cs">Úplná integrace Plexu do Kodi</summary>
+    <description lang="cs">Připojte Kodi ke svému Plex Media Serveru. Tento doplněk předpokládá, že spravujete veškerá svá videa pomocí Plexu (nikoliv pomocí Kodi). Můžete přijít o data uložená ve video a hudební databázi Kodi (tento doplněk je přímo mění). Používejte na vlastní nebezpečí!</description>
+    <summary lang="de">Komplette Integration von Plex in Kodi</summary>
+    <description lang="de">Verbindet Kodi mit deinem Plex Media Server. Dieses Addon geht davon aus, dass du all deine Videos mit Plex verwaltest (und keine direkt mit Kodi). Du wirst möglicherweise Daten verlieren, die bereits in der Kodi Video- und/oder Musik-Datenbank gespeichert sind (da dieses Addon beide Datenbanken direkt verändert). Verwende auf eigene Gefahr!</description>
+    <summary lang="es">Native Integration of Plex into Kodi</summary>
+    <description lang="es">Connect Kodi to your Plex Media Server. This plugin assumes that you manage all your videos with Plex (and none with Kodi). You might lose data already stored in the Kodi video and music databases (as this plugin directly changes them). Use at your own risk!</description>
   </extension>
 </addon>
