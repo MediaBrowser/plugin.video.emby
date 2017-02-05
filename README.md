@@ -12,16 +12,16 @@ Please help translate PlexKodiConnect into your language: [visit crowdin.com](ht
 
 ### Content
 * [**Warning**](#warning)
-* [**What does PKC do and how is it different from the official 'Plex for Kodi'**](https://github.com/croneter/PlexKodiConnect/tree/hotfixes#what-does-pkc-do-and-how-is-it-different-from-the-official-plex-for-kod)
-* [**Download and Installation**](https://github.com/croneter/PlexKodiConnect/tree/hotfixes#download-and-installation)
-* [**Important notes**](https://github.com/croneter/PlexKodiConnect/tree/hotfixes#important-notes)
-* [**Donations**](https://github.com/croneter/PlexKodiConnect/tree/hotfixes#donations)
-* [**What is currently supported?**](https://github.com/croneter/PlexKodiConnect/tree/hotfixes#what-is-currently-supported)
-* [**Known Larger Issues**](https://github.com/croneter/PlexKodiConnect/tree/hotfixes#known-larger-issues)
-* [**Issues being worked on**](https://github.com/croneter/PlexKodiConnect/tree/hotfixes#issues-being-worked-on)
-* [**Pipeline for future development**](https://github.com/croneter/PlexKodiConnect/tree/hotfixes#what-could-be-in-the-pipeline-for-future-development)
-* [**Checkout the PKC Wiki**](https://github.com/croneter/PlexKodiConnect/tree/hotfixes#checkout-the-pkc-wiki)
-* [**Credits**](https://github.com/croneter/PlexKodiConnect/tree/hotfixes#credits)
+* [**What does PKC do and how is it different from the official 'Plex for Kodi'**](#what-does-pkc-do-and-how-is-it-different-from-the-official-plex-for-kod)
+* [**Download and Installation**](#download-and-installation)
+* [**Important notes**](#important-notes)
+* [**Donations**](#donations)
+* [**What is currently supported?**](#what-is-currently-supported)
+* [**Known Larger Issues**](#known-larger-issues)
+* [**Issues being worked on**](#issues-being-worked-on)
+* [**Pipeline for future development**](#what-could-be-in-the-pipeline-for-future-development)
+* [**Checkout the PKC Wiki**](#checkout-the-pkc-wiki)
+* [**Credits**](#credits)
 
 ### Warning
 Use at your own risk! This plugin assumes that you manage all your videos with Plex (and none with Kodi). You might lose data already stored in the Kodi video and music databases as this plugin directly changes them. Don't worry if you want Plex to manage all your media (like you should ;-)). 
