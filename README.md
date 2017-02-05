@@ -11,7 +11,7 @@ Please help translate PlexKodiConnect into your language: [visit crowdin.com](ht
 
 
 ### Content
-* [**Warning**](warning)
+* [**Warning**](#warning)
 * [**What does PKC do and how is it different from the official 'Plex for Kodi'**](https://github.com/croneter/PlexKodiConnect/tree/hotfixes#what-does-pkc-do-and-how-is-it-different-from-the-official-plex-for-kod)
 * [**Download and Installation**](https://github.com/croneter/PlexKodiConnect/tree/hotfixes#download-and-installation)
 * [**Important notes**](https://github.com/croneter/PlexKodiConnect/tree/hotfixes#important-notes)
