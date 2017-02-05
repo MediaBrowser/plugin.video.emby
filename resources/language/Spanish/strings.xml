@@ -275,6 +275,7 @@
     <string id="30413">Activar menú contextual de Plex en Kodi</string>
     <string id="30414">No se pudo eliminar el elemento de Plex. ¿Está activada la eliminación de elementos en el Plex Media Server?</string>
     <string id="30415">Comenzar la reproducción vía PMS</string>
+    <string id="30416">Configuración para el servidor Plex</string>
 
     <!-- add-on settings -->
     <string id="30500">Comprobar certificado SSL (más seguro)</string>
