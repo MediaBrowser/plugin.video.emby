@@ -133,7 +133,7 @@ class Main():
 
             elif mode in ("nextup", "inprogressepisodes"):
                 limit = int(params['limit'])
-                modes[mode](itemid, limit)
+                modes[mode](params['tagname'], limit)
             
             elif mode in ("channels","getsubfolders"):
                 modes[mode](itemid)
