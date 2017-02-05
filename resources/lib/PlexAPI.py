@@ -474,9 +474,18 @@ class PlexAPI():
             if PMS['uuid'] in self.g_PMS:
                 log.debug('We already know of PMS %s from plex.tv'
                           % PMS['serverName'])
-                continue
-            self.declarePMS(PMS['uuid'], PMS['serverName'], 'http',
-                            PMS['ip'], PMS['port'])
+                # Update with GDM data - potentially more reliable than plex.tv
+                self.updatePMSProperty(PMS['uuid'], 'ip', PMS['ip'])
+                self.updatePMSProperty(PMS['uuid'], 'port', PMS['port'])
+                self.updatePMSProperty(PMS['uuid'], 'local', '1')
+                self.updatePMSProperty(PMS['uuid'], 'scheme', 'http')
+                self.updatePMSProperty(PMS['uuid'],
+                                       'baseURL',
+                                       'http://%s:%s' % (PMS['ip'],
+                                                         PMS['port']))
+            else:
+                self.declarePMS(PMS['uuid'], PMS['serverName'], 'http',
+                                PMS['ip'], PMS['port'])
             # Ping to check whether we need HTTPs or HTTP
             https = PMSHttpsEnabled('%s:%s' % (PMS['ip'], PMS['port']))
             if https is None:
