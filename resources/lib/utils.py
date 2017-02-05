@@ -278,33 +278,15 @@ def create_actor_db_index():
 
 def getScreensaver():
     # Get the current screensaver value
-    query = {
+    params = {'setting': "screensaver.mode"}
+    return JSONRPC('Settings.getSettingValue').execute(params)['result']['value']
 
-        'jsonrpc': "2.0",
-        'id': 0,
-        'method': "Settings.getSettingValue",
-        'params': {
-
-            'setting': "screensaver.mode"
-        }
-    }
-    return loads(xbmc.executeJSONRPC(dumps(query)))['result']['value']
 
 def setScreensaver(value):
     # Toggle the screensaver
-    query = {
-
-        'jsonrpc': "2.0",
-        'id': 0,
-        'method': "Settings.setSettingValue",
-        'params': {
-
-            'setting': "screensaver.mode",
-            'value': value
-        }
-    }
-    log.debug("Toggling screensaver: %s %s"
-              % (value, xbmc.executeJSONRPC(dumps(query))))
+    params = {'setting': "screensaver.mode", 'value': value}
+    log.debug('Toggling screensaver to "%s": %s'
+              % (value, JSONRPC('Settings.setSettingValue').execute(params)))
 
 
 def reset():

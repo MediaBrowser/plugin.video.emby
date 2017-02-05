@@ -605,6 +605,7 @@ class LibrarySync(Thread):
             except Exception as e:
                 # Empty movies, tv shows?
                 log.error('Path hack failed with error message: %s' % str(e))
+        setScreensaver(value=screensaver)
         return True
 
     def processView(self, folderItem, kodi_db, plex_db, totalnodes):
