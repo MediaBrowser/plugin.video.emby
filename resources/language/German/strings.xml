@@ -275,6 +275,7 @@
     <string id="30413">Plex Kontextmenü in Kodi aktivieren</string>
     <string id="30414">Konnte das Element nicht löschen. Ist diese Option auf dem Plex Medien Server aktiviert?</string>
     <string id="30415">Wiedergabe via PMS starten</string>
+    <string id="30416">Einstellungen für den Plex Server</string>
 
     <!-- add-on settings -->
     <string id="30500">Host SSL Zertifikat überprüfen (sicherer)</string>
@@ -478,14 +479,14 @@
 
     <!-- Plex PlexAPI.py -->
     <string id="39300">: plex.tv Benutzernamen eingeben. Oder nichts, um abzubrechen.</string>
-    <string id="39301">Passwort eingeben für plex.tv Benutzer  </string>
-    <string id="39302">Anmeldung fehlgeschlagen für Benutzer  </string>
+    <string id="39301">Passwort eingeben für plex.tv Benutzer </string>
+    <string id="39302">Anmeldung fehlgeschlagen für Benutzer </string>
     <string id="39303">Probleme beim Verbinden mit plex.tv. Bitte später erneut versuchen</string>
-    <string id="39304">https://plex.tv/pin besuchen und den folgenden Code eingeben:  </string>
+    <string id="39304">https://plex.tv/pin besuchen und den folgenden Code eingeben: </string>
     <string id="39305">Anmeldung bei plex.tv fehlgeschlagen. Bitte später erneut versuchen</string>
     <string id="39306">: Benutzer auswählen</string>
-    <string id="39307">PIN eingeben für Benutzer  </string>
-    <string id="39308">Anmeldung fehlgeschlagen für Benutzer  </string>
+    <string id="39307">PIN eingeben für Benutzer </string>
+    <string id="39308">Anmeldung fehlgeschlagen für Benutzer </string>
     <string id="39309">Bitte erneut versuchen.</string>
     <string id="39310">unbekannt</string>
     <string id="39311">oder Nein drücken, um nicht bei plex.tv anzumelden.</string>
@@ -493,7 +494,7 @@
     <!-- Plex Librarysync.py -->
     <string id="39400">Die Synchronisierung der Plex Bibliotheken ist abgestürzt. Bitte Kodi neu starten. Danke, wenn Sie sich die Zeit nehmen und im Plex Forum vom Absturz berichten</string>
     <string id="39401">Die Kodi Datenbank muss neu kreiert werden für diese Version. Das kann eine Weile dauern. Fortfahren?</string>
-    <string id="39402">  funktioniert möglicherweise nicht richtig, bis die Kodi Datenbank zurückgesetzt worden ist.</string>
+    <string id="39402"> funktioniert möglicherweise nicht richtig, bis die Kodi Datenbank zurückgesetzt worden ist.</string>
     <string id="39403">Synchronisierung der Plex Bibliotheken wird abgebrochen. Die momentane Kodi Version wird nicht unterstützt. Für weitere Informationen bitte das Kodi Log konsultieren.</string>
     <string id="39404">Der Synchronisations-Prozess der Plex Bibliotheken beim Start ist mehrmals fehlgeschlagen. Bitte Kodi neu starten. Synch wird jetzt gestoppt.</string>
     <string id="39405">Plex Wiedergabelisten/Video Nodes aktualisiert</string>
