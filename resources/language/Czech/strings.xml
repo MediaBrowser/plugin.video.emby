@@ -275,6 +275,7 @@
     <string id="30413">Povolit v Kodi kontextovou nabídku Plexu</string>
     <string id="30414">Nemohu smazat tuto položku Plexu. Máte povolené mazání položek v Plex Media Serveru?</string>
     <string id="30415">Zahájit přehrávání přes PMS</string>
+    <string id="30416">Nastavení Plex Serveru</string>
 
     <!-- add-on settings -->
     <string id="30500">Ověřit hostitelův SSL certifikát (bezpečnější)</string>
