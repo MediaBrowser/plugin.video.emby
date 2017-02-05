@@ -4,7 +4,7 @@
 
 import logging
 from os import path as os_path
-from sys import path as sys_path
+from sys import path as sys_path, argv
 
 from xbmc import translatePath, Monitor, sleep
 from xbmcaddon import Addon
@@ -100,6 +100,7 @@ class Service():
         log.warn("Number of sync threads: %s"
                  % settings('syncThreadNumber'))
         log.warn("Log Level: %s" % logLevel)
+        log.warn("Full sys.argv received: %s" % argv)
 
         # Reset window props for profile switch
         properties = [
