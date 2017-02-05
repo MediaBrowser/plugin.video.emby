@@ -11,7 +11,7 @@
     <string id="30008">Síťové heslo: </string>
     <string id="30009">Překódování: </string>
     <string id="30010">Povolit profilování výkonu</string>
-    <string id="30011">Místní systémová cache</string>
+    <string id="30011">Místní systémová mezipaměť</string>
     <string id="30012">OK</string>
     <string id="30013">Nezobrazovat</string>
 
@@ -69,14 +69,14 @@
     <string id="30077">Fantasy</string>
     <string id="30078">Zahraniční</string>
     <string id="30079">Historický</string>
-    <string id="30080">Horror</string>
+    <string id="30080">Horor</string>
     <string id="30081">Hudební</string>
     <string id="30082">Muzikál</string>
     <string id="30083">Tajemný</string>
     <string id="30084">Romantický</string>
     <string id="30085">Vědeckofantastický</string>
     <string id="30086">Krátký</string>
-    <string id="30087">Suspense</string>
+    <string id="30087">Napínavý</string>
     <string id="30088">Thriller</string>
     <string id="30089">Western</string>
     
@@ -106,7 +106,7 @@
     <string id="30115">Pro epizody</string><!-- Verified -->
     <string id="30116">Pro filmy</string><!-- Verified -->
     <string id="30117">Obnovování obrázku na pozadí (v sekundách)</string>
-    <string id="30118">Add Resume Percent</string>
+    <string id="30118">Přidat procenta obnovení</string>
     <string id="30119">Přidat číslo epizody</string>
     <string id="30120">Zobrazit průběh načítání</string>
     <string id="30121">Načítám obsah</string>
@@ -116,7 +116,7 @@
     <string id="30128">Chyba přehrávání</string>
     <string id="30129">Tuto položku nelze přehrát</string>    
     <string id="30130">Zjištěna místní cesta</string>
-    <string id="30131">Your MB3 Server contains local paths.  Please change server paths to UNC or change XBMB3C setting 'Play from Stream' to true.  Path: </string>
+    <string id="30131">Váš Plex server obsahuje místní cesta. Změňte prosím cesty na UNC nebo změňte nastavení  'Přehrát proud'. Cesta: </string>
     <string id="30132">Varování</string>
     <string id="30133">Povoleny ladící záznamy.</string>
     <string id="30134">Toto může mít vliv na výkon.</string>
@@ -150,7 +150,7 @@
     <string id="30166">Překódování</string>     
     <string id="30167">Zjištění serveru uspělo</string>     
     <string id="30168">Nalezen server</string>     
-    <string id="30169">Addresa : </string>     
+    <string id="30169">Adresa : </string>     
     
     <!-- Video nodes -->
     <string id="30170">Naposledy přidané seriály</string><!-- Verified -->
@@ -208,7 +208,7 @@
     <string id="30221">Rozkoukané </string>
     <string id="30222">Nadcházející </string>
     <string id="30223">Uživatelské náhledy</string>
-    <string id="30224">Report Metrics</string>
+    <string id="30224">Hlášení metriky</string>
     <string id="30225">Použít třídění Kodi</string>
     <string id="30226">Za běhu</string>
     
@@ -231,7 +231,7 @@
     
     <string id="30246">Povolit upozornění na následující ve stylu Netflixu</string>
     <string id="30247">  - Sekund před koncem zobrazit upozornění</string>
-    <string id="30248">Show Emby Info dialog on play/select action</string>
+    <string id="30248">Zobrazovat informační dialog Plexu při akci přehrát/vybrat</string>
     <string id="30249">Povolit zprávu o připojení k serveru po spuštění</string><!-- Verified -->
     
     <string id="30251">Naposledy přidaná domácí videa</string><!-- Verified -->
@@ -261,9 +261,9 @@
     
     <!-- contextmenu -->
     <string id="30401">Nastavení Plexu</string>
-    <string id="30402">Clear like for this item</string>
-    <string id="30403">Like this item</string>
-    <string id="30404">Dislike this item</string>
+    <string id="30402">Odstranit 'líbí se mi'</string>
+    <string id="30403">Nastavit 'líbí se mi'</string>
+    <string id="30404">Nastavit 'nelíbí se mi'</string>
     <string id="30405">Přidat do oblíbených Plexu</string>
     <string id="30406">Odstranit z oblíbených Plexu</string>
     <string id="30407">Nastavit vlastní hodnocení skladby</string>
@@ -289,8 +289,8 @@
     <string id="30509">Povolit hudební knihovnu</string>
     <string id="30510">Přímé streamování hudební knihovny</string>
     <string id="30511">Režim přehrávání</string>
-    <string id="30512">Vynutit cache obrázků</string>
-    <string id="30513">Omezit vlákna cache obrázků (doporučeno pro rpi)</string>
+    <string id="30512">Vynutit ukládání obrázků do mezipaměti</string>
+    <string id="30513">Omezit vlákna mezipaměti obrázků (doporučeno pro rpi)</string>
     <string id="30514">Povolit rychlé spuštění (vyžaduje plugin na serveru)</string>
     <string id="30515">Maximální počet položek vyžádaných najednou ze serveru</string>
     <string id="30516">Přehrávání</string>
@@ -299,13 +299,13 @@
     <string id="30519">Zeptat se na přehrání ukázek</string>
     <string id="30520">Přeskočit potvrzení Plexu o smazání (používejte na vlastní riziko)</string>
     <string id="30521">Poskočit vzad při obnovení přehrávání (v sekundách)</string>
-    <string id="30522">Vynutit překódování h265/HEVC</string>
+    <string id="30522">Vynutit překódování H265/HEVC</string>
     <string id="30523">Nastavení hudebních metadat (není kompatibilní s přímým streamováním)</string>
     <string id="30524">Načíst hodnocení skladeb přímo ze souborů</string>
-    <string id="30525">Convert music song rating to Emby rating</string>
+    <string id="30525">Převést hodnocení hudby na hodnocení Plexu</string>
     <string id="30526">Povolit aktualizaci hodnocení skladeb přímo v souborech</string>
     <string id="30527">Ignorovat speciály v nadcházejících epizodách</string>
-    <string id="30528">Permanent users to add to the session</string>
+    <string id="30528">Stálí uživatelé pro přidání do relace</string>
     <string id="30529">Zpoždění startu (v sekundách)</string>
     <string id="30530">Povolit zprávu o restartu serveru</string>
     <string id="30531">Povolit upozornění na nový obsah</string>
@@ -340,15 +340,15 @@
     <string id="33012">Přímé přehrávání 3x neuspělo. Povolte přehrávání přes HTTP.</string>
     <string id="33013">Zvolte audiostopu</string>
     <string id="33014">Zvolte titulkovou stopu</string>
-    <string id="33015">Delete file from your Emby server?</string>
+    <string id="33015">Smazat soubor ze serveru Plex?</string>
     <string id="33016">Přehrát ukázky?</string>
     <string id="33017">Shromažďuji filmy z:</string>
     <string id="33018">Shromažďuji kolekce</string>
     <string id="33019">Shromažďuji videoklipy z:</string>
     <string id="33020">Shromažďuji seriály z:</string>
     <string id="33021">Shromažďuji:</string>
-    <string id="33022">Detected the database needs to be recreated for this version of Emby for Kodi. Proceed?</string>
-    <string id="33023">Emby for Kodi may not work correctly until the database is reset.</string>
+    <string id="33022">Zjištěná databáze musí být pro tuto verzi PlexKodiConnect znovu vytvořena. Pokračovat?</string>
+    <string id="33023">PlexKodiConnect nemusí fungovat správně dokud nebude databáze resetována.</string>
     <string id="33024">Ruším synchronizaci databáze. Tato verze Kodi není podporována..</string>
     <string id="33025">dokončeno za:</string>
     <string id="33026">Porovnávám filmy z:</string>
@@ -383,8 +383,8 @@
 
     <string id="39018">[COLOR yellow]Opravit místní databázi (vynutit aktualizaci všeho obsahu)[/COLOR]</string>
     <string id="39019">[COLOR red]Částečný nebo plný reset databáze a PKC[/COLOR]</string>
-    <string id="39020">[COLOR yellow]Teď umístit všechny obrázky do texturové cache Kodi[/COLOR]</string>
-    <string id="39021">[COLOR yellow]Sync Emby Theme Media to Kodi[/COLOR]</string>
+    <string id="39020">[COLOR yellow]Nyní umístit všechny obrázky do texturové mezipaměti Kodi[/COLOR]</string>
+    <string id="39021">[COLOR yellow]Synchronizovat tématickou hudbu do Kodi[/COLOR]</string>
     <string id="39022">místní</string>
     <string id="39023">Nemohu provést autentifikaci. Přihlásili jste se na plex.tv?</string>
     
@@ -393,9 +393,9 @@
     <string id="39026">Povolit neustálou synchronizaci na pozadí</string>
     <string id="39027">Režim přehrávání</string>
     <string id="39028">POZOR! Pokud zvolíte "Nativní" režim, přijdete o některé funkce Plexu, jako např. ukázky, nebo možnosti překódování. Všechny knihovny Plexu musí používat přímé cesty (např. smb://myNAS/mymovie.mkv nebo \\myNAS/mymovie.mkv)!</string>
-    <string id="39029">Network credentials</string>
+    <string id="39029">Přihlašovací údaje k síti</string>
     <string id="39030">Přidat síťové přihlašovací údaje pro přístup Kodi k vašemu obsahu? Pokud přeskočíte tento krok, při úvodním skenování se může zobrazit výzva k zadání přihlašovacích údajů.</string>
-    <string id="39031">Kodi can't locate file: </string>
+    <string id="39031">Kodi nemůže najít soubor: </string>
     <string id="39032">Prosím zkontrolujte cestu. Možná bude také nutno zkontrolovat síťové přihlašovací údaje v nastavení doplňku nebo použít jinou cestu k Plexu. Zastavit synchronizaci?</string>
     <string id="39033">Automaticky změnit UNC cesty ke knihovně Plexu \\myNas\mymovie.mkv na smb cesty smb://myNas/mymovie.mkv? (doporučeno)</string>
     <string id="39034">Nahradit UNC cesty z \\myNas na smb://myNas</string>
@@ -473,8 +473,8 @@
 
 
     <!-- Plex Artwork.py -->
-    <string id="39250">Spuštění cache obrázků bude nějakou chvíli trvat a proběhne na pozadí. Chcete pokračovat?</string>
-    <string id="39251">Provést nejdříve reset existujících dat v cache?</string>
+    <string id="39250">Spuštění ukládání obrázků do mezipaměti bude nějakou chvíli trvat a proběhne na pozadí. Chcete pokračovat?</string>
+    <string id="39251">Provést nejdříve reset existujících dat v mezipaměti?</string>
 
     <!-- Plex PlexAPI.py -->
     <string id="39300">: Zadejte uživatelské jméno plex.tv. Pro zrušení nezadávejte nic.</string>
@@ -508,8 +508,8 @@
     <string id="39501">Kolekce</string>
 
     <!-- Plex utils.py -->
-    <string id="39600">Are you sure you want to reset your local Kodi database? A re-sync of the Plex data will take time afterwards.</string>
-    <string id="39601">Could not stop the database from running. Please try again later.</string>
-    <string id="39602">Remove all cached artwork? (recommended!)</string>
-    <string id="39603">Reset all PlexKodiConnect Addon settings? (this is usually NOT recommended and unnecessary!)</string>
+    <string id="39600">Opravdu chcete resetovat místní databázi Kodi? Opětovná synchronizace dat z Plexu si vyžádá čas později.</string>
+    <string id="39601">Nemohu zastavit běh databáze. Prosím zkuste to později.</string>
+    <string id="39602">Odstranit všechny obrázky v mezipaměti? (doporučuje se!)</string>
+    <string id="39603">Obnovit všechna nastavení doplňku PlexKodiConnect? (to obvykle není vhodné a je to zbytečné!)</string>
 </strings>
