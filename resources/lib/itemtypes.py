@@ -314,7 +314,8 @@ class Movies(Items):
             # Update the movie entry
             if v.KODIVERSION >= 17:
                 # update new ratings Kodi 17
-                ratingid = self.kodi_db.get_ratingid(movieid)
+                ratingid = self.kodi_db.get_ratingid(movieid,
+                                                     v.KODI_TYPE_MOVIE)
                 self.kodi_db.update_ratings(movieid,
                                             v.KODI_TYPE_MOVIE,
                                             "default",
@@ -596,7 +597,7 @@ class TVShows(Items):
                      % (itemid, title))
             if v.KODIVERSION >= 17:
                 # update new ratings Kodi 17
-                ratingid = self.kodi_db.get_ratingid(showid)
+                ratingid = self.kodi_db.get_ratingid(showid, v.KODI_TYPE_SHOW)
                 self.kodi_db.update_ratings(showid,
                                             v.KODI_TYPE_SHOW,
                                             "default",
@@ -917,7 +918,8 @@ class TVShows(Items):
             # Update the movie entry
             if v.KODIVERSION >= 17:
                 # update new ratings Kodi 17
-                ratingid = self.kodi_db.get_ratingid(episodeid)
+                ratingid = self.kodi_db.get_ratingid(episodeid,
+                                                     v.KODI_TYPE_EPISODE)
                 self.kodi_db.update_ratings(episodeid,
                                             v.KODI_TYPE_EPISODE,
                                             "default",

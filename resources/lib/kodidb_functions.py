@@ -1465,9 +1465,12 @@ class Kodidb_Functions():
         self.cursor.execute("select coalesce(max(rating_id),0) from rating")
         return self.cursor.fetchone()[0] + 1
 
-    def get_ratingid(self, media_id):
-        query = "SELECT rating_id FROM rating WHERE media_id = ?"
-        self.cursor.execute(query, (media_id,))
+    def get_ratingid(self, kodi_id, kodi_type):
+        query = '''
+            SELECT rating_id FROM rating
+            WHERE media_id = ? AND media_type = ?
+        '''
+        self.cursor.execute(query, (kodi_id, kodi_type))
         try:
             ratingid = self.cursor.fetchone()[0]
         except TypeError:
