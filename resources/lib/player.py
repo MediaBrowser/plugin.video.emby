@@ -8,7 +8,7 @@ import xbmc
 import xbmcgui
 
 from utils import window, settings, language as lang, DateToKodi, \
-    getUnixTimestamp
+    getUnixTimestamp, tryDecode, tryEncode
 import downloadutils
 import plexdb_functions as plexdb
 import kodidb_functions as kodidb
@@ -48,7 +48,7 @@ class Player(xbmc.Player):
 
         # Get current file (in utf-8!)
         try:
-            currentFile = self.getPlayingFile()
+            currentFile = tryDecode(self.getPlayingFile())
             xbmc.sleep(300)
         except:
             currentFile = ""
@@ -56,7 +56,7 @@ class Player(xbmc.Player):
             while not currentFile:
                 xbmc.sleep(100)
                 try:
-                    currentFile = self.getPlayingFile()
+                    currentFile = tryDecode(self.getPlayingFile())
                 except:
                     pass
                 if count == 20:
@@ -69,13 +69,13 @@ class Player(xbmc.Player):
 
         # Save currentFile for cleanup later and for references
         self.currentFile = currentFile
-        window('plex_lastPlayedFiled', value=currentFile)
+        window('plex_lastPlayedFiled', value=tryEncode(currentFile))
         # We may need to wait for info to be set in kodi monitor
-        itemId = window("plex_%s.itemid" % currentFile)
+        itemId = window("plex_%s.itemid" % tryEncode(currentFile))
         count = 0
         while not itemId:
             xbmc.sleep(200)
-            itemId = window("plex_%s.itemid" % currentFile)
+            itemId = window("plex_%s.itemid" % tryEncode(currentFile))
             if count == 5:
                 log.warn("Could not find itemId, cancelling playback report!")
                 return
@@ -83,7 +83,7 @@ class Player(xbmc.Player):
 
         log.info("ONPLAYBACK_STARTED: %s itemid: %s" % (currentFile, itemId))
 
-        plexitem = "plex_%s" % currentFile
+        plexitem = "plex_%s" % tryEncode(currentFile)
         runtime = window("%s.runtime" % plexitem)
         refresh_id = window("%s.refreshid" % plexitem)
         playMethod = window("%s.playmethod" % plexitem)
@@ -146,8 +146,10 @@ class Player(xbmc.Player):
         # Get the current audio track and subtitles
         if playMethod == "Transcode":
             # property set in PlayUtils.py
-            postdata['AudioStreamIndex'] = window("%sAudioStreamIndex" % currentFile)
-            postdata['SubtitleStreamIndex'] = window("%sSubtitleStreamIndex" % currentFile)
+            postdata['AudioStreamIndex'] = window("%sAudioStreamIndex"
+                                                  % tryEncode(currentFile))
+            postdata['SubtitleStreamIndex'] = window("%sSubtitleStreamIndex"
+                                                     % tryEncode(currentFile))
         else:
             # Get the current kodi audio and subtitles and convert to plex equivalent
             tracks_query = {
@@ -385,15 +387,16 @@ class Player(xbmc.Player):
 
         # Clean the WINDOW properties
         for filename in self.played_info:
+            plex_item = 'plex_%s' % tryEncode(filename)
             cleanup = (
-                'plex_%s.itemid' % filename,
-                'plex_%s.runtime' % filename,
-                'plex_%s.refreshid' % filename,
-                'plex_%s.playmethod' % filename,
-                'plex_%s.type' % filename,
-                'plex_%s.runtime' % filename,
-                'plex_%s.playcount' % filename,
-                'plex_%s.playlistPosition' % filename
+                '%s.itemid' % plex_item,
+                '%s.runtime' % plex_item,
+                '%s.refreshid' % plex_item,
+                '%s.playmethod' % plex_item,
+                '%s.type' % plex_item,
+                '%s.runtime' % plex_item,
+                '%s.playcount' % plex_item,
+                '%s.playlistPosition' % plex_item
             )
             for item in cleanup:
                 window(item, clear=True)
