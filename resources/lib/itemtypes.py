@@ -645,8 +645,7 @@ class TVShows(Items):
                                          rating,
                                          None)  # votecount
                 # add new uniqueid Kodi 17
-                uniqueid = self.kodi_db.create_entry_uniqueid()
-                self.kodi_db.add_uniqueid(uniqueid,
+                self.kodi_db.add_uniqueid(self.kodi_db.create_entry_uniqueid(),
                                           showid,
                                           v.KODI_TYPE_SHOW,
                                           tvdb,
