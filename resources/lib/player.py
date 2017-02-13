@@ -69,7 +69,7 @@ class Player(xbmc.Player):
 
         # Save currentFile for cleanup later and for references
         self.currentFile = currentFile
-        window('plex_lastPlayedFiled', value=tryEncode(currentFile))
+        window('plex_lastPlayedFiled', value=currentFile)
         # We may need to wait for info to be set in kodi monitor
         itemId = window("plex_%s.itemid" % tryEncode(currentFile))
         count = 0
