@@ -809,13 +809,13 @@ class TVShows(Items):
         userdata = API.getUserData()
         playcount = userdata['PlayCount']
         dateplayed = userdata['LastPlayedDate']
+        tvdb = API.getProvider('tvdb')
+        votecount = None
 
         # item details
         peoples = API.getPeople()
         director = API.joinList(peoples['Director'])
         writer = API.joinList(peoples['Writer'])
-        cast = API.joinList(peoples['Cast'])
-        producer = API.joinList(peoples['Producer'])
         title, sorttitle = API.getTitle()
         plot = API.getPlot()
         rating = userdata['Rating']
@@ -916,7 +916,21 @@ class TVShows(Items):
             log.info("UPDATE episode itemid: %s" % (itemid))
             # Update the movie entry
             if v.KODIVERSION >= 17:
-                # Kodi Krypton
+                # update new ratings Kodi 17
+                ratingid = self.kodi_db.get_ratingid(episodeid)
+                self.kodi_db.update_ratings(episodeid,
+                                            v.KODI_TYPE_EPISODE,
+                                            "default",
+                                            rating,
+                                            votecount,
+                                            ratingid)
+                # update new uniqueid Kodi 17
+                uniqueid = self.kodi_db.get_uniqueid(episodeid)
+                self.kodi_db.update_uniqueid(episodeid,
+                                             v.KODI_TYPE_EPISODE,
+                                             tvdb,
+                                             "tvdb",
+                                             uniqueid)
                 query = '''
                     UPDATE episode
                     SET c00 = ?, c01 = ?, c03 = ?, c04 = ?, c05 = ?, c09 = ?,
@@ -962,7 +976,19 @@ class TVShows(Items):
             log.info("ADD episode itemid: %s - Title: %s" % (itemid, title))
             # Create the episode entry
             if v.KODIVERSION >= 17:
-                # Kodi Krypton
+                # add new ratings Kodi 17
+                self.kodi_db.add_ratings(self.kodi_db.create_entry_rating(),
+                                         episodeid,
+                                         v.KODI_TYPE_EPISODE,
+                                         "default",
+                                         rating,
+                                         votecount)
+                # add new uniqueid Kodi 17
+                self.kodi_db.add_uniqueid(self.kodi_db.create_entry_uniqueid(),
+                                          episodeid,
+                                          v.KODI_TYPE_EPISODE,
+                                          tvdb,
+                                          "tvdb")
                 query = '''
                     INSERT INTO episode( idEpisode, idFile, c00, c01, c03, c04,
                         c05, c09, c10, c12, c13, c14, idShow, c15, c16, c18,
@@ -1193,18 +1219,23 @@ class TVShows(Items):
             self.kodi_db.remove_ratings(kodi_id, v.KODI_TYPE_SHOW)
         log.info("Removed tvshow: %s." % kodi_id)
 
-    def removeSeason(self, kodiid):
+    def removeSeason(self, kodi_id):
         kodicursor = self.kodicursor
-        self.artwork.deleteArtwork(kodiid, "season", kodicursor)
-        kodicursor.execute("DELETE FROM seasons WHERE idSeason = ?", (kodiid,))
-        log.info("Removed season: %s." % kodiid)
+        self.artwork.deleteArtwork(kodi_id, "season", kodicursor)
+        kodicursor.execute("DELETE FROM seasons WHERE idSeason = ?",
+                           (kodi_id,))
+        log.info("Removed season: %s." % kodi_id)
 
-    def removeEpisode(self, kodiid, fileid):
+    def removeEpisode(self, kodi_id, fileid):
         kodicursor = self.kodicursor
-        self.artwork.deleteArtwork(kodiid, "episode", kodicursor)
-        kodicursor.execute("DELETE FROM episode WHERE idEpisode = ?", (kodiid,))
+        self.artwork.deleteArtwork(kodi_id, "episode", kodicursor)
+        kodicursor.execute("DELETE FROM episode WHERE idEpisode = ?",
+                           (kodi_id,))
         kodicursor.execute("DELETE FROM files WHERE idFile = ?", (fileid,))
-        log.info("Removed episode: %s." % kodiid)
+        if v.KODIVERSION >= 17:
+            self.kodi_db.remove_uniqueid(kodi_id, v.KODI_TYPE_EPISODE)
+            self.kodi_db.remove_ratings(kodi_id, v.KODI_TYPE_EPISODE)
+        log.info("Removed episode: %s." % kodi_id)
 
 
 class Music(Items):
