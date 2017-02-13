@@ -1423,9 +1423,11 @@ class Kodidb_Functions():
     def add_uniqueid(self, *args):
         """
         Feed with:
-            uniqueid_id, media_id, media_type, value, type
-
-        type: e.g. 'imdb' or 'tvdb'
+            uniqueid_id: int
+            media_id: int
+            media_type: string
+            value: string
+            type: e.g. 'imdb' or 'tvdb'
         """
         query = '''
             INSERT INTO uniqueid(
