@@ -1434,9 +1434,12 @@ class Kodidb_Functions():
         '''
         self.cursor.execute(query, (args))
 
-    def get_uniqueid(self, media_id):
-        query = "SELECT uniqueid_id FROM uniqueid WHERE media_id = ?"
-        self.cursor.execute(query, (media_id,))
+    def get_uniqueid(self, kodi_id, kodi_type):
+        query = '''
+            SELECT uniqueid_id FROM uniqueid
+            WHERE media_id = ? AND media_type = ?
+        '''
+        self.cursor.execute(query, (kodi_id, kodi_type))
         try:
             uniqueid = self.cursor.fetchone()[0]
         except TypeError:

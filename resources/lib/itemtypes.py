@@ -323,7 +323,8 @@ class Movies(Items):
                                             votecount,
                                             ratingid)
                 # update new uniqueid Kodi 17
-                uniqueid = self.kodi_db.get_uniqueid(movieid)
+                uniqueid = self.kodi_db.get_uniqueid(movieid,
+                                                     v.KODI_TYPE_MOVIE)
                 self.kodi_db.update_uniqueid(movieid,
                                              v.KODI_TYPE_MOVIE,
                                              imdb,
@@ -605,7 +606,7 @@ class TVShows(Items):
                                             None,  # votecount
                                             ratingid)
                 # update new uniqueid Kodi 17
-                uniqueid = self.kodi_db.get_uniqueid(showid)
+                uniqueid = self.kodi_db.get_uniqueid(showid, v.KODI_TYPE_SHOW)
                 self.kodi_db.update_uniqueid(showid,
                                              v.KODI_TYPE_SHOW,
                                              tvdb,
@@ -927,7 +928,8 @@ class TVShows(Items):
                                             votecount,
                                             ratingid)
                 # update new uniqueid Kodi 17
-                uniqueid = self.kodi_db.get_uniqueid(episodeid)
+                uniqueid = self.kodi_db.get_uniqueid(episodeid,
+                                                     v.KODI_TYPE_EPISODE)
                 self.kodi_db.update_uniqueid(episodeid,
                                              v.KODI_TYPE_EPISODE,
                                              tvdb,
