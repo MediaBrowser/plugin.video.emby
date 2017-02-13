@@ -1425,7 +1425,7 @@ class Kodidb_Functions():
         Feed with:
             uniqueid_id, media_id, media_type, value, type
 
-        type: e.g. 'imdb'
+        type: e.g. 'imdb' or 'tvdb'
         """
         query = '''
             INSERT INTO uniqueid(
