@@ -638,8 +638,7 @@ class TVShows(Items):
             log.info("ADD tvshow itemid: %s - Title: %s" % (itemid, title))
             if v.KODIVERSION >= 17:
                 # add new ratings Kodi 17
-                ratingid = self.kodi_db.create_entry_rating()
-                self.kodi_db.add_ratings(ratingid,
+                self.kodi_db.add_ratings(self.kodi_db.create_entry_rating(),
                                          showid,
                                          v.KODI_TYPE_SHOW,
                                          "default",
