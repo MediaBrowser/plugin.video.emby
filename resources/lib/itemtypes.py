@@ -979,7 +979,8 @@ class TVShows(Items):
             # Create the episode entry
             if v.KODIVERSION >= 17:
                 # add new ratings Kodi 17
-                self.kodi_db.add_ratings(self.kodi_db.create_entry_rating(),
+                rating_id = self.kodi_db.create_entry_rating()
+                self.kodi_db.add_ratings(rating_id,
                                          episodeid,
                                          v.KODI_TYPE_EPISODE,
                                          "default",
@@ -999,7 +1000,7 @@ class TVShows(Items):
                     ?, ?)
                 '''
                 kodicursor.execute(query, (episodeid, fileid, title, plot,
-                    rating, writer, premieredate, runtime, director, season,
+                    rating_id, writer, premieredate, runtime, director, season,
                     episode, title, showid, airsBeforeSeason,
                     airsBeforeEpisode, playurl, pathid, seasonid,
                     userdata['UserRating']))
