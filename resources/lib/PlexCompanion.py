@@ -9,7 +9,8 @@ from xbmc import sleep
 from utils import settings, ThreadMethodsAdditionalSuspend, ThreadMethods
 from plexbmchelper import listener, plexgdm, subscribers, functions, \
     httppersist, plexsettings
-from PlexFunctions import ParseContainerKey
+from PlexFunctions import ParseContainerKey, GetPlexMetadata
+from PlexAPI import API
 import player
 from entrypoint import Plex_Node
 from variables import KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE
@@ -95,8 +96,16 @@ class PlexCompanion(Thread):
                 import traceback
                 log.error("Traceback:\n%s" % traceback.format_exc())
                 return
-            playqueue = self.mgr.playqueue.get_playqueue_from_type(
-                KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[data['type']])
+            try:
+                playqueue = self.mgr.playqueue.get_playqueue_from_type(
+                    KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[data['type']])
+            except KeyError:
+                # E.g. Plex web does not supply the media type
+                # Still need to figure out the type (video vs. music vs. pix)
+                xml = GetPlexMetadata(data['key'])
+                api = API(xml[0])
+                playqueue = self.mgr.playqueue.get_playqueue_from_type(
+                    KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[api.getType()])
             self.mgr.playqueue.update_playqueue_from_PMS(
                 playqueue,
                 ID,
