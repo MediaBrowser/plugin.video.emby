@@ -514,8 +514,6 @@ class TVShows(Items):
         if not itemid:
             log.error("Cannot parse XML data for TV show")
             return
-        # If the item already exist in the local Kodi DB we'll perform a full item update
-        # If the item doesn't exist, we'll add it to the database
         update_item = True
         force_episodes = False
         plex_dbitem = plex_db.getItem_byId(itemid)
@@ -549,6 +547,7 @@ class TVShows(Items):
         title, sorttitle = API.getTitle()
         plot = API.getPlot()
         rating = API.getAudienceRating()
+        votecount = None
         premieredate = API.getPremiereDate()
         tvdb = API.getProvider('tvdb')
         mpaa = API.getMpaa()
@@ -596,33 +595,6 @@ class TVShows(Items):
         if update_item:
             log.info("UPDATE tvshow itemid: %s - Title: %s"
                      % (itemid, title))
-            if v.KODIVERSION >= 17:
-                # update new ratings Kodi 17
-                ratingid = self.kodi_db.get_ratingid(showid, v.KODI_TYPE_SHOW)
-                self.kodi_db.update_ratings(showid,
-                                            v.KODI_TYPE_SHOW,
-                                            "default",
-                                            rating,
-                                            None,  # votecount
-                                            ratingid)
-                # update new uniqueid Kodi 17
-                uniqueid = self.kodi_db.get_uniqueid(showid, v.KODI_TYPE_SHOW)
-                self.kodi_db.update_uniqueid(showid,
-                                             v.KODI_TYPE_SHOW,
-                                             tvdb,
-                                             "tvdb",
-                                             uniqueid)
-            # Update the tvshow entry
-            query = ' '.join((
-                
-                "UPDATE tvshow",
-                "SET c00 = ?, c01 = ?, c04 = ?, c05 = ?, c08 = ?, c09 = ?,",
-                    "c12 = ?, c13 = ?, c14 = ?, c15 = ?",
-                "WHERE idShow = ?"
-            ))
-            kodicursor.execute(query, (title, plot, rating, premieredate, genre, title,
-                tvdb, mpaa, studio, sorttitle, showid))
-
             # Add reference is idempotent; the call here updates also fileid
             # and pathid when item is moved or renamed
             plex_db.addReference(itemid,
@@ -632,48 +604,60 @@ class TVShows(Items):
                                  kodi_pathid=pathid,
                                  checksum=checksum,
                                  view_id=viewid)
-        
-        ##### OR ADD THE TVSHOW #####
+            if v.KODIVERSION >= 17:
+                # update new ratings Kodi 17
+                rating_id = self.kodi_db.get_ratingid(showid, v.KODI_TYPE_SHOW)
+                self.kodi_db.update_ratings(showid,
+                                            v.KODI_TYPE_SHOW,
+                                            "default",
+                                            rating,
+                                            votecount,
+                                            rating_id)
+                # update new uniqueid Kodi 17
+                uniqueid = self.kodi_db.get_uniqueid(showid, v.KODI_TYPE_SHOW)
+                self.kodi_db.update_uniqueid(showid,
+                                             v.KODI_TYPE_SHOW,
+                                             tvdb,
+                                             "tvdb",
+                                             uniqueid)
+                # Update the tvshow entry
+                query = '''
+                    UPDATE tvshow
+                    SET c00 = ?, c01 = ?, c04 = ?, c05 = ?, c08 = ?, c09 = ?,
+                        c12 = ?, c13 = ?, c14 = ?, c15 = ?
+                    WHERE idShow = ?
+                '''
+                kodicursor.execute(query, (title, plot, rating_id,
+                                           premieredate, genre, title, tvdb,
+                                           mpaa, studio, sorttitle, showid))
+            else:
+                # Update the tvshow entry
+                query = '''
+                    UPDATE tvshow
+                    SET c00 = ?, c01 = ?, c04 = ?, c05 = ?, c08 = ?, c09 = ?,
+                        c12 = ?, c13 = ?, c14 = ?, c15 = ?
+                    WHERE idShow = ?
+                '''
+                kodicursor.execute(query, (title, plot, rating, premieredate,
+                                           genre, title, tvdb, mpaa, studio,
+                                           sorttitle, showid))
+
+        # OR ADD THE TVSHOW #####
         else:
             log.info("ADD tvshow itemid: %s - Title: %s" % (itemid, title))
-            if v.KODIVERSION >= 17:
-                # add new ratings Kodi 17
-                self.kodi_db.add_ratings(self.kodi_db.create_entry_rating(),
-                                         showid,
-                                         v.KODI_TYPE_SHOW,
-                                         "default",
-                                         rating,
-                                         None)  # votecount
-                # add new uniqueid Kodi 17
-                self.kodi_db.add_uniqueid(self.kodi_db.create_entry_uniqueid(),
-                                          showid,
-                                          v.KODI_TYPE_SHOW,
-                                          tvdb,
-                                          "tvdb")
-            query = ' '.join((
-
-                "UPDATE path",
-                "SET strPath = ?, strContent = ?, strScraper = ?, noUpdate = ?",
-                "WHERE idPath = ?"
-            ))
-            kodicursor.execute(query, (toplevelpath, "tvshows", "metadata.local", 1, toppathid))
-
-            # Create the tvshow entry
-            query = (
-                '''
-                INSERT INTO tvshow(
-                    idShow, c00, c01, c04, c05, c08, c09, c12, c13, c14, c15) 
-
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                '''
-            )
-            kodicursor.execute(query, (showid, title, plot, rating, premieredate, genre,
-                title, tvdb, mpaa, studio, sorttitle))
-
+            query = '''
+                UPDATE path
+                SET strPath = ?, strContent = ?, strScraper = ?, noUpdate = ?
+                WHERE idPath = ?
+            '''
+            kodicursor.execute(query, (toplevelpath,
+                                       "tvshows",
+                                       "metadata.local",
+                                       1,
+                                       toppathid))
             # Link the path
-            query = "INSERT INTO tvshowlinkpath(idShow, idPath) values(?, ?)"
+            query = "INSERT INTO tvshowlinkpath(idShow, idPath) values (?, ?)"
             kodicursor.execute(query, (showid, pathid))
-
             # Create the reference in plex table
             plex_db.addReference(itemid,
                                  v.PLEX_TYPE_SHOW,
@@ -682,16 +666,51 @@ class TVShows(Items):
                                  kodi_pathid=pathid,
                                  checksum=checksum,
                                  view_id=viewid)
+            if v.KODIVERSION >= 17:
+                # add new ratings Kodi 17
+                rating_id = self.kodi_db.create_entry_rating()
+                self.kodi_db.add_ratings(rating_id,
+                                         showid,
+                                         v.KODI_TYPE_SHOW,
+                                         "default",
+                                         rating,
+                                         votecount)
+                # add new uniqueid Kodi 17
+                self.kodi_db.add_uniqueid(self.kodi_db.create_entry_uniqueid(),
+                                          showid,
+                                          v.KODI_TYPE_SHOW,
+                                          tvdb,
+                                          "tvdb")
+                # Create the tvshow entry
+                query = '''
+                    INSERT INTO tvshow(
+                        idShow, c00, c01, c04, c05, c08, c09, c12, c13, c14,
+                        c15)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                '''
+                kodicursor.execute(query, (showid, title, plot, rating_id,
+                                           premieredate, genre, title, tvdb,
+                                           mpaa, studio, sorttitle))
+            else:
+                # Create the tvshow entry
+                query = '''
+                    INSERT INTO tvshow(
+                        idShow, c00, c01, c04, c05, c08, c09, c12, c13, c14,
+                        c15)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                '''
+                kodicursor.execute(query, (showid, title, plot, rating,
+                                           premieredate, genre, title, tvdb,
+                                           mpaa, studio, sorttitle))
         # Update the path
-        query = ' '.join((
-
-            "UPDATE path",
-            "SET strPath = ?, strContent = ?, strScraper = ?, noUpdate = ?, ",
-            "idParentPath = ?"
-            "WHERE idPath = ?"
-        ))
+        query = '''
+            UPDATE path
+            SET strPath = ?, strContent = ?, strScraper = ?, noUpdate = ?,
+            idParentPath = ?
+            WHERE idPath = ?
+        '''
         kodicursor.execute(query, (path, None, None, 1, toppathid, pathid))
-        
+
         # Process cast
         people = API.getPeopleList()
         self.kodi_db.addPeople(showid, people, "tvshow")
@@ -706,12 +725,6 @@ class TVShows(Items):
         tags = [viewtag]
         tags.extend(collections)
         self.kodi_db.addTags(showid, tags, "tvshow")
-
-        # if force_episodes:
-        #     # We needed to recreate the show entry. Re-add episodes now.
-        #     log.info("Repairing episodes for showid: %s %s" % (showid, title))
-        #     all_episodes = embyserver.getEpisodesbyShow(itemid)
-        #     self.added_episode(all_episodes['Items'], None)
 
     @CatchExceptions(warnuser=True)
     def add_updateSeason(self, item, viewtag=None, viewid=None):
