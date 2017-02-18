@@ -1,3 +1,10 @@
+version 1.5.14 (beta only)
+- Krypton: Fix ratings for episodes and TV shows
+- Plex Companion: Fix KeyError for Plex Web
+- Fix UnicodeDecodeError for non-ASCII filenames
+- Hopefully fix items not marked as entirely watched after having seen >90%
+- Code optimization
+
 version 1.5.13 (beta only)
 - New Spanish translation, thanks @bartolomesoriano
 - Fix some possible connection issues
