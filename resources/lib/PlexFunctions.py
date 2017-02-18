@@ -314,8 +314,8 @@ def GetPlexCollections(mediatype):
     return collections
 
 
-def GetPlexPlaylist(itemid, librarySectionUUID, mediatype='movie',
-                    trailers=False):
+def init_plex_playqueue(itemid, librarySectionUUID, mediatype='movie',
+                        trailers=False):
     """
     Returns raw API metadata XML dump for a playlist with e.g. trailers.
    """

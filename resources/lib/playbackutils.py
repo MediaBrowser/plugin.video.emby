@@ -14,7 +14,7 @@ from utils import window, settings, tryEncode, tryDecode, language as lang
 import downloadutils
 
 from PlexAPI import API
-from PlexFunctions import GetPlexPlaylist
+from PlexFunctions import init_plex_playqueue
 from PKC_listitem import PKC_ListItem as ListItem, convert_PKC_to_listitem
 from playlist_func import add_item_to_kodi_playlist, \
     get_playlist_details_from_xml, add_listitem_to_Kodi_playlist, \
@@ -134,11 +134,10 @@ class PlaybackUtils():
                 else:
                     trailers = True
             # Post to the PMS. REUSE THE PLAYQUEUE!
-            xml = GetPlexPlaylist(
-                plex_id,
-                plex_lib_UUID,
-                mediatype=api.getType(),
-                trailers=trailers)
+            xml = init_plex_playqueue(plex_id,
+                                      plex_lib_UUID,
+                                      mediatype=api.getType(),
+                                      trailers=trailers)
             get_playlist_details_from_xml(playqueue, xml=xml)
 
             if (not homeScreen and not seektime and sizePlaylist < 2 and
