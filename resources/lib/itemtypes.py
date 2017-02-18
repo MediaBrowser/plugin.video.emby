@@ -6,6 +6,7 @@ import logging
 from urllib import urlencode
 from ntpath import dirname
 from datetime import datetime
+from xbmc import sleep
 
 import artwork
 from utils import tryEncode, tryDecode, settings, window, kodiSQL, \
@@ -166,6 +167,7 @@ class Items(object):
                      % (item['ratingKey'], str(complete), MARK_PLAYED_AT), 1)
             if complete >= MARK_PLAYED_AT:
                 log.info('Marking as completely watched in Kodi', 1)
+                sleep(500)
                 try:
                     item['viewCount'] += 1
                 except TypeError:
