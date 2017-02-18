@@ -29,6 +29,7 @@
     <description lang="cs">Připojte Kodi ke svému Plex Media Serveru. Tento doplněk předpokládá, že spravujete veškerá svá videa pomocí Plexu (nikoliv pomocí Kodi). Můžete přijít o data uložená ve video a hudební databázi Kodi (tento doplněk je přímo mění). Používejte na vlastní nebezpečí!</description>
     <description lang="de">Verbindet Kodi mit deinem Plex Media Server. Dieses Addon geht davon aus, dass du all deine Videos mit Plex verwaltest (und keine direkt mit Kodi). Du wirst möglicherweise Daten verlieren, die bereits in der Kodi Video- und/oder Musik-Datenbank gespeichert sind (da dieses Addon beide Datenbanken direkt verändert). Verwende auf eigene Gefahr!</description>
     <description lang="es">Connect Kodi to your Plex Media Server. This plugin assumes that you manage all your videos with Plex (and none with Kodi). You might lose data already stored in the Kodi video and music databases (as this plugin directly changes them). Use at your own risk!</description>
+    <language>en de cs es</language>
     <platform>all</platform>
     <license>GPL v2.0</license>
     <forum>https://forums.plex.tv</forum>
