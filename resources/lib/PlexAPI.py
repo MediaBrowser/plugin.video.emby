@@ -57,7 +57,7 @@ import variables as v
 log = logging.getLogger("PLEX."+__name__)
 
 REGEX_IMDB = re_compile(r'''/(tt\d+)''')
-REGEX_TVDB = re_compile(r'''tvdb://(\d+)''')
+REGEX_TVDB = re_compile(r'''thetvdb:\/\/(.+?)\?''')
 ###############################################################################
 
 
