@@ -316,14 +316,14 @@ class Movies(Items):
             # Update the movie entry
             if v.KODIVERSION >= 17:
                 # update new ratings Kodi 17
-                ratingid = self.kodi_db.get_ratingid(movieid,
-                                                     v.KODI_TYPE_MOVIE)
+                rating_id = self.kodi_db.get_ratingid(movieid,
+                                                      v.KODI_TYPE_MOVIE)
                 self.kodi_db.update_ratings(movieid,
                                             v.KODI_TYPE_MOVIE,
                                             "default",
                                             rating,
                                             votecount,
-                                            ratingid)
+                                            rating_id)
                 # update new uniqueid Kodi 17
                 uniqueid = self.kodi_db.get_uniqueid(movieid,
                                                      v.KODI_TYPE_MOVIE)
@@ -342,10 +342,10 @@ class Movies(Items):
                     WHERE idMovie = ?
                 '''
                 kodicursor.execute(query, (title, plot, shortplot, tagline,
-                    votecount, rating, writer, year, imdb, sorttitle, runtime,
-                    mpaa, genre, director, title, studio, trailer, country,
-                    playurl, pathid, fileid, year, userdata['UserRating'],
-                    movieid))
+                    votecount, rating_id, writer, year, imdb, sorttitle,
+                    runtime, mpaa, genre, director, title, studio, trailer,
+                    country, playurl, pathid, fileid, year,
+                    userdata['UserRating'], movieid))
             else:
                 query = '''
                     UPDATE movie
@@ -365,7 +365,8 @@ class Movies(Items):
             log.info("ADD movie itemid: %s - Title: %s" % (itemid, title))
             if v.KODIVERSION >= 17:
                 # add new ratings Kodi 17
-                self.kodi_db.add_ratings(self.kodi_db.create_entry_rating(),
+                rating_id = self.kodi_db.create_entry_rating()
+                self.kodi_db.add_ratings(rating_id,
                                          movieid,
                                          v.KODI_TYPE_MOVIE,
                                          "default",
@@ -385,9 +386,9 @@ class Movies(Items):
                         ?, ?, ?, ?, ?, ?, ?)
                 '''
                 kodicursor.execute(query, (movieid, fileid, title, plot,
-                    shortplot, tagline, votecount, rating, writer, year, imdb,
-                    sorttitle, runtime, mpaa, genre, director, title, studio,
-                    trailer, country, playurl, pathid, year,
+                    shortplot, tagline, votecount, rating_id, writer, year,
+                    imdb, sorttitle, runtime, mpaa, genre, director, title,
+                    studio, trailer, country, playurl, pathid, year,
                     userdata['UserRating']))
             else:
                 query = '''
