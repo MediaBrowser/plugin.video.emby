@@ -334,14 +334,23 @@ class Service():
             downloadutils.DownloadUtils().stopSession()
         except:
             pass
-
+        window('plex_service_started', clear=True)
         log.warn("======== STOP %s ========" % v.ADDON_NAME)
+
+# Safety net - Kody starts PKC twice upon first installation!
+if window('plex_service_started') == 'true':
+    exit = True
+else:
+    window('plex_service_started', value='true')
+    exit = False
 
 # Delay option
 delay = int(settings('startupDelay'))
 
 log.warn("Delaying Plex startup by: %s sec..." % delay)
-if delay and Monitor().waitForAbort(delay):
+if exit:
+    log.error('PKC service.py already started - exiting this instance')
+elif delay and Monitor().waitForAbort(delay):
     # Start the service
     log.warn("Abort requested while waiting. PKC not started.")
 else:
