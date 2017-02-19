@@ -63,7 +63,7 @@ class MyFormatter(logging.Formatter):
 
         # Replace the original format with one customized by logging level
         if record.levelno in (logging.DEBUG, logging.ERROR):
-            self._fmt = '%(name)s -> %(levelname)s:: %(message)s'
+            self._fmt = '%(name)s -> %(levelname)s: %(message)s'
 
         # Call the original formatter class to do the grunt work
         result = logging.Formatter.format(self, record)
