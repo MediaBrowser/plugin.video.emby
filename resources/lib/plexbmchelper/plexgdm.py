@@ -57,23 +57,22 @@ class plexgdm:
         self._discovery_is_running = False
         self._registration_is_running = False
 
-        self.discovery_complete = False
         self.client_registered = False
         self.download = downloadutils.DownloadUtils().downloadUrl
 
     def clientDetails(self, options):
         self.client_data = (
-            "Content-Type: plex/media-player\r\n"
-            "Resource-Identifier: %s\r\n"
-            "Name: %s\r\n"
-            "Port: %s\r\n"
-            "Product: %s\r\n"
-            "Version: %s\r\n"
-            "Protocol: plex\r\n"
-            "Protocol-Version: 1\r\n"
+            "Content-Type: plex/media-player\n"
+            "Resource-Identifier: %s\n"
+            "Name: %s\n"
+            "Port: %s\n"
+            "Product: %s\n"
+            "Version: %s\n"
+            "Protocol: plex\n"
+            "Protocol-Version: 1\n"
             "Protocol-Capabilities: timeline,playback,navigation,"
-            "playqueues\r\n"
-            "Device-Class: HTPC"
+            "playqueues\n"
+            "Device-Class: HTPC\n"
         ) % (
             options['uuid'],
             options['client_name'],
@@ -86,10 +85,25 @@ class plexgdm:
     def getClientDetails(self):
         return self.client_data
 
+    def register_as_client(self):
+        """
+        Registers PKC's Plex Companion to the PMS
+        """
+        try:
+            log.debug("Sending registration data: HELLO %s\n%s"
+                      % (self.client_header, self.client_data))
+            self.update_sock.sendto("HELLO %s\n%s"
+                                    % (self.client_header, self.client_data),
+                                    self.client_register_group)
+            log.debug('(Re-)registering PKC Plex Companion successful')
+        except:
+            log.error("Unable to send registration message")
+
     def client_update(self):
-        update_sock = socket.socket(socket.AF_INET,
-                                    socket.SOCK_DGRAM,
-                                    socket.IPPROTO_UDP)
+        self.update_sock = socket.socket(socket.AF_INET,
+                                         socket.SOCK_DGRAM,
+                                         socket.IPPROTO_UDP)
+        update_sock = self.update_sock
 
         # Set socket reuse, may not work on all OSs.
         try:
@@ -129,16 +143,9 @@ class plexgdm:
                                    self._multicast_address) +
                                socket.inet_aton('0.0.0.0'))
         update_sock.setblocking(0)
-        log.debug("Sending registration data: HELLO %s\r\n%s"
-                  % (self.client_header, self.client_data))
 
         # Send initial client registration
-        try:
-            update_sock.sendto("HELLO %s\r\n%s"
-                               % (self.client_header, self.client_data),
-                               self.client_register_group)
-        except:
-            log.error("Unable to send registration message")
+        self.register_as_client()
 
         # Now, listen format client discovery reguests and respond.
         while self._registration_is_running:
@@ -153,7 +160,7 @@ class plexgdm:
                     log.debug("Detected client discovery request from %s. "
                               " Replying" % str(addr))
                     try:
-                        update_sock.sendto("HTTP/1.0 200 OK\r\n%s"
+                        update_sock.sendto("HTTP/1.0 200 OK\n%s"
                                            % self.client_data,
                                            addr)
                     except:
@@ -165,10 +172,10 @@ class plexgdm:
         log.info("Client Update loop stopped")
         # When we are finished, then send a final goodbye message to
         # deregister cleanly.
-        log.debug("Sending registration data: BYE %s\r\n%s"
+        log.debug("Sending registration data: BYE %s\n%s"
                   % (self.client_header, self.client_data))
         try:
-            update_sock.sendto("BYE %s\r\n%s"
+            update_sock.sendto("BYE %s\n%s"
                                % (self.client_header, self.client_data),
                                self.client_register_group)
         except:
@@ -176,41 +183,41 @@ class plexgdm:
         self.client_registered = False
 
     def check_client_registration(self):
+        if not self.client_registered:
+            log.debug('Client has not been marked as registered')
+            return False
+        if not self.server_list:
+            log.info("Server list is empty. Unable to check")
+            return False
+        for server in self.server_list:
+            if server['uuid'] == window('plex_machineIdentifier'):
+                media_server = server['server']
+                media_port = server['port']
+                scheme = server['protocol']
+                break
+        else:
+            log.info("Did not find our server!")
+            return False
 
-        if self.client_registered and self.discovery_complete:
-            if not self.server_list:
-                log.info("Server list is empty. Unable to check")
-                return False
-            try:
-                for server in self.server_list:
-                    if server['uuid'] == window('plex_machineIdentifier'):
-                        media_server = server['server']
-                        media_port = server['port']
-                        scheme = server['protocol']
-                        break
-                else:
-                    log.info("Did not find our server!")
-                    return False
-
-                log.debug("Checking server [%s] on port [%s]"
-                          % (media_server, media_port))
-                client_result = self.download(
-                    '%s://%s:%s/clients' % (scheme, media_server, media_port))
-                registered = False
-                for client in client_result:
-                    if (client.attrib.get('machineIdentifier') ==
-                            self.client_id):
-                        registered = True
-                if registered:
-                    log.debug("Client registration successful. "
-                              "Client data is: %s" % client_result)
-                    return True
-                else:
-                    log.info("Client registration not found. "
-                             "Client data is: %s" % client_result)
-            except:
-                log.error("Unable to check status")
-                pass
+        log.debug("Checking server [%s] on port [%s]"
+                  % (media_server, media_port))
+        xml = self.download(
+            '%s://%s:%s/clients' % (scheme, media_server, media_port))
+        try:
+            xml[0].attrib
+        except (TypeError, IndexError, AttributeError):
+            log.error('Could not download clients for %s' % media_server)
+            return False
+        registered = False
+        for client in xml:
+            if (client.attrib.get('machineIdentifier') ==
+                    self.client_id):
+                registered = True
+        if registered:
+            return True
+        else:
+            log.info("Client registration not found. "
+                     "Client data is: %s" % xml)
         return False
 
     def getServerList(self):

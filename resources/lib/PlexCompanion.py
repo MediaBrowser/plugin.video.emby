@@ -35,7 +35,7 @@ class PlexCompanion(Thread):
         # Start GDM for server/client discovery
         self.client = plexgdm.plexgdm()
         self.client.clientDetails(self.settings)
-        log.debug("Registration string is: %s "
+        log.debug("Registration string is:\n%s"
                   % self.client.getClientDetails())
         # kodi player instance
         self.player = player.Player()
@@ -188,6 +188,7 @@ class PlexCompanion(Thread):
                             log.debug("Client is no longer registered. "
                                       "Plex Companion still running on port %s"
                                       % self.settings['myport'])
+                            client.register_as_client()
                 # Get and set servers
                 if message_count % 30 == 0:
                     subscriptionManager.serverlist = client.getServerList()
