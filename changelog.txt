@@ -1,3 +1,22 @@
+version 1.6.0
+A DATABASE RESET IS ABSOLUTELY NECESSARY if you're not using beta PKC
+Make previous version available for everyone. The highlights:
+- New Spanish translation, thanks @bartolomesoriano
+- New Czech translation, thanks @Pavuucek
+- Plex Companion is completely rewired and should now handly anything you throw at it
+- Early compatibility with Kodi 18 Leia
+- New playback startup mechanism for plugin paths
+- Code rebranding from Emby to Plex, including a plex.db database :-)
+- Fixes to Kodi ratings
+- Fix playstate and PMS item changes not working/not propagating anymore (caused by a change Plex made with the websocket interface)
+- Improvements to the way PKC behaves if the PMS goes offline
+- New setting to always transcode if the video bitrate is above a certain threshold (will not work with direct paths)
+- Be smarter when deciding when to transcode
+- Only sign the user out if the PMS says so
+- Cache missing artwork on PKC startup
+- Lots of code refactoring and code optimizations
+- Tons of fixes
+
 version 1.5.15 (beta only)
 - Fix ratings for movies
 - Fixes to Plex Companion
