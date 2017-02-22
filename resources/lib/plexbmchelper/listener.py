@@ -58,7 +58,7 @@ class MyHandler(BaseHTTPRequestHandler):
             'x-plex-version, x-plex-platform-version, x-plex-username, '
             'x-plex-client-identifier, x-plex-target-client-identifier, '
             'x-plex-device-name, x-plex-platform, x-plex-product, accept, '
-            'x-plex-device')
+            'x-plex-device, x-plex-device-screen-resolution')
         self.end_headers()
         self.wfile.close()
 
