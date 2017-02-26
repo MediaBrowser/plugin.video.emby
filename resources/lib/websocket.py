@@ -485,7 +485,7 @@ class WebSocket(object):
         headers.append("")
         headers.append("")
 
-        header_str = "\n".join(headers)
+        header_str = "\r\n".join(headers)
         self._send(header_str)
         if traceEnabled:
             log.debug("--- request header ---")
@@ -530,7 +530,7 @@ class WebSocket(object):
 
         while True:
             line = self._recv_line()
-            if line == "\n":
+            if line == "\r\n":
                 break
             line = line.strip()
             if traceEnabled:
