@@ -99,7 +99,7 @@ def setKodiWebServerDetails():
     result = loads(result)
     try:
         xbmc_username = result['result']['value']
-    except TypeError:
+    except (TypeError, KeyError):
         pass
     web_pass = {
         "jsonrpc": "2.0",
