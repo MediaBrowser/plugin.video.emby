@@ -85,11 +85,12 @@ class Playqueue(Thread):
                  '%s, repeat %s' % (playqueue_id, offset, repeat))
         with lock:
             xml = PL.get_PMS_playlist(playqueue, playqueue_id)
-            if xml is None:
+            playqueue.clear()
+            try:
+                PL.get_playlist_details_from_xml(playqueue, xml)
+            except KeyError:
                 log.error('Could not get playqueue ID %s' % playqueue_id)
                 return
-            playqueue.clear()
-            PL.get_playlist_details_from_xml(playqueue, xml)
             PlaybackUtils(xml, playqueue).play_all()
             playqueue.repeat = 0 if not repeat else int(repeat)
             window('plex_customplaylist', value="true")

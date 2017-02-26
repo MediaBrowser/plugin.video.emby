@@ -209,15 +209,14 @@ def update_playlist_from_PMS(playlist, playlist_id=None, xml=None):
     """
     if xml is None:
         xml = get_PMS_playlist(playlist, playlist_id)
-    try:
-        xml.attrib['%sVersion' % playlist.kind]
-    except:
-        log.error('Could not process Plex playlist')
-        return
     # Clear our existing playlist and the associated Kodi playlist
     playlist.clear()
     # Set new values
-    get_playlist_details_from_xml(playlist, xml)
+    try:
+        get_playlist_details_from_xml(playlist, xml)
+    except KeyError:
+        log.error('Could not update playlist from PMS')
+        return
     for plex_item in xml:
         playlist_item = add_to_Kodi_playlist(playlist, plex_item)
         if playlist_item is not None:
@@ -231,19 +230,23 @@ def init_Plex_playlist(playlist, plex_id=None, kodi_item=None):
     WILL ALSO UPDATE OUR PLAYLISTS
     """
     log.debug('Initializing the playlist %s on the Plex side' % playlist)
-    if plex_id:
-        item = playlist_item_from_plex(plex_id)
-    else:
-        item = playlist_item_from_kodi(kodi_item)
-    params = {
-        'next': 0,
-        'type': playlist.type,
-        'uri': item.uri
-    }
-    xml = DU().downloadUrl(url="{server}/%ss" % playlist.kind,
-                           action_type="POST",
-                           parameters=params)
-    get_playlist_details_from_xml(playlist, xml)
+    try:
+        if plex_id:
+            item = playlist_item_from_plex(plex_id)
+        else:
+            item = playlist_item_from_kodi(kodi_item)
+        params = {
+            'next': 0,
+            'type': playlist.type,
+            'uri': item.uri
+        }
+        xml = DU().downloadUrl(url="{server}/%ss" % playlist.kind,
+                               action_type="POST",
+                               parameters=params)
+        get_playlist_details_from_xml(playlist, xml)
+    except KeyError:
+        log.error('Could not init Plex playlist')
+        return
     item.ID = xml[-1].attrib['%sItemID' % playlist.kind]
     playlist.items.append(item)
     log.debug('Initialized the playlist on the Plex side: %s' % playlist)
@@ -305,7 +308,11 @@ def add_item_to_PMS_playlist(playlist, pos, plex_id=None, kodi_item=None):
     log.debug('Adding new item plex_id: %s, kodi_item: %s on the Plex side at '
               'position %s for %s' % (plex_id, kodi_item, pos, playlist))
     if plex_id:
-        item = playlist_item_from_plex(plex_id)
+        try:
+            item = playlist_item_from_plex(plex_id)
+        except KeyError:
+            log.error('Could not add new item to the PMS playlist')
+            return
     else:
         item = playlist_item_from_kodi(kodi_item)
     url = "{server}/%ss/%s?uri=%s" % (playlist.kind, playlist.ID, item.uri)
@@ -418,11 +425,9 @@ def refresh_playlist_from_PMS(playlist):
     """
     xml = get_PMS_playlist(playlist)
     try:
-        xml.attrib['%sVersion' % playlist.kind]
-    except:
-        log.error('Could not download Plex playlist.')
-        return
-    get_playlist_details_from_xml(playlist, xml)
+        get_playlist_details_from_xml(playlist, xml)
+    except KeyError:
+        log.error('Could not refresh playlist from PMS')
 
 
 def delete_playlist_item_from_PMS(playlist, pos):
@@ -469,8 +474,9 @@ def get_kodi_playqueues():
     try:
         queues = queues['result']
     except KeyError:
-        raise KeyError('Could not get Kodi playqueues. JSON Result was: %s'
-                       % queues)
+        log.error('Could not get Kodi playqueues. JSON Result was: %s'
+                  % queues)
+        queues = []
     return queues
 
 
