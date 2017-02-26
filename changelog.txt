@@ -1,3 +1,10 @@
+version 1.6.1
+- Fix UnicodeDecodeError for non-ASCII filenames
+- Better error handling for Plex Companion
+- Fix ValueError for Watch Later
+- Try to skip new PMS items we've already processed
+- Fix TypeError 
+
 version 1.6.0
 A DATABASE RESET IS ABSOLUTELY NECESSARY if you're not using beta PKC
 Make previous version available for everyone. The highlights:
