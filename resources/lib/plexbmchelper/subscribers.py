@@ -312,7 +312,7 @@ class Subscriber:
         else:
             self.navlocationsent = True
         msg = re.sub(r"INSERTCOMMANDID", str(self.commandID), msg)
-        log.debug("sending xml to subscriber %s: %s" % (self.tostr(), msg))
+        log.debug("sending xml to subscriber %s:\n%s" % (self.tostr(), msg))
         url = self.protocol + '://' + self.host + ':' + self.port \
             + "/:/timeline"
         t = threading.Thread(target=self.threadedSend, args=(url, msg))
