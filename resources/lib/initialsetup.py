@@ -6,13 +6,12 @@ import logging
 import xbmc
 import xbmcgui
 
-from utils import settings, window, language as lang
+from utils import settings, window, language as lang, tryEncode
 import downloadutils
 from userclient import UserClient
 
 from PlexAPI import PlexAPI
 from PlexFunctions import GetMachineIdentifier, get_PMS_settings
-import variables as v
 
 ###############################################################################
 
@@ -257,7 +256,8 @@ class InitialSetup():
                         log.warn('Not authorized even though we are signed '
                                  ' in to plex.tv correctly')
                         self.dialog.ok(lang(29999), '%s %s'
-                                       % lang(39214) + server['name'])
+                                       % (lang(39214),
+                                          tryEncode(server['name'])))
                         return
                 else:
                     return
