@@ -1256,26 +1256,26 @@ class API():
         favorite = False
         try:
             playcount = int(item['viewCount'])
-        except KeyError:
+        except (KeyError, ValueError):
             playcount = None
         played = True if playcount else False
 
         try:
             lastPlayedDate = DateToKodi(int(item['lastViewedAt']))
-        except KeyError:
+        except (KeyError, ValueError):
             lastPlayedDate = None
 
         try:
             userrating = int(float(item['userRating']))
-        except KeyError:
+        except (KeyError, ValueError):
             userrating = 0
 
         try:
             rating = float(item['audienceRating'])
-        except KeyError:
+        except (KeyError, ValueError):
             try:
                 rating = float(item['rating'])
-            except KeyError:
+            except (KeyError, ValueError):
                 rating = 0.0
 
         resume, runtime = self.getRuntime()
