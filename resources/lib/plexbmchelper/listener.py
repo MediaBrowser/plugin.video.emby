@@ -101,10 +101,10 @@ class MyHandler(BaseHTTPRequestHandler):
                 params.get('commandID', False))
             if request_path == "version":
                 self.response(
-                    "PlexKodiConnect Plex Companion: Running\r\nVersion: %s"
+                    "PlexKodiConnect Plex Companion: Running\nVersion: %s"
                     % settings['version'])
             elif request_path == "verify":
-                self.response("XBMC JSON connection test:\r\n" +
+                self.response("XBMC JSON connection test:\n" +
                               js.jsonrpc("ping"))
             elif "resources" == request_path:
                 resp = ('%s'

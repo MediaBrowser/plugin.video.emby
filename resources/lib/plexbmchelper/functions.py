@@ -57,7 +57,7 @@ def plex_type(xbmc_type):
 
 
 def getXMLHeader():
-    return '<?xml version="1.0" encoding="utf-8" ?>\r\n'
+    return '<?xml version="1.0" encoding="utf-8" ?>\n'
 
 
 def getOKMsg():
