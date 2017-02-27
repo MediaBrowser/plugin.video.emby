@@ -2,6 +2,9 @@
 
 Thanks a ton for contributing to PlexKodiConnect!
 
+## Feature requests
+
+* Please only use feathub: http://feathub.com/croneter/PlexKodiConnect
 
 ## Programming
 
