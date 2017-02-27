@@ -4,7 +4,11 @@ Thanks a ton for contributing to PlexKodiConnect!
 
 ## Feature requests
 
-* Please only use feathub: http://feathub.com/croneter/PlexKodiConnect
+* Are you missing a certain functionality? Then visit feathub: http://feathub.com/croneter/PlexKodiConnect
+
+## Issues
+
+* Something not working like it's supposed to? Then go here: https://github.com/croneter/PlexKodiConnect/wiki/How-to-Report-A-Bug
 
 ## Programming
 
