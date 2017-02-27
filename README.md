@@ -1,6 +1,7 @@
 ##Status
 
 [![GitHub issues](https://img.shields.io/github/issues/croneter/PlexKodiConnect.svg?maxAge=60&style=flat-square)](https://github.com/croneter/PlexKodiConnect/issues)
+[![GitHub pull requests](https://img.shields.io/github/issues-pr/croneter/PlexKodiConnect.svg?maxAge=60&style=flat-square)](https://github.com/croneter/PlexKodiConnect/pulls)
 
 
 # PlexKodiConnect (PKC)
@@ -24,7 +25,7 @@ Please help translate PlexKodiConnect into your language: [visit crowdin.com](ht
 * [**What is currently supported?**](#what-is-currently-supported)
 * [**Known Larger Issues**](#known-larger-issues)
 * [**Issues being worked on**](#issues-being-worked-on)
-* [**Pipeline for future development**](#what-could-be-in-the-pipeline-for-future-development)
+* [**Requests for new features**](#Requests-for-new-features)
 * [**Checkout the PKC Wiki**](#checkout-the-pkc-wiki)
 * [**Credits**](#credits)
 
@@ -118,12 +119,9 @@ However, some changes to individual items are instantly detected, e.g. if you ma
 Have a look at the [Github Issues Page](https://github.com/croneter/PlexKodiConnect/issues). Before you open your own issue, please read [How to report a bug](https://github.com/croneter/PlexKodiConnect/wiki/How-to-Report-A-Bug).
 
 
-### What could be in the pipeline for future development?
+### Requests for new features
 
-- Plex channels
-- Movie extras (trailers already work)
-- Playlists
-- Music Videos
+[![Feature Requests](http://feathub.com/croneter/PlexKodiConnect?format=svg)](http://feathub.com/croneter/PlexKodiConnect)
 
 ### Checkout the PKC Wiki
 The [Wiki can be found here](https://github.com/croneter/PlexKodiConnect/wiki) and will hopefully answer all your questions. You can even edit the wiki yourself!
