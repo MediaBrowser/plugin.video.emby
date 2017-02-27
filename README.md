@@ -1,6 +1,6 @@
 ##Status
 
-[![GitHub issues](https://img.shields.io/github/issues/croneter/PlexKodiConnect.svg?maxAge=60&style=flat-square)](https://github.com/croneter/PlexKodiConnect/issues)
+[![GitHub issues](https://img.shields.io/github/issues-raw/badges/shields.svg?maxAge=60&style=flat-square)](https://github.com/croneter/PlexKodiConnect/issues)
 
 
 # PlexKodiConnect (PKC)
