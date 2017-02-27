@@ -25,7 +25,7 @@ Please help translate PlexKodiConnect into your language: [visit crowdin.com](ht
 * [**What is currently supported?**](#what-is-currently-supported)
 * [**Known Larger Issues**](#known-larger-issues)
 * [**Issues being worked on**](#issues-being-worked-on)
-* [**Requests for new features**](#requests for new features)
+* [**Requests for new features**](#requests-for-new-features)
 * [**Checkout the PKC Wiki**](#checkout-the-pkc-wiki)
 * [**Credits**](#credits)
 
