@@ -133,8 +133,7 @@ def dialog(typus, *args, **kwargs):
             '{ipaddress}': xbmcgui.INPUT_IPADDRESS,
             '{password}': xbmcgui.INPUT_PASSWORD
         }
-        for key, value in types.iteritems():
-            kwargs['type'] = kwargs['type'].replace(key, value)
+        kwargs['type'] = types[kwargs['type']]
     if "heading" in kwargs:
         kwargs['heading'] = kwargs['heading'].replace("{plex}",
                                                       language(29999))
