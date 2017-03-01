@@ -1,6 +1,7 @@
 version 1.6.2
 - Fix TypeError on manually entering PMS port
 - Fix KeyError
+- Update Danish translation
 - Update readme
 
 version 1.6.1
