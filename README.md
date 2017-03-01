@@ -83,6 +83,7 @@ PKC currently provides the following features:
     + German
     + Czech, thanks @Pavuucek
     + Spanish, thanks @bartolomesoriano
+    + Danish, thanks @FIGHT
     + More coming up: [you can help!](https://crowdin.com/project/plexkodiconnect/invite)
 - [Plex Watch Later / Plex It!](https://support.plex.tv/hc/en-us/sections/200211783-Plex-It-)
 - [Plex Companion](https://support.plex.tv/hc/en-us/sections/200276908-Plex-Companion): fling Plex media (or anything else) from other Plex devices to PlexKodiConnect
