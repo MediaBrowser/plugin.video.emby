@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 import logging
-import re
+from re import sub
 from SocketServer import ThreadingMixIn
 from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
 from urlparse import urlparse, parse_qs
 
 from xbmc import sleep
+from companion import process_command
+from utils import window
 
 from functions import *
 
@@ -19,7 +21,6 @@ log = logging.getLogger("PLEX."+__name__)
 
 class MyHandler(BaseHTTPRequestHandler):
     protocol_version = 'HTTP/1.1'
-    regex = re.compile(r'''/playQueues/(\d+)$''')
 
     def __init__(self, *args, **kwargs):
         BaseHTTPRequestHandler.__init__(self, *args, **kwargs)
@@ -83,11 +84,10 @@ class MyHandler(BaseHTTPRequestHandler):
         subMgr = self.server.subscriptionManager
         js = self.server.jsonClass
         settings = self.server.settings
-        queue = self.server.queue
 
         try:
             request_path = self.path[1:]
-            request_path = re.sub(r"\?.*", "", request_path)
+            request_path = sub(r"\?.*", "", request_path)
             url = urlparse(self.path)
             paramarrays = parse_qs(url.query)
             params = {}
@@ -145,9 +145,9 @@ class MyHandler(BaseHTTPRequestHandler):
                     sleep(950)
                 commandID = params.get('commandID', 0)
                 self.response(
-                    re.sub(r"INSERTCOMMANDID",
-                           str(commandID),
-                           subMgr.msg(js.getPlayers())),
+                    sub(r"INSERTCOMMANDID",
+                        str(commandID),
+                        subMgr.msg(js.getPlayers())),
                     {
                         'X-Plex-Client-Identifier': settings['uuid'],
                         'Access-Control-Expose-Headers':
@@ -160,121 +160,18 @@ class MyHandler(BaseHTTPRequestHandler):
                 uuid = self.headers.get('X-Plex-Client-Identifier', False) \
                     or self.client_address[0]
                 subMgr.removeSubscriber(uuid)
-            elif request_path == "player/playback/setParameters":
-                self.response(getOKMsg(), js.getPlexHeaders())
-                if 'volume' in params:
-                    volume = int(params['volume'])
-                    log.debug("adjusting the volume to %s%%" % volume)
-                    js.jsonrpc("Application.SetVolume",
-                               {"volume": volume})
-            elif "/playMedia" in request_path:
-                self.response(getOKMsg(), js.getPlexHeaders())
-                offset = params.get('viewOffset', params.get('offset', "0"))
-                protocol = params.get('protocol', "http")
-                address = params.get('address', self.client_address[0])
-                server = self.getServerByHost(address)
-                port = params.get('port', server.get('port', '32400'))
-                try:
-                    containerKey = urlparse(params.get('containerKey')).path
-                except:
-                    containerKey = ''
-                try:
-                    playQueueID = self.regex.findall(containerKey)[0]
-                except IndexError:
-                    playQueueID = ''
-                # We need to tell service.py
-                queue.put({
-                    'action': 'playlist',
-                    'data': params
-                })
-                subMgr.lastkey = params['key']
-                subMgr.containerKey = containerKey
-                subMgr.playQueueID = playQueueID
-                subMgr.server = server.get('server', 'localhost')
-                subMgr.port = port
-                subMgr.protocol = protocol
-                subMgr.notify()
-            elif request_path == "player/playback/play":
-                self.response(getOKMsg(), js.getPlexHeaders())
-                for playerid in js.getPlayerIds():
-                    js.jsonrpc("Player.PlayPause",
-                               {"playerid": playerid, "play": True})
-                subMgr.notify()
-            elif request_path == "player/playback/pause":
-                self.response(getOKMsg(), js.getPlexHeaders())
-                for playerid in js.getPlayerIds():
-                    js.jsonrpc("Player.PlayPause",
-                               {"playerid": playerid, "play": False})
-                subMgr.notify()
-            elif request_path == "player/playback/stop":
-                self.response(getOKMsg(), js.getPlexHeaders())
-                for playerid in js.getPlayerIds():
-                    js.jsonrpc("Player.Stop", {"playerid": playerid})
-                subMgr.notify()
-            elif request_path == "player/playback/seekTo":
-                self.response(getOKMsg(), js.getPlexHeaders())
-                for playerid in js.getPlayerIds():
-                    js.jsonrpc("Player.Seek",
-                               {"playerid": playerid,
-                                "value": millisToTime(
-                                    params.get('offset', 0))})
-                subMgr.notify()
-            elif request_path == "player/playback/stepForward":
-                self.response(getOKMsg(), js.getPlexHeaders())
-                for playerid in js.getPlayerIds():
-                    js.jsonrpc("Player.Seek",
-                               {"playerid": playerid,
-                                "value": "smallforward"})
-                subMgr.notify()
-            elif request_path == "player/playback/stepBack":
-                self.response(getOKMsg(), js.getPlexHeaders())
-                for playerid in js.getPlayerIds():
-                    js.jsonrpc("Player.Seek",
-                               {"playerid": playerid,
-                                "value": "smallbackward"})
-                subMgr.notify()
-            elif request_path == "player/playback/skipNext":
-                self.response(getOKMsg(), js.getPlexHeaders())
-                for playerid in js.getPlayerIds():
-                    js.jsonrpc("Player.GoTo",
-                               {"playerid": playerid,
-                                "to": "next"})
-                subMgr.notify()
-            elif request_path == "player/playback/skipPrevious":
-                self.response(getOKMsg(), js.getPlexHeaders())
-                for playerid in js.getPlayerIds():
-                    js.jsonrpc("Player.GoTo",
-                               {"playerid": playerid,
-                                "to": "previous"})
-                subMgr.notify()
-            elif request_path == "player/playback/skipTo":
-                js.skipTo(params.get('key').rsplit('/', 1)[1],
-                          params.get('type'))
-                subMgr.notify()
-            elif request_path == "player/navigation/moveUp":
-                self.response(getOKMsg(), js.getPlexHeaders())
-                js.jsonrpc("Input.Up")
-            elif request_path == "player/navigation/moveDown":
-                self.response(getOKMsg(), js.getPlexHeaders())
-                js.jsonrpc("Input.Down")
-            elif request_path == "player/navigation/moveLeft":
-                self.response(getOKMsg(), js.getPlexHeaders())
-                js.jsonrpc("Input.Left")
-            elif request_path == "player/navigation/moveRight":
-                self.response(getOKMsg(), js.getPlexHeaders())
-                js.jsonrpc("Input.Right")
-            elif request_path == "player/navigation/select":
-                self.response(getOKMsg(), js.getPlexHeaders())
-                js.jsonrpc("Input.Select")
-            elif request_path == "player/navigation/home":
-                self.response(getOKMsg(), js.getPlexHeaders())
-                js.jsonrpc("Input.Home")
-            elif request_path == "player/navigation/back":
-                self.response(getOKMsg(), js.getPlexHeaders())
-                js.jsonrpc("Input.Back")
             else:
-                log.error('Unknown request path: %s' % request_path)
-
+                # Throw it to companion.py
+                answ = process_command(request_path, params, self.server.queue)
+                self.response(getOKMsg(), js.getPlexHeaders())
+                subMgr.notify()
+                if answ is not None:
+                    subMgr.lastkey = answ['lastkey']
+                    subMgr.containerKey = answ['containerKey']
+                    subMgr.playQueueID = answ['playQueueID']
+                    subMgr.protocol, subMgr.server, subMgr.port = \
+                        window('pms_server').split(':', 2)
+                    subMgr.server = subMgr.server.replace('/', '')
         except:
             log.error('Error encountered. Traceback:')
             import traceback

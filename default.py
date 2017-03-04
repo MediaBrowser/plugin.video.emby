@@ -161,8 +161,7 @@ class Main():
                 modes[mode](itemid, params=argv[2])
             elif mode == 'Plex_Node':
                 modes[mode](params.get('id'),
-                            params.get('viewOffset'),
-                            params.get('plex_type'))
+                            params.get('viewOffset'))
             else:
                 modes[mode]()
         else:

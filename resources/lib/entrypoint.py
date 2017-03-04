@@ -14,6 +14,7 @@ from utils import window, settings, language as lang, dialog, tryDecode,\
     tryEncode, CatchExceptions, JSONRPC
 import downloadutils
 import playbackutils as pbutils
+import plexdb_functions as plexdb
 
 from PlexFunctions import GetPlexMetadata, GetPlexSectionResults, \
     GetMachineIdentifier
@@ -96,7 +97,7 @@ def togglePlexTV():
            sound=False)
 
 
-def Plex_Node(url, viewOffset, plex_type, playdirectly=False):
+def Plex_Node(url, viewOffset, playdirectly=False, node=True):
     """
     Called only for a SINGLE element for Plex.tv watch later
 
@@ -120,11 +121,25 @@ def Plex_Node(url, viewOffset, plex_type, playdirectly=False):
         else:
             window('plex_customplaylist.seektime', value=str(viewOffset))
             log.info('Set resume point to %s' % str(viewOffset))
-    typus = v.KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[plex_type]
+    api = API(xml[0])
+    typus = v.KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[api.getType()]
+    if node is True:
+        plex_id = None
+        kodi_id = 'plexnode'
+    else:
+        plex_id = api.getRatingKey()
+        kodi_id = None
+        with plexdb.Get_Plex_DB() as plex_db:
+            plexdb_item = plex_db.getItem_byId(plex_id)
+            try:
+                kodi_id = plexdb_item[0]
+            except TypeError:
+                log.info('Couldnt find item %s in Kodi db'
+                         % api.getRatingKey())
     playqueue = Playqueue().get_playqueue_from_type(typus)
     result = pbutils.PlaybackUtils(xml, playqueue).play(
-        None,
-        kodi_id='plexnode',
+        plex_id,
+        kodi_id=kodi_id,
         plex_lib_UUID=xml.attrib.get('librarySectionUUID'))
     if result.listitem:
         listitem = convert_PKC_to_listitem(result.listitem)

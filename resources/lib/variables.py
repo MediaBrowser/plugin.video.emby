@@ -248,3 +248,16 @@ KODI_SUPPORTED_IMAGES = (
     '.pcx',
     '.tga'
 )
+
+
+# Translation table from Alexa websocket commands to Plex Companion
+ALEXA_TO_COMPANION = {
+    'queryKey': 'key',
+    'queryOffset': 'offset',
+    'queryMachineIdentifier': 'machineIdentifier',
+    'queryProtocol': 'protocol',
+    'queryAddress': 'address',
+    'queryPort': 'port',
+    'queryContainerKey': 'containerKey',
+    'queryToken': 'token',
+}

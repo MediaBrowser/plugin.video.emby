@@ -6,14 +6,17 @@ from socket import SHUT_RDWR
 
 from xbmc import sleep
 
-from utils import settings, ThreadMethodsAdditionalSuspend, ThreadMethods
+from utils import settings, ThreadMethodsAdditionalSuspend, ThreadMethods, \
+    window
 from plexbmchelper import listener, plexgdm, subscribers, functions, \
     httppersist, plexsettings
 from PlexFunctions import ParseContainerKey, GetPlexMetadata
 from PlexAPI import API
 import player
 from entrypoint import Plex_Node
-from variables import KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE
+from variables import KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE, \
+    PLEX_TO_KODI_TIMEFACTOR
+
 
 ###############################################################################
 
@@ -83,18 +86,27 @@ class PlexCompanion(Thread):
             thread = Thread(target=Plex_Node,
                             args=('{server}%s' % data.get('key'),
                                   data.get('offset'),
-                                  data.get('type'),
                                   True),)
             thread.setDaemon(True)
             thread.start()
         elif task['action'] == 'playlist':
             # Get the playqueue ID
             try:
-                _, ID, query = ParseContainerKey(data['containerKey'])
+                typus, ID, query = ParseContainerKey(data['containerKey'])
             except Exception as e:
                 log.error('Exception while processing: %s' % e)
                 import traceback
                 log.error("Traceback:\n%s" % traceback.format_exc())
+                return
+            if typus == 'library/metadata':
+                # e.g. Alexa
+                thread = Thread(target=Plex_Node,
+                                args=('{server}%s' % data.get('key'),
+                                      data.get('offset'),
+                                      True,
+                                      False),)
+                thread.setDaemon(True)
+                thread.start()
                 return
             try:
                 playqueue = self.mgr.playqueue.get_playqueue_from_type(
@@ -126,6 +138,7 @@ class PlexCompanion(Thread):
             jsonClass, requestMgr, self.player, self.mgr)
 
         queue = Queue.Queue(maxsize=100)
+        self.queue = queue
 
         if settings('plexCompanion') == 'true':
             # Start up httpd

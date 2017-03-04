@@ -39,7 +39,7 @@ def getXArgsDeviceInfo(options=None):
         'X-Plex-Product': v.ADDON_NAME,
         'X-Plex-Version': v.ADDON_VERSION,
         'X-Plex-Client-Identifier': getDeviceId(),
-        'X-Plex-Provides': 'client,controller,player',
+        'X-Plex-Provides': 'client,controller,player,pubsub-player',
     }
     if window('pms_token'):
         xargs['X-Plex-Token'] = window('pms_token')
