@@ -36,7 +36,7 @@ class Playlist_Object_Baseclase(object):
         answ += "items: %s, " % self.items
         for key in self.__dict__:
             if key not in ("ID", 'items'):
-                answ += '%s: %s, ' % (key, tryDecode(str(getattr(self, key))))
+                answ += '%s: %s, ' % (key, tryEncode(str(getattr(self, key))))
         return answ[:-2] + ">"
 
     def clear(self):
@@ -80,7 +80,7 @@ class Playlist_Item(object):
     def __repr__(self):
         answ = "<%s: " % (self.__class__.__name__)
         for key in self.__dict__:
-            answ += '%s: %s, ' % (key, tryDecode(str(getattr(self, key))))
+            answ += '%s: %s, ' % (key, tryEncode(str(getattr(self, key))))
         return answ[:-2] + ">"
 
 
