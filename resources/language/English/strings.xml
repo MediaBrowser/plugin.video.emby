@@ -513,4 +513,7 @@
     <string id="39601">Could not stop the database from running. Please try again later.</string>
     <string id="39602">Remove all cached artwork? (recommended!)</string>
     <string id="39603">Reset all PlexKodiConnect Addon settings? (this is usually NOT recommended and unnecessary!)</string>
+
+    <string id="39700">Amazon Alexa (Voice Recognition)</string>
+    <string id="39701">Alexa aktivieren</string>
 </strings>

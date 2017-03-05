@@ -204,7 +204,8 @@ class Service():
                             self.ws_running = True
                             self.ws.start()
                         # Start the Alexa thread
-                        if not self.alexa_running:
+                        if (not self.alexa_running and
+                                settings('enable_alexa') == 'true'):
                             self.alexa_running = True
                             self.alexa.start()
                         # Start the syncing thread

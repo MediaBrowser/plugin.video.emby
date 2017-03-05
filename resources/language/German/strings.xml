@@ -513,4 +513,7 @@
     <string id="39601">Kodi Datenbank konnte nicht gestoppt werden. Bitte später erneut versuchen.</string>
     <string id="39602">Alle zwischengespeicherten Bilder löschen? (empfohlen!)</string>
     <string id="39603">Alle PlexKodiConnect Einstellungen zurücksetzen? (normalerweise NICHT empfohlen und nicht nötig!)</string>
+
+    <string id="39700">Amazon Alexa (Spracherkennung)</string>
+    <string id="39701">Alexa aktivieren</string>
 </strings>

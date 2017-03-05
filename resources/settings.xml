@@ -21,13 +21,9 @@
 	</category>
 
 	<category label="Plex">
-		<setting id="enableContext" type="bool" label="30413" default="true" />
-		<setting id="skipContextMenu" type="bool" label="30520" default="false" visible="eq(-1,true)" subsetting="true" />
 		<setting type="lsep" label="plex.tv"/>
 		<setting id="plex_status" label="39071" type="text" default="Not logged in to plex.tv" enable="false" /><!-- Current plex.tv status: -->
 		<setting id="plexLogin" label="Plex user:" type="text" default="" enable="false" />
-		<setting type="sep" text=""/>
-
 		<setting id="myplexlogin" label="39025" type="bool" default="true" /> <!-- Log into plex.tv on startup -->
 		<setting label="39209" type="action" action="RunPlugin(plugin://plugin.video.plexkodiconnect?mode=togglePlexTV)" option="close" />
 		<setting id="plexhome" label="Plex home in use" type="bool" default="" visible="false" />
@@ -37,9 +33,13 @@
 		<setting type="lsep" label="39008" />
 		<setting id="plexCompanion" label="39004" type="bool" default="true" />
 		<setting id="deviceName" label="30016" type="text" visible="eq(-1,true)" default="PlexKodiConnect" subsetting="true" />
-		<setting id="companionPort" label="39005" type="number" default="3005" option="int" visible="eq(-3,true)" subsetting="true" />
-		<setting id="companionUpdatePort" label="39078" type="number" default="32412" option="int" visible="eq(-4,true)" subsetting="true" />
-
+		<setting id="companionPort" label="39005" type="number" default="3005" option="int" visible="eq(-2,true)" subsetting="true" />
+		<setting id="companionUpdatePort" label="39078" type="number" default="32412" option="int" visible="eq(-3,true)" subsetting="true" />
+		<setting type="lsep" label="39700" />
+		<setting id="enable_alexa" label="39701" type="bool" default="true"/>
+		<setting type="lsep" label="" />
+		<setting id="enableContext" type="bool" label="30413" default="true" />
+		<setting id="skipContextMenu" type="bool" label="30520" default="false" visible="eq(-1,true)" subsetting="true" />
 		<setting id="plex_restricteduser" type="bool" default="false" visible="false"/>
 		<setting id="plex_allows_mediaDeletion" type="bool" default="true" visible="false"/>
 		<setting id="companion_show_gdm_port_warning" type="bool" default="true" visible="false"/>
