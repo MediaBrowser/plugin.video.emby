@@ -26,7 +26,7 @@ def getSettings():
     options['gdm_debug'] = settings('companionGDMDebugging')
     options['gdm_debug'] = True if options['gdm_debug'] == 'true' else False
 
-    options['client_name'] = settings('deviceName')
+    options['client_name'] = v.DEVICENAME
 
     # XBMC web server options
     options['webserver_enabled'] = (getGUI('webserver') == "true")
