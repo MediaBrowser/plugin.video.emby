@@ -251,3 +251,11 @@ class Alexia_Websocket(WebSocket):
 
     def IOError_response(self):
         pass
+
+    def threadSuspended(self):
+        """
+        Overwrite to ignore library sync stuff and allow to check for
+        plex_restricteduser
+        """
+        return (self._threadSuspended or
+                window('plex_restricteduser') == 'true')
