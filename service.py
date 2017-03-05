@@ -36,7 +36,7 @@ import initialsetup
 from kodimonitor import KodiMonitor
 from librarysync import LibrarySync
 import videonodes
-from websocket_client import PMS_Websocket, Alexia_Websocket
+from websocket_client import PMS_Websocket, Alexa_Websocket
 import downloadutils
 from playqueue import Playqueue
 
@@ -70,7 +70,7 @@ class Service():
 
     user_running = False
     ws_running = False
-    alexia_running = False
+    alexa_running = False
     library_running = False
     plexCompanion_running = False
     playqueue_running = False
@@ -150,7 +150,7 @@ class Service():
         # Initialize important threads, handing over self for callback purposes
         self.user = UserClient(self)
         self.ws = PMS_Websocket(self)
-        self.alexia = Alexia_Websocket(self)
+        self.alexa = Alexa_Websocket(self)
         self.library = LibrarySync(self)
         self.plexCompanion = PlexCompanion(self)
         self.playqueue = Playqueue(self)
@@ -203,10 +203,10 @@ class Service():
                         if not self.ws_running:
                             self.ws_running = True
                             self.ws.start()
-                        # Start the Alexia thread
-                        if not self.alexia_running:
-                            self.alexia_running = True
-                            self.alexia.start()
+                        # Start the Alexa thread
+                        if not self.alexa_running:
+                            self.alexa_running = True
+                            self.alexa.start()
                         # Start the syncing thread
                         if not self.library_running:
                             self.library_running = True
@@ -333,7 +333,7 @@ class Service():
         except:
             log.warn('Websocket client already shut down')
         try:
-            self.alexia.stopThread()
+            self.alexa.stopThread()
         except:
             log.warn('Websocket client already shut down')
         try:

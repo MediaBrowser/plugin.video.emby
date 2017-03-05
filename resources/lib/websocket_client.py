@@ -211,9 +211,9 @@ class PMS_Websocket(WebSocket):
         window('plex_online', value='false')
 
 
-class Alexia_Websocket(WebSocket):
+class Alexa_Websocket(WebSocket):
     """
-    Websocket connection to talk to Amazon Alexia
+    Websocket connection to talk to Amazon Alexa
     """
     def getUri(self):
         self.plex_client_Id = window('plex_client_Id')
@@ -228,7 +228,7 @@ class Alexia_Websocket(WebSocket):
     def process(self, opcode, message):
         if opcode not in self.opcode_data:
             return False
-        log.debug('Received the following message from Alexia:')
+        log.debug('Received the following message from Alexa:')
         log.debug(message)
         try:
             message = etree.fromstring(message)
@@ -242,7 +242,7 @@ class Alexia_Websocket(WebSocket):
                 log.error('Unknown Alexa message received')
                 return False
         except:
-            log.error('Could not parse Alexia message')
+            log.error('Could not parse Alexa message')
             return False
         process_command(message.attrib['path'][1:],
                         message.attrib,
