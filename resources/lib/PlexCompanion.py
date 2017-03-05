@@ -14,8 +14,7 @@ from PlexFunctions import ParseContainerKey, GetPlexMetadata
 from PlexAPI import API
 import player
 from entrypoint import Plex_Node
-from variables import KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE, \
-    PLEX_TO_KODI_TIMEFACTOR
+import variables as v
 
 
 ###############################################################################
@@ -110,14 +109,19 @@ class PlexCompanion(Thread):
                 return
             try:
                 playqueue = self.mgr.playqueue.get_playqueue_from_type(
-                    KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[data['type']])
+                    v.KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[data['type']])
             except KeyError:
                 # E.g. Plex web does not supply the media type
                 # Still need to figure out the type (video vs. music vs. pix)
                 xml = GetPlexMetadata(data['key'])
+                try:
+                    xml[0].attrib
+                except (AttributeError, IndexError, TypeError):
+                    log.error('Could not download Plex metadata')
+                    return
                 api = API(xml[0])
                 playqueue = self.mgr.playqueue.get_playqueue_from_type(
-                    KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[api.getType()])
+                    v.KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[api.getType()])
             self.mgr.playqueue.update_playqueue_from_PMS(
                 playqueue,
                 ID,
