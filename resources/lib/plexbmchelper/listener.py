@@ -162,7 +162,7 @@ class MyHandler(BaseHTTPRequestHandler):
                 subMgr.removeSubscriber(uuid)
             else:
                 # Throw it to companion.py
-                answ = process_command(request_path, params, self.server.queue)
+                process_command(request_path, params, self.server.queue)
                 self.response(getOKMsg(), js.getPlexHeaders())
                 subMgr.notify()
         except:
