@@ -33,6 +33,8 @@ class Playqueue(Thread):
     def __init__(self, callback=None):
         self.__dict__ = self.__shared_state
         if self.playqueues is not None:
+            log.debug('Playqueue thread has already been initialized')
+            Thread.__init__(self)
             return
         self.mgr = callback
 
