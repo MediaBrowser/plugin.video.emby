@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import logging
-from urlparse import urlparse
 from re import compile as re_compile
 
 from utils import JSONRPC
