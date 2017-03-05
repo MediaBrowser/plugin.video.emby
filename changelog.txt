@@ -1,3 +1,8 @@
+version 1.6.4 (beta only)
+- Amazon Alexa support! Be mindful to check the Alexa forum thread first; there are still many issues completely unrelated to PKC
+- Enable skipping for Plex Companion 
+- Set default companion name to PlexKodiConnect
+
 version 1.6.3
 - Fix UnicodeEncodeError for non ASCII filenames in playback_starter 
 - Cleanup playlist/playqueue string/unicode
