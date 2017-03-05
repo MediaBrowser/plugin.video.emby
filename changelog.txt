@@ -1,3 +1,7 @@
+version 1.6.3
+- Fix UnicodeEncodeError for non ASCII filenames in playback_starter 
+- Cleanup playlist/playqueue string/unicode
+
 version 1.6.2
 - Fix Plex Web Issue, thanks @AllanMar
 - Fix TypeError on manually entering PMS port

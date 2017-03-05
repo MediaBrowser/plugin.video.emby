@@ -36,7 +36,11 @@ class Playlist_Object_Baseclase(object):
         answ += "items: %s, " % self.items
         for key in self.__dict__:
             if key not in ("ID", 'items'):
-                answ += '%s: %s, ' % (key, tryDecode(str(getattr(self, key))))
+                if type(getattr(self, key)) in (str, unicode):
+                    answ += '%s: %s, ' % (key, tryEncode(getattr(self, key)))
+                else:
+                    # e.g. int
+                    answ += '%s: %s, ' % (key, str(getattr(self, key)))
         return answ[:-2] + ">"
 
     def clear(self):
@@ -73,14 +77,18 @@ class Playlist_Item(object):
     plex_UUID = None        # Plex librarySectionUUID
     kodi_id = None          # Kodi unique kodi id (unique only within type!)
     kodi_type = None        # Kodi type: 'movie'
-    file = None             # Path to the item's file
-    uri = None              # Weird Plex uri path involving plex_UUID
+    file = None             # Path to the item's file. STRING!!
+    uri = None              # Weird Plex uri path involving plex_UUID. STRING!
     guid = None             # Weird Plex guid
 
     def __repr__(self):
         answ = "<%s: " % (self.__class__.__name__)
         for key in self.__dict__:
-            answ += '%s: %s, ' % (key, tryDecode(str(getattr(self, key))))
+            if type(getattr(self, key)) in (str, unicode):
+                answ += '%s: %s, ' % (key, tryEncode(getattr(self, key)))
+            else:
+                # e.g. int
+                answ += '%s: %s, ' % (key, str(getattr(self, key)))
         return answ[:-2] + ">"
 
 
@@ -258,6 +266,8 @@ def add_listitem_to_playlist(playlist, pos, listitem, kodi_id=None,
     Adds a listitem to both the Kodi and Plex playlist at position pos [int].
 
     If file is not None, file will overrule kodi_id!
+
+    file: str!!
     """
     log.debug('add_listitem_to_playlist at position %s. Playlist before add: '
               '%s' % (pos, playlist))
@@ -285,6 +295,8 @@ def add_item_to_playlist(playlist, pos, kodi_id=None, kodi_type=None,
                          plex_id=None, file=None):
     """
     Adds an item to BOTH the Kodi and Plex playlist at position pos [int]
+
+    file: str!
     """
     log.debug('add_item_to_playlist. Playlist before adding: %s' % playlist)
     kodi_item = {'id': kodi_id, 'type': kodi_type, 'file': file}
@@ -349,6 +361,8 @@ def add_item_to_kodi_playlist(playlist, pos, kodi_id=None, kodi_type=None,
     Adds an item to the KODI playlist only. WILL ALSO UPDATE OUR PLAYLISTS
 
     Returns False if unsuccessful
+
+    file: str!
     """
     log.debug('Adding new item kodi_id: %s, kodi_type: %s, file: %s to Kodi '
               'only at position %s for %s'
@@ -496,7 +510,7 @@ def add_to_Kodi_playlist(playlist, xml_video_element):
     if item.kodi_id:
         params['item'] = {'%sid' % item.kodi_type: item.kodi_id}
     else:
-        params['item'] = {'file': tryEncode(item.file)}
+        params['item'] = {'file': item.file}
     reply = JSONRPC('Playlist.Add').execute(params)
     if reply.get('error') is not None:
         log.error('Could not add item %s to Kodi playlist. Error: %s'
@@ -512,6 +526,8 @@ def add_listitem_to_Kodi_playlist(playlist, pos, listitem, file,
     Adds an xbmc listitem to the Kodi playlist.xml_video_element
 
     WILL NOT UPDATE THE PLEX SIDE, BUT WILL UPDATE OUR PLAYLISTS
+
+    file: string!
     """
     log.debug('Insert listitem at position %s for Kodi only for %s'
               % (pos, playlist))
