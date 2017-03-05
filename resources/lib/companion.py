@@ -100,20 +100,11 @@ def process_command(request_path, params, queue=None):
         convert_alexa_to_companion(params)
     log.debug('Received request_path: %s, params: %s' % (request_path, params))
     if "/playMedia" in request_path:
-        try:
-            containerKey = urlparse(params.get('containerKey')).path
-        except:
-            containerKey = ''
-        try:
-            playQueueID = REGEX_PLAYQUEUES.findall(containerKey)[0]
-        except IndexError:
-            playQueueID = ''
         # We need to tell service.py
         queue.put({
             'action': 'playlist',
             'data': params
         })
-        return
 
     elif request_path == "player/playback/setParameters":
         if 'volume' in params:
