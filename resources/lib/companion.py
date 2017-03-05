@@ -113,11 +113,7 @@ def process_command(request_path, params, queue=None):
             'action': 'playlist',
             'data': params
         })
-        return {
-            'lastkey': params['key'],
-            'containerKey': containerKey,
-            'playQueueID': playQueueID,
-        }
+        return
 
     elif request_path == "player/playback/setParameters":
         if 'volume' in params:

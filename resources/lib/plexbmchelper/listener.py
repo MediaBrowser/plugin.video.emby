@@ -165,13 +165,6 @@ class MyHandler(BaseHTTPRequestHandler):
                 answ = process_command(request_path, params, self.server.queue)
                 self.response(getOKMsg(), js.getPlexHeaders())
                 subMgr.notify()
-                if answ is not None:
-                    subMgr.lastkey = answ['lastkey']
-                    subMgr.containerKey = answ['containerKey']
-                    subMgr.playQueueID = answ['playQueueID']
-                    subMgr.protocol, subMgr.server, subMgr.port = \
-                        window('pms_server').split(':', 2)
-                    subMgr.server = subMgr.server.replace('/', '')
         except:
             log.error('Error encountered. Traceback:')
             import traceback
