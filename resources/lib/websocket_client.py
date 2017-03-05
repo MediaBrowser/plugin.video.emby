@@ -258,4 +258,5 @@ class Alexia_Websocket(WebSocket):
         plex_restricteduser
         """
         return (self._threadSuspended or
-                window('plex_restricteduser') == 'true')
+                window('plex_restricteduser') == 'true' or
+                not window('plex_token'))
