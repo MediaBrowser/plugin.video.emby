@@ -9,6 +9,7 @@ import xbmcgui
 import xbmcvfs
 
 from utils import window, settings, tryEncode, language as lang
+import variables as v
 
 import PlexAPI
 
@@ -160,11 +161,11 @@ class PlayUtils():
             - video bitrate above specified settings bitrate
         if the corresponding file settings are set to 'true'
         """
-        videoCodec = self.API.getVideoCodec()
-        log.info("videoCodec: %s" % videoCodec)
-        if self.API.getType() in ('clip', 'track'):
+        if self.API.getType() in (v.PLEX_TYPE_CLIP, v.PLEX_TYPE_SONG):
             log.info('Plex clip or music track, not transcoding')
             return False
+        videoCodec = self.API.getVideoCodec()
+        log.info("videoCodec: %s" % videoCodec)
         if window('plex_forcetranscode') == 'true':
             log.info('User chose to force-transcode')
             return True
