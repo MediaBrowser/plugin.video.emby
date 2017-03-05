@@ -223,7 +223,7 @@ class PlexCompanion(Thread):
                 queue.task_done()
                 # Don't sleep
                 continue
-            sleep(20)
+            sleep(50)
 
         client.stop_all()
         if httpd:
