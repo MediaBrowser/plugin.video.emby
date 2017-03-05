@@ -90,13 +90,7 @@ class Playqueue(Thread):
             api = API(child)
             PL.add_item_to_playlist(playqueue, i, plex_id=api.getRatingKey())
         log.debug('Firing up Kodi player')
-        thread = Thread(target=Player().play,
-                        args=(playqueue.kodi_pl,
-                              None,
-                              False,
-                              0))  # starting position
-        thread.setDaemon(True)
-        thread.start()
+        Player().play(playqueue.kodi_pl, None, False, 0)
 
     def update_playqueue_from_PMS(self,
                                   playqueue,

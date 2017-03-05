@@ -2,9 +2,12 @@
 import logging
 from re import compile as re_compile
 
+from xbmc import Player
+
 from utils import JSONRPC
-import plexdb_functions as plexdb
 from variables import ALEXA_TO_COMPANION
+from playqueue import Playqueue
+from PlexFunctions import GetPlexKeyNumber
 
 ###############################################################################
 
@@ -17,7 +20,6 @@ REGEX_PLAYQUEUES = re_compile(r'''/playQueues/(\d+)$''')
 
 def getPlayers():
     info = JSONRPC("Player.GetActivePlayers").execute()['result'] or []
-    log.debug('players: %s' % JSONRPC("Player.GetActivePlayers").execute())
     ret = {}
     for player in info:
         player['playerid'] = int(player['playerid'])
@@ -69,19 +71,24 @@ def millisToTime(t):
             'milliseconds': millis}
 
 
-def skipTo(self, plexId, typus):
-    # playlistId = self.getPlaylistId(tryDecode(xbmc_type(typus)))
-    # playerId = self.
-    with plexdb.Get_Plex_DB() as plex_db:
-        plexdb_item = plex_db.getItem_byId(plexId)
-        try:
-            dbid = plexdb_item[0]
-            mediatype = plexdb_item[4]
-        except TypeError:
-            log.info('Couldnt find item %s in Kodi db' % plexId)
-            return
-    log.debug('plexid: %s, kodi id: %s, type: %s'
-              % (plexId, dbid, mediatype))
+def skipTo(params):
+    # Does not seem to be implemented yet
+    playQueueItemID = params.get('playQueueItemID', 'not available')
+    library, plex_id = GetPlexKeyNumber(params.get('key'))
+    log.debug('Skipping to playQueueItemID %s, plex_id %s'
+              % (playQueueItemID, plex_id))
+    found = True
+    playqueues = Playqueue()
+    for (player, ID) in getPlayers().iteritems():
+        playqueue = playqueues.get_playqueue_from_type(player)
+        for i, item in enumerate(playqueue.items):
+            if item.ID == playQueueItemID or item.plex_id == plex_id:
+                break
+        else:
+            log.debug('Item not found to skip to')
+            found = False
+        if found:
+            Player().play(playqueue.kodi_pl, None, False, i)
 
 
 def convert_alexa_to_companion(dictionary):
@@ -153,7 +160,7 @@ def process_command(request_path, params, queue=None):
                                            "to": "previous"})
 
     elif request_path == "player/playback/skipTo":
-        skipTo(params.get('key').rsplit('/', 1)[1], params.get('type'))
+        skipTo(params)
 
     elif request_path == "player/navigation/moveUp":
         JSONRPC("Input.Up").execute()
