@@ -118,6 +118,7 @@ def playlist_item_from_kodi(kodi_item):
         # TO BE VERIFIED - PLEX DOESN'T LIKE PLAYLIST ADDS IN THIS MANNER
         item.uri = ('library://%s/item/library%%2Fmetadata%%2F%s' %
                     (item.plex_UUID, item.plex_id))
+    log.debug('Made playlist item from Kodi: %s' % item)
     return item
 
 
@@ -136,6 +137,10 @@ def playlist_item_from_plex(plex_id):
         item.kodi_type = plex_dbitem[4]
     except:
         raise KeyError('Could not find plex_id %s in database' % plex_id)
+    item.plex_UUID = plex_id
+    item.uri = ('library://%s/item/library%%2Fmetadata%%2F%s' %
+        (item.plex_UUID, plex_id))
+    log.debug('Made playlist item from plex: %s' % item)
     return item
 
 

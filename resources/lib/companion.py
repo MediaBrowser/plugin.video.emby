@@ -101,8 +101,9 @@ def process_command(request_path, params, queue=None):
     log.debug('Received request_path: %s, params: %s' % (request_path, params))
     if "/playMedia" in request_path:
         # We need to tell service.py
+        action = 'alexa' if params.get('deviceName') == 'Alexa' else 'playlist'
         queue.put({
-            'action': 'playlist',
+            'action': action,
             'data': params
         })
 

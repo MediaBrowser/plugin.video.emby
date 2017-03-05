@@ -7,8 +7,10 @@ from xbmc import sleep, Player, PlayList, PLAYLIST_MUSIC, PLAYLIST_VIDEO
 
 from utils import window, ThreadMethods, ThreadMethodsAdditionalSuspend
 import playlist_func as PL
-from PlexFunctions import ConvertPlexToKodiTime
+from PlexFunctions import ConvertPlexToKodiTime, GetAllPlexChildren
+from PlexAPI import API
 from playbackutils import PlaybackUtils
+import variables as v
 
 ###############################################################################
 log = logging.getLogger("PLEX."+__name__)
@@ -68,6 +70,31 @@ class Playqueue(Thread):
             else:
                 raise ValueError('Wrong playlist type passed in: %s' % typus)
             return playqueue
+
+    def init_playqueue_from_plex_children(self, plex_id):
+        """
+        Init a new playqueue e.g. from an album. Alexa does this
+        """
+        xml = GetAllPlexChildren(plex_id)
+        try:
+            xml[0].attrib
+        except (TypeError, IndexError, AttributeError):
+            log.error('Could not download the PMS xml for %s' % plex_id)
+            return
+        playqueue = self.get_playqueue_from_type(
+            v.KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[xml[0].attrib['type']])
+        playqueue.clear()
+        for i, child in enumerate(xml):
+            api = API(child)
+            PL.add_item_to_playlist(playqueue, i, plex_id=api.getRatingKey())
+        log.debug('Firing up Kodi player')
+        thread = Thread(target=Player().play,
+                        args=(playqueue.kodi_pl,
+                              None,
+                              False,
+                              0))  # starting position
+        thread.setDaemon(True)
+        thread.start()
 
     def update_playqueue_from_PMS(self,
                                   playqueue,

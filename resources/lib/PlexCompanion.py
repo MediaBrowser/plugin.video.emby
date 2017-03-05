@@ -79,7 +79,29 @@ class PlexCompanion(Thread):
         log.debug('Processing: %s' % task)
         data = task['data']
 
-        if (task['action'] == 'playlist' and
+        if task['action'] == 'alexa':
+            # e.g. Alexa
+            xml = GetPlexMetadata(data['key'])
+            try:
+                xml[0].attrib
+            except (AttributeError, IndexError, TypeError):
+                log.error('Could not download Plex metadata')
+                return
+            api = API(xml[0])
+            if api.getType() == v.PLEX_TYPE_ALBUM:
+                log.debug('Plex music album detected')
+                self.mgr.playqueue.init_playqueue_from_plex_children(
+                    api.getRatingKey())
+            else:
+                thread = Thread(target=Plex_Node,
+                                args=('{server}%s' % data.get('key'),
+                                      data.get('offset'),
+                                      True,
+                                      False),)
+                thread.setDaemon(True)
+                thread.start()
+
+        elif (task['action'] == 'playlist' and
                 data.get('address') == 'node.plexapp.com'):
             # E.g. watch later initiated by Companion
             thread = Thread(target=Plex_Node,
@@ -88,6 +110,7 @@ class PlexCompanion(Thread):
                                   True),)
             thread.setDaemon(True)
             thread.start()
+
         elif task['action'] == 'playlist':
             # Get the playqueue ID
             try:
@@ -96,16 +119,6 @@ class PlexCompanion(Thread):
                 log.error('Exception while processing: %s' % e)
                 import traceback
                 log.error("Traceback:\n%s" % traceback.format_exc())
-                return
-            if typus == 'library/metadata':
-                # e.g. Alexa
-                thread = Thread(target=Plex_Node,
-                                args=('{server}%s' % data.get('key'),
-                                      data.get('offset'),
-                                      True,
-                                      False),)
-                thread.setDaemon(True)
-                thread.start()
                 return
             try:
                 playqueue = self.mgr.playqueue.get_playqueue_from_type(
