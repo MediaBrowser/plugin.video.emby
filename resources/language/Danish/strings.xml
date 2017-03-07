@@ -222,7 +222,7 @@
     <string id="30237">Synkronisere ekstra Fanart</string>
     <string id="30238">Sync film BoxSets</string>
     
-    <string id="30239">[Farve gul] Nulstille lokale Kodi database[/COLOR]</string><!-- Verified -->
+    <string id="30239">[COLOR yellow] Nulstille lokale Kodi database[/COLOR]</string><!-- Verified -->
     <string id="30240">Vælg Set / Genoptag status sync</string>
     <string id="30241">DB Sync angivelse:</string>
     <string id="30242">Afspil Sync angivelse:</string>
@@ -283,7 +283,7 @@
     <string id="30502">Brug alternativ adresse</string>
     <string id="30503">Alternative server adresse</string>
     <string id="30504">Brug alternative enhed navn</string>
-    <string id="30505">[Farve gul] Nulstille login attempts[/COLOR]</string>
+    <string id="30505">[COLOR yellow] Nulstille login attempts[/COLOR]</string>
     <string id="30506">Indstillinger for synkronisering</string>
     <string id="30507">Vis synkronisering fremskridt</string>
     <string id="30508">Sync tomme TV shows</string>
@@ -295,7 +295,7 @@
     <string id="30514">Aktiver hurtig opstart (kræver server plugin)</string>
     <string id="30515">Maksimale elementer til at anmode serveren på én gang</string>
     <string id="30516">Afspilning</string>
-    <string id="30517">[Farve gul] Indtast netværk info[/COLOR]</string>
+    <string id="30517">[COLOR yellow] Indtast netværk info[/COLOR]</string>
     <string id="30518">Aktiverer Plex trailere (Plexpass er nødvendig)</string>
     <string id="30519">Bede om at afspille trailere</string>
     <string id="30520">Spring Plex slet bekræftelse over i kontekstmenuen (brug på eget ansvar)</string>
@@ -313,7 +313,7 @@
     <string id="30532">Varigheden af den video bibliotek pop op (i sekunder)</string>
     <string id="30533">Varigheden af den musikbibliotek pop op (i sekunder)</string>
     <string id="30534">Server beskeder</string>
-    <string id="30535">[Farve gul] Generere en ny unik enheds Id (f.eks. Når kloning Kodi)[/COLOR]</string>
+    <string id="30535">[COLOR yellow] Generere en ny unik enheds Id (f.eks. Når kloning Kodi)[/COLOR]</string>
     <string id="30536">Brugerne skal logge ind hver gang Kodi genstarter</string>
     <string id="30537">GENSTART KODI, HVIS DU FORETAGER ÆNDRINGER</string>
     <string id="30538">Komplet re-synkronisere nødvendigt</string>
@@ -382,10 +382,10 @@
     <string id="39016">Deaktivere Plex musikbibliotek? (Det anbefales at bruge Plex musik med direkte adgang til store musikbiblioteker. Kodi kan gå ned, ellers)</string>
     <string id="39017">Ønsker du at finjustere PKC nu, gå til plugins for dette. Du skal genstarte Kodi!</string>
 
-    <string id="39018">[Farve gul] Reparere lokale database (opdatere alt indhold)[/COLOR]</string>
-    <string id="39019">[Farve rød] Fuld eller delvis nulstilling af Database og PKC[/COLOR]</string>
-    <string id="39020">[Farve gul] Cachelagre alle billeder til Kodi tekstur cache now[/COLOR]</string>
-    <string id="39021">[Farve gul] Sync Emby tema medier til Kodi[/COLOR]</string>
+    <string id="39018">[COLOR yellow] Reparere lokale database (opdatere alt indhold)[/COLOR]</string>
+    <string id="39019">[COLOR red] Fuld eller delvis nulstilling af Database og PKC[/COLOR]</string>
+    <string id="39020">[COLOR yellow] Cachelagre alle billeder til Kodi tekstur cache now[/COLOR]</string>
+    <string id="39021">[COLOR yellow] Sync Emby tema medier til Kodi[/COLOR]</string>
     <string id="39022">lokal</string>
     <string id="39023">Kunne ikke godkendes. Loggede du ind på plex.tv?</string>
     
@@ -415,7 +415,7 @@
     <string id="39047">Senest Tilføjet:  Vis titel til episode</string>
     <string id="39048">Senest Tilføjet: Føj sæson - og episode-nummer SxxExx</string>
     <string id="39049">Intet virker? Prøv en fuld reset!</string>
-    <string id="39050">[Farve gul] Vælg Plex Server fra listen[/COLOR]</string>
+    <string id="39050">[COLOR yellow] Vælg Plex Server fra listen[/COLOR]</string>
     <string id="39051">Vente før sync af nye/ændrede PMS element [s]</string>
     <string id="39052">Baggrundssynkronisering</string>
     <string id="39053">Kør en fuld bibliotek synkronisering hvert x minut</string>
@@ -432,7 +432,7 @@
     <string id="39064">Senest tilføjet: Vis allerede set episoder</string>
     <string id="39066">Senest tilføjet: Vis allerede set film (Opdater Plex spilleliste/noder!)</string>
     <string id="39067">Din nuværende Plex Media Server:</string>
-    <string id="39068">[Farve gul] Manuelt indtast Plex Media Server address[/COLOR]</string>
+    <string id="39068">[COLOR yellow] Manuelt indtast Plex Media Server address[/COLOR]</string>
     <string id="39069">Nuværende adresse:</string>
     <string id="39070">Nuværende port:</string>
     <string id="39071">Nuværende plex.tv status:</string>
@@ -455,7 +455,7 @@
     <string id="39206">Plex kan låse din konto, hvis dit login forsøg fejler for mange gange. Vil du fortsætte alligevel?</string>
     <string id="39207">Nulstille PMS forbindelser, vent</string>
     <string id="39208">Undladt at nulstille PKC. Prøv at genstarte Kodi.</string>
-    <string id="39209">[Farve gul] Skifte plex.tv login (logge på eller logge ud)[/COLOR]</string>
+    <string id="39209">[COLOR yellow] Skifte plex.tv login (logge på eller logge ud)[/COLOR]</string>
     <string id="39210">Endnu ikke forbundet med Plex Server</string>
     <string id="39211">Se senere</string>
     <string id="39213">Offline</string>
@@ -467,7 +467,7 @@
     <string id="39219">Afbryde (ja) eller gemme adresse alligevel (Nej)?</string>
     <string id="39220">Tilsluttet</string>
     <string id="39221">Plex.tv skift vellykket</string>
-    <string id="39222">[Farve gul] Se efter for manglende fanart på FanartTV nu![/COLOR]</string>
+    <string id="39222">[COLOR yellow] Se efter for manglende fanart på FanartTV nu![/COLOR]</string>
     <string id="39223">Søg kun efter manglende fanart eller Opdater alle fanart? Scanningen vil tage lang tid og sker i baggrunden.</string>
     <string id="39224">Opdater alle</string>
     <string id="39225">Mangler kun</string>    
@@ -513,4 +513,7 @@
     <string id="39601">Kunne ikke stoppe den kørende database. Prøv igen senere.</string>
     <string id="39602">Fjern alle cachelagrede illustrationer? (anbefales!)</string>
     <string id="39603">Nulstil alle indstillinger for PlexKodiConnect Addon? (dette er normalt ikke anbefalet og unødvendigt!)</string>
+
+    <string id="39700">Amazon Alexa (Voice Recognition)</string>
+    <string id="39701">Alexa aktivieren</string>
 </strings>
