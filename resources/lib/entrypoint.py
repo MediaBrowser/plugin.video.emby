@@ -106,7 +106,10 @@ def Plex_Node(url, viewOffset, playdirectly=False, node=True):
     log.info('Plex_Node called with url: %s, viewOffset: %s'
              % (url, viewOffset))
     # Plex redirect, e.g. watch later. Need to get actual URLs
-    xml = downloadutils.DownloadUtils().downloadUrl(url)
+    if url.startswith('http'):
+        xml = downloadutils.DownloadUtils().downloadUrl(url)
+    else:
+        xml = downloadutils.DownloadUtils().downloadUrl('{server}%s' % url)
     try:
         xml[0].attrib
     except:
@@ -194,6 +197,9 @@ def doMainListing():
     # Plex Watch later
     addDirectoryItem(lang(39211),
                      "plugin://plugin.video.plexkodiconnect/?mode=watchlater")
+    # Plex Channels
+    addDirectoryItem(lang(30173),
+                     "plugin://plugin.video.plexkodiconnect/?mode=channels")
     # Plex user switch
     addDirectoryItem(lang(39200) + window('plex_username'),
                      "plugin://plugin.video.plexkodiconnect/"
@@ -925,6 +931,85 @@ def watchlater():
     xbmcplugin.endOfDirectory(
         handle=HANDLE,
         cacheToDisc=settings('enableTextureCache') == 'true')
+
+
+def channels():
+    """
+    Listing for Plex Channels
+    """
+    if window('plex_restricteduser') == 'true':
+        log.error('No Plex Channels - restricted user')
+        return xbmcplugin.endOfDirectory(HANDLE, False)
+
+    xml = downloadutils.DownloadUtils().downloadUrl('{server}/channels/all')
+    try:
+        xml[0].attrib
+    except (ValueError, AttributeError, IndexError):
+        log.error('Could not download Plex Channels')
+        return xbmcplugin.endOfDirectory(HANDLE, False)
+
+    log.info('Displaying Plex Channels')
+    xbmcplugin.setContent(HANDLE, 'files')
+    for item in xml:
+        __build_folder(item)
+    xbmcplugin.endOfDirectory(
+        handle=HANDLE,
+        cacheToDisc=settings('enableTextureCache') == 'true')
+
+
+def browse_plex_folder(key):
+    """
+    Lists the content of a Plex folder, e.g. channels
+    """
+    xml = downloadutils.DownloadUtils().downloadUrl('{server}%s' % key)
+    try:
+        xml[0].attrib
+    except (ValueError, AttributeError, IndexError):
+        log.error('Could not browse to %s' % key)
+        return xbmcplugin.endOfDirectory(HANDLE, False)
+    xbmcplugin.setContent(HANDLE, 'files')
+    for item in xml:
+        if item.tag == 'Directory':
+            __build_folder(item)
+        else:
+            __build_item(item)
+    xbmcplugin.endOfDirectory(
+        handle=HANDLE,
+        cacheToDisc=settings('enableTextureCache') == 'true')
+
+
+def __build_folder(xml_element):
+    url = "plugin://plugin.video.plexkodiconnect/"
+    params = {
+        'mode': "browse_plex_folder",
+        'id': xml_element.attrib.get('key')
+    }
+    listitem = ListItem(xml_element.attrib.get('title'))
+    listitem.setArt({'thumb': xml_element.attrib.get('thumb'),
+                     'poster': xml_element.attrib.get('art')})
+    xbmcplugin.addDirectoryItem(
+        handle=HANDLE,
+        url="%s?%s" % (url, urlencode(params)),
+        isFolder=True,
+        listitem=listitem)
+
+
+def __build_item(xml_element):
+    url = "plugin://plugin.video.plexkodiconnect/"
+    api = API(xml_element)
+    listitem = api.CreateListItemFromPlexItem()
+    api.AddStreamInfo(listitem)
+    api.set_listitem_artwork(listitem)
+    params = {
+        'mode': "Plex_Node",
+        'id': xml_element.attrib.get('key'),
+        'viewOffset': xml_element.attrib.get('viewOffset', '0'),
+        'plex_type': xml_element.attrib.get('type')
+    }
+    xbmcplugin.addDirectoryItem(
+        handle=HANDLE,
+        url="%s?%s" % (url, urlencode(params)),
+        listitem=listitem)
 
 
 def enterPMS():

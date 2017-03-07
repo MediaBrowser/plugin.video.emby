@@ -102,9 +102,11 @@ class Main():
             'ondeck': entrypoint.getOnDeck,
             'chooseServer': entrypoint.chooseServer,
             'watchlater': entrypoint.watchlater,
+            'channels': entrypoint.channels,
             'enterPMS': entrypoint.enterPMS,
             'togglePlexTV': entrypoint.togglePlexTV,
-            'Plex_Node': entrypoint.Plex_Node
+            'Plex_Node': entrypoint.Plex_Node,
+            'browse_plex_folder': entrypoint.browse_plex_folder
         }
 
         if "/extrafanart" in argv[0]:
@@ -134,10 +136,10 @@ class Main():
             elif mode in ("nextup", "inprogressepisodes"):
                 limit = int(params['limit'])
                 modes[mode](params['tagname'], limit)
-            
-            elif mode in ("channels","getsubfolders"):
+
+            elif mode in ("getsubfolders"):
                 modes[mode](itemid)
-                
+
             elif mode == "browsecontent":
                 modes[mode](itemid, params.get('type'), params.get('folderid'))
 
@@ -162,6 +164,8 @@ class Main():
             elif mode == 'Plex_Node':
                 modes[mode](params.get('id'),
                             params.get('viewOffset'))
+            elif mode == 'browse_plex_folder':
+                modes[mode](params.get('id'))
             else:
                 modes[mode]()
         else:
