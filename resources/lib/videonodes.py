@@ -102,7 +102,7 @@ class VideoNodes(object):
                 return
 
         if mediatype == "photos":
-            path = "plugin://plugin.video.plexkodiconnect/?id=%s&mode=getsubfolders" % indexnumber
+            path = "plugin://plugin.video.plexkodiconnect?mode=browseplex&key=/library/sections/%s&id=%s" % (viewid, viewid)
             
         window('Plex.nodes.%s.index' % indexnumber, value=path)
         

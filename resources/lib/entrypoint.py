@@ -874,7 +874,7 @@ def browse_plex(key=None, plex_section_id=None):
     for item in xml:
         typus = item.attrib.get('type')
         if item.tag == 'Directory':
-            __build_folder(item)
+            __build_folder(item, plex_section_id=plex_section_id)
         else:
             __build_item(item)
             if typus == v.PLEX_TYPE_PHOTO:
@@ -940,11 +940,15 @@ def browse_plex(key=None, plex_section_id=None):
         cacheToDisc=settings('enableTextureCache') == 'true')
 
 
-def __build_folder(xml_element):
+def __build_folder(xml_element, plex_section_id=None):
     url = "plugin://%s/" % v.ADDON_ID
+    key = xml_element.attrib.get('fastKey', xml_element.attrib.get('key'))
+    if not key.startswith('/'):
+        key = '/library/sections/%s/%s' % (plex_section_id, key)
     params = {
         'mode': "browseplex",
-        'key': xml_element.attrib.get('key')
+        'key': key,
+        'id': plex_section_id
     }
     listitem = ListItem(xml_element.attrib.get('title'))
     listitem.setArt({'thumb': xml_element.attrib.get('thumb'),
