@@ -86,13 +86,9 @@ class Main():
         elif mode == 'Plex_Node':
             entrypoint.Plex_Node(itemid, params.get('viewOffset'))
 
-        elif mode == 'browse_plex_folder':
-            entrypoint.browse_plex_folder(itemid)
-
         elif mode == 'browseplex':
-            entrypoint.BrowsePlexContent(itemid,
-                                         params.get('type'),
-                                         params.get('folderid'))
+            entrypoint.browse_plex(key=params.get('key'),
+                                   plex_section_id=params.get('id'))
 
         elif mode == 'getsubfolders':
             entrypoint.GetSubFolders(itemid)
