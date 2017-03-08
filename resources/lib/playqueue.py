@@ -53,6 +53,8 @@ class Playqueue(Thread):
                 else:
                     # Currently, only video or audio playqueues available
                     playqueue.kodi_pl = PlayList(PLAYLIST_VIDEO)
+                    # Overwrite 'picture' with 'photo'
+                    playqueue.type = v.KODI_TYPE_PHOTO
                 self.playqueues.append(playqueue)
             # sort the list by their playlistid, just in case
             self.playqueues = sorted(
