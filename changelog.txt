@@ -1,3 +1,9 @@
+version 1.6.5 (beta only)
+- Plex Channels!
+- Browse video nodes by folder/path 
+- Update Danish translation
+- Code optimization
+
 version 1.6.4 (beta only)
 - Amazon Alexa support! Be mindful to check the Alexa forum thread first; there are still many issues completely unrelated to PKC
 - Enable skipping for Plex Companion 
