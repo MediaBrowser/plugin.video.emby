@@ -960,19 +960,23 @@ def __build_folder(xml_element, plex_section_id=None):
 
 
 def __build_item(xml_element):
-    url = "plugin://%s/" % v.ADDON_ID
     api = API(xml_element)
     listitem = api.CreateListItemFromPlexItem()
     api.AddStreamInfo(listitem)
     api.set_listitem_artwork(listitem)
-    params = {
-        'mode': "Plex_Node",
-        'id': xml_element.attrib.get('key'),
-        'viewOffset': xml_element.attrib.get('viewOffset', '0'),
-        'plex_type': xml_element.attrib.get('type')
-    }
+    if api.getType() != v.PLEX_TYPE_PHOTO:
+        url = "plugin://%s/" % v.ADDON_ID
+        params = {
+            'mode': "Plex_Node",
+            'id': xml_element.attrib.get('key'),
+            'viewOffset': xml_element.attrib.get('viewOffset', '0'),
+            'plex_type': xml_element.attrib.get('type')
+        }
+        url = '%s?%s' % (url, urlencode(params))
+    else:
+        url = listitem.getProperty('path')
     xbmcplugin.addDirectoryItem(handle=HANDLE,
-                                url="%s?%s" % (url, urlencode(params)),
+                                url=url,
                                 listitem=listitem)
 
 
