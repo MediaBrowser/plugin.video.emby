@@ -70,19 +70,6 @@ class PlayUtils():
         log.info("The playurl is: %s" % playurl)
         return playurl
 
-    def httpPlay(self):
-        # Audio, Video, Photo
-
-        itemid = self.item['Id']
-        mediatype = self.item['MediaType']
-
-        if mediatype == "Audio":
-            playurl = "%s/emby/Audio/%s/stream" % (self.server, itemid)
-        else:
-            playurl = "%s/emby/Videos/%s/stream?static=true" % (self.server, itemid)
-
-        return playurl
-
     def isDirectPlay(self):
         """
         Returns the path/playurl if we can direct play, None otherwise
