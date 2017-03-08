@@ -888,22 +888,8 @@ def watchlater():
 
     log.info('Displaying watch later plex.tv items')
     xbmcplugin.setContent(HANDLE, 'movies')
-    url = "plugin://plugin.video.plexkodiconnect/"
-    params = {
-        'mode': "Plex_Node",
-    }
     for item in xml:
-        api = API(item)
-        listitem = api.CreateListItemFromPlexItem()
-        api.AddStreamInfo(listitem)
-        api.set_listitem_artwork(listitem)
-        params['id'] = item.attrib.get('key')
-        params['viewOffset'] = item.attrib.get('viewOffset', '0')
-        params['plex_type'] = item.attrib.get('type')
-        xbmcplugin.addDirectoryItem(
-            handle=HANDLE,
-            url="%s?%s" % (url, urlencode(params)),
-            listitem=listitem)
+        __build_item(item)
 
     xbmcplugin.endOfDirectory(
         handle=HANDLE,
