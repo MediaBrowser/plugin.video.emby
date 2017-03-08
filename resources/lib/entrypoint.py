@@ -862,7 +862,6 @@ def browse_plex(key=None, plex_section_id=None):
         log.error('Could not browse to %s' % key)
         return xbmcplugin.endOfDirectory(HANDLE, False)
 
-    directory = False
     photos = False
     movies = False
     clips = False
@@ -875,7 +874,6 @@ def browse_plex(key=None, plex_section_id=None):
     for item in xml:
         typus = item.attrib.get('type')
         if item.tag == 'Directory':
-            directory = True
             __build_folder(item)
         else:
             __build_item(item)
@@ -899,19 +897,15 @@ def browse_plex(key=None, plex_section_id=None):
                 musicvideos = True
 
     # Set the correct content type
-    if directory is True:
-        xbmcplugin.setContent(HANDLE, 'files')
-        sort_methods = v.SORT_METHODS_DIRECTORY
-    elif photos is True:
-        # E.g. Plex foto sections with videos (both!!)
-        xbmcplugin.setContent(HANDLE, 'files')
-        sort_methods = v.SORT_METHODS_PHOTOS
+    if movies is True:
+        xbmcplugin.setContent(HANDLE, 'movies')
+        sort_methods = v.SORT_METHODS_MOVIES
     elif clips is True:
         xbmcplugin.setContent(HANDLE, 'movies')
         sort_methods = v.SORT_METHODS_CLIPS
-    elif movies is True:
-        xbmcplugin.setContent(HANDLE, 'movies')
-        sort_methods = v.SORT_METHODS_MOVIES
+    elif photos is True:
+        xbmcplugin.setContent(HANDLE, 'files')
+        sort_methods = v.SORT_METHODS_PHOTOS
     elif tvshows is True:
         xbmcplugin.setContent(HANDLE, 'tvshows')
         sort_methods = v.SORT_METHOD_TVSHOWS
