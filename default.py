@@ -58,12 +58,8 @@ class Main():
         log.debug("Full sys.argv received: %s" % argv)
         # Parse parameters
         params = dict(parse_qsl(argv[2][1:]))
-        try:
-            mode = params['mode']
-            itemid = params.get('id', '')
-        except:
-            mode = ""
-            itemid = ''
+        mode = params.get('mode', '')
+        itemid = params.get('id', '')
 
         if mode == 'play':
             self.play()
@@ -89,10 +85,10 @@ class Main():
                                              int(params['limit']))
 
         elif mode == 'Plex_Node':
-            entrypoint.Plex_Node(params.get('id'), params.get('viewOffset'))
+            entrypoint.Plex_Node(itemid, params.get('viewOffset'))
 
         elif mode == 'browse_plex_folder':
-            entrypoint.browse_plex_folder(params.get('id'))
+            entrypoint.browse_plex_folder(itemid)
 
         elif mode == 'browseplex':
             entrypoint.BrowsePlexContent(itemid,
@@ -163,14 +159,14 @@ class Main():
 
         elif "/extrafanart" in argv[0]:
             plexpath = argv[2][1:]
-            plexid = params.get('id')
+            plexid = itemid
             entrypoint.getExtraFanArt(plexid, plexpath)
             entrypoint.getVideoFiles(plexid, plexpath)
 
         # Called by e.g. 3rd party plugin video extras
         elif ("/Extras" in argv[0] or "/VideoFiles" in argv[0] or
                 "/Extras" in argv[2]):
-            plexId = params.get('id', None)
+            plexId = itemid or None
             entrypoint.getVideoFiles(plexId, params)
 
         else:
