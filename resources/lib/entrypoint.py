@@ -217,23 +217,6 @@ def doMainListing():
     xbmcplugin.endOfDirectory(HANDLE)
 
 
-##### Generate a new deviceId
-def resetDeviceId():
-    deviceId_old = window('plex_client_Id')
-    from clientinfo import getDeviceId
-    try:
-        deviceId = getDeviceId(reset=True)
-    except Exception as e:
-        log.error("Failed to generate a new device Id: %s" % e)
-        dialog('ok', lang(29999), lang(33032))
-    else:
-        log.info("Successfully removed old deviceId: %s New deviceId: %s"
-                 % (deviceId_old, deviceId))
-        # "Kodi will now restart to apply the changes"
-        dialog('ok', lang(29999), lang(33033))
-        executebuiltin('RestartApp')
-
-
 def switchPlexUser():
     """
     Signs out currently logged in user (if applicable). Triggers sign-in of a
@@ -253,12 +236,6 @@ def switchPlexUser():
     # Remove video nodes
     deleteNodes()
     __LogIn()
-
-
-##### REFRESH EMBY PLAYLISTS #####
-def refreshPlaylist():
-    log.info('Requesting playlist/nodes refresh')
-    window('plex_runLibScan', value="views")
 
 
 #### SHOW SUBFOLDERS FOR NODE #####
