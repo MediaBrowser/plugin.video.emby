@@ -43,7 +43,7 @@ import variables as v
 import loghandler
 
 loghandler.config()
-log = logging.getLogger("PLEX.default")
+log = logging.getLogger('PLEX.default')
 
 ###############################################################################
 
@@ -51,11 +51,10 @@ HANDLE = int(argv[1])
 
 
 class Main():
-
     # MAIN ENTRY POINT
     # @utils.profiling()
     def __init__(self):
-        log.debug("Full sys.argv received: %s" % argv)
+        log.debug('Full sys.argv received: %s' % argv)
         # Parse parameters
         params = dict(parse_qsl(argv[2][1:]))
         mode = params.get('mode', '')
@@ -80,7 +79,7 @@ class Main():
             entrypoint.getNextUpEpisodes(params['tagname'],
                                          int(params['limit']))
 
-        elif mode == "inprogressepisodes":
+        elif mode == 'inprogressepisodes':
             entrypoint.getInProgressEpisodes(params['tagname'],
                                              int(params['limit']))
 
@@ -95,7 +94,7 @@ class Main():
                                          params.get('type'),
                                          params.get('folderid'))
 
-        elif mode == "getsubfolders":
+        elif mode == 'getsubfolders':
             entrypoint.GetSubFolders(itemid)
 
         elif mode == 'watchlater':
@@ -104,10 +103,10 @@ class Main():
         elif mode == 'channels':
             entrypoint.channels()
 
-        elif mode == "settings":
+        elif mode == 'settings':
             executebuiltin('Addon.OpenSettings(%s)' % v.ADDON_ID)
 
-        elif mode == "enterPMS":
+        elif mode == 'enterPMS':
             entrypoint.enterPMS()
 
         elif mode == 'reset':
@@ -125,47 +124,47 @@ class Main():
         elif mode == 'switchuser':
             entrypoint.switchPlexUser()
 
-        elif mode in ("manualsync", "repair"):
-            if window('plex_online') != "true":
+        elif mode in ('manualsync', 'repair'):
+            if window('plex_online') != 'true':
                 # Server is not online, do not run the sync
                 dialog('ok',
                        heading=lang(29999),
                        message=lang(39205))
-                log.error("Not connected to a PMS.")
+                log.error('Not connected to a PMS.')
             else:
                 if mode == 'repair':
-                    window('plex_runLibScan', value="repair")
-                    log.info("Requesting repair lib sync")
+                    window('plex_runLibScan', value='repair')
+                    log.info('Requesting repair lib sync')
                 elif mode == 'manualsync':
-                    log.info("Requesting full library scan")
-                    window('plex_runLibScan', value="full")
+                    log.info('Requesting full library scan')
+                    window('plex_runLibScan', value='full')
 
-        elif mode == "texturecache":
+        elif mode == 'texturecache':
             window('plex_runLibScan', value='del_textures')
 
-        elif mode == "chooseServer":
+        elif mode == 'chooseServer':
             entrypoint.chooseServer()
 
-        elif mode == "refreshplaylist":
+        elif mode == 'refreshplaylist':
             log.info('Requesting playlist/nodes refresh')
-            window('plex_runLibScan', value="views")
+            window('plex_runLibScan', value='views')
 
-        elif mode == "deviceid":
+        elif mode == 'deviceid':
             self.deviceid()
 
         elif mode == 'fanart':
             log.info('User requested fanarttv refresh')
             window('plex_runLibScan', value='fanart')
 
-        elif "/extrafanart" in argv[0]:
+        elif '/extrafanart' in argv[0]:
             plexpath = argv[2][1:]
             plexid = itemid
             entrypoint.getExtraFanArt(plexid, plexpath)
             entrypoint.getVideoFiles(plexid, plexpath)
 
         # Called by e.g. 3rd party plugin video extras
-        elif ("/Extras" in argv[0] or "/VideoFiles" in argv[0] or
-                "/Extras" in argv[2]):
+        elif ('/Extras' in argv[0] or '/VideoFiles' in argv[0] or
+                '/Extras' in argv[2]):
             plexId = itemid or None
             entrypoint.getVideoFiles(plexId, params)
 
@@ -173,7 +172,7 @@ class Main():
             entrypoint.doMainListing()
 
     def play(self):
-        # Put the request into the "queue"
+        # Put the request into the 'queue'
         while window('plex_play_new_item'):
             sleep(50)
         window('plex_play_new_item',
@@ -200,16 +199,16 @@ class Main():
         try:
             deviceId = getDeviceId(reset=True)
         except Exception as e:
-            log.error("Failed to generate a new device Id: %s" % e)
+            log.error('Failed to generate a new device Id: %s' % e)
             dialog('ok', lang(29999), lang(33032))
         else:
-            log.info("Successfully removed old device ID: %s New deviceId:"
-                     "%s" % (deviceId_old, deviceId))
-            # "Kodi will now restart to apply the changes"
+            log.info('Successfully removed old device ID: %s New deviceId:'
+                     '%s' % (deviceId_old, deviceId))
+            # 'Kodi will now restart to apply the changes'
             dialog('ok', lang(29999), lang(33033))
             executebuiltin('RestartApp')
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     log.info('%s started' % v.ADDON_ID)
     Main()
     log.info('%s stopped' % v.ADDON_ID)
