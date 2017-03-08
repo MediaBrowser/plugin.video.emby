@@ -131,58 +131,64 @@ class VideoNodes(object):
             '9': "genres",
             '10': "random",
             '11': "recommended",
-            '12': "ondeck"
+            '12': "ondeck",
+            '13': 'browsefiles'
         }
         mediatypes = {
             # label according to nodetype per mediatype
-            'movies': 
+            'movies':
                 {
-                '1': tagname,
-                '2': 30174,
-                # '4': 30177,
-                # '6': 30189,
-                '8': 39501,
-                '9': 135,
-                '10': 30227,
-                '11': 30230,
-                '12': 39500,
+                    '1': tagname,
+                    '2': 30174,
+                    # '4': 30177,
+                    # '6': 30189,
+                    '8': 39501,
+                    '9': 135,
+                    '10': 30227,
+                    '11': 30230,
+                    '12': 39500,
+                    '13': 39702
                 },
 
-            'tvshows': 
+            'tvshows':
                 {
-                '1': tagname,
-                # '2': 30170,
-                '3': 30174,
-                # '4': 30171,
-                # '5': 30178,
-                # '7': 30179,
-                '9': 135,
-                '10': 30227,
-                # '11': 30230,
-                '12': 39500,
-                },
-                
-            'homevideos': 
-                {
-                '1': tagname,
-                '2': 30251,
-                '11': 30253
-                },
-                
-            'photos': 
-                {
-                '1': tagname,
-                '2': 30252,
-                '8': 30255,
-                '11': 30254
+                    '1': tagname,
+                    # '2': 30170,
+                    '3': 30174,
+                    # '4': 30171,
+                    # '5': 30178,
+                    # '7': 30179,
+                    '9': 135,
+                    '10': 30227,
+                    # '11': 30230,
+                    '12': 39500,
+                    '13': 39702
                 },
 
-            'musicvideos': 
+            'homevideos':
                 {
-                '1': tagname,
-                '2': 30256,
-                '4': 30257,
-                '6': 30258
+                    '1': tagname,
+                    '2': 30251,
+                    '11': 30253,
+                    '13': 39702
+                },
+
+            'photos':
+                {
+                    '1': tagname,
+                    '2': 30252,
+                    '8': 30255,
+                    '11': 30254,
+                    '13': 39702
+                },
+
+            'musicvideos':
+                {
+                    '1': tagname,
+                    '2': 30256,
+                    '4': 30257,
+                    '6': 30258,
+                    '13': 39702
                 }
         }
 
@@ -200,6 +206,7 @@ class VideoNodes(object):
             '10': '8',  # "random",
             '11': '5',  # "recommended",
             '12': '1',  # "ondeck"
+            '13': '9'  # browse by folder
         }
 
         nodes = mediatypes[mediatype]
@@ -244,6 +251,8 @@ class VideoNodes(object):
                 elif mediatype =="movies":
                     # Reset nodetype; we got the label
                     nodetype = 'inprogress'
+            elif nodetype == 'browsefiles':
+                path = 'plugin://plugin.video.plexkodiconnect?mode=browseplex&key=/library/sections/%s/folder' % viewid
             else:
                 path = "library://video/Plex-%s/%s_%s.xml" % (dirname, viewid, nodetype)
             
@@ -285,7 +294,7 @@ class VideoNodes(object):
                 continue
 
             # Create the root
-            if (nodetype in ("nextepisodes", "ondeck", 'recentepisodes') or mediatype == "homevideos"):
+            if (nodetype in ("nextepisodes", "ondeck", 'recentepisodes', 'browsefiles') or mediatype == "homevideos"):
                 # Folder type with plugin path
                 root = self.commonRoot(order=sortorder[node], label=label, tagname=tagname, roottype=2)
                 etree.SubElement(root, 'path').text = path
