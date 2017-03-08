@@ -942,7 +942,7 @@ def browse_plex_folder(key):
 
 
 def __build_folder(xml_element):
-    url = "plugin://plugin.video.plexkodiconnect/"
+    url = "plugin://%s/" % v.ADDON_ID
     params = {
         'mode': "browse_plex_folder",
         'id': xml_element.attrib.get('key')
@@ -950,15 +950,14 @@ def __build_folder(xml_element):
     listitem = ListItem(xml_element.attrib.get('title'))
     listitem.setArt({'thumb': xml_element.attrib.get('thumb'),
                      'poster': xml_element.attrib.get('art')})
-    xbmcplugin.addDirectoryItem(
-        handle=HANDLE,
-        url="%s?%s" % (url, urlencode(params)),
-        isFolder=True,
-        listitem=listitem)
+    xbmcplugin.addDirectoryItem(handle=HANDLE,
+                                url="%s?%s" % (url, urlencode(params)),
+                                isFolder=True,
+                                listitem=listitem)
 
 
 def __build_item(xml_element):
-    url = "plugin://plugin.video.plexkodiconnect/"
+    url = "plugin://%s/" % v.ADDON_ID
     api = API(xml_element)
     listitem = api.CreateListItemFromPlexItem()
     api.AddStreamInfo(listitem)
@@ -969,10 +968,9 @@ def __build_item(xml_element):
         'viewOffset': xml_element.attrib.get('viewOffset', '0'),
         'plex_type': xml_element.attrib.get('type')
     }
-    xbmcplugin.addDirectoryItem(
-        handle=HANDLE,
-        url="%s?%s" % (url, urlencode(params)),
-        listitem=listitem)
+    xbmcplugin.addDirectoryItem(handle=HANDLE,
+                                url="%s?%s" % (url, urlencode(params)),
+                                listitem=listitem)
 
 
 def enterPMS():
