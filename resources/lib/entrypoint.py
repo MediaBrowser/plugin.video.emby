@@ -117,8 +117,7 @@ def Plex_Node(url, viewOffset, playdirectly=False, node=True):
         return
     if viewOffset != '0':
         try:
-            viewOffset = int(v.PLEX_TO_KODI_TIMEFACTOR *
-                             float(viewOffset))
+            viewOffset = int(v.PLEX_TO_KODI_TIMEFACTOR * float(viewOffset))
         except:
             pass
         else:
@@ -964,24 +963,21 @@ def __build_item(xml_element):
     listitem = api.CreateListItemFromPlexItem()
     api.AddStreamInfo(listitem)
     api.set_listitem_artwork(listitem)
-    if api.getType() == v.PLEX_TYPE_PHOTO:
-        url = listitem.getProperty('path')
-    elif api.getType() == v.PLEX_TYPE_CLIP:
+    if api.getType() == v.PLEX_TYPE_CLIP:
         params = {
             'mode': "Plex_Node",
             'id': xml_element.attrib.get('key'),
             'viewOffset': xml_element.attrib.get('viewOffset', '0'),
             'plex_type': xml_element.attrib.get('type')
         }
-        url = 'plugin://%s?%s' % (v.ADDON_ID, urlencode(params))
     else:
         params = {
             'filename': api.getKey(),
             'id': api.getRatingKey(),
-            'dbid': listitem.getProperty('dbid') or None,
+            'dbid': listitem.getProperty('dbid') or '',
             'mode': "play"
         }
-        url = "plugin://%s?%s" % (v.ADDON_ID, urlencode(params))
+    url = "plugin://%s?%s" % (v.ADDON_ID, urlencode(params))
     xbmcplugin.addDirectoryItem(handle=HANDLE,
                                 url=url,
                                 listitem=listitem)
