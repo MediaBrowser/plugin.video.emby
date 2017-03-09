@@ -1,14 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon  id="plugin.video.plexkodiconnect"
-        name="PlexKodiConnect" 
-        version="1.6.5"
-        provider-name="croneter">
+<addon  id="plugin.video.plexkodiconnect" name="PlexKodiConnect" version="1.6.5" provider-name="croneter">
   <requires>
     <import addon="xbmc.python" version="2.1.0"/>
     <import addon="script.module.requests" version="2.3.0" />
   </requires>
-  <extension    point="xbmc.python.pluginsource"
-                library="default.py">
+  <extension point="xbmc.python.pluginsource" library="default.py">
         <provides>video audio image</provides>
   </extension>
   <extension point="xbmc.service" library="service.py" start="login">
@@ -21,6 +17,13 @@
       </item>
   </extension>
   <extension point="xbmc.addon.metadata">
+    <platform>all</platform>
+    <language></language>
+    <license>GNU GENERAL PUBLIC LICENSE. Version 2, June 1991</license>
+    <forum>https://forums.plex.tv</forum>
+    <website>https://github.com/croneter/PlexKodiConnect</website>
+    <email></email>
+    <source>https://github.com/croneter/PlexKodiConnect</source>
     <summary lang="en">Native Integration of Plex into Kodi</summary>
     <summary lang="en_gb">Native Integration of Plex into Kodi</summary>
     <summary lang="en_us">Native Integration of Plex into Kodi</summary>
@@ -37,11 +40,5 @@
     <description lang="es">Connect Kodi to your Plex Media Server. This plugin assumes that you manage all your videos with Plex (and none with Kodi). You might lose data already stored in the Kodi video and music databases (as this plugin directly changes them). Use at your own risk!</description>
     <description lang="dk">Tilslut Kodi til din Plex Media Server. Dette plugin forudsætter, at du administrere alle dine videoer med Plex (og ikke med Kodi). Du kan miste data som allerede er gemt i Kodi video og musik-databaser (dette plugin ændrer direkte i dem). Brug på eget ansvar!</description>
     <description lang="nl">Verbind Kodi met je Plex Media Server. Deze plugin gaat ervan uit dat je al je video's met Plex (en niet met Kodi) beheerd. Je kunt gegevens reeds opgeslagen in de databases voor video en muziek van Kodi (deze plugin wijzigt deze gegevens direct) verliezen. Gebruik op eigen risico!</description>
-    <platform>all</platform>
-    <license>GPL v2.0</license>
-    <forum>https://forums.plex.tv</forum>
-    <website>https://github.com/croneter/PlexKodiConnect</website>
-    <email></email>
-    <source>https://github.com/croneter/PlexKodiConnect</source>
   </extension>
 </addon>
