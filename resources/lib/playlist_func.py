@@ -260,7 +260,6 @@ def init_Plex_playlist(playlist, plex_id=None, kodi_item=None):
     except KeyError:
         log.error('Could not init Plex playlist')
         return
-    item.ID = xml[-1].attrib['%sItemID' % playlist.kind]
     playlist.items.append(item)
     log.debug('Initialized the playlist on the Plex side: %s' % playlist)
 
