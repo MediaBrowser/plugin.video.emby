@@ -964,17 +964,24 @@ def __build_item(xml_element):
     listitem = api.CreateListItemFromPlexItem()
     api.AddStreamInfo(listitem)
     api.set_listitem_artwork(listitem)
-    if api.getType() != v.PLEX_TYPE_PHOTO:
-        url = "plugin://%s/" % v.ADDON_ID
+    if api.getType() == v.PLEX_TYPE_PHOTO:
+        url = listitem.getProperty('path')
+    elif api.getType() == v.PLEX_TYPE_CLIP:
         params = {
             'mode': "Plex_Node",
             'id': xml_element.attrib.get('key'),
             'viewOffset': xml_element.attrib.get('viewOffset', '0'),
             'plex_type': xml_element.attrib.get('type')
         }
-        url = '%s?%s' % (url, urlencode(params))
+        url = 'plugin://%s?%s' % (v.ADDON_ID, urlencode(params))
     else:
-        url = listitem.getProperty('path')
+        params = {
+            'filename': api.getKey(),
+            'id': api.getRatingKey(),
+            'dbid': listitem.getProperty('dbid') or None,
+            'mode': "play"
+        }
+        url = "plugin://%s?%s" % (v.ADDON_ID, urlencode(params))
     xbmcplugin.addDirectoryItem(handle=HANDLE,
                                 url=url,
                                 listitem=listitem)
