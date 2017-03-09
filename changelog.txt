@@ -1,3 +1,11 @@
+version 1.7.0
+- Amazon Alexa support! Be sure to check the Plex Alexa forum first if you encounter issues; there are still many bugs completely unrelated to PKC
+- Plex Channels!
+- Browse video nodes by folder/path 
+- Fix IndexError for playqueues
+- Update translations
+- Code optimization
+
 version 1.6.5 (beta only)
 - Plex Channels!
 - Browse video nodes by folder/path 
