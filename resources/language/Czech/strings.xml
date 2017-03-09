@@ -513,4 +513,8 @@
     <string id="39601">Nemohu zastavit běh databáze. Prosím zkuste to později.</string>
     <string id="39602">Odstranit všechny obrázky v mezipaměti? (doporučuje se!)</string>
     <string id="39603">Obnovit všechna nastavení doplňku PlexKodiConnect? (to obvykle není vhodné a je to zbytečné!)</string>
+
+    <string id="39700">Amazon Alexa (rozpoznávání hlasu)</string>
+    <string id="39701">Aktivovat Alexu</string>
+    <string id="39702">Browse by folder</string>
 </strings>

@@ -513,4 +513,8 @@
     <string id="39601">No se pudo detener la base de datos. Por favor inténtelo más tarde.</string>
     <string id="39602">¿Eliminar todo el arte del caché? (¡recomendado!)</string>
     <string id="39603">¿Restablecer todos los ajustes de PlexKodiConnect? (esto generalmente NO es recomendable ni necesario!)</string>
+
+    <string id="39700">Amazon Alexa (Voice Recognition)</string>
+    <string id="39701">Activate Alexa</string>
+    <string id="39702">Browse by folder</string>
 </strings>
