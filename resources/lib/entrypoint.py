@@ -106,7 +106,7 @@ def Plex_Node(url, viewOffset, playdirectly=False, node=True):
     log.info('Plex_Node called with url: %s, viewOffset: %s'
              % (url, viewOffset))
     # Plex redirect, e.g. watch later. Need to get actual URLs
-    if url.startswith('http'):
+    if url.startswith('http') or url.startswith('{server}'):
         xml = downloadutils.DownloadUtils().downloadUrl(url)
     else:
         xml = downloadutils.DownloadUtils().downloadUrl('{server}%s' % url)
