@@ -1,3 +1,6 @@
+version 1.7.2
+- Fix for some channels not starting playback
+
 version 1.7.1
 - Fix Alexa not doing anything
 
