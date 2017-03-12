@@ -963,7 +963,8 @@ def __build_item(xml_element):
     listitem = api.CreateListItemFromPlexItem()
     api.AddStreamInfo(listitem)
     api.set_listitem_artwork(listitem)
-    if api.getType() == v.PLEX_TYPE_CLIP:
+    if (api.getKey().startswith('/system/services') or
+            api.getKey().startswith('http')):
         params = {
             'mode': "Plex_Node",
             'id': xml_element.attrib.get('key'),
