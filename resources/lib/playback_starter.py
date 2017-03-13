@@ -41,7 +41,7 @@ class Playback_Starter(Thread):
         xml = GetPlexMetadata(plex_id)
         try:
             xml[0].attrib
-        except (TypeError, AttributeError):
+        except (IndexError, TypeError, AttributeError):
             log.error('Could not get a PMS xml for plex id %s' % plex_id)
             return
         api = API(xml[0])
