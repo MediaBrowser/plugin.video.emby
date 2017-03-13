@@ -978,7 +978,7 @@ def __build_item(xml_element):
         params = {
             'filename': api.getKey(),
             'id': api.getRatingKey(),
-            'dbid': listitem.getProperty('dbid') or '',
+            'dbid': listitem.getProperty('dbid'),
             'mode': "play"
         }
     url = "plugin://%s?%s" % (v.ADDON_ID, urlencode(params))
