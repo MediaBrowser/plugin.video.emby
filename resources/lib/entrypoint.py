@@ -961,7 +961,10 @@ def __build_folder(xml_element, plex_section_id=None):
 def __build_item(xml_element):
     api = API(xml_element)
     listitem = api.CreateListItemFromPlexItem()
-    api.AddStreamInfo(listitem)
+    try:
+        api.AddStreamInfo(listitem)
+    except:
+        pass
     api.set_listitem_artwork(listitem)
     if (api.getKey().startswith('/system/services') or
             api.getKey().startswith('http')):
