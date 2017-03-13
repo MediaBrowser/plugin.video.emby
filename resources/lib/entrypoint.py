@@ -857,7 +857,7 @@ def browse_plex(key=None, plex_section_id=None):
             containerSize=int(settings('limitindex')))
     try:
         xml[0].attrib
-    except (ValueError, AttributeError, IndexError):
+    except (ValueError, AttributeError, IndexError, TypeError):
         log.error('Could not browse to %s' % key)
         return xbmcplugin.endOfDirectory(HANDLE, False)
 
