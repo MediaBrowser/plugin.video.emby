@@ -1,3 +1,10 @@
+version 1.7.3 (beta only)
+- Fix KeyError for channels if no media streams
+- Move plex node navigation, playback to main thread
+- Fix TypeError for malformed browsing xml
+- Fix IndexError if we can't get a valid xml from PMS
+- Pass 'None' instead of empty string in url args
+
 version 1.7.2
 - Fix for some channels not starting playback
 
