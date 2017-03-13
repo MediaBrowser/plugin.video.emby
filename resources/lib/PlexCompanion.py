@@ -3,19 +3,17 @@ import logging
 from threading import Thread
 import Queue
 from socket import SHUT_RDWR
+from urllib import urlencode
 
-from xbmc import sleep
+from xbmc import sleep, executebuiltin
 
-from utils import settings, ThreadMethodsAdditionalSuspend, ThreadMethods, \
-    window
+from utils import settings, ThreadMethodsAdditionalSuspend, ThreadMethods
 from plexbmchelper import listener, plexgdm, subscribers, functions, \
     httppersist, plexsettings
 from PlexFunctions import ParseContainerKey, GetPlexMetadata
 from PlexAPI import API
 import player
-from entrypoint import Plex_Node
 import variables as v
-
 
 ###############################################################################
 
@@ -93,23 +91,27 @@ class PlexCompanion(Thread):
                 self.mgr.playqueue.init_playqueue_from_plex_children(
                     api.getRatingKey())
             else:
-                thread = Thread(target=Plex_Node,
-                                args=('{server}%s' % data.get('key'),
-                                      data.get('offset'),
-                                      True,
-                                      False),)
-                thread.setDaemon(True)
-                thread.start()
+                params = {
+                    'mode': 'plex_node',
+                    'key': '{server}%s' % data.get('key'),
+                    'view_offset': data.get('offset'),
+                    'play_directly': 'true',
+                    'node': 'false'
+                }
+                executebuiltin('RunPlugin(plugin://%s?%s)'
+                               % (v.ADDON_ID, urlencode(params)))
 
         elif (task['action'] == 'playlist' and
                 data.get('address') == 'node.plexapp.com'):
             # E.g. watch later initiated by Companion
-            thread = Thread(target=Plex_Node,
-                            args=('{server}%s' % data.get('key'),
-                                  data.get('offset'),
-                                  True),)
-            thread.setDaemon(True)
-            thread.start()
+            params = {
+                'mode': 'plex_node',
+                'key': '{server}%s' % data.get('key'),
+                'view_offset': data.get('offset'),
+                'play_directly': 'true'
+            }
+            executebuiltin('RunPlugin(plugin://%s?%s)'
+                           % (v.ADDON_ID, urlencode(params)))
 
         elif task['action'] == 'playlist':
             # Get the playqueue ID

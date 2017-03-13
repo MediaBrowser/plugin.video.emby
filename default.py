@@ -63,6 +63,9 @@ class Main():
         if mode == 'play':
             self.play()
 
+        elif mode == 'plex_node':
+            self.play()
+
         elif mode == 'ondeck':
             entrypoint.getOnDeck(itemid,
                                  params.get('type'),
@@ -82,9 +85,6 @@ class Main():
         elif mode == 'inprogressepisodes':
             entrypoint.getInProgressEpisodes(params['tagname'],
                                              int(params['limit']))
-
-        elif mode == 'Plex_Node':
-            entrypoint.Plex_Node(itemid, params.get('viewOffset'))
 
         elif mode == 'browseplex':
             entrypoint.browse_plex(key=params.get('key'),
@@ -168,6 +168,9 @@ class Main():
             entrypoint.doMainListing()
 
     def play(self):
+        """
+        Start up playback_starter in main Python thread
+        """
         # Put the request into the 'queue'
         while window('plex_play_new_item'):
             sleep(50)
