@@ -847,7 +847,7 @@ def browse_plex(key=None, plex_section_id=None):
         xbmcplugin.setContent(HANDLE, 'movies')
         sort_methods = v.SORT_METHODS_CLIPS
     elif photos is True:
-        xbmcplugin.setContent(HANDLE, 'files')
+        xbmcplugin.setContent(HANDLE, 'images')
         sort_methods = v.SORT_METHODS_PHOTOS
     elif tvshows is True:
         xbmcplugin.setContent(HANDLE, 'tvshows')
