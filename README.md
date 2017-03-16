@@ -18,7 +18,7 @@ Please help translate PlexKodiConnect into your language: [crowdin.com](https://
 
 ### Content
 * [**Warning**](#warning)
-* [**What does PKC do and how is it different from the official 'Plex for Kodi'**](#what-does-pkc-do-and-how-is-it-different-from-the-official-plex-for-kod)
+* [**What does PKC do**](#what-does-pkc-do?)
 * [**Download and Installation**](#download-and-installation)
 * [**Important notes**](#important-notes)
 * [**Donations**](#donations)
@@ -113,7 +113,7 @@ However, some changes to individual items are instantly detected, e.g. if you ma
 Have a look at the [Github Issues Page](https://github.com/croneter/PlexKodiConnect/issues). Before you open your own issue, please read [How to report a bug](https://github.com/croneter/PlexKodiConnect/wiki/How-to-Report-A-Bug).
 
 
-### Checkout the PKC Wiki
+### PKC Wiki & Frequently Asked Questions
 The [Wiki can be found here](https://github.com/croneter/PlexKodiConnect/wiki) and will hopefully answer all your questions. You can even edit the wiki yourself!
 
 ### Credits
