@@ -1,4 +1,4 @@
-##Status
+## Status
 
 [![GitHub issues](https://img.shields.io/github/issues/croneter/PlexKodiConnect.svg?maxAge=60&style=flat-square)](https://github.com/croneter/PlexKodiConnect/issues)
 [![GitHub pull requests](https://img.shields.io/github/issues-pr/croneter/PlexKodiConnect.svg?maxAge=60&style=flat-square)](https://github.com/croneter/PlexKodiConnect/pulls)
@@ -18,14 +18,14 @@ Please help translate PlexKodiConnect into your language: [crowdin.com](https://
 
 ### Content
 * [**Warning**](#warning)
-* [**What does PKC do**](#what-does-pkc-do?)
+* [**What does PKC do**](#what-does-pkc-do)
 * [**Download and Installation**](#download-and-installation)
 * [**Important notes**](#important-notes)
 * [**Donations**](#donations)
-* [**What is currently supported?**](#what-is-currently-supported)
+* [**PKC Features**](#pkc-features)
 * [**Known Larger Issues**](#known-larger-issues)
 * [**Issues being worked on**](#issues-being-worked-on)
-* [**Requests for new features**](#requests-for-new-features)
+* [**Request a New Feature**](#request-a-new-feature)
 * [**Checkout the PKC Wiki**](#checkout-the-pkc-wiki)
 * [**Credits**](#credits)
 
@@ -63,9 +63,8 @@ I'm not in any way affiliated with Plex. Thank you very much for a small donatio
 
 [ ![Download](https://az743702.vo.msecnd.net/cdn/kofi1.png?v=a|alt=Buy Me a Coffee)](https://ko-fi.com/A8182EB)
 
-### What is currently supported?
+### PKC Features
 
-PKC currently provides the following features:
 - [Amazon Alexa voice recognition](https://www.plex.tv/apps/streaming-devices/amazon-alexa)
 - [Plex Watch Later / Plex It!](https://support.plex.tv/hc/en-us/sections/200211783-Plex-It-)
 - [Plex Companion](https://support.plex.tv/hc/en-us/sections/200276908-Plex-Companion): fling Plex media (or anything else) from other Plex devices to PlexKodiConnect
