@@ -23,10 +23,10 @@ Please help translate PlexKodiConnect into your language: [crowdin.com](https://
 * [**Important notes**](#important-notes)
 * [**Donations**](#donations)
 * [**PKC Features**](#pkc-features)
+* [**Request a New Feature**](#request-a-new-feature)
 * [**Known Larger Issues**](#known-larger-issues)
 * [**Issues being worked on**](#issues-being-worked-on)
-* [**Request a New Feature**](#request-a-new-feature)
-* [**Checkout the PKC Wiki**](#checkout-the-pkc-wiki)
+* [**PKC Wiki & Frequently Asked Questions**](#pkc-wiki--frequently-asked-questions)
 * [**Credits**](#credits)
 
 ### Warning
