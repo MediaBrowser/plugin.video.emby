@@ -61,7 +61,7 @@ Install PKC via the PlexKodiConnect Kodi repository (we cannot use the official 
 I'm not in any way affiliated with Plex. Thank you very much for a small donation via ko-fi.com and PayPal if you appreciate PKC.  
 **Full disclaimer:** I will see your name and address on my PayPal account. Rest assured that I will not share this with anyone. 
 
-[![Download](https://az743702.vo.msecnd.net/cdn/kofi1.png?v=a|alt=Buy Me a Coffee)](https://ko-fi.com/A8182EB)
+[![Donations](https://az743702.vo.msecnd.net/cdn/kofi1.png?v=a)](https://ko-fi.com/A8182EB)
 
 ### PKC Features
 
