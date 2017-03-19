@@ -120,6 +120,7 @@ class Playback_Starter(Thread):
             if result.listitem:
                 listitem = convert_PKC_to_listitem(result.listitem)
                 Player().play(listitem.getfilename(), listitem)
+            return Playback_Successful()
         else:
             return result
 
