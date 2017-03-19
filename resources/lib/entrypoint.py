@@ -116,7 +116,8 @@ def addDirectoryItem(label, path, folder=True):
     xbmcplugin.addDirectoryItem(handle=HANDLE, url=path, listitem=li, isFolder=folder)
 
 
-def doMainListing():
+def doMainListing(content_type=None):
+    log.debug('Do main listing with content_type: %s' % content_type)
     xbmcplugin.setContent(HANDLE, 'files')
     # Get emby nodes from the window props
     plexprops = window('Plex.nodes.total')
@@ -126,37 +127,38 @@ def doMainListing():
             path = window('Plex.nodes.%s.index' % i)
             if not path:
                 path = window('Plex.nodes.%s.content' % i)
+                if not path:
+                    continue
             label = window('Plex.nodes.%s.title' % i)
             node_type = window('Plex.nodes.%s.type' % i)
-            #because we do not use seperate entrypoints for each content type, we need to figure out which items to show in each listing.
-            #for now we just only show picture nodes in the picture library video nodes in the video library and all nodes in any other window
-            if path and getCondVisibility("Window.IsActive(Pictures)") and node_type == "photos":
+            # because we do not use seperate entrypoints for each content type,
+            # we need to figure out which items to show in each listing. for
+            # now we just only show picture nodes in the picture library video
+            # nodes in the video library and all nodes in any other window
+            if node_type == 'photos' and content_type == 'image':
                 addDirectoryItem(label, path)
-            elif path and getCondVisibility("Window.IsActive(VideoLibrary)") and node_type != "photos":
-                addDirectoryItem(label, path)
-            elif path and not getCondVisibility("Window.IsActive(VideoLibrary) | Window.IsActive(Pictures) | Window.IsActive(MusicLibrary)"):
+            elif (node_type != 'photos' and
+                    content_type not in ('image', 'audio')):
                 addDirectoryItem(label, path)
 
     # Plex Watch later
-    addDirectoryItem(lang(39211),
-                     "plugin://plugin.video.plexkodiconnect/?mode=watchlater")
+    if content_type not in ('image', 'audio'):
+        addDirectoryItem(lang(39211),
+                         "plugin://%s?mode=watchlater" % v.ADDON_ID)
     # Plex Channels
     addDirectoryItem(lang(30173),
-                     "plugin://plugin.video.plexkodiconnect/?mode=channels")
+                     "plugin://%s?mode=channels" % v.ADDON_ID)
     # Plex user switch
     addDirectoryItem(lang(39200) + window('plex_username'),
-                     "plugin://plugin.video.plexkodiconnect/"
-                     "?mode=switchuser")
+                     "plugin://%s?mode=switchuser" % v.ADDON_ID)
 
-    #experimental live tv nodes
-    # addDirectoryItem("Live Tv Channels (experimental)", "plugin://plugin.video.plexkodiconnect/?mode=browsecontent&type=tvchannels&folderid=root")
-    # addDirectoryItem("Live Tv Recordings (experimental)", "plugin://plugin.video.plexkodiconnect/?mode=browsecontent&type=recordings&folderid=root")
-
-    # some extra entries for settings and stuff. TODO --> localize the labels
-    addDirectoryItem(lang(39201), "plugin://plugin.video.plexkodiconnect/?mode=settings")
-    # addDirectoryItem("Add user to session", "plugin://plugin.video.plexkodiconnect/?mode=adduser")
-    addDirectoryItem(lang(39203), "plugin://plugin.video.plexkodiconnect/?mode=refreshplaylist")
-    addDirectoryItem(lang(39204), "plugin://plugin.video.plexkodiconnect/?mode=manualsync")
+    # some extra entries for settings and stuff
+    addDirectoryItem(lang(39201),
+                     "plugin://%s?mode=settings" % v.ADDON_ID)
+    addDirectoryItem(lang(39203),
+                     "plugin://%s?mode=refreshplaylist" % v.ADDON_ID)
+    addDirectoryItem(lang(39204),
+                     "plugin://%s?mode=manualsync" % v.ADDON_ID)
     xbmcplugin.endOfDirectory(HANDLE)
 
 

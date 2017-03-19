@@ -165,7 +165,7 @@ class Main():
             entrypoint.getVideoFiles(plexId, params)
 
         else:
-            entrypoint.doMainListing()
+            entrypoint.doMainListing(content_type=params.get('content_type'))
 
     def play(self):
         """
