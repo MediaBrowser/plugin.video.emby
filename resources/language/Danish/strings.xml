@@ -87,7 +87,7 @@
     <string id="30093">Mark som set</string>
     <string id="30094">Mark som ikke set</string>
     <string id="30095">Føj til favoritter</string>
-    <string id="30096">Fjern fra Favoritter</string>
+    <string id="30096">Fjern fra favoritter</string>
     <string id="30097">Sorter efter...</string>
     <string id="30098">Sorter faldende</string>
     <string id="30099">Sorter stigende</string>
@@ -99,7 +99,7 @@
     <string id="30107">Start fra begyndelsen</string>
     
     <string id="30110">Interface</string>
-    <string id="30111">Inkludere Stream Info</string>
+    <string id="30111">Inkludere stream info</string>
     <string id="30112">Inkludere mennesker</string>
     <string id="30113">Inkludere oversigt</string>
     <string id="30114">Tilbud sletning efter afspilning</string><!-- Verified -->
@@ -135,7 +135,7 @@
     <string id="30150">Skin understøtter ikke visning indstillinger</string>
     <string id="30151">Vælg handling (kræver genstart)</string>
     
-    <string id="30156">Sorter NextUp efter titel visning</string>    
+    <string id="30156">Sorter efter titel visning</string>    
     <string id="30157">Aktiver forbedret billeder (fx CoverArt)</string><!-- Verified -->
     <string id="30158">Metadata</string>
     <string id="30159">Illustrationer</string>
@@ -174,12 +174,12 @@
     <string id="30188">Billeder</string>                 
     <string id="30189">Usete film</string><!-- Verified -->
     <string id="30190">Film genrer</string>           
-    <string id="30191">Film Studios</string>          
+    <string id="30191">Film studios</string>          
     <string id="30192">Skuespillere</string>           
     <string id="30193">Usete episoder</string>     
     <string id="30194">TV genrer</string>              
-    <string id="30195">TV Netværk</string>            
-    <string id="30196">TV Skuespillere</string>              
+    <string id="30195">TV netværk</string>            
+    <string id="30196">TV skuespillere</string>              
     <string id="30197">Afspilningsliste</string>              
     <string id="30198">Søg</string>              
     <string id="30199">Visning</string>              
@@ -206,11 +206,11 @@
     <string id="30218">Komprimere billeder</string>
     <string id="30220">Nyeste </string>
     <string id="30221">Igangværende </string>
-    <string id="30222">NextUp </string>
+    <string id="30222">Næste </string>
     <string id="30223">Visning</string>
     <string id="30224">Tekstmålinger</string>
     <string id="30225">Brug Kodi sortering</string>
-    <string id="30226">Spiltid</string>
+    <string id="30226">Spilletid</string>
     
     <string id="30227">Tilfældig</string>
     <string id="30228">Seneste udgivelse</string>
@@ -225,7 +225,7 @@
     <string id="30239">[COLOR yellow] Nulstille lokale Kodi database[/COLOR]</string><!-- Verified -->
     <string id="30240">Vælg Set / Genoptag status sync</string>
     <string id="30241">DB Sync angivelse:</string>
-    <string id="30242">Afspil Sync angivelse:</string>
+    <string id="30242">Afspil sync angivelse:</string>
     <string id="30243">Aktivere HTTPS</string><!-- Verified -->
     <string id="30245">Vælg Transcoding Codecs</string>
     
@@ -238,7 +238,7 @@
     <string id="30252">Senest tilføjet billeder</string><!-- Verified -->
     <string id="30253">Favorit hjemmevideoer</string><!-- Verified -->
     <string id="30254">Favorit fotos</string><!-- Verified -->
-    <string id="30255">Favorit Albums</string>
+    <string id="30255">Favorit albums</string>
     
     <string id="30256">Senest tilføjet musik videoer</string><!-- Verified -->
     <string id="30257">Igangværende musikvideoer</string><!-- Verified -->
@@ -254,14 +254,14 @@
     <string id="30306">Sæson</string>              
     <string id="30307">Episoder</string>              
     <string id="30308">Musik kunstnere</string>              
-    <string id="30309">Musik Albums</string>              
+    <string id="30309">Musik albums</string>              
     <string id="30310">Musikvideoer</string>              
     <string id="30311">Musiknumre</string>
     <string id="30312">Kanaler</string>  
     
     <!-- contextmenu -->
     <string id="30401">Plex indstillinger</string>
-    <string id="30402">Slet Like for dette emne</string>
+    <string id="30402">Slet like for dette emne</string>
     <string id="30403">Like dette emne</string>
     <string id="30404">Dislike dette emne</string>
     <string id="30405">Tilføj til Plex favoritter</string>
@@ -346,7 +346,7 @@
     <string id="33017">Indsamling film fra:</string>
     <string id="33018">Indsamling boxsets</string>
     <string id="33019">Indsamling musikvideoer fra:</string>
-    <string id="33020">Indsamling TV Shows fra:</string>
+    <string id="33020">Indsamling TV shows fra:</string>
     <string id="33021">Indsamling:</string>
     <string id="33022">Registreret database skal genskabes i denne version af Emby for Kodi. Vil du fortsætte?</string>
     <string id="33023">Emby for Kodi fungerer muligvis ikke korrekt, før databasen er nulstillet.</string>
@@ -355,7 +355,7 @@
     <string id="33026">Sammenligne film fra:</string>
     <string id="33027">Sammenligne boxsets</string>
     <string id="33028">Sammenligne musikvideoer fra:</string>
-    <string id="33029">Sammenligne TV Shows fra:</string>
+    <string id="33029">Sammenligne TV shows fra:</string>
     <string id="33030">Sammenligne episoder fra:</string>
     <string id="33031">Sammenligne:</string>
     <string id="33032">Det lykkedes ikke at generere en nyt enheds Id. Se dine logfiler for flere oplysninger.</string>
@@ -406,14 +406,14 @@
     <string id="39038">Erstatte Plex film med:</string>
     <string id="39039">Oprindelige Plex TV shows sti erstattes:</string>
     <string id="39040">Erstatte Plex TV SHOWS med:</string>
-    <string id="39041">Oprindelige Plex Musik sti erstattes:</string>
+    <string id="39041">Oprindelige Plex musik sti erstattes:</string>
     <string id="39042">Erstatte Plex musik med:</string>
     <string id="39043">Gå et skridt videre og erstat alle oprindelige Plex bibliotek stier (/ volume1/media) med brugerdefinerede SMB-stier (smb://NAS/MyStuff)?</string>
     <string id="39044">Indtast venligst din brugerdefinerede smb stier i indstillingerne under "synkroniseringsindstillinger" og derefter genstarte Kodi</string>
     <string id="39045">Oprindelige Plex Foto sti erstattes:</string>
     <string id="39046">Erstatte Plex foto med:</string>
-    <string id="39047">Senest Tilføjet:  Vis titel til episode</string>
-    <string id="39048">Senest Tilføjet: Føj sæson - og episode-nummer SxxExx</string>
+    <string id="39047">Senest tilføjet:  Vis titel til episode</string>
+    <string id="39048">Senest tilføjet: Føj sæson - og episode-nummer SxxExx</string>
     <string id="39049">Intet virker? Prøv en fuld reset!</string>
     <string id="39050">[COLOR yellow] Vælg Plex Server fra listen[/COLOR]</string>
     <string id="39051">Vente før sync af nye/ændrede PMS element [s]</string>
@@ -425,7 +425,7 @@
     <string id="39057">Tilpasse stier</string>
     <string id="39058">Udvide Plex TV serie "Senest Tilføjet" Til vis alle shows</string>
     <string id="39059">Senest tilføjet: Føj Vis titel til episode</string>
-    <string id="39060">Senest Tilføjet: Føj sæson - og episode-nummer SxxExx</string>
+    <string id="39060">Senest tilføjet: Føj sæson - og episode-nummer SxxExx</string>
     <string id="39061">Ønsker du at downloade ekstra illustrationer fra FanArtTV i baggrunden?</string>
     <string id="39062">Sync når screensaver er deaktiveret</string>
     <string id="39063">Transcode Hi10P</string>
@@ -514,6 +514,7 @@
     <string id="39602">Fjern alle cachelagrede illustrationer? (anbefales!)</string>
     <string id="39603">Nulstil alle indstillinger for PlexKodiConnect Addon? (dette er normalt ikke anbefalet og unødvendigt!)</string>
 
-    <string id="39700">Amazon Alexa (Voice Recognition)</string>
-    <string id="39701">Alexa aktivieren</string>
+    <string id="39700">Amazon Alexa (Stemme genkendelse)</string>
+    <string id="39701">Aktivere Alexa</string>
+    <string id="39702">Søg via mappe</string>
 </strings>
