@@ -1,4 +1,4 @@
-##Status
+## Status
 
 [![GitHub issues](https://img.shields.io/github/issues/croneter/PlexKodiConnect.svg?maxAge=60&style=flat-square)](https://github.com/croneter/PlexKodiConnect/issues)
 [![GitHub pull requests](https://img.shields.io/github/issues-pr/croneter/PlexKodiConnect.svg?maxAge=60&style=flat-square)](https://github.com/croneter/PlexKodiConnect/pulls)
@@ -11,80 +11,40 @@ PKC combines the best of Kodi - ultra smooth navigation, beautiful and highly cu
 
 Have a look at [some screenshots](https://github.com/croneter/PlexKodiConnect/wiki/Some-PKC-Screenshots) to see what's possible. 
 
-### Call for Translations
+### Help Translate!
 
-Please help translate PlexKodiConnect into your language: [visit crowdin.com](https://crowdin.com/project/plexkodiconnect/invite)
+Please help translate PlexKodiConnect into your language: [crowdin.com](https://crowdin.com/project/plexkodiconnect/invite)
 
 
 ### Content
 * [**Warning**](#warning)
-* [**What does PKC do and how is it different from the official 'Plex for Kodi'**](#what-does-pkc-do-and-how-is-it-different-from-the-official-plex-for-kod)
+* [**What does PKC do?**](#what-does-pkc-do)
+* [**PKC Features**](#pkc-features)
+* [**PKC Wiki & Frequently Asked Questions**](#pkc-wiki--frequently-asked-questions)
 * [**Download and Installation**](#download-and-installation)
 * [**Important notes**](#important-notes)
 * [**Donations**](#donations)
-* [**What is currently supported?**](#what-is-currently-supported)
+* [**Request a New Feature**](#request-a-new-feature)
 * [**Known Larger Issues**](#known-larger-issues)
 * [**Issues being worked on**](#issues-being-worked-on)
-* [**Requests for new features**](#requests-for-new-features)
-* [**Checkout the PKC Wiki**](#checkout-the-pkc-wiki)
 * [**Credits**](#credits)
 
 ### Warning
 Use at your own risk! This plugin assumes that you manage all your videos with Plex (and none with Kodi). You might lose data already stored in the Kodi video and music databases as this plugin directly changes them. Don't worry if you want Plex to manage all your media (like you should ;-)). 
 
-### What does PKC do and how is it different from the official ['Plex for Kodi'](https://www.plex.tv/apps/computer/kodi/)?
-
-With other Plex addons for Kodi such as the official [Plex for Kodi](https://www.plex.tv/apps/computer/kodi/) or [PlexBMC](https://forums.plex.tv/discussion/106593/plexbmc-xbmc-add-on-to-connect-to-plex-media-server) there are a couple of issues:
-- Other Kodi addons such as NextAired, remote apps and others won't work
-- You can only use special Kodi skins
-- Slow speed: when browsing data has to be retrieved from the server. Especially on slower devices this can take too much time and you will notice artwork being loaded slowly while you browse the library
-- All kinds of workarounds are needed to get the best experience on Kodi clients
-
-PKC synchronizes your media from your Plex server to the native Kodi database. Because PKC uses the native Kodi database, the above limitations are gone! 
-- Use any Kodi skin you want!
-- You can browse your media at full speed, images are cached
-- All other Kodi addons will be able to "see" your media, thinking it's normal Kodi stuff
+### What does PKC do?
+PKC synchronizes your media from your Plex server to the native Kodi database. Hence:
+- Use virtually any other Kodi add-on
+- Use any Kodi skin, completely customize Kodi's look
+- Browse your media at full speed (cached artwork)
+- Automatically get additional artwork (more than e.g. Plex offers)
+- Enjoy Plex features using the Kodi interface
 
 Some people argue that PKC is 'hacky' because of the way it directly accesses the Kodi database. See [here for a more thorough discussion](https://github.com/croneter/PlexKodiConnect/wiki/Is-PKC-'hacky'%3F). 
 
-### Download and Installation
-[ ![Download](https://api.bintray.com/packages/croneter/PlexKodiConnect/PlexKodiConnect/images/download.svg) ](https://dl.bintray.com/croneter/PlexKodiConnect/bin/repository.plexkodiconnect/repository.plexkodiconnect-1.0.0.zip)
+### PKC Features
 
-Install PKC via the PlexKodiConnect Kodi repository (we cannot use the official Kodi repository as PKC messes with Kodi's databases). See the [installation guideline on how to do this](https://github.com/croneter/PlexKodiConnect/wiki/Installation).
-
-**Possibly UNSTABLE BETA version:** [ ![Download](https://api.bintray.com/packages/croneter/PlexKodiConnect_BETA/PlexKodiConnect_BETA/images/download.svg) ](https://dl.bintray.com/croneter/PlexKodiConnect_BETA/bin-BETA/repository.plexkodiconnectbeta/repository.plexkodiconnectbeta-1.0.0.zip)
-
-### Important Notes
-
-1. If you are using a **low CPU device like a Raspberry Pi or a CuBox**, PKC might be instable or crash during initial sync. Lower the number of threads in the [PKC settings under Sync Options](https://github.com/croneter/PlexKodiConnect/wiki/PKC-settings#sync-options): `Limit artwork cache threads: 5`
-Don't forget to reboot Kodi after that.
-2. **Compatibility**: 
-    * PKC is currently not compatible with Kodi's Video Extras plugin. **Deactivate Video Extras** if trailers/movies start randomly playing. 
-    * PKC is not (and will never be) compatible with the **MySQL database replacement** in Kodi. In fact, PKC replaces the MySQL functionality because it acts as a "man in the middle" for your entire media library.
-    * If **another plugin is not working** like it's supposed to, try to use [PKC direct paths](https://github.com/croneter/PlexKodiConnect/wiki/Direct-Paths)
-3. If you post logs, your **Plex tokens** might be included. Be sure to double and triple check for tokens before posting any logs anywhere by searching for `token`
-
-### Donations
-I'm not in any way affiliated with Plex. Thank you very much for a small donation via ko-fi.com and PayPal if you appreciate PKC.  
-**Full disclaimer:** I will see your name and address on my PayPal account. Rest assured that I will not share this with anyone. 
-
-[ ![Download](https://az743702.vo.msecnd.net/cdn/kofi1.png?v=a|alt=Buy Me a Coffee)](https://ko-fi.com/A8182EB)
-
-### What is currently supported?
-
-PKC currently provides the following features:
-- All Plex library types
-    + Movies and Home Videos
-    + TV Shows
-    + Music
-    + Pictures and Photos
-- Different PKC interface languages:
-    + English
-    + German
-    + Czech, thanks @Pavuucek
-    + Spanish, thanks @bartolomesoriano
-    + Danish, thanks @FIGHT
-    + More coming up: [you can help!](https://crowdin.com/project/plexkodiconnect/invite)
+- [Amazon Alexa voice recognition](https://www.plex.tv/apps/streaming-devices/amazon-alexa)
 - [Plex Watch Later / Plex It!](https://support.plex.tv/hc/en-us/sections/200211783-Plex-It-)
 - [Plex Companion](https://support.plex.tv/hc/en-us/sections/200276908-Plex-Companion): fling Plex media (or anything else) from other Plex devices to PlexKodiConnect
 - [Plex Transcoding](https://support.plex.tv/hc/en-us/articles/200250377-Transcoding-Media)
@@ -95,9 +55,44 @@ PKC currently provides the following features:
     + Landscapes
     + Clear art
     + Extra fanart backgrounds
+- PKC interface languages:
+    + English
+    + German
+    + Czech, thanks @Pavuucek
+    + Spanish, thanks @bartolomesoriano
+    + Danish, thanks @FIGHT
+    + More coming up: [you can help!](https://crowdin.com/project/plexkodiconnect/invite)
 - Automatically group movies into [movie sets](http://kodi.wiki/view/movie_sets)
 - Direct play from network paths (e.g. "\\\\server\\Plex\\movie.mkv") instead of streaming from slow HTTP (e.g. "192.168.1.1:32400"). You have to setup all your Plex libraries to point to such network paths. Do have a look at [the wiki here](https://github.com/croneter/PlexKodiConnect/wiki/Direct-Paths)
 - Delete PMS items from the Kodi context menu
+
+### PKC Wiki & Frequently Asked Questions
+The [Wiki can be found here](https://github.com/croneter/PlexKodiConnect/wiki) and will hopefully answer all your questions. You can even edit the wiki yourself!
+
+### Download and Installation
+[ ![Download](https://api.bintray.com/packages/croneter/PlexKodiConnect/PlexKodiConnect/images/download.svg) ](https://dl.bintray.com/croneter/PlexKodiConnect/bin/repository.plexkodiconnect/repository.plexkodiconnect-1.0.0.zip)
+
+Install PKC via the PlexKodiConnect Kodi repository (we cannot use the official Kodi repository as PKC messes with Kodi's databases). See the [installation guideline on how to do this](https://github.com/croneter/PlexKodiConnect/wiki/Installation).
+
+**Possibly UNSTABLE BETA version:** [ ![Download](https://api.bintray.com/packages/croneter/PlexKodiConnect_BETA/PlexKodiConnect_BETA/images/download.svg) ](https://dl.bintray.com/croneter/PlexKodiConnect_BETA/bin-BETA/repository.plexkodiconnectbeta/repository.plexkodiconnectbeta-1.0.0.zip)
+
+### Important Notes
+
+1. If you are using a **low CPU device like a Raspberry Pi or a CuBox**, PKC might be instable or crash during initial sync. Lower the number of threads in the [PKC settings under Sync Options](https://github.com/croneter/PlexKodiConnect/wiki/PKC-settings#sync-options). Don't forget to reboot Kodi after that.
+2. **Compatibility**: 
+    * PKC is currently not compatible with Kodi's Video Extras plugin. **Deactivate Video Extras** if trailers/movies start randomly playing. 
+    * PKC is not (and will never be) compatible with the **MySQL database replacement** in Kodi. In fact, PKC replaces the MySQL functionality because it acts as a "man in the middle" for your entire media library.
+    * If **another plugin is not working** like it's supposed to, try to use [PKC direct paths](https://github.com/croneter/PlexKodiConnect/wiki/Direct-Paths)
+
+### Donations
+I'm not in any way affiliated with Plex. Thank you very much for a small donation via ko-fi.com and PayPal if you appreciate PKC.  
+**Full disclaimer:** I will see your name and address on my PayPal account. Rest assured that I will not share this with anyone. 
+
+[![Donations](https://az743702.vo.msecnd.net/cdn/kofi1.png?v=a)](https://ko-fi.com/A8182EB)
+
+### Request a New Feature
+
+[![Feature Requests](http://feathub.com/croneter/PlexKodiConnect?format=svg)](http://feathub.com/croneter/PlexKodiConnect)
 
 ### Known Larger Issues
 
@@ -119,13 +114,6 @@ However, some changes to individual items are instantly detected, e.g. if you ma
 
 Have a look at the [Github Issues Page](https://github.com/croneter/PlexKodiConnect/issues). Before you open your own issue, please read [How to report a bug](https://github.com/croneter/PlexKodiConnect/wiki/How-to-Report-A-Bug).
 
-
-### Requests for new features
-
-[![Feature Requests](http://feathub.com/croneter/PlexKodiConnect?format=svg)](http://feathub.com/croneter/PlexKodiConnect)
-
-### Checkout the PKC Wiki
-The [Wiki can be found here](https://github.com/croneter/PlexKodiConnect/wiki) and will hopefully answer all your questions. You can even edit the wiki yourself!
 
 ### Credits
 
