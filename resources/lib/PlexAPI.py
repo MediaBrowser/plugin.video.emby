@@ -2378,7 +2378,8 @@ class API():
             listItem = xbmcgui.ListItem(title)
         else:
             listItem.setLabel(title)
-
+        # Necessary; Kodi won't start video otherwise!
+        listItem.setProperty('IsPlayable', 'true')
         # Video items, e.g. movies and episodes or clips
         people = self.getPeople()
         userdata = self.getUserData()
