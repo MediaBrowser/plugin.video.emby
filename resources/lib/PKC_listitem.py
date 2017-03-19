@@ -22,6 +22,8 @@ def convert_PKC_to_listitem(PKC_listitem):
     if data['info']:
         listitem.setInfo(**data['info'])
     for stream in data['stream_info']:
+        # Kodi documentation up to date? CAREFUL as type= seems to be cType=
+        # and values= seems to be dictionary=
         listitem.addStreamInfo(**stream)
     if data['art']:
         listitem.setArt(data['art'])
@@ -90,7 +92,7 @@ class PKC_ListItem(object):
         - Subtitle Values:
             - language : string (en)
         """
-        self.data['stream_info'].append({'type': type, 'values': values})
+        self.data['stream_info'].append({'cType': type, 'dictionary': values})
 
     def getLabel(self):
         """
