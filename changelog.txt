@@ -1,6 +1,7 @@
 version 1.7.4 (beta only)
 - Show menu item only for appropriate Kodi library: Be careful to start video content through Videos -> Video Addons -> ... and pictures through Pictures -> Picture Addons -> ...
 - Fix playback error popup when using Alexa 
+- Update translations
 - Rewire Kodi ListItem stuff
 - Fix TypeError for setting ListItem streams 
 - Fix Kodi setContent for images
