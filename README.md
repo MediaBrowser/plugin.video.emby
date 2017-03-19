@@ -61,6 +61,7 @@ Some people argue that PKC is 'hacky' because of the way it directly accesses th
     + Czech, thanks @Pavuucek
     + Spanish, thanks @bartolomesoriano
     + Danish, thanks @FIGHT
+    + Italian, thanks @nikkux, @chicco83
     + More coming up: [you can help!](https://crowdin.com/project/plexkodiconnect/invite)
 - Automatically group movies into [movie sets](http://kodi.wiki/view/movie_sets)
 - Direct play from network paths (e.g. "\\\\server\\Plex\\movie.mkv") instead of streaming from slow HTTP (e.g. "192.168.1.1:32400"). You have to setup all your Plex libraries to point to such network paths. Do have a look at [the wiki here](https://github.com/croneter/PlexKodiConnect/wiki/Direct-Paths)
