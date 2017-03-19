@@ -55,8 +55,6 @@ class Playback_Starter(Thread):
             result = Playback_Successful()
             listitem = PKC_ListItem()
             listitem = api.CreateListItemFromPlexItem(listitem)
-            api.AddStreamInfo(listitem)
-            api.set_listitem_artwork(listitem)
             result.listitem = listitem
         else:
             # Video and Music

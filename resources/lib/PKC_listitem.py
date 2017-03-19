@@ -14,18 +14,21 @@ def convert_PKC_to_listitem(PKC_listitem):
     """
     Insert a PKC_listitem and you will receive a valid XBMC listitem
     """
-    listitem = ListItem()
-    for func, args in PKC_listitem.data.items():
-        if isinstance(args, list):
-            for arg in args:
-                getattr(listitem, func)(*arg)
-        elif isinstance(args, dict):
-            for arg in args.items():
-                getattr(listitem, func)(*arg)
-        elif args is None:
-            continue
-        else:
-            getattr(listitem, func)(args)
+    data = PKC_listitem.data
+    log.debug('data is: %s' % data)
+    listitem = ListItem(label=data.get('label'),
+                        label2=data.get('label2'),
+                        path=data.get('path'))
+    if data['info']:
+        listitem.setInfo(**data['info'])
+    for stream in data['stream_info']:
+        listitem.addStreamInfo(**stream)
+    if data['art']:
+        listitem.setArt(data['art'])
+    for key, value in data['property'].iteritems():
+        listitem.setProperty(key, value)
+    if data['subtitles']:
+        listitem.setSubtitles(data['subtitles'])
     return listitem
 
 
@@ -38,14 +41,14 @@ class PKC_ListItem(object):
     """
     def __init__(self, label=None, label2=None, path=None):
         self.data = {
-            'addStreamInfo': [],  # (type, values: dict { label: value })
-            'setArt': [],  # dict: { label: value }
-            'setInfo': {},  # type: infoLabel (dict { label: value })
-            'setLabel': label,  # string
-            'setLabel2': label2,  # string
-            'setPath': path,  # string
-            'setProperty': {},  # (key, value)
-            'setSubtitles': [],  # string
+            'stream_info': [],  # (type, values: dict { label: value })
+            'art': {},  # dict
+            'info': {},  # type: infoLabel (dict { label: value })
+            'label': label,  # string
+            'label2': label2,  # string
+            'path': path,  # string
+            'property': {},  # (key, value)
+            'subtitles': [],  # strings
         }
 
     def addContextMenuItems(self, items, replaceItems):
@@ -87,19 +90,19 @@ class PKC_ListItem(object):
         - Subtitle Values:
             - language : string (en)
         """
-        self.data['addStreamInfo'].append((type, values))
+        self.data['stream_info'].append({'type': type, 'values': values})
 
     def getLabel(self):
         """
         Returns the listitem label
         """
-        return self.data['setLabel']
+        return self.data.get('label')
 
     def getLabel2(self):
         """
         Returns the listitem label.
         """
-        return self.data['setLabel2']
+        return self.data.get('label2')
 
     def getMusicInfoTag(self):
         """
@@ -118,7 +121,7 @@ class PKC_ListItem(object):
 
          Once you use a keyword, all following arguments require the keyword.
         """
-        return self.data['setProperty'].get(key)
+        return self.data['property'].get(key)
 
     def getVideoInfoTag(self):
         """
@@ -172,7 +175,7 @@ class PKC_ListItem(object):
             - landscape : string - image filename
             - icon : string - image filename
         """
-        self.data['setArt'].append(values)
+        self.data['art'].update(values)
 
     def setContentLookup(self, enable):
         """
@@ -270,21 +273,21 @@ class PKC_ListItem(object):
             - exif : string (See CPictureInfoTag::TranslateString in
               PictureInfoTag.cpp for valid strings)
         """
-        self.data['setInfo'][type] = infoLabels
+        self.data['info'] = {'type': type, 'infoLabels': infoLabels}
 
     def setLabel(self, label):
         """
         Sets the listitem's label.
         label : string or unicode - text string.
         """
-        self.data['setLabel'] = label
+        self.data['label'] = label
 
     def setLabel2(self, label):
         """
         Sets the listitem's label2.
         label : string or unicode - text string.
         """
-        self.data['setLabel2'] = label
+        self.data['label2'] = label
 
     def setMimeType(self, mimetype):
         """
@@ -303,7 +306,7 @@ class PKC_ListItem(object):
 
          *Note, You can use the above as keywords for arguments.
         """
-        self.data['setPath'] = path
+        self.data['path'] = path
 
     def setProperty(self, key, value):
         """
@@ -321,7 +324,7 @@ class PKC_ListItem(object):
         start playback of an item. Others may be used in the skin to add extra
         information, such as 'WatchedCount' for tvshow items
         """
-        self.data['setProperty'][key] = value
+        self.data['property'][key] = value
 
     def setSubtitles(self, subtitles):
         """
@@ -331,4 +334,4 @@ class PKC_ListItem(object):
             - listitem.setSubtitles(['special://temp/example.srt',
               'http://example.com/example.srt' ])
         """
-        self.data['setSubtitles'].extend(([subtitles],))
+        self.data['subtitles'].extend(subtitles)

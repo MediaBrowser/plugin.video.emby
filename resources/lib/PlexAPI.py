@@ -1208,6 +1208,36 @@ class API():
                 ans = unquote(ans).decode('latin1')
         return ans
 
+    def get_picture_path(self):
+        """
+        Returns the item's picture path (transcode, if necessary) as string
+        """
+        extension = self.item[0][0].attrib['key'][self.item[0][0].attrib['key'].rfind('.'):].lower()
+        if (window('plex_force_transcode_pix') == 'true' or
+                extension not in v.KODI_SUPPORTED_IMAGES):
+            # Let Plex transcode
+            # max width/height supported by plex image transcoder is 1920x1080
+            path = self.server + PlexAPI().getTranscodeImagePath(
+                self.item[0][0].attrib.get('key'),
+                window('pms_token'),
+                "%s%s" % (self.server, self.item[0][0].attrib.get('key')),
+                1920,
+                1080)
+        else:
+            # Don't transcode
+            if window('useDirectPaths') == 'true':
+                # Addon Mode. Just give the path of the file to Kodi
+                path = self.addPlexCredentialsToUrl(
+                    '%s%s' % (window('pms_server'),
+                              self.item[0][0].attrib['key']))
+            else:
+                # Native direct paths
+                path = self.validatePlayurl(
+                    self.getFilePath(forceFirstMediaStream=True),
+                    'photo')
+        path = tryEncode(path)
+        return path
+
     def getTVShowPath(self):
         """
         Returns the direct path to the TV show, e.g. '\\NAS\tv\series'
@@ -2275,18 +2305,6 @@ class API():
         log.info('Found external subs: %s' % externalsubs)
         return externalsubs
 
-    def CreateListItemFromPlexItem(self,
-                                   listItem=None,
-                                   appendShowTitle=False,
-                                   appendSxxExx=False):
-        if self.getType() == 'photo':
-            listItem = self._createPhotoListItem(listItem)
-        else:
-            listItem = self._createVideoListItem(listItem,
-                                                 appendShowTitle,
-                                                 appendSxxExx)
-        return listItem
-
     def GetKodiPremierDate(self):
         """
         Takes Plex' originallyAvailableAt of the form "yyyy-mm-dd" and returns
@@ -2301,7 +2319,24 @@ class API():
             date = None
         return date
 
-    def _createPhotoListItem(self, listItem=None):
+    def CreateListItemFromPlexItem(self,
+                                   listItem=None,
+                                   appendShowTitle=False,
+                                   appendSxxExx=False):
+        if self.getType() == v.PLEX_TYPE_PHOTO:
+            listItem = self.__createPhotoListItem(listItem)
+            # Only set the bare minimum of artwork
+            listItem.setArt({'icon': 'DefaultPicture.png',
+                             'fanart': self.__getOneArtwork('thumb')})
+        else:
+            listItem = self.__createVideoListItem(listItem,
+                                                  appendShowTitle,
+                                                  appendSxxExx)
+            self.add_video_streams(listItem)
+            self.set_listitem_artwork(listItem)
+        return listItem
+
+    def __createPhotoListItem(self, listItem=None):
         """
         Use for photo items only
         """
@@ -2310,63 +2345,21 @@ class API():
             listItem = xbmcgui.ListItem(title)
         else:
             listItem.setLabel(title)
-        listItem.setProperty('IsPlayable', 'true')
-        extension = self.item[0][0].attrib['key'][self.item[0][0].attrib['key'].rfind('.'):].lower()
-        if (window('plex_force_transcode_pix') == 'true' or
-                extension not in v.KODI_SUPPORTED_IMAGES):
-            # Let Plex transcode
-            # max width/height supported by plex image transcoder is 1920x1080
-            path = self.server + PlexAPI().getTranscodeImagePath(
-                self.item[0][0].attrib.get('key'),
-                window('pms_token'),
-                "%s%s" % (self.server, self.item[0][0].attrib.get('key')),
-                1920,
-                1080)
-        else:
-            # Don't transcode
-            if window('useDirectPaths') == 'true':
-                # Addon Mode. Just give the path of the file to Kodi
-                path = self.addPlexCredentialsToUrl(
-                    '%s%s' % (window('pms_server'),
-                              self.item[0][0].attrib['key']))
-            else:
-                # Native direct paths
-                path = self.validatePlayurl(
-                    self.getFilePath(forceFirstMediaStream=True),
-                    'photo')
-
-        path = tryEncode(path)
         metadata = {
             'date': self.GetKodiPremierDate(),
-            'picturepath': path,
             'size': long(self.item[0][0].attrib.get('size', 0)),
             'exif:width': self.item[0].attrib.get('width', ''),
             'exif:height': self.item[0].attrib.get('height', ''),
-            'title': title
         }
-        listItem.setInfo('pictures', infoLabels=metadata)
-        try:
-            if int(metadata['exif:width']) > int(metadata['exif:height']):
-                # add image as fanart for use with skinhelper auto thumb/
-                # backgrund creation
-                listItem.setArt({'fanart':  path})
-        except ValueError:
-            pass
-        # Stuff that we CANNOT set with listItem.setInfo
-        listItem.setProperty('path', path)
+        listItem.setInfo(type='image', infoLabels=metadata)
         listItem.setProperty('plot', self.getPlot())
         listItem.setProperty('plexid', self.getRatingKey())
-        # We do NOT set these props
-        # listItem.setProperty('isPlayable', 'true')
-        # listItem.setProperty('isFolder', 'true')
-        # Further stuff
-        listItem.setArt({'icon': 'DefaultPicture.png'})
         return listItem
 
-    def _createVideoListItem(self,
-                             listItem=None,
-                             appendShowTitle=False,
-                             appendSxxExx=False):
+    def __createVideoListItem(self,
+                              listItem=None,
+                              appendShowTitle=False,
+                              appendSxxExx=False):
         """
         Use for video items only
         Call on a child level of PMS xml response (e.g. in a for loop)
@@ -2383,7 +2376,8 @@ class API():
 
         if listItem is None:
             listItem = xbmcgui.ListItem(title)
-        listItem.setProperty('IsPlayable', 'true')
+        else:
+            listItem.setLabel(title)
 
         # Video items, e.g. movies and episodes or clips
         people = self.getPeople()
@@ -2410,8 +2404,7 @@ class API():
         listItem.setProperty('resumetime', str(userdata['Resume']))
         listItem.setProperty('totaltime', str(userdata['Runtime']))
 
-        if typus == "episode":
-            # Only for tv shows
+        if typus == v.PLEX_TYPE_EPISODE:
             key, show, season, episode = self.getEpisodeDetails()
             season = -1 if season is None else int(season)
             episode = -1 if episode is None else int(episode)
@@ -2426,7 +2419,9 @@ class API():
             listItem.setArt({'icon': 'DefaultTVShows.png'})
             if appendShowTitle is True:
                 title = "%s - %s " % (show, title)
-        elif typus == "movie":
+            if appendShowTitle or appendSxxExx:
+                listItem.setLabel(title)
+        elif typus == v.PLEX_TYPE_MOVIE:
             listItem.setArt({'icon': 'DefaultMovies.png'})
         else:
             # E.g. clips, trailers, ...
@@ -2442,11 +2437,10 @@ class API():
                 pass
         # Expensive operation
         metadata['title'] = title
-        listItem.setLabel(title)
         listItem.setInfo('video', infoLabels=metadata)
         return listItem
 
-    def AddStreamInfo(self, listItem):
+    def add_video_streams(self, listItem):
         """
         Add media stream information to xbmcgui.ListItem
         """

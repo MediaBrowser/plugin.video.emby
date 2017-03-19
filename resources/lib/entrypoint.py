@@ -624,8 +624,6 @@ def getOnDeck(viewid, mediatype, tagname, limit):
             listitem = api.CreateListItemFromPlexItem(
                 appendShowTitle=appendShowTitle,
                 appendSxxExx=appendSxxExx)
-            api.AddStreamInfo(listitem)
-            api.set_listitem_artwork(listitem)
             if directpaths:
                 url = api.getFilePath()
             else:
@@ -815,10 +813,10 @@ def browse_plex(key=None, plex_section_id=None):
     albums = False
     musicvideos = False
     for item in xml:
-        typus = item.attrib.get('type')
         if item.tag == 'Directory':
             __build_folder(item, plex_section_id=plex_section_id)
         else:
+            typus = item.attrib.get('type')
             __build_item(item)
             if typus == v.PLEX_TYPE_PHOTO:
                 photos = True
@@ -905,11 +903,6 @@ def __build_folder(xml_element, plex_section_id=None):
 def __build_item(xml_element):
     api = API(xml_element)
     listitem = api.CreateListItemFromPlexItem()
-    try:
-        api.AddStreamInfo(listitem)
-    except:
-        pass
-    api.set_listitem_artwork(listitem)
     if (api.getKey().startswith('/system/services') or
             api.getKey().startswith('http')):
         params = {
@@ -917,14 +910,17 @@ def __build_item(xml_element):
             'key': xml_element.attrib.get('key'),
             'view_offset': xml_element.attrib.get('viewOffset', '0'),
         }
+        url = "plugin://%s?%s" % (v.ADDON_ID, urlencode(params))
+    elif api.getType() == v.PLEX_TYPE_PHOTO:
+        url = api.get_picture_path()
     else:
         params = {
+            'mode': 'play',
             'filename': api.getKey(),
             'id': api.getRatingKey(),
-            'dbid': listitem.getProperty('dbid'),
-            'mode': "play"
+            'dbid': listitem.getProperty('dbid')
         }
-    url = "plugin://%s?%s" % (v.ADDON_ID, urlencode(params))
+        url = "plugin://%s?%s" % (v.ADDON_ID, urlencode(params))
     xbmcplugin.addDirectoryItem(handle=HANDLE,
                                 url=url,
                                 listitem=listitem)
