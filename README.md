@@ -1,8 +1,6 @@
 [![stable version](https://img.shields.io/badge/stable_version-1.7.2-blue.svg?maxAge=60&style=flat) ](https://dl.bintray.com/croneter/PlexKodiConnect/bin/repository.plexkodiconnect/repository.plexkodiconnect-1.0.0.zip) 
 [![beta version](https://img.shields.io/badge/beta_version-1.7.4-red.svg?maxAge=60&style=flat) ](https://dl.bintray.com/croneter/PlexKodiConnect_BETA/bin-BETA/repository.plexkodiconnectbeta/repository.plexkodiconnectbeta-1.0.0.zip)
 
-https://bintray.com/croneter/PlexKodiConnect_BETA/download_file?file_path=bin-BETA%2Frepository.plexkodiconnectbeta%2Frepository.plexkodiconnectbeta-1.0.0.zip
-
 [![Installation](https://img.shields.io/badge/wiki-installation-brightgreen.svg?maxAge=60&style=flat)](https://github.com/croneter/PlexKodiConnect/wiki/Installation)
 [![FAQ](https://img.shields.io/badge/wiki-FAQ-brightgreen.svg?maxAge=60&style=flat)](https://github.com/croneter/PlexKodiConnect/wiki/faq)
 [![Forum](https://img.shields.io/badge/forum-plex-orange.svg?maxAge=60&style=flat)](https://forums.plex.tv/discussion/210023/plexkodiconnect-let-kodi-talk-to-your-plex)
@@ -68,7 +66,7 @@ PKC synchronizes your media from your Plex server to the native Kodi database. H
 
 ### Download and Installation
 
-Install PKC via the PlexKodiConnect Kodi repository below (we cannot use the official Kodi repository as PKC messes with Kodi's databases). See the [github wiki installation manual](https://github.com/croneter/PlexKodiConnect/wiki/Installation). Please use the stable version except if you really know what you're doing. Kodi will update PKC automatically. 
+Install PKC via the PlexKodiConnect Kodi repository below (we cannot use the official Kodi repository as PKC messes with Kodi's databases). See the [github wiki installation manual](https://github.com/croneter/PlexKodiConnect/wiki/Installation) for a detailed guide. Please use the stable version except if you really know what you're doing. Kodi will update PKC automatically. 
 
 | Stable version | Beta version |
 |----------------|--------------|
