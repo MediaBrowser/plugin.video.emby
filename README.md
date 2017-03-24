@@ -25,7 +25,6 @@ Please help translate PlexKodiConnect into your language: [crowdin.com](https://
 * [**Warning**](#warning)
 * [**What does PKC do?**](#what-does-pkc-do)
 * [**PKC Features**](#pkc-features)
-* [**PKC Wiki & Frequently Asked Questions**](#pkc-wiki--frequently-asked-questions)
 * [**Download and Installation**](#download-and-installation)
 * [**Important notes**](#important-notes)
 * [**Donations**](#donations)
@@ -37,15 +36,15 @@ Please help translate PlexKodiConnect into your language: [crowdin.com](https://
 ### Warning
 Use at your own risk! This plugin assumes that you manage all your videos with Plex (and none with Kodi). You might lose data already stored in the Kodi video and music databases as this plugin directly changes them. Don't worry if you want Plex to manage all your media (like you should ;-)). 
 
+Some people argue that PKC is 'hacky' because of the way it directly accesses the Kodi database. See [here for a more thorough discussion](https://github.com/croneter/PlexKodiConnect/wiki/Is-PKC-'hacky'%3F). 
+
 ### What does PKC do?
 PKC synchronizes your media from your Plex server to the native Kodi database. Hence:
 - Use virtually any other Kodi add-on
 - Use any Kodi skin, completely customize Kodi's look
 - Browse your media at full speed (cached artwork)
-- Automatically get additional artwork (more than e.g. Plex offers)
+- Automatically get additional artwork (more than Plex offers)
 - Enjoy Plex features using the Kodi interface
-
-Some people argue that PKC is 'hacky' because of the way it directly accesses the Kodi database. See [here for a more thorough discussion](https://github.com/croneter/PlexKodiConnect/wiki/Is-PKC-'hacky'%3F). 
 
 ### PKC Features
 
@@ -54,26 +53,17 @@ Some people argue that PKC is 'hacky' because of the way it directly accesses th
 - [Plex Companion](https://support.plex.tv/hc/en-us/sections/200276908-Plex-Companion): fling Plex media (or anything else) from other Plex devices to PlexKodiConnect
 - [Plex Transcoding](https://support.plex.tv/hc/en-us/articles/200250377-Transcoding-Media)
 - Automatically download more artwork from [Fanart.tv](https://fanart.tv/), just like the Kodi addon [Artwork Downloader](http://kodi.wiki/view/Add-on:Artwork_Downloader)
-    + Banners
-    + Disc art
-    + Clear logos
-    + Landscapes
-    + Clear art
-    + Extra fanart backgrounds
-- PKC interface languages:
+- Automatically group movies into [movie sets](http://kodi.wiki/view/movie_sets)
+- [Direct play](https://github.com/croneter/PlexKodiConnect/wiki/Direct-Play) from network paths (e.g. "\\\\server\\Plex\\movie.mkv"), something unique to PKC
+- Delete PMS items from the Kodi context menu
+- PKC is available in the following languages:
     + English
     + German
     + Czech, thanks @Pavuucek
     + Spanish, thanks @bartolomesoriano
     + Danish, thanks @FIGHT
     + Italian, thanks @nikkux, @chicco83
-    + More coming up: [you can help!](https://crowdin.com/project/plexkodiconnect/invite)
-- Automatically group movies into [movie sets](http://kodi.wiki/view/movie_sets)
-- Direct play from network paths (e.g. "\\\\server\\Plex\\movie.mkv") instead of streaming from slow HTTP (e.g. "192.168.1.1:32400"). You have to setup all your Plex libraries to point to such network paths. Do have a look at [the wiki here](https://github.com/croneter/PlexKodiConnect/wiki/Direct-Paths)
-- Delete PMS items from the Kodi context menu
-
-### PKC Wiki & Frequently Asked Questions
-The [Wiki can be found here](https://github.com/croneter/PlexKodiConnect/wiki) and will hopefully answer all your questions. You can even edit the wiki yourself!
+    + [Please help translating](https://crowdin.com/project/plexkodiconnect/invite)
 
 ### Download and Installation
 [ ![Download](https://api.bintray.com/packages/croneter/PlexKodiConnect/PlexKodiConnect/images/download.svg) ](https://dl.bintray.com/croneter/PlexKodiConnect/bin/repository.plexkodiconnect/repository.plexkodiconnect-1.0.0.zip)
