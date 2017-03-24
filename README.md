@@ -67,11 +67,11 @@ PKC synchronizes your media from your Plex server to the native Kodi database. H
     + [Please help translating](https://crowdin.com/project/plexkodiconnect/invite)
 
 ### Download and Installation
-[ ![Download](https://api.bintray.com/packages/croneter/PlexKodiConnect/PlexKodiConnect/images/download.svg) ](https://dl.bintray.com/croneter/PlexKodiConnect/bin/repository.plexkodiconnect/repository.plexkodiconnect-1.0.0.zip)
 
 Install PKC via the PlexKodiConnect Kodi repository below (we cannot use the official Kodi repository as PKC messes with Kodi's databases). See the [github wiki installation manual](https://github.com/croneter/PlexKodiConnect/wiki/Installation). Please use the stable version except if you really know what you're doing. Kodi will update PKC automatically. 
 
 | Stable version | Beta version |
+|----------------|--------------|
 | [![stable version](https://img.shields.io/badge/stable_version-latest-blue.svg?maxAge=60&style=flat) ](https://dl.bintray.com/croneter/PlexKodiConnect/bin/repository.plexkodiconnect/repository.plexkodiconnect-1.0.0.zip)  | [![beta version](https://img.shields.io/badge/beta_version-latest-red.svg?maxAge=60&style=flat) ](https://dl.bintray.com/croneter/PlexKodiConnect_BETA/bin-BETA/repository.plexkodiconnectbeta/repository.plexkodiconnectbeta-1.0.0.zip) |
 
 ### Important Notes
