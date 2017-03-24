@@ -1,5 +1,7 @@
-[![stable version](https://img.shields.io/badge/stable_version-1.7.2-blue.svg?maxAge=60&style=flat) ](https://dl.bintray.com/croneter/PlexKodiConnect/bin/repository.plexkodiconnect) 
-[![beta version](https://img.shields.io/badge/beta_version-1.7.4-red.svg?maxAge=60&style=flat) ](https://bintray.com/croneter/PlexKodiConnect_BETA/PlexKodiConnect_BETA/_latestVersion)
+[![stable version](https://img.shields.io/badge/stable_version-1.7.2-blue.svg?maxAge=60&style=flat) ](https://dl.bintray.com/croneter/PlexKodiConnect/bin/repository.plexkodiconnect/repository.plexkodiconnect-1.0.0.zip) 
+[![beta version](https://img.shields.io/badge/beta_version-1.7.4-red.svg?maxAge=60&style=flat) ](https://dl.bintray.com/croneter/PlexKodiConnect_BETA/bin-BETA/repository.plexkodiconnectbeta/repository.plexkodiconnectbeta-1.0.0.zip)
+
+https://bintray.com/croneter/PlexKodiConnect_BETA/download_file?file_path=bin-BETA%2Frepository.plexkodiconnectbeta%2Frepository.plexkodiconnectbeta-1.0.0.zip
 
 [![Installation](https://img.shields.io/badge/wiki-installation-brightgreen.svg?maxAge=60&style=flat)](https://github.com/croneter/PlexKodiConnect/wiki/Installation)
 [![FAQ](https://img.shields.io/badge/wiki-FAQ-brightgreen.svg?maxAge=60&style=flat)](https://github.com/croneter/PlexKodiConnect/wiki/faq)
@@ -67,9 +69,10 @@ PKC synchronizes your media from your Plex server to the native Kodi database. H
 ### Download and Installation
 [ ![Download](https://api.bintray.com/packages/croneter/PlexKodiConnect/PlexKodiConnect/images/download.svg) ](https://dl.bintray.com/croneter/PlexKodiConnect/bin/repository.plexkodiconnect/repository.plexkodiconnect-1.0.0.zip)
 
-Install PKC via the PlexKodiConnect Kodi repository (we cannot use the official Kodi repository as PKC messes with Kodi's databases). See the [github wiki installation manual](https://github.com/croneter/PlexKodiConnect/wiki/Installation).
+Install PKC via the PlexKodiConnect Kodi repository below (we cannot use the official Kodi repository as PKC messes with Kodi's databases). See the [github wiki installation manual](https://github.com/croneter/PlexKodiConnect/wiki/Installation). Please use the stable version except if you really know what you're doing. Kodi will update PKC automatically. 
 
-**Possibly UNSTABLE BETA version:** [ ![Download](https://api.bintray.com/packages/croneter/PlexKodiConnect_BETA/PlexKodiConnect_BETA/images/download.svg) ](https://bintray.com/croneter/PlexKodiConnect_BETA/PlexKodiConnect_BETA/_latestVersion)
+| Stable version | Beta version |
+| [![stable version](https://img.shields.io/badge/stable_version-latest-blue.svg?maxAge=60&style=flat) ](https://dl.bintray.com/croneter/PlexKodiConnect/bin/repository.plexkodiconnect/repository.plexkodiconnect-1.0.0.zip)  | [![beta version](https://img.shields.io/badge/beta_version-latest-red.svg?maxAge=60&style=flat) ](https://dl.bintray.com/croneter/PlexKodiConnect_BETA/bin-BETA/repository.plexkodiconnectbeta/repository.plexkodiconnectbeta-1.0.0.zip) |
 
 ### Important Notes
 
