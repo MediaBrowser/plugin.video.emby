@@ -1,9 +1,10 @@
 import logging
 from urllib import quote
+from urlparse import parse_qsl, urlsplit
 
 import plexdb_functions as plexdb
 from downloadutils import DownloadUtils as DU
-from utils import JSONRPC, tryEncode, tryDecode
+from utils import JSONRPC, tryEncode
 from PlexAPI import API
 
 ###############################################################################
@@ -111,6 +112,9 @@ def playlist_item_from_kodi(kodi_item):
         except TypeError:
             pass
     item.file = kodi_item.get('file')
+    if item.file is not None and item.plex_id is None:
+        item.plex_id = dict(
+            parse_qsl(urlsplit(item.file).query)).get('plex_id')
     item.kodi_type = kodi_item.get('type')
     if item.plex_id is None:
         item.uri = 'library://whatever/item/%s' % quote(item.file, safe='')

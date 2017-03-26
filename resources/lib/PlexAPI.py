@@ -1210,7 +1210,8 @@ class API():
 
     def get_picture_path(self):
         """
-        Returns the item's picture path (transcode, if necessary) as string
+        Returns the item's picture path (transcode, if necessary) as string.
+        Will always use addon paths, never direct paths
         """
         extension = self.item[0][0].attrib['key'][self.item[0][0].attrib['key'].rfind('.'):].lower()
         if (window('plex_force_transcode_pix') == 'true' or
@@ -1224,19 +1225,12 @@ class API():
                 1920,
                 1080)
         else:
-            # Don't transcode
-            if window('useDirectPaths') == 'true':
-                # Addon Mode. Just give the path of the file to Kodi
-                path = self.addPlexCredentialsToUrl(
-                    '%s%s' % (window('pms_server'),
-                              self.item[0][0].attrib['key']))
-            else:
-                # Native direct paths
-                path = self.validatePlayurl(
-                    self.getFilePath(forceFirstMediaStream=True),
-                    'photo')
-        path = tryEncode(path)
-        return path
+            path = self.addPlexCredentialsToUrl(
+                '%s%s' % (window('pms_server'),
+                          self.item[0][0].attrib['key']))
+        # Attach Plex id to url to let it be picked up by our playqueue agent
+        # later
+        return tryEncode('%s&plex_id=%s' % (path, self.getRatingKey()))
 
     def getTVShowPath(self):
         """
