@@ -6,21 +6,16 @@ from sys import argv
 from urllib import urlencode
 
 import xbmcplugin
-from xbmc import sleep, Player, executebuiltin, getCondVisibility, \
-    translatePath
+from xbmc import sleep, executebuiltin, translatePath
 from xbmcgui import ListItem
 
 from utils import window, settings, language as lang, dialog, tryDecode,\
     tryEncode, CatchExceptions, JSONRPC
 import downloadutils
-import playbackutils as pbutils
-import plexdb_functions as plexdb
 
 from PlexFunctions import GetPlexMetadata, GetPlexSectionResults, \
     GetMachineIdentifier
 from PlexAPI import API
-from PKC_listitem import convert_PKC_to_listitem
-from playqueue import Playqueue
 import variables as v
 
 ###############################################################################
