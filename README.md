@@ -62,6 +62,7 @@ PKC synchronizes your media from your Plex server to the native Kodi database. H
     + Spanish, thanks @bartolomesoriano
     + Danish, thanks @FIGHT
     + Italian, thanks @nikkux, @chicco83
+    + Dutch, thanks @mvanbaak
     + [Please help translating](https://crowdin.com/project/plexkodiconnect/invite)
 
 ### Download and Installation

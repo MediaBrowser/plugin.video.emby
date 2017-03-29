@@ -236,9 +236,9 @@
     
     <string id="30251">Recent toegevoegde Thuis-video 's</string><!-- Verified -->
     <string id="30252">Recent toegevoegde foto's</string><!-- Verified -->
-    <string id="30253">Favoriete Thuis-Video's</string><!-- Verified -->
-    <string id="30254">Favoriete foto 's</string><!-- Verified -->
-    <string id="30255">Favoriete Albums</string>
+    <string id="30253">Favorite Home Videos</string><!-- Verified -->
+    <string id="30254">Favorite Photos</string><!-- Verified -->
+    <string id="30255">Favorite Albums</string>
     
     <string id="30256">Recent toegevoegde videoclips</string><!-- Verified -->
     <string id="30257">Actieve videoclips</string><!-- Verified -->
@@ -412,109 +412,109 @@
     <string id="39044">Voer uw aangepaste smb paden in de instellingen onder "Sync Opties" en herstart Kodi</string>
     <string id="39045">Oorspronkelijke Plex foto pad om te vervangen:</string>
     <string id="39046">Vervang Plex PHOTO met:</string>
-    <string id="39047">On Deck: Append show title to episode</string>
-    <string id="39048">On Deck: Append season- and episode-number SxxExx</string>
-    <string id="39049">Nothing works? Try a full reset!</string>
-    <string id="39050">[COLOR yellow]Choose Plex Server from a list[/COLOR]</string>
-    <string id="39051">Wait before sync new/changed PMS item [s]</string>
-    <string id="39052">Background Sync</string>
-    <string id="39053">Do a full library sync every x minutes</string>
+    <string id="39047">On Deck: Voeg show naam toe aan episode</string>
+    <string id="39048">On Deck: Voeg seizoen en aflevering nummer toe SxxExx</string>
+    <string id="39049">Niets werkt? Probeer een volledige reset!</string>
+    <string id="39050">[COLOR yellow]Kies Plex Server uit lijst[/COLOR]</string>
+    <string id="39051">Tijd voordat nieuwe/gewijzigde items gesynct worden [s]</string>
+    <string id="39052">Achtergrond Sync</string>
+    <string id="39053">Elke X minuten een volledige sync</string>
     <string id="39054">remote</string>
-    <string id="39055">Searching for Plex Server</string>
-    <string id="39056">Used by Sync and when attempting to Direct Play</string>
-    <string id="39057">Customize Paths</string>
-    <string id="39058">Extend Plex TV Series "On Deck" view to all shows</string>
-    <string id="39059">Recently Added: Append show title to episode</string>
-    <string id="39060">Recently Added: Append season- and episode-number SxxExx</string>
-    <string id="39061">Would you like to download additional artwork from FanArtTV in the background?</string>
-    <string id="39062">Sync when screensaver is deactivated</string>
-    <string id="39063">Force Transcode Hi10P</string>
-    <string id="39064">Recently Added: Also show already watched episodes</string>
-    <string id="39066">Recently Added: Also show already watched movies (Refresh Plex playlist/nodes!)</string>
-    <string id="39067">Your current Plex Media Server:</string>
-    <string id="39068">[COLOR yellow]Manually enter Plex Media Server address[/COLOR]</string>
-    <string id="39069">Current address:</string>
-    <string id="39070">Current port:</string>
-    <string id="39071">Current plex.tv status:</string>
-    <string id="39072">Is your Kodi installed on a low-powered device like a Raspberry Pi? If yes, then we will reduce the strain on Kodi to prevent it from crashing.</string>
-    <string id="39073">Appearance Tweaks</string>
-    <string id="39074">TV Shows</string>
-    <string id="39075">Always use default Plex subtitle if possible</string>
-    <string id="39076">If you use several Plex libraries of one kind, e.g. "Kids Movies" and "Parents Movies", be sure to check the Wiki: https://goo.gl/JFtQV9</string>
-    <string id="39077">Number of PMS items to show in widgets (e.g. "On Deck")</string>
-    <string id="39078">Plex Companion Update Port (change only if needed)</string>
-    <string id="39079">Plex Companion could not open the GDM port. Please change it in the PKC settings.</string>
+    <string id="39055">Plex Server zoeken</string>
+    <string id="39056">Gebruikt door Sync en bij Direct Play</string>
+    <string id="39057">Aanpassen van paden</string>
+    <string id="39058">On Deck van TV-series laat alle series zien</string>
+    <string id="39059">Onlangs Toegevoegd: Voeg show naam toe aan afleveringen</string>
+    <string id="39060">Onlangs Toegevoegd: Voeg seizoen en aflevering nummer toe SxxExx</string>
+    <string id="39061">Extra artwork van FanArtTV in de background downloaden?</string>
+    <string id="39062">Sync als screensaver gedeactiveerd is</string>
+    <string id="39063">Forceer transcoden van Hi10P</string>
+    <string id="39064">Onlangs Toegevoegd: Toon ook al bekeken afleveringen</string>
+    <string id="39066">Onlangs Toegevoegd: Toon ook al bekeken films (Ververs Plex playlist/nodes!)</string>
+    <string id="39067">Huidige Plex Media Server:</string>
+    <string id="39068">[COLOR yellow]Handmatig Plex Media Server adres invoeren[/COLOR]</string>
+    <string id="39069">Huidig adres:</string>
+    <string id="39070">Huidige poort:</string>
+    <string id="39071">Huidige status van de plex.tv:</string>
+    <string id="39072">Is Kodi geïnstalleerd op een low-powered apparaat zoals een Raspberry Pi? Zo ja, dan zullen we de druk op Kodi verlagen om de kans op crashen te verminderen.</string>
+    <string id="39073">Uiterlijk aanpassingen</string>
+    <string id="39074">TV shows</string>
+    <string id="39075">Gebruik indien mogelijk altijd standaard Plex ondertitels</string>
+    <string id="39076">Bij gebruik van meerdere plex libraries van hetzelfde type, bijvoorbeeld "Kinder Films" en "Films voor volwassenen" bekijk dan de Wiki: https://goo.gl/JFtQV9</string>
+    <string id="39077">Aantal PMS items in widgets laten zien (bijv. "On Deck")</string>
+    <string id="39078">Plex Companion poort (alleen aanpassen indien nodig)</string>
+    <string id="39079">Plex Companion kon de GDM poort niet gebruiken. Wijzig deze in de PKC instellingen.</string>
 
     <!-- Plex Entrypoint.py -->
-    <string id="39200">Log-out Plex Home User </string>
-    <string id="39201">Settings</string>
-    <string id="39202">Network credentials</string>
-    <string id="39203">Refresh Plex playlists/nodes</string>
-    <string id="39204">Perform manual library sync</string>
-    <string id="39205">Unable to run the sync, the add-on is not connected to a Plex server.</string>
-    <string id="39206">Plex might lock your account if you fail to log in too many times. Proceed anyway?</string>
-    <string id="39207">Resetting PMS connections, please wait</string>
-    <string id="39208">Failed to reset PKC. Try to restart Kodi.</string>
-    <string id="39209">[COLOR yellow]Toggle plex.tv login (sign in or sign out)[/COLOR]</string>
-    <string id="39210">Not yet connected to Plex Server</string>
-    <string id="39211">Watch later</string>
+    <string id="39200">Log-out Plex Home gebruiker </string>
+    <string id="39201">Instellingen</string>
+    <string id="39202">Netwerk gegevens</string>
+    <string id="39203">Vernieuwen van Plex afspeellijsten/nodes</string>
+    <string id="39204">Handmatige sync uitvoeren</string>
+    <string id="39205">Sync is niet gelukt, de add-on is niet verbonden met de Plex Server.</string>
+    <string id="39206">Plex kan uw account vergrendelen bij teveel foutieve login pogingen. Toch doorgaan?</string>
+    <string id="39207">Resetten van PMS verbindingen, een moment geduld a.u.b</string>
+    <string id="39208">PKC reset niet gelukt. Herstart Kodi.</string>
+    <string id="39209">[COLOR yellow]Verander plex.tv login (aanmelden of afmelden)[/COLOR]</string>
+    <string id="39210">Nog niet verbonden met Plex Server</string>
+    <string id="39211">Later bekijken</string>
     <string id="39213">is offline</string>
-    <string id="39214">Even though we signed in to plex.tv, we could not authorize for PMS</string>
-    <string id="39215">Enter your Plex Media Server's IP or URL, Examples are:</string>
+    <string id="39214">Hoewel aangemeld bij plex.tv, niet geauthorizeerd bij de PMS</string>
+    <string id="39215">Voer Plex Media Server adres in. Voorbeelden zijn:</string>
 
-    <string id="39217">Does your Plex Media Server support SSL connections? (https instead of http)?</string>
-    <string id="39218">Error contacting PMS</string>
-    <string id="39219">Abort (Yes) or save address anyway (No)?</string>
-    <string id="39220">connected</string>
-    <string id="39221">plex.tv toggle successful</string>
-    <string id="39222">[COLOR yellow]Look for missing fanart on FanartTV now[/COLOR]</string>
-    <string id="39223">Only look for missing fanart or refresh all fanart? The scan will take quite a while and happen in the background.</string>
-    <string id="39224">Refresh all</string>
-    <string id="39225">Missing only</string>    
+    <string id="39217">Ondersteunt uw Plex Media Server SSL-verbindingen? (https in plaats van http)?</string>
+    <string id="39218">Fout bij verbinden met PMS</string>
+    <string id="39219">Afbreken (Ja) of adres toch opslaan (Nee)?</string>
+    <string id="39220">verbonden</string>
+    <string id="39221">plex.tv aanpassing succesvol</string>
+    <string id="39222">[COLOR yellow]Nu zoeken naar missende artwork op FanartTV[/COLOR]</string>
+    <string id="39223">Alleen missende artwork zoeken of alles verniewen? De scan kan lang duren en zal op de achtergrond plaatsvinden.</string>
+    <string id="39224">Alles vernieuwen</string>
+    <string id="39225">Alleen ontbrekende</string>    
 
 
     <!-- Plex Artwork.py -->
-    <string id="39250">Running the image cache process can take some time. It will happen in the background. Are you sure you want continue?</string>
-    <string id="39251">Reset all existing cache data first?</string>
+    <string id="39250">Uitvoeren van de afbeelding cache proces kan enige tijd duren. Het zal gebeuren in de achtergrond. Weet u zeker dat u wilt doorgaan?</string>
+    <string id="39251">Alle bestaande gegevens van de cache eerst resetten?</string>
 
     <!-- Plex PlexAPI.py -->
-    <string id="39300">: Enter plex.tv username. Or nothing to cancel.</string>
-    <string id="39301">Enter password for plex.tv user </string>
-    <string id="39302">Could not sign in user </string>
-    <string id="39303">Problems trying to contact plex.tv. Try again later</string>
-    <string id="39304">Go to https://plex.tv/pin and enter the code: </string>
-    <string id="39305">Could not sign in to plex.tv. Try again later</string>
-    <string id="39306">: Select User</string>
-    <string id="39307">Enter PIN for user </string>
-    <string id="39308">Could not log in user </string>
-    <string id="39309">Please try again.</string>
-    <string id="39310">unknown</string>
-    <string id="39311">or press No to not sign in.</string>
+    <string id="39300">: Plex.tv gebruikersnaam. Of niets om te annuleren.</string>
+    <string id="39301">Wachtwoord voor gebruiker van plex.tv </string>
+    <string id="39302">Kan de gebruiker niet inloggen </string>
+    <string id="39303">Probleem met verbinding naar plex.tv. Probeer het later opnieuw</string>
+    <string id="39304">Ga naar https://plex.tv/pin en voer de code in: </string>
+    <string id="39305">Kan niet aanmelden bij plex.tv. Probeer het later opnieuw</string>
+    <string id="39306">: Selecteer gebruiker</string>
+    <string id="39307">Voer pincode voor gebruiker </string>
+    <string id="39308">Kan de gebruiker niet inloggen </string>
+    <string id="39309">Probeer opnieuw.</string>
+    <string id="39310">onbekend</string>
+    <string id="39311">of druk op Nee als u niet wilt inloggen.</string>
 
     <!-- Plex Librarysync.py -->
-    <string id="39400">Library sync thread has crashed. You should restart Kodi now. Please report this on the forum</string>
-    <string id="39401">Detected Kodi database needs to be recreated for this version. This might take a while. Proceed?</string>
-    <string id="39402"> may not work correctly until the database is reset.</string>
+    <string id="39400">Sync is gecrashed. Herstart Kodi. Meldt dit probleem op het forum</string>
+    <string id="39401">Deze versie vereist een nieuwe database. Dit kan enige tijd duren. Doorgaan?</string>
+    <string id="39402"> werkt mogelijk niet correct totdat de database opnieuw wordt ingesteld.</string>
     <string id="39403">Database syncing proces geannuleerd. Huidige Kodi versie wordt niet ondersteund. Controleer uw logbestanden voor meer info.</string>
-    <string id="39404">Startup syncing process failed repeatedly. Try restarting Kodi. Stopping Sync for now.</string>
-    <string id="39405">Plex playlists/nodes refreshed</string>
-    <string id="39406">Plex playlists/nodes refresh failed</string>
-    <string id="39407">Full library sync finished</string>
+    <string id="39404">Opstarten synchronisatie proces mislukt herhaaldelijk. Start Kodi opnieuw. Sync is voor nu geannuleerd.</string>
+    <string id="39405">Plex afspeellijsten/nodes vernieuwd</string>
+    <string id="39406">Plex afspeellijsten/nodes vernieuwen mislukt</string>
+    <string id="39407">Volledige bibliotheek sync klaar</string>
     <string id="39408">Sync diende een aantal bestanden over te slaan. Kodi werkt misschien niet langer stabiel. Gelieve uw Kodi log bestanden op het Plex forum te posten.</string>
-    <string id="39409">The Plex Server did not like you asking for so much data at once and returned ERRORS. Try lowering the number of sync download threads in the settings. Skipped some items for now.</string>
-    <string id="39410">ERROR in library sync</string>
+    <string id="39409">Plex gaf fouten terug door de gevraagde hoeveelheid data. Verminder het aantal sync threads in de instellingen. Sommige items zijn overgeslagen.</string>
+    <string id="39410">FOUT in bibliotheek sync</string>
 
     <!-- Plex videonodes.py -->
     <string id="39500">On Deck</string>
-    <string id="39501">Collections</string>
+    <string id="39501">Verzamelingen</string>
 
     <!-- Plex utils.py -->
-    <string id="39600">Are you sure you want to reset your local Kodi database? A re-sync of the Plex data will take time afterwards.</string>
-    <string id="39601">Could not stop the database from running. Please try again later.</string>
+    <string id="39600">Lokale database van Kodi resetten? Een hersynchronisatie is nodig en kan enige tijd duren.</string>
+    <string id="39601">Kon de database synchronisatie niet stoppen. Probeer het later nog eens.</string>
     <string id="39602">Verwijder artwork cache? (aanbevolen!)</string>
     <string id="39603">Reset alle instellingen van de PlexKodiConnect Addon? (dit is gewoonlijk niet aanbevolen en onnodig!)</string>
 
     <string id="39700">Amazon Alexa (spraakherkenning)</string>
     <string id="39701">Aktiveer Alexa</string>
-    <string id="39702">Browse by folder</string>
+    <string id="39702">Per map bladeren</string>
 </strings>
