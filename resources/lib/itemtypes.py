@@ -9,7 +9,7 @@ from datetime import datetime
 from xbmc import sleep
 
 import artwork
-from utils import tryEncode, tryDecode, settings, window, kodiSQL, \
+from utils import tryEncode, tryDecode, window, kodiSQL, \
     CatchExceptions
 import plexdb_functions as plexdb
 import kodidb_functions as kodidb
