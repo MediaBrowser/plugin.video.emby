@@ -1259,14 +1259,6 @@ class TVShows(Items):
 
 class Music(Items):
 
-    def __init__(self):
-        Items.__init__(self)
-
-        self.directstream = settings('streamMusic') == "true"
-        self.enableimportsongrating = settings('enableImportSongRating') == "true"
-        self.enableexportsongrating = settings('enableExportSongRating') == "true"
-        self.enableupdatesongrating = settings('enableUpdateSongRating') == "true"
-
     def __enter__(self):
         """
         OVERWRITE this method, because we need to open another DB.
