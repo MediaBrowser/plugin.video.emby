@@ -1,6 +1,3 @@
-
-# PlexKodiConnect (PKC)
-
 [![stable version](https://img.shields.io/badge/stable_version-1.7.5-blue.svg?maxAge=60&style=flat) ](https://dl.bintray.com/croneter/PlexKodiConnect/bin/repository.plexkodiconnect/repository.plexkodiconnect-1.0.0.zip) 
 [![beta version](https://img.shields.io/badge/beta_version-1.7.5-red.svg?maxAge=60&style=flat) ](https://dl.bintray.com/croneter/PlexKodiConnect_BETA/bin-BETA/repository.plexkodiconnectbeta/repository.plexkodiconnectbeta-1.0.0.zip)
 
@@ -11,6 +8,7 @@
 [![GitHub issues](https://img.shields.io/github/issues/croneter/PlexKodiConnect.svg?maxAge=60&style=flat)](https://github.com/croneter/PlexKodiConnect/issues) [![GitHub pull requests](https://img.shields.io/github/issues-pr/croneter/PlexKodiConnect.svg?maxAge=60&style=flat)](https://github.com/croneter/PlexKodiConnect/pulls) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/a66870f19ced4fb98f94d9fd56e34e87)](https://www.codacy.com/app/croneter/PlexKodiConnect?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=croneter/PlexKodiConnect&amp;utm_campaign=Badge_Grade)
 
 
+# PlexKodiConnect (PKC)
 **Combine the best frontend media player Kodi with the best multimedia backend server Plex**
 
 PKC combines the best of Kodi - ultra smooth navigation, beautiful and highly customizable user interfaces and playback of any file under the sun - and the Plex Media Server.
