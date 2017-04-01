@@ -346,7 +346,6 @@ class LibrarySync(Thread):
         self.enableMusic = settings('enableMusic') == "true"
         self.enableBackgroundSync = settings(
             'enableBackgroundSync') == "true"
-        self.limitindex = int(settings('limitindex'))
 
         # Init for replacing paths
         window('remapSMB', value=settings('remapSMB'))
@@ -422,8 +421,7 @@ class LibrarySync(Thread):
                 if not view.attrib['type'] == mediatype:
                     continue
                 libraryId = view.attrib['key']
-                items = GetAllPlexLeaves(libraryId,
-                                         containerSize=self.limitindex)
+                items = GetAllPlexLeaves(libraryId)
                 if items in (None, 401):
                     log.error("Could not download section %s"
                               % view.attrib['key'])
@@ -468,9 +466,7 @@ class LibrarySync(Thread):
         # Let the PMS process this first!
         xbmc.sleep(1000)
         # Get PMS items to find the item we just changed
-        items = GetAllPlexLeaves(libraryId,
-                                 lastViewedAt=timestamp,
-                                 containerSize=self.limitindex)
+        items = GetAllPlexLeaves(libraryId, lastViewedAt=timestamp)
         # Toggle watched state back
         scrobble(plexId, 'unwatched')
         if items in (None, 401):
@@ -1083,8 +1079,7 @@ class LibrarySync(Thread):
             # Get items per view
             viewId = view['id']
             viewName = view['name']
-            all_plexmovies = GetPlexSectionResults(
-                viewId, args=None, containerSize=self.limitindex)
+            all_plexmovies = GetPlexSectionResults(viewId, args=None)
             if all_plexmovies is None:
                 log.info("Couldnt get section items, aborting for view.")
                 continue
@@ -1127,8 +1122,7 @@ class LibrarySync(Thread):
             return
         xml = GetAllPlexLeaves(viewId,
                                lastViewedAt=lastViewedAt,
-                               updatedAt=updatedAt,
-                               containerSize=self.limitindex)
+                               updatedAt=updatedAt)
         # Return if there are no items in PMS reply - it's faster
         try:
             xml[0].attrib
@@ -1178,8 +1172,7 @@ class LibrarySync(Thread):
             # Get items per view
             viewId = view['id']
             viewName = view['name']
-            allPlexTvShows = GetPlexSectionResults(
-                viewId, containerSize=self.limitindex)
+            allPlexTvShows = GetPlexSectionResults(viewId)
             if allPlexTvShows is None:
                 log.error("Error downloading show xml for view %s" % viewId)
                 continue
@@ -1206,8 +1199,7 @@ class LibrarySync(Thread):
             if self.threadStopped():
                 return False
             # Grab all seasons to tvshow from PMS
-            seasons = GetAllPlexChildren(
-                tvShowId, containerSize=self.limitindex)
+            seasons = GetAllPlexChildren(tvShowId)
             if seasons is None:
                 log.error("Error download season xml for show %s" % tvShowId)
                 continue
@@ -1232,8 +1224,7 @@ class LibrarySync(Thread):
             if self.threadStopped():
                 return False
             # Grab all episodes to tvshow from PMS
-            episodes = GetAllPlexLeaves(
-                view['id'], containerSize=self.limitindex)
+            episodes = GetAllPlexLeaves(view['id'])
             if episodes is None:
                 log.error("Error downloading episod xml for view %s"
                           % view.get('name'))
@@ -1297,12 +1288,17 @@ class LibrarySync(Thread):
         }
 
         # Process artist, then album and tracks last to minimize overhead
+        # Each album needs to be processed directly with its songs
+        # Remaining songs without album will be processed last
         for kind in (v.PLEX_TYPE_ARTIST,
                      v.PLEX_TYPE_ALBUM,
                      v.PLEX_TYPE_SONG):
             if self.threadStopped():
                 return False
             log.debug("Start processing music %s" % kind)
+            self.allKodiElementsId = {}
+            self.allPlexElementsId = {}
+            self.updatelist = []
             if self.ProcessMusic(views,
                                  kind,
                                  urlArgs[kind],
@@ -1326,10 +1322,6 @@ class LibrarySync(Thread):
         return True
 
     def ProcessMusic(self, views, kind, urlArgs, method):
-        self.allKodiElementsId = {}
-        self.allPlexElementsId = {}
-        self.updatelist = []
-
         # Get a list of items already existing in Kodi db
         if self.compare:
             with plexdb.Get_Plex_DB() as plex_db:
@@ -1340,17 +1332,13 @@ class LibrarySync(Thread):
                 # Yet empty/nothing yet synched
                 except ValueError:
                     pass
-
         for view in views:
             if self.threadStopped():
                 return False
             # Get items per view
-            viewId = view['id']
-            viewName = view['name']
-            itemsXML = GetPlexSectionResults(
-                viewId, args=urlArgs, containerSize=self.limitindex)
+            itemsXML = GetPlexSectionResults(view['id'], args=urlArgs)
             if itemsXML is None:
-                log.error("Error downloading xml for view %s" % viewId)
+                log.error("Error downloading xml for view %s" % view['id'])
                 continue
             elif itemsXML == 401:
                 return False
@@ -1358,9 +1346,8 @@ class LibrarySync(Thread):
             self.GetUpdatelist(itemsXML,
                                'Music',
                                method,
-                               viewName,
-                               viewId)
-
+                               view['name'],
+                               view['id'])
         if self.compare:
             # Manual sync, process deletes
             with itemtypes.Music() as Music:

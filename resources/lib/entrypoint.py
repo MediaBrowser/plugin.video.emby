@@ -791,9 +791,7 @@ def browse_plex(key=None, plex_section_id=None):
     if key:
         xml = downloadutils.DownloadUtils().downloadUrl('{server}%s' % key)
     else:
-        xml = GetPlexSectionResults(
-            plex_section_id,
-            containerSize=int(settings('limitindex')))
+        xml = GetPlexSectionResults(plex_section_id)
     try:
         xml[0].attrib
     except (ValueError, AttributeError, IndexError, TypeError):
