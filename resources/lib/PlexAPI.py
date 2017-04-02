@@ -30,7 +30,6 @@ http://stackoverflow.com/questions/111945/is-there-any-way-to-do-http-put-in-pyt
 (and others...)
 """
 
-import os
 import logging
 from time import time
 import urllib2
@@ -40,6 +39,7 @@ import xml.etree.ElementTree as etree
 from re import compile as re_compile, sub
 from json import dumps
 from urllib import urlencode, quote_plus, unquote
+from os import path as os_path
 
 import xbmcgui
 from xbmc import sleep, executebuiltin
@@ -2187,32 +2187,38 @@ class API():
             # Several streams/files available.
             dialoglist = []
             for entry in self.item.findall('./Media'):
-                fileName = ''
-                audioLanguage = ''
-
                 # Get additional info (filename / languages)
-                mediaPartEntry = self.item.find('./Media/Part')
-                if mediaPartEntry is not None:
-                    # Filename
-                    if 'file' in mediaPartEntry.attrib:
-                        fileName = os.path.basename(mediaPartEntry.attrib['file'])
-
-                    # Languages - subtitle does not seem to be directly included in this stream info
-                    mediaPartStreamEntry = self.item.find('./Media/Part/Stream')
-                    if mediaPartStreamEntry is not None:
-                        # Audio language
-                        if 'language' in mediaPartStreamEntry.attrib:
-                            audioLanguage = mediaPartStreamEntry.attrib['language']
-
-                dialoglist.append(
-                    "%sp %s - %s (%s) (%s) %s" %
-                    (entry.attrib.get('videoResolution', 'unknown'),
-                    entry.attrib.get('videoCodec', 'unknown'),
-                    entry.attrib.get('audioProfile', 'unknown'),
-                    entry.attrib.get('audioCodec', 'unknown'),
-                    audioLanguage,
-                    fileName)
-                )
+                filename = None
+                if 'file' in entry[0].attrib:
+                    filename = os_path.basename(entry[0].attrib['file'])
+                # Languages of audio streams
+                languages = []
+                for stream in entry[0]:
+                    if (stream.attrib['streamType'] == '1' and
+                            'language' in stream.attrib):
+                        languages.append(stream.attrib['language'])
+                languages = ', '.join(languages)
+                if filename:
+                    option = tryEncode(filename)
+                if languages:
+                    if option:
+                        option = '%s (%s): ' % (option, tryEncode(languages))
+                    else:
+                        option = '%s: ' % tryEncode(languages)
+                if 'videoResolution' in entry.attrib:
+                    option = '%s%sp ' % (option,
+                                         entry.attrib.get('videoResolution'))
+                if 'videoCodec' in entry.attrib:
+                    option = '%s%s' % (option,
+                                       entry.attrib.get('videoCodec'))
+                option = option.strip() + ' - '
+                if 'audioProfile' in entry.attrib:
+                    option = '%s%s ' % (option,
+                                        entry.attrib.get('audioProfile'))
+                if 'audioCodec' in entry.attrib:
+                    option = '%s%s ' % (option,
+                                        entry.attrib.get('audioCodec'))
+                dialoglist.append(option)
             media = xbmcgui.Dialog().select('Select stream', dialoglist)
         else:
             media = 0
