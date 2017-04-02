@@ -3,7 +3,7 @@
 ###############################################################################
 
 import logging
-from threading import Thread, Lock
+from threading import Thread
 import Queue
 from random import shuffle
 
@@ -28,288 +28,16 @@ import variables as v
 from PlexFunctions import GetPlexMetadata, GetAllPlexLeaves, scrobble, \
     GetPlexSectionResults, GetAllPlexChildren, GetPMSStatus
 import PlexAPI
+from library_sync.get_metadata import Threaded_Get_Metadata
+from library_sync.process_metadata import Threaded_Process_Metadata
+import library_sync.sync_info as sync_info
+from library_sync.fanart import Process_Fanart_Thread
 
 ###############################################################################
 
 log = logging.getLogger("PLEX."+__name__)
 
 ###############################################################################
-
-
-@ThreadMethodsAdditionalStop('suspend_LibraryThread')
-@ThreadMethods
-class ThreadedGetMetadata(Thread):
-    """
-    Threaded download of Plex XML metadata for a certain library item.
-    Fills the out_queue with the downloaded etree XML objects
-
-    Input:
-        queue               Queue.Queue() object that you'll need to fill up
-                            with Plex itemIds
-        out_queue           Queue() object where this thread will store
-                            the downloaded metadata XMLs as etree objects
-        lock                Lock(), used for counting where we are
-    """
-    def __init__(self, queue, out_queue, lock, processlock):
-        self.queue = queue
-        self.out_queue = out_queue
-        self.lock = lock
-        self.processlock = processlock
-        Thread.__init__(self)
-
-    def terminateNow(self):
-        while not self.queue.empty():
-            # Still try because remaining item might have been taken
-            try:
-                self.queue.get(block=False)
-            except Queue.Empty:
-                xbmc.sleep(10)
-                continue
-            else:
-                self.queue.task_done()
-        if self.threadStopped():
-            # Shutdown from outside requested; purge out_queue as well
-            while not self.out_queue.empty():
-                # Still try because remaining item might have been taken
-                try:
-                    self.out_queue.get(block=False)
-                except Queue.Empty:
-                    xbmc.sleep(10)
-                    continue
-                else:
-                    self.out_queue.task_done()
-
-    def run(self):
-        # cache local variables because it's faster
-        queue = self.queue
-        out_queue = self.out_queue
-        lock = self.lock
-        processlock = self.processlock
-        threadStopped = self.threadStopped
-        global getMetadataCount
-        global processMetadataCount
-        while threadStopped() is False:
-            # grabs Plex item from queue
-            try:
-                updateItem = queue.get(block=False)
-            # Empty queue
-            except Queue.Empty:
-                xbmc.sleep(10)
-                continue
-            # Download Metadata
-            plexXML = GetPlexMetadata(updateItem['itemId'])
-            if plexXML is None:
-                # Did not receive a valid XML - skip that item for now
-                log.warn("Could not get metadata for %s. Skipping that item "
-                         "for now" % updateItem['itemId'])
-                # Increase BOTH counters - since metadata won't be processed
-                with lock:
-                    getMetadataCount += 1
-                with processlock:
-                    processMetadataCount += 1
-                queue.task_done()
-                continue
-            elif plexXML == 401:
-                log.warn('HTTP 401 returned by PMS. Too much strain? '
-                         'Cancelling sync for now')
-                window('plex_scancrashed', value='401')
-                # Kill remaining items in queue (for main thread to cont.)
-                queue.task_done()
-                break
-
-            updateItem['XML'] = plexXML
-            # place item into out queue
-            out_queue.put(updateItem)
-            # Keep track of where we are at
-            with lock:
-                getMetadataCount += 1
-            # signals to queue job is done
-            queue.task_done()
-        # Empty queue in case PKC was shut down (main thread hangs otherwise)
-        self.terminateNow()
-        log.debug('Download thread terminated')
-
-
-@ThreadMethodsAdditionalStop('suspend_LibraryThread')
-@ThreadMethods
-class ThreadedProcessMetadata(Thread):
-    """
-    Not yet implemented - if ever. Only to be called by ONE thread!
-    Processes the XML metadata in the queue
-
-    Input:
-        queue:      Queue.Queue() object that you'll need to fill up with
-                    the downloaded XML eTree objects
-        itemType:   as used to call functions in itemtypes.py
-                    e.g. 'Movies' => itemtypes.Movies()
-        lock:       Lock(), used for counting where we are
-    """
-    def __init__(self, queue, itemType, lock):
-        self.queue = queue
-        self.lock = lock
-        self.itemType = itemType
-        Thread.__init__(self)
-
-    def terminateNow(self):
-        while not self.queue.empty():
-            # Still try because remaining item might have been taken
-            try:
-                self.queue.get(block=False)
-            except Queue.Empty:
-                xbmc.sleep(10)
-                continue
-            else:
-                self.queue.task_done()
-
-    def run(self):
-        # Constructs the method name, e.g. itemtypes.Movies
-        itemFkt = getattr(itemtypes, self.itemType)
-        # cache local variables because it's faster
-        queue = self.queue
-        lock = self.lock
-        threadStopped = self.threadStopped
-        global processMetadataCount
-        global processingViewName
-        with itemFkt() as item:
-            while threadStopped() is False:
-                # grabs item from queue
-                try:
-                    updateItem = queue.get(block=False)
-                except Queue.Empty:
-                    xbmc.sleep(10)
-                    continue
-                # Do the work
-                plexitem = updateItem['XML']
-                method = updateItem['method']
-                viewName = updateItem['viewName']
-                viewId = updateItem['viewId']
-                title = updateItem['title']
-                itemSubFkt = getattr(item, method)
-                # Get the one child entry in the xml and process
-                for child in plexitem:
-                    itemSubFkt(child,
-                               viewtag=viewName,
-                               viewid=viewId)
-                # Keep track of where we are at
-                with lock:
-                    processMetadataCount += 1
-                    processingViewName = title
-                # signals to queue job is done
-                queue.task_done()
-        # Empty queue in case PKC was shut down (main thread hangs otherwise)
-        self.terminateNow()
-        log.debug('Processing thread terminated')
-
-
-@ThreadMethodsAdditionalStop('suspend_LibraryThread')
-@ThreadMethods
-class ThreadedShowSyncInfo(Thread):
-    """
-    Threaded class to show the Kodi statusbar of the metadata download.
-
-    Input:
-        dialog       xbmcgui.DialogProgressBG() object to show progress
-        locks = [downloadLock, processLock]     Locks() to the other threads
-        total:       Total number of items to get
-    """
-    def __init__(self, dialog, locks, total, itemType):
-        self.locks = locks
-        self.total = total
-        self.dialog = dialog
-        self.itemType = itemType
-        Thread.__init__(self)
-
-    def run(self):
-        # cache local variables because it's faster
-        total = self.total
-        dialog = self.dialog
-        threadStopped = self.threadStopped
-        downloadLock = self.locks[0]
-        processLock = self.locks[1]
-        dialog.create("%s: Sync %s: %s items"
-                      % (lang(29999), self.itemType, str(total)),
-                      "Starting")
-        global getMetadataCount
-        global processMetadataCount
-        global processingViewName
-        total = 2 * total
-        totalProgress = 0
-        while threadStopped() is False:
-            with downloadLock:
-                getMetadataProgress = getMetadataCount
-            with processLock:
-                processMetadataProgress = processMetadataCount
-                viewName = processingViewName
-            totalProgress = getMetadataProgress + processMetadataProgress
-            try:
-                percentage = int(float(totalProgress) / float(total)*100.0)
-            except ZeroDivisionError:
-                percentage = 0
-            dialog.update(percentage,
-                          message="%s downloaded. %s processed: %s"
-                                  % (getMetadataProgress,
-                                     processMetadataProgress,
-                                     viewName))
-            # Sleep for x milliseconds
-            xbmc.sleep(200)
-        dialog.close()
-        log.debug('Dialog Infobox thread terminated')
-
-
-@ThreadMethodsAdditionalSuspend('suspend_LibraryThread')
-@ThreadMethodsAdditionalStop('plex_shouldStop')
-@ThreadMethods
-class ProcessFanartThread(Thread):
-    """
-    Threaded download of additional fanart in the background
-
-    Input:
-        queue           Queue.Queue() object that you will need to fill with
-                        dicts of the following form:
-            {
-              'plex_id':                the Plex id as a string
-              'plex_type':              the Plex media type, e.g. 'movie'
-              'refresh': True/False     if True, will overwrite any 3rd party
-                                        fanart. If False, will only get missing
-            }
-    """
-    def __init__(self, queue):
-        self.queue = queue
-        Thread.__init__(self)
-
-    def run(self):
-        threadStopped = self.threadStopped
-        threadSuspended = self.threadSuspended
-        queue = self.queue
-        log.info("---===### Starting FanartSync ###===---")
-        while not threadStopped():
-            # In the event the server goes offline
-            while threadSuspended() or window('plex_dbScan'):
-                # Set in service.py
-                if threadStopped():
-                    # Abort was requested while waiting. We should exit
-                    log.info("---===### Stopped FanartSync ###===---")
-                    return
-                xbmc.sleep(1000)
-            # grabs Plex item from queue
-            try:
-                item = queue.get(block=False)
-            except Queue.Empty:
-                xbmc.sleep(200)
-                continue
-
-            log.debug('Get additional fanart for Plex id %s' % item['plex_id'])
-            with getattr(itemtypes,
-                         v.ITEMTYPE_FROM_PLEXTYPE[item['plex_type']])() as cls:
-                result = cls.getfanart(item['plex_id'],
-                                       refresh=item['refresh'])
-            if result is True:
-                log.debug('Done getting fanart for Plex id %s'
-                          % item['plex_id'])
-                with plexdb.Get_Plex_DB() as plex_db:
-                    plex_db.set_fanart_synched(item['plex_id'])
-            queue.task_done()
-        log.info("---===### Stopped FanartSync ###===---")
 
 
 @ThreadMethodsAdditionalSuspend('suspend_LibraryThread')
@@ -330,7 +58,7 @@ class LibrarySync(Thread):
         self.sessionKeys = []
         self.fanartqueue = Queue.Queue()
         if settings('FanartTV') == 'true':
-            self.fanartthread = ProcessFanartThread(self.fanartqueue)
+            self.fanartthread = Process_Fanart_Thread(self.fanartqueue)
         # How long should we wait at least to process new/changed PMS items?
         self.saftyMargin = int(settings('backgroundsync_saftyMargin'))
 
@@ -700,8 +428,8 @@ class LibrarySync(Thread):
                                 viewid=folderid,
                                 delete=True)
                     # Added new playlist
-                    if (foldername not in playlists and
-                            mediatype in (v.PLEX_TYPE_MOVIE, v.PLEX_TYPE_SHOW)):
+                    if (foldername not in playlists and mediatype in
+                            (v.PLEX_TYPE_MOVIE, v.PLEX_TYPE_SHOW)):
                         playlistXSP(mediatype,
                                     foldername,
                                     folderid,
@@ -726,8 +454,8 @@ class LibrarySync(Thread):
             else:
                 # Validate the playlist exists or recreate it
                 if mediatype != v.PLEX_TYPE_ARTIST:
-                    if (foldername not in playlists and
-                            mediatype in (v.PLEX_TYPE_MOVIE, v.PLEX_TYPE_SHOW)):
+                    if (foldername not in playlists and mediatype in
+                            (v.PLEX_TYPE_MOVIE, v.PLEX_TYPE_SHOW)):
                         playlistXSP(mediatype,
                                     foldername,
                                     folderid,
@@ -777,7 +505,8 @@ class LibrarySync(Thread):
 
         for view in sections:
             itemType = view.attrib['type']
-            if itemType in (v.PLEX_TYPE_MOVIE, v.PLEX_TYPE_SHOW, v.PLEX_TYPE_PHOTO):  # NOT artist for now
+            if (itemType in
+                    (v.PLEX_TYPE_MOVIE, v.PLEX_TYPE_SHOW, v.PLEX_TYPE_PHOTO)):
                 self.sorted_views.append(view.attrib['title'])
         log.debug('Sorted views: %s' % self.sorted_views)
 
@@ -859,7 +588,8 @@ class LibrarySync(Thread):
             with itemtypes.Music() as music:
                 music.remove(item['plex_id'])
 
-    def GetUpdatelist(self, xml, itemType, method, viewName, viewId):
+    def GetUpdatelist(self, xml, itemType, method, viewName, viewId,
+                      get_children=False):
         """
         THIS METHOD NEEDS TO BE FAST! => e.g. no API calls
 
@@ -872,6 +602,8 @@ class LibrarySync(Thread):
                                     see itemtypes.py
             viewName:               Name of the Plex view (e.g. 'My TV shows')
             viewId:                 Id/Key of Plex library (e.g. '1')
+            get_children:           will get Plex children of the item if True,
+                                    e.g. for music albums
 
         Output: self.updatelist, self.allPlexElementsId
             self.updatelist         APPENDED(!!) list itemids (Plex Keys as
@@ -906,7 +638,8 @@ class LibrarySync(Thread):
                         'viewName': viewName,
                         'viewId': viewId,
                         'title': item.attrib.get('title', 'Missing Title'),
-                        'mediaType': item.attrib.get('type')
+                        'mediaType': item.attrib.get('type'),
+                        'get_children': get_children
                     })
                     self.just_processed[itemId] = now
             return
@@ -932,7 +665,8 @@ class LibrarySync(Thread):
                         'viewName': viewName,
                         'viewId': viewId,
                         'title': item.attrib.get('title', 'Missing Title'),
-                        'mediaType': item.attrib.get('type')
+                        'mediaType': item.attrib.get('type'),
+                        'get_children': get_children
                     })
                     self.just_processed[itemId] = now
         else:
@@ -951,7 +685,8 @@ class LibrarySync(Thread):
                     'viewName': viewName,
                     'viewId': viewId,
                     'title': item.attrib.get('title', 'Missing Title'),
-                    'mediaType': item.attrib.get('type')
+                    'mediaType': item.attrib.get('type'),
+                    'get_children': get_children
                 })
                 self.just_processed[itemId] = now
 
@@ -976,49 +711,38 @@ class LibrarySync(Thread):
         log.info("Starting sync threads")
         getMetadataQueue = Queue.Queue()
         processMetadataQueue = Queue.Queue(maxsize=100)
-        getMetadataLock = Lock()
-        processMetadataLock = Lock()
         # To keep track
-        global getMetadataCount
-        getMetadataCount = 0
-        global processMetadataCount
-        processMetadataCount = 0
-        global processingViewName
-        processingViewName = ''
+        sync_info.GET_METADATA_COUNT = 0
+        sync_info.PROCESS_METADATA_COUNT = 0
+        sync_info.PROCESSING_VIEW_NAME = ''
         # Populate queue: GetMetadata
         for updateItem in self.updatelist:
             getMetadataQueue.put(updateItem)
         # Spawn GetMetadata threads for downloading
         threads = []
         for i in range(min(self.syncThreadNumber, itemNumber)):
-            thread = ThreadedGetMetadata(getMetadataQueue,
-                                         processMetadataQueue,
-                                         getMetadataLock,
-                                         processMetadataLock)
+            thread = Threaded_Get_Metadata(getMetadataQueue,
+                                           processMetadataQueue)
             thread.setDaemon(True)
             thread.start()
             threads.append(thread)
         log.info("%s download threads spawned" % len(threads))
         # Spawn one more thread to process Metadata, once downloaded
-        thread = ThreadedProcessMetadata(processMetadataQueue,
-                                         itemType,
-                                         processMetadataLock)
+        thread = Threaded_Process_Metadata(processMetadataQueue,
+                                           itemType)
         thread.setDaemon(True)
         thread.start()
         threads.append(thread)
-        log.info("Processing thread spawned")
         # Start one thread to show sync progress ONLY for new PMS items
         if self.new_items_only is True and window('dbSyncIndicator') == 'true':
             dialog = xbmcgui.DialogProgressBG()
-            thread = ThreadedShowSyncInfo(
+            thread = sync_info.Threaded_Show_Sync_Info(
                 dialog,
-                [getMetadataLock, processMetadataLock],
                 itemNumber,
                 itemType)
             thread.setDaemon(True)
             thread.start()
             threads.append(thread)
-            log.info("Kodi Infobox thread spawned")
 
         # Wait until finished
         getMetadataQueue.join()
@@ -1322,6 +1046,8 @@ class LibrarySync(Thread):
         return True
 
     def ProcessMusic(self, views, kind, urlArgs, method):
+        # For albums, we need to look at the album's songs simultaneously
+        get_children = True if kind == v.PLEX_TYPE_ALBUM else False
         # Get a list of items already existing in Kodi db
         if self.compare:
             with plexdb.Get_Plex_DB() as plex_db:
@@ -1347,7 +1073,8 @@ class LibrarySync(Thread):
                                'Music',
                                method,
                                view['name'],
-                               view['id'])
+                               view['id'],
+                               get_children=get_children)
         if self.compare:
             # Manual sync, process deletes
             with itemtypes.Music() as Music:

@@ -1296,7 +1296,7 @@ class Music(Items):
         name, sortname = API.getTitle()
         # musicBrainzId = API.getProvider('MusicBrainzArtist')
         musicBrainzId = None
-        genres = API.joinList(API.getGenres())
+        genres = ' / '.join(API.getGenres())
         bio = API.getPlot()
 
         # Associate artwork
@@ -1335,31 +1335,32 @@ class Music(Items):
 
         # Process the artist
         if v.KODIVERSION >= 16:
-            query = ' '.join((
-
-                "UPDATE artist",
-                "SET strGenres = ?, strBiography = ?, strImage = ?, strFanart = ?,",
-                    "lastScraped = ?",
-                "WHERE idArtist = ?"
-            ))
+            query = '''
+                UPDATE artist
+                SET strGenres = ?, strBiography = ?, strImage = ?,
+                    strFanart = ?, lastScraped = ?
+                WHERE idArtist = ?
+            '''
             kodicursor.execute(query, (genres, bio, thumb, fanart,
                                        lastScraped, artistid))
         else:
-            query = ' '.join((
-
-                "UPDATE artist",
-                "SET strGenres = ?, strBiography = ?, strImage = ?, strFanart = ?,",
-                    "lastScraped = ?, dateAdded = ?",
-                "WHERE idArtist = ?"
-            ))
+            query = '''
+                UPDATE artist
+                SET strGenres = ?, strBiography = ?, strImage = ?,
+                    strFanart = ?, lastScraped = ?, dateAdded = ?
+                WHERE idArtist = ?
+            '''
             kodicursor.execute(query, (genres, bio, thumb, fanart, lastScraped,
                                        dateadded, artistid))
 
         # Update artwork
-        artwork.addArtwork(artworks, artistid, "artist", kodicursor)
+        artwork.addArtwork(artworks, artistid, v.KODI_TYPE_ARTIST, kodicursor)
 
     @CatchExceptions(warnuser=True)
-    def add_updateAlbum(self, item, viewtag=None, viewid=None):
+    def add_updateAlbum(self, item, viewtag=None, viewid=None, children=None):
+        """
+        children: list of child xml's, so in this case songs
+        """
         kodicursor = self.kodicursor
         plex_db = self.plex_db
         artwork = self.artwork
@@ -1387,21 +1388,21 @@ class Music(Items):
         # musicBrainzId = API.getProvider('MusicBrainzAlbum')
         musicBrainzId = None
         year = API.getYear()
-        genres = API.getGenres()
-        genre = API.joinList(genres)
+        self.genres = API.getGenres()
+        self.genre = ' / '.join(self.genres)
         bio = API.getPlot()
         rating = userdata['UserRating']
         studio = API.getMusicStudio()
-        # artists = item['AlbumArtists']
-        # if not artists:
-        #     artists = item['ArtistItems']
-        # artistname = []
-        # for artist in artists:
-        #     artistname.append(artist['Name'])
         artistname = item.attrib.get('parentTitle')
         if not artistname:
             artistname = item.attrib.get('originalTitle')
-
+        # See if we have a compilation - Plex does NOT feature a compilation
+        # flag for albums
+        self.compilation = 0
+        for child in children:
+            if child.attrib.get('originalTitle') is not None:
+                self.compilation = 1
+                break
         # Associate artwork
         artworks = API.getAllArtwork(parentInfo=True)
         thumb = artworks['Primary']
@@ -1433,56 +1434,54 @@ class Music(Items):
         # Process the album info
         if v.KODIVERSION >= 17:
             # Kodi Krypton
-            query = ' '.join((
-
-                "UPDATE album",
-                "SET strArtists = ?, iYear = ?, strGenres = ?, strReview = ?, strImage = ?,",
-                    "iUserrating = ?, lastScraped = ?, strReleaseType = ?, "
-                    "strLabel = ? ",
-                "WHERE idAlbum = ?"
-            ))
-            kodicursor.execute(query, (artistname, year, genre, bio, thumb,
-                                       rating, lastScraped, "album", studio,
-                                       albumid))
+            query = '''
+                UPDATE album
+                SET strArtists = ?, iYear = ?, strGenres = ?, strReview = ?,
+                    strImage = ?, iUserrating = ?, lastScraped = ?,
+                    strReleaseType = ?, strLabel = ?, bCompilation = ?
+                WHERE idAlbum = ?
+            '''
+            kodicursor.execute(query, (artistname, year, self.genre, bio,
+                                       thumb, rating, lastScraped,
+                                       v.KODI_TYPE_ALBUM, studio,
+                                       self.compilation, albumid))
         elif v.KODIVERSION == 16:
             # Kodi Jarvis
-            query = ' '.join((
-
-                "UPDATE album",
-                "SET strArtists = ?, iYear = ?, strGenres = ?, strReview = ?, strImage = ?,",
-                    "iRating = ?, lastScraped = ?, strReleaseType = ?, "
-                    "strLabel = ? ",
-                "WHERE idAlbum = ?"
-            ))
-            kodicursor.execute(query, (artistname, year, genre, bio, thumb,
-                                       rating, lastScraped, "album", studio,
-                                       albumid))
+            query = '''
+                UPDATE album
+                SET strArtists = ?, iYear = ?, strGenres = ?, strReview = ?,
+                    strImage = ?, iRating = ?, lastScraped = ?,
+                    strReleaseType = ?, strLabel = ?, bCompilation = ?
+                WHERE idAlbum = ?
+            '''
+            kodicursor.execute(query, (artistname, year, self.genre, bio,
+                                       thumb, rating, lastScraped,
+                                       v.KODI_TYPE_ALBUM, studio,
+                                       self.compilation, albumid))
         elif v.KODIVERSION == 15:
             # Kodi Isengard
-            query = ' '.join((
-
-                "UPDATE album",
-                "SET strArtists = ?, iYear = ?, strGenres = ?, strReview = ?, strImage = ?,",
-                    "iRating = ?, lastScraped = ?, dateAdded = ?, "
-                    "strReleaseType = ?, strLabel = ? ",
-                "WHERE idAlbum = ?"
-            ))
-            kodicursor.execute(query, (artistname, year, genre, bio, thumb,
-                                       rating, lastScraped, dateadded,
-                                       "album", studio, albumid))
+            query = '''
+                UPDATE album
+                SET strArtists = ?, iYear = ?, strGenres = ?, strReview = ?,
+                    strImage = ?, iRating = ?, lastScraped = ?, dateAdded = ?,
+                    strReleaseType = ?, strLabel = ?
+                WHERE idAlbum = ?
+            '''
+            kodicursor.execute(query, (artistname, year, self.genre, bio,
+                                       thumb, rating, lastScraped, dateadded,
+                                       v.KODI_TYPE_ALBUM, studio, albumid))
         else:
             # Kodi Helix
-            query = ' '.join((
-
-                "UPDATE album",
-                "SET strArtists = ?, iYear = ?, strGenres = ?, strReview = ?, strImage = ?,",
-                    "iRating = ?, lastScraped = ?, dateAdded = ?, "
-                    "strLabel = ? ",
-                "WHERE idAlbum = ?"
-            ))
-            kodicursor.execute(query, (artistname, year, genre, bio, thumb,
-                                       rating, lastScraped, dateadded, studio,
-                                       albumid))
+            query = '''
+                UPDATE album
+                SET strArtists = ?, iYear = ?, strGenres = ?, strReview = ?,
+                    strImage = ?, iRating = ?, lastScraped = ?, dateAdded = ?,
+                    strLabel = ?
+                WHERE idAlbum = ?
+            '''
+            kodicursor.execute(query, (artistname, year, self.genre, bio,
+                                       thumb, rating, lastScraped, dateadded,
+                                       studio, albumid))
 
         # Associate the parentid for plex reference
         parentId = item.attrib.get('parentRatingKey')
@@ -1496,7 +1495,7 @@ class Music(Items):
                 artist = GetPlexMetadata(parentId)
                 # Item may not be an artist, verification necessary.
                 if artist is not None and artist != 401:
-                    if artist[0].attrib.get('type') == "artist":
+                    if artist[0].attrib.get('type') == v.PLEX_TYPE_ARTIST:
                         # Update with the parentId, for remove reference
                         plex_db.addReference(parentId,
                                              v.PLEX_TYPE_ARTIST,
@@ -1530,29 +1529,26 @@ class Music(Items):
                      % (artistname, artistid))
 
         # Add artist to album
-        query = (
-            '''
+        query = '''
             INSERT OR REPLACE INTO album_artist(idArtist, idAlbum, strArtist)
-
             VALUES (?, ?, ?)
-            '''
-        )
+        '''
         kodicursor.execute(query, (artistid, albumid, artistname))
         # Update discography
-        query = (
-            '''
+        query = '''
             INSERT OR REPLACE INTO discography(idArtist, strAlbum, strYear)
-
             VALUES (?, ?, ?)
-            '''
-        )
+        '''
         kodicursor.execute(query, (artistid, name, year))
         # Update plex reference with parentid
         plex_db.updateParentId(artistId, albumid)
         # Add genres
-        self.kodi_db.addMusicGenres(albumid, genres, "album")
+        self.kodi_db.addMusicGenres(albumid, self.genres, v.KODI_TYPE_ALBUM)
         # Update artwork
-        artwork.addArtwork(artworks, albumid, "album", kodicursor)
+        artwork.addArtwork(artworks, albumid, v.KODI_TYPE_ALBUM, kodicursor)
+        # Add all children - all tracks
+        for child in children:
+            self.add_updateSong(child, viewtag, viewid)
 
     @CatchExceptions(warnuser=True)
     def add_updateSong(self, item, viewtag=None, viewid=None):
@@ -1592,9 +1588,22 @@ class Music(Items):
         title, sorttitle = API.getTitle()
         # musicBrainzId = API.getProvider('MusicBrainzTrackId')
         musicBrainzId = None
-        genres = API.getGenres()
-        genre = API.joinList(genres)
-        artists = item.attrib.get('grandparentTitle')
+        try:
+            genres = self.genres
+            genre = self.genre
+        except AttributeError:
+            # No parent album - hence no genre information from Plex
+            genres = None
+            genre = None
+        try:
+            if self.compilation == 0:
+                artists = item.attrib.get('grandparentTitle')
+            else:
+                artists = item.attrib.get('originalTitle')
+        except AttributeError:
+            # compilation not set
+            artists = item.attrib.get('originalTitle',
+                                      item.attrib.get('grandparentTitle'))
         tracknumber = int(item.attrib.get('index', 0))
         disc = int(item.attrib.get('parentIndex', 1))
         if disc == 1:
@@ -1604,9 +1613,13 @@ class Music(Items):
         year = API.getYear()
         resume, duration = API.getRuntime()
         rating = userdata['UserRating']
-
-        hasEmbeddedCover = False
         comment = None
+        # Moods
+        moods = []
+        for entry in item:
+            if entry.tag == 'Mood':
+                moods.append(entry.attrib['tag'])
+        mood = ' / '.join(moods)
 
         # GET THE FILE AND PATH #####
         doIndirect = not self.directpath
@@ -1644,16 +1657,18 @@ class Music(Items):
             kodicursor.execute(query, (path, '123', pathid))
 
             # Update the song entry
-            query = ' '.join((
-                "UPDATE song",
-                "SET idAlbum = ?, strArtists = ?, strGenres = ?, strTitle = ?, iTrack = ?,",
-                    "iDuration = ?, iYear = ?, strFilename = ?, iTimesPlayed = ?, lastplayed = ?,",
-                    "rating = ?, comment = ?",
-                "WHERE idSong = ?"
-            ))
+            query = '''
+                UPDATE song
+                SET idAlbum = ?, strArtists = ?, strGenres = ?, strTitle = ?,
+                    iTrack = ?, iDuration = ?, iYear = ?, strFilename = ?,
+                    iTimesPlayed = ?, lastplayed = ?, rating = ?, comment = ?,
+                    mood = ?
+                WHERE idSong = ?
+            '''
             kodicursor.execute(query, (albumid, artists, genre, title, track,
                                        duration, year, filename, playcount,
-                                       dateplayed, rating, comment, songid))
+                                       dateplayed, rating, comment, mood,
+                                       songid))
 
             # Update the checksum in plex table
             plex_db.updateReference(itemid, checksum)
@@ -1676,7 +1691,9 @@ class Music(Items):
                 if album_name:
                     log.info("Creating virtual music album for song: %s."
                              % itemid)
-                    albumid = self.kodi_db.addAlbum(album_name, API.getProvider('MusicBrainzAlbum'))
+                    albumid = self.kodi_db.addAlbum(
+                        album_name,
+                        API.getProvider('MusicBrainzAlbum'))
                     plex_db.addReference("%salbum%s" % (itemid, albumid),
                                          v.PLEX_TYPE_ALBUM,
                                          albumid,
@@ -1704,54 +1721,51 @@ class Music(Items):
                 except TypeError:
                     # No album found, create a single's album
                     log.info("Failed to add album. Creating singles.")
-                    kodicursor.execute("select coalesce(max(idAlbum),0) from album")
+                    kodicursor.execute(
+                        "select coalesce(max(idAlbum),0) from album")
                     albumid = kodicursor.fetchone()[0] + 1
                     if v.KODIVERSION >= 16:
                         # Kodi Jarvis
-                        query = (
-                            '''
-                            INSERT INTO album(idAlbum, strGenres, iYear, strReleaseType)
-
+                        query = '''
+                            INSERT INTO album(
+                                idAlbum, strGenres, iYear, strReleaseType)
                             VALUES (?, ?, ?, ?)
-                            '''
-                        )
-                        kodicursor.execute(query, (albumid, genre, year, "single"))
+                        '''
+                        kodicursor.execute(query,
+                                           (albumid, genre, year, "single"))
                     elif v.KODIVERSION == 15:
                         # Kodi Isengard
-                        query = (
-                            '''
-                            INSERT INTO album(idAlbum, strGenres, iYear, dateAdded, strReleaseType)
-
+                        query = '''
+                            INSERT INTO album(
+                                idAlbum, strGenres, iYear, dateAdded,
+                                strReleaseType)
                             VALUES (?, ?, ?, ?, ?)
-                            '''
-                        )
-                        kodicursor.execute(query, (albumid, genre, year, dateadded, "single"))
+                        '''
+                        kodicursor.execute(query, (albumid, genre, year,
+                                                   dateadded, "single"))
                     else:
                         # Kodi Helix
-                        query = (
-                            '''
-                            INSERT INTO album(idAlbum, strGenres, iYear, dateAdded)
-
+                        query = '''
+                            INSERT INTO album(
+                                idAlbum, strGenres, iYear, dateAdded)
                             VALUES (?, ?, ?, ?)
-                            '''
-                        )
-                        kodicursor.execute(query, (albumid, genre, year, dateadded))
+                        '''
+                        kodicursor.execute(query, (albumid, genre, year,
+                                                   dateadded))
 
             # Create the song entry
-            query = (
-                '''
+            query = '''
                 INSERT INTO song(
-                    idSong, idAlbum, idPath, strArtists, strGenres, strTitle, iTrack,
-                    iDuration, iYear, strFileName, strMusicBrainzTrackID, iTimesPlayed, lastplayed,
-                    rating, iStartOffset, iEndOffset)
-
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    idSong, idAlbum, idPath, strArtists, strGenres, strTitle,
+                    iTrack, iDuration, iYear, strFileName,
+                    strMusicBrainzTrackID, iTimesPlayed, lastplayed,
+                    rating, iStartOffset, iEndOffset, mood)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 '''
-            )
             kodicursor.execute(
                 query, (songid, albumid, pathid, artists, genre, title, track,
                         duration, year, filename, musicBrainzId, playcount,
-                        dateplayed, rating, 0, 0))
+                        dateplayed, rating, 0, 0, mood))
 
             # Create the reference in plex table
             plex_db.addReference(itemid,
@@ -1764,14 +1778,11 @@ class Music(Items):
                                  view_id=viewid)
 
         # Link song to album
-        query = (
-            '''
+        query = '''
             INSERT OR REPLACE INTO albuminfosong(
                 idAlbumInfoSong, idAlbumInfo, iTrack, strTitle, iDuration)
-
             VALUES (?, ?, ?, ?, ?)
-            '''
-        )
+        '''
         kodicursor.execute(query, (songid, albumid, track, title, duration))
 
         # Link song to artists
@@ -1799,29 +1810,27 @@ class Music(Items):
             finally:
                 if v.KODIVERSION >= 17:
                     # Kodi Krypton
-                    query = (
-                        '''
-                        INSERT OR REPLACE INTO song_artist(idArtist, idSong, idRole, iOrder, strArtist)
+                    query = '''
+                        INSERT OR REPLACE INTO song_artist(
+                            idArtist, idSong, idRole, iOrder, strArtist)
                         VALUES (?, ?, ?, ?, ?)
-                        '''
-                    )
-                    kodicursor.execute(query,(artistid, songid, 1, index, artist_name))
+                    '''
+                    kodicursor.execute(query, (artistid, songid, 1, index,
+                                               artist_name))
                     # May want to look into only doing this once?
-                    query = ( 
-                        '''
+                    query = '''
                         INSERT OR REPLACE INTO role(idRole, strRole)
                         VALUES (?, ?)
-                        '''
-                    )
+                    '''
                     kodicursor.execute(query, (1, 'Composer'))
                 else:
-                    query = (
-                        '''
-                        INSERT OR REPLACE INTO song_artist(idArtist, idSong, iOrder, strArtist)
+                    query = '''
+                        INSERT OR REPLACE INTO song_artist(
+                            idArtist, idSong, iOrder, strArtist)
                         VALUES (?, ?, ?, ?)
-                        '''
-                    )
-                    kodicursor.execute(query, (artistid, songid, index, artist_name))
+                    '''
+                    kodicursor.execute(query, (artistid, songid, index,
+                                               artist_name))
 
         # Verify if album artist exists
         album_artists = []
@@ -1843,31 +1852,28 @@ class Music(Items):
                 artist_edb = plex_db.getItem_byId(artist_eid)
                 artistid = artist_edb[0]
             finally:
-                query = (
-                    '''
-                    INSERT OR REPLACE INTO album_artist(idArtist, idAlbum, strArtist)
+                query = '''
+                    INSERT OR REPLACE INTO album_artist(
+                        idArtist, idAlbum, strArtist)
                     VALUES (?, ?, ?)
-                    '''
-                )
+                '''
                 kodicursor.execute(query, (artistid, albumid, artist_name))
                 # Update discography
                 if item.get('Album'):
-                    query = (
-                        '''
-                        INSERT OR REPLACE INTO discography(idArtist, strAlbum, strYear)
+                    query = '''
+                        INSERT OR REPLACE INTO discography(
+                            idArtist, strAlbum, strYear)
                         VALUES (?, ?, ?)
-                        '''
-                    )
+                    '''
                     kodicursor.execute(query, (artistid, item['Album'], 0))
         # else:
         if False:
             album_artists = " / ".join(album_artists)
-            query = ' '.join((
-
-                "SELECT strArtists",
-                "FROM album",
-                "WHERE idAlbum = ?"
-            ))
+            query = '''
+                SELECT strArtists
+                FROM album
+                WHERE idAlbum = ?
+            '''
             kodicursor.execute(query, (albumid,))
             result = kodicursor.fetchone()
             if result and result[0] != album_artists:
@@ -1886,18 +1892,16 @@ class Music(Items):
                     kodicursor.execute(query, (album_artists, albumid))
 
         # Add genres
-        self.kodi_db.addMusicGenres(songid, genres, "song")
+        if genres:
+            self.kodi_db.addMusicGenres(songid, genres, v.KODI_TYPE_SONG)
 
         # Update artwork
         allart = API.getAllArtwork(parentInfo=True)
-        if hasEmbeddedCover:
-            allart["Primary"] = "image://music@" + artwork.single_urlencode( playurl )
-        artwork.addArtwork(allart, songid, "song", kodicursor)
+        artwork.addArtwork(allart, songid, v.KODI_TYPE_SONG, kodicursor)
 
-        # if item.get('AlbumId') is None:
         if item.get('parentKey') is None:
             # Update album artwork
-            artwork.addArtwork(allart, albumid, "album", kodicursor)
+            artwork.addArtwork(allart, albumid, v.KODI_TYPE_ALBUM, kodicursor)
 
     def remove(self, itemid):
         # Remove kodiid, fileid, pathid, plex reference
