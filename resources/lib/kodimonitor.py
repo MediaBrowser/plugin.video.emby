@@ -91,20 +91,32 @@ class KodiMonitor(xbmc.Monitor):
 
     def _on_play_(self, data):
         # Set up report progress for emby playback
+        kodi_id = None
+        item_type = None
         try:
-            if KODI >= 17:
-                item = xbmc.Player().getVideoInfoTag()
-                kodi_id = item.getDbId()
-                item_type = item.getMediaType()
-                log.info("kodi_id: %s item_type: %s", kodi_id, item_type)             
-            else:
-                item = data['item']
-                kodi_id = item['id']
-                item_type = item['type']
-                log.info("kodi_id: %s item_type: %s", kodi_id, item_type)
+            item = data['item']
+            kodi_id = item['id']
+            item_type = item['type']
+            log.info("kodi_id: %s item_type: %s", kodi_id, item_type)
         except (KeyError, TypeError):
             log.info("Item is invalid for playstate update")
-        else:
+            playfile = None
+            count = 0
+            while not playfile and count < 2:
+                try:
+                    if settings('useDirectPaths') == "1" and KODI >= 17:
+                        playfile = xbmc.Player().getVideoInfoTag()
+                        kodi_id = playfile.getDbId()
+                        item_type = playfile.getMediaType()
+                        log.info("Found from player kodi_id: %s item_type: %s", kodi_id, item_type)
+                except RuntimeError:
+                    count += 1
+                    xbmc.sleep(200)
+                else:
+                    if kodi_id == -1:
+                        kodi_id = None
+                        item_type = None
+        if kodi_id and item_type:
             if ((settings('useDirectPaths') == "1" and not item_type == "song") or
                     (item_type == "song" and settings('enableMusic') == "true")):
                 # Set up properties for player
