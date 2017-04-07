@@ -4,13 +4,13 @@
     <string id="29999">PlexKodiConnect</string>
     <string id="30000">Serveradres (IP)</string><!-- Verified -->
     <string id="30002">Voorkeurs methode voor afspelen</string><!-- Verified -->
-    <string id="30004">Logniveau</string><!-- Verified -->
+    <string id="30004">Log niveau</string><!-- Verified -->
     <string id="30005">Gebruikersnaam: </string>
     <string id="30006">Wachtwoord: </string>
     <string id="30007">Netwerk gebruikersnaam: </string>
     <string id="30008">Netwerk wachtwoord: </string>
     <string id="30009">Transcode: </string>
-    <string id="30010">Schakel Performance Profiling in</string>
+    <string id="30010">Schakel prestatie profilering in</string>
     <string id="30011">Lokaal caching systeem</string>
     <string id="30012">OK</string>
     <string id="30013">Nooit weergeven</string>
@@ -26,7 +26,7 @@
     <string id="30025">Bericht weergeven als PMS offline gaat</string>
     
     <string id="30030">Poortnummer</string><!-- Verified -->
-    <string id="30031">Dit is mijn Plex Media Server</string>
+    <string id="30031">Ik beheer deze Plex Media Server</string>
     <string id="30036">Aantal recente films tonen:</string>    
     <string id="30037">Aantal recente TV-afleveringen tonen:</string>    
     <string id="30035">Aantal recente muziekalbums tonen:</string>    
@@ -171,7 +171,7 @@
     <string id="30185">BoxSets</string>                
     <string id="30186">Trailers</string>               
     <string id="30187">Muziekvideo 's</string>           
-    <string id="30188">Foto 's</string>                 
+    <string id="30188">Foto's</string>                 
     <string id="30189">Onbekeken films</string><!-- Verified -->
     <string id="30190">Film Genres</string>           
     <string id="30191">Filmstudios</string>          
@@ -217,7 +217,7 @@
     <string id="30229">Willekeurige Items</string><!-- Verified -->
     <string id="30230">Aanbevolen</string><!-- Verified -->
     
-    <string id="30235">Extra 's</string><!-- Verified -->
+    <string id="30235">Extra's</string><!-- Verified -->
     <string id="30236">Synchroniseer themamuziek</string>
     <string id="30237">Synchroniseer extra Fanart</string>
     <string id="30238">Synchroniseer Film BoxSets</string>
@@ -230,19 +230,19 @@
     <string id="30245">Forceer Codecs Transcoden</string>
     
     <string id="30246">Inschakelen van Netflix stijl volgende notificatie</string>
-    <string id="30247">  - Het aantal seconden voor het einde waneer de notificatie te tonen</string>
+    <string id="30247">  - Het aantal seconden voor het einde wanneer de notificatie te tonen</string>
     <string id="30248">Toon Emby Infodialoog bij Afspelen/Selecteer actie</string>
     <string id="30249">Inschakelen van server verbinding bericht bij het opstarten</string><!-- Verified -->
     
-    <string id="30251">Recent toegevoegde Thuis-video 's</string><!-- Verified -->
+    <string id="30251">Recent toegevoegde Thuis-video's</string><!-- Verified -->
     <string id="30252">Recent toegevoegde foto's</string><!-- Verified -->
-    <string id="30253">Favorite Home Videos</string><!-- Verified -->
-    <string id="30254">Favorite Photos</string><!-- Verified -->
-    <string id="30255">Favorite Albums</string>
+    <string id="30253">Favoriete Thuis-Video's</string><!-- Verified -->
+    <string id="30254">Favoriete foto's</string><!-- Verified -->
+    <string id="30255">Favoriete Albums</string>
     
     <string id="30256">Recent toegevoegde videoclips</string><!-- Verified -->
     <string id="30257">Actieve videoclips</string><!-- Verified -->
-    <string id="30258">Onbekeken videoclips</string><!-- Verified -->
+    <string id="30258">Ongeziene videoclips</string><!-- Verified -->
     
     <!-- Default views -->
     <string id="30300">Actieve</string>              
@@ -254,9 +254,9 @@
     <string id="30306">Seizoenen</string>              
     <string id="30307">Afleveringen</string>              
     <string id="30308">Muziek artiesten</string>              
-    <string id="30309">Muziekalbums</string>              
-    <string id="30310">Muziekvideo 's</string>              
-    <string id="30311">Muziektracks</string>
+    <string id="30309">Muziek albums</string>              
+    <string id="30310">Muziek video 's</string>              
+    <string id="30311">Muziek tracks</string>
     <string id="30312">Kanalen</string>  
     
     <!-- contextmenu -->
@@ -301,7 +301,7 @@
     <string id="30520">Geen confirmatie bij het verwijderen van Plex (gebruik op eigen risico)</string>
     <string id="30521">Terugspringen bij verder kijken (in seconden)</string>
     <string id="30522">Forceer transcoden h265/HEVC</string>
-    <string id="30523">Muzie metagegevens opties (niet compatible met direct stream)</string>
+    <string id="30523">Muziek metagegevens opties (niet compatibel met direct stream)</string>
     <string id="30524">Muziek ratings direct uit bestanden lezen</string>
     <string id="30525">Converteer muziek ratings naar Emby ratings</string>
     <string id="30526">Toestaan van aanpassen rating in bestanden</string>
@@ -310,10 +310,10 @@
     <string id="30529">Opstartvertraging (in seconden)</string>
     <string id="30530">Server herstart bericht inschakelen</string>
     <string id="30531">Schakel kennisgeving in nieuwe inhoud</string>
-    <string id="30532">Duur van de bibliotheek popup (in seconden)</string>
-    <string id="30533">Duur van de bibliotheek popup (in seconden)</string>
+    <string id="30532">Duur van de bibliotheek pop-up (in seconden)</string>
+    <string id="30533">Duur van de bibliotheek pop-up (in seconden)</string>
     <string id="30534">Serverberichten</string>
-    <string id="30535">[COLOR yellow]Genereer nieuw uniek apparaat id (bijvoorbeeld bij het klonen van Kodi)[/COLOR]</string>
+    <string id="30535">[COLOR yellow]Genereer nieuw uniek apparaat ID (bijvoorbeeld bij het klonen van Kodi)[/COLOR]</string>
     <string id="30536">Gebruiker moet bij elke Kodi herstart opnieuw inloggen</string>
     <string id="30537">BIJ AANPASSINGEN KODI HERSTARTEN</string>
     <string id="30538">Volledige re-sync nodig</string>
@@ -330,8 +330,8 @@
     <string id="33001">Verbindingsfout</string>
     <string id="33002">Server is onbereikbaar</string>
     <string id="33003">Server is online</string>
-    <string id="33004">items toegevoegd aan playlist</string>
-    <string id="33005">items toegevoegd aan playlist</string>
+    <string id="33004">items toegevoegd aan afspeellijst</string>
+    <string id="33005">items toegevoegd aan afspeellijst</string>
     <string id="33006">De server wordt opnieuw opgestart</string>
     <string id="33007">Toegang is verleend</string>
     <string id="33008">Wachtwoord voor gebruiker:</string>
@@ -346,10 +346,10 @@
     <string id="33017">Verzamel films van:</string>
     <string id="33018">Verzamel boxsets</string>
     <string id="33019">Verzamel muziek video's van:</string>
-    <string id="33020">Verzamel tv-shows van:</string>
+    <string id="33020">Verzamel tv-series van:</string>
     <string id="33021">Verzamelen:</string>
-    <string id="33022">Detected the database needs to be recreated for this version of Emby for Kodi. Proceed?</string>
-    <string id="33023">Emby for Kodi may not work correctly until the database is reset.</string>
+    <string id="33022">Gedetecteerd dat de database opnieuw moet worden gemaakt voor deze versie van Emby voor Kodi. Wilt u doorgaan?</string>
+    <string id="33023">Emby voor Kodi werkt mogelijk niet correct totdat de database is ge-reset.</string>
     <string id="33024">Database sync geannuleerd. De huidige versie van Kodi is niet ondersteund.</string>
     <string id="33025">voltooid in:</string>
     <string id="33026">Vergelijk films met:</string>
@@ -379,25 +379,25 @@
     <string id="39013">Nog niet ingelogd op de Plex server </string>
     <string id="39014">Log in op plex.tv.</string>
     <string id="39015">Problemen bij het verbinden met de server. Kies een andere server?</string>
-    <string id="39016">Plex muziek library uitzetten? (Het is sterk aangeraden om Plex muziek alleen met directe paden te gebruiken bij een grote library. Kodie kan anders vastlopen)</string>
+    <string id="39016">Plex muziek bibliotheek uitzetten? (Het is sterk aanbevolen om Plex muziek alleen met directe paden te gebruiken bij een grote bibliotheek. Kodi kan anders vastlopen)</string>
     <string id="39017">PKC plugin instellingen aanpassen? Kodi moet hierna herstart worden!</string>
 
     <string id="39018">[COLOR yellow]Lokale database herstellen (forceer verversen van alle inhoud)[/COLOR]</string>
     <string id="39019">[COLOR red]Gedeeltelijke of volledige reset van database en PKC[/COLOR]</string>
     <string id="39020">[COLOR yellow]Alle afbeeldingen van Kodi nu aan de cache toevoegen[/COLOR]</string>
-    <string id="39021">[COLOR yellow]Sync Emby Theme Media to Kodi[/COLOR]</string>
+    <string id="39021">[Kleur geel] Kodi[/COLOR] Synchroniseer Emby thema muziek naar Kodi</string>
     <string id="39022">lokaal</string>
     <string id="39023">Authenticatie mislukt. Ingelogd bij plex.tv?</string>
     
 
-    <string id="39025">Automatisch inloggen op plex.tv bij het opstarten</string>
+    <string id="39025">Automatisch inloggen bij plex.tv bij het opstarten</string>
     <string id="39026">Constante achtergrond sync inschakelen</string>
     <string id="39027">Afspeelmodus</string>
     <string id="39028">LET OP! Als u "Native" modus kiest, zullen sommige Plex mogelijkheden niet beschikbaar zijn. Bijvoorbeeld: Plex trailers en opties voor transcoden. ALLE Plex shares moeten gebruik maken van directe paden (bijvoorbeeld smb://myNAS/mymovie.mkv of \\myNAS/mymovie.mkv)!</string>
-    <string id="39029">Netwerk gegevens</string>
-    <string id="39030">Netwerk gegevens toevoegen zodat Kodi bij de inhoud kan? Opmerking: Kodi zal een bericht tonen bij de eerste sync als deze stap overgeslagen word.</string>
+    <string id="39029">Netwerk inloggegevens</string>
+    <string id="39030">Netwerk inloggegevens toevoegen zodat Kodi bij de inhoud kan? Opmerking: Kodi zal een bericht tonen bij de eerste sync als deze stap overgeslagen word.</string>
     <string id="39031">Kodi kan het bestand niet vinden: </string>
-    <string id="39032">Controleer het pad. Waarschijnlijk verkeerde netwerk gegevens of verkeerde paden. Stop synchroniseren?</string>
+    <string id="39032">Controleer het pad. Waarschijnlijk verkeerde netwerk gegevens of verkeerde paden. Stoppen met synchroniseren?</string>
     <string id="39033">Vervang Plex UNC pad \\myNas\mymovie.mkv automatisch met smb paden, smb://myNas/mymovie.mkv? (aanbevolen)</string>
     <string id="39034">Vervang Plex UNC paden \\myNas met smb://myNas</string>
 
@@ -418,19 +418,19 @@
     <string id="39050">[COLOR yellow]Kies Plex Server uit lijst[/COLOR]</string>
     <string id="39051">Tijd voordat nieuwe/gewijzigde items gesynct worden [s]</string>
     <string id="39052">Achtergrond Sync</string>
-    <string id="39053">Elke X minuten een volledige sync</string>
+    <string id="39053">Elke X minuten een volledige bibliotheek sync</string>
     <string id="39054">remote</string>
     <string id="39055">Plex Server zoeken</string>
     <string id="39056">Gebruikt door Sync en bij Direct Play</string>
     <string id="39057">Aanpassen van paden</string>
     <string id="39058">On Deck van TV-series laat alle series zien</string>
-    <string id="39059">Onlangs Toegevoegd: Voeg show naam toe aan afleveringen</string>
+    <string id="39059">Onlangs Toegevoegd: Voeg serie naam toe aan afleveringen</string>
     <string id="39060">Onlangs Toegevoegd: Voeg seizoen en aflevering nummer toe SxxExx</string>
     <string id="39061">Extra artwork van FanArtTV in de background downloaden?</string>
     <string id="39062">Sync als screensaver gedeactiveerd is</string>
     <string id="39063">Forceer transcoden van Hi10P</string>
     <string id="39064">Onlangs Toegevoegd: Toon ook al bekeken afleveringen</string>
-    <string id="39066">Onlangs Toegevoegd: Toon ook al bekeken films (Ververs Plex playlist/nodes!)</string>
+    <string id="39066">Onlangs Toegevoegd: Toon ook al bekeken films (Ververs Plex afspeellijst/nodes!)</string>
     <string id="39067">Huidige Plex Media Server:</string>
     <string id="39068">[COLOR yellow]Handmatig Plex Media Server adres invoeren[/COLOR]</string>
     <string id="39069">Huidig adres:</string>
@@ -438,7 +438,7 @@
     <string id="39071">Huidige status van de plex.tv:</string>
     <string id="39072">Is Kodi geïnstalleerd op een low-powered apparaat zoals een Raspberry Pi? Zo ja, dan zullen we de druk op Kodi verlagen om de kans op crashen te verminderen.</string>
     <string id="39073">Uiterlijk aanpassingen</string>
-    <string id="39074">TV shows</string>
+    <string id="39074">TV series</string>
     <string id="39075">Gebruik indien mogelijk altijd standaard Plex ondertitels</string>
     <string id="39076">Bij gebruik van meerdere plex libraries van hetzelfde type, bijvoorbeeld "Kinder Films" en "Films voor volwassenen" bekijk dan de Wiki: https://goo.gl/JFtQV9</string>
     <string id="39077">Aantal PMS items in widgets laten zien (bijv. "On Deck")</string>
@@ -448,18 +448,18 @@
     <!-- Plex Entrypoint.py -->
     <string id="39200">Log-out Plex Home gebruiker </string>
     <string id="39201">Instellingen</string>
-    <string id="39202">Netwerk gegevens</string>
+    <string id="39202">Netwerk inloggegevens</string>
     <string id="39203">Vernieuwen van Plex afspeellijsten/nodes</string>
     <string id="39204">Handmatige sync uitvoeren</string>
     <string id="39205">Sync is niet gelukt, de add-on is niet verbonden met de Plex Server.</string>
     <string id="39206">Plex kan uw account vergrendelen bij teveel foutieve login pogingen. Toch doorgaan?</string>
-    <string id="39207">Resetten van PMS verbindingen, een moment geduld a.u.b</string>
+    <string id="39207">PMS verbindingen aan het resetten, een moment geduld a.u.b</string>
     <string id="39208">PKC reset niet gelukt. Herstart Kodi.</string>
     <string id="39209">[COLOR yellow]Verander plex.tv login (aanmelden of afmelden)[/COLOR]</string>
     <string id="39210">Nog niet verbonden met Plex Server</string>
     <string id="39211">Later bekijken</string>
     <string id="39213">is offline</string>
-    <string id="39214">Hoewel aangemeld bij plex.tv, niet geauthorizeerd bij de PMS</string>
+    <string id="39214">Hoewel aangemeld bij plex.tv, niet geauthoriseerd bij de PMS</string>
     <string id="39215">Voer Plex Media Server adres in. Voorbeelden zijn:</string>
 
     <string id="39217">Ondersteunt uw Plex Media Server SSL-verbindingen? (https in plaats van http)?</string>
@@ -468,7 +468,7 @@
     <string id="39220">verbonden</string>
     <string id="39221">plex.tv aanpassing succesvol</string>
     <string id="39222">[COLOR yellow]Nu zoeken naar missende artwork op FanartTV[/COLOR]</string>
-    <string id="39223">Alleen missende artwork zoeken of alles verniewen? De scan kan lang duren en zal op de achtergrond plaatsvinden.</string>
+    <string id="39223">Alleen missende artwork zoeken of alles vernieuwen? De scan kan lang duren en zal op de achtergrond plaatsvinden.</string>
     <string id="39224">Alles vernieuwen</string>
     <string id="39225">Alleen ontbrekende</string>    
 
@@ -482,7 +482,7 @@
     <string id="39301">Wachtwoord voor gebruiker van plex.tv </string>
     <string id="39302">Kan de gebruiker niet inloggen </string>
     <string id="39303">Probleem met verbinding naar plex.tv. Probeer het later opnieuw</string>
-    <string id="39304">Ga naar https://plex.tv/pin en voer de code in: </string>
+    <string id="39304">Ga naar https://plex.tv/pin en voer de volgende code in: </string>
     <string id="39305">Kan niet aanmelden bij plex.tv. Probeer het later opnieuw</string>
     <string id="39306">: Selecteer gebruiker</string>
     <string id="39307">Voer pincode voor gebruiker </string>
@@ -495,21 +495,21 @@
     <string id="39400">Sync is gecrashed. Herstart Kodi. Meldt dit probleem op het forum</string>
     <string id="39401">Deze versie vereist een nieuwe database. Dit kan enige tijd duren. Doorgaan?</string>
     <string id="39402"> werkt mogelijk niet correct totdat de database opnieuw wordt ingesteld.</string>
-    <string id="39403">Database syncing proces geannuleerd. Huidige Kodi versie wordt niet ondersteund. Controleer uw logbestanden voor meer info.</string>
+    <string id="39403">Database synchroniseer proces geannuleerd. Huidige Kodi versie wordt niet ondersteund. Controleer uw logbestanden voor meer info.</string>
     <string id="39404">Opstarten synchronisatie proces mislukt herhaaldelijk. Start Kodi opnieuw. Sync is voor nu geannuleerd.</string>
     <string id="39405">Plex afspeellijsten/nodes vernieuwd</string>
     <string id="39406">Plex afspeellijsten/nodes vernieuwen mislukt</string>
-    <string id="39407">Volledige bibliotheek sync klaar</string>
+    <string id="39407">Volledige bibliotheek synchronisatie voltooid</string>
     <string id="39408">Sync diende een aantal bestanden over te slaan. Kodi werkt misschien niet langer stabiel. Gelieve uw Kodi log bestanden op het Plex forum te posten.</string>
     <string id="39409">Plex gaf fouten terug door de gevraagde hoeveelheid data. Verminder het aantal sync threads in de instellingen. Sommige items zijn overgeslagen.</string>
-    <string id="39410">FOUT in bibliotheek sync</string>
+    <string id="39410">FOUT in bibliotheek synchronisatie</string>
 
     <!-- Plex videonodes.py -->
     <string id="39500">On Deck</string>
     <string id="39501">Verzamelingen</string>
 
     <!-- Plex utils.py -->
-    <string id="39600">Lokale database van Kodi resetten? Een hersynchronisatie is nodig en kan enige tijd duren.</string>
+    <string id="39600">Lokale database van Kodi resetten? Een hersynchronisatie is nodig en dit kan enige tijd duren.</string>
     <string id="39601">Kon de database synchronisatie niet stoppen. Probeer het later nog eens.</string>
     <string id="39602">Verwijder artwork cache? (aanbevolen!)</string>
     <string id="39603">Reset alle instellingen van de PlexKodiConnect Addon? (dit is gewoonlijk niet aanbevolen en onnodig!)</string>
