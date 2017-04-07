@@ -1,0 +1,521 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<strings>
+    <!-- Add-on settings -->
+    <string id="29999">PlexKodiConnect</string>
+    <string id="30000">服务器地址(IP)</string><!-- Verified -->
+    <string id="30002">首选播放模式</string><!-- Verified -->
+    <string id="30004">日志等级</string><!-- Verified -->
+    <string id="30005">用户名 </string>
+    <string id="30006">密码 </string>
+    <string id="30007">网络用户名 </string>
+    <string id="30008">网络密码 </string>
+    <string id="30009">转码 </string>
+    <string id="30010">启用性能分析</string>
+    <string id="30011">本地缓存系统</string>
+    <string id="30012">确认</string>
+    <string id="30013">不再显示</string>
+
+    <string id="30014">连接</string>
+    <string id="30015">网络</string>    
+    <string id="30016">设备名</string>
+    <string id="30017">Plex媒体服务器未授权</string>     
+
+    <string id="30022">高级</string>
+    <string id="30024">用户名</string><!-- Verified -->
+
+    <string id="30025">如Plex媒体服务器离线则显示消息</string>
+    
+    <string id="30030">端口号</string><!-- Verified -->
+    <string id="30031">我拥有这台Plex媒体服务器</string>
+    <string id="30036">要显示的最近电影数量</string>    
+    <string id="30037">要显示的最近电视剧集数量</string>    
+    <string id="30035">要显示的最近音乐专辑数量</string>    
+    <string id="30038">播放开始后标记为已观看</string>    
+    <string id="30039">为剧集设置每季海报</string>
+
+    <string id="30040">流派筛选器...</string>
+    <string id="30041">从此处播放所有</string>
+    <string id="30042">刷新</string>
+    <string id="30043">删除</string>
+    <string id="30046">添加电影到CouchPotato</string>
+    
+    <string id="30044">用户名/密码不正确</string>
+    <string id="30045">找不到用户名</string>
+    
+    <string id="30052">删除中</string>
+    <string id="30053">等待服务器删除</string>
+    
+    <string id="30059">服务器默认值</string>
+    <string id="30060">标题</string>
+    <string id="30061">年份</string>
+    <string id="30062">首播日期</string>
+    <string id="30063">创建日期</string>
+    <string id="30064">专家评分</string>
+    <string id="30065">社区评分</string>
+    <string id="30066">播放次数</string>
+    <string id="30067">预算</string>
+    <!-- Runtime added as 30226 below -->
+    
+    <string id="30068">排序方式</string>
+    
+    <string id="30069">无</string>
+    <string id="30070">动作</string>
+    <string id="30071">冒险</string>
+    <string id="30072">动画</string>
+    <string id="30073">犯罪</string>
+    <string id="30074">喜剧</string>
+    <string id="30075">纪录片</string>
+    <string id="30076">剧情</string>
+    <string id="30077">幻想</string>
+    <string id="30078">外语</string>
+    <string id="30079">历史</string>
+    <string id="30080">恐怖</string>
+    <string id="30081">音乐</string>
+    <string id="30082">音乐剧</string>
+    <string id="30083">悬疑</string>
+    <string id="30084">浪漫</string>
+    <string id="30085">科幻</string>
+    <string id="30086">短片</string>
+    <string id="30087">悬念</string>
+    <string id="30088">惊悚</string>
+    <string id="30089">西部</string>
+    
+    <string id="30090">流派筛选器</string>
+    <string id="30091">文件删除确认</string><!-- Verified -->
+    <string id="30092">删除此项目吗？此操作将删除媒体和关联的数据文件。</string>
+    
+    <string id="30093">标记为已观看</string>
+    <string id="30094">标记为未观看</string>
+    <string id="30095">添加到收藏夹</string>
+    <string id="30096">从收藏夹移除</string>
+    <string id="30097">排序方式</string>
+    <string id="30098">降序排序</string>
+    <string id="30099">升序排序</string>
+    <string id="30100">显示人物</string>
+
+    <!-- resume dialog -->
+    <string id="30105">继续</string>
+    <string id="30106">从此处继续</string>
+    <string id="30107">从头开始</string>
+    
+    <string id="30110">用户界面</string>
+    <string id="30111">包括串流信息</string>
+    <string id="30112">包括人物</string>
+    <string id="30113">包括概述</string>
+    <string id="30114">提供播放后删除</string><!-- Verified -->
+    <string id="30115">供剧集</string><!-- Verified -->
+    <string id="30116">供电影</string><!-- Verified -->
+    <string id="30117">背景刷新率(秒)</string>
+    <string id="30118">添加恢复比率</string>
+    <string id="30119">添加剧集数量</string>
+    <string id="30120">显示加载进度</string>
+    <string id="30121">正加载内容</string>
+    <string id="30122">检索数据</string>
+    <string id="30125">完成</string>
+    <string id="30126">正处理项目 </string>
+    <string id="30128">播放错误</string>
+    <string id="30129">此项目无法播放</string>    
+    <string id="30130">检测到本地路径</string>
+    <string id="30131">您的MB3服务器包含本地路径。请更改服务器路径至UNC或在XBMB3C设置里将“从串流播放”值更改为true。路径： </string>
+    <string id="30132">警告</string>
+    <string id="30133">启用调试</string>
+    <string id="30134">这将影响性能</string>
+    <string id="30135">错误</string>
+    <string id="30136">监视服务未运行</string>
+    <string id="30137">如刚安装请重启Kodi</string>
+    <string id="30138">搜索</string>
+    
+    <string id="30139">启用主题音乐(须重启)</string>
+    <string id="30140"> 循环主题音乐</string>
+    <string id="30141">启用背景图(须重启)</string>
+    <string id="30142">服务</string>
+
+    <string id="30143">视频比特率高于则总是转码</string>
+    
+    <string id="30150">皮肤不支持设置视图</string>
+    <string id="30151">选中项目动作(须重启)</string>
+    
+    <string id="30156">通过标题排序下一步</string>    
+    <string id="30157">启用增强图像(如Coverart)</string><!-- Verified -->
+    <string id="30158">元数据</string>
+    <string id="30159">插图</string>
+    <string id="30160">如须转码视频质量</string><!-- Verified -->
+    
+    <string id="30161">启用建议的加载器(须重启)</string>
+    <string id="30162">添加季数</string>     
+    <string id="30163">平铺每季</string>     
+    
+    <string id="30164">直接播放 - HTTP</string>     
+    <string id="30165">直接播放</string>     
+    <string id="30166">转码</string>     
+    <string id="30167">服务器检测成功</string>     
+    <string id="30168">找到服务器</string>     
+    <string id="30169">地址： </string>     
+    
+    <!-- Video nodes -->
+    <string id="30170">最近添加的电视剧</string><!-- Verified -->
+    <string id="30171">观看中的电视剧</string><!-- Verified -->
+    <string id="30172">所有音乐</string>              
+    <string id="30173">频道</string><!-- Verified -->
+    <string id="30174">最近添加</string><!-- Verified -->
+    <string id="30175">最近添加剧集</string><!-- Verified -->
+    <string id="30176">最近添加专辑</string>  
+    <string id="30177">观看中的电影</string><!-- Verified -->
+    <string id="30178">观看中的剧集</string><!-- Verified -->
+    <string id="30179">下一集</string><!-- Verified -->
+    <string id="30180">喜欢的电影</string><!-- Verified -->      
+    <string id="30181">喜欢的节目</string><!-- Verified -->
+    <string id="30182">喜欢的剧集</string>      
+    <string id="30183">播放最多的专辑</string> 
+    <string id="30184">即将来临的电视</string>            
+    <string id="30185">盒装套装</string>                
+    <string id="30186">预告片</string>               
+    <string id="30187">音乐视频</string>           
+    <string id="30188">照片</string>                 
+    <string id="30189">未观看的电影</string><!-- Verified -->
+    <string id="30190">电影流派</string>           
+    <string id="30191">电影制片厂</string>          
+    <string id="30192">电影演员</string>           
+    <string id="30193">未观看的剧集</string>     
+    <string id="30194">电视流派</string>              
+    <string id="30195">电视网络</string>            
+    <string id="30196">电视演员</string>              
+    <string id="30197">播放列表</string>              
+    <string id="30198">搜索</string>              
+    <string id="30199">设置视图</string>              
+    
+    <string id="30200">选择用户</string>              
+    <string id="30201">分析已启用</string>              
+    <string id="30202">完成测试后请记得关闭</string>              
+    <string id="30203">插图旋转线索错误</string>              
+    <string id="30204">无法连接到服务器</string>         
+    <string id="30205">载入目录选项线索错误</string>     
+    
+    <string id="30206">启用播放列表载入(须重启)</string>   
+    
+    <string id="30207">歌曲</string>
+    <string id="30208">专辑</string>
+    <string id="30209">专辑艺人</string>
+    <string id="30210">艺人</string>
+    <string id="30211">音乐流派</string>
+    
+    <string id="30212">启用主题视频(须重启)</string>
+    <string id="30213"> - 循环主题视频</string>
+    
+    <string id="30216">自动播放当季剩余剧集</string> 
+    <string id="30218">压缩插图</string>
+    <string id="30220">最近的 </string>
+    <string id="30221">进行中 </string>
+    <string id="30222">接下来 </string>
+    <string id="30223">用户视图</string>
+    <string id="30224">报告Metrics</string>
+    <string id="30225">使用Kodi排序</string>
+    <string id="30226">运行时长</string>
+    
+    <string id="30227">随机</string>
+    <string id="30228">最近发行</string>
+    <string id="30229">随机项目</string><!-- Verified -->
+    <string id="30230">推荐</string><!-- Verified -->
+    
+    <string id="30235">附加</string><!-- Verified -->
+    <string id="30236">同步主题音乐</string>
+    <string id="30237">同步附加Fanart</string>
+    <string id="30238">同步电影盒装套装</string>
+    
+    <string id="30239">[黄色]重置本地KodI数据库[/COLOR]</string><!-- Verified -->
+    <string id="30240">启用已观看/继续观看状态同步</string>
+    <string id="30241">DB同步标示:</string>
+    <string id="30242">播放次数同步标示:</string>
+    <string id="30243">启用HTTPS</string><!-- Verified -->
+    <string id="30245">强制转码编码器</string>
+    
+    <string id="30246">启用类Netflix下一步通知</string>
+    <string id="30247">  - 节目结束前多少秒显示通知</string>
+    <string id="30248">播放/选择动作时显示Emby信息对话</string>
+    <string id="30249">启用启动时服务器连接消息</string><!-- Verified -->
+    
+    <string id="30251">最近添加的家庭录像</string><!-- Verified -->
+    <string id="30252">最近添加的照片</string><!-- Verified -->
+    <string id="30253">喜欢的家庭录像</string><!-- Verified -->
+    <string id="30254">喜欢的照片</string><!-- Verified -->
+    <string id="30255">喜欢的专辑</string>
+    
+    <string id="30256">最近添加的音乐视频</string><!-- Verified -->
+    <string id="30257">播放中的音乐视频</string><!-- Verified -->
+    <string id="30258">未观看的音乐视频</string><!-- Verified -->
+    
+    <!-- Default views -->
+    <string id="30300">激活</string>              
+    <string id="30301">清除设置</string>              
+    <string id="30302">电影</string>              
+    <string id="30303">盒装套装</string>              
+    <string id="30304">预告片</string>              
+    <string id="30305">系列</string>              
+    <string id="30306">季</string>              
+    <string id="30307">剧集</string>              
+    <string id="30308">音乐艺人</string>              
+    <string id="30309">音乐专辑</string>              
+    <string id="30310">音乐视频</string>              
+    <string id="30311">音乐曲目</string>
+    <string id="30312">频道</string>  
+    
+    <!-- contextmenu -->
+    <string id="30401">Plex选项</string>
+    <string id="30402">取消喜欢对此项目</string>
+    <string id="30403">喜欢此项目</string>
+    <string id="30404">踩这个项目</string>
+    <string id="30405">添加到Plex收藏夹</string>
+    <string id="30406">从Plex收藏夹移除</string>
+    <string id="30407">设置自定义歌曲打分</string>
+    <string id="30408">Plex插件设置</string>
+    <string id="30409">从服务器上删除此项目</string>
+    <string id="30410">刷新此项目</string>
+    <string id="30411">设置自定义歌曲打分(0-5)</string>
+    <string id="30412">强制转码</string>
+    <string id="30413">在Kodi中启用Plex上下文菜单</string>
+    <string id="30414">无法删除此Plex项目。Plex媒体服务器已启用项目删除了吗？</string>
+    <string id="30415">通过PMS开始播放</string>
+    <string id="30416">Plex服务器配置</string>
+
+    <!-- add-on settings -->
+    <string id="30500">验证主机SSL证书(更安全)</string>
+    <string id="30501">客户端SSL证书</string>
+    <string id="30502">使用备用地址</string>
+    <string id="30503">备用服务器地址</string>
+    <string id="30504">使用备用设备名称</string>
+    <string id="30505">[黄色]重置登录尝试[/COLOR]</string>
+    <string id="30506">同步选项</string>
+    <string id="30507">显示同步进度</string>
+    <string id="30508">同步空电视节目</string>
+    <string id="30509">启用音乐库</string>
+    <string id="30510">直接串流音乐库</string>
+    <string id="30511">播放模式</string>
+    <string id="30512">强制缓存插图</string>
+    <string id="30513">限制插图缓存线程(rpi下推荐)</string>
+    <string id="30514">启用快速启动(须服务器插件)</string>
+    <string id="30515">一次从服务器请求最大项目数</string>
+    <string id="30516">回放</string>
+    <string id="30517">[黄色]输入网络凭证[/COLOR]</string>
+    <string id="30518">启用Plex预告片(须Plexpass)</string>
+    <string id="30519">要求播放预告片</string>
+    <string id="30520">为上下文菜单跳过Plex删除确认(须自行承担风险)</string>
+    <string id="30521">跳回继续(秒)</string>
+    <string id="30522">强制h265/HEVC转码</string>
+    <string id="30523">音乐元数据选项(不兼容直接串流)</string>
+    <string id="30524">从文件里直接导入音乐曲目打分</string>
+    <string id="30525">将音乐曲目打分转换为Emby排名</string>
+    <string id="30526">允许曲目文件打分更新</string>
+    <string id="30527">下一集忽略特集</string>
+    <string id="30528">永久用户添加会话</string>
+    <string id="30529">启动延迟 (秒)</string>
+    <string id="30530">启用服务器重启消息</string>
+    <string id="30531">启用新内容通知</string>
+    <string id="30532">视频库弹出时长(秒)</string>
+    <string id="30533">音乐库弹出时长(秒)</string>
+    <string id="30534">服务器消息</string>
+    <string id="30535">[黄色]生成新的唯一设备ID(e.g. 当克隆Kodi时)[/COLOR]</string>
+    <string id="30536">Kodi重启后用户须登录</string>
+    <string id="30537">如有任何更改请重启KODI</string>
+    <string id="30538">必须完整重新同步</string>
+    <string id="30539">从FanArtTV下载额外的art</string>
+    <string id="30540">从FanArtTV下载额外的电影集/收藏art</string>
+    <string id="30541">无需询问挑选特定的串流/质量</string>
+    <string id="30542">总是为预告片挑选最佳质量</string>
+    <string id="30543">Kodi运行在一个低功耗设备上(e.g. 树莓派)</string>
+    <string id="30544">插图</string>
+    <string id="30545">强制图片转码</string>
+
+    <!-- service add-on -->
+    <string id="33000">欢迎</string>
+    <string id="33001">连接错误</string>
+    <string id="33002">服务器不可达</string>
+    <string id="33003">服务器在线</string>
+    <string id="33004">添加到播放列表中的项目</string>
+    <string id="33005">播放列表中的排队项目</string>
+    <string id="33006">服务器正重启</string>
+    <string id="33007">访问已启用</string>
+    <string id="33008">输入用户名的密码</string>
+    <string id="33009">无效的用户名或密码</string>
+    <string id="33010">验证失败次数过多。在设置中重置。</string>
+    <string id="33011">无法直接播放</string>
+    <string id="33012">直接播放失败3此。从HTTP启用播放。</string>
+    <string id="33013">选择音频流</string>
+    <string id="33014">选择字幕流</string>
+    <string id="33015">是否从您的Emby服务器删除文件？</string>
+    <string id="33016">是否播放预告片？</string>
+    <string id="33017">收集电影自:</string>
+    <string id="33018">收集盒装套装</string>
+    <string id="33019">收集音乐视频自</string>
+    <string id="33020">收集电视节目自:</string>
+    <string id="33021">收集</string>
+    <string id="33022">检测到须为此版本的Kodi版Emby重建数据库。是否继续？</string>
+    <string id="33023">数据库重建前Kodi版Emby可能无法正常工作。</string>
+    <string id="33024">正在取消数据库同步进程。当前的Kodi版本不受支持。</string>
+    <string id="33025">预计完成于</string>
+    <string id="33026">比较电影于：</string>
+    <string id="33027">比较盒装套装</string>
+    <string id="33028">比较音乐视频于：</string>
+    <string id="33029">比较电视节目于：</string>
+    <string id="33030">比较剧集于：</string>
+    <string id="33031">比较：</string>
+    <string id="33032">无法生成新的设备ID。查看logs以了解更多信息。</string>
+    <string id="33033">Kodi将立即重启以应用更改。</string>
+    <string id="33041">是否从Plex服务器上删除文件？这也将从磁盘上删除文件！</string>
+
+    <!-- New to Plex -->
+    <string id="39000">- 电影开始前要播放的预告片数量</string>
+    <string id="39001">转码时加强音频</string>
+    <string id="39002">压制字幕尺寸</string>
+    <string id="39003">限制下载同步线程(reg. for rpi: 1)</string>
+    <string id="39004">启用Plex Companion(重启Kodi!)</string>
+    <string id="39005">Plex Companion端口(仅在需要时更改)</string>
+    <string id="39006">激活Plex Companion调试日志</string>
+    <string id="39007">激活Plex Companion GDM调试日志</string>
+    <string id="39008">Plex Companion: 允许通过Plex将媒体扔进Kodi</string>
+    <string id="39009">无法登入plex.tv。请再次尝试登录。</string>
+    <string id="39010">连接到plex.tv遇到问题。网络或互联网有问题？</string>
+    <string id="39011">网络中找不到任何Plex服务器。中止...</string>
+    <string id="39012">选择您的Plex服务器</string>
+    <string id="39013">尚未为Plex服务器授权 </string>
+    <string id="39014">请登录到plex.tv。</string>
+    <string id="39015">登录到服务器时有问题。选择另一台服务器？</string>
+    <string id="39016">停用Plex音乐库？(强烈建议对Plex音乐的大音乐库只使用直接路径。Kodi可能崩溃)</string>
+    <string id="39017">您想现在转入插件设置以调整PKC吗？您将需要重启Kodi！</string>
+
+    <string id="39018">[黄色]修复本地数据库 (强制更新所有内容)[/COLOR]</string>
+    <string id="39019">[红色]部分或全部重置数据库和PKC[/COLOR]</string>
+    <string id="39020">[黄色]现在缓存所有图像到Kodi texture缓存[/COLOR]</string>
+    <string id="39021">[黄色]同步Emby主题媒体到Kodi[/COLOR]</string>
+    <string id="39022">本地</string>
+    <string id="39023">未能通过验证。您没有登录到plex.tv吗？</string>
+    
+
+    <string id="39025">启动时自动登录到plex.tv</string>
+    <string id="39026">启用持续背景同步</string>
+    <string id="39027">播放模式</string>
+    <string id="39028">警告！如果选择"Native"模式，你可能无法使用一些Plex特性，如：Plex预告片和转码选项。所有的Plex共享都需要直接路径(e.g. smb://myNAS/mymovie.mkv or \\myNAS/mymovie.mkv)!</string>
+    <string id="39029">网络凭据</string>
+    <string id="39030">添加网络凭据以允许Kodi访问您的内容？注：如果Kodi无法定位您的内容，则跳过此步骤可能会在初始扫描您的内容时生成一个消息。</string>
+    <string id="39031">Kodi无法定位文件： </string>
+    <string id="39032">请验证路径。您可能需要在插件设置中验证您的网络凭据或使用不同的Plex路径。停止同步吗？</string>
+    <string id="39033">自动转换Plex UNC库路径\\myNas\mymovie.mkv为smb路径smb://myNas/mymovie.mkv?(推荐)</string>
+    <string id="39034">用smb://myNas替换Plex UNC路径</string>
+
+    <string id="39035">用自定义SMB路径smb://NAS/mystuff替换Plex路径/volume1/media 或 \\myserver\media</string>
+    <string id="39037">要替换的原始Plex电影路径:</string>
+    <string id="39038">用于替换Plex MOVIE：</string>
+    <string id="39039">要替换的原始Plex TV SHOWS路径：</string>
+    <string id="39040">用于替换Plex TV SHOWS：</string>
+    <string id="39041">要替换的原始Plex MUSIC路径：</string>
+    <string id="39042">用于替换Plex MUSIC：</string>
+    <string id="39043">进一步，完全用自定义SMB路径 (smb://NAS/MyStuff) 替换所有原始Plex库路径
+ (/volume1/media)?</string>
+    <string id="39044">请在设置中"同步选项"下输入自定义smb路径，然后重启Kodi</string>
+    <string id="39045">要替换的原始Plex PHOTO路径：</string>
+    <string id="39046">用于替换Plex PHOTO：</string>
+    <string id="39047">On Deck: 附加显示剧集标题</string>
+    <string id="39048">On Deck: 附加季-和集-数 SxxExx</string>
+    <string id="39049">不起作用？试试完全重置！</string>
+    <string id="39050">[黄色]从列表中选择Plex服务器[/COLOR]</string>
+    <string id="39051">等待同步新的/更改的PMS项目</string>
+    <string id="39052">后台同步</string>
+    <string id="39053">每x分钟进行一次完全库同步</string>
+    <string id="39054">远程</string>
+    <string id="39055">正搜索Plex服务器</string>
+    <string id="39056">用于同步和何时尝试直接播放</string>
+    <string id="39057">自定义路径</string>
+    <string id="39058">扩展Plex TV Series "On Deck"视图到所有节目</string>
+    <string id="39059">最近添加：追加显示剧集标题</string>
+    <string id="39060">最近添加: 追加季-和集-数 SxxExx</string>
+    <string id="39061">您想后台从FanArtTV下载额外的插图吗？</string>
+    <string id="39062">当屏幕保护程序停用时同步</string>
+    <string id="39063">强制转码Hi10P</string>
+    <string id="39064">最近添加：同时显示已观看剧集</string>
+    <string id="39066">最近添加：同时显示已观看电影(Refresh Plex 列表/节点!)</string>
+    <string id="39067">您当前的Plex媒体服务器：</string>
+    <string id="39068">[黄色]手动输入Plex媒体服务器地址[/COLOR]</string>
+    <string id="39069">当前地址：</string>
+    <string id="39070">当前端口：</string>
+    <string id="39071">当前plex.tv状态：</string>
+    <string id="39072">您的Kodi是否安装在一个低功耗设备上如树莓派？如果是，我们将减少Kodi压力以防止崩溃。</string>
+    <string id="39073">外观微调</string>
+    <string id="39074">电视节目</string>
+    <string id="39075">如可能始终使用默认Plex字幕</string>
+    <string id="39076">如果您使用了同一类多个Plex库，e.g. “儿童电影”和”服务电影”，务必查看Wiki: https://goo.gl/JFtQV9</string>
+    <string id="39077">小部件上显示的PMS项目数(e.g. "On Deck")</string>
+    <string id="39078">Plex Companion更新端口(仅在需要时更改)</string>
+    <string id="39079">Plex Companion无法打开GDM端口。请在PKC中更改。</string>
+
+    <!-- Plex Entrypoint.py -->
+    <string id="39200">退出Plex家庭用户 </string>
+    <string id="39201">设置</string>
+    <string id="39202">网络凭据</string>
+    <string id="39203">刷新Plex播放列表/节点</string>
+    <string id="39204">执行手动库同步</string>
+    <string id="39205">无法运行同步，插件未连接到Plex服务器。</string>
+    <string id="39206">多次登录失败后，Plex可能锁定您的帐户。是否继续？</string>
+    <string id="39207">正重置PMS连接，请稍后</string>
+    <string id="39208">重置PKC失败。尝试重启Kodi。</string>
+    <string id="39209">[黄色]切换 plex.tv 登录 (登录或退出)[/COLOR]</string>
+    <string id="39210">尚未连接到Plex服务器</string>
+    <string id="39211">稍后观看</string>
+    <string id="39213">处于离线状态</string>
+    <string id="39214">即使我们登录到 plex.tv，我们无法为PMS授权</string>
+    <string id="39215">输入您的Plex媒体服务器的 IP 或 URL，例如︰</string>
+
+    <string id="39217">你Plex媒体服务器是否支持 SSL 连接？(https而不是 http)？</string>
+    <string id="39218">联系PMS错误</string>
+    <string id="39219">中止 (Yes) 或保存地址 (No)？</string>
+    <string id="39220">已连接</string>
+    <string id="39221">plex.tv 切换成功</string>
+    <string id="39222">[黄色]从FanartTV 寻找缺失的fanart[/COLOR]</string>
+    <string id="39223">仅寻找缺失的fanart或刷新所有fanart？扫描将需要相当一段时间在后台继续。</string>
+    <string id="39224">刷新全部</string>
+    <string id="39225">仅缺失的</string>    
+
+
+    <!-- Plex Artwork.py -->
+    <string id="39250">运行图像缓存可能会花费一些时间。它将在后台持续。确定要继续吗？</string>
+    <string id="39251">首先重置现有缓存数据吗？</string>
+
+    <!-- Plex PlexAPI.py -->
+    <string id="39300">︰ 输入 plex.tv 的用户名。或不输入来取消。</string>
+    <string id="39301">输入 plex.tv 用户密码 </string>
+    <string id="39302">无法登陆用户 </string>
+    <string id="39303">联系plex.tv时有问题。请稍后再试</string>
+    <string id="39304">转到 https://plex.tv/pin，然后输入代码︰ </string>
+    <string id="39305">无法登录到 plex.tv。请稍后再试</string>
+    <string id="39306">︰ 选择用户</string>
+    <string id="39307">为用户输入 PIN </string>
+    <string id="39308">无法登陆用户 </string>
+    <string id="39309">请重试。</string>
+    <string id="39310">未知</string>
+    <string id="39311">或按No停止登录。</string>
+
+    <!-- Plex Librarysync.py -->
+    <string id="39400">库同步线程崩溃。现在您应重启Kodi。请将此报告至论坛</string>
+    <string id="39401">检测到需要为当前版本重建Kodi数据库。这可能需要一段时间。是否继续？</string>
+    <string id="39402"> 重置数据库前可能无法正常运行。</string>
+    <string id="39403">正在取消数据库同步进程。不支持当前Kodi版本。请验证logs以获取更多信息。</string>
+    <string id="39404">同步进程启动持续失败。尝试重启Kodi中。现在停止同步。</string>
+    <string id="39405">Plex 播放列表/节点已刷新</string>
+    <string id="39406">Plex 播放列表/节点刷新失败</string>
+    <string id="39407">全库同步完成</string>
+    <string id="39408">因无法处理，同步须跳过某些项目。Kodi现在可能不稳定！！请将您的Kodi日志发布到Plex论坛上。</string>
+    <string id="39409">Plex服务器无法一次响应如此多的数据并反回错误。尝试在设置中降低同步下载线程数量。现在已跳过某些项目。</string>
+    <string id="39410">库同步错误</string>
+
+    <!-- Plex videonodes.py -->
+    <string id="39500">On Deck</string>
+    <string id="39501">收藏</string>
+
+    <!-- Plex utils.py -->
+    <string id="39600">确定要重置您的本地Kodi数据库？之后重新同步 Plex 数据需要花费一些时间。</string>
+    <string id="39601">无法停止数据库运行。请稍后再试。</string>
+    <string id="39602">删除所有缓存的插图？(推荐!)</string>
+    <string id="39603">重置所有 PlexKodiConnect Addon 设置？(通常不建议并无必要!)</string>
+
+    <string id="39700">亚马逊 Alexa (语音识别)</string>
+    <string id="39701">激活 Alexa</string>
+    <string id="39702">按文件夹浏览</string>
+</strings>
