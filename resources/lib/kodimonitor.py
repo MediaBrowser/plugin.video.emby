@@ -18,7 +18,6 @@ from database import DatabaseConn
 #################################################################################################
 
 log = logging.getLogger("EMBY."+__name__)
-KODI = int(xbmc.getInfoLabel('System.BuildVersion')[:2])
 
 #################################################################################################
 
@@ -91,20 +90,21 @@ class KodiMonitor(xbmc.Monitor):
 
     def _on_play_(self, data):
         # Set up report progress for emby playback
+        kodi_id = None
+        item_type = None
         try:
-            if KODI >= 17:
-                item = xbmc.Player().getVideoInfoTag()
-                kodi_id = item.getDbId()
-                item_type = item.getMediaType()
-                log.info("kodi_id: %s item_type: %s", kodi_id, item_type)             
-            else:
-                item = data['item']
-                kodi_id = item['id']
-                item_type = item['type']
-                log.info("kodi_id: %s item_type: %s", kodi_id, item_type)
+            item = data['item']
+            kodi_id = item['id']
+            item_type = item['type']
         except (KeyError, TypeError):
             log.info("Item is invalid for playstate update")
-        else:
+            try:
+                if settings('useDirectPaths') == "1":
+                    (kodi_id, item_type) = self._get_kodi_id_from_currentfile()
+            except TypeError:
+                log.info("Item not found in kodi database")
+
+        if kodi_id:
             if ((settings('useDirectPaths') == "1" and not item_type == "song") or
                     (item_type == "song" and settings('enableMusic') == "true")):
                 # Set up properties for player
@@ -188,3 +188,105 @@ class KodiMonitor(xbmc.Monitor):
             log.info("Could not retrieve item Id")
 
         return item_id
+
+    @classmethod
+    def _get_kodi_id_from_currentfile(cls):
+        kodi_id = None
+        item_type = None
+        currentfile = None
+        filename = None
+        path = None
+        count = 0
+        while not currentfile and count < 6:
+            try:
+                currentfile = xbmc.Player().getPlayingFile()
+                currentfile = currentfile.decode('utf-8', "ignore")
+                if currentfile.startswith('http'):
+                    return
+                try:
+                    filename = currentfile.rsplit('/', 1)[1]
+                    path = currentfile.rsplit('/', 1)[0] + '/'
+                except IndexError:
+                    filename = currentfile.rsplit('\\', 1)[1]
+                    path = currentfile.rsplit('\\', 1)[0] + '\\'
+                log.info('Trying to figure out kodi_id from filename: %s '
+                         'and path: %s', filename, path)
+            except RuntimeError:
+                count += 1
+                xbmc.sleep(200)
+
+
+        if filename and path:
+            with DatabaseConn('video') as cursor:
+                query = ' '.join((
+                    "SELECT idFile, idPath",
+                    "FROM files",
+                    "WHERE strFilename = ?"
+                ))
+                cursor.execute(query, (filename,))
+                files = cursor.fetchall()
+                if len(files) == 0:
+                    log.info('Did not find any file, abort')
+                    return
+                query = ' '.join((
+                    "SELECT strPath",
+                    "FROM path",
+                    "WHERE idPath = ?"
+                ))
+                # result will contain a list of all idFile with matching filename and
+                # matching path
+                result = []
+                for file in files:
+                    # Use idPath to get path as a string
+                    cursor.execute(query, (file[1],))
+                    try:
+                        strPath = cursor.fetchone()[0]
+                    except TypeError:
+                        # idPath not found; skip
+                        continue
+                    # For whatever reason, double might have become triple
+                    strPath = strPath.replace('///', '//')
+                    strPath = strPath.replace('\\\\\\', '\\\\')
+                    if strPath == path:
+                        result.append(file[0])
+                if len(result) == 0:
+                    log.debug('Did not find matching paths, abort')
+                    return
+                log.debug('Result: %s', result)
+                # Kodi seems to make ONE temporary entry; we only want the earlier,
+                # permanent one
+                if len(result) > 2:
+                    log.debug('We found too many items with matching filenames and '
+                             ' paths, aborting')
+                    return
+                idFile = result[0]
+                log.debug('idFile: %s', idFile)
+
+                # Try movies first
+                query = ' '.join((
+                    "SELECT idMovie",
+                    "FROM movie",
+                    "WHERE idFile = ?"
+                ))
+                cursor.execute(query, (idFile,))
+                try:
+                    kodi_id = cursor.fetchone()[0]
+                    item_type = 'movie'
+                    log.info('Found kodi_id = %s item_type = %s', kodi_id, item_type)
+                except TypeError:
+                    # Try tv shows next
+                    query = ' '.join((
+                        "SELECT idEpisode",
+                        "FROM episode",
+                        "WHERE idFile = ?"
+                    ))
+                    cursor.execute(query, (idFile,))
+                    try:
+                        kodi_id = cursor.fetchone()[0]
+                        item_type = 'episode'
+                        log.info('Found kodi_id = %s item_type = %s', kodi_id, item_type)
+                    except TypeError:
+                        log.debug('Unexpectantly did not find a match!')
+                        return
+        return kodi_id, item_type
+
