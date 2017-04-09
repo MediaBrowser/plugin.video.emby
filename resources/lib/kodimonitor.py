@@ -240,14 +240,14 @@ class KodiMonitor(xbmc.Monitor):
                     # Use idPath to get path as a string
                     cursor.execute(query, (file[1],))
                     try:
-                        strPath = cursor.fetchone()[0]
+                        strpath = cursor.fetchone()[0]
                     except TypeError:
                         # idPath not found; skip
                         continue
                     # For whatever reason, double might have become triple
-                    strPath = strPath.replace('///', '//')
-                    strPath = strPath.replace('\\\\\\', '\\\\')
-                    if strPath == path:
+                    strpath = strpath.replace('///', '//')
+                    strpath = strpath.replace('\\\\\\', '\\\\')
+                    if strpath == path:
                         result.append(file[0])
                 if len(result) == 0:
                     log.debug('Did not find matching paths, abort')
@@ -259,8 +259,8 @@ class KodiMonitor(xbmc.Monitor):
                     log.debug('We found too many items with matching filenames and '
                              ' paths, aborting')
                     return
-                idFile = result[0]
-                log.debug('idFile: %s', idFile)
+                idfile = result[0]
+                log.debug('idfile: %s', idfile)
 
                 # Try movies first
                 query = ' '.join((
@@ -268,7 +268,7 @@ class KodiMonitor(xbmc.Monitor):
                     "FROM movie",
                     "WHERE idFile = ?"
                 ))
-                cursor.execute(query, (idFile,))
+                cursor.execute(query, (idfile,))
                 try:
                     kodi_id = cursor.fetchone()[0]
                     item_type = 'movie'
@@ -280,7 +280,7 @@ class KodiMonitor(xbmc.Monitor):
                         "FROM episode",
                         "WHERE idFile = ?"
                     ))
-                    cursor.execute(query, (idFile,))
+                    cursor.execute(query, (idfile,))
                     try:
                         kodi_id = cursor.fetchone()[0]
                         item_type = 'episode'
