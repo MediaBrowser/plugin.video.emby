@@ -126,40 +126,6 @@ def double_urldecode(text):
     return unquote(unquote(text))
 
 
-def get_uncached_artwork():
-    """
-    Returns a list of URLs that haven't been cached yet
-    """
-    all_urls = []
-    cached_urls = []
-    result = []
-    connection = kodiSQL('video')
-    cursor = connection.cursor()
-    # Get all artwork urls
-    cursor.execute("SELECT url FROM art WHERE media_type != 'actor'")
-    for url in cursor.fetchall():
-        all_urls.append(url[0])
-    connection.close()
-    connection = kodiSQL('music')
-    cursor = connection.cursor()
-    cursor.execute("SELECT url FROM art")
-    for url in cursor.fetchall():
-        all_urls.append(url[0])
-    connection.close()
-    # Get the cached urls
-    connection = kodiSQL('texture')
-    cursor = connection.cursor()
-    cursor.execute("SELECT url FROM texture")
-    for url in cursor.fetchall():
-        cached_urls.append(url[0])
-    connection.close()
-    for url in all_urls:
-        if url not in cached_urls:
-            result.append(url)
-    log.info('%s artwork urls have not been cached yet' % len(result))
-    return result
-
-
 @ThreadMethodsAdditionalStop('plex_shouldStop')
 @ThreadMethods
 class Image_Cache_Thread(Thread):
