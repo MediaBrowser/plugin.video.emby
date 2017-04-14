@@ -6,12 +6,10 @@ import logging
 from urllib import urlencode
 from ntpath import dirname
 from datetime import datetime
-from xbmc import sleep, translatePath
-from os import path as os_path, makedirs
+from xbmc import sleep
 
 import artwork
-from utils import tryEncode, tryDecode, window, kodiSQL, CatchExceptions, \
-    settings
+from utils import tryEncode, tryDecode, window, kodiSQL, CatchExceptions
 import plexdb_functions as plexdb
 import kodidb_functions as kodidb
 
@@ -24,12 +22,6 @@ import variables as v
 log = logging.getLogger("PLEX."+__name__)
 
 MARK_PLAYED_AT = 0.90
-if settings('enableMusic') == "true":
-    SONG_STREAM_DIR = ('special://userdata/addon_data/%s/musicstreamfiles/'
-                       % v.ADDON_ID)
-    if not os_path.exists(translatePath(SONG_STREAM_DIR)):
-        makedirs(translatePath(SONG_STREAM_DIR))
-
 ###############################################################################
 
 
@@ -1629,31 +1621,32 @@ class Music(Items):
                 moods.append(entry.attrib['tag'])
         mood = ' / '.join(moods)
 
+        # GET THE FILE AND PATH #####
+        doIndirect = not self.directpath
         if self.directpath:
             # Direct paths is set the Kodi way
             playurl = API.getFilePath(forceFirstMediaStream=True)
-            playurl = API.validatePlayurl(playurl, API.getType())
             if playurl is None:
-                return False
-            if "\\" in playurl:
-                # Local path
-                filename = playurl.rsplit("\\", 1)[1]
+                # Something went wrong, trying to use non-direct paths
+                doIndirect = True
             else:
-                # Network share
-                filename = playurl.rsplit("/", 1)[1]
-            path = playurl.replace(filename, "")
-        else:
-            # now using .strm files instead to circumvent the inability to
-            # launch plugins directly from the library for music files
-            filename = '%s.strm' % songid
-            with open(translatePath(
-                    '%s%s' % (SONG_STREAM_DIR, filename)), 'w') as file:
-                file.write('plugin://%s?dbid=%s&mode=play&id=%s'
-                           % (v.ADDON_ID, songid, itemid))
-            # Avoid telling kodi in which folder the music files are, so the
-            # scraper can't find them (and delete them)
-            path = ''
-            filename = '%s%s' % (SONG_STREAM_DIR, filename)
+                playurl = API.validatePlayurl(playurl, API.getType())
+                if playurl is None:
+                    return False
+                if "\\" in playurl:
+                    # Local path
+                    filename = playurl.rsplit("\\", 1)[1]
+                else:
+                    # Network share
+                    filename = playurl.rsplit("/", 1)[1]
+                path = playurl.replace(filename, "")
+        if doIndirect:
+            # Plex works a bit differently
+            path = "%s%s" % (self.server, item[0][0].attrib.get('key'))
+            path = API.addPlexCredentialsToUrl(path)
+            filename = path.rsplit('/', 1)[1]
+            path = path.replace(filename, '')
+
         # UPDATE THE SONG #####
         if update_item:
             log.info("UPDATE song itemid: %s - Title: %s with path: %s"
