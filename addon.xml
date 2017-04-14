@@ -32,6 +32,7 @@
     <summary lang="es">Native Integration of Plex into Kodi</summary>
     <summary lang="dk">Indbygget Integration af Plex i Kodi</summary>
     <summary lang="nl">Directe integratie van Plex in Kodi</summary>
+    <summary lang="zh_tw">將Plex直接內嵌至Kodi</summary>
     <description lang="en">Connect Kodi to your Plex Media Server. This plugin assumes that you manage all your videos with Plex (and none with Kodi). You might lose data already stored in the Kodi video and music databases (as this plugin directly changes them). Use at your own risk!</description>
     <description lang="en_gb">Connect Kodi to your Plex Media Server. This plugin assumes that you manage all your videos with Plex (and none with Kodi). You might lose data already stored in the Kodi video and music databases (as this plugin directly changes them). Use at your own risk!</description>
     <description lang="en_us">Connect Kodi to your Plex Media Server. This plugin assumes that you manage all your videos with Plex (and none with Kodi). You might lose data already stored in the Kodi video and music databases (as this plugin directly changes them). Use at your own risk!</description>
@@ -40,5 +41,6 @@
     <description lang="es">Connect Kodi to your Plex Media Server. This plugin assumes that you manage all your videos with Plex (and none with Kodi). You might lose data already stored in the Kodi video and music databases (as this plugin directly changes them). Use at your own risk!</description>
     <description lang="dk">Tilslut Kodi til din Plex Media Server. Dette plugin forudsætter, at du administrere alle dine videoer med Plex (og ikke med Kodi). Du kan miste data som allerede er gemt i Kodi video og musik-databaser (dette plugin ændrer direkte i dem). Brug på eget ansvar!</description>
     <description lang="nl">Verbind Kodi met je Plex Media Server. Deze plugin gaat ervan uit dat je al je video's met Plex (en niet met Kodi) beheerd. Je kunt gegevens reeds opgeslagen in de databases voor video en muziek van Kodi (deze plugin wijzigt deze gegevens direct) verliezen. Gebruik op eigen risico!</description>
+    <description lang="zh_tw">連接Kodi至您的Plex媒體伺服器．這個外掛程式假設你使用Plex伺服器管理您所有的媒體(完全沒用Kodi管理)．您可能會失去已經儲存在Kodi資料庫中的視頻及音樂的資料(這個外掛程式會直接更改它們)．使用風險由您自己承擔！</description>
   </extension>
 </addon>
