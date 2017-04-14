@@ -16,7 +16,7 @@
               <visible>[!IsEmpty(ListItem.DBID) + !StringCompare(ListItem.DBID,-1) | !IsEmpty(ListItem.Property(plexid))] + !IsEmpty(Window(10000).Property(plex_context))</visible>
       </item>
   </extension>
-  <extension point="xbmc.addon.metadata">
+  <extension point="kodi.addon.metadata">
     <platform>all</platform>
     <language></language>
     <license>GNU GENERAL PUBLIC LICENSE. Version 2, June 1991</license>
