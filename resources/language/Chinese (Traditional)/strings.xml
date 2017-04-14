@@ -4,7 +4,7 @@
     <string id="29999">PlexKodiConnect</string>
     <string id="30000">伺服器位址(IP)</string><!-- Verified -->
     <string id="30002">喜好的播放方式</string><!-- Verified -->
-    <string id="30004">日誌級別</string><!-- Verified -->
+    <string id="30004">日誌層級</string><!-- Verified -->
     <string id="30005">使用者: </string>
     <string id="30006">密碼 </string>
     <string id="30007">網路使用者: </string>
@@ -12,26 +12,26 @@
     <string id="30009">轉碼: </string>
     <string id="30010">使用性能分析</string>
     <string id="30011">本地快取系統</string>
-    <string id="30012">OK</string>
+    <string id="30012">確定</string>
     <string id="30013">不要顯示</string>
 
-    <string id="30014">已連結</string>
+    <string id="30014">連結</string>
     <string id="30015">網路</string>    
     <string id="30016">裝置名稱</string>
-    <string id="30017">Plex伺服器未授權</string>     
+    <string id="30017">Plex伺服器未被授權</string>     
 
     <string id="30022">進階</string>
     <string id="30024">使用者</string><!-- Verified -->
 
-    <string id="30025">顯示伺服器未連線</string>
+    <string id="30025">顯示"伺服器未連線"</string>
     
     <string id="30030">埠號</string><!-- Verified -->
     <string id="30031">我擁有這個伺服器</string>
     <string id="30036">顯示幾部新加的電影:</string>    
-    <string id="30037">顯示幾部新加的電視劇:</string>    
+    <string id="30037">顯示幾部新加的電視節目:</string>    
     <string id="30035">顯示幾張新加的專輯:</string>    
     <string id="30038">開始放就設為「已播放」:</string>    
-    <string id="30039">為電視劇設定每季海報</string>
+    <string id="30039">為電視節目設定每季海報</string>
 
     <string id="30040">依「類型」篩選...</string>
     <string id="30041">從此全部播放</string>
@@ -50,8 +50,8 @@
     <string id="30061">年</string>
     <string id="30062">首映日期</string>
     <string id="30063">創建日期</string>
-    <string id="30064">關鍵評分</string>
-    <string id="30065">社群評分</string>
+    <string id="30064">評論家評分</string>
+    <string id="30065">適群評等</string>
     <string id="30066">播放次數</string>
     <string id="30067">預算</string>
     <!-- Runtime added as 30226 below -->
@@ -103,11 +103,11 @@
     <string id="30112">顯示人員</string>
     <string id="30113">顯示簡介</string>
     <string id="30114">播放後刪除</string><!-- Verified -->
-    <string id="30115">針對電視劇</string><!-- Verified -->
+    <string id="30115">針對電視節目</string><!-- Verified -->
     <string id="30116">針對電影</string><!-- Verified -->
     <string id="30117">背景更新頻率(秒)</string>
-    <string id="30118">顯示播放比率</string>
-    <string id="30119">顯示電視劇集數</string>
+    <string id="30118">顯示已播放比率</string>
+    <string id="30119">顯示電視節目集數</string>
     <string id="30120">顯示加載進度</string>
     <string id="30121">加載內容中</string>
     <string id="30122">數據檢索中</string>
@@ -141,7 +141,7 @@
     <string id="30159">背景海報</string>
     <string id="30160">轉碼影像品質</string><!-- Verified -->
     
-    <string id="30161">啟用建議的裝載機(須重啟)</string>
+    <string id="30161">啟用建議的裝載器(須重啟)</string>
     <string id="30162">顯示季數</string>     
     <string id="30163">不依季分階</string>     
     
@@ -164,7 +164,7 @@
     <string id="30178">未看完的劇集</string><!-- Verified -->
     <string id="30179">下一集</string><!-- Verified -->
     <string id="30180">最愛的電影</string><!-- Verified -->      
-    <string id="30181">最愛的電視劇</string><!-- Verified -->
+    <string id="30181">最愛的電視節目</string><!-- Verified -->
     <string id="30182">最愛的劇集</string>      
     <string id="30183">最常播放的專輯</string> 
     <string id="30184">即將上映的影集</string>            
@@ -177,7 +177,7 @@
     <string id="30191">製片廠</string>          
     <string id="30192">電影演員</string>           
     <string id="30193">未觀看的劇集</string>     
-    <string id="30194">電視劇分類</string>              
+    <string id="30194">電視節目分類</string>              
     <string id="30195">電視網路</string>            
     <string id="30196">電視演員</string>              
     <string id="30197">播放列表</string>              
@@ -208,7 +208,7 @@
     <string id="30221">進行中 </string>
     <string id="30222">即將上映 </string>
     <string id="30223">使用者視圖</string>
-    <string id="30224">Report Metrics</string>
+    <string id="30224">報告度量</string>
     <string id="30225">使用Kodi排序</string>
     <string id="30226">運行時間</string>
     
@@ -262,8 +262,8 @@
     <!-- contextmenu -->
     <string id="30401">Plex 選項</string>
     <string id="30402">清除類似的項目</string>
-    <string id="30403">喜歡這項</string>
-    <string id="30404">不喜歡這項</string>
+    <string id="30403">喜歡的項目</string>
+    <string id="30404">不喜歡的項目</string>
     <string id="30405">加到 Plex 的最愛</string>
     <string id="30406">從 Plex 的最愛移除</string>
     <string id="30407">設置自訂歌曲評級</string>
@@ -283,7 +283,7 @@
     <string id="30502">使用備用位址</string>
     <string id="30503">待命伺服器位址</string>
     <string id="30504">使用備用設備名稱</string>
-    <string id="30505">[COLOR yellow]重置登入企圖次數[/COLOR]</string>
+    <string id="30505">[COLOR yellow]重置嘗試登入次數[/COLOR]</string>
     <string id="30506">同步處理選項</string>
     <string id="30507">顯示同步進度</string>
     <string id="30508">同步空的電視影集</string>
@@ -306,7 +306,7 @@
     <string id="30525">將音樂歌曲評級轉換為 Plex 評級</string>
     <string id="30526">允許更新歌曲檔評級</string>
     <string id="30527">播放下一集時忽略特輯</string>
-    <string id="30528">Permanent users to add to the session</string>
+    <string id="30528">多使用者永久加入會話(session)</string>
     <string id="30529">啟動延遲 (以秒為單位)</string>
     <string id="30530">啟用「伺服器重新開機」訊息</string>
     <string id="30531">啟用「新的內容」通知</string>
@@ -318,7 +318,7 @@
     <string id="30537">如果您進行任何更改，請重開Kodi</string>
     <string id="30538">必需完全重新同步</string>
     <string id="30539">從 FanArtTV 下載額外的背景海報</string>
-    <string id="30540">從 FanArtTV 下載電影集海報</string>
+    <string id="30540">從 FanArtTV 下載電影合輯海報</string>
     <string id="30541">不要要求挑選特定的 串流/品質</string>
     <string id="30542">總是挑選最好品質的預告片</string>
     <string id="30543">Kodi在低效能的設備上運行 (例如Raspberry Pi)</string>
@@ -343,10 +343,10 @@
     <string id="33014">選擇字幕</string>
     <string id="33015">從你的 Plex 伺服器上刪除檔？</string>
     <string id="33016">播放預告嗎？</string>
-    <string id="33017">從哪取得電影︰</string>
+    <string id="33017">取得電影︰</string>
     <string id="33018">取得合輯</string>
     <string id="33019">取得音樂視頻︰</string>
-    <string id="33020">從哪取得電視劇︰</string>
+    <string id="33020">取得電視節目︰</string>
     <string id="33021">取得中：</string>
     <string id="33022">偵測到使用本版PKC需要為Kodi重新創建資料庫 。是否繼續？</string>
     <string id="33023">直到完成重置資料庫，PKC可能無法正常工作。</string>
@@ -355,8 +355,8 @@
     <string id="33026">比對電影：</string>
     <string id="33027">比對電影合集：</string>
     <string id="33028">比對音樂視頻︰</string>
-    <string id="33029">比對電視劇︰</string>
-    <string id="33030">比對電視劇集︰</string>
+    <string id="33029">比對電視節目︰</string>
+    <string id="33030">比對電視節目集︰</string>
     <string id="33031">比對︰</string>
     <string id="33032">無法產生新的設備辨識碼。查看日誌以瞭解更多資訊。</string>
     <string id="33033">Kodi將立即重啟，以套用更改的設定。</string>
@@ -412,18 +412,18 @@
     <string id="39044">請輸入您自訂的smb路徑在"設置"下的"同步選項"，然後重新開啟kodi</string>
     <string id="39045">要替換的Plex原始照片路徑︰</string>
     <string id="39046">取代Plex照片路徑，用︰</string>
-    <string id="39047">在桌面︰增加顯示電視集標題</string>
-    <string id="39048">在桌面︰增加季和集編號 SxxExx</string>
+    <string id="39047">上架︰增加顯示電視節目集標題</string>
+    <string id="39048">上架︰增加季和集編號 SxxExx</string>
     <string id="39049">完全掛點？試著完全重置 ！</string>
     <string id="39050">[COLOR yellow]選取Plex伺服器[/COLOR]</string>
-    <string id="39051">等待同步新增或修改 PMS 項目 [s]</string>
+    <string id="39051">在同步前等待"新增或修改" Plex媒體伺服器項目完成</string>
     <string id="39052">背景同步</string>
     <string id="39053">每隔 x 分鐘做完整資料庫同步</string>
     <string id="39054">遠端</string>
     <string id="39055">正在搜索Plex伺服器</string>
     <string id="39056">通過同步和嘗試使用直接播放</string>
     <string id="39057">自訂路徑</string>
-    <string id="39058">延伸plex電視節目系列"桌面"，到所有節目</string>
+    <string id="39058">延伸plex電視節目系列"上架"視圖，到所有節目</string>
     <string id="39059">最近添加︰ 追加顯示集標題</string>
     <string id="39060">最近添加︰ 追加和本集編號 SxxExx</string>
     <string id="39061">你想在背景從 FanArtTV 下載更多圖片？</string>
@@ -441,7 +441,7 @@
     <string id="39074">電視節目</string>
     <string id="39075">如果可能的話，使用預設 Plex 字幕</string>
     <string id="39076">如果您使用多個同類的Plex資料庫，例如"兒童電影"和"父母電影"，務必參閱 Wiki: HTTPs://goo.gl/JFtQV9</string>
-    <string id="39077">PMS 中顯示在小工具集 (例如"桌面") 品項的數目</string>
+    <string id="39077">PMS 中顯示在小工具集 (例如"上架") 品項的數目</string>
     <string id="39078">Plex Companion更新埠(僅在需要時更改)</string>
     <string id="39079">Plex Companion不能打開 GDM 埠。請在 PKC 設置中更改它。</string>
 
@@ -468,7 +468,7 @@
     <string id="39220">已連結</string>
     <string id="39221">plex.tv 切換成功</string>
     <string id="39222">[COLOR yellow]由FanartTV搜尋漏失的背景海報中[/COLOR]</string>
-    <string id="39223">只搜尋缺失 fanart 或刷新所有 fanart 嗎？掃描在背景執行，將需要相當一段時間。</string>
+    <string id="39223">只搜尋缺失的背景海報或刷新所有的背景海報嗎？掃描在背景執行，將需要相當一段時間。</string>
     <string id="39224">刷新所有</string>
     <string id="39225">僅缺失部分</string>    
 
@@ -505,7 +505,7 @@
     <string id="39410">資料庫同步錯誤</string>
 
     <!-- Plex videonodes.py -->
-    <string id="39500">桌面</string>
+    <string id="39500">上架</string>
     <string id="39501">收藏</string>
 
     <!-- Plex utils.py -->
@@ -516,5 +516,5 @@
 
     <string id="39700">亞馬遜 Alexa (語音辨識)</string>
     <string id="39701">啟動 Alexa</string>
-    <string id="39702">按資料夾流覽</string>
+    <string id="39702">依資料夾流覽</string>
 </strings>
