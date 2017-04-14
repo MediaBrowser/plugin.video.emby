@@ -1,3 +1,9 @@
+version 1.7.7
+- Chinese Traditional, thanks @old2tan
+- Chinese Simplified, thanks @everdream
+- Browse by folder: also sort by Date Added
+- Update addon.xml
+
 version 1.7.6
 - Hotfix: Revert Cache missing artwork on PKC startup. This should help with slow PKC startup, videos not being started, lagging PKC, etc.
 
