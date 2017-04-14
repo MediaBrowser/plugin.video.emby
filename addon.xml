@@ -16,9 +16,9 @@
               <visible>[!IsEmpty(ListItem.DBID) + !StringCompare(ListItem.DBID,-1) | !IsEmpty(ListItem.Property(plexid))] + !IsEmpty(Window(10000).Property(plex_context))</visible>
       </item>
   </extension>
-  <extension point="kodi.addon.metadata">
+  <extension point="xbmc.addon.metadata">
     <platform>all</platform>
-    <language></language>
+    <language>en en_gb en_us cs de es dk nl zh_tw</language>
     <license>GNU GENERAL PUBLIC LICENSE. Version 2, June 1991</license>
     <forum>https://forums.plex.tv</forum>
     <website>https://github.com/croneter/PlexKodiConnect</website>
