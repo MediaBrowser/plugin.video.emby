@@ -1,3 +1,6 @@
+version 1.7.6
+- Hotfix: Revert Cache missing artwork on PKC startup. This should help with slow PKC startup, videos not being started, lagging PKC, etc.
+
 version 1.7.5
 - Dutch translation, thanks @mvanbaak
 

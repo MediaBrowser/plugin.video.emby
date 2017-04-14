@@ -15,14 +15,13 @@ from utils import window, settings, getUnixTimestamp, sourcesXML,\
     ThreadMethods, ThreadMethodsAdditionalStop, LogTime, getScreensaver,\
     setScreensaver, playlistXSP, language as lang, DateToKodi, reset,\
     advancedSettingsXML, tryDecode, deletePlaylists, deleteNodes, \
-    ThreadMethodsAdditionalSuspend, create_actor_db_index, tryEncode, dialog
+    ThreadMethodsAdditionalSuspend, create_actor_db_index, dialog
 import downloadutils
 import itemtypes
 import plexdb_functions as plexdb
 import kodidb_functions as kodidb
 import userclient
 import videonodes
-import artwork
 import variables as v
 
 from PlexFunctions import GetPlexMetadata, GetAllPlexLeaves, scrobble, \
@@ -1522,11 +1521,6 @@ class LibrarySync(Thread):
                 # Initialize time offset Kodi - PMS
                 self.syncPMStime()
                 lastSync = getUnixTimestamp()
-                if settings('enableTextureCache') == "true":
-                    # Start caching artwork that has not been cached yet
-                    for url in artwork.get_uncached_artwork():
-                        artwork.ARTWORK_QUEUE.put(
-                            artwork.double_urlencode(tryEncode((url))))
                 if settings('FanartTV') == 'true':
                     # Start getting additional missing artwork
                     with plexdb.Get_Plex_DB() as plex_db:
@@ -1612,6 +1606,7 @@ class LibrarySync(Thread):
                 elif window('plex_runLibScan') == 'del_textures':
                     window('plex_runLibScan', clear=True)
                     window('plex_dbScan', value="true")
+                    import artwork
                     artwork.Artwork().fullTextureCacheSync()
                     window('plex_dbScan', clear=True)
                 else:
