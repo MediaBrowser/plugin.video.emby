@@ -23,11 +23,9 @@ msgctxt "#30000"
 msgid "Server Address (IP)"
 msgstr ""
 
-
 msgctxt "#30002"
 msgid "Preferred playback method"
 msgstr ""
-
 
 msgctxt "#30004"
 msgid "Log level"
@@ -85,11 +83,9 @@ msgctxt "#30017"
 msgid "Unauthorized for PMS"
 msgstr ""
 
-
 msgctxt "#30022"
 msgid "Advanced"
 msgstr ""
-
 
 msgctxt "#30024"
 msgid "Username"
@@ -99,7 +95,6 @@ msgctxt "#30025"
 msgid "Display message if PMS goes offline"
 msgstr ""
 
-
 msgctxt "#30030"
 msgid "Port Number"
 msgstr ""
@@ -107,7 +102,6 @@ msgstr ""
 msgctxt "#30031"
 msgid "I own this Plex Media Server"
 msgstr ""
-
 
 msgctxt "#30035"
 msgid "Number of recent Music Albums to show:"
@@ -157,7 +151,6 @@ msgctxt "#30046"
 msgid "Add Movie to CouchPotato"
 msgstr ""
 
-
 msgctxt "#30052"
 msgid "Deleting"
 msgstr ""
@@ -165,7 +158,6 @@ msgstr ""
 msgctxt "#30053"
 msgid "Waiting for server to delete"
 msgstr ""
-
 
 msgctxt "#30059"
 msgid "Server Default"
@@ -351,7 +343,6 @@ msgctxt "#30107"
 msgid "Start from beginning"
 msgstr ""
 
-
 msgctxt "#30110"
 msgid "Interface"
 msgstr ""
@@ -404,7 +395,6 @@ msgctxt "#30122"
 msgid "Retrieving Data"
 msgstr ""
 
-
 msgctxt "#30125"
 msgid "Done"
 msgstr ""
@@ -412,7 +402,6 @@ msgstr ""
 msgctxt "#30126"
 msgid "Processing Item : "
 msgstr ""
-
 
 msgctxt "#30128"
 msgid "Play Error"
@@ -478,7 +467,6 @@ msgctxt "#30143"
 msgid "Always transcode if video bitrate is above"
 msgstr ""
 
-
 msgctxt "#30150"
 msgid "Skin does not support setting views"
 msgstr ""
@@ -486,7 +474,6 @@ msgstr ""
 msgctxt "#30151"
 msgid "Select item action (Requires Restart)"
 msgstr ""
-
 
 msgctxt "#30156"
 msgid "Sort NextUp by Show Title"
@@ -722,16 +709,13 @@ msgctxt "#30213"
 msgid " - Loop Theme Videos"
 msgstr ""
 
-
 msgctxt "#30216"
 msgid "AutoPlay remaining episodes in a season"
 msgstr ""
 
-
 msgctxt "#30218"
 msgid "Compress Artwork"
 msgstr ""
-
 
 msgctxt "#30220"
 msgid "Latest "
@@ -777,7 +761,6 @@ msgctxt "#30230"
 msgid "Recommended"
 msgstr ""
 
-
 msgctxt "#30235"
 msgid "Extras"
 msgstr ""
@@ -814,7 +797,6 @@ msgctxt "#30243"
 msgid "Enable HTTPS"
 msgstr ""
 
-
 msgctxt "#30245"
 msgid "Force Transcoding Codecs"
 msgstr ""
@@ -834,7 +816,6 @@ msgstr ""
 msgctxt "#30249"
 msgid "Enable server connection message on startup"
 msgstr ""
-
 
 msgctxt "#30251"
 msgid "Recently added Home Videos"
@@ -1312,7 +1293,6 @@ msgctxt "#33033"
 msgid "Kodi will now restart to apply the changes."
 msgstr ""
 
-
 msgctxt "#33041"
 msgid "Delete file(s) from Plex Server? This will also delete the file(s) from disk!"
 msgstr ""
@@ -1415,7 +1395,6 @@ msgctxt "#39023"
 msgid "Failed to authenticate. Did you login to plex.tv?"
 msgstr ""
 
-
 msgctxt "#39025"
 msgid "Automatically log into plex.tv on startup"
 msgstr ""
@@ -1459,7 +1438,6 @@ msgstr ""
 msgctxt "#39035"
 msgid "Replace Plex paths /volume1/media or \\myserver\media with custom SMB paths smb://NAS/mystuff"
 msgstr ""
-
 
 msgctxt "#39037"
 msgid "Original Plex MOVIE path to replace:"
@@ -1573,7 +1551,6 @@ msgctxt "#39064"
 msgid "Recently Added: Also show already watched episodes"
 msgstr ""
 
-
 msgctxt "#39066"
 msgid "Recently Added: Also show already watched movies (Refresh Plex playlist/nodes!)"
 msgstr ""
@@ -1680,7 +1657,6 @@ msgctxt "#39211"
 msgid "Watch later"
 msgstr ""
 
-
 msgctxt "#39213"
 msgid "is offline"
 msgstr ""
@@ -1692,7 +1668,6 @@ msgstr ""
 msgctxt "#39215"
 msgid "Enter your Plex Media Server's IP or URL, Examples are:"
 msgstr ""
-
 
 msgctxt "#39217"
 msgid "Does your Plex Media Server support SSL connections? (https instead of http)?"
@@ -1863,7 +1838,6 @@ msgstr ""
 msgctxt "#39603"
 msgid "Reset all PlexKodiConnect Addon settings? (this is usually NOT recommended and unnecessary!)"
 msgstr ""
-
 
 msgctxt "#39700"
 msgid "Amazon Alexa (Voice Recognition)"
