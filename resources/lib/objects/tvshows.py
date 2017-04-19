@@ -609,13 +609,13 @@ class TVShows(Items):
 
             # update new ratings Kodi 17
             if self.kodi_version >= 17:
-                ratingid =  self.kodi_db.get_ratingid(episodeid)
+                ratingid =  self.kodi_db.get_ratingid(pathid)
 
                 self.kodi_db.update_ratings(episodeid, "episode", "default", rating, votecount,ratingid)
 
             # update new uniqueid Kodi 17
             if self.kodi_version >= 17:
-                uniqueid =  self.kodi_db.get_uniqueid(episodeid)
+                uniqueid =  self.kodi_db.get_uniqueid(pathid)
 
                 self.kodi_db.update_uniqueid(episodeid, "episode", tvdb, "tvdb",uniqueid)
 
