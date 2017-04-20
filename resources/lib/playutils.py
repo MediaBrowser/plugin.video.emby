@@ -65,6 +65,12 @@ class PlayUtils():
 
     def getPlayUrl(self):
 
+        # log filename, used by other addons eg subtitles which require the file name
+        try:
+            window('embyfilename', value=self.directPlay())
+        except:
+            log.info("Could not get file path for embyfilename window prop")
+
         playurl = None
         
         if (self.item.get('Type') in ("Recording", "TvChannel") and self.item.get('MediaSources')
