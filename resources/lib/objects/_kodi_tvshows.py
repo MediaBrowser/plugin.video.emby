@@ -116,6 +116,17 @@ class KodiTVShows(KodiItems):
 
         return uniqueid
 
+    def get_episode_uniqueid(self, idEpisode):
+
+        query = "SELECT c03 FROM episode WHERE idEpisode = ?"
+        self.cursor.execute(query, (idEpisode,))
+        try:
+            uniqueid = self.cursor.fetchone()[0]
+        except TypeError:
+            uniqueid = None
+
+        return uniqueid
+
     def add_uniqueid(self, *args):
         query = (
             '''
