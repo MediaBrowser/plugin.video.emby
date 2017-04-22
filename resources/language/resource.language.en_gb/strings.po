@@ -1850,3 +1850,22 @@ msgstr ""
 msgctxt "#39702"
 msgid "Browse by folder"
 msgstr ""
+
+
+# For use with addon.xml (PKC metadata for Kodi, e.g. description)
+# Addon Summary
+msgctxt "#39703"
+msgid "Native Integration of Plex into Kodi"
+msgstr ""
+
+# For use with addon.xml (PKC metadata for Kodi, e.g. description)
+# Addon Description
+msgctxt "#39704"
+msgid "Connect Kodi to your Plex Media Server. This plugin assumes that you manage all your videos with Plex (and none with Kodi). You might lose data already stored in the Kodi video and music databases (as this plugin directly changes them). Use at your own risk!"
+msgstr ""
+
+# For use with addon.xml (PKC metadata for Kodi, e.g. description)
+# Addon Disclaimer
+msgctxt "#39705"
+msgid "Use at your own risk"
+msgstr ""
