@@ -17,7 +17,7 @@ Have a look at [some screenshots](https://github.com/croneter/PlexKodiConnect/wi
 
 ### Please Help Translating
 
-Please help translate PlexKodiConnect into your language: [Transifex.com](https://www.transifex.com/croneter/plexkodiconnect)
+Please help translate PlexKodiConnect into your language: [Transifex.com](https://www.transifex.com/croneter/pkc)
 
 
 ### Content
@@ -65,7 +65,7 @@ PKC synchronizes your media from your Plex server to the native Kodi database. H
     + Dutch, thanks @mvanbaak
     + Chinese Traditional, thanks @old2tan
     + Chinese Simplified, thanks @everdream
-    + [Please help translating](https://www.transifex.com/croneter/plexkodiconnect)
+    + [Please help translating](https://www.transifex.com/croneter/pkc)
 
 ### Download and Installation
 
