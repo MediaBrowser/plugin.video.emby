@@ -12,7 +12,7 @@ Thanks a ton for contributing to PlexKodiConnect!
 
 ## Translations
 
-* Want to help translate PlexKodiConnect? Then go [visit Transifex.com](https://www.transifex.com/croneter/plexkodiconnect) 
+* Want to help translate PlexKodiConnect? Then go [visit Transifex.com](https://www.transifex.com/croneter/pkc) 
 
 ## Programming
 
