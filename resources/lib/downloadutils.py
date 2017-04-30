@@ -34,11 +34,11 @@ class DownloadUtils():
     connectionAttempts = 2
     # How many 401 returns before declaring unauthorized?
     unauthorizedAttempts = 2
+    # How long should we wait for an answer from the
+    timeout = 30.0
 
     def __init__(self):
         self.__dict__ = self._shared_state
-        # Requests session
-        self.timeout = 30.0
 
     def setUsername(self, username):
         """
