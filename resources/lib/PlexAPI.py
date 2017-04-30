@@ -255,7 +255,6 @@ class PlexAPI():
         """
         Checks connection to a Plex server, available at url. Can also be used
         to check for connection with plex.tv.
-        Will check up to 3x until reply with False
 
         Override SSL to skip the check by setting verifySSL=False
         if 'None', SSL will be checked (standard requests setting)
@@ -284,14 +283,13 @@ class PlexAPI():
             url = url + '/library/onDeck'
         log.debug("Checking connection to server %s with verifySSL=%s"
                   % (url, verifySSL))
-        # Check up to 3 times before giving up
         count = 0
         while count < 1:
             answer = self.doUtils(url,
                                   authenticate=False,
                                   headerOptions=headerOptions,
                                   verifySSL=verifySSL,
-                                  timeout=4)
+                                  timeout=10)
             if answer is None:
                 log.debug("Could not connect to %s" % url)
                 count += 1
