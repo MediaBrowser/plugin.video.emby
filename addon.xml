@@ -50,7 +50,14 @@
     <disclaimer lang="da_DK">Brug på eget ansvar</disclaimer>
     <disclaimer lang="nl_NL">Gebruik op eigen risico</disclaimer>
     <disclaimer lang="zh_TW">使用風險由您自己承擔</disclaimer>
-    <news>version 1.7.7
+    <news>version 1.7.8 (beta only)
+- Fix IMDB id for movies (resync by going to the PKC settings, Advanced, then Repair Local Database)
+- Increase timeouts for PMS, should fix some connection issues
+- Move translations to new strings.po system
+- Fix some TypeErrors
+- Some code refactoring
+
+version 1.7.7
 - Chinese Traditional, thanks @old2tan
 - Chinese Simplified, thanks @everdream
 - Browse by folder: also sort by Date Added
@@ -60,6 +67,37 @@ version 1.7.6
 - Hotfix: Revert Cache missing artwork on PKC startup. This should help with slow PKC startup, videos not being started, lagging PKC, etc.
 
 version 1.7.5
-- Dutch translation, thanks @mvanbaak</news>
+- Dutch translation, thanks @mvanbaak
+
+version 1.7.4 (beta only)
+- Show menu item only for appropriate Kodi library: Be careful to start video content through Videos -> Video Addons -> ... and pictures through Pictures -> Picture Addons -> ...
+- Fix playback error popup when using Alexa 
+- New Italian translations, thanks @nikkux, @chicco83
+- Update translations
+- Rewire Kodi ListItem stuff
+- Fix TypeError for setting ListItem streams 
+- Fix Kodi setContent for images
+- Fix AttributeError due to missing Kodi sort methods
+
+version 1.7.3 (beta only)
+- Fix KeyError for channels if no media streams
+- Move plex node navigation, playback to main thread
+- Fix TypeError for malformed browsing xml
+- Fix IndexError if we can't get a valid xml from PMS
+- Pass 'None' instead of empty string in url args
+
+version 1.7.2
+- Fix for some channels not starting playback
+
+version 1.7.1
+- Fix Alexa not doing anything
+
+version 1.7.0
+- Amazon Alexa support! Be sure to check the Plex Alexa forum first if you encounter issues; there are still many bugs completely unrelated to PKC
+- Plex Channels!
+- Browse video nodes by folder/path 
+- Fix IndexError for playqueues
+- Update translations
+- Code optimization</news>
   </extension>
 </addon>
