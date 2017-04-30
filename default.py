@@ -123,9 +123,7 @@ class Main():
         elif mode in ('manualsync', 'repair'):
             if window('plex_online') != 'true':
                 # Server is not online, do not run the sync
-                dialog('ok',
-                       heading=lang(29999),
-                       message=lang(39205))
+                dialog('ok', lang(29999), lang(39205))
                 log.error('Not connected to a PMS.')
             else:
                 if mode == 'repair':
