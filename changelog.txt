@@ -1,3 +1,10 @@
+version 1.7.8 (beta only)
+- Fix IMDB id for movies (resync by going to the PKC settings, Advanced, then Repair Local Database)
+- Increase timeouts for PMS, should fix some connection issues
+- Move translations to new strings.po system
+- Fix some TypeErrors
+- Some code refactoring
+
 version 1.7.7
 - Chinese Traditional, thanks @old2tan
 - Chinese Simplified, thanks @everdream
