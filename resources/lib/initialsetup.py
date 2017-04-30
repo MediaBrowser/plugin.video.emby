@@ -407,11 +407,9 @@ class InitialSetup():
 
         # If a Plex server IP has already been set
         # return only if the right machine identifier is found
-        getNewIP = False
         if self.server:
             log.info("PMS is already set: %s. Checking now..." % self.server)
-            getNewIP = not self.CheckPMS()
-            if getNewIP is False:
+            if self.CheckPMS():
                 log.info("Using PMS %s with machineIdentifier %s"
                          % (self.server, self.serverid))
                 self._write_PMS_settings(self.server, self.pms_token)
