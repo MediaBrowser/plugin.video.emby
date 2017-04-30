@@ -63,10 +63,6 @@ REGEX_TVDB = re_compile(r'''thetvdb:\/\/(.+?)\?''')
 
 
 class PlexAPI():
-    # CONSTANTS
-    # Timeout for POST/GET commands, I guess in seconds
-    timeout = 10
-
     def __init__(self):
         self.g_PMS = {}
         self.doUtils = DownloadUtils().downloadUrl
