@@ -341,7 +341,7 @@ class Movies(Items):
                     WHERE idMovie = ?
                 '''
                 kodicursor.execute(query, (title, plot, shortplot, tagline,
-                    votecount, rating_id, writer, year, imdb, sorttitle,
+                    votecount, rating_id, writer, year, uniqueid, sorttitle,
                     runtime, mpaa, genre, director, title, studio, trailer,
                     country, playurl, pathid, fileid, year,
                     userdata['UserRating'], movieid))
@@ -372,7 +372,8 @@ class Movies(Items):
                                          rating,
                                          votecount)
                 # add new uniqueid Kodi 17
-                self.kodi_db.add_uniqueid(self.kodi_db.create_entry_uniqueid(),
+                uniqueid = self.kodi_db.create_entry_uniqueid()
+                self.kodi_db.add_uniqueid(uniqueid,
                                           movieid,
                                           v.KODI_TYPE_MOVIE,
                                           imdb,
@@ -386,8 +387,8 @@ class Movies(Items):
                 '''
                 kodicursor.execute(query, (movieid, fileid, title, plot,
                     shortplot, tagline, votecount, rating_id, writer, year,
-                    imdb, sorttitle, runtime, mpaa, genre, director, title,
-                    studio, trailer, country, playurl, pathid, year,
+                    uniqueid, sorttitle, runtime, mpaa, genre, director,
+                    title, studio, trailer, country, playurl, pathid, year,
                     userdata['UserRating']))
             else:
                 query = '''
