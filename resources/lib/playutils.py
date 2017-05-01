@@ -292,11 +292,15 @@ class PlayUtils():
             if type == "2":
                 codec = stream.attrib.get('codec')
                 channelLayout = stream.attrib.get('audioChannelLayout', "")
-               
                 try:
-                    track = "%s %s - %s %s" % (audioNum+1, stream.attrib['language'], codec, channelLayout)
+                    track = "%s %s - %s %s" % (audioNum+1,
+                                               stream.attrib['language'],
+                                               codec,
+                                               channelLayout)
                 except:
-                    track = "%s 'unknown' - %s %s" % (audioNum+1, codec, channelLayout)
+                    track = "%s 'unknown' - %s %s" % (audioNum+1,
+                                                      codec,
+                                                      channelLayout)
                 audioStreamsList.append(index)
                 audioStreams.append(tryEncode(track))
                 audioNum += 1
@@ -306,8 +310,8 @@ class PlayUtils():
                 try:
                     track = "%s %s" % (subNum+1, stream.attrib['language'])
                 except:
-                    track = "%s 'unknown' (%s)" % (subNum+1, stream.attrib.get('codec'))
-
+                    track = "%s 'unknown' (%s)" % (subNum+1,
+                                                   stream.attrib.get('codec'))
                 default = stream.attrib.get('default')
                 forced = stream.attrib.get('forced')
                 downloadable = stream.attrib.get('key')
@@ -334,9 +338,11 @@ class PlayUtils():
             if resp > -1:
                 # User selected audio
                 playurlprefs['audioStreamID'] = audioStreamsList[resp]
-            else: # User backed out of selection - let PMS decide
+            else:
+                # User backed out of selection - let PMS decide
                 pass
-        else: # There's only one audiotrack.
+        else:
+            # There's only one audiotrack.
             playurlprefs['audioStreamID'] = audioStreamsList[0]
 
         # Add audio boost
