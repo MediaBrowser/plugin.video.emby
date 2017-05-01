@@ -115,28 +115,6 @@ class PlayUtils():
 
         return playurl
 
-    def fileExists(self):
-
-        if 'Path' not in self.item:
-            # File has no path defined in server
-            return False
-
-        # Convert path to direct play
-        path = self.directPlay()
-        log.info("Verifying path: %s" % path)
-
-        if xbmcvfs.exists(path):
-            log.info("Path exists.")
-            return True
-
-        elif ":" not in path:
-            log.info("Can't verify path, assumed linux. Still try to direct play.")
-            return True
-
-        else:
-            log.info("Failed to find file.")
-            return False
-
     def mustTranscode(self):
         """
         Returns True if we need to transcode because
