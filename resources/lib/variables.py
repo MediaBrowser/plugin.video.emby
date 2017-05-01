@@ -95,6 +95,9 @@ DB_TEXTURE_PATH = tryDecode(xbmc.translatePath(
 
 DB_PLEX_PATH = tryDecode(xbmc.translatePath("special://database/plex.db"))
 
+EXTERNAL_SUBTITLE_TEMP_PATH = tryDecode(xbmc.translatePath(
+    "special://profile/addon_data/%s/temp/" % ADDON_ID))
+
 
 # Multiply Plex time by this factor to receive Kodi time
 PLEX_TO_KODI_TIMEFACTOR = 1.0 / 1000.0
