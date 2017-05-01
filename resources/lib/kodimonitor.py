@@ -106,7 +106,8 @@ class KodiMonitor(Monitor):
                     log.error("Could not find itemid in plex database for a "
                               "video library update")
                 else:
-                    # Stop from manually marking as watched unwatched, with actual playback.
+                    # Stop from manually marking as watched unwatched, with
+                    # actual playback.
                     if window('plex_skipWatched%s' % itemid) == "true":
                         # property is set in player.py
                         window('plex_skipWatched%s' % itemid, clear=True)
@@ -171,11 +172,11 @@ class KodiMonitor(Monitor):
 
         # Try to get a Kodi ID
         # If PKC was used - native paths, not direct paths
-        plexid = window('plex_%s.itemid' % tryEncode(currentFile))
+        plex_id = window('plex_%s.itemid' % tryEncode(currentFile))
         # Get rid of the '' if the window property was not set
-        plexid = None if not plexid else plexid
+        plex_id = None if not plex_id else plex_id
         kodiid = None
-        if plexid is None:
+        if plex_id is None:
             log.debug('Did not get Plex id from window properties')
             try:
                 kodiid = data['item']['id']
@@ -183,30 +184,39 @@ class KodiMonitor(Monitor):
                 log.debug('Did not get a Kodi id from Kodi, darn')
         # For direct paths, if we're not streaming something
         # When using Widgets, Kodi doesn't tell us shit so we need this hack
-        if (kodiid is None and plexid is None and typus != 'song'
+        if (kodiid is None and plex_id is None and typus != 'song'
                 and not currentFile.startswith('http')):
             (kodiid, typus) = get_kodiid_from_filename(currentFile)
             if kodiid is None:
                 return
 
-        if plexid is None:
+        if plex_id is None:
             # Get Plex' item id
             with plexdb.Get_Plex_DB() as plexcursor:
                 plex_dbitem = plexcursor.getItem_byKodiId(kodiid, typus)
             try:
-                plexid = plex_dbitem[0]
+                plex_id = plex_dbitem[0]
             except TypeError:
                 log.info("No Plex id returned for kodiid %s. Aborting playback"
                          " report" % kodiid)
                 return
         log.debug("Found Plex id %s for Kodi id %s for type %s"
-                  % (plexid, kodiid, typus))
+                  % (plex_id, kodiid, typus))
+
+        # Switch subtitle tracks if applicable
+        subtitle = window('plex_%s.subtitle' % tryEncode(currentFile))
+        if window(tryEncode('plex_%s.playmethod' % currentFile)) \
+                == 'Transcode' and subtitle:
+            if window('plex_%s.subtitle' % currentFile) == 'None':
+                self.xbmcplayer.showSubtitles(False)
+            else:
+                self.xbmcplayer.setSubtitleStream(int(subtitle))
 
         # Set some stuff if Kodi initiated playback
         if ((settings('useDirectPaths') == "1" and not typus == "song")
                 or
                 (typus == "song" and settings('enableMusic') == "true")):
-            if self.StartDirectPath(plexid,
+            if self.StartDirectPath(plex_id,
                                     typus,
                                     tryEncode(currentFile)) is False:
                 log.error('Could not initiate monitoring; aborting')
@@ -214,19 +224,19 @@ class KodiMonitor(Monitor):
 
         # Save currentFile for cleanup later and to be able to access refs
         window('plex_lastPlayedFiled', value=currentFile)
-        window('plex_currently_playing_itemid', value=plexid)
-        window("plex_%s.itemid" % tryEncode(currentFile), value=plexid)
+        window('plex_currently_playing_itemid', value=plex_id)
+        window("plex_%s.itemid" % tryEncode(currentFile), value=plex_id)
         log.info('Finish playback startup')
 
-    def StartDirectPath(self, plexid, type, currentFile):
+    def StartDirectPath(self, plex_id, type, currentFile):
         """
         Set some additional stuff if playback was initiated by Kodi, not PKC
         """
-        xml = self.doUtils('{server}/library/metadata/%s' % plexid)
+        xml = self.doUtils('{server}/library/metadata/%s' % plex_id)
         try:
             xml[0].attrib
         except:
-            log.error('Did not receive a valid XML for plexid %s.' % plexid)
+            log.error('Did not receive a valid XML for plex_id %s.' % plex_id)
             return False
         # Setup stuff, because playback was started by Kodi, not PKC
         api = API(xml[0])

@@ -3,11 +3,9 @@
 ###############################################################################
 
 import logging
-from urllib import urlencode
+from downloadutils import DownloadUtils
 
-import xbmcgui
-
-from utils import window, settings, tryEncode, language as lang
+from utils import window, settings, tryEncode, language as lang, dialog
 import variables as v
 import PlexAPI
 
@@ -24,6 +22,7 @@ class PlayUtils():
 
         self.item = item
         self.API = PlexAPI.API(item)
+        self.doUtils = DownloadUtils().downloadUrl
 
         self.userid = window('currUserId')
         self.server = window('pms_server')
@@ -254,131 +253,150 @@ class PlayUtils():
         return res[chosen]
 
     def audioSubsPref(self, listitem, url, part=None):
-        dialog = xbmcgui.Dialog()
-        # For transcoding only
-        # Present the list of audio to select from
-        audioStreamsList = []
-        audioStreams = []
-        # audioStreamsChannelsList = []
-        subtitleStreamsList = []
-        subtitleStreams = ['1 No subtitles']
-        downloadableStreams = []
-        # selectAudioIndex = ""
-        selectSubsIndex = ""
-        playurlprefs = {}
+        """
+        For transcoding only
 
-        # Set part where we're at
-        self.API.setPartNumber(part)
+        Called at the very beginning of play; used to change audio and subtitle
+        stream by a PUT request to the PMS
+        """
+        # Set media and part where we're at
+        if self.API.mediastream is None:
+            self.API.getMediastreamNumber()
         if part is None:
             part = 0
         try:
-            mediastreams = self.item[0][part]
-        except (TypeError, KeyError, IndexError):
-            return url
-
-        audioNum = 0
+            mediastreams = self.item[self.API.mediastream][part]
+        except (TypeError, IndexError):
+            log.error('Could not get media %s, part %s'
+                      % (self.API.mediastream, part))
+            return
+        part_id = mediastreams.attrib['id']
+        audio_streams_list = []
+        audio_streams = []
+        subtitle_streams_list = []
+        # No subtitles as an option
+        subtitle_streams = [lang(39706)]
+        downloadable_streams = []
+        download_subs = []
+        # selectAudioIndex = ""
+        select_subs_index = ""
+        audio_numb = 0
         # Remember 'no subtitles'
-        subNum = 1
-        defaultSub = None
+        sub_num = 1
+        default_sub = None
+
         for stream in mediastreams:
             # Since Plex returns all possible tracks together, have to sort
             # them.
             index = stream.attrib.get('id')
-            type = stream.attrib.get('streamType')
-
+            typus = stream.attrib.get('streamType')
             # Audio
-            if type == "2":
+            if typus == "2":
                 codec = stream.attrib.get('codec')
                 channelLayout = stream.attrib.get('audioChannelLayout', "")
                 try:
-                    track = "%s %s - %s %s" % (audioNum+1,
+                    track = "%s %s - %s %s" % (audio_numb+1,
                                                stream.attrib['language'],
                                                codec,
                                                channelLayout)
                 except:
-                    track = "%s 'unknown' - %s %s" % (audioNum+1,
-                                                      codec,
-                                                      channelLayout)
-                audioStreamsList.append(index)
-                audioStreams.append(tryEncode(track))
-                audioNum += 1
+                    track = "%s %s - %s %s" % (audio_numb+1,
+                                               lang(39707),  # unknown
+                                               codec,
+                                               channelLayout)
+                audio_streams_list.append(index)
+                audio_streams.append(tryEncode(track))
+                audio_numb += 1
 
             # Subtitles
-            elif type == "3":
+            elif typus == "3":
                 try:
-                    track = "%s %s" % (subNum+1, stream.attrib['language'])
-                except:
-                    track = "%s 'unknown' (%s)" % (subNum+1,
-                                                   stream.attrib.get('codec'))
+                    track = "%s %s" % (sub_num+1, stream.attrib['language'])
+                except KeyError:
+                    track = "%s %s (%s)" % (sub_num+1,
+                                            lang(39707),  # unknown
+                                            stream.attrib.get('codec'))
                 default = stream.attrib.get('default')
                 forced = stream.attrib.get('forced')
                 downloadable = stream.attrib.get('key')
 
                 if default:
-                    track = "%s - Default" % track
+                    track = "%s - %s" % (track, lang(39708))  # Default
                 if forced:
-                    track = "%s - Forced" % track
+                    track = "%s - %s" % (track, lang(39709))  # Forced
                 if downloadable:
-                    downloadableStreams.append(index)
+                    # We do know the language - temporarily download
+                    if 'language' in stream.attrib:
+                        path = self.API.download_external_subtitles(
+                            '{server}%s' % stream.attrib['key'],
+                            "subtitle.%s.%s" % (stream.attrib['language'],
+                                                stream.attrib['codec']))
+                    # We don't know the language - no need to download
+                    else:
+                        path = self.API.addPlexCredentialsToUrl(
+                            "%s%s" % (self.server, stream.attrib['key']))
+                    downloadable_streams.append(index)
+                    download_subs.append(tryEncode(path))
                 else:
-                    track = "%s (burn-in)" % track
+                    track = "%s (%s)" % (track, lang(39710))  # burn-in
                 if stream.attrib.get('selected') == '1' and downloadable:
                     # Only show subs without asking user if they can be
                     # turned off
-                    defaultSub = index
+                    default_sub = index
 
-                subtitleStreamsList.append(index)
-                subtitleStreams.append(tryEncode(track))
-                subNum += 1
+                subtitle_streams_list.append(index)
+                subtitle_streams.append(tryEncode(track))
+                sub_num += 1
 
-        if audioNum > 1:
-            resp = dialog.select(lang(33013), audioStreams)
+        if audio_numb > 1:
+            resp = dialog('select', lang(33013), audio_streams)
             if resp > -1:
-                # User selected audio
-                playurlprefs['audioStreamID'] = audioStreamsList[resp]
-            else:
-                # User backed out of selection - let PMS decide
-                pass
+                # User selected some audio track
+                args = {
+                    'audioStreamID': audio_streams_list[resp],
+                    'allParts': 1
+                }
+                self.doUtils('{server}/library/parts/%s' % part_id,
+                             action_type='PUT',
+                             parameters=args)
+
+        if sub_num == 1:
+            # No subtitles
+            return
+
+        select_subs_index = None
+        if (settings('pickPlexSubtitles') == 'true' and
+                default_sub is not None):
+            log.info('Using default Plex subtitle: %s' % default_sub)
+            select_subs_index = default_sub
         else:
-            # There's only one audiotrack.
-            playurlprefs['audioStreamID'] = audioStreamsList[0]
-
-        selectSubsIndex = None
-        if subNum > 1:
-            if (settings('pickPlexSubtitles') == 'true' and
-                    defaultSub is not None):
-                log.info('Using default Plex subtitle: %s' % defaultSub)
-                selectSubsIndex = defaultSub
+            resp = dialog('select', lang(33014), subtitle_streams)
+            if resp > 0:
+                select_subs_index = subtitle_streams_list[resp-1]
             else:
-                resp = dialog.select(lang(33014), subtitleStreams)
-                if resp > 0:
-                    selectSubsIndex = subtitleStreamsList[resp-1]
-                else:
-                    # User selected no subtitles or backed out of dialog
-                    playurlprefs["skipSubtitles"] = 1
-            if selectSubsIndex is not None:
-                # Load subtitles in the listitem if downloadable
-                if selectSubsIndex in downloadableStreams:
-                    sub_url = self.API.addPlexHeadersToUrl(
-                        "%s/library/streams/%s"
-                        % (self.server, selectSubsIndex))
-                    log.info("Downloadable sub: %s: %s"
-                             % (selectSubsIndex, sub_url))
-                    listitem.setSubtitles([tryEncode(sub_url)])
-                    # Don't additionally burn in subtitles
-                    playurlprefs["skipSubtitles"] = 1
-                else:
-                    log.info('Need to burn in subtitle %s' % selectSubsIndex)
-                    playurlprefs["subtitleStreamID"] = selectSubsIndex
-                    playurlprefs["subtitleSize"] = settings('subtitleSize')
+                # User selected no subtitles or backed out of dialog
+                select_subs_index = ''
 
-        url += '&' + urlencode(playurlprefs)
+        log.debug('Adding external subtitles: %s' % download_subs)
+        # Enable Kodi to switch autonomously to downloadable subtitles
+        if download_subs:
+            listitem.setSubtitles(download_subs)
 
-        # Get number of channels for selected audio track
-        # audioChannels = audioStreamsChannelsList.get(selectAudioIndex, 0)
-        # if audioChannels > 2:
-        #     playurlprefs += "&AudioBitrate=384000"
-        # else:
-        #     playurlprefs += "&AudioBitrate=192000"
+        if select_subs_index in downloadable_streams:
+            for i, stream in enumerate(downloadable_streams):
+                if stream == select_subs_index:
+                    # Set the correct subtitle
+                    window('plex_%s.subtitle' % tryEncode(url), value=str(i))
+                    break
+            # Don't additionally burn in subtitles
+            select_subs_index = ''
+        else:
+            window('plex_%s.subtitle' % tryEncode(url), value='None')
 
-        return url
+        args = {
+            'subtitleStreamID': select_subs_index,
+            'allParts': 1
+        }
+        self.doUtils('{server}/library/parts/%s' % part_id,
+                     action_type='PUT',
+                     parameters=args)

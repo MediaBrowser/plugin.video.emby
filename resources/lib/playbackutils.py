@@ -75,10 +75,7 @@ class PlaybackUtils():
 
             playmethod = window('plex_%s.playmethod' % playurl)
             if playmethod == "Transcode":
-                window('plex_%s.playmethod' % playurl, clear=True)
-                playurl = tryEncode(playutils.audioSubsPref(
-                    listitem, tryDecode(playurl)))
-                window('plex_%s.playmethod' % playurl, "Transcode")
+                playutils.audioSubsPref(listitem, tryDecode(playurl))
             listitem.setPath(playurl)
             api.set_playback_win_props(playurl, listitem)
             result.listitem = listitem
@@ -195,12 +192,7 @@ class PlaybackUtils():
                     # Would be using the direct path
                     log.debug("Adding contextmenu item for direct paths")
                     if window('plex_%s.playmethod' % playurl) == "Transcode":
-                        window('plex_%s.playmethod' % playurl,
-                               clear=True)
-                        playurl = tryEncode(playutils.audioSubsPref(
-                            listitem, tryDecode(playurl)))
-                        window('plex_%s.playmethod' % playurl,
-                               value="Transcode")
+                        playutils.audioSubsPref(listitem, tryDecode(playurl))
                     api.CreateListItemFromPlexItem(listitem)
                     api.set_playback_win_props(playurl, listitem)
                     api.set_listitem_artwork(listitem)
@@ -246,10 +238,7 @@ class PlaybackUtils():
         # For transcoding only, ask for audio/subs pref
         if (window('plex_%s.playmethod' % playurl) == "Transcode" and
                 not contextmenu_play):
-            window('plex_%s.playmethod' % playurl, clear=True)
-            playurl = tryEncode(playutils.audioSubsPref(
-                listitem, tryDecode(playurl)))
-            window('plex_%s.playmethod' % playurl, value="Transcode")
+            playutils.audioSubsPref(listitem, tryDecode(playurl))
 
         listitem.setPath(playurl)
         api.set_playback_win_props(playurl, listitem)

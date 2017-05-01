@@ -396,7 +396,8 @@ class Player(xbmc.Player):
                 '%s.type' % plex_item,
                 '%s.runtime' % plex_item,
                 '%s.playcount' % plex_item,
-                '%s.playlistPosition' % plex_item
+                '%s.playlistPosition' % plex_item,
+                '%s.subtitle' % plex_item,
             )
             for item in cleanup:
                 window(item, clear=True)

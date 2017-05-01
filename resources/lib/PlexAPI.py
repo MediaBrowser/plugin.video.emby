@@ -2282,6 +2282,7 @@ class API():
             'hasMDE': 1,
             'location': 'lan',
             'mediaBufferSize': '16384',
+            'subtitleSize': settings('subtitleSize')
             # 'copyts': 1,
             # 'offset': 0,           # Resume point
         }
@@ -2313,7 +2314,7 @@ class API():
             if key:
                 # We do know the language - temporarily download
                 if stream.attrib.get('languageCode') is not None:
-                    path = self.__download_external_subtitles(
+                    path = self.download_external_subtitles(
                         "{server}%s" % key,
                         "subtitle.%s.%s" % (stream.attrib['languageCode'],
                                             stream.attrib['codec']))
@@ -2331,7 +2332,7 @@ class API():
         return externalsubs
 
     @staticmethod
-    def __download_external_subtitles(url, filename):
+    def download_external_subtitles(url, filename):
         """
         One cannot pass the subtitle language for ListItems. Workaround; will
         download the subtitle at url to the Kodi PKC directory in a temp dir
