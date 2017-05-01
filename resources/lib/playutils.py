@@ -6,11 +6,9 @@ import logging
 from urllib import urlencode
 
 import xbmcgui
-import xbmcvfs
 
 from utils import window, settings, tryEncode, language as lang
 import variables as v
-
 import PlexAPI
 
 ###############################################################################
