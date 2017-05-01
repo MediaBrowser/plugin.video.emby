@@ -67,7 +67,7 @@ version 1.7.5
 - Dutch translation, thanks @mvanbaak
 
 version 1.7.4 (beta only)
-- Show menu item only for appropriate Kodi library: Be careful to start video content through Videos -> Video Addons -> ... and pictures through Pictures -> Picture Addons -> ...
+- Show menu item only for appropriate Kodi library: Be careful to start video content through Videos - Video Addons - ... and pictures through Pictures - Picture Addons - ...
 - Fix playback error popup when using Alexa 
 - New Italian translations, thanks @nikkux, @chicco83
 - Update translations
