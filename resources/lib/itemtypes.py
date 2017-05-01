@@ -617,12 +617,16 @@ class TVShows(Items):
                                             votecount,
                                             rating_id)
                 # update new uniqueid Kodi 17
-                uniqueid = self.kodi_db.get_uniqueid(showid, v.KODI_TYPE_SHOW)
-                self.kodi_db.update_uniqueid(showid,
-                                             v.KODI_TYPE_SHOW,
-                                             tvdb,
-                                             "unknown",
-                                             uniqueid)
+                if tvdb is not None:
+                    uniqueid = self.kodi_db.get_uniqueid(showid,
+                                                         v.KODI_TYPE_SHOW)
+                    self.kodi_db.update_uniqueid(showid,
+                                                 v.KODI_TYPE_SHOW,
+                                                 tvdb,
+                                                 "unknown",
+                                                 uniqueid)
+                else:
+                    uniqueid = -1
                 # Update the tvshow entry
                 query = '''
                     UPDATE tvshow
@@ -680,12 +684,15 @@ class TVShows(Items):
                                          rating,
                                          votecount)
                 # add new uniqueid Kodi 17
-                uniqueid = self.kodi_db.create_entry_uniqueid()
-                self.kodi_db.add_uniqueid(uniqueid,
-                                          showid,
-                                          v.KODI_TYPE_SHOW,
-                                          tvdb,
-                                          "unknown")
+                if tvdb is not None:
+                    uniqueid = self.kodi_db.create_entry_uniqueid()
+                    self.kodi_db.add_uniqueid(uniqueid,
+                                              showid,
+                                              v.KODI_TYPE_SHOW,
+                                              tvdb,
+                                              "unknown")
+                else:
+                    uniqueid = -1
                 # Create the tvshow entry
                 query = '''
                     INSERT INTO tvshow(
