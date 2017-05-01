@@ -2037,3 +2037,34 @@ msgstr ""
 msgctxt "#39705"
 msgid "Use at your own risk"
 msgstr "Verwendung auf eigene Gefahr"
+
+# If user gets prompted to choose between several subtitles. Leave the number
+# one at the beginning of the string!
+msgctxt "#39706"
+msgid "1 No subtitles"
+msgstr "1 Untertitel deaktivieren"
+
+# If user gets prompted to choose between several audio/subtitle tracks and
+# language is unknown
+msgctxt "#39707"
+msgid "unknown"
+msgstr "unbekannt"
+
+# If user gets prompted to choose between several subtitles and Plex adds the
+# "default" flag
+msgctxt "#39708"
+msgid "Default"
+msgstr "Standart"
+
+# If user gets prompted to choose between several subtitles and Plex adds the
+# "forced" flag
+msgctxt "#39709"
+msgid "Forced"
+msgstr "Erzwungen"
+
+# If user gets prompted to choose between several subtitles the subtitle
+# cannot be downloaded (has no 'key' attribute from the PMS), the subtitle
+# needs to be burned in
+msgctxt "#39710"
+msgid "burn-in"
+msgstr "einbrennen"
