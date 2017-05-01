@@ -2258,37 +2258,37 @@ class API():
             return url
 
         # For Transcoding
+        headers = {
+            'X-Plex-Platform': 'Android',
+            'X-Plex-Platform-Version': '7.0',
+            'X-Plex-Product': 'Plex for Android',
+            'X-Plex-Version': '5.8.0.475'
+        }
         # Path/key to VIDEO item of xml PMS response is needed, not part
         path = self.item.attrib['key']
         transcodePath = self.server + \
             '/video/:/transcode/universal/start.m3u8?'
         args = {
+            'audioBoost': settings('audioBoost'),
+            'autoAdjustQuality': 0,
+            'directPlay': 0,
+            'directStream': 1,
             'protocol': 'hls',   # seen in the wild: 'dash', 'http', 'hls'
             'session':  window('plex_client_Id'),
             'fastSeek': 1,
             'path': path,
             'mediaIndex': self.mediastream,
             'partIndex': self.part,
+            'hasMDE': 1,
+            'location': 'lan',
+            'mediaBufferSize': '16384',
             # 'copyts': 1,
             # 'offset': 0,           # Resume point
         }
-        # Seem like PHT to let the PMS use the transcoding profile
-        xargs['X-Plex-Device'] = 'Plex Home Theater'
-        # Currently not used!
-        if action == "DirectStream":
-            argsUpdate = {
-                'directPlay': '0',
-                'directStream': '1',
-            }
-            args.update(argsUpdate)
-        elif action == 'Transcode':
-            argsUpdate = {
-                'directPlay': '0',
-                'directStream': '0'
-            }
-            log.debug("Setting transcode quality to: %s" % quality)
-            args.update(quality)
-            args.update(argsUpdate)
+        # Look like Android to let the PMS use the transcoding profile
+        xargs.update(headers)
+        log.debug("Setting transcode quality to: %s" % quality)
+        args.update(quality)
         url = transcodePath + urlencode(xargs) + '&' + urlencode(args)
         return url
 

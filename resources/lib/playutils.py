@@ -343,9 +343,6 @@ class PlayUtils():
             # There's only one audiotrack.
             playurlprefs['audioStreamID'] = audioStreamsList[0]
 
-        # Add audio boost
-        playurlprefs['audioBoost'] = settings('audioBoost')
-
         selectSubsIndex = None
         if subNum > 1:
             if (settings('pickPlexSubtitles') == 'true' and
