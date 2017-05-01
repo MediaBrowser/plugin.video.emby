@@ -156,7 +156,7 @@ class DownloadUtils():
 
     def downloadUrl(self, url, action_type="GET", postBody=None,
                     parameters=None, authenticate=True, headerOptions=None,
-                    verifySSL=True, timeout=None):
+                    verifySSL=True, timeout=None, return_response=False):
         """
         Override SSL check with verifySSL=False
 
@@ -169,7 +169,8 @@ class DownloadUtils():
             401, ...           integer if PMS answered with HTTP error 401
                                (unauthorized) or other http error codes
             xml                xml etree root object, if applicable
-            JSON               json() object, if applicable
+            json               json() object, if applicable
+            <response-object>  if return_response=True is set (200, 201 only)
         """
         kwargs = {'timeout': self.timeout}
         if authenticate is True:
@@ -290,6 +291,9 @@ class DownloadUtils():
             elif r.status_code in (200, 201):
                 # 200: OK
                 # 201: Created
+                if return_response is True:
+                    # return the entire response object
+                    return r
                 try:
                     # xml response
                     r = etree.fromstring(r.content)
