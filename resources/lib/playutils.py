@@ -59,7 +59,8 @@ class PlayUtils():
                 quality={
                     'maxVideoBitrate': self.get_bitrate(),
                     'videoResolution': self.get_resolution(),
-                    'videoQuality': '100'
+                    'videoQuality': '100',
+                    'mediaBufferSize': int(settings('kodi_video_cache'))/1024,
                 }))
             # Set playmethod property
             window('plex_%s.playmethod' % playurl, value="Transcode")

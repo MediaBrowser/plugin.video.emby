@@ -110,6 +110,7 @@
 	    <setting id="bestQuality" type="bool" label="30541" default="false" />
 	    <setting id="bestTrailer" type="bool" label="30542" default="true" />
 	    <setting id="force_transcode_pix" type="bool" label="30545" default="false" />
+	    <setting id="kodi_video_cache" type="number" visible="false" default="20971520" />
 	</category>
 
 	<category label="30544"><!-- artwork -->

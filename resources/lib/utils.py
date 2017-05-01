@@ -548,6 +548,40 @@ def __setSubElement(element, subelement):
     return answ
 
 
+def get_advancessettings_xml_setting(node_list):
+    """
+    Returns the etree element for nodelist (if it exists) and None if not set
+
+    node_list is a list of node names starting from the outside, ignoring the
+    outter advancedsettings. Example nodelist=['video', 'busydialogdelayms']
+    for the following xml would return the etree Element:
+
+        <busydialogdelayms>750</busydialogdelayms>
+
+    Example xml:
+
+    <?xml version="1.0" encoding="UTF-8" ?>
+    <advancedsettings>
+        <video>
+            <busydialogdelayms>750</busydialogdelayms>
+        </video>
+    </advancedsettings>
+    """
+    path = tryDecode(xbmc.translatePath("special://profile/"))
+    try:
+        xmlparse = etree.parse("%sadvancedsettings.xml" % path)
+    except:
+        log.debug('Could not parse advancedsettings.xml, returning None')
+        return
+    root = xmlparse.getroot()
+
+    for node in node_list:
+        root = root.find(node)
+        if root is None:
+            break
+    return root
+
+
 def advancedSettingsXML():
     """
     Kodi tweaks
@@ -595,11 +629,10 @@ def sourcesXML():
 
     try:
         xmlparse = etree.parse(xmlpath)
-    except: # Document is blank or missing
+    except:  # Document is blank or missing
         root = etree.Element('sources')
     else:
         root = xmlparse.getroot()
-
 
     video = root.find('video')
     if video is None:

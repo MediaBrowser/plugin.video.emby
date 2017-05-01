@@ -2281,7 +2281,6 @@ class API():
             'partIndex': self.part,
             'hasMDE': 1,
             'location': 'lan',
-            'mediaBufferSize': '16384',
             'subtitleSize': settings('subtitleSize')
             # 'copyts': 1,
             # 'offset': 0,           # Resume point

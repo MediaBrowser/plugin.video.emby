@@ -6,7 +6,8 @@ import logging
 import xbmc
 import xbmcgui
 
-from utils import settings, window, language as lang, tryEncode
+from utils import settings, window, language as lang, tryEncode, \
+    get_advancessettings_xml_setting
 import downloadutils
 from userclient import UserClient
 
@@ -398,6 +399,16 @@ class InitialSetup():
         """
         log.info("Initial setup called.")
         dialog = self.dialog
+
+        # Get current Kodi video cache setting
+        cache = get_advancessettings_xml_setting(['cache', 'memorysize'])
+        if cache is not None:
+            cache = str(cache.text)
+        else:
+            # Kodi default cache
+            cache = '20971520'
+        log.info('Current Kodi video memory cache in bytes: %s' % cache)
+        settings('kodi_video_cache', value=cache)
 
         # Optionally sign into plex.tv. Will not be called on very first run
         # as plexToken will be ''
