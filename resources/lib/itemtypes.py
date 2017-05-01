@@ -324,13 +324,16 @@ class Movies(Items):
                                             votecount,
                                             rating_id)
                 # update new uniqueid Kodi 17
-                uniqueid = self.kodi_db.get_uniqueid(movieid,
-                                                     v.KODI_TYPE_MOVIE)
-                self.kodi_db.update_uniqueid(movieid,
-                                             v.KODI_TYPE_MOVIE,
-                                             imdb,
-                                             "imdb",
-                                             uniqueid)
+                if imdb is not None:
+                    uniqueid = self.kodi_db.get_uniqueid(movieid,
+                                                         v.KODI_TYPE_MOVIE)
+                    self.kodi_db.update_uniqueid(movieid,
+                                                 v.KODI_TYPE_MOVIE,
+                                                 imdb,
+                                                 "imdb",
+                                                 uniqueid)
+                else:
+                    uniqueid = -1
                 query = '''
                     UPDATE movie
                     SET c00 = ?, c01 = ?, c02 = ?, c03 = ?, c04 = ?, c05 = ?,
@@ -372,12 +375,15 @@ class Movies(Items):
                                          rating,
                                          votecount)
                 # add new uniqueid Kodi 17
-                uniqueid = self.kodi_db.create_entry_uniqueid()
-                self.kodi_db.add_uniqueid(uniqueid,
-                                          movieid,
-                                          v.KODI_TYPE_MOVIE,
-                                          imdb,
-                                          "imdb")
+                if imdb is not None:
+                    uniqueid = self.kodi_db.create_entry_uniqueid()
+                    self.kodi_db.add_uniqueid(uniqueid,
+                                              movieid,
+                                              v.KODI_TYPE_MOVIE,
+                                              imdb,
+                                              "imdb")
+                else:
+                    uniqueid = -1
                 query = '''
                     INSERT INTO movie(idMovie, idFile, c00, c01, c02, c03,
                         c04, c05, c06, c07, c09, c10, c11, c12, c14, c15, c16,
