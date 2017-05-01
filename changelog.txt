@@ -1,3 +1,14 @@
+version 1.7.9 (beta only)
+- Big transcoding overhaul
+- Fix for not detecting external subtitle language
+- Change Plex transcoding profile to Android
+- Use Kodi video cache setting for transcoding
+- Fix TheTVDB ID for TV shows 
+- Account for missing IMDB ids for movies
+- Account for missing TheTVDB ids
+- Fix UnicodeDecodeError on user switch
+- Update English, Spanish and German
+
 version 1.7.8 (beta only)
 - Fix IMDB id for movies (resync by going to the PKC settings, Advanced, then Repair Local Database)
 - Increase timeouts for PMS, should fix some connection issues
