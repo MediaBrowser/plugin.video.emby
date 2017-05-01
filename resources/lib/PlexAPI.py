@@ -2636,6 +2636,6 @@ class API():
         # Append external subtitles to stream
         playmethod = window('%s.playmethod' % plexitem)
         # Direct play automatically appends external
-        # BUT: Plex may add additional subtitles NOT
+        # BUT: Plex may add additional subtitles NOT lying right next to video
         if playmethod in ("DirectStream", "DirectPlay"):
             listitem.setSubtitles(self.externalSubs(playurl))
