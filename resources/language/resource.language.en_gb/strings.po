@@ -1408,7 +1408,7 @@ msgid "Playback Mode"
 msgstr ""
 
 msgctxt "#39028"
-msgid "CAUTION! If you choose \"Native\" mode , you might loose access to certain Plex features such as: Plex trailers and transcoding options. ALL Plex shares need to use direct paths (e.g. smb://myNAS/mymovie.mkv or \\myNAS/mymovie.mkv)!"
+msgid "CAUTION! If you choose \"Native\" mode , you might loose access to certain Plex features such as: Plex trailers and transcoding options. ALL Plex shares need to use direct paths (e.g. smb://myNAS/mymovie.mkv or \\\\myNAS/mymovie.mkv)!"
 msgstr ""
 
 msgctxt "#39029"
@@ -1428,15 +1428,15 @@ msgid "Please verify the path. You may need to verify your network credentials i
 msgstr ""
 
 msgctxt "#39033"
-msgid "Transform Plex UNC library paths \\myNas\mymovie.mkv automatically to smb paths, smb://myNas/mymovie.mkv? (recommended)"
+msgid "Transform Plex UNC library paths \\\\myNas\\mymovie.mkv automatically to smb paths, smb://myNas/mymovie.mkv? (recommended)"
 msgstr ""
 
 msgctxt "#39034"
-msgid "Replace Plex UNC paths \\myNas with smb://myNas"
+msgid "Replace Plex UNC paths \\\\myNas with smb://myNas"
 msgstr ""
 
 msgctxt "#39035"
-msgid "Replace Plex paths /volume1/media or \\myserver\media with custom SMB paths smb://NAS/mystuff"
+msgid "Replace Plex paths /volume1/media or \\\\myserver\\media with custom SMB paths smb://NAS/mystuff"
 msgstr ""
 
 msgctxt "#39037"
