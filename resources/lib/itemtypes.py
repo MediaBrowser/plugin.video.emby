@@ -685,7 +685,7 @@ class TVShows(Items):
                                           showid,
                                           v.KODI_TYPE_SHOW,
                                           tvdb,
-                                          "tvdb")
+                                          "unknown")
                 # Create the tvshow entry
                 query = '''
                     INSERT INTO tvshow(
@@ -694,8 +694,8 @@ class TVShows(Items):
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 '''
                 kodicursor.execute(query, (showid, title, plot, rating_id,
-                                           premieredate, genre, title, tvdb,
-                                           mpaa, studio, sorttitle))
+                                           premieredate, genre, title,
+                                           uniqueid, mpaa, studio, sorttitle))
             else:
                 # Create the tvshow entry
                 query = '''
