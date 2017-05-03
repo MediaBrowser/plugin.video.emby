@@ -1,13 +1,14 @@
 #  XBMC Media Center language file
 # Translators:
 # Croneter None <croneter@gmail.com>, 2017
+# Michal Kuncl <michal.kuncl@gmail.com>, 2017
 msgid ""
 msgstr ""
 "Project-Id-Version: PlexKodiConnect\n"
 "Report-Msgid-Bugs-To: croneter@gmail.com\n"
 "POT-Creation-Date: 2017-04-15 13:13+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: Croneter None <croneter@gmail.com>, 2017\n"
+"Last-Translator: Michal Kuncl <michal.kuncl@gmail.com>, 2017\n"
 "Language-Team: Czech (Czech Republic) (https://www.transifex.com/croneter/teams/73837/cs_CZ/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1446,7 +1447,7 @@ msgid ""
 "CAUTION! If you choose \"Native\" mode , you might loose access to certain "
 "Plex features such as: Plex trailers and transcoding options. ALL Plex "
 "shares need to use direct paths (e.g. smb://myNAS/mymovie.mkv or "
-"\\myNAS/mymovie.mkv)!"
+"\\\\myNAS/mymovie.mkv)!"
 msgstr ""
 "POZOR! Pokud zvolíte \"Nativní\" režim, přijdete o některé funkce Plexu, "
 "jako např. ukázky, nebo možnosti překódování. Všechny knihovny Plexu musí "
@@ -1482,20 +1483,20 @@ msgstr ""
 
 msgctxt "#39033"
 msgid ""
-"Transform Plex UNC library paths \\myNas\\mymovie.mkv automatically to smb "
-"paths, smb://myNas/mymovie.mkv? (recommended)"
+"Transform Plex UNC library paths \\\\myNas\\mymovie.mkv automatically to smb"
+" paths, smb://myNas/mymovie.mkv? (recommended)"
 msgstr ""
 "Automaticky změnit UNC cesty ke knihovně Plexu \\myNas\\mymovie.mkv na smb "
 "cesty smb://myNas/mymovie.mkv? (doporučeno)"
 
 msgctxt "#39034"
-msgid "Replace Plex UNC paths \\myNas with smb://myNas"
+msgid "Replace Plex UNC paths \\\\myNas with smb://myNas"
 msgstr "Nahradit UNC cesty z \\myNas na smb://myNas"
 
 msgctxt "#39035"
 msgid ""
-"Replace Plex paths /volume1/media or \\myserver\\media with custom SMB paths"
-" smb://NAS/mystuff"
+"Replace Plex paths /volume1/media or \\\\myserver\\media with custom SMB "
+"paths smb://NAS/mystuff"
 msgstr ""
 "Nahradit cesty /volume1/media nebo \\myserver\\media za vlastní cesty "
 "smb://NAS/mystuff"
@@ -2009,3 +2010,34 @@ msgstr ""
 msgctxt "#39705"
 msgid "Use at your own risk"
 msgstr "Používejte na vlastní nebezpečí"
+
+# If user gets prompted to choose between several subtitles. Leave the number
+# one at the beginning of the string!
+msgctxt "#39706"
+msgid "1 No subtitles"
+msgstr "Žádné titulky"
+
+# If user gets prompted to choose between several audio/subtitle tracks and
+# language is unknown
+msgctxt "#39707"
+msgid "unknown"
+msgstr "neznámé"
+
+# If user gets prompted to choose between several subtitles and Plex adds the
+# "default" flag
+msgctxt "#39708"
+msgid "Default"
+msgstr "Výchozí"
+
+# If user gets prompted to choose between several subtitles and Plex adds the
+# "forced" flag
+msgctxt "#39709"
+msgid "Forced"
+msgstr "Vynucené"
+
+# If user gets prompted to choose between several subtitles the subtitle
+# cannot be downloaded (has no 'key' attribute from the PMS), the subtitle
+# needs to be burned in
+msgctxt "#39710"
+msgid "burn-in"
+msgstr "Vpálit"
