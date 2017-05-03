@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon  id="plugin.video.plexkodiconnect" name="PlexKodiConnect" version="1.7.9" provider-name="croneter">
+<addon  id="plugin.video.plexkodiconnect" name="PlexKodiConnect" version="1.7.10" provider-name="croneter">
   <requires>
     <import addon="xbmc.python" version="2.1.0"/>
     <import addon="script.module.requests" version="2.3.0" />
@@ -44,7 +44,11 @@
     <disclaimer lang="nl_NL">Gebruik op eigen risico</disclaimer>
     <disclaimer lang="zh_TW">使用風險由您自己承擔</disclaimer>
     <disclaimer lang="es_ES">Usar a su propio riesgo</disclaimer>
-    <news>version 1.7.9 (beta only)
+    <news>version 1.7.10 (beta only)
+- Avoid xbmcvfs entirely; use encoded paths 
+- Update Czech translation
+
+version 1.7.9 (beta only)
 - Big transcoding overhaul
 - Fix for not detecting external subtitle language
 - Change Plex transcoding profile to Android

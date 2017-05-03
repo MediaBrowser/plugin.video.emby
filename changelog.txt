@@ -1,3 +1,7 @@
+version 1.7.10 (beta only)
+- Avoid xbmcvfs entirely; use encoded paths 
+- Update Czech translation
+
 version 1.7.9 (beta only)
 - Big transcoding overhaul
 - Fix for not detecting external subtitle language
