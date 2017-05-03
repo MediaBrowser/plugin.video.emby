@@ -13,12 +13,13 @@ from unicodedata import normalize
 import xml.etree.ElementTree as etree
 from functools import wraps
 from calendar import timegm
-from os import path as os_path
+from os.path import exists, join
+from os import remove, makedirs, walk
+from shutil import rmtree
 
 import xbmc
 import xbmcaddon
 import xbmcgui
-import xbmcvfs
 
 from variables import DB_VIDEO_PATH, DB_MUSIC_PATH, DB_TEXTURE_PATH, \
     DB_PLEX_PATH
@@ -198,27 +199,6 @@ def DateToKodi(stamp):
     return localdate
 
 
-def IfExists(path):
-    """
-    Kodi's xbmcvfs.exists is broken - it caches the results for directories.
-
-    path: path to a directory (with a slash at the end)
-
-    Returns True if path exists, else false
-    """
-    dummyfile = tryEncode(os_path.join(path, 'dummyfile.txt'))
-    try:
-        etree.ElementTree(etree.Element('test')).write(dummyfile)
-    except:
-        # folder does not exist yet
-        answer = False
-    else:
-        # Folder exists. Delete file again.
-        xbmcvfs.delete(dummyfile)
-        answer = True
-    return answer
-
-
 def IntFromStr(string):
     """
     Returns an int from string or the int 0 if something happened
@@ -362,24 +342,14 @@ def reset():
               line1=language(39602)):
         log.info("Resetting all cached artwork.")
         # Remove all existing textures first
-        path = tryDecode(xbmc.translatePath("special://thumbnails/"))
-        if xbmcvfs.exists(path):
-            allDirs, allFiles = xbmcvfs.listdir(path)
-            for dir in allDirs:
-                allDirs, allFiles = xbmcvfs.listdir(path+dir)
-                for file in allFiles:
-                    if os_path.supports_unicode_filenames:
-                        xbmcvfs.delete(os_path.join(
-                            path + tryDecode(dir),
-                            tryDecode(file)))
-                    else:
-                        xbmcvfs.delete(os_path.join(
-                            tryEncode(path) + dir,
-                            file))
+        path = xbmc.translatePath("special://thumbnails/")
+        if exists(path):
+            rmtree(path, ignore_errors=True)
         # remove all existing data from texture DB
         connection = kodiSQL('texture')
         cursor = connection.cursor()
-        cursor.execute('SELECT tbl_name FROM sqlite_master WHERE type="table"')
+        query = 'SELECT tbl_name FROM sqlite_master WHERE type=?'
+        cursor.execute(query, ("table", ))
         rows = cursor.fetchall()
         for row in rows:
             tableName = row[0]
@@ -398,10 +368,10 @@ def reset():
               line1=language(39603)):
         # Delete the settings
         addon = xbmcaddon.Addon()
-        addondir = tryDecode(xbmc.translatePath(addon.getAddonInfo('profile')))
+        addondir = xbmc.translatePath(addon.getAddonInfo('profile'))
         dataPath = "%ssettings.xml" % addondir
         log.info("Deleting: settings.xml")
-        xbmcvfs.delete(tryEncode(dataPath))
+        remove(dataPath)
 
     # Kodi will now restart to apply the changes.
     dialog('ok',
@@ -664,12 +634,13 @@ def sourcesXML():
 
 def passwordsXML():
     # To add network credentials
-    path = tryDecode(xbmc.translatePath("special://userdata/"))
+    path = xbmc.translatePath("special://userdata/")
     xmlpath = "%spasswords.xml" % path
 
     try:
         xmlparse = etree.parse(xmlpath)
-    except: # Document is blank or missing
+    except:
+        # Document is blank or missing
         root = etree.Element('passwords')
         skipFind = True
     else:
@@ -753,8 +724,6 @@ def passwordsXML():
         etree.SubElement(path, 'from', attrib={'pathversion': "1"}).text = "smb://%s/" % server
         topath = "smb://%s:%s@%s/" % (user, password, server)
         etree.SubElement(path, 'to', attrib={'pathversion': "1"}).text = topath
-        # Force Kodi to see the credentials without restarting
-        xbmcvfs.exists(topath)
 
     # Add credentials
     settings('networkCreds', value="%s" % server)
@@ -762,7 +731,8 @@ def passwordsXML():
     # Prettify and write to file
     try:
         indent(root)
-    except: pass
+    except:
+        pass
     etree.ElementTree(root).write(xmlpath)
 
     # dialog.notification(
@@ -776,7 +746,7 @@ def playlistXSP(mediatype, tagname, viewid, viewtype="", delete=False):
     """
     Feed with tagname as unicode
     """
-    path = tryDecode(xbmc.translatePath("special://profile/playlists/video/"))
+    path = xbmc.translatePath("special://profile/playlists/video/")
     if viewtype == "mixed":
         plname = "%s - %s" % (tagname, mediatype)
         xsppath = "%sPlex %s - %s.xsp" % (path, viewid, mediatype)
@@ -785,20 +755,20 @@ def playlistXSP(mediatype, tagname, viewid, viewtype="", delete=False):
         xsppath = "%sPlex %s.xsp" % (path, viewid)
 
     # Create the playlist directory
-    if not xbmcvfs.exists(tryEncode(path)):
+    if not exists(path):
         log.info("Creating directory: %s" % path)
-        xbmcvfs.mkdirs(tryEncode(path))
+        makedirs(path)
 
     # Only add the playlist if it doesn't already exists
-    if xbmcvfs.exists(tryEncode(xsppath)):
+    if exists(xsppath):
         log.info('Path %s does exist' % xsppath)
         if delete:
-            xbmcvfs.delete(tryEncode(xsppath))
+            remove(xsppath)
             log.info("Successfully removed playlist: %s." % tagname)
-
         return
 
-    # Using write process since there's no guarantee the xml declaration works with etree
+    # Using write process since there's no guarantee the xml declaration works
+    # with etree
     itemtypes = {
         'homevideos': 'movies',
         'movie': 'movies',
@@ -806,51 +776,39 @@ def playlistXSP(mediatype, tagname, viewid, viewtype="", delete=False):
     }
     log.info("Writing playlist file to: %s" % xsppath)
     try:
-        f = xbmcvfs.File(tryEncode(xsppath), 'wb')
-    except:
+        with open(xsppath, 'wb'):
+            tryEncode(
+                '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n'
+                '<smartplaylist type="%s">\n\t'
+                    '<name>Plex %s</name>\n\t'
+                    '<match>all</match>\n\t'
+                    '<rule field="tag" operator="is">\n\t\t'
+                        '<value>%s</value>\n\t'
+                    '</rule>\n'
+                '</smartplaylist>\n'
+                % (itemtypes.get(mediatype, mediatype), plname, tagname))
+    except Exception as e:
         log.error("Failed to create playlist: %s" % xsppath)
+        log.error(e)
         return
-    else:
-        f.write(tryEncode(
-            '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n'
-            '<smartplaylist type="%s">\n\t'
-                '<name>Plex %s</name>\n\t'
-                '<match>all</match>\n\t'
-                '<rule field="tag" operator="is">\n\t\t'
-                    '<value>%s</value>\n\t'
-                '</rule>\n'
-            '</smartplaylist>\n'
-            % (itemtypes.get(mediatype, mediatype), plname, tagname)))
-        f.close()
     log.info("Successfully added playlist: %s" % tagname)
 
 def deletePlaylists():
-
     # Clean up the playlists
-    path = tryDecode(xbmc.translatePath("special://profile/playlists/video/"))
-    dirs, files = xbmcvfs.listdir(tryEncode(path))
-    for file in files:
-        if tryDecode(file).startswith('Plex'):
-            xbmcvfs.delete(tryEncode("%s%s" % (path, tryDecode(file))))
+    path = xbmc.translatePath("special://profile/playlists/video/")
+    for root, _, files in walk(path):
+        for file in files:
+            if file.startswith('Plex'):
+                remove(join(root, file))
 
 def deleteNodes():
-
     # Clean up video nodes
-    import shutil
-    path = tryDecode(xbmc.translatePath("special://profile/library/video/"))
-    dirs, files = xbmcvfs.listdir(tryEncode(path))
-    for dir in dirs:
-        if tryDecode(dir).startswith('Plex'):
-            try:
-                shutil.rmtree("%s%s" % (path, tryDecode(dir)))
-            except:
-                log.error("Failed to delete directory: %s" % tryDecode(dir))
-    for file in files:
-        if tryDecode(file).startswith('plex'):
-            try:
-                xbmcvfs.delete(tryEncode("%s%s" % (path, tryDecode(file))))
-            except:
-                log.error("Failed to file: %s" % tryDecode(file))
+    path = xbmc.translatePath("special://profile/library/video/")
+    for root, dirs, _ in walk(path):
+        for directory in dirs:
+            if directory.startswith('Plex-'):
+                rmtree(join(root, directory))
+        break
 
 
 ###############################################################################

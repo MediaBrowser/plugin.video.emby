@@ -164,12 +164,11 @@ class Service():
         counter = 0
         while not monitor.abortRequested():
 
-            if tryDecode(window('plex_kodiProfile')) != kodiProfile:
+            if window('plex_kodiProfile') != kodiProfile:
                 # Profile change happened, terminate this thread and others
                 log.warn("Kodi profile was: %s and changed to: %s. "
                          "Terminating old PlexKodiConnect thread."
-                         % (kodiProfile,
-                            tryDecode(window('plex_kodiProfile'))))
+                         % (kodiProfile, window('plex_kodiProfile')))
                 break
 
             # Before proceeding, need to make sure:

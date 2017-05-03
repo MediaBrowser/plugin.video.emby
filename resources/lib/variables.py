@@ -2,6 +2,8 @@
 import xbmc
 from xbmcaddon import Addon
 
+# Paths are in string, not unicode!
+
 
 def tryDecode(string, encoding='utf-8'):
     """
@@ -27,7 +29,7 @@ ADDON_VERSION = _ADDON.getAddonInfo('version')
 KODILANGUAGE = xbmc.getLanguage(xbmc.ISO_639_1)
 KODIVERSION = int(xbmc.getInfoLabel("System.BuildVersion")[:2])
 KODILONGVERSION = xbmc.getInfoLabel('System.BuildVersion')
-KODI_PROFILE = tryDecode(xbmc.translatePath("special://profile"))
+KODI_PROFILE = xbmc.translatePath("special://profile")
 
 if xbmc.getCondVisibility('system.platform.osx'):
     PLATFORM = "MacOSX"
@@ -68,8 +70,8 @@ _DB_VIDEO_VERSION = {
     17: 107,  # Krypton
     18: 107   # Leia
 }
-DB_VIDEO_PATH = tryDecode(xbmc.translatePath(
-    "special://database/MyVideos%s.db" % _DB_VIDEO_VERSION[KODIVERSION]))
+DB_VIDEO_PATH = xbmc.translatePath(
+    "special://database/MyVideos%s.db" % _DB_VIDEO_VERSION[KODIVERSION])
 
 _DB_MUSIC_VERSION = {
     13: 46,   # Gotham
@@ -79,8 +81,8 @@ _DB_MUSIC_VERSION = {
     17: 60,   # Krypton
     18: 60    # Leia
 }
-DB_MUSIC_PATH = tryDecode(xbmc.translatePath(
-    "special://database/MyMusic%s.db" % _DB_MUSIC_VERSION[KODIVERSION]))
+DB_MUSIC_PATH = xbmc.translatePath(
+    "special://database/MyMusic%s.db" % _DB_MUSIC_VERSION[KODIVERSION])
 
 _DB_TEXTURE_VERSION = {
     13: 13,   # Gotham
@@ -90,13 +92,13 @@ _DB_TEXTURE_VERSION = {
     17: 13,   # Krypton
     18: 13    # Leia
 }
-DB_TEXTURE_PATH = tryDecode(xbmc.translatePath(
-    "special://database/Textures%s.db" % _DB_TEXTURE_VERSION[KODIVERSION]))
+DB_TEXTURE_PATH = xbmc.translatePath(
+    "special://database/Textures%s.db" % _DB_TEXTURE_VERSION[KODIVERSION])
 
-DB_PLEX_PATH = tryDecode(xbmc.translatePath("special://database/plex.db"))
+DB_PLEX_PATH = xbmc.translatePath("special://database/plex.db")
 
-EXTERNAL_SUBTITLE_TEMP_PATH = tryDecode(xbmc.translatePath(
-    "special://profile/addon_data/%s/temp/" % ADDON_ID))
+EXTERNAL_SUBTITLE_TEMP_PATH = xbmc.translatePath(
+    "special://profile/addon_data/%s/temp/" % ADDON_ID)
 
 
 # Multiply Plex time by this factor to receive Kodi time

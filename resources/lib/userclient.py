@@ -3,14 +3,15 @@
 ###############################################################################
 import logging
 import threading
+from os.path import exists
 
 import xbmc
 import xbmcgui
 import xbmcaddon
-import xbmcvfs
+
 
 from utils import window, settings, language as lang, ThreadMethods, \
-    tryDecode, ThreadMethodsAdditionalSuspend
+    ThreadMethodsAdditionalSuspend
 import downloadutils
 
 import PlexAPI
@@ -209,9 +210,8 @@ class UserClient(threading.Thread):
             return False
 
         # Get /profile/addon_data
-        addondir = tryDecode(xbmc.translatePath(
-            self.addon.getAddonInfo('profile')))
-        hasSettings = xbmcvfs.exists("%ssettings.xml" % addondir)
+        addondir = xbmc.translatePath(self.addon.getAddonInfo('profile'))
+        hasSettings = exists("%ssettings.xml" % addondir)
 
         # If there's no settings.xml
         if not hasSettings:

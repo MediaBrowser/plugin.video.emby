@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 ###############################################################################
 import logging
-from os import path as os_path
+from shutil import copyfile
+from os import walk, makedirs
+from os.path import basename, join, exists
 from sys import argv
 from urllib import urlencode
 
@@ -9,8 +11,8 @@ import xbmcplugin
 from xbmc import sleep, executebuiltin, translatePath
 from xbmcgui import ListItem
 
-from utils import window, settings, language as lang, dialog, tryDecode,\
-    tryEncode, CatchExceptions, JSONRPC
+from utils import window, settings, language as lang, dialog, tryEncode, \
+    CatchExceptions, JSONRPC
 import downloadutils
 
 from PlexFunctions import GetPlexMetadata, GetPlexSectionResults, \
@@ -486,6 +488,7 @@ def getVideoFiles(plexId, params):
     except:
         log.error('Could not get file path for item %s' % plexId)
         return xbmcplugin.endOfDirectory(HANDLE)
+    path = tryEncode(path)
     # Assign network protocol
     if path.startswith('\\\\'):
         path = path.replace('\\\\', 'smb://')
@@ -493,28 +496,25 @@ def getVideoFiles(plexId, params):
     # Plex returns Windows paths as e.g. 'c:\slfkjelf\slfje\file.mkv'
     elif '\\' in path:
         path = path.replace('\\', '\\\\')
-    # Directory only, get rid of filename (!! exists() needs /  or \ at end)
-    path = path.replace(os_path.basename(path), '')
-    # Only proceed if we can access this folder
-    import xbmcvfs
-    if xbmcvfs.exists(path):
-        # Careful, returns encoded strings!
-        dirs, files = xbmcvfs.listdir(path)
-        for file in files:
-            file = path + tryDecode(file)
-            li = ListItem(file, path=file)
-            xbmcplugin.addDirectoryItem(handle=HANDLE,
-                                        url=tryEncode(file),
-                                        listitem=li)
-        for dir in dirs:
-            dir = path + tryDecode(dir)
-            li = ListItem(dir, path=dir)
-            xbmcplugin.addDirectoryItem(handle=HANDLE,
-                                        url=tryEncode(dir),
-                                        listitem=li,
-                                        isFolder=True)
+    # Directory only, get rid of filename
+    path = path.replace(basename(path), '')
+    if exists(path):
+        for root, dirs, files in walk(path):
+            for directory in dirs:
+                item_path = join(root, directory)
+                li = ListItem(item_path, path=item_path)
+                xbmcplugin.addDirectoryItem(handle=HANDLE,
+                                            url=item_path,
+                                            listitem=li,
+                                            isFolder=True)
+            for file in files:
+                item_path = join(root, file)
+                li = ListItem(item_path, path=item_path)
+                xbmcplugin.addDirectoryItem(handle=HANDLE,
+                                            url=file,
+                                            listitem=li)
     else:
-        log.warn('Kodi cannot access folder %s' % path)
+        log.error('Kodi cannot access folder %s' % path)
     xbmcplugin.endOfDirectory(HANDLE)
 
 
@@ -525,7 +525,6 @@ def getExtraFanArt(plexid, plexPath):
     will be called by skinhelper script to get the extrafanart
     for tvshows we get the plexid just from the path
     """
-    import xbmcvfs
     log.debug('Called with plexid: %s, plexPath: %s' % (plexid, plexPath))
     if not plexid:
         if "plugin.video.plexkodiconnect" in plexPath:
@@ -536,11 +535,10 @@ def getExtraFanArt(plexid, plexPath):
 
     # We need to store the images locally for this to work
     # because of the caching system in xbmc
-    fanartDir = tryDecode(translatePath(
-        "special://thumbnails/plex/%s/" % plexid))
-    if not xbmcvfs.exists(fanartDir):
+    fanartDir = translatePath("special://thumbnails/plex/%s/" % plexid)
+    if not exists(fanartDir):
         # Download the images to the cache directory
-        xbmcvfs.mkdirs(tryEncode(fanartDir))
+        makedirs(fanartDir)
         xml = GetPlexMetadata(plexid)
         if xml is None:
             log.error('Could not download metadata for %s' % plexid)
@@ -550,29 +548,23 @@ def getExtraFanArt(plexid, plexPath):
         backdrops = api.getAllArtwork()['Backdrop']
         for count, backdrop in enumerate(backdrops):
             # Same ordering as in artwork
-            if os_path.supports_unicode_filenames:
-                fanartFile = os_path.join(fanartDir,
-                                          "fanart%.3d.jpg" % count)
-            else:
-                fanartFile = os_path.join(
-                    tryEncode(fanartDir),
-                    tryEncode("fanart%.3d.jpg" % count))
+            fanartFile = join(fanartDir, "fanart%.3d.jpg" % count)
             li = ListItem("%.3d" % count, path=fanartFile)
             xbmcplugin.addDirectoryItem(
                 handle=HANDLE,
                 url=fanartFile,
                 listitem=li)
-            xbmcvfs.copy(backdrop, fanartFile)
+            copyfile(backdrop, fanartFile)
     else:
         log.info("Found cached backdrop.")
         # Use existing cached images
-        dirs, files = xbmcvfs.listdir(fanartDir)
-        for file in files:
-            fanartFile = os_path.join(fanartDir, tryDecode(file))
-            li = ListItem(file, path=fanartFile)
-            xbmcplugin.addDirectoryItem(handle=HANDLE,
-                                        url=fanartFile,
-                                        listitem=li)
+        for root, dirs, files in walk(fanartDir):
+            for file in files:
+                fanartFile = join(root, file)
+                li = ListItem(file, path=fanartFile)
+                xbmcplugin.addDirectoryItem(handle=HANDLE,
+                                            url=fanartFile,
+                                            listitem=li)
     xbmcplugin.endOfDirectory(HANDLE)
 
 

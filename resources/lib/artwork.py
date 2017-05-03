@@ -4,16 +4,16 @@
 import logging
 from json import dumps, loads
 import requests
-from os import path as os_path
+from os.path import exists
+from shutil import rmtree
 from urllib import quote_plus, unquote
 from threading import Thread
 from Queue import Queue, Empty
 
 from xbmc import executeJSONRPC, sleep, translatePath
-from xbmcvfs import listdir, delete
 
 from utils import window, settings, language as lang, kodiSQL, tryEncode, \
-    tryDecode, IfExists, ThreadMethods, ThreadMethodsAdditionalStop, dialog
+    ThreadMethods, ThreadMethodsAdditionalStop, dialog
 
 # Disable annoying requests warnings
 import requests.packages.urllib3
@@ -228,30 +228,21 @@ class Artwork():
         if dialog('yesno', "Image Texture Cache", lang(39251)):
             log.info("Resetting all cache data first")
             # Remove all existing textures first
-            path = tryDecode(translatePath("special://thumbnails/"))
-            if IfExists(path):
-                allDirs, allFiles = listdir(path)
-                for dir in allDirs:
-                    allDirs, allFiles = listdir(path+dir)
-                    for file in allFiles:
-                        if os_path.supports_unicode_filenames:
-                            delete(os_path.join(
-                                path + tryDecode(dir),
-                                tryDecode(file)))
-                        else:
-                            delete(os_path.join(
-                                tryEncode(path) + dir,
-                                file))
+            path = translatePath("special://thumbnails/")
+            if exists(path):
+                rmtree(path, ignore_errors=True)
 
             # remove all existing data from texture DB
             connection = kodiSQL('texture')
             cursor = connection.cursor()
-            cursor.execute('SELECT tbl_name FROM sqlite_master WHERE type="table"')
+            query = 'SELECT tbl_name FROM sqlite_master WHERE type=?'
+            cursor.execute(query, ('table', ))
             rows = cursor.fetchall()
             for row in rows:
                 tableName = row[0]
                 if tableName != "version":
-                    cursor.execute("DELETE FROM " + tableName)
+                    query = "DELETE FROM ?"
+                    cursor.execute(query, (tableName,))
             connection.commit()
             connection.close()
 
@@ -259,7 +250,8 @@ class Artwork():
         connection = kodiSQL('video')
         cursor = connection.cursor()
         # dont include actors
-        cursor.execute("SELECT url FROM art WHERE media_type != 'actor'")
+        query = "SELECT url FROM art WHERE media_type != ?"
+        cursor.execute(query, ('actor', ))
         result = cursor.fetchall()
         total = len(result)
         log.info("Image cache sync about to process %s video images" % total)
@@ -286,7 +278,6 @@ class Artwork():
     def addArtwork(self, artwork, kodiId, mediaType, cursor):
         # Kodi conversion table
         kodiart = {
-
             'Primary': ["thumb", "poster"],
             'Banner': "banner",
             'Logo': "clearlogo",
@@ -307,7 +298,6 @@ class Artwork():
                 backdropsNumber = len(backdrops)
 
                 query = ' '.join((
-
                     "SELECT url",
                     "FROM art",
                     "WHERE media_id = ?",
@@ -320,7 +310,6 @@ class Artwork():
                 if len(rows) > backdropsNumber:
                     # More backdrops in database. Delete extra fanart.
                     query = ' '.join((
-
                         "DELETE FROM art",
                         "WHERE media_id = ?",
                         "AND media_type = ?",
@@ -339,7 +328,7 @@ class Artwork():
                         cursor=cursor)
 
                     if backdropsNumber > 1:
-                        try: # Will only fail on the first try, str to int.
+                        try:  # Will only fail on the first try, str to int.
                             index += 1
                         except TypeError:
                             index = 1
@@ -438,14 +427,10 @@ class Artwork():
             log.info("Could not find cached url.")
         else:
             # Delete thumbnail as well as the entry
-            thumbnails = tryDecode(
-                translatePath("special://thumbnails/%s" % cachedurl))
-            log.debug("Deleting cached thumbnail: %s" % thumbnails)
-            try:
-                delete(thumbnails)
-            except Exception as e:
-                log.error('Could not delete cached artwork %s. Error: %s'
-                          % (thumbnails, e))
+            path = translatePath("special://thumbnails/%s" % cachedurl)
+            log.debug("Deleting cached thumbnail: %s" % path)
+            if exists(path):
+                rmtree(path, ignore_errors=True)
             cursor.execute("DELETE FROM texture WHERE url = ?", (url,))
             connection.commit()
         finally:

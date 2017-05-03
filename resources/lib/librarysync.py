@@ -1,15 +1,13 @@
 # -*- coding: utf-8 -*-
-
 ###############################################################################
-
 import logging
 from threading import Thread
 import Queue
 from random import shuffle
+from os.path import exists
 
 import xbmc
 import xbmcgui
-import xbmcvfs
 
 from utils import window, settings, getUnixTimestamp, sourcesXML,\
     ThreadMethods, ThreadMethodsAdditionalStop, LogTime, getScreensaver,\
@@ -1505,7 +1503,7 @@ class LibrarySync(Thread):
                 # Also runs when first installed
                 # Verify the video database can be found
                 videoDb = v.DB_VIDEO_PATH
-                if not xbmcvfs.exists(videoDb):
+                if not exists(videoDb):
                     # Database does not exists
                     log.error("The current Kodi version is incompatible "
                               "to know which Kodi versions are supported.")
