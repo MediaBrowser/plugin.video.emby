@@ -1,3 +1,7 @@
+version 1.7.11 (beta only)
+- Add support to Kodi 18.0-alpha1 (thanks @CotzaDev)
+- Fix PKC not storing network credentials correctly
+
 version 1.7.10 (beta only)
 - Avoid xbmcvfs entirely; use encoded paths 
 - Update Czech translation
