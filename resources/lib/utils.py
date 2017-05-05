@@ -16,6 +16,7 @@ from calendar import timegm
 from os.path import exists, join
 from os import remove, makedirs, walk
 from shutil import rmtree
+from urllib import quote_plus
 
 import xbmc
 import xbmcaddon
@@ -696,18 +697,19 @@ def passwordsXML():
         server = dialog.input("Enter the server name or IP address")
         if not server:
             return
+        server = quote_plus(server)
 
     # Network username
     user = dialog.input("Enter the network username")
     if not user:
         return
+    user = quote_plus(user)
     # Network password
     password = dialog.input("Enter the network password",
                             '',  # Default input
                             xbmcgui.INPUT_ALPHANUM,
                             xbmcgui.ALPHANUM_HIDE_INPUT)
     # Need to url-encode the password
-    from urllib import quote_plus
     password = quote_plus(password)
     # Add elements. Annoying etree bug where findall hangs forever
     if skipFind is False:
