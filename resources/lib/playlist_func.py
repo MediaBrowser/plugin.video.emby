@@ -4,7 +4,7 @@ from urlparse import parse_qsl, urlsplit
 
 import plexdb_functions as plexdb
 from downloadutils import DownloadUtils as DU
-from utils import JSONRPC, tryEncode
+from utils import JSONRPC, tryEncode, escape_html
 from PlexAPI import API
 
 ###############################################################################
@@ -157,6 +157,8 @@ def playlist_item_from_xml(playlist, xml_video_element):
     item.plex_id = api.getRatingKey()
     item.ID = xml_video_element.attrib['%sItemID' % playlist.kind]
     item.guid = xml_video_element.attrib.get('guid')
+    if item.guid is not None:
+        item.guid = escape_html(item.guid)
     if item.plex_id:
         with plexdb.Get_Plex_DB() as plex_db:
             db_element = plex_db.getItem_byId(item.plex_id)
@@ -336,7 +338,7 @@ def add_item_to_PMS_playlist(playlist, pos, plex_id=None, kodi_item=None):
     # Get the guid for this item
     for plex_item in xml:
         if plex_item.attrib['%sItemID' % playlist.kind] == item.ID:
-            item.guid = plex_item.attrib['guid']
+            item.guid = escape_html(plex_item.attrib['guid'])
     playlist.items.append(item)
     if pos == len(playlist.items) - 1:
         # Item was added at the end

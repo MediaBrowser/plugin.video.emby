@@ -182,6 +182,23 @@ def tryDecode(string, encoding='utf-8'):
     return string
 
 
+def escape_html(string):
+    """
+    Escapes the following:
+        < to &lt;
+        > to &gt;
+        & to &amp;
+    """
+    escapes = {
+        '<': '&lt;',
+        '>': '&gt;',
+        '&': '&amp;'
+    }
+    for key, value in escapes.iteritems():
+        string = string.replace(key, value)
+    return string
+
+
 def DateToKodi(stamp):
     """
     converts a Unix time stamp (seconds passed sinceJanuary 1 1970) to a
