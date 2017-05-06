@@ -2068,3 +2068,13 @@ msgstr "Erzwungen"
 msgctxt "#39710"
 msgid "burn-in"
 msgstr "einbrennen"
+
+# Dialog text if PKC detected a new Music library and Kodi needs to be
+# restarted
+msgctxt "#39711"
+msgid ""
+"New Plex music library detected. Sorry, but we need to restart Kodi now due "
+"to the changes made."
+msgstr ""
+"Neue Plex Musikbibliothek gefunden. Entschuldigung, aber Kodi muss nun "
+"aufgrund der gemachten Änderungen neu gestartet werden."
