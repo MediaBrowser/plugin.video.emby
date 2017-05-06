@@ -125,7 +125,7 @@ class SubscriptionManager:
         ret += ' subtitleStreamID="-1"'
         ret += ' audioStreamID="-1"'
 
-        ret += ' />'
+        ret += '/>'
         return ret
 
     def updateCommandID(self, uuid, commandID):
