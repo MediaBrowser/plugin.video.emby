@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import logging
-from re import compile as re_compile
 
 from xbmc import Player
 
@@ -12,8 +11,6 @@ from PlexFunctions import GetPlexKeyNumber
 ###############################################################################
 
 log = logging.getLogger("PLEX."+__name__)
-
-REGEX_PLAYQUEUES = re_compile(r'''/playQueues/(\d+)$''')
 
 ###############################################################################
 
