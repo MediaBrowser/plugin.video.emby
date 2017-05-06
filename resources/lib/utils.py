@@ -451,21 +451,24 @@ def normalize_string(text):
 
     return text
 
+
 def indent(elem, level=0):
-    # Prettify xml trees
+    """
+    Prettifies xml trees. Pass the etree root in
+    """
     i = "\n" + level*"  "
     if len(elem):
         if not elem.text or not elem.text.strip():
-          elem.text = i + "  "
+            elem.text = i + "  "
         if not elem.tail or not elem.tail.strip():
-          elem.tail = i
+            elem.tail = i
         for elem in elem:
-          indent(elem, level+1)
+            indent(elem, level+1)
         if not elem.tail or not elem.tail.strip():
-          elem.tail = i
+            elem.tail = i
     else:
         if level and (not elem.tail or not elem.tail.strip()):
-          elem.tail = i
+            elem.tail = i
 
 
 def guisettingsXML():
@@ -519,7 +522,7 @@ def __setSubElement(element, subelement):
     return answ
 
 
-def get_advancessettings_xml_setting(node_list):
+def advancessettings_xml(node_list, new_value=None, attrib=None):
     """
     Returns the etree element for nodelist (if it exists) and None if not set
 
@@ -529,7 +532,7 @@ def get_advancessettings_xml_setting(node_list):
 
         <busydialogdelayms>750</busydialogdelayms>
 
-    Example xml:
+    for the following example xml:
 
     <?xml version="1.0" encoding="UTF-8" ?>
     <advancedsettings>
@@ -537,60 +540,63 @@ def get_advancessettings_xml_setting(node_list):
             <busydialogdelayms>750</busydialogdelayms>
         </video>
     </advancedsettings>
+
+    If new_value is set, '750' will be replaced accordingly, returning the new
+    etree Element. Advancedsettings might be generated if it did not exist
+    already
+
+    If the dict attrib is set, the Element's attributs will be appended
+    accordingly
     """
-    path = tryDecode(xbmc.translatePath("special://profile/"))
+    path = '%sadvancedsettings.xml' % xbmc.translatePath("special://profile/")
     try:
-        xmlparse = etree.parse("%sadvancedsettings.xml" % path)
-    except:
-        log.debug('Could not parse advancedsettings.xml, returning None')
-        return
-    root = xmlparse.getroot()
+        xml = etree.parse(path)
+    except IOError:
+        # Document is blank or missing
+        if new_value is None and attrib is None:
+            log.debug('Could not parse advancedsettings.xml, returning None')
+            return
+        # Create topmost xml entry
+        root = etree.Element('advancedsettings')
+    else:
+        root = xml.getroot()
+    element = root
 
+    # Reading values
+    if new_value is None and attrib is None:
+        for node in node_list:
+            element = element.find(node)
+            if element is None:
+                break
+        return element
+
+    # Setting new values. Get correct element first
     for node in node_list:
-        root = root.find(node)
-        if root is None:
-            break
-    return root
+        element = __setSubElement(element, node)
+    # Write new values
+    element.text = new_value or ''
+    if attrib is not None:
+        for key, attribute in attrib.iteritems():
+            element.set(key, attribute)
+    # Indent and make readable
+    indent(root)
+    # Safe the changed xml
+    try:
+        xml.write(path)
+    except NameError:
+        etree.ElementTree(root).write(path)
+    return element
 
 
-def advancedSettingsXML():
+def advancedsettings_tweaks():
     """
     Kodi tweaks
 
     Changes advancedsettings.xml, musiclibrary:
         backgroundupdate        set to "true"
-
-    Overrides guisettings.xml in Kodi userdata folder:
-        updateonstartup  : set to "false"
-        usetags          : set to "false"
-        findremotethumbs : set to "false"
     """
-    path = tryDecode(xbmc.translatePath("special://profile/"))
-    xmlpath = "%sadvancedsettings.xml" % path
-
-    try:
-        xmlparse = etree.parse(xmlpath)
-    except:
-        # Document is blank or missing
-        root = etree.Element('advancedsettings')
-    else:
-        root = xmlparse.getroot()
-
-    music = __setSubElement(root, 'musiclibrary')
-    __setXMLTag(music, 'backgroundupdate', "true")
-    # __setXMLTag(music, 'updateonstartup', "false")
-
-    # Subtag 'musicfiles'
-    # music = __setSubElement(root, 'musicfiles')
-    # __setXMLTag(music, 'usetags', "false")
-    # __setXMLTag(music, 'findremotethumbs', "false")
-
-    # Prettify and write to file
-    try:
-        indent(root)
-    except:
-        pass
-    etree.ElementTree(root).write(xmlpath)
+    advancessettings_xml(['musiclibrary', 'backgroundupdate'],
+                         new_value='true')
 
 
 def sourcesXML():
@@ -851,7 +857,7 @@ def LogTime(func):
         result = func(*args, **kwargs)
         elapsedtotal = datetime.now() - starttotal
         log.info('It took %s to run the function %s'
-                  % (elapsedtotal, func.__name__))
+                 % (elapsedtotal, func.__name__))
         return result
     return wrapper
 

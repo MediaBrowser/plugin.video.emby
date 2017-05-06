@@ -12,7 +12,7 @@ import xbmcgui
 from utils import window, settings, getUnixTimestamp, sourcesXML,\
     ThreadMethods, ThreadMethodsAdditionalStop, LogTime, getScreensaver,\
     setScreensaver, playlistXSP, language as lang, DateToKodi, reset,\
-    advancedSettingsXML, tryDecode, deletePlaylists, deleteNodes, \
+    advancedsettings_tweaks, tryDecode, deletePlaylists, deleteNodes, \
     ThreadMethodsAdditionalSuspend, create_actor_db_index, dialog
 import downloadutils
 import itemtypes
@@ -1461,7 +1461,7 @@ class LibrarySync(Thread):
         self.initializeDBs()
 
         if self.enableMusic:
-            advancedSettingsXML()
+            advancedsettings_tweaks()
 
         if settings('FanartTV') == 'true':
             self.fanartthread.start()

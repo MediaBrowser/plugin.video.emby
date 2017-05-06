@@ -7,7 +7,7 @@ import xbmc
 import xbmcgui
 
 from utils import settings, window, language as lang, tryEncode, \
-    get_advancessettings_xml_setting
+    advancessettings_xml
 import downloadutils
 from userclient import UserClient
 
@@ -401,7 +401,7 @@ class InitialSetup():
         dialog = self.dialog
 
         # Get current Kodi video cache setting
-        cache = get_advancessettings_xml_setting(['cache', 'memorysize'])
+        cache = advancessettings_xml(['cache', 'memorysize'])
         if cache is not None:
             cache = str(cache.text)
         else:
@@ -478,8 +478,8 @@ class InitialSetup():
             log.debug("User opted to disable Plex music library.")
             settings('enableMusic', value="false")
         else:
-            from utils import advancedSettingsXML
-            advancedSettingsXML()
+            from utils import advancedsettings_tweaks
+            advancedsettings_tweaks()
 
         # Download additional art from FanArtTV
         if dialog.yesno(heading=lang(29999), line1=lang(39061)):
