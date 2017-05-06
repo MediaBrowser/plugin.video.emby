@@ -64,7 +64,7 @@ def set_excludefromscan_music_folders():
             if location.tag == 'Location':
                 path = api.validatePlayurl(location.attrib['path'],
                                            typus=v.PLEX_TYPE_ARTIST,
-                                           forceCheck=True)
+                                           omitCheck=True)
                 path = tryEncode(path)
                 paths.append(__turn_to_regex(path))
     # Get existing advancedsettings

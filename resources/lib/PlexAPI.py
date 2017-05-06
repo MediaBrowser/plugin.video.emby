@@ -2509,7 +2509,8 @@ class API():
             listItem.addStreamInfo(
                 "video", {'duration': self.getRuntime()[1]})
 
-    def validatePlayurl(self, path, typus, forceCheck=False, folder=False):
+    def validatePlayurl(self, path, typus, forceCheck=False, folder=False,
+                        omitCheck=False):
         """
         Returns a valid path for Kodi, e.g. with '\' substituted to '\\' in
         Unicode. Returns None if this is not possible
@@ -2519,6 +2520,7 @@ class API():
             forceCheck : Will always try to check validity of path
                          Will also skip confirmation dialog if path not found
             folder     : Set to True if path is a folder
+            omitCheck  : Will entirely omit validity check if True
         """
         if path is None:
             return None
@@ -2532,7 +2534,8 @@ class API():
         elif window('replaceSMB') == 'true':
             if path.startswith('\\\\'):
                 path = 'smb:' + path.replace('\\', '/')
-        if window('plex_pathverified') == 'true' and forceCheck is False:
+        if ((window('plex_pathverified') == 'true' and forceCheck is False) or
+                omitCheck is True):
             return path
 
         # exist() needs a / or \ at the end to work for directories
