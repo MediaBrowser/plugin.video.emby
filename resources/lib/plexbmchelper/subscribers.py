@@ -56,18 +56,6 @@ class SubscriptionManager:
     def msg(self, players):
         msg = getXMLHeader()
         msg += '<MediaContainer commandID="INSERTCOMMANDID"'
-        if players:
-            self.getVolume()
-            maintype = plex_audio()
-            for p in players.values():
-                if p.get('type') == xbmc_video():
-                    maintype = plex_video()
-                elif p.get('type') == xbmc_photo():
-                    maintype = plex_photo()
-            self.mainlocation = "fullScreen" + maintype[0:1].upper() + maintype[1:].lower()
-        else:
-            self.mainlocation = "navigation"
-        msg += ' location="%s">' % self.mainlocation
         msg += self.getTimelineXML(self.js.getAudioPlayerId(players), plex_audio())
         msg += self.getTimelineXML(self.js.getPhotoPlayerId(players), plex_photo())
         msg += self.getTimelineXML(self.js.getVideoPlayerId(players), plex_video())
@@ -108,7 +96,6 @@ class SubscriptionManager:
         if keyid:
             self.lastkey = "/library/metadata/%s" % keyid
             self.ratingkey = keyid
-            ret += ' location="%s"' % self.mainlocation
             ret += ' key="%s"' % self.lastkey
             ret += ' ratingKey="%s"' % self.ratingkey
         serv = self.getServerByHost(self.server)
