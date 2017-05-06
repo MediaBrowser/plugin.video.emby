@@ -23,7 +23,7 @@ import videonodes
 import variables as v
 
 from PlexFunctions import GetPlexMetadata, GetAllPlexLeaves, scrobble, \
-    GetPlexSectionResults, GetAllPlexChildren, GetPMSStatus
+    GetPlexSectionResults, GetAllPlexChildren, GetPMSStatus, get_plex_sections
 import PlexAPI
 from library_sync.get_metadata import Threaded_Get_Metadata
 from library_sync.process_metadata import Threaded_Process_Metadata
@@ -126,8 +126,7 @@ class LibrarySync(Thread):
         # change in lastViewedAt
 
         # Get all Plex libraries
-        sections = downloadutils.DownloadUtils().downloadUrl(
-            "{server}/library/sections")
+        sections = get_plex_sections()
         try:
             sections.attrib
         except AttributeError:
@@ -477,8 +476,7 @@ class LibrarySync(Thread):
         vnodes = self.vnodes
 
         # Get views
-        sections = downloadutils.DownloadUtils().downloadUrl(
-            "{server}/library/sections")
+        sections = get_plex_sections()
         try:
             sections.attrib
         except AttributeError:

@@ -258,43 +258,12 @@ def GetPlexOnDeck(viewId):
     return DownloadChunks("{server}/library/sections/%s/onDeck?" % viewId)
 
 
-def GetPlexCollections(mediatype):
+def get_plex_sections():
     """
-    Input:
-        mediatype           String or list of strings with possible values
-                            'movie', 'show', 'artist', 'photo'
-    Output:
-        List with an entry of the form:
-        {
-        'name': xxx         Plex title for the media section
-        'type': xxx         Plex type: 'movie', 'show', 'artist', 'photo'
-        'id': xxx           Plex unique key for the section (1, 2, 3...)
-        'uuid': xxx         Other unique Plex key, e.g.
-                            74aec9f2-a312-4723-9436-de2ea43843c1
-        }
-    Returns an empty list if nothing is found.
+    Returns all Plex sections (libraries) of the PMS as an etree xml
     """
-    collections = []
-    url = "{server}/library/sections"
-    xml = downloadutils.DownloadUtils().downloadUrl(url)
-    try:
-        xml.attrib
-    except AttributeError:
-        log.error('Could not download PMS sections for %s' % url)
-        return {}
-    for item in xml:
-        contentType = item['type']
-        if contentType in mediatype:
-            name = item['title']
-            contentId = item['key']
-            uuid = item['uuid']
-            collections.append({
-                'name': name,
-                'type': contentType,
-                'id': str(contentId),
-                'uuid': uuid
-            })
-    return collections
+    return downloadutils.DownloadUtils().downloadUrl(
+        '{server}/library/sections')
 
 
 def init_plex_playqueue(itemid, librarySectionUUID, mediatype='movie',
