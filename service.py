@@ -30,7 +30,7 @@ sys_path.append(_base_resource)
 
 ###############################################################################
 
-from utils import settings, window, language as lang, dialog, tryDecode
+from utils import settings, window, language as lang, dialog, tryEncode
 from userclient import UserClient
 import initialsetup
 from kodimonitor import KodiMonitor
@@ -164,11 +164,12 @@ class Service():
         counter = 0
         while not monitor.abortRequested():
 
-            if window('plex_kodiProfile') != kodiProfile:
+            if tryEncode(window('plex_kodiProfile')) != kodiProfile:
                 # Profile change happened, terminate this thread and others
                 log.warn("Kodi profile was: %s and changed to: %s. "
                          "Terminating old PlexKodiConnect thread."
-                         % (kodiProfile, window('plex_kodiProfile')))
+                         % (kodiProfile,
+                            tryEncode(window('plex_kodiProfile'))))
                 break
 
             # Before proceeding, need to make sure:
