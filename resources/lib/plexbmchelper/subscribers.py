@@ -55,7 +55,7 @@ class SubscriptionManager:
 
     def msg(self, players):
         msg = getXMLHeader()
-        msg += '<MediaContainer commandID="INSERTCOMMANDID"'
+        msg += '<MediaContainer size="3" commandID="INSERTCOMMANDID"'
         msg += ' machineIdentifier="%s"' % window('plex_client_Id')
         msg += self.getTimelineXML(self.js.getAudioPlayerId(players), plex_audio())
         msg += self.getTimelineXML(self.js.getPhotoPlayerId(players), plex_photo())
