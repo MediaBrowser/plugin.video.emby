@@ -7,7 +7,7 @@ import xbmc
 import xbmcgui
 
 from utils import settings, window, language as lang, tryEncode, \
-    advancessettings_xml
+    advancedsettings_xml
 import downloadutils
 from userclient import UserClient
 
@@ -401,7 +401,7 @@ class InitialSetup():
         dialog = self.dialog
 
         # Get current Kodi video cache setting
-        cache = advancessettings_xml(['cache', 'memorysize'])
+        cache, _ = advancedsettings_xml(['cache', 'memorysize'])
         if cache is not None:
             cache = str(cache.text)
         else:

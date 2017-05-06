@@ -23,7 +23,7 @@ import xbmcaddon
 import xbmcgui
 
 from variables import DB_VIDEO_PATH, DB_MUSIC_PATH, DB_TEXTURE_PATH, \
-    DB_PLEX_PATH
+    DB_PLEX_PATH, KODI_PROFILE
 
 ###############################################################################
 
@@ -522,9 +522,11 @@ def __setSubElement(element, subelement):
     return answ
 
 
-def advancessettings_xml(node_list, new_value=None, attrib=None):
+def advancedsettings_xml(node_list, new_value=None, attrib=None,
+                         force_create=False):
     """
-    Returns the etree element for nodelist (if it exists) and None if not set
+    Returns the etree element for nodelist (if it exists) and the tree. None if
+    not set
 
     node_list is a list of node names starting from the outside, ignoring the
     outter advancedsettings. Example nodelist=['video', 'busydialogdelayms']
@@ -547,28 +549,29 @@ def advancessettings_xml(node_list, new_value=None, attrib=None):
 
     If the dict attrib is set, the Element's attributs will be appended
     accordingly
+
+    force_create=True will forcibly create the key even if no value is provided
     """
-    path = '%sadvancedsettings.xml' % xbmc.translatePath("special://profile/")
+    path = '%sadvancedsettings.xml' % KODI_PROFILE
     try:
-        xml = etree.parse(path)
+        tree = etree.parse(path)
     except IOError:
         # Document is blank or missing
-        if new_value is None and attrib is None:
+        if new_value is None and attrib is None and force_create is False:
             log.debug('Could not parse advancedsettings.xml, returning None')
             return
         # Create topmost xml entry
-        root = etree.Element('advancedsettings')
-    else:
-        root = xml.getroot()
+        tree = etree.ElementTree(element=etree.Element('advancedsettings'))
+    root = tree.getroot()
     element = root
 
     # Reading values
-    if new_value is None and attrib is None:
+    if new_value is None and attrib is None and force_create is False:
         for node in node_list:
             element = element.find(node)
             if element is None:
                 break
-        return element
+        return element, tree
 
     # Setting new values. Get correct element first
     for node in node_list:
@@ -581,11 +584,8 @@ def advancessettings_xml(node_list, new_value=None, attrib=None):
     # Indent and make readable
     indent(root)
     # Safe the changed xml
-    try:
-        xml.write(path)
-    except NameError:
-        etree.ElementTree(root).write(path)
-    return element
+    tree.write(path)
+    return element, tree
 
 
 def advancedsettings_tweaks():
@@ -595,7 +595,7 @@ def advancedsettings_tweaks():
     Changes advancedsettings.xml, musiclibrary:
         backgroundupdate        set to "true"
     """
-    advancessettings_xml(['musiclibrary', 'backgroundupdate'],
+    advancedsettings_xml(['musiclibrary', 'backgroundupdate'],
                          new_value='true')
 
 

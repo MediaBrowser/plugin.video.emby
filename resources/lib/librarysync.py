@@ -29,6 +29,7 @@ from library_sync.get_metadata import Threaded_Get_Metadata
 from library_sync.process_metadata import Threaded_Process_Metadata
 import library_sync.sync_info as sync_info
 from library_sync.fanart import Process_Fanart_Thread
+import music
 
 ###############################################################################
 
@@ -71,6 +72,7 @@ class LibrarySync(Thread):
         self.enableMusic = settings('enableMusic') == "true"
         self.enableBackgroundSync = settings(
             'enableBackgroundSync') == "true"
+        self.direct_paths = settings('useDirectPaths') == '1'
 
         # Init for replacing paths
         window('remapSMB', value=settings('remapSMB'))
@@ -295,6 +297,15 @@ class LibrarySync(Thread):
         }
         if self.enableMusic:
             process['music'] = self.PlexMusic
+            if self.direct_paths is True:
+                if music.set_excludefromscan_music_folders() is True:
+                    log.info('Detected new Music library - restarting now')
+                    #  'New Plex music library detected. Sorry, but we need to
+                    #  restart Kodi now due to the changes made.'
+                    dialog('ok', lang(29999), lang(39711))
+                    from xbmc import executebuiltin
+                    executebuiltin('RestartApp')
+                    return False
 
         # Do the processing
         for itemtype in process:
