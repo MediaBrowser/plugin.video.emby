@@ -1,3 +1,6 @@
+version 1.7.14 (beta only)
+- Fix TypeError, but for real now 
+
 version 1.7.13 (beta only)
 - Fix TypeError with AdvancedSettings.xml missing
 
