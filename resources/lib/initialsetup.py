@@ -401,9 +401,8 @@ class InitialSetup():
         dialog = self.dialog
 
         # Get current Kodi video cache setting
-        try:
-            cache, _ = advancedsettings_xml(['cache', 'memorysize'])
-        except TypeError:
+        cache, _ = advancedsettings_xml(['cache', 'memorysize'])
+        if cache is None:
             # Kodi default cache
             cache = '20971520'
         else:

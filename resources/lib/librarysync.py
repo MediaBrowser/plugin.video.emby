@@ -297,15 +297,6 @@ class LibrarySync(Thread):
         }
         if self.enableMusic:
             process['music'] = self.PlexMusic
-            if self.direct_paths is True:
-                if music.set_excludefromscan_music_folders() is True:
-                    log.info('Detected new Music library - restarting now')
-                    #  'New Plex music library detected. Sorry, but we need to
-                    #  restart Kodi now due to the changes made.'
-                    dialog('ok', lang(29999), lang(39711))
-                    from xbmc import executebuiltin
-                    executebuiltin('RestartApp')
-                    return False
 
         # Do the processing
         for itemtype in process:
@@ -483,6 +474,16 @@ class LibrarySync(Thread):
         """
         Compare the views to Plex
         """
+        if self.direct_paths is True:
+            if music.set_excludefromscan_music_folders() is True:
+                log.info('Detected new Music library - restarting now')
+                #  'New Plex music library detected. Sorry, but we need to
+                #  restart Kodi now due to the changes made.'
+                dialog('ok', lang(29999), lang(39711))
+                from xbmc import executebuiltin
+                executebuiltin('RestartApp')
+                return False
+
         self.views = []
         vnodes = self.vnodes
 

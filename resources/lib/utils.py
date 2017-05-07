@@ -542,8 +542,10 @@ def __setSubElement(element, subelement):
 def advancedsettings_xml(node_list, new_value=None, attrib=None,
                          force_create=False):
     """
-    Returns the etree element for nodelist (if it exists) and the tree. None if
-    not set
+    Returns
+        etree element, tree
+    or
+        None, None
 
     node_list is a list of node names starting from the outside, ignoring the
     outter advancedsettings. Example nodelist=['video', 'busydialogdelayms']
@@ -576,7 +578,7 @@ def advancedsettings_xml(node_list, new_value=None, attrib=None,
         # Document is blank or missing
         if new_value is None and attrib is None and force_create is False:
             log.debug('Could not parse advancedsettings.xml, returning None')
-            return
+            return None, None
         # Create topmost xml entry
         tree = etree.ElementTree(element=etree.Element('advancedsettings'))
     root = tree.getroot()
