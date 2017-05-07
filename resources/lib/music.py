@@ -21,8 +21,9 @@ def get_current_music_folders():
     excludefromscan music folders in the advancedsettings.xml
     """
     paths = []
-    root, _ = advancedsettings_xml(['audio', 'excludefromscan'])
-    if root is None:
+    try:
+        root, _ = advancedsettings_xml(['audio', 'excludefromscan'])
+    except TypeError:
         return paths
 
     for element in root:
