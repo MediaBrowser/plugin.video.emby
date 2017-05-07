@@ -1,3 +1,9 @@
+version 1.7.15 (beta only)
+- Fix companion for "Playback via PMS"
+- Change sleeping behavior for playqueue client
+- Plex Companion: add itemType to playstate
+- Less logging
+
 version 1.7.14 (beta only)
 - Fix TypeError, but for real now 
 
