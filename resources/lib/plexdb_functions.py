@@ -258,10 +258,11 @@ class Plex_DB_Functions():
 
     def getItem_byKodiId(self, kodi_id, kodi_type):
         """
-        Returns the tuple (plex_id, parent_id) for kodi_id and kodi_type
+        Returns the tuple (plex_id, parent_id, plex_type) for kodi_id and
+        kodi_type
         """
         query = '''
-            SELECT plex_id, parent_id
+            SELECT plex_id, parent_id, plex_type
             FROM plex
             WHERE kodi_id = ?
             AND kodi_type = ?

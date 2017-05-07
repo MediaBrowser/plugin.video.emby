@@ -75,6 +75,7 @@ class Playqueue_Object(Playlist_Object_Baseclase):
 class Playlist_Item(object):
     ID = None               # Plex playlist/playqueue id, e.g. playQueueItemID
     plex_id = None          # Plex unique item id, "ratingKey"
+    plex_type = None        # Plex type, e.g. 'movie', 'clip'
     plex_UUID = None        # Plex librarySectionUUID
     kodi_id = None          # Kodi unique kodi id (unique only within type!)
     kodi_type = None        # Kodi type: 'movie'
@@ -102,20 +103,22 @@ def playlist_item_from_kodi(kodi_item):
     """
     item = Playlist_Item()
     item.kodi_id = kodi_item.get('id')
+    item.kodi_type = kodi_item.get('type')
     if item.kodi_id:
         with plexdb.Get_Plex_DB() as plex_db:
             plex_dbitem = plex_db.getItem_byKodiId(kodi_item['id'],
                                                    kodi_item['type'])
         try:
             item.plex_id = plex_dbitem[0]
+            item.plex_type = plex_dbitem[2]
             item.plex_UUID = plex_dbitem[0]     # we dont need the uuid yet :-)
         except TypeError:
             pass
     item.file = kodi_item.get('file')
-    if item.file is not None and item.plex_id is None:
-        item.plex_id = dict(
-            parse_qsl(urlsplit(item.file).query)).get('plex_id')
-    item.kodi_type = kodi_item.get('type')
+    if item.plex_id is None and item.file is not None:
+        query = dict(parse_qsl(urlsplit(item.file).query))
+        item.plex_id = query.get('plex_id')
+        item.plex_type = query.get('itemType')
     if item.plex_id is None:
         item.uri = 'library://whatever/item/%s' % quote(item.file, safe='')
     else:
@@ -137,13 +140,14 @@ def playlist_item_from_plex(plex_id):
     with plexdb.Get_Plex_DB() as plex_db:
         plex_dbitem = plex_db.getItem_byId(plex_id)
     try:
+        item.plex_type = plex_dbitem[5]
         item.kodi_id = plex_dbitem[0]
         item.kodi_type = plex_dbitem[4]
     except:
         raise KeyError('Could not find plex_id %s in database' % plex_id)
     item.plex_UUID = plex_id
     item.uri = ('library://%s/item/library%%2Fmetadata%%2F%s' %
-        (item.plex_UUID, plex_id))
+                (item.plex_UUID, plex_id))
     log.debug('Made playlist item from plex: %s' % item)
     return item
 
@@ -155,6 +159,7 @@ def playlist_item_from_xml(playlist, xml_video_element):
     item = Playlist_Item()
     api = API(xml_video_element)
     item.plex_id = api.getRatingKey()
+    item.plex_type = api.getType()
     item.ID = xml_video_element.attrib['%sItemID' % playlist.kind]
     item.guid = xml_video_element.attrib.get('guid')
     if item.guid is not None:
