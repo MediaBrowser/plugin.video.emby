@@ -206,5 +206,9 @@ class Playqueue(Thread):
                         # compare old and new playqueue
                         self._compare_playqueues(playqueue, kodi_playqueue)
                         playqueue.old_kodi_pl = list(kodi_playqueue)
-            sleep(50)
+                        # Still sleep a bit so Kodi does not become
+                        # unresponsive
+                        sleep(10)
+                        continue
+            sleep(200)
         log.info("----===## PlayQueue client stopped ##===----")
