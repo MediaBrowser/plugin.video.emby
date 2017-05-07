@@ -1,3 +1,6 @@
+version 1.7.13 (beta only)
+- Fix TypeError with AdvancedSettings.xml missing
+
 version 1.7.12 (beta only)
 - Major music overhaul: Direct Paths should now work! Many thanks @Memesa for the pointers! Don't forget to reset your database
 - Some Plex Companion fixes
