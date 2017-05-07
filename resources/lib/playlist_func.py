@@ -319,8 +319,6 @@ def add_item_to_PMS_playlist(playlist, pos, plex_id=None, kodi_item=None):
 
     WILL ALSO UPDATE OUR PLAYLISTS
     """
-    log.debug('Adding new item plex_id: %s, kodi_item: %s on the Plex side at '
-              'position %s for %s' % (plex_id, kodi_item, pos, playlist))
     if plex_id:
         try:
             item = playlist_item_from_plex(plex_id)
