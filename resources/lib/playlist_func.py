@@ -535,9 +535,10 @@ def add_listitem_to_Kodi_playlist(playlist, pos, listitem, file,
     # We need to add this to our internal queue as well
     if xml_video_element is not None:
         item = playlist_item_from_xml(playlist, xml_video_element)
-        item.file = file
     else:
         item = playlist_item_from_kodi(kodi_item)
+    if file is not None:
+        item.file = file
     playlist.items.insert(pos, item)
     log.debug('Done inserting for %s' % playlist)
 

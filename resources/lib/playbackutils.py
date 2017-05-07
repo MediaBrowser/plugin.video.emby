@@ -200,7 +200,7 @@ class PlaybackUtils():
                         playqueue,
                         self.currentPosition+1,
                         convert_PKC_to_listitem(listitem),
-                        playurl,
+                        file=playurl,
                         kodi_item={'id': kodi_id, 'type': kodi_type})
                 else:
                     # Full metadata$
