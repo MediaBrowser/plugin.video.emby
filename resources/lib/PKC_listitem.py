@@ -1,13 +1,6 @@
 # -*- coding: utf-8 -*-
 ###############################################################################
-import logging
-
 from xbmcgui import ListItem
-
-###############################################################################
-log = logging.getLogger("PLEX."+__name__)
-
-###############################################################################
 
 
 def convert_PKC_to_listitem(PKC_listitem):
@@ -15,7 +8,6 @@ def convert_PKC_to_listitem(PKC_listitem):
     Insert a PKC_listitem and you will receive a valid XBMC listitem
     """
     data = PKC_listitem.data
-    log.debug('data is: %s' % data)
     listitem = ListItem(label=data.get('label'),
                         label2=data.get('label2'),
                         path=data.get('path'))
