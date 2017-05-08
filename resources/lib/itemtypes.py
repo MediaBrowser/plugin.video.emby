@@ -165,7 +165,7 @@ class Items(object):
                      'Mark item played at %s percent.'
                      % (item['ratingKey'], str(complete), MARK_PLAYED_AT), 1)
             if complete >= MARK_PLAYED_AT:
-                log.info('Marking as completely watched in Kodi', 1)
+                log.info('Marking as completely watched in Kodi')
                 sleep(500)
                 try:
                     item['viewCount'] += 1
