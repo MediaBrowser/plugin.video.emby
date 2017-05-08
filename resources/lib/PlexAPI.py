@@ -2303,6 +2303,7 @@ class API():
         except (TypeError, KeyError, IndexError):
             return
         kodiindex = 0
+        fileindex = 0
         for stream in mediastreams:
             # Since plex returns all possible tracks together, have to pull
             # only external subtitles - only for these a 'key' exists
@@ -2318,8 +2319,10 @@ class API():
                 if stream.attrib.get('languageCode') is not None:
                     path = self.download_external_subtitles(
                         "{server}%s" % key,
-                        "subtitle.%s.%s" % (stream.attrib['languageCode'],
-                                            stream.attrib['codec']))
+                        "subtitle%02d.%s.%s" % (fileindex,
+                                                stream.attrib['languageCode'],
+                                                stream.attrib['codec']))
+                    fileindex += 1
                 # We don't know the language - no need to download
                 else:
                     path = self.addPlexCredentialsToUrl(
