@@ -322,7 +322,7 @@ def reset():
     for row in rows:
         tablename = row[0]
         if tablename != "version":
-            cursor.execute("DELETE FROM " + tablename)
+            cursor.execute("DELETE FROM ?", (tablename,))
     connection.commit()
     cursor.close()
 
@@ -335,7 +335,7 @@ def reset():
         for row in rows:
             tablename = row[0]
             if tablename != "version":
-                cursor.execute("DELETE FROM " + tablename)
+                cursor.execute("DELETE FROM ?", (tablename, ))
         connection.commit()
         cursor.close()
 
@@ -348,7 +348,7 @@ def reset():
     for row in rows:
         tablename = row[0]
         if tablename != "version":
-            cursor.execute("DELETE FROM " + tablename)
+            cursor.execute("DELETE FROM ?", (tablename, ))
     cursor.execute('DROP table IF EXISTS plex')
     cursor.execute('DROP table IF EXISTS view')
     connection.commit()
@@ -372,7 +372,7 @@ def reset():
         for row in rows:
             tableName = row[0]
             if(tableName != "version"):
-                cursor.execute("DELETE FROM " + tableName)
+                cursor.execute("DELETE FROM ?", (tableName, ))
         connection.commit()
         cursor.close()
 
