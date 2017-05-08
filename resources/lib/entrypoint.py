@@ -74,7 +74,7 @@ def togglePlexTV():
     if settings('plexToken'):
         log.info('Reseting plex.tv credentials in settings')
         settings('plexLogin', value="")
-        settings('plexToken', value=""),
+        settings('plexToken', value="")
         settings('plexid', value="")
         settings('plexHomeSize', value="1")
         settings('plexAvatar', value="")
