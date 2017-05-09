@@ -2041,3 +2041,13 @@ msgstr "Vynucené"
 msgctxt "#39710"
 msgid "burn-in"
 msgstr "Vpálit"
+
+# Dialog text if PKC detected a new Music library and Kodi needs to be
+# restarted
+msgctxt "#39711"
+msgid ""
+"New Plex music library detected. Sorry, but we need to restart Kodi now due "
+"to the changes made."
+msgstr ""
+"Byla zjištěna nová hudební knihovna Plexu. Omlouváme se, ale pro provedení "
+"změn budeme muset restartovat Kodi."
