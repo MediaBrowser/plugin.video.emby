@@ -2544,16 +2544,16 @@ class API():
         # exist() needs a / or \ at the end to work for directories
         if folder is False:
             # files
-            check = exists(tryEncode(path)) == 1
+            check = exists(tryEncode(path))
         else:
             # directories
-            if "\\" in path:
+            if "\\" in path and not path.endswith('\\'):
                 # Add the missing backslash
-                check = exists(tryEncode(path + "\\")) == 1
-            else:
-                check = exists(tryEncode(path + "/")) == 1
+                check = exists(tryEncode(path + "\\"))
+            elif "/" in path and not path.endswith('/'):
+                check = exists(tryEncode(path + "/"))
 
-        if check is False:
+        if not check:
             if forceCheck is False:
                 # Validate the path is correct with user intervention
                 if self.askToValidate(path):
