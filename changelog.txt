@@ -1,3 +1,10 @@
+version 1.7.16 (beta only)
+- Fix PKC complaining about files not found
+- Fix multiple subtitles per language not showing
+- Update Czech translation
+- Fix too many arguments when marking 100% watched
+- More small fixes
+
 version 1.7.15 (beta only)
 - Fix companion for "Playback via PMS"
 - Change sleeping behavior for playqueue client

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon  id="plugin.video.plexkodiconnect" name="PlexKodiConnect" version="1.7.15" provider-name="croneter">
+<addon  id="plugin.video.plexkodiconnect" name="PlexKodiConnect" version="1.7.16" provider-name="croneter">
   <requires>
     <import addon="xbmc.python" version="2.1.0"/>
     <import addon="script.module.requests" version="2.3.0" />
@@ -44,7 +44,14 @@
     <disclaimer lang="nl_NL">Gebruik op eigen risico</disclaimer>
     <disclaimer lang="zh_TW">使用風險由您自己承擔</disclaimer>
     <disclaimer lang="es_ES">Usar a su propio riesgo</disclaimer>
-    <news>version 1.7.15 (beta only)
+    <news>version 1.7.16 (beta only)
+- Fix PKC complaining about files not found
+- Fix multiple subtitles per language not showing
+- Update Czech translation
+- Fix too many arguments when marking 100% watched
+- More small fixes
+
+version 1.7.15 (beta only)
 - Fix companion for "Playback via PMS"
 - Change sleeping behavior for playqueue client
 - Plex Companion: add itemType to playstate
