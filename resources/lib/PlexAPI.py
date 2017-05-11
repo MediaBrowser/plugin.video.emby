@@ -40,10 +40,10 @@ from re import compile as re_compile, sub
 from json import dumps
 from urllib import urlencode, quote_plus, unquote
 from os.path import basename, join, exists
-from os import makedirs
 
 import xbmcgui
 from xbmc import sleep, executebuiltin
+from xbmcvfs import mkdirs
 
 import clientinfo as client
 from downloadutils import DownloadUtils
@@ -2345,7 +2345,7 @@ class API():
         Returns the path to the downloaded subtitle or None
         """
         if not exists(v.EXTERNAL_SUBTITLE_TEMP_PATH):
-            makedirs(v.EXTERNAL_SUBTITLE_TEMP_PATH)
+            mkdirs(v.EXTERNAL_SUBTITLE_TEMP_PATH)
         path = join(v.EXTERNAL_SUBTITLE_TEMP_PATH, filename)
         r = DownloadUtils().downloadUrl(url, return_response=True)
         try:

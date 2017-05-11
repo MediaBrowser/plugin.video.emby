@@ -2,7 +2,7 @@
 ###############################################################################
 import logging
 from shutil import copyfile
-from os import walk, makedirs
+from os import walk
 from os.path import basename, join, exists
 from sys import argv
 from urllib import urlencode
@@ -10,6 +10,7 @@ from urllib import urlencode
 import xbmcplugin
 from xbmc import sleep, executebuiltin, translatePath
 from xbmcgui import ListItem
+from xbmcvfs import mkdirs
 
 from utils import window, settings, language as lang, dialog, tryEncode, \
     CatchExceptions, JSONRPC
@@ -538,7 +539,7 @@ def getExtraFanArt(plexid, plexPath):
     fanartDir = translatePath("special://thumbnails/plex/%s/" % plexid)
     if not exists(fanartDir):
         # Download the images to the cache directory
-        makedirs(fanartDir)
+        mkdirs(fanartDir)
         xml = GetPlexMetadata(plexid)
         if xml is None:
             log.error('Could not download metadata for %s' % plexid)
