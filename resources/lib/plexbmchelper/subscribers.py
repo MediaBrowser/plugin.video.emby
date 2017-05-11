@@ -227,7 +227,8 @@ class SubscriptionManager:
             props = self.js.jsonrpc(
                 "Player.GetProperties",
                 {"playerid": playerid,
-                 "properties": ["time",
+                 "properties": ["type",
+                                "time",
                                 "totaltime",
                                 "speed",
                                 "shuffled",
@@ -252,7 +253,7 @@ class SubscriptionManager:
                 info['playQueueVersion'] = playqueue.version or 'null'
                 info['itemType'] = playqueue.items[pos].plex_type or 'null'
             except:
-                pass
+                info['itemType'] = props.get('type') or 'null'
         except:
             import traceback
             log.error("Traceback:\n%s" % traceback.format_exc())
