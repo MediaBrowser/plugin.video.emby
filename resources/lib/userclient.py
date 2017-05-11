@@ -211,10 +211,9 @@ class UserClient(threading.Thread):
 
         # Get /profile/addon_data
         addondir = xbmc.translatePath(self.addon.getAddonInfo('profile'))
-        hasSettings = exists("%ssettings.xml" % addondir)
 
         # If there's no settings.xml
-        if not hasSettings:
+        if not exists("%ssettings.xml" % addondir):
             log.error("Error, no settings.xml found.")
             self.auth = False
             return False

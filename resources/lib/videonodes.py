@@ -75,14 +75,14 @@ class VideoNodes(object):
             return
 
         # Verify the video directory
-        if exists_dir(path) is False:
+        if not exists_dir(path):
             copytree(
                 src=xbmc.translatePath("special://xbmc/system/library/video"),
                 dst=xbmc.translatePath("special://profile/library/video"))
 
         # Create the node directory
         if mediatype != "photos":
-            if exists_dir(nodepath) is False:
+            if not exists_dir(nodepath):
                 # folder does not exist yet
                 log.debug('Creating folder %s' % nodepath)
                 mkdirs(nodepath)
