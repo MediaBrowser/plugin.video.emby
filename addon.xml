@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon  id="plugin.video.plexkodiconnect" name="PlexKodiConnect" version="1.7.16" provider-name="croneter">
+<addon  id="plugin.video.plexkodiconnect" name="PlexKodiConnect" version="1.7.17" provider-name="croneter">
   <requires>
     <import addon="xbmc.python" version="2.1.0"/>
     <import addon="script.module.requests" version="2.3.0" />
@@ -44,7 +44,13 @@
     <disclaimer lang="nl_NL">Gebruik op eigen risico</disclaimer>
     <disclaimer lang="zh_TW">使用風險由您自己承擔</disclaimer>
     <disclaimer lang="es_ES">Usar a su propio riesgo</disclaimer>
-    <news>version 1.7.16 (beta only)
+    <news>version 1.7.17 (beta only)
+- Don't add media by other add-ons to queue
+- Fix KeyError for Plex Companion
+- Repace Kodi mkdirs with os.makedirs
+- Use xbmcvfs exists instead of os.path.exists
+
+version 1.7.16 (beta only)
 - Fix PKC complaining about files not found
 - Fix multiple subtitles per language not showing
 - Update Czech translation

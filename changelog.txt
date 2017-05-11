@@ -1,3 +1,9 @@
+version 1.7.17 (beta only)
+- Don't add media by other add-ons to queue
+- Fix KeyError for Plex Companion
+- Repace Kodi mkdirs with os.makedirs
+- Use xbmcvfs exists instead of os.path.exists 
+
 version 1.7.16 (beta only)
 - Fix PKC complaining about files not found
 - Fix multiple subtitles per language not showing
