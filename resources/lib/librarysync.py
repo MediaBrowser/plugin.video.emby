@@ -4,10 +4,10 @@ import logging
 from threading import Thread
 import Queue
 from random import shuffle
-from os.path import exists
 
 import xbmc
 import xbmcgui
+from xbmcvfs import exists
 
 from utils import window, settings, getUnixTimestamp, sourcesXML,\
     ThreadMethods, ThreadMethodsAdditionalStop, LogTime, getScreensaver,\

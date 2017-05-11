@@ -3,11 +3,11 @@
 ###############################################################################
 import logging
 import threading
-from os.path import exists
 
 import xbmc
 import xbmcgui
 import xbmcaddon
+from xbmcvfs import exists
 
 
 from utils import window, settings, language as lang, ThreadMethods, \

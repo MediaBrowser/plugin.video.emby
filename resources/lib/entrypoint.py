@@ -3,7 +3,7 @@
 import logging
 from shutil import copyfile
 from os import walk
-from os.path import basename, join, exists
+from os.path import basename, join
 from sys import argv
 from urllib import urlencode
 
@@ -13,7 +13,7 @@ from xbmcgui import ListItem
 from xbmcvfs import mkdirs
 
 from utils import window, settings, language as lang, dialog, tryEncode, \
-    CatchExceptions, JSONRPC
+    CatchExceptions, JSONRPC, exists_dir
 import downloadutils
 
 from PlexFunctions import GetPlexMetadata, GetPlexSectionResults, \
@@ -499,7 +499,7 @@ def getVideoFiles(plexId, params):
         path = path.replace('\\', '\\\\')
     # Directory only, get rid of filename
     path = path.replace(basename(path), '')
-    if exists(path):
+    if exists_dir(path):
         for root, dirs, files in walk(path):
             for directory in dirs:
                 item_path = join(root, directory)
@@ -514,6 +514,7 @@ def getVideoFiles(plexId, params):
                 xbmcplugin.addDirectoryItem(handle=HANDLE,
                                             url=file,
                                             listitem=li)
+            break
     else:
         log.error('Kodi cannot access folder %s' % path)
     xbmcplugin.endOfDirectory(HANDLE)
@@ -537,7 +538,7 @@ def getExtraFanArt(plexid, plexPath):
     # We need to store the images locally for this to work
     # because of the caching system in xbmc
     fanartDir = translatePath("special://thumbnails/plex/%s/" % plexid)
-    if not exists(fanartDir):
+    if not exists_dir(fanartDir):
         # Download the images to the cache directory
         mkdirs(fanartDir)
         xml = GetPlexMetadata(plexid)

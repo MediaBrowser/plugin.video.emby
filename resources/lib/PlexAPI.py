@@ -39,16 +39,16 @@ import xml.etree.ElementTree as etree
 from re import compile as re_compile, sub
 from json import dumps
 from urllib import urlencode, quote_plus, unquote
-from os.path import basename, join, exists
+from os.path import basename, join
 
 import xbmcgui
 from xbmc import sleep, executebuiltin
-from xbmcvfs import mkdirs
+from xbmcvfs import mkdirs, exists
 
 import clientinfo as client
 from downloadutils import DownloadUtils
 from utils import window, settings, language as lang, tryDecode, tryEncode, \
-    DateToKodi
+    DateToKodi, exists_dir
 from PlexFunctions import PMSHttpsEnabled
 import plexdb_functions as plexdb
 import variables as v
@@ -2117,10 +2117,9 @@ class API():
                     continue
                 if fanartcount > maxfanarts:
                     break
-                if exists(tryEncode(entry['url'])):
-                    allartworks['Backdrop'].append(
-                        entry['url'].replace(' ', '%20'))
-                    fanartcount += 1
+                allartworks['Backdrop'].append(
+                    entry['url'].replace(' ', '%20'))
+                fanartcount += 1
         return allartworks
 
     def getSetArtwork(self, parentInfo=False):
@@ -2344,7 +2343,7 @@ class API():
 
         Returns the path to the downloaded subtitle or None
         """
-        if not exists(v.EXTERNAL_SUBTITLE_TEMP_PATH):
+        if not exists_dir(v.EXTERNAL_SUBTITLE_TEMP_PATH):
             mkdirs(v.EXTERNAL_SUBTITLE_TEMP_PATH)
         path = join(v.EXTERNAL_SUBTITLE_TEMP_PATH, filename)
         r = DownloadUtils().downloadUrl(url, return_response=True)
@@ -2547,11 +2546,17 @@ class API():
             check = exists(tryEncode(path))
         else:
             # directories
-            if "\\" in path and not path.endswith('\\'):
-                # Add the missing backslash
-                check = exists(tryEncode(path + "\\"))
-            elif "/" in path and not path.endswith('/'):
-                check = exists(tryEncode(path + "/"))
+            if "\\" in path:
+                if not path.endswith('\\'):
+                    # Add the missing backslash
+                    check = exists_dir(tryEncode(path + "\\"))
+                else:
+                    check = exists_dir(tryEncode(path))
+            else:
+                if not path.endswith('/'):
+                    check = exists_dir(tryEncode(path + "/"))
+                else:
+                    check = exists_dir(tryEncode(path))
 
         if not check:
             if forceCheck is False:

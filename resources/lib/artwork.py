@@ -4,16 +4,16 @@
 import logging
 from json import dumps, loads
 import requests
-from os.path import exists
 from shutil import rmtree
 from urllib import quote_plus, unquote
 from threading import Thread
 from Queue import Queue, Empty
 
 from xbmc import executeJSONRPC, sleep, translatePath
+from xbmcvfs import exists
 
 from utils import window, settings, language as lang, kodiSQL, tryEncode, \
-    ThreadMethods, ThreadMethodsAdditionalStop, dialog
+    ThreadMethods, ThreadMethodsAdditionalStop, dialog, exists_dir
 
 # Disable annoying requests warnings
 import requests.packages.urllib3
@@ -229,7 +229,7 @@ class Artwork():
             log.info("Resetting all cache data first")
             # Remove all existing textures first
             path = translatePath("special://thumbnails/")
-            if exists(path):
+            if exists_dir(path):
                 rmtree(path, ignore_errors=True)
 
             # remove all existing data from texture DB

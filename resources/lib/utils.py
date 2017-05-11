@@ -21,10 +21,10 @@ from urllib import quote_plus
 import xbmc
 import xbmcaddon
 import xbmcgui
-from xbmcvfs import exists as kodi_exists, mkdirs
+from xbmcvfs import exists, mkdirs, delete
 
 from variables import DB_VIDEO_PATH, DB_MUSIC_PATH, DB_TEXTURE_PATH, \
-    DB_PLEX_PATH, KODI_PROFILE
+    DB_PLEX_PATH, KODI_PROFILE, KODIVERSION
 
 ###############################################################################
 
@@ -90,6 +90,30 @@ def settings(setting, value=None):
     else:
         # Should return unicode by default, but just in case
         return tryDecode(addon.getSetting(setting))
+
+
+def exists_dir(path):
+    """
+    Safe way to check whether the directory path exists already (broken in Kodi
+    <17)
+
+    Feed with encoded string
+    """
+    if KODIVERSION >= 17:
+        answ = exists(path)
+    else:
+        dummyfile = join(path, 'dummyfile.txt')
+        try:
+            with open(dummyfile, 'w') as f:
+                f.write('text')
+        except IOError:
+            # folder does not exist yet
+            answ = 0
+        else:
+            # Folder exists. Delete file again.
+            delete(dummyfile)
+            answ = 1
+    return answ
 
 
 def language(stringid):
