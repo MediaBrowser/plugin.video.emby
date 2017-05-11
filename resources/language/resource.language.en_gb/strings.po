@@ -1899,3 +1899,23 @@ msgstr ""
 msgctxt "#39711"
 msgid "New Plex music library detected. Sorry, but we need to restart Kodi now due to the changes made."
 msgstr ""
+
+# Shown during sync process
+msgctxt "#39712"
+msgid "downloaded"
+msgstr ""
+
+# Shown during sync process
+msgctxt "#39713"
+msgid "processed"
+msgstr ""
+
+# Shown during sync process
+msgctxt "#39714"
+msgid "Sync"
+msgstr ""
+
+# Shown during sync process
+msgctxt "#39715"
+msgid "items"
+msgstr ""

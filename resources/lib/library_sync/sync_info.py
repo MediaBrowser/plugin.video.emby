@@ -54,9 +54,8 @@ class Threaded_Show_Sync_Info(Thread):
         total = self.total
         dialog = self.dialog
         threadStopped = self.threadStopped
-        dialog.create("%s: Sync %s: %s items"
-                      % (lang(29999), self.item_type, str(total)),
-                      "Starting")
+        dialog.create("%s %s: %s %s"
+                      % (lang(39714), self.item_type, str(total), lang(39715)))
 
         total = 2 * total
         totalProgress = 0
@@ -71,9 +70,11 @@ class Threaded_Show_Sync_Info(Thread):
             except ZeroDivisionError:
                 percentage = 0
             dialog.update(percentage,
-                          message="%s downloaded. %s processed: %s"
+                          message="%s %s. %s %s: %s"
                                   % (get_progress,
+                                     lang(39712),
                                      process_progress,
+                                     lang(39713),
                                      viewName))
             # Sleep for x milliseconds
             sleep(200)
