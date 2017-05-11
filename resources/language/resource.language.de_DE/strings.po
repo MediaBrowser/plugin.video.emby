@@ -2078,3 +2078,23 @@ msgid ""
 msgstr ""
 "Neue Plex Musikbibliothek gefunden. Entschuldigung, aber Kodi muss nun "
 "aufgrund der gemachten Änderungen neu gestartet werden."
+
+# Shown during sync process
+msgctxt "#39712"
+msgid "downloaded"
+msgstr "geladen"
+
+# Shown during sync process
+msgctxt "#39713"
+msgid "processed"
+msgstr "verarbeitet"
+
+# Shown during sync process
+msgctxt "#39714"
+msgid "Sync"
+msgstr "Sync"
+
+# Shown during sync process
+msgctxt "#39715"
+msgid "items"
+msgstr "Einträge"
