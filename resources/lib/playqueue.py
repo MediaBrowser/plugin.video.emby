@@ -17,6 +17,7 @@ log = logging.getLogger("PLEX."+__name__)
 
 # Lock used for playqueue manipulations
 lock = RLock()
+PLUGIN = 'plugin://%s' % v.ADDON_ID
 ###############################################################################
 
 
@@ -147,11 +148,19 @@ class Playqueue(Thread):
         log.debug('Comparing new Kodi playqueue %s with our play queue %s'
                   % (new, old))
         for i, new_item in enumerate(new):
+            if (new_item['file'].startswith('plugin://') and
+                    not new_item['file'].startswith(PLUGIN)):
+                # Ignore new media added by other addons
+                continue
             for j, old_item in enumerate(old):
                 if self.threadStopped():
                     # Chances are that we got an empty Kodi playlist due to
                     # Kodi exit
                     return
+                if (old_item['file'].startswith('plugin://') and
+                        not old_item['file'].startswith(PLUGIN)):
+                    # Ignore media by other addons
+                    continue
                 if new_item.get('id') is None:
                     identical = old_item.file == new_item['file']
                 else:
