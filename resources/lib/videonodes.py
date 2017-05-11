@@ -3,11 +3,11 @@
 import logging
 from shutil import copytree
 import xml.etree.ElementTree as etree
-from os import remove, listdir
+from os import remove, listdir, makedirs
 from os.path import isfile, join
 
 import xbmc
-from xbmcvfs import mkdirs, exists
+from xbmcvfs import exists
 
 from utils import window, settings, language as lang, tryEncode, indent, \
     normalize_nodes, exists_dir
@@ -85,7 +85,7 @@ class VideoNodes(object):
             if not exists_dir(nodepath):
                 # folder does not exist yet
                 log.debug('Creating folder %s' % nodepath)
-                mkdirs(nodepath)
+                makedirs(nodepath)
 
         # Create index entry
         nodeXML = "%sindex.xml" % nodepath

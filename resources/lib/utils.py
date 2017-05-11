@@ -14,14 +14,14 @@ import xml.etree.ElementTree as etree
 from functools import wraps
 from calendar import timegm
 from os.path import join
-from os import remove, walk
+from os import remove, walk, makedirs
 from shutil import rmtree
 from urllib import quote_plus
 
 import xbmc
 import xbmcaddon
 import xbmcgui
-from xbmcvfs import exists, mkdirs, delete
+from xbmcvfs import exists, delete
 
 from variables import DB_VIDEO_PATH, DB_MUSIC_PATH, DB_TEXTURE_PATH, \
     DB_PLEX_PATH, KODI_PROFILE, KODIVERSION
@@ -809,7 +809,7 @@ def playlistXSP(mediatype, tagname, viewid, viewtype="", delete=False):
     # Create the playlist directory
     if not exists(path):
         log.info("Creating directory: %s" % path)
-        mkdirs(path)
+        makedirs(path)
 
     # Only add the playlist if it doesn't already exists
     if exists(xsppath):
