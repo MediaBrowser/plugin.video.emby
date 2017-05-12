@@ -236,8 +236,7 @@ class Artwork():
             for row in rows:
                 tableName = row[0]
                 if tableName != "version":
-                    query = "DELETE FROM ?"
-                    cursor.execute(query, (tableName,))
+                    cursor.execute("DELETE FROM %s" % tableName)
             connection.commit()
             connection.close()
 

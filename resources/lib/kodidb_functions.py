@@ -1409,8 +1409,8 @@ class Kodidb_Functions():
             ID = 'idEpisode'
         elif kodi_type == v.KODI_TYPE_SONG:
             ID = 'idSong'
-        query = '''UPDATE ? SET userrating = ? WHERE ? = ?'''
-        self.cursor.execute(query, (kodi_type, userrating, ID, kodi_id))
+        query = '''UPDATE %s SET userrating = ? WHERE ? = ?''' % kodi_type
+        self.cursor.execute(query, (userrating, ID, kodi_id))
 
     def create_entry_uniqueid(self):
         self.cursor.execute(
