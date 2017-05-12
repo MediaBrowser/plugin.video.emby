@@ -144,7 +144,24 @@ class PlexCompanion(Thread):
                 offset=data.get('offset'))
 
     def run(self):
-        httpd = False
+        # Ensure that sockets will be closed no matter what
+        try:
+            self.__run()
+        finally:
+            try:
+                self.httpd.socket.shutdown(SHUT_RDWR)
+            except AttributeError:
+                pass
+            finally:
+                try:
+                    self.httpd.socket.close()
+                except AttributeError:
+                    pass
+        log.info("----===## Plex Companion stopped ##===----")
+
+    def __run(self):
+        self.httpd = False
+        httpd = self.httpd
         # Cache for quicker while loops
         client = self.client
         threadStopped = self.threadStopped
@@ -245,11 +262,3 @@ class PlexCompanion(Thread):
             sleep(50)
 
         client.stop_all()
-        if httpd:
-            try:
-                httpd.socket.shutdown(SHUT_RDWR)
-            except:
-                pass
-            finally:
-                httpd.socket.close()
-        log.info("----===## Plex Companion stopped ##===----")
