@@ -53,6 +53,7 @@ from utils import window, settings, language as lang, tryDecode, tryEncode, \
 from PlexFunctions import PMSHttpsEnabled
 import plexdb_functions as plexdb
 import variables as v
+import state
 
 ###############################################################################
 
@@ -879,6 +880,8 @@ class PlexAPI():
         settings('plex_restricteduser',
                  'true' if answer.attrib.get('restricted', '0') == '1'
                  else 'false')
+        state.RESTRICTED_USER = True if \
+            answer.attrib.get('restricted', '0') == '1' else False
 
         # Get final token to the PMS we've chosen
         url = 'https://plex.tv/api/resources?includeHttps=1'
@@ -2563,7 +2566,8 @@ class API():
             if forceCheck is False:
                 # Validate the path is correct with user intervention
                 if self.askToValidate(path):
-                    window('plex_shouldStop', value="true")
+                    import state
+                    state.STOP_SYNC = True
                     path = None
                 window('plex_pathverified', value='true')
             else:

@@ -4,7 +4,8 @@ from threading import Thread, Lock
 
 from xbmc import sleep
 
-from utils import ThreadMethodsAdditionalStop, ThreadMethods, language as lang
+from utils import ThreadMethods, language as lang
+import state
 
 ###############################################################################
 
@@ -18,8 +19,7 @@ LOCK = Lock()
 ###############################################################################
 
 
-@ThreadMethodsAdditionalStop('suspend_LibraryThread')
-@ThreadMethods
+@ThreadMethods(add_stops=[state.SUSPEND_LIBRARY_THREAD])
 class Threaded_Show_Sync_Info(Thread):
     """
     Threaded class to show the Kodi statusbar of the metadata download.
@@ -53,13 +53,13 @@ class Threaded_Show_Sync_Info(Thread):
         # cache local variables because it's faster
         total = self.total
         dialog = self.dialog
-        threadStopped = self.threadStopped
+        thread_stopped = self.thread_stopped
         dialog.create("%s %s: %s %s"
                       % (lang(39714), self.item_type, str(total), lang(39715)))
 
         total = 2 * total
         totalProgress = 0
-        while threadStopped() is False:
+        while thread_stopped() is False:
             with LOCK:
                 get_progress = GET_METADATA_COUNT
                 process_progress = PROCESS_METADATA_COUNT

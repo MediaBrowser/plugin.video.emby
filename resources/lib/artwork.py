@@ -13,7 +13,8 @@ from xbmc import executeJSONRPC, sleep, translatePath
 from xbmcvfs import exists
 
 from utils import window, settings, language as lang, kodiSQL, tryEncode, \
-    ThreadMethods, ThreadMethodsAdditionalStop, dialog, exists_dir
+    ThreadMethods, dialog, exists_dir
+import state
 
 # Disable annoying requests warnings
 import requests.packages.urllib3
@@ -126,8 +127,8 @@ def double_urldecode(text):
     return unquote(unquote(text))
 
 
-@ThreadMethodsAdditionalStop('plex_shouldStop')
-@ThreadMethods
+@ThreadMethods(add_stops=[state.STOP_SYNC],
+               add_suspends=[state.SUSPEND_LIBRARY_THREAD, state.DB_SCAN])
 class Image_Cache_Thread(Thread):
     xbmc_host = 'localhost'
     xbmc_port, xbmc_username, xbmc_password = setKodiWebServerDetails()
@@ -140,22 +141,16 @@ class Image_Cache_Thread(Thread):
         self.queue = ARTWORK_QUEUE
         Thread.__init__(self)
 
-    def threadSuspended(self):
-        # Overwrite method to add TWO additional suspends
-        return (self._threadSuspended or
-                window('suspend_LibraryThread') or
-                window('plex_dbScan'))
-
     def run(self):
-        threadStopped = self.threadStopped
-        threadSuspended = self.threadSuspended
+        thread_stopped = self.thread_stopped
+        thread_suspended = self.thread_suspended
         queue = self.queue
         sleep_between = self.sleep_between
-        while not threadStopped():
+        while not thread_stopped():
             # In the event the server goes offline
-            while threadSuspended():
+            while thread_suspended():
                 # Set in service.py
-                if threadStopped():
+                if thread_stopped():
                     # Abort was requested while waiting. We should exit
                     log.info("---===### Stopped Image_Cache_Thread ###===---")
                     return
@@ -178,7 +173,7 @@ class Image_Cache_Thread(Thread):
                     # download. All is well
                     break
                 except requests.ConnectionError:
-                    if threadStopped():
+                    if thread_stopped():
                         # Kodi terminated
                         break
                     # Server thinks its a DOS attack, ('error 10053')

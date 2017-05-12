@@ -11,7 +11,7 @@ from StringIO import StringIO
 from time import localtime, strftime, strptime
 from unicodedata import normalize
 import xml.etree.ElementTree as etree
-from functools import wraps
+from functools import wraps, partial
 from calendar import timegm
 from os.path import join
 from os import remove, walk, makedirs
@@ -25,6 +25,7 @@ from xbmcvfs import exists, delete
 
 from variables import DB_VIDEO_PATH, DB_MUSIC_PATH, DB_TEXTURE_PATH, \
     DB_PLEX_PATH, KODI_PROFILE, KODIVERSION
+import state
 
 ###############################################################################
 
@@ -74,6 +75,19 @@ def pickl_window(property, value=None, clear=False, windowid=10000):
         win.setProperty(property, value)
     else:
         return win.getProperty(property)
+
+
+def plex_command(key, value):
+    """
+    Used to funnel states between different Python instances. NOT really thread
+    safe - let's hope the Kodi user can't click fast enough
+
+        key:   state.py variable
+        value: either 'True' or 'False'
+    """
+    while window('plex_command'):
+        xbmc.sleep(1)
+    window('plex_command', value='%s-%s' % (key, value))
 
 
 def settings(setting, value=None):
@@ -319,7 +333,7 @@ def reset():
         return
 
     # first stop any db sync
-    window('plex_shouldStop', value="true")
+    plex_command('STOP_SYNC', 'True')
     count = 10
     while window('plex_dbScan') == "true":
         log.debug("Sync is running, will retry: %s..." % count)
@@ -906,78 +920,61 @@ def LogTime(func):
     return wrapper
 
 
-def ThreadMethodsAdditionalStop(windowAttribute):
-    """
-    Decorator to replace stopThread method to include the Kodi windowAttribute
-
-    Use with any sync threads. @ThreadMethods still required FIRST
-    """
-    def wrapper(cls):
-        def threadStopped(self):
-            return (self._threadStopped or
-                    (window('plex_terminateNow') == "true") or
-                    window(windowAttribute) == "true")
-        cls.threadStopped = threadStopped
-        return cls
-    return wrapper
-
-
-def ThreadMethodsAdditionalSuspend(windowAttribute):
-    """
-    Decorator to replace threadSuspended(): thread now also suspends if a
-    Kodi windowAttribute is set to 'true', e.g. 'suspend_LibraryThread'
-
-    Use with any library sync threads. @ThreadMethods still required FIRST
-    """
-    def wrapper(cls):
-        def threadSuspended(self):
-            return (self._threadSuspended or
-                    window(windowAttribute) == 'true')
-        cls.threadSuspended = threadSuspended
-        return cls
-    return wrapper
-
-
-def ThreadMethods(cls):
+def ThreadMethods(cls=None, add_stops=None, add_suspends=None):
     """
     Decorator to add the following methods to a threading class:
 
-    suspendThread():    pauses the thread
-    resumeThread():     resumes the thread
-    stopThread():       stopps/kills the thread
+    suspend_thread():    pauses the thread
+    resume_thread():     resumes the thread
+    stop_thread():       stopps/kills the thread
 
-    threadSuspended():  returns True if thread is suspend_thread
-    threadStopped():    returns True if thread is stopped (or should stop ;-))
-                        ALSO stops if Kodi is exited
+    thread_suspended():  returns True if thread is suspend_thread
+    thread_stopped():    returns True if thread is stopped (or should stop ;-))
+                         ALSO stops if PKC should exit
 
     Also adds the following class attributes:
-        _threadStopped
-        _threadSuspended
+        _thread_stopped
+        _thread_suspended
+
+    invoke with either
+        @NewThreadMethods
+        class MyClass():
+    or
+        @NewThreadMethods(add_stops=[state.SUSPEND_LIBRARY_TRHEAD],
+                          add_suspends=[state.WHATEVER, state.WHATEVER2])
+        class MyClass():
     """
+    if cls is None:
+        return partial(ThreadMethods,
+                       add_stops=add_stops,
+                       add_suspends=add_suspends)
+    # Make sure we have an iterable
+    add_stops = add_stops or []
+    add_suspends = add_suspends or []
     # Attach new attributes to class
-    cls._threadStopped = False
-    cls._threadSuspended = False
+    cls._thread_stopped = False
+    cls._thread_suspended = False
 
     # Define new class methods and attach them to class
-    def stopThread(self):
-        self._threadStopped = True
-    cls.stopThread = stopThread
+    def stop_thread(self):
+        self._thread_stopped = True
+    cls.stop_thread = stop_thread
 
-    def suspendThread(self):
-        self._threadSuspended = True
-    cls.suspendThread = suspendThread
+    def suspend_thread(self):
+        self._thread_suspended = True
+    cls.suspend_thread = suspend_thread
 
-    def resumeThread(self):
-        self._threadSuspended = False
-    cls.resumeThread = resumeThread
+    def resume_thread(self):
+        self._thread_suspended = False
+    cls.resume_thread = resume_thread
 
-    def threadSuspended(self):
-        return self._threadSuspended
-    cls.threadSuspended = threadSuspended
+    def thread_suspended(self):
+        return self._thread_suspended or any(add_suspends)
+    cls.thread_suspended = thread_suspended
 
-    def threadStopped(self):
-        return self._threadStopped or (window('plex_terminateNow') == 'true')
-    cls.threadStopped = threadStopped
+    def thread_stopped(self):
+        return self._thread_stopped or state.STOP_PKC or any(add_stops)
+    cls.thread_stopped = thread_stopped
 
     # Return class to render this a decorator
     return cls

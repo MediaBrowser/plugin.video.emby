@@ -152,12 +152,12 @@ class Playback_Starter(Thread):
             pickle_me(result)
 
     def run(self):
-        queue = self.mgr.monitor_kodi_play.playback_queue
+        queue = self.mgr.command_pipeline.playback_queue
         log.info("----===## Starting Playback_Starter ##===----")
         while True:
             item = queue.get()
             if item is None:
-                # Need to shutdown - initiated by monitor_kodi_play
+                # Need to shutdown - initiated by command_pipeline
                 break
             else:
                 self.triage(item)

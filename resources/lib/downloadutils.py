@@ -9,6 +9,8 @@ import xml.etree.ElementTree as etree
 from utils import settings, window, language as lang, dialog
 import clientinfo as client
 
+import state
+
 ###############################################################################
 
 # Disable annoying requests warnings
@@ -274,10 +276,11 @@ class DownloadUtils():
                             self.unauthorizedAttempts):
                         log.warn('We seem to be truly unauthorized for PMS'
                                  ' %s ' % url)
-                        if window('plex_serverStatus') not in ('401', 'Auth'):
+                        if state.PMS_STATUS not in ('401', 'Auth'):
                             # Tell userclient token has been revoked.
                             log.debug('Setting PMS server status to '
                                       'unauthorized')
+                            state.PMS_STATUS = '401'
                             window('plex_serverStatus', value="401")
                             dialog('notification',
                                    lang(29999),
