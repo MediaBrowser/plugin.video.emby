@@ -35,7 +35,7 @@ class Monitor_Kodi_Play(Thread):
                 queue.put(window('plex_play_new_item'))
                 window('plex_play_new_item', clear=True)
             else:
-                sleep(20)
+                sleep(50)
         # Put one last item into the queue to let playback_starter end
         queue.put(None)
         log.info("----===## Kodi_Play_Client stopped ##===----")
