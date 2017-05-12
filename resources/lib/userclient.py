@@ -317,7 +317,7 @@ class UserClient(threading.Thread):
                 state.PMS_STATUS = 'Auth'
                 window('plex_serverStatus', value='Auth')
                 self.resetClient()
-                xbmc.sleep(2000)
+                xbmc.sleep(3000)
 
             if self.auth and (self.currUser is None):
                 # Try to authenticate user
