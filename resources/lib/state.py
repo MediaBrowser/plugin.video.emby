@@ -19,6 +19,4 @@ SUSPEND_USER_CLIENT = False
 # Plex home user? Then "False". Along with window('plex_restricteduser')
 RESTRICTED_USER = False
 
-# Along with window('plex_authenticated')
-AUTHENTICATED = False
 PLEX_TOKEN = None

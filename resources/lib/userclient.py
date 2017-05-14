@@ -159,7 +159,6 @@ class UserClient(threading.Thread):
         window('plex_machineIdentifier', value=self.machineIdentifier)
         window('plex_servername', value=self.servername)
         window('plex_authenticated', value='true')
-        state.AUTHENTICATED = True
 
         window('useDirectPaths', value='true'
                if settings('useDirectPaths') == "1" else 'false')
@@ -267,7 +266,6 @@ class UserClient(threading.Thread):
         self.doUtils.stopSession()
 
         window('plex_authenticated', clear=True)
-        state.AUTHENTICATED = False
         window('pms_token', clear=True)
         state.PLEX_TOKEN = None
         window('plex_token', clear=True)

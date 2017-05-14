@@ -303,7 +303,7 @@ class Service():
                                        sound=False)
                         log.info("Server %s is online and ready." % server)
                         window('plex_online', value="true")
-                        if state.AUTHENTICATED:
+                        if window('plex_authenticated') == 'true':
                             # Server got offline when we were authenticated.
                             # Hence resume threads
                             state.SUSPEND_LIBRARY_THREAD = False
