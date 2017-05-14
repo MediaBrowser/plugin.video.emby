@@ -2051,3 +2051,23 @@ msgid ""
 msgstr ""
 "Byla zjištěna nová hudební knihovna Plexu. Omlouváme se, ale pro provedení "
 "změn budeme muset restartovat Kodi."
+
+# Shown during sync process
+msgctxt "#39712"
+msgid "downloaded"
+msgstr "staženo"
+
+# Shown during sync process
+msgctxt "#39713"
+msgid "processed"
+msgstr "zpracováno"
+
+# Shown during sync process
+msgctxt "#39714"
+msgid "Sync"
+msgstr "Synchronizace"
+
+# Shown during sync process
+msgctxt "#39715"
+msgid "items"
+msgstr "položek"
