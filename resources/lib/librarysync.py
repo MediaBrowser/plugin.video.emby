@@ -10,9 +10,10 @@ import xbmcgui
 from xbmcvfs import exists
 
 from utils import window, settings, getUnixTimestamp, sourcesXML,\
-    ThreadMethods, create_actor_db_index, dialog, LogTime, getScreensaver,\
+    ThreadMethods, ThreadMethodsAdditionalStop, LogTime, getScreensaver,\
     setScreensaver, playlistXSP, language as lang, DateToKodi, reset,\
-    advancedsettings_tweaks, tryDecode, deletePlaylists, deleteNodes
+    advancedsettings_tweaks, tryDecode, deletePlaylists, deleteNodes, \
+    ThreadMethodsAdditionalSuspend, create_actor_db_index, dialog
 import downloadutils
 import itemtypes
 import plexdb_functions as plexdb
@@ -29,7 +30,6 @@ from library_sync.process_metadata import Threaded_Process_Metadata
 import library_sync.sync_info as sync_info
 from library_sync.fanart import Process_Fanart_Thread
 import music
-import state
 
 ###############################################################################
 
@@ -38,8 +38,9 @@ log = logging.getLogger("PLEX."+__name__)
 ###############################################################################
 
 
-@ThreadMethods(add_stops=[state.STOP_SYNC],
-               add_suspends=[state.SUSPEND_LIBRARY_THREAD])
+@ThreadMethodsAdditionalSuspend('suspend_LibraryThread')
+@ThreadMethodsAdditionalStop('plex_shouldStop')
+@ThreadMethods
 class LibrarySync(Thread):
     """
     """
@@ -299,7 +300,7 @@ class LibrarySync(Thread):
 
         # Do the processing
         for itemtype in process:
-            if self.thread_stopped():
+            if self.threadStopped():
                 xbmc.executebuiltin('InhibitIdleShutdown(false)')
                 setScreensaver(value=screensaver)
                 return False
@@ -322,7 +323,7 @@ class LibrarySync(Thread):
             window('plex_scancrashed', clear=True)
         elif window('plex_scancrashed') == '401':
             window('plex_scancrashed', clear=True)
-            if state.PMS_STATUS not in ('401', 'Auth'):
+            if window('plex_serverStatus') not in ('401', 'Auth'):
                 # Plex server had too much and returned ERROR
                 self.dialog.ok(lang(29999), lang(39409))
 
@@ -758,8 +759,8 @@ class LibrarySync(Thread):
         for thread in threads:
             # Threads might already have quit by themselves (e.g. Kodi exit)
             try:
-                thread.stop_thread()
-            except AttributeError:
+                thread.stopThread()
+            except:
                 pass
         log.debug("Stop sent to all threads")
         # Wait till threads are indeed dead
@@ -804,7 +805,7 @@ class LibrarySync(Thread):
         # PROCESS MOVIES #####
         self.updatelist = []
         for view in views:
-            if self.thread_stopped():
+            if self.threadStopped():
                 return False
             # Get items per view
             viewId = view['id']
@@ -825,7 +826,7 @@ class LibrarySync(Thread):
         log.info("Processed view")
         # Update viewstate for EVERY item
         for view in views:
-            if self.thread_stopped():
+            if self.threadStopped():
                 return False
             self.PlexUpdateWatched(view['id'], itemType)
 
@@ -897,7 +898,7 @@ class LibrarySync(Thread):
         # PROCESS TV Shows #####
         self.updatelist = []
         for view in views:
-            if self.thread_stopped():
+            if self.threadStopped():
                 return False
             # Get items per view
             viewId = view['id']
@@ -926,7 +927,7 @@ class LibrarySync(Thread):
         # PROCESS TV Seasons #####
         # Cycle through tv shows
         for tvShowId in allPlexTvShowsId:
-            if self.thread_stopped():
+            if self.threadStopped():
                 return False
             # Grab all seasons to tvshow from PMS
             seasons = GetAllPlexChildren(tvShowId)
@@ -951,7 +952,7 @@ class LibrarySync(Thread):
         # PROCESS TV Episodes #####
         # Cycle through tv shows
         for view in views:
-            if self.thread_stopped():
+            if self.threadStopped():
                 return False
             # Grab all episodes to tvshow from PMS
             episodes = GetAllPlexLeaves(view['id'])
@@ -986,7 +987,7 @@ class LibrarySync(Thread):
 
         # Update viewstate:
         for view in views:
-            if self.thread_stopped():
+            if self.threadStopped():
                 return False
             self.PlexUpdateWatched(view['id'], itemType)
 
@@ -1023,7 +1024,7 @@ class LibrarySync(Thread):
         for kind in (v.PLEX_TYPE_ARTIST,
                      v.PLEX_TYPE_ALBUM,
                      v.PLEX_TYPE_SONG):
-            if self.thread_stopped():
+            if self.threadStopped():
                 return False
             log.debug("Start processing music %s" % kind)
             self.allKodiElementsId = {}
@@ -1040,7 +1041,7 @@ class LibrarySync(Thread):
 
         # Update viewstate for EVERY item
         for view in views:
-            if self.thread_stopped():
+            if self.threadStopped():
                 return False
             self.PlexUpdateWatched(view['id'], itemType)
 
@@ -1065,7 +1066,7 @@ class LibrarySync(Thread):
                 except ValueError:
                     pass
         for view in views:
-            if self.thread_stopped():
+            if self.threadStopped():
                 return False
             # Get items per view
             itemsXML = GetPlexSectionResults(view['id'], args=urlArgs)
@@ -1171,7 +1172,7 @@ class LibrarySync(Thread):
         now = getUnixTimestamp()
         deleteListe = []
         for i, item in enumerate(self.itemsToProcess):
-            if self.thread_stopped():
+            if self.threadStopped():
                 # Chances are that Kodi gets shut down
                 break
             if item['state'] == 9:
@@ -1276,8 +1277,8 @@ class LibrarySync(Thread):
                 # movie or episode)
                 continue
             typus = int(item.get('type', 0))
-            status = int(item.get('state', 0))
-            if status == 9 or (typus in (1, 4, 10) and status == 5):
+            state = int(item.get('state', 0))
+            if state == 9 or (typus in (1, 4, 10) and state == 5):
                 # Only process deleted items OR movies, episodes, tracks/songs
                 plex_id = str(item.get('itemID', '0'))
                 if plex_id == '0':
@@ -1285,7 +1286,7 @@ class LibrarySync(Thread):
                     continue
                 try:
                     if (now - self.just_processed[plex_id] <
-                            self.ignore_just_processed and status != 9):
+                            self.ignore_just_processed and state != 9):
                         log.debug('We just processed %s: ignoring' % plex_id)
                         continue
                 except KeyError:
@@ -1298,7 +1299,7 @@ class LibrarySync(Thread):
                 else:
                     # Haven't added this element to the queue yet
                     self.itemsToProcess.append({
-                        'state': status,
+                        'state': state,
                         'type': typus,
                         'ratingKey': plex_id,
                         'timestamp': getUnixTimestamp(),
@@ -1314,8 +1315,8 @@ class LibrarySync(Thread):
         with plexdb.Get_Plex_DB() as plex_db:
             for item in data:
                 # Drop buffering messages immediately
-                status = item.get('state')
-                if status == 'buffering':
+                state = item.get('state')
+                if state == 'buffering':
                     continue
                 ratingKey = item.get('ratingKey')
                 kodiInfo = plex_db.getItem_byId(ratingKey)
@@ -1334,7 +1335,8 @@ class LibrarySync(Thread):
                         }
                     else:
                         # PMS is ours - get all current sessions
-                        self.sessionKeys = GetPMSStatus(state.PLEX_TOKEN)
+                        self.sessionKeys = GetPMSStatus(
+                            window('plex_token'))
                         log.debug('Updated current sessions. They are: %s'
                                   % self.sessionKeys)
                         if sessionKey not in self.sessionKeys:
@@ -1347,7 +1349,8 @@ class LibrarySync(Thread):
                     # Identify the user - same one as signed on with PKC? Skip
                     # update if neither session's username nor userid match
                     # (Owner sometime's returns id '1', not always)
-                    if (not state.PLEX_TOKEN and currSess['userId'] == '1'):
+                    if (window('plex_token') == '' and
+                            currSess['userId'] == '1'):
                         # PKC not signed in to plex.tv. Plus owner of PMS is
                         # playing (the '1').
                         # Hence must be us (since several users require plex.tv
@@ -1391,7 +1394,7 @@ class LibrarySync(Thread):
                     'file_id': kodiInfo[1],
                     'kodi_type': kodiInfo[4],
                     'viewOffset': resume,
-                    'state': status,
+                    'state': state,
                     'duration': currSess['duration'],
                     'viewCount': currSess['viewCount'],
                     'lastViewedAt': DateToKodi(getUnixTimestamp())
@@ -1430,7 +1433,6 @@ class LibrarySync(Thread):
         try:
             self.run_internal()
         except Exception as e:
-            state.DB_SCAN = False
             window('plex_dbScan', clear=True)
             log.error('LibrarySync thread crashed. Error message: %s' % e)
             import traceback
@@ -1441,8 +1443,8 @@ class LibrarySync(Thread):
 
     def run_internal(self):
         # Re-assign handles to have faster calls
-        thread_stopped = self.thread_stopped
-        thread_suspended = self.thread_suspended
+        threadStopped = self.threadStopped
+        threadSuspended = self.threadSuspended
         installSyncDone = self.installSyncDone
         enableBackgroundSync = self.enableBackgroundSync
         fullSync = self.fullSync
@@ -1474,12 +1476,12 @@ class LibrarySync(Thread):
         if settings('FanartTV') == 'true':
             self.fanartthread.start()
 
-        while not thread_stopped():
+        while not threadStopped():
 
             # In the event the server goes offline
-            while thread_suspended():
+            while threadSuspended():
                 # Set in service.py
-                if thread_stopped():
+                if threadStopped():
                     # Abort was requested while waiting. We should exit
                     log.info("###===--- LibrarySync Stopped ---===###")
                     return
@@ -1521,7 +1523,6 @@ class LibrarySync(Thread):
                     self.dialog.ok(heading=lang(29999), line1=lang(39403))
                     break
                 # Run start up sync
-                state.DB_SCAN = True
                 window('plex_dbScan', value="true")
                 log.info("Db version: %s" % settings('dbCreatedWithVersion'))
                 lastTimeSync = getUnixTimestamp()
@@ -1546,7 +1547,6 @@ class LibrarySync(Thread):
                 log.info("Initial start-up full sync starting")
                 librarySync = fullSync()
                 window('plex_dbScan', clear=True)
-                state.DB_SCAN = False
                 if librarySync:
                     log.info("Initial start-up full sync successful")
                     startupComplete = True
@@ -1565,26 +1565,23 @@ class LibrarySync(Thread):
                         break
 
             # Currently no db scan, so we can start a new scan
-            elif state.DB_SCAN is False:
+            elif window('plex_dbScan') != "true":
                 # Full scan was requested from somewhere else, e.g. userclient
                 if window('plex_runLibScan') in ("full", "repair"):
                     log.info('Full library scan requested, starting')
                     window('plex_dbScan', value="true")
-                    state.DB_SCAN = True
                     if window('plex_runLibScan') == "full":
                         fullSync()
                     elif window('plex_runLibScan') == "repair":
                         fullSync(repair=True)
                     window('plex_runLibScan', clear=True)
                     window('plex_dbScan', clear=True)
-                    state.DB_SCAN = False
                     # Full library sync finished
                     self.showKodiNote(lang(39407), forced=False)
                 # Reset views was requested from somewhere else
                 elif window('plex_runLibScan') == "views":
                     log.info('Refresh playlist and nodes requested, starting')
                     window('plex_dbScan', value="true")
-                    state.DB_SCAN = True
                     window('plex_runLibScan', clear=True)
 
                     # First remove playlists
@@ -1605,7 +1602,6 @@ class LibrarySync(Thread):
                                           forced=True,
                                           icon="error")
                     window('plex_dbScan', clear=True)
-                    state.DB_SCAN = False
                 elif window('plex_runLibScan') == 'fanart':
                     window('plex_runLibScan', clear=True)
                     # Only look for missing fanart (No)
@@ -1617,37 +1613,31 @@ class LibrarySync(Thread):
                         yeslabel=lang(39225)))
                 elif window('plex_runLibScan') == 'del_textures':
                     window('plex_runLibScan', clear=True)
-                    state.DB_SCAN = True
                     window('plex_dbScan', value="true")
                     import artwork
                     artwork.Artwork().fullTextureCacheSync()
                     window('plex_dbScan', clear=True)
-                    state.DB_SCAN = False
                 else:
                     now = getUnixTimestamp()
                     if (now - lastSync > fullSyncInterval and
                             not xbmcplayer.isPlaying()):
                         lastSync = now
                         log.info('Doing scheduled full library scan')
-                        state.DB_SCAN = True
                         window('plex_dbScan', value="true")
-                        if fullSync() is False and not thread_stopped():
+                        if fullSync() is False and not threadStopped():
                             log.error('Could not finish scheduled full sync')
                             self.showKodiNote(lang(39410),
                                               forced=True,
                                               icon='error')
                         window('plex_dbScan', clear=True)
-                        state.DB_SCAN = False
                         # Full library sync finished
                         self.showKodiNote(lang(39407), forced=False)
                     elif now - lastTimeSync > oneDay:
                         lastTimeSync = now
                         log.info('Starting daily time sync')
-                        state.DB_SCAN = True
                         window('plex_dbScan', value="true")
                         self.syncPMStime()
                         window('plex_dbScan', clear=True)
-                        state.DB_SCAN = False
                     elif enableBackgroundSync:
                         # Check back whether we should process something
                         # Only do this once every while (otherwise, potentially

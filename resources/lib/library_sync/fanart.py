@@ -5,11 +5,11 @@ from Queue import Empty
 
 from xbmc import sleep
 
-from utils import ThreadMethods, window
+from utils import ThreadMethodsAdditionalStop, ThreadMethods, window, \
+    ThreadMethodsAdditionalSuspend
 import plexdb_functions as plexdb
 import itemtypes
 import variables as v
-import state
 
 ###############################################################################
 
@@ -18,8 +18,9 @@ log = getLogger("PLEX."+__name__)
 ###############################################################################
 
 
-@ThreadMethods(add_suspends=[state.SUSPEND_LIBRARY_THREAD, state.DB_SCAN],
-               add_stops=[state.STOP_SYNC])
+@ThreadMethodsAdditionalSuspend('suspend_LibraryThread')
+@ThreadMethodsAdditionalStop('plex_shouldStop')
+@ThreadMethods
 class Process_Fanart_Thread(Thread):
     """
     Threaded download of additional fanart in the background
@@ -54,14 +55,14 @@ class Process_Fanart_Thread(Thread):
         Do the work
         """
         log.debug("---===### Starting FanartSync ###===---")
-        thread_stopped = self.thread_stopped
-        thread_suspended = self.thread_suspended
+        threadStopped = self.threadStopped
+        threadSuspended = self.threadSuspended
         queue = self.queue
-        while not thread_stopped():
+        while not threadStopped():
             # In the event the server goes offline
-            while thread_suspended():
+            while threadSuspended() or window('plex_dbScan'):
                 # Set in service.py
-                if thread_stopped():
+                if threadStopped():
                     # Abort was requested while waiting. We should exit
                     log.info("---===### Stopped FanartSync ###===---")
                     return

@@ -13,7 +13,6 @@ from userclient import UserClient
 
 from PlexAPI import PlexAPI
 from PlexFunctions import GetMachineIdentifier, get_PMS_settings
-import state
 
 ###############################################################################
 
@@ -497,7 +496,7 @@ class InitialSetup():
             # Open Settings page now? You will need to restart!
             goToSettings = dialog.yesno(heading=lang(29999), line1=lang(39017))
         if goToSettings:
-            state.PMS_STATUS = 'Stop'
+            window('plex_serverStatus', value="Stop")
             xbmc.executebuiltin(
                 'Addon.OpenSettings(plugin.video.plexkodiconnect)')
         else:

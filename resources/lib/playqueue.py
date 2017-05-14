@@ -5,13 +5,12 @@ from threading import RLock, Thread
 
 from xbmc import sleep, Player, PlayList, PLAYLIST_MUSIC, PLAYLIST_VIDEO
 
-from utils import window, ThreadMethods
+from utils import window, ThreadMethods, ThreadMethodsAdditionalSuspend
 import playlist_func as PL
 from PlexFunctions import ConvertPlexToKodiTime, GetAllPlexChildren
 from PlexAPI import API
 from playbackutils import PlaybackUtils
 import variables as v
-import state
 
 ###############################################################################
 log = logging.getLogger("PLEX."+__name__)
@@ -22,7 +21,8 @@ PLUGIN = 'plugin://%s' % v.ADDON_ID
 ###############################################################################
 
 
-@ThreadMethods(add_suspends=[state.PMS_STATUS])
+@ThreadMethodsAdditionalSuspend('plex_serverStatus')
+@ThreadMethods
 class Playqueue(Thread):
     """
     Monitors Kodi's playqueues for changes on the Kodi side
@@ -153,7 +153,7 @@ class Playqueue(Thread):
                 # Ignore new media added by other addons
                 continue
             for j, old_item in enumerate(old):
-                if self.thread_stopped():
+                if self.threadStopped():
                     # Chances are that we got an empty Kodi playlist due to
                     # Kodi exit
                     return
@@ -193,8 +193,8 @@ class Playqueue(Thread):
         log.debug('Done comparing playqueues')
 
     def run(self):
-        thread_stopped = self.thread_stopped
-        thread_suspended = self.thread_suspended
+        threadStopped = self.threadStopped
+        threadSuspended = self.threadSuspended
         log.info("----===## Starting PlayQueue client ##===----")
         # Initialize the playqueues, if Kodi already got items in them
         for playqueue in self.playqueues:
@@ -203,9 +203,9 @@ class Playqueue(Thread):
                     PL.init_Plex_playlist(playqueue, kodi_item=item)
                 else:
                     PL.add_item_to_PMS_playlist(playqueue, i, kodi_item=item)
-        while not thread_stopped():
-            while thread_suspended():
-                if thread_stopped():
+        while not threadStopped():
+            while threadSuspended():
+                if threadStopped():
                     break
                 sleep(1000)
             with lock:

@@ -5,18 +5,19 @@ from Queue import Empty
 
 from xbmc import sleep
 
-from utils import ThreadMethods
+from utils import ThreadMethodsAdditionalStop, ThreadMethods
 import itemtypes
 import sync_info
-import state
 
 ###############################################################################
+
 log = getLogger("PLEX."+__name__)
 
 ###############################################################################
 
 
-@ThreadMethods(add_stops=[state.SUSPEND_LIBRARY_THREAD])
+@ThreadMethodsAdditionalStop('suspend_LibraryThread')
+@ThreadMethods
 class Threaded_Process_Metadata(Thread):
     """
     Not yet implemented for more than 1 thread - if ever. Only to be called by
@@ -69,9 +70,9 @@ class Threaded_Process_Metadata(Thread):
         item_fct = getattr(itemtypes, self.item_type)
         # cache local variables because it's faster
         queue = self.queue
-        thread_stopped = self.thread_stopped
+        threadStopped = self.threadStopped
         with item_fct() as item_class:
-            while thread_stopped() is False:
+            while threadStopped() is False:
                 # grabs item from queue
                 try:
                     item = queue.get(block=False)

@@ -11,9 +11,9 @@ from ssl import CERT_NONE
 
 from xbmc import sleep
 
-from utils import window, settings, ThreadMethods
+from utils import window, settings, ThreadMethodsAdditionalSuspend, \
+    ThreadMethods
 from companion import process_command
-import state
 
 ###############################################################################
 
@@ -22,7 +22,8 @@ log = logging.getLogger("PLEX."+__name__)
 ###############################################################################
 
 
-@ThreadMethods(add_suspends=[state.SUSPEND_LIBRARY_THREAD])
+@ThreadMethodsAdditionalSuspend('suspend_LibraryThread')
+@ThreadMethods
 class WebSocket(Thread):
     opcode_data = (websocket.ABNF.OPCODE_TEXT, websocket.ABNF.OPCODE_BINARY)
 
@@ -61,11 +62,11 @@ class WebSocket(Thread):
 
         counter = 0
         handshake_counter = 0
-        thread_stopped = self.thread_stopped
-        thread_suspended = self.thread_suspended
-        while not thread_stopped():
+        threadStopped = self.threadStopped
+        threadSuspended = self.threadSuspended
+        while not threadStopped():
             # In the event the server goes offline
-            while thread_suspended():
+            while threadSuspended():
                 # Set in service.py
                 if self.ws is not None:
                     try:
@@ -73,7 +74,7 @@ class WebSocket(Thread):
                     except:
                         pass
                     self.ws = None
-                if thread_stopped():
+                if threadStopped():
                     # Abort was requested while waiting. We should exit
                     log.info("##===---- %s Stopped ----===##"
                              % self.__class__.__name__)
@@ -159,15 +160,16 @@ class PMS_Websocket(WebSocket):
 
     def getUri(self):
         server = window('pms_server')
+        # Need to use plex.tv token, if any. NOT user token
+        token = window('plex_token')
         # Get the appropriate prefix for the websocket
         if server.startswith('https'):
             server = "wss%s" % server[5:]
         else:
             server = "ws%s" % server[4:]
         uri = "%s/:/websockets/notifications" % server
-        # Need to use plex.tv token, if any. NOT user token
-        if state.PLEX_TOKEN:
-            uri += '?X-Plex-Token=%s' % state.PLEX_TOKEN
+        if token:
+            uri += '?X-Plex-Token=%s' % token
         sslopt = {}
         if settings('sslverify') == "false":
             sslopt["cert_reqs"] = CERT_NONE
@@ -216,7 +218,9 @@ class Alexa_Websocket(WebSocket):
     def getUri(self):
         self.plex_client_Id = window('plex_client_Id')
         uri = ('wss://pubsub.plex.tv/sub/websockets/%s/%s?X-Plex-Token=%s'
-               % (window('currUserId'), self.plex_client_Id, state.PLEX_TOKEN))
+               % (window('currUserId'),
+                  self.plex_client_Id,
+                  window('plex_token')))
         sslopt = {}
         log.debug("Uri: %s, sslopt: %s" % (uri, sslopt))
         return uri, sslopt
@@ -248,10 +252,11 @@ class Alexa_Websocket(WebSocket):
     def IOError_response(self):
         pass
 
-    def thread_suspended(self):
+    def threadSuspended(self):
         """
         Overwrite to ignore library sync stuff and allow to check for
-        RESTRICTED_USER and PLEX_TOKEN
+        plex_restricteduser
         """
-        return self._thread_suspended or state.RESTRICTED_USER \
-            or not state.PLEX_TOKEN
+        return (self._threadSuspended or
+                window('plex_restricteduser') == 'true' or
+                not window('plex_token'))

@@ -12,7 +12,7 @@ from xbmc import sleep, executebuiltin, translatePath
 from xbmcgui import ListItem
 
 from utils import window, settings, language as lang, dialog, tryEncode, \
-    CatchExceptions, JSONRPC, exists_dir, plex_command
+    CatchExceptions, JSONRPC, exists_dir
 import downloadutils
 
 from PlexFunctions import GetPlexMetadata, GetPlexSectionResults, \
@@ -42,8 +42,8 @@ def chooseServer():
     server = setup.PickPMS(showDialog=True)
     if server is None:
         log.error('We did not connect to a new PMS, aborting')
-        plex_command('SUSPEND_USER_CLIENT', 'False')
-        plex_command('SUSPEND_LIBRARY_THREAD', 'False')
+        window('suspend_Userclient', clear=True)
+        window('suspend_LibraryThread', clear=True)
         return
 
     log.info("User chose server %s" % server['name'])
@@ -81,7 +81,6 @@ def togglePlexTV():
         settings('plex_status', value="Not logged in to plex.tv")
 
         window('plex_token', clear=True)
-        plex_command('PLEX_TOKEN', '')
         window('plex_username', clear=True)
     else:
         log.info('Login to plex.tv')
@@ -101,7 +100,7 @@ def resetAuth():
     resp = dialog('yesno', heading="{plex}", line1=lang(39206))
     if resp == 1:
         log.info("Reset login attempts.")
-        plex_command('PMS_STATUS', 'Auth')
+        window('plex_serverStatus', value="Auth")
     else:
         executebuiltin('Addon.OpenSettings(plugin.video.plexkodiconnect)')
 
@@ -965,19 +964,22 @@ def enterPMS():
 
 def __LogIn():
     """
-    Resets (clears) window properties to enable (re-)login
+    Resets (clears) window properties to enable (re-)login:
+        suspend_Userclient
+        plex_runLibScan: set to 'full' to trigger lib sync
 
-    SUSPEND_LIBRARY_THREAD is set to False in service.py if user was signed
-    out!
+    suspend_LibraryThread is cleared in service.py if user was signed out!
     """
     window('plex_runLibScan', value='full')
     # Restart user client
-    plex_command('SUSPEND_USER_CLIENT', 'False')
+    window('suspend_Userclient', clear=True)
 
 
 def __LogOut():
     """
-    Finishes lib scans, logs out user.
+    Finishes lib scans, logs out user. The following window attributes are set:
+        suspend_LibraryThread: 'true'
+        suspend_Userclient: 'true'
 
     Returns True if successfully signed out, False otherwise
     """
@@ -989,7 +991,7 @@ def __LogOut():
            time=3000,
            sound=False)
     # Pause library sync thread
-    plex_command('SUSPEND_LIBRARY_THREAD', 'True')
+    window('suspend_LibraryThread', value='true')
     # Wait max for 10 seconds for all lib scans to shutdown
     counter = 0
     while window('plex_dbScan') == 'true':
@@ -997,18 +999,17 @@ def __LogOut():
             # Failed to reset PMS and plex.tv connects. Try to restart Kodi.
             dialog('ok', lang(29999), lang(39208))
             # Resuming threads, just in case
-            plex_command('SUSPEND_LIBRARY_THREAD', 'False')
+            window('suspend_LibraryThread', clear=True)
             log.error("Could not stop library sync, aborting")
             return False
         counter += 1
         sleep(50)
     log.debug("Successfully stopped library sync")
 
-    counter = 0
     # Log out currently signed in user:
-    window('plex_serverStatus', value='401')
-    plex_command('PMS_STATUS', '401')
+    window('plex_serverStatus', value="401")
     # Above method needs to have run its course! Hence wait
+    counter = 0
     while window('plex_serverStatus') == "401":
         if counter > 100:
             # 'Failed to reset PKC. Try to restart Kodi.'
@@ -1018,5 +1019,5 @@ def __LogOut():
         counter += 1
         sleep(50)
     # Suspend the user client during procedure
-    plex_command('SUSPEND_USER_CLIENT', 'True')
+    window('suspend_Userclient', value='true')
     return True

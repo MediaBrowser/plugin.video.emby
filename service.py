@@ -42,11 +42,10 @@ from playqueue import Playqueue
 
 import PlexAPI
 from PlexCompanion import PlexCompanion
-from command_pipeline import Monitor_Window
+from monitor_kodi_play import Monitor_Kodi_Play
 from playback_starter import Playback_Starter
 from artwork import Image_Cache_Thread
 import variables as v
-import state
 
 ###############################################################################
 
@@ -106,6 +105,7 @@ class Service():
 
         # Reset window props for profile switch
         properties = [
+
             "plex_online", "plex_serverStatus", "plex_onWake",
             "plex_dbCheck", "plex_kodiScan",
             "plex_shouldStop", "currUserId", "plex_dbScan",
@@ -113,9 +113,10 @@ class Service():
             "plex_runLibScan", "plex_username", "pms_token", "plex_token",
             "pms_server", "plex_machineIdentifier", "plex_servername",
             "plex_authenticated", "PlexUserImage", "useDirectPaths",
+            "suspend_LibraryThread", "plex_terminateNow",
             "kodiplextimeoffset", "countError", "countUnauthorized",
             "plex_restricteduser", "plex_allows_mediaDeletion",
-            "plex_command", "plex_result", "plex_force_transcode_pix"
+            "plex_play_new_item", "plex_result", "plex_force_transcode_pix"
         ]
         for prop in properties:
             window(prop, clear=True)
@@ -140,8 +141,8 @@ class Service():
         kodiProfile = v.KODI_PROFILE
 
         # Detect playback start early on
-        self.command_pipeline = Monitor_Window(self)
-        self.command_pipeline.start()
+        self.monitor_kodi_play = Monitor_Kodi_Play(self)
+        self.monitor_kodi_play.start()
 
         # Server auto-detect
         initialsetup.InitialSetup().setup()
@@ -260,7 +261,7 @@ class Service():
                             self.server_online = False
                             window('plex_online', value="false")
                             # Suspend threads
-                            state.SUSPEND_LIBRARY_THREAD = True
+                            window('suspend_LibraryThread', value='true')
                             log.error("Plex Media Server went offline")
                             if settings('show_pms_offline') == 'true':
                                 dialog('notification',
@@ -300,7 +301,7 @@ class Service():
                         if window('plex_authenticated') == 'true':
                             # Server got offline when we were authenticated.
                             # Hence resume threads
-                            state.SUSPEND_LIBRARY_THREAD = False
+                            window('suspend_LibraryThread', clear=True)
 
                         # Start the userclient thread
                         if not self.user_running:
@@ -320,14 +321,33 @@ class Service():
         # Terminating PlexKodiConnect
 
         # Tell all threads to terminate (e.g. several lib sync threads)
-        state.STOP_PKC = True
+        window('plex_terminateNow', value='true')
+        try:
+            self.plexCompanion.stopThread()
+        except:
+            log.warn('plexCompanion already shut down')
+        try:
+            self.library.stopThread()
+        except:
+            log.warn('Library sync already shut down')
+        try:
+            self.ws.stopThread()
+        except:
+            log.warn('Websocket client already shut down')
+        try:
+            self.alexa.stopThread()
+        except:
+            log.warn('Websocket client already shut down')
+        try:
+            self.user.stopThread()
+        except:
+            log.warn('User client already shut down')
         try:
             downloadutils.DownloadUtils().stopSession()
         except:
             pass
         window('plex_service_started', clear=True)
         log.warn("======== STOP %s ========" % v.ADDON_NAME)
-
 
 # Safety net - Kody starts PKC twice upon first installation!
 if window('plex_service_started') == 'true':
