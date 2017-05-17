@@ -68,10 +68,10 @@ class VideoNodes(object):
             "special://profile/library/video/Plex-%s/" % dirname)
 
         if delete:
-            files = [f for f in listdir(nodepath) if isfile(join(nodepath, f))]
-            for file in files:
-                remove(nodepath + file)
-            log.info("Sucessfully removed videonode: %s." % tagname)
+            if exists_dir(nodepath):
+                from shutil import rmtree
+                rmtree(nodepath)
+                log.info("Sucessfully removed videonode: %s." % tagname)
             return
 
         # Verify the video directory
