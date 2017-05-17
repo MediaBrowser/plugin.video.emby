@@ -42,13 +42,6 @@ class DownloadUtils():
     def __init__(self):
         self.__dict__ = self._shared_state
 
-    def setUsername(self, username):
-        """
-        Reserved for userclient only
-        """
-        self.username = username
-        log.debug("Set username: %s" % username)
-
     def setServer(self, server):
         """
         Reserved for userclient only
@@ -103,7 +96,6 @@ class DownloadUtils():
         # Set other stuff
         self.setServer(window('pms_server'))
         self.setToken(window('pms_token'))
-        self.setUsername(window('plex_username'))
 
         # Counters to declare PMS dead or unauthorized
         # Use window variables because start of movies will be called with a

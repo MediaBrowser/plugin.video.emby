@@ -287,7 +287,6 @@ class UserClient(threading.Thread):
 
         # Reset token in downloads
         self.doUtils.setToken('')
-        self.doUtils.setUsername('')
 
         self.currToken = None
         self.auth = True
