@@ -156,10 +156,14 @@ class Playqueue(Thread):
                     # Chances are that we got an empty Kodi playlist due to
                     # Kodi exit
                     return
-                if (old_item.file.startswith('plugin://') and
-                        not old_item['file'].startswith(PLUGIN)):
-                    # Ignore media by other addons
-                    continue
+                try:
+                    if (old_item.file.startswith('plugin://') and
+                            not old_item['file'].startswith(PLUGIN)):
+                        # Ignore media by other addons
+                        continue
+                except AttributeError:
+                    # were not passed a filename; ignore
+                    pass
                 if new_item.get('id') is None:
                     identical = old_item.file == new_item['file']
                 else:
