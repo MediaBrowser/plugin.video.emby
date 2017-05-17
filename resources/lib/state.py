@@ -25,7 +25,12 @@ DIRECT_PATHS = False
 
 # Along with window('plex_authenticated')
 AUTHENTICATED = False
-PLEX_TOKEN = None
-# Plex ID of the current user (e.g. for plex.tv) as a STRING
+# plex.tv username
 PLEX_USERNAME = None
+# Token for that user for plex.tv
+PLEX_TOKEN = None
+# Plex ID of that user (e.g. for plex.tv) as a STRING
 PLEX_USER_ID = None
+# Token passed along, e.g. if playback initiated by Plex Companion. Might be
+# another user playing something! Token identifies user
+PLEX_TRANSIENT_TOKEN = None

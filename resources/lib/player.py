@@ -13,6 +13,7 @@ import downloadutils
 import plexdb_functions as plexdb
 import kodidb_functions as kodidb
 import variables as v
+import state
 
 ###############################################################################
 
@@ -308,6 +309,9 @@ class Player(xbmc.Player):
                      'plex_playbackProps',
                      'plex_forcetranscode'):
             window(item, clear=True)
+        # We might have saved a transient token from a user flinging media via
+        # Companion
+        state.PLEX_TRANSIENT_TOKEN = None
         log.debug("Cleared playlist properties.")
 
     def onPlayBackEnded(self):

@@ -14,6 +14,7 @@ from PlexFunctions import ParseContainerKey, GetPlexMetadata
 from PlexAPI import API
 import player
 import variables as v
+import state
 
 ###############################################################################
 
@@ -76,6 +77,8 @@ class PlexCompanion(Thread):
         log.debug('Processing: %s' % task)
         data = task['data']
 
+        # Get the token of the user flinging media (might be different one)
+        state.PLEX_TRANSIENT_TOKEN = data.get('token')
         if task['action'] == 'alexa':
             # e.g. Alexa
             xml = GetPlexMetadata(data['key'])

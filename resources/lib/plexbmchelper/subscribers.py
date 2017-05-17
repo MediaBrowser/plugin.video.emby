@@ -5,6 +5,7 @@ import threading
 import downloadutils
 from utils import window
 import PlexFunctions as pf
+import state
 from functions import *
 
 ###############################################################################
@@ -68,12 +69,12 @@ class SubscriptionManager:
             info = self.getPlayerProperties(playerid)
             # save this info off so the server update can use it too
             self.playerprops[playerid] = info;
-            state = info['state']
+            status = info['state']
             time = info['time']
         else:
-            state = "stopped"
+            status = "stopped"
             time = 0
-        ret = "\n"+'  <Timeline state="%s" time="%s" type="%s"' % (state, time, ptype)
+        ret = "\n"+'  <Timeline state="%s" time="%s" type="%s"' % (status, time, ptype)
         if playerid is None:
             ret += ' />'
             return ret
@@ -119,6 +120,8 @@ class SubscriptionManager:
         ret += ' mute="%s"' % self.mute
         ret += ' repeat="%s"' % info['repeat']
         ret += ' itemType="%s"' % info['itemType']
+        if state.PLEX_TRANSIENT_TOKEN:
+            ret += ' token="%s"' % state.PLEX_TRANSIENT_TOKEN
         # Might need an update in the future
         if ptype == 'video':
             ret += ' subtitleStreamID="-1"'
@@ -153,7 +156,7 @@ class SubscriptionManager:
     def notifyServer(self, players):
         for typus, p in players.iteritems():
             info = self.playerprops[p.get('playerid')]
-            self._sendNotification(info)
+            # self._sendNotification(info)
             self.lastinfo[typus] = info
             # Cross the one of the list
             try:
@@ -163,7 +166,7 @@ class SubscriptionManager:
         # Process the players we have left (to signal a stop)
         for typus, p in self.lastplayers.iteritems():
             self.lastinfo[typus]['state'] = 'stopped'
-            self._sendNotification(self.lastinfo[typus])
+            # self._sendNotification(self.lastinfo[typus])
 
     def _sendNotification(self, info):
         params = {
@@ -174,6 +177,8 @@ class SubscriptionManager:
             'time': info['time'],
             'duration': info['duration']
         }
+        if state.PLEX_TRANSIENT_TOKEN:
+            params['token'] = state.PLEX_TRANSIENT_TOKEN
         if info.get('playQueueID'):
             params['containerKey'] = '/playQueues/%s' % info['playQueueID']
             params['playQueueVersion'] = info['playQueueVersion']
