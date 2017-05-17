@@ -17,6 +17,7 @@ import variables as v
 from downloadutils import DownloadUtils
 from PKC_listitem import convert_PKC_to_listitem
 import plexdb_functions as plexdb
+import state
 
 ###############################################################################
 log = logging.getLogger("PLEX."+__name__)
@@ -39,7 +40,7 @@ class Playback_Starter(Thread):
         """
         log.info("Process_play called with plex_id %s, kodi_id %s"
                  % (plex_id, kodi_id))
-        if window('plex_authenticated') != "true":
+        if not state.AUTHENTICATED:
             log.error('Not yet authenticated for PMS, abort starting playback')
             # Todo: Warn user with dialog
             return
