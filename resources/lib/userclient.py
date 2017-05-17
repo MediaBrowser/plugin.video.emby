@@ -142,7 +142,7 @@ class UserClient(threading.Thread):
                 return False
 
         # Set to windows property
-        state.CURRENT_USER_ID = userId or None
+        state.PLEX_USER_ID = userId or None
         state.PLEX_USERNAME = username
         # This is the token for the current PMS (might also be '')
         window('pms_token', value=self.currToken)
@@ -274,7 +274,7 @@ class UserClient(threading.Thread):
         window('pms_server', clear=True)
         window('plex_machineIdentifier', clear=True)
         window('plex_servername', clear=True)
-        state.CURRENT_USER_ID = None
+        state.PLEX_USER_ID = None
         state.PLEX_USERNAME = None
         window('plex_restricteduser', clear=True)
         state.RESTRICTED_USER = False
@@ -328,7 +328,7 @@ class UserClient(threading.Thread):
                         # Successfully authenticated and loaded a user
                         log.info("Successfully authenticated!")
                         log.info("Current user: %s" % self.currUser)
-                        log.info("Current userId: %s" % state.CURRENT_USER_ID)
+                        log.info("Current userId: %s" % state.PLEX_USER_ID)
                         self.retry = 0
                         state.SUSPEND_LIBRARY_THREAD = False
                         window('plex_serverStatus', clear=True)
