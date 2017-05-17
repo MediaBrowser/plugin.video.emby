@@ -10,12 +10,12 @@ import xbmcaddon
 from xbmcvfs import exists
 
 
-from utils import window, settings, language as lang, ThreadMethods, \
-    ThreadMethodsAdditionalSuspend
+from utils import window, settings, language as lang, ThreadMethods
 import downloadutils
 
 import PlexAPI
 from PlexFunctions import GetMachineIdentifier
+import state
 
 ###############################################################################
 
@@ -24,8 +24,7 @@ log = logging.getLogger("PLEX."+__name__)
 ###############################################################################
 
 
-@ThreadMethodsAdditionalSuspend('suspend_Userclient')
-@ThreadMethods
+@ThreadMethods(add_suspends=[state.SUSPEND_USER_CLIENT])
 class UserClient(threading.Thread):
 
     # Borg - multiple instances, shared state
@@ -118,25 +117,6 @@ class UserClient(threading.Thread):
     def hasAccess(self):
         # Plex: always return True for now
         return True
-        # hasAccess is verified in service.py
-        url = "{server}/emby/Users?format=json"
-        result = self.doUtils.downloadUrl(url)
-
-        if result is False:
-            # Access is restricted, set in downloadutils.py via exception
-            log.info("Access is restricted.")
-            self.HasAccess = False
-
-        elif window('plex_online') != "true":
-            # Server connection failed
-            pass
-
-        elif window('plex_serverStatus') == "restricted":
-            log.info("Access is granted.")
-            self.HasAccess = True
-            window('plex_serverStatus', clear=True)
-            xbmcgui.Dialog().notification(lang(29999),
-                                          lang(33007))
 
     def loadCurrUser(self, username, userId, usertoken, authenticated=False):
         log.debug('Loading current user')
@@ -171,7 +151,10 @@ class UserClient(threading.Thread):
         # This is the token for plex.tv for the current user
         # Is only '' if user is not signed in to plex.tv
         window('plex_token', value=settings('plexToken'))
+        state.PLEX_TOKEN = settings('plexToken') or None
         window('plex_restricteduser', value=settings('plex_restricteduser'))
+        state.RESTRICTED_USER = True \
+            if settings('plex_restricteduser') == 'true' else False
         window('pms_server', value=self.currServer)
         window('plex_machineIdentifier', value=self.machineIdentifier)
         window('plex_servername', value=self.servername)
@@ -202,7 +185,7 @@ class UserClient(threading.Thread):
         # Give attempts at entering password / selecting user
         if self.retry >= 2:
             log.error("Too many retries to login.")
-            window('plex_serverStatus', value="Stop")
+            state.PMS_STATUS = 'Stop'
             dialog.ok(lang(33001),
                       lang(39023))
             xbmc.executebuiltin(
@@ -284,6 +267,7 @@ class UserClient(threading.Thread):
 
         window('plex_authenticated', clear=True)
         window('pms_token', clear=True)
+        state.PLEX_TOKEN = None
         window('plex_token', clear=True)
         window('pms_server', clear=True)
         window('plex_machineIdentifier', clear=True)
@@ -291,6 +275,7 @@ class UserClient(threading.Thread):
         window('currUserId', clear=True)
         window('plex_username', clear=True)
         window('plex_restricteduser', clear=True)
+        state.RESTRICTED_USER = False
 
         settings('username', value='')
         settings('userid', value='')
@@ -310,32 +295,32 @@ class UserClient(threading.Thread):
 
     def run(self):
         log.info("----===## Starting UserClient ##===----")
-        while not self.threadStopped():
-            while self.threadSuspended():
-                if self.threadStopped():
+        thread_stopped = self.thread_stopped
+        thread_suspended = self.thread_suspended
+        while not thread_stopped():
+            while thread_suspended():
+                if thread_stopped():
                     break
                 xbmc.sleep(1000)
 
-            status = window('plex_serverStatus')
-
-            if status == "Stop":
+            if state.PMS_STATUS == "Stop":
                 xbmc.sleep(500)
                 continue
 
             # Verify the connection status to server
-            elif status == "restricted":
+            elif state.PMS_STATUS == "restricted":
                 # Parental control is restricting access
                 self.HasAccess = False
 
-            elif status == "401":
+            elif state.PMS_STATUS == "401":
                 # Unauthorized access, revoke token
-                window('plex_serverStatus', value="Auth")
+                state.PMS_STATUS = 'Auth'
                 self.resetClient()
                 xbmc.sleep(3000)
 
             if self.auth and (self.currUser is None):
                 # Try to authenticate user
-                if not status or status == "Auth":
+                if not state.PMS_STATUS or state.PMS_STATUS == "Auth":
                     # Set auth flag because we no longer need
                     # to authenticate the user
                     self.auth = False
@@ -345,8 +330,9 @@ class UserClient(threading.Thread):
                         log.info("Current user: %s" % self.currUser)
                         log.info("Current userId: %s" % self.currUserId)
                         self.retry = 0
-                        window('suspend_LibraryThread', clear=True)
+                        state.SUSPEND_LIBRARY_THREAD = False
                         window('plex_serverStatus', clear=True)
+                        state.PMS_STATUS = False
 
             if not self.auth and (self.currUser is None):
                 # Loop if no server found
@@ -354,7 +340,7 @@ class UserClient(threading.Thread):
 
                 # The status Stop is for when user cancelled password dialog.
                 # Or retried too many times
-                if server and status != "Stop":
+                if server and state.PMS_STATUS != "Stop":
                     # Only if there's information found to login
                     log.debug("Server found: %s" % server)
                     self.auth = True
@@ -362,5 +348,4 @@ class UserClient(threading.Thread):
             # Minimize CPU load
             xbmc.sleep(100)
 
-        self.doUtils.stopSession()
         log.info("##===---- UserClient Stopped ----===##")

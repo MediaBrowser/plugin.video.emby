@@ -7,13 +7,14 @@ from urllib import urlencode
 
 from xbmc import sleep, executebuiltin
 
-from utils import settings, ThreadMethodsAdditionalSuspend, ThreadMethods
+from utils import settings, ThreadMethods
 from plexbmchelper import listener, plexgdm, subscribers, functions, \
     httppersist, plexsettings
 from PlexFunctions import ParseContainerKey, GetPlexMetadata
 from PlexAPI import API
 import player
 import variables as v
+import state
 
 ###############################################################################
 
@@ -22,8 +23,7 @@ log = logging.getLogger("PLEX."+__name__)
 ###############################################################################
 
 
-@ThreadMethodsAdditionalSuspend('plex_serverStatus')
-@ThreadMethods
+@ThreadMethods(add_suspends=[state.PMS_STATUS])
 class PlexCompanion(Thread):
     """
     """
@@ -164,8 +164,8 @@ class PlexCompanion(Thread):
         httpd = self.httpd
         # Cache for quicker while loops
         client = self.client
-        threadStopped = self.threadStopped
-        threadSuspended = self.threadSuspended
+        thread_stopped = self.thread_stopped
+        thread_suspended = self.thread_suspended
 
         # Start up instances
         requestMgr = httppersist.RequestMgr()
@@ -213,12 +213,12 @@ class PlexCompanion(Thread):
         if httpd:
             t = Thread(target=httpd.handle_request)
 
-        while not threadStopped():
+        while not thread_stopped():
             # If we are not authorized, sleep
             # Otherwise, we trigger a download which leads to a
             # re-authorizations
-            while threadSuspended():
-                if threadStopped():
+            while thread_suspended():
+                if thread_stopped():
                     break
                 sleep(1000)
             try:
