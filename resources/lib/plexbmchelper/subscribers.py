@@ -75,7 +75,6 @@ class SubscriptionManager:
             time = 0
         ret = "\n"+'  <Timeline state="%s" time="%s" type="%s"' % (state, time, ptype)
         if playerid is None:
-            ret += ' seekRange="0-0"'
             ret += ' />'
             return ret
 
@@ -110,7 +109,6 @@ class SubscriptionManager:
             ret += ' containerKey="%s"' % self.containerKey
 
         ret += ' duration="%s"' % info['duration']
-        ret += ' seekRange="0-%s"' % info['duration']
         ret += ' controllable="%s"' % self.controllable()
         ret += ' machineIdentifier="%s"' % serv.get('uuid', "")
         ret += ' protocol="%s"' % serv.get('protocol', "http")
