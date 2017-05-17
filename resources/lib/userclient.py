@@ -143,7 +143,7 @@ class UserClient(threading.Thread):
 
         # Set to windows property
         state.CURRENT_USER_ID = userId or None
-        window('plex_username', value=username)
+        state.PLEX_USERNAME = username
         # This is the token for the current PMS (might also be '')
         window('pms_token', value=self.currToken)
         # This is the token for plex.tv for the current user
@@ -275,7 +275,7 @@ class UserClient(threading.Thread):
         window('plex_machineIdentifier', clear=True)
         window('plex_servername', clear=True)
         state.CURRENT_USER_ID = None
-        window('plex_username', clear=True)
+        state.PLEX_USERNAME = None
         window('plex_restricteduser', clear=True)
         state.RESTRICTED_USER = False
 

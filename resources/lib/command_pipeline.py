@@ -61,6 +61,11 @@ class Monitor_Window(Thread):
                     state.SUSPEND_USER_CLIENT = False
                 elif value.startswith('PLEX_TOKEN-'):
                     state.PLEX_TOKEN = value.replace('PLEX_TOKEN-', '') or None
+                elif value.startswith('PLEX_USERNAME-'):
+                    state.PLEX_USERNAME = \
+                        value.replace('PLEX_USERNAME-', '') or None
+                else:
+                    raise NotImplementedError('%s not implemented' % value)
             else:
                 sleep(50)
         # Put one last item into the queue to let playback_starter end

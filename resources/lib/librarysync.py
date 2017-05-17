@@ -1354,10 +1354,10 @@ class LibrarySync(Thread):
                         pass
                     elif not (currSess['userId'] == state.CURRENT_USER_ID
                               or
-                              currSess['username'] == window('plex_username')):
+                              currSess['username'] == state.PLEX_USERNAME):
                         log.debug('Our username %s, userid %s did not match '
                                   'the session username %s with userid %s'
-                                  % (window('plex_username'),
+                                  % (state.PLEX_USERNAME,
                                      state.CURRENT_USER_ID,
                                      currSess['username'],
                                      currSess['userId']))
@@ -1396,7 +1396,7 @@ class LibrarySync(Thread):
                     'lastViewedAt': DateToKodi(getUnixTimestamp())
                 })
                 log.debug('Update playstate for user %s with id %s: %s'
-                          % (window('plex_username'),
+                          % (state.PLEX_USERNAME,
                              state.CURRENT_USER_ID,
                              items[-1]))
         # Now tell Kodi where we are

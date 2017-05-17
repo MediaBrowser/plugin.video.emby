@@ -82,7 +82,7 @@ def togglePlexTV():
 
         window('plex_token', clear=True)
         plex_command('PLEX_TOKEN', '')
-        window('plex_username', clear=True)
+        plex_command('PLEX_USERNAME', '')
     else:
         log.info('Login to plex.tv')
         import initialsetup
@@ -147,7 +147,7 @@ def doMainListing(content_type=None):
     addDirectoryItem(lang(30173),
                      "plugin://%s?mode=channels" % v.ADDON_ID)
     # Plex user switch
-    addDirectoryItem(lang(39200) + window('plex_username'),
+    addDirectoryItem(lang(39200),
                      "plugin://%s?mode=switchuser" % v.ADDON_ID)
 
     # some extra entries for settings and stuff

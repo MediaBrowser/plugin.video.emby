@@ -27,4 +27,5 @@ DIRECT_PATHS = False
 AUTHENTICATED = False
 PLEX_TOKEN = None
 # Plex ID of the current user (e.g. for plex.tv) as a STRING
+PLEX_USERNAME = None
 CURRENT_USER_ID = None
