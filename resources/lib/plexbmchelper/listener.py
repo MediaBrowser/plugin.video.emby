@@ -163,7 +163,7 @@ class MyHandler(BaseHTTPRequestHandler):
             else:
                 # Throw it to companion.py
                 process_command(request_path, params, self.server.queue)
-                self.response(getOKMsg(), js.getPlexHeaders())
+                self.response('', js.getPlexHeaders())
                 subMgr.notify()
         except:
             log.error('Error encountered. Traceback:')
