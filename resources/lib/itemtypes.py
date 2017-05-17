@@ -16,6 +16,7 @@ import kodidb_functions as kodidb
 import PlexAPI
 from PlexFunctions import GetPlexMetadata
 import variables as v
+import state
 
 ###############################################################################
 
@@ -35,8 +36,6 @@ class Items(object):
     """
 
     def __init__(self):
-        self.directpath = window('useDirectPaths') == 'true'
-
         self.artwork = artwork.Artwork()
         self.userid = window('currUserId')
         self.server = window('pms_server')
@@ -268,8 +267,8 @@ class Movies(Items):
                 break
 
         # GET THE FILE AND PATH #####
-        doIndirect = not self.directpath
-        if self.directpath:
+        doIndirect = not state.DIRECT_PATHS
+        if state.DIRECT_PATHS:
             # Direct paths is set the Kodi way
             playurl = API.getFilePath(forceFirstMediaStream=True)
             if playurl is None:
@@ -569,8 +568,8 @@ class TVShows(Items):
             studio = None
 
         # GET THE FILE AND PATH #####
-        doIndirect = not self.directpath
-        if self.directpath:
+        doIndirect = not state.DIRECT_PATHS
+        if state.DIRECT_PATHS:
             # Direct paths is set the Kodi way
             playurl = API.getTVShowPath()
             if playurl is None:
@@ -892,9 +891,9 @@ class TVShows(Items):
         seasonid = self.kodi_db.addSeason(showid, season)
 
         # GET THE FILE AND PATH #####
-        doIndirect = not self.directpath
+        doIndirect = not state.DIRECT_PATHS
         playurl = API.getFilePath(forceFirstMediaStream=True)
-        if self.directpath:
+        if state.DIRECT_PATHS:
             # Direct paths is set the Kodi way
             if playurl is None:
                 # Something went wrong, trying to use non-direct paths
@@ -1116,7 +1115,7 @@ class TVShows(Items):
         self.kodi_db.addStreams(fileid, streams, runtime)
         # Process playstates
         self.kodi_db.addPlaystate(fileid, resume, runtime, playcount, dateplayed)
-        if not self.directpath and resume:
+        if not state.DIRECT_PATHS and resume:
             # Create additional entry for widgets. This is only required for plugin/episode.
             temppathid = self.kodi_db.getPath("plugin://plugin.video.plexkodiconnect/tvshows/")
             tempfileid = self.kodi_db.addFile(filename, temppathid)
@@ -1634,8 +1633,8 @@ class Music(Items):
         mood = ' / '.join(moods)
 
         # GET THE FILE AND PATH #####
-        doIndirect = not self.directpath
-        if self.directpath:
+        doIndirect = not state.DIRECT_PATHS
+        if state.DIRECT_PATHS:
             # Direct paths is set the Kodi way
             playurl = API.getFilePath(forceFirstMediaStream=True)
             if playurl is None:

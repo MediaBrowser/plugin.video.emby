@@ -22,6 +22,7 @@ from playlist_func import add_item_to_kodi_playlist, \
 from pickler import Playback_Successful
 from plexdb_functions import Get_Plex_DB
 import variables as v
+import state
 
 ###############################################################################
 
@@ -187,7 +188,7 @@ class PlaybackUtils():
                     kodi_type)
 
             elif contextmenu_play:
-                if window('useDirectPaths') == 'true':
+                if state.DIRECT_PATHS:
                     # Cannot add via JSON with full metadata because then we
                     # Would be using the direct path
                     log.debug("Adding contextmenu item for direct paths")

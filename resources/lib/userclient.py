@@ -163,6 +163,8 @@ class UserClient(threading.Thread):
 
         window('useDirectPaths', value='true'
                if settings('useDirectPaths') == "1" else 'false')
+        state.DIRECT_PATHS = True if settings('useDirectPaths') == "1" \
+            else False
         window('plex_force_transcode_pix', value='true'
                if settings('force_transcode_pix') == "1" else 'false')
 

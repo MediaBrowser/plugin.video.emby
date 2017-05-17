@@ -451,6 +451,7 @@ class InitialSetup():
                         yeslabel="Native (Direct Paths)"):
             log.debug("User opted to use direct paths.")
             settings('useDirectPaths', value="1")
+            state.DIRECT_PATHS = True
             # Are you on a system where you would like to replace paths
             # \\NAS\mymovie.mkv with smb://NAS/mymovie.mkv? (e.g. Windows)
             if dialog.yesno(heading=lang(29999), line1=lang(39033)):

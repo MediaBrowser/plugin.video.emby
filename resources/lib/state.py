@@ -19,7 +19,9 @@ PMS_STATUS = False
 SUSPEND_USER_CLIENT = False
 # Plex home user? Then "False". Along with window('plex_restricteduser')
 RESTRICTED_USER = False
-
+# Direct Paths (True) or Addon Paths (False)? Along with
+# window('useDirectPaths')
+DIRECT_PATHS = False
 # Along with window('plex_authenticated')
 AUTHENTICATED = False
 PLEX_TOKEN = None

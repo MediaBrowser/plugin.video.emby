@@ -71,7 +71,6 @@ class LibrarySync(Thread):
         self.enableMusic = settings('enableMusic') == "true"
         self.enableBackgroundSync = settings(
             'enableBackgroundSync') == "true"
-        self.direct_paths = settings('useDirectPaths') == '1'
 
         # Init for replacing paths
         window('remapSMB', value=settings('remapSMB'))
@@ -473,7 +472,7 @@ class LibrarySync(Thread):
         """
         Compare the views to Plex
         """
-        if self.direct_paths is True and self.enableMusic is True:
+        if state.DIRECT_PATHS is True and self.enableMusic is True:
             if music.set_excludefromscan_music_folders() is True:
                 log.info('Detected new Music library - restarting now')
                 #  'New Plex music library detected. Sorry, but we need to
