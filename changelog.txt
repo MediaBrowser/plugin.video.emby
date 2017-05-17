@@ -1,3 +1,10 @@
+version 1.7.19 (beta only)
+- Big code refactoring
+- Many Plex Companion fixes
+- Fix WindowsError or alike when deleting video nodes
+- Remove restart on first setup 
+- Only set advancedsettings tweaks if Music enabled 
+
 version 1.7.18 (beta only)
 - Fix OperationalError when resetting PKC 
 - Fix possible OperationalErrors

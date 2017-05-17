@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon  id="plugin.video.plexkodiconnect" name="PlexKodiConnect" version="1.7.18" provider-name="croneter">
+<addon  id="plugin.video.plexkodiconnect" name="PlexKodiConnect" version="1.7.19" provider-name="croneter">
   <requires>
     <import addon="xbmc.python" version="2.1.0"/>
     <import addon="script.module.requests" version="2.3.0" />
@@ -44,7 +44,14 @@
     <disclaimer lang="nl_NL">Gebruik op eigen risico</disclaimer>
     <disclaimer lang="zh_TW">使用風險由您自己承擔</disclaimer>
     <disclaimer lang="es_ES">Usar a su propio riesgo</disclaimer>
-    <news>version 1.7.18 (beta only)
+    <news>version 1.7.19 (beta only)
+- Big code refactoring
+- Many Plex Companion fixes
+- Fix WindowsError or alike when deleting video nodes
+- Remove restart on first setup 
+- Only set advancedsettings tweaks if Music enabled 
+
+version 1.7.18 (beta only)
 - Fix OperationalError when resetting PKC 
 - Fix possible OperationalErrors
 - Companion: ensure sockets get closed
