@@ -24,7 +24,6 @@ class PlayUtils():
         self.API = PlexAPI.API(item)
         self.doUtils = DownloadUtils().downloadUrl
 
-        self.userid = window('currUserId')
         self.server = window('pms_server')
         self.machineIdentifier = window('plex_machineIdentifier')
 

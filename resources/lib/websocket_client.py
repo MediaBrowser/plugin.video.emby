@@ -221,7 +221,8 @@ class Alexa_Websocket(WebSocket):
     def getUri(self):
         self.plex_client_Id = window('plex_client_Id')
         uri = ('wss://pubsub.plex.tv/sub/websockets/%s/%s?X-Plex-Token=%s'
-               % (window('currUserId'), self.plex_client_Id, state.PLEX_TOKEN))
+               % (state.CURRENT_USER_ID,
+                  self.plex_client_Id, state.PLEX_TOKEN))
         sslopt = {}
         log.debug("Uri: %s, sslopt: %s" % (uri, sslopt))
         return uri, sslopt

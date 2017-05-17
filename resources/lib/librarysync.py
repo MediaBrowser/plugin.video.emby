@@ -1352,13 +1352,13 @@ class LibrarySync(Thread):
                         # Hence must be us (since several users require plex.tv
                         # token for PKC)
                         pass
-                    elif not (currSess['userId'] == window('currUserId')
+                    elif not (currSess['userId'] == state.CURRENT_USER_ID
                               or
                               currSess['username'] == window('plex_username')):
                         log.debug('Our username %s, userid %s did not match '
                                   'the session username %s with userid %s'
                                   % (window('plex_username'),
-                                     window('currUserId'),
+                                     state.CURRENT_USER_ID,
                                      currSess['username'],
                                      currSess['userId']))
                         continue
@@ -1397,7 +1397,7 @@ class LibrarySync(Thread):
                 })
                 log.debug('Update playstate for user %s with id %s: %s'
                           % (window('plex_username'),
-                             window('currUserId'),
+                             state.CURRENT_USER_ID,
                              items[-1]))
         # Now tell Kodi where we are
         for item in items:

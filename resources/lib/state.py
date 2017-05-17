@@ -22,6 +22,9 @@ RESTRICTED_USER = False
 # Direct Paths (True) or Addon Paths (False)? Along with
 # window('useDirectPaths')
 DIRECT_PATHS = False
+
 # Along with window('plex_authenticated')
 AUTHENTICATED = False
 PLEX_TOKEN = None
+# Plex ID of the current user (e.g. for plex.tv) as a STRING
+CURRENT_USER_ID = None

@@ -37,7 +37,6 @@ class Items(object):
 
     def __init__(self):
         self.artwork = artwork.Artwork()
-        self.userid = window('currUserId')
         self.server = window('pms_server')
 
     def __enter__(self):

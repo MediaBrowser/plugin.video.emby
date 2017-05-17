@@ -79,8 +79,6 @@ class SubscriptionManager:
             ret += ' />'
             return ret
 
-        # pbmc_server = str(WINDOW.getProperty('plexbmc.nowplaying.server'))
-        # userId = str(WINDOW.getProperty('currUserId'))
         pbmc_server = window('pms_server')
         if pbmc_server:
             (self.protocol, self.server, self.port) = \

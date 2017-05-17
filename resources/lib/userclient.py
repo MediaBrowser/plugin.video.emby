@@ -39,7 +39,6 @@ class UserClient(threading.Thread):
         self.retry = 0
 
         self.currUser = None
-        self.currUserId = None
         self.currServer = None
         self.currToken = None
         self.HasAccess = True
@@ -122,7 +121,6 @@ class UserClient(threading.Thread):
         log.debug('Loading current user')
         doUtils = self.doUtils
 
-        self.currUserId = userId
         self.currToken = usertoken
         self.currServer = self.getServer()
         self.ssl = self.getSSLverify()
@@ -144,7 +142,7 @@ class UserClient(threading.Thread):
                 return False
 
         # Set to windows property
-        window('currUserId', value=userId)
+        state.CURRENT_USER_ID = userId or None
         window('plex_username', value=username)
         # This is the token for the current PMS (might also be '')
         window('pms_token', value=self.currToken)
@@ -276,7 +274,7 @@ class UserClient(threading.Thread):
         window('pms_server', clear=True)
         window('plex_machineIdentifier', clear=True)
         window('plex_servername', clear=True)
-        window('currUserId', clear=True)
+        state.CURRENT_USER_ID = None
         window('plex_username', clear=True)
         window('plex_restricteduser', clear=True)
         state.RESTRICTED_USER = False
@@ -291,7 +289,6 @@ class UserClient(threading.Thread):
         self.currToken = None
         self.auth = True
         self.currUser = None
-        self.currUserId = None
 
         self.retry = 0
 
@@ -331,7 +328,7 @@ class UserClient(threading.Thread):
                         # Successfully authenticated and loaded a user
                         log.info("Successfully authenticated!")
                         log.info("Current user: %s" % self.currUser)
-                        log.info("Current userId: %s" % self.currUserId)
+                        log.info("Current userId: %s" % state.CURRENT_USER_ID)
                         self.retry = 0
                         state.SUSPEND_LIBRARY_THREAD = False
                         window('plex_serverStatus', clear=True)
