@@ -317,6 +317,7 @@ class UserClient(threading.Thread):
             elif state.PMS_STATUS == "401":
                 # Unauthorized access, revoke token
                 state.PMS_STATUS = 'Auth'
+                window('plex_serverStatus', value='Auth')
                 self.resetClient()
                 xbmc.sleep(3000)
 
