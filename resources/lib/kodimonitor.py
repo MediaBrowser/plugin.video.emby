@@ -14,6 +14,7 @@ from PlexFunctions import scrobble
 from kodidb_functions import get_kodiid_from_filename
 from PlexAPI import API
 from variables import REMAP_TYPE_FROM_PLEXTYPE
+import state
 
 ###############################################################################
 
@@ -136,6 +137,10 @@ class KodiMonitor(Monitor):
             if settings('dbSyncScreensaver') == "true":
                 sleep(5000)
                 window('plex_runLibScan', value="full")
+
+        elif method == "System.OnQuit":
+            log.info('Kodi OnQuit detected - shutting down')
+            state.STOP_PKC = True
 
     def PlayBackStart(self, data):
         """

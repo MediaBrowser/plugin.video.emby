@@ -133,9 +133,16 @@ class Service():
             logLevel = 0
         return logLevel
 
+    def __stop_PKC(self):
+        """
+        Kodi's abortRequested is really unreliable :-(
+        """
+        return self.monitor.abortRequested() or state.STOP_PKC
+
     def ServiceEntryPoint(self):
         # Important: Threads depending on abortRequest will not trigger
         # if profile switch happens more than once.
+        __stop_PKC = self.__stop_PKC
         monitor = self.monitor
         kodiProfile = v.KODI_PROFILE
 
@@ -161,7 +168,7 @@ class Service():
 
         welcome_msg = True
         counter = 0
-        while not monitor.abortRequested():
+        while not __stop_PKC():
 
             if tryEncode(window('plex_kodiProfile')) != kodiProfile:
                 # Profile change happened, terminate this thread and others
@@ -241,14 +248,13 @@ class Service():
                             # Server went offline
                             break
 
-                        if monitor.waitForAbort(5):
+                        if monitor.waitForAbort(3):
                             # Abort was requested while waiting. We should exit
                             break
-                        sleep(50)
             else:
                 # Wait until Plex server is online
                 # or Kodi is shut down.
-                while not monitor.abortRequested():
+                while not self.__stop_PKC():
                     server = self.user.getServer()
                     if server is False:
                         # No server info set in add-on settings
@@ -316,7 +322,6 @@ class Service():
             if monitor.waitForAbort(0.05):
                 # Abort was requested while waiting. We should exit
                 break
-
         # Terminating PlexKodiConnect
 
         # Tell all threads to terminate (e.g. several lib sync threads)
