@@ -5,10 +5,9 @@ from Queue import Empty
 
 from xbmc import sleep
 
-from utils import ThreadMethods
+from utils import thread_methods
 import itemtypes
 import sync_info
-import state
 
 ###############################################################################
 log = getLogger("PLEX."+__name__)
@@ -16,7 +15,7 @@ log = getLogger("PLEX."+__name__)
 ###############################################################################
 
 
-@ThreadMethods(add_stops=[state.SUSPEND_LIBRARY_THREAD])
+@thread_methods(add_stops=['SUSPEND_LIBRARY_THREAD'])
 class Threaded_Process_Metadata(Thread):
     """
     Not yet implemented for more than 1 thread - if ever. Only to be called by

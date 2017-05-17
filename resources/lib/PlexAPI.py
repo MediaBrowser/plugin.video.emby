@@ -2566,7 +2566,6 @@ class API():
             if forceCheck is False:
                 # Validate the path is correct with user intervention
                 if self.askToValidate(path):
-                    import state
                     state.STOP_SYNC = True
                     path = None
                 window('plex_pathverified', value='true')

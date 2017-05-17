@@ -4,8 +4,7 @@ from threading import Thread, Lock
 
 from xbmc import sleep
 
-from utils import ThreadMethods, language as lang
-import state
+from utils import thread_methods, language as lang
 
 ###############################################################################
 
@@ -19,7 +18,7 @@ LOCK = Lock()
 ###############################################################################
 
 
-@ThreadMethods(add_stops=[state.SUSPEND_LIBRARY_THREAD])
+@thread_methods(add_stops=['SUSPEND_LIBRARY_THREAD'])
 class Threaded_Show_Sync_Info(Thread):
     """
     Threaded class to show the Kodi statusbar of the metadata download.

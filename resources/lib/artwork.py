@@ -13,8 +13,7 @@ from xbmc import executeJSONRPC, sleep, translatePath
 from xbmcvfs import exists
 
 from utils import window, settings, language as lang, kodiSQL, tryEncode, \
-    ThreadMethods, dialog, exists_dir
-import state
+    thread_methods, dialog, exists_dir
 
 # Disable annoying requests warnings
 import requests.packages.urllib3
@@ -127,8 +126,8 @@ def double_urldecode(text):
     return unquote(unquote(text))
 
 
-@ThreadMethods(add_stops=[state.STOP_SYNC],
-               add_suspends=[state.SUSPEND_LIBRARY_THREAD, state.DB_SCAN])
+@thread_methods(add_stops=['STOP_SYNC'],
+                add_suspends=['SUSPEND_LIBRARY_THREAD', 'DB_SCAN'])
 class Image_Cache_Thread(Thread):
     xbmc_host = 'localhost'
     xbmc_port, xbmc_username, xbmc_password = setKodiWebServerDetails()

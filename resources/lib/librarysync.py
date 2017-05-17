@@ -10,7 +10,7 @@ import xbmcgui
 from xbmcvfs import exists
 
 from utils import window, settings, getUnixTimestamp, sourcesXML,\
-    ThreadMethods, create_actor_db_index, dialog, LogTime, getScreensaver,\
+    thread_methods, create_actor_db_index, dialog, LogTime, getScreensaver,\
     setScreensaver, playlistXSP, language as lang, DateToKodi, reset,\
     advancedsettings_tweaks, tryDecode, deletePlaylists, deleteNodes
 import downloadutils
@@ -38,8 +38,8 @@ log = logging.getLogger("PLEX."+__name__)
 ###############################################################################
 
 
-@ThreadMethods(add_stops=[state.STOP_SYNC],
-               add_suspends=[state.SUSPEND_LIBRARY_THREAD])
+@thread_methods(add_stops=['STOP_SYNC'],
+                add_suspends=['SUSPEND_LIBRARY_THREAD'])
 class LibrarySync(Thread):
     """
     """

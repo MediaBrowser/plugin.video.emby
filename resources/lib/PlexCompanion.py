@@ -7,14 +7,13 @@ from urllib import urlencode
 
 from xbmc import sleep, executebuiltin
 
-from utils import settings, ThreadMethods
+from utils import settings, thread_methods
 from plexbmchelper import listener, plexgdm, subscribers, functions, \
     httppersist, plexsettings
 from PlexFunctions import ParseContainerKey, GetPlexMetadata
 from PlexAPI import API
 import player
 import variables as v
-import state
 
 ###############################################################################
 
@@ -23,7 +22,7 @@ log = logging.getLogger("PLEX."+__name__)
 ###############################################################################
 
 
-@ThreadMethods(add_suspends=[state.PMS_STATUS])
+@thread_methods(add_suspends=['PMS_STATUS'])
 class PlexCompanion(Thread):
     """
     """

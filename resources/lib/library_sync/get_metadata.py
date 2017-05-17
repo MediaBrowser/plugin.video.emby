@@ -5,10 +5,9 @@ from Queue import Empty
 
 from xbmc import sleep
 
-from utils import ThreadMethods, window
+from utils import thread_methods, window
 from PlexFunctions import GetPlexMetadata, GetAllPlexChildren
 import sync_info
-import state
 
 ###############################################################################
 
@@ -17,7 +16,7 @@ log = getLogger("PLEX."+__name__)
 ###############################################################################
 
 
-@ThreadMethods(add_stops=[state.SUSPEND_LIBRARY_THREAD])
+@thread_methods(add_stops=['SUSPEND_LIBRARY_THREAD'])
 class Threaded_Get_Metadata(Thread):
     """
     Threaded download of Plex XML metadata for a certain library item.

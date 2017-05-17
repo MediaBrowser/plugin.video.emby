@@ -10,7 +10,7 @@ import xbmcaddon
 from xbmcvfs import exists
 
 
-from utils import window, settings, language as lang, ThreadMethods
+from utils import window, settings, language as lang, thread_methods
 import downloadutils
 
 import PlexAPI
@@ -24,7 +24,7 @@ log = logging.getLogger("PLEX."+__name__)
 ###############################################################################
 
 
-@ThreadMethods(add_suspends=[state.SUSPEND_USER_CLIENT])
+@thread_methods(add_suspends=['SUSPEND_USER_CLIENT'])
 class UserClient(threading.Thread):
 
     # Borg - multiple instances, shared state

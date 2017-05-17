@@ -11,7 +11,7 @@ from ssl import CERT_NONE
 
 from xbmc import sleep
 
-from utils import window, settings, ThreadMethods
+from utils import window, settings, thread_methods
 from companion import process_command
 import state
 
@@ -22,7 +22,7 @@ log = logging.getLogger("PLEX."+__name__)
 ###############################################################################
 
 
-@ThreadMethods(add_suspends=[state.SUSPEND_LIBRARY_THREAD])
+@thread_methods(add_suspends=['SUSPEND_LIBRARY_THREAD'])
 class WebSocket(Thread):
     opcode_data = (websocket.ABNF.OPCODE_TEXT, websocket.ABNF.OPCODE_BINARY)
 
@@ -140,10 +140,10 @@ class WebSocket(Thread):
 
     def stopThread(self):
         """
-        Overwrite this method from ThreadMethods to close websockets
+        Overwrite this method from thread_methods to close websockets
         """
         log.info("Stopping %s thread." % self.__class__.__name__)
-        self._threadStopped = True
+        self.__threadStopped = True
         try:
             self.ws.shutdown()
         except:
@@ -209,6 +209,7 @@ class PMS_Websocket(WebSocket):
         window('plex_online', value='false')
 
 
+@thread_methods(add_suspends=['RESTRICTED_USER', 'PLEX_TOKEN'])
 class Alexa_Websocket(WebSocket):
     """
     Websocket connection to talk to Amazon Alexa
@@ -247,11 +248,3 @@ class Alexa_Websocket(WebSocket):
 
     def IOError_response(self):
         pass
-
-    def thread_suspended(self):
-        """
-        Overwrite to ignore library sync stuff and allow to check for
-        RESTRICTED_USER and PLEX_TOKEN
-        """
-        return self._thread_suspended or state.RESTRICTED_USER \
-            or not state.PLEX_TOKEN

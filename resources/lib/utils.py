@@ -86,7 +86,7 @@ def plex_command(key, value):
         value: either 'True' or 'False'
     """
     while window('plex_command'):
-        xbmc.sleep(1)
+        xbmc.sleep(5)
     window('plex_command', value='%s-%s' % (key, value))
 
 
@@ -920,7 +920,7 @@ def LogTime(func):
     return wrapper
 
 
-def ThreadMethods(cls=None, add_stops=None, add_suspends=None):
+def thread_methods(cls=None, add_stops=None, add_suspends=None):
     """
     Decorator to add the following methods to a threading class:
 
@@ -928,52 +928,69 @@ def ThreadMethods(cls=None, add_stops=None, add_suspends=None):
     resume_thread():     resumes the thread
     stop_thread():       stopps/kills the thread
 
-    thread_suspended():  returns True if thread is suspend_thread
+    thread_suspended():  returns True if thread is suspended
     thread_stopped():    returns True if thread is stopped (or should stop ;-))
-                         ALSO stops if PKC should exit
+                         ALSO returns True if PKC should exit
 
     Also adds the following class attributes:
-        _thread_stopped
-        _thread_suspended
+        __thread_stopped
+        __thread_suspended
+        __stops
+        __suspends
 
     invoke with either
-        @NewThreadMethods
+        @Newthread_methods
         class MyClass():
     or
-        @NewThreadMethods(add_stops=[state.SUSPEND_LIBRARY_TRHEAD],
-                          add_suspends=[state.WHATEVER, state.WHATEVER2])
+        @Newthread_methods(add_stops=['SUSPEND_LIBRARY_TRHEAD'],
+                          add_suspends=['DB_SCAN', 'WHATEVER'])
         class MyClass():
     """
+    # So we don't need to invoke with ()
     if cls is None:
-        return partial(ThreadMethods,
+        return partial(thread_methods,
                        add_stops=add_stops,
                        add_suspends=add_suspends)
-    # Make sure we have an iterable
-    add_stops = add_stops or []
-    add_suspends = add_suspends or []
+    # Because we need a reference, not a copy of the immutable objects in
+    # state, we need to look up state every time explicitly
+    cls.__stops = ['STOP_PKC']
+    if add_stops is not None:
+        cls.__stops.extend(add_stops)
+    cls.__suspends = add_suspends or []
+
     # Attach new attributes to class
-    cls._thread_stopped = False
-    cls._thread_suspended = False
+    cls.__thread_stopped = False
+    cls.__thread_suspended = False
 
     # Define new class methods and attach them to class
     def stop_thread(self):
-        self._thread_stopped = True
+        self.__thread_stopped = True
     cls.stop_thread = stop_thread
 
     def suspend_thread(self):
-        self._thread_suspended = True
+        self.__thread_suspended = True
     cls.suspend_thread = suspend_thread
 
     def resume_thread(self):
-        self._thread_suspended = False
+        self.__thread_suspended = False
     cls.resume_thread = resume_thread
 
     def thread_suspended(self):
-        return self._thread_suspended or any(add_suspends)
+        if self.__thread_suspended is True:
+            return True
+        for suspend in self.__suspends:
+            if getattr(state, suspend):
+                return True
+        return False
     cls.thread_suspended = thread_suspended
 
     def thread_stopped(self):
-        return self._thread_stopped or state.STOP_PKC or any(add_stops)
+        if self.__thread_stopped is True:
+            return True
+        for stop in self.__stops:
+            if getattr(state, stop):
+                return True
+        return False
     cls.thread_stopped = thread_stopped
 
     # Return class to render this a decorator

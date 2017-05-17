@@ -6,7 +6,7 @@ from Queue import Queue
 
 from xbmc import sleep
 
-from utils import window, ThreadMethods
+from utils import window, thread_methods
 import state
 
 ###############################################################################
@@ -15,7 +15,7 @@ log = logging.getLogger("PLEX."+__name__)
 ###############################################################################
 
 
-@ThreadMethods
+@thread_methods
 class Monitor_Window(Thread):
     """
     Monitors window('plex_command') for new entries that we need to take care

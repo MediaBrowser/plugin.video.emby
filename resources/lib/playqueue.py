@@ -5,13 +5,12 @@ from threading import RLock, Thread
 
 from xbmc import sleep, Player, PlayList, PLAYLIST_MUSIC, PLAYLIST_VIDEO
 
-from utils import window, ThreadMethods
+from utils import window, thread_methods
 import playlist_func as PL
 from PlexFunctions import ConvertPlexToKodiTime, GetAllPlexChildren
 from PlexAPI import API
 from playbackutils import PlaybackUtils
 import variables as v
-import state
 
 ###############################################################################
 log = logging.getLogger("PLEX."+__name__)
@@ -22,7 +21,7 @@ PLUGIN = 'plugin://%s' % v.ADDON_ID
 ###############################################################################
 
 
-@ThreadMethods(add_suspends=[state.PMS_STATUS])
+@thread_methods(add_suspends=['PMS_STATUS'])
 class Playqueue(Thread):
     """
     Monitors Kodi's playqueues for changes on the Kodi side

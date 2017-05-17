@@ -5,11 +5,10 @@ from Queue import Empty
 
 from xbmc import sleep
 
-from utils import ThreadMethods, window
+from utils import thread_methods
 import plexdb_functions as plexdb
 import itemtypes
 import variables as v
-import state
 
 ###############################################################################
 
@@ -18,8 +17,8 @@ log = getLogger("PLEX."+__name__)
 ###############################################################################
 
 
-@ThreadMethods(add_suspends=[state.SUSPEND_LIBRARY_THREAD, state.DB_SCAN],
-               add_stops=[state.STOP_SYNC])
+@thread_methods(add_suspends=['SUSPEND_LIBRARY_THREAD', 'DB_SCAN'],
+                add_stops=['STOP_SYNC'])
 class Process_Fanart_Thread(Thread):
     """
     Threaded download of additional fanart in the background

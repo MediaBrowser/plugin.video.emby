@@ -4,13 +4,14 @@
 # Quit PKC
 STOP_PKC = False
 
+
 # Usually triggered by another Python instance - will have to be set (by
 # polling window) through e.g. librarysync thread
 SUSPEND_LIBRARY_THREAD = False
 # Set if user decided to cancel sync
 STOP_SYNC = False
-# Set if a Plex-Kodi DB sync is being done - along with window('plex_dbScan')
-# set to 'true'
+# Set if a Plex-Kodi DB sync is being done - along with
+# window('plex_dbScan') set to 'true'
 DB_SCAN = False
 # Plex Media Server Status - along with window('plex_serverStatus')
 PMS_STATUS = False
