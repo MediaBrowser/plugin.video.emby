@@ -209,7 +209,6 @@ class PMS_Websocket(WebSocket):
         window('plex_online', value='false')
 
 
-@thread_methods(add_suspends=['RESTRICTED_USER', 'PLEX_TOKEN'])
 class Alexa_Websocket(WebSocket):
     """
     Websocket connection to talk to Amazon Alexa
@@ -248,3 +247,15 @@ class Alexa_Websocket(WebSocket):
 
     def IOError_response(self):
         pass
+
+    def thread_suspended(self):
+        """
+        Overwrite method since we need to check for plex token
+        """
+        if self.__thread_suspended is True:
+            return True
+        if not state.PLEX_TOKEN:
+            return True
+        if state.RESTRICTED_USER:
+            return True
+        return False
