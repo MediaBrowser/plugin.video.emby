@@ -6,7 +6,7 @@ import logging
 from os import path as os_path
 from sys import path as sys_path, argv
 
-from xbmc import translatePath, Monitor, sleep
+from xbmc import translatePath, Monitor
 from xbmcaddon import Addon
 
 ###############################################################################
