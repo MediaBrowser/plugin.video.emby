@@ -478,9 +478,6 @@ class InitialSetup():
         if dialog.yesno(heading=lang(29999), line1=lang(39016)):
             log.debug("User opted to disable Plex music library.")
             settings('enableMusic', value="false")
-        else:
-            from utils import advancedsettings_tweaks
-            advancedsettings_tweaks()
 
         # Download additional art from FanArtTV
         if dialog.yesno(heading=lang(29999), line1=lang(39061)):

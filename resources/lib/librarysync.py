@@ -12,7 +12,7 @@ from xbmcvfs import exists
 from utils import window, settings, getUnixTimestamp, sourcesXML,\
     thread_methods, create_actor_db_index, dialog, LogTime, getScreensaver,\
     setScreensaver, playlistXSP, language as lang, DateToKodi, reset,\
-    advancedsettings_tweaks, tryDecode, deletePlaylists, deleteNodes
+    tryDecode, deletePlaylists, deleteNodes
 import downloadutils
 import itemtypes
 import plexdb_functions as plexdb
@@ -1467,9 +1467,6 @@ class LibrarySync(Thread):
 
         # Ensure that DBs exist if called for very first time
         self.initializeDBs()
-
-        if self.enableMusic:
-            advancedsettings_tweaks()
 
         if settings('FanartTV') == 'true':
             self.fanartthread.start()

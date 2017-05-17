@@ -646,17 +646,6 @@ def advancedsettings_xml(node_list, new_value=None, attrib=None,
     return element, tree
 
 
-def advancedsettings_tweaks():
-    """
-    Kodi tweaks
-
-    Changes advancedsettings.xml, musiclibrary:
-        backgroundupdate        set to "true"
-    """
-    advancedsettings_xml(['musiclibrary', 'backgroundupdate'],
-                         new_value='true')
-
-
 def sourcesXML():
     # To make Master lock compatible
     path = tryDecode(xbmc.translatePath("special://profile/"))
