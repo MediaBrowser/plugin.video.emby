@@ -24,7 +24,6 @@ class PlayUtils():
         self.API = PlexAPI.API(item)
         self.doUtils = DownloadUtils().downloadUrl
 
-        self.server = window('pms_server')
         self.machineIdentifier = window('plex_machineIdentifier')
 
     def getPlayUrl(self, partNumber=None):
@@ -334,7 +333,8 @@ class PlayUtils():
                     # We don't know the language - no need to download
                     else:
                         path = self.API.addPlexCredentialsToUrl(
-                            "%s%s" % (self.server, stream.attrib['key']))
+                            "%s%s" % (window('pms_server'),
+                                      stream.attrib['key']))
                     downloadable_streams.append(index)
                     download_subs.append(tryEncode(path))
                 else:
