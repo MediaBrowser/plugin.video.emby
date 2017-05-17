@@ -22,7 +22,6 @@ log = logging.getLogger("PLEX."+__name__)
 ###############################################################################
 
 
-@thread_methods(add_suspends=['SUSPEND_LIBRARY_THREAD'])
 class WebSocket(Thread):
     opcode_data = (websocket.ABNF.OPCODE_TEXT, websocket.ABNF.OPCODE_BINARY)
 
@@ -150,6 +149,7 @@ class WebSocket(Thread):
             pass
 
 
+@thread_methods(add_suspends=['SUSPEND_LIBRARY_THREAD'])
 class PMS_Websocket(WebSocket):
     """
     Websocket connection with the PMS for Plex Companion
@@ -211,8 +211,13 @@ class PMS_Websocket(WebSocket):
 
 class Alexa_Websocket(WebSocket):
     """
-    Websocket connection to talk to Amazon Alexa
+    Websocket connection to talk to Amazon Alexa.
+
+    Can't use thread_methods!
     """
+    __thread_stopped = False
+    __thread_suspended = False
+
     def getUri(self):
         self.plex_client_Id = window('plex_client_Id')
         uri = ('wss://pubsub.plex.tv/sub/websockets/%s/%s?X-Plex-Token=%s'
@@ -248,6 +253,24 @@ class Alexa_Websocket(WebSocket):
     def IOError_response(self):
         pass
 
+    # Path in thread_methods
+    def stop_thread(self):
+        self.__thread_stopped = True
+
+    def suspend_thread(self):
+        self.__thread_suspended = True
+
+    def resume_thread(self):
+        self.__thread_suspended = False
+
+    def thread_stopped(self):
+        if self.__thread_stopped is True:
+            return True
+        if state.STOP_PKC:
+            return True
+        return False
+
+    # The culprit
     def thread_suspended(self):
         """
         Overwrite method since we need to check for plex token
