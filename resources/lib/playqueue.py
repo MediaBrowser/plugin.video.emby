@@ -146,16 +146,16 @@ class Playqueue(Thread):
         index = list(range(0, len(old)))
         log.debug('Comparing new Kodi playqueue %s with our play queue %s'
                   % (new, old))
+        if self.thread_stopped():
+            # Chances are that we got an empty Kodi playlist due to
+            # Kodi exit
+            return
         for i, new_item in enumerate(new):
             if (new_item['file'].startswith('plugin://') and
                     not new_item['file'].startswith(PLUGIN)):
                 # Ignore new media added by other addons
                 continue
             for j, old_item in enumerate(old):
-                if self.thread_stopped():
-                    # Chances are that we got an empty Kodi playlist due to
-                    # Kodi exit
-                    return
                 try:
                     if (old_item.file.startswith('plugin://') and
                             not old_item['file'].startswith(PLUGIN)):
