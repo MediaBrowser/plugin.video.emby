@@ -61,7 +61,7 @@ def getXMLHeader():
 
 
 def getOKMsg():
-    return getXMLHeader() + '<Response code="200" status="OK" />'
+    return
 
 
 def timeToMillis(time):
