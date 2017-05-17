@@ -49,13 +49,6 @@ class DownloadUtils():
         self.username = username
         log.debug("Set username: %s" % username)
 
-    def setUserId(self, userId):
-        """
-        Reserved for userclient only
-        """
-        self.userId = userId
-        log.debug("Set userId: %s" % userId)
-
     def setServer(self, server):
         """
         Reserved for userclient only
@@ -110,7 +103,6 @@ class DownloadUtils():
         # Set other stuff
         self.setServer(window('pms_server'))
         self.setToken(window('pms_token'))
-        self.setUserId(window('currUserId'))
         self.setUsername(window('plex_username'))
 
         # Counters to declare PMS dead or unauthorized
