@@ -497,9 +497,3 @@ class InitialSetup():
             state.PMS_STATUS = 'Stop'
             xbmc.executebuiltin(
                 'Addon.OpenSettings(plugin.video.plexkodiconnect)')
-        else:
-            # "Kodi will now restart to apply the changes"
-            dialog.ok(heading=lang(29999), line1=lang(33033))
-            xbmc.executebuiltin('RestartApp')
-        # We should always restart to ensure e.g. Kodi settings for Music
-        # are in use!
