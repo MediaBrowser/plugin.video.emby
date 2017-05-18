@@ -629,7 +629,7 @@ class PlexAPI():
                            authenticate=False,
                            headerOptions={'X-Plex-Token': PMS['token']},
                            verifySSL=False,
-                           timeout=3)
+                           timeout=10)
         try:
             xml.attrib['machineIdentifier']
         except (AttributeError, KeyError):
