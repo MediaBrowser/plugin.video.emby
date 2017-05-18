@@ -844,7 +844,8 @@ def playlistXSP(mediatype, tagname, viewid, viewtype="", delete=False):
                 % (itemtypes.get(mediatype, mediatype), plname, tagname))
     except Exception as e:
         log.error("Failed to create playlist: %s" % xsppath)
-        log.error(e)
+        import traceback
+        log.exception("Traceback:\n%s" % traceback.format_exc())
         return
     log.info("Successfully added playlist: %s" % tagname)
 
