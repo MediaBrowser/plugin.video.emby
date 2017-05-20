@@ -12,7 +12,7 @@ from xbmc import sleep, executebuiltin, translatePath
 from xbmcgui import ListItem
 
 from utils import window, settings, language as lang, dialog, tryEncode, \
-    CatchExceptions, JSONRPC, exists_dir, plex_command
+    CatchExceptions, JSONRPC, exists_dir, plex_command, tryDecode
 import downloadutils
 
 from PlexFunctions import GetPlexMetadata, GetPlexSectionResults, \
@@ -489,7 +489,6 @@ def getVideoFiles(plexId, params):
     except:
         log.error('Could not get file path for item %s' % plexId)
         return xbmcplugin.endOfDirectory(HANDLE)
-    path = tryEncode(path)
     # Assign network protocol
     if path.startswith('\\\\'):
         path = path.replace('\\\\', 'smb://')
@@ -502,14 +501,14 @@ def getVideoFiles(plexId, params):
     if exists_dir(path):
         for root, dirs, files in walk(path):
             for directory in dirs:
-                item_path = join(root, directory)
+                item_path = tryEncode(join(root, directory))
                 li = ListItem(item_path, path=item_path)
                 xbmcplugin.addDirectoryItem(handle=HANDLE,
                                             url=item_path,
                                             listitem=li,
                                             isFolder=True)
             for file in files:
-                item_path = join(root, file)
+                item_path = tryEncode(join(root, file))
                 li = ListItem(item_path, path=item_path)
                 xbmcplugin.addDirectoryItem(handle=HANDLE,
                                             url=file,
@@ -537,7 +536,8 @@ def getExtraFanArt(plexid, plexPath):
 
     # We need to store the images locally for this to work
     # because of the caching system in xbmc
-    fanartDir = translatePath("special://thumbnails/plex/%s/" % plexid)
+    fanartDir = tryDecode(translatePath(
+        "special://thumbnails/plex/%s/" % plexid))
     if not exists_dir(fanartDir):
         # Download the images to the cache directory
         makedirs(fanartDir)
@@ -550,19 +550,19 @@ def getExtraFanArt(plexid, plexPath):
         backdrops = api.getAllArtwork()['Backdrop']
         for count, backdrop in enumerate(backdrops):
             # Same ordering as in artwork
-            fanartFile = join(fanartDir, "fanart%.3d.jpg" % count)
+            fanartFile = tryEncode(join(fanartDir, "fanart%.3d.jpg" % count))
             li = ListItem("%.3d" % count, path=fanartFile)
             xbmcplugin.addDirectoryItem(
                 handle=HANDLE,
                 url=fanartFile,
                 listitem=li)
-            copyfile(backdrop, fanartFile)
+            copyfile(backdrop, tryDecode(fanartFile))
     else:
         log.info("Found cached backdrop.")
         # Use existing cached images
         for root, dirs, files in walk(fanartDir):
             for file in files:
-                fanartFile = join(root, file)
+                fanartFile = tryEncode(join(root, file))
                 li = ListItem(file, path=fanartFile)
                 xbmcplugin.addDirectoryItem(handle=HANDLE,
                                             url=fanartFile,

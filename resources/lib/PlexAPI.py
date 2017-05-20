@@ -2553,14 +2553,14 @@ class API():
             if "\\" in path:
                 if not path.endswith('\\'):
                     # Add the missing backslash
-                    check = exists_dir(tryEncode(path + "\\"))
+                    check = exists_dir(path + "\\")
                 else:
-                    check = exists_dir(tryEncode(path))
+                    check = exists_dir(path)
             else:
                 if not path.endswith('/'):
-                    check = exists_dir(tryEncode(path + "/"))
+                    check = exists_dir(path + "/")
                 else:
-                    check = exists_dir(tryEncode(path))
+                    check = exists_dir(path)
 
         if not check:
             if forceCheck is False:

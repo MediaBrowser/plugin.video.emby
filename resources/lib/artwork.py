@@ -13,7 +13,7 @@ from xbmc import executeJSONRPC, sleep, translatePath
 from xbmcvfs import exists
 
 from utils import window, settings, language as lang, kodiSQL, tryEncode, \
-    thread_methods, dialog, exists_dir
+    thread_methods, dialog, exists_dir, tryDecode
 
 # Disable annoying requests warnings
 import requests.packages.urllib3
@@ -222,7 +222,7 @@ class Artwork():
         if dialog('yesno', "Image Texture Cache", lang(39251)):
             log.info("Resetting all cache data first")
             # Remove all existing textures first
-            path = translatePath("special://thumbnails/")
+            path = tryDecode(translatePath("special://thumbnails/"))
             if exists_dir(path):
                 rmtree(path, ignore_errors=True)
 
@@ -423,7 +423,7 @@ class Artwork():
             path = translatePath("special://thumbnails/%s" % cachedurl)
             log.debug("Deleting cached thumbnail: %s" % path)
             if exists(path):
-                rmtree(path, ignore_errors=True)
+                rmtree(tryDecode(path), ignore_errors=True)
             cursor.execute("DELETE FROM texture WHERE url = ?", (url,))
             connection.commit()
         finally:

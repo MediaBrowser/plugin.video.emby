@@ -30,7 +30,8 @@ sys_path.append(_base_resource)
 
 ###############################################################################
 
-from utils import settings, window, language as lang, dialog, tryEncode
+from utils import settings, window, language as lang, dialog, tryEncode, \
+    tryDecode
 from userclient import UserClient
 import initialsetup
 from kodimonitor import KodiMonitor
@@ -86,7 +87,7 @@ class Service():
 
         window('plex_logLevel', value=str(logLevel))
         window('plex_kodiProfile',
-               value=translatePath("special://profile"))
+               value=tryDecode(translatePath("special://profile")))
         window('plex_context',
                value='true' if settings('enableContext') == "true" else "")
         window('fetch_pms_item_number',
@@ -170,12 +171,12 @@ class Service():
         counter = 0
         while not __stop_PKC():
 
-            if tryEncode(window('plex_kodiProfile')) != kodiProfile:
+            if window('plex_kodiProfile') != kodiProfile:
                 # Profile change happened, terminate this thread and others
                 log.warn("Kodi profile was: %s and changed to: %s. "
                          "Terminating old PlexKodiConnect thread."
                          % (kodiProfile,
-                            tryEncode(window('plex_kodiProfile'))))
+                            window('plex_kodiProfile')))
                 break
 
             # Before proceeding, need to make sure:

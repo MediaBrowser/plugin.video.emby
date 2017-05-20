@@ -111,12 +111,12 @@ def exists_dir(path):
     Safe way to check whether the directory path exists already (broken in Kodi
     <17)
 
-    Feed with encoded string
+    Feed with encoded string or unicode
     """
     if KODIVERSION >= 17:
-        answ = exists(path)
+        answ = exists(tryEncode(path))
     else:
-        dummyfile = join(path, 'dummyfile.txt')
+        dummyfile = join(tryDecode(path), 'dummyfile.txt')
         try:
             with open(dummyfile, 'w') as f:
                 f.write('text')
@@ -125,7 +125,7 @@ def exists_dir(path):
             answ = 0
         else:
             # Folder exists. Delete file again.
-            delete(dummyfile)
+            delete(tryEncode(dummyfile))
             answ = 1
     return answ
 
@@ -401,7 +401,7 @@ def reset():
         # Remove all existing textures first
         path = xbmc.translatePath("special://thumbnails/")
         if exists(path):
-            rmtree(path, ignore_errors=True)
+            rmtree(tryDecode(path), ignore_errors=True)
         # remove all existing data from texture DB
         connection = kodiSQL('texture')
         cursor = connection.cursor()
@@ -425,7 +425,7 @@ def reset():
               line1=language(39603)):
         # Delete the settings
         addon = xbmcaddon.Addon()
-        addondir = xbmc.translatePath(addon.getAddonInfo('profile'))
+        addondir = tryDecode(xbmc.translatePath(addon.getAddonInfo('profile')))
         dataPath = "%ssettings.xml" % addondir
         log.info("Deleting: settings.xml")
         remove(dataPath)
@@ -688,7 +688,7 @@ def sourcesXML():
 
 def passwordsXML():
     # To add network credentials
-    path = xbmc.translatePath("special://userdata/")
+    path = tryDecode(xbmc.translatePath("special://userdata/"))
     xmlpath = "%spasswords.xml" % path
 
     try:
@@ -801,7 +801,7 @@ def playlistXSP(mediatype, tagname, viewid, viewtype="", delete=False):
     """
     Feed with tagname as unicode
     """
-    path = xbmc.translatePath("special://profile/playlists/video/")
+    path = tryDecode(xbmc.translatePath("special://profile/playlists/video/"))
     if viewtype == "mixed":
         plname = "%s - %s" % (tagname, mediatype)
         xsppath = "%sPlex %s - %s.xsp" % (path, viewid, mediatype)
@@ -810,12 +810,12 @@ def playlistXSP(mediatype, tagname, viewid, viewtype="", delete=False):
         xsppath = "%sPlex %s.xsp" % (path, viewid)
 
     # Create the playlist directory
-    if not exists(path):
+    if not exists(tryEncode(path)):
         log.info("Creating directory: %s" % path)
         makedirs(path)
 
     # Only add the playlist if it doesn't already exists
-    if exists(xsppath):
+    if exists(tryEncode(xsppath)):
         log.info('Path %s does exist' % xsppath)
         if delete:
             remove(xsppath)
@@ -830,28 +830,22 @@ def playlistXSP(mediatype, tagname, viewid, viewtype="", delete=False):
         'show': 'tvshows'
     }
     log.info("Writing playlist file to: %s" % xsppath)
-    try:
-        with open(xsppath, 'wb'):
-            tryEncode(
-                '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n'
-                '<smartplaylist type="%s">\n\t'
-                    '<name>Plex %s</name>\n\t'
-                    '<match>all</match>\n\t'
-                    '<rule field="tag" operator="is">\n\t\t'
-                        '<value>%s</value>\n\t'
-                    '</rule>\n'
-                '</smartplaylist>\n'
-                % (itemtypes.get(mediatype, mediatype), plname, tagname))
-    except Exception as e:
-        log.error("Failed to create playlist: %s" % xsppath)
-        import traceback
-        log.exception("Traceback:\n%s" % traceback.format_exc())
-        return
+    with open(xsppath, 'wb'):
+        tryEncode(
+            '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n'
+            '<smartplaylist type="%s">\n\t'
+                '<name>Plex %s</name>\n\t'
+                '<match>all</match>\n\t'
+                '<rule field="tag" operator="is">\n\t\t'
+                    '<value>%s</value>\n\t'
+                '</rule>\n'
+            '</smartplaylist>\n'
+            % (itemtypes.get(mediatype, mediatype), plname, tagname))
     log.info("Successfully added playlist: %s" % tagname)
 
 def deletePlaylists():
     # Clean up the playlists
-    path = xbmc.translatePath("special://profile/playlists/video/")
+    path = tryDecode(xbmc.translatePath("special://profile/playlists/video/"))
     for root, _, files in walk(path):
         for file in files:
             if file.startswith('Plex'):
@@ -859,7 +853,7 @@ def deletePlaylists():
 
 def deleteNodes():
     # Clean up video nodes
-    path = xbmc.translatePath("special://profile/library/video/")
+    path = tryDecode(xbmc.translatePath("special://profile/library/video/"))
     for root, dirs, _ in walk(path):
         for directory in dirs:
             if directory.startswith('Plex-'):
