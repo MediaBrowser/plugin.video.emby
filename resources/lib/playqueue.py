@@ -161,7 +161,7 @@ class Playqueue(Thread):
                             not old_item['file'].startswith(PLUGIN)):
                         # Ignore media by other addons
                         continue
-                except AttributeError:
+                except (TypeError, AttributeError):
                     # were not passed a filename; ignore
                     pass
                 if new_item.get('id') is None:
