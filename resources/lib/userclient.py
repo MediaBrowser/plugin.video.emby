@@ -127,6 +127,8 @@ class UserClient(threading.Thread):
         self.sslcert = self.getSSL()
 
         if authenticated is False:
+            if self.currServer is None:
+                return False
             log.debug('Testing validity of current token')
             res = PlexAPI.PlexAPI().CheckConnection(self.currServer,
                                                     token=self.currToken,
