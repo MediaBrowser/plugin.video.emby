@@ -157,7 +157,7 @@ class InitialSetup():
             verifySSL = False
         else:
             url = server['baseURL']
-            verifySSL = None
+            verifySSL = True
         chk = self.plx.CheckConnection(url,
                                        token=server['accesstoken'],
                                        verifySSL=verifySSL)
