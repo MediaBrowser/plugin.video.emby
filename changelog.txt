@@ -1,3 +1,10 @@
+version 1.7.20 (beta only)
+- Fix for Windows usernames with non-ASCII chars
+- Companion: Fix TypeError
+- Use SSL settings when checking server connection
+- Fix TypeError when PMS connection lost
+- Increase timeout
+
 version 1.7.19 (beta only)
 - Big code refactoring
 - Many Plex Companion fixes
