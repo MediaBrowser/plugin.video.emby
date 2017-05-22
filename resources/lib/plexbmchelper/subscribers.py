@@ -156,7 +156,7 @@ class SubscriptionManager:
     def notifyServer(self, players):
         for typus, p in players.iteritems():
             info = self.playerprops[p.get('playerid')]
-            # self._sendNotification(info)
+            self._sendNotification(info)
             self.lastinfo[typus] = info
             # Cross the one of the list
             try:
