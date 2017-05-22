@@ -536,9 +536,16 @@ def guisettingsXML():
 
     try:
         xmlparse = etree.parse(xmlpath)
-    except:
+    except IOError:
         # Document is blank or missing
         root = etree.Element('settings')
+    except etree.ParseError:
+        log.error('Error parsing %s' % xmlpath)
+        # "Kodi cannot parse {0}. PKC will not function correctly. Please visit
+        # {1} and correct your file!"
+        dialog('ok', language(29999), language(39716).format(
+            'guisettings.xml', 'http://kodi.wiki/view/userdata'))
+        return
     else:
         root = xmlparse.getroot()
     return root
@@ -620,6 +627,14 @@ def advancedsettings_xml(node_list, new_value=None, attrib=None,
             return None, None
         # Create topmost xml entry
         tree = etree.ElementTree(element=etree.Element('advancedsettings'))
+    except etree.ParseError:
+        log.error('Error parsing %s' % path)
+        # "Kodi cannot parse {0}. PKC will not function correctly. Please visit
+        # {1} and correct your file!"
+        dialog('ok', language(29999), language(39716).format(
+            'advancedsettings.xml',
+            'http://kodi.wiki/view/Advancedsettings.xml'))
+        return None, None
     root = tree.getroot()
     element = root
 
@@ -653,8 +668,15 @@ def sourcesXML():
 
     try:
         xmlparse = etree.parse(xmlpath)
-    except:  # Document is blank or missing
+    except IOError:  # Document is blank or missing
         root = etree.Element('sources')
+    except etree.ParseError:
+        log.error('Error parsing %s' % xmlpath)
+        # "Kodi cannot parse {0}. PKC will not function correctly. Please visit
+        # {1} and correct your file!"
+        dialog('ok', language(29999), language(39716).format(
+            'sources.xml', 'http://kodi.wiki/view/sources.xml'))
+        return
     else:
         root = xmlparse.getroot()
 
@@ -690,18 +712,25 @@ def passwordsXML():
     # To add network credentials
     path = tryDecode(xbmc.translatePath("special://userdata/"))
     xmlpath = "%spasswords.xml" % path
+    dialog = xbmcgui.Dialog()
 
     try:
         xmlparse = etree.parse(xmlpath)
-    except:
+    except IOError:
         # Document is blank or missing
         root = etree.Element('passwords')
         skipFind = True
+    except etree.ParseError:
+        log.error('Error parsing %s' % xmlpath)
+        # "Kodi cannot parse {0}. PKC will not function correctly. Please visit
+        # {1} and correct your file!"
+        dialog.ok(language(29999), language(39716).format(
+            'passwords.xml', 'http://forum.kodi.tv/'))
+        return
     else:
         root = xmlparse.getroot()
         skipFind = False
 
-    dialog = xbmcgui.Dialog()
     credentials = settings('networkCreds')
     if credentials:
         # Present user with options

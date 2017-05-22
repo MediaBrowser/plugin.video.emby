@@ -1919,3 +1919,8 @@ msgstr ""
 msgctxt "#39715"
 msgid "items"
 msgstr ""
+
+# Error message if an xml, e.g. advancedsettings.xml cannot be parsed (xml is screwed up; formated the wrong way). Do NOT replace {0} and {1}!
+msgctxt "#39716"
+msgid "Kodi cannot parse {0}. PKC will not function correctly. Please visit {1} and correct your file!"
+msgstr ""
