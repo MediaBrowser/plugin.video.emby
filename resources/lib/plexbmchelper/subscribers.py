@@ -3,6 +3,7 @@ import re
 import threading
 
 import downloadutils
+from clientinfo import getXArgsDeviceInfo
 from utils import window
 import PlexFunctions as pf
 import state
@@ -169,6 +170,7 @@ class SubscriptionManager:
             # self._sendNotification(self.lastinfo[typus])
 
     def _sendNotification(self, info):
+        xargs = getXArgsDeviceInfo()
         params = {
             'containerKey': self.containerKey or "/library/metadata/900000",
             'key': self.lastkey or "/library/metadata/900000",
@@ -178,7 +180,7 @@ class SubscriptionManager:
             'duration': info['duration']
         }
         if state.PLEX_TRANSIENT_TOKEN:
-            params['token'] = state.PLEX_TRANSIENT_TOKEN
+            xargs['X-Plex-Token'] = state.PLEX_TRANSIENT_TOKEN
         if info.get('playQueueID'):
             params['containerKey'] = '/playQueues/%s' % info['playQueueID']
             params['playQueueVersion'] = info['playQueueVersion']
@@ -187,7 +189,7 @@ class SubscriptionManager:
         url = '%s://%s:%s/:/timeline' % (serv.get('protocol', 'http'),
                                          serv.get('server', 'localhost'),
                                          serv.get('port', '32400'))
-        self.doUtils(url, parameters=params)
+        self.doUtils(url, parameters=params, headerOptions=xargs)
         log.debug("Sent server notification with parameters: %s to %s"
                   % (params, url))
 
