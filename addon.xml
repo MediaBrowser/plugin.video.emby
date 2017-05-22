@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon  id="plugin.video.plexkodiconnect" name="PlexKodiConnect" version="1.7.20" provider-name="croneter">
+<addon  id="plugin.video.plexkodiconnect" name="PlexKodiConnect" version="1.7.21" provider-name="croneter">
   <requires>
     <import addon="xbmc.python" version="2.1.0"/>
     <import addon="script.module.requests" version="2.3.0" />
@@ -44,7 +44,12 @@
     <disclaimer lang="nl_NL">Gebruik op eigen risico</disclaimer>
     <disclaimer lang="zh_TW">使用風險由您自己承擔</disclaimer>
     <disclaimer lang="es_ES">Usar a su propio riesgo</disclaimer>
-    <news>version 1.7.20 (beta only)
+    <news>version 1.7.21 (beta only)
+- Fix Playback and watched status not syncing
+- Fix PKC syncing progress to wrong account
+- Warn user if a xml cannot be parsed
+
+version 1.7.20 (beta only)
 - Fix for Windows usernames with non-ASCII chars
 - Companion: Fix TypeError
 - Use SSL settings when checking server connection

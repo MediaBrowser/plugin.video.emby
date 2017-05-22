@@ -1,3 +1,8 @@
+version 1.7.21 (beta only)
+- Fix Playback and watched status not syncing
+- Fix PKC syncing progress to wrong account
+- Warn user if a xml cannot be parsed
+
 version 1.7.20 (beta only)
 - Fix for Windows usernames with non-ASCII chars
 - Companion: Fix TypeError
