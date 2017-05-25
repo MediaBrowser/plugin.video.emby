@@ -78,7 +78,7 @@ class PlexCompanion(Thread):
         data = task['data']
 
         # Get the token of the user flinging media (might be different one)
-        state.PLEX_TRANSIENT_TOKEN = data.get('token')
+        token = data.get('token')
         if task['action'] == 'alexa':
             # e.g. Alexa
             xml = GetPlexMetadata(data['key'])
@@ -90,9 +90,11 @@ class PlexCompanion(Thread):
             api = API(xml[0])
             if api.getType() == v.PLEX_TYPE_ALBUM:
                 log.debug('Plex music album detected')
-                self.mgr.playqueue.init_playqueue_from_plex_children(
+                queue = self.mgr.playqueue.init_playqueue_from_plex_children(
                     api.getRatingKey())
+                queue.plex_transient_token = token
             else:
+                state.PLEX_TRANSIENT_TOKEN = token
                 params = {
                     'mode': 'plex_node',
                     'key': '{server}%s' % data.get('key'),
@@ -106,6 +108,7 @@ class PlexCompanion(Thread):
         elif (task['action'] == 'playlist' and
                 data.get('address') == 'node.plexapp.com'):
             # E.g. watch later initiated by Companion
+            state.PLEX_TRANSIENT_TOKEN = token
             params = {
                 'mode': 'plex_node',
                 'key': '{server}%s' % data.get('key'),
@@ -144,6 +147,7 @@ class PlexCompanion(Thread):
                 ID,
                 repeat=query.get('repeat'),
                 offset=data.get('offset'))
+            playqueue.plex_transient_token = token
 
     def run(self):
         # Ensure that sockets will be closed no matter what

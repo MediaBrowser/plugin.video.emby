@@ -29,6 +29,8 @@ class Playlist_Object_Baseclase(object):
     selectedItemOffset = None
     shuffled = 0          # [int], 0: not shuffled, 1: ??? 2: ???
     repeat = 0            # [int], 0: not repeated, 1: ??? 2: ???
+    # If Companion playback is initiated by another user
+    plex_transient_token = None
 
     def __repr__(self):
         answ = "<%s: " % (self.__class__.__name__)
@@ -58,6 +60,7 @@ class Playlist_Object_Baseclase(object):
         self.selectedItemOffset = None
         self.shuffled = 0
         self.repeat = 0
+        self.plex_transient_token = None
         log.debug('Playlist cleared: %s' % self)
 
     def log_Kodi_playlist(self):

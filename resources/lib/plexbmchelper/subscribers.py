@@ -123,6 +123,8 @@ class SubscriptionManager:
         ret += ' itemType="%s"' % info['itemType']
         if state.PLEX_TRANSIENT_TOKEN:
             ret += ' token="%s"' % state.PLEX_TRANSIENT_TOKEN
+        elif info['plex_transient_token']:
+            ret += ' token="%s"' % info['plex_transient_token']
         # Might need an update in the future
         if ptype == 'video':
             ret += ' subtitleStreamID="-1"'
@@ -157,7 +159,7 @@ class SubscriptionManager:
     def notifyServer(self, players):
         for typus, p in players.iteritems():
             info = self.playerprops[p.get('playerid')]
-            self._sendNotification(info)
+            self._sendNotification(info, int(p['playerid']))
             self.lastinfo[typus] = info
             # Cross the one of the list
             try:
@@ -167,9 +169,10 @@ class SubscriptionManager:
         # Process the players we have left (to signal a stop)
         for typus, p in self.lastplayers.iteritems():
             self.lastinfo[typus]['state'] = 'stopped'
-            self._sendNotification(self.lastinfo[typus])
+            self._sendNotification(self.lastinfo[typus], int(p['playerid']))
 
-    def _sendNotification(self, info):
+    def _sendNotification(self, info, playerid):
+        playqueue = self.playqueue.playqueues[playerid]
         xargs = getXArgsDeviceInfo()
         params = {
             'containerKey': self.containerKey or "/library/metadata/900000",
@@ -181,6 +184,8 @@ class SubscriptionManager:
         }
         if state.PLEX_TRANSIENT_TOKEN:
             xargs['X-Plex-Token'] = state.PLEX_TRANSIENT_TOKEN
+        elif playqueue.plex_transient_token:
+            xargs['X-Plex-Token'] = playqueue.plex_transient_token
         if info.get('playQueueID'):
             params['containerKey'] = '/playQueues/%s' % info['playQueueID']
             params['playQueueVersion'] = info['playQueueVersion']
@@ -271,6 +276,8 @@ class SubscriptionManager:
         # get the volume from the application
         info['volume'] = self.volume
         info['mute'] = self.mute
+
+        info['plex_transient_token'] = playqueue.plex_transient_token
 
         return info
 

@@ -310,7 +310,7 @@ class Player(xbmc.Player):
                      'plex_forcetranscode'):
             window(item, clear=True)
         # We might have saved a transient token from a user flinging media via
-        # Companion
+        # Companion (if we could not use the playqueue to store the token)
         state.PLEX_TRANSIENT_TOKEN = None
         log.debug("Cleared playlist properties.")
 

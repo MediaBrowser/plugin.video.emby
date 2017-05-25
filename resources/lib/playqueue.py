@@ -78,6 +78,8 @@ class Playqueue(Thread):
     def init_playqueue_from_plex_children(self, plex_id):
         """
         Init a new playqueue e.g. from an album. Alexa does this
+
+        Returns the Playlist_Object
         """
         xml = GetAllPlexChildren(plex_id)
         try:
@@ -93,6 +95,7 @@ class Playqueue(Thread):
             PL.add_item_to_playlist(playqueue, i, plex_id=api.getRatingKey())
         log.debug('Firing up Kodi player')
         Player().play(playqueue.kodi_pl, None, False, 0)
+        return playqueue
 
     def update_playqueue_from_PMS(self,
                                   playqueue,
