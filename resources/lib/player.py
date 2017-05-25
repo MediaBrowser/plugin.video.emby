@@ -342,27 +342,29 @@ class Player(xbmc.Player):
             # Prevent manually mark as watched in Kodi monitor
             window('plex_skipWatched%s' % itemid, value="true")
 
-            if currentPosition and runtime:
-                try:
-                    percentComplete = float(currentPosition) / float(runtime)
-                except ZeroDivisionError:
-                    # Runtime is 0.
-                    percentComplete = 0
+            if not currentPosition or not runtime:
+                continue
+            try:
+                percentComplete = float(currentPosition) / float(runtime)
+            except ZeroDivisionError:
+                # Runtime is 0.
+                percentComplete = 0
 
-                markPlayed = 0.90
-                log.info("Percent complete: %s Mark played at: %s"
-                         % (percentComplete, markPlayed))
-                if percentComplete >= markPlayed:
-                    # Tell Kodi that we've finished watching (Plex knows)
-                    if (data['fileid'] is not None and
-                            data['itemType'] in (v.KODI_TYPE_MOVIE, v.KODI_TYPE_EPISODE)):
-                        with kodidb.GetKodiDB('video') as kodi_db:
-                            kodi_db.addPlaystate(
-                                data['fileid'],
-                                None,
-                                None,
-                                data['playcount'] + 1,
-                                DateToKodi(getUnixTimestamp()))
+            markPlayed = 0.90
+            log.info("Percent complete: %s Mark played at: %s"
+                     % (percentComplete, markPlayed))
+            if percentComplete >= markPlayed:
+                # Tell Kodi that we've finished watching (Plex knows)
+                if (data['fileid'] is not None and
+                        data['itemType'] in (v.KODI_TYPE_MOVIE,
+                                             v.KODI_TYPE_EPISODE)):
+                    with kodidb.GetKodiDB('video') as kodi_db:
+                        kodi_db.addPlaystate(
+                            data['fileid'],
+                            None,
+                            None,
+                            data['playcount'] + 1,
+                            DateToKodi(getUnixTimestamp()))
 
         # Clean the WINDOW properties
         for filename in self.played_info:
