@@ -362,32 +362,6 @@ class Player(xbmc.Player):
                                     None,
                                     data['playcount'] + 1,
                                     DateToKodi(getUnixTimestamp()))
-                    # Send the delete action to the server.
-                    offerDelete = False
-
-                    if media_type == "Episode" and settings('deleteTV') == "true":
-                        offerDelete = True
-                    elif media_type == "Movie" and settings('deleteMovies') == "true":
-                        offerDelete = True
-
-                    if settings('offerDelete') != "true":
-                        # Delete could be disabled, even if the subsetting is enabled.
-                        offerDelete = False
-
-                    # Plex: never delete
-                    offerDelete = False
-                    if percentComplete >= markPlayed and offerDelete:
-                        resp = xbmcgui.Dialog().yesno(
-                            lang(30091),
-                            lang(33015),
-                            autoclose=120000)
-                        if not resp:
-                            log.info("User skipped deletion.")
-                            continue
-
-                        url = "{server}/emby/Items/%s?format=json" % itemid
-                        log.info("Deleting request: %s" % itemid)
-                        self.doUtils(url, action_type="DELETE")
 
         # Clean the WINDOW properties
         for filename in self.played_info:
