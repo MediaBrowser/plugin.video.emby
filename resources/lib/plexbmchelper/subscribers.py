@@ -167,7 +167,7 @@ class SubscriptionManager:
         # Process the players we have left (to signal a stop)
         for typus, p in self.lastplayers.iteritems():
             self.lastinfo[typus]['state'] = 'stopped'
-            # self._sendNotification(self.lastinfo[typus])
+            self._sendNotification(self.lastinfo[typus])
 
     def _sendNotification(self, info):
         xargs = getXArgsDeviceInfo()
