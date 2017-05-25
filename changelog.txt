@@ -1,3 +1,7 @@
+version 1.7.22 (beta only)
+- Fix playback stop not being recognized by the PMS
+- Better way to sync progress to another account 
+
 version 1.7.21 (beta only)
 - Fix Playback and watched status not syncing
 - Fix PKC syncing progress to wrong account
