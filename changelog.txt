@@ -1,3 +1,10 @@
+version 1.8.0
+Featuring:
+- Major music overhaul: Direct Paths should now work! Many thanks @Memesa for the pointers! Don't forget to reset your database
+- Big transcoding overhaul
+- Many Plex Companion fixes
+- Add support to Kodi 18.0-alpha1 (thanks @CotzaDev)
+
 version 1.7.22 (beta only)
 - Fix playback stop not being recognized by the PMS
 - Better way to sync progress to another account 
