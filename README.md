@@ -25,7 +25,7 @@ Please help translate PlexKodiConnect into your language: [Transifex.com](https:
 * [**What does PKC do?**](#what-does-pkc-do)
 * [**PKC Features**](#pkc-features)
 * [**Download and Installation**](#download-and-installation)
-* [**Additional Artwork](#additional-artwork)
+* [**Additional Artwork**](#additional-artwork)
 * [**Important notes**](#important-notes)
 * [**Donations**](#donations)
 * [**Request a New Feature**](#request-a-new-feature)
