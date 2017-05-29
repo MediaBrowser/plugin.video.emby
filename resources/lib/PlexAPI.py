@@ -1901,6 +1901,7 @@ class API():
                      'lookup process')
         else:
             log.info('Start movie set/collection lookup on themoviedb')
+            media_type = 'collection'
 
         apiKey = settings('themoviedbAPIKey')
         if media_type == v.PLEX_TYPE_SHOW:
