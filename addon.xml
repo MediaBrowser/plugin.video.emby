@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon  id="plugin.video.plexkodiconnect" name="PlexKodiConnect" version="1.8.0" provider-name="croneter">
+<addon  id="plugin.video.plexkodiconnect" name="PlexKodiConnect" version="1.8.1" provider-name="croneter">
   <requires>
     <import addon="xbmc.python" version="2.1.0"/>
     <import addon="script.module.requests" version="2.3.0" />
@@ -44,7 +44,13 @@
     <disclaimer lang="nl_NL">Gebruik op eigen risico</disclaimer>
     <disclaimer lang="zh_TW">使用風險由您自己承擔</disclaimer>
     <disclaimer lang="es_ES">Usar a su propio riesgo</disclaimer>
-    <news>version 1.8.0
+    <news>version 1.8.1:
+- Fix library sync crash due to UnicodeDecodeError
+- Fix fanart for collections
+- Comply with themoviedb.org terms of use 
+- Add some translations
+
+version 1.8.0
 Featuring:
 - Major music overhaul: Direct Paths should now work! Many thanks @Memesa for the pointers! Don't forget to reset your database
 - Big transcoding overhaul

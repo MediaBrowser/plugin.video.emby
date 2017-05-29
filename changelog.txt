@@ -1,3 +1,9 @@
+version 1.8.1:
+- Fix library sync crash due to UnicodeDecodeError
+- Fix fanart for collections
+- Comply with themoviedb.org terms of use 
+- Add some translations
+
 version 1.8.0
 Featuring:
 - Major music overhaul: Direct Paths should now work! Many thanks @Memesa for the pointers! Don't forget to reset your database
