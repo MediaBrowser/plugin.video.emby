@@ -82,7 +82,7 @@ class InitialSetup():
             answer = False
         else:
             log.info('plex.tv connection with token successful')
-            settings('plex_status', value='Logged in to plex.tv')
+            settings('plex_status', value=lang(39227))
             # Refresh the info from Plex.tv
             xml = self.doUtils('https://plex.tv/users/account',
                                authenticate=False,
@@ -413,7 +413,7 @@ class InitialSetup():
 
         # Optionally sign into plex.tv. Will not be called on very first run
         # as plexToken will be ''
-        settings('plex_status', value='Not logged in to plex.tv')
+        settings('plex_status', value=lang(39226))
         if self.plexToken and self.myplexlogin:
             self.CheckPlexTVSignIn()
 

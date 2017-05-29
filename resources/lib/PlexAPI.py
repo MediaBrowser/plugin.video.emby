@@ -208,7 +208,7 @@ class PlexAPI():
         settings('plexHomeSize', homeSize)
         # Let Kodi log into plex.tv on startup from now on
         settings('myplexlogin', 'true')
-        settings('plex_status', value='Logged in to plex.tv')
+        settings('plex_status', value=lang(39227))
         return result
 
     def CheckPlexTvSignin(self, identifier):

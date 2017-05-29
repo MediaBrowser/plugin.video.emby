@@ -78,7 +78,7 @@ def togglePlexTV():
         settings('plexid', value="")
         settings('plexHomeSize', value="1")
         settings('plexAvatar', value="")
-        settings('plex_status', value="Not logged in to plex.tv")
+        settings('plex_status', value=lang(39226))
 
         window('plex_token', clear=True)
         plex_command('PLEX_TOKEN', '')
