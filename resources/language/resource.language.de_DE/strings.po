@@ -2124,3 +2124,11 @@ msgid ""
 msgstr ""
 "Kodi kann die Datei {0} nicht übersetzen. PKC wird nicht richtig "
 "funktionieren. Bitte {1} besuchen und die Datei korrigieren!"
+
+# Shown once on first installation to comply with the terms of use of
+# themoviedb.org
+msgctxt "#39717"
+msgid "PKC uses free additional artwork from www.themoviedb.org. Many thanks!"
+msgstr ""
+"PKC benutzt gratis zusätzliche Bilder von www.themoviedb.org. Vielen Dank "
+"dafür!"
