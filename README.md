@@ -25,6 +25,7 @@ Please help translate PlexKodiConnect into your language: [Transifex.com](https:
 * [**What does PKC do?**](#what-does-pkc-do)
 * [**PKC Features**](#pkc-features)
 * [**Download and Installation**](#download-and-installation)
+* [**Additional Artwork](#additional-artwork)
 * [**Important notes**](#important-notes)
 * [**Donations**](#donations)
 * [**Request a New Feature**](#request-a-new-feature)
@@ -75,6 +76,10 @@ Install PKC via the PlexKodiConnect Kodi repository below (we cannot use the off
 | Stable version | Beta version |
 |----------------|--------------|
 | [![stable version](https://img.shields.io/badge/stable_version-latest-blue.svg?maxAge=60&style=flat) ](https://dl.bintray.com/croneter/PlexKodiConnect/bin/repository.plexkodiconnect/repository.plexkodiconnect-1.0.0.zip)  | [![beta version](https://img.shields.io/badge/beta_version-latest-red.svg?maxAge=60&style=flat) ](https://dl.bintray.com/croneter/PlexKodiConnect_BETA/bin-BETA/repository.plexkodiconnectbeta/repository.plexkodiconnectbeta-1.0.0.zip) |
+
+### Additional Artwork
+PKC uses additional artwork for free from [TheMovieDB](https://www.themoviedb.org). Many thanks for lettings us use the API, guys!
+![Logo of TheMovieDB](themoviedb.png)
 
 ### Important Notes
 

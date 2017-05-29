@@ -1939,3 +1939,8 @@ msgstr ""
 msgctxt "#39716"
 msgid "Kodi cannot parse {0}. PKC will not function correctly. Please visit {1} and correct your file!"
 msgstr ""
+
+# Shown once on first installation to comply with the terms of use of themoviedb.org
+msgctxt "#39717"
+msgid "PKC uses free additional artwork from www.themoviedb.org. Many thanks!"
+msgstr ""
