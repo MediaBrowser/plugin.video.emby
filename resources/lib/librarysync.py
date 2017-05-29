@@ -12,7 +12,7 @@ from xbmcvfs import exists
 from utils import window, settings, getUnixTimestamp, sourcesXML,\
     thread_methods, create_actor_db_index, dialog, LogTime, getScreensaver,\
     setScreensaver, playlistXSP, language as lang, DateToKodi, reset,\
-    tryDecode, deletePlaylists, deleteNodes, tryEncode
+    tryDecode, deletePlaylists, deleteNodes, tryEncode, compare_version
 import downloadutils
 import itemtypes
 import plexdb_functions as plexdb
@@ -1087,37 +1087,6 @@ class LibrarySync(Thread):
                     if itemid not in self.allPlexElementsId:
                         Music.remove(itemid)
 
-    def compareDBVersion(self, current, minimum):
-        # It returns True is database is up to date. False otherwise.
-        log.info("current DB: %s minimum DB: %s" % (current, minimum))
-        try:
-            currMajor, currMinor, currPatch = current.split(".")
-        except ValueError:
-            # there WAS no current DB, e.g. deleted.
-            return True
-        minMajor, minMinor, minPatch = minimum.split(".")
-        currMajor = int(currMajor)
-        currMinor = int(currMinor)
-        currPatch = int(currPatch)
-        minMajor = int(minMajor)
-        minMinor = int(minMinor)
-        minPatch = int(minPatch)
-
-        if currMajor > minMajor:
-            return True
-        elif currMajor < minMajor:
-            return False
-
-        if currMinor > minMinor:
-            return True
-        elif currMinor < minMinor:
-            return False
-
-        if currPatch >= minPatch:
-            return True
-        else:
-            return False
-
     def processMessage(self, message):
         """
         processes json.loads() messages from websocket. Triage what we need to
@@ -1486,7 +1455,7 @@ class LibrarySync(Thread):
                 currentVersion = settings('dbCreatedWithVersion')
                 minVersion = window('plex_minDBVersion')
 
-                if not self.compareDBVersion(currentVersion, minVersion):
+                if not compare_version(currentVersion, minVersion):
                     log.warn("Db version out of date: %s minimum version "
                              "required: %s" % (currentVersion, minVersion))
                     # DB out of date. Proceed to recreate?

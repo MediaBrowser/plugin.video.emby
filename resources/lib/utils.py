@@ -468,6 +468,43 @@ def convertdate(date):
 
     return date
 
+
+def compare_version(current, minimum):
+    """
+    Returns True if current is >= then minimum. False otherwise
+
+    Input strings: e.g. "1.2.3"; always with Major, Minor and Patch!
+    """
+    log.info("current DB: %s minimum DB: %s" % (current, minimum))
+    try:
+        currMajor, currMinor, currPatch = current.split(".")
+    except ValueError:
+        # there WAS no current DB, e.g. deleted.
+        return True
+    minMajor, minMinor, minPatch = minimum.split(".")
+    currMajor = int(currMajor)
+    currMinor = int(currMinor)
+    currPatch = int(currPatch)
+    minMajor = int(minMajor)
+    minMinor = int(minMinor)
+    minPatch = int(minPatch)
+
+    if currMajor > minMajor:
+        return True
+    elif currMajor < minMajor:
+        return False
+
+    if currMinor > minMinor:
+        return True
+    elif currMinor < minMinor:
+        return False
+
+    if currPatch >= minPatch:
+        return True
+    else:
+        return False
+
+
 def normalize_nodes(text):
     # For video nodes
     text = text.replace(":", "")
