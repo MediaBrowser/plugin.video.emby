@@ -79,7 +79,7 @@ Install PKC via the PlexKodiConnect Kodi repository below (we cannot use the off
 
 ### Additional Artwork
 PKC uses additional artwork for free from [TheMovieDB](https://www.themoviedb.org). Many thanks for lettings us use the API, guys!
-![Logo of TheMovieDB](themoviedb.png)
+[![Logo of TheMovieDB](themoviedb.png)](https://www.themoviedb.org)
 
 ### Important Notes
 
