@@ -120,7 +120,7 @@ class VideoNodes(object):
                 indent(root)
             except:
                 pass
-            etree.ElementTree(root).write(nodeXML)
+            etree.ElementTree(root).write(nodeXML, encoding="UTF-8")
 
         nodetypes = {
             '1': "all",
@@ -375,7 +375,7 @@ class VideoNodes(object):
                 indent(root)
             except:
                 pass
-            etree.ElementTree(root).write(nodeXML)
+            etree.ElementTree(root).write(nodeXML, encoding="UTF-8")
 
     def singleNode(self, indexnumber, tagname, mediatype, itemtype):
         tagname = tryEncode(tagname)
@@ -431,7 +431,7 @@ class VideoNodes(object):
             indent(root)
         except:
             pass
-        etree.ElementTree(root).write(nodeXML)
+        etree.ElementTree(root).write(nodeXML, encoding="UTF-8")
 
     def clearProperties(self):
 

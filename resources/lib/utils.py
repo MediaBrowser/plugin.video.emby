@@ -557,8 +557,8 @@ def __setXMLTag(element, tag, value, attrib=None):
     If "subelement" does not exist, create it using attrib and value.
 
         element : etree element
-        tag     : string/unicode for subelement
-        value   : string/unicode
+        tag     : unicode for subelement
+        value   : unicode
         attrib  : dict; will use etree attrib method
 
     Returns the subelement
@@ -657,7 +657,7 @@ def advancedsettings_xml(node_list, new_value=None, attrib=None,
     # Indent and make readable
     indent(root)
     # Safe the changed xml
-    tree.write(path)
+    tree.write(path, encoding="UTF-8")
     return element, tree
 
 
@@ -705,7 +705,7 @@ def sourcesXML():
     try:
         indent(root)
     except: pass
-    etree.ElementTree(root).write(xmlpath)
+    etree.ElementTree(root).write(xmlpath, encoding="UTF-8")
 
 
 def passwordsXML():
@@ -749,7 +749,8 @@ def passwordsXML():
                         paths.remove(path)
                         log.info("Successfully removed credentials for: %s"
                                  % credentials)
-                        etree.ElementTree(root).write(xmlpath)
+                        etree.ElementTree(root).write(xmlpath,
+                                                      encoding="UTF-8")
                         break
             else:
                 log.error("Failed to find saved server: %s in passwords.xml"
@@ -817,7 +818,7 @@ def passwordsXML():
         indent(root)
     except:
         pass
-    etree.ElementTree(root).write(xmlpath)
+    etree.ElementTree(root).write(xmlpath, encoding="UTF-8")
 
     # dialog.notification(
     #     heading="PlexKodiConnect",

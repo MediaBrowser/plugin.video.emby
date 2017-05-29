@@ -65,7 +65,6 @@ def set_excludefromscan_music_folders():
                 path = api.validatePlayurl(location.attrib['path'],
                                            typus=v.PLEX_TYPE_ARTIST,
                                            omitCheck=True)
-                path = tryEncode(path)
                 paths.append(__turn_to_regex(path))
     # Get existing advancedsettings
     root, tree = advancedsettings_xml(['audio', 'excludefromscan'],
@@ -98,7 +97,7 @@ def set_excludefromscan_music_folders():
 
     if write_xml is True:
         indent(tree.getroot())
-        tree.write('%sadvancedsettings.xml' % v.KODI_PROFILE)
+        tree.write('%sadvancedsettings.xml' % v.KODI_PROFILE, encoding="UTF-8")
     return changed
 
 
