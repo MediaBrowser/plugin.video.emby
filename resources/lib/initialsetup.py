@@ -14,6 +14,7 @@ from userclient import UserClient
 from PlexAPI import PlexAPI
 from PlexFunctions import GetMachineIdentifier, get_PMS_settings
 import state
+from migration import check_migration
 
 ###############################################################################
 
@@ -410,6 +411,9 @@ class InitialSetup():
             cache = str(cache.text)
         log.info('Current Kodi video memory cache in bytes: %s' % cache)
         settings('kodi_video_cache', value=cache)
+
+        # Do we need to migrate stuff?
+        check_migration()
 
         # Optionally sign into plex.tv. Will not be called on very first run
         # as plexToken will be ''
