@@ -471,7 +471,8 @@ def convertdate(date):
 
 def compare_version(current, minimum):
     """
-    Returns True if current is >= then minimum. False otherwise
+    Returns True if current is >= then minimum. False otherwise. Returns True
+    if there was no valid input for current!
 
     Input strings: e.g. "1.2.3"; always with Major, Minor and Patch!
     """
