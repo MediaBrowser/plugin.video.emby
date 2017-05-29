@@ -23,7 +23,7 @@
 	<category label="Plex">
 		<setting type="lsep" label="plex.tv"/>
 		<setting id="plex_status" label="39071" type="text" default="Not logged in to plex.tv" enable="false" /><!-- Current plex.tv status: -->
-		<setting id="plexLogin" label="Plex user:" type="text" default="" enable="false" />
+		<setting id="plexLogin" label="39228" type="text" default="" enable="false" />
 		<setting id="myplexlogin" label="39025" type="bool" default="true" /> <!-- Log into plex.tv on startup -->
 		<setting label="39209" type="action" action="RunPlugin(plugin://plugin.video.plexkodiconnect?mode=togglePlexTV)" option="close" />
 		<setting id="plexhome" label="Plex home in use" type="bool" default="" visible="false" />

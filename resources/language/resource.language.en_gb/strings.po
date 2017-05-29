@@ -1715,6 +1715,11 @@ msgctxt "#39227"
 msgid "Logged in to plex.tv"
 msgstr ""
 
+# Message in the PKC settings to display the plex.tv username. Leave the colon :
+msgctxt "#39228"
+msgid "Plex user:"
+msgstr ""
+
 # Plex Artwork.py
 
 msgctxt "#39250"
