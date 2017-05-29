@@ -2015,7 +2015,7 @@ msgstr "Používejte na vlastní nebezpečí"
 # one at the beginning of the string!
 msgctxt "#39706"
 msgid "1 No subtitles"
-msgstr "Žádné titulky"
+msgstr "1 Žádné titulky"
 
 # If user gets prompted to choose between several audio/subtitle tracks and
 # language is unknown
@@ -2065,9 +2065,19 @@ msgstr "zpracováno"
 # Shown during sync process
 msgctxt "#39714"
 msgid "Sync"
-msgstr "Synchronizace"
+msgstr "Synchronizuji"
 
 # Shown during sync process
 msgctxt "#39715"
 msgid "items"
 msgstr "položek"
+
+# Error message if an xml, e.g. advancedsettings.xml cannot be parsed (xml is
+# screwed up; formated the wrong way). Do NOT replace {0} and {1}!
+msgctxt "#39716"
+msgid ""
+"Kodi cannot parse {0}. PKC will not function correctly. Please visit {1} and"
+" correct your file!"
+msgstr ""
+"Kodi nemůže zpracovat {0}. PKC nebude fungovat správně. Navštivte prosím {1}"
+" a opravte si soubor!"

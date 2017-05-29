@@ -1826,6 +1826,22 @@ msgctxt "#39225"
 msgid "Missing only"
 msgstr "Nur fehlende"
 
+# Message in the PKC settings if user has not logged in to plex.tv
+msgctxt "#39226"
+msgid "Not logged in to plex.tv"
+msgstr "Nicht in plex.tv eingeloggt"
+
+# Message in the PKC settings if user is logged in to plex.tv
+msgctxt "#39227"
+msgid "Logged in to plex.tv"
+msgstr "Eingeloggt bei plex.tv"
+
+# Message in the PKC settings to display the plex.tv username. Leave the colon
+# :
+msgctxt "#39228"
+msgid "Plex user:"
+msgstr "Plex Benutzer:"
+
 # Plex Artwork.py
 msgctxt "#39250"
 msgid ""
