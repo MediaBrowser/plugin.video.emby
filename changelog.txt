@@ -1,3 +1,10 @@
+version 1.8.2:
+- Choose to replace user ratings with the number of available versions of a media file
+- More collection artwork: use TheMovieDB art
+- Support new Companion command "refreshPlayQueue"
+- Use https for TheMovieDB
+- Update translations
+
 version 1.8.1:
 - Fix library sync crash due to UnicodeDecodeError
 - Fix fanart for collections
