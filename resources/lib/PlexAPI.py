@@ -1881,7 +1881,8 @@ class API():
 
         If not found in item's Plex metadata, check themovidedb.org
 
-        collection=True will try to return the collection's ID
+        collection=True will try to return the three-tuple:
+            collection ID, poster-path, background-path
 
         None is returned if unsuccessful
         """
@@ -2026,9 +2027,28 @@ class API():
                     mediaId = str(data["external_ids"].get("tvdb_id"))
                     break
             else:
-                if data.get("belongs_to_collection") is not None:
-                    mediaId = str(data.get("belongs_to_collection").get("id"))
-                    log.debug('Retrieved collections tmdb id %s' % mediaId)
+                if data.get("belongs_to_collection") is None:
+                    continue
+                mediaId = str(data.get("belongs_to_collection").get("id"))
+                log.debug('Retrieved collections tmdb id %s for %s'
+                          % (mediaId, title))
+                url = 'https://api.themoviedb.org/3/collection/%s' % mediaId
+                data = DownloadUtils().downloadUrl(
+                    url,
+                    authenticate=False,
+                    parameters=parameters,
+                    timeout=7)
+                try:
+                    data.get('poster_path')
+                except AttributeError:
+                    log.info('Could not find TheMovieDB poster paths for %s in'
+                             'the language %s' % (title, language))
+                    continue
+                else:
+                    poster = 'https://image.tmdb.org/t/p/original%s' % data.get('poster_path')
+                    background = 'https://image.tmdb.org/t/p/original%s' % data.get('backdrop_path')
+                    mediaId = mediaId, poster, background
+                    break
         return mediaId
 
     def getFanartTVArt(self, mediaId, allartworks, setInfo=False):
@@ -2159,8 +2179,19 @@ class API():
         # fanart tv only for movie or tv show
         externalId = self.getExternalItemId(collection=True)
         if externalId is not None:
+            try:
+                externalId, poster, background = externalId
+            except TypeError:
+                poster, background = None, None
+            if poster is not None:
+                allartworks['Primary'] = poster
+            if background is not None:
+                allartworks['Backdrop'].append(background)
             allartworks = self.getFanartTVArt(externalId, allartworks, True)
-        return allartworks
+        else:
+            log.info('Did not find a set/collection ID on TheMovieDB using %s.'
+                     ' Artwork will be missing.' % self.getTitle())
+            return allartworks
 
     def shouldStream(self):
         """
