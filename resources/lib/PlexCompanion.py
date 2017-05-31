@@ -12,6 +12,7 @@ from plexbmchelper import listener, plexgdm, subscribers, functions, \
     httppersist, plexsettings
 from PlexFunctions import ParseContainerKey, GetPlexMetadata
 from PlexAPI import API
+from playlist_func import get_pms_playqueue, get_plextype_from_xml
 import player
 import variables as v
 import state
@@ -148,6 +149,26 @@ class PlexCompanion(Thread):
                 repeat=query.get('repeat'),
                 offset=data.get('offset'))
             playqueue.plex_transient_token = token
+
+        elif task['action'] == 'refreshPlayQueue':
+            # example data: {'playQueueID': '8475', 'commandID': '11'}
+            xml = get_pms_playqueue(data['playQueueID'])
+            if xml is None:
+                return
+            if len(xml) == 0:
+                log.debug('Empty playqueue received - clearing playqueue')
+                plex_type = get_plextype_from_xml(xml)
+                if plex_type is None:
+                    return
+                playqueue = self.mgr.playqueue.get_playqueue_from_type(
+                    v.KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[plex_type])
+                playqueue.clear()
+                return
+            playqueue = self.mgr.playqueue.get_playqueue_from_type(
+                v.KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[xml[0].attrib['type']])
+            self.mgr.playqueue.update_playqueue_from_PMS(
+                playqueue,
+                data['playQueueID'])
 
     def run(self):
         # Ensure that sockets will be closed no matter what

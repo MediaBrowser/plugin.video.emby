@@ -110,6 +110,12 @@ def process_command(request_path, params, queue=None):
             'data': params
         })
 
+    elif request_path == 'player/playback/refreshPlayQueue':
+        queue.put({
+            'action': 'refreshPlayQueue',
+            'data': params
+        })
+
     elif request_path == "player/playback/setParameters":
         if 'volume' in params:
             volume = int(params['volume'])
