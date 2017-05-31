@@ -2190,7 +2190,7 @@ class API():
             allartworks = self.getFanartTVArt(externalId, allartworks, True)
         else:
             log.info('Did not find a set/collection ID on TheMovieDB using %s.'
-                     ' Artwork will be missing.' % self.getTitle())
+                     ' Artwork will be missing.' % self.getTitle()[0])
             return allartworks
 
     def shouldStream(self):
