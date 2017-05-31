@@ -2189,8 +2189,8 @@ class API():
                 allartworks['Backdrop'].append(background)
             allartworks = self.getFanartTVArt(externalId, allartworks, True)
         else:
-            log.info('Did not find a set/collection ID on TheMovieDB using %s.'
-                     ' Artwork will be missing.' % self.getTitle())
+            log.info('Artwork will be missing: Did not find a set/collection '
+                     'ID on TheMovieDB using %s.' % self.getTitle())
             return allartworks
 
     def shouldStream(self):
