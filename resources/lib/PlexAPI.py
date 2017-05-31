@@ -1900,7 +1900,8 @@ class API():
             log.info('Plex did not provide ID for IMDB or TVDB. Start '
                      'lookup process')
         else:
-            log.info('Start movie set/collection lookup on themoviedb')
+            log.info('Start movie set/collection lookup on themoviedb using %s'
+                     % item.get('title', ''))
 
         apiKey = settings('themoviedbAPIKey')
         if media_type == v.PLEX_TYPE_SHOW:
