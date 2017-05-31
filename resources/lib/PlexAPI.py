@@ -2191,7 +2191,7 @@ class API():
         else:
             log.info('Did not find a set/collection ID on TheMovieDB using %s.'
                      ' Artwork will be missing.' % self.getTitle()[0])
-            return allartworks
+        return allartworks
 
     def shouldStream(self):
         """
