@@ -66,9 +66,6 @@ class Playlist_Object_Baseclase(object):
         self.plex_transient_token = None
         log.debug('Playlist cleared: %s' % self)
 
-    def log_Kodi_playlist(self):
-        log.debug('Current Kodi playlist: %s' % get_kodi_playlist_items(self))
-
 
 class Playlist_Object(Playlist_Object_Baseclase):
     kind = 'playList'
