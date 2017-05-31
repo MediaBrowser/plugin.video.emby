@@ -2002,10 +2002,10 @@ class API():
         for language in [v.KODILANGUAGE, "en"]:
             parameters['language'] = language
             if media_type == "movie":
-                url = 'http://api.themoviedb.org/3/movie/%s' % tmdbId
+                url = 'https://api.themoviedb.org/3/movie/%s' % tmdbId
                 parameters['append_to_response'] = 'videos'
             elif media_type == "tv":
-                url = 'http://api.themoviedb.org/3/tv/%s' % tmdbId
+                url = 'https://api.themoviedb.org/3/tv/%s' % tmdbId
                 parameters['append_to_response'] = 'external_ids,videos'
             data = DownloadUtils().downloadUrl(
                 url,
