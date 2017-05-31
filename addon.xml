@@ -30,6 +30,10 @@
     <summary lang="nl_NL">Directe integratie van Plex in Kodi</summary>
     <summary lang="zh_TW">將Plex直接內嵌至Kodi</summary>
     <summary lang="es_ES">Integración Nativa de Plex en Kodi</summary>
+    <summary lang="es_MX">Integración Nativa de Plex en Kodi</summary>
+    <summary lang="es_AR">Integración Nativa de Plex en Kodi</summary>
+    <summary lang="fr_FR">Intégration native de Plex dans Kodi</summary>
+    <summary lang="fr_CA">Intégration native de Plex dans Kodi</summary>
     <description lang="en_GB">Connect Kodi to your Plex Media Server. This plugin assumes that you manage all your videos with Plex (and none with Kodi). You might lose data already stored in the Kodi video and music databases (as this plugin directly changes them). Use at your own risk!</description>
     <description lang="cs_CZ">Připojte Kodi ke svému Plex Media Serveru. Tento doplněk předpokládá, že spravujete veškerá svá videa pomocí Plexu (nikoliv pomocí Kodi). Můžete přijít o data uložená ve video a hudební databázi Kodi (tento doplněk je přímo mění).</description>
     <description lang="de_DE">Verbindet Kodi mit deinem Plex Media Server. Dieses Addon geht davon aus, dass du all deine Videos mit Plex verwaltest (und keine direkt mit Kodi). Du wirst möglicherweise Daten verlieren, die bereits in der Kodi Video- und/oder Musik-Datenbank gespeichert sind (da dieses Addon beide Datenbanken direkt verändert).</description>
@@ -37,6 +41,8 @@
     <description lang="nl_NL">Verbind Kodi met je Plex Media Server. Deze plugin gaat ervan uit dat je al je video's met Plex (en niet met Kodi) beheerd. Je kunt gegevens reeds opgeslagen in de databases voor video en muziek van Kodi (deze plugin wijzigt deze gegevens direct) verliezen.</description>
     <description lang="zh_TW">連接Kodi至您的Plex媒體伺服器．這個外掛程式假設你使用Plex伺服器管理您所有的媒體(完全沒用Kodi管理)．您可能會失去已經儲存在Kodi資料庫中的視頻及音樂的資料(這個外掛程式會直接更改它們).</description>
     <description lang="es_ES">Conecte Kodi a su Plex Media Server.  Este plugin asume que usted gestiona todos sus vídeos con Plex (y ninguno con Kodi). Puede perder datos ya guardados en las bases de datos de vídeo y música de Kodi (ya que este plugin las actualiza directamente). ¡Úselo a su propio riesgo!</description>
+    <description lang="es_MX">Conecte Kodi a su Plex Media Server.  Este plugin asume que usted gestiona todos sus vídeos con Plex (y ninguno con Kodi). Puede perder datos ya guardados en las bases de datos de vídeo y música de Kodi (ya que este plugin las actualiza directamente). ¡Úselo a su propio riesgo!</description>
+    <description lang="es_AR">Conecte Kodi a su Plex Media Server.  Este plugin asume que usted gestiona todos sus vídeos con Plex (y ninguno con Kodi). Puede perder datos ya guardados en las bases de datos de vídeo y música de Kodi (ya que este plugin las actualiza directamente). ¡Úselo a su propio riesgo!</description>
     <disclaimer lang="en_GB">Use at your own risk</disclaimer>
     <disclaimer lang="cs_CZ">Používejte na vlastní nebezpečí</disclaimer>
     <disclaimer lang="de_DE">Benutze auf eigene Gefahr</disclaimer>
@@ -44,6 +50,10 @@
     <disclaimer lang="nl_NL">Gebruik op eigen risico</disclaimer>
     <disclaimer lang="zh_TW">使用風險由您自己承擔</disclaimer>
     <disclaimer lang="es_ES">Usar a su propio riesgo</disclaimer>
+    <disclaimer lang="es_AR">Usar a su propio riesgo</disclaimer>
+    <disclaimer lang="es_MX">Usar a su propio riesgo</disclaimer>
+    <disclaimer lang="fr_FR">A utiliser à vos propres risques</disclaimer>
+    <disclaimer lang="fr_CA">A utiliser à vos propres risques</disclaimer>
     <news>version 1.8.2:
 - Choose to replace user ratings with the number of available versions of a media file
 - More collection artwork: use TheMovieDB art
