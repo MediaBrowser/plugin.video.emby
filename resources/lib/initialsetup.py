@@ -488,10 +488,16 @@ class InitialSetup():
         if dialog.yesno(heading=lang(29999), line1=lang(39061)):
             log.debug("User opted to use FanArtTV")
             settings('FanartTV', value="true")
+        # Do you want to replace your custom user ratings with an indicator of
+        # how many versions of a media item you posses?
+        if dialog.yesno(heading=lang(29999), line1=lang(39718)):
+            log.debug("User opted to replace user ratings with version number")
+            settings('indicate_media_versions', value="true")
 
         # If you use several Plex libraries of one kind, e.g. "Kids Movies" and
         # "Parents Movies", be sure to check https://goo.gl/JFtQV9
         dialog.ok(heading=lang(29999), line1=lang(39076))
+
         # Need to tell about our image source for collections: themoviedb.org
         dialog.ok(heading=lang(29999), line1=lang(39717))
         # Make sure that we only ask these questions upon first installation

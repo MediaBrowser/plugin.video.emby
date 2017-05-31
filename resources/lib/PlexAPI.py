@@ -1288,10 +1288,17 @@ class API():
         except (KeyError, ValueError):
             lastPlayedDate = None
 
-        try:
-            userrating = int(float(item['userRating']))
-        except (KeyError, ValueError):
+        if state.INDICATE_MEDIA_VERSIONS is True:
             userrating = 0
+            for entry in self.item.findall('./Media'):
+                userrating += 1
+            # Don't show a value of '1'
+            userrating = 0 if userrating == 1 else userrating
+        else:
+            try:
+                userrating = int(float(item['userRating']))
+            except (KeyError, ValueError):
+                userrating = 0
 
         try:
             rating = float(item['audienceRating'])

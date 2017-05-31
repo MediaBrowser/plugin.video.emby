@@ -165,6 +165,8 @@ class UserClient(threading.Thread):
                if settings('useDirectPaths') == "1" else 'false')
         state.DIRECT_PATHS = True if settings('useDirectPaths') == "1" \
             else False
+        state.INDICATE_MEDIA_VERSIONS = True \
+            if settings('indicate_media_versions') == "true" else False
         window('plex_force_transcode_pix', value='true'
                if settings('force_transcode_pix') == "1" else 'false')
 

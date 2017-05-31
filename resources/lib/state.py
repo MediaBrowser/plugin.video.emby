@@ -22,6 +22,8 @@ RESTRICTED_USER = False
 # Direct Paths (True) or Addon Paths (False)? Along with
 # window('useDirectPaths')
 DIRECT_PATHS = False
+# Shall we replace custom user ratings with the number of versions available?
+INDICATE_MEDIA_VERSIONS = False
 
 # Along with window('plex_authenticated')
 AUTHENTICATED = False
