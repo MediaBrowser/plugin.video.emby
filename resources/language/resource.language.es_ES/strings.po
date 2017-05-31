@@ -1,13 +1,15 @@
 #  XBMC Media Center language file
 # Translators:
 # Bartolome Soriano <bsoriano@gmail.com>, 2017
+# Ivan <cain1986@gmail.com>, 2017
+# Dani <danichispa@gmail.com>, 2017
 msgid ""
 msgstr ""
 "Project-Id-Version: PlexKodiConnect\n"
 "Report-Msgid-Bugs-To: croneter@gmail.com\n"
 "POT-Creation-Date: 2017-04-15 13:13+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: Bartolome Soriano <bsoriano@gmail.com>, 2017\n"
+"Last-Translator: Dani <danichispa@gmail.com>, 2017\n"
 "Language-Team: Spanish (Spain) (https://www.transifex.com/croneter/teams/73837/es_ES/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1464,7 +1466,7 @@ msgid ""
 "CAUTION! If you choose \"Native\" mode , you might loose access to certain "
 "Plex features such as: Plex trailers and transcoding options. ALL Plex "
 "shares need to use direct paths (e.g. smb://myNAS/mymovie.mkv or "
-"\\myNAS/mymovie.mkv)!"
+"\\\\myNAS/mymovie.mkv)!"
 msgstr ""
 "¡PRECAUCIÓN! Si elige modo \"Nativo\", podría perder el acceso a ciertas "
 "características de Plex como: Tráilers de Plex y las opciones de "
@@ -1500,22 +1502,22 @@ msgstr ""
 
 msgctxt "#39033"
 msgid ""
-"Transform Plex UNC library paths \\myNas\\mymovie.mkv automatically to smb "
-"paths, smb://myNas/mymovie.mkv? (recommended)"
+"Transform Plex UNC library paths \\\\myNas\\mymovie.mkv automatically to smb"
+" paths, smb://myNas/mymovie.mkv? (recommended)"
 msgstr ""
-"¿Transformar rutas de colección UNC de Plex \\miNAS\\mipelicula.mkv "
+"¿Transformar rutas de colección UNC de Plex \\\\miNAS\\mipelicula.mkv "
 "automáticamente a rutas SMB, smb://miNAS/mipelicula.mkv? (recomendado)"
 
 msgctxt "#39034"
-msgid "Replace Plex UNC paths \\myNas with smb://myNas"
-msgstr "Reemplazar rutas UNC Plex \\myNas con smb://myNas"
+msgid "Replace Plex UNC paths \\\\myNas with smb://myNas"
+msgstr "Reemplazar rutas UNC Plex \\\\myNas con smb://myNas"
 
 msgctxt "#39035"
 msgid ""
-"Replace Plex paths /volume1/media or \\myserver\\media with custom SMB paths"
-" smb://NAS/mystuff"
+"Replace Plex paths /volume1/media or \\\\myserver\\media with custom SMB "
+"paths smb://NAS/mystuff"
 msgstr ""
-"Reemplazar rutas Plex /volume1/media o \\myserver\\media con rutas SMB "
+"Reemplazar rutas Plex /volume1/media o \\\\myserver\\media con rutas SMB "
 "personalizadas smb://NAS/mystuff"
 
 msgctxt "#39037"
@@ -1833,6 +1835,22 @@ msgctxt "#39225"
 msgid "Missing only"
 msgstr "Sólo lo faltante"
 
+# Message in the PKC settings if user has not logged in to plex.tv
+msgctxt "#39226"
+msgid "Not logged in to plex.tv"
+msgstr "No está conectado a plex.tv"
+
+# Message in the PKC settings if user is logged in to plex.tv
+msgctxt "#39227"
+msgid "Logged in to plex.tv"
+msgstr "Conectado a plex.tv"
+
+# Message in the PKC settings to display the plex.tv username. Leave the colon
+# :
+msgctxt "#39228"
+msgid "Plex user:"
+msgstr "Usuario de Plex:"
+
 # Plex Artwork.py
 msgctxt "#39250"
 msgid ""
@@ -2040,3 +2058,80 @@ msgstr ""
 msgctxt "#39705"
 msgid "Use at your own risk"
 msgstr "Usar a su propio riesgo"
+
+# If user gets prompted to choose between several subtitles. Leave the number
+# one at the beginning of the string!
+msgctxt "#39706"
+msgid "1 No subtitles"
+msgstr "1 Sin subtitulos"
+
+# If user gets prompted to choose between several audio/subtitle tracks and
+# language is unknown
+msgctxt "#39707"
+msgid "unknown"
+msgstr "desconocido"
+
+# If user gets prompted to choose between several subtitles and Plex adds the
+# "default" flag
+msgctxt "#39708"
+msgid "Default"
+msgstr "Por defecto"
+
+# If user gets prompted to choose between several subtitles and Plex adds the
+# "forced" flag
+msgctxt "#39709"
+msgid "Forced"
+msgstr "Forzado"
+
+# If user gets prompted to choose between several subtitles the subtitle
+# cannot be downloaded (has no 'key' attribute from the PMS), the subtitle
+# needs to be burned in
+msgctxt "#39710"
+msgid "burn-in"
+msgstr "grabar"
+
+# Dialog text if PKC detected a new Music library and Kodi needs to be
+# restarted
+msgctxt "#39711"
+msgid ""
+"New Plex music library detected. Sorry, but we need to restart Kodi now due "
+"to the changes made."
+msgstr ""
+"Nueva libreria de música de Plex detectada. Lo sentimos, pero hay que "
+"reiniciar Kodi debido a los cambios realizados."
+
+# Shown during sync process
+msgctxt "#39712"
+msgid "downloaded"
+msgstr "descargado"
+
+# Shown during sync process
+msgctxt "#39713"
+msgid "processed"
+msgstr "procesado"
+
+# Shown during sync process
+msgctxt "#39714"
+msgid "Sync"
+msgstr "Sincronizar"
+
+# Shown during sync process
+msgctxt "#39715"
+msgid "items"
+msgstr "objetos"
+
+# Error message if an xml, e.g. advancedsettings.xml cannot be parsed (xml is
+# screwed up; formated the wrong way). Do NOT replace {0} and {1}!
+msgctxt "#39716"
+msgid ""
+"Kodi cannot parse {0}. PKC will not function correctly. Please visit {1} and"
+" correct your file!"
+msgstr ""
+"Kodi no puede procesar {0}. PKC no funcionara correctamente. Por favor, "
+"visite {1} y corrija el fichero."
+
+# Shown once on first installation to comply with the terms of use of
+# themoviedb.org
+msgctxt "#39717"
+msgid "PKC uses free additional artwork from www.themoviedb.org. Many thanks!"
+msgstr "PKC usa fondos adicionales de www.themoviedb.org. ¡Muchas gracias!"

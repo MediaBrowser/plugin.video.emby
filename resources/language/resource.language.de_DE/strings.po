@@ -2132,3 +2132,17 @@ msgid "PKC uses free additional artwork from www.themoviedb.org. Many thanks!"
 msgstr ""
 "PKC benutzt gratis zusätzliche Bilder von www.themoviedb.org. Vielen Dank "
 "dafür!"
+
+# Shown during very first PKC setup only
+msgctxt "#39718"
+msgid ""
+"Do you want to replace your custom user ratings with an indicator of how "
+"many versions of a media item you posses?"
+msgstr ""
+"Sollen individuelle Benutzerbewertungen (user ratings) durch die verfügbare "
+"Anzahl Versionen eines bestimmten Medieneintrags ersetzt werden?"
+
+# In PKC Settings under Sync
+msgctxt "#39719"
+msgid "Replace user ratings with number of media versions"
+msgstr "Benutzerbewertungen durch verfügbare Anzahl Versionen ersetzen"
