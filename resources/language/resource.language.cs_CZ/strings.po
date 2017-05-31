@@ -1805,6 +1805,22 @@ msgctxt "#39225"
 msgid "Missing only"
 msgstr "Pouze chybějící"
 
+# Message in the PKC settings if user has not logged in to plex.tv
+msgctxt "#39226"
+msgid "Not logged in to plex.tv"
+msgstr ""
+
+# Message in the PKC settings if user is logged in to plex.tv
+msgctxt "#39227"
+msgid "Logged in to plex.tv"
+msgstr ""
+
+# Message in the PKC settings to display the plex.tv username. Leave the colon
+# :
+msgctxt "#39228"
+msgid "Plex user:"
+msgstr ""
+
 # Plex Artwork.py
 msgctxt "#39250"
 msgid ""
@@ -2081,3 +2097,21 @@ msgid ""
 msgstr ""
 "Kodi nemůže zpracovat {0}. PKC nebude fungovat správně. Navštivte prosím {1}"
 " a opravte si soubor!"
+
+# Shown once on first installation to comply with the terms of use of
+# themoviedb.org
+msgctxt "#39717"
+msgid "PKC uses free additional artwork from www.themoviedb.org. Many thanks!"
+msgstr ""
+
+# Shown during very first PKC setup only
+msgctxt "#39718"
+msgid ""
+"Do you want to replace your custom user ratings with an indicator of how "
+"many versions of a media item you posses?"
+msgstr ""
+
+# In PKC Settings under Sync
+msgctxt "#39719"
+msgid "Replace user ratings with number of media versions"
+msgstr ""

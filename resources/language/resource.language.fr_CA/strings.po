@@ -1458,13 +1458,8 @@ msgid ""
 "CAUTION! If you choose \"Native\" mode , you might loose access to certain "
 "Plex features such as: Plex trailers and transcoding options. ALL Plex "
 "shares need to use direct paths (e.g. smb://myNAS/mymovie.mkv or "
-"\\myNAS/mymovie.mkv)!"
+"\\\\myNAS/mymovie.mkv)!"
 msgstr ""
-"MISE EN GARDE ! Si vous choisissez le mode « Natif », vous pourriez perdre "
-"accès à certaines fonctionnalités de Plex tels que : Plex trailers et les "
-"options de transcodage. Toutes les actions de Plex ont besoin d’utiliser des"
-" chemins d’accès directs (par exemple smb://myNAS/mymovie.mkv ou "
-"\\myNAS/mymovie.mkv) !"
 
 msgctxt "#39029"
 msgid "Network credentials"
@@ -1496,23 +1491,21 @@ msgstr ""
 
 msgctxt "#39033"
 msgid ""
-"Transform Plex UNC library paths \\myNas\\mymovie.mkv automatically to smb "
-"paths, smb://myNas/mymovie.mkv? (recommended)"
+"Transform Plex UNC library paths \\\\myNas\\mymovie.mkv automatically to smb"
+" paths, smb://myNas/mymovie.mkv? (recommended)"
 msgstr ""
-"Transform Plex UNC library paths \\myNas\\mymovie.mkv automatically to smb "
-"paths, smb://myNas/mymovie.mkv? (recommended)"
 
 msgctxt "#39034"
-msgid "Replace Plex UNC paths \\myNas with smb://myNas"
-msgstr "Replace Plex UNC paths \\myNas with smb://myNas"
+msgid "Replace Plex UNC paths \\\\myNas with smb://myNas"
+msgstr "Remplacer les chemins UNC de Plex \\\\myNas par smb://myNas"
 
 msgctxt "#39035"
 msgid ""
-"Replace Plex paths /volume1/media or \\myserver\\media with custom SMB paths"
-" smb://NAS/mystuff"
+"Replace Plex paths /volume1/media or \\\\myserver\\media with custom SMB "
+"paths smb://NAS/mystuff"
 msgstr ""
-"Replace Plex paths /volume1/media or \\myserver\\media with custom SMB paths"
-" smb://NAS/mystuff"
+"Remplacer les chemins Plex /volume1/media ou \\\\myserver\\media par des "
+"chemins SMB personnalisés smb://NAS/mystuff"
 
 msgctxt "#39037"
 msgid "Original Plex MOVIE path to replace:"
@@ -1826,6 +1819,22 @@ msgctxt "#39225"
 msgid "Missing only"
 msgstr "Missing only"
 
+# Message in the PKC settings if user has not logged in to plex.tv
+msgctxt "#39226"
+msgid "Not logged in to plex.tv"
+msgstr ""
+
+# Message in the PKC settings if user is logged in to plex.tv
+msgctxt "#39227"
+msgid "Logged in to plex.tv"
+msgstr ""
+
+# Message in the PKC settings to display the plex.tv username. Leave the colon
+# :
+msgctxt "#39228"
+msgid "Plex user:"
+msgstr ""
+
 # Plex Artwork.py
 msgctxt "#39250"
 msgid ""
@@ -2014,7 +2023,7 @@ msgstr "Parcourir en suivant les répertoires"
 # Addon Summary
 msgctxt "#39703"
 msgid "Native Integration of Plex into Kodi"
-msgstr ""
+msgstr "Intégration native de Plex dans Kodi"
 
 # For use with addon.xml (PKC metadata for Kodi, e.g. description)
 # Addon Description
@@ -2030,4 +2039,89 @@ msgstr ""
 # Addon Disclaimer
 msgctxt "#39705"
 msgid "Use at your own risk"
+msgstr "A utiliser à vos propres risques"
+
+# If user gets prompted to choose between several subtitles. Leave the number
+# one at the beginning of the string!
+msgctxt "#39706"
+msgid "1 No subtitles"
+msgstr "1 pas de sous titre"
+
+# If user gets prompted to choose between several audio/subtitle tracks and
+# language is unknown
+msgctxt "#39707"
+msgid "unknown"
+msgstr "Inconnu"
+
+# If user gets prompted to choose between several subtitles and Plex adds the
+# "default" flag
+msgctxt "#39708"
+msgid "Default"
+msgstr "Défaut"
+
+# If user gets prompted to choose between several subtitles and Plex adds the
+# "forced" flag
+msgctxt "#39709"
+msgid "Forced"
+msgstr "Forcé"
+
+# If user gets prompted to choose between several subtitles the subtitle
+# cannot be downloaded (has no 'key' attribute from the PMS), the subtitle
+# needs to be burned in
+msgctxt "#39710"
+msgid "burn-in"
+msgstr "Incrusté"
+
+# Dialog text if PKC detected a new Music library and Kodi needs to be
+# restarted
+msgctxt "#39711"
+msgid ""
+"New Plex music library detected. Sorry, but we need to restart Kodi now due "
+"to the changes made."
+msgstr ""
+
+# Shown during sync process
+msgctxt "#39712"
+msgid "downloaded"
+msgstr "Téléchargé"
+
+# Shown during sync process
+msgctxt "#39713"
+msgid "processed"
+msgstr ""
+
+# Shown during sync process
+msgctxt "#39714"
+msgid "Sync"
+msgstr "Synchro"
+
+# Shown during sync process
+msgctxt "#39715"
+msgid "items"
+msgstr "Eléments"
+
+# Error message if an xml, e.g. advancedsettings.xml cannot be parsed (xml is
+# screwed up; formated the wrong way). Do NOT replace {0} and {1}!
+msgctxt "#39716"
+msgid ""
+"Kodi cannot parse {0}. PKC will not function correctly. Please visit {1} and"
+" correct your file!"
+msgstr ""
+
+# Shown once on first installation to comply with the terms of use of
+# themoviedb.org
+msgctxt "#39717"
+msgid "PKC uses free additional artwork from www.themoviedb.org. Many thanks!"
+msgstr ""
+
+# Shown during very first PKC setup only
+msgctxt "#39718"
+msgid ""
+"Do you want to replace your custom user ratings with an indicator of how "
+"many versions of a media item you posses?"
+msgstr ""
+
+# In PKC Settings under Sync
+msgctxt "#39719"
+msgid "Replace user ratings with number of media versions"
 msgstr ""
