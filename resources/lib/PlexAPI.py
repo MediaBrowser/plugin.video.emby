@@ -1910,7 +1910,7 @@ class API():
         # if the title has the year in remove it as tmdb cannot deal with it...
         # replace e.g. 'The Americans (2015)' with 'The Americans'
         title = sub(r'\s*\(\d{4}\)$', '', title, count=1)
-        url = 'http://api.themoviedb.org/3/search/%s' % media_type
+        url = 'https://api.themoviedb.org/3/search/%s' % media_type
         parameters = {
             'api_key': apiKey,
             'language': v.KODILANGUAGE,
