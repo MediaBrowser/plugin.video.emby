@@ -865,6 +865,7 @@ def passwordsXML():
     #     time=5000,
     #     sound=False)
 
+
 def playlistXSP(mediatype, tagname, viewid, viewtype="", delete=False):
     """
     Feed with tagname as unicode
@@ -898,8 +899,8 @@ def playlistXSP(mediatype, tagname, viewid, viewtype="", delete=False):
         'show': 'tvshows'
     }
     log.info("Writing playlist file to: %s" % xsppath)
-    with open(xsppath, 'wb'):
-        tryEncode(
+    with open(xsppath, 'wb') as f:
+        f.write(tryEncode(
             '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n'
             '<smartplaylist type="%s">\n\t'
                 '<name>Plex %s</name>\n\t'
@@ -908,8 +909,9 @@ def playlistXSP(mediatype, tagname, viewid, viewtype="", delete=False):
                     '<value>%s</value>\n\t'
                 '</rule>\n'
             '</smartplaylist>\n'
-            % (itemtypes.get(mediatype, mediatype), plname, tagname))
+            % (itemtypes.get(mediatype, mediatype), plname, tagname)))
     log.info("Successfully added playlist: %s" % tagname)
+
 
 def deletePlaylists():
     # Clean up the playlists
