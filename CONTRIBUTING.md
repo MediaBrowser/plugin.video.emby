@@ -1,3 +1,7 @@
+# Do NOT Post Your Logs with Tokens!
+
+Be sure to replace all tokens from your log files before posting, otherwise anyone may access your Plex Media Server! Be sure to read [the guideline](https://github.com/croneter/PlexKodiConnect/wiki/How-to-Report-A-Bug)
+
 # How to contribute
 
 Thanks a ton for contributing to PlexKodiConnect!
