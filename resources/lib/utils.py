@@ -221,7 +221,7 @@ def advancedsettingsXML():
     except: # Document is blank or missing
         root = etree.Element('advancedsettings')
     else:
-        root = xmlparse.getroot()   
+        root = xmlparse.getroot()
 
     # Return root element
     return root
