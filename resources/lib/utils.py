@@ -211,7 +211,7 @@ def profiling(sortby="cumulative"):
 #################################################################################################
 # Addon utilities
 
-def advancedSettingsXML():
+def advancedsettingsXML():
     # To prevent scanning regex paths
     path = xbmc.translatePath("special://masterprofile/").decode('utf-8')
     xmlpath = "%sadvancedsettings.xml" % path
@@ -221,7 +221,7 @@ def advancedSettingsXML():
     except: # Document is blank or missing
         root = etree.Element('advancedsettings')
     else:
-        root = xmlparse.getroot()    
+        root = xmlparse.getroot()   
 
     # Return root element
     return root

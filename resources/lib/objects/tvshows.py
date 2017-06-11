@@ -5,14 +5,13 @@
 import logging
 import urllib
 import re
-import xml.etree.ElementTree as etree
 from ntpath import dirname
 
 import api
 import embydb_functions as embydb
 import _kodi_tvshows
 from _common import Items, catch_except
-from utils import window, settings, language as lang, advancedSettingsXML
+from utils import window, settings, language as lang, advancedsettingsXML
 
 ##################################################################################################
 
@@ -26,7 +25,7 @@ class TVShows(Items):
 
     def __init__(self, embycursor, kodicursor, pdialog=None):
 
-        self.advsettings = advancedSettingsXML()
+        self.advsettings = advancedsettingsXML()
 
         self.embycursor = embycursor
         self.emby_db = embydb.Embydb_Functions(self.embycursor)
