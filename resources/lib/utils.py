@@ -211,6 +211,21 @@ def profiling(sortby="cumulative"):
 #################################################################################################
 # Addon utilities
 
+def advancedSettingsXML():
+    # To prevent scanning regex paths
+    path = xbmc.translatePath("special://masterprofile/").decode('utf-8')
+    xmlpath = "%sadvancedsettings.xml" % path
+
+    try:
+        xmlparse = etree.parse(xmlpath)
+    except: # Document is blank or missing
+        root = etree.Element('advancedsettings')
+    else:
+        root = xmlparse.getroot()    
+
+    # Return root element
+    return root
+
 def sourcesXML():
     # To make Master lock compatible
     path = xbmc.translatePath("special://profile/").decode('utf-8')
