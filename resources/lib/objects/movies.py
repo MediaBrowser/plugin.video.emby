@@ -237,7 +237,7 @@ class Movies(Items):
 
         ##### UPDATE THE MOVIE #####
         if update_item:
-            log.info("UPDATE movie itemid: %s - Title: %s - MovieID: %s", itemid, title, movieid)
+            log.info("UPDATE movie itemid: %s - Title: %s", itemid, title)
 
             # update new ratings Kodi 17
             if self.kodi_version >= 17:
