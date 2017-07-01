@@ -2139,8 +2139,8 @@ msgid ""
 "Do you want to replace your custom user ratings with an indicator of how "
 "many versions of a media item you posses?"
 msgstr ""
-"Sollen individuelle Benutzerbewertungen (user ratings) durch die verfügbare "
-"Anzahl Versionen eines bestimmten Medieneintrags ersetzt werden?"
+"Sollen individuelle Benutzerbewertungen durch die verfügbare Anzahl "
+"Versionen eines bestimmten Medieneintrags ersetzt werden?"
 
 # In PKC Settings under Sync
 msgctxt "#39719"

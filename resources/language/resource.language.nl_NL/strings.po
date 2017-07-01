@@ -1453,6 +1453,10 @@ msgid ""
 "shares need to use direct paths (e.g. smb://myNAS/mymovie.mkv or "
 "\\\\myNAS/mymovie.mkv)!"
 msgstr ""
+"WAARSCHUWING! Als je kiest voor 'Native' mode, zal je bepaalde plex features"
+" missen. zoals: trailers en transcoding instellingen. Alle Plex paden moeten"
+" directe paden gebruiken (bijvoorbeeld smb://myNAS/mymovie.mkv of "
+"\\\\myNAS\\mymovie.mkv)!"
 
 msgctxt "#39029"
 msgid "Network credentials"
@@ -1485,16 +1489,20 @@ msgid ""
 "Transform Plex UNC library paths \\\\myNas\\mymovie.mkv automatically to smb"
 " paths, smb://myNas/mymovie.mkv? (recommended)"
 msgstr ""
+"Vervang Plex UNC bibliotheek paden \\\\myNas\\mymovie.mkv automatisch met "
+"smb paden, smb://myNas/mymovie.mkv? (aangeraden)"
 
 msgctxt "#39034"
 msgid "Replace Plex UNC paths \\\\myNas with smb://myNas"
-msgstr ""
+msgstr "Vervang Plex UNC paden \\\\MyNas met smb://myNas"
 
 msgctxt "#39035"
 msgid ""
 "Replace Plex paths /volume1/media or \\\\myserver\\media with custom SMB "
 "paths smb://NAS/mystuff"
 msgstr ""
+"Vervang plex paden /volume1/media of \\\\myserver\\media met aangepaste SMB "
+"paden smb://NAS/mystuff"
 
 msgctxt "#39037"
 msgid "Original Plex MOVIE path to replace:"
@@ -1805,18 +1813,18 @@ msgstr "Alleen ontbrekende"
 # Message in the PKC settings if user has not logged in to plex.tv
 msgctxt "#39226"
 msgid "Not logged in to plex.tv"
-msgstr ""
+msgstr "Niet ingelogd op plek.tv"
 
 # Message in the PKC settings if user is logged in to plex.tv
 msgctxt "#39227"
 msgid "Logged in to plex.tv"
-msgstr ""
+msgstr "Ingelogd op plek.tv"
 
 # Message in the PKC settings to display the plex.tv username. Leave the colon
 # :
 msgctxt "#39228"
 msgid "Plex user:"
-msgstr ""
+msgstr "Plex gebruiker:"
 
 # Plex Artwork.py
 msgctxt "#39250"
@@ -2104,8 +2112,10 @@ msgid ""
 "Do you want to replace your custom user ratings with an indicator of how "
 "many versions of a media item you posses?"
 msgstr ""
+"Wil je de custom ratings vervangen met het aantal media versies dat aanwezig"
+" is voor een item?"
 
 # In PKC Settings under Sync
 msgctxt "#39719"
 msgid "Replace user ratings with number of media versions"
-msgstr ""
+msgstr "Vervang ratings met aantal media versies"

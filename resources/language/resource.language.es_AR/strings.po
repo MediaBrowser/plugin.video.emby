@@ -733,7 +733,7 @@ msgstr "En Curso "
 
 msgctxt "#30222"
 msgid "NextUp "
-msgstr "NextUp"
+msgstr "NextUp "
 
 msgctxt "#30223"
 msgid "User Views"
@@ -1177,7 +1177,7 @@ msgstr "Obligar transcodificar fotografías"
 # service add-on
 msgctxt "#33000"
 msgid "Welcome"
-msgstr "Bienvenido(a)"
+msgstr "Bienvenido"
 
 msgctxt "#33001"
 msgid "Error connecting"
@@ -2125,8 +2125,8 @@ msgid ""
 "Kodi cannot parse {0}. PKC will not function correctly. Please visit {1} and"
 " correct your file!"
 msgstr ""
-"Kodi no puede procesar {0}. PKC no funcionara correctamente. Por favor, "
-"visite {1} y corrija el fichero."
+"Kodi no puede procesar {0}. PKC no funcionara correctamente. ¡Por favor, "
+"visite {1} y corrija el fichero!"
 
 # Shown once on first installation to comply with the terms of use of
 # themoviedb.org
@@ -2140,8 +2140,11 @@ msgid ""
 "Do you want to replace your custom user ratings with an indicator of how "
 "many versions of a media item you posses?"
 msgstr ""
+"¿Quiere reemplazar su valoración personalizada con cuántas versione posee de"
+" un elemento de medios?"
 
 # In PKC Settings under Sync
 msgctxt "#39719"
 msgid "Replace user ratings with number of media versions"
 msgstr ""
+"Reemplazar valoraciones de usuario con cantidad de versiones de medios"
