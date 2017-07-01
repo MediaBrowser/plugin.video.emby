@@ -1806,15 +1806,14 @@ class API():
         }
 
     def __getOneArtwork(self, entry):
-        try:
-            artwork = self.item.attrib[entry]
-            if artwork.startswith('http'):
-                pass
-            else:
-                artwork = "%s%s" % (self.server, artwork)
-                artwork = self.addPlexCredentialsToUrl(artwork)
-        except KeyError:
-            artwork = ""
+        if entry not in self.item.attrib:
+            return ''
+        artwork = self.item.attrib[entry]
+        if artwork.startswith('http'):
+            pass
+        else:
+            artwork = self.addPlexCredentialsToUrl(
+                "%s/photo/:/transcode?width=4000&height=4000&minSize=1&upscale=0&url=%s" % (self.server, artwork))
         return artwork
 
     def getAllArtwork(self, parentInfo=False):
