@@ -1,3 +1,8 @@
+version 1.8.4:
+- Plex cloud should now work: Request pictures with transcoding API 
+- Fix Plex companion feedback for Android
+- Update translations
+
 version 1.8.3:
 - Fix Kodi playlists being empty
 
