@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon  id="plugin.video.plexkodiconnect" name="PlexKodiConnect" version="1.8.4" provider-name="croneter">
+<addon  id="plugin.video.plexkodiconnect" name="PlexKodiConnect" version="1.8.5" provider-name="croneter">
   <requires>
     <import addon="xbmc.python" version="2.1.0"/>
     <import addon="script.module.requests" version="2.3.0" />
@@ -54,7 +54,10 @@
     <disclaimer lang="es_MX">Usar a su propio riesgo</disclaimer>
     <disclaimer lang="fr_FR">A utiliser à vos propres risques</disclaimer>
     <disclaimer lang="fr_CA">A utiliser à vos propres risques</disclaimer>
-    <news>version 1.8.4:
+    <news>version 1.8.5:
+- version 1.8.4 for everyone
+
+version 1.8.4 (beta only):
 - Plex cloud should now work: Request pictures with transcoding API 
 - Fix Plex companion feedback for Android
 - Update translations

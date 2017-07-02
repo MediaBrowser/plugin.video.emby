@@ -1,5 +1,5 @@
-[![stable version](https://img.shields.io/badge/stable_version-1.8.3-blue.svg?maxAge=60&style=flat) ](https://dl.bintray.com/croneter/PlexKodiConnect/bin/repository.plexkodiconnect/repository.plexkodiconnect-1.0.0.zip) 
-[![beta version](https://img.shields.io/badge/beta_version-1.8.4-red.svg?maxAge=60&style=flat) ](https://dl.bintray.com/croneter/PlexKodiConnect_BETA/bin-BETA/repository.plexkodiconnectbeta/repository.plexkodiconnectbeta-1.0.0.zip)
+[![stable version](https://img.shields.io/badge/stable_version-1.8.5-blue.svg?maxAge=60&style=flat) ](https://dl.bintray.com/croneter/PlexKodiConnect/bin/repository.plexkodiconnect/repository.plexkodiconnect-1.0.0.zip) 
+[![beta version](https://img.shields.io/badge/beta_version-1.8.5-red.svg?maxAge=60&style=flat) ](https://dl.bintray.com/croneter/PlexKodiConnect_BETA/bin-BETA/repository.plexkodiconnectbeta/repository.plexkodiconnectbeta-1.0.0.zip)
 
 [![Installation](https://img.shields.io/badge/wiki-installation-brightgreen.svg?maxAge=60&style=flat)](https://github.com/croneter/PlexKodiConnect/wiki/Installation)
 [![FAQ](https://img.shields.io/badge/wiki-FAQ-brightgreen.svg?maxAge=60&style=flat)](https://github.com/croneter/PlexKodiConnect/wiki/faq)

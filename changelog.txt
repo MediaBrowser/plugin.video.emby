@@ -1,4 +1,7 @@
-version 1.8.4:
+version 1.8.5:
+- version 1.8.4 for everyone
+
+version 1.8.4 (beta only):
 - Plex cloud should now work: Request pictures with transcoding API 
 - Fix Plex companion feedback for Android
 - Update translations
