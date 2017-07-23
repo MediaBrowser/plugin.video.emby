@@ -92,6 +92,9 @@ def doMainListing():
                 elif not xbmc.getCondVisibility("Window.IsActive(Videos) | Window.IsActive(Pictures) | Window.IsActive(Music)"):
                     addDirectoryItem(label, path)
 
+    addDirectoryItem(lang(33096),
+        "plugin://plugin.video.emby/?mode=browsecontent&type=folders&id=Folders")
+
     # experimental live tv nodes
     if not xbmc.getCondVisibility("Window.IsActive(Pictures)"):
         addDirectoryItem(lang(33051),
