@@ -1460,6 +1460,11 @@ msgid ""
 "shares need to use direct paths (e.g. smb://myNAS/mymovie.mkv or "
 "\\\\myNAS/mymovie.mkv)!"
 msgstr ""
+"MISE EN GARDE ! Si vous choisissez le mode « Natif », vous pourriez perdre "
+"accès à certaines fonctionnalités de Plex tels que : Plex trailers et les "
+"options de transcodage. Toutes les actions de Plex ont besoin d’utiliser des"
+" chemins d’accès directs (par exemple smb://myNAS/mymovie.mkv ou "
+"\\myNAS/mymovie.mkv) !"
 
 msgctxt "#39029"
 msgid "Network credentials"
@@ -1494,6 +1499,8 @@ msgid ""
 "Transform Plex UNC library paths \\\\myNas\\mymovie.mkv automatically to smb"
 " paths, smb://myNas/mymovie.mkv? (recommended)"
 msgstr ""
+"Transformer les chemins de librairie UNC de Plex \\\\myNas\\mymovie.mkv par "
+"des chemins SMB, smb://myNas/mymovie.mkv ? (recommandé)"
 
 msgctxt "#39034"
 msgid "Replace Plex UNC paths \\\\myNas with smb://myNas"
@@ -1822,18 +1829,18 @@ msgstr "Missing only"
 # Message in the PKC settings if user has not logged in to plex.tv
 msgctxt "#39226"
 msgid "Not logged in to plex.tv"
-msgstr ""
+msgstr "Non connecté à plex.tv"
 
 # Message in the PKC settings if user is logged in to plex.tv
 msgctxt "#39227"
 msgid "Logged in to plex.tv"
-msgstr ""
+msgstr "Connecté à plex.tv"
 
 # Message in the PKC settings to display the plex.tv username. Leave the colon
 # :
 msgctxt "#39228"
 msgid "Plex user:"
-msgstr ""
+msgstr "Utilisateur Plex :"
 
 # Plex Artwork.py
 msgctxt "#39250"
@@ -2034,6 +2041,11 @@ msgid ""
 "stored in the Kodi video and music databases (as this plugin directly "
 "changes them). Use at your own risk!"
 msgstr ""
+"Connecter Kodi à votre Plex Media Server. Ce plugin assume que vous "
+"souhaitez gérer toutes vos vidéos avec Plex (et aucune avec Kodi). Vous "
+"pourriez perdre les données déjà stockées dans les bases de données vidéo et"
+" musique de Kodi (ce plugin les modifie directement). Utilisez à vos propres"
+" risques !"
 
 # For use with addon.xml (PKC metadata for Kodi, e.g. description)
 # Addon Disclaimer
@@ -2079,6 +2091,8 @@ msgid ""
 "New Plex music library detected. Sorry, but we need to restart Kodi now due "
 "to the changes made."
 msgstr ""
+"Nouvelle bibliothèque de musique Plex détectée. Désolé, mais nous devons "
+"redémarrer Kodi maintenant à cause des changements effectués."
 
 # Shown during sync process
 msgctxt "#39712"
@@ -2088,7 +2102,7 @@ msgstr "Téléchargé"
 # Shown during sync process
 msgctxt "#39713"
 msgid "processed"
-msgstr ""
+msgstr "traité"
 
 # Shown during sync process
 msgctxt "#39714"
@@ -2107,12 +2121,16 @@ msgid ""
 "Kodi cannot parse {0}. PKC will not function correctly. Please visit {1} and"
 " correct your file!"
 msgstr ""
+"Kodi ne peut pas traiter {0}. PKC ne fonctionnera pas correctement. Merci de"
+" visiter {1} et de corriger votre fichier !"
 
 # Shown once on first installation to comply with the terms of use of
 # themoviedb.org
 msgctxt "#39717"
 msgid "PKC uses free additional artwork from www.themoviedb.org. Many thanks!"
 msgstr ""
+"PKC utilise gratuitement des artwork additionnels provenant de "
+"www.themoviedb.org. Merci beaucoup !"
 
 # Shown during very first PKC setup only
 msgctxt "#39718"
@@ -2120,8 +2138,10 @@ msgid ""
 "Do you want to replace your custom user ratings with an indicator of how "
 "many versions of a media item you posses?"
 msgstr ""
+"Voulez-vous remplacer vos notes d'utilisateurs personnalisées avec un "
+"indicateur du nombre de versions d'un média que vous possédez ?"
 
 # In PKC Settings under Sync
 msgctxt "#39719"
 msgid "Replace user ratings with number of media versions"
-msgstr ""
+msgstr "Remplacer les notes d'utilisateurs par le nombre de versions du média"
