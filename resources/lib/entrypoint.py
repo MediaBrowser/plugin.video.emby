@@ -818,6 +818,7 @@ def BrowseChannels(itemid, folderid=None):
 def createListItem(item):
 
     title = item['title']
+    label2 = ""
     li = xbmcgui.ListItem(title)
     li.setProperty('IsPlayable', "true")
     
@@ -828,6 +829,10 @@ def createListItem(item):
         'Plot': item['plot'],
         'Playcount': item['playcount']
     }
+
+    if "showtitle" in item:
+        metadata['TVshowTitle'] = item['showtitle']
+        label2 = item['showtitle']
 
     if "episodeid" in item:
         # Listitem of episode
@@ -844,13 +849,12 @@ def createListItem(item):
         metadata['Season'] = season
 
     if season and episode:
-        li.setProperty('episodeno', "s%.2de%.2d" % (season, episode))
+        episodeno = "s%.2de%.2d" % (season, episode)
+        li.setProperty('episodeno', episodeno)
+        label2 = "%s - %s" % (label2, episodeno) if label2 else episodeno
 
     if "firstaired" in item:
         metadata['Premiered'] = item['firstaired']
-
-    if "showtitle" in item:
-        metadata['TVshowTitle'] = item['showtitle']
 
     if "rating" in item:
         metadata['Rating'] = str(round(float(item['rating']),1))
@@ -871,6 +875,7 @@ def createListItem(item):
         metadata['Cast'] = cast
         metadata['CastAndRole'] = castandrole
 
+    li.setLabel2(label2)
     li.setInfo(type="Video", infoLabels=metadata)  
     li.setProperty('resumetime', str(item['resume']['position']))
     li.setProperty('totaltime', str(item['resume']['total']))
@@ -1055,9 +1060,10 @@ def getInProgressEpisodes(tagname, limit):
     xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
 
 ##### GET RECENT EPISODES FOR TAGNAME #####    
-def getRecentEpisodes(tagname, limit):
+def getRecentEpisodes(tagname, limit, filters=""):
     
     count = 0
+    filters = filters.split(',') if filters else []
     # if the addon is called with recentepisodes parameter,
     # we return the recentepisodes list of the given tagname
     xbmcplugin.setContent(int(sys.argv[1]), 'episodes')
@@ -1071,7 +1077,7 @@ def getRecentEpisodes(tagname, limit):
 
             'sort': {'order': "descending", 'method': "dateadded"},
             'filter': {'operator': "is", 'field': "tag", 'value': "%s" % tagname},
-            'properties': ["title","sorttitle"]
+            'properties': ["title", "sorttitle"]
         }
     }
     result = xbmc.executeJSONRPC(json.dumps(query))
@@ -1082,9 +1088,7 @@ def getRecentEpisodes(tagname, limit):
     except (KeyError, TypeError):
         pass
     else:
-        allshowsIds = set()
-        for item in items:
-            allshowsIds.add(item['tvshowid'])
+        allshowsIds = set(item['tvshowid'] for item in items)
 
         query = {
 
@@ -1094,15 +1098,17 @@ def getRecentEpisodes(tagname, limit):
             'params': {
 
                 'sort': {'order': "descending", 'method': "dateadded"},
-                'filter': {'operator': "lessthan", 'field': "playcount", 'value': "1"},
                 'properties': [
                     "title", "playcount", "season", "episode", "showtitle", "plot",
                     "file", "rating", "resume", "tvshowid", "art", "streamdetails",
                     "firstaired", "runtime", "cast", "writer", "dateadded", "lastplayed"
                 ],
-                "limits": {"end": limit}
+                "limits": {"end": limit*5}
             }
         }
+        if 'playcount' not in filters:
+            query['params']['filter'] = {'operator': "lessthan", 'field': "playcount", 'value': "1"}
+
         result = xbmc.executeJSONRPC(json.dumps(query))
         result = json.loads(result)
         try:
