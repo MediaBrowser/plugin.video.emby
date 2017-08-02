@@ -1,3 +1,9 @@
+version 1.8.7:
+- Some fixes to playstate reporting, thanks @RickDB
+- Add Kodi info screen for episodes in context menu
+- Fix PKC asking for trailers not working
+- Fix PKC not automatically updating
+
 version 1.8.6:
 - Portuguese translation, thanks @goncalo532 
 - Updated other translations

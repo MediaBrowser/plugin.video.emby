@@ -59,7 +59,13 @@
     <summary lang="da_DK">Indbygget Integration af Plex i Kodi</summary>
     <description lang="da_DK">Tilslut Kodi til din Plex Media Server. Dette plugin forudsætter, at du administrere alle dine videoer med Plex (og ikke med Kodi). Du kan miste data som allerede er gemt i Kodi video og musik-databaser (dette plugin ændrer direkte i dem). Brug på eget ansvar!</description>
     <disclaimer lang="da_DK">Brug på eget ansvar</disclaimer>
-    <news>version 1.8.6:
+    <news>version 1.8.7:
+- Some fixes to playstate reporting, thanks @RickDB
+- Add Kodi info screen for episodes in context menu
+- Fix PKC asking for trailers not working
+- Fix PKC not automatically updating
+
+version 1.8.6:
 - Portuguese translation, thanks @goncalo532 
 - Updated other translations
 
