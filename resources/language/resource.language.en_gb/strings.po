@@ -83,6 +83,11 @@ msgctxt "#30017"
 msgid "Unauthorized for PMS"
 msgstr ""
 
+# Kodi context menu entry for movie and episode information screen
+msgctxt "#30018"
+msgid "Information"
+msgstr ""
+
 msgctxt "#30022"
 msgid "Advanced"
 msgstr ""
