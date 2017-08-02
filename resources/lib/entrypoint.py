@@ -255,6 +255,7 @@ def createListItem(item, appendShowTitle=False, appendSxxExx=False):
     li.setArt({'icon': 'DefaultTVShows.png'})
     li.setProperty('dbid', str(item['episodeid']))
     li.setProperty('fanart_image', item['art'].get('tvshow.fanart',''))
+    li.addContextMenuItems([(lang(30018), 'XBMC.Action(Info)',)])
     for key, value in item['streamdetails'].iteritems():
         for stream in value:
             li.addStreamInfo(key, stream)
