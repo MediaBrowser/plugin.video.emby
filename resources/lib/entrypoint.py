@@ -256,7 +256,7 @@ def createListItem(item, appendShowTitle=False, appendSxxExx=False):
     li.setProperty('dbid', str(item['episodeid']))
     li.setProperty('fanart_image', item['art'].get('tvshow.fanart',''))
     try:
-        li.addContextMenuItems([(lang(30018), 'XBMC.Action(Info)',)])
+        li.addContextMenuItems([(lang(30032), 'XBMC.Action(Info)',)])
     except TypeError:
         # Kodi fuck-up
         pass

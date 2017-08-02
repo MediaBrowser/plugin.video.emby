@@ -2536,7 +2536,7 @@ class API():
         listItem.setInfo('video', infoLabels=metadata)
         try:
             # Add context menu entry for information screen
-            listItem.addContextMenuItems([(lang(30018), 'XBMC.Action(Info)',)])
+            listItem.addContextMenuItems([(lang(30032), 'XBMC.Action(Info)',)])
         except TypeError:
             # Kodi fuck-up
             pass
