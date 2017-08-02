@@ -129,6 +129,7 @@ class PlaybackUtils():
                     trailers = xbmcgui.Dialog().yesno(
                         lang(29999),
                         "Play trailers?")
+                    trailers = True if trailers else False
                 else:
                     trailers = True
             # Post to the PMS. REUSE THE PLAYQUEUE!
