@@ -255,6 +255,11 @@ def createListItem(item, appendShowTitle=False, appendSxxExx=False):
     li.setArt({'icon': 'DefaultTVShows.png'})
     li.setProperty('dbid', str(item['episodeid']))
     li.setProperty('fanart_image', item['art'].get('tvshow.fanart',''))
+    try:
+        li.addContextMenuItems([(lang(30032), 'XBMC.Action(Info)',)])
+    except TypeError:
+        # Kodi fuck-up
+        pass
     for key, value in item['streamdetails'].iteritems():
         for stream in value:
             li.addStreamInfo(key, stream)

@@ -2534,6 +2534,12 @@ class API():
         # Expensive operation
         metadata['title'] = title
         listItem.setInfo('video', infoLabels=metadata)
+        try:
+            # Add context menu entry for information screen
+            listItem.addContextMenuItems([(lang(30032), 'XBMC.Action(Info)',)])
+        except TypeError:
+            # Kodi fuck-up
+            pass
         return listItem
 
     def add_video_streams(self, listItem):
