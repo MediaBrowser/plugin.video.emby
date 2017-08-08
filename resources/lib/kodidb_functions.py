@@ -1280,7 +1280,14 @@ class Kodidb_Functions():
             try:
                 artistid = self.cursor.fetchone()[0]
             except TypeError:
-                self.cursor.execute("select coalesce(max(idArtist),0) from artist")
+                # Krypton has a dummy first entry idArtist: 1  strArtist:
+                # [Missing Tag] strMusicBrainzArtistID: Artist Tag Missing
+                if v.KODIVERSION >= 17:
+                    self.cursor.execute(
+                        "select coalesce(max(idArtist),1) from artist")
+                else:
+                    self.cursor.execute(
+                        "select coalesce(max(idArtist),0) from artist")
                 artistid = self.cursor.fetchone()[0] + 1
                 query = (
                     '''
