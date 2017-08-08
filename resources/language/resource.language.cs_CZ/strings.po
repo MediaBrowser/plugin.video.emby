@@ -105,6 +105,11 @@ msgctxt "#30031"
 msgid "I own this Plex Media Server"
 msgstr "Tento Plex Media Server je můj"
 
+# Kodi context menu entry for movie and episode information screen
+msgctxt "#30032"
+msgid "Information"
+msgstr "Informace"
+
 msgctxt "#30035"
 msgid "Number of recent Music Albums to show:"
 msgstr "Zobrazit počet naposledy přidaných hudebních alb:"
@@ -1808,18 +1813,18 @@ msgstr "Pouze chybějící"
 # Message in the PKC settings if user has not logged in to plex.tv
 msgctxt "#39226"
 msgid "Not logged in to plex.tv"
-msgstr ""
+msgstr "Nepřihlášeno k plex.tv"
 
 # Message in the PKC settings if user is logged in to plex.tv
 msgctxt "#39227"
 msgid "Logged in to plex.tv"
-msgstr ""
+msgstr "Přihlášeno k plex.tv"
 
 # Message in the PKC settings to display the plex.tv username. Leave the colon
 # :
 msgctxt "#39228"
 msgid "Plex user:"
-msgstr ""
+msgstr "Uživatel plexu:"
 
 # Plex Artwork.py
 msgctxt "#39250"
@@ -2103,6 +2108,7 @@ msgstr ""
 msgctxt "#39717"
 msgid "PKC uses free additional artwork from www.themoviedb.org. Many thanks!"
 msgstr ""
+"PKC používá dodatečné obrázky z www.themoviedb.org. Děkujeme mnohokrát!"
 
 # Shown during very first PKC setup only
 msgctxt "#39718"
@@ -2110,8 +2116,10 @@ msgid ""
 "Do you want to replace your custom user ratings with an indicator of how "
 "many versions of a media item you posses?"
 msgstr ""
+"Chcete nahradit uživatelské hodnocení indikátorem počtu verzí médií které "
+"jsou k dispozici?"
 
 # In PKC Settings under Sync
 msgctxt "#39719"
 msgid "Replace user ratings with number of media versions"
-msgstr ""
+msgstr "Nahradit uživatelské hodnocení počtem verzí média"
