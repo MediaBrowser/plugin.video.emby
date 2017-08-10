@@ -2395,11 +2395,9 @@ class API():
             log.error('Could not temporarily download subtitle %s' % url)
             return
         else:
-            log.debug('Writing temp subtitle to %s' % path)
             r.encoding = 'utf-8'
             with open(path, 'wb') as f:
-                # r.content does not always seem to be encoded!
-                f.write(tryEncode(r.content))
+                f.write(r.content)
             return path
 
     def GetKodiPremierDate(self):
