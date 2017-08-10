@@ -221,6 +221,16 @@ def tryDecode(string, encoding='utf-8'):
     return string
 
 
+def slugify(text):
+    """
+    Normalizes text (in unicode or string) to e.g. enable safe filenames.
+    Returns unicode
+    """
+    if not isinstance(text, unicode):
+        text = unicode(text)
+    return unicode(normalize('NFKD', text).encode('ascii', 'ignore'))
+
+
 def escape_html(string):
     """
     Escapes the following:

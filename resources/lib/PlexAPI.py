@@ -49,7 +49,7 @@ from xbmcvfs import exists
 import clientinfo as client
 from downloadutils import DownloadUtils
 from utils import window, settings, language as lang, tryDecode, tryEncode, \
-    DateToKodi, exists_dir
+    DateToKodi, exists_dir, slugify
 from PlexFunctions import PMSHttpsEnabled
 import plexdb_functions as plexdb
 import variables as v
@@ -2396,10 +2396,13 @@ class API():
             return
         else:
             log.debug('Writing temp subtitle to %s' % path)
-            r.encoding = 'utf-8'
-            with open(path, 'wb') as f:
-                # r.content does not always seem to be encoded!
-                f.write(tryEncode(r.content))
+            try:
+                with open(path, 'wb') as f:
+                    f.write(r.content)
+            except UnicodeEncodeError:
+                log.debug('Need to slugify the filename %s' % path)
+                with open(slugify(path), 'wb') as f:
+                    f.write(r.content)
             return path
 
     def GetKodiPremierDate(self):
