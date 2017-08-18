@@ -63,7 +63,6 @@ class LibrarySync(Thread):
 
         self.user = userclient.UserClient()
         self.vnodes = videonodes.VideoNodes()
-        self.dialog = xbmcgui.Dialog()
 
         self.syncThreadNumber = int(settings('syncThreadNumber'))
         self.installSyncDone = settings('SyncInstallRunDone') == 'true'
@@ -98,19 +97,16 @@ class LibrarySync(Thread):
             if not forced:
                 return
         if icon == "plex":
-            self.dialog.notification(
-                lang(29999),
-                message,
-                "special://home/addons/plugin.video.plexkodiconnect/icon.png",
-                5000,
-                False)
+            dialog('notification',
+                   heading='{plex}',
+                   message=message,
+                   icon='{plex}',
+                   sound=False)
         elif icon == "error":
-            self.dialog.notification(
-                lang(29999),
-                message,
-                xbmcgui.NOTIFICATION_ERROR,
-                7000,
-                True)
+            dialog('notification',
+                   heading='{plex}',
+                   message=message,
+                   type='{error}')
 
     def syncPMStime(self):
         """
@@ -317,13 +313,13 @@ class LibrarySync(Thread):
         setScreensaver(value=screensaver)
         if window('plex_scancrashed') == 'true':
             # Show warning if itemtypes.py crashed at some point
-            self.dialog.ok(lang(29999), lang(39408))
+            dialog('ok', heading='{plex}', line1=lang(39408))
             window('plex_scancrashed', clear=True)
         elif window('plex_scancrashed') == '401':
             window('plex_scancrashed', clear=True)
             if state.PMS_STATUS not in ('401', 'Auth'):
                 # Plex server had too much and returned ERROR
-                self.dialog.ok(lang(29999), lang(39409))
+                dialog('ok', heading='{plex}', line1=lang(39409))
 
         # Path hack, so Kodis Information screen works
         with kodidb.GetKodiDB('video') as kodi_db:
@@ -477,7 +473,7 @@ class LibrarySync(Thread):
                 log.info('Detected new Music library - restarting now')
                 #  'New Plex music library detected. Sorry, but we need to
                 #  restart Kodi now due to the changes made.'
-                dialog('ok', lang(29999), lang(39711))
+                dialog('ok', heading='{plex}', line1=lang(39711))
                 from xbmc import executebuiltin
                 executebuiltin('RestartApp')
                 return False
@@ -1404,7 +1400,7 @@ class LibrarySync(Thread):
             import traceback
             log.error("Traceback:\n%s" % traceback.format_exc())
             # Library sync thread has crashed
-            self.dialog.ok(lang(29999), lang(39400))
+            dialog('ok', heading='{plex}', line1=lang(39400))
             raise
 
     def run_internal(self):
@@ -1459,13 +1455,15 @@ class LibrarySync(Thread):
                     log.warn("Db version out of date: %s minimum version "
                              "required: %s" % (currentVersion, minVersion))
                     # DB out of date. Proceed to recreate?
-                    resp = self.dialog.yesno(heading=lang(29999),
-                                             line1=lang(39401))
+                    resp = dialog('yesno',
+                                  heading=lang(29999),
+                                  line1=lang(39401))
                     if not resp:
                         log.warn("Db version out of date! USER IGNORED!")
                         # PKC may not work correctly until reset
-                        self.dialog.ok(heading=lang(29999),
-                                       line1=(lang(29999) + lang(39402)))
+                        dialog('ok',
+                               heading='{plex}',
+                               line1=lang(29999) + lang(39402))
                     else:
                         reset()
                     break
@@ -1483,7 +1481,7 @@ class LibrarySync(Thread):
                     log.error('Current Kodi version: %s' % tryDecode(
                         xbmc.getInfoLabel('System.BuildVersion')))
                     # "Current Kodi version is unsupported, cancel lib sync"
-                    self.dialog.ok(heading=lang(29999), line1=lang(39403))
+                    dialog('ok', heading='{plex}', line1=lang(39403))
                     break
                 # Run start up sync
                 state.DB_SCAN = True
@@ -1525,8 +1523,7 @@ class LibrarySync(Thread):
                         log.error("Startup full sync failed. Stopping sync")
                         # "Startup syncing process failed repeatedly"
                         # "Please restart"
-                        self.dialog.ok(heading=lang(29999),
-                                       line1=lang(39404))
+                        dialog('ok', heading='{plex}', line1=lang(39404))
                         break
 
             # Currently no db scan, so we can start a new scan
@@ -1575,8 +1572,9 @@ class LibrarySync(Thread):
                     window('plex_runLibScan', clear=True)
                     # Only look for missing fanart (No)
                     # or refresh all fanart (Yes)
-                    self.fanartSync(refresh=self.dialog.yesno(
-                        heading=lang(29999),
+                    self.fanartSync(refresh=dialog(
+                        'yesno',
+                        heading='{plex}',
                         line1=lang(39223),
                         nolabel=lang(39224),
                         yeslabel=lang(39225)))
