@@ -62,6 +62,7 @@ class LibrarySync(Thread):
 
         self.user = userclient.UserClient()
         self.vnodes = videonodes.VideoNodes()
+        self.xbmcplayer = xbmc.Player()
 
         self.syncThreadNumber = int(settings('syncThreadNumber'))
         self.installSyncDone = settings('SyncInstallRunDone') == 'true'
@@ -92,6 +93,9 @@ class LibrarySync(Thread):
 
         forced: always show popup, even if user setting to off
         """
+        if self.xbmcplayer.isPlaying():
+            # Don't show any dialog if media is playing
+            return
         if settings('dbSyncIndicator') != 'true':
             if not forced:
                 return
@@ -1413,8 +1417,6 @@ class LibrarySync(Thread):
         lastProcessing = 0
         oneDay = 60*60*24
 
-        xbmcplayer = xbmc.Player()
-
         # Link to Websocket queue
         queue = self.mgr.ws.queue
 
@@ -1584,7 +1586,7 @@ class LibrarySync(Thread):
                 else:
                     now = getUnixTimestamp()
                     if (now - lastSync > fullSyncInterval and
-                            not xbmcplayer.isPlaying()):
+                            not self.xbmcplayer.isPlaying()):
                         lastSync = now
                         log.info('Doing scheduled full library scan')
                         state.DB_SCAN = True
