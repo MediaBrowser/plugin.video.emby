@@ -6,7 +6,6 @@ import Queue
 from random import shuffle
 
 import xbmc
-import xbmcgui
 from xbmcvfs import exists
 
 from utils import window, settings, getUnixTimestamp, sourcesXML,\
@@ -736,11 +735,7 @@ class LibrarySync(Thread):
         threads.append(thread)
         # Start one thread to show sync progress ONLY for new PMS items
         if self.new_items_only is True and window('dbSyncIndicator') == 'true':
-            dialog = xbmcgui.DialogProgressBG()
-            thread = sync_info.Threaded_Show_Sync_Info(
-                dialog,
-                itemNumber,
-                itemType)
+            thread = sync_info.Threaded_Show_Sync_Info(itemNumber, itemType)
             thread.setDaemon(True)
             thread.start()
             threads.append(thread)

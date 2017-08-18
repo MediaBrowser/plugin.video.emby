@@ -3,6 +3,7 @@ from logging import getLogger
 from threading import Thread, Lock
 
 from xbmc import sleep
+from xbmcgui import DialogProgressBG
 
 from utils import thread_methods, language as lang
 
@@ -24,12 +25,11 @@ class Threaded_Show_Sync_Info(Thread):
     Threaded class to show the Kodi statusbar of the metadata download.
 
     Input:
-        dialog       xbmcgui.DialogProgressBG() object to show progress
         total:       Total number of items to get
+        item_type:
     """
-    def __init__(self, dialog, total, item_type):
+    def __init__(self, total, item_type):
         self.total = total
-        self.dialog = dialog
         self.item_type = item_type
         Thread.__init__(self)
 
@@ -50,8 +50,8 @@ class Threaded_Show_Sync_Info(Thread):
         """
         log.debug('Show sync info thread started')
         # cache local variables because it's faster
-        total = self.total
-        dialog = self.dialog
+        total = self.totaltal
+        dialog = DialogProgressBG('dialoglogProgressBG')
         thread_stopped = self.thread_stopped
         dialog.create("%s %s: %s %s"
                       % (lang(39714), self.item_type, str(total), lang(39715)))
