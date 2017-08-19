@@ -126,8 +126,9 @@ def double_urldecode(text):
     return unquote(unquote(text))
 
 
-@thread_methods(add_stops=['STOP_SYNC'],
-                add_suspends=['SUSPEND_LIBRARY_THREAD', 'DB_SCAN'])
+@thread_methods(add_suspends=['SUSPEND_LIBRARY_THREAD',
+                              'DB_SCAN',
+                              'STOP_SYNC'])
 class Image_Cache_Thread(Thread):
     xbmc_host = 'localhost'
     xbmc_port, xbmc_username, xbmc_password = setKodiWebServerDetails()

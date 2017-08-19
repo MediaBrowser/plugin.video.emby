@@ -37,8 +37,7 @@ log = getLogger("PLEX."+__name__)
 ###############################################################################
 
 
-@thread_methods(add_stops=['STOP_SYNC'],
-                add_suspends=['SUSPEND_LIBRARY_THREAD'])
+@thread_methods(add_suspends=['SUSPEND_LIBRARY_THREAD', 'STOP_SYNC'])
 class LibrarySync(Thread):
     """
     """
