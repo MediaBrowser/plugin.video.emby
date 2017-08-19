@@ -797,6 +797,8 @@ class LibrarySync(Thread):
         # PROCESS MOVIES #####
         self.updatelist = []
         for view in views:
+            if self.installSyncDone is not True:
+                state.PATH_VERIFIED = False
             if self.thread_stopped():
                 return False
             # Get items per view
@@ -890,6 +892,8 @@ class LibrarySync(Thread):
         # PROCESS TV Shows #####
         self.updatelist = []
         for view in views:
+            if self.installSyncDone is not True:
+                state.PATH_VERIFIED = False
             if self.thread_stopped():
                 return False
             # Get items per view
@@ -1058,6 +1062,8 @@ class LibrarySync(Thread):
                 except ValueError:
                     pass
         for view in views:
+            if self.installSyncDone is not True:
+                state.PATH_VERIFIED = False
             if self.thread_stopped():
                 return False
             # Get items per view
