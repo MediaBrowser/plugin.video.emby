@@ -10,6 +10,8 @@ STOP_PKC = False
 SUSPEND_LIBRARY_THREAD = False
 # Set if user decided to cancel sync
 STOP_SYNC = False
+# Could we access the paths?
+PATH_VERIFIED = False
 # Set if a Plex-Kodi DB sync is being done - along with
 # window('plex_dbScan') set to 'true'
 DB_SCAN = False

@@ -2589,7 +2589,7 @@ class API():
         elif window('replaceSMB') == 'true':
             if path.startswith('\\\\'):
                 path = 'smb:' + path.replace('\\', '/')
-        if ((window('plex_pathverified') == 'true' and forceCheck is False) or
+        if ((state.PATH_VERIFIED and forceCheck is False) or
                 omitCheck is True):
             return path
 
@@ -2617,12 +2617,12 @@ class API():
                 if self.askToValidate(path):
                     state.STOP_SYNC = True
                     path = None
-                window('plex_pathverified', value='true')
+                state.PATH_VERIFIED = True
             else:
                 path = None
         elif forceCheck is False:
-            if window('plex_pathverified') != 'true':
-                window('plex_pathverified', value='true')
+            # Only set the flag if we were not force-checking the path
+            state.PATH_VERIFIED = True
         return path
 
     def askToValidate(self, url):

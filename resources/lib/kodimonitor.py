@@ -50,6 +50,7 @@ class KodiMonitor(Monitor):
         # Assume that the user changed the settings so that we can now find the
         # path to all media files
         state.STOP_SYNC = False
+        state.PATH_VERIFIED = False
         # settings: window-variable
         items = {
             'logLevel': 'plex_logLevel',
