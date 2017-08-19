@@ -16,7 +16,7 @@ log = getLogger("PLEX."+__name__)
 ###############################################################################
 
 
-@thread_methods(add_stops=['SUSPEND_LIBRARY_THREAD'])
+@thread_methods(add_stops=['SUSPEND_LIBRARY_THREAD', 'STOP_SYNC'])
 class Threaded_Get_Metadata(Thread):
     """
     Threaded download of Plex XML metadata for a certain library item.
@@ -115,17 +115,9 @@ class Threaded_Get_Metadata(Thread):
                 except (TypeError, IndexError, AttributeError):
                     log.error('Could not get children for Plex id %s'
                               % item['itemId'])
-                else:
                     item['children'] = []
-                    for child in children_xml:
-                        child_xml = GetPlexMetadata(child.attrib['ratingKey'])
-                        try:
-                            child_xml[0].attrib
-                        except (TypeError, IndexError, AttributeError):
-                            log.error('Could not get child for Plex id %s'
-                                      % child.attrib['ratingKey'])
-                        else:
-                            item['children'].append(child_xml[0])
+                else:
+                    item['children'] = children_xml
 
             # place item into out queue
             out_queue.put(item)

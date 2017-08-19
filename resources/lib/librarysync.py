@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
 ###############################################################################
-import logging
+from logging import getLogger
 from threading import Thread
 import Queue
 from random import shuffle
 
 import xbmc
-import xbmcgui
 from xbmcvfs import exists
 
 from utils import window, settings, getUnixTimestamp, sourcesXML,\
@@ -33,13 +32,12 @@ import state
 
 ###############################################################################
 
-log = logging.getLogger("PLEX."+__name__)
+log = getLogger("PLEX."+__name__)
 
 ###############################################################################
 
 
-@thread_methods(add_stops=['STOP_SYNC'],
-                add_suspends=['SUSPEND_LIBRARY_THREAD'])
+@thread_methods(add_suspends=['SUSPEND_LIBRARY_THREAD', 'STOP_SYNC'])
 class LibrarySync(Thread):
     """
     """
@@ -63,7 +61,7 @@ class LibrarySync(Thread):
 
         self.user = userclient.UserClient()
         self.vnodes = videonodes.VideoNodes()
-        self.dialog = xbmcgui.Dialog()
+        self.xbmcplayer = xbmc.Player()
 
         self.syncThreadNumber = int(settings('syncThreadNumber'))
         self.installSyncDone = settings('SyncInstallRunDone') == 'true'
@@ -94,23 +92,23 @@ class LibrarySync(Thread):
 
         forced: always show popup, even if user setting to off
         """
-        if settings('dbSyncIndicator') != 'true':
+        if self.xbmcplayer.isPlaying():
+            # Don't show any dialog if media is playing
+            return
+        if window('dbSyncIndicator') != 'true':
             if not forced:
                 return
         if icon == "plex":
-            self.dialog.notification(
-                lang(29999),
-                message,
-                "special://home/addons/plugin.video.plexkodiconnect/icon.png",
-                5000,
-                False)
+            dialog('notification',
+                   heading='{plex}',
+                   message=message,
+                   icon='{plex}',
+                   sound=False)
         elif icon == "error":
-            self.dialog.notification(
-                lang(29999),
-                message,
-                xbmcgui.NOTIFICATION_ERROR,
-                7000,
-                True)
+            dialog('notification',
+                   heading='{plex}',
+                   message=message,
+                   type='{error}')
 
     def syncPMStime(self):
         """
@@ -298,11 +296,9 @@ class LibrarySync(Thread):
 
         # Do the processing
         for itemtype in process:
-            if self.thread_stopped():
-                xbmc.executebuiltin('InhibitIdleShutdown(false)')
-                setScreensaver(value=screensaver)
-                return False
-            if not process[itemtype]():
+            if (self.thread_stopped() or
+                    self.thread_suspended() or
+                    not process[itemtype]()):
                 xbmc.executebuiltin('InhibitIdleShutdown(false)')
                 setScreensaver(value=screensaver)
                 return False
@@ -317,13 +313,13 @@ class LibrarySync(Thread):
         setScreensaver(value=screensaver)
         if window('plex_scancrashed') == 'true':
             # Show warning if itemtypes.py crashed at some point
-            self.dialog.ok(lang(29999), lang(39408))
+            dialog('ok', heading='{plex}', line1=lang(39408))
             window('plex_scancrashed', clear=True)
         elif window('plex_scancrashed') == '401':
             window('plex_scancrashed', clear=True)
             if state.PMS_STATUS not in ('401', 'Auth'):
                 # Plex server had too much and returned ERROR
-                self.dialog.ok(lang(29999), lang(39409))
+                dialog('ok', heading='{plex}', line1=lang(39409))
 
         # Path hack, so Kodis Information screen works
         with kodidb.GetKodiDB('video') as kodi_db:
@@ -477,7 +473,7 @@ class LibrarySync(Thread):
                 log.info('Detected new Music library - restarting now')
                 #  'New Plex music library detected. Sorry, but we need to
                 #  restart Kodi now due to the changes made.'
-                dialog('ok', lang(29999), lang(39711))
+                dialog('ok', heading='{plex}', line1=lang(39711))
                 from xbmc import executebuiltin
                 executebuiltin('RestartApp')
                 return False
@@ -740,11 +736,7 @@ class LibrarySync(Thread):
         threads.append(thread)
         # Start one thread to show sync progress ONLY for new PMS items
         if self.new_items_only is True and window('dbSyncIndicator') == 'true':
-            dialog = xbmcgui.DialogProgressBG()
-            thread = sync_info.Threaded_Show_Sync_Info(
-                dialog,
-                itemNumber,
-                itemType)
+            thread = sync_info.Threaded_Show_Sync_Info(itemNumber, itemType)
             thread.setDaemon(True)
             thread.start()
             threads.append(thread)
@@ -803,7 +795,9 @@ class LibrarySync(Thread):
         # PROCESS MOVIES #####
         self.updatelist = []
         for view in views:
-            if self.thread_stopped():
+            if self.installSyncDone is not True:
+                state.PATH_VERIFIED = False
+            if self.thread_stopped() or self.thread_suspended():
                 return False
             # Get items per view
             viewId = view['id']
@@ -821,10 +815,9 @@ class LibrarySync(Thread):
                                viewName,
                                viewId)
         self.GetAndProcessXMLs(itemType)
-        log.info("Processed view")
         # Update viewstate for EVERY item
         for view in views:
-            if self.thread_stopped():
+            if self.thread_stopped() or self.thread_suspended():
                 return False
             self.PlexUpdateWatched(view['id'], itemType)
 
@@ -896,7 +889,9 @@ class LibrarySync(Thread):
         # PROCESS TV Shows #####
         self.updatelist = []
         for view in views:
-            if self.thread_stopped():
+            if self.installSyncDone is not True:
+                state.PATH_VERIFIED = False
+            if self.thread_stopped() or self.thread_suspended():
                 return False
             # Get items per view
             viewId = view['id']
@@ -925,7 +920,7 @@ class LibrarySync(Thread):
         # PROCESS TV Seasons #####
         # Cycle through tv shows
         for tvShowId in allPlexTvShowsId:
-            if self.thread_stopped():
+            if self.thread_stopped() or self.thread_suspended():
                 return False
             # Grab all seasons to tvshow from PMS
             seasons = GetAllPlexChildren(tvShowId)
@@ -950,7 +945,7 @@ class LibrarySync(Thread):
         # PROCESS TV Episodes #####
         # Cycle through tv shows
         for view in views:
-            if self.thread_stopped():
+            if self.thread_stopped() or self.thread_suspended():
                 return False
             # Grab all episodes to tvshow from PMS
             episodes = GetAllPlexLeaves(view['id'])
@@ -985,7 +980,7 @@ class LibrarySync(Thread):
 
         # Update viewstate:
         for view in views:
-            if self.thread_stopped():
+            if self.thread_stopped() or self.thread_suspended():
                 return False
             self.PlexUpdateWatched(view['id'], itemType)
 
@@ -1022,7 +1017,7 @@ class LibrarySync(Thread):
         for kind in (v.PLEX_TYPE_ARTIST,
                      v.PLEX_TYPE_ALBUM,
                      v.PLEX_TYPE_SONG):
-            if self.thread_stopped():
+            if self.thread_stopped() or self.thread_suspended():
                 return False
             log.debug("Start processing music %s" % kind)
             self.allKodiElementsId = {}
@@ -1039,7 +1034,7 @@ class LibrarySync(Thread):
 
         # Update viewstate for EVERY item
         for view in views:
-            if self.thread_stopped():
+            if self.thread_stopped() or self.thread_suspended():
                 return False
             self.PlexUpdateWatched(view['id'], itemType)
 
@@ -1064,7 +1059,9 @@ class LibrarySync(Thread):
                 except ValueError:
                     pass
         for view in views:
-            if self.thread_stopped():
+            if self.installSyncDone is not True:
+                state.PATH_VERIFIED = False
+            if self.thread_stopped() or self.thread_suspended():
                 return False
             # Get items per view
             itemsXML = GetPlexSectionResults(view['id'], args=urlArgs)
@@ -1139,7 +1136,7 @@ class LibrarySync(Thread):
         now = getUnixTimestamp()
         deleteListe = []
         for i, item in enumerate(self.itemsToProcess):
-            if self.thread_stopped():
+            if self.thread_stopped() or self.thread_suspended():
                 # Chances are that Kodi gets shut down
                 break
             if item['state'] == 9:
@@ -1404,7 +1401,7 @@ class LibrarySync(Thread):
             import traceback
             log.error("Traceback:\n%s" % traceback.format_exc())
             # Library sync thread has crashed
-            self.dialog.ok(lang(29999), lang(39400))
+            dialog('ok', heading='{plex}', line1=lang(39400))
             raise
 
     def run_internal(self):
@@ -1422,14 +1419,11 @@ class LibrarySync(Thread):
         lastProcessing = 0
         oneDay = 60*60*24
 
-        xbmcplayer = xbmc.Player()
-
         # Link to Websocket queue
         queue = self.mgr.ws.queue
 
         startupComplete = False
         self.views = []
-        errorcount = 0
 
         log.info("---===### Starting LibrarySync ###===---")
 
@@ -1459,13 +1453,15 @@ class LibrarySync(Thread):
                     log.warn("Db version out of date: %s minimum version "
                              "required: %s" % (currentVersion, minVersion))
                     # DB out of date. Proceed to recreate?
-                    resp = self.dialog.yesno(heading=lang(29999),
-                                             line1=lang(39401))
+                    resp = dialog('yesno',
+                                  heading=lang(29999),
+                                  line1=lang(39401))
                     if not resp:
                         log.warn("Db version out of date! USER IGNORED!")
                         # PKC may not work correctly until reset
-                        self.dialog.ok(heading=lang(29999),
-                                       line1=(lang(29999) + lang(39402)))
+                        dialog('ok',
+                               heading='{plex}',
+                               line1=lang(29999) + lang(39402))
                     else:
                         reset()
                     break
@@ -1483,7 +1479,7 @@ class LibrarySync(Thread):
                     log.error('Current Kodi version: %s' % tryDecode(
                         xbmc.getInfoLabel('System.BuildVersion')))
                     # "Current Kodi version is unsupported, cancel lib sync"
-                    self.dialog.ok(heading=lang(29999), line1=lang(39403))
+                    dialog('ok', heading='{plex}', line1=lang(39403))
                     break
                 # Run start up sync
                 state.DB_SCAN = True
@@ -1520,14 +1516,6 @@ class LibrarySync(Thread):
                     installSyncDone = True
                 else:
                     log.error("Initial start-up full sync unsuccessful")
-                    errorcount += 1
-                    if errorcount > 2:
-                        log.error("Startup full sync failed. Stopping sync")
-                        # "Startup syncing process failed repeatedly"
-                        # "Please restart"
-                        self.dialog.ok(heading=lang(29999),
-                                       line1=lang(39404))
-                        break
 
             # Currently no db scan, so we can start a new scan
             elif state.DB_SCAN is False:
@@ -1544,7 +1532,7 @@ class LibrarySync(Thread):
                     window('plex_dbScan', clear=True)
                     state.DB_SCAN = False
                     # Full library sync finished
-                    self.showKodiNote(lang(39407), forced=False)
+                    self.showKodiNote(lang(39407), forced=True)
                 # Reset views was requested from somewhere else
                 elif window('plex_runLibScan') == "views":
                     log.info('Refresh playlist and nodes requested, starting')
@@ -1575,8 +1563,9 @@ class LibrarySync(Thread):
                     window('plex_runLibScan', clear=True)
                     # Only look for missing fanart (No)
                     # or refresh all fanart (Yes)
-                    self.fanartSync(refresh=self.dialog.yesno(
-                        heading=lang(29999),
+                    self.fanartSync(refresh=dialog(
+                        'yesno',
+                        heading='{plex}',
                         line1=lang(39223),
                         nolabel=lang(39224),
                         yeslabel=lang(39225)))
@@ -1591,7 +1580,7 @@ class LibrarySync(Thread):
                 else:
                     now = getUnixTimestamp()
                     if (now - lastSync > fullSyncInterval and
-                            not xbmcplayer.isPlaying()):
+                            not self.xbmcplayer.isPlaying()):
                         lastSync = now
                         log.info('Doing scheduled full library scan')
                         state.DB_SCAN = True

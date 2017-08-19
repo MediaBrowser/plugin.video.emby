@@ -17,8 +17,9 @@ log = getLogger("PLEX."+__name__)
 ###############################################################################
 
 
-@thread_methods(add_suspends=['SUSPEND_LIBRARY_THREAD', 'DB_SCAN'],
-                add_stops=['STOP_SYNC'])
+@thread_methods(add_suspends=['SUSPEND_LIBRARY_THREAD',
+                              'DB_SCAN',
+                              'STOP_SYNC'])
 class Process_Fanart_Thread(Thread):
     """
     Threaded download of additional fanart in the background

@@ -140,6 +140,15 @@ def dialog(typus, *args, **kwargs):
     Displays xbmcgui Dialog. Pass a string as typus:
         'yesno', 'ok', 'notification', 'input', 'select', 'numeric'
 
+    kwargs:
+        heading='{plex}'        title bar (here PlexKodiConnect)
+        message=lang(30128),    Actual dialog content. Don't use with OK
+        line1=str(),            For 'OK' and 'yesno' dialogs use line1...line3!
+        time=5000,
+        sound=True,
+        nolabel=str(),          For 'yesno' dialogs
+        yeslabel=str(),         For 'yesno' dialogs
+
     Icons:
         icon='{plex}'       Display Plex standard icon
         icon='{info}'       xbmcgui.NOTIFICATION_INFO

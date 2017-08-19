@@ -1729,7 +1729,7 @@ class Music(Items):
                 if album is None or album == 401:
                     log.error('Could not download album, abort')
                     return
-                self.add_updateAlbum(album[0])
+                self.add_updateAlbum(album[0], children=[item])
                 plex_dbalbum = plex_db.getItem_byId(plex_albumId)
                 try:
                     albumid = plex_dbalbum[0]
