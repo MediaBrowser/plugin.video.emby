@@ -15,7 +15,7 @@ log = getLogger("PLEX."+__name__)
 ###############################################################################
 
 
-@thread_methods(add_stops=['SUSPEND_LIBRARY_THREAD'])
+@thread_methods(add_stops=['SUSPEND_LIBRARY_THREAD', 'STOP_SYNC'])
 class Threaded_Process_Metadata(Thread):
     """
     Not yet implemented for more than 1 thread - if ever. Only to be called by

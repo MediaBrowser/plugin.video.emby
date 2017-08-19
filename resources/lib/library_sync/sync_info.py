@@ -19,7 +19,7 @@ LOCK = Lock()
 ###############################################################################
 
 
-@thread_methods(add_stops=['SUSPEND_LIBRARY_THREAD'])
+@thread_methods(add_stops=['SUSPEND_LIBRARY_THREAD', 'STOP_SYNC'])
 class Threaded_Show_Sync_Info(Thread):
     """
     Threaded class to show the Kodi statusbar of the metadata download.

@@ -16,7 +16,7 @@ log = getLogger("PLEX."+__name__)
 ###############################################################################
 
 
-@thread_methods(add_stops=['SUSPEND_LIBRARY_THREAD'])
+@thread_methods(add_stops=['SUSPEND_LIBRARY_THREAD', 'STOP_SYNC'])
 class Threaded_Get_Metadata(Thread):
     """
     Threaded download of Plex XML metadata for a certain library item.
