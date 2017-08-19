@@ -30,8 +30,7 @@ sys_path.append(_base_resource)
 
 ###############################################################################
 
-from utils import settings, window, language as lang, dialog, tryEncode, \
-    tryDecode
+from utils import settings, window, language as lang, dialog, tryDecode
 from userclient import UserClient
 import initialsetup
 from kodimonitor import KodiMonitor
