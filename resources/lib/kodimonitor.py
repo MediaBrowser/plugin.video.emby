@@ -47,6 +47,9 @@ class KodiMonitor(Monitor):
         """
         Monitor the PKC settings for changes made by the user
         """
+        # Assume that the user changed the settings so that we can now find the
+        # path to all media files
+        state.STOP_SYNC = False
         # settings: window-variable
         items = {
             'logLevel': 'plex_logLevel',
