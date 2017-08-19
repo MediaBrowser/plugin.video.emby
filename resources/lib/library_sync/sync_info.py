@@ -50,7 +50,7 @@ class Threaded_Show_Sync_Info(Thread):
         """
         log.debug('Show sync info thread started')
         # cache local variables because it's faster
-        total = self.totaltal
+        total = self.total
         dialog = DialogProgressBG('dialoglogProgressBG')
         thread_stopped = self.thread_stopped
         dialog.create("%s %s: %s %s"
