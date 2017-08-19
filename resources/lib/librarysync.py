@@ -1421,7 +1421,6 @@ class LibrarySync(Thread):
 
         startupComplete = False
         self.views = []
-        errorcount = 0
 
         log.info("---===### Starting LibrarySync ###===---")
 
@@ -1514,13 +1513,6 @@ class LibrarySync(Thread):
                     installSyncDone = True
                 else:
                     log.error("Initial start-up full sync unsuccessful")
-                    errorcount += 1
-                    if errorcount > 2:
-                        log.error("Startup full sync failed. Stopping sync")
-                        # "Startup syncing process failed repeatedly"
-                        # "Please restart"
-                        dialog('ok', heading='{plex}', line1=lang(39404))
-                        break
 
             # Currently no db scan, so we can start a new scan
             elif state.DB_SCAN is False:
