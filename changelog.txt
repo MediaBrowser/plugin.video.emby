@@ -1,3 +1,14 @@
+version 1.8.10 (beta only):
+- Vastly improve sync speed for music
+- Never show library sync dialog if media is playing
+- Improvements to sync dialog
+- Fix stop synching if path not found
+- Resume aborted sync on PKC settings change
+- Don't quit library sync if failed repeatedly
+- Verify path for every Plex library on install sync
+- More descriptive downloadable subtitles
+- More code fixes and optimization
+
 version 1.8.9
 - Fix playback not starting in some circumstances 
 - Deactivate some annoying popups on install 
