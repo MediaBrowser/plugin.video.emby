@@ -2,7 +2,7 @@
 from logging import getLogger
 from threading import Thread, Lock
 
-from xbmc import sleep
+from xbmc import sleep, Player
 from xbmcgui import DialogProgressBG
 
 from utils import thread_methods, language as lang
@@ -55,10 +55,11 @@ class Threaded_Show_Sync_Info(Thread):
         thread_stopped = self.thread_stopped
         dialog.create("%s %s: %s %s"
                       % (lang(39714), self.item_type, str(total), lang(39715)))
+        player = Player()
 
         total = 2 * total
         totalProgress = 0
-        while thread_stopped() is False:
+        while thread_stopped() is False and not player.isPlaying():
             with LOCK:
                 get_progress = GET_METADATA_COUNT
                 process_progress = PROCESS_METADATA_COUNT
