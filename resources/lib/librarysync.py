@@ -96,7 +96,7 @@ class LibrarySync(Thread):
         if self.xbmcplayer.isPlaying():
             # Don't show any dialog if media is playing
             return
-        if settings('dbSyncIndicator') != 'true':
+        if window('dbSyncIndicator') != 'true':
             if not forced:
                 return
         if icon == "plex":
@@ -1538,7 +1538,7 @@ class LibrarySync(Thread):
                     window('plex_dbScan', clear=True)
                     state.DB_SCAN = False
                     # Full library sync finished
-                    self.showKodiNote(lang(39407), forced=False)
+                    self.showKodiNote(lang(39407), forced=True)
                 # Reset views was requested from somewhere else
                 elif window('plex_runLibScan') == "views":
                     log.info('Refresh playlist and nodes requested, starting')
