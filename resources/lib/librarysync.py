@@ -296,7 +296,9 @@ class LibrarySync(Thread):
 
         # Do the processing
         for itemtype in process:
-            if self.thread_stopped() or not process[itemtype]():
+            if (self.thread_stopped() or
+                    self.thread_suspended() or
+                    not process[itemtype]()):
                 xbmc.executebuiltin('InhibitIdleShutdown(false)')
                 setScreensaver(value=screensaver)
                 return False
@@ -795,7 +797,7 @@ class LibrarySync(Thread):
         for view in views:
             if self.installSyncDone is not True:
                 state.PATH_VERIFIED = False
-            if self.thread_stopped():
+            if self.thread_stopped() or self.thread_suspended():
                 return False
             # Get items per view
             viewId = view['id']
@@ -813,10 +815,9 @@ class LibrarySync(Thread):
                                viewName,
                                viewId)
         self.GetAndProcessXMLs(itemType)
-        log.info("Processed view")
         # Update viewstate for EVERY item
         for view in views:
-            if self.thread_stopped():
+            if self.thread_stopped() or self.thread_suspended():
                 return False
             self.PlexUpdateWatched(view['id'], itemType)
 
@@ -890,7 +891,7 @@ class LibrarySync(Thread):
         for view in views:
             if self.installSyncDone is not True:
                 state.PATH_VERIFIED = False
-            if self.thread_stopped():
+            if self.thread_stopped() or self.thread_suspended():
                 return False
             # Get items per view
             viewId = view['id']
@@ -919,7 +920,7 @@ class LibrarySync(Thread):
         # PROCESS TV Seasons #####
         # Cycle through tv shows
         for tvShowId in allPlexTvShowsId:
-            if self.thread_stopped():
+            if self.thread_stopped() or self.thread_suspended():
                 return False
             # Grab all seasons to tvshow from PMS
             seasons = GetAllPlexChildren(tvShowId)
@@ -944,7 +945,7 @@ class LibrarySync(Thread):
         # PROCESS TV Episodes #####
         # Cycle through tv shows
         for view in views:
-            if self.thread_stopped():
+            if self.thread_stopped() or self.thread_suspended():
                 return False
             # Grab all episodes to tvshow from PMS
             episodes = GetAllPlexLeaves(view['id'])
@@ -979,7 +980,7 @@ class LibrarySync(Thread):
 
         # Update viewstate:
         for view in views:
-            if self.thread_stopped():
+            if self.thread_stopped() or self.thread_suspended():
                 return False
             self.PlexUpdateWatched(view['id'], itemType)
 
@@ -1016,7 +1017,7 @@ class LibrarySync(Thread):
         for kind in (v.PLEX_TYPE_ARTIST,
                      v.PLEX_TYPE_ALBUM,
                      v.PLEX_TYPE_SONG):
-            if self.thread_stopped():
+            if self.thread_stopped() or self.thread_suspended():
                 return False
             log.debug("Start processing music %s" % kind)
             self.allKodiElementsId = {}
@@ -1033,7 +1034,7 @@ class LibrarySync(Thread):
 
         # Update viewstate for EVERY item
         for view in views:
-            if self.thread_stopped():
+            if self.thread_stopped() or self.thread_suspended():
                 return False
             self.PlexUpdateWatched(view['id'], itemType)
 
@@ -1060,7 +1061,7 @@ class LibrarySync(Thread):
         for view in views:
             if self.installSyncDone is not True:
                 state.PATH_VERIFIED = False
-            if self.thread_stopped():
+            if self.thread_stopped() or self.thread_suspended():
                 return False
             # Get items per view
             itemsXML = GetPlexSectionResults(view['id'], args=urlArgs)
@@ -1135,7 +1136,7 @@ class LibrarySync(Thread):
         now = getUnixTimestamp()
         deleteListe = []
         for i, item in enumerate(self.itemsToProcess):
-            if self.thread_stopped():
+            if self.thread_stopped() or self.thread_suspended():
                 # Chances are that Kodi gets shut down
                 break
             if item['state'] == 9:
