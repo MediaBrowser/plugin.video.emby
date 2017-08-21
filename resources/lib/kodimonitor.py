@@ -20,6 +20,26 @@ import state
 
 log = logging.getLogger("PLEX."+__name__)
 
+# settings: window-variable
+WINDOW_SETTINGS = {
+    'logLevel': 'plex_logLevel',
+    'enableContext': 'plex_context',
+    'plex_restricteduser': 'plex_restricteduser',
+    'remapSMB': 'remapSMB',
+    'replaceSMB': 'replaceSMB',
+    'force_transcode_pix': 'plex_force_transcode_pix',
+    'fetch_pms_item_number': 'fetch_pms_item_number'
+}
+# Path replacement
+for typus in REMAP_TYPE_FROM_PLEXTYPE.values():
+    for arg in ('Org', 'New'):
+        key = 'remapSMB%s%s' % (typus, arg)
+        WINDOW_SETTINGS[key] = key
+
+# settings: state-variable (state.py)
+STATE_SETTINGS = {
+    'dbSyncIndicator': state.SYNC_DIALOG
+}
 ###############################################################################
 
 
@@ -52,24 +72,8 @@ class KodiMonitor(Monitor):
         # path to all media files
         state.STOP_SYNC = False
         state.PATH_VERIFIED = False
-        # settings: window-variable
-        items = {
-            'logLevel': 'plex_logLevel',
-            'enableContext': 'plex_context',
-            'plex_restricteduser': 'plex_restricteduser',
-            'dbSyncIndicator': 'dbSyncIndicator',
-            'remapSMB': 'remapSMB',
-            'replaceSMB': 'replaceSMB',
-            'force_transcode_pix': 'plex_force_transcode_pix',
-            'fetch_pms_item_number': 'fetch_pms_item_number'
-        }
-        # Path replacement
-        for typus in REMAP_TYPE_FROM_PLEXTYPE.values():
-            for arg in ('Org', 'New'):
-                key = 'remapSMB%s%s' % (typus, arg)
-                items[key] = key
         # Reset the window variables from the settings variables
-        for settings_value, window_value in items.iteritems():
+        for settings_value, window_value in WINDOW_SETTINGS.iteritems():
             if window(window_value) != settings(settings_value):
                 log.debug('PKC settings changed: %s is now %s'
                           % (settings_value, settings(settings_value)))
@@ -77,6 +81,17 @@ class KodiMonitor(Monitor):
                 if settings_value == 'fetch_pms_item_number':
                     log.info('Requesting playlist/nodes refresh')
                     window('plex_runLibScan', value="views")
+        # Reset the state variables in state.py
+        for settings_value, state_value in STATE_SETTINGS.iteritems():
+            new = settings(settings_value)
+            if new == 'true':
+                new = True
+            elif new == 'false':
+                new = False
+            if state_value != new:
+                log.debug('PKC settings changed: %s is now %s'
+                          % (settings_value, new))
+                state_value = new
 
     @CatchExceptions(warnuser=False)
     def onNotification(self, sender, method, data):

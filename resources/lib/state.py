@@ -27,6 +27,11 @@ DIRECT_PATHS = False
 # Shall we replace custom user ratings with the number of versions available?
 INDICATE_MEDIA_VERSIONS = False
 
+# Stemming from the PKC settings.xml
+# Shall we show Kodi dialogs when synching?
+SYNC_DIALOG = True
+
+
 # Along with window('plex_authenticated')
 AUTHENTICATED = False
 # plex.tv username

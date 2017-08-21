@@ -65,7 +65,7 @@ class LibrarySync(Thread):
 
         self.syncThreadNumber = int(settings('syncThreadNumber'))
         self.installSyncDone = settings('SyncInstallRunDone') == 'true'
-        window('dbSyncIndicator', value=settings('dbSyncIndicator'))
+        state.SYNC_DIALOG = settings('dbSyncIndicator') == 'true'
         self.enableMusic = settings('enableMusic') == "true"
         self.enableBackgroundSync = settings(
             'enableBackgroundSync') == "true"
@@ -95,7 +95,7 @@ class LibrarySync(Thread):
         if self.xbmcplayer.isPlaying():
             # Don't show any dialog if media is playing
             return
-        if window('dbSyncIndicator') != 'true':
+        if state.SYNC_DIALOG is not True:
             if not forced:
                 return
         if icon == "plex":
@@ -735,7 +735,7 @@ class LibrarySync(Thread):
         thread.start()
         threads.append(thread)
         # Start one thread to show sync progress ONLY for new PMS items
-        if self.new_items_only is True and window('dbSyncIndicator') == 'true':
+        if self.new_items_only is True and state.SYNC_DIALOG is True:
             thread = sync_info.Threaded_Show_Sync_Info(itemNumber, itemType)
             thread.setDaemon(True)
             thread.start()
