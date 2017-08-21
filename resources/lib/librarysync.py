@@ -1620,7 +1620,7 @@ class LibrarySync(Thread):
                         try:
                             message = queue.get(block=False)
                         except Queue.Empty:
-                            xbmc.sleep(100)
+                            xbmc.sleep(300)
                             continue
                         # Got a message from PMS; process it
                         else:
@@ -1630,9 +1630,9 @@ class LibrarySync(Thread):
                             continue
                     else:
                         # Still sleep if backgroundsync disabled
-                        xbmc.sleep(100)
+                        xbmc.sleep(300)
 
-            xbmc.sleep(100)
+            xbmc.sleep(300)
 
         # doUtils could still have a session open due to interrupted sync
         try:
