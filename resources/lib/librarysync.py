@@ -1393,6 +1393,8 @@ class LibrarySync(Thread):
 
     def triage_lib_scans(self):
         """
+        Decides what to do if state.RUN_LIB_SCAN has been set. E.g. manually
+        triggered full or repair syncs
         """
         if state.RUN_LIB_SCAN in ("full", "repair"):
             log.info('Full library scan requested, starting')
@@ -1400,9 +1402,8 @@ class LibrarySync(Thread):
             state.DB_SCAN = True
             if state.RUN_LIB_SCAN == "full":
                 self.fullSync()
-            elif state.RUN_LIB_SCAN == "repair":
+            else:
                 self.fullSync(repair=True)
-            state.RUN_LIB_SCAN = None
             window('plex_dbScan', clear=True)
             state.DB_SCAN = False
             # Full library sync finished
@@ -1412,8 +1413,6 @@ class LibrarySync(Thread):
             log.info('Refresh playlist and nodes requested, starting')
             window('plex_dbScan', value="true")
             state.DB_SCAN = True
-            state.RUN_LIB_SCAN = None
-
             # First remove playlists
             deletePlaylists()
             # Remove video nodes
@@ -1433,7 +1432,6 @@ class LibrarySync(Thread):
             window('plex_dbScan', clear=True)
             state.DB_SCAN = False
         elif state.RUN_LIB_SCAN == 'fanart':
-            state.RUN_LIB_SCAN = None
             # Only look for missing fanart (No)
             # or refresh all fanart (Yes)
             self.fanartSync(refresh=dialog(
@@ -1443,7 +1441,6 @@ class LibrarySync(Thread):
                 nolabel=lang(39224),
                 yeslabel=lang(39225)))
         elif state.RUN_LIB_SCAN == 'textures':
-            state.RUN_LIB_SCAN = None
             state.DB_SCAN = True
             window('plex_dbScan', value="true")
             import artwork
@@ -1453,6 +1450,8 @@ class LibrarySync(Thread):
         else:
             raise NotImplementedError('Library scan not defined: %s'
                                       % state.RUN_LIB_SCAN)
+        # Reset
+        state.RUN_LIB_SCAN = None
 
     def run(self):
         try:
