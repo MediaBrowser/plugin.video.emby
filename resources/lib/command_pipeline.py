@@ -64,6 +64,8 @@ class Monitor_Window(Thread):
                 elif value.startswith('PLEX_USERNAME-'):
                     state.PLEX_USERNAME = \
                         value.replace('PLEX_USERNAME-', '') or None
+                elif value.startswith('RUN_LIB_SCAN-'):
+                    state.RUN_LIB_SCAN = value.replace('RUN_LIB_SCAN-', '')
                 else:
                     raise NotImplementedError('%s not implemented' % value)
             else:

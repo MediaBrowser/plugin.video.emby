@@ -110,7 +110,7 @@ class Service():
             "plex_dbCheck", "plex_kodiScan",
             "plex_shouldStop", "plex_dbScan",
             "plex_initialScan", "plex_customplayqueue", "plex_playbackProps",
-            "plex_runLibScan", "pms_token", "plex_token",
+            "pms_token", "plex_token",
             "pms_server", "plex_machineIdentifier", "plex_servername",
             "plex_authenticated", "PlexUserImage", "useDirectPaths",
             "kodiplextimeoffset", "countError", "countUnauthorized",

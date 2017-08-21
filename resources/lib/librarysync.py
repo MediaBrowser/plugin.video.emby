@@ -1391,6 +1391,69 @@ class LibrarySync(Thread):
                 'refresh': refresh
             })
 
+    def triage_lib_scans(self):
+        """
+        """
+        if state.RUN_LIB_SCAN in ("full", "repair"):
+            log.info('Full library scan requested, starting')
+            window('plex_dbScan', value="true")
+            state.DB_SCAN = True
+            if state.RUN_LIB_SCAN == "full":
+                self.fullSync()
+            elif state.RUN_LIB_SCAN == "repair":
+                self.fullSync(repair=True)
+            state.RUN_LIB_SCAN = None
+            window('plex_dbScan', clear=True)
+            state.DB_SCAN = False
+            # Full library sync finished
+            self.showKodiNote(lang(39407))
+        # Reset views was requested from somewhere else
+        elif state.RUN_LIB_SCAN == "views":
+            log.info('Refresh playlist and nodes requested, starting')
+            window('plex_dbScan', value="true")
+            state.DB_SCAN = True
+            state.RUN_LIB_SCAN = None
+
+            # First remove playlists
+            deletePlaylists()
+            # Remove video nodes
+            deleteNodes()
+            # Kick off refresh
+            if self.maintainViews() is True:
+                # Ran successfully
+                log.info("Refresh playlists/nodes completed")
+                # "Plex playlists/nodes refreshed"
+                self.showKodiNote(lang(39405))
+            else:
+                # Failed
+                log.error("Refresh playlists/nodes failed")
+                # "Plex playlists/nodes refresh failed"
+                self.showKodiNote(lang(39406),
+                                  icon="error")
+            window('plex_dbScan', clear=True)
+            state.DB_SCAN = False
+        elif state.RUN_LIB_SCAN == 'fanart':
+            state.RUN_LIB_SCAN = None
+            # Only look for missing fanart (No)
+            # or refresh all fanart (Yes)
+            self.fanartSync(refresh=dialog(
+                'yesno',
+                heading='{plex}',
+                line1=lang(39223),
+                nolabel=lang(39224),
+                yeslabel=lang(39225)))
+        elif state.RUN_LIB_SCAN == 'textures':
+            state.RUN_LIB_SCAN = None
+            state.DB_SCAN = True
+            window('plex_dbScan', value="true")
+            import artwork
+            artwork.Artwork().fullTextureCacheSync()
+            window('plex_dbScan', clear=True)
+            state.DB_SCAN = False
+        else:
+            raise NotImplementedError('Library scan not defined: %s'
+                                      % state.RUN_LIB_SCAN)
+
     def run(self):
         try:
             self.run_internal()
@@ -1522,115 +1585,62 @@ class LibrarySync(Thread):
 
             # Currently no db scan, so we can start a new scan
             elif state.DB_SCAN is False:
-                # Force-show dialogs since they are user-initiated
-                self.force_dialog = True
                 # Full scan was requested from somewhere else, e.g. userclient
-                if window('plex_runLibScan') in ("full", "repair"):
-                    log.info('Full library scan requested, starting')
-                    window('plex_dbScan', value="true")
+                if state.RUN_LIB_SCAN is not None:
+                    # Force-show dialogs since they are user-initiated
+                    self.force_dialog = True
+                    self.triage_lib_scans()
+                    self.force_dialog = False
+                    continue
+                now = getUnixTimestamp()
+                # Standard syncs - don't force-show dialogs
+                self.force_dialog = False
+                if (now - lastSync > fullSyncInterval and
+                        not self.xbmcplayer.isPlaying()):
+                    lastSync = now
+                    log.info('Doing scheduled full library scan')
                     state.DB_SCAN = True
-                    if window('plex_runLibScan') == "full":
-                        fullSync()
-                    elif window('plex_runLibScan') == "repair":
-                        fullSync(repair=True)
-                    window('plex_runLibScan', clear=True)
+                    window('plex_dbScan', value="true")
+                    if fullSync() is False and not thread_stopped():
+                        log.error('Could not finish scheduled full sync')
+                        self.force_dialog = True
+                        self.showKodiNote(lang(39410),
+                                          icon='error')
+                        self.force_dialog = False
                     window('plex_dbScan', clear=True)
                     state.DB_SCAN = False
                     # Full library sync finished
                     self.showKodiNote(lang(39407))
-                # Reset views was requested from somewhere else
-                elif window('plex_runLibScan') == "views":
-                    log.info('Refresh playlist and nodes requested, starting')
-                    window('plex_dbScan', value="true")
-                    state.DB_SCAN = True
-                    window('plex_runLibScan', clear=True)
-
-                    # First remove playlists
-                    deletePlaylists()
-                    # Remove video nodes
-                    deleteNodes()
-                    # Kick off refresh
-                    if self.maintainViews() is True:
-                        # Ran successfully
-                        log.info("Refresh playlists/nodes completed")
-                        # "Plex playlists/nodes refreshed"
-                        self.showKodiNote(lang(39405))
-                    else:
-                        # Failed
-                        log.error("Refresh playlists/nodes failed")
-                        # "Plex playlists/nodes refresh failed"
-                        self.showKodiNote(lang(39406),
-                                          icon="error")
-                    window('plex_dbScan', clear=True)
-                    state.DB_SCAN = False
-                elif window('plex_runLibScan') == 'fanart':
-                    window('plex_runLibScan', clear=True)
-                    # Only look for missing fanart (No)
-                    # or refresh all fanart (Yes)
-                    self.fanartSync(refresh=dialog(
-                        'yesno',
-                        heading='{plex}',
-                        line1=lang(39223),
-                        nolabel=lang(39224),
-                        yeslabel=lang(39225)))
-                elif window('plex_runLibScan') == 'del_textures':
-                    window('plex_runLibScan', clear=True)
+                elif now - lastTimeSync > oneDay:
+                    lastTimeSync = now
+                    log.info('Starting daily time sync')
                     state.DB_SCAN = True
                     window('plex_dbScan', value="true")
-                    import artwork
-                    artwork.Artwork().fullTextureCacheSync()
+                    self.syncPMStime()
                     window('plex_dbScan', clear=True)
                     state.DB_SCAN = False
-                else:
-                    now = getUnixTimestamp()
-                    # Standard syncs - don't force-show dialogs
-                    self.force_dialog = False
-                    if (now - lastSync > fullSyncInterval and
-                            not self.xbmcplayer.isPlaying()):
-                        lastSync = now
-                        log.info('Doing scheduled full library scan')
-                        state.DB_SCAN = True
-                        window('plex_dbScan', value="true")
-                        if fullSync() is False and not thread_stopped():
-                            log.error('Could not finish scheduled full sync')
-                            self.force_dialog = True
-                            self.showKodiNote(lang(39410),
-                                              icon='error')
-                            self.force_dialog = False
-                        window('plex_dbScan', clear=True)
-                        state.DB_SCAN = False
-                        # Full library sync finished
-                        self.showKodiNote(lang(39407))
-                    elif now - lastTimeSync > oneDay:
-                        lastTimeSync = now
-                        log.info('Starting daily time sync')
-                        state.DB_SCAN = True
-                        window('plex_dbScan', value="true")
-                        self.syncPMStime()
-                        window('plex_dbScan', clear=True)
-                        state.DB_SCAN = False
-                    elif enableBackgroundSync:
-                        # Check back whether we should process something
-                        # Only do this once every while (otherwise, potentially
-                        # many screen refreshes lead to flickering)
-                        if now - lastProcessing > 5:
-                            lastProcessing = now
-                            processItems()
-                        # See if there is a PMS message we need to handle
-                        try:
-                            message = queue.get(block=False)
-                        except Queue.Empty:
-                            xbmc.sleep(100)
-                            continue
-                        # Got a message from PMS; process it
-                        else:
-                            processMessage(message)
-                            queue.task_done()
-                            # NO sleep!
-                            continue
-                    else:
-                        # Still sleep if backgroundsync disabled
+                elif enableBackgroundSync:
+                    # Check back whether we should process something
+                    # Only do this once every while (otherwise, potentially
+                    # many screen refreshes lead to flickering)
+                    if now - lastProcessing > 5:
+                        lastProcessing = now
+                        processItems()
+                    # See if there is a PMS message we need to handle
+                    try:
+                        message = queue.get(block=False)
+                    except Queue.Empty:
                         xbmc.sleep(100)
+                        continue
+                    # Got a message from PMS; process it
+                    else:
+                        processMessage(message)
+                        queue.task_done()
+                        # NO sleep!
+                        continue
+                else:
+                    # Still sleep if backgroundsync disabled
+                    xbmc.sleep(100)
 
             xbmc.sleep(100)
 

@@ -975,7 +975,7 @@ def __LogIn():
     SUSPEND_LIBRARY_THREAD is set to False in service.py if user was signed
     out!
     """
-    window('plex_runLibScan', value='full')
+    plex_command('RUN_LIB_SCAN', 'full')
     # Restart user client
     plex_command('SUSPEND_USER_CLIENT', 'False')
 

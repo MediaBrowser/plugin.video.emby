@@ -9,7 +9,8 @@ from xbmc import Monitor, Player, sleep
 
 import downloadutils
 import plexdb_functions as plexdb
-from utils import window, settings, CatchExceptions, tryDecode, tryEncode
+from utils import window, settings, CatchExceptions, tryDecode, tryEncode, \
+    plex_command
 from PlexFunctions import scrobble
 from kodidb_functions import get_kodiid_from_filename
 from PlexAPI import API
@@ -80,7 +81,7 @@ class KodiMonitor(Monitor):
                 window(window_value, value=settings(settings_value))
                 if settings_value == 'fetch_pms_item_number':
                     log.info('Requesting playlist/nodes refresh')
-                    window('plex_runLibScan', value="views")
+                    plex_command('RUN_LIB_SCAN', 'views')
         # Reset the state variables in state.py
         for settings_value, state_value in STATE_SETTINGS.iteritems():
             new = settings(settings_value)
@@ -157,7 +158,7 @@ class KodiMonitor(Monitor):
         elif method == "GUI.OnScreensaverDeactivated":
             if settings('dbSyncScreensaver') == "true":
                 sleep(5000)
-                window('plex_runLibScan', value="full")
+                plex_command('RUN_LIB_SCAN', 'full')
 
         elif method == "System.OnQuit":
             log.info('Kodi OnQuit detected - shutting down')

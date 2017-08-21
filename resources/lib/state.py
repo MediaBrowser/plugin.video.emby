@@ -26,6 +26,8 @@ RESTRICTED_USER = False
 DIRECT_PATHS = False
 # Shall we replace custom user ratings with the number of versions available?
 INDICATE_MEDIA_VERSIONS = False
+# Do we need to run a special library scan?
+RUN_LIB_SCAN = None
 
 # Stemming from the PKC settings.xml
 # Shall we show Kodi dialogs when synching?
