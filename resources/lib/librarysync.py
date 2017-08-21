@@ -1506,7 +1506,7 @@ class LibrarySync(Thread):
                     return
                 xbmc.sleep(1000)
 
-            if (window('plex_dbCheck') != "true" and installSyncDone):
+            if state.KODI_DB_CHECKED is False and installSyncDone:
                 # Install sync was already done, don't force-show dialogs
                 self.force_dialog = False
                 # Verify the validity of the database
@@ -1529,8 +1529,7 @@ class LibrarySync(Thread):
                     else:
                         reset()
                     break
-
-                window('plex_dbCheck', value="true")
+                state.KODI_DB_CHECKED = True
 
             if not startupComplete:
                 # Also runs when first installed

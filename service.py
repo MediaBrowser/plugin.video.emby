@@ -107,7 +107,7 @@ class Service():
         # Reset window props for profile switch
         properties = [
             "plex_online", "plex_serverStatus", "plex_onWake",
-            "plex_dbCheck", "plex_kodiScan",
+            "plex_kodiScan",
             "plex_shouldStop", "plex_dbScan",
             "plex_initialScan", "plex_customplayqueue", "plex_playbackProps",
             "pms_token", "plex_token",

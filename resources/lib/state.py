@@ -32,6 +32,8 @@ RUN_LIB_SCAN = None
 # Stemming from the PKC settings.xml
 # Shall we show Kodi dialogs when synching?
 SYNC_DIALOG = True
+# Have we already checked the Kodi DB on consistency?
+KODI_DB_CHECKED = False
 
 
 # Along with window('plex_authenticated')
