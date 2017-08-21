@@ -70,6 +70,8 @@ class LibrarySync(Thread):
         self.enableBackgroundSync = settings(
             'enableBackgroundSync') == "true"
 
+        # Show sync dialog even if user deactivated?
+        self.force_dialog = True
         # Init for replacing paths
         window('remapSMB', value=settings('remapSMB'))
         window('replaceSMB', value=settings('replaceSMB'))
@@ -82,22 +84,19 @@ class LibrarySync(Thread):
         window('kodiplextimeoffset', value=str(self.timeoffset))
         Thread.__init__(self)
 
-    def showKodiNote(self, message, forced=False, icon="plex"):
+    def showKodiNote(self, message, icon="plex"):
         """
         Shows a Kodi popup, if user selected to do so. Pass message in unicode
         or string
 
         icon:   "plex": shows Plex icon
                 "error": shows Kodi error icon
-
-        forced: always show popup, even if user setting to off
         """
         if self.xbmcplayer.isPlaying():
             # Don't show any dialog if media is playing
             return
-        if state.SYNC_DIALOG is not True:
-            if not forced:
-                return
+        if state.SYNC_DIALOG is not True and self.force_dialog is not True:
+            return
         if icon == "plex":
             dialog('notification',
                    heading='{plex}',
@@ -735,7 +734,8 @@ class LibrarySync(Thread):
         thread.start()
         threads.append(thread)
         # Start one thread to show sync progress ONLY for new PMS items
-        if self.new_items_only is True and state.SYNC_DIALOG is True:
+        if self.new_items_only is True and (state.SYNC_DIALOG is True or
+                                            self.force_dialog is True):
             thread = sync_info.Threaded_Show_Sync_Info(itemNumber, itemType)
             thread.setDaemon(True)
             thread.start()
@@ -1445,6 +1445,8 @@ class LibrarySync(Thread):
                 xbmc.sleep(1000)
 
             if (window('plex_dbCheck') != "true" and installSyncDone):
+                # Install sync was already done, don't force-show dialogs
+                self.force_dialog = False
                 # Verify the validity of the database
                 currentVersion = settings('dbCreatedWithVersion')
                 minVersion = window('plex_minDBVersion')
@@ -1514,11 +1516,14 @@ class LibrarySync(Thread):
                     settings('SyncInstallRunDone', value="true")
                     settings("dbCreatedWithVersion", v.ADDON_VERSION)
                     installSyncDone = True
+                    self.force_dialog = False
                 else:
                     log.error("Initial start-up full sync unsuccessful")
 
             # Currently no db scan, so we can start a new scan
             elif state.DB_SCAN is False:
+                # Force-show dialogs since they are user-initiated
+                self.force_dialog = True
                 # Full scan was requested from somewhere else, e.g. userclient
                 if window('plex_runLibScan') in ("full", "repair"):
                     log.info('Full library scan requested, starting')
@@ -1532,7 +1537,7 @@ class LibrarySync(Thread):
                     window('plex_dbScan', clear=True)
                     state.DB_SCAN = False
                     # Full library sync finished
-                    self.showKodiNote(lang(39407), forced=True)
+                    self.showKodiNote(lang(39407))
                 # Reset views was requested from somewhere else
                 elif window('plex_runLibScan') == "views":
                     log.info('Refresh playlist and nodes requested, starting')
@@ -1549,13 +1554,12 @@ class LibrarySync(Thread):
                         # Ran successfully
                         log.info("Refresh playlists/nodes completed")
                         # "Plex playlists/nodes refreshed"
-                        self.showKodiNote(lang(39405), forced=True)
+                        self.showKodiNote(lang(39405))
                     else:
                         # Failed
                         log.error("Refresh playlists/nodes failed")
                         # "Plex playlists/nodes refresh failed"
                         self.showKodiNote(lang(39406),
-                                          forced=True,
                                           icon="error")
                     window('plex_dbScan', clear=True)
                     state.DB_SCAN = False
@@ -1579,6 +1583,8 @@ class LibrarySync(Thread):
                     state.DB_SCAN = False
                 else:
                     now = getUnixTimestamp()
+                    # Standard syncs - don't force-show dialogs
+                    self.force_dialog = False
                     if (now - lastSync > fullSyncInterval and
                             not self.xbmcplayer.isPlaying()):
                         lastSync = now
@@ -1587,13 +1593,14 @@ class LibrarySync(Thread):
                         window('plex_dbScan', value="true")
                         if fullSync() is False and not thread_stopped():
                             log.error('Could not finish scheduled full sync')
+                            self.force_dialog = True
                             self.showKodiNote(lang(39410),
-                                              forced=True,
                                               icon='error')
+                            self.force_dialog = False
                         window('plex_dbScan', clear=True)
                         state.DB_SCAN = False
                         # Full library sync finished
-                        self.showKodiNote(lang(39407), forced=False)
+                        self.showKodiNote(lang(39407))
                     elif now - lastTimeSync > oneDay:
                         lastTimeSync = now
                         log.info('Starting daily time sync')
