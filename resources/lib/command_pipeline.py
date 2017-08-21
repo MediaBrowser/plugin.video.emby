@@ -21,9 +21,6 @@ class Monitor_Window(Thread):
     Monitors window('plex_command') for new entries that we need to take care
     of, e.g. for new plays initiated on the Kodi side with addon paths.
 
-    Possible values of window('plex_command'):
-        'play_....': to start playback using playback_starter
-
     Adjusts state.py accordingly
     """
     # Borg - multiple instances, shared state
@@ -40,9 +37,8 @@ class Monitor_Window(Thread):
             if window('plex_command'):
                 value = window('plex_command')
                 window('plex_command', clear=True)
-                if value.startswith('play_'):
-                    queue.put(value)
-
+                if value.startswith('PLAY-'):
+                    queue.put(value.replace('PLAY-', ''))
                 elif value == 'SUSPEND_LIBRARY_THREAD-True':
                     state.SUSPEND_LIBRARY_THREAD = True
                 elif value == 'SUSPEND_LIBRARY_THREAD-False':

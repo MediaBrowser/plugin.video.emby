@@ -172,10 +172,7 @@ class Main():
         Start up playback_starter in main Python thread
         """
         # Put the request into the 'queue'
-        while window('plex_command'):
-            sleep(50)
-        window('plex_command',
-               value='play_%s' % argv[2])
+        plex_command('PLAY', argv[2])
         # Wait for the result
         while not pickl_window('plex_result'):
             sleep(50)
