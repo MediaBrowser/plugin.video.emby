@@ -575,14 +575,6 @@ def getExtraFanArt(plexid, plexPath):
     xbmcplugin.endOfDirectory(HANDLE)
 
 
-def RunLibScan(mode):
-    if window('plex_online') != "true":
-        # Server is not online, do not run the sync
-        dialog('ok', lang(29999), lang(39205))
-    else:
-        window('plex_runLibScan', value='full')
-
-
 def getOnDeck(viewid, mediatype, tagname, limit):
     """
     Retrieves Plex On Deck items, currently only for TV shows
