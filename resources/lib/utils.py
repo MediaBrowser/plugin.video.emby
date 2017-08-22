@@ -267,7 +267,7 @@ def DateToKodi(stamp):
     None if an error was encountered
     """
     try:
-        stamp = float(stamp) + float(window('kodiplextimeoffset'))
+        stamp = float(stamp) + state.KODI_PLEX_TIME_OFFSET
         date_time = localtime(stamp)
         localdate = strftime('%Y-%m-%d %H:%M:%S', date_time)
     except:

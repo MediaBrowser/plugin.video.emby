@@ -55,34 +55,33 @@ class LibrarySync(Thread):
         if settings('FanartTV') == 'true':
             self.fanartthread = Process_Fanart_Thread(self.fanartqueue)
         # How long should we wait at least to process new/changed PMS items?
-        self.saftyMargin = int(settings('backgroundsync_saftyMargin'))
-
-        self.fullSyncInterval = int(settings('fullSyncInterval')) * 60
 
         self.user = userclient.UserClient()
         self.vnodes = videonodes.VideoNodes()
         self.xbmcplayer = xbmc.Player()
 
-        self.syncThreadNumber = int(settings('syncThreadNumber'))
         self.installSyncDone = settings('SyncInstallRunDone') == 'true'
+
+        state.FULL_SYNC_INTERVALL = int(settings('fullSyncInterval')) * 60
+        state.SYNC_THREAD_NUMBER = int(settings('syncThreadNumber'))
         state.SYNC_DIALOG = settings('dbSyncIndicator') == 'true'
-        self.enableMusic = settings('enableMusic') == "true"
-        self.enableBackgroundSync = settings(
-            'enableBackgroundSync') == "true"
+        state.ENABLE_MUSIC = settings('enableMusic') == 'true'
+        state.BACKGROUND_SYNC = settings(
+            'enableBackgroundSync') == 'true'
+        state.BACKGROUNDSYNC_SAFTYMARGIN = int(
+            settings('backgroundsync_saftyMargin'))
 
         # Show sync dialog even if user deactivated?
         self.force_dialog = True
         # Init for replacing paths
-        state.REPLACE_SMB_PATH = True if settings('replaceSMB') == 'true' \
-            else False
-        state.REMAP_PATH = True if settings('remapSMB') == 'true' else False
+        state.REPLACE_SMB_PATH = settings('replaceSMB') == 'true'
+        state.REMAP_PATH = settings('remapSMB') == 'true'
         for typus in v.REMAP_TYPE_FROM_PLEXTYPE.values():
             for arg in ('Org', 'New'):
                 key = 'remapSMB%s%s' % (typus, arg)
                 setattr(state, key, settings(key))
         # Just in case a time sync goes wrong
-        self.timeoffset = int(settings('kodiplextimeoffset'))
-        window('kodiplextimeoffset', value=str(self.timeoffset))
+        state.KODI_PLEX_TIME_OFFSET = float(settings('kodiplextimeoffset'))
         Thread.__init__(self)
 
     def showKodiNote(self, message, icon="plex"):
@@ -206,11 +205,10 @@ class LibrarySync(Thread):
             return False
 
         # Calculate time offset Kodi-PMS
-        self.timeoffset = int(koditime) - int(plextime)
-        window('kodiplextimeoffset', value=str(self.timeoffset))
-        settings('kodiplextimeoffset', value=str(self.timeoffset))
+        state.KODI_PLEX_TIME_OFFSET = float(koditime) - float(plextime)
+        settings('kodiplextimeoffset', value=str(state.KODI_PLEX_TIME_OFFSET))
         log.info("Time offset Koditime - Plextime in seconds: %s"
-                 % str(self.timeoffset))
+                 % str(state.KODI_PLEX_TIME_OFFSET))
         return True
 
     def initializeDBs(self):
@@ -291,7 +289,7 @@ class LibrarySync(Thread):
             'movies': self.PlexMovies,
             'tvshows': self.PlexTVShows,
         }
-        if self.enableMusic:
+        if state.ENABLE_MUSIC:
             process['music'] = self.PlexMusic
 
         # Do the processing
@@ -305,7 +303,7 @@ class LibrarySync(Thread):
 
         # Let kodi update the views in any case, since we're doing a full sync
         xbmc.executebuiltin('UpdateLibrary(video)')
-        if self.enableMusic:
+        if state.ENABLE_MUSIC:
             xbmc.executebuiltin('UpdateLibrary(music)')
 
         window('plex_initialScan', clear=True)
@@ -468,7 +466,7 @@ class LibrarySync(Thread):
         """
         Compare the views to Plex
         """
-        if state.DIRECT_PATHS is True and self.enableMusic is True:
+        if state.DIRECT_PATHS is True and state.ENABLE_MUSIC is True:
             if music.set_excludefromscan_music_folders() is True:
                 log.info('Detected new Music library - restarting now')
                 #  'New Plex music library detected. Sorry, but we need to
@@ -721,7 +719,7 @@ class LibrarySync(Thread):
             getMetadataQueue.put(updateItem)
         # Spawn GetMetadata threads for downloading
         threads = []
-        for i in range(min(self.syncThreadNumber, itemNumber)):
+        for i in range(min(state.SYNC_THREAD_NUMBER, itemNumber)):
             thread = Threaded_Get_Metadata(getMetadataQueue,
                                            processMetadataQueue)
             thread.setDaemon(True)
@@ -1142,7 +1140,7 @@ class LibrarySync(Thread):
                 break
             if item['state'] == 9:
                 successful = self.process_deleteditems(item)
-            elif now - item['timestamp'] < self.saftyMargin:
+            elif now - item['timestamp'] < state.BACKGROUNDSYNC_SAFTYMARGIN:
                 # We haven't waited long enough for the PMS to finish
                 # processing the item. Do it later (excepting deletions)
                 continue
@@ -1472,11 +1470,11 @@ class LibrarySync(Thread):
         thread_stopped = self.thread_stopped
         thread_suspended = self.thread_suspended
         installSyncDone = self.installSyncDone
-        enableBackgroundSync = self.enableBackgroundSync
+        background_sync = state.BACKGROUND_SYNC
         fullSync = self.fullSync
         processMessage = self.processMessage
         processItems = self.processItems
-        fullSyncInterval = self.fullSyncInterval
+        FULL_SYNC_INTERVALL = state.FULL_SYNC_INTERVALL
         lastSync = 0
         lastTimeSync = 0
         lastProcessing = 0
@@ -1594,7 +1592,7 @@ class LibrarySync(Thread):
                 now = getUnixTimestamp()
                 # Standard syncs - don't force-show dialogs
                 self.force_dialog = False
-                if (now - lastSync > fullSyncInterval and
+                if (now - lastSync > FULL_SYNC_INTERVALL and
                         not self.xbmcplayer.isPlaying()):
                     lastSync = now
                     log.info('Doing scheduled full library scan')
@@ -1618,7 +1616,7 @@ class LibrarySync(Thread):
                     self.syncPMStime()
                     window('plex_dbScan', clear=True)
                     state.DB_SCAN = False
-                elif enableBackgroundSync:
+                elif background_sync:
                     # Check back whether we should process something
                     # Only do this once every while (otherwise, potentially
                     # many screen refreshes lead to flickering)

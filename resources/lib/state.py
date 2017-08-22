@@ -34,6 +34,19 @@ RUN_LIB_SCAN = None
 SYNC_DIALOG = True
 # Have we already checked the Kodi DB on consistency?
 KODI_DB_CHECKED = False
+# Is synching of Plex music enabled?
+ENABLE_MUSIC = False
+# How often shall we sync?
+FULL_SYNC_INTERVALL = 0
+# Background Sync enabled at all?
+BACKGROUND_SYNC = True
+# How long shall we wait with synching a new item to make sure Plex got all
+# metadata?
+BACKGROUNDSYNC_SAFTYMARGIN = 0
+# How many threads to download Plex metadata on sync?
+SYNC_THREAD_NUMBER = 0
+# What's the time offset between the PMS and Kodi?
+KODI_PLEX_TIME_OFFSET = 0.0
 
 # Path remapping mechanism (e.g. smb paths)
 # Do we replace \\myserver\path to smb://myserver/path?

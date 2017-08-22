@@ -113,7 +113,7 @@ class Service():
             "pms_token", "plex_token",
             "pms_server", "plex_machineIdentifier", "plex_servername",
             "plex_authenticated", "PlexUserImage", "useDirectPaths",
-            "kodiplextimeoffset", "countError", "countUnauthorized",
+            "countError", "countUnauthorized",
             "plex_restricteduser", "plex_allows_mediaDeletion",
             "plex_command", "plex_result", "plex_force_transcode_pix"
         ]

@@ -47,7 +47,9 @@ STATE_SETTINGS = {
     'remapSMBmusicOrg': state.remapSMBmusicOrg,
     'remapSMBmusicNew': state.remapSMBmusicNew,
     'remapSMBphotoOrg': state.remapSMBphotoOrg,
-    'remapSMBphotoNew': state.remapSMBphotoNew
+    'remapSMBphotoNew': state.remapSMBphotoNew,
+    'enableMusic': state.ENABLE_MUSIC,
+    'enableBackgroundSync': state.BACKGROUND_SYNC
 }
 ###############################################################################
 
@@ -101,6 +103,13 @@ class KodiMonitor(Monitor):
                 log.debug('PKC settings changed: %s is now %s'
                           % (settings_value, new))
                 state_value = new
+        # Special cases, overwrite all internal settings
+        state.FULL_SYNC_INTERVALL = int(settings('fullSyncInterval'))*60
+        state.BACKGROUNDSYNC_SAFTYMARGIN = int(
+            settings('backgroundsync_saftyMargin'))
+        state.SYNC_THREAD_NUMBER = int(settings('syncThreadNumber'))
+        # Never set through the user
+        # state.KODI_PLEX_TIME_OFFSET = float(settings('kodiplextimeoffset'))
 
     @CatchExceptions(warnuser=False)
     def onNotification(self, sender, method, data):
