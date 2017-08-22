@@ -2580,13 +2580,13 @@ class API():
         if path is None:
             return None
         typus = v.REMAP_TYPE_FROM_PLEXTYPE[typus]
-        if window('remapSMB') == 'true':
-            path = path.replace(window('remapSMB%sOrg' % typus),
-                                window('remapSMB%sNew' % typus),
+        if state.REMAP_PATH is True:
+            path = path.replace(getattr(state, 'remapSMB%sOrg' % typus),
+                                getattr(state, 'remapSMB%sNew' % typus),
                                 1)
             # There might be backslashes left over:
             path = path.replace('\\', '/')
-        elif window('replaceSMB') == 'true':
+        elif state.REPLACE_SMB_PATH is True:
             if path.startswith('\\\\'):
                 path = 'smb:' + path.replace('\\', '/')
         if ((state.PATH_VERIFIED and forceCheck is False) or

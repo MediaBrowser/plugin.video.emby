@@ -73,12 +73,13 @@ class LibrarySync(Thread):
         # Show sync dialog even if user deactivated?
         self.force_dialog = True
         # Init for replacing paths
-        window('remapSMB', value=settings('remapSMB'))
-        window('replaceSMB', value=settings('replaceSMB'))
+        state.REPLACE_SMB_PATH = True if settings('replaceSMB') == 'true' \
+            else False
+        state.REMAP_PATH = True if settings('remapSMB') == 'true' else False
         for typus in v.REMAP_TYPE_FROM_PLEXTYPE.values():
             for arg in ('Org', 'New'):
                 key = 'remapSMB%s%s' % (typus, arg)
-                window(key, value=settings(key))
+                setattr(state, key, settings(key))
         # Just in case a time sync goes wrong
         self.timeoffset = int(settings('kodiplextimeoffset'))
         window('kodiplextimeoffset', value=str(self.timeoffset))

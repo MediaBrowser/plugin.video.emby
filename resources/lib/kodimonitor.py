@@ -26,7 +26,6 @@ WINDOW_SETTINGS = {
     'logLevel': 'plex_logLevel',
     'enableContext': 'plex_context',
     'plex_restricteduser': 'plex_restricteduser',
-    'remapSMB': 'remapSMB',
     'replaceSMB': 'replaceSMB',
     'force_transcode_pix': 'plex_force_transcode_pix',
     'fetch_pms_item_number': 'fetch_pms_item_number'
@@ -39,7 +38,16 @@ for typus in REMAP_TYPE_FROM_PLEXTYPE.values():
 
 # settings: state-variable (state.py)
 STATE_SETTINGS = {
-    'dbSyncIndicator': state.SYNC_DIALOG
+    'dbSyncIndicator': state.SYNC_DIALOG,
+    'remapSMB': state.REMAP_PATH,
+    'remapSMBmovieOrg': state.remapSMBmovieOrg,
+    'remapSMBmovieNew': state.remapSMBmovieNew,
+    'remapSMBtvOrg': state.remapSMBtvOrg,
+    'remapSMBtvNew': state.remapSMBtvNew,
+    'remapSMBmusicOrg': state.remapSMBmusicOrg,
+    'remapSMBmusicNew': state.remapSMBmusicNew,
+    'remapSMBphotoOrg': state.remapSMBphotoOrg,
+    'remapSMBphotoNew': state.remapSMBphotoNew
 }
 ###############################################################################
 

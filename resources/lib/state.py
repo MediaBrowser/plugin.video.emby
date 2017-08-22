@@ -35,6 +35,20 @@ SYNC_DIALOG = True
 # Have we already checked the Kodi DB on consistency?
 KODI_DB_CHECKED = False
 
+# Path remapping mechanism (e.g. smb paths)
+# Do we replace \\myserver\path to smb://myserver/path?
+REPLACE_SMB_PATH = False
+# Do we generally remap?
+REMAP_PATH = False
+# Mappings for REMAP_PATH:
+remapSMBmovieOrg = None
+remapSMBmovieNew = None
+remapSMBtvOrg = None
+remapSMBtvNew = None
+remapSMBmusicOrg = None
+remapSMBmusicNew = None
+remapSMBphotoOrg = None
+remapSMBphotoNew = None
 
 # Along with window('plex_authenticated')
 AUTHENTICATED = False
