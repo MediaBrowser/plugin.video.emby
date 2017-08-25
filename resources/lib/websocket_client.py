@@ -206,9 +206,9 @@ class WebSocketClient(threading.Thread):
                 index = int(arguments['Index'])
                 player.setAudioStream(index - 1)
 
-            elif command == 'SetRepeatMode': 
-                mode = arguments['RepeatMode'] 
-                xbmc.executebuiltin('xbmc.PlayerControl(%s)' % mode) 
+            elif command == 'SetRepeatMode':
+                mode = arguments['RepeatMode']
+                xbmc.executebuiltin('xbmc.PlayerControl(%s)' % mode)
 
             elif command == 'SetSubtitleStreamIndex':
                 emby_index = int(arguments['Index'])
