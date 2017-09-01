@@ -100,8 +100,8 @@ class KodiMonitor(Monitor):
             elif new == 'false':
                 new = False
             if state_value != new:
-                log.debug('PKC state settings changed: %s is now %s'
-                          % (settings_value, new))
+                log.debug('PKC state settings %s changed from %s to %s'
+                          % (settings_value, state_value, new))
                 state_value = new
         # Special cases, overwrite all internal settings
         state.FULL_SYNC_INTERVALL = int(settings('fullSyncInterval'))*60
