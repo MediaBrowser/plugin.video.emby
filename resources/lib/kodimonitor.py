@@ -86,7 +86,7 @@ class KodiMonitor(Monitor):
         # Reset the window variables from the settings variables
         for settings_value, window_value in WINDOW_SETTINGS.iteritems():
             if window(window_value) != settings(settings_value):
-                log.debug('PKC settings changed: %s is now %s'
+                log.debug('PKC window settings changed: %s is now %s'
                           % (settings_value, settings(settings_value)))
                 window(window_value, value=settings(settings_value))
                 if settings_value == 'fetch_pms_item_number':
@@ -100,7 +100,7 @@ class KodiMonitor(Monitor):
             elif new == 'false':
                 new = False
             if state_value != new:
-                log.debug('PKC settings changed: %s is now %s'
+                log.debug('PKC state settings changed: %s is now %s'
                           % (settings_value, new))
                 state_value = new
         # Special cases, overwrite all internal settings
