@@ -35,7 +35,7 @@ SYNC_DIALOG = True
 # Have we already checked the Kodi DB on consistency?
 KODI_DB_CHECKED = False
 # Is synching of Plex music enabled?
-ENABLE_MUSIC = False
+ENABLE_MUSIC = True
 # How often shall we sync?
 FULL_SYNC_INTERVALL = 0
 # Background Sync enabled at all?

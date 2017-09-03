@@ -25,25 +25,25 @@ WINDOW_SETTINGS = {
     'logLevel': 'plex_logLevel',
     'enableContext': 'plex_context',
     'plex_restricteduser': 'plex_restricteduser',
-    'replaceSMB': 'replaceSMB',
     'force_transcode_pix': 'plex_force_transcode_pix',
     'fetch_pms_item_number': 'fetch_pms_item_number'
 }
 
 # settings: state-variable (state.py)
+# Need to use getattr and setattr!
 STATE_SETTINGS = {
-    'dbSyncIndicator': state.SYNC_DIALOG,
-    'remapSMB': state.REMAP_PATH,
-    'remapSMBmovieOrg': state.remapSMBmovieOrg,
-    'remapSMBmovieNew': state.remapSMBmovieNew,
-    'remapSMBtvOrg': state.remapSMBtvOrg,
-    'remapSMBtvNew': state.remapSMBtvNew,
-    'remapSMBmusicOrg': state.remapSMBmusicOrg,
-    'remapSMBmusicNew': state.remapSMBmusicNew,
-    'remapSMBphotoOrg': state.remapSMBphotoOrg,
-    'remapSMBphotoNew': state.remapSMBphotoNew,
-    'enableMusic': state.ENABLE_MUSIC,
-    'enableBackgroundSync': state.BACKGROUND_SYNC
+    'dbSyncIndicator': 'SYNC_DIALOG',
+    'remapSMB': 'REMAP_PATH',
+    'remapSMBmovieOrg': 'remapSMBmovieOrg',
+    'remapSMBmovieNew': 'remapSMBmovieNew',
+    'remapSMBtvOrg': 'remapSMBtvOrg',
+    'remapSMBtvNew': 'remapSMBtvNew',
+    'remapSMBmusicOrg': 'remapSMBmusicOrg',
+    'remapSMBmusicNew': 'remapSMBmusicNew',
+    'remapSMBphotoOrg': 'remapSMBphotoOrg',
+    'remapSMBphotoNew': 'remapSMBphotoNew',
+    'enableMusic': 'ENABLE_MUSIC',
+    'enableBackgroundSync': 'BACKGROUND_SYNC'
 }
 ###############################################################################
 
@@ -87,16 +87,16 @@ class KodiMonitor(Monitor):
                     log.info('Requesting playlist/nodes refresh')
                     plex_command('RUN_LIB_SCAN', 'views')
         # Reset the state variables in state.py
-        for settings_value, state_value in STATE_SETTINGS.iteritems():
+        for settings_value, state_name in STATE_SETTINGS.iteritems():
             new = settings(settings_value)
             if new == 'true':
                 new = True
             elif new == 'false':
                 new = False
-            if state_value != new:
+            if getattr(state, state_name) != new:
                 log.debug('PKC state settings %s changed from %s to %s'
-                          % (settings_value, state_value, new))
-                state_value = new
+                          % (settings_value, getattr(state, state_name), new))
+                setattr(state, state_name, new)
         # Special cases, overwrite all internal settings
         state.FULL_SYNC_INTERVALL = int(settings('fullSyncInterval'))*60
         state.BACKGROUNDSYNC_SAFTYMARGIN = int(
