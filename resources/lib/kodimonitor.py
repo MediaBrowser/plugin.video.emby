@@ -2,24 +2,23 @@
 
 ###############################################################################
 
-import logging
+from logging import getLogger
 from json import loads
 
 from xbmc import Monitor, Player, sleep
 
-import downloadutils
+from downloadutils import DownloadUtils
 import plexdb_functions as plexdb
 from utils import window, settings, CatchExceptions, tryDecode, tryEncode, \
     plex_command
 from PlexFunctions import scrobble
 from kodidb_functions import get_kodiid_from_filename
 from PlexAPI import API
-from variables import REMAP_TYPE_FROM_PLEXTYPE
 import state
 
 ###############################################################################
 
-log = logging.getLogger("PLEX."+__name__)
+log = getLogger("PLEX."+__name__)
 
 # settings: window-variable
 WINDOW_SETTINGS = {
@@ -30,11 +29,6 @@ WINDOW_SETTINGS = {
     'force_transcode_pix': 'plex_force_transcode_pix',
     'fetch_pms_item_number': 'fetch_pms_item_number'
 }
-# Path replacement
-for typus in REMAP_TYPE_FROM_PLEXTYPE.values():
-    for arg in ('Org', 'New'):
-        key = 'remapSMB%s%s' % (typus, arg)
-        WINDOW_SETTINGS[key] = key
 
 # settings: state-variable (state.py)
 STATE_SETTINGS = {
@@ -58,7 +52,7 @@ class KodiMonitor(Monitor):
 
     def __init__(self, callback):
         self.mgr = callback
-        self.doUtils = downloadutils.DownloadUtils().downloadUrl
+        self.doUtils = DownloadUtils().downloadUrl
         self.xbmcplayer = Player()
         self.playqueue = self.mgr.playqueue
         Monitor.__init__(self)
