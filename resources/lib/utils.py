@@ -86,7 +86,7 @@ def plex_command(key, value):
         value: either 'True' or 'False'
     """
     while window('plex_command'):
-        xbmc.sleep(5)
+        xbmc.sleep(20)
     window('plex_command', value='%s-%s' % (key, value))
 
 
