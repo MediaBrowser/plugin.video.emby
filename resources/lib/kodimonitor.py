@@ -73,13 +73,11 @@ class KodiMonitor(Monitor):
         Monitor the PKC settings for changes made by the user
         """
         log.debug('PKC settings change detected')
-        # Assume that the user changed the settings so that we can now find the
-        # path to all media files
-        state.STOP_SYNC = False
-        state.PATH_VERIFIED = False
+        changed = False
         # Reset the window variables from the settings variables
         for settings_value, window_value in WINDOW_SETTINGS.iteritems():
             if window(window_value) != settings(settings_value):
+                changed = True
                 log.debug('PKC window settings changed: %s is now %s'
                           % (settings_value, settings(settings_value)))
                 window(window_value, value=settings(settings_value))
@@ -94,6 +92,7 @@ class KodiMonitor(Monitor):
             elif new == 'false':
                 new = False
             if getattr(state, state_name) != new:
+                changed = True
                 log.debug('PKC state settings %s changed from %s to %s'
                           % (settings_value, getattr(state, state_name), new))
                 setattr(state, state_name, new)
@@ -104,6 +103,11 @@ class KodiMonitor(Monitor):
         state.SYNC_THREAD_NUMBER = int(settings('syncThreadNumber'))
         # Never set through the user
         # state.KODI_PLEX_TIME_OFFSET = float(settings('kodiplextimeoffset'))
+        if changed is True:
+            # Assume that the user changed the settings so that we can now find
+            # the path to all media files
+            state.STOP_SYNC = False
+            state.PATH_VERIFIED = False
 
     @CatchExceptions(warnuser=False)
     def onNotification(self, sender, method, data):
