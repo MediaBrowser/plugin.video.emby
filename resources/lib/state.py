@@ -54,14 +54,14 @@ REPLACE_SMB_PATH = False
 # Do we generally remap?
 REMAP_PATH = False
 # Mappings for REMAP_PATH:
-remapSMBmovieOrg = ''
-remapSMBmovieNew = 'smb://'
-remapSMBtvOrg = ''
-remapSMBtvNew = 'smb://'
-remapSMBmusicOrg = ''
-remapSMBmusicNew = 'smb://'
-remapSMBphotoOrg = ''
-remapSMBphotoNew = 'smb://'
+remapSMBmovieOrg = None
+remapSMBmovieNew = None
+remapSMBtvOrg = None
+remapSMBtvNew = None
+remapSMBmusicOrg = None
+remapSMBmusicNew = None
+remapSMBphotoOrg = None
+remapSMBphotoNew = None
 
 # Along with window('plex_authenticated')
 AUTHENTICATED = False
