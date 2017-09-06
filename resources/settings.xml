@@ -146,7 +146,6 @@
 	</category>
 
 	<category label="30022"><!-- Advanced -->
-		<setting id="logLevel" type="enum" label="30004" values="Disabled|Info|Debug" default="1" />
 		<setting id="startupDelay" type="number" label="30529" default="0" option="int" />
 		<setting label="39018" type="action" action="RunPlugin(plugin://plugin.video.plexkodiconnect/?mode=repair)" option="close" /> <!-- Repair local database (force update all content) -->
 		<setting label="30535" type="action" action="RunPlugin(plugin://plugin.video.plexkodiconnect?mode=deviceid)" /><!-- Reset device id uuid -->

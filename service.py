@@ -81,10 +81,8 @@ class Service():
 
     def __init__(self):
 
-        logLevel = self.getLogLevel()
         self.monitor = Monitor()
 
-        window('plex_logLevel', value=str(logLevel))
         window('plex_kodiProfile',
                value=tryDecode(translatePath("special://profile")))
         window('plex_context',
@@ -101,7 +99,6 @@ class Service():
                  % (settings('useDirectPaths') != "true"))
         log.info("Number of sync threads: %s"
                  % settings('syncThreadNumber'))
-        log.info("Log Level: %s" % logLevel)
         log.info("Full sys.argv received: %s" % argv)
 
         # Reset window props for profile switch
@@ -125,13 +122,6 @@ class Service():
 
         # Set the minimum database version
         window('plex_minDBVersion', value="1.5.10")
-
-    def getLogLevel(self):
-        try:
-            logLevel = int(settings('logLevel'))
-        except ValueError:
-            logLevel = 0
-        return logLevel
 
     def __stop_PKC(self):
         """

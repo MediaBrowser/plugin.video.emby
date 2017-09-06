@@ -22,7 +22,6 @@ log = getLogger("PLEX."+__name__)
 
 # settings: window-variable
 WINDOW_SETTINGS = {
-    'logLevel': 'plex_logLevel',
     'enableContext': 'plex_context',
     'plex_restricteduser': 'plex_restricteduser',
     'force_transcode_pix': 'plex_force_transcode_pix',
