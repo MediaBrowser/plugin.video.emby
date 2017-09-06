@@ -84,7 +84,8 @@ class WebSocket(Thread):
                 # No worries if read timed out
                 pass
             except websocket.WebSocketConnectionClosedException:
-                log.info("Connection closed, (re)connecting")
+                log.info("%s: connection closed, (re)connecting"
+                         % self.__class__.__name__)
                 uri, sslopt = self.getUri()
                 try:
                     # Low timeout - let's us shut this thread down!
@@ -95,7 +96,7 @@ class WebSocket(Thread):
                         enable_multithread=True)
                 except IOError:
                     # Server is probably offline
-                    log.info("Error connecting")
+                    log.info("%s: Error connecting" % self.__class__.__name__)
                     self.ws = None
                     counter += 1
                     if counter > 3:
@@ -103,33 +104,41 @@ class WebSocket(Thread):
                         self.IOError_response()
                     sleep(1000)
                 except websocket.WebSocketTimeoutException:
-                    log.info("timeout while connecting, trying again")
+                    log.info("%s: Timeout while connecting, trying again"
+                             % self.__class__.__name__)
                     self.ws = None
                     sleep(1000)
                 except websocket.WebSocketException as e:
-                    log.info('WebSocketException: %s' % e)
+                    log.info('%s: WebSocketException: %s'
+                             % (self.__class__.__name__, e))
                     if 'Handshake Status 401' in e.args:
                         handshake_counter += 1
                         if handshake_counter >= 5:
-                            log.info('Error in handshake detected. Stopping '
-                                     '%s now' % self.__class__.__name__)
+                            log.info('%s: Error in handshake detected. '
+                                     'Stopping now'
+                                     % self.__class__.__name__)
                             break
                     self.ws = None
                     sleep(1000)
                 except Exception as e:
-                    log.error("Unknown exception encountered in connecting: %s"
-                              % e)
+                    log.error('%s: Unknown exception encountered when '
+                              'connecting: %s' % (self.__class__.__name__, e))
                     import traceback
-                    log.error("Traceback:\n%s" % traceback.format_exc())
+                    log.error("%s: Traceback:\n%s"
+                              % (self.__class__.__name__,
+                                 traceback.format_exc()))
                     self.ws = None
                     sleep(1000)
                 else:
                     counter = 0
                     handshake_counter = 0
             except Exception as e:
-                log.error("Unknown exception encountered: %s" % e)
+                log.error("%s: Unknown exception encountered: %s"
+                          % (self.__class__.__name__, e))
                 import traceback
-                log.error("Traceback:\n%s" % traceback.format_exc())
+                log.error("%s: Traceback:\n%s"
+                          % (self.__class__.__name__,
+                             traceback.format_exc()))
                 try:
                     self.ws.shutdown()
                 except:
@@ -171,7 +180,8 @@ class PMS_Websocket(WebSocket):
         sslopt = {}
         if settings('sslverify') == "false":
             sslopt["cert_reqs"] = CERT_NONE
-        log.debug("Uri: %s, sslopt: %s" % (uri, sslopt))
+        log.debug("%s: Uri: %s, sslopt: %s"
+                  % (self.__class__.__name__, uri, sslopt))
         return uri, sslopt
 
     def process(self, opcode, message):
@@ -181,20 +191,24 @@ class PMS_Websocket(WebSocket):
         try:
             message = loads(message)
         except Exception as ex:
-            log.error('Error decoding message from websocket: %s' % ex)
+            log.error('%s: Error decoding message from websocket: %s'
+                      % (self.__class__.__name__, ex))
             log.error(message)
             return False
         try:
             message = message['NotificationContainer']
         except KeyError:
-            log.error('Could not parse PMS message: %s' % message)
+            log.error('%s: Could not parse PMS message: %s'
+                      % (self.__class__.__name__, message))
             return False
         # Triage
         typus = message.get('type')
         if typus is None:
-            log.error('No message type, dropping message: %s' % message)
+            log.error('%s: No message type, dropping message: %s'
+                      % (self.__class__.__name__, message))
             return False
-        log.debug('Received message from PMS server: %s' % message)
+        log.debug('%s: Received message from PMS server: %s'
+                  % (self.__class__.__name__, message))
         # Drop everything we're not interested in
         if typus not in ('playing', 'timeline'):
             return True
@@ -224,27 +238,32 @@ class Alexa_Websocket(WebSocket):
                % (state.PLEX_USER_ID,
                   self.plex_client_Id, state.PLEX_TOKEN))
         sslopt = {}
-        log.debug("Uri: %s, sslopt: %s" % (uri, sslopt))
+        log.debug("%s: Uri: %s, sslopt: %s"
+                  % (self.__class__.__name__, uri, sslopt))
         return uri, sslopt
 
     def process(self, opcode, message):
         if opcode not in self.opcode_data:
             return False
-        log.debug('Received the following message from Alexa:')
-        log.debug(message)
+        log.debug('%s: Received the following message from Alexa:'
+                  % self.__class__.__name__)
+        log.debug('%s: %s' % (self.__class__.__name__, message))
         try:
             message = etree.fromstring(message)
         except Exception as ex:
-            log.error('Error decoding message from Alexa: %s' % ex)
+            log.error('%s: Error decoding message from Alexa: %s'
+                      % (self.__class__.__name__, ex))
             return False
         try:
             if message.attrib['command'] == 'processRemoteControlCommand':
                 message = message[0]
             else:
-                log.error('Unknown Alexa message received')
+                log.error('%s: Unknown Alexa message received'
+                          % self.__class__.__name__)
                 return False
         except:
-            log.error('Could not parse Alexa message')
+            log.error('%s: Could not parse Alexa message'
+                      % self.__class__.__name__)
             return False
         process_command(message.attrib['path'][1:],
                         message.attrib,
