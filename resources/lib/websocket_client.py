@@ -190,9 +190,9 @@ class PMS_Websocket(WebSocket):
 
         try:
             message = loads(message)
-        except Exception as ex:
-            log.error('%s: Error decoding message from websocket: %s'
-                      % (self.__class__.__name__, ex))
+        except ValueError:
+            log.error('%s: Error decoding message from websocket'
+                      % self.__class__.__name__)
             log.error(message)
             return False
         try:
