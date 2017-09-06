@@ -46,7 +46,7 @@ if __name__ == "__main__":
         # Start the context menu
         ContextMenu()
     except Exception as error:
-        log.exception(error)
+        log.error(error)
         import traceback
-        log.exception("Traceback:\n%s" % traceback.format_exc())
+        log.error("Traceback:\n%s" % traceback.format_exc())
         raise
