@@ -198,12 +198,12 @@ class DownloadUtils():
         # THE EXCEPTIONS
         except requests.exceptions.ConnectionError as e:
             # Connection error
-            log.debug("Server unreachable at: %s" % url)
-            log.debug(e)
+            log.warn("Server unreachable at: %s" % url)
+            log.warn(e)
 
         except requests.exceptions.Timeout as e:
-            log.debug("Server timeout at: %s" % url)
-            log.debug(e)
+            log.warn("Server timeout at: %s" % url)
+            log.warn(e)
 
         except requests.exceptions.HTTPError as e:
             log.warn('HTTP Error at %s' % url)
@@ -300,21 +300,21 @@ class DownloadUtils():
                             # update
                             pass
                         else:
-                            log.error("Unable to convert the response for: "
-                                      "%s" % url)
-                            log.info("Received headers were: %s" % r.headers)
-                            log.info('Received text:')
-                            log.info(r.text)
+                            log.warn("Unable to convert the response for: "
+                                     "%s" % url)
+                            log.warn("Received headers were: %s" % r.headers)
+                            log.warn('Received text:')
+                            log.warn(r.text)
                         return True
             elif r.status_code == 403:
                 # E.g. deleting a PMS item
-                log.error('PMS sent 403: Forbidden error for url %s' % url)
+                log.warn('PMS sent 403: Forbidden error for url %s' % url)
                 return None
             else:
-                log.error('Unknown answer from PMS %s with status code %s. '
-                          'Message:' % (url, r.status_code))
+                log.warn('Unknown answer from PMS %s with status code %s. '
+                         'Message:' % (url, r.status_code))
                 r.encoding = 'utf-8'
-                log.info(r.text)
+                log.warn(r.text)
                 return True
 
         # And now deal with the consequences of the exceptions

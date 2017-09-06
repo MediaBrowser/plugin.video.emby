@@ -68,13 +68,13 @@ def getDeviceId(reset=False):
     # Because Kodi appears to cache file settings!!
     if clientId != "" and reset is False:
         window('plex_client_Id', value=clientId)
-        log.warn("Unique device Id plex_client_Id loaded: %s" % clientId)
+        log.info("Unique device Id plex_client_Id loaded: %s" % clientId)
         return clientId
 
-    log.warn("Generating a new deviceid.")
+    log.info("Generating a new deviceid.")
     from uuid import uuid4
     clientId = str(uuid4())
     settings('plex_client_Id', value=clientId)
     window('plex_client_Id', value=clientId)
-    log.warn("Unique device Id plex_client_Id loaded: %s" % clientId)
+    log.info("Unique device Id plex_client_Id loaded: %s" % clientId)
     return clientId

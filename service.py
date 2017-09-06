@@ -93,16 +93,16 @@ class Service():
                value=settings('fetch_pms_item_number'))
 
         # Initial logging
-        log.warn("======== START %s ========" % v.ADDON_NAME)
-        log.warn("Platform: %s" % v.PLATFORM)
-        log.warn("KODI Version: %s" % v.KODILONGVERSION)
-        log.warn("%s Version: %s" % (v.ADDON_NAME, v.ADDON_VERSION))
-        log.warn("Using plugin paths: %s"
+        log.info("======== START %s ========" % v.ADDON_NAME)
+        log.info("Platform: %s" % v.PLATFORM)
+        log.info("KODI Version: %s" % v.KODILONGVERSION)
+        log.info("%s Version: %s" % (v.ADDON_NAME, v.ADDON_VERSION))
+        log.info("Using plugin paths: %s"
                  % (settings('useDirectPaths') != "true"))
-        log.warn("Number of sync threads: %s"
+        log.info("Number of sync threads: %s"
                  % settings('syncThreadNumber'))
-        log.warn("Log Level: %s" % logLevel)
-        log.warn("Full sys.argv received: %s" % argv)
+        log.info("Log Level: %s" % logLevel)
+        log.info("Full sys.argv received: %s" % argv)
 
         # Reset window props for profile switch
         properties = [
@@ -172,7 +172,7 @@ class Service():
 
             if window('plex_kodiProfile') != kodiProfile:
                 # Profile change happened, terminate this thread and others
-                log.warn("Kodi profile was: %s and changed to: %s. "
+                log.info("Kodi profile was: %s and changed to: %s. "
                          "Terminating old PlexKodiConnect thread."
                          % (kodiProfile,
                             window('plex_kodiProfile')))
@@ -331,7 +331,7 @@ class Service():
         except:
             pass
         window('plex_service_started', clear=True)
-        log.warn("======== STOP %s ========" % v.ADDON_NAME)
+        log.info("======== STOP %s ========" % v.ADDON_NAME)
 
 
 # Safety net - Kody starts PKC twice upon first installation!
@@ -344,11 +344,11 @@ else:
 # Delay option
 delay = int(settings('startupDelay'))
 
-log.warn("Delaying Plex startup by: %s sec..." % delay)
+log.info("Delaying Plex startup by: %s sec..." % delay)
 if exit:
     log.error('PKC service.py already started - exiting this instance')
 elif delay and Monitor().waitForAbort(delay):
     # Start the service
-    log.warn("Abort requested while waiting. PKC not started.")
+    log.info("Abort requested while waiting. PKC not started.")
 else:
     Service().ServiceEntryPoint()
