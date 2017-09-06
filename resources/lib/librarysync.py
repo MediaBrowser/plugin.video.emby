@@ -1217,7 +1217,6 @@ class LibrarySync(Thread):
         PMS is messing with the library items, e.g. new or changed. Put in our
         "processing queue" for later
         """
-        now = getUnixTimestamp()
         for item in data:
             if 'tv.plex' in item.get('identifier', ''):
                 # Ommit Plex DVR messages - the Plex IDs are not corresponding
