@@ -44,11 +44,6 @@ class LibrarySync(Thread):
     def __init__(self, callback=None):
         self.mgr = callback
 
-        # Dict of items we just processed in order to prevent a reprocessing
-        # caused by websocket
-        self.just_processed = {}
-        # How long do we wait until we start re-processing? (in seconds)
-        self.ignore_just_processed = 10*60
         self.itemsToProcess = []
         self.sessionKeys = []
         self.fanartqueue = Queue.Queue()
@@ -252,9 +247,6 @@ class LibrarySync(Thread):
         # self.compare == False: we're syncing EVERY item
         # True: we're syncing only the delta, e.g. different checksum
         self.compare = not repair
-
-        # Empty our list of item's we've just processed in the past
-        self.just_processed = {}
 
         self.new_items_only = True
         # This will also update playstates and userratings!
@@ -619,7 +611,6 @@ class LibrarySync(Thread):
             self.allPlexElementsId      APPENDED(!!) dict
                 = {itemid: checksum}
         """
-        now = getUnixTimestamp()
         if self.new_items_only is True:
             # Only process Plex items that Kodi does not already have in lib
             for item in xml:
@@ -627,8 +618,8 @@ class LibrarySync(Thread):
                 if not itemId:
                     # Skipping items 'title=All episodes' without a 'ratingKey'
                     continue
-                self.allPlexElementsId[itemId] = ("K%s%s" %
-                    (itemId, item.attrib.get('updatedAt', '')))
+                self.allPlexElementsId[itemId] = "K%s%s" % \
+                    (itemId, item.attrib.get('updatedAt', ''))
                 if itemId not in self.allKodiElementsId:
                     self.updatelist.append({
                         'itemId': itemId,
@@ -640,10 +631,8 @@ class LibrarySync(Thread):
                         'mediaType': item.attrib.get('type'),
                         'get_children': get_children
                     })
-                    self.just_processed[itemId] = now
             return
-
-        if self.compare:
+        elif self.compare:
             # Only process the delta - new or changed items
             for item in xml:
                 itemId = item.attrib.get('ratingKey')
@@ -667,7 +656,6 @@ class LibrarySync(Thread):
                         'mediaType': item.attrib.get('type'),
                         'get_children': get_children
                     })
-                    self.just_processed[itemId] = now
         else:
             # Initial or repair sync: get all Plex movies
             for item in xml:
@@ -675,8 +663,8 @@ class LibrarySync(Thread):
                 if not itemId:
                     # Skipping items 'title=All episodes' without a 'ratingKey'
                     continue
-                self.allPlexElementsId[itemId] = ("K%s%s"
-                    % (itemId, item.attrib.get('updatedAt', '')))
+                self.allPlexElementsId[itemId] = "K%s%s" \
+                    % (itemId, item.attrib.get('updatedAt', ''))
                 self.updatelist.append({
                     'itemId': itemId,
                     'itemType': itemType,
@@ -687,7 +675,6 @@ class LibrarySync(Thread):
                     'mediaType': item.attrib.get('type'),
                     'get_children': get_children
                 })
-                self.just_processed[itemId] = now
 
     def GetAndProcessXMLs(self, itemType):
         """
@@ -1146,8 +1133,6 @@ class LibrarySync(Thread):
                 continue
             else:
                 successful = self.process_newitems(item)
-                if successful:
-                    self.just_processed[str(item['ratingKey'])] = now
                 if successful and settings('FanartTV') == 'true':
                     plex_type = v.PLEX_TYPE_FROM_WEBSOCKET[item['type']]
                     if plex_type in (v.PLEX_TYPE_MOVIE, v.PLEX_TYPE_SHOW):
@@ -1247,14 +1232,6 @@ class LibrarySync(Thread):
                 if plex_id == '0':
                     log.error('Received malformed PMS message: %s' % item)
                     continue
-                try:
-                    if (now - self.just_processed[plex_id] <
-                            self.ignore_just_processed and status != 9):
-                        log.debug('We just processed %s: ignoring' % plex_id)
-                        continue
-                except KeyError:
-                    # Item has NOT just been processed
-                    pass
                 # Have we already added this element?
                 for existingItem in self.itemsToProcess:
                     if existingItem['ratingKey'] == plex_id:
