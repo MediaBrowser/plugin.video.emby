@@ -15,7 +15,7 @@ from variables import PLEX_TO_KODI_TIMEFACTOR
 log = getLogger("PLEX."+__name__)
 
 CONTAINERSIZE = int(settings('limitindex'))
-
+REGEX_PLEX_KEY = re.compile(r'''/(.+)/(\d+)$''')
 ###############################################################################
 
 
@@ -36,9 +36,8 @@ def GetPlexKeyNumber(plexKey):
 
     Returns ('','') if nothing is found
     """
-    regex = re.compile(r'''/(.+)/(\d+)$''')
     try:
-        result = regex.findall(plexKey)[0]
+        result = REGEX_PLEX_KEY.findall(plexKey)[0]
     except IndexError:
         result = ('', '')
     return result
