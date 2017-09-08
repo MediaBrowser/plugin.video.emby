@@ -186,7 +186,7 @@ class PMS_Websocket(WebSocket):
 
     def process(self, opcode, message):
         if opcode not in self.opcode_data:
-            return False
+            return
 
         try:
             message = loads(message)
@@ -194,28 +194,32 @@ class PMS_Websocket(WebSocket):
             log.error('%s: Error decoding message from websocket'
                       % self.__class__.__name__)
             log.error(message)
-            return False
+            return
         try:
             message = message['NotificationContainer']
         except KeyError:
             log.error('%s: Could not parse PMS message: %s'
                       % (self.__class__.__name__, message))
-            return False
+            return
         # Triage
         typus = message.get('type')
         if typus is None:
             log.error('%s: No message type, dropping message: %s'
                       % (self.__class__.__name__, message))
-            return False
+            return
         log.debug('%s: Received message from PMS server: %s'
                   % (self.__class__.__name__, message))
         # Drop everything we're not interested in
-        if typus not in ('playing', 'timeline'):
-            return True
-
-        # Put PMS message on queue and let libsync take care of it
-        self.queue.put(message)
-        return True
+        if typus not in ('playing', 'timeline', 'activity'):
+            return
+        elif typus == 'activity' and state.DB_SCAN is True:
+            # Only add to processing if PKC is NOT doing a lib scan (and thus
+            # possibly causing these reprocessing messages en mass)
+            log.debug('%s: Dropping message as PKC is currently synching'
+                      % self.__class__.__name__)
+        else:
+            # Put PMS message on queue and let libsync take care of it
+            self.queue.put(message)
 
     def IOError_response(self):
         log.warn("Repeatedly could not connect to PMS, "
@@ -244,7 +248,7 @@ class Alexa_Websocket(WebSocket):
 
     def process(self, opcode, message):
         if opcode not in self.opcode_data:
-            return False
+            return
         log.debug('%s: Received the following message from Alexa:'
                   % self.__class__.__name__)
         log.debug('%s: %s' % (self.__class__.__name__, message))
@@ -253,22 +257,21 @@ class Alexa_Websocket(WebSocket):
         except Exception as ex:
             log.error('%s: Error decoding message from Alexa: %s'
                       % (self.__class__.__name__, ex))
-            return False
+            return
         try:
             if message.attrib['command'] == 'processRemoteControlCommand':
                 message = message[0]
             else:
                 log.error('%s: Unknown Alexa message received'
                           % self.__class__.__name__)
-                return False
+                return
         except:
             log.error('%s: Could not parse Alexa message'
                       % self.__class__.__name__)
-            return False
+            return
         process_command(message.attrib['path'][1:],
                         message.attrib,
                         queue=self.mgr.plexCompanion.queue)
-        return True
 
     def IOError_response(self):
         pass
