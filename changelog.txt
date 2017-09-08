@@ -1,3 +1,6 @@
+version 1.8.12:
+- Fix library sync crashing trying to display an error
+
 version 1.8.11:
 - version 1.8.10 for everybody
 
