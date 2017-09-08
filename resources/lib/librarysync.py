@@ -1240,13 +1240,25 @@ class LibrarySync(Thread):
                 # movie or episode)
                 continue
             typus = v.PLEX_TYPE_FROM_WEBSOCKET[int(item['type'])]
+            if typus == v.PLEX_TYPE_CLIP:
+                # No need to process extras or trailers
+                continue
             status = int(item['state'])
-            if status == 9 or (typus in (v.PLEX_TYPE_MOVIE,
-                                         v.PLEX_TYPE_EPISODE,
-                                         v.PLEX_TYPE_SONG) and status == 5):
-                # Only process deleted items OR movies, episodes, tracks/songs
+            if status == 9:
+                # Immediately and always process deletions (as the PMS will
+                # send additional message with other codes)
+                self.itemsToProcess.append({
+                    'state': status,
+                    'type': typus,
+                    'ratingKey': str(item['itemID']),
+                    'timestamp': getUnixTimestamp(),
+                    'attempt': 0
+                })
+            elif typus in (v.PLEX_TYPE_MOVIE,
+                           v.PLEX_TYPE_EPISODE,
+                           v.PLEX_TYPE_SONG) and status == 5:
                 plex_id = str(item['itemID'])
-                # Have we already added this element?
+                # Have we already added this element for processing?
                 for existingItem in self.itemsToProcess:
                     if existingItem['ratingKey'] == plex_id:
                         break
