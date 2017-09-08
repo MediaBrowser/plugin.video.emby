@@ -1269,6 +1269,9 @@ class LibrarySync(Thread):
             if item['event'] != 'ended':
                 # Scan still going on, so skip for now
                 continue
+            elif item['Activity'].get('Context') is None:
+                # Not related to any Plex element, but entire library
+                continue
             elif item['Activity']['type'] != 'library.refresh.items':
                 # Not the type of message relevant for us
                 continue
