@@ -1289,7 +1289,8 @@ class LibrarySync(Thread):
                 continue
             plex_id = GetPlexKeyNumber(item['Activity']['Context']['key'])[1]
             if plex_id == '':
-                raise KeyError('Could not extract the Plex id')
+                # Likely a Plex id like /library/metadata/3/children
+                continue
             # We're only looking at existing elements - have we synced yet?
             with plexdb.Get_Plex_DB() as plex_db:
                 kodi_info = plex_db.getItem_byId(plex_id)
