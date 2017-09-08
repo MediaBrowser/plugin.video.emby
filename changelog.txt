@@ -1,3 +1,12 @@
+version 1.8.13 (beta only):
+- Background sync now picks up more PMS changes
+- Detect Plex item deletion more reliably
+- Fix changed Plex metadata not synced repeatedly
+- Detect (some, not all) changes to PKC settings and apply them on-the-fly
+- Fix resuming interrupted sync
+- PKC logging now uses Kodi log levels
+- Further code optimizations
+
 version 1.8.12:
 - Fix library sync crashing trying to display an error
 
