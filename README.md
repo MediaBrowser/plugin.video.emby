@@ -105,14 +105,11 @@ I'm not in any way affiliated with Plex. Thank you very much for a small donatio
 
 Solutions are unlikely due to the nature of these issues
 - A Plex Media Server "bug" leads to frequent and slow syncs, see [here for more info](https://github.com/croneter/PlexKodiConnect/issues/135)
-- *Plex Music when using Addon paths instead of Native Direct Paths:* Kodi tries to scan every(!) single Plex song on startup. This leads to errors in the Kodi log file and potentially even crashes. See the [Github issue](https://github.com/croneter/PlexKodiConnect/issues/14) for more details
+- *Plex Music when using Addon paths instead of Native Direct Paths:* Kodi tries to scan every(!) single Plex song on startup. This leads to errors in the Kodi log file and potentially even crashes. See the [Github issues](https://github.com/croneter/PlexKodiConnect/issues/14) for more details. **Workaround**: use [PKC direct paths](https://github.com/croneter/PlexKodiConnect/wiki/Set-up-Direct-Paths) instead of addon paths.
 
 *Background Sync:*
 The Plex Server does not tell anyone of the following changes. Hence PKC cannot detect these changes instantly but will notice them only on full/delta syncs (standard settings is every 60 minutes)
 - Toggle the viewstate of an item to (un)watched outside of Kodi
-- Changing details of an item, e.g. replacing a poster  
-
-However, some changes to individual items are instantly detected, e.g. if you match a yet unrecognized movie. 
 
 
 ### Issues being worked on
