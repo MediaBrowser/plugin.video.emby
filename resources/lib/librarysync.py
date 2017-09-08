@@ -108,7 +108,7 @@ class LibrarySync(Thread):
             dialog('notification',
                    heading='{plex}',
                    message=message,
-                   type='{error}')
+                   icon='{error}')
 
     def syncPMStime(self):
         """
