@@ -1,13 +1,26 @@
 # -*- coding: utf-8 -*-
 ###############################################################################
-import logging
-import cPickle as Pickle
+from logging import getLogger
+from cPickle import dumps, loads
 
-from utils import pickl_window
+from xbmcgui import Window
 ###############################################################################
-log = logging.getLogger("PLEX."+__name__)
+log = getLogger("PLEX."+__name__)
+WINDOW = Window(10000)
+###############################################################################
 
-###############################################################################
+
+def pickl_window(property, value=None, clear=False):
+    """
+    Get or set window property - thread safe! For use with Pickle
+    Property and value must be string
+    """
+    if clear:
+        WINDOW.clearProperty(property)
+    elif value is not None:
+        WINDOW.setProperty(property, value)
+    else:
+        return WINDOW.getProperty(property)
 
 
 def pickle_me(obj, window_var='plex_result'):
@@ -20,7 +33,7 @@ def pickle_me(obj, window_var='plex_result'):
     functions won't work. See the Pickle documentation
     """
     log.debug('Start pickling: %s' % obj)
-    pickl_window(window_var, value=Pickle.dumps(obj))
+    pickl_window(window_var, value=dumps(obj))
     log.debug('Successfully pickled')
 
 
@@ -32,7 +45,7 @@ def unpickle_me(window_var='plex_result'):
     result = pickl_window(window_var)
     pickl_window(window_var, clear=True)
     log.debug('Start unpickling')
-    obj = Pickle.loads(result)
+    obj = loads(result)
     log.debug('Successfully unpickled: %s' % obj)
     return obj
 
