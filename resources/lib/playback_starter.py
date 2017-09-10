@@ -17,6 +17,7 @@ import variables as v
 from downloadutils import DownloadUtils
 from PKC_listitem import convert_PKC_to_listitem
 import plexdb_functions as plexdb
+from context_entry import ContextMenu
 import state
 
 ###############################################################################
@@ -142,6 +143,9 @@ class Playback_Starter(Thread):
                     params.get('view_offset'),
                     directplay=True if params.get('play_directly') else False,
                     node=False if params.get('node') == 'false' else True)
+            elif mode == 'context_menu':
+                ContextMenu()
+                result = Playback_Successful()
         except:
             log.error('Error encountered for mode %s, params %s'
                       % (mode, params))

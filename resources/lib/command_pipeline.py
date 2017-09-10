@@ -62,6 +62,8 @@ class Monitor_Window(Thread):
                         value.replace('PLEX_USERNAME-', '') or None
                 elif value.startswith('RUN_LIB_SCAN-'):
                     state.RUN_LIB_SCAN = value.replace('RUN_LIB_SCAN-', '')
+                elif value == 'CONTEXT_menu':
+                    queue.put('dummy?mode=context_menu')
                 else:
                     raise NotImplementedError('%s not implemented' % value)
             else:
