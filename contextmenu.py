@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
 
 ###############################################################################
-from logging import getLogger
 from os import path as os_path
 from sys import path as sys_path
 
 from xbmcaddon import Addon
-from xbmc import translatePath, sleep
+from xbmc import translatePath, sleep, log, LOGERROR
 from xbmcgui import Window
 
 _addon = Addon(id='plugin.video.plexkodiconnect')
@@ -26,12 +25,8 @@ except TypeError:
         'lib')).decode()
 sys_path.append(_base_resource)
 
-import loghandler
 from pickler import unpickle_me, pickl_window
 
-###############################################################################
-loghandler.config()
-log = getLogger("PLEX."+__name__)
 ###############################################################################
 
 if __name__ == "__main__":
@@ -43,4 +38,4 @@ if __name__ == "__main__":
         sleep(50)
     result = unpickle_me()
     if result is None:
-        log.error('Error encountered, aborting')
+        log('PLEX.%s: Error encountered, aborting' % __name__, level=LOGERROR)
