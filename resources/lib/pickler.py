@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 ###############################################################################
-from logging import getLogger
 from cPickle import dumps, loads
 
 from xbmcgui import Window
+from xbmc import log, LOGDEBUG
 ###############################################################################
-log = getLogger("PLEX."+__name__)
 WINDOW = Window(10000)
+PREFIX = 'PLEX.%s: ' % __name__
 ###############################################################################
 
 
@@ -32,9 +32,9 @@ def pickle_me(obj, window_var='plex_result'):
     obj can be pretty much any Python object. However, classes and
     functions won't work. See the Pickle documentation
     """
-    log.debug('Start pickling: %s' % obj)
+    log('%sStart pickling: %s' % (PREFIX, obj), level=LOGDEBUG)
     pickl_window(window_var, value=dumps(obj))
-    log.debug('Successfully pickled')
+    log('%sSuccessfully pickled' % PREFIX, level=LOGDEBUG)
 
 
 def unpickle_me(window_var='plex_result'):
@@ -44,9 +44,9 @@ def unpickle_me(window_var='plex_result'):
     """
     result = pickl_window(window_var)
     pickl_window(window_var, clear=True)
-    log.debug('Start unpickling')
+    log('%sStart unpickling' % PREFIX, level=LOGDEBUG)
     obj = loads(result)
-    log.debug('Successfully unpickled: %s' % obj)
+    log('%sSuccessfully unpickled: %s' % (PREFIX, obj), level=LOGDEBUG)
     return obj
 
 
