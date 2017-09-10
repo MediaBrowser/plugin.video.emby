@@ -2,8 +2,6 @@
 ###############################################################################
 import logging
 import xbmc
-
-from utils import tryEncode
 ###############################################################################
 LEVELS = {
     logging.ERROR: xbmc.LOGERROR,
@@ -12,6 +10,22 @@ LEVELS = {
     logging.DEBUG: xbmc.LOGDEBUG
 }
 ###############################################################################
+
+
+def tryEncode(uniString, encoding='utf-8'):
+    """
+    Will try to encode uniString (in unicode) to encoding. This possibly
+    fails with e.g. Android TV's Python, which does not accept arguments for
+    string.encode()
+    """
+    if isinstance(uniString, str):
+        # already encoded
+        return uniString
+    try:
+        uniString = uniString.encode(encoding, "ignore")
+    except TypeError:
+        uniString = uniString.encode()
+    return uniString
 
 
 def config():
