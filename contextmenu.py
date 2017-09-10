@@ -26,9 +26,11 @@ except TypeError:
         'lib')).decode()
 sys_path.append(_base_resource)
 
+import loghandler
 from pickler import unpickle_me, pickl_window
 
 ###############################################################################
+loghandler.config()
 log = getLogger("PLEX."+__name__)
 ###############################################################################
 
