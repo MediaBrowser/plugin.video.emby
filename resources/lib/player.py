@@ -352,6 +352,8 @@ class Player(xbmc.Player):
             log.info("Percent complete: %s Mark played at: %s"
                      % (percentComplete, markPlayed))
             if percentComplete >= markPlayed:
+                # Kodi seems to sometimes overwrite our playstate, so wait
+                xbmc.sleep(500)
                 # Tell Kodi that we've finished watching (Plex knows)
                 if (data['fileid'] is not None and
                         data['itemType'] in (v.KODI_TYPE_MOVIE,
