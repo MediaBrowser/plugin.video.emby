@@ -1,3 +1,10 @@
+version 1.8.14 (beta only):
+- Greatly speed up displaying context menu 
+- Fix IndexError e.g. for channels if stream info missing
+- Sleep a bit before marking item as fully watched
+- Don't sleep before updating playstate to fully watched (if you watch on another Plex client)
+- Fix KeyError for TV live channels for getGeople
+
 version 1.8.13 (beta only):
 - Background sync now picks up more PMS changes
 - Detect Plex item deletion more reliably
