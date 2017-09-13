@@ -1346,14 +1346,18 @@ class API():
         cast = []
         producer = []
         for child in self.item:
-            if child.tag == 'Director':
-                director.append(child.attrib['tag'])
-            elif child.tag == 'Writer':
-                writer.append(child.attrib['tag'])
-            elif child.tag == 'Role':
-                cast.append(child.attrib['tag'])
-            elif child.tag == 'Producer':
-                producer.append(child.attrib['tag'])
+            try:
+                if child.tag == 'Director':
+                    director.append(child.attrib['tag'])
+                elif child.tag == 'Writer':
+                    writer.append(child.attrib['tag'])
+                elif child.tag == 'Role':
+                    cast.append(child.attrib['tag'])
+                elif child.tag == 'Producer':
+                    producer.append(child.attrib['tag'])
+            except KeyError:
+                log.warn('Malformed PMS answer for getPeople: %s: %s'
+                         % (child.tag, child.attrib))
         return {
             'Director': director,
             'Writer': writer,
