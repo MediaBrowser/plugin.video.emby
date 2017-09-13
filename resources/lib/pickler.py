@@ -1,13 +1,26 @@
 # -*- coding: utf-8 -*-
 ###############################################################################
-import logging
-import cPickle as Pickle
+from cPickle import dumps, loads
 
-from utils import pickl_window
+from xbmcgui import Window
+from xbmc import log, LOGDEBUG
 ###############################################################################
-log = logging.getLogger("PLEX."+__name__)
+WINDOW = Window(10000)
+PREFIX = 'PLEX.%s: ' % __name__
+###############################################################################
 
-###############################################################################
+
+def pickl_window(property, value=None, clear=False):
+    """
+    Get or set window property - thread safe! For use with Pickle
+    Property and value must be string
+    """
+    if clear:
+        WINDOW.clearProperty(property)
+    elif value is not None:
+        WINDOW.setProperty(property, value)
+    else:
+        return WINDOW.getProperty(property)
 
 
 def pickle_me(obj, window_var='plex_result'):
@@ -19,9 +32,9 @@ def pickle_me(obj, window_var='plex_result'):
     obj can be pretty much any Python object. However, classes and
     functions won't work. See the Pickle documentation
     """
-    log.debug('Start pickling: %s' % obj)
-    pickl_window(window_var, value=Pickle.dumps(obj))
-    log.debug('Successfully pickled')
+    log('%sStart pickling: %s' % (PREFIX, obj), level=LOGDEBUG)
+    pickl_window(window_var, value=dumps(obj))
+    log('%sSuccessfully pickled' % PREFIX, level=LOGDEBUG)
 
 
 def unpickle_me(window_var='plex_result'):
@@ -31,9 +44,9 @@ def unpickle_me(window_var='plex_result'):
     """
     result = pickl_window(window_var)
     pickl_window(window_var, clear=True)
-    log.debug('Start unpickling')
-    obj = Pickle.loads(result)
-    log.debug('Successfully unpickled: %s' % obj)
+    log('%sStart unpickling' % PREFIX, level=LOGDEBUG)
+    obj = loads(result)
+    log('%sSuccessfully unpickled: %s' % (PREFIX, obj), level=LOGDEBUG)
     return obj
 
 

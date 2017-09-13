@@ -32,9 +32,9 @@ sys_path.append(_base_resource)
 ###############################################################################
 
 import entrypoint
-from utils import window, pickl_window, reset, passwordsXML, language as lang,\
-    dialog, plex_command
-from pickler import unpickle_me
+from utils import window, reset, passwordsXML, language as lang, dialog, \
+    plex_command
+from pickler import unpickle_me, pickl_window
 from PKC_listitem import convert_PKC_to_listitem
 import variables as v
 
