@@ -161,8 +161,9 @@ class Items(object):
 
             # If offset exceeds duration skip update
             if item['viewOffset'] > item['duration']:
-              log.error("Error while updating play state, viewOffset exceeded duration")
-              return
+                log.error("Error while updating play state, viewOffset "
+                          "exceeded duration")
+                return
 
             complete = float(item['viewOffset']) / float(item['duration'])
             log.info('Item %s stopped with completion rate %s percent.'
@@ -170,7 +171,6 @@ class Items(object):
                      % (item['ratingKey'], str(complete), MARK_PLAYED_AT), 1)
             if complete >= MARK_PLAYED_AT:
                 log.info('Marking as completely watched in Kodi')
-                sleep(500)
                 try:
                     item['viewCount'] += 1
                 except TypeError:
