@@ -5,10 +5,8 @@ import logging
 import json
 
 import xbmc
-import xbmcgui
 
-from utils import window, settings, language as lang, DateToKodi, \
-    getUnixTimestamp, tryDecode, tryEncode
+from utils import window, DateToKodi, getUnixTimestamp, tryDecode, tryEncode
 import downloadutils
 import plexdb_functions as plexdb
 import kodidb_functions as kodidb
