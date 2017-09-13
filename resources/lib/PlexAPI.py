@@ -1754,8 +1754,16 @@ class API():
         videotracks = []
         audiotracks = []
         subtitlelanguages = []
-        # Sometimes, aspectratio is on the "toplevel"
-        aspectratio = self.item[0].attrib.get('aspectRatio', None)
+        try:
+            # Sometimes, aspectratio is on the "toplevel"
+            aspectratio = self.item[0].attrib.get('aspectRatio', None)
+        except IndexError:
+            # There is no stream info at all, returning empty
+            return {
+                        'video': videotracks,
+                        'audio': audiotracks,
+                        'subtitle': subtitlelanguages
+                    }
         # TODO: what if several Media tags exist?!?
         # Loop over parts
         for child in self.item[0]:
