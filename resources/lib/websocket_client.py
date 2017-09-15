@@ -111,7 +111,8 @@ class WebSocket(Thread):
                 except websocket.WebSocketException as e:
                     log.info('%s: WebSocketException: %s'
                              % (self.__class__.__name__, e))
-                    if 'Handshake Status 401' in e.args:
+                    if ('Handshake Status 401' in e.args
+                            or 'Handshake Status 403' in e.args):
                         handshake_counter += 1
                         if handshake_counter >= 5:
                             log.info('%s: Error in handshake detected. '
