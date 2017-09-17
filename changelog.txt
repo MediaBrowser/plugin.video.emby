@@ -1,3 +1,7 @@
+version 1.8.15:
+- version 1.8.14 for everyone
+- Update translations
+
 version 1.8.14 (beta only):
 - Greatly speed up displaying context menu 
 - Fix IndexError e.g. for channels if stream info missing
