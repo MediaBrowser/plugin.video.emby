@@ -104,6 +104,11 @@ msgctxt "#30031"
 msgid "I own this Plex Media Server"
 msgstr "Soy dueño de este Plex Media Server"
 
+# Kodi context menu entry for movie and episode information screen
+msgctxt "#30032"
+msgid "Information"
+msgstr "Información"
+
 msgctxt "#30035"
 msgid "Number of recent Music Albums to show:"
 msgstr "Número de Álbumes de Música recientes para mostrar:"

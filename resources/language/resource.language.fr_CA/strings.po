@@ -1,13 +1,14 @@
 #  XBMC Media Center language file
 # Translators:
 # Croneter None <croneter@gmail.com>, 2017
+# Elixir59 <elixir.css@gmail.com>, 2017
 msgid ""
 msgstr ""
 "Project-Id-Version: PlexKodiConnect\n"
 "Report-Msgid-Bugs-To: croneter@gmail.com\n"
 "POT-Creation-Date: 2017-04-15 13:13+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: Croneter None <croneter@gmail.com>, 2017\n"
+"Last-Translator: Elixir59 <elixir.css@gmail.com>, 2017\n"
 "Language-Team: French (Canada) (https://www.transifex.com/croneter/teams/73837/fr_CA/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -103,6 +104,11 @@ msgstr "Numéro de port"
 msgctxt "#30031"
 msgid "I own this Plex Media Server"
 msgstr "Je possède ce Plex Media Server"
+
+# Kodi context menu entry for movie and episode information screen
+msgctxt "#30032"
+msgid "Information"
+msgstr "Information"
 
 msgctxt "#30035"
 msgid "Number of recent Music Albums to show:"

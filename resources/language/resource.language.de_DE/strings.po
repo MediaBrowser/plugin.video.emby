@@ -2051,13 +2051,13 @@ msgstr ""
 "dass du all deine Videos mit Plex verwaltest (und keine direkt mit Kodi). Du"
 " wirst möglicherweise Daten verlieren, die bereits in der Kodi Video- "
 "und/oder Musik-Datenbank gespeichert sind (da dieses Addon beide Datenbanken"
-" direkt verändert). Verwendung auf eigene Gefahr!"
+" direkt verändert). Benutzung auf eigene Gefahr!"
 
 # For use with addon.xml (PKC metadata for Kodi, e.g. description)
 # Addon Disclaimer
 msgctxt "#39705"
 msgid "Use at your own risk"
-msgstr "Verwendung auf eigene Gefahr"
+msgstr "Benutzung auf eigene Gefahr"
 
 # If user gets prompted to choose between several subtitles. Leave the number
 # one at the beginning of the string!

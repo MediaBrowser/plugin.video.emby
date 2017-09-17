@@ -105,6 +105,11 @@ msgctxt "#30031"
 msgid "I own this Plex Media Server"
 msgstr "Jeg eier denne Plex Media Server"
 
+# Kodi context menu entry for movie and episode information screen
+msgctxt "#30032"
+msgid "Information"
+msgstr "Informasjon"
+
 msgctxt "#30035"
 msgid "Number of recent Music Albums to show:"
 msgstr "Antall nylige musikkalbum å vise:"
@@ -1740,11 +1745,11 @@ msgstr ""
 
 msgctxt "#39218"
 msgid "Error contacting PMS"
-msgstr ""
+msgstr "Kunne ikke kontakte PMS"
 
 msgctxt "#39219"
 msgid "Abort (Yes) or save address anyway (No)?"
-msgstr ""
+msgstr "Avbryt (Ja) eller lagre adressen likevel (Nei)?"
 
 msgctxt "#39220"
 msgid "connected"
@@ -1766,7 +1771,7 @@ msgstr ""
 
 msgctxt "#39224"
 msgid "Refresh all"
-msgstr ""
+msgstr "Forny alt"
 
 msgctxt "#39225"
 msgid "Missing only"
