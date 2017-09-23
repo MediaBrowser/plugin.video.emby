@@ -1,3 +1,7 @@
+version 1.8.16:
+- Add premiere dates for movies, thanks @dazedcrazy
+- Fix items not getting marked as fully watched
+
 version 1.8.15:
 - version 1.8.14 for everyone
 - Update translations
