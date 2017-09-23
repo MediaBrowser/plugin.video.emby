@@ -1390,6 +1390,10 @@ class LibrarySync(Thread):
                 resume = item.get('viewOffset') / 1000
             else:
                 resume = item.get('viewOffset')
+            if resume >= v.MARK_PLAYED_AT and status not in ('stopped', 'ended'):
+                # We need to drop these as we'll otherwise NOT mark an item as
+                # completely watched after having seen >90%
+                continue
             # Append to list that we need to process
             items.append({
                 'ratingKey': ratingKey,
