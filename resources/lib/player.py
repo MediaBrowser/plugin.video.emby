@@ -347,11 +347,9 @@ class Player(xbmc.Player):
             except ZeroDivisionError:
                 # Runtime is 0.
                 percentComplete = 0
-
-            markPlayed = 0.90
             log.info("Percent complete: %s Mark played at: %s"
-                     % (percentComplete, markPlayed))
-            if percentComplete >= markPlayed:
+                     % (percentComplete, v.MARK_PLAYED_AT))
+            if percentComplete >= v.MARK_PLAYED_AT:
                 # Kodi seems to sometimes overwrite our playstate, so wait
                 xbmc.sleep(500)
                 # Tell Kodi that we've finished watching (Plex knows)

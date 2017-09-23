@@ -22,7 +22,6 @@ import state
 
 log = logging.getLogger("PLEX."+__name__)
 
-MARK_PLAYED_AT = 0.90
 ###############################################################################
 
 
@@ -168,8 +167,8 @@ class Items(object):
             complete = float(item['viewOffset']) / float(item['duration'])
             log.info('Item %s stopped with completion rate %s percent.'
                      'Mark item played at %s percent.'
-                     % (item['ratingKey'], str(complete), MARK_PLAYED_AT), 1)
-            if complete >= MARK_PLAYED_AT:
+                     % (item['ratingKey'], str(complete), v.MARK_PLAYED_AT), 1)
+            if complete >= v.MARK_PLAYED_AT:
                 log.info('Marking as completely watched in Kodi')
                 try:
                     item['viewCount'] += 1

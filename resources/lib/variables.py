@@ -21,6 +21,7 @@ def tryDecode(string, encoding='utf-8'):
         string = string.decode()
     return string
 
+MARK_PLAYED_AT = 0.9
 
 _ADDON = Addon()
 ADDON_NAME = 'PlexKodiConnect'
