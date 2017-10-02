@@ -1,3 +1,9 @@
+version 1.8.17:
+- Hopefully fix stable repo
+- Fix subtitles not working or showing up as Unknown
+- Enable channels for Plex home users
+- Remove obsolete PKC settings show contextmenu
+
 version 1.8.16:
 - Add premiere dates for movies, thanks @dazedcrazy
 - Fix items not getting marked as fully watched
