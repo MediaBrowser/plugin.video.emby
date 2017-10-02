@@ -752,10 +752,6 @@ def channels():
     """
     Listing for Plex Channels
     """
-    if window('plex_restricteduser') == 'true':
-        log.error('No Plex Channels - restricted user')
-        return xbmcplugin.endOfDirectory(HANDLE, False)
-
     xml = downloadutils.DownloadUtils().downloadUrl('{server}/channels/all')
     try:
         xml[0].attrib
