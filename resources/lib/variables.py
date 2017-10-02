@@ -21,65 +21,7 @@ def tryDecode(string, encoding='utf-8'):
         string = string.decode()
     return string
 
-# When does Plex mark a video as completely played? 
 MARK_PLAYED_AT = 0.9
-
-# Matching table for using Plex XML's stream 'languageCode'
-LANGUAGECODE_TO_LANGUAGE = {
-    'afr': 'Afrikaans',
-    'ara': 'Arabic',
-    'hye': 'Armenian',
-    'bul': 'Bulgarian',
-    'cat': 'Catala',
-    'chi': 'Mandarin',
-    'hrv': 'Hrvatski',
-    'cze': 'Cesky',
-    'dan': 'Dansk',
-    'dut': 'Nederlands',
-    'eng': 'English',
-    'epo': 'Esperanto',
-    'fin': 'Suomi',
-    'fre': 'Francais',
-    'ger': 'Deutsch',
-    'geo': 'Georgian',
-    'gre': 'Greek',
-    'heb': 'Hebrew',
-    'hin': 'Hindi',
-    'hun': 'Magyar',
-    'ind': 'Bahasa Indonesia',
-    'gle': 'Gaeilge',
-    'ice': 'Islenska',
-    'ita': 'Italiano',
-    'jpn': 'Japanese',
-    'kor': 'Korean',
-    'kur': 'Kurdi',
-    'lat': 'Latin',
-    'mac': 'Macedonian',
-    'may': 'Malay',
-    'mlt': 'Malti',
-    'nep': 'Nepali',
-    'nor': 'Norsk',
-    'per': 'Persian',
-    'pol': 'Polszczyzna',
-    'por': 'Portugues',
-    'rum': 'Romana',
-    'rus': 'Russian',
-    'srp': 'Serbian',
-    'gla': 'Gaidhlig',
-    'slo': 'Slovencina',
-    'slv': 'Slovenski Jezik',
-    'spa': 'Espanol',
-    'swe': 'Svenska',
-    'tam': 'Tamil',
-    'tha': 'Thai',
-    'tur': 'Turkish',
-    'tah': 'Tahitian',
-    'ukr': 'Ukrainian',
-    'uzb': 'Ozbek',
-    'vie': 'Tieng Viet',
-    'wel': 'Cymraeg',
-    'yid': 'Yiddish',
-}
 
 _ADDON = Addon()
 ADDON_NAME = 'PlexKodiConnect'

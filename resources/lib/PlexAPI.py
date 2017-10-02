@@ -2369,15 +2369,11 @@ class API():
             # ext = stream.attrib.get('format')
             if key:
                 # We do know the language - temporarily download
-                if stream.attrib.get('languageCode') is not None:
-                    try:
-                        language = v.LANGUAGECODE_TO_LANGUAGE[stream.attrib['languageCode']]
-                    except KeyError:
-                        language = stream.attrib['languageCode']
+                if stream.attrib.get('language') is not None:
                     path = self.download_external_subtitles(
                         "{server}%s" % key,
                         "subtitle%02d.%s.%s" % (fileindex,
-                                                language,
+                                                stream.attrib['language'],
                                                 stream.attrib['codec']))
                     fileindex += 1
                 # We don't know the language - no need to download
