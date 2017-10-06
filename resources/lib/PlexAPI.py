@@ -2558,8 +2558,7 @@ class API():
         """
         Add media stream information to xbmcgui.ListItem
         """
-        mediastreams = self.getMediaStreams()
-        for key, value in mediastreams.iteritems():
+        for key, value in self.getMediaStreams():
             if value:
                 listItem.addStreamInfo(key, value)
 
