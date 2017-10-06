@@ -1756,61 +1756,56 @@ class API():
         subtitlelanguages = []
         try:
             # Sometimes, aspectratio is on the "toplevel"
-            aspectratio = self.item[0].attrib.get('aspectRatio', None)
+            aspect = self.item[0].attrib.get('aspectRatio')
         except IndexError:
             # There is no stream info at all, returning empty
             return {
-                        'video': videotracks,
-                        'audio': audiotracks,
-                        'subtitle': subtitlelanguages
-                    }
-        # TODO: what if several Media tags exist?!?
+                'video': videotracks,
+                'audio': audiotracks,
+                'subtitle': subtitlelanguages
+            }
         # Loop over parts
         for child in self.item[0]:
-            container = child.attrib.get('container', None)
+            container = child.attrib.get('container')
             # Loop over Streams
             for grandchild in child:
-                mediaStream = grandchild.attrib
-                mediaType = int(mediaStream.get('streamType', 999))
-                if mediaType == 1:  # Video streams
-                    videotrack = {}
-                    videotrack['codec'] = mediaStream['codec'].lower()
-                    if "msmpeg4" in videotrack['codec']:
-                        videotrack['codec'] = "divx"
-                    elif "mpeg4" in videotrack['codec']:
-                        # if "simple profile" in profile or profile == "":
-                        #    videotrack['codec'] = "xvid"
-                        pass
-                    elif "h264" in videotrack['codec']:
-                        if container in ("mp4", "mov", "m4v"):
-                            videotrack['codec'] = "avc1"
-                    videotrack['height'] = mediaStream.get('height', None)
-                    videotrack['width'] = mediaStream.get('width', None)
-                    # TODO: 3d Movies?!?
-                    # videotrack['Video3DFormat'] = item.get('Video3DFormat')
-                    aspectratio = mediaStream.get('aspectRatio', aspectratio)
-                    videotrack['aspect'] = aspectratio
-                    # TODO: Video 3d format
-                    videotrack['video3DFormat'] = None
-                    videotracks.append(videotrack)
-
-                elif mediaType == 2:  # Audio streams
-                    audiotrack = {}
-                    audiotrack['codec'] = mediaStream['codec'].lower()
-                    if ("dca" in audiotrack['codec'] and
-                            "ma" in mediaStream.get('profile', '').lower()):
-                        audiotrack['codec'] = "dtshd_ma"
-                    audiotrack['channels'] = mediaStream.get('channels')
+                stream = grandchild.attrib
+                media_type = int(stream.get('streamType', 999))
+                track = {}
+                if media_type == 1:  # Video streams
+                    if 'codec' in stream:
+                        track['codec'] = stream['codec'].lower()
+                        if "msmpeg4" in track['codec']:
+                            track['codec'] = "divx"
+                        elif "mpeg4" in track['codec']:
+                            # if "simple profile" in profile or profile == "":
+                            #    track['codec'] = "xvid"
+                            pass
+                        elif "h264" in track['codec']:
+                            if container in ("mp4", "mov", "m4v"):
+                                track['codec'] = "avc1"
+                    track['height'] = stream.get('height')
+                    track['width'] = stream.get('width')
+                    # track['Video3DFormat'] = item.get('Video3DFormat')
+                    track['aspect'] = stream.get('aspectRatio', aspect)
+                    track['duration'] = self.getRuntime()[1]
+                    track['video3DFormat'] = None
+                    videotracks.append(track)
+                elif media_type == 2:  # Audio streams
+                    if 'codec' in stream:
+                        track['codec'] = stream['codec'].lower()
+                        if ("dca" in track['codec'] and
+                                "ma" in stream.get('profile', '').lower()):
+                            track['codec'] = "dtshd_ma"
+                    track['channels'] = stream.get('channels')
                     # 'unknown' if we cannot get language
-                    audiotrack['language'] = mediaStream.get(
+                    track['language'] = stream.get(
                         'languageCode', lang(39310)).lower()
-                    audiotracks.append(audiotrack)
-
-                elif mediaType == 3:  # Subtitle streams
+                    audiotracks.append(track)
+                elif media_type == 3:  # Subtitle streams
                     # 'unknown' if we cannot get language
                     subtitlelanguages.append(
-                        mediaStream.get('languageCode',
-                                        lang(39310)).lower())
+                        stream.get('languageCode', lang(39310)).lower())
         return {
             'video': videotracks,
             'audio': audiotracks,
@@ -2564,17 +2559,9 @@ class API():
         Add media stream information to xbmcgui.ListItem
         """
         mediastreams = self.getMediaStreams()
-        videostreamFound = False
-        if mediastreams:
-            for key, value in mediastreams.iteritems():
-                if key == "video" and value:
-                    videostreamFound = True
-                if value:
-                    listItem.addStreamInfo(key, value)
-        if not videostreamFound:
-            # just set empty streamdetails to prevent errors in the logs
-            listItem.addStreamInfo(
-                "video", {'duration': self.getRuntime()[1]})
+        for key, value in mediastreams.iteritems():
+            if value:
+                listItem.addStreamInfo(key, value)
 
     def validatePlayurl(self, path, typus, forceCheck=False, folder=False,
                         omitCheck=False):
