@@ -57,7 +57,7 @@ import state
 
 ###############################################################################
 
-log = logging.getLogger("PLEX."+__name__)
+log = logging.getLogger("PLEX." + __name__)
 
 REGEX_IMDB = re_compile(r'''/(tt\d+)''')
 REGEX_TVDB = re_compile(r'''thetvdb:\/\/(.+?)\?''')
