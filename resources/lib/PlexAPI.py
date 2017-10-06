@@ -1177,9 +1177,9 @@ class API():
 
     def getKey(self):
         """
-        Returns the Plex key such as '/library/metadata/246922'
+        Returns the Plex key such as '/library/metadata/246922' or empty string
         """
-        return self.item.attrib.get('key')
+        return self.item.attrib.get('key', '')
 
     def getFilePath(self, forceFirstMediaStream=False):
         """
