@@ -60,6 +60,7 @@
     <description lang="da_DK">Tilslut Kodi til din Plex Media Server. Dette plugin forudsætter, at du administrere alle dine videoer med Plex (og ikke med Kodi). Du kan miste data som allerede er gemt i Kodi video og musik-databaser (dette plugin ændrer direkte i dem). Brug på eget ansvar!</description>
     <disclaimer lang="da_DK">Brug på eget ansvar</disclaimer>
     <news>version 1.8.18:
+- Russian translation, thanks @UncleStark, @xom2000,  @AlexFreit
 - Fix Plex context menu not showing up
 - Deal better with missing stream info (e.g. channels)
 - Fix AttributeError if Plex key is missing

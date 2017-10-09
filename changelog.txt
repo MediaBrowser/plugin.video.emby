@@ -1,4 +1,5 @@
 version 1.8.18:
+- Russian translation, thanks @UncleStark, @xom2000,  @AlexFreit
 - Fix Plex context menu not showing up
 - Deal better with missing stream info (e.g. channels)
 - Fix AttributeError if Plex key is missing
