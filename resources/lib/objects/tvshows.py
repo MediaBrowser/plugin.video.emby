@@ -4,13 +4,14 @@
 
 import logging
 import urllib
+import re
 from ntpath import dirname
 
 import api
 import embydb_functions as embydb
 import _kodi_tvshows
 from _common import Items, catch_except
-from utils import window, settings, language as lang
+from utils import window, settings, language as lang, advancedsettingsXML
 
 ##################################################################################################
 
@@ -23,6 +24,8 @@ class TVShows(Items):
 
 
     def __init__(self, embycursor, kodicursor, pdialog=None):
+
+        self.advsettings = advancedsettingsXML()
 
         self.embycursor = embycursor
         self.emby_db = embydb.Embydb_Functions(self.embycursor)
@@ -617,6 +620,11 @@ class TVShows(Items):
             # Direct paths is set the Kodi way
             if not self.path_validation(playurl):
                 return False
+
+            # Exclude episode on match
+            for regexp in self.advsettings.findall("./video/excludetvshowsfromscan/regexp"):
+                if re.search(regexp.text, playurl, re.UNICODE) is not None:
+                    return False
 
             path = playurl.replace(filename, "")
             window('emby_pathverified', value="true")

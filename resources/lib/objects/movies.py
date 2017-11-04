@@ -4,12 +4,13 @@
 
 import logging
 import urllib
+import re
 
 import api
 import embydb_functions as embydb
 import _kodi_movies
 from _common import Items, catch_except
-from utils import window, settings, language as lang
+from utils import window, settings, language as lang, advancedsettingsXML
 
 ##################################################################################################
 
@@ -22,6 +23,8 @@ class Movies(Items):
 
 
     def __init__(self, embycursor, kodicursor, pdialog=None):
+
+        self.advsettings = advancedsettingsXML()
 
         self.embycursor = embycursor
         self.emby_db = embydb.Embydb_Functions(self.embycursor)
@@ -219,6 +222,11 @@ class Movies(Items):
             # Direct paths is set the Kodi way
             if not self.path_validation(playurl):
                 return False
+
+            # Exclude video on match
+            for regexp in self.advsettings.findall("./video/excludefromscan/regexp"):
+                if re.search(regexp.text, playurl, re.UNICODE) is not None:
+                    return False
 
             path = playurl.replace(filename, "")
             window('emby_pathverified', value="true")
