@@ -38,7 +38,6 @@
 		<setting type="lsep" label="39700" />
 		<setting id="enable_alexa" label="39701" type="bool" default="true"/>
 		<setting type="lsep" label="" />
-		<setting id="enableContext" type="bool" label="30413" default="true" />
 		<setting id="skipContextMenu" type="bool" label="30520" default="false" visible="eq(-1,true)" subsetting="true" />
 		<setting id="plex_restricteduser" type="bool" default="false" visible="false"/>
 		<setting id="plex_allows_mediaDeletion" type="bool" default="true" visible="false"/>

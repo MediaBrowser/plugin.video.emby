@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon  id="plugin.video.plexkodiconnect" name="PlexKodiConnect" version="1.8.16" provider-name="croneter">
+<addon  id="plugin.video.plexkodiconnect" name="PlexKodiConnect" version="1.8.18" provider-name="croneter">
   <requires>
     <import addon="xbmc.python" version="2.1.0"/>
     <import addon="script.module.requests" version="2.3.0" />
@@ -13,7 +13,7 @@
       <item>
         <label>30401</label>
               <description>30416</description>
-              <visible>[!IsEmpty(ListItem.DBID) + !StringCompare(ListItem.DBID,-1) | !IsEmpty(ListItem.Property(plexid))] + !IsEmpty(Window(10000).Property(plex_context))</visible>
+              <visible>[!IsEmpty(ListItem.DBID) + !StringCompare(ListItem.DBID,-1) | !IsEmpty(ListItem.Property(plexid))]</visible>
       </item>
   </extension>
   <extension point="xbmc.addon.metadata">
@@ -59,7 +59,19 @@
     <summary lang="da_DK">Indbygget Integration af Plex i Kodi</summary>
     <description lang="da_DK">Tilslut Kodi til din Plex Media Server. Dette plugin forudsætter, at du administrere alle dine videoer med Plex (og ikke med Kodi). Du kan miste data som allerede er gemt i Kodi video og musik-databaser (dette plugin ændrer direkte i dem). Brug på eget ansvar!</description>
     <disclaimer lang="da_DK">Brug på eget ansvar</disclaimer>
-    <news>version 1.8.16:
+    <news>version 1.8.18:
+- Russian translation, thanks @UncleStark, @xom2000,  @AlexFreit
+- Fix Plex context menu not showing up
+- Deal better with missing stream info (e.g. channels)
+- Fix AttributeError if Plex key is missing
+
+version 1.8.17:
+- Hopefully fix stable repo
+- Fix subtitles not working or showing up as Unknown
+- Enable channels for Plex home users
+- Remove obsolete PKC settings show contextmenu
+
+version 1.8.16:
 - Add premiere dates for movies, thanks @dazedcrazy
 - Fix items not getting marked as fully watched
 
