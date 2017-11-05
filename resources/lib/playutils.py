@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 ###############################################################################
-
 import logging
 from downloadutils import DownloadUtils
 
@@ -19,11 +18,9 @@ log = logging.getLogger("PLEX."+__name__)
 class PlayUtils():
 
     def __init__(self, item):
-
         self.item = item
         self.API = PlexAPI.API(item)
         self.doUtils = DownloadUtils().downloadUrl
-
         self.machineIdentifier = window('plex_machineIdentifier')
 
     def getPlayUrl(self, partNumber=None):
@@ -74,6 +71,14 @@ class PlayUtils():
         if self.API.shouldStream() is True:
             log.info("Plex item optimized for direct streaming")
             return
+        # Check whether we have a strm file that we need to throw at Kodi 1:1
+        path = self.API.getFilePath()
+        if path is not None and path.endswith('.strm'):
+            log.info('.strm file detected')
+            playurl = self.API.validatePlayurl(path,
+                                               self.API.getType(),
+                                               forceCheck=True)
+            return tryEncode(playurl)
         # set to either 'Direct Stream=1' or 'Transcode=2'
         # and NOT to 'Direct Play=0'
         if settings('playType') != "0":
@@ -82,33 +87,28 @@ class PlayUtils():
             return
         if self.mustTranscode():
             return
-        return self.API.validatePlayurl(self.API.getFilePath(),
+        return self.API.validatePlayurl(path,
                                         self.API.getType(),
                                         forceCheck=True)
 
     def directPlay(self):
-
         try:
             playurl = self.item['MediaSources'][0]['Path']
         except (IndexError, KeyError):
             playurl = self.item['Path']
-
         if self.item.get('VideoType'):
             # Specific format modification
             if self.item['VideoType'] == "Dvd":
                 playurl = "%s/VIDEO_TS/VIDEO_TS.IFO" % playurl
             elif self.item['VideoType'] == "BluRay":
                 playurl = "%s/BDMV/index.bdmv" % playurl
-
         # Assign network protocol
         if playurl.startswith('\\\\'):
             playurl = playurl.replace("\\\\", "smb://")
             playurl = playurl.replace("\\", "/")
-
         if "apple.com" in playurl:
             USER_AGENT = "QuickTime/7.7.4"
             playurl += "?|User-Agent=%s" % USER_AGENT
-
         return playurl
 
     def mustTranscode(self):
