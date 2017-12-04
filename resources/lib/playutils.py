@@ -130,15 +130,16 @@ class PlayUtils():
         if window('plex_forcetranscode') == 'true':
             log.info('User chose to force-transcode')
             return True
-        if (settings('transcodeHi10P') == 'true' and
-                videoCodec['bitDepth'] == '10'):
-            log.info('Option to transcode 10bit video content enabled.')
-            return True
         codec = videoCodec['videocodec']
         if codec is None:
             # e.g. trailers. Avoids TypeError with "'h265' in codec"
             log.info('No codec from PMS, not transcoding.')
             return False
+        if ((settings('transcodeHi10P') == 'true' and
+                videoCodec['bitDepth'] == '10') and 
+                ('h265' in codec or 'hevc' in codec)):
+            log.info('Option to transcode 10bit h265 video content enabled.')
+            return True
         try:
             bitrate = int(videoCodec['bitrate'])
         except (TypeError, ValueError):
