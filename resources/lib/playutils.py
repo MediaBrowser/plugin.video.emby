@@ -78,7 +78,10 @@ class PlayUtils():
             playurl = self.API.validatePlayurl(path,
                                                self.API.getType(),
                                                forceCheck=True)
-            return tryEncode(playurl)
+            if playurl is None:
+                return
+            else:
+                return tryEncode(playurl)
         # set to either 'Direct Stream=1' or 'Transcode=2'
         # and NOT to 'Direct Play=0'
         if settings('playType') != "0":
