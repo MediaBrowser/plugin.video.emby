@@ -69,13 +69,14 @@ class SubscriptionManager:
         if playerid is not None:
             info = self.getPlayerProperties(playerid)
             # save this info off so the server update can use it too
-            self.playerprops[playerid] = info;
+            self.playerprops[playerid] = info
             status = info['state']
             time = info['time']
         else:
             status = "stopped"
             time = 0
-        ret = "\n"+'  <Timeline state="%s" time="%s" type="%s"' % (status, time, ptype)
+        ret = ('\n  <Timeline state="%s" time="%s" type="%s"'
+               % (status, time, ptype))
         if playerid is None:
             ret += ' />'
             return ret
@@ -120,7 +121,7 @@ class SubscriptionManager:
         ret += ' shuffle="%s"' % info['shuffle']
         ret += ' mute="%s"' % self.mute
         ret += ' repeat="%s"' % info['repeat']
-        ret += ' itemType="%s"' % info['itemType']
+        ret += ' itemType="%s"' % ptype
         if state.PLEX_TRANSIENT_TOKEN:
             ret += ' token="%s"' % state.PLEX_TRANSIENT_TOKEN
         elif info['plex_transient_token']:
@@ -241,7 +242,6 @@ class SubscriptionManager:
                                 "speed",
                                 "shuffled",
                                 "repeat"]})
-
             info = {
                 'time': timeToMillis(props['time']),
                 'duration': timeToMillis(props['totaltime']),
