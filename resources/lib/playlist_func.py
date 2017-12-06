@@ -58,8 +58,7 @@ class Playlist_Object_Baseclase(object):
         """
         Resets the playlist object to an empty playlist
         """
-        # Clear Kodi playlist object
-        self.kodi_pl.clear()
+        self.kodi_pl.clear()  # Clear Kodi playlist object
         self.items = []
         self.old_kodi_pl = []
         self.ID = None
@@ -107,16 +106,16 @@ class Playlist_Item(object):
     """
     Object to fill our playqueues and playlists with.
 
-    ID = None          Plex playlist/playqueue id, e.g. playQueueItemID
-    plex_id = None     Plex unique item id, "ratingKey"
-    plex_type = None   Plex type, e.g. 'movie', 'clip'
-    plex_UUID = None   Plex librarySectionUUID
+    ID = None          [str] Plex playlist/playqueue id, e.g. playQueueItemID
+    plex_id = None     [str] Plex unique item id, "ratingKey"
+    plex_type = None   [str] Plex type, e.g. 'movie', 'clip'
+    plex_UUID = None   [str] Plex librarySectionUUID
     kodi_id = None     Kodi unique kodi id (unique only within type!)
-    kodi_type = None   Kodi type: 'movie'
-    file = None        Path to the item's file. STRING!!
-    uri = None         Weird Plex uri path involving plex_UUID. STRING!
-    guid = None        Weird Plex guid
-    xml = None         etree XML from PMS, 1 lvl below <MediaContainer>
+    kodi_type = None   [str] Kodi type: 'movie'
+    file = None        [str] Path to the item's file. STRING!!
+    uri = None         [str] Weird Plex uri path involving plex_UUID. STRING!
+    guid = None        [str] Weird Plex guid
+    xml = None         [etree] XML from PMS, 1 lvl below <MediaContainer>
     """
     ID = None
     plex_id = None
