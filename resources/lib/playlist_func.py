@@ -21,21 +21,26 @@ REGEX = re_compile(r'''metadata%2F(\d+)''')
 
 
 class Playlist_Object_Baseclase(object):
-    playlistid = None     # Kodi playlist ID, [int]
-    type = None           # Kodi type: 'audio', 'video', 'picture'
-    kodi_pl = None        # Kodi xbmc.PlayList object
-    items = []            # list of PLAYLIST_ITEMS
-    old_kodi_pl = []      # to store old Kodi JSON result with all pl items
-    ID = None             # Plex id, e.g. playQueueID
-    version = None        # Plex version, [int]
+    """
+    Base class
+    """
+    playlistid = None
+    type = None
+    kodi_pl = None
+    items = []
+    old_kodi_pl = []
+    ID = None
+    version = None
     selectedItemID = None
     selectedItemOffset = None
-    shuffled = 0          # [int], 0: not shuffled, 1: ??? 2: ???
-    repeat = 0            # [int], 0: not repeated, 1: ??? 2: ???
-    # If Companion playback is initiated by another user
+    shuffled = 0
+    repeat = 0
     plex_transient_token = None
 
     def __repr__(self):
+        """
+        Print the playlist, e.g. to log
+        """
         answ = "<%s: " % (self.__class__.__name__)
         # For some reason, can't use dir directly
         answ += "ID: %s, " % self.ID
@@ -68,25 +73,66 @@ class Playlist_Object_Baseclase(object):
 
 
 class Playlist_Object(Playlist_Object_Baseclase):
+    """
+    To be done for synching Plex playlists to Kodi
+    """
     kind = 'playList'
 
 
 class Playqueue_Object(Playlist_Object_Baseclase):
+    """
+    PKC object to represent PMS playQueues and Kodi playlist for queueing
+
+    playlistid = None     [int] Kodi playlist ID (0, 1, 2)
+    type = None           [str] Kodi type: 'audio', 'video', 'picture'
+    kodi_pl = None        Kodi xbmc.PlayList object
+    items = []            [list] of Playlist_Items
+    old_kodi_pl = []      [list] store old Kodi JSON result with all pl items
+    ID = None             [str] Plex playQueueID, unique Plex identifier
+    version = None        [int] Plex version of the playQueue
+    selectedItemID = None
+                          [str] Plex selectedItemID, playing element in queue
+    selectedItemOffset = None
+                          [str] Offset of the playing element in queue
+    shuffled = 0          [int] 0: not shuffled, 1: ??? 2: ???
+    repeat = 0            [int] 0: not repeated, 1: ??? 2: ???
+
+    If Companion playback is initiated by another user:
+    plex_transient_token = None
+    """
     kind = 'playQueue'
 
 
 class Playlist_Item(object):
-    ID = None               # Plex playlist/playqueue id, e.g. playQueueItemID
-    plex_id = None          # Plex unique item id, "ratingKey"
-    plex_type = None        # Plex type, e.g. 'movie', 'clip'
-    plex_UUID = None        # Plex librarySectionUUID
-    kodi_id = None          # Kodi unique kodi id (unique only within type!)
-    kodi_type = None        # Kodi type: 'movie'
-    file = None             # Path to the item's file. STRING!!
-    uri = None              # Weird Plex uri path involving plex_UUID. STRING!
-    guid = None             # Weird Plex guid
+    """
+    Object to fill our playqueues and playlists with.
+
+    ID = None          Plex playlist/playqueue id, e.g. playQueueItemID
+    plex_id = None     Plex unique item id, "ratingKey"
+    plex_type = None   Plex type, e.g. 'movie', 'clip'
+    plex_UUID = None   Plex librarySectionUUID
+    kodi_id = None     Kodi unique kodi id (unique only within type!)
+    kodi_type = None   Kodi type: 'movie'
+    file = None        Path to the item's file. STRING!!
+    uri = None         Weird Plex uri path involving plex_UUID. STRING!
+    guid = None        Weird Plex guid
+    xml = None         etree XML from PMS, 1 lvl below <MediaContainer>
+    """
+    ID = None
+    plex_id = None
+    plex_type = None
+    plex_UUID = None
+    kodi_id = None
+    kodi_type = None
+    file = None
+    uri = None
+    guid = None
+    xml = None
 
     def __repr__(self):
+        """
+        Print the playlist item, e.g. to log
+        """
         answ = "<%s: " % (self.__class__.__name__)
         for key in self.__dict__:
             if type(getattr(self, key)) in (str, unicode):
