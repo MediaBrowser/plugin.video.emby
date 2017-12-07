@@ -35,9 +35,6 @@ class Player(xbmc.Player):
         xbmc.Player.__init__(self)
         log.info("Started playback monitor.")
 
-    def GetPlayStats(self):
-        return self.playStats
-
     def onPlayBackStarted(self):
         """
         Will be called when xbmc starts playing a file.
