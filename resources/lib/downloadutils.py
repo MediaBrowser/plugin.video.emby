@@ -196,6 +196,10 @@ class DownloadUtils():
             r = self._doDownload(s, action_type, **kwargs)
 
         # THE EXCEPTIONS
+        except requests.exceptions.SSLError as e:
+            log.warn("Invalid SSL certificate for: %s" % url)
+            log.warn(e)
+
         except requests.exceptions.ConnectionError as e:
             # Connection error
             log.warn("Server unreachable at: %s" % url)
@@ -207,10 +211,6 @@ class DownloadUtils():
 
         except requests.exceptions.HTTPError as e:
             log.warn('HTTP Error at %s' % url)
-            log.warn(e)
-
-        except requests.exceptions.SSLError as e:
-            log.warn("Invalid SSL certificate for: %s" % url)
             log.warn(e)
 
         except requests.exceptions.TooManyRedirects as e:
