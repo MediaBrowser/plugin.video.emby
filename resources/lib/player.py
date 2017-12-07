@@ -27,7 +27,7 @@ class Player(xbmc.Player):
     currentFile = None
 
     def __init__(self):
-        self.doUtils = downloadutils.DownloadUtils().downloadUrl
+        self.doUtils = downloadutils.DownloadUtils
         xbmc.Player.__init__(self)
         log.info("Started playback monitor.")
 
@@ -375,7 +375,7 @@ class Player(xbmc.Player):
         # Stop transcoding
         if playMethod == "Transcode":
             log.info("Transcoding for %s terminating" % itemid)
-            self.doUtils(
+            self.doUtils().downloadUrl(
                 "{server}/video/:/transcode/universal/stop",
                 parameters={'session': window('plex_client_Id')})
 
