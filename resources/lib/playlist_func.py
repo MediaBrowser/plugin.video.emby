@@ -128,6 +128,9 @@ class Playlist_Item(object):
     guid = None
     xml = None
 
+    # Yet to be implemented: handling of a movie with several parts
+    part = 0
+
     def __repr__(self):
         """
         Print the playlist item, e.g. to log
@@ -203,6 +206,8 @@ def playlist_item_from_plex(plex_id):
 def playlist_item_from_xml(playlist, xml_video_element):
     """
     Returns a playlist element for the playqueue using the Plex xml
+
+    xml_video_element: etree xml piece 1 level underneath <MediaContainer>
     """
     item = Playlist_Item()
     api = API(xml_video_element)
@@ -219,6 +224,7 @@ def playlist_item_from_xml(playlist, xml_video_element):
             item.kodi_id, item.kodi_type = int(db_element[0]), db_element[4]
         except TypeError:
             pass
+    item.xml = xml_video_element
     log.debug('Created new playlist item from xml: %s' % item)
     return item
 
@@ -285,8 +291,9 @@ def update_playlist_from_PMS(playlist, playlist_id=None, xml=None):
 def init_Plex_playlist(playlist, plex_id=None, kodi_item=None):
     """
     Initializes the Plex side without changing the Kodi playlists
+    WILL ALSO UPDATE OUR PLAYLISTS. 
 
-    WILL ALSO UPDATE OUR PLAYLISTS
+    Returns True if successful, False otherwise
     """
     log.debug('Initializing the playlist %s on the Plex side' % playlist)
     try:
@@ -303,11 +310,14 @@ def init_Plex_playlist(playlist, plex_id=None, kodi_item=None):
                                action_type="POST",
                                parameters=params)
         get_playlist_details_from_xml(playlist, xml)
-    except KeyError:
-        log.error('Could not init Plex playlist')
-        return
+        item.xml = xml[0]
+    except (KeyError, IndexError, TypeError):
+        log.error('Could not init Plex playlist with plex_id %s and '
+                  'kodi_item %s', plex_id, kodi_item)
+        return False
     playlist.items.append(item)
     log.debug('Initialized the playlist on the Plex side: %s' % playlist)
+    return True
 
 
 def add_listitem_to_playlist(playlist, pos, listitem, kodi_id=None,
@@ -351,41 +361,56 @@ def add_item_to_playlist(playlist, pos, kodi_id=None, kodi_type=None,
     log.debug('add_item_to_playlist. Playlist before adding: %s' % playlist)
     kodi_item = {'id': kodi_id, 'type': kodi_type, 'file': file}
     if playlist.ID is None:
-        init_Plex_playlist(playlist, plex_id, kodi_item)
+        success = init_Plex_playlist(playlist, plex_id, kodi_item)
     else:
-        add_item_to_PMS_playlist(playlist, pos, plex_id, kodi_item)
-    kodi_id = playlist.items[pos].kodi_id
-    kodi_type = playlist.items[pos].kodi_type
-    file = playlist.items[pos].file
-    add_item_to_kodi_playlist(playlist, pos, kodi_id, kodi_type, file)
+        success = add_item_to_PMS_playlist(playlist, pos, plex_id, kodi_item)
+    if success is False:
+        return False
+    # Now add the item to the Kodi playlist - WITHOUT adding it to our PKC pl
+    item = playlist.items[pos]
+    params = {
+        'playlistid': playlist.playlistid,
+        'position': pos
+    }
+    if item.kodi_id is not None:
+        params['item'] = {'%sid' % item.kodi_type: int(item.kodi_id)}
+    else:
+        params['item'] = {'file': item.file}
+    reply = JSONRPC('Playlist.Insert').execute(params)
+    if reply.get('error') is not None:
+        log.error('Could not add item to playlist. Kodi reply. %s', reply)
+        return False
+    return True
 
 
 def add_item_to_PMS_playlist(playlist, pos, plex_id=None, kodi_item=None):
     """
     Adds a new item to the playlist at position pos [int] only on the Plex
     side of things (e.g. because the user changed the Kodi side)
-
     WILL ALSO UPDATE OUR PLAYLISTS
+
+    Returns True if successful, False otherwise
     """
     if plex_id:
         try:
             item = playlist_item_from_plex(plex_id)
         except KeyError:
             log.error('Could not add new item to the PMS playlist')
-            return
+            return False
     else:
         item = playlist_item_from_kodi(kodi_item)
     url = "{server}/%ss/%s?uri=%s" % (playlist.kind, playlist.ID, item.uri)
     # Will always put the new item at the end of the Plex playlist
     xml = DU().downloadUrl(url, action_type="PUT")
     try:
+        item.xml = xml[-1]
         item.ID = xml[-1].attrib['%sItemID' % playlist.kind]
     except IndexError:
         log.info('Could not get playlist children. Adding a dummy')
     except (TypeError, AttributeError, KeyError):
         log.error('Could not add item %s to playlist %s'
                   % (kodi_item, playlist))
-        return
+        return False
     # Get the guid for this item
     for plex_item in xml:
         if plex_item.attrib['%sItemID' % playlist.kind] == item.ID:
@@ -400,6 +425,7 @@ def add_item_to_PMS_playlist(playlist, pos, plex_id=None, kodi_item=None):
                            len(playlist.items) - 1,
                            pos)
     log.debug('Successfully added item on the Plex side: %s' % playlist)
+    return True
 
 
 def add_item_to_kodi_playlist(playlist, pos, kodi_id=None, kodi_type=None,
@@ -426,10 +452,16 @@ def add_item_to_kodi_playlist(playlist, pos, kodi_id=None, kodi_type=None,
     if reply.get('error') is not None:
         log.error('Could not add item to playlist. Kodi reply. %s' % reply)
         return False
-    else:
-        playlist.items.insert(pos, playlist_item_from_kodi(
-            {'id': kodi_id, 'type': kodi_type, 'file': file}))
-        return True
+    item = playlist_item_from_kodi(
+        {'id': kodi_id, 'type': kodi_type, 'file': file}, playlist)
+    if item.plex_id is not None:
+        xml = GetPlexMetadata(item.plex_id)
+        try:
+            item.xml = xml[-1]
+        except (TypeError, IndexError):
+            log.error('Could not get metadata for playlist item %s', item)
+    playlist.items.insert(pos, item)
+    return True
 
 
 def move_playlist_item(playlist, before_pos, after_pos):
@@ -563,8 +595,7 @@ def add_to_Kodi_playlist(playlist, xml_video_element):
         log.error('Could not add item %s to Kodi playlist. Error: %s'
                   % (xml_video_element, reply))
         return None
-    else:
-        return item
+    return item
 
 
 def add_listitem_to_Kodi_playlist(playlist, pos, listitem, file,
