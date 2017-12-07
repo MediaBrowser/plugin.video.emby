@@ -22,15 +22,10 @@ log = logging.getLogger("PLEX."+__name__)
 
 class Player(xbmc.Player):
 
-    # Borg - multiple instances, shared state
-    _shared_state = {}
-
-    played_info = {}
     playStats = {}
     currentFile = None
 
     def __init__(self):
-        self.__dict__ = self._shared_state
         self.doUtils = downloadutils.DownloadUtils().downloadUrl
         xbmc.Player.__init__(self)
         log.info("Started playback monitor.")
