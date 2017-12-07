@@ -22,7 +22,8 @@ log = logging.getLogger("PLEX."+__name__)
 
 class Player(xbmc.Player):
 
-    playStats = {}
+    played_info = state.PLAYED_INFO
+    playStats = state.PLAYER_STATES
     currentFile = None
 
     def __init__(self):
