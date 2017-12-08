@@ -195,49 +195,49 @@ def input_up():
     """
     Tells Kodi the user pushed up
     """
-    jsonrpc("Input.Up").execute()
+    return jsonrpc("Input.Up").execute()
 
 
 def input_down():
     """
     Tells Kodi the user pushed down
     """
-    jsonrpc("Input.Down").execute()
+    return jsonrpc("Input.Down").execute()
 
 
 def input_left():
     """
     Tells Kodi the user pushed left
     """
-    jsonrpc("Input.Left").execute()
+    return jsonrpc("Input.Left").execute()
 
 
 def input_right():
     """
     Tells Kodi the user pushed left
     """
-    jsonrpc("Input.Right").execute()
+    return jsonrpc("Input.Right").execute()
 
 
 def input_select():
     """
     Tells Kodi the user pushed select
     """
-    jsonrpc("Input.Select").execute()
+    return jsonrpc("Input.Select").execute()
 
 
 def input_home():
     """
     Tells Kodi the user pushed home
     """
-    jsonrpc("Input.Home").execute()
+    return jsonrpc("Input.Home").execute()
 
 
 def input_back():
     """
     Tells Kodi the user pushed back
     """
-    jsonrpc("Input.Back").execute()
+    return jsonrpc("Input.Back").execute()
 
 
 def playlist_get_items(playlistid, properties):
