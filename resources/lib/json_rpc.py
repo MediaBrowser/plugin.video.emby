@@ -272,7 +272,8 @@ def playlist_remove(playlistid, position):
 
 def get_setting(setting):
     """
-    Returns the Kodi setting, a [str], or None if not possible
+    Returns the Kodi setting (GetSettingValue), a [str], or None if not
+    possible
     """
     try:
         ret = jsonrpc('Settings.GetSettingValue').execute(

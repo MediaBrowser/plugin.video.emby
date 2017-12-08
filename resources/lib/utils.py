@@ -330,19 +330,6 @@ def create_actor_db_index():
     conn.close()
 
 
-def getScreensaver():
-    # Get the current screensaver value
-    params = {'setting': "screensaver.mode"}
-    return jsonrpc('Settings.getSettingValue').execute(params)['result']['value']
-
-
-def setScreensaver(value):
-    # Toggle the screensaver
-    params = {'setting': "screensaver.mode", 'value': value}
-    log.debug('Toggling screensaver to "%s": %s'
-              % (value, jsonrpc('Settings.setSettingValue').execute(params)))
-
-
 def reset():
     # Are you sure you want to reset your local Kodi database?
     if not dialog('yesno',
