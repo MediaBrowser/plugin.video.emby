@@ -180,6 +180,23 @@ def dialog(typus, *args, **kwargs):
     return types[typus](*args, **kwargs)
 
 
+def milliseconds_to_kodi_time(milliseconds):
+    """
+    Converts time in milliseconds to the time dict used by the Kodi JSON RPC
+    Pass in the time in milliseconds as an int
+    """
+    seconds = milliseconds / 1000
+    minutes = seconds / 60
+    hours = minutes / 60
+    seconds = seconds % 60
+    minutes = minutes % 60
+    milliseconds = milliseconds % 1000
+    return {'hours': hours,
+            'minutes': minutes,
+            'seconds': seconds,
+            'milliseconds': milliseconds}
+
+
 def tryEncode(uniString, encoding='utf-8'):
     """
     Will try to encode uniString (in unicode) to encoding. This possibly
