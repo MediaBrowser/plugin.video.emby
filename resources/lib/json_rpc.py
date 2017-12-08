@@ -193,49 +193,49 @@ def skipprevious():
 
 def input_up():
     """
-    Tells Kodi the users pushed up
+    Tells Kodi the user pushed up
     """
     jsonrpc("Input.Up").execute()
 
 
 def input_down():
     """
-    Tells Kodi the users pushed down
+    Tells Kodi the user pushed down
     """
     jsonrpc("Input.Down").execute()
 
 
 def input_left():
     """
-    Tells Kodi the users pushed left
+    Tells Kodi the user pushed left
     """
     jsonrpc("Input.Left").execute()
 
 
 def input_right():
     """
-    Tells Kodi the users pushed left
+    Tells Kodi the user pushed left
     """
     jsonrpc("Input.Right").execute()
 
 
 def input_select():
     """
-    Tells Kodi the users pushed select
+    Tells Kodi the user pushed select
     """
     jsonrpc("Input.Select").execute()
 
 
 def input_home():
     """
-    Tells Kodi the users pushed home
+    Tells Kodi the user pushed home
     """
     jsonrpc("Input.Home").execute()
 
 
 def input_back():
     """
-    Tells Kodi the users pushed back
+    Tells Kodi the user pushed back
     """
     jsonrpc("Input.Back").execute()
 
