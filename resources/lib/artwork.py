@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 
 ###############################################################################
-import logging
-from json import dumps, loads
+from logging import getLogger
 import requests
 from shutil import rmtree
 from urllib import quote_plus, unquote
 from threading import Thread
 from Queue import Queue, Empty
+import json_rpc as js
 
-from xbmc import executeJSONRPC, sleep, translatePath
+from xbmc import sleep, translatePath
 from xbmcvfs import exists
 
 from utils import window, settings, language as lang, kodiSQL, tryEncode, \
@@ -20,7 +20,7 @@ import requests.packages.urllib3
 requests.packages.urllib3.disable_warnings()
 ###############################################################################
 
-log = logging.getLogger("PLEX."+__name__)
+LOG = getLogger("PLEX." + __name__)
 
 ###############################################################################
 
@@ -34,87 +34,16 @@ def setKodiWebServerDetails():
     xbmc_port = None
     xbmc_username = None
     xbmc_password = None
-    web_query = {
-        "jsonrpc": "2.0",
-        "id": 1,
-        "method": "Settings.GetSettingValue",
-        "params": {
-            "setting": "services.webserver"
-        }
-    }
-    result = executeJSONRPC(dumps(web_query))
-    result = loads(result)
-    try:
-        xbmc_webserver_enabled = result['result']['value']
-    except (KeyError, TypeError):
-        xbmc_webserver_enabled = False
-    if not xbmc_webserver_enabled:
+    if js.get_setting('services.webserver') in (None, False):
         # Enable the webserver, it is disabled
-        web_port = {
-            "jsonrpc": "2.0",
-            "id": 1,
-            "method": "Settings.SetSettingValue",
-            "params": {
-                "setting": "services.webserverport",
-                "value": 8080
-            }
-        }
-        result = executeJSONRPC(dumps(web_port))
         xbmc_port = 8080
-        web_user = {
-            "jsonrpc": "2.0",
-            "id": 1,
-            "method": "Settings.SetSettingValue",
-            "params": {
-                "setting": "services.webserver",
-                "value": True
-            }
-        }
-        result = executeJSONRPC(dumps(web_user))
         xbmc_username = "kodi"
+        js.set_setting('services.webserverport', xbmc_port)
+        js.set_setting('services.webserver', True)
     # Webserver already enabled
-    web_port = {
-        "jsonrpc": "2.0",
-        "id": 1,
-        "method": "Settings.GetSettingValue",
-        "params": {
-            "setting": "services.webserverport"
-        }
-    }
-    result = executeJSONRPC(dumps(web_port))
-    result = loads(result)
-    try:
-        xbmc_port = result['result']['value']
-    except (TypeError, KeyError):
-        pass
-    web_user = {
-        "jsonrpc": "2.0",
-        "id": 1,
-        "method": "Settings.GetSettingValue",
-        "params": {
-            "setting": "services.webserverusername"
-        }
-    }
-    result = executeJSONRPC(dumps(web_user))
-    result = loads(result)
-    try:
-        xbmc_username = result['result']['value']
-    except (TypeError, KeyError):
-        pass
-    web_pass = {
-        "jsonrpc": "2.0",
-        "id": 1,
-        "method": "Settings.GetSettingValue",
-        "params": {
-            "setting": "services.webserverpassword"
-        }
-    }
-    result = executeJSONRPC(dumps(web_pass))
-    result = loads(result)
-    try:
-        xbmc_password = result['result']['value']
-    except TypeError:
-        pass
+    xbmc_port = js.get_setting('services.webserverport')
+    xbmc_username = js.get_setting('services.webserverusername')
+    xbmc_password = js.get_setting('services.webserverpassword')
     return (xbmc_port, xbmc_username, xbmc_password)
 
 
@@ -152,7 +81,7 @@ class Image_Cache_Thread(Thread):
                 # Set in service.py
                 if thread_stopped():
                     # Abort was requested while waiting. We should exit
-                    log.info("---===### Stopped Image_Cache_Thread ###===---")
+                    LOG.info("---===### Stopped Image_Cache_Thread ###===---")
                     return
                 sleep(1000)
             try:
@@ -179,10 +108,10 @@ class Image_Cache_Thread(Thread):
                     # Server thinks its a DOS attack, ('error 10053')
                     # Wait before trying again
                     if sleeptime > 5:
-                        log.error('Repeatedly got ConnectionError for url %s'
+                        LOG.error('Repeatedly got ConnectionError for url %s'
                                   % double_urldecode(url))
                         break
-                    log.debug('Were trying too hard to download art, server '
+                    LOG.debug('Were trying too hard to download art, server '
                               'over-loaded. Sleep %s seconds before trying '
                               'again to download %s'
                               % (2**sleeptime, double_urldecode(url)))
@@ -190,18 +119,18 @@ class Image_Cache_Thread(Thread):
                     sleeptime += 1
                     continue
                 except Exception as e:
-                    log.error('Unknown exception for url %s: %s'
+                    LOG.error('Unknown exception for url %s: %s'
                               % (double_urldecode(url), e))
                     import traceback
-                    log.error("Traceback:\n%s" % traceback.format_exc())
+                    LOG.error("Traceback:\n%s" % traceback.format_exc())
                     break
                 # We did not even get a timeout
                 break
             queue.task_done()
-            log.debug('Cached art: %s' % double_urldecode(url))
+            LOG.debug('Cached art: %s' % double_urldecode(url))
             # Sleep for a bit to reduce CPU strain
             sleep(sleep_between)
-        log.info("---===### Stopped Image_Cache_Thread ###===---")
+        LOG.info("---===### Stopped Image_Cache_Thread ###===---")
 
 
 class Artwork():
@@ -217,11 +146,11 @@ class Artwork():
         if not dialog('yesno', "Image Texture Cache", lang(39250)):
             return
 
-        log.info("Doing Image Cache Sync")
+        LOG.info("Doing Image Cache Sync")
 
         # ask to rest all existing or not
         if dialog('yesno', "Image Texture Cache", lang(39251)):
-            log.info("Resetting all cache data first")
+            LOG.info("Resetting all cache data first")
             # Remove all existing textures first
             path = tryDecode(translatePath("special://thumbnails/"))
             if exists_dir(path):
@@ -248,7 +177,7 @@ class Artwork():
         cursor.execute(query, ('actor', ))
         result = cursor.fetchall()
         total = len(result)
-        log.info("Image cache sync about to process %s video images" % total)
+        LOG.info("Image cache sync about to process %s video images" % total)
         connection.close()
 
         for url in result:
@@ -259,7 +188,7 @@ class Artwork():
         cursor.execute("SELECT url FROM art")
         result = cursor.fetchall()
         total = len(result)
-        log.info("Image cache sync about to process %s music images" % total)
+        LOG.info("Image cache sync about to process %s music images" % total)
         connection.close()
         for url in result:
             self.cacheTexture(url[0])
@@ -364,7 +293,7 @@ class Artwork():
             url = cursor.fetchone()[0]
         except TypeError:
             # Add the artwork
-            log.debug("Adding Art Link for kodiId: %s (%s)"
+            LOG.debug("Adding Art Link for kodiId: %s (%s)"
                       % (kodiId, imageUrl))
             query = (
                 '''
@@ -382,7 +311,7 @@ class Artwork():
                     imageType in ("fanart", "poster")):
                 # Delete current entry before updating with the new one
                 self.deleteCachedArtwork(url)
-            log.debug("Updating Art url for %s kodiId %s %s -> (%s)"
+            LOG.debug("Updating Art url for %s kodiId %s %s -> (%s)"
                       % (imageType, kodiId, url, imageUrl))
             query = ' '.join((
                 "UPDATE art",
@@ -418,11 +347,11 @@ class Artwork():
                            (url,))
             cachedurl = cursor.fetchone()[0]
         except TypeError:
-            log.info("Could not find cached url.")
+            LOG.info("Could not find cached url.")
         else:
             # Delete thumbnail as well as the entry
             path = translatePath("special://thumbnails/%s" % cachedurl)
-            log.debug("Deleting cached thumbnail: %s" % path)
+            LOG.debug("Deleting cached thumbnail: %s" % path)
             if exists(path):
                 rmtree(tryDecode(path), ignore_errors=True)
             cursor.execute("DELETE FROM texture WHERE url = ?", (url,))

@@ -18,7 +18,7 @@ from PlexFunctions import init_plex_playqueue
 from PKC_listitem import PKC_ListItem as ListItem, convert_PKC_to_listitem
 from playlist_func import add_item_to_kodi_playlist, \
     get_playlist_details_from_xml, add_listitem_to_Kodi_playlist, \
-    add_listitem_to_playlist, remove_from_Kodi_playlist
+    add_listitem_to_playlist, remove_from_kodi_playlist
 from pickler import Playback_Successful
 from plexdb_functions import Get_Plex_DB
 import variables as v
@@ -155,7 +155,7 @@ class PlaybackUtils():
                     playurl,
                     xml[0])
                 # Remove the original item from playlist
-                remove_from_Kodi_playlist(
+                remove_from_kodi_playlist(
                     playqueue,
                     startPos+1)
                 # Readd the original item to playlist - via jsonrpc so we have

@@ -333,14 +333,14 @@ def create_actor_db_index():
 def getScreensaver():
     # Get the current screensaver value
     params = {'setting': "screensaver.mode"}
-    return JSONRPC('Settings.getSettingValue').execute(params)['result']['value']
+    return jsonrpc('Settings.getSettingValue').execute(params)['result']['value']
 
 
 def setScreensaver(value):
     # Toggle the screensaver
     params = {'setting': "screensaver.mode", 'value': value}
     log.debug('Toggling screensaver to "%s": %s'
-              % (value, JSONRPC('Settings.setSettingValue').execute(params)))
+              % (value, jsonrpc('Settings.setSettingValue').execute(params)))
 
 
 def reset():
@@ -1141,7 +1141,7 @@ def changePlayState(itemType, kodiId, playCount, lastplayed):
     log.debug("JSON result was: %s" % result)
 
 
-class JSONRPC(object):
+class jsonrpc(object):
     id_ = 1
     jsonrpc = "2.0"
 

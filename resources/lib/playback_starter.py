@@ -12,7 +12,7 @@ from playbackutils import PlaybackUtils
 from utils import window
 from PlexFunctions import GetPlexMetadata
 from PlexAPI import API
-from playqueue import lock
+from playqueue import LOCK
 import variables as v
 from downloadutils import DownloadUtils
 from PKC_listitem import convert_PKC_to_listitem
@@ -62,7 +62,7 @@ class Playback_Starter(Thread):
             # Video and Music
             playqueue = self.playqueue.get_playqueue_from_type(
                 v.KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[api.getType()])
-            with lock:
+            with LOCK:
                 result = PlaybackUtils(xml, playqueue).play(
                     plex_id,
                     kodi_id,
@@ -113,7 +113,7 @@ class Playback_Starter(Thread):
                     log.info('Couldnt find item %s in Kodi db'
                              % api.getRatingKey())
         playqueue = self.playqueue.get_playqueue_from_type(typus)
-        with lock:
+        with LOCK:
             result = PlaybackUtils(xml, playqueue).play(
                 plex_id,
                 kodi_id=kodi_id,

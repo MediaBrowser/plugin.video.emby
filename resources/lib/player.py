@@ -10,12 +10,13 @@ from utils import window, DateToKodi, getUnixTimestamp, tryDecode, tryEncode
 import downloadutils
 import plexdb_functions as plexdb
 import kodidb_functions as kodidb
+import json_rpc as js
 import variables as v
 import state
 
 ###############################################################################
 
-log = logging.getLogger("PLEX."+__name__)
+LOG = logging.getLogger("PLEX." + __name__)
 
 ###############################################################################
 
@@ -29,7 +30,7 @@ class Player(xbmc.Player):
     def __init__(self):
         self.doUtils = downloadutils.DownloadUtils
         xbmc.Player.__init__(self)
-        log.info("Started playback monitor.")
+        LOG.info("Started playback monitor.")
 
     def onPlayBackStarted(self):
         """
@@ -56,7 +57,7 @@ class Player(xbmc.Player):
                 else:
                     count += 1
         if not currentFile:
-            log.warn('Error getting currently playing file; abort reporting')
+            LOG.warn('Error getting currently playing file; abort reporting')
             return
 
         # Save currentFile for cleanup later and for references
@@ -69,11 +70,11 @@ class Player(xbmc.Player):
             xbmc.sleep(200)
             itemId = window("plex_%s.itemid" % tryEncode(currentFile))
             if count == 5:
-                log.warn("Could not find itemId, cancelling playback report!")
+                LOG.warn("Could not find itemId, cancelling playback report!")
                 return
             count += 1
 
-        log.info("ONPLAYBACK_STARTED: %s itemid: %s" % (currentFile, itemId))
+        LOG.info("ONPLAYBACK_STARTED: %s itemid: %s" % (currentFile, itemId))
 
         plexitem = "plex_%s" % tryEncode(currentFile)
         runtime = window("%s.runtime" % plexitem)
@@ -86,40 +87,26 @@ class Player(xbmc.Player):
             playcount = 0
         window('plex_skipWatched%s' % itemId, value="true")
 
-        log.debug("Playing itemtype is: %s" % itemType)
+        LOG.debug("Playing itemtype is: %s" % itemType)
 
         customseek = window('plex_customplaylist.seektime')
         if customseek:
             # Start at, when using custom playlist (play to Kodi from
             # webclient)
-            log.info("Seeking to: %s" % customseek)
+            LOG.info("Seeking to: %s" % customseek)
             try:
                 self.seekTime(int(customseek))
             except:
-                log.error('Could not seek!')
+                LOG.error('Could not seek!')
             window('plex_customplaylist.seektime', clear=True)
 
         try:
             seekTime = self.getTime()
         except RuntimeError:
-            log.error('Could not get current seektime from xbmc player')
+            LOG.error('Could not get current seektime from xbmc player')
             seekTime = 0
-
-        # Get playback volume
-        volume_query = {
-            "jsonrpc": "2.0",
-            "id": 1,
-            "method": "Application.GetProperties",
-            "params": {
-                "properties": ["volume", "muted"]
-            }
-        }
-        result = xbmc.executeJSONRPC(json.dumps(volume_query))
-        result = json.loads(result)
-        result = result.get('result')
-
-        volume = result.get('volume')
-        muted = result.get('muted')
+        volume = js.get_volume()
+        muted = js.get_muted()
 
         # Postdata structure to send to plex server
         url = "{server}/:/timeline?"
@@ -144,34 +131,12 @@ class Player(xbmc.Player):
                                                      % tryEncode(currentFile))
         else:
             # Get the current kodi audio and subtitles and convert to plex equivalent
-            tracks_query = {
-                "jsonrpc": "2.0",
-                "id": 1,
-                "method": "Player.GetProperties",
-                "params": {
-
-                    "playerid": 1,
-                    "properties": ["currentsubtitle","currentaudiostream","subtitleenabled"]
-                }
-            }
-            result = xbmc.executeJSONRPC(json.dumps(tracks_query))
-            result = json.loads(result)
-            result = result.get('result')
-
-            try: # Audio tracks
-                indexAudio = result['currentaudiostream']['index']
-            except (KeyError, TypeError):
-                indexAudio = 0
-            
-            try: # Subtitles tracks
-                indexSubs = result['currentsubtitle']['index']
-            except (KeyError, TypeError):
+            indexAudio = js.current_audiostream(1).get('index', 0)
+            subsEnabled = js.subtitle_enabled(1)
+            if subsEnabled:
+                indexSubs = js.current_subtitle(1).get('index', 0)
+            else:
                 indexSubs = 0
-
-            try: # If subtitles are enabled
-                subsEnabled = result['subtitleenabled']
-            except (KeyError, TypeError):
-                subsEnabled = ""
 
             # Postdata for the audio
             postdata['AudioStreamIndex'] = indexAudio + 1
@@ -185,7 +150,7 @@ class Player(xbmc.Player):
 
                 if mapping: # Set in playbackutils.py
                     
-                    log.debug("Mapping for external subtitles index: %s"
+                    LOG.debug("Mapping for external subtitles index: %s"
                               % mapping)
                     externalIndex = json.loads(mapping)
 
@@ -213,9 +178,9 @@ class Player(xbmc.Player):
         except ValueError:
             try:
                 runtime = self.getTotalTime()
-                log.error("Runtime is missing, Kodi runtime: %s" % runtime)
+                LOG.error("Runtime is missing, Kodi runtime: %s" % runtime)
             except:
-                log.error('Could not get kodi runtime, setting to zero')
+                LOG.error('Could not get kodi runtime, setting to zero')
                 runtime = 0
 
         with plexdb.Get_Plex_DB() as plex_db:
@@ -223,7 +188,7 @@ class Player(xbmc.Player):
         try:
             fileid = plex_dbitem[1]
         except TypeError:
-            log.info("Could not find fileid in plex db.")
+            LOG.info("Could not find fileid in plex db.")
             fileid = None
         # Save data map for updates and position calls
         data = {
@@ -242,7 +207,7 @@ class Player(xbmc.Player):
         }
 
         self.played_info[currentFile] = data
-        log.info("ADDING_FILE: %s" % data)
+        LOG.info("ADDING_FILE: %s" % data)
 
         # log some playback stats
         '''if(itemType != None):
@@ -262,7 +227,7 @@ class Player(xbmc.Player):
     def onPlayBackPaused(self):
 
         currentFile = self.currentFile
-        log.info("PLAYBACK_PAUSED: %s" % currentFile)
+        LOG.info("PLAYBACK_PAUSED: %s" % currentFile)
 
         if self.played_info.get(currentFile):
             self.played_info[currentFile]['paused'] = True
@@ -270,7 +235,7 @@ class Player(xbmc.Player):
     def onPlayBackResumed(self):
 
         currentFile = self.currentFile
-        log.info("PLAYBACK_RESUMED: %s" % currentFile)
+        LOG.info("PLAYBACK_RESUMED: %s" % currentFile)
 
         if self.played_info.get(currentFile):
             self.played_info[currentFile]['paused'] = False
@@ -278,7 +243,7 @@ class Player(xbmc.Player):
     def onPlayBackSeek(self, time, seekOffset):
         # Make position when seeking a bit more accurate
         currentFile = self.currentFile
-        log.info("PLAYBACK_SEEK: %s" % currentFile)
+        LOG.info("PLAYBACK_SEEK: %s" % currentFile)
 
         if self.played_info.get(currentFile):
             try:
@@ -290,7 +255,7 @@ class Player(xbmc.Player):
 
     def onPlayBackStopped(self):
         # Will be called when user stops xbmc playing a file
-        log.info("ONPLAYBACK_STOPPED")
+        LOG.info("ONPLAYBACK_STOPPED")
 
         self.stopAll()
 
@@ -303,24 +268,24 @@ class Player(xbmc.Player):
         # We might have saved a transient token from a user flinging media via
         # Companion (if we could not use the playqueue to store the token)
         state.PLEX_TRANSIENT_TOKEN = None
-        log.debug("Cleared playlist properties.")
+        LOG.debug("Cleared playlist properties.")
 
     def onPlayBackEnded(self):
         # Will be called when xbmc stops playing a file, because the file ended
-        log.info("ONPLAYBACK_ENDED")
+        LOG.info("ONPLAYBACK_ENDED")
         self.onPlayBackStopped()
 
     def stopAll(self):
         if not self.played_info:
             return
-        log.info("Played_information: %s" % self.played_info)
+        LOG.info("Played_information: %s" % self.played_info)
         # Process each items
         for item in self.played_info:
             data = self.played_info.get(item)
             if not data:
                 continue
-            log.debug("Item path: %s" % item)
-            log.debug("Item data: %s" % data)
+            LOG.debug("Item path: %s" % item)
+            LOG.debug("Item data: %s" % data)
 
             runtime = data['runtime']
             currentPosition = data['currentPosition']
@@ -340,7 +305,7 @@ class Player(xbmc.Player):
             except ZeroDivisionError:
                 # Runtime is 0.
                 percentComplete = 0
-            log.info("Percent complete: %s Mark played at: %s"
+            LOG.info("Percent complete: %s Mark played at: %s"
                      % (percentComplete, v.MARK_PLAYED_AT))
             if percentComplete >= v.MARK_PLAYED_AT:
                 # Tell Kodi that we've finished watching (Plex knows)
@@ -374,7 +339,7 @@ class Player(xbmc.Player):
 
         # Stop transcoding
         if playMethod == "Transcode":
-            log.info("Transcoding for %s terminating" % itemid)
+            LOG.info("Transcoding for %s terminating" % itemid)
             self.doUtils().downloadUrl(
                 "{server}/video/:/transcode/universal/stop",
                 parameters={'session': window('plex_client_Id')})
