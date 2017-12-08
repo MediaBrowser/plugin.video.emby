@@ -3,7 +3,6 @@
 ###############################################################################
 import logging
 from cProfile import Profile
-from json import loads, dumps
 from pstats import Stats
 from sqlite3 import connect, OperationalError
 from datetime import datetime, timedelta
@@ -1083,70 +1082,38 @@ class Lock_Function:
 # UNUSED METHODS
 
 
-def changePlayState(itemType, kodiId, playCount, lastplayed):
-    """
-    YET UNUSED
+# def changePlayState(itemType, kodiId, playCount, lastplayed):
+#     """
+#     YET UNUSED
 
-    kodiId: int or str
-    playCount: int or str
-    lastplayed: str or int unix timestamp
-    """
-    lastplayed = DateToKodi(lastplayed)
+#     kodiId: int or str
+#     playCount: int or str
+#     lastplayed: str or int unix timestamp
+#     """
+#     lastplayed = DateToKodi(lastplayed)
 
-    kodiId = int(kodiId)
-    playCount = int(playCount)
-    method = {
-        'movie': ' VideoLibrary.SetMovieDetails',
-        'episode': 'VideoLibrary.SetEpisodeDetails',
-        'musicvideo': ' VideoLibrary.SetMusicVideoDetails',  # TODO
-        'show': 'VideoLibrary.SetTVShowDetails',  # TODO
-        '': 'AudioLibrary.SetAlbumDetails',  # TODO
-        '': 'AudioLibrary.SetArtistDetails',  # TODO
-        'track': 'AudioLibrary.SetSongDetails'
-    }
-    params = {
-        'movie': {
-            'movieid': kodiId,
-            'playcount': playCount,
-            'lastplayed': lastplayed
-        },
-        'episode': {
-            'episodeid': kodiId,
-            'playcount': playCount,
-            'lastplayed': lastplayed
-        }
-    }
-    query = {
-        "jsonrpc": "2.0",
-        "id": 1,
-    }
-    query['method'] = method[itemType]
-    query['params'] = params[itemType]
-    result = xbmc.executeJSONRPC(dumps(query))
-    result = loads(result)
-    result = result.get('result')
-    log.debug("JSON result was: %s" % result)
-
-
-class jsonrpc(object):
-    id_ = 1
-    jsonrpc = "2.0"
-
-    def __init__(self, method, **kwargs):
-        self.method = method
-        for arg in kwargs:  # id_(int), jsonrpc(str)
-            self.arg = arg
-
-    def _query(self):
-        query = {
-            'jsonrpc': self.jsonrpc,
-            'id': self.id_,
-            'method': self.method,
-        }
-        if self.params is not None:
-            query['params'] = self.params
-        return dumps(query)
-
-    def execute(self, params=None):
-        self.params = params
-        return loads(xbmc.executeJSONRPC(self._query()))
+#     kodiId = int(kodiId)
+#     playCount = int(playCount)
+#     method = {
+#         'movie': ' VideoLibrary.SetMovieDetails',
+#         'episode': 'VideoLibrary.SetEpisodeDetails',
+#         'musicvideo': ' VideoLibrary.SetMusicVideoDetails',  # TODO
+#         'show': 'VideoLibrary.SetTVShowDetails',  # TODO
+#         '': 'AudioLibrary.SetAlbumDetails',  # TODO
+#         '': 'AudioLibrary.SetArtistDetails',  # TODO
+#         'track': 'AudioLibrary.SetSongDetails'
+#     }
+#     params = {
+#         'movie': {
+#             'movieid': kodiId,
+#             'playcount': playCount,
+#             'lastplayed': lastplayed
+#         },
+#         'episode': {
+#             'episodeid': kodiId,
+#             'playcount': playCount,
+#             'lastplayed': lastplayed
+#         }
+#     }
+#     result = jsonrpc(method[itemType]).execute(params[itemType])
+#     log.debug("JSON result was: %s" % result)

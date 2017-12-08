@@ -2,7 +2,42 @@
 Collection of functions using the Kodi JSON RPC interface.
 See http://kodi.wiki/view/JSON-RPC_API
 """
-from utils import jsonrpc, milliseconds_to_kodi_time
+from json import loads, dumps
+from utils import milliseconds_to_kodi_time
+from xbmc import executeJSONRPC
+
+
+class jsonrpc(object):
+    """
+    Used for all Kodi JSON RPC calls.
+    """
+    id_ = 1
+    jsonrpc = "2.0"
+
+    def __init__(self, method, **kwargs):
+        """
+        Initialize with the Kodi method
+        """
+        self.method = method
+        for arg in kwargs:  # id_(int), jsonrpc(str)
+            self.arg = arg
+
+    def _query(self):
+        query = {
+            'jsonrpc': self.jsonrpc,
+            'id': self.id_,
+            'method': self.method,
+        }
+        if self.params is not None:
+            query['params'] = self.params
+        return dumps(query)
+
+    def execute(self, params=None):
+        """
+        Pass any params as a dict. Will return Kodi's answer as a dict.
+        """
+        self.params = params
+        return loads(executeJSONRPC(self._query()))
 
 
 def get_players():
