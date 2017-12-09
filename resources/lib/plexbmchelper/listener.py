@@ -148,10 +148,12 @@ class MyHandler(BaseHTTPRequestHandler):
                         subMgr.msg(js.get_players())),
                     {
                         'X-Plex-Client-Identifier': v.PKC_MACHINE_IDENTIFIER,
+                        'X-Plex-Protocol': '1.0',
+                        'Access-Control-Allow-Origin': '*',
+                        'Access-Control-Max-Age': '1209600',
                         'Access-Control-Expose-Headers':
                             'X-Plex-Client-Identifier',
-                        'Access-Control-Allow-Origin': '*',
-                        'Content-Type': 'text/xml'
+                        'Content-Type': 'text/xml;charset=utf-8'
                     })
             elif "/unsubscribe" in request_path:
                 self.response(v.COMPANION_OK_MESSAGE,

@@ -18,6 +18,14 @@ log = logging.getLogger("PLEX."+__name__)
 
 ###############################################################################
 
+# What is Companion controllable?
+CONTROLLABLE = {
+    v.PLEX_TYPE_PHOTO: 'skipPrevious,skipNext,stop',
+    v.PLEX_TYPE_AUDIO: 'playPause,stop,volume,shuffle,repeat,seekTo,' \
+        'skipPrevious,skipNext,stepBack,stepForward',
+    v.PLEX_TYPE_VIDEO: 'playPause,stop,volume,audioStream,subtitleStream,' \
+        'seekTo,skipPrevious,skipNext,stepBack,stepForward'
+}
 
 class SubscriptionManager:
     def __init__(self, RequestMgr, player, mgr):
@@ -56,7 +64,7 @@ class SubscriptionManager:
         log.debug('players: %s', players)
         msg = v.XML_HEADER
         msg += '<MediaContainer size="3" commandID="INSERTCOMMANDID"'
-        msg += ' machineIdentifier="%s" location="fullScreenVideo">' % window('plex_client_Id')
+        msg += ' machineIdentifier="%s">' % v.PKC_MACHINE_IDENTIFIER
         msg += self.getTimelineXML(players.get(v.KODI_TYPE_AUDIO),
                                    v.PLEX_TYPE_AUDIO)
         msg += self.getTimelineXML(players.get(v.KODI_TYPE_PHOTO),
@@ -77,12 +85,13 @@ class SubscriptionManager:
             self.playerprops[playerid] = info
             status = info['state']
             time = info['time']
-        ret = ('\n  <Timeline state="%s" time="%s" type="%s"'
-               % (status, time, ptype))
+        ret = ('\n  <Timeline state="%s" controllable="%s" type="%s" '
+               'itemType="%s"' % (status, CONTROLLABLE[ptype], ptype, ptype))
         if player is None:
             ret += ' />'
             return ret
 
+        ret += ' time="%s"' % time
         pbmc_server = window('pms_server')
         if pbmc_server:
             (self.protocol, self.server, self.port) = \
@@ -114,7 +123,6 @@ class SubscriptionManager:
             ret += ' containerKey="%s"' % self.containerKey
 
         ret += ' duration="%s"' % info['duration']
-        ret += ' controllable="%s"' % self.controllable()
         ret += ' machineIdentifier="%s"' % serv.get('uuid', "")
         ret += ' protocol="%s"' % serv.get('protocol', "http")
         ret += ' address="%s"' % serv.get('server', self.server)
@@ -200,9 +208,6 @@ class SubscriptionManager:
         self.doUtils(url, parameters=params, headerOptions=xargs)
         log.debug("Sent server notification with parameters: %s to %s"
                   % (params, url))
-
-    def controllable(self):
-        return "volume,shuffle,repeat,audioStream,videoStream,subtitleStream,skipPrevious,skipNext,seekTo,stepBack,stepForward,stop,playPause"
 
     def addSubscriber(self, protocol, host, port, uuid, commandID):
         sub = Subscriber(protocol,
