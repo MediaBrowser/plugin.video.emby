@@ -62,8 +62,8 @@ def set_webserver():
         # Enable the webserver, it is disabled
         set_setting('services.webserver', True)
         # Set standard port and username
-        set_setting('services.webserverport', 8080)
-        set_setting('services.webserverusername', 'kodi')
+        # set_setting('services.webserverport', 8080)
+        # set_setting('services.webserverusername', 'kodi')
     # Webserver already enabled
     state.WEBSERVER_PORT = get_setting('services.webserverport')
     state.WEBSERVER_USERNAME = get_setting('services.webserverusername')
