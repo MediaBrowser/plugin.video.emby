@@ -8,8 +8,8 @@ from urllib import urlencode
 from xbmc import sleep, executebuiltin
 
 from utils import settings, thread_methods
-from plexbmchelper import listener, plexgdm, subscribers, functions, \
-    httppersist, plexsettings
+from plexbmchelper import listener, plexgdm, subscribers, httppersist, \
+    plexsettings
 from PlexFunctions import ParseContainerKey, GetPlexMetadata
 from PlexAPI import API
 from playlist_func import get_pms_playqueue, get_plextype_from_xml
@@ -196,9 +196,8 @@ class PlexCompanion(Thread):
 
         # Start up instances
         requestMgr = httppersist.RequestMgr()
-        jsonClass = functions.jsonClass(requestMgr, self.settings)
         subscriptionManager = subscribers.SubscriptionManager(
-            jsonClass, requestMgr, self.player, self.mgr)
+            requestMgr, self.player, self.mgr)
 
         queue = Queue.Queue(maxsize=100)
         self.queue = queue
@@ -211,7 +210,6 @@ class PlexCompanion(Thread):
                     httpd = listener.ThreadedHTTPServer(
                         client,
                         subscriptionManager,
-                        jsonClass,
                         self.settings,
                         queue,
                         ('', self.settings['myport']),

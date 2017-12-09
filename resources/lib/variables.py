@@ -361,3 +361,8 @@ SORT_METHODS_ALBUMS = (
     'SORT_METHOD_ARTIST',
     'SORT_METHOD_ALBUM',
 )
+
+
+XML_HEADER = '<?xml version="1.0" encoding="UTF-8"?>\n'
+
+COMPANION_OK_MESSAGE = XML_HEADER + '<Response code="200" status="OK" />'

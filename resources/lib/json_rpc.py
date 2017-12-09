@@ -3,7 +3,7 @@ Collection of functions using the Kodi JSON RPC interface.
 See http://kodi.wiki/view/JSON-RPC_API
 """
 from json import loads, dumps
-from utils import milliseconds_to_kodi_time
+from utils import millis_to_kodi_time
 from xbmc import executeJSONRPC
 
 
@@ -49,7 +49,7 @@ def get_players():
         'picture': ...
     }
     """
-    info = jsonrpc("Player.GetActivePlayers").execute()['result'] or []
+    info = jsonrpc("Player.GetActivePlayers").execute()['result']
     ret = {}
     for player in info:
         player['playerid'] = int(player['playerid'])
@@ -152,7 +152,7 @@ def seek_to(offset):
     for playerid in get_player_ids():
         jsonrpc("Player.Seek").execute(
             {"playerid": playerid,
-             "value": milliseconds_to_kodi_time(offset)})
+             "value": millis_to_kodi_time(offset)})
 
 
 def smallforward():
@@ -238,6 +238,13 @@ def input_back():
     Tells Kodi the user pushed back
     """
     return jsonrpc("Input.Back").execute()
+
+
+def input_sendtext(text):
+    """
+    Tells Kodi the user sent text [unicode]
+    """
+    return jsonrpc("Input.SendText").execute({'test': text, 'done': False})
 
 
 def playlist_get_items(playlistid, properties):
@@ -350,6 +357,33 @@ def get_episodes(params):
     return ret
 
 
+def get_player_props(playerid):
+    """
+    Returns a dict for the active Kodi player with the following values:
+    {
+        'type'          [str] the Kodi player type, e.g. 'video'
+        'time'          The current item's time in Kodi time
+        'totaltime'     The current item's total length in Kodi time
+        'speed'         [int] playback speed, defaults to 0
+        'shuffled'      [bool] True if shuffled
+        'repeat'        [str] 'off', 'one', 'all'
+        'position'      [int] position in playlist (or -1)
+        'playlistid'    [int] the Kodi playlist id (or -1)
+    }
+    """
+    ret = jsonrpc('Player.GetProperties').execute({
+        'playerid': playerid,
+        'properties': ['type',
+                       'time',
+                       'totaltime',
+                       'speed',
+                       'shuffled',
+                       'repeat',
+                       'position',
+                       'playlistid']})
+    return ret['result']
+
+
 def current_audiostream(playerid):
     """
     Returns a dict of the active audiostream for playerid [int]:
@@ -402,3 +436,10 @@ def subtitle_enabled(playerid):
     except (KeyError, TypeError):
         ret = False
     return ret
+
+
+def ping():
+    """
+    Pings the JSON RPC interface
+    """
+    return jsonrpc('JSONRPC.Ping').execute()

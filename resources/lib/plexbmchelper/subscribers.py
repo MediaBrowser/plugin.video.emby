@@ -2,12 +2,15 @@ import logging
 import re
 import threading
 
+from xbmc import sleep
+
 import downloadutils
 from clientinfo import getXArgsDeviceInfo
-from utils import window
+from utils import window, kodi_time_to_millis
 import PlexFunctions as pf
 import state
-from functions import *
+import variables as v
+import json_rpc as js
 
 ###############################################################################
 
@@ -17,7 +20,7 @@ log = logging.getLogger("PLEX."+__name__)
 
 
 class SubscriptionManager:
-    def __init__(self, jsonClass, RequestMgr, player, mgr):
+    def __init__(self, RequestMgr, player, mgr):
         self.serverlist = []
         self.subscribers = {}
         self.info = {}
@@ -30,8 +33,6 @@ class SubscriptionManager:
             'audio': {},
             'picture': {}
         }
-        self.volume = 0
-        self.mute = '0'
         self.server = ""
         self.protocol = "http"
         self.port = ""
@@ -40,7 +41,6 @@ class SubscriptionManager:
         self.xbmcplayer = player
         self.playqueue = mgr.playqueue
 
-        self.js = jsonClass
         self.RequestMgr = RequestMgr
 
     def getServerByHost(self, host):
@@ -52,32 +52,34 @@ class SubscriptionManager:
                 return server
         return {}
 
-    def getVolume(self):
-        self.volume, self.mute = self.js.getVolume()
-
     def msg(self, players):
-        msg = getXMLHeader()
+        log.debug('players: %s', players)
+        msg = v.XML_HEADER
         msg += '<MediaContainer size="3" commandID="INSERTCOMMANDID"'
         msg += ' machineIdentifier="%s" location="fullScreenVideo">' % window('plex_client_Id')
-        msg += self.getTimelineXML(self.js.getAudioPlayerId(players), plex_audio())
-        msg += self.getTimelineXML(self.js.getPhotoPlayerId(players), plex_photo())
-        msg += self.getTimelineXML(self.js.getVideoPlayerId(players), plex_video())
+        msg += self.getTimelineXML(players.get(v.KODI_TYPE_AUDIO),
+                                   v.PLEX_TYPE_AUDIO)
+        msg += self.getTimelineXML(players.get(v.KODI_TYPE_PHOTO),
+                                   v.PLEX_TYPE_PHOTO)
+        msg += self.getTimelineXML(players.get(v.KODI_TYPE_VIDEO),
+                                   v.PLEX_TYPE_VIDEO)
         msg += "\n</MediaContainer>"
         return msg
 
-    def getTimelineXML(self, playerid, ptype):
-        if playerid is not None:
+    def getTimelineXML(self, player, ptype):
+        if player is None:
+            status = 'stopped'
+            time = 0
+        else:
+            playerid = player['playerid']
             info = self.getPlayerProperties(playerid)
             # save this info off so the server update can use it too
             self.playerprops[playerid] = info
             status = info['state']
             time = info['time']
-        else:
-            status = "stopped"
-            time = 0
         ret = ('\n  <Timeline state="%s" time="%s" type="%s"'
                % (status, time, ptype))
-        if playerid is None:
+        if player is None:
             ret += ' />'
             return ret
 
@@ -89,10 +91,10 @@ class SubscriptionManager:
         keyid = None
         count = 0
         while not keyid:
-            if count > 300:
+            if count > 30:
                 break
             keyid = window('plex_currently_playing_itemid')
-            xbmc.sleep(100)
+            sleep(100)
             count += 1
         if keyid:
             self.lastkey = "/library/metadata/%s" % keyid
@@ -119,7 +121,7 @@ class SubscriptionManager:
         ret += ' port="%s"' % serv.get('port', self.port)
         ret += ' volume="%s"' % info['volume']
         ret += ' shuffle="%s"' % info['shuffle']
-        ret += ' mute="%s"' % self.mute
+        ret += ' mute="%s"' % info['mute']
         ret += ' repeat="%s"' % info['repeat']
         ret += ' itemType="%s"' % ptype
         if state.PLEX_TRANSIENT_TOKEN:
@@ -145,7 +147,7 @@ class SubscriptionManager:
         if (not window('plex_currently_playing_itemid')
                 and not self.lastplayers):
             return True
-        players = self.js.getPlayers()
+        players = js.get_players()
         # fetch the message, subscribers or not, since the server
         # will need the info anyway
         msg = self.msg(players)
@@ -233,27 +235,15 @@ class SubscriptionManager:
             # Get the playqueue
             playqueue = self.playqueue.playqueues[playerid]
             # get info from the player
-            props = self.js.jsonrpc(
-                "Player.GetProperties",
-                {"playerid": playerid,
-                 "properties": ["type",
-                                "time",
-                                "totaltime",
-                                "speed",
-                                "shuffled",
-                                "repeat"]})
+            props = js.get_player_props(playerid)
             info = {
-                'time': timeToMillis(props['time']),
-                'duration': timeToMillis(props['totaltime']),
+                'time': kodi_time_to_millis(props['time']),
+                'duration': kodi_time_to_millis(props['totaltime']),
                 'state': ("paused", "playing")[int(props['speed'])],
                 'shuffle': ("0", "1")[props.get('shuffled', False)],
                 'repeat': pf.getPlexRepeat(props.get('repeat')),
             }
-            # Get the playlist position
-            pos = self.js.jsonrpc(
-                "Player.GetProperties",
-                {"playerid": playerid,
-                 "properties": ["position"]})['position']
+            pos = props['position']
             try:
                 info['playQueueItemID'] = playqueue.items[pos].ID or 'null'
                 info['guid'] = playqueue.items[pos].guid or 'null'
@@ -274,8 +264,8 @@ class SubscriptionManager:
             }
 
         # get the volume from the application
-        info['volume'] = self.volume
-        info['mute'] = self.mute
+        info['volume'] = js.get_volume()
+        info['mute'] = js.get_muted()
 
         info['plex_transient_token'] = playqueue.plex_transient_token
 

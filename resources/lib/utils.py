@@ -179,9 +179,15 @@ def dialog(typus, *args, **kwargs):
     return types[typus](*args, **kwargs)
 
 
-def milliseconds_to_kodi_time(milliseconds):
+def millis_to_kodi_time(milliseconds):
     """
-    Converts time in milliseconds to the time dict used by the Kodi JSON RPC
+    Converts time in milliseconds to the time dict used by the Kodi JSON RPC:
+    {
+        'hours': [int],
+        'minutes': [int],
+        'seconds'[int],
+        'milliseconds': [int]
+    }
     Pass in the time in milliseconds as an int
     """
     seconds = milliseconds / 1000
@@ -194,6 +200,22 @@ def milliseconds_to_kodi_time(milliseconds):
             'minutes': minutes,
             'seconds': seconds,
             'milliseconds': milliseconds}
+
+
+def kodi_time_to_millis(time):
+    """
+    Converts the Kodi time dict
+    {
+        'hours': [int],
+        'minutes': [int],
+        'seconds'[int],
+        'milliseconds': [int]
+    }
+    to milliseconds [int]
+    """
+    return (time['hours']*3600 +
+            time['minutes']*60 +
+            time['seconds'])*1000 + time['milliseconds']
 
 
 def tryEncode(uniString, encoding='utf-8'):

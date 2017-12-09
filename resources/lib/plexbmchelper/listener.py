@@ -8,9 +8,9 @@ from urlparse import urlparse, parse_qs
 from xbmc import sleep
 from companion import process_command
 from utils import window
-
-from functions import *
-
+import json_rpc as js
+from clientinfo import getXArgsDeviceInfo
+import variables as v
 
 ###############################################################################
 
@@ -82,7 +82,6 @@ class MyHandler(BaseHTTPRequestHandler):
     def answer_request(self, sendData):
         self.serverlist = self.server.client.getServerList()
         subMgr = self.server.subscriptionManager
-        js = self.server.jsonClass
         settings = self.server.settings
 
         try:
@@ -105,7 +104,7 @@ class MyHandler(BaseHTTPRequestHandler):
                     % settings['version'])
             elif request_path == "verify":
                 self.response("XBMC JSON connection test:\n" +
-                              js.jsonrpc("ping"))
+                              js.ping())
             elif "resources" == request_path:
                 resp = ('%s'
                         '<MediaContainer>'
@@ -121,15 +120,15 @@ class MyHandler(BaseHTTPRequestHandler):
                         ' deviceClass="pc"'
                         '/>'
                         '</MediaContainer>'
-                        % (getXMLHeader(),
+                        % (v.XML_HEADER,
                            settings['client_name'],
                            settings['uuid'],
                            settings['platform'],
                            settings['plexbmc_version']))
                 log.debug("crafted resources response: %s" % resp)
-                self.response(resp, js.getPlexHeaders())
+                self.response(resp, getXArgsDeviceInfo())
             elif "/subscribe" in request_path:
-                self.response(getOKMsg(), js.getPlexHeaders())
+                self.response(v.COMPANION_OK_MESSAGE, getXArgsDeviceInfo())
                 protocol = params.get('protocol', False)
                 host = self.client_address[0]
                 port = params.get('port', False)
@@ -147,7 +146,7 @@ class MyHandler(BaseHTTPRequestHandler):
                 self.response(
                     sub(r"INSERTCOMMANDID",
                         str(commandID),
-                        subMgr.msg(js.getPlayers())),
+                        subMgr.msg(js.get_players())),
                     {
                         'X-Plex-Client-Identifier': settings['uuid'],
                         'Access-Control-Expose-Headers':
@@ -156,14 +155,14 @@ class MyHandler(BaseHTTPRequestHandler):
                         'Content-Type': 'text/xml'
                     })
             elif "/unsubscribe" in request_path:
-                self.response(getOKMsg(), js.getPlexHeaders())
+                self.response(v.COMPANION_OK_MESSAGE, getXArgsDeviceInfo())
                 uuid = self.headers.get('X-Plex-Client-Identifier', False) \
                     or self.client_address[0]
                 subMgr.removeSubscriber(uuid)
             else:
                 # Throw it to companion.py
                 process_command(request_path, params, self.server.queue)
-                self.response('', js.getPlexHeaders())
+                self.response('', getXArgsDeviceInfo())
                 subMgr.notify()
         except:
             log.error('Error encountered. Traceback:')
@@ -174,17 +173,16 @@ class MyHandler(BaseHTTPRequestHandler):
 class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
     daemon_threads = True
 
-    def __init__(self, client, subscriptionManager, jsonClass, settings,
+    def __init__(self, client, subscriptionManager, settings,
                  queue, *args, **kwargs):
         """
         client: Class handle to plexgdm.plexgdm. We can thus ask for an up-to-
         date serverlist without instantiating anything
 
-        same for SubscriptionManager and jsonClass
+        same for SubscriptionManager
         """
         self.client = client
         self.subscriptionManager = subscriptionManager
-        self.jsonClass = jsonClass
         self.settings = settings
         self.queue = queue
         HTTPServer.__init__(self, *args, **kwargs)
