@@ -37,6 +37,7 @@ import videonodes
 from websocket_client import PMS_Websocket, Alexa_Websocket
 import downloadutils
 from playqueue import Playqueue
+import clientinfo
 
 import PlexAPI
 from PlexCompanion import PlexCompanion
@@ -51,7 +52,7 @@ import state
 import loghandler
 
 loghandler.config()
-log = getLogger("PLEX.service")
+LOG = getLogger("PLEX.service")
 ###############################################################################
 
 def set_webserver():
@@ -92,24 +93,15 @@ class Service():
     image_cache_thread_running = False
 
     def __init__(self):
-        set_webserver()
-        self.monitor = Monitor()
-
-        window('plex_kodiProfile',
-               value=tryDecode(translatePath("special://profile")))
-        window('fetch_pms_item_number',
-               value=settings('fetch_pms_item_number'))
-
         # Initial logging
-        log.info("======== START %s ========" % v.ADDON_NAME)
-        log.info("Platform: %s" % v.PLATFORM)
-        log.info("KODI Version: %s" % v.KODILONGVERSION)
-        log.info("%s Version: %s" % (v.ADDON_NAME, v.ADDON_VERSION))
-        log.info("Using plugin paths: %s"
-                 % (settings('useDirectPaths') != "true"))
-        log.info("Number of sync threads: %s"
-                 % settings('syncThreadNumber'))
-        log.info("Full sys.argv received: %s" % argv)
+        LOG.info("======== START %s ========", v.ADDON_NAME)
+        LOG.info("Platform: %s", v.PLATFORM)
+        LOG.info("KODI Version: %s", v.KODILONGVERSION)
+        LOG.info("%s Version: %s", v.ADDON_NAME, v.ADDON_VERSION)
+        LOG.info("Using plugin paths: %s",
+                 settings('useDirectPaths') != "true")
+        LOG.info("Number of sync threads: %s", settings('syncThreadNumber'))
+        LOG.info("Full sys.argv received: %s", argv)
 
         # Reset window props for profile switch
         properties = [
@@ -130,8 +122,15 @@ class Service():
         # Clear video nodes properties
         videonodes.VideoNodes().clearProperties()
 
-        # Set the minimum database version
+        # Init some stuff
         window('plex_minDBVersion', value="1.5.10")
+        set_webserver()
+        self.monitor = Monitor()
+        window('plex_kodiProfile',
+               value=tryDecode(translatePath("special://profile")))
+        window('fetch_pms_item_number',
+               value=settings('fetch_pms_item_number'))
+        clientinfo.getDeviceId()
 
     def __stop_PKC(self):
         """
@@ -172,7 +171,7 @@ class Service():
 
             if window('plex_kodiProfile') != kodiProfile:
                 # Profile change happened, terminate this thread and others
-                log.info("Kodi profile was: %s and changed to: %s. "
+                LOG.info("Kodi profile was: %s and changed to: %s. "
                          "Terminating old PlexKodiConnect thread."
                          % (kodiProfile,
                             window('plex_kodiProfile')))
@@ -235,7 +234,7 @@ class Service():
                         # Alert user is not authenticated and suppress future
                         # warning
                         self.warn_auth = False
-                        log.warn("Not authenticated yet.")
+                        LOG.warn("Not authenticated yet.")
 
                     # User access is restricted.
                     # Keep verifying until access is granted
@@ -267,7 +266,7 @@ class Service():
                             window('plex_online', value="false")
                             # Suspend threads
                             state.SUSPEND_LIBRARY_THREAD = True
-                            log.error("Plex Media Server went offline")
+                            LOG.error("Plex Media Server went offline")
                             if settings('show_pms_offline') == 'true':
                                 dialog('notification',
                                        lang(33001),
@@ -301,7 +300,7 @@ class Service():
                                        icon='{plex}',
                                        time=5000,
                                        sound=False)
-                        log.info("Server %s is online and ready." % server)
+                        LOG.info("Server %s is online and ready." % server)
                         window('plex_online', value="true")
                         if state.AUTHENTICATED:
                             # Server got offline when we were authenticated.
@@ -331,7 +330,7 @@ class Service():
         except:
             pass
         window('plex_service_started', clear=True)
-        log.info("======== STOP %s ========" % v.ADDON_NAME)
+        LOG.info("======== STOP %s ========" % v.ADDON_NAME)
 
 
 # Safety net - Kody starts PKC twice upon first installation!
@@ -344,11 +343,11 @@ else:
 # Delay option
 delay = int(settings('startupDelay'))
 
-log.info("Delaying Plex startup by: %s sec..." % delay)
+LOG.info("Delaying Plex startup by: %s sec..." % delay)
 if exit:
-    log.error('PKC service.py already started - exiting this instance')
+    LOG.error('PKC service.py already started - exiting this instance')
 elif delay and Monitor().waitForAbort(delay):
     # Start the service
-    log.info("Abort requested while waiting. PKC not started.")
+    LOG.info("Abort requested while waiting. PKC not started.")
 else:
     Service().ServiceEntryPoint()

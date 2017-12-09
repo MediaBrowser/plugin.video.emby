@@ -59,24 +59,27 @@ def getDeviceId(reset=False):
     If id does not exist, create one and save in Kodi settings file.
     """
     if reset is True:
+        v.PKC_MACHINE_IDENTIFIER = None
         window('plex_client_Id', clear=True)
         settings('plex_client_Id', value="")
 
-    clientId = window('plex_client_Id')
-    if clientId:
-        return clientId
+    client_id = v.PKC_MACHINE_IDENTIFIER
+    if client_id:
+        return client_id
 
-    clientId = settings('plex_client_Id')
+    client_id = settings('plex_client_Id')
     # Because Kodi appears to cache file settings!!
-    if clientId != "" and reset is False:
-        window('plex_client_Id', value=clientId)
-        log.info("Unique device Id plex_client_Id loaded: %s" % clientId)
-        return clientId
+    if client_id != "" and reset is False:
+        v.PKC_MACHINE_IDENTIFIER = client_id
+        window('plex_client_Id', value=client_id)
+        log.info("Unique device Id plex_client_Id loaded: %s", client_id)
+        return client_id
 
     log.info("Generating a new deviceid.")
     from uuid import uuid4
-    clientId = str(uuid4())
-    settings('plex_client_Id', value=clientId)
-    window('plex_client_Id', value=clientId)
-    log.info("Unique device Id plex_client_Id loaded: %s" % clientId)
-    return clientId
+    client_id = str(uuid4())
+    settings('plex_client_Id', value=client_id)
+    v.PKC_MACHINE_IDENTIFIER = client_id
+    window('plex_client_Id', value=client_id)
+    log.info("Unique device Id plex_client_Id generated: %s", client_id)
+    return client_id

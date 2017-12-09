@@ -63,6 +63,9 @@ DEVICENAME = DEVICENAME.replace('(', "")
 DEVICENAME = DEVICENAME.replace(')', "")
 DEVICENAME = DEVICENAME.strip()
 
+# Unique ID for this Plex client; also see clientinfo.py
+PKC_MACHINE_IDENTIFIER = None
+
 # Database paths
 _DB_VIDEO_VERSION = {
     13: 78,   # Gotham
