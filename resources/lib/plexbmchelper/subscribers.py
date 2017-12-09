@@ -176,7 +176,7 @@ class SubscriptionManager:
 
     def _sendNotification(self, info, playerid):
         playqueue = self.playqueue.playqueues[playerid]
-        xargs = getXArgsDeviceInfo()
+        xargs = getXArgsDeviceInfo(include_token=False)
         params = {
             'containerKey': self.containerKey or "/library/metadata/900000",
             'key': self.lastkey or "/library/metadata/900000",

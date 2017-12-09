@@ -126,9 +126,10 @@ class MyHandler(BaseHTTPRequestHandler):
                            settings['platform'],
                            settings['plexbmc_version']))
                 log.debug("crafted resources response: %s" % resp)
-                self.response(resp, getXArgsDeviceInfo())
+                self.response(resp, getXArgsDeviceInfo(include_token=False))
             elif "/subscribe" in request_path:
-                self.response(v.COMPANION_OK_MESSAGE, getXArgsDeviceInfo())
+                self.response(v.COMPANION_OK_MESSAGE,
+                              getXArgsDeviceInfo(include_token=False))
                 protocol = params.get('protocol', False)
                 host = self.client_address[0]
                 port = params.get('port', False)
@@ -155,14 +156,15 @@ class MyHandler(BaseHTTPRequestHandler):
                         'Content-Type': 'text/xml'
                     })
             elif "/unsubscribe" in request_path:
-                self.response(v.COMPANION_OK_MESSAGE, getXArgsDeviceInfo())
+                self.response(v.COMPANION_OK_MESSAGE,
+                              getXArgsDeviceInfo(include_token=False))
                 uuid = self.headers.get('X-Plex-Client-Identifier', False) \
                     or self.client_address[0]
                 subMgr.removeSubscriber(uuid)
             else:
                 # Throw it to companion.py
                 process_command(request_path, params, self.server.queue)
-                self.response('', getXArgsDeviceInfo())
+                self.response('', getXArgsDeviceInfo(include_token=False))
                 subMgr.notify()
         except:
             log.error('Error encountered. Traceback:')

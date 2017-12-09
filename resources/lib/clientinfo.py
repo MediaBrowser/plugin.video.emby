@@ -13,7 +13,7 @@ log = logging.getLogger("PLEX."+__name__)
 ###############################################################################
 
 
-def getXArgsDeviceInfo(options=None):
+def getXArgsDeviceInfo(options=None, include_token=True):
     """
     Returns a dictionary that can be used as headers for GET and POST
     requests. An authentication option is NOT yet added.
@@ -21,6 +21,8 @@ def getXArgsDeviceInfo(options=None):
     Inputs:
         options:        dictionary of options that will override the
                         standard header options otherwise set.
+        include_token:  set to False if you don't want to include the Plex token
+                        (e.g. for Companion communication)
     Output:
         header dictionary
     """
@@ -41,7 +43,7 @@ def getXArgsDeviceInfo(options=None):
         'X-Plex-Client-Identifier': getDeviceId(),
         'X-Plex-Provides': 'client,controller,player,pubsub-player',
     }
-    if window('pms_token'):
+    if include_token and window('pms_token'):
         xargs['X-Plex-Token'] = window('pms_token')
     if options is not None:
         xargs.update(options)
