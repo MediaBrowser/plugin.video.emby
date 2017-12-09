@@ -7,13 +7,13 @@ from shutil import rmtree
 from urllib import quote_plus, unquote
 from threading import Thread
 import requests
-import json_rpc as js
 
 from xbmc import sleep, translatePath
 from xbmcvfs import exists
 
 from utils import window, settings, language as lang, kodiSQL, tryEncode, \
     thread_methods, dialog, exists_dir, tryDecode
+import state
 
 # Disable annoying requests warnings
 import requests.packages.urllib3
@@ -25,26 +25,6 @@ LOG = getLogger("PLEX." + __name__)
 ###############################################################################
 
 ARTWORK_QUEUE = Queue()
-
-
-def setKodiWebServerDetails():
-    """
-    Get the Kodi webserver details - used to set the texture cache
-    """
-    xbmc_port = None
-    xbmc_username = None
-    xbmc_password = None
-    if js.get_setting('services.webserver') in (None, False):
-        # Enable the webserver, it is disabled
-        xbmc_port = 8080
-        xbmc_username = "kodi"
-        js.set_setting('services.webserverport', xbmc_port)
-        js.set_setting('services.webserver', True)
-    # Webserver already enabled
-    xbmc_port = js.get_setting('services.webserverport')
-    xbmc_username = js.get_setting('services.webserverusername')
-    xbmc_password = js.get_setting('services.webserverpassword')
-    return (xbmc_port, xbmc_username, xbmc_password)
 
 
 def double_urlencode(text):
@@ -59,8 +39,6 @@ def double_urldecode(text):
                               'DB_SCAN',
                               'STOP_SYNC'])
 class Image_Cache_Thread(Thread):
-    xbmc_host = 'localhost'
-    xbmc_port, xbmc_username, xbmc_password = setKodiWebServerDetails()
     sleep_between = 50
     # Potentially issues with limited number of threads
     # Hence let Kodi wait till download is successful
@@ -94,8 +72,11 @@ class Image_Cache_Thread(Thread):
                 try:
                     requests.head(
                         url="http://%s:%s/image/image://%s"
-                            % (self.xbmc_host, self.xbmc_port, url),
-                        auth=(self.xbmc_username, self.xbmc_password),
+                            % (state.WEBSERVER_HOST,
+                               state.WEBSERVER_PORT,
+                               url),
+                        auth=(state.WEBSERVER_USERNAME,
+                              state.WEBSERVER_PASSWORD),
                         timeout=self.timeout)
                 except requests.Timeout:
                     # We don't need the result, only trigger Kodi to start the

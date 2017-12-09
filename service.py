@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
-
 ###############################################################################
-
-import logging
+from logging import getLogger
 from os import path as os_path
 from sys import path as sys_path, argv
 
@@ -45,17 +43,31 @@ from PlexCompanion import PlexCompanion
 from command_pipeline import Monitor_Window
 from playback_starter import Playback_Starter
 from artwork import Image_Cache_Thread
+from json_rpc import get_setting, set_setting
 import variables as v
 import state
 
 ###############################################################################
-
 import loghandler
 
 loghandler.config()
-log = logging.getLogger("PLEX.service")
-
+log = getLogger("PLEX.service")
 ###############################################################################
+
+def set_webserver():
+    """
+    Set the Kodi webserver details - used to set the texture cache
+    """
+    if get_setting('services.webserver') in (None, False):
+        # Enable the webserver, it is disabled
+        set_setting('services.webserver', True)
+        # Set standard port and username
+        set_setting('services.webserverport', 8080)
+        set_setting('services.webserverusername', 'kodi')
+    # Webserver already enabled
+    state.WEBSERVER_PORT = get_setting('services.webserverport')
+    state.WEBSERVER_USERNAME = get_setting('services.webserverusername')
+    state.WEBSERVER_PASSWORD = get_setting('services.webserverpassword')
 
 
 class Service():
@@ -80,7 +92,7 @@ class Service():
     image_cache_thread_running = False
 
     def __init__(self):
-
+        set_webserver()
         self.monitor = Monitor()
 
         window('plex_kodiProfile',

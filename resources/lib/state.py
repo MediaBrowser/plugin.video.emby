@@ -78,3 +78,9 @@ PLEX_TRANSIENT_TOKEN = None
 # Kodi player states
 PLAYER_STATES = {}
 PLAYED_INFO = {}
+
+# Kodi webserver details
+WEBSERVER_PORT = 8080
+WEBSERVER_USERNAME = 'kodi'
+WEBSERVER_PASSWORD = ''
+WEBSERVER_HOST = 'localhost'
