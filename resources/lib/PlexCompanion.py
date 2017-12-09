@@ -8,8 +8,7 @@ from urllib import urlencode
 from xbmc import sleep, executebuiltin
 
 from utils import settings, thread_methods
-from plexbmchelper import listener, plexgdm, subscribers, httppersist, \
-    plexsettings
+from plexbmchelper import listener, plexgdm, subscribers, httppersist
 from PlexFunctions import ParseContainerKey, GetPlexMetadata
 from PlexAPI import API
 from playlist_func import get_pms_playqueue, get_plextype_from_xml
@@ -32,10 +31,9 @@ class PlexCompanion(Thread):
         log.info("----===## Starting PlexCompanion ##===----")
         if callback is not None:
             self.mgr = callback
-        self.settings = plexsettings.getSettings()
         # Start GDM for server/client discovery
         self.client = plexgdm.plexgdm()
-        self.client.clientDetails(self.settings)
+        self.client.clientDetails()
         log.debug("Registration string is:\n%s"
                   % self.client.getClientDetails())
         # kodi player instance
@@ -210,9 +208,8 @@ class PlexCompanion(Thread):
                     httpd = listener.ThreadedHTTPServer(
                         client,
                         subscriptionManager,
-                        self.settings,
                         queue,
-                        ('', self.settings['myport']),
+                        ('', v.COMPANION_PORT),
                         listener.MyHandler)
                     httpd.timeout = 0.95
                     break
@@ -261,7 +258,7 @@ class PlexCompanion(Thread):
                         else:
                             log.debug("Client is no longer registered. "
                                       "Plex Companion still running on port %s"
-                                      % self.settings['myport'])
+                                      % v.COMPANION_PORT)
                             client.register_as_client()
                 # Get and set servers
                 if message_count % 30 == 0:

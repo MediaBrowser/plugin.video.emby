@@ -46,8 +46,7 @@ class MyHandler(BaseHTTPRequestHandler):
     def do_OPTIONS(self):
         self.send_response(200)
         self.send_header('Content-Length', '0')
-        self.send_header('X-Plex-Client-Identifier',
-                         self.server.settings['uuid'])
+        self.send_header('X-Plex-Client-Identifier', v.PKC_MACHINE_IDENTIFIER)
         self.send_header('Content-Type', 'text/plain')
         self.send_header('Connection', 'close')
         self.send_header('Access-Control-Max-Age', '1209600')
@@ -82,7 +81,6 @@ class MyHandler(BaseHTTPRequestHandler):
     def answer_request(self, sendData):
         self.serverlist = self.server.client.getServerList()
         subMgr = self.server.subscriptionManager
-        settings = self.server.settings
 
         try:
             request_path = self.path[1:]
@@ -101,7 +99,7 @@ class MyHandler(BaseHTTPRequestHandler):
             if request_path == "version":
                 self.response(
                     "PlexKodiConnect Plex Companion: Running\nVersion: %s"
-                    % settings['version'])
+                    % v.ADDON_VERSION)
             elif request_path == "verify":
                 self.response("XBMC JSON connection test:\n" +
                               js.ping())
@@ -121,10 +119,10 @@ class MyHandler(BaseHTTPRequestHandler):
                         '/>'
                         '</MediaContainer>'
                         % (v.XML_HEADER,
-                           settings['client_name'],
-                           settings['uuid'],
-                           settings['platform'],
-                           settings['plexbmc_version']))
+                           v.DEVICENAME,
+                           v.PKC_MACHINE_IDENTIFIER,
+                           v.PLATFORM,
+                           v.ADDON_VERSION))
                 log.debug("crafted resources response: %s" % resp)
                 self.response(resp, getXArgsDeviceInfo(include_token=False))
             elif "/subscribe" in request_path:
@@ -149,7 +147,7 @@ class MyHandler(BaseHTTPRequestHandler):
                         str(commandID),
                         subMgr.msg(js.get_players())),
                     {
-                        'X-Plex-Client-Identifier': settings['uuid'],
+                        'X-Plex-Client-Identifier': v.PKC_MACHINE_IDENTIFIER,
                         'Access-Control-Expose-Headers':
                             'X-Plex-Client-Identifier',
                         'Access-Control-Allow-Origin': '*',
@@ -175,8 +173,7 @@ class MyHandler(BaseHTTPRequestHandler):
 class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
     daemon_threads = True
 
-    def __init__(self, client, subscriptionManager, settings,
-                 queue, *args, **kwargs):
+    def __init__(self, client, subscriptionManager, queue, *args, **kwargs):
         """
         client: Class handle to plexgdm.plexgdm. We can thus ask for an up-to-
         date serverlist without instantiating anything
@@ -185,6 +182,5 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
         """
         self.client = client
         self.subscriptionManager = subscriptionManager
-        self.settings = settings
         self.queue = queue
         HTTPServer.__init__(self, *args, **kwargs)

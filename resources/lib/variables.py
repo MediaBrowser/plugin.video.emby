@@ -63,6 +63,8 @@ DEVICENAME = DEVICENAME.replace('(', "")
 DEVICENAME = DEVICENAME.replace(')', "")
 DEVICENAME = DEVICENAME.strip()
 
+COMPANION_PORT = int(_ADDON.getSetting('companionPort'))
+
 # Unique ID for this Plex client; also see clientinfo.py
 PKC_MACHINE_IDENTIFIER = None
 
