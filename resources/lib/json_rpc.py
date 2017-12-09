@@ -2,9 +2,12 @@
 Collection of functions using the Kodi JSON RPC interface.
 See http://kodi.wiki/view/JSON-RPC_API
 """
+from logging import getLogger
 from json import loads, dumps
 from utils import millis_to_kodi_time
 from xbmc import executeJSONRPC
+
+log = getLogger("PLEX."+__name__)
 
 
 class jsonrpc(object):

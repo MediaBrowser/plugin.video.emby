@@ -1,7 +1,7 @@
 """
 Monitors the Kodi playqueue and adjusts the Plex playqueue accordingly
 """
-import logging
+from logging import getLogger
 from threading import RLock, Thread
 
 from xbmc import sleep, Player, PlayList, PLAYLIST_MUSIC, PLAYLIST_VIDEO
@@ -15,7 +15,7 @@ import json_rpc as js
 import variables as v
 
 ###############################################################################
-LOG = logging.getLogger("PLEX." + __name__)
+LOG = getLogger("PLEX." + __name__)
 
 # lock used for playqueue manipulations
 LOCK = RLock()

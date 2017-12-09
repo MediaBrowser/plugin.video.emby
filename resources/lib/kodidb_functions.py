@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ###############################################################################
-
-import logging
+from logging import getLogger
 from ntpath import dirname
 
 import artwork
@@ -11,7 +10,7 @@ import variables as v
 
 ###############################################################################
 
-log = logging.getLogger("PLEX."+__name__)
+log = getLogger("PLEX."+__name__)
 
 ###############################################################################
 

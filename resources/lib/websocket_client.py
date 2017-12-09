@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ###############################################################################
-import logging
+from logging import getLogger
 import websocket
 from json import loads
 import xml.etree.ElementTree as etree
@@ -17,7 +17,7 @@ import state
 
 ###############################################################################
 
-log = logging.getLogger("PLEX."+__name__)
+log = getLogger("PLEX."+__name__)
 
 ###############################################################################
 

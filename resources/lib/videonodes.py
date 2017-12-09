@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 ###############################################################################
-import logging
+from logging import getLogger
 from shutil import copytree
 import xml.etree.ElementTree as etree
 from os import makedirs
@@ -14,7 +14,7 @@ import variables as v
 
 ###############################################################################
 
-log = logging.getLogger("PLEX."+__name__)
+log = getLogger("PLEX."+__name__)
 
 ###############################################################################
 # Paths are strings, NOT unicode!

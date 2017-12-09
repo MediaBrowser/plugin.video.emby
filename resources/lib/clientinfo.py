@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 
 ###############################################################################
-import logging
+from logging import getLogger
 
 from utils import window, settings
 import variables as v
 
 ###############################################################################
 
-log = logging.getLogger("PLEX."+__name__)
+log = getLogger("PLEX."+__name__)
 
 ###############################################################################
 

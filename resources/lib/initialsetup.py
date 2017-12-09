@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 ###############################################################################
+from logging import getLogger
 
-import logging
 import xbmc
 import xbmcgui
 
@@ -18,7 +18,7 @@ from migration import check_migration
 
 ###############################################################################
 
-log = logging.getLogger("PLEX."+__name__)
+log = getLogger("PLEX."+__name__)
 
 ###############################################################################
 

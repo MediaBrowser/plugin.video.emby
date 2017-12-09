@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ###############################################################################
-import logging
+from logging import getLogger
 from downloadutils import DownloadUtils
 
 from utils import window, settings, tryEncode, language as lang, dialog
@@ -10,7 +10,7 @@ import PlexAPI
 
 ###############################################################################
 
-log = logging.getLogger("PLEX."+__name__)
+log = getLogger("PLEX."+__name__)
 
 ###############################################################################
 

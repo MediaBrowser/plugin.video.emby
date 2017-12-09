@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 
 ###############################################################################
+from logging import getLogger
 
 from utils import kodiSQL
-import logging
 import variables as v
 
 ###############################################################################
 
-log = logging.getLogger("PLEX."+__name__)
+log = getLogger("PLEX."+__name__)
 
 ###############################################################################
 

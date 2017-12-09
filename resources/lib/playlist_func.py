@@ -1,7 +1,7 @@
 """
 Collection of functions associated with Kodi and Plex playlists and playqueues
 """
-import logging
+from logging import getLogger
 from urllib import quote
 from urlparse import parse_qsl, urlsplit
 from re import compile as re_compile
@@ -15,7 +15,7 @@ import json_rpc as js
 
 ###############################################################################
 
-LOG = logging.getLogger("PLEX." + __name__)
+LOG = getLogger("PLEX." + __name__)
 
 REGEX = re_compile(r'''metadata%2F(\d+)''')
 ###############################################################################

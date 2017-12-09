@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ###############################################################################
-
-import logging
+from logging import getLogger
 from urllib import urlencode
 from ntpath import dirname
 from datetime import datetime
@@ -20,7 +19,7 @@ import state
 
 ###############################################################################
 
-log = logging.getLogger("PLEX."+__name__)
+log = getLogger("PLEX."+__name__)
 
 ###############################################################################
 

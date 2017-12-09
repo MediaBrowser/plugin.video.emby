@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 ###############################################################################
-import logging
+from logging import getLogger
 from shutil import copyfile
 from os import walk, makedirs
 from os.path import basename, join
@@ -22,7 +22,7 @@ import json_rpc as js
 import variables as v
 
 ###############################################################################
-log = logging.getLogger("PLEX."+__name__)
+log = getLogger("PLEX."+__name__)
 
 try:
     HANDLE = int(argv[1])

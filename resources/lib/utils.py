@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ###############################################################################
-import logging
+from logging import getLogger
 from cProfile import Profile
 from pstats import Stats
 from sqlite3 import connect, OperationalError
@@ -28,7 +28,7 @@ import state
 
 ###############################################################################
 
-log = logging.getLogger("PLEX."+__name__)
+log = getLogger("PLEX."+__name__)
 
 WINDOW = xbmcgui.Window(10000)
 ADDON = xbmcaddon.Addon(id='plugin.video.plexkodiconnect')

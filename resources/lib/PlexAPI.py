@@ -30,7 +30,7 @@ http://stackoverflow.com/questions/111945/is-there-any-way-to-do-http-put-in-pyt
 (and others...)
 """
 
-import logging
+from logging import getLogger
 from time import time
 import urllib2
 import socket
@@ -57,7 +57,7 @@ import state
 
 ###############################################################################
 
-log = logging.getLogger("PLEX." + __name__)
+log = getLogger("PLEX." + __name__)
 
 REGEX_IMDB = re_compile(r'''/(tt\d+)''')
 REGEX_TVDB = re_compile(r'''thetvdb:\/\/(.+?)\?''')

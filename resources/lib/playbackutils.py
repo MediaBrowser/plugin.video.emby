@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ###############################################################################
-
-import logging
+from logging import getLogger
 from urllib import urlencode
 from threading import Thread
 
@@ -26,7 +25,7 @@ import state
 
 ###############################################################################
 
-log = logging.getLogger("PLEX."+__name__)
+log = getLogger("PLEX."+__name__)
 
 ###############################################################################
 

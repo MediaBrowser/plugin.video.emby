@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 ###############################################################################
-import logging
+from logging import getLogger
 from threading import Thread
 from urlparse import parse_qsl
 
@@ -21,7 +21,7 @@ from context_entry import ContextMenu
 import state
 
 ###############################################################################
-log = logging.getLogger("PLEX."+__name__)
+log = getLogger("PLEX."+__name__)
 
 ###############################################################################
 

@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 
 ###############################################################################
-
-import logging
-import requests
+from logging import getLogger
 import xml.etree.ElementTree as etree
+import requests
 
 from utils import settings, window, language as lang, dialog
 import clientinfo as client
@@ -17,7 +16,7 @@ import state
 import requests.packages.urllib3
 requests.packages.urllib3.disable_warnings()
 
-log = logging.getLogger("PLEX."+__name__)
+log = getLogger("PLEX."+__name__)
 
 ###############################################################################
 

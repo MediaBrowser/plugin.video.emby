@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 ###############################################################################
-import logging
-import threading
+from logging import getLogger
+from threading import Thread
 
 import xbmc
 import xbmcgui
@@ -19,13 +19,13 @@ import state
 
 ###############################################################################
 
-log = logging.getLogger("PLEX."+__name__)
+log = getLogger("PLEX."+__name__)
 
 ###############################################################################
 
 
 @thread_methods(add_suspends=['SUSPEND_USER_CLIENT'])
-class UserClient(threading.Thread):
+class UserClient(Thread):
 
     # Borg - multiple instances, shared state
     __shared_state = {}
@@ -49,7 +49,7 @@ class UserClient(threading.Thread):
         self.addon = xbmcaddon.Addon()
         self.doUtils = downloadutils.DownloadUtils()
 
-        threading.Thread.__init__(self)
+        Thread.__init__(self)
 
     def getUsername(self):
         """

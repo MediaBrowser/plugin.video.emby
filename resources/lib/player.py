@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
 ###############################################################################
-import logging
-import json
+from logging import getLogger
+from json import loads
 
-import xbmc
+from xbmc import Player, sleep
 
 from utils import window, DateToKodi, getUnixTimestamp, tryDecode, tryEncode
 import downloadutils
@@ -16,12 +16,12 @@ import state
 
 ###############################################################################
 
-LOG = logging.getLogger("PLEX." + __name__)
+LOG = getLogger("PLEX." + __name__)
 
 ###############################################################################
 
 
-class Player(xbmc.Player):
+class PKC_Player(Player):
 
     played_info = state.PLAYED_INFO
     playStats = state.PLAYER_STATES
@@ -29,7 +29,7 @@ class Player(xbmc.Player):
 
     def __init__(self):
         self.doUtils = downloadutils.DownloadUtils
-        xbmc.Player.__init__(self)
+        Player.__init__(self)
         LOG.info("Started playback monitor.")
 
     def onPlayBackStarted(self):
@@ -42,12 +42,12 @@ class Player(xbmc.Player):
         # Get current file (in utf-8!)
         try:
             currentFile = tryDecode(self.getPlayingFile())
-            xbmc.sleep(300)
+            sleep(300)
         except:
             currentFile = ""
             count = 0
             while not currentFile:
-                xbmc.sleep(100)
+                sleep(100)
                 try:
                     currentFile = tryDecode(self.getPlayingFile())
                 except:
@@ -67,7 +67,7 @@ class Player(xbmc.Player):
         itemId = window("plex_%s.itemid" % tryEncode(currentFile))
         count = 0
         while not itemId:
-            xbmc.sleep(200)
+            sleep(200)
             itemId = window("plex_%s.itemid" % tryEncode(currentFile))
             if count == 5:
                 LOG.warn("Could not find itemId, cancelling playback report!")
@@ -142,17 +142,17 @@ class Player(xbmc.Player):
             postdata['AudioStreamIndex'] = indexAudio + 1
             
             # Postdata for the subtitles
-            if subsEnabled and len(xbmc.Player().getAvailableSubtitleStreams()) > 0:
+            if subsEnabled and len(Player().getAvailableSubtitleStreams()) > 0:
                 
                 # Number of audiotracks to help get plex Index
-                audioTracks = len(xbmc.Player().getAvailableAudioStreams())
+                audioTracks = len(Player().getAvailableAudioStreams())
                 mapping = window("%s.indexMapping" % plexitem)
 
                 if mapping: # Set in playbackutils.py
                     
                     LOG.debug("Mapping for external subtitles index: %s"
                               % mapping)
-                    externalIndex = json.loads(mapping)
+                    externalIndex = loads(mapping)
 
                     if externalIndex.get(str(indexSubs)):
                         # If the current subtitle is in the mapping

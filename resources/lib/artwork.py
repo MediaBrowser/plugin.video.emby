@@ -2,11 +2,11 @@
 
 ###############################################################################
 from logging import getLogger
-import requests
+from Queue import Queue, Empty
 from shutil import rmtree
 from urllib import quote_plus, unquote
 from threading import Thread
-from Queue import Queue, Empty
+import requests
 import json_rpc as js
 
 from xbmc import sleep, translatePath

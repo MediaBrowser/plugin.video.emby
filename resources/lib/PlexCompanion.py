@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-import logging
+from logging import getLogger
 from threading import Thread
-import Queue
+from Queue import Queue, Empty
 from socket import SHUT_RDWR
 from urllib import urlencode
 
@@ -19,7 +19,7 @@ import state
 
 ###############################################################################
 
-log = logging.getLogger("PLEX."+__name__)
+log = getLogger("PLEX."+__name__)
 
 ###############################################################################
 
@@ -39,7 +39,7 @@ class PlexCompanion(Thread):
         log.debug("Registration string is:\n%s"
                   % self.client.getClientDetails())
         # kodi player instance
-        self.player = player.Player()
+        self.player = player.PKC_Player()
 
         Thread.__init__(self)
 
@@ -199,7 +199,7 @@ class PlexCompanion(Thread):
         subscriptionManager = subscribers.SubscriptionManager(
             requestMgr, self.player, self.mgr)
 
-        queue = Queue.Queue(maxsize=100)
+        queue = Queue(maxsize=100)
         self.queue = queue
 
         if settings('plexCompanion') == 'true':
@@ -276,7 +276,7 @@ class PlexCompanion(Thread):
             # See if there's anything we need to process
             try:
                 task = queue.get(block=False)
-            except Queue.Empty:
+            except Empty:
                 pass
             else:
                 # Got instructions, process them
