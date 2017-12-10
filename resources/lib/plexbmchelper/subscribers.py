@@ -72,70 +72,62 @@ class SubscriptionManager:
         msg += self.getTimelineXML(players.get(v.KODI_TYPE_VIDEO),
                                    v.PLEX_TYPE_VIDEO)
         msg += "\n</MediaContainer>"
+        log.debug('msg is: %s', msg)
         return msg
 
     def getTimelineXML(self, player, ptype):
         if player is None:
             status = 'stopped'
-            time = 0
         else:
             playerid = player['playerid']
-            info = self.getPlayerProperties(playerid)
+            info = state.PLAYER_STATES[playerid]
             # save this info off so the server update can use it too
-            self.playerprops[playerid] = info
-            status = info['state']
-            time = info['time']
+            # self.playerprops[playerid] = info
+            status = ("paused", "playing")[info['speed']]
         ret = ('\n  <Timeline state="%s" controllable="%s" type="%s" '
                'itemType="%s"' % (status, CONTROLLABLE[ptype], ptype, ptype))
         if player is None:
             ret += ' />'
             return ret
 
-        ret += ' time="%s"' % time
+        ret += ' time="%s"' % kodi_time_to_millis(info['time'])
+        ret += ' duration="%s"' % kodi_time_to_millis(info['totaltime'])
+        ret += ' shuffle="%s"' % ("0", "1")[info['shuffled']]
+        ret += ' repeat="%s"' % v.PLEX_REPEAT_FROM_KODI_REPEAT[info['repeat']]
+        if ptype != v.KODI_TYPE_PHOTO:
+            ret += ' volume="%s"' % info['volume']
+            ret += ' mute="%s"' % ("0", "1")[info['muted']]
         pbmc_server = window('pms_server')
+        server = self.getServerByHost(self.server)
         if pbmc_server:
-            (self.protocol, self.server, self.port) = \
-                pbmc_server.split(':')
+            (self.protocol, self.server, self.port) = pbmc_server.split(':')
             self.server = self.server.replace('/', '')
-        keyid = None
-        count = 0
-        while not keyid:
-            if count > 30:
-                break
-            keyid = window('plex_currently_playing_itemid')
-            sleep(100)
-            count += 1
-        if keyid:
-            self.lastkey = "/library/metadata/%s" % keyid
-            self.ratingkey = keyid
-            ret += ' key="%s"' % self.lastkey
-            ret += ' ratingKey="%s"' % self.ratingkey
-        serv = self.getServerByHost(self.server)
-        if info.get('playQueueID'):
-            self.containerKey = "/playQueues/%s" % info.get('playQueueID')
-            ret += ' playQueueID="%s"' % info.get('playQueueID')
-            ret += ' playQueueVersion="%s"' % info.get('playQueueVersion')
-            ret += ' playQueueItemID="%s"' % info.get('playQueueItemID')
+        if info['plex_id']:
+            self.lastkey = "/library/metadata/%s" % info['plex_id']
+            self.ratingkey = info['plex_id']
+            ret += ' key="/library/metadata/%s"' % info['plex_id']
+            ret += ' ratingKey="%s"' % info['plex_id']
+        # PlayQueue stuff
+        playqueue = self.playqueue.playqueues[playerid]
+        pos = info['position']
+        try:
+            ret += ' playQueueItemID="%s"' % playqueue.items[pos].ID or 'null'
+            self.containerKey = "/playQueues/%s" % playqueue.ID or 'null'
+            ret += ' playQueueID="%s"' % playqueue.ID or 'null'
+            ret += ' playQueueVersion="%s"' % playqueue.version or 'null'
             ret += ' containerKey="%s"' % self.containerKey
-            ret += ' guid="%s"' % info['guid']
-        elif keyid:
-            self.containerKey = self.lastkey
-            ret += ' containerKey="%s"' % self.containerKey
-
-        ret += ' duration="%s"' % info['duration']
-        ret += ' machineIdentifier="%s"' % serv.get('uuid', "")
-        ret += ' protocol="%s"' % serv.get('protocol', "http")
-        ret += ' address="%s"' % serv.get('server', self.server)
-        ret += ' port="%s"' % serv.get('port', self.port)
-        ret += ' volume="%s"' % info['volume']
-        ret += ' shuffle="%s"' % info['shuffle']
-        ret += ' mute="%s"' % info['mute']
-        ret += ' repeat="%s"' % info['repeat']
-        ret += ' itemType="%s"' % ptype
+            ret += ' guid="%s"' % playqueue.items[pos].guid or 'null'
+        except IndexError:
+            pass
+        ret += ' machineIdentifier="%s"' % server.get('uuid', "")
+        ret += ' protocol="%s"' % server.get('protocol', 'http')
+        ret += ' address="%s"' % server.get('server', self.server)
+        ret += ' port="%s"' % server.get('port', self.port)
+        # Temp. token set?
         if state.PLEX_TRANSIENT_TOKEN:
             ret += ' token="%s"' % state.PLEX_TRANSIENT_TOKEN
-        elif info['plex_transient_token']:
-            ret += ' token="%s"' % info['plex_transient_token']
+        elif playqueue.plex_transient_token:
+            ret += ' token="%s"' % playqueue.plex_transient_token
         # Might need an update in the future
         if ptype == 'video':
             ret += ' subtitleStreamID="-1"'
@@ -236,37 +228,26 @@ class SubscriptionManager:
                     del self.subscribers[sub.uuid]
 
     def getPlayerProperties(self, playerid):
+        # Get the playqueue
+        playqueue = self.playqueue.playqueues[playerid]
+        # get info from the player
+        props = state.PLAYER_STATES[playerid]
+        info = {
+            'time': kodi_time_to_millis(props['time']),
+            'duration': kodi_time_to_millis(props['totaltime']),
+            'state': ("paused", "playing")[int(props['speed'])],
+            'shuffle': ("0", "1")[props.get('shuffled', False)],
+            'repeat': v.PLEX_REPEAT_FROM_KODI_REPEAT[props.get('repeat')]
+        }
+        pos = props['position']
         try:
-            # Get the playqueue
-            playqueue = self.playqueue.playqueues[playerid]
-            # get info from the player
-            props = js.get_player_props(playerid)
-            info = {
-                'time': kodi_time_to_millis(props['time']),
-                'duration': kodi_time_to_millis(props['totaltime']),
-                'state': ("paused", "playing")[int(props['speed'])],
-                'shuffle': ("0", "1")[props.get('shuffled', False)],
-                'repeat': pf.getPlexRepeat(props.get('repeat')),
-            }
-            pos = props['position']
-            try:
-                info['playQueueItemID'] = playqueue.items[pos].ID or 'null'
-                info['guid'] = playqueue.items[pos].guid or 'null'
-                info['playQueueID'] = playqueue.ID or 'null'
-                info['playQueueVersion'] = playqueue.version or 'null'
-                info['itemType'] = playqueue.items[pos].plex_type or 'null'
-            except:
-                info['itemType'] = props.get('type') or 'null'
+            info['playQueueItemID'] = playqueue.items[pos].ID or 'null'
+            info['guid'] = playqueue.items[pos].guid or 'null'
+            info['playQueueID'] = playqueue.ID or 'null'
+            info['playQueueVersion'] = playqueue.version or 'null'
+            info['itemType'] = playqueue.items[pos].plex_type or 'null'
         except:
-            import traceback
-            log.error("Traceback:\n%s" % traceback.format_exc())
-            info = {
-                'time': 0,
-                'duration': 0,
-                'state': 'stopped',
-                'shuffle': False,
-                'repeat': 0
-            }
+            info['itemType'] = props.get('type') or 'null'
 
         # get the volume from the application
         info['volume'] = js.get_volume()
@@ -323,5 +304,6 @@ class Subscriber:
         response = self.doUtils(url,
                                 postBody=msg,
                                 action_type="POST")
+        log.debug('response is: %s', response)
         if response in [False, None, 401]:
             self.subMgr.removeSubscriber(self.uuid)

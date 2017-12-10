@@ -13,7 +13,9 @@ from utils import window, settings, CatchExceptions, tryDecode, tryEncode, \
 from PlexFunctions import scrobble
 from kodidb_functions import get_kodiid_from_filename
 from PlexAPI import API
+import json_rpc as js
 import state
+import variables as v
 
 ###############################################################################
 
@@ -178,69 +180,48 @@ class KodiMonitor(Monitor):
 
     def PlayBackStart(self, data):
         """
-        Called whenever a playback is started
+        Called whenever a playback is started. Example data:
+        {
+            u'item': {u'type': u'movie', u'title': u''},
+            u'player': {u'playerid': 1, u'speed': 1}
+        }
         """
-        # Get currently playing file - can take a while. Will be utf-8!
-        try:
-            currentFile = self.xbmcplayer.getPlayingFile()
-        except:
-            currentFile = None
-            count = 0
-            while currentFile is None:
-                sleep(100)
-                try:
-                    currentFile = self.xbmcplayer.getPlayingFile()
-                except:
-                    pass
-                if count == 50:
-                    log.info("No current File, cancel OnPlayBackStart...")
-                    return
-                else:
-                    count += 1
-        # Just to be on the safe side
-        currentFile = tryDecode(currentFile)
-        log.debug("Currently playing file is: %s" % currentFile)
-
+        log.debug('PlayBackStart called with: %s', data)
         # Get the type of media we're playing
         try:
-            typus = data['item']['type']
+            kodi_type = data['item']['type']
+            playerid = data['player']['playerid']
+            json_data = js.get_item(playerid)
         except (TypeError, KeyError):
-            log.info("Item is invalid for PMS playstate update.")
+            log.info('Aborting playback report - item is invalid for updates')
             return
-        log.debug("Playing itemtype is (or appears to be): %s" % typus)
-
-        # Try to get a Kodi ID
-        # If PKC was used - native paths, not direct paths
-        plex_id = window('plex_%s.itemid' % tryEncode(currentFile))
-        # Get rid of the '' if the window property was not set
-        plex_id = None if not plex_id else plex_id
-        kodiid = None
-        if plex_id is None:
-            log.debug('Did not get Plex id from window properties')
-            try:
-                kodiid = data['item']['id']
-            except (TypeError, KeyError):
-                log.debug('Did not get a Kodi id from Kodi, darn')
-        # For direct paths, if we're not streaming something
-        # When using Widgets, Kodi doesn't tell us shit so we need this hack
-        if (kodiid is None and plex_id is None and typus != 'song'
-                and not currentFile.startswith('http')):
-            (kodiid, typus) = get_kodiid_from_filename(currentFile)
-            if kodiid is None:
-                return
-
-        if plex_id is None:
-            # Get Plex' item id
-            with plexdb.Get_Plex_DB() as plexcursor:
-                plex_dbitem = plexcursor.getItem_byKodiId(kodiid, typus)
-            try:
-                plex_id = plex_dbitem[0]
-            except TypeError:
-                log.info("No Plex id returned for kodiid %s. Aborting playback"
-                         " report" % kodiid)
-                return
-        log.debug("Found Plex id %s for Kodi id %s for type %s"
-                  % (plex_id, kodiid, typus))
+        try:
+            kodi_id = json_data['id']
+            kodi_type = json_data['type']
+        except KeyError:
+            log.info('Aborting playback report - no Kodi id for %s', json_data)
+            return
+        # Get Plex' item id
+        with plexdb.Get_Plex_DB() as plex_db:
+            plex_dbitem = plex_db.getItem_byKodiId(kodi_id, kodi_type)
+        try:
+            plex_id = plex_dbitem[0]
+            plex_type = plex_dbitem[2]
+        except TypeError:
+            # No plex id, hence item not in the library. E.g. clips
+            plex_id = None
+            plex_type = None
+        state.PLAYER_STATES[playerid].update(js.get_player_props(playerid))
+        state.PLAYER_STATES[playerid]['file'] = json_data['file']
+        state.PLAYER_STATES[playerid]['kodi_id'] = kodi_id
+        state.PLAYER_STATES[playerid]['kodi_type'] = kodi_type
+        state.PLAYER_STATES[playerid]['plex_id'] = plex_id
+        state.PLAYER_STATES[playerid]['plex_type'] = plex_type
+        log.debug('Set the player state %s', state.PLAYER_STATES[playerid])
+        # Set other stuff like volume
+        state.PLAYER_STATES[playerid]['volume'] = js.get_volume()
+        state.PLAYER_STATES[playerid]['muted'] = js.get_muted()
+        return
 
         # Switch subtitle tracks if applicable
         subtitle = window('plex_%s.subtitle' % tryEncode(currentFile))

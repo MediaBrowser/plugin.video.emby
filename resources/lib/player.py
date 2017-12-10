@@ -37,6 +37,7 @@ class PKC_Player(Player):
         Will be called when xbmc starts playing a file.
         Window values need to have been set in Kodimonitor.py
         """
+        return
         self.stopAll()
 
         # Get current file (in utf-8!)

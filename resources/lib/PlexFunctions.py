@@ -291,15 +291,6 @@ def init_plex_playqueue(itemid, librarySectionUUID, mediatype='movie',
     return xml
 
 
-def getPlexRepeat(kodiRepeat):
-    plexRepeat = {
-        'off': '0',
-        'one': '1',
-        'all': '2'   # does this work?!?
-    }
-    return plexRepeat.get(kodiRepeat)
-
-
 def PMSHttpsEnabled(url):
     """
     Returns True if the PMS can talk https, False otherwise.

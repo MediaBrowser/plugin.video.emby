@@ -360,6 +360,22 @@ def get_episodes(params):
     return ret
 
 
+def get_item(playerid):
+    """
+    Returns the following for the currently playing item:
+    {
+        u'title': u'Okja',
+        u'type': u'movie',
+        u'id': 258,
+        u'file': u'smb://...movie.mkv',
+        u'label': u'Okja'
+    }
+    """
+    return jsonrpc('Player.GetItem').execute({
+        'playerid': playerid,
+        'properties': ['title', 'file']})['result']['item']
+
+
 def get_player_props(playerid):
     """
     Returns a dict for the active Kodi player with the following values:
@@ -367,14 +383,14 @@ def get_player_props(playerid):
         'type'          [str] the Kodi player type, e.g. 'video'
         'time'          The current item's time in Kodi time
         'totaltime'     The current item's total length in Kodi time
-        'speed'         [int] playback speed, defaults to 0
+        'speed'         [int] playback speed, 0 is paused, 1 is playing
         'shuffled'      [bool] True if shuffled
         'repeat'        [str] 'off', 'one', 'all'
         'position'      [int] position in playlist (or -1)
         'playlistid'    [int] the Kodi playlist id (or -1)
     }
     """
-    ret = jsonrpc('Player.GetProperties').execute({
+    return jsonrpc('Player.GetProperties').execute({
         'playerid': playerid,
         'properties': ['type',
                        'time',
@@ -383,8 +399,11 @@ def get_player_props(playerid):
                        'shuffled',
                        'repeat',
                        'position',
-                       'playlistid']})
-    return ret['result']
+                       'playlistid',
+                       'currentvideostream',
+                       'currentaudiostream',
+                       'subtitleenabled',
+                       'currentsubtitle']})['result']
 
 
 def current_audiostream(playerid):
