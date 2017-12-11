@@ -77,30 +77,40 @@ PLEX_TRANSIENT_TOKEN = None
 
 # Kodi player states - here, initial values are set
 PLAYER_STATES = {
-	1: {
-			'type': 'movie',
-			'time': 0,
-			'totaltime': 0,
-			'speed': 0,
-			'shuffled': False,
-			'repeat': '0',
-			'position': -1,
-			'playlistid': -1,
-			'currentvideostream': -1,
-			'currentaudiostream': -1,
-			'subtitleenabled': False,
-			'currentsubtitle': -1,
-			######
-			'file': '',
-			'kodi_id': None,
-			'kodi_type': None,
-			'plex_id': None,
-			'plex_type': None,
-			'volume': 100,
-			'muted': False
+    1: {
+        'type': 'movie',
+        'time':     {
+            'hours': 0,
+            'minutes': 0,
+            'seconds': 0,
+            'milliseconds': 0
         },
-	2: {},
-	3: {}
+        'totaltime': {
+            'hours': 0,
+            'minutes': 0,
+            'seconds': 0,
+            'milliseconds': 0
+        },
+        'speed': 0,
+        'shuffled': False,
+        'repeat': 'off',
+        'position': -1,
+        'playlistid': -1,
+        'currentvideostream': -1,
+        'currentaudiostream': -1,
+        'subtitleenabled': False,
+        'currentsubtitle': -1,
+        ######
+        'file': '',
+        'kodi_id': None,
+        'kodi_type': None,
+        'plex_id': None,
+        'plex_type': None,
+        'volume': 100,
+        'muted': False
+    },
+    2: {},
+    3: {}
 }
 PLAYED_INFO = {}
 
