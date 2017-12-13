@@ -90,7 +90,6 @@ class SubscriptionManager:
     def _get_container_key(self, playerid):
         key = None
         playlistid = state.PLAYER_STATES[playerid]['playlistid']
-        LOG.debug('type: %s, playlistid: %s', type(playlistid), playlistid)
         if playlistid != -1:
             # -1 is Kodi's answer if there is no playlist
             try:
@@ -198,7 +197,8 @@ class SubscriptionManager:
     def _get_pms_params(self, playerid):
         info = state.PLAYER_STATES[playerid]
         status = 'paused' if info['speed'] == '0' else 'playing'
-        params = {'state': status,
+        params = {
+            'state': status,
             'ratingKey': self.ratingkey,
             'key': '/library/metadata/%s' % self.ratingkey,
             'time': kodi_time_to_millis(info['time']),
@@ -208,8 +208,9 @@ class SubscriptionManager:
             params['containerKey'] = self.containerKey
         if self.containerKey is not None and \
                 self.containerKey.startswith('/playQueues/'):
-            params['playQueueVersion'] = info['playQueueVersion']
-            params['playQueueItemID'] = info['playQueueItemID']
+            playqueue = self.playqueue.playqueues[playerid]
+            params['playQueueVersion'] = playqueue.version
+            params['playQueueItemID'] = playqueue.id
         self.last_params = params
         return params
 

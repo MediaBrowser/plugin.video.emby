@@ -17,7 +17,7 @@ from PlexFunctions import init_plex_playqueue
 from PKC_listitem import PKC_ListItem as ListItem, convert_PKC_to_listitem
 from playlist_func import add_item_to_kodi_playlist, \
     get_playlist_details_from_xml, add_listitem_to_Kodi_playlist, \
-    add_listitem_to_playlist, remove_from_kodi_playlist
+    add_listitem_to_playlist, remove_from_kodi_playlist, playlist_item_from_xml
 from pickler import Playback_Successful
 from plexdb_functions import Get_Plex_DB
 import variables as v
@@ -140,6 +140,7 @@ class PlaybackUtils():
                 get_playlist_details_from_xml(playqueue, xml=xml)
             except KeyError:
                 return
+            playqueue.items.append(playlist_item_from_xml(playqueue, xml[0]))
 
             if (not homeScreen and not seektime and sizePlaylist < 2 and
                     window('plex_customplaylist') != "true" and
