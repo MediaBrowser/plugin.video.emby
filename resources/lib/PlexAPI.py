@@ -2690,7 +2690,8 @@ class API():
         plexitem = "plex_%s" % playurl
         window('%s.runtime' % plexitem, value=str(userdata['Runtime']))
         window('%s.type' % plexitem, value=itemtype)
-        window('%s.itemid' % plexitem, value=self.getRatingKey())
+        state.PLEX_IDS[tryDecode(playurl)] = self.getRatingKey()
+        # window('%s.itemid' % plexitem, value=self.getRatingKey())
         window('%s.playcount' % plexitem, value=str(userdata['PlayCount']))
 
         if itemtype == v.PLEX_TYPE_EPISODE:

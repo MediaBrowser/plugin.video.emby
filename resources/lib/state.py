@@ -112,6 +112,9 @@ PLAYER_STATES = {
     2: {},
     3: {}
 }
+# Dict containing all filenames as keys with plex id as values - used for addon
+# paths for playback (since we're not receiving a Kodi id)
+PLEX_IDS = {}
 PLAYED_INFO = {}
 
 # Kodi webserver details

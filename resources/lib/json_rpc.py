@@ -362,6 +362,7 @@ def get_episodes(params):
 
 def get_item(playerid):
     """
+    UNRELIABLE on playback startup! (as other JSON and Python Kodi functions)
     Returns the following for the currently playing item:
     {
         u'title': u'Okja',

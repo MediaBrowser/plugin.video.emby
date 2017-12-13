@@ -11,7 +11,7 @@ import plexdb_functions as plexdb
 from utils import window, settings, CatchExceptions, tryDecode, tryEncode, \
     plex_command
 from PlexFunctions import scrobble
-from kodidb_functions import get_kodiid_from_filename
+from kodidb_functions import kodiid_from_filename
 from PlexAPI import API
 import json_rpc as js
 import state
@@ -185,68 +185,61 @@ class KodiMonitor(Monitor):
             u'item': {u'type': u'movie', u'title': u''},
             u'player': {u'playerid': 1, u'speed': 1}
         }
+        Unfortunately VERY random inputs!
+        E.g. when using Widgets, Kodi doesn't tell us shit
         """
-        log.debug('PlayBackStart called with: %s', data)
         # Get the type of media we're playing
         try:
             kodi_type = data['item']['type']
             playerid = data['player']['playerid']
-            json_data = js.get_item(playerid)
         except (TypeError, KeyError):
-            log.info('Aborting playback report - item is invalid for updates')
+            log.info('Aborting playback report - item invalid for updates %s',
+                     data)
             return
+        json_data = js.get_item(playerid)
+        path = json_data.get('file')
+        kodi_id = json_data.get('id')
+        if not path and not kodi_id:
+            log.info('Aborting playback report - no Kodi id or file for %s',
+                     json_data)
+            return
+        # Plex id will NOT be set with direct paths
+        plex_id = state.PLEX_IDS.get(path)
         try:
-            kodi_id = json_data['id']
-            kodi_type = json_data['type']
+            plex_type = v.PLEX_TYPE_FROM_KODI_TYPE[kodi_type]
         except KeyError:
-            log.info('Aborting playback report - no Kodi id for %s', json_data)
-            return
-        # Get Plex' item id
-        with plexdb.Get_Plex_DB() as plex_db:
-            plex_dbitem = plex_db.getItem_byKodiId(kodi_id, kodi_type)
-        try:
-            plex_id = plex_dbitem[0]
-            plex_type = plex_dbitem[2]
-        except TypeError:
-            # No plex id, hence item not in the library. E.g. clips
-            plex_id = None
             plex_type = None
+        # No Kodi id returned by Kodi, even if there is one. Ex: Widgets
+        if plex_id and not kodi_id:
+            with plexdb.Get_Plex_DB() as plex_db:
+                plex_dbitem = plex_db.getItem_byId(plex_id)
+            try:
+                kodi_id = plex_dbitem[0]
+            except TypeError:
+                kodi_id = None
+        # If using direct paths and starting playback from a widget
+        if not path.startswith('http'):
+            if not kodi_id:
+                kodi_id = kodiid_from_filename(path, kodi_type)
+            if not plex_id and kodi_id:
+                with plexdb.Get_Plex_DB() as plex_db:
+                    plex_dbitem = plex_db.getItem_byKodiId(kodi_id, kodi_type)
+                try:
+                    plex_id = plex_dbitem[0]
+                    plex_type = plex_dbitem[2]
+                except TypeError:
+                    # No plex id, hence item not in the library. E.g. clips
+                    pass
         state.PLAYER_STATES[playerid].update(js.get_player_props(playerid))
         state.PLAYER_STATES[playerid]['file'] = json_data['file']
         state.PLAYER_STATES[playerid]['kodi_id'] = kodi_id
         state.PLAYER_STATES[playerid]['kodi_type'] = kodi_type
         state.PLAYER_STATES[playerid]['plex_id'] = plex_id
         state.PLAYER_STATES[playerid]['plex_type'] = plex_type
-        log.debug('Set the player state %s', state.PLAYER_STATES[playerid])
         # Set other stuff like volume
         state.PLAYER_STATES[playerid]['volume'] = js.get_volume()
         state.PLAYER_STATES[playerid]['muted'] = js.get_muted()
-        return
-
-        # Switch subtitle tracks if applicable
-        subtitle = window('plex_%s.subtitle' % tryEncode(currentFile))
-        if window(tryEncode('plex_%s.playmethod' % currentFile)) \
-                == 'Transcode' and subtitle:
-            if window('plex_%s.subtitle' % currentFile) == 'None':
-                self.xbmcplayer.showSubtitles(False)
-            else:
-                self.xbmcplayer.setSubtitleStream(int(subtitle))
-
-        # Set some stuff if Kodi initiated playback
-        if ((settings('useDirectPaths') == "1" and not typus == "song")
-                or
-                (typus == "song" and settings('enableMusic') == "true")):
-            if self.StartDirectPath(plex_id,
-                                    typus,
-                                    tryEncode(currentFile)) is False:
-                log.error('Could not initiate monitoring; aborting')
-                return
-
-        # Save currentFile for cleanup later and to be able to access refs
-        window('plex_lastPlayedFiled', value=currentFile)
-        window('plex_currently_playing_itemid', value=plex_id)
-        window("plex_%s.itemid" % tryEncode(currentFile), value=plex_id)
-        log.info('Finish playback startup')
+        log.debug('Set the player state: %s', state.PLAYER_STATES[playerid])
 
     def StartDirectPath(self, plex_id, type, currentFile):
         """

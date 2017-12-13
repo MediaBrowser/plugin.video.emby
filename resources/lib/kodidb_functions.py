@@ -808,7 +808,7 @@ class Kodidb_Functions():
             ids.append(row[0])
         return ids
 
-    def getIdFromFilename(self, filename, path):
+    def video_id_from_filename(self, filename, path):
         """
         Returns the tuple (itemId, type) where
             itemId:     Kodi DB unique Id for either movie or episode
@@ -883,6 +883,34 @@ class Kodidb_Functions():
                 log.warn('Unexpectantly did not find a match!')
                 return
         return itemId, typus
+
+    def music_id_from_filename(self, filename, path):
+        """
+        Returns the Kodi song_id from the Kodi music database or None if not
+        found OR something went wrong.
+        """
+        query = '''
+            SELECT idPath
+            FROM path
+            WHERE strPath = ?
+        '''
+        self.cursor.execute(query, (path,))
+        path_id = self.cursor.fetchall()
+        if len(path_id) != 1:
+            log.error('Found wrong number of path ids: %s for path %s, abort',
+                     path_id, path)
+            return
+        query = '''
+            SELECT idSong
+            FROM song
+            WHERE strFileName = ? AND idPath = ?
+        '''
+        self.cursor.execute(query, (filename, path_id[0]))
+        song_id = self.cursor.fetchall()
+        if len(song_id) != 1:
+            log.info('Found wrong number of songs %s, abort', song_id)
+            return
+        return song_id[0]
 
     def getUnplayedItems(self):
         """
@@ -1522,24 +1550,29 @@ class Kodidb_Functions():
         self.cursor.execute(query, (kodi_id, kodi_type))
 
 
-def get_kodiid_from_filename(file):
+def kodiid_from_filename(path, kodi_type):
     """
-    Returns the tuple (kodiid, type) if we have a video in the database with
-    said filename, or (None, None)
+    Returns kodi_id if we have an item in the Kodi video or audio database with
+    said path. Feed with the Kodi itemtype, e.v. 'movie', 'song'
+    Returns None if not possible
     """
-    kodiid = None
-    typus = None
+    kodi_id = None
     try:
-        filename = file.rsplit('/', 1)[1]
-        path = file.rsplit('/', 1)[0] + '/'
+        filename = path.rsplit('/', 1)[1]
+        path = path.rsplit('/', 1)[0] + '/'
     except IndexError:
-        filename = file.rsplit('\\', 1)[1]
-        path = file.rsplit('\\', 1)[0] + '\\'
-    log.debug('Trying to figure out playing item from filename: %s '
-              'and path: %s' % (filename, path))
-    with GetKodiDB('video') as kodi_db:
-        try:
-            kodiid, typus = kodi_db.getIdFromFilename(filename, path)
-        except TypeError:
-            log.info('No kodi video element found with filename %s' % filename)
-    return (kodiid, typus)
+        filename = path.rsplit('\\', 1)[1]
+        path = path.rsplit('\\', 1)[0] + '\\'
+    if kodi_type == v.KODI_TYPE_SONG:
+        with GetKodiDB('music') as kodi_db:
+            try:
+                kodi_id, _ = kodi_db.music_id_from_filename(filename, path)
+            except TypeError:
+                log.info('No Kodi audio db element found for path %s', path)
+    else:
+        with GetKodiDB('video') as kodi_db:
+            try:
+                kodi_id, _ = kodi_db.video_id_from_filename(filename, path)
+            except TypeError:
+                log.info('No kodi video db element found for path %s', path)
+    return kodi_id
