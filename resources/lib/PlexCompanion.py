@@ -157,11 +157,14 @@ class PlexCompanion(Thread):
 
     def run(self):
         """
-        Ensure that sockets will be closed no matter what
+        Ensure that
+        - STOP sent to PMS
+        - sockets will be closed no matter what
         """
         try:
             self._run()
         finally:
+            self.subscription_manager.signal_stop()
             try:
                 self.httpd.socket.shutdown(SHUT_RDWR)
             except AttributeError:
@@ -184,6 +187,7 @@ class PlexCompanion(Thread):
         request_mgr = httppersist.RequestMgr()
         subscription_manager = subscribers.SubscriptionMgr(
             request_mgr, self.player, self.mgr)
+        self.subscription_manager = subscription_manager
         queue = Queue(maxsize=100)
         self.queue = queue
 

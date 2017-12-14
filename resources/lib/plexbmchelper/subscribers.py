@@ -98,6 +98,16 @@ class SubscriptionMgr(object):
         LOG.debug('msg is: %s', msg)
         return msg
 
+    def signal_stop(self):
+        """
+        Externally called on PKC shutdown to ensure that PKC signals a stop to
+        the PMS. Otherwise, PKC might be stuck at "currently playing"
+        """
+        LOG.info('Signaling a complete stop to PMS')
+        for _, player in self.lastplayers.iteritems():
+            self.last_params['state'] = 'stopped'
+            self._send_pms_notification(player['playerid'], self.last_params)
+
     def _get_container_key(self, playerid):
         key = None
         playlistid = state.PLAYER_STATES[playerid]['playlistid']
@@ -233,7 +243,7 @@ class SubscriptionMgr(object):
             except KeyError:
                 pass
         # Process the players we have left (to signal a stop)
-        for typus, player in self.lastplayers.iteritems():
+        for _, player in self.lastplayers.iteritems():
             self.last_params['state'] = 'stopped'
             self._send_pms_notification(player['playerid'], self.last_params)
 
