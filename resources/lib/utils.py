@@ -211,11 +211,13 @@ def kodi_time_to_millis(time):
         'seconds'[int],
         'milliseconds': [int]
     }
-    to milliseconds [int]
+    to milliseconds [int]. Will not return negative results but 0!
     """
-    return (time['hours']*3600 +
-            time['minutes']*60 +
-            time['seconds'])*1000 + time['milliseconds']
+    ret = (time['hours'] * 3600 +
+           time['minutes'] * 60 +
+           time['seconds']) * 1000 + time['milliseconds']
+    ret = 0 if ret < 0 else ret
+    return ret
 
 
 def tryEncode(uniString, encoding='utf-8'):
