@@ -6,7 +6,7 @@ from logging import getLogger
 from re import sub
 from threading import Thread, RLock
 
-import downloadutils
+from downloadutils import DownloadUtils as DU
 from utils import window, kodi_time_to_millis
 import state
 import variables as v
@@ -22,20 +22,22 @@ LOG = getLogger("PLEX." + __name__)
 CONTROLLABLE = {
     v.PLEX_TYPE_PHOTO: 'skipPrevious,skipNext,stop',
     v.PLEX_TYPE_AUDIO: 'playPause,stop,volume,shuffle,repeat,seekTo,'
-        'skipPrevious,skipNext,stepBack,stepForward',
+                       'skipPrevious,skipNext,stepBack,stepForward',
     v.PLEX_TYPE_VIDEO: 'playPause,stop,volume,shuffle,audioStream,'
-        'subtitleStream,seekTo,skipPrevious,skipNext,stepBack,stepForward'
+                       'subtitleStream,seekTo,skipPrevious,skipNext,'
+                       'stepBack,stepForward'
 }
 
-class SubscriptionManager:
+
+class SubscriptionMgr(object):
     """
     Manages Plex companion subscriptions
     """
-    def __init__(self, RequestMgr, player, mgr):
+    def __init__(self, request_mgr, player, mgr):
         self.serverlist = []
         self.subscribers = {}
         self.info = {}
-        self.containerKey = None
+        self.container_key = None
         self.ratingkey = None
         self.server = ""
         self.protocol = "http"
@@ -44,10 +46,9 @@ class SubscriptionManager:
         self.last_params = {}
         self.lastplayers = {}
 
-        self.doUtils = downloadutils.DownloadUtils
         self.xbmcplayer = player
         self.playqueue = mgr.playqueue
-        self.RequestMgr = RequestMgr
+        self.request_mgr = request_mgr
 
     @staticmethod
     def _headers():
@@ -63,7 +64,7 @@ class SubscriptionManager:
             'X-Plex-Protocol': "1.0"
         }
 
-    def getServerByHost(self, host):
+    def _server_by_host(self, host):
         if len(self.serverlist) == 1:
             return self.serverlist[0]
         for server in self.serverlist:
@@ -72,17 +73,17 @@ class SubscriptionManager:
                 return server
         return {}
 
-    def msg(self, players):
+    def _msg(self, players):
         LOG.debug('players: %s', players)
         msg = v.XML_HEADER
         msg += '<MediaContainer size="3" commandID="INSERTCOMMANDID"'
         msg += ' machineIdentifier="%s">\n' % v.PKC_MACHINE_IDENTIFIER
-        msg += self.get_timeline_xml(players.get(v.KODI_TYPE_AUDIO),
-                                     v.PLEX_TYPE_AUDIO)
-        msg += self.get_timeline_xml(players.get(v.KODI_TYPE_PHOTO),
-                                     v.PLEX_TYPE_PHOTO)
-        msg += self.get_timeline_xml(players.get(v.KODI_TYPE_VIDEO),
-                                     v.PLEX_TYPE_VIDEO)
+        msg += self._timeline_xml(players.get(v.KODI_TYPE_AUDIO),
+                                  v.PLEX_TYPE_AUDIO)
+        msg += self._timeline_xml(players.get(v.KODI_TYPE_PHOTO),
+                                  v.PLEX_TYPE_PHOTO)
+        msg += self._timeline_xml(players.get(v.KODI_TYPE_VIDEO),
+                                  v.PLEX_TYPE_VIDEO)
         msg += "</MediaContainer>"
         LOG.debug('msg is: %s', msg)
         return msg
@@ -104,7 +105,7 @@ class SubscriptionManager:
                     state.PLAYER_STATES[playerid]['plex_id']
         return key
 
-    def get_timeline_xml(self, player, ptype):
+    def _timeline_xml(self, player, ptype):
         if player is None:
             return '  <Timeline state="stopped" controllable="%s" type="%s" ' \
                 'itemType="%s" />\n' % (CONTROLLABLE[ptype], ptype, ptype)
@@ -124,7 +125,7 @@ class SubscriptionManager:
             muted = '1' if info['muted'] is True else '0'
             ret += ' mute="%s"' % muted
         pbmc_server = window('pms_server')
-        server = self.getServerByHost(self.server)
+        server = self._server_by_host(self.server)
         if pbmc_server:
             (self.protocol, self.server, self.port) = pbmc_server.split(':')
             self.server = self.server.replace('/', '')
@@ -136,16 +137,16 @@ class SubscriptionManager:
         playqueue = self.playqueue.playqueues[playerid]
         key = self._get_container_key(playerid)
         if key is not None and key.startswith('/playQueues'):
-            self.containerKey = key
-            ret += ' containerKey="%s"' % self.containerKey
+            self.container_key = key
+            ret += ' containerKey="%s"' % self.container_key
             pos = info['position']
             ret += ' playQueueItemID="%s"' % playqueue.items[pos].id or 'null'
             ret += ' playQueueID="%s"' % playqueue.id or 'null'
             ret += ' playQueueVersion="%s"' % playqueue.version or 'null'
             ret += ' guid="%s"' % playqueue.items[pos].guid or 'null'
         elif key:
-            self.containerKey = key
-            ret += ' containerKey="%s"' % self.containerKey
+            self.container_key = key
+            ret += ' containerKey="%s"' % self.container_key
         ret += ' machineIdentifier="%s"' % server.get('uuid', "")
         ret += ' protocol="%s"' % server.get('protocol', 'http')
         ret += ' address="%s"' % server.get('server', self.server)
@@ -162,26 +163,34 @@ class SubscriptionManager:
         ret += '/>\n'
         return ret
 
-    def updateCommandID(self, uuid, commandID):
-        if commandID and self.subscribers.get(uuid, False):
-            self.subscribers[uuid].commandID = int(commandID)
+    def update_command_id(self, uuid, command_id):
+        """
+        Updates the Plex Companien client with the machine identifier uuid with
+        command_id
+        """
+        if command_id and self.subscribers.get(uuid):
+            self.subscribers[uuid].command_id = int(command_id)
 
-    def notify(self, event=False):
-        self.cleanup()
+    def notify(self):
+        """
+        Causes PKC to tell the PMS and Plex Companion players to receive a
+        notification what's being played.
+        """
+        self._cleanup()
         # Do we need a check to NOT tell about e.g. PVR/TV and Addon playback?
         players = js.get_players()
         # fetch the message, subscribers or not, since the server
         # will need the info anyway
-        msg = self.msg(players)
+        msg = self._msg(players)
         if self.subscribers:
             with RLock():
                 for subscriber in self.subscribers.values():
-                    subscriber.send_update(msg, len(players) == 0)
-        self.notifyServer(players)
+                    subscriber.send_update(msg, not players)
+        self._notify_server(players)
         self.lastplayers = players
         return True
 
-    def notifyServer(self, players):
+    def _notify_server(self, players):
         for typus, player in players.iteritems():
             self._send_pms_notification(
                 player['playerid'], self._get_pms_params(player['playerid']))
@@ -204,10 +213,10 @@ class SubscriptionManager:
             'time': kodi_time_to_millis(info['time']),
             'duration': kodi_time_to_millis(info['totaltime'])
         }
-        if self.containerKey:
-            params['containerKey'] = self.containerKey
-        if self.containerKey is not None and \
-                self.containerKey.startswith('/playQueues/'):
+        if self.container_key:
+            params['containerKey'] = self.container_key
+        if self.container_key is not None and \
+                self.container_key.startswith('/playQueues/'):
             playqueue = self.playqueue.playqueues[playerid]
             params['playQueueVersion'] = playqueue.version
             params['playQueueItemID'] = playqueue.id
@@ -215,7 +224,7 @@ class SubscriptionManager:
         return params
 
     def _send_pms_notification(self, playerid, params):
-        serv = self.getServerByHost(self.server)
+        serv = self._server_by_host(self.server)
         xargs = self._headers()
         playqueue = self.playqueue.playqueues[playerid]
         if state.PLEX_TRANSIENT_TOKEN:
@@ -225,32 +234,39 @@ class SubscriptionManager:
         url = '%s://%s:%s/:/timeline' % (serv.get('protocol', 'http'),
                                          serv.get('server', 'localhost'),
                                          serv.get('port', '32400'))
-        self.doUtils().downloadUrl(
-            url, parameters=params, headerOptions=xargs)
+        DU().downloadUrl(url, parameters=params, headerOptions=xargs)
         # Save to be able to signal a stop at the end
         LOG.debug("Sent server notification with parameters: %s to %s",
                   params, url)
 
-    def addSubscriber(self, protocol, host, port, uuid, commandID):
+    def add_subscriber(self, protocol, host, port, uuid, command_id):
+        """
+        Adds a new Plex Companion subscriber to PKC.
+        """
         subscriber = Subscriber(protocol,
                                 host,
                                 port,
                                 uuid,
-                                commandID,
+                                command_id,
                                 self,
-                                self.RequestMgr)
+                                self.request_mgr)
         with RLock():
             self.subscribers[subscriber.uuid] = subscriber
         return subscriber
 
-    def removeSubscriber(self, uuid):
+    def remove_subscriber(self, uuid):
+        """
+        Removes a connected Plex Companion subscriber with machine identifier
+        uuid from PKC notifications.
+        (Calls the cleanup() method of the subscriber)
+        """
         with RLock():
             for subscriber in self.subscribers.values():
                 if subscriber.uuid == uuid or subscriber.host == uuid:
                     subscriber.cleanup()
                     del self.subscribers[subscriber.uuid]
 
-    def cleanup(self):
+    def _cleanup(self):
         with RLock():
             for subscriber in self.subscribers.values():
                 if subscriber.age > 30:
@@ -258,27 +274,35 @@ class SubscriptionManager:
                     del self.subscribers[subscriber.uuid]
 
 
-class Subscriber:
-    def __init__(self, protocol, host, port, uuid, commandID,
-                 subMgr, RequestMgr):
+class Subscriber(object):
+    """
+    Plex Companion subscribing device
+    """
+    def __init__(self, protocol, host, port, uuid, command_id, sub_mgr,
+                 request_mgr):
         self.protocol = protocol or "http"
         self.host = host
         self.port = port or 32400
         self.uuid = uuid or host
-        self.commandID = int(commandID) or 0
+        self.command_id = int(command_id) or 0
         self.navlocationsent = False
         self.age = 0
-        self.doUtils = downloadutils.DownloadUtils
-        self.subMgr = subMgr
-        self.RequestMgr = RequestMgr
+        self.sub_mgr = sub_mgr
+        self.request_mgr = request_mgr
 
     def __eq__(self, other):
         return self.uuid == other.uuid
 
     def cleanup(self):
-        self.RequestMgr.closeConnection(self.protocol, self.host, self.port)
+        """
+        Closes the connection to the Plex Companion client
+        """
+        self.request_mgr.closeConnection(self.protocol, self.host, self.port)
 
     def send_update(self, msg, is_nav):
+        """
+        Sends msg to the Plex Companion client (via .../:/timeline)
+        """
         self.age += 1
         if not is_nav:
             self.navlocationsent = False
@@ -286,21 +310,19 @@ class Subscriber:
             return True
         else:
             self.navlocationsent = True
-        msg = sub(r"INSERTCOMMANDID", str(self.commandID), msg)
+        msg = sub(r"INSERTCOMMANDID", str(self.command_id), msg)
         LOG.debug("sending xml to subscriber uuid=%s,commandID=%i:\n%s",
-                  self.uuid, self.commandID, msg)
+                  self.uuid, self.command_id, msg)
         url = self.protocol + '://' + self.host + ':' + self.port \
             + "/:/timeline"
-        t = Thread(target=self.threadedSend, args=(url, msg))
-        t.start()
+        thread = Thread(target=self._threaded_send, args=(url, msg))
+        thread.start()
 
-    def threadedSend(self, url, msg):
+    def _threaded_send(self, url, msg):
         """
         Threaded POST request, because they stall due to PMS response missing
         the Content-Length header :-(
         """
-        response = self.doUtils().downloadUrl(url,
-                                              postBody=msg,
-                                              action_type="POST")
-        if response in [False, None, 401]:
-            self.subMgr.removeSubscriber(self.uuid)
+        response = DU().downloadUrl(url, postBody=msg, action_type="POST")
+        if response in (False, None, 401):
+            self.sub_mgr.remove_subscriber(self.uuid)

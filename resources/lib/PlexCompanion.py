@@ -1,4 +1,6 @@
-# -*- coding: utf-8 -*-
+"""
+The Plex Companion master python file
+"""
 from logging import getLogger
 from threading import Thread
 from Queue import Queue, Empty
@@ -18,7 +20,7 @@ import state
 
 ###############################################################################
 
-log = getLogger("PLEX."+__name__)
+LOG = getLogger("PLEX." + __name__)
 
 ###############################################################################
 
@@ -26,39 +28,24 @@ log = getLogger("PLEX."+__name__)
 @thread_methods(add_suspends=['PMS_STATUS'])
 class PlexCompanion(Thread):
     """
+    Plex Companion monitoring class. Invoke only once
     """
     def __init__(self, callback=None):
-        log.info("----===## Starting PlexCompanion ##===----")
+        LOG.info("----===## Starting PlexCompanion ##===----")
         if callback is not None:
             self.mgr = callback
         # Start GDM for server/client discovery
         self.client = plexgdm.plexgdm()
         self.client.clientDetails()
-        log.debug("Registration string is:\n%s"
-                  % self.client.getClientDetails())
+        LOG.debug("Registration string is:\n%s",
+                  self.client.getClientDetails())
         # kodi player instance
         self.player = player.PKC_Player()
-
+        self.httpd = False
+        self.queue = None
         Thread.__init__(self)
 
-    def _getStartItem(self, string):
-        """
-        Grabs the Plex id from e.g. '/library/metadata/12987'
-
-        and returns the tuple (typus, id) where typus is either 'queueId' or
-        'plexId' and id is the corresponding id as a string
-        """
-        typus = 'plexId'
-        if string.startswith('/library/metadata'):
-            try:
-                string = string.split('/')[3]
-            except IndexError:
-                string = ''
-        else:
-            log.error('Unknown string! %s' % string)
-        return typus, string
-
-    def processTasks(self, task):
+    def _process_tasks(self, task):
         """
         Processes tasks picked up e.g. by Companion listener, e.g.
         {'action': 'playlist',
@@ -73,7 +60,7 @@ class PlexCompanion(Thread):
                   'token': 'transient-cd2527d1-0484-48e0-a5f7-f5caa7d591bd',
                   'type': 'video'}}
         """
-        log.debug('Processing: %s' % task)
+        LOG.debug('Processing: %s', task)
         data = task['data']
 
         # Get the token of the user flinging media (might be different one)
@@ -84,11 +71,11 @@ class PlexCompanion(Thread):
             try:
                 xml[0].attrib
             except (AttributeError, IndexError, TypeError):
-                log.error('Could not download Plex metadata')
+                LOG.error('Could not download Plex metadata')
                 return
             api = API(xml[0])
             if api.getType() == v.PLEX_TYPE_ALBUM:
-                log.debug('Plex music album detected')
+                LOG.debug('Plex music album detected')
                 queue = self.mgr.playqueue.init_playqueue_from_plex_children(
                     api.getRatingKey())
                 queue.plex_transient_token = token
@@ -120,11 +107,11 @@ class PlexCompanion(Thread):
         elif task['action'] == 'playlist':
             # Get the playqueue ID
             try:
-                typus, ID, query = ParseContainerKey(data['containerKey'])
-            except Exception as e:
-                log.error('Exception while processing: %s' % e)
+                _, plex_id, query = ParseContainerKey(data['containerKey'])
+            except:
+                LOG.error('Exception while processing')
                 import traceback
-                log.error("Traceback:\n%s" % traceback.format_exc())
+                LOG.error("Traceback:\n%s", traceback.format_exc())
                 return
             try:
                 playqueue = self.mgr.playqueue.get_playqueue_from_type(
@@ -136,14 +123,14 @@ class PlexCompanion(Thread):
                 try:
                     xml[0].attrib
                 except (AttributeError, IndexError, TypeError):
-                    log.error('Could not download Plex metadata')
+                    LOG.error('Could not download Plex metadata')
                     return
                 api = API(xml[0])
                 playqueue = self.mgr.playqueue.get_playqueue_from_type(
                     v.KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[api.getType()])
             self.mgr.playqueue.update_playqueue_from_PMS(
                 playqueue,
-                ID,
+                plex_id,
                 repeat=query.get('repeat'),
                 offset=data.get('offset'))
             playqueue.plex_transient_token = token
@@ -154,7 +141,7 @@ class PlexCompanion(Thread):
             if xml is None:
                 return
             if len(xml) == 0:
-                log.debug('Empty playqueue received - clearing playqueue')
+                LOG.debug('Empty playqueue received - clearing playqueue')
                 plex_type = get_plextype_from_xml(xml)
                 if plex_type is None:
                     return
@@ -169,9 +156,11 @@ class PlexCompanion(Thread):
                 data['playQueueID'])
 
     def run(self):
-        # Ensure that sockets will be closed no matter what
+        """
+        Ensure that sockets will be closed no matter what
+        """
         try:
-            self.__run()
+            self._run()
         finally:
             try:
                 self.httpd.socket.shutdown(SHUT_RDWR)
@@ -182,10 +171,9 @@ class PlexCompanion(Thread):
                     self.httpd.socket.close()
                 except AttributeError:
                     pass
-        log.info("----===## Plex Companion stopped ##===----")
+        LOG.info("----===## Plex Companion stopped ##===----")
 
-    def __run(self):
-        self.httpd = False
+    def _run(self):
         httpd = self.httpd
         # Cache for quicker while loops
         client = self.client
@@ -193,10 +181,9 @@ class PlexCompanion(Thread):
         thread_suspended = self.thread_suspended
 
         # Start up instances
-        requestMgr = httppersist.RequestMgr()
-        subscriptionManager = subscribers.SubscriptionManager(
-            requestMgr, self.player, self.mgr)
-
+        request_mgr = httppersist.RequestMgr()
+        subscription_manager = subscribers.SubscriptionMgr(
+            request_mgr, self.player, self.mgr)
         queue = Queue(maxsize=100)
         self.queue = queue
 
@@ -207,33 +194,28 @@ class PlexCompanion(Thread):
                 try:
                     httpd = listener.ThreadedHTTPServer(
                         client,
-                        subscriptionManager,
+                        subscription_manager,
                         queue,
                         ('', v.COMPANION_PORT),
                         listener.MyHandler)
                     httpd.timeout = 0.95
                     break
                 except:
-                    log.error("Unable to start PlexCompanion. Traceback:")
+                    LOG.error("Unable to start PlexCompanion. Traceback:")
                     import traceback
-                    log.error(traceback.print_exc())
-
+                    LOG.error(traceback.print_exc())
                 sleep(3000)
-
                 if start_count == 3:
-                    log.error("Error: Unable to start web helper.")
+                    LOG.error("Error: Unable to start web helper.")
                     httpd = False
                     break
-
                 start_count += 1
         else:
-            log.info('User deactivated Plex Companion')
-
+            LOG.info('User deactivated Plex Companion')
         client.start_all()
-
         message_count = 0
         if httpd:
-            t = Thread(target=httpd.handle_request)
+            thread = Thread(target=httpd.handle_request)
 
         while not thread_stopped():
             # If we are not authorized, sleep
@@ -246,30 +228,30 @@ class PlexCompanion(Thread):
             try:
                 message_count += 1
                 if httpd:
-                    if not t.isAlive():
+                    if not thread.isAlive():
                         # Use threads cause the method will stall
-                        t = Thread(target=httpd.handle_request)
-                        t.start()
+                        thread = Thread(target=httpd.handle_request)
+                        thread.start()
 
                     if message_count == 3000:
                         message_count = 0
                         if client.check_client_registration():
-                            log.debug("Client is still registered")
+                            LOG.debug('Client is still registered')
                         else:
-                            log.debug("Client is no longer registered. "
-                                      "Plex Companion still running on port %s"
-                                      % v.COMPANION_PORT)
+                            LOG.debug('Client is no longer registered. Plex '
+                                      'Companion still running on port %s',
+                                      v.COMPANION_PORT)
                             client.register_as_client()
                 # Get and set servers
                 if message_count % 30 == 0:
-                    subscriptionManager.serverlist = client.getServerList()
-                    subscriptionManager.notify()
+                    subscription_manager.serverlist = client.getServerList()
+                    subscription_manager.notify()
                     if not httpd:
                         message_count = 0
             except:
-                log.warn("Error in loop, continuing anyway. Traceback:")
+                LOG.warn("Error in loop, continuing anyway. Traceback:")
                 import traceback
-                log.warn(traceback.format_exc())
+                LOG.warn(traceback.format_exc())
             # See if there's anything we need to process
             try:
                 task = queue.get(block=False)
@@ -277,10 +259,9 @@ class PlexCompanion(Thread):
                 pass
             else:
                 # Got instructions, process them
-                self.processTasks(task)
+                self._process_tasks(task)
                 queue.task_done()
                 # Don't sleep
                 continue
             sleep(50)
-
         client.stop_all()

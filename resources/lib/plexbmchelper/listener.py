@@ -1,5 +1,7 @@
-# -*- coding: utf-8 -*-
-import logging
+"""
+Plex Companion listener
+"""
+from logging import getLogger
 from re import sub
 from SocketServer import ThreadingMixIn
 from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
@@ -7,40 +9,33 @@ from urlparse import urlparse, parse_qs
 
 from xbmc import sleep
 from companion import process_command
-from utils import window
 import json_rpc as js
 from clientinfo import getXArgsDeviceInfo
 import variables as v
 
 ###############################################################################
 
-log = logging.getLogger("PLEX."+__name__)
+LOG = getLogger("PLEX." + __name__)
 
 ###############################################################################
 
 
 class MyHandler(BaseHTTPRequestHandler):
+    """
+    BaseHTTPRequestHandler implementation of Plex Companion listener
+    """
     protocol_version = 'HTTP/1.1'
 
     def __init__(self, *args, **kwargs):
         BaseHTTPRequestHandler.__init__(self, *args, **kwargs)
         self.serverlist = []
 
-    def getServerByHost(self, host):
-        if len(self.serverlist) == 1:
-            return self.serverlist[0]
-        for server in self.serverlist:
-            if (server.get('serverName') in host or
-                    server.get('server') in host):
-                return server
-        return {}
-
     def do_HEAD(self):
-        log.debug("Serving HEAD request...")
+        LOG.debug("Serving HEAD request...")
         self.answer_request(0)
 
     def do_GET(self):
-        log.debug("Serving GET request...")
+        LOG.debug("Serving GET request...")
         self.answer_request(1)
 
     def do_OPTIONS(self):
@@ -65,7 +60,8 @@ class MyHandler(BaseHTTPRequestHandler):
     def sendOK(self):
         self.send_response(200)
 
-    def response(self, body, headers={}, code=200):
+    def response(self, body, headers=None, code=200):
+        headers = {} if headers is None else headers
         try:
             self.send_response(code)
             for key in headers:
@@ -78,9 +74,9 @@ class MyHandler(BaseHTTPRequestHandler):
         except:
             pass
 
-    def answer_request(self, sendData):
+    def answer_request(self, send_data):
         self.serverlist = self.server.client.getServerList()
-        subMgr = self.server.subscriptionManager
+        sub_mgr = self.server.subscription_manager
 
         try:
             request_path = self.path[1:]
@@ -90,9 +86,9 @@ class MyHandler(BaseHTTPRequestHandler):
             params = {}
             for key in paramarrays:
                 params[key] = paramarrays[key][0]
-            log.debug("remote request_path: %s" % request_path)
-            log.debug("params received from remote: %s" % params)
-            subMgr.updateCommandID(self.headers.get(
+            LOG.debug("remote request_path: %s", request_path)
+            LOG.debug("params received from remote: %s", params)
+            sub_mgr.update_command_id(self.headers.get(
                 'X-Plex-Client-Identifier',
                 self.client_address[0]),
                 params.get('commandID', False))
@@ -123,7 +119,7 @@ class MyHandler(BaseHTTPRequestHandler):
                            v.PKC_MACHINE_IDENTIFIER,
                            v.PLATFORM,
                            v.ADDON_VERSION))
-                log.debug("crafted resources response: %s" % resp)
+                LOG.debug("crafted resources response: %s", resp)
                 self.response(resp, getXArgsDeviceInfo(include_token=False))
             elif "/subscribe" in request_path:
                 self.response(v.COMPANION_OK_MESSAGE,
@@ -132,20 +128,20 @@ class MyHandler(BaseHTTPRequestHandler):
                 host = self.client_address[0]
                 port = params.get('port', False)
                 uuid = self.headers.get('X-Plex-Client-Identifier', "")
-                commandID = params.get('commandID', 0)
-                subMgr.addSubscriber(protocol,
-                                     host,
-                                     port,
-                                     uuid,
-                                     commandID)
+                command_id = params.get('commandID', 0)
+                sub_mgr.add_subscriber(protocol,
+                                       host,
+                                       port,
+                                       uuid,
+                                       command_id)
             elif "/poll" in request_path:
                 if params.get('wait', False) == '1':
                     sleep(950)
-                commandID = params.get('commandID', 0)
+                command_id = params.get('commandID', 0)
                 self.response(
                     sub(r"INSERTCOMMANDID",
-                        str(commandID),
-                        subMgr.msg(js.get_players())),
+                        str(command_id),
+                        sub_mgr.msg(js.get_players())),
                     {
                         'X-Plex-Client-Identifier': v.PKC_MACHINE_IDENTIFIER,
                         'X-Plex-Protocol': '1.0',
@@ -160,29 +156,32 @@ class MyHandler(BaseHTTPRequestHandler):
                               getXArgsDeviceInfo(include_token=False))
                 uuid = self.headers.get('X-Plex-Client-Identifier', False) \
                     or self.client_address[0]
-                subMgr.removeSubscriber(uuid)
+                sub_mgr.remove_subscriber(uuid)
             else:
                 # Throw it to companion.py
                 process_command(request_path, params, self.server.queue)
                 self.response('', getXArgsDeviceInfo(include_token=False))
-                subMgr.notify()
+                sub_mgr.notify()
         except:
-            log.error('Error encountered. Traceback:')
+            LOG.error('Error encountered. Traceback:')
             import traceback
-            log.error(traceback.print_exc())
+            LOG.error(traceback.print_exc())
 
 
 class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
+    """
+    Using ThreadingMixIn Thread magic
+    """
     daemon_threads = True
 
-    def __init__(self, client, subscriptionManager, queue, *args, **kwargs):
+    def __init__(self, client, subscription_manager, queue, *args, **kwargs):
         """
         client: Class handle to plexgdm.plexgdm. We can thus ask for an up-to-
         date serverlist without instantiating anything
 
-        same for SubscriptionManager
+        same for SubscriptionMgr
         """
         self.client = client
-        self.subscriptionManager = subscriptionManager
+        self.subscription_manager = subscription_manager
         self.queue = queue
         HTTPServer.__init__(self, *args, **kwargs)
