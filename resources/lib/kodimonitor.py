@@ -1,15 +1,13 @@
-# -*- coding: utf-8 -*-
-
-###############################################################################
+"""
+PKC Kodi Monitoring implementation
+"""
 from logging import getLogger
 from json import loads
 
 from xbmc import Monitor, Player, sleep
 
-from downloadutils import DownloadUtils
 import plexdb_functions as plexdb
-from utils import window, settings, CatchExceptions, tryDecode, tryEncode, \
-    plex_command
+from utils import window, settings, CatchExceptions, plex_command
 from PlexFunctions import scrobble
 from kodidb_functions import kodiid_from_filename
 from PlexAPI import API
@@ -19,7 +17,7 @@ import variables as v
 
 ###############################################################################
 
-log = getLogger("PLEX."+__name__)
+LOG = getLogger("PLEX." + __name__)
 
 # settings: window-variable
 WINDOW_SETTINGS = {
@@ -48,22 +46,29 @@ STATE_SETTINGS = {
 
 
 class KodiMonitor(Monitor):
-
+    """
+    PKC implementation of the Kodi Monitor class. Invoke only once.
+    """
     def __init__(self, callback):
         self.mgr = callback
-        self.doUtils = DownloadUtils().downloadUrl
         self.xbmcplayer = Player()
         self.playqueue = self.mgr.playqueue
         Monitor.__init__(self)
-        log.info("Kodi monitor started.")
+        LOG.info("Kodi monitor started.")
 
     def onScanStarted(self, library):
-        log.debug("Kodi library scan %s running." % library)
+        """
+        Will be called when Kodi starts scanning the library
+        """
+        LOG.debug("Kodi library scan %s running." % library)
         if library == "video":
             window('plex_kodiScan', value="true")
 
     def onScanFinished(self, library):
-        log.debug("Kodi library scan %s finished." % library)
+        """
+        Will be called when Kodi finished scanning the library
+        """
+        LOG.debug("Kodi library scan %s finished." % library)
         if library == "video":
             window('plex_kodiScan', clear=True)
 
@@ -71,17 +76,17 @@ class KodiMonitor(Monitor):
         """
         Monitor the PKC settings for changes made by the user
         """
-        log.debug('PKC settings change detected')
+        LOG.debug('PKC settings change detected')
         changed = False
         # Reset the window variables from the settings variables
         for settings_value, window_value in WINDOW_SETTINGS.iteritems():
             if window(window_value) != settings(settings_value):
                 changed = True
-                log.debug('PKC window settings changed: %s is now %s'
-                          % (settings_value, settings(settings_value)))
+                LOG.debug('PKC window settings changed: %s is now %s',
+                          settings_value, settings(settings_value))
                 window(window_value, value=settings(settings_value))
                 if settings_value == 'fetch_pms_item_number':
-                    log.info('Requesting playlist/nodes refresh')
+                    LOG.info('Requesting playlist/nodes refresh')
                     plex_command('RUN_LIB_SCAN', 'views')
         # Reset the state variables in state.py
         for settings_value, state_name in STATE_SETTINGS.iteritems():
@@ -92,11 +97,11 @@ class KodiMonitor(Monitor):
                 new = False
             if getattr(state, state_name) != new:
                 changed = True
-                log.debug('PKC state settings %s changed from %s to %s'
-                          % (settings_value, getattr(state, state_name), new))
+                LOG.debug('PKC state settings %s changed from %s to %s',
+                          settings_value, getattr(state, state_name), new)
                 setattr(state, state_name, new)
         # Special cases, overwrite all internal settings
-        state.FULL_SYNC_INTERVALL = int(settings('fullSyncInterval'))*60
+        state.FULL_SYNC_INTERVALL = int(settings('fullSyncInterval')) * 60
         state.BACKGROUNDSYNC_SAFTYMARGIN = int(
             settings('backgroundsync_saftyMargin'))
         state.SYNC_THREAD_NUMBER = int(settings('syncThreadNumber'))
@@ -110,10 +115,12 @@ class KodiMonitor(Monitor):
 
     @CatchExceptions(warnuser=False)
     def onNotification(self, sender, method, data):
-
+        """
+        Called when a bunch of different stuff happens on the Kodi side
+        """
         if data:
             data = loads(data, 'utf-8')
-            log.debug("Method: %s Data: %s" % (method, data))
+            LOG.debug("Method: %s Data: %s", method, data)
 
         if method == "Player.OnPlay":
             self.PlayBackStart(data)
@@ -132,7 +139,7 @@ class KodiMonitor(Monitor):
                 kodiid = item['id']
                 item_type = item['type']
             except (KeyError, TypeError):
-                log.info("Item is invalid for playstate update.")
+                LOG.info("Item is invalid for playstate update.")
             else:
                 # Send notification to the server.
                 with plexdb.Get_Plex_DB() as plexcur:
@@ -140,7 +147,7 @@ class KodiMonitor(Monitor):
                 try:
                     itemid = plex_dbitem[0]
                 except TypeError:
-                    log.error("Could not find itemid in plex database for a "
+                    LOG.error("Could not find itemid in plex database for a "
                               "video library update")
                 else:
                     # Stop from manually marking as watched unwatched, with
@@ -160,7 +167,7 @@ class KodiMonitor(Monitor):
 
         elif method == "System.OnSleep":
             # Connection is going to sleep
-            log.info("Marking the server as offline. SystemOnSleep activated.")
+            LOG.info("Marking the server as offline. SystemOnSleep activated.")
             window('plex_online', value="sleep")
 
         elif method == "System.OnWake":
@@ -175,12 +182,12 @@ class KodiMonitor(Monitor):
                 plex_command('RUN_LIB_SCAN', 'full')
 
         elif method == "System.OnQuit":
-            log.info('Kodi OnQuit detected - shutting down')
+            LOG.info('Kodi OnQuit detected - shutting down')
             state.STOP_PKC = True
 
     def PlayBackStart(self, data):
         """
-        Called whenever a playback is started. Example data:
+        Called whenever playback is started. Example data:
         {
             u'item': {u'type': u'movie', u'title': u''},
             u'player': {u'playerid': 1, u'speed': 1}
@@ -193,14 +200,14 @@ class KodiMonitor(Monitor):
             kodi_type = data['item']['type']
             playerid = data['player']['playerid']
         except (TypeError, KeyError):
-            log.info('Aborting playback report - item invalid for updates %s',
+            LOG.info('Aborting playback report - item invalid for updates %s',
                      data)
             return
         json_data = js.get_item(playerid)
         path = json_data.get('file')
         kodi_id = json_data.get('id')
         if not path and not kodi_id:
-            log.info('Aborting playback report - no Kodi id or file for %s',
+            LOG.info('Aborting playback report - no Kodi id or file for %s',
                      json_data)
             return
         # Plex id will NOT be set with direct paths
@@ -239,7 +246,7 @@ class KodiMonitor(Monitor):
         # Set other stuff like volume
         state.PLAYER_STATES[playerid]['volume'] = js.get_volume()
         state.PLAYER_STATES[playerid]['muted'] = js.get_muted()
-        log.debug('Set the player state: %s', state.PLAYER_STATES[playerid])
+        LOG.debug('Set the player state: %s', state.PLAYER_STATES[playerid])
 
     def StartDirectPath(self, plex_id, type, currentFile):
         """
@@ -249,7 +256,7 @@ class KodiMonitor(Monitor):
         try:
             xml[0].attrib
         except:
-            log.error('Did not receive a valid XML for plex_id %s.' % plex_id)
+            LOG.error('Did not receive a valid XML for plex_id %s.' % plex_id)
             return False
         # Setup stuff, because playback was started by Kodi, not PKC
         api = API(xml[0])
@@ -259,4 +266,4 @@ class KodiMonitor(Monitor):
             window('plex_%s.playmethod' % currentFile, value="DirectStream")
         else:
             window('plex_%s.playmethod' % currentFile, value="DirectPlay")
-        log.debug('Window properties set for direct paths!')
+        LOG.debug('Window properties set for direct paths!')

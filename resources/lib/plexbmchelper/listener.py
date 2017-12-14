@@ -99,7 +99,7 @@ class MyHandler(BaseHTTPRequestHandler):
             elif request_path == "verify":
                 self.response("XBMC JSON connection test:\n" +
                               js.ping())
-            elif "resources" == request_path:
+            elif request_path == 'resources':
                 resp = ('%s'
                         '<MediaContainer>'
                         '<Player'
@@ -121,19 +121,6 @@ class MyHandler(BaseHTTPRequestHandler):
                            v.ADDON_VERSION))
                 LOG.debug("crafted resources response: %s", resp)
                 self.response(resp, getXArgsDeviceInfo(include_token=False))
-            elif "/subscribe" in request_path:
-                self.response(v.COMPANION_OK_MESSAGE,
-                              getXArgsDeviceInfo(include_token=False))
-                protocol = params.get('protocol', False)
-                host = self.client_address[0]
-                port = params.get('port', False)
-                uuid = self.headers.get('X-Plex-Client-Identifier', "")
-                command_id = params.get('commandID', 0)
-                sub_mgr.add_subscriber(protocol,
-                                       host,
-                                       port,
-                                       uuid,
-                                       command_id)
             elif "/poll" in request_path:
                 if params.get('wait', False) == '1':
                     sleep(950)
@@ -151,6 +138,19 @@ class MyHandler(BaseHTTPRequestHandler):
                             'X-Plex-Client-Identifier',
                         'Content-Type': 'text/xml;charset=utf-8'
                     })
+            elif "/subscribe" in request_path:
+                self.response(v.COMPANION_OK_MESSAGE,
+                              getXArgsDeviceInfo(include_token=False))
+                protocol = params.get('protocol', False)
+                host = self.client_address[0]
+                port = params.get('port', False)
+                uuid = self.headers.get('X-Plex-Client-Identifier', "")
+                command_id = params.get('commandID', 0)
+                sub_mgr.add_subscriber(protocol,
+                                       host,
+                                       port,
+                                       uuid,
+                                       command_id)
             elif "/unsubscribe" in request_path:
                 self.response(v.COMPANION_OK_MESSAGE,
                               getXArgsDeviceInfo(include_token=False))
