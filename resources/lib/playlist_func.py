@@ -12,6 +12,7 @@ from utils import tryEncode, escape_html
 from PlexAPI import API
 from PlexFunctions import GetPlexMetadata
 import json_rpc as js
+import variables as v
 
 ###############################################################################
 
@@ -147,6 +148,23 @@ class Playlist_Item(object):
                 # e.g. int
                 answ += '%s: %s, ' % (key, str(getattr(self, key)))
         return answ[:-2] + ">"
+
+    def plex_stream_index(self, kodi_stream_index, stream_type):
+        """
+        Pass in the kodi_stream_index [int] in order to receive the Plex stream
+        index.
+
+            stream_type:    'video', 'audio', 'subtitle'
+
+        Returns None if unsuccessful
+        """
+        stream_type = v.PLEX_STREAM_TYPE_FROM_STREAM_TYPE[stream_type]
+        count = 0
+        for stream in self.xml[0][self.part]:
+            if stream.attrib['streamType'] == stream_type:
+                if count == kodi_stream_index:
+                    return stream.attrib['id']
+                count += 1
 
 
 def playlist_item_from_kodi(kodi_item):

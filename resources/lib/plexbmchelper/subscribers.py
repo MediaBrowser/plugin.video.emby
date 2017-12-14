@@ -28,6 +28,12 @@ CONTROLLABLE = {
                        'stepBack,stepForward'
 }
 
+STREAM_DETAILS = {
+    'video': 'currentvideostream',
+    'audio': 'currentaudiostream',
+    'subtitle': 'currentsubtitle'
+}
+
 
 class SubscriptionMgr(object):
     """
@@ -73,7 +79,11 @@ class SubscriptionMgr(object):
                 return server
         return {}
 
-    def _msg(self, players):
+    def msg(self, players):
+        """
+        Returns a timeline xml as str
+        (xml containing video, audio, photo player state)
+        """
         LOG.debug('players: %s', players)
         msg = v.XML_HEADER
         msg += '<MediaContainer size="3" commandID="INSERTCOMMANDID"'
@@ -105,6 +115,17 @@ class SubscriptionMgr(object):
                     state.PLAYER_STATES[playerid]['plex_id']
         return key
 
+    def _kodi_stream_index(self, playerid, stream_type): 
+        """
+        Returns the current Kodi stream index [int] for the player playerid
+
+        stream_type: 'video', 'audio', 'subtitle'
+        """
+        playqueue = self.playqueue.playqueues[playerid]
+        info = state.PLAYER_STATES[playerid]
+        return playqueue.items[info['position']].plex_stream_index(
+            info[STREAM_DETAILS[stream_type]]['index'], stream_type)
+
     def _timeline_xml(self, player, ptype):
         if player is None:
             return '  <Timeline state="stopped" controllable="%s" type="%s" ' \
@@ -135,11 +156,11 @@ class SubscriptionMgr(object):
             ret += ' ratingKey="%s"' % info['plex_id']
         # PlayQueue stuff
         playqueue = self.playqueue.playqueues[playerid]
+        pos = info['position']
         key = self._get_container_key(playerid)
         if key is not None and key.startswith('/playQueues'):
             self.container_key = key
             ret += ' containerKey="%s"' % self.container_key
-            pos = info['position']
             ret += ' playQueueItemID="%s"' % playqueue.items[pos].id or 'null'
             ret += ' playQueueID="%s"' % playqueue.id or 'null'
             ret += ' playQueueVersion="%s"' % playqueue.version or 'null'
@@ -157,9 +178,21 @@ class SubscriptionMgr(object):
         elif playqueue.plex_transient_token:
             ret += ' token="%s"' % playqueue.plex_transient_token
         # Might need an update in the future
-        if ptype == 'video':
-            ret += ' subtitleStreamID="-1"'
-            ret += ' audioStreamID="-1"'
+        if ptype != v.KODI_TYPE_PHOTO:
+            strm_id = self._kodi_stream_index(playerid, 'audio')
+            if strm_id is not None:
+                ret += ' audioStreamID="%s"' % strm_id
+            else:
+                LOG.error('We could not select a Plex audiostream')
+        if ptype == v.KODI_TYPE_VIDEO and info['subtitleenabled']:
+            try:
+                strm_id = self._kodi_stream_index(playerid, 'subtitle')
+            except KeyError:
+                # subtitleenabled can be True while currentsubtitle can be {}
+                strm_id = None
+            if strm_id is not None:
+                # If None, then the subtitle is only present on Kodi side
+                ret += ' subtitleStreamID="%s"' % strm_id
         ret += '/>\n'
         return ret
 
@@ -181,7 +214,7 @@ class SubscriptionMgr(object):
         players = js.get_players()
         # fetch the message, subscribers or not, since the server
         # will need the info anyway
-        msg = self._msg(players)
+        msg = self.msg(players)
         if self.subscribers:
             with RLock():
                 for subscriber in self.subscribers.values():

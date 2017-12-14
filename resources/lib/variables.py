@@ -405,3 +405,10 @@ PLEX_REPEAT_FROM_KODI_REPEAT = {
     'one': '1',
     'all': '2'   # does this work?!?
 }
+
+# Stream in PMS xml contains a streamType to distinguish the kind of stream
+PLEX_STREAM_TYPE_FROM_STREAM_TYPE = {
+    'video': '1',
+    'audio': '2',
+    'subtitle': '3'
+}
