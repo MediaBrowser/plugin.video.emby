@@ -407,19 +407,6 @@ def get_player_props(playerid):
                        'currentsubtitle']})['result']
 
 
-def current_state(playerid):
-    """
-    Returns a dict for the active Kodi player with the following values:
-    (values that change from second to second with no monitoring possible)
-    {
-        'time'          The current item's time in Kodi time
-    }
-    """
-    return jsonrpc('Player.GetProperties').execute({
-        'playerid': playerid,
-        'properties': ['time']})['result']
-
-
 def current_audiostream(playerid):
     """
     Returns a dict of the active audiostream for playerid [int]:

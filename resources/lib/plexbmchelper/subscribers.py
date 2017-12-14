@@ -115,16 +115,6 @@ class SubscriptionMgr(object):
                     state.PLAYER_STATES[playerid]['plex_id']
         return key
 
-    def _set_current_details(self, playerid):
-        """
-        Sets the current details for the player with playerid in state.py:
-
-        PLAYER_STATES[playerid]{
-            'time'
-        }
-        """
-        state.PLAYER_STATES[playerid].update(js.current_state(playerid))
-
     def _kodi_stream_index(self, playerid, stream_type): 
         """
         Returns the current Kodi stream index [int] for the player playerid
@@ -141,7 +131,7 @@ class SubscriptionMgr(object):
             return '  <Timeline state="stopped" controllable="%s" type="%s" ' \
                 'itemType="%s" />\n' % (CONTROLLABLE[ptype], ptype, ptype)
         playerid = player['playerid']
-        self._set_current_details(playerid)
+        state.PLAYER_STATES[playerid].update(js.get_player_props(playerid))
         info = state.PLAYER_STATES[playerid]
         status = 'paused' if info['speed'] == '0' else 'playing'
         ret = '  <Timeline state="%s"' % status
