@@ -141,7 +141,11 @@ class SubscriptionMgr(object):
             return '  <Timeline state="stopped" controllable="%s" type="%s" ' \
                 'itemType="%s" />\n' % (CONTROLLABLE[ptype], ptype, ptype)
         playerid = player['playerid']
+        # Update our PKC state of how the player actually looks like
         state.PLAYER_STATES[playerid].update(js.get_player_props(playerid))
+        state.PLAYER_STATES[playerid]['volume'] = js.get_volume()
+        state.PLAYER_STATES[playerid]['muted'] = js.get_muted()
+        # Get the message together to send to Plex
         info = state.PLAYER_STATES[playerid]
         status = 'paused' if info['speed'] == '0' else 'playing'
         ret = '  <Timeline state="%s"' % status
