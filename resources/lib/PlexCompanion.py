@@ -14,6 +14,7 @@ from plexbmchelper import listener, plexgdm, subscribers, httppersist
 from PlexFunctions import ParseContainerKey, GetPlexMetadata
 from PlexAPI import API
 from playlist_func import get_pms_playqueue, get_plextype_from_xml
+import json_rpc as js
 import player
 import variables as v
 import state
@@ -154,6 +155,25 @@ class PlexCompanion(Thread):
             self.mgr.playqueue.update_playqueue_from_PMS(
                 playqueue,
                 data['playQueueID'])
+
+        elif task['action'] == 'setStreams':
+            # Plex Companion client adjusted audio or subtitle stream
+            playqueue = self.mgr.playqueue.get_playqueue_from_type(
+                v.KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[data['type']])
+            pos = js.get_position(playqueue.playlistid)
+            if 'audioStreamID' in data:
+                index = playqueue.items[pos].kodi_stream_index(
+                    data['audioStreamID'], 'audio')
+                self.player.setAudioStream(index)
+            elif 'subtitleStreamID' in data:
+                if data['subtitleStreamID'] == '0':
+                    self.player.showSubtitles(False)
+                else:
+                    index = playqueue.items[pos].kodi_stream_index(
+                        data['subtitleStreamID'], 'subtitle')
+                    self.player.setSubtitleStream(index)
+            else:
+                LOG.error('Unknown setStreams command: %s', task)
 
     def run(self):
         """

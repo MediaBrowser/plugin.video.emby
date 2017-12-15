@@ -107,5 +107,10 @@ def process_command(request_path, params, queue=None):
         js.input_home()
     elif request_path == "player/navigation/back":
         js.input_back()
+    elif request_path == "player/playback/setStreams":
+        queue.put({
+            'action': 'setStreams',
+            'data': params
+        })
     else:
         LOG.error('Unknown request path: %s', request_path)

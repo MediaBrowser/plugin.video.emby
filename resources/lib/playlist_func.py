@@ -166,6 +166,23 @@ class Playlist_Item(object):
                     return stream.attrib['id']
                 count += 1
 
+    def kodi_stream_index(self, plex_stream_index, stream_type):
+        """
+        Pass in the kodi_stream_index [int] in order to receive the Plex stream
+        index.
+
+            stream_type:    'video', 'audio', 'subtitle'
+
+        Returns None if unsuccessful
+        """
+        stream_type = v.PLEX_STREAM_TYPE_FROM_STREAM_TYPE[stream_type]
+        count = 0
+        for stream in self.xml[0][self.part]:
+            if stream.attrib['streamType'] == stream_type:
+                if stream.attrib['id'] == plex_stream_index:
+                    return count
+                count += 1
+
 
 def playlist_item_from_kodi(kodi_item):
     """

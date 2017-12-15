@@ -50,9 +50,8 @@ def get_players():
         'picture': ...
     }
     """
-    info = JsonRPC("Player.GetActivePlayers").execute()['result']
     ret = {}
-    for player in info:
+    for player in JsonRPC("Player.GetActivePlayers").execute()['result']:
         player['playerid'] = int(player['playerid'])
         ret[player['type']] = player
     return ret
@@ -403,6 +402,15 @@ def get_player_props(playerid):
                        'currentaudiostream',
                        'subtitleenabled',
                        'currentsubtitle']})['result']
+
+
+def get_position(playerid):
+    """
+    Returns the currently playing item's position [int] within the playlist
+    """
+    return JsonRPC('Player.GetProperties').execute({
+        'playerid': playerid,
+        'properties': ['position']})['result']['position']
 
 
 def current_audiostream(playerid):
