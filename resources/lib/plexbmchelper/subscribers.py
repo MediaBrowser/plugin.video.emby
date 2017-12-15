@@ -84,7 +84,6 @@ class SubscriptionMgr(object):
         Returns a timeline xml as str
         (xml containing video, audio, photo player state)
         """
-        LOG.debug('players: %s', players)
         msg = v.XML_HEADER
         msg += '<MediaContainer size="3" commandID="INSERTCOMMANDID"'
         msg += ' machineIdentifier="%s">\n' % v.PKC_MACHINE_IDENTIFIER
@@ -148,6 +147,7 @@ class SubscriptionMgr(object):
         state.PLAYER_STATES[playerid]['muted'] = js.get_muted()
         # Get the message together to send to Plex
         info = state.PLAYER_STATES[playerid]
+        LOG.debug('timeline player state: %s', info)
         status = 'paused' if info['speed'] == '0' else 'playing'
         ret = '  <Timeline state="%s"' % status
         ret += ' controllable="%s"' % CONTROLLABLE[ptype]
