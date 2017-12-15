@@ -104,9 +104,10 @@ class SubscriptionMgr(object):
         the PMS. Otherwise, PKC might be stuck at "currently playing"
         """
         LOG.info('Signaling a complete stop to PMS')
-        for _, player in self.lastplayers.iteritems():
+        # To avoid RuntimeError, don't use self.lastplayers
+        for playerid in (0, 1, 2):
             self.last_params['state'] = 'stopped'
-            self._send_pms_notification(player['playerid'], self.last_params)
+            self._send_pms_notification(playerid, self.last_params)
 
     def _get_container_key(self, playerid):
         key = None
