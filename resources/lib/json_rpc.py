@@ -2,32 +2,30 @@
 Collection of functions using the Kodi JSON RPC interface.
 See http://kodi.wiki/view/JSON-RPC_API
 """
-from logging import getLogger
 from json import loads, dumps
 from utils import millis_to_kodi_time
 from xbmc import executeJSONRPC
 
-log = getLogger("PLEX."+__name__)
 
-
-class jsonrpc(object):
+class JsonRPC(object):
     """
     Used for all Kodi JSON RPC calls.
     """
     id_ = 1
-    jsonrpc = "2.0"
+    version = "2.0"
 
     def __init__(self, method, **kwargs):
         """
-        Initialize with the Kodi method
+        Initialize with the Kodi method, e.g. 'Player.GetActivePlayers'
         """
         self.method = method
-        for arg in kwargs:  # id_(int), jsonrpc(str)
+        self.params = None
+        for arg in kwargs:
             self.arg = arg
 
     def _query(self):
         query = {
-            'jsonrpc': self.jsonrpc,
+            'jsonrpc': self.version,
             'id': self.id_,
             'method': self.method,
         }
@@ -52,7 +50,7 @@ def get_players():
         'picture': ...
     }
     """
-    info = jsonrpc("Player.GetActivePlayers").execute()['result']
+    info = JsonRPC("Player.GetActivePlayers").execute()['result']
     ret = {}
     for player in info:
         player['playerid'] = int(player['playerid'])
@@ -92,7 +90,7 @@ def get_playlists():
         ]
     """
     try:
-        ret = jsonrpc('Playlist.GetPlaylists').execute()['result']
+        ret = JsonRPC('Playlist.GetPlaylists').execute()['result']
     except KeyError:
         ret = []
     return ret
@@ -102,7 +100,7 @@ def get_volume():
     """
     Returns the Kodi volume as an int between 0 (min) and 100 (max)
     """
-    return jsonrpc('Application.GetProperties').execute(
+    return JsonRPC('Application.GetProperties').execute(
         {"properties": ['volume']})['result']['volume']
 
 
@@ -111,14 +109,14 @@ def set_volume(volume):
     Set's the volume (for Kodi overall, not only a player).
     Feed with an int
     """
-    return jsonrpc('Application.SetVolume').execute({"volume": volume})
+    return JsonRPC('Application.SetVolume').execute({"volume": volume})
 
 
 def get_muted():
     """
     Returns True if Kodi is muted, False otherwise
     """
-    return jsonrpc('Application.GetProperties').execute(
+    return JsonRPC('Application.GetProperties').execute(
         {"properties": ['muted']})['result']['muted']
 
 
@@ -127,7 +125,7 @@ def play():
     Toggles all Kodi players to play
     """
     for playerid in get_player_ids():
-        jsonrpc("Player.PlayPause").execute({"playerid": playerid,
+        JsonRPC("Player.PlayPause").execute({"playerid": playerid,
                                              "play": True})
 
 
@@ -136,7 +134,7 @@ def pause():
     Pauses playback for all Kodi players
     """
     for playerid in get_player_ids():
-        jsonrpc("Player.PlayPause").execute({"playerid": playerid,
+        JsonRPC("Player.PlayPause").execute({"playerid": playerid,
                                              "play": False})
 
 
@@ -145,7 +143,7 @@ def stop():
     Stops playback for all Kodi players
     """
     for playerid in get_player_ids():
-        jsonrpc("Player.Stop").execute({"playerid": playerid})
+        JsonRPC("Player.Stop").execute({"playerid": playerid})
 
 
 def seek_to(offset):
@@ -153,7 +151,7 @@ def seek_to(offset):
     Seeks all Kodi players to offset [int]
     """
     for playerid in get_player_ids():
-        jsonrpc("Player.Seek").execute(
+        JsonRPC("Player.Seek").execute(
             {"playerid": playerid,
              "value": millis_to_kodi_time(offset)})
 
@@ -163,7 +161,7 @@ def smallforward():
     Small step forward for all Kodi players
     """
     for playerid in get_player_ids():
-        jsonrpc("Player.Seek").execute({"playerid": playerid,
+        JsonRPC("Player.Seek").execute({"playerid": playerid,
                                         "value": "smallforward"})
 
 
@@ -172,7 +170,7 @@ def smallbackward():
     Small step backward for all Kodi players
     """
     for playerid in get_player_ids():
-        jsonrpc("Player.Seek").execute({"playerid": playerid,
+        JsonRPC("Player.Seek").execute({"playerid": playerid,
                                         "value": "smallbackward"})
 
 
@@ -181,7 +179,7 @@ def skipnext():
     Skips to the next item to play for all Kodi players
     """
     for playerid in get_player_ids():
-        jsonrpc("Player.GoTo").execute({"playerid": playerid,
+        JsonRPC("Player.GoTo").execute({"playerid": playerid,
                                         "to": "next"})
 
 
@@ -190,7 +188,7 @@ def skipprevious():
     Skips to the previous item to play for all Kodi players
     """
     for playerid in get_player_ids():
-        jsonrpc("Player.GoTo").execute({"playerid": playerid,
+        JsonRPC("Player.GoTo").execute({"playerid": playerid,
                                         "to": "previous"})
 
 
@@ -198,56 +196,56 @@ def input_up():
     """
     Tells Kodi the user pushed up
     """
-    return jsonrpc("Input.Up").execute()
+    return JsonRPC("Input.Up").execute()
 
 
 def input_down():
     """
     Tells Kodi the user pushed down
     """
-    return jsonrpc("Input.Down").execute()
+    return JsonRPC("Input.Down").execute()
 
 
 def input_left():
     """
     Tells Kodi the user pushed left
     """
-    return jsonrpc("Input.Left").execute()
+    return JsonRPC("Input.Left").execute()
 
 
 def input_right():
     """
     Tells Kodi the user pushed left
     """
-    return jsonrpc("Input.Right").execute()
+    return JsonRPC("Input.Right").execute()
 
 
 def input_select():
     """
     Tells Kodi the user pushed select
     """
-    return jsonrpc("Input.Select").execute()
+    return JsonRPC("Input.Select").execute()
 
 
 def input_home():
     """
     Tells Kodi the user pushed home
     """
-    return jsonrpc("Input.Home").execute()
+    return JsonRPC("Input.Home").execute()
 
 
 def input_back():
     """
     Tells Kodi the user pushed back
     """
-    return jsonrpc("Input.Back").execute()
+    return JsonRPC("Input.Back").execute()
 
 
 def input_sendtext(text):
     """
     Tells Kodi the user sent text [unicode]
     """
-    return jsonrpc("Input.SendText").execute({'test': text, 'done': False})
+    return JsonRPC("Input.SendText").execute({'test': text, 'done': False})
 
 
 def playlist_get_items(playlistid, properties):
@@ -261,7 +259,7 @@ def playlist_get_items(playlistid, properties):
     [{u'title': u'3 Idiots', u'type': u'movie', u'id': 3, u'file':
     u'smb://nas/PlexMovies/3 Idiots 2009 pt1.mkv', u'label': u'3 Idiots'}]
     """
-    reply = jsonrpc('Playlist.GetItems').execute({
+    reply = JsonRPC('Playlist.GetItems').execute({
         'playlistid': playlistid,
         'properties': properties
     })
@@ -282,7 +280,7 @@ def playlist_add(playlistid, item):
 
     Returns a dict with the key 'error' if unsuccessful.
     """
-    return jsonrpc('Playlist.Add').execute({'playlistid': playlistid,
+    return JsonRPC('Playlist.Add').execute({'playlistid': playlistid,
                                             'item': item})
 
 
@@ -301,7 +299,7 @@ def playlist_insert(params):
             {kodi_type: kodi_id}
     Returns a dict with the key 'error' if something went wrong.
     """
-    return jsonrpc('Playlist.Insert').execute(params)
+    return JsonRPC('Playlist.Insert').execute(params)
 
 
 def playlist_remove(playlistid, position):
@@ -311,7 +309,7 @@ def playlist_remove(playlistid, position):
 
     Returns a dict with the key 'error' if something went wrong.
     """
-    return jsonrpc('Playlist.Remove').execute({'playlistid': playlistid,
+    return JsonRPC('Playlist.Remove').execute({'playlistid': playlistid,
                                                'position': position})
 
 
@@ -321,7 +319,7 @@ def get_setting(setting):
     possible
     """
     try:
-        ret = jsonrpc('Settings.GetSettingValue').execute(
+        ret = JsonRPC('Settings.GetSettingValue').execute(
             {'setting': setting})['result']['value']
     except (KeyError, TypeError):
         ret = None
@@ -332,7 +330,7 @@ def set_setting(setting, value):
     """
     Sets the Kodi setting, a [str], to value
     """
-    return jsonrpc('Settings.SetSettingValue').execute(
+    return JsonRPC('Settings.SetSettingValue').execute(
         {'setting': setting, 'value': value})
 
 
@@ -340,7 +338,7 @@ def get_tv_shows(params):
     """
     Returns a list of tv shows for params (check the Kodi wiki)
     """
-    ret = jsonrpc('VideoLibrary.GetTVShows').execute(params)
+    ret = JsonRPC('VideoLibrary.GetTVShows').execute(params)
     try:
         ret['result']['tvshows']
     except (KeyError, TypeError):
@@ -352,7 +350,7 @@ def get_episodes(params):
     """
     Returns a list of tv show episodes for params (check the Kodi wiki)
     """
-    ret = jsonrpc('VideoLibrary.GetEpisodes').execute(params)
+    ret = JsonRPC('VideoLibrary.GetEpisodes').execute(params)
     try:
         ret['result']['episodes']
     except (KeyError, TypeError):
@@ -372,7 +370,7 @@ def get_item(playerid):
         u'label': u'Okja'
     }
     """
-    return jsonrpc('Player.GetItem').execute({
+    return JsonRPC('Player.GetItem').execute({
         'playerid': playerid,
         'properties': ['title', 'file']})['result']['item']
 
@@ -391,7 +389,7 @@ def get_player_props(playerid):
         'playlistid'    [int] the Kodi playlist id (or -1)
     }
     """
-    return jsonrpc('Player.GetProperties').execute({
+    return JsonRPC('Player.GetProperties').execute({
         'playerid': playerid,
         'properties': ['type',
                        'time',
@@ -420,7 +418,7 @@ def current_audiostream(playerid):
     }
     or an empty dict if unsuccessful
     """
-    ret = jsonrpc('Player.GetProperties').execute(
+    ret = JsonRPC('Player.GetProperties').execute(
         {'properties': ['currentaudiostream'], 'playerid': playerid})
     try:
         ret = ret['result']['currentaudiostream']
@@ -439,7 +437,7 @@ def current_subtitle(playerid):
     }
     or an empty dict if unsuccessful
     """
-    ret = jsonrpc('Player.GetProperties').execute(
+    ret = JsonRPC('Player.GetProperties').execute(
         {'properties': ['currentsubtitle'], 'playerid': playerid})
     try:
         ret = ret['result']['currentsubtitle']
@@ -452,7 +450,7 @@ def subtitle_enabled(playerid):
     """
     Returns True if a subtitle is enabled, False otherwise
     """
-    ret = jsonrpc('Player.GetProperties').execute(
+    ret = JsonRPC('Player.GetProperties').execute(
         {'properties': ['subtitleenabled'], 'playerid': playerid})
     try:
         ret = ret['result']['subtitleenabled']
@@ -465,4 +463,4 @@ def ping():
     """
     Pings the JSON RPC interface
     """
-    return jsonrpc('JSONRPC.Ping').execute()
+    return JsonRPC('JSONRPC.Ping').execute()
