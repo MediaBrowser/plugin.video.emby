@@ -649,6 +649,10 @@ class Read_EmbyServer():
                 return library['LibraryOptions']
 
     def get_server_transcoding_settings(self):
+        return self.doUtils.downloadUrl(self.get_emby_url('System/Configuration/encoding'))
 
-        url = self.get_emby_url('/System/Configuration/encoding')
-        return self.doUtils.downloadUrl(url)
+    def get_intros(self, item_id):
+        return self.doUtils.downloadUrl(self.get_emby_url('Users/{UserId}/Items/%s/Intros' % item_id))
+
+    def get_additional_parts(self, item_id):
+        return self.doUtils.downloadUrl(self.get_emby_url('Videos/%s/AdditionalParts' % item_id))
