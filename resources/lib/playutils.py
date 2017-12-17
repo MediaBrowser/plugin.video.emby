@@ -140,10 +140,10 @@ class PlayUtils():
             return False
         
         vid = self.getVideoStreamID()
-        videotrack = self.item['MediaStreams'][vid]['DisplayTitle']
+        videotrack = self.item['MediaStreams'][vid].get('DisplayTitle', '')
         transcodeH265 = settings('transcodeH265')
-        videoprofile = self.item['MediaStreams'][vid]['Profile']
-        transcodeHi10P = settings('transcodeHi10P')        
+        videoprofile = self.item['MediaStreams'][vid].get('Profile', '')
+        transcodeHi10P = settings('transcodeHi10P')
 
         if transcodeHi10P == "true" and ("Main 10" in videoprofile or "High 10" in videoprofile) and ("H264" in videotrack or "H265" in videotrack or "HEVC" in videotrack):
             return False   
@@ -244,10 +244,10 @@ class PlayUtils():
     def isDirectStream(self):
         
         vid = self.getVideoStreamID()
-        videotrack = self.item['MediaStreams'][vid]['DisplayTitle']
+        videotrack = self.item['MediaStreams'][vid].get('DisplayTitle', '')
         transcodeH265 = settings('transcodeH265')
-        videoprofile = self.item['MediaStreams'][vid]['Profile']
-        transcodeHi10P = settings('transcodeHi10P')        
+        videoprofile = self.item['MediaStreams'][vid].get('Profile', '')
+        transcodeHi10P = settings('transcodeHi10P')
 
         if transcodeHi10P == "true" and ("Main 10" in videoprofile or "High 10" in videoprofile) and ("H264" in videotrack or "H265" in videotrack or "HEVC" in videotrack):
             return False   
