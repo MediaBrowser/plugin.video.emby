@@ -16,6 +16,13 @@
   </extension>
   <extension point="xbmc.service" library="service.py" start="login">
   </extension>
+  <extension point="kodi.context.item" library="contextmenu_play.py">
+    <item>
+      <label>Select video</label>
+            <description>Playback selection for Emby videos</description>
+            <visible>[!IsEmpty(ListItem.DBID) + !StringCompare(ListItem.DBID,-1) | !IsEmpty(ListItem.Property(embyid))] + !IsEmpty(Window(10000).Property(emby_context))</visible>
+    </item>
+  </extension>
   <extension point="kodi.context.item" library="contextmenu.py">
     <item>
       <label>30401</label>
