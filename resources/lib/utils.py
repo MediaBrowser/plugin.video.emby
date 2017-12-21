@@ -1079,7 +1079,7 @@ def thread_methods(cls=None, add_stops=None, add_suspends=None):
     return cls
 
 
-class Lock_Function:
+class Lock_Function(object):
     """
     Decorator for class methods and functions to lock them with lock.
 

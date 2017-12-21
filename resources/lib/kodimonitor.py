@@ -10,8 +10,10 @@ import plexdb_functions as plexdb
 from utils import window, settings, CatchExceptions, plex_command
 from PlexFunctions import scrobble
 from kodidb_functions import kodiid_from_filename
+from plexbmchelper.subscribers import LOCKER
 from PlexAPI import API
 import json_rpc as js
+import playlist_func as PL
 import state
 import variables as v
 
@@ -124,17 +126,20 @@ class KodiMonitor(Monitor):
 
         if method == "Player.OnPlay":
             self.PlayBackStart(data)
-
         elif method == "Player.OnStop":
             # Should refresh our video nodes, e.g. on deck
             # xbmc.executebuiltin('ReloadSkin()')
             pass
-
+        elif method == 'Playlist.OnAdd':
+            self._playlist_onadd(data)
+        elif method == 'Playlist.OnRemove':
+            self._playlist_onremove(data)
+        elif method == 'Playlist.OnClear':
+            self._playlist_onclear(data)
         elif method == "VideoLibrary.OnUpdate":
             # Manually marking as watched/unwatched
             playcount = data.get('playcount')
             item = data.get('item')
-
             try:
                 kodiid = item['id']
                 item_type = item['type']
@@ -161,30 +166,84 @@ class KodiMonitor(Monitor):
                             scrobble(itemid, 'watched')
                         else:
                             scrobble(itemid, 'unwatched')
-
         elif method == "VideoLibrary.OnRemove":
             pass
-
         elif method == "System.OnSleep":
             # Connection is going to sleep
             LOG.info("Marking the server as offline. SystemOnSleep activated.")
             window('plex_online', value="sleep")
-
         elif method == "System.OnWake":
             # Allow network to wake up
             sleep(10000)
             window('plex_onWake', value="true")
             window('plex_online', value="false")
-
         elif method == "GUI.OnScreensaverDeactivated":
             if settings('dbSyncScreensaver') == "true":
                 sleep(5000)
                 plex_command('RUN_LIB_SCAN', 'full')
-
         elif method == "System.OnQuit":
             LOG.info('Kodi OnQuit detected - shutting down')
             state.STOP_PKC = True
 
+    @LOCKER.lockthis
+    def _playlist_onadd(self, data):
+        """
+        Called if an item is added to a Kodi playlist. Example data dict:
+        {
+            u'item': {
+                u'type': u'movie',
+                u'id': 2},
+            u'playlistid': 1,
+            u'position': 0
+        }
+        Will NOT be called if playback initiated by Kodi widgets
+        """
+        playqueue = self.playqueue.playqueues[data['playlistid']]
+        # Check whether we even need to update our known playqueue
+        kodi_playqueue = js.playlist_get_items(data['playlistid'])
+        if playqueue.old_kodi_pl == kodi_playqueue:
+            # We already know the latest playqueue (e.g. because Plex
+            # initiated playback)
+            return
+        # Playlist has been updated; need to tell Plex about it
+        if playqueue.id is None:
+            PL.init_Plex_playlist(playqueue, kodi_item=data['item'])
+        else:
+            PL.add_item_to_PMS_playlist(playqueue,
+                                        data['position'],
+                                        kodi_item=data['item'])
+        # Make sure that we won't re-add this item
+        playqueue.old_kodi_pl = kodi_playqueue
+
+    @LOCKER.lockthis
+    def _playlist_onremove(self, data):
+        """
+        Called if an item is removed from a Kodi playlist. Example data dict:
+        {
+            u'playlistid': 1,
+            u'position': 0
+        }
+        """
+        playqueue = self.playqueue.playqueues[data['playlistid']]
+        # Check whether we even need to update our known playqueue
+        kodi_playqueue = js.playlist_get_items(data['playlistid'])
+        if playqueue.old_kodi_pl == kodi_playqueue:
+            # We already know the latest playqueue - nothing to do
+            return
+        PL.delete_playlist_item_from_PMS(playqueue, data['position'])
+        playqueue.old_kodi_pl = kodi_playqueue
+
+    @LOCKER.lockthis
+    def _playlist_onclear(self, data):
+        """
+        Called if a Kodi playlist is cleared. Example data dict:
+        {
+            u'playlistid': 1,
+        }
+        """
+        self.playqueue.playqueues[data['playlistid']].clear()
+
+    @LOCKER.lockthis
     def PlayBackStart(self, data):
         """
         Called whenever playback is started. Example data:
@@ -192,8 +251,7 @@ class KodiMonitor(Monitor):
             u'item': {u'type': u'movie', u'title': u''},
             u'player': {u'playerid': 1, u'speed': 1}
         }
-        Unfortunately VERY random inputs!
-        E.g. when using Widgets, Kodi doesn't tell us shit
+        Unfortunately when using Widgets, Kodi doesn't tell us shit
         """
         # Get the type of media we're playing
         try:
@@ -237,16 +295,37 @@ class KodiMonitor(Monitor):
                 except TypeError:
                     # No plex id, hence item not in the library. E.g. clips
                     pass
-        state.PLAYER_STATES[playerid].update(js.get_player_props(playerid))
-        state.PLAYER_STATES[playerid]['file'] = json_data['file']
+        info = js.get_player_props(playerid)
+        state.PLAYER_STATES[playerid].update(info)
+        state.PLAYER_STATES[playerid]['file'] = path
         state.PLAYER_STATES[playerid]['kodi_id'] = kodi_id
         state.PLAYER_STATES[playerid]['kodi_type'] = kodi_type
         state.PLAYER_STATES[playerid]['plex_id'] = plex_id
         state.PLAYER_STATES[playerid]['plex_type'] = plex_type
-        # Set other stuff like volume
-        state.PLAYER_STATES[playerid]['volume'] = js.get_volume()
-        state.PLAYER_STATES[playerid]['muted'] = js.get_muted()
         LOG.debug('Set the player state: %s', state.PLAYER_STATES[playerid])
+        # Check whether we need to init our playqueues (e.g. direct play)
+        init = False
+        playqueue = self.playqueue.playqueues[playerid]
+        try:
+            playqueue.items[info['position']]
+        except IndexError:
+            init = True
+        if init is False and plex_id is not None:
+            if plex_id != playqueue.items[
+                    state.PLAYER_STATES[playerid]['position']].id:
+                init = True
+        elif init is False and path != playqueue.items[
+                state.PLAYER_STATES[playerid]['position']].file:
+            init = True
+        if init is True:
+            LOG.debug('Need to initialize Plex and PKC playqueue')
+            if plex_id:
+                PL.init_Plex_playlist(playqueue, plex_id=plex_id)
+            else:
+                PL.init_Plex_playlist(playqueue,
+                                      kodi_item={'id': kodi_id,
+                                                 'type': kodi_type,
+                                                 'file': path})
 
     def StartDirectPath(self, plex_id, type, currentFile):
         """

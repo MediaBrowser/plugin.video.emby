@@ -58,7 +58,7 @@ def process_command(request_path, params, queue=None):
     if params.get('deviceName') == 'Alexa':
         convert_alexa_to_companion(params)
     LOG.debug('Received request_path: %s, params: %s', request_path, params)
-    if "/playMedia" in request_path:
+    if request_path == 'player/playback/playMedia':
         # We need to tell service.py
         action = 'alexa' if params.get('deviceName') == 'Alexa' else 'playlist'
         queue.put({

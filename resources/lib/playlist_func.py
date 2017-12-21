@@ -25,22 +25,23 @@ REGEX = re_compile(r'''metadata%2F(\d+)''')
 # {u'type': u'movie', u'id': 3, 'file': path-to-file}
 
 
-class Playlist_Object_Baseclase(object):
+class PlaylistObjectBaseclase(object):
     """
     Base class
     """
-    playlistid = None
-    type = None
-    kodi_pl = None
-    items = []
-    old_kodi_pl = []
-    id = None
-    version = None
-    selectedItemID = None
-    selectedItemOffset = None
-    shuffled = 0
-    repeat = 0
-    plex_transient_token = None
+    def __init__(self):
+        self.playlistid = None
+        self.type = None
+        self.kodi_pl = None
+        self.items = []
+        self.old_kodi_pl = []
+        self.id = None
+        self.version = None
+        self.selectedItemID = None
+        self.selectedItemOffset = None
+        self.shuffled = 0
+        self.repeat = 0
+        self.plex_transient_token = None
 
     def __repr__(self):
         """
@@ -76,14 +77,14 @@ class Playlist_Object_Baseclase(object):
         LOG.debug('Playlist cleared: %s', self)
 
 
-class Playlist_Object(Playlist_Object_Baseclase):
+class Playlist_Object(PlaylistObjectBaseclase):
     """
     To be done for synching Plex playlists to Kodi
     """
     kind = 'playList'
 
 
-class Playqueue_Object(Playlist_Object_Baseclase):
+class Playqueue_Object(PlaylistObjectBaseclase):
     """
     PKC object to represent PMS playQueues and Kodi playlist for queueing
 
@@ -114,27 +115,27 @@ class Playlist_Item(object):
     id = None          [str] Plex playlist/playqueue id, e.g. playQueueItemID
     plex_id = None     [str] Plex unique item id, "ratingKey"
     plex_type = None   [str] Plex type, e.g. 'movie', 'clip'
-    plex_UUID = None   [str] Plex librarySectionUUID
+    plex_uuid = None   [str] Plex librarySectionUUID
     kodi_id = None     Kodi unique kodi id (unique only within type!)
     kodi_type = None   [str] Kodi type: 'movie'
     file = None        [str] Path to the item's file. STRING!!
-    uri = None         [str] Weird Plex uri path involving plex_UUID. STRING!
+    uri = None         [str] Weird Plex uri path involving plex_uuid. STRING!
     guid = None        [str] Weird Plex guid
     xml = None         [etree] XML from PMS, 1 lvl below <MediaContainer>
     """
-    id = None
-    plex_id = None
-    plex_type = None
-    plex_UUID = None
-    kodi_id = None
-    kodi_type = None
-    file = None
-    uri = None
-    guid = None
-    xml = None
-
-    # Yet to be implemented: handling of a movie with several parts
-    part = 0
+    def __init__(self):
+        self.id = None
+        self.plex_id = None
+        self.plex_type = None
+        self.plex_uuid = None
+        self.kodi_id = None
+        self.kodi_type = None
+        self.file = None
+        self.uri = None
+        self.guid = None
+        self.xml = None
+        # Yet to be implemented: handling of a movie with several parts
+        self.part = 0
 
     def __repr__(self):
         """
@@ -201,7 +202,7 @@ def playlist_item_from_kodi(kodi_item):
         try:
             item.plex_id = plex_dbitem[0]
             item.plex_type = plex_dbitem[2]
-            item.plex_UUID = plex_dbitem[0]     # we dont need the uuid yet :-)
+            item.plex_uuid = plex_dbitem[0]     # we dont need the uuid yet :-)
         except TypeError:
             pass
     item.file = kodi_item.get('file')
@@ -214,7 +215,7 @@ def playlist_item_from_kodi(kodi_item):
     else:
         # TO BE VERIFIED - PLEX DOESN'T LIKE PLAYLIST ADDS IN THIS MANNER
         item.uri = ('library://%s/item/library%%2Fmetadata%%2F%s' %
-                    (item.plex_UUID, item.plex_id))
+                    (item.plex_uuid, item.plex_id))
     LOG.debug('Made playlist item from Kodi: %s', item)
     return item
 
@@ -233,11 +234,11 @@ def playlist_item_from_plex(plex_id):
         item.plex_type = plex_dbitem[5]
         item.kodi_id = plex_dbitem[0]
         item.kodi_type = plex_dbitem[4]
-    except:
+    except (TypeError, IndexError):
         raise KeyError('Could not find plex_id %s in database' % plex_id)
-    item.plex_UUID = plex_id
+    item.plex_uuid = plex_id
     item.uri = ('library://%s/item/library%%2Fmetadata%%2F%s' %
-                (item.plex_UUID, plex_id))
+                (item.plex_uuid, plex_id))
     LOG.debug('Made playlist item from plex: %s', item)
     return item
 
@@ -335,6 +336,7 @@ def init_Plex_playlist(playlist, plex_id=None, kodi_item=None):
     Returns True if successful, False otherwise
     """
     LOG.debug('Initializing the playlist %s on the Plex side', playlist)
+    playlist.clear()
     try:
         if plex_id:
             item = playlist_item_from_plex(plex_id)
@@ -349,13 +351,14 @@ def init_Plex_playlist(playlist, plex_id=None, kodi_item=None):
                                action_type="POST",
                                parameters=params)
         get_playlist_details_from_xml(playlist, xml)
-        item.xml = xml[0]
+        # Need to get the details for the playlist item
+        item = playlist_item_from_xml(playlist, xml[0])
     except (KeyError, IndexError, TypeError):
         LOG.error('Could not init Plex playlist with plex_id %s and '
                   'kodi_item %s', plex_id, kodi_item)
         return False
     playlist.items.append(item)
-    LOG.debug('Initialized the playlist on the Plex side: %s' % playlist)
+    LOG.debug('Initialized the playlist on the Plex side: %s', playlist)
     return True
 
 

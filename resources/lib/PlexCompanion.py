@@ -11,6 +11,7 @@ from xbmc import sleep, executebuiltin
 
 from utils import settings, thread_methods
 from plexbmchelper import listener, plexgdm, subscribers, httppersist
+from plexbmchelper.subscribers import LOCKER
 from PlexFunctions import ParseContainerKey, GetPlexMetadata
 from PlexAPI import API
 from playlist_func import get_pms_playqueue, get_plextype_from_xml
@@ -44,7 +45,126 @@ class PlexCompanion(Thread):
         self.player = player.PKC_Player()
         self.httpd = False
         self.queue = None
+        self.subscription_manager = None
         Thread.__init__(self)
+
+    @LOCKER.lockthis
+    def _process_alexa(self, data):
+        xml = GetPlexMetadata(data['key'])
+        try:
+            xml[0].attrib
+        except (AttributeError, IndexError, TypeError):
+            LOG.error('Could not download Plex metadata')
+            return
+        api = API(xml[0])
+        if api.getType() == v.PLEX_TYPE_ALBUM:
+            LOG.debug('Plex music album detected')
+            queue = self.mgr.playqueue.init_playqueue_from_plex_children(
+                api.getRatingKey())
+            queue.plex_transient_token = data.get('token')
+        else:
+            state.PLEX_TRANSIENT_TOKEN = data.get('token')
+            params = {
+                'mode': 'plex_node',
+                'key': '{server}%s' % data.get('key'),
+                'view_offset': data.get('offset'),
+                'play_directly': 'true',
+                'node': 'false'
+            }
+            executebuiltin('RunPlugin(plugin://%s?%s)'
+                           % (v.ADDON_ID, urlencode(params)))
+
+    @staticmethod
+    def _process_node(data):
+        """
+        E.g. watch later initiated by Companion. Basically navigating Plex
+        """
+        state.PLEX_TRANSIENT_TOKEN = data.get('key')
+        params = {
+            'mode': 'plex_node',
+            'key': '{server}%s' % data.get('key'),
+            'view_offset': data.get('offset'),
+            'play_directly': 'true'
+        }
+        executebuiltin('RunPlugin(plugin://%s?%s)'
+                       % (v.ADDON_ID, urlencode(params)))
+
+    @LOCKER.lockthis
+    def _process_playlist(self, data):
+        # Get the playqueue ID
+        try:
+            _, plex_id, query = ParseContainerKey(data['containerKey'])
+        except:
+            LOG.error('Exception while processing')
+            import traceback
+            LOG.error("Traceback:\n%s", traceback.format_exc())
+            return
+        try:
+            playqueue = self.mgr.playqueue.get_playqueue_from_type(
+                v.KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[data['type']])
+        except KeyError:
+            # E.g. Plex web does not supply the media type
+            # Still need to figure out the type (video vs. music vs. pix)
+            xml = GetPlexMetadata(data['key'])
+            try:
+                xml[0].attrib
+            except (AttributeError, IndexError, TypeError):
+                LOG.error('Could not download Plex metadata')
+                return
+            api = API(xml[0])
+            playqueue = self.mgr.playqueue.get_playqueue_from_type(
+                v.KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[api.getType()])
+        self.mgr.playqueue.update_playqueue_from_PMS(
+            playqueue,
+            plex_id,
+            repeat=query.get('repeat'),
+            offset=data.get('offset'))
+        playqueue.plex_transient_token = data.get('key')
+
+    @LOCKER.lockthis
+    def _process_streams(self, data):
+        """
+        Plex Companion client adjusted audio or subtitle stream
+        """
+        playqueue = self.mgr.playqueue.get_playqueue_from_type(
+            v.KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[data['type']])
+        pos = js.get_position(playqueue.playlistid)
+        if 'audioStreamID' in data:
+            index = playqueue.items[pos].kodi_stream_index(
+                data['audioStreamID'], 'audio')
+            self.player.setAudioStream(index)
+        elif 'subtitleStreamID' in data:
+            if data['subtitleStreamID'] == '0':
+                self.player.showSubtitles(False)
+            else:
+                index = playqueue.items[pos].kodi_stream_index(
+                    data['subtitleStreamID'], 'subtitle')
+                self.player.setSubtitleStream(index)
+        else:
+            LOG.error('Unknown setStreams command: %s', data)
+
+    @LOCKER.lockthis
+    def _process_refresh(self, data):
+        """
+        example data: {'playQueueID': '8475', 'commandID': '11'}
+        """
+        xml = get_pms_playqueue(data['playQueueID'])
+        if xml is None:
+            return
+        if len(xml) == 0:
+            LOG.debug('Empty playqueue received - clearing playqueue')
+            plex_type = get_plextype_from_xml(xml)
+            if plex_type is None:
+                return
+            playqueue = self.mgr.playqueue.get_playqueue_from_type(
+                v.KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[plex_type])
+            playqueue.clear()
+            return
+        playqueue = self.mgr.playqueue.get_playqueue_from_type(
+            v.KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[xml[0].attrib['type']])
+        self.mgr.playqueue.update_playqueue_from_PMS(
+            playqueue,
+            data['playQueueID'])
 
     def _process_tasks(self, task):
         """
@@ -63,128 +183,25 @@ class PlexCompanion(Thread):
         """
         LOG.debug('Processing: %s', task)
         data = task['data']
-
-        # Get the token of the user flinging media (might be different one)
-        token = data.get('token')
         if task['action'] == 'alexa':
-            # e.g. Alexa
-            xml = GetPlexMetadata(data['key'])
-            try:
-                xml[0].attrib
-            except (AttributeError, IndexError, TypeError):
-                LOG.error('Could not download Plex metadata')
-                return
-            api = API(xml[0])
-            if api.getType() == v.PLEX_TYPE_ALBUM:
-                LOG.debug('Plex music album detected')
-                queue = self.mgr.playqueue.init_playqueue_from_plex_children(
-                    api.getRatingKey())
-                queue.plex_transient_token = token
-            else:
-                state.PLEX_TRANSIENT_TOKEN = token
-                params = {
-                    'mode': 'plex_node',
-                    'key': '{server}%s' % data.get('key'),
-                    'view_offset': data.get('offset'),
-                    'play_directly': 'true',
-                    'node': 'false'
-                }
-                executebuiltin('RunPlugin(plugin://%s?%s)'
-                               % (v.ADDON_ID, urlencode(params)))
-
+            self._process_alexa(data)
         elif (task['action'] == 'playlist' and
                 data.get('address') == 'node.plexapp.com'):
-            # E.g. watch later initiated by Companion
-            state.PLEX_TRANSIENT_TOKEN = token
-            params = {
-                'mode': 'plex_node',
-                'key': '{server}%s' % data.get('key'),
-                'view_offset': data.get('offset'),
-                'play_directly': 'true'
-            }
-            executebuiltin('RunPlugin(plugin://%s?%s)'
-                           % (v.ADDON_ID, urlencode(params)))
-
+            self._process_node(data)
         elif task['action'] == 'playlist':
-            # Get the playqueue ID
-            try:
-                _, plex_id, query = ParseContainerKey(data['containerKey'])
-            except:
-                LOG.error('Exception while processing')
-                import traceback
-                LOG.error("Traceback:\n%s", traceback.format_exc())
-                return
-            try:
-                playqueue = self.mgr.playqueue.get_playqueue_from_type(
-                    v.KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[data['type']])
-            except KeyError:
-                # E.g. Plex web does not supply the media type
-                # Still need to figure out the type (video vs. music vs. pix)
-                xml = GetPlexMetadata(data['key'])
-                try:
-                    xml[0].attrib
-                except (AttributeError, IndexError, TypeError):
-                    LOG.error('Could not download Plex metadata')
-                    return
-                api = API(xml[0])
-                playqueue = self.mgr.playqueue.get_playqueue_from_type(
-                    v.KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[api.getType()])
-            self.mgr.playqueue.update_playqueue_from_PMS(
-                playqueue,
-                plex_id,
-                repeat=query.get('repeat'),
-                offset=data.get('offset'))
-            playqueue.plex_transient_token = token
-
+            self._process_playlist(data)
         elif task['action'] == 'refreshPlayQueue':
-            # example data: {'playQueueID': '8475', 'commandID': '11'}
-            xml = get_pms_playqueue(data['playQueueID'])
-            if xml is None:
-                return
-            if len(xml) == 0:
-                LOG.debug('Empty playqueue received - clearing playqueue')
-                plex_type = get_plextype_from_xml(xml)
-                if plex_type is None:
-                    return
-                playqueue = self.mgr.playqueue.get_playqueue_from_type(
-                    v.KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[plex_type])
-                playqueue.clear()
-                return
-            playqueue = self.mgr.playqueue.get_playqueue_from_type(
-                v.KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[xml[0].attrib['type']])
-            self.mgr.playqueue.update_playqueue_from_PMS(
-                playqueue,
-                data['playQueueID'])
-
+            self._process_refresh(data)
         elif task['action'] == 'setStreams':
-            # Plex Companion client adjusted audio or subtitle stream
-            playqueue = self.mgr.playqueue.get_playqueue_from_type(
-                v.KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[data['type']])
-            pos = js.get_position(playqueue.playlistid)
-            if 'audioStreamID' in data:
-                index = playqueue.items[pos].kodi_stream_index(
-                    data['audioStreamID'], 'audio')
-                self.player.setAudioStream(index)
-            elif 'subtitleStreamID' in data:
-                if data['subtitleStreamID'] == '0':
-                    self.player.showSubtitles(False)
-                else:
-                    index = playqueue.items[pos].kodi_stream_index(
-                        data['subtitleStreamID'], 'subtitle')
-                    self.player.setSubtitleStream(index)
-            else:
-                LOG.error('Unknown setStreams command: %s', task)
+            self._process_streams(data)
 
     def run(self):
         """
-        Ensure that
-        - STOP sent to PMS
-        - sockets will be closed no matter what
+        Ensure that sockets will be closed no matter what
         """
         try:
             self._run()
         finally:
-            self.subscription_manager.signal_stop()
             try:
                 self.httpd.socket.shutdown(SHUT_RDWR)
             except AttributeError:
@@ -288,4 +305,5 @@ class PlexCompanion(Thread):
                 # Don't sleep
                 continue
             sleep(50)
+        self.subscription_manager.signal_stop()
         client.stop_all()

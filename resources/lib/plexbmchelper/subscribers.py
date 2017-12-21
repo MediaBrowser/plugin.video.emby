@@ -4,10 +4,11 @@ subscribed Plex Companion clients.
 """
 from logging import getLogger
 from re import sub
-from threading import Thread, RLock
+from threading import Thread, Lock
 
 from downloadutils import DownloadUtils as DU
-from utils import window, kodi_time_to_millis
+from utils import window, kodi_time_to_millis, Lock_Function
+from playlist_func import init_Plex_playlist
 import state
 import variables as v
 import json_rpc as js
@@ -15,6 +16,9 @@ import json_rpc as js
 ###############################################################################
 
 LOG = getLogger("PLEX." + __name__)
+# Need to lock all methods and functions messing with subscribers or state
+LOCK = Lock()
+LOCKER = Lock_Function(LOCK)
 
 ###############################################################################
 
@@ -48,6 +52,7 @@ class SubscriptionMgr(object):
         self.server = ""
         self.protocol = "http"
         self.port = ""
+        self.isplaying = False
         # In order to be able to signal a stop at the end
         self.last_params = {}
         self.lastplayers = {}
@@ -79,6 +84,7 @@ class SubscriptionMgr(object):
                 return server
         return {}
 
+    @LOCKER.lockthis
     def msg(self, players):
         """
         Returns a timeline xml as str
@@ -94,7 +100,7 @@ class SubscriptionMgr(object):
         msg += self._timeline_xml(players.get(v.KODI_TYPE_VIDEO),
                                   v.PLEX_TYPE_VIDEO)
         msg += "</MediaContainer>"
-        LOG.debug('msg is: %s', msg)
+        LOG.debug('Our PKC message is: %s', msg)
         return msg
 
     def signal_stop(self):
@@ -125,9 +131,9 @@ class SubscriptionMgr(object):
                     state.PLAYER_STATES[playerid]['plex_id']
         return key
 
-    def _kodi_stream_index(self, playerid, stream_type): 
+    def _plex_stream_index(self, playerid, stream_type):
         """
-        Returns the current Kodi stream index [int] for the player playerid
+        Returns the current Plex stream index [str] for the player playerid
 
         stream_type: 'video', 'audio', 'subtitle'
         """
@@ -136,18 +142,34 @@ class SubscriptionMgr(object):
         return playqueue.items[info['position']].plex_stream_index(
             info[STREAM_DETAILS[stream_type]]['index'], stream_type)
 
+    @staticmethod
+    def _player_info(playerid):
+        """
+        Grabs all player info again for playerid [int].
+        Returns the dict state.PLAYER_STATES[playerid]
+        """
+        # Update our PKC state of how the player actually looks like
+        state.PLAYER_STATES[playerid].update(js.get_player_props(playerid))
+        state.PLAYER_STATES[playerid]['volume'] = js.get_volume()
+        state.PLAYER_STATES[playerid]['muted'] = js.get_muted()
+        return state.PLAYER_STATES[playerid]
+
     def _timeline_xml(self, player, ptype):
         if player is None:
             return '  <Timeline state="stopped" controllable="%s" type="%s" ' \
                 'itemType="%s" />\n' % (CONTROLLABLE[ptype], ptype, ptype)
         playerid = player['playerid']
-        # Update our PKC state of how the player actually looks like
-        state.PLAYER_STATES[playerid].update(js.get_player_props(playerid))
-        state.PLAYER_STATES[playerid]['volume'] = js.get_volume()
-        state.PLAYER_STATES[playerid]['muted'] = js.get_muted()
-        # Get the message together to send to Plex
-        info = state.PLAYER_STATES[playerid]
-        LOG.debug('timeline player state: %s', info)
+        info = self._player_info(playerid)
+        playqueue = self.playqueue.playqueues[playerid]
+        pos = info['position']
+        try:
+            playqueue.items[pos]
+        except IndexError:
+            # E.g. for direct path playback for single item
+            return '  <Timeline state="stopped" controllable="%s" type="%s" ' \
+                'itemType="%s" />\n' % (CONTROLLABLE[ptype], ptype, ptype)
+        LOG.debug('INFO: %s', info)
+        LOG.debug('playqueue: %s', playqueue)
         status = 'paused' if info['speed'] == '0' else 'playing'
         ret = '  <Timeline state="%s"' % status
         ret += ' controllable="%s"' % CONTROLLABLE[ptype]
@@ -171,8 +193,6 @@ class SubscriptionMgr(object):
             ret += ' key="/library/metadata/%s"' % info['plex_id']
             ret += ' ratingKey="%s"' % info['plex_id']
         # PlayQueue stuff
-        playqueue = self.playqueue.playqueues[playerid]
-        pos = info['position']
         key = self._get_container_key(playerid)
         if key is not None and key.startswith('/playQueues'):
             self.container_key = key
@@ -193,25 +213,26 @@ class SubscriptionMgr(object):
             ret += ' token="%s"' % state.PLEX_TRANSIENT_TOKEN
         elif playqueue.plex_transient_token:
             ret += ' token="%s"' % playqueue.plex_transient_token
-        # Might need an update in the future
+        # Process audio and subtitle streams
         if ptype != v.KODI_TYPE_PHOTO:
-            strm_id = self._kodi_stream_index(playerid, 'audio')
+            strm_id = self._plex_stream_index(playerid, 'audio')
             if strm_id is not None:
                 ret += ' audioStreamID="%s"' % strm_id
             else:
                 LOG.error('We could not select a Plex audiostream')
         if ptype == v.KODI_TYPE_VIDEO and info['subtitleenabled']:
             try:
-                strm_id = self._kodi_stream_index(playerid, 'subtitle')
+                strm_id = self._plex_stream_index(playerid, 'subtitle')
             except KeyError:
                 # subtitleenabled can be True while currentsubtitle can be {}
                 strm_id = None
             if strm_id is not None:
                 # If None, then the subtitle is only present on Kodi side
                 ret += ' subtitleStreamID="%s"' % strm_id
-        ret += '/>\n'
-        return ret
+        self.isplaying = True
+        return ret + '/>\n'
 
+    @LOCKER.lockthis
     def update_command_id(self, uuid, command_id):
         """
         Updates the Plex Companien client with the machine identifier uuid with
@@ -225,18 +246,22 @@ class SubscriptionMgr(object):
         Causes PKC to tell the PMS and Plex Companion players to receive a
         notification what's being played.
         """
-        self._cleanup()
+        with LOCK:
+            self._cleanup()
         # Do we need a check to NOT tell about e.g. PVR/TV and Addon playback?
         players = js.get_players()
-        # fetch the message, subscribers or not, since the server
-        # will need the info anyway
+        # fetch the message, subscribers or not, since the server will need the
+        # info anyway
+        self.isplaying = False
         msg = self.msg(players)
-        if self.subscribers:
-            with RLock():
+        with LOCK:
+            if self.isplaying is True:
+                # If we don't check here, Plex Companion devices will simply
+                # drop out of the Plex Companion playback screen
                 for subscriber in self.subscribers.values():
                     subscriber.send_update(msg, not players)
-        self._notify_server(players)
-        self.lastplayers = players
+            self._notify_server(players)
+            self.lastplayers = players
         return True
 
     def _notify_server(self, players):
@@ -280,14 +305,16 @@ class SubscriptionMgr(object):
             xargs['X-Plex-Token'] = state.PLEX_TRANSIENT_TOKEN
         elif playqueue.plex_transient_token:
             xargs['X-Plex-Token'] = playqueue.plex_transient_token
+        elif state.PLEX_TOKEN:
+            xargs['X-Plex-Token'] = state.PLEX_TOKEN
         url = '%s://%s:%s/:/timeline' % (serv.get('protocol', 'http'),
                                          serv.get('server', 'localhost'),
                                          serv.get('port', '32400'))
         DU().downloadUrl(url, parameters=params, headerOptions=xargs)
-        # Save to be able to signal a stop at the end
         LOG.debug("Sent server notification with parameters: %s to %s",
                   params, url)
 
+    @LOCKER.lockthis
     def add_subscriber(self, protocol, host, port, uuid, command_id):
         """
         Adds a new Plex Companion subscriber to PKC.
@@ -299,28 +326,26 @@ class SubscriptionMgr(object):
                                 command_id,
                                 self,
                                 self.request_mgr)
-        with RLock():
-            self.subscribers[subscriber.uuid] = subscriber
+        self.subscribers[subscriber.uuid] = subscriber
         return subscriber
 
+    @LOCKER.lockthis
     def remove_subscriber(self, uuid):
         """
         Removes a connected Plex Companion subscriber with machine identifier
         uuid from PKC notifications.
         (Calls the cleanup() method of the subscriber)
         """
-        with RLock():
-            for subscriber in self.subscribers.values():
-                if subscriber.uuid == uuid or subscriber.host == uuid:
-                    subscriber.cleanup()
-                    del self.subscribers[subscriber.uuid]
+        for subscriber in self.subscribers.values():
+            if subscriber.uuid == uuid or subscriber.host == uuid:
+                subscriber.cleanup()
+                del self.subscribers[subscriber.uuid]
 
     def _cleanup(self):
-        with RLock():
-            for subscriber in self.subscribers.values():
-                if subscriber.age > 30:
-                    subscriber.cleanup()
-                    del self.subscribers[subscriber.uuid]
+        for subscriber in self.subscribers.values():
+            if subscriber.age > 30:
+                subscriber.cleanup()
+                del self.subscribers[subscriber.uuid]
 
 
 class Subscriber(object):

@@ -247,20 +247,23 @@ def input_sendtext(text):
     return JsonRPC("Input.SendText").execute({'test': text, 'done': False})
 
 
-def playlist_get_items(playlistid, properties):
+def playlist_get_items(playlistid):
     """
         playlistid:    [int] id of the Kodi playlist
-        properties:    [list] of strings for the properties to return
-                              e.g. 'title', 'file'
 
     Returns a list of Kodi playlist items as dicts with the keys specified in
     properties. Or an empty list if unsuccessful. Example:
-    [{u'title': u'3 Idiots', u'type': u'movie', u'id': 3, u'file':
-    u'smb://nas/PlexMovies/3 Idiots 2009 pt1.mkv', u'label': u'3 Idiots'}]
+    [
+        {
+            u'file':u'smb://nas/PlexMovies/3 Idiots 2009 pt1.mkv',
+            u'title': u'3 Idiots',
+            u'type': u'movie',          # IF possible! Else key missing
+            u'id': 3,                   # IF possible! Else key missing
+            u'label': u'3 Idiots'}]
     """
     reply = JsonRPC('Playlist.GetItems').execute({
         'playlistid': playlistid,
-        'properties': properties
+        'properties': ['title', 'file']
     })
     try:
         reply = reply['result']['items']

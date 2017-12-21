@@ -227,8 +227,7 @@ class Plex_DB_Functions():
         '''
         try:
             self.plexcursor.execute(query, (plex_id,))
-            item = self.plexcursor.fetchone()
-            return item
+            return self.plexcursor.fetchone()
         except:
             return None
 

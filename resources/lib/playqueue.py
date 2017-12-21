@@ -206,8 +206,7 @@ class Playqueue(Thread):
         LOG.info("----===## Starting PlayQueue client ##===----")
         # Initialize the playqueues, if Kodi already got items in them
         for playqueue in self.playqueues:
-            for i, item in enumerate(js.playlist_get_items(
-                    playqueue.id, ["title", "file"])):
+            for i, item in enumerate(js.playlist_get_items(playqueue.id)):
                 if i == 0:
                     PL.init_Plex_playlist(playqueue, kodi_item=item)
                 else:
@@ -217,17 +216,16 @@ class Playqueue(Thread):
                 if thread_stopped():
                     break
                 sleep(1000)
-            with LOCK:
-                for playqueue in self.playqueues:
-                    kodi_playqueue = js.playlist_get_items(playqueue.id,
-                                                           ["title", "file"])
-                    if playqueue.old_kodi_pl != kodi_playqueue:
-                        # compare old and new playqueue
-                        self._compare_playqueues(playqueue, kodi_playqueue)
-                        playqueue.old_kodi_pl = list(kodi_playqueue)
-                        # Still sleep a bit so Kodi does not become
-                        # unresponsive
-                        sleep(10)
-                        continue
+            # with LOCK:
+            #     for playqueue in self.playqueues:
+            #         kodi_playqueue = js.playlist_get_items(playqueue.id)
+            #         if playqueue.old_kodi_pl != kodi_playqueue:
+            #             # compare old and new playqueue
+            #             self._compare_playqueues(playqueue, kodi_playqueue)
+            #             playqueue.old_kodi_pl = list(kodi_playqueue)
+            #             # Still sleep a bit so Kodi does not become
+            #             # unresponsive
+            #             sleep(10)
+            #             continue
             sleep(200)
         LOG.info("----===## PlayQueue client stopped ##===----")
