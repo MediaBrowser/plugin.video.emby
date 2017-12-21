@@ -311,11 +311,9 @@ class KodiMonitor(Monitor):
         except IndexError:
             init = True
         if init is False and plex_id is not None:
-            if plex_id != playqueue.items[
-                    state.PLAYER_STATES[playerid]['position']].id:
+            if plex_id != playqueue.items[info['position']].id:
                 init = True
-        elif init is False and path != playqueue.items[
-                state.PLAYER_STATES[playerid]['position']].file:
+        elif init is False and path != playqueue.items[info['position']].file:
             init = True
         if init is True:
             LOG.debug('Need to initialize Plex and PKC playqueue')
