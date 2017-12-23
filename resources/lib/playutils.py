@@ -140,8 +140,8 @@ class PlayUtils():
             return False
         if ((settings('transcodeHi10P') == 'true' and
                 videoCodec['bitDepth'] == '10') and 
-                ('h265' in codec or 'hevc' in codec)):
-            log.info('Option to transcode 10bit h265 video content enabled.')
+                ('h264' in codec)):
+            log.info('Option to transcode 10bit h264 video content enabled.')
             return True
         try:
             bitrate = int(videoCodec['bitrate'])
