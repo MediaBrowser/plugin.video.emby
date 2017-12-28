@@ -311,7 +311,7 @@ class KodiMonitor(Monitor):
         except IndexError:
             init = True
         if init is False and plex_id is not None:
-            if plex_id != playqueue.items[info['position']].id:
+            if plex_id != playqueue.items[info['position']].plex_id:
                 init = True
         elif init is False and path != playqueue.items[info['position']].file:
             init = True
