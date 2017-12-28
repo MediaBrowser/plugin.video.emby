@@ -116,10 +116,10 @@ class PlexCompanion(Thread):
                 v.KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[api.getType()])
         self.mgr.playqueue.update_playqueue_from_PMS(
             playqueue,
-            plex_id,
+            playqueue_id=plex_id,
             repeat=query.get('repeat'),
-            offset=data.get('offset'))
-        playqueue.plex_transient_token = data.get('key')
+            offset=data.get('offset'),
+            transient_token=data.get('key'))
 
     @LOCKER.lockthis
     def _process_streams(self, data):

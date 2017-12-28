@@ -61,7 +61,7 @@ class Playqueue(Thread):
             # sort the list by their playlistid, just in case
             self.playqueues = sorted(
                 self.playqueues, key=lambda i: i.playlistid)
-        LOG.debug('Initialized the Kodi play queues: %s' % self.playqueues)
+        LOG.debug('Initialized the Kodi play queues: %s', self.playqueues)
         Thread.__init__(self)
 
     def get_playqueue_from_type(self, typus):
@@ -87,7 +87,7 @@ class Playqueue(Thread):
         try:
             xml[0].attrib
         except (TypeError, IndexError, AttributeError):
-            LOG.error('Could not download the PMS xml for %s' % plex_id)
+            LOG.error('Could not download the PMS xml for %s', plex_id)
             return
         playqueue = self.get_playqueue_from_type(
             v.KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[xml[0].attrib['type']])
@@ -103,7 +103,8 @@ class Playqueue(Thread):
                                   playqueue,
                                   playqueue_id=None,
                                   repeat=None,
-                                  offset=None):
+                                  offset=None,
+                                  transient_token=None):
         """
         Completely updates the Kodi playqueue with the new Plex playqueue. Pass
         in playqueue_id if we need to fetch a new playqueue
@@ -112,17 +113,18 @@ class Playqueue(Thread):
         offset = time offset in Plextime (milliseconds)
         """
         LOG.info('New playqueue %s received from Plex companion with offset '
-                 '%s, repeat %s' % (playqueue_id, offset, repeat))
+                 '%s, repeat %s', playqueue_id, offset, repeat)
         with LOCK:
             xml = PL.get_PMS_playlist(playqueue, playqueue_id)
             playqueue.clear()
             try:
                 PL.get_playlist_details_from_xml(playqueue, xml)
             except KeyError:
-                LOG.error('Could not get playqueue ID %s' % playqueue_id)
+                LOG.error('Could not get playqueue ID %s', playqueue_id)
                 return
             PlaybackUtils(xml, playqueue).play_all()
             playqueue.repeat = 0 if not repeat else int(repeat)
+            playqueue.token = transient_token
             window('plex_customplaylist', value="true")
             if offset not in (None, "0"):
                 window('plex_customplaylist.seektime',
@@ -133,8 +135,8 @@ class Playqueue(Thread):
             else:
                 startpos = 0
             # Start playback. Player does not return in time
-            LOG.debug('Playqueues after Plex Companion update are now: %s'
-                      % self.playqueues)
+            LOG.debug('Playqueues after Plex Companion update are now: %s',
+                      self.playqueues)
             thread = Thread(target=Player().play,
                             args=(playqueue.kodi_pl,
                                   None,
@@ -149,8 +151,8 @@ class Playqueue(Thread):
         """
         old = list(playqueue.items)
         index = list(range(0, len(old)))
-        LOG.debug('Comparing new Kodi playqueue %s with our play queue %s'
-                  % (new, old))
+        LOG.debug('Comparing new Kodi playqueue %s with our play queue %s',
+                  new, old)
         if self.thread_stopped():
             # Chances are that we got an empty Kodi playlist due to
             # Kodi exit
@@ -178,14 +180,14 @@ class Playqueue(Thread):
                     del old[j], index[j]
                     break
                 elif identical:
-                    LOG.debug('Detected playqueue item %s moved to position %s'
-                              % (i+j, i))
+                    LOG.debug('Detected playqueue item %s moved to position %s',
+                              i+j, i)
                     PL.move_playlist_item(playqueue, i + j, i)
                     del old[j], index[j]
                     break
             else:
-                LOG.debug('Detected new Kodi element at position %s: %s '
-                          % (i, new_item))
+                LOG.debug('Detected new Kodi element at position %s: %s ',
+                          i, new_item)
                 if playqueue.id is None:
                     PL.init_Plex_playlist(playqueue,
                                           kodi_item=new_item)
@@ -196,7 +198,7 @@ class Playqueue(Thread):
                 for j in range(i, len(index)):
                     index[j] += 1
         for i in reversed(index):
-            LOG.debug('Detected deletion of playqueue element at pos %s' % i)
+            LOG.debug('Detected deletion of playqueue element at pos %s', i)
             PL.delete_playlist_item_from_PMS(playqueue, i)
         LOG.debug('Done comparing playqueues')
 
