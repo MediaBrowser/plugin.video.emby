@@ -23,22 +23,27 @@ def skip_to(params):
 
     Does not seem to be implemented yet by Plex!
     """
-    playqueue_item_id = params.get('playQueueItemID', 'not available')
+    playqueue_item_id = params.get('playQueueItemID')
     _, plex_id = GetPlexKeyNumber(params.get('key'))
     LOG.debug('Skipping to playQueueItemID %s, plex_id %s',
               playqueue_item_id, plex_id)
     found = True
     playqueues = Playqueue()
-    for (player, _) in js.get_players().iteritems():
-        playqueue = playqueues.get_playqueue_from_type(player)
+    for player in js.get_players().values():
+        playqueue = playqueues.playqueues[player['playerid']]
         for i, item in enumerate(playqueue.items):
-            if item.id == playqueue_item_id or item.plex_id == plex_id:
+            if item.id == playqueue_item_id:
+                found = True
                 break
         else:
-            LOG.debug('Item not found to skip to')
-            found = False
-        if found:
+            for i, item in enumerate(playqueue.items):
+                if item.plex_id == plex_id:
+                    found = True
+                    break
+        if found is True:
             Player().play(playqueue.kodi_pl, None, False, i)
+        else:
+            LOG.error('Item not found to skip to')
 
 
 def convert_alexa_to_companion(dictionary):
