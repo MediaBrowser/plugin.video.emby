@@ -47,18 +47,19 @@ class PlaylistObjectBaseclase(object):
         """
         Print the playlist, e.g. to log
         """
-        answ = "<%s: " % (self.__class__.__name__)
+        answ = '{\'%s\': {' % (self.__class__.__name__)
         # For some reason, can't use dir directly
-        answ += "id: %s, " % self.id
-        answ += "items: %s, " % self.items
+        answ += '\'id\': %s, ' % self.id
         for key in self.__dict__:
-            if key not in ("id", 'items'):
-                if type(getattr(self, key)) in (str, unicode):
-                    answ += '%s: %s, ' % (key, tryEncode(getattr(self, key)))
-                else:
-                    # e.g. int
-                    answ += '%s: %s, ' % (key, str(getattr(self, key)))
-        return answ[:-2] + ">"
+            if key in ('id', 'items', 'kodi_pl'):
+                continue
+            if isinstance(getattr(self, key), (str, unicode)):
+                answ += '\'%s\': \'%s\', ' % (key,
+                                              tryEncode(getattr(self, key)))
+            else:
+                # e.g. int
+                answ += '\'%s\': %s, ' % (key, str(getattr(self, key)))
+        return answ + '\'items\': %s}}' % self.items
 
     def clear(self):
         """
@@ -141,14 +142,23 @@ class Playlist_Item(object):
         """
         Print the playlist item, e.g. to log
         """
-        answ = "<%s: " % (self.__class__.__name__)
+        answ = '{\'%s\': {' % (self.__class__.__name__)
+        answ += '\'id\': %s, ' % self.id
+        answ += '\'plex_id\': %s, ' % self.plex_id
         for key in self.__dict__:
-            if type(getattr(self, key)) in (str, unicode):
-                answ += '%s: %s, ' % (key, tryEncode(getattr(self, key)))
+            if key in ('id', 'plex_id', 'xml'):
+                continue
+            if isinstance(getattr(self, key), (str, unicode)):
+                answ += '\'%s\': \'%s\', ' % (key,
+                                              tryEncode(getattr(self, key)))
             else:
                 # e.g. int
-                answ += '%s: %s, ' % (key, str(getattr(self, key)))
-        return answ[:-2] + ">"
+                answ += '\'%s\': %s, ' % (key, str(getattr(self, key)))
+        if self.xml is None:
+            answ += '\'xml\': None}}'
+        else:
+            answ += '\'xml\': \'%s\'}}' % self.xml.tag
+        return answ
 
     def plex_stream_index(self, kodi_stream_index, stream_type):
         """
