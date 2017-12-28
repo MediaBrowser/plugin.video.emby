@@ -191,6 +191,15 @@ def skipprevious():
                                         "to": "previous"})
 
 
+def skipto(position):
+    """
+    Skips to the position [int] of the current playlist
+    """
+    for playerid in get_player_ids():
+        JsonRPC("Player.GoTo").execute({"playerid": playerid,
+                                        "to": position})
+
+
 def input_up():
     """
     Tells Kodi the user pushed up
