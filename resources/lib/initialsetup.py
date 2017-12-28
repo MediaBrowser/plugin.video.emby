@@ -408,10 +408,12 @@ class InitialSetup():
         cache = str(cache.text) if cache is not None else '20971520'
         log.info('Current Kodi video memory cache in bytes: %s', cache)
         settings('kodi_video_cache', value=cache)
-
+        # Disable foreground "Loading media information from files"
+        # (still used by Kodi, even though the Wiki says otherwise)
+        advancedsettings_xml(['musiclibrary', 'backgroundupdate'],
+                             new_value='true')
         # Do we need to migrate stuff?
         check_migration()
-
         # Optionally sign into plex.tv. Will not be called on very first run
         # as plexToken will be ''
         settings('plex_status', value=lang(39226))
