@@ -296,7 +296,7 @@ def _get_playListVersion_from_xml(playlist, xml):
 def get_playlist_details_from_xml(playlist, xml):
     """
     Takes a PMS xml as input and overwrites all the playlist's details, e.g.
-    playlist.ID with the XML's playQueueID
+    playlist.id with the XML's playQueueID
     """
     try:
         playlist.id = xml.attrib['%sID' % playlist.kind]
@@ -456,7 +456,7 @@ def add_item_to_PMS_playlist(playlist, pos, plex_id=None, kodi_item=None):
     xml = DU().downloadUrl(url, action_type="PUT")
     try:
         item.xml = xml[-1]
-        item.ID = xml[-1].attrib['%sItemID' % playlist.kind]
+        item.id = xml[-1].attrib['%sItemID' % playlist.kind]
     except IndexError:
         LOG.info('Could not get playlist children. Adding a dummy')
     except (TypeError, AttributeError, KeyError):

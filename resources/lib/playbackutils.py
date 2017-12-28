@@ -304,7 +304,7 @@ class PlaybackUtils():
                     # Item not in Kodi DB
                     self.add_trailer(item)
             if successful is True:
-                self.playqueue.items[self.currentPosition - 1].ID = item.get(
+                self.playqueue.items[self.currentPosition - 1].id = item.get(
                     '%sItemID' % self.playqueue.kind)
 
     def add_trailer(self, item):

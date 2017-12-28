@@ -32,7 +32,7 @@ def skip_to(params):
     for (player, _) in js.get_players().iteritems():
         playqueue = playqueues.get_playqueue_from_type(player)
         for i, item in enumerate(playqueue.items):
-            if item.ID == playqueue_item_id or item.plex_id == plex_id:
+            if item.id == playqueue_item_id or item.plex_id == plex_id:
                 break
         else:
             LOG.debug('Item not found to skip to')
