@@ -199,6 +199,10 @@ class KodiMonitor(Monitor):
         Will NOT be called if playback initiated by Kodi widgets
         """
         playqueue = self.playqueue.playqueues[data['playlistid']]
+        # Did PKC cause this add? Then lets not do anything
+        if playqueue.is_kodi_onadd() is False:
+            LOG.debug('PKC added this item to the playqueue - ignoring')
+            return
         # Check whether we even need to update our known playqueue
         kodi_playqueue = js.playlist_get_items(data['playlistid'])
         if playqueue.old_kodi_pl == kodi_playqueue:

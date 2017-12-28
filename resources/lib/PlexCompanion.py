@@ -93,7 +93,7 @@ class PlexCompanion(Thread):
     def _process_playlist(self, data):
         # Get the playqueue ID
         try:
-            _, plex_id, query = ParseContainerKey(data['containerKey'])
+            _, container_key, query = ParseContainerKey(data['containerKey'])
         except:
             LOG.error('Exception while processing')
             import traceback
@@ -114,12 +114,16 @@ class PlexCompanion(Thread):
             api = API(xml[0])
             playqueue = self.mgr.playqueue.get_playqueue_from_type(
                 v.KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[api.getType()])
-        self.mgr.playqueue.update_playqueue_from_PMS(
-            playqueue,
-            playqueue_id=plex_id,
-            repeat=query.get('repeat'),
-            offset=data.get('offset'),
-            transient_token=data.get('key'))
+        if playqueue.id == container_key:
+            # OK, really weird, this happens at least with Plex for Android
+            LOG.debug('Already know this Plex playQueue, ignoring this command')
+        else:
+            self.mgr.playqueue.update_playqueue_from_PMS(
+                playqueue,
+                playqueue_id=container_key,
+                repeat=query.get('repeat'),
+                offset=data.get('offset'),
+                transient_token=data.get('key'))
 
     @LOCKER.lockthis
     def _process_streams(self, data):

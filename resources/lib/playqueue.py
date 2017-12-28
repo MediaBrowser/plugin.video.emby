@@ -122,9 +122,9 @@ class Playqueue(Thread):
             except KeyError:
                 LOG.error('Could not get playqueue ID %s', playqueue_id)
                 return
-            PlaybackUtils(xml, playqueue).play_all()
             playqueue.repeat = 0 if not repeat else int(repeat)
             playqueue.token = transient_token
+            PlaybackUtils(xml, playqueue).play_all()
             window('plex_customplaylist', value="true")
             if offset not in (None, "0"):
                 window('plex_customplaylist.seektime',

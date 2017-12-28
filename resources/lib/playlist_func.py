@@ -42,6 +42,9 @@ class PlaylistObjectBaseclase(object):
         self.shuffled = 0
         self.repeat = 0
         self.plex_transient_token = None
+        # Needed to not add an item twice (first through PKC, then the kodi
+        # monitor)
+        self._onadd_queue = []
 
     def __repr__(self):
         """
@@ -60,6 +63,25 @@ class PlaylistObjectBaseclase(object):
                 # e.g. int
                 answ += '\'%s\': %s, ' % (key, str(getattr(self, key)))
         return answ + '\'items\': %s}}' % self.items
+
+    def kodi_onadd(self):
+        """
+        Call this before adding an item to the Kodi playqueue
+        """
+        self._onadd_queue.append(None)
+
+    def is_kodi_onadd(self):
+        """
+        Returns False if the last kodimonitor on_add was caused by PKC - so that
+        we are not adding a playlist item twice.
+
+        Calling this function will remove the item from our "checklist"
+        """
+        try:
+            self._onadd_queue.pop()
+        except IndexError:
+            return True
+        return False
 
     def clear(self):
         """
@@ -428,9 +450,11 @@ def add_item_to_playlist(playlist, pos, kodi_id=None, kodi_type=None,
         params['item'] = {'%sid' % item.kodi_type: int(item.kodi_id)}
     else:
         params['item'] = {'file': item.file}
+    playlist.kodi_onadd()
     reply = js.playlist_insert(params)
     if reply.get('error') is not None:
         LOG.error('Could not add item to playlist. Kodi reply. %s', reply)
+        playlist.is_kodi_onadd()
         return False
     return True
 
@@ -499,9 +523,11 @@ def add_item_to_kodi_playlist(playlist, pos, kodi_id=None, kodi_type=None,
         params['item'] = {'%sid' % kodi_type: int(kodi_id)}
     else:
         params['item'] = {'file': file}
+    playlist.kodi_onadd()
     reply = js.playlist_insert(params)
     if reply.get('error') is not None:
         LOG.error('Could not add item to playlist. Kodi reply. %s', reply)
+        playlist.is_kodi_onadd()
         return False
     item = playlist_item_from_kodi(
         {'id': kodi_id, 'type': kodi_type, 'file': file})
@@ -623,6 +649,7 @@ def add_listitem_to_Kodi_playlist(playlist, pos, listitem, file,
     LOG.debug('Insert listitem at position %s for Kodi only for %s',
               pos, playlist)
     # Add the item into Kodi playlist
+    playlist.kodi_onadd()
     playlist.kodi_pl.add(file, listitem, index=pos)
     # We need to add this to our internal queue as well
     if xml_video_element is not None:
