@@ -210,7 +210,7 @@ def playlist_item_from_kodi(kodi_item):
         query = dict(parse_qsl(urlsplit(item.file).query))
         item.plex_id = query.get('plex_id')
         item.plex_type = query.get('itemType')
-    if item.plex_id is None:
+    if item.plex_id is None and item.file is not None:
         item.uri = 'library://whatever/item/%s' % quote(item.file, safe='')
     else:
         # TO BE VERIFIED - PLEX DOESN'T LIKE PLAYLIST ADDS IN THIS MANNER
