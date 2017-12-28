@@ -123,7 +123,7 @@ class PlexCompanion(Thread):
                 playqueue_id=container_key,
                 repeat=query.get('repeat'),
                 offset=data.get('offset'),
-                transient_token=data.get('key'))
+                transient_token=data.get('token'))
 
     @LOCKER.lockthis
     def _process_streams(self, data):
