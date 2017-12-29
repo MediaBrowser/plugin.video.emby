@@ -54,16 +54,10 @@ class PlaybackUtils():
         playutils = putils.PlayUtils(self.item)
 
         log.info("Play called: %s", self.item['Name'])
-        playurl = playutils.getPlayUrlNew()
+        playurl = playutils.get_play_url()
 
         if not playurl:
             return xbmcplugin.setResolvedUrl(int(sys.argv[1]), False, listitem)
-
-        if dbid is None:
-            # Item is not in Kodi database
-            listitem.setPath(playurl)
-            self.set_properties(playurl, listitem)
-            return xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, listitem)
 
         seektime = self.API.adjust_resume(self.API.get_userdata()['Resume'])
 
@@ -84,14 +78,15 @@ class PlaybackUtils():
             self._set_additional_parts(itemid)
 
         ##### SETUP PLAYBACK
-        """ To get everything to work together, play the first item in the stack with setResolvedUrl,
-            add the rest to the regular playlist. """
+        ''' To get everything to work together, play the first item in the stack with setResolvedUrl,
+            add the rest to the regular playlist.
+        '''
 
         index = max(self.playlist.getposition(), 0) + 1 # Can return -1
 
         self.stack[0][1].setPath(self.stack[0][0])
         xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, self.stack[0][1])
-        self.stack.pop(0)
+        self.stack.pop(0) # remove the first item we just started.
 
         for stack in self.stack:
             self.playlist.add(url=stack[0], listitem=stack[1], index=index)
@@ -119,7 +114,6 @@ class PlaybackUtils():
                     url = putils.PlayUtils(intro).getPlayUrl()
                     log.info("Adding Intro: %s" % url)
 
-                    PlaybackUtils(intro).set_properties(url, listitem)
                     self.stack.append([url, listitem])
 
     def _set_additional_parts(self, item_id):
@@ -145,7 +139,6 @@ class PlaybackUtils():
         mediatype = self.item['Type']
 
         metadata = {
-            
             'title': self.item.get('Name', "Missing name"),
             'year': self.item.get('ProductionYear'),
             'plot': self.API.get_overview(),

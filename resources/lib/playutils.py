@@ -37,34 +37,35 @@ class PlayUtils():
         
         self.doUtils = downloadutils.DownloadUtils().downloadUrl
     
-    def getPlayUrlNew(self):
+    def get_play_url(self):
+
+        ''' New style to retrieve the best playback method based on sending
+            the profile to the server. Based on capabilities the correct path is returned,
+            including livestreams that need to be opened by the server
         '''
-            New style to retrieve the best playback method based on sending the profile to the server
-            Based on capabilities the correct path is returned, including livestreams that need to be opened by the server
-            TODO: Close livestream if needed (RequiresClosing in livestream source)
-        '''
-        playurl = None
-        pbinfo = self.getPlaybackInfo()
-        if pbinfo:
-            log.info("getPlayUrl pbinfo: %s" %(pbinfo))
-            
-            if pbinfo["Protocol"] == "SupportsDirectPlay":
-                playmethod = "DirectPlay"
-            elif pbinfo["Protocol"] == "SupportsDirectStream":
-                playmethod = "DirectStream"
-            elif pbinfo.get('LiveStreamId'):
-                playmethod = "LiveStream"
+        play_url = None
+        info = self.get_playback_info()
+
+        if info:
+            log.info("playback info: %s", info)
+
+            play_url = info['Path']
+
+            if info['SupportsDirectPlay']:
+                play_method = "DirectPlay"
+            elif info['SupportsDirectStream']:
+                play_method = "DirectStream"
+            elif info.get('LiveStreamId'):
+                play_method = "LiveStream"
+                if info['RequiresClosing']:
+                    window('emby_%s.livestreamid' % play_url, value=info['LiveStreamId'])
             else:
-                playmethod = "Transcode"
+                play_method = "Transcode"
 
-            playurl = pbinfo["Path"]
-            log.info("getPlayUrl playmethod: %s - playurl: %s" %(playmethod, playurl))
-            window('emby_%s.playmethod' % playurl, value=playmethod)
-            if pbinfo["RequiresClosing"] and pbinfo.get('LiveStreamId'):
-                window('emby_%s.livestreamid' % playurl, value=pbinfo["LiveStreamId"])
+            window('emby_%s.playmethod' % play_url, value=play_method)
+            log.info("play method: %s play url: %s", play_method, play_url)
 
-        return playurl
-
+        return play_url
 
     def getPlayUrl(self):
 
@@ -354,38 +355,6 @@ class PlayUtils():
 
         return playurl
 
-    def getBitrate(self):
-
-        # get the addon video quality
-        bitrate = {
-
-            '0': 664,
-            '1': 996,
-            '2': 1320,
-            '3': 2000,
-            '4': 3200,
-            '5': 4700,
-            '6': 6200,
-            '7': 7700,
-            '8': 9200,
-            '9': 10700,
-            '10': 12200,
-            '11': 13700,
-            '12': 15200,
-            '13': 16700,
-            '14': 18200,
-            '15': 20000,
-            '16': 25000,
-            '17': 30000,
-            '18': 35000,
-            '16': 40000,
-            '17': 100000,
-            '18': 1000000
-        }
-
-        # max bit rate supported by server (max signed 32bit integer)
-        return bitrate.get(settings('videoBitrate'), 2147483)
-
     def audioSubsPref(self, url, listitem):
 
         dialog = xbmcgui.Dialog()
@@ -493,192 +462,209 @@ class PlayUtils():
 
         return playurlprefs
     
-    def getPlaybackInfo(self):
-        #Gets the playback Info for the current item
-        url = "{server}/emby/Items/%s/PlaybackInfo?format=json" %self.item['Id']
-        body = {   
-                "UserId": self.userid,
-                "DeviceProfile": self.getDeviceProfile(),
-                "StartTimeTicks": 0, #TODO
-                "AudioStreamIndex": None, #TODO
-                "SubtitleStreamIndex": None, #TODO
-                "MediaSourceId": None, 
-                "LiveStreamId": None 
-                }
-        pbinfo = self.doUtils(url, postBody=body, action_type="POST")
-        log.info("getPlaybackInfo: %s", json.dumps(pbinfo))
-        mediaSource = self.getOptimalMediaSource(pbinfo["MediaSources"])
-        if mediaSource and mediaSource["RequiresOpening"]:
-            mediaSource = self.getLiveStream(pbinfo["PlaySessionId"], mediaSource)
-        
-        return mediaSource
+    def get_playback_info(self):
 
-    def getOptimalMediaSource(self, mediasources):
-        '''
-        Select the best possible mediasource for playback
-        Because we posted our deviceprofile to the server, 
-        only streams will be returned that can actually be played by this client so no need to check bitrates etc.
-        '''
-        preferredStreamOrder = ["SupportsDirectPlay","SupportsDirectStream","SupportsTranscoding"]
-        bestSource = {}
-        for prefstream in preferredStreamOrder:
-            for source in mediasources:
-                if source[prefstream] == True:
-                    if prefstream == "SupportsDirectPlay":
-                        #always prefer direct play
-                        alt_playurl = self.checkDirectPlayPath(source["Path"])
-                        if alt_playurl:
-                            bestSource = source
-                            source["Path"] = alt_playurl
-                    elif bestSource.get("BitRate",0) < source.get("Bitrate",0):
-                        #prefer stream with highest bitrate for http sources
-                        bestSource = source
-                    elif not source.get("Bitrate") and source.get("RequiresOpening"):
-                        #livestream
-                        bestSource = source
-        log.info("getOptimalMediaSource: %s", bestSource)
-        return bestSource
-        
-    def getLiveStream(self, playSessionId, mediaSource):
-        url = "{server}/emby/LiveStreams/Open?format=json"
-        body = {   
-                "UserId": self.userid,
-                "DeviceProfile": self.getDeviceProfile(),
-                "ItemId": self.item["Id"],
-                "PlaySessionId": playSessionId,
-                "OpenToken": mediaSource["OpenToken"],
-                "StartTimeTicks": 0, #TODO
-                "AudioStreamIndex": None, #TODO
-                "SubtitleStreamIndex": None #TODO
-                }
-        streaminfo = self.doUtils(url, postBody=body, action_type="POST")
-        log.info("getLiveStream: %s", streaminfo)
-        return streaminfo["MediaSource"]
-            
-    def checkDirectPlayPath(self, playurl):
+        # Get the playback info for the current item
 
-        if self.item.get('VideoType'):
-            # Specific format modification
-            if self.item['VideoType'] == "Dvd":
-                playurl = "%s/VIDEO_TS/VIDEO_TS.IFO" % playurl
-            elif self.item['VideoType'] == "BluRay":
-                playurl = "%s/BDMV/index.bdmv" % playurl
+        info = self.emby.get_playback_info(self.item['Id'], self.get_device_profile())       
+        return self.get_optimal_source(info['MediaSources'])
+
+    def get_optimal_source(self, media_sources):
+
+        ''' Select the best possible mediasource for playback Because we posted
+            our deviceprofile to the server, only streams will be returned that can
+            actually be played by this client so no need to check bitrates etc.
+        '''
+        preferred = ('SupportsDirectPlay', 'SupportsDirectStream', 'SupportsTranscoding')
+        optimal_source = {}
+
+        for stream in preferred:
+            for source in media_sources:
+                if source[stream]:
+
+                    if stream == "SupportsDirectPlay":
+                        if self.is_file_exists(source):
+                            optimal_source = source
+                    elif optimal_source.get('Bitrate', 0) < source.get('Bitrate', 0):
+                        # prefer stream with highest bitrate for http sources
+                        optimal_source = source
+                    elif source.get('RequiresOpening'):
+                        # livestream
+                        optimal_source = self.get_live_stream(source['PlaySessionId'], source)
+
+        log.info('get optimal source: %s', optimal_source)
+        return optimal_source
+
+    def get_live_stream(self, play_session_id, media_source):
+
+        info = self.emby.get_live_stream(self.item['Id'], self.get_device_profile(), play_session_id, media_source['OpenToken'])
+        log.info("get live stream: %s", info)
+
+        return info['MediaSource']
+
+    def is_file_exist(self, source):
+
+        path = source['Path']
+
+        if 'VideoType' in source:
+            if source['VideoType'] == "Dvd":
+                path = "%s/VIDEO_TS/VIDEO_TS.IFO" % path
+            elif source['VideoType'] == "BluRay":
+                path = "%s/BDMV/index.bdmv" % path
 
         # Assign network protocol
-        if playurl.startswith('\\\\'):
-            playurl = playurl.replace("\\\\", "smb://")
-            playurl = playurl.replace("\\", "/")
-            
-        if xbmcvfs.exists(playurl):
-            return playurl
+        if path.startswith('\\\\'):
+            path = path.replace('\\\\', "smb://")
+            path = path.replace('\\', "/")
+
+        if xbmcvfs.exists(path) or ":" not in path:
+            log.info("Path exists or assumed linux.")
+            source['Path'] = path
+            return True
         else:
-            return None
+            log.info("Failed to find file.")
+            return False
+
+    def get_bitrate(self):
+        # get the addon video quality
+        bitrate = {
+
+            '0': 664,
+            '1': 996,
+            '2': 1320,
+            '3': 2000,
+            '4': 3200,
+            '5': 4700,
+            '6': 6200,
+            '7': 7700,
+            '8': 9200,
+            '9': 10700,
+            '10': 12200,
+            '11': 13700,
+            '12': 15200,
+            '13': 16700,
+            '14': 18200,
+            '15': 20000,
+            '16': 25000,
+            '17': 30000,
+            '18': 35000,
+            '16': 40000,
+            '17': 100000,
+            '18': 1000000
+        }
+        # max bit rate supported by server (max signed 32bit integer)
+        return bitrate.get(settings('videoBitrate'), 2147483)
     
-    def getDeviceProfile(self):
+    def get_device_profile(self):
         return {
+
             "Name": "Kodi",
-            "MaxStreamingBitrate": self.getBitrate()*1000,
+            "MaxStreamingBitrate": self.get_bitrate() * 1000,
             "MusicStreamingTranscodingBitrate": 1280000,
             "TimelineOffsetSeconds": 5,
-            
+
             "Identification": {
-              "ModelName": "Kodi",
-              "Headers": [
-                {
-                  "Name": "User-Agent",
-                  "Value": "Kodi",
-                  "Match": 2
-                }
-              ]
+                "ModelName": "Kodi",
+                "Headers": [
+                    {
+                        "Name": "User-Agent",
+                        "Value": "Kodi",
+                        "Match": 2
+                    }
+                ]
             },
-            
+
             "TranscodingProfiles": [
-              {
-                "Container": "mp3",
-                "AudioCodec": "mp3",
-                "Type": 0
-              },
-              {
-                "Container": "ts",
-                "AudioCodec": "aac",
-                "VideoCodec": "h264",
-                "Type": 1
-              },
-              {
-                "Container": "jpeg",
-                "Type": 2
-              }
+                {
+                    "Container": "mp3",
+                    "AudioCodec": "mp3",
+                    "Type": 0
+                },
+                {
+                    "Container": "ts",
+                    "AudioCodec": "aac",
+                    "VideoCodec": "h264",
+                    "Type": 1
+                },
+                {
+                    "Container": "jpeg",
+                    "Type": 2
+                }
             ],
-            
+
             "DirectPlayProfiles": [
-              {
-                "Container": "",
-                "Type": 0
-              },
-              {
-                "Container": "",
-                "Type": 1
-              },
-              {
-                "Container": "",
-                "Type": 2
-              }
+                {
+                    "Container": "",
+                    "Type": 0
+                },
+                {
+                    "Container": "",
+                    "Type": 1
+                },
+                {
+                    "Container": "",
+                    "Type": 2
+                }
             ],
-            
+
             "ResponseProfiles": [],
             "ContainerProfiles": [],
             "CodecProfiles": [],
-            
+
             "SubtitleProfiles": [
-              {
-                "Format": "srt",
-                "Method": 2
-              },
-              {
-                "Format": "sub",
-                "Method": 2
-              },
-              {
-                "Format": "srt",
-                "Method": 1
-              },
-              {
-                "Format": "ass",
-                "Method": 1,
-                "DidlMode": ""
-              },
-              {
-                "Format": "ssa",
-                "Method": 1,
-                "DidlMode": ""
-              },
-              {
-                "Format": "smi",
-                "Method": 1,
-                "DidlMode": ""
-              },
-              {
-                "Format": "dvdsub",
-                "Method": 1,
-                "DidlMode": ""
-              },
-              {
-                "Format": "pgs",
-                "Method": 1,
-                "DidlMode": ""
-              },
-              {
-                "Format": "pgssub",
-                "Method": 1,
-                "DidlMode": ""
-              },
-              {
-                "Format": "sub",
-                "Method": 1,
-                "DidlMode": ""
-              }
+                {
+                    "Format": "srt",
+                    "Method": 2
+                },
+                {
+                    "Format": "sub",
+                    "Method": 2
+                },
+                {
+                    "Format": "srt",
+                    "Method": 1
+                },
+                {
+                    "Format": "ass",
+                    "Method": 1,
+                    "DidlMode": ""
+                },
+                {
+                    "Format": "ssa",
+                    "Method": 1,
+                    "DidlMode": ""
+                },
+                {
+                    "Format": "smi",
+                    "Method": 1,
+                    "DidlMode": ""
+                },
+                {
+                    "Format": "dvdsub",
+                    "Method": 1,
+                    "DidlMode": ""
+                },
+                {
+                    "Format": "pgs",
+                    "Method": 1,
+                    "DidlMode": ""
+                },
+                {
+                    "Format": "pgssub",
+                    "Method": 1,
+                    "DidlMode": ""
+                },
+                {
+                    "Format": "sub",
+                    "Method": 1,
+                    "DidlMode": ""
+                }
             ]
         }
+
+
+
+
 
     def resolutionConflict(self):
         if settings('limitResolution') == "true":
