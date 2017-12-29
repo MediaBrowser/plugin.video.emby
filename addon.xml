@@ -16,19 +16,17 @@
   </extension>
   <extension point="xbmc.service" library="service.py" start="login">
   </extension>
-  <extension point="kodi.context.item" library="contextmenu_play.py">
-    <item>
-      <label>Select video</label>
-            <description>Playback selection for Emby videos</description>
-            <visible>[!IsEmpty(ListItem.DBID) + !StringCompare(ListItem.DBID,-1) | !IsEmpty(ListItem.Property(embyid))] + !IsEmpty(Window(10000).Property(emby_context))</visible>
-    </item>
-  </extension>
-  <extension point="kodi.context.item" library="contextmenu.py">
-    <item>
-      <label>30401</label>
-            <description>Settings for the Emby Server</description>
-            <visible>[!IsEmpty(ListItem.DBID) + !StringCompare(ListItem.DBID,-1) | !IsEmpty(ListItem.Property(embyid))] + !IsEmpty(Window(10000).Property(emby_context))</visible>
-    </item>
+  <extension point="kodi.context.item">
+    <menu id="kodi.core.main">
+      <item library="contextmenu_play.py">
+        <label>Select video</label>
+        <visible>[!IsEmpty(ListItem.DBID) + !StringCompare(ListItem.DBID,-1) | !IsEmpty(ListItem.Property(embyid))] + !IsEmpty(Window(10000).Property(emby_context))</visible>
+      </item>
+      <item library="contextmenu.py">
+        <label>30401</label>
+        <visible>[!IsEmpty(ListItem.DBID) + !StringCompare(ListItem.DBID,-1) | !IsEmpty(ListItem.Property(embyid))] + !IsEmpty(Window(10000).Property(emby_context))</visible>
+      </item>
+    </menu>
   </extension>
   <extension point="xbmc.addon.metadata">
     <platform>all</platform>
