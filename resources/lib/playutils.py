@@ -2,6 +2,7 @@
 
 #################################################################################################
 
+import json
 import logging
 import sys
 import urllib
@@ -45,7 +46,7 @@ class PlayUtils():
         playurl = None
         pbinfo = self.getPlaybackInfo()
         if pbinfo:
-            xbmc.log("getPlayUrl pbinfo: %s" %(pbinfo))
+            log.info("getPlayUrl pbinfo: %s" %(pbinfo))
             
             if pbinfo["Protocol"] == "SupportsDirectPlay":
                 playmethod = "DirectPlay"
@@ -57,7 +58,7 @@ class PlayUtils():
                 playmethod = "Transcode"
 
             playurl = pbinfo["Path"]
-            xbmc.log("getPlayUrl playmethod: %s - playurl: %s" %(playmethod, playurl))
+            log.info("getPlayUrl playmethod: %s - playurl: %s" %(playmethod, playurl))
             window('emby_%s.playmethod' % playurl, value=playmethod)
             if pbinfo["RequiresClosing"] and pbinfo.get('LiveStreamId'):
                 window('emby_%s.livestreamid' % playurl, value=pbinfo["LiveStreamId"])
@@ -505,7 +506,7 @@ class PlayUtils():
                 "LiveStreamId": None 
                 }
         pbinfo = self.doUtils(url, postBody=body, action_type="POST")
-        xbmc.log("getPlaybackInfo: %s" %pbinfo)
+        log.info("getPlaybackInfo: %s", json.dumps(pbinfo))
         mediaSource = self.getOptimalMediaSource(pbinfo["MediaSources"])
         if mediaSource and mediaSource["RequiresOpening"]:
             mediaSource = self.getLiveStream(pbinfo["PlaySessionId"], mediaSource)
@@ -535,7 +536,7 @@ class PlayUtils():
                     elif not source.get("Bitrate") and source.get("RequiresOpening"):
                         #livestream
                         bestSource = source
-        xbmc.log("getOptimalMediaSource: %s" %bestSource)
+        log.info("getOptimalMediaSource: %s", bestSource)
         return bestSource
         
     def getLiveStream(self, playSessionId, mediaSource):
@@ -551,7 +552,7 @@ class PlayUtils():
                 "SubtitleStreamIndex": None #TODO
                 }
         streaminfo = self.doUtils(url, postBody=body, action_type="POST")
-        xbmc.log("getLiveStream: %s" %streaminfo)
+        log.info("getLiveStream: %s", streaminfo)
         return streaminfo["MediaSource"]
             
     def checkDirectPlayPath(self, playurl):

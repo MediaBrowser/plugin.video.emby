@@ -74,27 +74,29 @@ class Player(xbmc.Player):
         self.currentFile = currentFile
 
         # We may need to wait for info to be set in kodi monitor
-        itemId = window("emby_%s.itemid" % currentFile)
+        item = window('emby_%s.json' % currentFile)
+        #itemId = window("emby_%s.itemid" % currentFile)
         tryCount = 0
-        while not itemId:
+        while not item:
 
             xbmc.sleep(200)
-            itemId = window("emby_%s.itemid" % currentFile)
+            item = window('emby_%s.json' % currentFile)
             if tryCount == 20: # try 20 times or about 10 seconds
-                log.info("Could not find itemId, cancelling playback report...")
+                log.info("Could not find item, cancelling playback report...")
                 break
             else: tryCount += 1
 
         else:
-            log.info("ONPLAYBACK_STARTED: %s itemid: %s" % (currentFile, itemId))
+            item_id = item.get('id')
+            log.info("ONPLAYBACK_STARTED: %s itemid: %s" % (currentFile, item_id))
 
             # Only proceed if an itemId was found.
-            embyitem = "emby_%s" % currentFile
-            runtime = window("%s.runtime" % embyitem)
-            refresh_id = window("%s.refreshid" % embyitem)
-            playMethod = window("%s.playmethod" % embyitem)
-            itemType = window("%s.type" % embyitem)
-            window('emby_skipWatched%s' % itemId, value="true")
+            runtime = item.get('runtime')
+            refresh_id = item.get('refreshid')
+            play_method = item.get('playmethod')
+            item_type = item.get('type')
+
+            window('emby_skipWatched%s' % item_id, value="true")
 
             customseek = window('emby_customPlaylist.seektime')
             if window('emby_customPlaylist') == "true" and customseek:
@@ -133,16 +135,16 @@ class Player(xbmc.Player):
 
                 'QueueableMediaTypes': "Video",
                 'CanSeek': True,
-                'ItemId': itemId,
-                'MediaSourceId': itemId,
-                'PlayMethod': playMethod,
+                'ItemId': item_id,
+                'MediaSourceId': item_id,
+                'PlayMethod': play_method,
                 'VolumeLevel': volume,
                 'PositionTicks': int(seekTime * 10000000),
                 'IsMuted': muted
             }
 
             # Get the current audio track and subtitles
-            if playMethod == "Transcode":
+            if play_method == "Transcode":
                 # property set in PlayUtils.py
                 postdata['AudioStreamIndex'] = window("%sAudioStreamIndex" % currentFile)
                 postdata['SubtitleStreamIndex'] = window("%sSubtitleStreamIndex" % currentFile)
@@ -190,7 +192,7 @@ class Player(xbmc.Player):
 
                     # Number of audiotracks to help get Emby Index
                     audioTracks = len(xbmc.Player().getAvailableAudioStreams())
-                    mapping = window("%s.indexMapping" % embyitem)
+                    mapping = window("emby_%s.indexMapping" % currentFile)
 
                     if mapping: # Set in playbackutils.py
 
@@ -230,13 +232,13 @@ class Player(xbmc.Player):
             data = {
 
                 'runtime': runtime,
-                'item_id': itemId,
+                'item_id': item_id,
                 'refresh_id': refresh_id,
                 'currentfile': currentFile,
                 'AudioStreamIndex': postdata['AudioStreamIndex'],
                 'SubtitleStreamIndex': postdata['SubtitleStreamIndex'],
-                'playmethod': playMethod,
-                'Type': itemType,
+                'playmethod': play_method,
+                'Type': item_type,
                 'currentPosition': int(seekTime)
             }
 
@@ -244,8 +246,8 @@ class Player(xbmc.Player):
             log.info("ADDING_FILE: %s" % self.played_info)
 
             ga = GoogleAnalytics()
-            ga.sendEventData("PlayAction", itemType, playMethod)
-            ga.sendScreenView(itemType)
+            ga.sendEventData("PlayAction", item_type, play_method)
+            ga.sendScreenView(item_type)
 
     def reportPlayback(self):
         

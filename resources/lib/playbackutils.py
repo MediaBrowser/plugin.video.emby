@@ -54,7 +54,7 @@ class PlaybackUtils():
         playutils = putils.PlayUtils(self.item)
 
         log.info("Play called: %s", self.item['Name'])
-        playurl = playutils.getPlayUrl()
+        playurl = playutils.getPlayUrlNew()
 
         if not playurl:
             return xbmcplugin.setResolvedUrl(int(sys.argv[1]), False, listitem)
@@ -195,7 +195,7 @@ class PlaybackUtils():
             'url': url,
             'runtime': str(self.item.get('RunTimeTicks')),
             'type': item_type,
-            'itemid': item_id,
+            'id': item_id,
             'refreshid': self.item.get('SeriesId') if item_type == "Episode" else item_id,
             'playmethod': play_method
         })
