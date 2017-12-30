@@ -2,7 +2,6 @@
 <window>
 	<defaultcontrol always="true">200</defaultcontrol>
 	<zorder>0</zorder>
-	<include>dialogeffect</include>
 	<controls>
 		<control type="image">
 			<description>Background fade</description>
