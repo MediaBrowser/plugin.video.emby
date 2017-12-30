@@ -45,6 +45,8 @@ class PlaylistObjectBaseclase(object):
         # Needed to not add an item twice (first through PKC, then the kodi
         # monitor)
         self._onadd_queue = []
+        self._onremove_queue = []
+        self._onclear_queue = []
 
     def __repr__(self):
         """
@@ -83,11 +85,53 @@ class PlaylistObjectBaseclase(object):
             return True
         return False
 
+    def kodi_onremove(self):
+        """
+        Call this before removing an item from the Kodi playqueue
+        """
+        self._onremove_queue.append(None)
+
+    def is_kodi_onremove(self):
+        """
+        Returns False if the last kodimonitor on_remove was caused by PKC - so
+        that we are not adding a playlist item twice.
+
+        Calling this function will remove the item from our "checklist"
+        """
+        try:
+            self._onremove_queue.pop()
+        except IndexError:
+            return True
+        return False
+
+    def kodi_onclear(self):
+        """
+        Call this before clearing the Kodi playqueue IF it was not empty
+        """
+        self._onclear_queue.append(None)
+
+    def is_kodi_onclear(self):
+        """
+        Returns False if the last kodimonitor on_remove was caused by PKC - so
+        that we are not clearing the playlist twice.
+
+        Calling this function will remove the item from our "checklist"
+        """
+        try:
+            self._onclear_queue.pop()
+        except IndexError:
+            return True
+        return False
+
     def clear(self):
         """
         Resets the playlist object to an empty playlist
         """
-        self.kodi_pl.clear()  # Clear Kodi playlist object
+        # kodi monitor's on_clear method will only be called if there were some
+        # items to begin with
+        if self.kodi_pl.size() != 0:
+            self.kodi_onclear()
+            self.kodi_pl.clear()  # Clear Kodi playlist object
         self.items = []
         self.old_kodi_pl = []
         self.id = None

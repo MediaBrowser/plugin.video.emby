@@ -229,6 +229,10 @@ class KodiMonitor(Monitor):
         }
         """
         playqueue = self.playqueue.playqueues[data['playlistid']]
+        # Did PKC cause this add? Then lets not do anything
+        if playqueue.is_kodi_onremove() is False:
+            LOG.debug('PKC removed this item already from playqueue - ignoring')
+            return
         # Check whether we even need to update our known playqueue
         kodi_playqueue = js.playlist_get_items(data['playlistid'])
         if playqueue.old_kodi_pl == kodi_playqueue:
@@ -245,7 +249,11 @@ class KodiMonitor(Monitor):
             u'playlistid': 1,
         }
         """
-        self.playqueue.playqueues[data['playlistid']].clear()
+        playqueue = self.playqueue.playqueues[data['playlistid']]
+        if playqueue.is_kodi_onclear() is False:
+            LOG.debug('PKC already cleared the playqueue - ignoring')
+            return
+        playqueue.clear()
 
     @LOCKER.lockthis
     def PlayBackStart(self, data):
