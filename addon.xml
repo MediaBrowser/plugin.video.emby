@@ -20,11 +20,11 @@
     <menu id="kodi.core.main">
       <item library="contextmenu_play.py">
         <label>Select video</label>
-        <visible>[!IsEmpty(ListItem.DBID) + !StringCompare(ListItem.DBID,-1) | !IsEmpty(ListItem.Property(embyid))] + !IsEmpty(Window(10000).Property(emby_context))</visible>
+        <visible>[!IsEmpty(ListItem.DBID) + !StringCompare(ListItem.DBID,-1) | !IsEmpty(ListItem.Property(embyid))] + !IsEmpty(Window(10000).Property(emby_context)) + !Window.IsVisible(10000)</visible>
       </item>
       <item library="contextmenu.py">
         <label>30401</label>
-        <visible>[!IsEmpty(ListItem.DBID) + !StringCompare(ListItem.DBID,-1) | !IsEmpty(ListItem.Property(embyid))] + !IsEmpty(Window(10000).Property(emby_context))</visible>
+        <visible>[!IsEmpty(ListItem.DBID) + !StringCompare(ListItem.DBID,-1) | !IsEmpty(ListItem.Property(embyid))] + !IsEmpty(Window(10000).Property(emby_context)) + !Window.IsVisible(10000)</visible>
       </item>
     </menu>
   </extension>

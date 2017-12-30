@@ -44,6 +44,7 @@ class ContextMenu(object):
 
         self.item = sys.listitem
 
+        log.info(type(xbmc.getInfoLabel('ListItem.DBID')))
         log.info(xbmc.getInfoLabel('ListItem.DBID'))
         log.info(self.item.getProperty('embyid'))
         self.kodi_id = xbmc.getInfoLabel('ListItem.DBID').decode('utf-8')
