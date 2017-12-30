@@ -482,7 +482,7 @@ class PlayUtils():
             for source in media_sources:
                 if source[stream]:
 
-                    if stream == "SupportsDirectPlay":
+                    if stream == "lSupportsDirectPlay":
                         if self.is_file_exists(source):
                             optimal_source = source
                     elif optimal_source.get('Bitrate', 0) < source.get('Bitrate', 0):
@@ -502,7 +502,7 @@ class PlayUtils():
 
         return info['MediaSource']
 
-    def is_file_exist(self, source):
+    def is_file_exists(self, source):
 
         path = source['Path']
 
@@ -520,13 +520,15 @@ class PlayUtils():
         if xbmcvfs.exists(path) or ":" not in path:
             log.info("Path exists or assumed linux.")
             source['Path'] = path
-            return True
+            return False
         else:
             log.info("Failed to find file.")
             return False
 
     def get_bitrate(self):
+
         # get the addon video quality
+
         bitrate = {
 
             '0': 664,

@@ -111,7 +111,7 @@ class PlaybackUtils():
                 for intro in intros['Items']:
 
                     listitem = xbmcgui.ListItem()
-                    url = putils.PlayUtils(intro).getPlayUrl()
+                    url = putils.PlayUtils(intro).get_play_url()
                     log.info("Adding Intro: %s" % url)
 
                     self.stack.append([url, listitem])
@@ -123,7 +123,7 @@ class PlaybackUtils():
         for part in parts['Items']:
 
             listitem = xbmcgui.ListItem()
-            url = putils.PlayUtils(part).getPlayUrl()
+            url = putils.PlayUtils(part).get_play_url()
             log.info("Adding additional part: %s" % url)
 
             # Set listitem and properties for each additional parts

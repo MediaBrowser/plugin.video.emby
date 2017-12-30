@@ -3,6 +3,7 @@
 #################################################################################################
 
 import logging
+import sys
 
 import xbmc
 import xbmcaddon
@@ -41,10 +42,23 @@ class ContextMenu(object):
 
         self.emby = embyserver.Read_EmbyServer()
 
-        self.kodi_id = xbmc.getInfoLabel('ListItem.DBID').decode('utf-8')
-        self.item_type = self._get_item_type()
-        self.item_id = self._get_item_id(self.kodi_id, self.item_type)
+        self.item = sys.listitem
 
+        log.info(self.item.fromString())
+        self.kodi_id = xbmc.getInfoLabel('ListItem.DBID').decode('utf-8')
+
+        if not self.kodi_id: # assume widget
+            self.item = sys.listitem
+            path = self.item.getPath()
+
+            if path:
+                self.kodi_id = path.split("/")[-2]
+                
+
+        else:
+            self.item_type = self._get_item_type()
+        
+        self.item_id = self._get_item_id(self.kodi_id, self.item_type)
         log.info("Found item_id: %s item_type: %s", self.item_id, self.item_type)
 
         if self.item_id:
