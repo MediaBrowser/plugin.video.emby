@@ -30,7 +30,7 @@ import playbackutils as pbutils
 import playutils
 import api
 from views import Playlist, VideoNodes
-from utils import window, settings, dialog, language as lang
+from utils import window, settings, dialog, language as lang, plugin_path
 
 #################################################################################################
 
@@ -85,7 +85,7 @@ def doMainListing():
             '''
 
             if path:
-                if xbmc.getCondVisibility("Window.IsActive(Pictures)") and node == "photos":
+                if xbmc.getCondVisibility("Window.IsActive(Pictures)") and node in ("photos", "homevideos"):
                     addDirectoryItem(label, path)
                 elif xbmc.getCondVisibility("Window.IsActive(Videos)") and node != "photos":
                     addDirectoryItem(label, path)
@@ -111,6 +111,7 @@ def doMainListing():
     addDirectoryItem(lang(33053), "plugin://plugin.video.emby/?mode=settings")
     addDirectoryItem(lang(33054), "plugin://plugin.video.emby/?mode=adduser")
     addDirectoryItem(lang(33055), "plugin://plugin.video.emby/?mode=refreshplaylist")
+    addDirectoryItem(lang(33098), "plugin://plugin.video.emby/?mode=refreshboxsets")
     addDirectoryItem(lang(33056), "plugin://plugin.video.emby/?mode=manualsync")
     addDirectoryItem(lang(33057), "plugin://plugin.video.emby/?mode=repair")
     addDirectoryItem(lang(33058), "plugin://plugin.video.emby/?mode=reset")
@@ -618,12 +619,9 @@ def BrowseContent(viewname, browse_type="", folderid=""):
     #set the correct params for the content type
     #only proceed if we have a folderid
     if folderid:
-        if browse_type.lower() == "homevideos":
-            xbmcplugin.setContent(int(sys.argv[1]), 'episodes')
-            itemtype = "Video,Folder,PhotoAlbum"
-        elif browse_type.lower() == "photos":
-            xbmcplugin.setContent(int(sys.argv[1]), 'files')
-            itemtype = "Photo,PhotoAlbum,Folder"
+        if browse_type == "homevideos":
+            #xbmcplugin.setContent(int(sys.argv[1]), 'files')
+            itemtype = "Video,Folder,PhotoAlbum,Photo"
         else:
             itemtype = ""
         
@@ -639,7 +637,7 @@ def BrowseContent(viewname, browse_type="", folderid=""):
         elif filter_type == "recommended":
             listing = emby.getFilteredSection(folderid, itemtype=itemtype.split(",")[0], sortby="SortName", recursive=True, limit=25, sortorder="Ascending", filter_type="IsFavorite")
         elif folderid == "favepisodes":
-            xbmcplugin.setContent(int(sys.argv[1]), 'episodes')
+            #xbmcplugin.setContent(int(sys.argv[1]), 'episodes')
             listing = emby.getFilteredSection(None, itemtype="Episode", sortby="SortName", recursive=True, limit=25, sortorder="Ascending", filter_type="IsFavorite")
         elif filter_type == "sets":
             listing = emby.getFilteredSection(folderid, itemtype=itemtype.split(",")[1], sortby="SortName", recursive=True, limit=25, sortorder="Ascending", filter_type="IsFavorite")
@@ -652,10 +650,17 @@ def BrowseContent(viewname, browse_type="", folderid=""):
                 li = createListItemFromEmbyItem(item,art,doUtils)
                 if item.get("IsFolder") == True:
                     #for folders we add an additional browse request, passing the folderId
-                    path = "%s?id=%s&mode=browsecontent&type=%s&folderid=%s" % (sys.argv[0].decode('utf-8'), viewname.decode('utf-8'), browse_type.decode('utf-8'), item.get("Id").decode('utf-8'))
+                    params = {
+
+                        'id': viewname.encode('utf-8'),
+                        'mode': "browsecontent",
+                        'type': browse_type,
+                        'folderid': item['Id']
+                    }
+                    path = plugin_path("plugin://plugin.video.emby/", params)
                     xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=path, listitem=li, isFolder=True)
-                else:
-                    #playable item, set plugin path and mediastreams
+                else: #playable item, set plugin path and mediastreams
+                    xbmcplugin.setContent(int(sys.argv[1]), 'episodes' if folderid else 'files')
                     xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=li.getProperty("path"), listitem=li)
 
 
@@ -705,6 +710,15 @@ def createListItemFromEmbyItem(item,art=artwork.Artwork(),doUtils=downloadutils.
         li.setThumbnailImage(img_path)
         li.setProperty("plot",API.get_overview())
         li.setIconImage('DefaultPicture.png')
+
+    elif item['Type'] == "PhotoAlbum":
+        img_path = allart.get('Primary')
+        li.setProperty("path", img_path)
+        li.setThumbnailImage(img_path)
+        li.setIconImage('DefaultPicture.png')
+        backdrop = allart.get('Backdrop')
+        if backdrop:
+            li.setArt({ 'fanart': backdrop[0] })
     else:
         #normal video items
         li.setProperty('IsPlayable', 'true')
@@ -818,6 +832,7 @@ def BrowseChannels(itemid, folderid=None):
 def createListItem(item):
 
     title = item['title']
+    label2 = ""
     li = xbmcgui.ListItem(title)
     li.setProperty('IsPlayable', "true")
     
@@ -828,6 +843,10 @@ def createListItem(item):
         'Plot': item['plot'],
         'Playcount': item['playcount']
     }
+
+    if "showtitle" in item:
+        metadata['TVshowTitle'] = item['showtitle']
+        label2 = item['showtitle']
 
     if "episodeid" in item:
         # Listitem of episode
@@ -844,13 +863,12 @@ def createListItem(item):
         metadata['Season'] = season
 
     if season and episode:
-        li.setProperty('episodeno', "s%.2de%.2d" % (season, episode))
+        episodeno = "s%.2de%.2d" % (season, episode)
+        li.setProperty('episodeno', episodeno)
+        label2 = "%s - %s" % (label2, episodeno) if label2 else episodeno
 
     if "firstaired" in item:
         metadata['Premiered'] = item['firstaired']
-
-    if "showtitle" in item:
-        metadata['TVshowTitle'] = item['showtitle']
 
     if "rating" in item:
         metadata['Rating'] = str(round(float(item['rating']),1))
@@ -871,6 +889,7 @@ def createListItem(item):
         metadata['Cast'] = cast
         metadata['CastAndRole'] = castandrole
 
+    li.setLabel2(label2)
     li.setInfo(type="Video", infoLabels=metadata)  
     li.setProperty('resumetime', str(item['resume']['position']))
     li.setProperty('totaltime', str(item['resume']['total']))
@@ -1055,9 +1074,10 @@ def getInProgressEpisodes(tagname, limit):
     xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
 
 ##### GET RECENT EPISODES FOR TAGNAME #####    
-def getRecentEpisodes(tagname, limit):
+def getRecentEpisodes(tagname, limit, filters=""):
     
     count = 0
+    filters = filters.split(',') if filters else []
     # if the addon is called with recentepisodes parameter,
     # we return the recentepisodes list of the given tagname
     xbmcplugin.setContent(int(sys.argv[1]), 'episodes')
@@ -1071,7 +1091,7 @@ def getRecentEpisodes(tagname, limit):
 
             'sort': {'order': "descending", 'method': "dateadded"},
             'filter': {'operator': "is", 'field': "tag", 'value': "%s" % tagname},
-            'properties': ["title","sorttitle"]
+            'properties': ["title", "sorttitle"]
         }
     }
     result = xbmc.executeJSONRPC(json.dumps(query))
@@ -1082,9 +1102,7 @@ def getRecentEpisodes(tagname, limit):
     except (KeyError, TypeError):
         pass
     else:
-        allshowsIds = set()
-        for item in items:
-            allshowsIds.add(item['tvshowid'])
+        allshowsIds = set(item['tvshowid'] for item in items)
 
         query = {
 
@@ -1094,15 +1112,17 @@ def getRecentEpisodes(tagname, limit):
             'params': {
 
                 'sort': {'order': "descending", 'method': "dateadded"},
-                'filter': {'operator': "lessthan", 'field': "playcount", 'value': "1"},
                 'properties': [
                     "title", "playcount", "season", "episode", "showtitle", "plot",
                     "file", "rating", "resume", "tvshowid", "art", "streamdetails",
                     "firstaired", "runtime", "cast", "writer", "dateadded", "lastplayed"
                 ],
-                "limits": {"end": limit}
+                "limits": {"end": limit*5}
             }
         }
+        if 'playcount' not in filters:
+            query['params']['filter'] = {'operator': "lessthan", 'field': "playcount", 'value': "1"}
+
         result = xbmc.executeJSONRPC(json.dumps(query))
         result = json.loads(result)
         try:

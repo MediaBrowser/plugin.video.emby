@@ -54,7 +54,7 @@ def getServerAddress(server, mode):
 
 class ConnectionManager(object):
 
-    default_timeout = 20
+    default_timeout = 10
     apiClients = []
     minServerVersion = "3.0.5930"
     connectUser = None
@@ -407,6 +407,9 @@ class ConnectionManager(object):
 
         connectServers = self._getConnectServers(credentials)
         foundServers = self._findServers(self._serverDiscovery())
+        if not connectServers and not foundServers: # back out right away, no point in continuing
+            log.info("Found no servers")
+            return []
 
         servers = list(credentials['Servers'])
         self._mergeServers(servers, foundServers)
@@ -539,12 +542,12 @@ class ConnectionManager(object):
             log.info("skipping test at index: %s" % index)
             return self._testNextConnectionMode(tests, index+1, server, options)
 
-        log.info("testing connection mode %s with server %s" % (mode, server['Name']))
+        log.info("testing connection mode %s with server %s" % (mode, server.get('Name')))
         try:
             result = self._tryConnect(address, timeout, options)
         
         except Exception:
-            log.error("test failed for connection mode %s with server %s" % (mode, server['Name']))
+            log.error("test failed for connection mode %s with server %s" % (mode, server.get('Name')))
 
             if enableRetry:
                 # TODO: wake on lan and retry
@@ -561,7 +564,7 @@ class ConnectionManager(object):
                 }
             else:
                 log.info("calling onSuccessfulConnection with connection mode %s with server %s"
-                        % (mode, server['Name']))
+                        % (mode, server.get('Name')))
                 return self._onSuccessfulConnection(server, result, mode, options)
 
     def _onSuccessfulConnection(self, server, systemInfo, connectionMode, options):

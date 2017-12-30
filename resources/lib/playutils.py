@@ -12,6 +12,7 @@ import xbmcvfs
 
 import clientinfo
 import downloadutils
+import read_embyserver as embyserver
 from utils import window, settings, language as lang
 
 #################################################################################################
@@ -28,6 +29,7 @@ class PlayUtils():
 
         self.item = item
         self.clientInfo = clientinfo.ClientInfo()
+        self.emby = embyserver.Read_EmbyServer()
 
         self.userid = window('emby_currUser')
         self.server = window('emby_server%s' % self.userid)
@@ -65,13 +67,21 @@ class PlayUtils():
 
     def getPlayUrl(self):
 
+        # log filename, used by other addons eg subtitles which require the file name
+        try:
+            window('embyfilename', value=self.directPlay())
+        except:
+            log.info("Could not get file path for embyfilename window prop")
+
         playurl = None
+        user_token = downloadutils.DownloadUtils().get_token()
         
         if (self.item.get('Type') in ("Recording", "TvChannel") and self.item.get('MediaSources')
                 and self.item['MediaSources'][0]['Protocol'] == "Http"):
             # Play LiveTV or recordings
             log.info("File protocol is http (livetv).")
             playurl = "%s/emby/Videos/%s/stream.ts?audioCodec=copy&videoCodec=copy" % (self.server, self.item['Id'])
+            playurl += "&api_key=" + str(user_token)
             window('emby_%s.playmethod' % playurl, value="DirectPlay")
             
 
@@ -113,10 +123,12 @@ class PlayUtils():
         mediatype = self.item['MediaType']
 
         if mediatype == "Audio":
-            playurl = "%s/emby/Audio/%s/stream" % (self.server, itemid)
+            playurl = "%s/emby/Audio/%s/stream?" % (self.server, itemid)
         else:
             playurl = "%s/emby/Videos/%s/stream?static=true" % (self.server, itemid)
 
+        user_token = downloadutils.DownloadUtils().get_token()
+        playurl += "&api_key=" + str(user_token)
         return playurl
 
     def isDirectPlay(self):
@@ -126,18 +138,22 @@ class PlayUtils():
             # User forcing to play via HTTP
             log.info("Can't direct play, play from HTTP enabled.")
             return False
-
-        videotrack = self.item['MediaSources'][0]['Name']
+        
+        vid = self.getVideoStreamID()
+        videotrack = self.item['MediaStreams'][vid]['DisplayTitle']
         transcodeH265 = settings('transcodeH265')
-        videoprofiles = [x['Profile'] for x in self.item['MediaSources'][0]['MediaStreams'] if 'Profile' in x]
+        videoprofile = self.item['MediaStreams'][vid]['Profile']
         transcodeHi10P = settings('transcodeHi10P')        
 
-        if transcodeHi10P == "true" and "H264" in videotrack and "High 10" in videoprofiles:
+        if transcodeHi10P == "true" and ("Main 10" in videoprofile or "High 10" in videoprofile) and ("H264" in videotrack or "H265" in videotrack or "HEVC" in videotrack):
             return False   
 
         if transcodeH265 in ("1", "2", "3") and ("HEVC" in videotrack or "H265" in videotrack):
             # Avoid H265/HEVC depending on the resolution
-            resolution = int(videotrack.split("P", 1)[0])
+            try:
+                resolution = int(videotrack.split("P", 1)[0])
+            except ValueError: # 4k resolution
+                resolution = 3064
             res = {
 
                 '1': 480,
@@ -153,6 +169,11 @@ class PlayUtils():
         # Make sure direct play is supported by the server
         if not canDirectPlay:
             log.info("Can't direct play, server doesn't allow/support it.")
+            return False
+
+        # Verify screen resolution
+        if self.resolutionConflict():
+            log.info("Can't direct play, resolution limit is enabled")
             return False
 
         location = self.item['LocationType']
@@ -221,18 +242,22 @@ class PlayUtils():
             return False
 
     def isDirectStream(self):
-
-        videotrack = self.item['MediaSources'][0]['Name']
+        
+        vid = self.getVideoStreamID()
+        videotrack = self.item['MediaStreams'][vid]['DisplayTitle']
         transcodeH265 = settings('transcodeH265')
-        videoprofiles = [x['Profile'] for x in self.item['MediaSources'][0]['MediaStreams'] if 'Profile' in x]
+        videoprofile = self.item['MediaStreams'][vid]['Profile']
         transcodeHi10P = settings('transcodeHi10P')        
 
-        if transcodeHi10P == "true" and "H264" in videotrack and "High 10" in videoprofiles:
+        if transcodeHi10P == "true" and ("Main 10" in videoprofile or "High 10" in videoprofile) and ("H264" in videotrack or "H265" in videotrack or "HEVC" in videotrack):
             return False   
 
         if transcodeH265 in ("1", "2", "3") and ("HEVC" in videotrack or "H265" in videotrack):
             # Avoid H265/HEVC depending on the resolution
-            resolution = int(videotrack.split("P", 1)[0])
+            try:
+                resolution = int(videotrack.split("P", 1)[0])
+            except ValueError: # 4k resolution
+                resolution = 3064
             res = {
 
                 '1': 480,
@@ -255,6 +280,11 @@ class PlayUtils():
             log.info("The network speed is insufficient to direct stream file.")
             return False
 
+        # Verify screen resolution
+        if self.resolutionConflict():
+            log.info("Can't direct stream, resolution limit is enabled")
+            return False
+
         return True
 
     def directStream(self):
@@ -263,10 +293,12 @@ class PlayUtils():
             # Allow strm loading when direct streaming
             playurl = self.directPlay()
         elif self.item['Type'] == "Audio":
-            playurl = "%s/emby/Audio/%s/stream.mp3" % (self.server, self.item['Id'])
+            playurl = "%s/emby/Audio/%s/stream.mp3?" % (self.server, self.item['Id'])
         else:
             playurl = "%s/emby/Videos/%s/stream?static=true" % (self.server, self.item['Id'])
 
+        user_token = downloadutils.DownloadUtils().get_token()
+        playurl += "&api_key=" + str(user_token)
         return playurl
 
     def isNetworkSufficient(self):
@@ -307,6 +339,19 @@ class PlayUtils():
             playurl = (
                 "%s&VideoCodec=h264&AudioCodec=ac3&MaxAudioChannels=6&deviceId=%s&VideoBitrate=%s"
                 % (playurl, deviceId, self.getBitrate()*1000))
+
+            # Limit to 8 bit if user selected transcode Hi10P
+            transcodeHi10P = settings('transcodeHi10P')
+            if transcodeHi10P == "true":
+                playurl = "%s&MaxVideoBitDepth=8" % playurl
+
+            # Adjust video resolution
+            if self.resolutionConflict():
+                screenRes = self.getScreenResolution()
+                playurl = "%s&maxWidth=%s&maxHeight=%s" % (playurl, screenRes['width'], screenRes['height'])
+
+            user_token = downloadutils.DownloadUtils().get_token()
+            playurl += "&api_key=" + str(user_token)
 
         return playurl
 
@@ -388,7 +433,7 @@ class PlayUtils():
 
                 default = stream['IsDefault']
                 forced = stream['IsForced']
-                downloadable = stream['IsTextSubtitleStream']
+                downloadable = stream['SupportsExternalStream']
 
                 if default:
                     track = "%s - Default" % track
@@ -423,9 +468,10 @@ class PlayUtils():
                 # User selected subtitles
                 selected = subtitleStreams[resp]
                 selectSubsIndex = subtitleStreamsList[selected]
+                settings = self.emby.get_server_transcoding_settings()
 
                 # Load subtitles in the listitem if downloadable
-                if selectSubsIndex in downloadableStreams:
+                if settings['EnableSubtitleExtraction'] and selectSubsIndex in downloadableStreams:
 
                     itemid = self.item['Id']
                     url = [("%s/Videos/%s/%s/Subtitles/%s/Stream.srt"
@@ -634,3 +680,34 @@ class PlayUtils():
               }
             ]
         }
+
+    def resolutionConflict(self):
+        if settings('limitResolution') == "true":
+            screenRes = self.getScreenResolution()
+            videoRes = self.getVideoResolution()
+            
+            if not videoRes:
+                return False
+
+            return videoRes['width'] > screenRes['width'] or videoRes['height'] > screenRes['height']
+        else:
+            return False
+
+    def getScreenResolution(self):
+        wind = xbmcgui.Window()
+        return {'width' : wind.getWidth(),
+                'height' : wind.getHeight()}
+
+    def getVideoResolution(self):
+        try:
+            return {'width' : self.item['MediaStreams'][0]['Width'],
+                    'height' : self.item['MediaStreams'][0]['Height']}
+        except (KeyError, IndexError) as error:
+            log.debug(error)
+            log.debug(self.item)
+            return False
+
+    def getVideoStreamID(self):
+        # Sometimes video stream is not 0, this locates it.    
+        videx = [x['Index'] for x in self.item['MediaSources'][0]['MediaStreams'] if 'Video' in x['Type']]
+        return videx[0]

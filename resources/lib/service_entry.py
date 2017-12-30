@@ -79,12 +79,16 @@ class Service(object):
 
         # Clear video nodes properties
         VideoNodes().clearProperties()
+        # assume offline mode
+        log.info("Loading existing views...")
+        librarysync.LibrarySync().offline_mode_views()
 
         # Set the minimum database version
         window('emby_minDBVersion', value="1.1.63")
 
 
     def service_entry_point(self):
+
         # Important: Threads depending on abortRequest will not trigger
         # if profile switch happens more than once.
         self.monitor = kodimonitor.KodiMonitor()
@@ -248,7 +252,8 @@ class Service(object):
                     # Alert the user that server is online.
                     dialog(type_="notification",
                            heading="{emby}",
-                           message=lang(33003),
+                           message=("%s %s"
+                                    % (lang(33000), user_client.get_username().decode('utf-8'))),
                            icon="{emby}",
                            time=2000,
                            sound=False)
@@ -286,17 +291,16 @@ class Service(object):
         kodi_player = self.kodi_player
         try:
             play_time = kodi_player.getTime()
-            filename = kodi_player.currentFile
-
+            filename = kodi_player.getPlayingFile()
             # Update positionticks
-            if filename in kodi_player.played_info:
+            if filename in kodi_player.played_info and play_time > 0:
                 kodi_player.played_info[filename]['currentPosition'] = play_time
 
             difference = datetime.today() - self.last_progress
             difference_seconds = difference.seconds
 
             # Report progress to Emby server
-            if difference_seconds > 3:
+            if difference_seconds > 9:
                 kodi_player.reportPlayback()
                 self.last_progress = datetime.today()
 

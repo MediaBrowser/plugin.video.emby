@@ -54,6 +54,17 @@ class Movies(Items):
 
         return actions.get(action)
 
+    def force_refresh_boxsets(self):
+
+        if self.pdialog:
+            self.pdialog.update(heading=lang(29999), message=lang(33018))
+
+        boxsets = self.emby.getBoxset(dialog=self.pdialog)
+        self.add_all("BoxSet", boxsets)
+
+        log.debug("Boxsets finished.")
+        return True
+
     def compare_all(self):
         # Pull the list of movies and boxsets in Kodi
         views = self.emby_db.getView_byType('movies')
@@ -243,13 +254,13 @@ class Movies(Items):
             if self.kodi_version >= 17:
                 ratingid =  self.kodi_db.get_ratingid(movieid)
 
-                self.kodi_db.update_ratings(movieid, "movie", "default", rating, votecount,ratingid)
+                self.kodi_db.update_ratings(movieid, "movie", "default", rating, votecount, ratingid)
 
             # update new uniqueid Kodi 17
             if self.kodi_version >= 17:
                 uniqueid =  self.kodi_db.get_uniqueid(movieid)
 
-                self.kodi_db.update_uniqueid(movieid, "movie", imdb, "imdb",uniqueid)
+                self.kodi_db.update_uniqueid(movieid, "movie", imdb, "imdb", uniqueid)
 
             # Update the movie entry
             if self.kodi_version >= 17:

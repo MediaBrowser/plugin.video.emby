@@ -122,8 +122,26 @@ class Embydb_Functions():
             views.append({
 
                 'id': row[0],
-                'name': row[1]
+                'name': row[1],
+                'mediatype': mediatype
             })
+
+        if mediatype in ('tvshows', 'movies'):
+            query = ' '.join((
+                "SELECT view_id, view_name",
+                "FROM view",
+                "WHERE media_type = ?"
+            ))
+
+            self.embycursor.execute(query, ("mixed",))
+            rows = self.embycursor.fetchall()
+            for row in rows:
+                views.append({
+
+                    'id': row[0],
+                    'name': row[1],
+                    'mediatype': "mixed"
+                })
 
         return views
 
@@ -144,17 +162,40 @@ class Embydb_Functions():
 
         return view
 
-    def addView(self, embyid, name, mediatype, tagid):
+    def addView(self, embyid, name, mediatype, tagid, group_series):
 
         query = (
             '''
             INSERT INTO view(
-                view_id, view_name, media_type, kodi_tagid)
+                view_id, view_name, media_type, kodi_tagid, group_series)
 
-            VALUES (?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?)
             '''
         )
-        self.embycursor.execute(query, (embyid, name, mediatype, tagid))
+        self.embycursor.execute(query, (embyid, name, mediatype, tagid, group_series))
+
+    def get_view_grouped_series(self, view_id):
+
+        query = ' '.join((
+
+            "SELECT group_series",
+            "FROM view",
+            "WHERE view_id = ?"
+        ))
+        try:
+            self.embycursor.execute(query, (view_id,))
+            return self.embycursor.fetchone()
+        except: return False
+
+    def update_view_grouped_series(self, view_id, group_series):
+
+        query = ' '.join((
+
+            "UPDATE view",
+            "SET group_series = ?",
+            "WHERE view_id = ?"
+        ))
+        self.embycursor.execute(query, (group_series, view_id))
 
     def updateView(self, name, tagid, mediafolderid):
 

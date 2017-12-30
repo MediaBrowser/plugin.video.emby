@@ -29,7 +29,8 @@ def video_database():
         '14': 90, # Helix
         '15': 93, # Isengard
         '16': 99, # Jarvis
-        '17': 107 # Krypton
+        '17': 107,# Krypton
+        '18': 109 # Leia
     }
     return xbmc.translatePath("special://database/MyVideos%s.db"
                               % db_version.get(KODI, "")).decode('utf-8')
@@ -41,7 +42,8 @@ def music_database():
         '14': 48, # Helix
         '15': 52, # Isengard
         '16': 56, # Jarvis
-        '17': 60  # Krypton
+        '17': 60, # Krypton
+        '18': 68  # Leia
     }
     return xbmc.translatePath("special://database/MyMusic%s.db"
                               % db_version.get(KODI, "")).decode('utf-8')
@@ -139,18 +141,22 @@ def verify_emby_database(cursor):
     # Create the tables for the emby database
     # emby, view, version
 
-    if window('emby_db_checked') != "true":
-        log.info("Verifying emby DB")
-        cursor.execute(
-            """CREATE TABLE IF NOT EXISTS emby(
-            emby_id TEXT UNIQUE, media_folder TEXT, emby_type TEXT, media_type TEXT,
-            kodi_id INTEGER, kodi_fileid INTEGER, kodi_pathid INTEGER, parent_id INTEGER,
-            checksum INTEGER)""")
-        cursor.execute(
-            """CREATE TABLE IF NOT EXISTS view(
-            view_id TEXT UNIQUE, view_name TEXT, media_type TEXT, kodi_tagid INTEGER)""")
-        cursor.execute("CREATE TABLE IF NOT EXISTS version(idVersion TEXT)")
-        window('emby_db_checked', value="true")
+    log.info("Verifying emby DB")
+    cursor.execute(
+        """CREATE TABLE IF NOT EXISTS emby(
+        emby_id TEXT UNIQUE, media_folder TEXT, emby_type TEXT, media_type TEXT,
+        kodi_id INTEGER, kodi_fileid INTEGER, kodi_pathid INTEGER, parent_id INTEGER,
+        checksum INTEGER)""")
+    cursor.execute(
+        """CREATE TABLE IF NOT EXISTS view(
+        view_id TEXT UNIQUE, view_name TEXT, media_type TEXT, kodi_tagid INTEGER, group_series TEXT)""")
+    cursor.execute("CREATE TABLE IF NOT EXISTS version(idVersion TEXT)")
+
+    columns = cursor.execute("SELECT * FROM view")
+    if 'group_series' not in [description[0] for description in columns.description]:
+        log.info("Add missing column group_series")
+        cursor.execute("ALTER TABLE view ADD COLUMN group_series 'TEXT'")
+
 
 def db_reset():
 

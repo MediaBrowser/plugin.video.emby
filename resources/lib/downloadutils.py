@@ -53,6 +53,11 @@ class DownloadUtils(object):
 
         log.debug("Set info for server %s: %s", self.session['ServerId'], self.session)
 
+    def get_token(self):
+        user = self._get_session_info()
+        token = user['Token']
+        return token
+
     def add_server(self, server, ssl):
         # Reserved for userclient only
         server_id = server['Id']
@@ -103,7 +108,7 @@ class DownloadUtils(object):
                 "GoToSettings,PageDown,PreviousLetter,TakeScreenshot,"
                 "VolumeUp,VolumeDown,ToggleMute,SendString,DisplayMessage,"
                 "SetAudioStreamIndex,SetSubtitleStreamIndex,"
-
+                "SetRepeatMode,"
                 "Mute,Unmute,SetVolume,"
                 "Play,Playstate,PlayNext"
             )
@@ -173,13 +178,13 @@ class DownloadUtils(object):
     def get_header(self, server_id=None, authenticate=True):
 
         device_name = self.client_info.get_device_name().encode('utf-8')
-        device_id = self.client_info.get_device_id()
-        version = self.client_info.get_version()
+        device_id = self.client_info.get_device_id().encode('utf-8')
+        version = self.client_info.get_version().encode('utf-8')
 
         if authenticate:
 
             user = self._get_session_info(server_id)
-            user_id = user['UserId']
+            user_id = user['UserId'].encode('utf-8')
             token = user['Token']
 
             auth = (
@@ -204,6 +209,7 @@ class DownloadUtils(object):
         })
         return header
 
+
     def downloadUrl(self, url, postBody=None, action_type="GET", parameters=None,
                     authenticate=True, server_id=None):
 
@@ -216,6 +222,16 @@ class DownloadUtils(object):
             self._ensure_server(server_id)
             server = self.session if server_id is None else self.servers[server_id]
 
+            requires_server = False
+            if url.find("{server}") > -1 or url.find("{UserId}") > -1:
+                requires_server = True
+
+            if requires_server and (not server or not server.get("Server") or not server.get("UserId")):
+                log.info("Aborting download, Server Details Error: %s url=%s" % (server, url))
+                exc = Exception("Aborting download, Server Details Error: %s url=%s" % (server, url))
+                exc.quiet = True
+                raise exc
+
             if server_id is None and self.session_requests is not None: # Main server
                 session = self.session_requests
             else:
@@ -226,8 +242,9 @@ class DownloadUtils(object):
                 })
 
             # Replace for the real values
-            url = url.replace("{server}", server['Server'])
-            url = url.replace("{UserId}", server['UserId'])
+            if requires_server:
+                url = url.replace("{server}", server['Server'])
+                url = url.replace("{UserId}", server['UserId'])
 
             # does the URL look ok
             if url.startswith('/'):
@@ -254,7 +271,7 @@ class DownloadUtils(object):
                 # Read response to release connection
                 response.content
                 if action_type == "GET":
-                    raise Warning("Response Code 204: No Content for GET request")
+                    raise Exception("Response Code 204 for GET request")
                 else:
                     # this is probably valid for DELETE and PUT
                     return None
@@ -273,7 +290,7 @@ class DownloadUtils(object):
         ##### EXCEPTIONS #####
 
         except requests.exceptions.SSLError as error:
-            log.error("invalid SSL certificate for: %s", url)
+            log.error("Invalid SSL certificate for: %s", url)
             error.quiet = True
             raise
 
@@ -297,11 +314,6 @@ class DownloadUtils(object):
 
         except requests.exceptions.HTTPError as error:
 
-            if response.status_code == 400:
-                log.error("Malformed request: %s", error)
-                error.quiet = True
-                raise
-
             if response.status_code == 401:
                 # Unauthorized
                 status = window('emby_serverStatus')
@@ -316,16 +328,6 @@ class DownloadUtils(object):
                                                           icon=xbmcgui.NOTIFICATION_ERROR,
                                                           time=5000)
                         window('emby_serverStatus', value="restricted")
-                        exc = Exception("restricted: " + str(error))
-                        exc.quiet = True
-                        raise exc
-
-                    elif (response.headers['X-Application-Error-Code'] ==
-                          "UnauthorizedAccessException"):
-                        # User tried to do something his emby account doesn't allow
-                        exc = Exception("UnauthorizedAccessException: " + str(error))
-                        exc.quiet = True
-                        raise exc
 
                 elif status not in ("401", "Auth"):
                     # Tell userclient token has been revoked.
@@ -334,16 +336,14 @@ class DownloadUtils(object):
                     xbmcgui.Dialog().notification(heading="Error connecting",
                                                   message="Unauthorized.",
                                                   icon=xbmcgui.NOTIFICATION_ERROR)
-                    exc = Exception("401: " + str(error))
-                    exc.quiet = True
-                    raise exc
 
-        except requests.exceptions.RequestException as error:
-            log.error("unknown error connecting to: %s", url)
+            error.quiet = True
             raise
 
-        # something went wrong so return a None as we have no valid data
-        return None
+        # if we got to here and did not process the download for some reason then that is bad
+        exc = Exception("Unhandled Download : %s", url)
+        #exc.quiet = True
+        raise exc
 
     def _ensure_server(self, server_id=None):
 

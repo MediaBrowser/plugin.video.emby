@@ -27,7 +27,7 @@ class Credentials(object):
 
     def setPath(self, path):
         # Path to save persistant data.txt
-        self.path = path
+        self.path = path.encode('utf-8')
 
     def _ensure(self):
         
@@ -57,9 +57,7 @@ class Credentials(object):
             self.credentials = data
             # Set credentials to file
             with open(os.path.join(self.path, 'data.txt'), 'w') as outfile:
-                for server in data['Servers']:
-                    server['Name'] = server['Name'].encode('utf-8')
-                json.dump(data, outfile, ensure_ascii=False)
+                json.dump(data, outfile, ensure_ascii=True)
         else:
             self._clear()
 
@@ -143,7 +141,7 @@ class Credentials(object):
     def _dateObject(self, date):
         # Convert string to date
         try:
-            date_obj = datetime.strptime(date, "%Y-%m-%dT%H:%M:%SZ")
+            date_obj = time.strptime(date, "%Y-%m-%dT%H:%M:%SZ")
         except (ImportError, TypeError):
             # TypeError: attribute of type 'NoneType' is not callable
             # Known Kodi/python error

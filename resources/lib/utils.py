@@ -10,6 +10,7 @@ import StringIO
 import os
 import sys
 import time
+import urllib
 import unicodedata
 import xml.etree.ElementTree as etree
 from datetime import datetime
@@ -76,6 +77,9 @@ def dialog(type_, *args, **kwargs):
         'numeric': d.numeric
     }
     return types[type_](*args, **kwargs)
+
+def plugin_path(plugin, params):
+    return "%s?%s" % (plugin, urllib.urlencode(params))
 
 
 class JSONRPC(object):
@@ -320,19 +324,20 @@ def passwordsXML():
     for path in root.findall('.//path'):
         if path.find('.//from').text.lower() == "smb://%s/" % server.lower():
             # Found the server, rewrite credentials
-            path.find('.//to').text = "smb://%s:%s@%s/" % (user, password, server)
+            topath = "smb://%s:%s@%s/" % (user, password, server)
+            path.find('.//to').text = topath.replace("\\", ";")
             break
     else:
         # Server not found, add it.
         path = etree.SubElement(root, 'path')
         etree.SubElement(path, 'from', attrib={'pathversion': "1"}).text = "smb://%s/" % server
         topath = "smb://%s:%s@%s/" % (user, password, server)
-        etree.SubElement(path, 'to', attrib={'pathversion': "1"}).text = topath
+        etree.SubElement(path, 'to', attrib={'pathversion': "1"}).text = topath.replace("\\", ";")
         # Force Kodi to see the credentials without restarting
         xbmcvfs.exists(topath)
 
     # Add credentials
-    settings('networkCreds', value="%s" % server)
+    settings('networkCreds', value=server)
     log.info("Added server: %s to passwords.xml" % server)
     # Prettify and write to file
     try:
@@ -346,3 +351,36 @@ def passwordsXML():
             icon="special://home/addons/plugin.video.emby/icon.png",
             time=1000,
             sound=False)
+
+def verify_advancedsettings():
+    # Track the existance of <cleanonupdate>true</cleanonupdate>
+    # incompatible with plugin paths
+    log.info("verifying advanced settings")
+    if settings('useDirectPaths') != "0": return
+
+    path = xbmc.translatePath("special://userdata/").decode('utf-8')
+    xmlpath = "%sadvancedsettings.xml" % path
+
+    try:
+        xmlparse = etree.parse(xmlpath)
+    except: # Document is blank or missing
+        return
+    else:
+        root = xmlparse.getroot()
+
+    video = root.find('videolibrary')
+    if video is not None:
+        cleanonupdate = video.find('cleanonupdate')
+        if cleanonupdate is not None and cleanonupdate.text == "true":
+            log.warn("cleanonupdate disabled")
+            video.remove(cleanonupdate)
+            
+            try:
+                indent(root)
+            except: pass
+            etree.ElementTree(root).write(xmlpath)
+            
+            xbmcgui.Dialog().ok(heading=language(29999), line1=language(33097))
+            xbmc.executebuiltin('RestartApp')
+            return True
+    return

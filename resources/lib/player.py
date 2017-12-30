@@ -160,22 +160,26 @@ class Player(xbmc.Player):
                     }
                 }
                 result = xbmc.executeJSONRPC(json.dumps(tracks_query))
-                result = json.loads(result)
-                result = result.get('result')
+                tracks_data = None
+                try:
+                    tracks_data = json.loads(result)
+                    tracks_data = tracks_data.get('result')
+                except:
+                    tracks_data = None
 
                 try: # Audio tracks
-                    indexAudio = result['currentaudiostream']['index']
-                except (KeyError, TypeError):
+                    indexAudio = tracks_data['currentaudiostream']['index']
+                except:
                     indexAudio = 0
 
                 try: # Subtitles tracks
-                    indexSubs = result['currentsubtitle']['index']
-                except (KeyError, TypeError):
+                    indexSubs = tracks_data['currentsubtitle']['index']
+                except:
                     indexSubs = 0
 
                 try: # If subtitles are enabled
-                    subsEnabled = result['subtitleenabled']
-                except (KeyError, TypeError):
+                    subsEnabled = tracks_data['subtitleenabled']
+                except:
                     subsEnabled = ""
 
                 # Postdata for the audio

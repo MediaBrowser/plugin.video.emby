@@ -14,7 +14,7 @@ import xbmcvfs
 
 import read_embyserver as embyserver
 import embydb_functions as embydb
-from utils import window, language as lang, indent as xml_indent
+from utils import window, language as lang, indent as xml_indent, plugin_path
 
 #################################################################################################
 
@@ -147,7 +147,19 @@ class Views(object):
 
         self.add_playlist_node(media_type, view_id, view_name, view_type)
         # Add view to emby database
-        self.emby_db.addView(view_id, view_name, view_type, tag_id)
+        group_series = self.is_grouped_series(view_id, view_type)
+        self.emby_db.addView(view_id, view_name, view_type, tag_id, group_series)
+
+    def is_grouped_series(self, view_id, view_type):
+
+        if window('emby.userinfo.json')['Policy']['IsAdministrator']:
+            try:
+                return self.emby.get_view_options(view_id)['EnableAutomaticSeriesGrouping'] if view_type == "tvshows" else None
+            except Exception as error: # Currently admin only api entrypoint
+                log.error(error)
+                return None
+        else:
+            return None
 
     def compare_view(self, media_type, view_id, view_name, view_type):
 
@@ -175,6 +187,8 @@ class Views(object):
             # Update items with new tag
             self._update_items_tag(curr_view_type[:-1], view_id, curr_tag_id, tag_id)
 
+        group_series = self.is_grouped_series(view_id, view_type)
+        self.emby_db.update_view_grouped_series(view_id, group_series)
         # Verify existance of playlist and nodes
         self.add_playlist_node(media_type, view_id, view_name, view_type)
         return True
@@ -194,8 +208,8 @@ class Views(object):
 
     def get_tag(self, tag):
         # This will create and return the tag_id
-        if KODI in (15, 16, 17):
-            # Kodi Isengard, Jarvis, Krypton
+        if KODI > 14:
+            # Kodi Isengard and up
             query = ' '.join((
 
                 "SELECT tag_id",
@@ -244,8 +258,8 @@ class Views(object):
 
         log.debug("Updating: %s with %s for %s: %s", tag, new_tag, media_type, kodi_id)
 
-        if KODI in (15, 16, 17):
-            # Kodi Isengard, Jarvis, Krypton
+        if KODI > 14:
+            # Kodi Isengard and up
             try:
                 query = ' '.join((
 
@@ -333,6 +347,29 @@ class Views(object):
     def _single_node(self, index, tag, media_type, view_type):
         self.video_nodes.singleNode(index, tag, media_type, view_type)
         self.total_nodes += 1
+
+    def offline_mode(self):
+        # Just reads from the db and populate views that way
+        # total nodes for window properties
+        self.video_nodes.clearProperties()
+
+        for media_type in ('movies', 'tvshows', 'musicvideos', 'homevideos', 'music', 'photos'):
+
+            self.nodes = list() # Prevent duplicate for nodes of the same type
+            self.playlists = list() # Prevent duplicate for playlists of the same type
+
+            views = self.emby_db.getView_byType(media_type)
+            for view in views:
+
+                try: # Make sure the view is in sorted views before proceeding
+                    self.sorted_views.index(view['name'])
+                except ValueError:
+                    self.sorted_views.append(view['name'])
+
+                self.add_playlist_node(media_type, view['id'], view['name'], view['mediatype'])
+
+        self.add_single_nodes()
+        window('Emby.nodes.total', str(self.total_nodes))
 
 
 class Playlist(object):
@@ -598,22 +635,50 @@ class VideoNodes(object):
 
             # Set window properties
             if (mediatype == "homevideos" or mediatype == "photos") and nodetype == "all":
-                # Custom query
-                path = ("plugin://plugin.video.emby/?id=%s&mode=browsecontent&type=%s"
-                        % (tagname, mediatype))
+                params = {
+
+                    'id': tagname.encode('utf-8'),
+                    'mode': "browsecontent",
+                    'type': mediatype
+                }
+                path = plugin_path("plugin://plugin.video.emby/", params)
+
             elif (mediatype == "homevideos" or mediatype == "photos"):
-                # Custom query
-                path = ("plugin://plugin.video.emby/?id=%s&mode=browsecontent&type=%s&folderid=%s"
-                        % (tagname, mediatype, nodetype))
+                params = {
+
+                    'id': tagname.encode('utf-8'),
+                    'mode': "browsecontent",
+                    'type': mediatype,
+                    'folderid': nodetype
+                }
+                path = plugin_path("plugin://plugin.video.emby/", params)
+
             elif nodetype == "nextepisodes":
-                # Custom query
-                path = "plugin://plugin.video.emby/?id=%s&mode=nextup&limit=25" % tagname
+                params = {
+
+                    'id': tagname.encode('utf-8'),
+                    'mode': "nextup",
+                    'limit': 25
+                }
+                path = plugin_path("plugin://plugin.video.emby/", params)
+
             elif KODI == 14 and nodetype == "recentepisodes":
-                # Custom query
-                path = "plugin://plugin.video.emby/?id=%s&mode=recentepisodes&limit=25" % tagname
+                params = {
+
+                    'id': tagname.encode('utf-8'),
+                    'mode': "recentepisodes",
+                    'limit': 25
+                }
+                path = plugin_path("plugin://plugin.video.emby/", params)
+
             elif KODI == 14 and nodetype == "inprogressepisodes":
-                # Custom query
-                path = "plugin://plugin.video.emby/?id=%s&mode=inprogressepisodes&limit=25"% tagname
+                params = {
+
+                    'id': tagname.encode('utf-8'),
+                    'mode': "inprogressepisodes",
+                    'limit': 25
+                }
+                path = plugin_path("plugin://plugin.video.emby/", params)
             else:
                 path = "library://video/emby/%s/%s.xml" % (viewid, nodetype)
             

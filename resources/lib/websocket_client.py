@@ -149,6 +149,7 @@ class WebSocketClient(threading.Thread):
             'Stop': player.stop,
             'Unpause': player.pause,
             'Pause': player.pause,
+            'PlayPause': player.pause,
             'NextTrack': player.playnext,
             'PreviousTrack': player.playprevious
         }
@@ -188,7 +189,7 @@ class WebSocketClient(threading.Thread):
         arguments = data['Arguments']
 
         if command in ('Mute', 'Unmute', 'SetVolume',
-                       'SetSubtitleStreamIndex', 'SetAudioStreamIndex'):
+                       'SetSubtitleStreamIndex', 'SetAudioStreamIndex', 'SetRepeatMode'):
 
             player = xbmc.Player()
             # These commands need to be reported back
@@ -205,6 +206,10 @@ class WebSocketClient(threading.Thread):
             elif command == 'SetAudioStreamIndex':
                 index = int(arguments['Index'])
                 player.setAudioStream(index - 1)
+
+            elif command == 'SetRepeatMode':
+                mode = arguments['RepeatMode']
+                xbmc.executebuiltin('xbmc.PlayerControl(%s)' % mode)
 
             elif command == 'SetSubtitleStreamIndex':
                 emby_index = int(arguments['Index'])
@@ -267,6 +272,9 @@ class WebSocketClient(threading.Thread):
         elif command == 'GoHome':
             JSONRPC('GUI.ActivateWindow').execute({'window': "home"})
 
+        elif command == "Guide":
+            JSONRPC('GUI.ActivateWindow').execute({'window': "tvguide"})
+
         else:
             builtin = {
 
@@ -325,7 +333,7 @@ class WebSocketClient(threading.Thread):
         else:
             server = server.replace('http', "ws")
 
-        websocket_url = "%s?api_key=%s&deviceId=%s" % (server, token, self.device_id)
+        websocket_url = "%s/embywebsocket?api_key=%s&deviceId=%s" % (server, token, self.device_id)
         log.info("websocket url: %s", websocket_url)
 
         self._client = websocket.WebSocketApp(websocket_url,

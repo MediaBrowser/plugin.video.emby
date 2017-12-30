@@ -3,14 +3,13 @@
 ##################################################################################################
 
 import logging
-import urllib
 from ntpath import dirname
 
 import api
 import embydb_functions as embydb
 import _kodi_tvshows
 from _common import Items, catch_except
-from utils import window, settings, language as lang
+from utils import window, settings, language as lang, plugin_path
 
 ##################################################################################################
 
@@ -235,35 +234,17 @@ class TVShows(Items):
         artwork = self.artwork
         API = api.API(item)
 
-        if settings('syncEmptyShows') == "false" and not item.get('RecursiveItemCount'):
+        # Server api changed or something? RecursiveItemCount always returns 0
+        """if settings('syncEmptyShows') == "false" and not item.get('RecursiveItemCount'):
             if item.get('Name', None) is not None:
                 log.info("Skipping empty show: %s", item['Name'])
-            return
+            return"""
         # If the item already exist in the local Kodi DB we'll perform a full item update
         # If the item doesn't exist, we'll add it to the database
         update_item = True
         force_episodes = False
         itemid = item['Id']
         emby_dbitem = emby_db.getItem_byId(itemid)
-        try:
-            showid = emby_dbitem[0]
-            pathid = emby_dbitem[2]
-            log.info("showid: %s pathid: %s", showid, pathid)
-
-        except TypeError:
-            update_item = False
-            log.debug("showid: %s not found", itemid)
-            showid = self.kodi_db.create_entry()
-
-        else:
-            # Verification the item is still in Kodi
-            if self.kodi_db.get_tvshow(showid) is None:
-                # item is not found, let's recreate it.
-                update_item = False
-                log.info("showid: %s missing from Kodi, repairing the entry", showid)
-                # Force re-add episodes after the show is re-created.
-                force_episodes = True
-
 
         if view is None:
             # Get view tag from emby
@@ -285,34 +266,11 @@ class TVShows(Items):
         votecount = item.get('VoteCount')
         premieredate = API.get_premiere_date()
         tvdb = API.get_provider('Tvdb')
-        imdb = API.get_provider('Imdb')
         sorttitle = item['SortName']
         mpaa = API.get_mpaa()
         genre = " / ".join(genres)
         studios = API.get_studios()
         studio = " / ".join(studios)
-
-        # Verify series pooling
-        if not update_item and tvdb:
-            query = "SELECT idShow FROM tvshow WHERE C12 = ?"
-            kodicursor.execute(query, (tvdb,))
-            try:
-                temp_showid = kodicursor.fetchone()[0]
-            except TypeError:
-                pass
-            else:
-                emby_other = emby_db.getItem_byKodiId(temp_showid, "tvshow")
-                if emby_other and viewid == emby_other[2]:
-                    log.info("Applying series pooling for %s", title)
-                    emby_other_item = emby_db.getItem_byId(emby_other[0])
-                    showid = emby_other_item[0]
-                    pathid = emby_other_item[2]
-                    log.info("showid: %s pathid: %s", showid, pathid)
-                    # Create the reference in emby table
-                    emby_db.addReference(itemid, showid, "Series", "tvshow", pathid=pathid,
-                                         checksum=checksum, mediafolderid=viewid)
-                    update_item = True
-
 
         ##### GET THE FILE AND PATH #####
         playurl = API.get_file_path()
@@ -338,21 +296,89 @@ class TVShows(Items):
             path = "%s%s/" % (toplevelpath, itemid)
 
 
+        try:
+            showid = emby_dbitem[0]
+            pathid = emby_dbitem[2]
+            log.info("showid: %s pathid: %s", showid, pathid)
+
+        except TypeError:
+            update_item = False
+            showid = None
+            log.debug("showid: %s not found", itemid)
+
+            if self.emby_db.get_view_grouped_series(viewid) and tvdb:
+                # search kodi db for same provider id
+                if self.kodi_version > 16:
+                    query = "SELECT idShow FROM tvshow_view WHERE uniqueid_value = ?"
+                    kodicursor.execute(query, (tvdb,))
+                else:
+                    query = "SELECT idShow FROM tvshow WHERE C12 = ?"
+                    kodicursor.execute(query, (tvdb,))
+
+                try:
+                    temps_showid = kodicursor.fetchall()
+                except TypeError: pass
+                else:
+                    for temp_showid in temps_showid:
+                        emby_other = emby_db.getItem_byKodiId(temp_showid[0], "tvshow")
+                        if emby_other and viewid == emby_other[2]:
+                            log.info("Applying series pooling for: %s %s", itemid, title)
+                            emby_other_item = emby_db.getItem_byId(emby_other[0])
+                            showid = emby_other_item[0]
+                            pathid = self.kodi_db.add_path(path)
+                            emby_db.addReference(itemid, showid, "Series", "tvshow", pathid=pathid,
+                                                 checksum=checksum, mediafolderid=viewid)
+                            return
+
+            showid = self.kodi_db.create_entry()
+
+        else:
+            # Verification the item is still in Kodi
+            if self.kodi_db.get_tvshow(showid) is None:
+                # item is not found, let's recreate it.
+                update_item = False
+                log.info("showid: %s missing from Kodi, repairing the entry", showid)
+                # Force re-add episodes after the show is re-created.
+                force_episodes = True
+
+
+        # Verify series pooling
+        """if not update_item and tvdb:
+            query = "SELECT idShow FROM tvshow WHERE C12 = ?"
+            kodicursor.execute(query, (tvdb,))
+            try:
+                temp_showid = kodicursor.fetchone()[0]
+            except TypeError:
+                pass
+            else:
+                emby_other = emby_db.getItem_byKodiId(temp_showid, "tvshow")
+                if emby_other and viewid == emby_other[2]:
+                    log.info("Applying series pooling for %s", title)
+                    emby_other_item = emby_db.getItem_byId(emby_other[0])
+                    showid = emby_other_item[0]
+                    pathid = emby_other_item[2]
+                    log.info("showid: %s pathid: %s", showid, pathid)
+                    # Create the reference in emby table
+                    emby_db.addReference(itemid, showid, "Series", "tvshow", pathid=pathid,
+                                         checksum=checksum, mediafolderid=viewid)
+                    update_item = True"""
+
+
         ##### UPDATE THE TVSHOW #####
         if update_item:
             log.info("UPDATE tvshow itemid: %s - Title: %s", itemid, title)
 
             # update new ratings Kodi 17
             if self.kodi_version > 16:
-                ratingid =  self.kodi_db.get_ratingid(showid)
+                ratingid =  self.kodi_db.get_ratingid("tvshow", showid)
 
                 self.kodi_db.update_ratings(showid, "tvshow", "default", rating, votecount,ratingid)
 
             # update new uniqueid Kodi 17
             if self.kodi_version > 16:
-                uniqueid =  self.kodi_db.get_uniqueid(showid)
+                uniqueid =  self.kodi_db.get_uniqueid("tvshow", showid)
 
-                self.kodi_db.update_uniqueid(showid, "tvshow", imdb, "imdb",uniqueid)
+                self.kodi_db.update_uniqueid(showid, "tvshow", tvdb, "unknown", uniqueid)
 
             # Update the tvshow entry
             if self.kodi_version > 16:
@@ -378,7 +404,7 @@ class TVShows(Items):
             if self.kodi_version > 16:
                 uniqueid =  self.kodi_db.create_entry_uniqueid()
 
-                self.kodi_db.add_uniqueid(uniqueid, showid, "tvshow", imdb, "imdb")
+                self.kodi_db.add_uniqueid(uniqueid, showid, "tvshow", tvdb, "unknown")
 
             # Add top path
             toppathid = self.kodi_db.add_path(toplevelpath)
@@ -390,7 +416,7 @@ class TVShows(Items):
             # Create the tvshow entry
             if self.kodi_version > 16:
                 self.kodi_db.add_tvshow(showid, title, plot, uniqueid, premieredate, genre,
-                                    title, uniqueid, mpaa, studio, sorttitle)
+                                        title, uniqueid, mpaa, studio, sorttitle)
             else:
                 self.kodi_db.add_tvshow(showid, title, plot, rating, premieredate, genre,
                                         title, tvdb, mpaa, studio, sorttitle)
@@ -424,6 +450,7 @@ class TVShows(Items):
         # Process seasons
         all_seasons = emby.getSeasons(itemid)
         for season in all_seasons['Items']:
+            log.info("found season: %s", season)
             self.add_updateSeason(season, showid=showid)
         else:
             # Finally, refresh the all season entry
@@ -468,6 +495,7 @@ class TVShows(Items):
         # Process artwork
         artwork.add_artwork(artwork.get_all_artwork(item), seasonid, "season", kodicursor)
 
+        log.info("Processed seasonid: %s index: %s", item['Id'], seasonnum)
         return True
 
     @catch_except()
@@ -601,7 +629,7 @@ class TVShows(Items):
                 'dbid': episodeid,
                 'mode': "play"
             }
-            filename = "%s?%s" % (path, urllib.urlencode(params))
+            filename = plugin_path(path, params)
 
         ##### UPDATE THE EPISODE #####
         if update_item:
@@ -609,13 +637,13 @@ class TVShows(Items):
 
             # update new ratings Kodi 17
             if self.kodi_version >= 17:
-                ratingid =  self.kodi_db.get_ratingid(episodeid)
+                ratingid =  self.kodi_db.get_ratingid("episode", episodeid)
 
                 self.kodi_db.update_ratings(episodeid, "episode", "default", rating, votecount,ratingid)
 
             # update new uniqueid Kodi 17
             if self.kodi_version >= 17:
-                uniqueid =  self.kodi_db.get_uniqueid(episodeid)
+                uniqueid =  self.kodi_db.get_uniqueid("episode", episodeid)
 
                 self.kodi_db.update_uniqueid(episodeid, "episode", tvdb, "tvdb",uniqueid)
 
@@ -648,13 +676,13 @@ class TVShows(Items):
             if self.kodi_version >= 17:
                 ratingid =  self.kodi_db.create_entry_rating()
 
-                self.kodi_db.add_ratings(ratingid, showid, "episode", "default", rating, votecount)
+                self.kodi_db.add_ratings(ratingid, episodeid, "episode", "default", rating, votecount)
 
             # add new uniqueid Kodi 17
             if self.kodi_version >= 17:
                 uniqueid =  self.kodi_db.create_entry_uniqueid()
 
-                self.kodi_db.add_uniqueid(uniqueid, showid, "episode", tvdb, "tvdb")
+                self.kodi_db.add_uniqueid(uniqueid, episodeid, "episode", tvdb, "tvdb")
 
             # Add path
             pathid = self.kodi_db.add_path(path)
@@ -886,3 +914,9 @@ class TVShows(Items):
         self.artwork.delete_artwork(kodiid, "episode", kodicursor)
         self.kodi_db.remove_episode(kodiid, fileid)
         log.debug("Removed episode: %s", kodiid)
+
+    def add_tvshow(self, item, view):
+        # The only way to keep things together is to drill down, like in the webclient.
+        # If series pooling is true, they will share the showid, extra tvshow entries
+        # will be added to emby.db due to server events. 
+        pass

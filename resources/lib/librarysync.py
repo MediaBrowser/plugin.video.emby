@@ -46,6 +46,7 @@ class LibrarySync(threading.Thread):
     userdataItems = []
     removeItems = []
     forceLibraryUpdate = False
+    incremental_count = 0
     refresh_views = False
 
 
@@ -288,6 +289,7 @@ class LibrarySync(threading.Thread):
                 process = {
 
                     'movies': self.movies,
+                    'boxsets': self.boxsets,
                     'musicvideos': self.musicvideos,
                     'tvshows': self.tvshows
                 }
@@ -372,6 +374,12 @@ class LibrarySync(threading.Thread):
                 # Compare views, assign correct tags to items
                 views.Views(cursor_emby, cursor_video).maintain()
 
+    def offline_mode_views(self):
+
+        with database.DatabaseConn('emby') as cursor_emby:
+            with database.DatabaseConn() as cursor_video:
+                views.Views(cursor_emby, cursor_video).offline_mode()
+
     def movies(self, embycursor, kodicursor, pdialog):
 
         # Get movies from emby
@@ -398,15 +406,19 @@ class LibrarySync(threading.Thread):
             movies.add_all("Movie", all_movies, view)
 
         log.debug("Movies finished.")
+        return True
 
-        ##### PROCESS BOXSETS #####
+    def boxsets(self, embycursor, kodicursor, pdialog):
+
+        movies = Movies(embycursor, kodicursor, pdialog)
+
         if pdialog:
             pdialog.update(heading=lang(29999), message=lang(33018))
 
         boxsets = self.emby.getBoxset(dialog=pdialog)
         movies.add_all("BoxSet", boxsets)
-        log.debug("Boxsets finished.")
 
+        log.debug("Boxsets finished.")
         return True
 
     def musicvideos(self, embycursor, kodicursor, pdialog):
@@ -458,6 +470,8 @@ class LibrarySync(threading.Thread):
                         message="%s %s..." % (lang(33020), view['name']))
 
             all_tvshows = self.emby.getShows(view['id'], dialog=pdialog)
+            #log.info([item['Id'] for item in all_tvshows['Items']])
+            #for all_tvshows in self.emby.get_parent_child(view['id'], "Series"):
             tvshows.add_all("Series", all_tvshows, view)
 
         else:
@@ -508,6 +522,7 @@ class LibrarySync(threading.Thread):
 
     def incrementalSync(self):
 
+        self.incremental_count += 1
         update_embydb = False
         pDialog = None
 
@@ -519,7 +534,7 @@ class LibrarySync(threading.Thread):
 
         # do a lib update if any items in list
         totalUpdates = len(self.addedItems) + len(self.updateItems) + len(self.userdataItems) + len(self.removeItems)
-        if totalUpdates > 0:
+        if totalUpdates > 0 and window('emby_kodiScan') != "true":
             with database.DatabaseConn('emby') as cursor_emby:
                 with database.DatabaseConn('video') as cursor_video:
 
@@ -540,7 +555,7 @@ class LibrarySync(threading.Thread):
                     }
                     for process_type in ['added', 'update', 'userdata', 'remove']:
 
-                        if process[process_type] and window('emby_kodiScan') != "true":
+                        if process[process_type]:
 
                             listItems = list(process[process_type])
                             del process[process_type][:] # Reset class list
@@ -587,12 +602,12 @@ class LibrarySync(threading.Thread):
             self.forceLibraryUpdate = False
 
             log.info("Updating video library.")
+            self.incremental_count = 0
             window('emby_kodiScan', value="true")
             xbmc.executebuiltin('UpdateLibrary(video)')
 
         if pDialog:
             pDialog.close()
-
 
     def compareDBVersion(self, current, minimum):
         # It returns True is database is up to date. False otherwise.
@@ -644,10 +659,10 @@ class LibrarySync(threading.Thread):
         startupComplete = False
 
         log.warn("---===### Starting LibrarySync ###===---")
-
-        # reset the internal emby tables check status
-        # we need to check at least once per run or on switching profiles
-        window('emby_db_checked', value="false")
+        if utils.verify_advancedsettings():
+            # Advancedsettings was modified, Kodi needs to restart
+            log.warn("###===--- LibrarySync Aborted ---===###")
+            return
 
         while not self.monitor.abortRequested():
 
@@ -725,6 +740,10 @@ class LibrarySync(threading.Thread):
                 startupComplete = True
 
             # Process updates
+            if self.incremental_count > 5:
+                self.incremental_count = 0
+                window('emby_kodiScan', clear=True)
+
             if window('emby_dbScan') != "true" and window('emby_shouldStop') != "true":
                 self.incrementalSync()
 
@@ -767,11 +786,39 @@ class ManualSync(LibrarySync):
     def __init__(self):
         LibrarySync.__init__(self)
 
-    def sync(self):
-        return self.fullSync(manualrun=True)
+    def sync(self, mediatype=None):
+
+        if mediatype in ('movies', 'boxsets', 'musicvideos', 'tvshows'):
+            with database.DatabaseConn('emby') as cursor_emby:
+                with database.DatabaseConn('video') as cursor_video:
+                    pDialog = self.progressDialog("Manual Sync: %s" % mediatype)
+                    if mediatype == 'movies':
+                        self.movies(cursor_emby, cursor_video, pDialog)
+                    elif mediatype == "boxsets":
+                        self.boxsets(cursor_emby, cursor_video, pDialog)
+                    elif mediatype =='musicvideos':
+                        self.musicvideos(cursor_emby, cursor_video, pDialog)
+                    elif mediatype == 'tvshows':
+                        self.tvshows(cursor_emby, cursor_video, pDialog)
+
+                    pDialog.close()
+                    return
+
+        elif mediatype == 'music':
+            with database.DatabaseConn('emby') as cursor_emby:
+                with database.DatabaseConn('music') as cursor_music:
+                    pDialog = self.progressDialog("Manual Sync: %s" % mediatype)
+                    self.music(cursor_emby, cursor_music, pDialog)
+                    pDialog.close()
+                    return
+        else:
+            return self.fullSync(manualrun=True)
 
     def movies(self, embycursor, kodicursor, pdialog):
         return Movies(embycursor, kodicursor, pdialog).compare_all()
+
+    def boxsets(self, embycursor, kodicursor, pdialog):
+        return Movies(embycursor, kodicursor, pdialog).force_refresh_boxsets()
 
     def musicvideos(self, embycursor, kodicursor, pdialog):
         return MusicVideos(embycursor, kodicursor, pdialog).compare_all()

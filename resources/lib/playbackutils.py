@@ -202,7 +202,7 @@ class PlaybackUtils():
 
         if homeScreen and seektime and window('emby_customPlaylist') != "true":
             log.info("Play as a widget item.")
-            self.setListItem(listitem)
+            self.setListItem(listitem, dbid)
             xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, listitem)
 
         elif ((introsPlaylist and window('emby_customPlaylist') == "true") or
@@ -265,12 +265,12 @@ class PlaybackUtils():
                     stream['IsExternal'] and stream['IsTextSubtitleStream']):
 
                 # Direct stream
-                url = ("%s/Videos/%s/%s/Subtitles/%s/Stream.srt"
-                        % (self.server, itemid, itemid, index))
+                url = ("%s/Videos/%s/%s/Subtitles/%s/Stream.%s"
+                        % (self.server, itemid, itemid, index, stream['Codec']))
 
                 if "Language" in stream:
                     
-                    filename = "Stream.%s.srt" % stream['Language']
+                    filename = "Stream.%s.%s" % (stream['Language'], stream['Codec'])
                     try:
                         path = self._download_external_subs(url, temp, filename)
                         externalsubs.append(path)

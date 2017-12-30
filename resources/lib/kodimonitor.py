@@ -18,12 +18,14 @@ from database import DatabaseConn
 #################################################################################################
 
 log = logging.getLogger("EMBY."+__name__)
+KODI = int(xbmc.getInfoLabel('System.BuildVersion')[:2])
 
 #################################################################################################
 
 
 class KodiMonitor(xbmc.Monitor):
 
+    retry = True
 
     def __init__(self):
 
@@ -41,7 +43,7 @@ class KodiMonitor(xbmc.Monitor):
 
     def onScanFinished(self, library):
 
-        log.debug("Kodi library scan %s finished", library)
+        log.info("Kodi library scan %s finished", library)
         if library == "video":
             window('emby_kodiScan', clear=True)
 
@@ -72,6 +74,7 @@ class KodiMonitor(xbmc.Monitor):
             return
 
         if method == 'Player.OnPlay':
+            self.retry = True
             self._on_play_(data)
 
         elif method == 'VideoLibrary.OnUpdate':
@@ -91,11 +94,27 @@ class KodiMonitor(xbmc.Monitor):
     def _on_play_(self, data):
         # Set up report progress for emby playback
         try:
-            item = data['item']
-            kodi_id = item['id']
-            item_type = item['type']
+            kodi_id = None
+
+            if KODI >= 17 and xbmc.Player().isPlayingVideo():
+                item = xbmc.Player().getVideoInfoTag()
+                kodi_id = item.getDbId()
+                item_type = item.getMediaType()
+
+            if kodi_id is None or int(kodi_id) == -1:
+                item = data['item']
+                kodi_id = item['id']
+                item_type = item['type']
+
+            log.info("kodi_id: %s item_type: %s", kodi_id, item_type)             
+
         except (KeyError, TypeError):
             log.info("Item is invalid for playstate update")
+            # Retry once, sometimes xbmc.Player().isPlayingVideo() will return false when played from widget.
+            if self.retry:
+                self.retry = False
+                xbmc.sleep(200)
+                return self._on_play_(data)
         else:
             if ((settings('useDirectPaths') == "1" and not item_type == "song") or
                     (item_type == "song" and settings('enableMusic') == "true")):

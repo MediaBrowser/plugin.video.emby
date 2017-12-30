@@ -69,20 +69,17 @@ class Music(Items):
         return actions.get(action)
 
     def compare_all(self):
-        # Pull the list of artists, albums, songs
-        views = self.emby_db.getView_byType('music')
 
-        for view in views:
-            # Process artists
-            self.compare_artists(view)
-            # Process albums
-            self.compare_albums()
-            # Process songs
-            self.compare_songs()
+        # Process artists
+        self.compare_artists()
+        # Process albums
+        self.compare_albums()
+        # Process songs
+        self.compare_songs()
 
         return True
 
-    def compare_artists(self, view):
+    def compare_artists(self):
 
         all_embyartistsIds = set()
         update_list = list()
@@ -92,7 +89,7 @@ class Music(Items):
 
         artists = dict(self.emby_db.get_checksum('MusicArtist'))
         album_artists = dict(self.emby_db.get_checksum('AlbumArtist'))
-        emby_artists = self.emby.getArtists(view['id'], dialog=self.pdialog)
+        emby_artists = self.emby.getArtists(dialog=self.pdialog)
 
         for item in emby_artists['Items']:
 
@@ -306,8 +303,8 @@ class Music(Items):
             emby_db.addReference(itemid, albumid, "MusicAlbum", "album", checksum=checksum)
 
         # Process the album info
-        if self.kodi_version == 17:
-            # Kodi Krypton
+        if self.kodi_version in [17,18]:
+            # Kodi Krypton/Leia
             self.kodi_db.update_album_17(artistname, year, genre, bio, thumb, rating, lastScraped,
                                          "album", albumid)
         elif self.kodi_version == 16:
@@ -418,12 +415,7 @@ class Music(Items):
         ##### GET THE FILE AND PATH #####
         if self.directstream:
             path = "%s/emby/Audio/%s/" % (self.server, itemid)
-            extensions = ['mp3', 'aac', 'ogg', 'oga', 'webma', 'wma', 'flac']
-
-            if 'Container' in item and item['Container'].lower() in extensions:
-                filename = "stream.%s?static=true" % item['Container']
-            else:
-                filename = "stream.mp3?static=true"
+            filename = "stream.%s?static=true" % item['MediaSources'][0]['Container']
         else:
             playurl = API.get_file_path()
 
@@ -448,8 +440,12 @@ class Music(Items):
             self.kodi_db.update_path(pathid, path)
 
             # Update the song entry
-            self.kodi_db.update_song(albumid, artists, genre, title, track, duration, year,
+            if self.kodi_version < 18:
+                self.kodi_db.update_song(albumid, artists, genre, title, track, duration, year,
                                      filename, playcount, dateplayed, rating, comment, songid)
+            else:
+                self.kodi_db.update_song_18(albumid, artists, genre, title, track, duration, year,
+                                         filename, playcount, dateplayed, rating, comment, songid)
 
             # Update the checksum in emby table
             emby_db.updateReference(itemid, checksum)
@@ -502,15 +498,20 @@ class Music(Items):
                         self.kodi_db.add_single_14(albumid, genre, year, dateadded)
 
             # Create the song entry
-            self.kodi_db.add_song(songid, albumid, pathid, artists, genre, title, track, duration,
+            if self.kodi_version < 18:
+                self.kodi_db.add_song(songid, albumid, pathid, artists, genre, title, track, duration,
                                   year, filename, musicBrainzId, playcount, dateplayed, rating)
+            else:
+                self.kodi_db.add_song_18(songid, albumid, pathid, artists, genre, title, track, duration,
+                                      year, filename, musicBrainzId, playcount, dateplayed, rating)
 
             # Create the reference in emby table
             emby_db.addReference(itemid, songid, "Audio", "song", pathid=pathid, parentid=albumid,
                                  checksum=checksum)
 
         # Link song to album
-        self.kodi_db.link_song_album(songid, albumid, track, title, duration)
+        if self.kodi_version < 18:
+            self.kodi_db.link_song_album(songid, albumid, track, title, duration)
         # Create default role
         if self.kodi_version > 16:
             self.kodi_db.add_role()
@@ -561,7 +562,10 @@ class Music(Items):
 
         # Artist names
         album_artists = " / ".join(album_artists)
-        self.kodi_db.get_album_artist(albumid, album_artists)
+        if self.kodi_version < 18:
+            self.kodi_db.get_album_artist(albumid, album_artists)
+        else:
+            self.kodi_db.get_album_artist_18(albumid, album_artists)
 
         # Add genres
         self.kodi_db.add_genres(songid, genres, "song")

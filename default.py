@@ -44,7 +44,7 @@ class Main(object):
         base_url = sys.argv[0]
         path = sys.argv[2]
         params = urlparse.parse_qs(path[1:])
-        log.warn("Parameter string: %s", path)
+        log.warn("Parameter string: %s params: %s", path, params)
         try:
             mode = params['mode'][0]
         except (IndexError, KeyError):
@@ -67,7 +67,7 @@ class Main(object):
             if mode == 'settings':
                 xbmc.executebuiltin('Addon.OpenSettings(plugin.video.emby)')
 
-            elif mode in ('manualsync', 'fastsync', 'repair'):
+            elif mode in ('manualsync', 'fastsync', 'repair', 'refreshboxsets'):
                 self._library_sync(mode)
 
             elif mode == 'texturecache':
@@ -75,6 +75,10 @@ class Main(object):
                 artwork.Artwork().texture_cache_sync()
             else:
                 entrypoint.doMainListing()
+
+        """try:
+            xbmcplugin.endOfDirectory(int(sys.argv[1]))
+        except Exception: pass"""
 
     @classmethod
     def _modes(cls, mode, params):
@@ -111,7 +115,11 @@ class Main(object):
                 database_id = params.get('dbid')
                 action(item_id, database_id)
 
-            elif mode in ('nextup', 'inprogressepisodes', 'recentepisodes'):
+            elif mode == 'recentepisodes':
+                limit = int(params['limit'][0])
+                action(item_id, limit, params.get('filters', [""])[0])
+
+            elif mode in ('nextup', 'inprogressepisodes'):
                 limit = int(params['limit'][0])
                 action(item_id, limit)
 
@@ -149,6 +157,8 @@ class Main(object):
                 librarysync.ManualSync().sync()
             elif mode == 'fastsync':
                 library_sync.startSync()
+            elif mode == 'refreshboxsets':
+                librarysync.ManualSync().sync('boxsets')
             else:
                 library_sync.fullSync(repair=True)
         else:

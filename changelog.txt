@@ -1,3 +1,35 @@
+version 2.3.57
+- Close dialog after syncing collections
+- Update Leia support
+- Fix trakt/watched status issues caused by tvshows being assigned their imdb id instead of tvdb. You'll need to reset your database to fix this (or a repair might do the trick too)
+- Update photod (well now home videos and photos) library to properly display.
+- Few other fixes.
+
+version 2.3.56
+- Fixed connection not falling back to external when local is unavailable
+- Support server address without a port number
+- Add refresh boxsets (launch the emby add-on > Refresh Boxsets). It should not be necessary, but just in case.
+
+version 2.3.51
+- Temporarily disabled series pooling for non-admin users. A future server update + a manual sync will correct this. I'll make a quick announcement.
+
+version 2.3.50
+- Fixed Series pooling (requires a reset of database + a manual sync to apply)
+- Add PlayPause server event
+
+version 2.3.49
+- Update the websocket url for reverse proxy. wss://{server}/embywebsocket?api..
+- Fix music support for multiple Emby music libraries
+- Fix music direct stream to use the original file container rather than defaulting to mp3
+- Fix subtitles to use original file container rather than defaulting to srt
+- Fix network credentials using backslash for domain in their username
+- Fix playback report to your Emby dashboard
+- Add Polish translation
+
+version 2.3.47
+ - Fix encoding error in context menu for non-ascii characters
+ - Fix playback reporting monitor for Kodi 17
+ 
 version 2.3.35
  - DB connection management revamped
  - Emby video nodes now have their own parent node
