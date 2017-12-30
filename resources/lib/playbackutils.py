@@ -45,18 +45,22 @@ class PlaybackUtils():
         self.emby = embyserver.Read_EmbyServer()
 
         self.stack = []
-        self.playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
 
+        if item['Type'] == "Audio":
+            self.playlist = xbmc.Playlist(xbmc.PLAYLIST_MUSIC)
+        else:
+            self.playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
 
-    def play(self, itemid, dbid=None):
+    def play(self, item_id, dbid=None):
 
         listitem = xbmcgui.ListItem()
-        playutils = putils.PlayUtils(self.item)
 
         log.info("Play called: %s", self.item['Name'])
-        playurl = playutils.get_play_url()
+        play_url = putils.PlayUtils(self.item, listitem).get_play_url()
 
-        if not playurl:
+        if not play_url:
+            if play_url == False: # User backed-out of menu
+                self.playlist.clear()
             return xbmcplugin.setResolvedUrl(int(sys.argv[1]), False, listitem)
 
         seektime = self.API.adjust_resume(self.API.get_userdata()['Resume'])
@@ -64,26 +68,28 @@ class PlaybackUtils():
         ##### CHECK FOR INTROS
 
         if settings('enableCinema') == "true" and not seektime:
-            self._set_intros(itemid)
+            self._set_intros(item_id)
 
         ##### ADD MAIN ITEM
 
-        self.set_properties(playurl, listitem)
+        self.set_properties(play_url, listitem)
         self.set_listitem(listitem, dbid)
-        self.stack.append([playurl, listitem])
+        self.stack.append([play_url, listitem])
 
         ##### ADD ADDITIONAL PARTS
 
         if self.item.get('PartCount'):
-            self._set_additional_parts(itemid)
+            self._set_additional_parts(item_id)
 
         ##### SETUP PLAYBACK
+
         ''' To get everything to work together, play the first item in the stack with setResolvedUrl,
             add the rest to the regular playlist.
         '''
 
         index = max(self.playlist.getposition(), 0) + 1 # Can return -1
 
+        # Stack: [(url, listitem), (url, ...), ...]
         self.stack[0][1].setPath(self.stack[0][0])
         xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, self.stack[0][1])
         self.stack.pop(0) # remove the first item we just started.
@@ -111,7 +117,7 @@ class PlaybackUtils():
                 for intro in intros['Items']:
 
                     listitem = xbmcgui.ListItem()
-                    url = putils.PlayUtils(intro).get_play_url()
+                    url = putils.PlayUtils(intro, listitem).get_play_url()
                     log.info("Adding Intro: %s" % url)
 
                     self.stack.append([url, listitem])
@@ -123,13 +129,13 @@ class PlaybackUtils():
         for part in parts['Items']:
 
             listitem = xbmcgui.ListItem()
-            url = putils.PlayUtils(part).get_play_url()
+            url = putils.PlayUtils(part, listitem).get_play_url()
             log.info("Adding additional part: %s" % url)
 
             # Set listitem and properties for each additional parts
-            pbutils = PlaybackUtils(part)
-            pbutils.set_properties(url, listitem)
-            pbutils.setArtwork(listitem)
+            pb = PlaybackUtils(part)
+            pb.set_properties(url, listitem)
+            pb.setArtwork(listitem)
 
             self.stack.append([url, listitem])
 
@@ -179,10 +185,12 @@ class PlaybackUtils():
     def set_properties(self, url, listitem):
 
         # Set all properties necessary for plugin path playback
+
         item_id = self.item['Id']
         item_type = self.item['Type']
-        play_method = window('emby_%s.playmethod' % url)
 
+        play_method = window('emby_%s.playmethod' % url)
+        window('emby_%s.playmethod' % url, clear=True)
         window('emby_%s.json' % url, {
 
             'url': url,
@@ -193,80 +201,7 @@ class PlaybackUtils():
             'playmethod': play_method
         })
 
-        # Only for direct stream
-        if play_method == "DirectStream" and settings('enableExternalSubs') == "true":
-            subtitles = self.set_external_subs(url)
-            listitem.setSubtitles(subtitles)
-
         self.set_artwork(listitem)
-
-    def set_external_subs(self, url):
-
-        externalsubs = []
-        mapping = {}
-
-        itemid = self.item['Id']
-        try:
-            mediastreams = self.item['MediaSources'][0]['MediaStreams']
-        except (TypeError, KeyError, IndexError):
-            return
-
-        temp = xbmc.translatePath(
-               "special://profile/addon_data/plugin.video.emby/temp/").decode('utf-8')
-
-        kodiindex = 0
-        for stream in mediastreams:
-
-            index = stream['Index']
-            # Since Emby returns all possible tracks together, have to pull only external subtitles.
-            # IsTextSubtitleStream if true, is available to download from emby.
-            if (stream['Type'] == "Subtitle" and 
-                    stream['IsExternal'] and stream['IsTextSubtitleStream']):
-
-                # Direct stream
-                url = ("%s/Videos/%s/%s/Subtitles/%s/Stream.%s"
-                        % (self.server, itemid, itemid, index, stream['Codec']))
-
-                if "Language" in stream:
-                    
-                    filename = "Stream.%s.%s" % (stream['Language'], stream['Codec'])
-                    try:
-                        path = self._download_external_subs(url, temp, filename)
-                        externalsubs.append(path)
-                    except Exception as e:
-                        log.error(e)
-                        externalsubs.append(url)
-                else:
-                    externalsubs.append(url)
-                
-                # map external subtitles for mapping
-                mapping[kodiindex] = index
-                kodiindex += 1
-        
-        mapping = json.dumps(mapping)
-        window('emby_%s.indexMapping' % url, value=mapping)
-
-        return externalsubs
-
-    def _download_external_subs(self, src, dst, filename):
-
-        if not xbmcvfs.exists(dst):
-            xbmcvfs.mkdir(dst)
-
-        path = os.path.join(dst, filename)
-
-        try:
-            response = requests.get(src, stream=True)
-            response.raise_for_status()
-        except Exception as e:
-            raise
-        else:
-            response.encoding = 'utf-8'
-            with open(path, 'wb') as f:
-                f.write(response.content)
-                del response
-
-            return path
 
     def set_artwork(self, listitem):
 

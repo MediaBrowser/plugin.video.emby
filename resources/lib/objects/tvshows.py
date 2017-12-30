@@ -9,7 +9,7 @@ import api
 import embydb_functions as embydb
 import _kodi_tvshows
 from _common import Items, catch_except
-from utils import window, settings, language as lang, plugin_path
+from utils import window, settings, language as lang, urllib_path
 
 ##################################################################################################
 
@@ -583,7 +583,7 @@ class TVShows(Items):
                 'dbid': episodeid,
                 'mode': "play"
             }
-            filename = plugin_path(path, params)
+            filename = urllib_path(path, params)
 
         ##### UPDATE THE EPISODE #####
         if update_item:

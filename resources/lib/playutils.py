@@ -14,7 +14,7 @@ import xbmcvfs
 import clientinfo
 import downloadutils
 import read_embyserver as embyserver
-from utils import window, settings, language as lang
+from utils import window, settings, language as lang, urllib_path
 
 #################################################################################################
 
@@ -25,10 +25,13 @@ log = logging.getLogger("EMBY."+__name__)
 
 class PlayUtils():
     
+    method = "DirectPlay"
     
-    def __init__(self, item):
+    def __init__(self, item, listitem):
 
         self.item = item
+        self.listitem = listitem
+
         self.clientInfo = clientinfo.ClientInfo()
         self.emby = embyserver.Read_EmbyServer()
 
@@ -43,27 +46,16 @@ class PlayUtils():
             the profile to the server. Based on capabilities the correct path is returned,
             including livestreams that need to be opened by the server
         '''
-        play_url = None
+
         info = self.get_playback_info()
+        play_url = False if info == False else None
 
         if info:
+            play_url = info['Path'].encode('utf-8')
+            window('emby_%s.playmethod' % play_url, value=self.method)
+
             log.info("playback info: %s", info)
-
-            play_url = info['Path']
-
-            if info['SupportsDirectPlay']:
-                play_method = "DirectPlay"
-            elif info['SupportsDirectStream']:
-                play_method = "DirectStream"
-            elif info.get('LiveStreamId'):
-                play_method = "LiveStream"
-                if info['RequiresClosing']:
-                    window('emby_%s.livestreamid' % play_url, value=info['LiveStreamId'])
-            else:
-                play_method = "Transcode"
-
-            window('emby_%s.playmethod' % play_url, value=play_method)
-            log.info("play method: %s play url: %s", play_method, play_url)
+            log.info("play method: %s play url: %s", self.method, play_url)
 
         return play_url
 
@@ -354,12 +346,246 @@ class PlayUtils():
             playurl += "&api_key=" + str(user_token)
 
         return playurl
+    
+    def get_playback_info(self):
 
-    def audioSubsPref(self, url, listitem):
+        # Get the playback info for the current item
+
+        info = self.emby.get_playback_info(self.item['Id'], self.get_device_profile())
+        media_sources = info['MediaSources']
+
+        # Select the mediasource
+        if not media_sources:
+            log.error('No media sources found: %s', info)
+            return
+
+        selected_source = media_sources[0]
+
+        if len(media_sources) > 1:
+            # Offer choices
+            sources = []
+            for source in media_sources:
+                sources.append(source.get("Name", "na"))
+
+            resp = xbmcgui.Dialog().select("Select the source", sources)
+            if resp > -1:
+                selected_media_source = media_sources[resp]
+            else:
+                log.info("No media source selected.")
+                return False
+
+        return self.get_optimal_source(selected_source)
+
+    def get_optimal_source(self, source):
+
+        ''' Select the best possible mediasource for playback Because we posted
+            our deviceprofile to the server, only streams will be returned that can
+            actually be played by this client so no need to check bitrates etc.
+        '''
+        preferred = ('SupportsDirectPlay', 'SupportsDirectStream', 'SupportsTranscoding')
+        optimal_source = {}
+
+        for stream in preferred:
+            if source[stream]:
+
+                if self.is_h265(source):
+                    optimal_source = source
+
+                elif self.is_strm(source):
+                    optimal_source = source
+
+                elif stream == "SupportsDirectPlay" and settings('playFromStream') == "false" and self.is_file_exists(source):
+                    optimal_source = source
+
+                else:
+                    source['Path'] = self.get_http_path(source, source['SupportsDirectStream'] == False)
+                    optimal_source = source
+                
+
+        log.info('get optimal source: %s', optimal_source)
+        return optimal_source
+
+    def is_file_exists(self, source):
+
+        path = source['Path']
+
+        if 'VideoType' in source:
+            if source['VideoType'] == "Dvd":
+                path = "%s/VIDEO_TS/VIDEO_TS.IFO" % path
+            elif source['VideoType'] == "BluRay":
+                path = "%s/BDMV/index.bdmv" % path
+
+        # Assign network protocol
+        if path.startswith('\\\\'):
+            path = path.replace('\\\\', "smb://")
+            path = path.replace('\\', "/")
+
+        if xbmcvfs.exists(path) or ":" not in path:
+            log.info("Path exists or assumed linux.")
+
+            self.method = "DirectPlay"
+            source['Path'] = path
+
+            return True
+        else:
+            log.info("Failed to find file.")
+            return False
+
+    def is_strm(self, source):
+        return False
+
+    def is_h265(self, source):
+
+        if not source['MediaStreams']:
+            log.error('No media streams found.')
+            return
+
+        force_transcode = False
+
+        for stream in source['MediaStreams']:
+            if self._is_h265(stream) or self._is_high10(stream):
+                force_transcode = True
+                break
+
+        if force_transcode:
+            source['Path'] = self.get_http_path(source, True)
+        else:
+            return False
+
+    @classmethod
+    def _is_h265(cls, stream):
+
+        if settings('transcode_h265') == "true":
+            if stream['Type'] == "Video" and stream['Codec'] in ("hevc", "h265"):
+                return True
+
+        return False
+
+    @classmethod
+    def _is_high10(cls, stream):
+
+        if settings('transcodeHi10P') == "true":
+            if stream.get('Profile') == "High 10":
+                return True
+
+        return False
+
+    def get_http_path(self, source, transcode=False):
+        
+        if transcode:
+            self.method = "Transcode"
+
+            item_id = self.item['Id']
+            play_url = urllib_path("%s/emby/Videos/%s/master.m3u8" % (self.server, item_id), {
+                'MediaSourceId': source['Id'],
+                'VideoCodec': "h264",
+                'AudioCodec': "ac3",
+                'MaxAudioChannels': 6,
+                'deviceId': self.clientInfo.get_device_id(),
+                'VideoBitrate': self.get_bitrate() * 1000
+            })
+
+            # Limit to 8 bit if user selected transcode Hi10P
+            if settings('transcodeHi10P') == "true":
+                play_url += "&MaxVideoBitDepth=8"
+
+            # Adjust the video resolution
+            play_url += "&maxWidth=%s&maxHeight=%s" % (self.get_resolution())
+            # Select audio and subtitles
+            play_url += self.get_audio_subs(source)
+
+        else:
+            self.method = "DirectStream"
+
+            if self.item['Type'] == "Audio":
+                play_url = "%s/emby/Audio/%s/stream.%s?static=true" % (self.server, self.item['Id'], self.item['MediaSources'][0]['Container'])
+            else:
+                play_url = "%s/emby/Videos/%s/stream?static=true" % (self.server, self.item['Id'])
+
+            # Append external subtitles
+            if settings('enableExternalSubs') == "true":
+                self.set_external_subs(play_url)
+        
+        user_token = downloadutils.DownloadUtils().get_token()
+        play_url += "&api_key=" + user_token
+        
+        return play_url
+
+    def set_external_subs(self, play_url):
+
+        if not self.item['MediaSources'] or not self.item['MediaSources'][0]['MediaStreams']:
+            log.debug('No media streams found.')
+            return
+
+        subs = []
+        mapping = {}
+
+        item_id = self.item['Id']
+        streams = self.item['MediaSources'][0]['MediaStreams']
+
+        temp = xbmc.translatePath(
+               "special://profile/addon_data/plugin.video.emby/temp/").decode('utf-8')
+
+        ''' Since Emby returns all possible tracks together, sort them.
+            IsTextSubtitleStream if true, is available to download from server.
+        '''
+
+        kodi_index = 0
+        for stream in streams:
+
+            if stream['Type'] == "Subtitle" and stream['IsExternal'] and stream['IsTextSubtitleStream']:
+                index = stream['Index']
+
+                url = self.server + stream['DeliveryUrl']
+
+                if 'Language' in stream:
+                    filename = "Stream.%s.%s" % (stream['Language'], stream['Codec'])
+                    try:
+                        subs.append(self._download_external_subs(url, temp, filename))
+                    except Exception as error:
+                        log.warn(error)
+                        subs.append(url)
+                else:
+                    subs.append(url)
+
+                # Map external subtitles for player.py
+                mapping[kodi_index] = index
+                kodi_index += 1
+
+        window('emby_%s.indexMapping.json' % play_url, value=mapping)
+        self.listitem.setSubtitles(subs)
+
+        return
+
+    @classmethod
+    def _download_external_subs(cls, src, dst, filename):
+
+        if not xbmcvfs.exists(dst):
+            xbmcvfs.mkdir(dst)
+
+        path = os.path.join(dst, filename)
+
+        try:
+            response = requests.get(src, stream=True)
+            response.raise_for_status()
+        except Exception as e:
+            raise
+        else:
+            response.encoding = 'utf-8'
+            with open(path, 'wb') as f:
+                f.write(response.content)
+                del response
+
+            return path
+
+    def get_audio_subs(self, source):
+
+        ''' For transcoding only
+            Present the list of audio to select from, before playback starts.
+            Returns part of the url to append.
+        '''
 
         dialog = xbmcgui.Dialog()
-        # For transcoding only
-        # Present the list of audio to select from
         audioStreamsList = {}
         audioStreams = []
         audioStreamsChannelsList = {}
@@ -368,7 +594,7 @@ class PlayUtils():
         downloadableStreams = []
         selectAudioIndex = ""
         selectSubsIndex = ""
-        playurlprefs = "%s" % url
+        playurlprefs = ""
 
         try:
             mediasources = self.item['MediaSources'][0]
@@ -436,16 +662,15 @@ class PlayUtils():
                 # User selected subtitles
                 selected = subtitleStreams[resp]
                 selectSubsIndex = subtitleStreamsList[selected]
-                settings = self.emby.get_server_transcoding_settings()
+                server_settings = self.emby.get_server_transcoding_settings()
 
                 # Load subtitles in the listitem if downloadable
-                if settings['EnableSubtitleExtraction'] and selectSubsIndex in downloadableStreams:
-
+                if server_settings['EnableSubtitleExtraction'] and selectSubsIndex in downloadableStreams:
                     itemid = self.item['Id']
                     url = [("%s/Videos/%s/%s/Subtitles/%s/Stream.srt"
                         % (self.server, itemid, itemid, selectSubsIndex))]
                     log.info("Set up subtitles: %s %s" % (selectSubsIndex, url))
-                    listitem.setSubtitles(url)
+                    self.listitem.setSubtitles(url)
                 else:
                     # Burn subtitles
                     playurlprefs += "&SubtitleStreamIndex=%s" % selectSubsIndex
@@ -460,70 +685,8 @@ class PlayUtils():
         else:
             playurlprefs += "&AudioBitrate=192000"
 
+        log.info(playurlprefs)
         return playurlprefs
-    
-    def get_playback_info(self):
-
-        # Get the playback info for the current item
-
-        info = self.emby.get_playback_info(self.item['Id'], self.get_device_profile())       
-        return self.get_optimal_source(info['MediaSources'])
-
-    def get_optimal_source(self, media_sources):
-
-        ''' Select the best possible mediasource for playback Because we posted
-            our deviceprofile to the server, only streams will be returned that can
-            actually be played by this client so no need to check bitrates etc.
-        '''
-        preferred = ('SupportsDirectPlay', 'SupportsDirectStream', 'SupportsTranscoding')
-        optimal_source = {}
-
-        for stream in preferred:
-            for source in media_sources:
-                if source[stream]:
-
-                    if stream == "lSupportsDirectPlay":
-                        if self.is_file_exists(source):
-                            optimal_source = source
-                    elif optimal_source.get('Bitrate', 0) < source.get('Bitrate', 0):
-                        # prefer stream with highest bitrate for http sources
-                        optimal_source = source
-                    elif source.get('RequiresOpening'):
-                        # livestream
-                        optimal_source = self.get_live_stream(source['PlaySessionId'], source)
-
-        log.info('get optimal source: %s', optimal_source)
-        return optimal_source
-
-    def get_live_stream(self, play_session_id, media_source):
-
-        info = self.emby.get_live_stream(self.item['Id'], self.get_device_profile(), play_session_id, media_source['OpenToken'])
-        log.info("get live stream: %s", info)
-
-        return info['MediaSource']
-
-    def is_file_exists(self, source):
-
-        path = source['Path']
-
-        if 'VideoType' in source:
-            if source['VideoType'] == "Dvd":
-                path = "%s/VIDEO_TS/VIDEO_TS.IFO" % path
-            elif source['VideoType'] == "BluRay":
-                path = "%s/BDMV/index.bdmv" % path
-
-        # Assign network protocol
-        if path.startswith('\\\\'):
-            path = path.replace('\\\\', "smb://")
-            path = path.replace('\\', "/")
-
-        if xbmcvfs.exists(path) or ":" not in path:
-            log.info("Path exists or assumed linux.")
-            source['Path'] = path
-            return False
-        else:
-            log.info("Failed to find file.")
-            return False
 
     def get_bitrate(self):
 
@@ -664,33 +827,8 @@ class PlayUtils():
             ]
         }
 
+    def get_resolution(self):
 
-
-
-
-    def resolutionConflict(self):
-        if settings('limitResolution') == "true":
-            screenRes = self.getScreenResolution()
-            videoRes = self.getVideoResolution()
-            
-            if not videoRes:
-                return False
-
-            return videoRes['width'] > screenRes['width'] or videoRes['height'] > screenRes['height']
-        else:
-            return False
-
-    def getScreenResolution(self):
-        wind = xbmcgui.Window()
-        return {'width' : wind.getWidth(),
-                'height' : wind.getHeight()}
-
-    def getVideoResolution(self):
-        try:
-            return {'width' : self.item['MediaStreams'][0]['Width'],
-                    'height' : self.item['MediaStreams'][0]['Height']}
-        except (KeyError, IndexError) as error:
-            log.debug(error)
-            log.debug(self.item)
-            return False
+        window = xbmcgui.Window()
+        return window.getWidth(), window.getHeight()
 

@@ -30,7 +30,7 @@ import playbackutils as pbutils
 import playutils
 import api
 from views import Playlist, VideoNodes
-from utils import window, settings, dialog, language as lang, plugin_path
+from utils import window, settings, dialog, language as lang, urllib_path
 
 #################################################################################################
 
@@ -657,7 +657,7 @@ def BrowseContent(viewname, browse_type="", folderid=""):
                         'type': browse_type,
                         'folderid': item['Id']
                     }
-                    path = plugin_path("plugin://plugin.video.emby/", params)
+                    path = urllib_path("plugin://plugin.video.emby/", params)
                     xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=path, listitem=li, isFolder=True)
                 else: #playable item, set plugin path and mediastreams
                     xbmcplugin.setContent(int(sys.argv[1]), 'episodes' if folderid else 'files')
