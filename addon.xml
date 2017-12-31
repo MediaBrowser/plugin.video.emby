@@ -18,13 +18,13 @@
   </extension>
   <extension point="kodi.context.item">
     <menu id="kodi.core.main">
-      <item library="contextmenu_play.py">
-        <label>Select video</label>
-        <visible>[!IsEmpty(ListItem.DBID) + !StringCompare(ListItem.DBID,-1) | !IsEmpty(ListItem.Property(embyid))] + !IsEmpty(Window(10000).Property(emby_context))</visible>
-      </item>
       <item library="contextmenu.py">
         <label>30401</label>
-        <visible>[!IsEmpty(ListItem.DBID) + !StringCompare(ListItem.DBID,-1) | !IsEmpty(ListItem.Property(embyid))] + !IsEmpty(Window(10000).Property(emby_context))</visible>
+        <visible>[!String.IsEmpty(ListItem.DBID) + !String.IsEqual(ListItem.DBID,-1) | !String.IsEmpty(ListItem.Property(embyid))] + !String.IsEmpty(Window(10000).Property(emby_context))</visible>
+      </item>
+      <item library="contextmenu_play.py">
+        <label>30402</label>
+        <visible>[!String.IsEmpty(ListItem.DBID) + !String.IsEqual(ListItem.DBID,-1) | !String.IsEmpty(ListItem.Property(embyid))] + [String.IsEqual(ListItem.DBTYPE,movie) | String.IsEqual(ListItem.DBTYPE,episode)]</visible>
       </item>
     </menu>
   </extension>

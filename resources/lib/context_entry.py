@@ -3,21 +3,26 @@
 #################################################################################################
 
 import logging
+from datetime import timedelta
 
 import xbmc
 import xbmcaddon
 
 import api
 import read_embyserver as embyserver
+import playbackutils as pbutils
 import embydb_functions as embydb
 import musicutils as musicutils
 from utils import settings, dialog, language as lang
-from dialogs import context
+from dialogs import context, resume
 from database import DatabaseConn
 
 #################################################################################################
 
 log = logging.getLogger("EMBY."+__name__)
+addon = xbmcaddon.Addon('plugin.video.emby')
+
+XML_PATH = (addon.getAddonInfo('path'), "default", "1080i")
 OPTIONS = {
 
     'Refresh': lang(30410),
@@ -37,7 +42,7 @@ class ContextMenu(object):
     _selected_option = None
 
 
-    def __init__(self):
+    def __init__(self, force_transcode=False):
 
         self.emby = embyserver.Read_EmbyServer()
 
@@ -58,7 +63,10 @@ class ContextMenu(object):
             self.item = self.emby.getItem(self.item_id)
             self.api = api.API(self.item)
 
-            if self._select_menu():
+            if force_transcode:
+                self._force_transcode()
+
+            elif self._select_menu():
                 self._action_menu()
 
                 if self._selected_option in (OPTIONS['Delete'], OPTIONS['AddFav'],
@@ -109,10 +117,6 @@ class ContextMenu(object):
         userdata = self.api.get_userdata()
         options = []
 
-        if self.item_type in ("movie", "episode", "song"):
-            #options.append(OPTIONS['Transcode'])
-            pass
-
         if userdata['Favorite']:
             # Remove from emby favourites
             options.append(OPTIONS['RemoveFav'])
@@ -131,9 +135,7 @@ class ContextMenu(object):
         # Addon settings
         options.append(OPTIONS['Addon'])
 
-        addon = xbmcaddon.Addon('plugin.video.emby')
-        context_menu = context.ContextMenu("script-emby-context.xml", addon.getAddonInfo('path'),
-                                           "default", "1080i")
+        context_menu = context.ContextMenu("script-emby-context.xml", *XML_PATH)
         context_menu.set_options(options)
         context_menu.doModal()
 
@@ -146,10 +148,7 @@ class ContextMenu(object):
 
         selected = self._selected_option.decode('utf-8')
 
-        if selected == OPTIONS['Transcode']:
-            pass
-
-        elif selected == OPTIONS['Refresh']:
+        if selected == OPTIONS['Refresh']:
             self.emby.refreshItem(self.item_id)
 
         elif selected == OPTIONS['AddFav']:
@@ -203,3 +202,25 @@ class ContextMenu(object):
         if delete:
             log.info("Deleting request: %s", self.item_id)
             self.emby.deleteItem(self.item_id)
+
+    def _force_transcode(self):
+
+        log.info("Force transcode called.")
+        seektime = self.api.adjust_resume(self.api.get_userdata()['Resume'])
+
+        if seektime:
+            log.info("Resume dialog called.")
+
+            dialog = resume.ResumeDialog("script-emby-resume.xml", *XML_PATH)
+            dialog.set_resume_point("Resume from %s" % str(timedelta(seconds=seektime)))
+            dialog.doModal()
+
+            if dialog.is_selected():
+                self._selected_option = dialog.get_selected()
+            else: # User backed out
+                log.info("User exited without a selection.")
+                return
+
+        pb = pbutils.PlaybackUtils(self.item)
+        pb.play(self.item['Id'], self.kodi_id)
+        xbmc.Player().play(pb.playlist)

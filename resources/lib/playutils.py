@@ -114,7 +114,6 @@ class PlayUtils():
                 else:
                     source['Path'] = self.get_http_path(source, source['SupportsDirectStream'] == False)
                     optimal_source = source
-                
 
         log.info('get optimal source: %s', optimal_source)
         return optimal_source
@@ -180,15 +179,6 @@ class PlayUtils():
 
         return False
 
-    def get_http_path(self, source, transcode=False):
-        
-        play_url = self.get_transcode_url(source) if transcode else self.get_direct_url(source)
-        
-        user_token = downloadutils.DownloadUtils().get_token()
-        play_url += "&api_key=" + user_token
-        
-        return play_url
-
     def get_direct_path(self, source):
 
         path = source['Path']
@@ -205,6 +195,15 @@ class PlayUtils():
             path = path.replace('\\', "/")
 
         return path
+
+    def get_http_path(self, source, transcode=False):
+        
+        play_url = self.get_transcode_url(source) if transcode else self.get_direct_url(source)
+        
+        user_token = downloadutils.DownloadUtils().get_token()
+        play_url += "&api_key=" + user_token
+        
+        return play_url
 
     def get_direct_url(self, source):
 
@@ -533,4 +532,3 @@ class PlayUtils():
 
         window = xbmcgui.Window()
         return window.getWidth(), window.getHeight()
-

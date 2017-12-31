@@ -91,8 +91,11 @@ class PlaybackUtils():
 
         # Stack: [(url, listitem), (url, ...), ...]
         self.stack[0][1].setPath(self.stack[0][0])
-        xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, self.stack[0][1])
-        self.stack.pop(0) # remove the first item we just started.
+        try:
+            xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, self.stack[0][1])
+            self.stack.pop(0) # remove the first item we just started.
+        except IndexError:
+            log.info("Playback activated via the context menu.")
 
         for stack in self.stack:
             self.playlist.add(url=stack[0], listitem=stack[1], index=index)
