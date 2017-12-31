@@ -324,6 +324,11 @@ class TVShows(Items):
             showid = self.kodi_db.create_entry()
 
         else:
+            # If the show is empty, try to remove it.
+            if settings('syncEmptyShows') == "false" and not item.get('RecursiveItemCount'):
+                log.info("Skipping empty show: %s", item.get('Name', item['Id']))
+                return self.remove(item['Id'])
+
             # Verification the item is still in Kodi
             if self.kodi_db.get_tvshow(showid) is None:
                 # item is not found, let's recreate it.
