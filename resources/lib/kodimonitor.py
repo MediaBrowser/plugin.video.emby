@@ -142,7 +142,7 @@ class KodiMonitor(xbmc.Monitor):
                             else:
                                 window('emby_%s.playmethod' % playurl, value="DirectPlay")
                             # Set properties for player.py
-                            playback.setProperties(playurl, listitem)
+                            playback.set_properties(playurl, listitem)
 
     def _video_update(self, data):
         # Manually marking as watched/unwatched

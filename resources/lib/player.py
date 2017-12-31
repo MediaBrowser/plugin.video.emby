@@ -12,7 +12,7 @@ import xbmcgui
 import clientinfo
 import downloadutils
 import websocket_client as wsc
-from utils import window, settings, language as lang
+from utils import window, settings, language as lang, JSONRPC
 from ga_client import GoogleAnalytics, log_error
 
 #################################################################################################
@@ -112,18 +112,7 @@ class Player(xbmc.Player):
                 return
 
             # Get playback volume
-            volume_query = {
-
-                "jsonrpc": "2.0",
-                "id": 1,
-                "method": "Application.GetProperties",
-                "params": {
-
-                    "properties": ["volume", "muted"]
-                }
-            }
-            result = xbmc.executeJSONRPC(json.dumps(volume_query))
-            result = json.loads(result)
+            result = JSONRPC('Application.GetProperties').execute({'properties': ["volume", "muted"]})
             result = result.get('result')
 
             volume = result.get('volume')
@@ -150,18 +139,11 @@ class Player(xbmc.Player):
                 postdata['SubtitleStreamIndex'] = window("%sSubtitleStreamIndex" % currentFile)
             else:
                 # Get the current kodi audio and subtitles and convert to Emby equivalent
-                tracks_query = {
-
-                    "jsonrpc": "2.0",
-                    "id": 1,
-                    "method": "Player.GetProperties",
-                    "params": {
-
-                        "playerid": 1,
-                        "properties": ["currentsubtitle","currentaudiostream","subtitleenabled"]
-                    }
+                params = {
+                    'playerid': 1,
+                    'properties': ["currentsubtitle","currentaudiostream","subtitleenabled"]
                 }
-                result = xbmc.executeJSONRPC(json.dumps(tracks_query))
+                result = JSONRPC('Player.GetProperties').execute(params)
                 tracks_data = None
                 try:
                     tracks_data = json.loads(result)
@@ -415,9 +397,7 @@ class Player(xbmc.Player):
     def onPlayBackStopped(self):
         # Will be called when user stops xbmc playing a file
         log.debug("ONPLAYBACK_STOPPED")
-        window('emby_customPlaylist', clear=True)
         window('emby_customPlaylist.seektime', clear=True)
-        window('emby_playbackProps', clear=True)
         log.info("Clear playlist properties.")
         self.stopAll()
 
