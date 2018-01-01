@@ -50,7 +50,7 @@ class LoginManual(xbmcgui.WindowXMLDialog):
         self.server = server
 
     def set_user(self, user):
-        self.username = user or {}
+        self.username = user or None
 
     def get_user(self):
         return self._user
