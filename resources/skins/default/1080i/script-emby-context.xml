@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <window>
 	<defaultcontrol always="true">155</defaultcontrol>
-	<zorder>0</zorder>
 	<controls>
 		<control type="group">
 			<control type="image">
@@ -9,7 +8,7 @@
 				<bottom>0</bottom>
 				<left>0</left>
 				<right>0</right>
-				<texture colordiffuse="CC000000">dialogs/white.jpg</texture>
+				<texture colordiffuse="CC000000">white.png</texture>
 				<aspectratio>stretch</aspectratio>				
 				<animation effect="fade" end="100" time="200">WindowOpen</animation>
 				<animation effect="fade" start="100" end="0" time="200">WindowClose</animation>
@@ -41,7 +40,7 @@
 						<width>100%</width>
 						<height>25</height>
 						<aspectratio align="right">keep</aspectratio>
-						<texture diffuse="user_image.png"></texture>
+						<texture diffuse="user_image.png">userflyoutdefault.png</texture>
 					</control>
 				</control>
 				<control type="image">
@@ -66,7 +65,7 @@
 							<textoffsetx>20</textoffsetx>
 							<font>font10</font>
 							<textcolor>ffe1e1e1</textcolor>
-							<textshadow>66000000</textshadow>
+							<shadowcolor>66000000</shadowcolor>
 							<label>$INFO[ListItem.Label]</label>
 						</control>
 					</itemlayout>
@@ -74,13 +73,13 @@
 						<control type="image">
 							<width>100%</width>
 							<height>50</height>
-							<texture colordiffuse="ff222326">dialogs/white.jpg</texture>
+							<texture colordiffuse="ff222326">white.png</texture>
 							<visible>!Control.HasFocus(155)</visible>
 						</control>
 						<control type="image">
 							<width>100%</width>
 							<height>50</height>
-							<texture colordiffuse="ff303034">dialogs/white.jpg</texture>
+							<texture colordiffuse="ff303034">white.png</texture>
 							<visible>Control.HasFocus(155)</visible>
 						</control>
 						<control type="label">
@@ -90,7 +89,7 @@
 							<textoffsetx>20</textoffsetx>
 							<font>font10</font>
 							<textcolor>ffe1e1e1</textcolor>
-							<textshadow>66000000</textshadow>
+							<shadowcolor>66000000</shadowcolor>
 							<label>$INFO[ListItem.Label]</label>
 						</control>
 					</focusedlayout>

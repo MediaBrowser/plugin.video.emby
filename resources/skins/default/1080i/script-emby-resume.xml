@@ -8,7 +8,7 @@
 				<bottom>0</bottom>
 				<left>0</left>
 				<right>0</right>
-				<texture colordiffuse="CC000000">dialogs/white.jpg</texture>
+				<texture colordiffuse="CC000000">white.png</texture>
 				<aspectratio>stretch</aspectratio>				
 				<animation effect="fade" end="100" time="200">WindowOpen</animation>
 				<animation effect="fade" start="100" end="0" time="200">WindowClose</animation>
@@ -46,7 +46,7 @@
 							<texture>logo-white.png</texture>
 							<aspectratio align="left">keep</aspectratio>
 						</control>
-						<control type="image" id="150">
+						<control type="image">
 							<right>20</right>
 							<width>100%</width>
 							<height>25</height>
@@ -54,7 +54,7 @@
 							<texture diffuse="user_image.png">$INFO[Window(Home).Property(EmbyUserImage)]</texture>
 							<visible>!String.IsEmpty(Window(Home).Property(EmbyUserImage))</visible>
 						</control>
-						<control type="image" id="150">
+						<control type="image">
 							<right>20</right>
 							<width>100%</width>
 							<height>25</height>
@@ -70,12 +70,13 @@
 					</control>
 					<control type="button" id="3010">
 						<width>100%</width>
+						<height>50</height>
 						<align>left</align>
 						<aligny>center</aligny>
 						<textoffsetx>20</textoffsetx>
 						<font>font10</font>
 						<textcolor>ffe1e1e1</textcolor>
-						<textshadow>66000000</textshadow>
+						<shadowcolor>66000000</shadowcolor>
 						<disabledcolor>FF404040</disabledcolor>
 						<texturefocus border="10" colordiffuse="ff303034">dialogs/menu_back.png</texturefocus>
 						<texturenofocus border="10"  colordiffuse="ff222326">dialogs/menu_back.png</texturenofocus>
@@ -84,12 +85,13 @@
 					</control>
 					<control type="button" id="3011">
 						<width>100%</width>
+						<height>50</height>
 						<align>left</align>
 						<aligny>center</aligny>
 						<textoffsetx>20</textoffsetx>
 						<font>font10</font>
 						<textcolor>ffe1e1e1</textcolor>
-						<textshadow>66000000</textshadow>
+						<shadowcolor>66000000</shadowcolor>
 						<disabledcolor>FF404040</disabledcolor>
 						<texturefocus border="10" colordiffuse="ff303034">dialogs/menu_back.png</texturefocus>
 						<texturenofocus border="10"  colordiffuse="ff222326">dialogs/menu_back.png</texturenofocus>
