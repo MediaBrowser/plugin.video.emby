@@ -14,6 +14,7 @@ from xbmc import sleep
 from utils import window, settings, thread_methods
 from companion import process_command
 import state
+import variables as v
 
 ###############################################################################
 
@@ -238,10 +239,9 @@ class Alexa_Websocket(WebSocket):
     __thread_suspended = False
 
     def getUri(self):
-        self.plex_client_Id = window('plex_client_Id')
         uri = ('wss://pubsub.plex.tv/sub/websockets/%s/%s?X-Plex-Token=%s'
                % (state.PLEX_USER_ID,
-                  self.plex_client_Id, state.PLEX_TOKEN))
+                  v.PKC_MACHINE_IDENTIFIER, state.PLEX_TOKEN))
         sslopt = {}
         log.debug("%s: Uri: %s, sslopt: %s"
                   % (self.__class__.__name__, uri, sslopt))

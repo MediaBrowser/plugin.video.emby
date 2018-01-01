@@ -343,6 +343,6 @@ class PKC_Player(Player):
             LOG.info("Transcoding for %s terminating" % itemid)
             self.doUtils().downloadUrl(
                 "{server}/video/:/transcode/universal/stop",
-                parameters={'session': window('plex_client_Id')})
+                parameters={'session': v.PKC_MACHINE_IDENTIFIER})
 
         self.played_info.clear()
