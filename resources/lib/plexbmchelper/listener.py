@@ -116,7 +116,7 @@ class MyHandler(BaseHTTPRequestHandler):
             self.response(
                 RESOURCES_XML.format(
                     title=v.DEVICENAME,
-                    machineIdentifier=window('plex_machineIdentifier')),
+                    machineIdentifier=v.PKC_MACHINE_IDENTIFIER),
                 getXArgsDeviceInfo(include_token=False))
         elif "/poll" in request_path:
             if params.get('wait') == '1':
