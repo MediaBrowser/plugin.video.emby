@@ -176,7 +176,7 @@ class SubscriptionMgr(object):
             'volume': info['volume'],
             'mute': mute,
             'mediaIndex': pos,  # Still to implement from here
-            'partIndex':pos,
+            'partIndex':0,
             'partCount': len(playqueue.items),
             'providerIdentifier': 'com.plexapp.plugins.library',
         }
