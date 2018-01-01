@@ -77,7 +77,7 @@ class Playqueue(Thread):
                 raise ValueError('Wrong playlist type passed in: %s' % typus)
             return playqueue
 
-    def init_playqueue_from_plex_children(self, plex_id):
+    def init_playqueue_from_plex_children(self, plex_id, transient_token=None):
         """
         Init a new playqueue e.g. from an album. Alexa does this
 
@@ -95,6 +95,7 @@ class Playqueue(Thread):
         for i, child in enumerate(xml):
             api = API(child)
             PL.add_item_to_playlist(playqueue, i, plex_id=api.getRatingKey())
+        playqueue.plex_transient_token = transient_token
         LOG.debug('Firing up Kodi player')
         Player().play(playqueue.kodi_pl, None, False, 0)
         return playqueue
@@ -114,6 +115,9 @@ class Playqueue(Thread):
         """
         LOG.info('New playqueue %s received from Plex companion with offset '
                  '%s, repeat %s', playqueue_id, offset, repeat)
+        # Safe transient token from being deleted
+        if transient_token is None:
+            transient_token = playqueue.plex_transient_token
         with LOCK:
             xml = PL.get_PMS_playlist(playqueue, playqueue_id)
             playqueue.clear()
@@ -123,7 +127,7 @@ class Playqueue(Thread):
                 LOG.error('Could not get playqueue ID %s', playqueue_id)
                 return
             playqueue.repeat = 0 if not repeat else int(repeat)
-            playqueue.token = transient_token
+            playqueue.plex_transient_token = transient_token
             PlaybackUtils(xml, playqueue).play_all()
             window('plex_customplaylist', value="true")
             if offset not in (None, "0"):

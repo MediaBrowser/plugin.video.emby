@@ -106,6 +106,7 @@ PLAYER_STATES = {
         'kodi_type': None,
         'plex_id': None,
         'plex_type': None,
+        'container_key': None,
         'volume': 100,
         'muted': False
     },
@@ -116,6 +117,10 @@ PLAYER_STATES = {
 # paths for playback (since we're not receiving a Kodi id)
 PLEX_IDS = {}
 PLAYED_INFO = {}
+# Set to False after having received a Companion command to play something
+# Set to True after Kodi monitor PlayBackStart is done
+# This will prohibit "old" Plex Companion messages being sent
+PLAYBACK_INIT_DONE = True
 
 # Kodi webserver details
 WEBSERVER_PORT = 8080

@@ -125,7 +125,9 @@ class KodiMonitor(Monitor):
             LOG.debug("Method: %s Data: %s", method, data)
 
         if method == "Player.OnPlay":
+            state.PLAYBACK_INIT_DONE = False
             self.PlayBackStart(data)
+            state.PLAYBACK_INIT_DONE = True
         elif method == "Player.OnStop":
             # Should refresh our video nodes, e.g. on deck
             # xbmc.executebuiltin('ReloadSkin()')
@@ -336,6 +338,17 @@ class KodiMonitor(Monitor):
                                       kodi_item={'id': kodi_id,
                                                  'type': kodi_type,
                                                  'file': path})
+        # Set the Plex container key (e.g. using the Plex playqueue)
+        container_key = None
+        if info['playlistid'] != -1:
+            # -1 is Kodi's answer if there is no playlist
+            container_key = self.playqueue.playqueues[playerid].id
+        if container_key is not None:
+            container_key = '/playQueues/%s' % container_key
+        elif plex_id is not None:
+            container_key = '/library/metadata/%s' % plex_id
+        state.PLAYER_STATES[playerid]['container_key'] = container_key
+        LOG.debug('Set the Plex container_key to: %s', container_key)
 
     def StartDirectPath(self, plex_id, type, currentFile):
         """

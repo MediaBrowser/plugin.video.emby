@@ -34,13 +34,11 @@ class PlexCompanion(Thread):
     """
     def __init__(self, callback=None):
         LOG.info("----===## Starting PlexCompanion ##===----")
-        if callback is not None:
-            self.mgr = callback
+        self.mgr = callback
         # Start GDM for server/client discovery
         self.client = plexgdm.plexgdm()
         self.client.clientDetails()
-        LOG.debug("Registration string is:\n%s",
-                  self.client.getClientDetails())
+        LOG.debug("Registration string is:\n%s", self.client.getClientDetails())
         # kodi player instance
         self.player = player.PKC_Player()
         self.httpd = False
@@ -54,14 +52,13 @@ class PlexCompanion(Thread):
         try:
             xml[0].attrib
         except (AttributeError, IndexError, TypeError):
-            LOG.error('Could not download Plex metadata')
+            LOG.error('Could not download Plex metadata for: %s', data)
             return
         api = API(xml[0])
         if api.getType() == v.PLEX_TYPE_ALBUM:
             LOG.debug('Plex music album detected')
-            queue = self.mgr.playqueue.init_playqueue_from_plex_children(
-                api.getRatingKey())
-            queue.plex_transient_token = data.get('token')
+            self.mgr.playqueue.init_playqueue_from_plex_children(
+                api.getRatingKey(), transient_token=data.get('token'))
         else:
             state.PLEX_TRANSIENT_TOKEN = data.get('token')
             params = {
@@ -92,13 +89,7 @@ class PlexCompanion(Thread):
     @LOCKER.lockthis
     def _process_playlist(self, data):
         # Get the playqueue ID
-        try:
-            _, container_key, query = ParseContainerKey(data['containerKey'])
-        except:
-            LOG.error('Exception while processing')
-            import traceback
-            LOG.error("Traceback:\n%s", traceback.format_exc())
-            return
+        _, container_key, query = ParseContainerKey(data['containerKey'])
         try:
             playqueue = self.mgr.playqueue.get_playqueue_from_type(
                 v.KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[data['type']])
@@ -114,16 +105,12 @@ class PlexCompanion(Thread):
             api = API(xml[0])
             playqueue = self.mgr.playqueue.get_playqueue_from_type(
                 v.KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[api.getType()])
-        if playqueue.id == container_key:
-            # OK, really weird, this happens at least with Plex for Android
-            LOG.debug('Already know this Plex playQueue, ignoring this command')
-        else:
-            self.mgr.playqueue.update_playqueue_from_PMS(
-                playqueue,
-                playqueue_id=container_key,
-                repeat=query.get('repeat'),
-                offset=data.get('offset'),
-                transient_token=data.get('token'))
+        self.mgr.playqueue.update_playqueue_from_PMS(
+            playqueue,
+            playqueue_id=container_key,
+            repeat=query.get('repeat'),
+            offset=data.get('offset'),
+            transient_token=data.get('token'))
 
     @LOCKER.lockthis
     def _process_streams(self, data):
@@ -309,5 +296,5 @@ class PlexCompanion(Thread):
                 # Don't sleep
                 continue
             sleep(50)
-        self.subscription_manager.signal_stop()
+        subscription_manager.signal_stop()
         client.stop_all()

@@ -9,6 +9,7 @@ from urlparse import urlparse, parse_qs
 
 from xbmc import sleep
 from companion import process_command
+from utils import window
 import json_rpc as js
 from clientinfo import getXArgsDeviceInfo
 import variables as v
@@ -19,6 +20,21 @@ LOG = getLogger("PLEX." + __name__)
 
 ###############################################################################
 
+RESOURCES_XML = ('%s<MediaContainer>\n'
+    '  <Player'
+        ' title="{title}"'
+        ' protocol="plex"'
+        ' protocolVersion="1"'
+        ' protocolCapabilities="timeline,playback,navigation,playqueues"'
+        ' machineIdentifier="{machineIdentifier}"'
+        ' product="%s"'
+        ' platform="%s"'
+        ' platformVersion="%s"'
+        ' deviceClass="pc"/>\n'
+    '</MediaContainer>\n') % (v.XML_HEADER,
+                              v.ADDON_NAME,
+                              v.PLATFORM,
+                              v.ADDON_VERSION)
 
 class MyHandler(BaseHTTPRequestHandler):
     """
@@ -78,94 +94,68 @@ class MyHandler(BaseHTTPRequestHandler):
         self.serverlist = self.server.client.getServerList()
         sub_mgr = self.server.subscription_manager
 
-        try:
-            request_path = self.path[1:]
-            request_path = sub(r"\?.*", "", request_path)
-            url = urlparse(self.path)
-            paramarrays = parse_qs(url.query)
-            params = {}
-            for key in paramarrays:
-                params[key] = paramarrays[key][0]
-            LOG.debug("remote request_path: %s", request_path)
-            LOG.debug("params received from remote: %s", params)
-            sub_mgr.update_command_id(self.headers.get(
-                'X-Plex-Client-Identifier',
-                self.client_address[0]),
-                params.get('commandID', False))
-            if request_path == "version":
-                self.response(
-                    "PlexKodiConnect Plex Companion: Running\nVersion: %s"
-                    % v.ADDON_VERSION)
-            elif request_path == "verify":
-                self.response("XBMC JSON connection test:\n" +
-                              js.ping())
-            elif request_path == 'resources':
-                resp = ('%s'
-                        '<MediaContainer>'
-                        '<Player'
-                        ' title="%s"'
-                        ' protocol="plex"'
-                        ' protocolVersion="1"'
-                        ' protocolCapabilities="timeline,playback,navigation,playqueues"'
-                        ' machineIdentifier="%s"'
-                        ' product="PlexKodiConnect"'
-                        ' platform="%s"'
-                        ' platformVersion="%s"'
-                        ' deviceClass="pc"'
-                        '/>'
-                        '</MediaContainer>'
-                        % (v.XML_HEADER,
-                           v.DEVICENAME,
-                           v.PKC_MACHINE_IDENTIFIER,
-                           v.PLATFORM,
-                           v.ADDON_VERSION))
-                LOG.debug("crafted resources response: %s", resp)
-                self.response(resp, getXArgsDeviceInfo(include_token=False))
-            elif "/poll" in request_path:
-                if params.get('wait', False) == '1':
-                    sleep(950)
-                command_id = params.get('commandID', 0)
-                self.response(
-                    sub(r"INSERTCOMMANDID",
-                        str(command_id),
-                        sub_mgr.msg(js.get_players())),
-                    {
-                        'X-Plex-Client-Identifier': v.PKC_MACHINE_IDENTIFIER,
-                        'X-Plex-Protocol': '1.0',
-                        'Access-Control-Allow-Origin': '*',
-                        'Access-Control-Max-Age': '1209600',
-                        'Access-Control-Expose-Headers':
-                            'X-Plex-Client-Identifier',
-                        'Content-Type': 'text/xml;charset=utf-8'
-                    })
-            elif "/subscribe" in request_path:
-                self.response(v.COMPANION_OK_MESSAGE,
-                              getXArgsDeviceInfo(include_token=False))
-                protocol = params.get('protocol', False)
-                host = self.client_address[0]
-                port = params.get('port', False)
-                uuid = self.headers.get('X-Plex-Client-Identifier', "")
-                command_id = params.get('commandID', 0)
-                sub_mgr.add_subscriber(protocol,
-                                       host,
-                                       port,
-                                       uuid,
-                                       command_id)
-            elif "/unsubscribe" in request_path:
-                self.response(v.COMPANION_OK_MESSAGE,
-                              getXArgsDeviceInfo(include_token=False))
-                uuid = self.headers.get('X-Plex-Client-Identifier', False) \
-                    or self.client_address[0]
-                sub_mgr.remove_subscriber(uuid)
-            else:
-                # Throw it to companion.py
-                process_command(request_path, params, self.server.queue)
-                self.response('', getXArgsDeviceInfo(include_token=False))
-                sub_mgr.notify()
-        except:
-            LOG.error('Error encountered. Traceback:')
-            import traceback
-            LOG.error(traceback.print_exc())
+        request_path = self.path[1:]
+        request_path = sub(r"\?.*", "", request_path)
+        url = urlparse(self.path)
+        paramarrays = parse_qs(url.query)
+        params = {}
+        for key in paramarrays:
+            params[key] = paramarrays[key][0]
+        LOG.debug("remote request_path: %s", request_path)
+        LOG.debug("params received from remote: %s", params)
+        sub_mgr.update_command_id(self.headers.get(
+                'X-Plex-Client-Identifier', self.client_address[0]),
+            params.get('commandID'))
+        if request_path == "version":
+            self.response(
+                "PlexKodiConnect Plex Companion: Running\nVersion: %s"
+                % v.ADDON_VERSION)
+        elif request_path == "verify":
+            self.response("XBMC JSON connection test:\n" + js.ping())
+        elif request_path == 'resources':
+            self.response(
+                RESOURCES_XML.format(
+                    title=v.DEVICENAME,
+                    machineIdentifier=window('plex_machineIdentifier')),
+                getXArgsDeviceInfo(include_token=False))
+        elif "/poll" in request_path:
+            if params.get('wait') == '1':
+                sleep(950)
+            self.response(
+                sub_mgr.msg(js.get_players()).format(
+                    command_id=params.get('commandID', 0)),
+                {
+                    'X-Plex-Client-Identifier': v.PKC_MACHINE_IDENTIFIER,
+                    'X-Plex-Protocol': '1.0',
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Max-Age': '1209600',
+                    'Access-Control-Expose-Headers':
+                        'X-Plex-Client-Identifier',
+                    'Content-Type': 'text/xml;charset=utf-8'
+                })
+        elif "/subscribe" in request_path:
+            self.response(v.COMPANION_OK_MESSAGE,
+                          getXArgsDeviceInfo(include_token=False))
+            protocol = params.get('protocol')
+            host = self.client_address[0]
+            port = params.get('port')
+            uuid = self.headers.get('X-Plex-Client-Identifier')
+            command_id = params.get('commandID', 0)
+            sub_mgr.add_subscriber(protocol,
+                                   host,
+                                   port,
+                                   uuid,
+                                   command_id)
+        elif "/unsubscribe" in request_path:
+            self.response(v.COMPANION_OK_MESSAGE,
+                          getXArgsDeviceInfo(include_token=False))
+            uuid = self.headers.get('X-Plex-Client-Identifier') \
+                or self.client_address[0]
+            sub_mgr.remove_subscriber(uuid)
+        else:
+            # Throw it to companion.py
+            process_command(request_path, params, self.server.queue)
+            self.response('', getXArgsDeviceInfo(include_token=False))
 
 
 class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
