@@ -207,7 +207,7 @@ class ContextMenu(object):
             log.info("Resume dialog called.")
 
             dialog = resume.ResumeDialog("script-emby-resume.xml", *XML_PATH)
-            dialog.set_resume_point("Resume from %s" % str(timedelta(seconds=seektime)).split(".")[0])
+            dialog.set_resume_point("Resume from %s" % str(timedelta(seconds=seektime)))
             dialog.doModal()
 
             if dialog.is_selected():

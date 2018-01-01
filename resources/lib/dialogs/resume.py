@@ -15,8 +15,6 @@ from utils import window
 log = logging.getLogger("EMBY."+__name__)
 addon = xbmcaddon.Addon('plugin.video.emby')
 
-RESUME_BUTTON = 3010
-START_BEGINNING_BUTTON = 3011
 ACTION_PARENT_DIR = 9
 ACTION_PREVIOUS_MENU = 10
 ACTION_BACK = 92
@@ -42,20 +40,24 @@ class ResumeDialog(xbmcgui.WindowXMLDialog):
         return self.selected_option
 
     def onInit(self):
-        self.getControl(RESUME_BUTTON).setLabel(self._resume_point)
-        self.getControl(START_BEGINNING_BUTTON).setLabel('Start from beginning')
+        self.action_exitkeys_id = [10, 13]
+        self.getControl(3010).setLabel(self._resume_point)
+        self.getControl(3011).setLabel('Start from beginning')
+
+    def onFocus(self, controlId):
+        pass
 
     def doAction(self, actionID):
         
         if action in (ACTION_BACK, ACTION_PARENT_DIR, ACTION_PREVIOUS_MENU):
+            log.info("bam closed")
             self.close()
 
     def onClick(self, controlID):
 
-        if controlID == RESUME_BUTTON:
-            self.selected_option = 1
+        if (controlID == 3010):
+            self.resumePlay = 0
             self.close()
-
-        if controlID == START_BEGINNING_BUTTON:
-            self.selected_option = 0
+        if (controlID == 3011):
+            self.resumePlay = 1
             self.close()

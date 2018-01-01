@@ -21,7 +21,6 @@ ACTION_BACK = 92
 ACTION_SELECT_ITEM = 7
 ACTION_MOUSE_LEFT_CLICK = 100
 USER_IMAGE = 150
-USER_NAME = 151
 LIST = 155
 CANCEL = 201
 MESSAGE_BOX = 202
@@ -35,7 +34,6 @@ MANUAL_SERVER = 206
 
 class ServerConnect(xbmcgui.WindowXMLDialog):
 
-    username = ""
     user_image = None
     servers = []
 
@@ -49,7 +47,7 @@ class ServerConnect(xbmcgui.WindowXMLDialog):
         xbmcgui.WindowXMLDialog.__init__(self, *args, **kwargs)
 
     def set_args(self, **kwargs):
-        # connect_manager, username, user_image, servers, emby_connect
+        # connect_manager, user_image, servers, emby_connect
         for key, value in kwargs.iteritems():
             setattr(self, key, value)
 
@@ -76,8 +74,6 @@ class ServerConnect(xbmcgui.WindowXMLDialog):
         for server in self.servers:
             server_type = "wifi" if server.get('ExchangeToken') else "network"
             self.list_.addItem(self._add_listitem(server['Name'], server['Id'], server_type))
-
-        self.getControl(USER_NAME).setLabel("%s %s" % (lang(33000), self.username.decode('utf-8')))
 
         if self.user_image is not None:
             self.getControl(USER_IMAGE).setImage(self.user_image)
