@@ -251,18 +251,7 @@ class Player(xbmc.Player):
 
 
             # Get playback volume
-            volume_query = {
-
-                    "jsonrpc": "2.0",
-                    "id": 1,
-                    "method": "Application.GetProperties",
-                    "params": {
-
-                        "properties": ["volume", "muted"] 
-                    }
-            }
-            result = xbmc.executeJSONRPC(json.dumps(volume_query))
-            result = json.loads(result)
+            result = JSONRPC('Application.GetProperties').execute({'properties': ["volume", "muted"]})
             result = result.get('result')
 
             volume = result.get('volume')
@@ -289,19 +278,11 @@ class Player(xbmc.Player):
 
             else:
                 # Get current audio and subtitles track
-                tracks_query = {
-
-                        "jsonrpc": "2.0",
-                        "id": 1,
-                        "method": "Player.GetProperties",
-                        "params": {
-
-                            "playerid": 1,
-                            "properties": ["currentsubtitle","currentaudiostream","subtitleenabled"]
-                        }
-                    }
-                result = xbmc.executeJSONRPC(json.dumps(tracks_query))
-                result = json.loads(result)
+                params = {
+                    'playerid': 1,
+                    'properties': ["currentsubtitle","currentaudiostream","subtitleenabled"]
+                }
+                result = JSONRPC('Player.GetProperties').execute(params)
                 result = result.get('result')
 
                 try: # Audio tracks
