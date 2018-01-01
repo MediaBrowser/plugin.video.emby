@@ -46,6 +46,34 @@ XML = ('%s<MediaContainer commandID="{command_id}" location="{location}">\n'
                                  v.PLEX_PLAYLIST_TYPE_PHOTO)
 
 
+def headers_pms():
+    """
+    Headers are different for Plex Companion - use these for PMS notifications
+    """
+    return {
+        'Content-type': 'text/plain',
+        'Connection': 'Keep-Alive',
+        'Keep-Alive': 'timeout=20',
+        'X-Plex-Client-Identifier': v.PKC_MACHINE_IDENTIFIER,
+        'Access-Control-Expose-Headers': 'X-Plex-Client-Identifier',
+        'X-Plex-Protocol': "1.0"
+    }
+
+
+def headers_companion_client():
+    """
+    Headers are different for Plex Companion - use these for a Plex Companion
+    client
+    """
+    return {
+        'Content-type': 'application/xml',
+        'Connection': 'Keep-Alive',
+        'X-Plex-Client-Identifier': v.PKC_MACHINE_IDENTIFIER,
+        'Accept-Encoding': 'gzip, deflate',
+        'Accept-Language': 'en,*'
+    }
+
+
 def update_player_info(playerid):
     """
     Updates all player info for playerid [int] in state.py.
@@ -67,6 +95,7 @@ class SubscriptionMgr(object):
         self.protocol = "http"
         self.port = ""
         self.isplaying = False
+        self.last_timelines = {}
         # In order to be able to signal a stop at the end
         self.last_params = {}
         self.lastplayers = {}
@@ -75,19 +104,7 @@ class SubscriptionMgr(object):
         self.playqueue = mgr.playqueue
         self.request_mgr = request_mgr
 
-    @staticmethod
-    def _headers():
-        """
-        Headers are different for Plex Companion!
-        """
-        return {
-            'Content-type': 'text/plain',
-            'Connection': 'Keep-Alive',
-            'Keep-Alive': 'timeout=20',
-            'X-Plex-Client-Identifier': v.PKC_MACHINE_IDENTIFIER,
-            'Access-Control-Expose-Headers': 'X-Plex-Client-Identifier',
-            'X-Plex-Protocol': "1.0"
-        }
+
 
     def _server_by_host(self, host):
         if len(self.serverlist) == 1:
@@ -113,16 +130,29 @@ class SubscriptionMgr(object):
         }
         for typus in timelines:
             if players.get(v.KODI_PLAYLIST_TYPE_FROM_PLEX_PLAYLIST_TYPE[typus]) is None:
-                timeline = {
+                timeline = self._dict_to_xml({
                     'controllable': CONTROLLABLE[typus],
                     'type': typus,
                     'state': 'stopped'
-                }
+                })
             else:
-                timeline = self._timeline_dict(players[
-                    v.KODI_PLAYLIST_TYPE_FROM_PLEX_PLAYLIST_TYPE[typus]], typus)
-            timelines[typus] = self._dict_to_xml(timeline)
+                try:
+                    timeline = self._dict_to_xml(self._timeline_dict(players[
+                        v.KODI_PLAYLIST_TYPE_FROM_PLEX_PLAYLIST_TYPE[typus]],
+                        typus))
+                except RuntimeError:
+                    try:
+                        timeline = self.last_timelines[typus]
+                    except KeyError:
+                        # On startup
+                        timeline = self._dict_to_xml({
+                            'controllable': CONTROLLABLE[typus],
+                            'type': typus,
+                            'state': 'stopped'
+                        })
+            timelines[typus] = timeline
         location = 'fullScreenVideo' if self.isplaying else 'navigation'
+        self.last_timelines = dict(timelines)
         timelines.update({'command_id': '{command_id}', 'location': location})
         return answ.format(**timelines)
 
@@ -142,7 +172,7 @@ class SubscriptionMgr(object):
         playqueue = self.playqueue.playqueues[playerid]
         pos = info['position']
         try:
-            playqueue.items[pos]
+            item = playqueue.items[pos]
         except IndexError:
             # E.g. for direct path playback for single item
             return {
@@ -150,6 +180,11 @@ class SubscriptionMgr(object):
                 'type': ptype,
                 'state': 'stopped'
             }
+        self.isplaying = True
+        if item.plex_id != info['plex_id']:
+            # Kodi playqueue already progressed; need to wait until everything
+            # is loaded
+            raise RuntimeError
         pbmc_server = window('pms_server')
         if pbmc_server:
             (self.protocol, self.server, self.port) = pbmc_server.split(':')
@@ -180,10 +215,11 @@ class SubscriptionMgr(object):
             'partCount': len(playqueue.items),
             'providerIdentifier': 'com.plexapp.plugins.library',
         }
-
-        if info['plex_id']:
-            answ['key'] = '/library/metadata/%s' % info['plex_id']
-            answ['ratingKey'] = info['plex_id']
+        # Get the plex id from the PKC playqueue not info, as Kodi jumps to next
+        # playqueue element way BEFORE kodi monitor onplayback is called
+        if item.plex_id:
+            answ['key'] = '/library/metadata/%s' % item.plex_id
+            answ['ratingKey'] = item.plex_id
         # PlayQueue stuff
         if info['container_key']:
             answ['containerKey'] = info['container_key']
@@ -191,9 +227,9 @@ class SubscriptionMgr(object):
                 info['container_key'].startswith('/playQueues')):
             answ['playQueueID'] = playqueue.id
             answ['playQueueVersion'] = playqueue.version
-            answ['playQueueItemID'] = playqueue.items[pos].id
+            answ['playQueueItemID'] = item.id
         if playqueue.items[pos].guid:
-            answ['guid'] = playqueue.items[pos].guid
+            answ['guid'] = item.guid
         # Temp. token set?
         if state.PLEX_TRANSIENT_TOKEN:
             answ['token'] = state.PLEX_TRANSIENT_TOKEN
@@ -222,7 +258,6 @@ class SubscriptionMgr(object):
                 if strm_id is not None:
                     # If None, then the subtitle is only present on Kodi side
                     answ['subtitleStreamID'] = strm_id
-        self.isplaying = True
         return answ
 
     def signal_stop(self):
@@ -268,6 +303,7 @@ class SubscriptionMgr(object):
         # Update the PKC info with what's playing on the Kodi side
         for player in players.values():
             update_player_info(player['playerid'])
+        self._notify_server(players)
         if self.subscribers and state.PLAYBACK_INIT_DONE is True:
             msg = self.msg(players)
             if self.isplaying is True:
@@ -275,7 +311,6 @@ class SubscriptionMgr(object):
                 # drop out of the Plex Companion playback screen
                 for subscriber in self.subscribers.values():
                     subscriber.send_update(msg, not players)
-        self._notify_server(players)
         self.lastplayers = players
 
     def _notify_server(self, players):
@@ -293,26 +328,31 @@ class SubscriptionMgr(object):
 
     def _get_pms_params(self, playerid):
         info = state.PLAYER_STATES[playerid]
+        playqueue = self.playqueue.playqueues[playerid]
+        try:
+            item = playqueue.items[info['position']]
+        except IndexError:
+            return self.last_params
         status = 'paused' if info['speed'] == '0' else 'playing'
         params = {
             'state': status,
-            'ratingKey': info['plex_id'],
-            'key': '/library/metadata/%s' % info['plex_id'],
+            'ratingKey': item.plex_id,
+            'key': '/library/metadata/%s' % item.plex_id,
             'time': kodi_time_to_millis(info['time']),
             'duration': kodi_time_to_millis(info['totaltime'])
         }
         if info['container_key'] is not None:
             params['containerKey'] = info['container_key']
             if info['container_key'].startswith('/playQueues/'):
-                playqueue = self.playqueue.playqueues[playerid]
                 params['playQueueVersion'] = playqueue.version
-                params['playQueueItemID'] = playqueue.id
+                params['playQueueID'] = playqueue.id
+                params['playQueueItemID'] = item.id
         self.last_params = params
         return params
 
     def _send_pms_notification(self, playerid, params):
         serv = self._server_by_host(self.server)
-        xargs = self._headers()
+        xargs = headers_pms()
         playqueue = self.playqueue.playqueues[playerid]
         if state.PLEX_TRANSIENT_TOKEN:
             xargs['X-Plex-Token'] = state.PLEX_TRANSIENT_TOKEN
@@ -409,6 +449,9 @@ class Subscriber(object):
         Threaded POST request, because they stall due to PMS response missing
         the Content-Length header :-(
         """
-        response = DU().downloadUrl(url, postBody=msg, action_type="POST")
+        response = DU().downloadUrl(url,
+                                    postBody=msg,
+                                    action_type="POST",
+                                    headerOptions=headers_companion_client())
         if response in (False, None, 401):
             self.sub_mgr.remove_subscriber(self.uuid)
