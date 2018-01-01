@@ -3,9 +3,6 @@
 	<defaultcontrol always="true">155</defaultcontrol>
 	<zorder>0</zorder>
 	<controls>
-		<control type="image" id="150">
-			<visible>false</visible>
-		</control>
 		<control type="group">
 			<control type="image">
 				<top>0</top>
@@ -28,23 +25,40 @@
 				</animation>
 				<centerleft>50%</centerleft>
 				<centertop>50%</centertop>
-				<width>443</width>
-				<height>270</height>
+				<width>370</width>
+				<height>220</height>
+				<control type="group">
+					<top>-30</top>
+					<control type="image">
+						<left>20</left>
+						<width>100%</width>
+						<height>25</height>
+						<texture>logo-white.png</texture>
+						<aspectratio align="left">keep</aspectratio>
+					</control>
+					<control type="image" id="150">
+						<right>20</right>
+						<width>100%</width>
+						<height>25</height>
+						<aspectratio align="right">keep</aspectratio>
+						<texture diffuse="user_image.png"></texture>
+					</control>
+				</control>
 				<control type="image">
-					<width>433</width>
-					<height>270</height>
+					<width>100%</width>
+					<height>220</height>
 					<texture colordiffuse="ff222326" border="10">dialogs/dialog_back.png</texture>
 				</control>
 				<control type="list" id="155">
 					<centerleft>50%</centerleft>
 					<top>10</top>
-					<width>433</width>
-					<height>250</height>
-					<onup>155</onup>
+					<width>360</width>
+					<height>200</height>
+					<onup>noop</onup>
 					<onleft>close</onleft>
 					<onright>close</onright>
-					<ondown>155</ondown>
-					<itemlayout width="423" height="50">
+					<ondown>noop</ondown>
+					<itemlayout width="360" height="50">
 						<control type="label">
 							<width>100%</width>
 							<height>50</height>
@@ -56,7 +70,7 @@
 							<label>$INFO[ListItem.Label]</label>
 						</control>
 					</itemlayout>
-					<focusedlayout width="423" height="50">
+					<focusedlayout width="360" height="50">
 						<control type="image">
 							<width>100%</width>
 							<height>50</height>
