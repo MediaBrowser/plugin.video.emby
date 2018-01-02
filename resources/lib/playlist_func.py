@@ -183,7 +183,7 @@ class Playlist_Item(object):
     plex_id = None     [str] Plex unique item id, "ratingKey"
     plex_type = None   [str] Plex type, e.g. 'movie', 'clip'
     plex_uuid = None   [str] Plex librarySectionUUID
-    kodi_id = None     [int] Kodi unique kodi id (unique only within type!)
+    kodi_id = None     Kodi unique kodi id (unique only within type!)
     kodi_type = None   [str] Kodi type: 'movie'
     file = None        [str] Path to the item's file. STRING!!
     uri = None         [str] Weird Plex uri path involving plex_uuid. STRING!
@@ -276,9 +276,9 @@ def playlist_item_from_kodi(kodi_item):
             plex_dbitem = plex_db.getItem_byKodiId(kodi_item['id'],
                                                    kodi_item['type'])
         try:
-            item.plex_id = str(plex_dbitem[0])
+            item.plex_id = plex_dbitem[0]
             item.plex_type = plex_dbitem[2]
-            item.plex_uuid = str(plex_dbitem[0]) # we dont need the uuid yet :-)
+            item.plex_uuid = plex_dbitem[0]     # we dont need the uuid yet :-)
         except TypeError:
             pass
     item.file = kodi_item.get('file')

@@ -302,7 +302,7 @@ class KodiMonitor(Monitor):
                 with plexdb.Get_Plex_DB() as plex_db:
                     plex_dbitem = plex_db.getItem_byKodiId(kodi_id, kodi_type)
                 try:
-                    plex_id = str(plex_dbitem[0])
+                    plex_id = plex_dbitem[0]
                     plex_type = plex_dbitem[2]
                 except TypeError:
                     # No plex id, hence item not in the library. E.g. clips
