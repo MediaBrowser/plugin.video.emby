@@ -209,8 +209,8 @@ class Playlist_Item(object):
         Print the playlist item, e.g. to log
         """
         answ = '{\'%s\': {' % (self.__class__.__name__)
-        answ += '\'id\': %s, ' % self.id
-        answ += '\'plex_id\': %s, ' % self.plex_id
+        answ += '\'id\': \'%s\', ' % self.id
+        answ += '\'plex_id\': \'%s\', ' % self.plex_id
         for key in self.__dict__:
             if key in ('id', 'plex_id', 'xml'):
                 continue
