@@ -98,6 +98,9 @@ class PlaybackUtils():
         # Stack: [(url, listitem), (url, ...), ...]
         self.stack[0][1].setPath(self.stack[0][0])
         try:
+            if xbmc.getCondVisibility('Window.IsVisible(10000)'):
+                raise IndexError
+
             xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, self.stack[0][1])
             self.stack.pop(0) # remove the first item we just started.
         except IndexError:
