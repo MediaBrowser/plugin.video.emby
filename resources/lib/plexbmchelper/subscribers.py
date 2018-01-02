@@ -119,7 +119,6 @@ class SubscriptionMgr(object):
         self.protocol = "http"
         self.port = ""
         self.isplaying = False
-        self.last_timelines = {}
         # In order to be able to signal a stop at the end
         self.last_params = {}
         self.lastplayers = {}
@@ -154,29 +153,17 @@ class SubscriptionMgr(object):
         }
         for typus in timelines:
             if players.get(v.KODI_PLAYLIST_TYPE_FROM_PLEX_PLAYLIST_TYPE[typus]) is None:
-                timeline = self._dict_to_xml({
+                timeline = {
                     'controllable': CONTROLLABLE[typus],
                     'type': typus,
                     'state': 'stopped'
-                })
+                }
             else:
-                try:
-                    timeline = self._dict_to_xml(self._timeline_dict(players[
+                timeline = self._timeline_dict(players[
                         v.KODI_PLAYLIST_TYPE_FROM_PLEX_PLAYLIST_TYPE[typus]],
-                        typus))
-                except RuntimeError:
-                    try:
-                        timeline = self.last_timelines[typus]
-                    except KeyError:
-                        # On startup
-                        timeline = self._dict_to_xml({
-                            'controllable': CONTROLLABLE[typus],
-                            'type': typus,
-                            'state': 'stopped'
-                        })
-            timelines[typus] = timeline
+                    typus)
+            timelines[typus] = self._dict_to_xml(timeline)
         location = 'fullScreenVideo' if self.isplaying else 'navigation'
-        self.last_timelines = dict(timelines)
         timelines.update({'command_id': '{command_id}', 'location': location})
         return answ.format(**timelines)
 
@@ -205,10 +192,6 @@ class SubscriptionMgr(object):
                 'state': 'stopped'
             }
         self.isplaying = True
-        if item.plex_id != info['plex_id']:
-            # Kodi playqueue already progressed; need to wait until everything
-            # is loaded
-            raise RuntimeError
         pbmc_server = window('pms_server')
         if pbmc_server:
             (self.protocol, self.server, self.port) = pbmc_server.split(':')
@@ -315,6 +298,28 @@ class SubscriptionMgr(object):
         if command_id and self.subscribers.get(uuid):
             self.subscribers[uuid].command_id = int(command_id)
 
+    def _playqueue_init_done(self, players):
+        """
+        update_player_info() can result in values BEFORE kodi monitor is called.
+        Hence we'd have a missmatch between the state.PLAYER_STATES and our
+        playqueues.
+        """
+        for player in players.values():
+            info = state.PLAYER_STATES[player['playerid']]
+            playqueue = self.playqueue.playqueues[player['playerid']]
+            try:
+                item = playqueue.items[info['position']]
+            except IndexError:
+                # E.g. for direct path playback for single item
+                return False
+            LOG.debug('item: %s', item)
+            LOG.debug('playstate: %s', info)
+            if item.plex_id != info['plex_id']:
+                # Kodi playqueue already progressed; need to wait until
+                # everything is loaded
+                return False
+        return True
+
     @LOCKER.lockthis
     def notify(self):
         """
@@ -327,6 +332,11 @@ class SubscriptionMgr(object):
         # Update the PKC info with what's playing on the Kodi side
         for player in players.values():
             update_player_info(player['playerid'])
+        # Check whether we can use the CURRENT info or whether PKC is still
+        # initializing
+        if self._playqueue_init_done(players) is False:
+            LOG.debug('PKC playqueue is still initializing - skipping update')
+            return
         self._notify_server(players)
         if self.subscribers:
             msg = self.msg(players)
