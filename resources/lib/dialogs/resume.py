@@ -49,7 +49,6 @@ class ResumeDialog(xbmcgui.WindowXMLDialog):
     def doAction(self, actionID):
         
         if action in (ACTION_BACK, ACTION_PARENT_DIR, ACTION_PREVIOUS_MENU):
-            log.info("bam closed")
             self.close()
 
     def onClick(self, controlID):
