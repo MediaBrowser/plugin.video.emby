@@ -111,17 +111,6 @@
 											<shadowcolor>66000000</shadowcolor>
 											<scroll>Control.HasFocus(155)</scroll>
 											<align>center</align>
-											<visible>Control.HasFocus(155)</visible>
-										</control>
-										<control type="label">
-											<width>100%</width>
-											<label>$INFO[ListItem.Label]</label>
-											<font>font10</font>
-											<textcolor>ffe1e1e1</textcolor>
-											<shadowcolor>66000000</shadowcolor>
-											<scroll>false</scroll>
-											<align>center</align>
-											<visible>!Control.HasFocus(155)</visible>
 										</control>
 									</control>
 								</control>
@@ -172,9 +161,10 @@
 										<width>276</width>
 										<control type="label">
 											<width>100%</width>
+											<height>30</height>
 											<label>$INFO[ListItem.Label]</label>
 											<font>font10</font>
-											<textcolor>ffe1e1e1</textcolor>
+											<textcolor>white</textcolor>
 											<shadowcolor>66000000</shadowcolor>
 											<scroll>Control.HasFocus(155)</scroll>
 											<align>center</align>
@@ -182,6 +172,7 @@
 										</control>
 										<control type="label">
 											<width>100%</width>
+											<height>30</height>
 											<label>$INFO[ListItem.Label]</label>
 											<font>font10</font>
 											<textcolor>ffe1e1e1</textcolor>
