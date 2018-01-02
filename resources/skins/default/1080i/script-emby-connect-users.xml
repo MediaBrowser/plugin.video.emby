@@ -24,7 +24,7 @@
 				</animation>
 				<centerleft>50%</centerleft>
 				<centertop>50%</centertop>
-				<width>1216</width>
+				<width>920</width>
 				<height>570</height>
 				<control type="group">
 					<top>-30</top>
@@ -44,7 +44,7 @@
 				<control type="group">
 					<centerleft>50%</centerleft>
 					<top>10</top>
-					<width>1204</width>
+					<width>908</width>
 					<height>550</height>
 					<control type="grouplist" id="100">
 						<orientation>vertical</orientation>
@@ -60,8 +60,10 @@
 							<label>[B]$ADDON[plugin.video.emby 30612][/B]</label>
 						</control>
 						<control type="list" id="155">
+							<animation effect="slide" time="0" start="0,0" end="148,0" condition="Integer.IsEqual(Container(155).NumItems,2)">Conditional</animation>
+							<animation effect="slide" time="0" start="0,0" end="296,0" condition="Integer.IsEqual(Container(155).NumItems,1)">Conditional</animation>
 							<centerleft>50%</centerleft>
-							<width>1204</width>
+							<width>908</width>
 							<height>362</height>
 							<onup>noop</onup>
 							<onleft>noop</onleft>
@@ -194,7 +196,7 @@
 						</control>
 						<control type="button" id="200">
 							<label>[B]$ADDON[plugin.video.emby 30540][/B]</label>
-							<width>1170</width>
+							<width>874</width>
 							<height>50</height>
 							<font>font10</font>
 							<textcolor>ffe1e1e1</textcolor>
@@ -212,7 +214,7 @@
 						</control>
 						<control type="button" id="201">
 							<label>[B]$ADDON[plugin.video.emby 30606][/B]</label>
-							<width>1170</width>
+							<width>874</width>
 							<height>50</height>
 							<font>font10</font>
 							<textcolor>ffe1e1e1</textcolor>
