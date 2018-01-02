@@ -45,18 +45,31 @@ XML = ('%s<MediaContainer commandID="{command_id}" location="{location}">\n'
                                  v.PLEX_PLAYLIST_TYPE_AUDIO,
                                  v.PLEX_PLAYLIST_TYPE_PHOTO)
 
+# Headers are different for Plex Companion - use these for PMS notifications
+HEADERS_PMS = {
+    'Connection': 'Keep-Alive',
+    'Accept': 'text/plain, */*; q=0.01',
+    'Accept-Language': 'en',
+    'User-Agent': '%s %s (%s)' % (v.ADDON_NAME, v.ADDON_VERSION, v.PLATFORM),
+    'Accept-Encoding': 'gzip, deflate'
+}
 
-def headers_pms():
+
+def params_pms():
     """
-    Headers are different for Plex Companion - use these for PMS notifications
+    Returns the url parameters for communicating with the PMS
     """
     return {
-        'Content-type': 'text/plain',
-        'Connection': 'Keep-Alive',
-        'Keep-Alive': 'timeout=20',
+        # 'X-Plex-Client-Capabilities': ['protocols=shoutcast,http-video;videoDecoders=h264{profile:high&resolution:2160&level:52};audioDecoders=mp3,aac,dts{bitrate:800000&channels:2},ac3{bitrate:800000&channels:2}'],
         'X-Plex-Client-Identifier': v.PKC_MACHINE_IDENTIFIER,
-        'Access-Control-Expose-Headers': 'X-Plex-Client-Identifier',
-        'X-Plex-Protocol': "1.0"
+        'X-Plex-Device': v.PLATFORM,
+        'X-Plex-Device-Name': v.DEVICENAME,
+        # 'X-Plex-Device-Screen-Resolution': ['1916x1018,1920x1080'],
+        'X-Plex-Platform': v.PLATFORM,
+        'X-Plex-Product': v.ADDON_NAME,
+        'X-Plex-Version': v.ADDON_VERSION,
+        'hasMDE': '1',
+        # 'X-Plex-Session-Identifier': ['vinuvirm6m20iuw9c4cx1dcx'],
     }
 
 
@@ -69,6 +82,12 @@ def headers_companion_client():
         'Content-type': 'application/xml',
         'Connection': 'Keep-Alive',
         'X-Plex-Client-Identifier': v.PKC_MACHINE_IDENTIFIER,
+        'X-Plex-Device': v.PLATFORM,
+        'X-Plex-Device-Name': v.DEVICENAME,
+        'X-Plex-Platform': v.PLATFORM,
+        'X-Plex-Product': v.ADDON_NAME,
+        'X-Plex-Version': v.ADDON_VERSION,
+        'X-Plex-Provides': 'client,controller,player,pubsub-player',
         'Accept-Encoding': 'gzip, deflate',
         'Accept-Language': 'en,*'
     }
@@ -342,18 +361,19 @@ class SubscriptionMgr(object):
             'duration': kodi_time_to_millis(info['totaltime'])
         }
         if info['container_key'] is not None:
-            params['containerKey'] = info['container_key']
+            # params['containerKey'] = info['container_key']
             if info['container_key'].startswith('/playQueues/'):
-                params['playQueueVersion'] = playqueue.version
-                params['playQueueID'] = playqueue.id
+                # params['playQueueVersion'] = playqueue.version
+                # params['playQueueID'] = playqueue.id
                 params['playQueueItemID'] = item.id
         self.last_params = params
         return params
 
     def _send_pms_notification(self, playerid, params):
         serv = self._server_by_host(self.server)
-        xargs = headers_pms()
         playqueue = self.playqueue.playqueues[playerid]
+        xargs = params_pms()
+        xargs.update(params)
         if state.PLEX_TRANSIENT_TOKEN:
             xargs['X-Plex-Token'] = state.PLEX_TRANSIENT_TOKEN
         elif playqueue.plex_transient_token:
@@ -363,9 +383,12 @@ class SubscriptionMgr(object):
         url = '%s://%s:%s/:/timeline' % (serv.get('protocol', 'http'),
                                          serv.get('server', 'localhost'),
                                          serv.get('port', '32400'))
-        DU().downloadUrl(url, parameters=params, headerOptions=xargs)
+        DU().downloadUrl(url,
+                         authenticate=False,
+                         parameters=xargs,
+                         headerOverride=HEADERS_PMS)
         LOG.debug("Sent server notification with parameters: %s to %s",
-                  params, url)
+                  xargs, url)
 
     @LOCKER.lockthis
     def add_subscriber(self, protocol, host, port, uuid, command_id):
@@ -439,12 +462,13 @@ class Subscriber(object):
 
     def _threaded_send(self, url, msg):
         """
-        Threaded POST request, because they stall due to PMS response missing
+        Threaded POST request, because they stall due to response missing
         the Content-Length header :-(
         """
         response = DU().downloadUrl(url,
-                                    postBody=msg,
                                     action_type="POST",
-                                    headerOptions=headers_companion_client())
+                                    postBody=msg,
+                                    authenticate=False,
+                                    headerOverride=headers_companion_client())
         if response in (False, None, 401):
             self.sub_mgr.remove_subscriber(self.uuid)

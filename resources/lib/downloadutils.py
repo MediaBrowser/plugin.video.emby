@@ -141,7 +141,8 @@ class DownloadUtils():
 
     def downloadUrl(self, url, action_type="GET", postBody=None,
                     parameters=None, authenticate=True, headerOptions=None,
-                    verifySSL=True, timeout=None, return_response=False):
+                    verifySSL=True, timeout=None, return_response=False,
+                    headerOverride=None):
         """
         Override SSL check with verifySSL=False
 
@@ -172,7 +173,10 @@ class DownloadUtils():
             # User is not (yet) authenticated. Used to communicate with
             # plex.tv and to check for PMS servers
             s = requests
-            headerOptions = self.getHeader(options=headerOptions)
+            if not headerOverride:
+                headerOptions = self.getHeader(options=headerOptions)
+            else:
+                headerOptions = headerOverride
             if settings('sslcert') != 'None':
                 kwargs['cert'] = settings('sslcert')
 
