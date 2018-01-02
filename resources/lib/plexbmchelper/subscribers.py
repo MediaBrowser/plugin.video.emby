@@ -310,7 +310,7 @@ class SubscriptionMgr(object):
                 # If we don't check here, Plex Companion devices will simply
                 # drop out of the Plex Companion playback screen
                 for subscriber in self.subscribers.values():
-                    subscriber.send_update(msg, not players)
+                    subscriber.send_update(msg)
         self.lastplayers = players
 
     def _notify_server(self, players):
@@ -412,7 +412,6 @@ class Subscriber(object):
         self.port = port or 32400
         self.uuid = uuid or host
         self.command_id = int(command_id) or 0
-        self.navlocationsent = False
         self.age = 0
         self.sub_mgr = sub_mgr
         self.request_mgr = request_mgr
@@ -426,17 +425,11 @@ class Subscriber(object):
         """
         self.request_mgr.closeConnection(self.protocol, self.host, self.port)
 
-    def send_update(self, msg, is_nav):
+    def send_update(self, msg):
         """
         Sends msg to the Plex Companion client (via .../:/timeline)
         """
         self.age += 1
-        if not is_nav:
-            self.navlocationsent = False
-        elif self.navlocationsent:
-            return True
-        else:
-            self.navlocationsent = True
         msg = msg.format(command_id=self.command_id)
         LOG.debug("sending xml to subscriber uuid=%s,commandID=%i:\n%s",
                   self.uuid, self.command_id, msg)
