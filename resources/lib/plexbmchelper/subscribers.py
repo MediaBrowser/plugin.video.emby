@@ -50,7 +50,6 @@ HEADERS_PMS = {
     'Connection': 'Keep-Alive',
     'Accept': 'text/plain, */*; q=0.01',
     'Accept-Language': 'en',
-    'User-Agent': '%s %s (%s)' % (v.ADDON_NAME, v.ADDON_VERSION, v.PLATFORM),
     'Accept-Encoding': 'gzip, deflate'
 }
 
@@ -79,15 +78,14 @@ def headers_companion_client():
     client
     """
     return {
-        'Content-type': 'application/xml',
+        'Content-Type': 'application/xml',
         'Connection': 'Keep-Alive',
         'X-Plex-Client-Identifier': v.PKC_MACHINE_IDENTIFIER,
-        'X-Plex-Device': v.PLATFORM,
         'X-Plex-Device-Name': v.DEVICENAME,
         'X-Plex-Platform': v.PLATFORM,
+        'X-Plex-Platform-Version': 'unknown',
         'X-Plex-Product': v.ADDON_NAME,
         'X-Plex-Version': v.ADDON_VERSION,
-        'X-Plex-Provides': 'client,controller,player,pubsub-player',
         'Accept-Encoding': 'gzip, deflate',
         'Accept-Language': 'en,*'
     }
