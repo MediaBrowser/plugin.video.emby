@@ -25,7 +25,7 @@ import state
 
 ###############################################################################
 
-log = getLogger("PLEX."+__name__)
+LOG = getLogger("PLEX." + __name__)
 
 ###############################################################################
 
@@ -41,7 +41,7 @@ class PlaybackUtils():
         plex_lib_UUID: xml attribute 'librarySectionUUID', needed for posting
         to the PMS
         """
-        log.info("Playbackutils called")
+        LOG.info("Playbackutils called")
         item = self.xml[0]
         api = API(item)
         playqueue = self.playqueue
@@ -51,7 +51,7 @@ class PlaybackUtils():
         playutils = putils.PlayUtils(item)
         playurl = playutils.getPlayUrl()
         if not playurl:
-            log.error('No playurl found, aborting')
+            LOG.error('No playurl found, aborting')
             return
 
         if kodi_id in (None, 'plextrailer', 'plexnode'):
@@ -67,8 +67,8 @@ class PlaybackUtils():
                 try:
                     xml[0].attrib
                 except (TypeError, AttributeError):
-                    log.error('Could not download %s'
-                              % item[0][0].attrib.get('key'))
+                    LOG.error('Could not download %s',
+                              item[0][0].attrib.get('key'))
                     return
                 playurl = tryEncode(xml[0].attrib.get('key'))
                 window('plex_%s.playmethod' % playurl, value='DirectStream')
@@ -101,10 +101,10 @@ class PlaybackUtils():
         introsPlaylist = False
         dummyPlaylist = False
 
-        log.info("Playing from contextmenu: %s" % contextmenu_play)
-        log.info("Playlist start position: %s" % startPos)
-        log.info("Playlist plugin position: %s" % self.currentPosition)
-        log.info("Playlist size: %s" % sizePlaylist)
+        LOG.info("Playing from contextmenu: %s", contextmenu_play)
+        LOG.info("Playlist start position: %s", startPos)
+        LOG.info("Playlist plugin position: %s", self.currentPosition)
+        LOG.info("Playlist size: %s", sizePlaylist)
 
         # RESUME POINT ################
         seektime, runtime = api.getRuntime()
@@ -116,7 +116,7 @@ class PlaybackUtils():
         # Otherwise we get a loop.
         if not propertiesPlayback:
             window('plex_playbackProps', value="true")
-            log.info("Setting up properties in playlist.")
+            LOG.info("Setting up properties in playlist.")
             # Where will the player need to start?
             # Do we need to get trailers?
             trailers = False
@@ -146,7 +146,7 @@ class PlaybackUtils():
                     window('plex_customplaylist') != "true" and
                     not contextmenu_play):
                 # Need to add a dummy file because the first item will fail
-                log.debug("Adding dummy file to playlist.")
+                LOG.debug("Adding dummy file to playlist.")
                 dummyPlaylist = True
                 add_listitem_to_Kodi_playlist(
                     playqueue,
@@ -181,7 +181,7 @@ class PlaybackUtils():
             if homeScreen and not seektime and not sizePlaylist:
                 # Extend our current playlist with the actual item to play
                 # only if there's no playlist first
-                log.info("Adding main item to playlist.")
+                LOG.info("Adding main item to playlist.")
                 add_item_to_kodi_playlist(
                     playqueue,
                     self.currentPosition,
@@ -192,7 +192,7 @@ class PlaybackUtils():
                 if state.DIRECT_PATHS:
                     # Cannot add via JSON with full metadata because then we
                     # Would be using the direct path
-                    log.debug("Adding contextmenu item for direct paths")
+                    LOG.debug("Adding contextmenu item for direct paths")
                     if window('plex_%s.playmethod' % playurl) == "Transcode":
                         playutils.audioSubsPref(listitem, tryDecode(playurl))
                     api.CreateListItemFromPlexItem(listitem)
@@ -225,7 +225,7 @@ class PlaybackUtils():
             if dummyPlaylist:
                 # Added a dummy file to the playlist,
                 # because the first item is going to fail automatically.
-                log.info("Processed as a playlist. First item is skipped.")
+                LOG.info("Processed as a playlist. First item is skipped.")
                 # Delete the item that's gonna fail!
                 del playqueue.items[startPos]
                 # Don't attach listitem
@@ -233,7 +233,7 @@ class PlaybackUtils():
 
         # We just skipped adding properties. Reset flag for next time.
         elif propertiesPlayback:
-            log.debug("Resetting properties playback flag.")
+            LOG.debug("Resetting properties playback flag.")
             window('plex_playbackProps', clear=True)
 
         # SETUP MAIN ITEM ##########
@@ -249,7 +249,7 @@ class PlaybackUtils():
         # PLAYBACK ################
         if (homeScreen and seektime and window('plex_customplaylist') != "true"
                 and not contextmenu_play):
-            log.info("Play as a widget item")
+            LOG.info("Play as a widget item")
             api.CreateListItemFromPlexItem(listitem)
             result.listitem = listitem
             return result
@@ -259,7 +259,7 @@ class PlaybackUtils():
                 contextmenu_play):
             # Playlist was created just now, play it.
             # Contextmenu plays always need this
-            log.info("Play playlist from starting position %s" % startPos)
+            LOG.info("Play playlist from starting position %s", startPos)
             # Need a separate thread because Player won't return in time
             thread = Thread(target=Player().play,
                             args=(playqueue.kodi_pl, None, False, startPos))
@@ -268,7 +268,7 @@ class PlaybackUtils():
             # Don't attach listitem
             return result
         else:
-            log.info("Play as a regular item")
+            LOG.info("Play as a regular item")
             result.listitem = listitem
             return result
 
@@ -276,7 +276,7 @@ class PlaybackUtils():
         """
         Play all items contained in the xml passed in. Called by Plex Companion
         """
-        log.info("Playbackutils play_all called")
+        LOG.info("Playbackutils play_all called")
         window('plex_playbackProps', value="true")
         self.currentPosition = 0
         for item in self.xml:
@@ -322,7 +322,7 @@ class PlaybackUtils():
         introAPI.set_listitem_artwork(listitem)
         # Overwrite the Plex url
         listitem.setPath(introPlayurl)
-        log.info("Adding Plex trailer: %s" % introPlayurl)
+        LOG.info("Adding Plex trailer: %s", introPlayurl)
         add_listitem_to_Kodi_playlist(
             self.playqueue,
             self.currentPosition,
@@ -346,8 +346,8 @@ class PlaybackUtils():
             playutils = putils.PlayUtils(item)
             additionalPlayurl = playutils.getPlayUrl(
                 partNumber=counter)
-            log.debug("Adding additional part: %s, url: %s"
-                      % (counter, additionalPlayurl))
+            LOG.debug("Adding additional part: %s, url: %s",
+                      counter, additionalPlayurl)
             api.CreateListItemFromPlexItem(additionalListItem)
             api.set_playback_win_props(additionalPlayurl,
                                        additionalListItem)
