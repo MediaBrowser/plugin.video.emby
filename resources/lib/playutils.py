@@ -25,6 +25,7 @@ log = logging.getLogger("EMBY."+__name__)
 class PlayUtils():
     
     method = "DirectPlay"
+    force_transcode = False
 
 
     def __init__(self, item, listitem):
@@ -37,13 +38,14 @@ class PlayUtils():
 
         self.server = window('emby_server%s' % window('emby_currUser'))
 
-    def get_play_url(self):
+    def get_play_url(self, force_transcode=False):
 
         ''' New style to retrieve the best playback method based on sending
             the profile to the server. Based on capabilities the correct path is returned,
             including livestreams that need to be opened by the server
         '''
 
+        self.force_transcode = force_transcode
         info = self.get_playback_info()
         play_url = False if info == False else None
 
@@ -91,32 +93,19 @@ class PlayUtils():
 
     def get_optimal_source(self, source):
 
-        ''' Select the best possible mediasource for playback Because we posted
-            our deviceprofile to the server, only streams will be returned that can
-            actually be played by this client so no need to check bitrates etc.
+        ''' Because we posted our deviceprofile to the server, only streams will be
+            returned that can actually be played by this client so no need to check bitrates etc.
         '''
 
-        preferred = ('SupportsDirectPlay', 'SupportsDirectStream', 'SupportsTranscoding')
-        optimal_source = {}
+        if (not self.force_transcode and (self.is_h265(source) or self.is_strm(source) or
+            source['SupportsDirectPlay'] and settings('playFromStream') == "false" and self.is_file_exists(source))):
+            # Do nothing, path is updated with our verification if applies.
+            pass
+        else:
+            source['Path'] = self.get_http_path(source, self.force_transcode or source['SupportsDirectStream'] == False)
 
-        for stream in preferred:
-            if source[stream]:
-
-                if self.is_h265(source):
-                    optimal_source = source
-
-                elif self.is_strm(source):
-                    optimal_source = source
-
-                elif stream == "SupportsDirectPlay" and settings('playFromStream') == "false" and self.is_file_exists(source):
-                    optimal_source = source
-
-                else:
-                    source['Path'] = self.get_http_path(source, source['SupportsDirectStream'] == False)
-                    optimal_source = source
-
-        log.info('get optimal source: %s', optimal_source)
-        return optimal_source
+        log.debug('get source: %s', source)
+        return source
 
     def is_file_exists(self, source):
 
@@ -381,7 +370,9 @@ class PlayUtils():
                         server_settings = self.emby.get_server_transcoding_settings()
                         if server_settings['EnableSubtitleExtraction'] and streams[index]['SupportsExternalStream']:
 
-                            url = list([self.server + streams[index]['DeliveryUrl']])
+                            url = [("%s/Videos/%s/%s/Subtitles/%s/Stream.srt"
+                                    % (self.server, self.item['Id'], source['Id'], index))]
+
                             log.info("Set up subtitles: %s %s", index, url)
                             self.listitem.setSubtitles(url)
                         else:

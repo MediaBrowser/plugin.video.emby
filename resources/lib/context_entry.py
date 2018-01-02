@@ -211,11 +211,10 @@ class ContextMenu(object):
             dialog.doModal()
 
             if dialog.is_selected():
-                self._selected_option = dialog.get_selected()
+                if not dialog.get_selected(): # Start from beginning selected.
+                    self.item['UserData']['PlaybackPositionTicks'] = 0
             else: # User backed out
                 log.info("User exited without a selection.")
                 return
 
-        pb = pbutils.PlaybackUtils(self.item)
-        pb.play(self.item['Id'], self.kodi_id)
-        xbmc.Player().play(pb.playlist)
+        pbutils.PlaybackUtils(self.item).play(self.item['Id'], self.kodi_id, True)
