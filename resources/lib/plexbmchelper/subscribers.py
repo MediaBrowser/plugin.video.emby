@@ -328,7 +328,7 @@ class SubscriptionMgr(object):
         for player in players.values():
             update_player_info(player['playerid'])
         self._notify_server(players)
-        if self.subscribers and state.PLAYBACK_INIT_DONE is True:
+        if self.subscribers:
             msg = self.msg(players)
             if self.isplaying is True:
                 # If we don't check here, Plex Companion devices will simply

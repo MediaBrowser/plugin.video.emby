@@ -65,7 +65,6 @@ def process_command(request_path, params, queue=None):
         convert_alexa_to_companion(params)
     LOG.debug('Received request_path: %s, params: %s', request_path, params)
     if request_path == 'player/playback/playMedia':
-        state.PLAYBACK_INIT_DONE = False
         # We need to tell service.py
         action = 'alexa' if params.get('deviceName') == 'Alexa' else 'playlist'
         queue.put({
@@ -73,7 +72,6 @@ def process_command(request_path, params, queue=None):
             'data': params
         })
     elif request_path == 'player/playback/refreshPlayQueue':
-        state.PLAYBACK_INIT_DONE = False
         queue.put({
             'action': 'refreshPlayQueue',
             'data': params
@@ -96,13 +94,10 @@ def process_command(request_path, params, queue=None):
     elif request_path == "player/playback/stepBack":
         js.smallbackward()
     elif request_path == "player/playback/skipNext":
-        state.PLAYBACK_INIT_DONE = False
         js.skipnext()
     elif request_path == "player/playback/skipPrevious":
-        state.PLAYBACK_INIT_DONE = False
         js.skipprevious()
     elif request_path == "player/playback/skipTo":
-        state.PLAYBACK_INIT_DONE = False
         skip_to(params)
     elif request_path == "player/navigation/moveUp":
         js.input_up()

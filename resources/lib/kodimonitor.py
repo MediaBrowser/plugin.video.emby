@@ -125,9 +125,7 @@ class KodiMonitor(Monitor):
             LOG.debug("Method: %s Data: %s", method, data)
 
         if method == "Player.OnPlay":
-            state.PLAYBACK_INIT_DONE = False
             self.PlayBackStart(data)
-            state.PLAYBACK_INIT_DONE = True
         elif method == "Player.OnStop":
             # Should refresh our video nodes, e.g. on deck
             # xbmc.executebuiltin('ReloadSkin()')
