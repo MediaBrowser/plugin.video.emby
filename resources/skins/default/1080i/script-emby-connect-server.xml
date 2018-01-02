@@ -155,7 +155,7 @@
 								<aspectratio>keep</aspectratio>
 							</control>
 						</control>
-						<control type="label">
+						<control type="label" id="102">
 							<description>spacer</description>
 							<height>20</height>
 						</control>

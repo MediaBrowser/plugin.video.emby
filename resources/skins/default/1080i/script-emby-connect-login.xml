@@ -112,6 +112,7 @@
 								<ondown>200</ondown>
 								<texturefocus>-</texturefocus>
 								<texturenofocus>-</texturenofocus>
+								<password>true</password>
 							</control>
 							<control type="image">
 								<description>separator</description>
