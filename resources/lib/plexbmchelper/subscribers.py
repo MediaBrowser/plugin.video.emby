@@ -27,7 +27,7 @@ CONTROLLABLE = {
         'stepBack,stepForward',
     v.PLEX_PLAYLIST_TYPE_AUDIO: 'playPause,stop,volume,shuffle,repeat,seekTo,'
         'skipPrevious,skipNext,stepBack,stepForward',
-    v.PLEX_PLAYLIST_TYPE_PHOTO: 'skipPrevious,skipNext,stop'
+    v.PLEX_PLAYLIST_TYPE_PHOTO: 'playPause,stop,skipPrevious,skipNext'
 }
 
 STREAM_DETAILS = {
@@ -47,10 +47,11 @@ XML = ('%s<MediaContainer commandID="{command_id}" location="{location}">\n'
 
 # Headers are different for Plex Companion - use these for PMS notifications
 HEADERS_PMS = {
-    'Connection': 'Keep-Alive',
+    'Connection': 'keep-alive',
     'Accept': 'text/plain, */*; q=0.01',
     'Accept-Language': 'en',
-    'Accept-Encoding': 'gzip, deflate'
+    'Accept-Encoding': 'gzip, deflate',
+    'User-Agent': '%s %s (%s)' % (v.ADDON_NAME, v.ADDON_VERSION, v.PLATFORM)
 }
 
 
@@ -59,13 +60,19 @@ def params_pms():
     Returns the url parameters for communicating with the PMS
     """
     return {
-        # 'X-Plex-Client-Capabilities': ['protocols=shoutcast,http-video;videoDecoders=h264{profile:high&resolution:2160&level:52};audioDecoders=mp3,aac,dts{bitrate:800000&channels:2},ac3{bitrate:800000&channels:2}'],
+        # 'X-Plex-Client-Capabilities': 'protocols=shoutcast,http-video;'
+        #     'videoDecoders=h264{profile:high&resolution:2160&level:52};'
+        #     'audioDecoders=mp3,aac,dts{bitrate:800000&channels:2},'
+        #     'ac3{bitrate:800000&channels:2}',
         'X-Plex-Client-Identifier': v.PKC_MACHINE_IDENTIFIER,
         'X-Plex-Device': v.PLATFORM,
         'X-Plex-Device-Name': v.DEVICENAME,
-        # 'X-Plex-Device-Screen-Resolution': ['1916x1018,1920x1080'],
+        # 'X-Plex-Device-Screen-Resolution': '1916x1018,1920x1080',
+        'X-Plex-Model': 'unknown',
         'X-Plex-Platform': v.PLATFORM,
+        'X-Plex-Platform-Version': 'unknown',
         'X-Plex-Product': v.ADDON_NAME,
+        'X-Plex-Provider-Version': v.ADDON_VERSION,
         'X-Plex-Version': v.ADDON_VERSION,
         'hasMDE': '1',
         # 'X-Plex-Session-Identifier': ['vinuvirm6m20iuw9c4cx1dcx'],
@@ -227,9 +234,9 @@ class SubscriptionMgr(object):
             'repeat': v.PLEX_REPEAT_FROM_KODI_REPEAT[info['repeat']],
             'volume': info['volume'],
             'mute': mute,
-            'mediaIndex': pos,  # Still to implement from here
+            'mediaIndex': 0,  # Still to implement from here
             'partIndex':0,
-            'partCount': len(playqueue.items),
+            'partCount': 1,
             'providerIdentifier': 'com.plexapp.plugins.library',
         }
         # Get the plex id from the PKC playqueue not info, as Kodi jumps to next
