@@ -36,7 +36,6 @@ class PlaybackUtils():
     def __init__(self, item):
 
         self.item = item
-        log.info(self.item)
         self.API = api.API(item)
 
         self.server = window('emby_server%s' % window('emby_currUser'))
@@ -51,19 +50,25 @@ class PlaybackUtils():
         else:
             self.playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
 
-    def play(self, item_id, dbid=None):
+    def play(self, item_id, dbid=None, force_transcode=False):
 
         listitem = xbmcgui.ListItem()
 
         log.info("Play called: %s", self.item['Name'])
-        play_url = putils.PlayUtils(self.item, listitem).get_play_url()
+        play_url = putils.PlayUtils(self.item, listitem).get_play_url(force_transcode)
 
         if not play_url:
             if play_url == False: # User backed-out of menu
                 self.playlist.clear()
             return xbmcplugin.setResolvedUrl(int(sys.argv[1]), False, listitem)
 
+        if force_transcode:
+            log.info("Clear the playlist.")
+            self.playlist.clear()
+
         seektime = self.API.adjust_resume(self.API.get_userdata()['Resume'])
+        if seektime:
+            listitem.setProperty('StartOffset', str(seektime))
 
         ##### CHECK FOR INTROS
 
@@ -88,6 +93,7 @@ class PlaybackUtils():
         '''
 
         index = max(self.playlist.getposition(), 0) + 1 # Can return -1
+        force_play = False
 
         # Stack: [(url, listitem), (url, ...), ...]
         self.stack[0][1].setPath(self.stack[0][0])
@@ -96,10 +102,14 @@ class PlaybackUtils():
             self.stack.pop(0) # remove the first item we just started.
         except IndexError:
             log.info("Playback activated via the context menu.")
+            force_play = True
 
         for stack in self.stack:
             self.playlist.add(url=stack[0], listitem=stack[1], index=index)
             index += 1
+
+        if force_play:
+            xbmc.Player().play(self.playlist)
 
     def _set_intros(self, item_id):
         # if we have any play them when the movie/show is not being resumed
