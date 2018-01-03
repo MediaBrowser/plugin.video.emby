@@ -555,7 +555,7 @@ class Artwork(object):
                                     item['Parent%sImageTag' % parent_artwork])
 
             if 'SeriesPrimaryImageTag' in item:
-                get_artwork(item['SeriesId'], "Primary", item['SeriesPrimaryImageTag'], "Series.Primary")
+                get_artwork(item['SeriesId'], "Primary", item['SeriesPrimaryImageTag'], "Series.Primary" if all_artwork['Primary'] else None)
 
             # Parent album works a bit differently
             if not all_artwork['Primary']:
