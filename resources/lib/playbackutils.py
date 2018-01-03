@@ -242,7 +242,6 @@ class PlaybackUtils():
             art = {
                 'poster': "Primary",
                 'clearart': "Art",
-                'tvshow.clearart': "Art",
                 'clearlogo': "Logo",
                 'discart': "Disc",
                 'fanart_image': "Backdrop",
