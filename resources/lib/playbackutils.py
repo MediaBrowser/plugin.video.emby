@@ -97,7 +97,6 @@ class PlaybackUtils():
             startPos = max(playqueue.kodi_pl.getposition(), 0)
         self.currentPosition = startPos
 
-        propertiesPlayback = window('plex_playbackProps') == "true"
         introsPlaylist = False
         dummyPlaylist = False
 
@@ -114,8 +113,8 @@ class PlaybackUtils():
 
         # We need to ensure we add the intro and additional parts only once.
         # Otherwise we get a loop.
-        if not propertiesPlayback:
-            window('plex_playbackProps', value="true")
+        if not v.PLAYBACK_SETUP_DONE:
+            v.PLAYBACK_SETUP_DONE = True
             LOG.info("Setting up properties in playlist.")
             # Where will the player need to start?
             # Do we need to get trailers?
@@ -232,9 +231,9 @@ class PlaybackUtils():
                 return result
 
         # We just skipped adding properties. Reset flag for next time.
-        elif propertiesPlayback:
+        elif v.PLAYBACK_SETUP_DONE:
             LOG.debug("Resetting properties playback flag.")
-            window('plex_playbackProps', clear=True)
+            v.PLAYBACK_SETUP_DONE = False
 
         # SETUP MAIN ITEM ##########
         # For transcoding only, ask for audio/subs pref
@@ -277,7 +276,7 @@ class PlaybackUtils():
         Play all items contained in the xml passed in. Called by Plex Companion
         """
         LOG.info("Playbackutils play_all called")
-        window('plex_playbackProps', value="true")
+        v.PLAYBACK_SETUP_DONE = True
         self.currentPosition = 0
         for item in self.xml:
             api = API(item)

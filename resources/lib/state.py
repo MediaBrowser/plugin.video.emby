@@ -117,6 +117,10 @@ PLAYER_STATES = {
 # paths for playback (since we're not receiving a Kodi id)
 PLEX_IDS = {}
 PLAYED_INFO = {}
+# Former playbackProps; used by playbackutils.py and set to True if initial
+# playback setup has been done (and playbackutils will be called again
+# subsequently)
+PLAYBACK_SETUP_DONE = False
 
 # Kodi webserver details
 WEBSERVER_PORT = 8080

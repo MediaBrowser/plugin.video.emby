@@ -263,12 +263,12 @@ class PKC_Player(Player):
         for item in ('plex_currently_playing_itemid',
                      'plex_customplaylist',
                      'plex_customplaylist.seektime',
-                     'plex_playbackProps',
                      'plex_forcetranscode'):
             window(item, clear=True)
         # We might have saved a transient token from a user flinging media via
         # Companion (if we could not use the playqueue to store the token)
         state.PLEX_TRANSIENT_TOKEN = None
+        v.PLAYBACK_SETUP_DONE = False
         LOG.debug("Cleared playlist properties.")
 
     def onPlayBackEnded(self):

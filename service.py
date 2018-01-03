@@ -108,7 +108,7 @@ class Service():
             "plex_online", "plex_serverStatus", "plex_onWake",
             "plex_kodiScan",
             "plex_shouldStop", "plex_dbScan",
-            "plex_initialScan", "plex_customplayqueue", "plex_playbackProps",
+            "plex_initialScan", "plex_customplayqueue",
             "pms_token", "plex_token",
             "pms_server", "plex_machineIdentifier", "plex_servername",
             "plex_authenticated", "PlexUserImage", "useDirectPaths",
