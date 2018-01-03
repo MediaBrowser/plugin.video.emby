@@ -98,13 +98,13 @@ class PlaybackUtils():
         # Stack: [(url, listitem), (url, ...), ...]
         self.stack[0][1].setPath(self.stack[0][0])
         try:
-            if xbmc.getCondVisibility('Window.IsVisible(10000)'):
+            if not xbmc.getCondVisibility('Window.IsVisible(MyVideoNav.xml)'):
                 raise IndexError
 
             xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, self.stack[0][1])
             self.stack.pop(0) # remove the first item we just started.
         except IndexError:
-            log.info("Playback activated via the context menu.")
+            log.info("Playback activated via the context menu or widgets.")
             force_play = True
 
         for stack in self.stack:
@@ -233,7 +233,8 @@ class PlaybackUtils():
             'tvshow.clearlogo': "Logo",
             'discart': "Disc",
             'fanart_image': "Backdrop",
-            'landscape': "Thumb"
+            'landscape': "Thumb",
+            'thumb': "Primary"
         }
         for k_art, e_art in art.items():
 
@@ -246,7 +247,7 @@ class PlaybackUtils():
 
     def _set_art(self, listitem, art, path):
         
-        if art in ('thumb', 'fanart_image', 'small_poster', 'tiny_poster',
+        if art in ('fanart_image', 'small_poster', 'tiny_poster',
                    'medium_landscape', 'medium_poster', 'small_fanartimage',
                    'medium_fanartimage', 'fanart_noindicators'):
             
