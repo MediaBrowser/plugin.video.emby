@@ -235,7 +235,7 @@ class PlaybackUtils():
             'discart': "Disc",
             'fanart_image': "Backdrop",
             'landscape': "Thumb",
-            'thumb': "Primary"
+            'thumb': "Thumb"
         }
         for k_art, e_art in art.items():
 

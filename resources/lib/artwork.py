@@ -554,10 +554,10 @@ class Artwork(object):
                         get_artwork(item['Parent%sItemId' % parent_artwork], parent_artwork,
                                     item['Parent%sImageTag' % parent_artwork])
 
-            # Parent album works a bit differently
             if 'SeriesPrimaryImageTag' in item:
                 get_artwork(item['SeriesId'], "Primary", item['SeriesPrimaryImageTag'])
 
+            # Parent album works a bit differently
             if not all_artwork['Primary']:
 
                 if 'AlbumId' in item and 'AlbumPrimaryImageTag' in item:
