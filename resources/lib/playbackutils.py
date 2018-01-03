@@ -244,14 +244,15 @@ class PlaybackUtils():
                     self._set_art(listitem, k_art, all_artwork[e_art][0])
                 except Exception: pass
             else:
-                self._set_art(listitem, k_art, all_artwork[e_art])
+                self._set_art(listitem, k_art, all_artwork.get(e_art))
 
     def _set_art(self, listitem, art, path):
         
-        if art in ('fanart_image', 'small_poster', 'tiny_poster',
-                   'medium_landscape', 'medium_poster', 'small_fanartimage',
-                   'medium_fanartimage', 'fanart_noindicators'):
-            
-            listitem.setProperty(art, path)
-        else:
-            listitem.setArt({art: path})
+        if path:
+            if art in ('fanart_image', 'small_poster', 'tiny_poster',
+                       'medium_landscape', 'medium_poster', 'small_fanartimage',
+                       'medium_fanartimage', 'fanart_noindicators'):
+                
+                listitem.setProperty(art, path)
+            else:
+                listitem.setArt({art: path})
