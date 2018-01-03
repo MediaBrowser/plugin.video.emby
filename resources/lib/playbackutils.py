@@ -217,26 +217,39 @@ class PlaybackUtils():
             'playmethod': play_method
         })
 
-        self.set_artwork(listitem)
+        self.set_artwork(listitem, item_type)
         listitem.setCast(self.API.get_actors())
 
-    def set_artwork(self, listitem):
+    def set_artwork(self, listitem, item_type):
 
         all_artwork = self.artwork.get_all_artwork(self.item, parent_info=True)
         # Set artwork for listitem
-        art = {
+        if item_type == "Episode":
+            art = {
+                'poster': "Series.Primary",
+                'tvshow.poster': "Series.Primary",
+                'clearart': "Art",
+                'tvshow.clearart': "Art",
+                'clearlogo': "Logo",
+                'tvshow.clearlogo': "Logo",
+                'discart': "Disc",
+                'fanart_image': "Backdrop",
+                'landscape': "Thumb",
+                'tvshow.landscape': "Thumb",
+                'thumb': "Primary"
+            }
+        else:
+            art = {
+                'poster': "Primary",
+                'clearart': "Art",
+                'tvshow.clearart': "Art",
+                'clearlogo': "Logo",
+                'discart': "Disc",
+                'fanart_image': "Backdrop",
+                'landscape': "Thumb",
+                'thumb': "Primary"
+            }
 
-            'poster': "Primary",
-            'tvshow.poster': "Series.Primary",
-            'clearart': "Art",
-            'tvshow.clearart': "Art",
-            'clearlogo': "Logo",
-            'tvshow.clearlogo': "Logo",
-            'discart': "Disc",
-            'fanart_image': "Backdrop",
-            'landscape': "Thumb",
-            'thumb': "Primary"
-        }
         for k_art, e_art in art.items():
 
             if e_art == "Backdrop":
