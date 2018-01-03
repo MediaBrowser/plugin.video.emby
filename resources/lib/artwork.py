@@ -518,14 +518,14 @@ class Artwork(object):
                               tag, custom_query))
                 all_artwork['Backdrop'].append(artwork)
 
-        def get_artwork(item_id, type_, tag):
+        def get_artwork(item_id, type_, tag, override_name=None):
 
             if not tag: return
 
             artwork = ("%s/emby/Items/%s/Images/%s/0?"
                        "MaxWidth=%s&MaxHeight=%s&Format=original&Tag=%s%s"
                        % (self.server, item_id, type_, max_width, max_height, tag, custom_query))
-            all_artwork[type_] = artwork
+            all_artwork[override_name or type_] = artwork
 
         # Process backdrops
         get_backdrops(item_id, backdrops)
@@ -555,7 +555,7 @@ class Artwork(object):
                                     item['Parent%sImageTag' % parent_artwork])
 
             if 'SeriesPrimaryImageTag' in item:
-                get_artwork(item['SeriesId'], "Primary", item['SeriesPrimaryImageTag'])
+                get_artwork(item['SeriesId'], "Primary", item['SeriesPrimaryImageTag'], "Series.Primary")
 
             # Parent album works a bit differently
             if not all_artwork['Primary']:

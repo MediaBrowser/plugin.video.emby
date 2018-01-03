@@ -227,7 +227,7 @@ class PlaybackUtils():
         art = {
 
             'poster': "Primary",
-            'tvshow.poster': "Primary",
+            'tvshow.poster': "Series.Primary",
             'clearart': "Art",
             'tvshow.clearart': "Art",
             'clearlogo': "Logo",
@@ -235,7 +235,7 @@ class PlaybackUtils():
             'discart': "Disc",
             'fanart_image': "Backdrop",
             'landscape': "Thumb",
-            'thumb': "Thumb"
+            'thumb': "Primary"
         }
         for k_art, e_art in art.items():
 
