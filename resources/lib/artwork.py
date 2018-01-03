@@ -468,7 +468,7 @@ class Artwork(object):
             image = ""
             person_id = person['Id']
 
-            if "PrimaryImageTag" in person:
+            if 'PrimaryImageTag' in person:
                 image = (
                     "%s/emby/Items/%s/Images/Primary?"
                     "MaxWidth=400&MaxHeight=400&Index=0&Tag=%s"

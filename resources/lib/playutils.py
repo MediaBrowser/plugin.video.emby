@@ -153,8 +153,8 @@ class PlayUtils():
     @classmethod
     def _is_h265(cls, stream):
 
-        if settings('transcode_h265') == "true":
-            if stream['Type'] == "Video" and stream['Codec'] in ("hevc", "h265"):
+        if stream['Type'] == "Video" and stream['Codec'] in ("hevc", "h265"):
+            if settings('transcode_h265') == "true":
                 return True
 
         return False
@@ -162,8 +162,8 @@ class PlayUtils():
     @classmethod
     def _is_high10(cls, stream):
 
-        if settings('transcodeHi10P') == "true":
-            if stream.get('Profile') == "High 10":
+        if stream.get('Profile') == "High 10":
+            if settings('transcodeHi10P') == "true":
                 return True
 
         return False
@@ -261,7 +261,7 @@ class PlayUtils():
                 url = self.server + stream['DeliveryUrl']
 
                 if 'Language' in stream:
-                    filename = "Stream.%s.%s" % (stream['Language'], stream['Codec'])
+                    filename = "Stream.%s.%s" % (stream['Language'].encode('utf-8'), stream['Codec'])
                     try:
                         subs.append(self._download_external_subs(url, temp, filename))
                     except Exception as error:

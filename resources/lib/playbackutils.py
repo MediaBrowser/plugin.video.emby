@@ -218,6 +218,7 @@ class PlaybackUtils():
         })
 
         self.set_artwork(listitem)
+        listitem.setCast(self.API.get_actors())
 
     def set_artwork(self, listitem):
 
