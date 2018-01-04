@@ -97,8 +97,8 @@ class PlayUtils():
             returned that can actually be played by this client so no need to check bitrates etc.
         '''
 
-        if (not self.force_transcode and (self.is_h265(source) or self.is_strm(source) or
-            source['SupportsDirectPlay'] and settings('playFromStream') == "false" and self.is_file_exists(source))):
+        if (not self.force_transcode and self.is_h265(source) or self.is_strm(source) or
+            (source['SupportsDirectPlay'] and settings('playFromStream') == "false" and self.is_file_exists(source))):
             # Do nothing, path is updated with our verification if applies.
             pass
         else:
@@ -155,6 +155,7 @@ class PlayUtils():
 
         if stream['Type'] == "Video" and stream['Codec'] in ("hevc", "h265"):
             if settings('transcode_h265') == "true":
+                log.info("Force transcode h265/hevc detected.")
                 return True
 
         return False
@@ -164,6 +165,7 @@ class PlayUtils():
 
         if stream.get('Profile') == "High 10":
             if settings('transcodeHi10P') == "true":
+                log.info("Force transcode hi10p detected.")
                 return True
 
         return False
@@ -187,8 +189,10 @@ class PlayUtils():
 
     def get_http_path(self, source, transcode=False):
         
-        if transcode and settings('ignoreTranscode'): # Specified by user should not be transcoded.
+        if transcode and settings('ignoreTranscode') and source['MediaStreams']:
+            # Specified by user should not be transcoded.
             ignore_codecs = settings('ignoreTranscode').split(',')
+
             for stream in source['MediaStreams']:
                 if stream['Type'] == "Video" and stream['Codec'] in ignore_codecs:
                     log.info("Ignoring transcode for: %s", stream['Codec'])
