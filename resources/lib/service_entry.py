@@ -75,7 +75,8 @@ class Service(object):
             "emby_online", "emby_state.json", "emby_serverStatus", "emby_onWake",
             "emby_syncRunning", "emby_dbCheck", "emby_kodiScan",
             "emby_shouldStop", "emby_currUser", "emby_dbScan", "emby_sessionId",
-            "emby_initialScan", "emby_customplaylist", "emby_playbackProps"
+            "emby_initialScan", "emby_customplaylist", "emby_playbackProps",
+            "emby.external_check", "emby.external", "emby.resume"
         ]
         for prop in properties:
             window(prop, clear=True)

@@ -349,19 +349,23 @@ class PlayUtils():
                     subs_streams[track] = index
 
             dialog = xbmcgui.Dialog()
+            skip_dialog = int(settings('skipDialogTranscode') or 0)
             audio_selected = None
 
-            if len(audio_streams) > 1:
-                selection = list(audio_streams.keys())
-                resp = dialog.select(lang(33013), selection)
-                audio_selected = audio_streams[selection[resp]] if resp else source['DefaultAudioStreamIndex']
-            else: # Only one choice
-                audio_selected = audio_streams[next(iter(audio_streams))]
+            if skip_dialog in (0, 1):
+                if len(audio_streams) > 1:
+                    selection = list(audio_streams.keys())
+                    resp = dialog.select(lang(33013), selection)
+                    audio_selected = audio_streams[selection[resp]] if resp else source['DefaultAudioStreamIndex']
+                else: # Only one choice
+                    audio_selected = audio_streams[next(iter(audio_streams))]
+            else:
+                audio_selected = source['DefaultAudioStreamIndex']
             
             prefs += "&AudioStreamIndex=%s" % audio_selected
             prefs += "&AudioBitrate=384000" if streams[audio_selected].get('Channels', 0) > 2 else "&AudioBitrate=192000"
 
-            if len(subs_streams) > 1:
+            if skip_dialog in (0, 2) and len(subs_streams) > 1:
                 selection = list(['No subtitles']) + list(subs_streams.keys())
                 resp = dialog.select(lang(33014), selection)
                 if resp:
