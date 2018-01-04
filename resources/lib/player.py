@@ -414,15 +414,22 @@ class Player(xbmc.Player):
 
                 # Prevent manually mark as watched in Kodi monitor
                 window('emby_skipWatched%s' % itemid, value="true")
+                window('emby.external_check', clear=True)
 
                 self.stopPlayback(data)
 
                 if currentPosition and runtime:
                     try:
+                        if window('emby.external'):
+                            window('emby.external', clear=True)
+                            raise ValueError
+
                         percentComplete = (currentPosition * 10000000) / int(runtime)
                     except ZeroDivisionError:
                         # Runtime is 0.
                         percentComplete = 0
+                    except ValueError:
+                        percentComplete = 100
                         
                     markPlayedAt = float(settings('markPlayed')) / 100
                     log.info("Percent complete: %s Mark played at: %s"

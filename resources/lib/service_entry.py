@@ -47,6 +47,8 @@ class Service(object):
     last_progress = datetime.today()
     lastMetricPing = time.time()
 
+    external_count = 0
+
     def __init__(self):
 
         self.client_info = clientinfo.ClientInfo()
@@ -339,7 +341,10 @@ class Service(object):
             Detect external players.
         '''
 
-        if (xbmc.getCondVisibility('Window.IsVisible(DialogContextMenu.xml)') and
+        player = xbmc.Player()
+        isPlaying = player.isPlaying()
+
+        if (not isPlaying and xbmc.getCondVisibility('Window.IsVisible(DialogContextMenu.xml)') and
             not xbmc.getCondVisibility('Window.IsVisible(MyVideoNav.xml)') and
             xbmc.getInfoLabel('Control.GetLabel(1002)') == xbmc.getLocalizedString(12021)):
 
@@ -350,5 +355,19 @@ class Service(object):
             else:
                 window('emby.resume', clear=True)
 
-        elif window('emby.resume') and not xbmc.getCondVisibility('Window.IsVisible(MyVideoNav.xml)'):
+        elif not isPlaying and window('emby.resume') and not xbmc.getCondVisibility('Window.IsVisible(MyVideoNav.xml)'):
             window('emby.resume', clear=True)
+
+        elif isPlaying and not window('emby.external_check'):
+            time = player.getTime()
+
+            if time > 1:
+                window('emby.external_check', value="true")
+                self.external_count = 0
+            elif self.external_count == 15:
+                log.info("External player detected.")
+                window('emby.external', value="true")
+                window('emby.external_check', value="true")
+                self.external_count = 0
+            elif time == 0:
+                self.external_count += 1
