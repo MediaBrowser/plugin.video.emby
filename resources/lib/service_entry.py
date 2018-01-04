@@ -47,8 +47,6 @@ class Service(object):
     last_progress = datetime.today()
     lastMetricPing = time.time()
 
-    external_count = 0
-
     def __init__(self):
 
         self.client_info = clientinfo.ClientInfo()
@@ -143,8 +141,6 @@ class Service(object):
 
                     elif not self.startup:
                         self.startup = self._startup()
-
-                    self.monitor_special_player()
 
                     if not self.websocket_running:
                         # Start the Websocket Client
@@ -325,6 +321,9 @@ class Service(object):
         #ga = GoogleAnalytics()
         #ga.sendEventData("Application", "Shutdown")     
 
+        if self.monitor.special_monitor:
+            self.monitor.special_monitor.stop_monitor()
+
         if self.userclient_running:
             self.userclient_thread.stop_client()
 
@@ -335,40 +334,3 @@ class Service(object):
             self.websocket_thread.stop_client()
 
         log.warn("======== STOP %s ========", self.addon_name)
-
-    def monitor_special_player(self):
-
-        ''' Detect the resume dialog for widgets.
-            Detect external players.
-        '''
-
-        player = xbmc.Player()
-        isPlaying = player.isPlaying()
-
-        if (not isPlaying and xbmc.getCondVisibility('Window.IsVisible(DialogContextMenu.xml)') and
-            not xbmc.getCondVisibility('Window.IsVisible(MyVideoNav.xml)') and
-            xbmc.getInfoLabel('Control.GetLabel(1002)') == xbmc.getLocalizedString(12021)):
-
-            control = int(xbmcgui.Window(10106).getFocusId())
-            if control == 1002: # Start from beginning
-                log.info("Resume dialog: Start from beginning selected.")
-                window('emby.resume', value="true")
-            else:
-                window('emby.resume', clear=True)
-
-        elif not isPlaying and window('emby.resume') and not xbmc.getCondVisibility('Window.IsVisible(MyVideoNav.xml)'):
-            window('emby.resume', clear=True)
-
-        elif isPlaying and not window('emby.external_check'):
-            time = player.getTime()
-
-            if time > 1:
-                window('emby.external_check', value="true")
-                self.external_count = 0
-            elif self.external_count == 15:
-                log.info("External player detected.")
-                window('emby.external', value="true")
-                window('emby.external_check', value="true")
-                self.external_count = 0
-            elif time == 0:
-                self.external_count += 1
