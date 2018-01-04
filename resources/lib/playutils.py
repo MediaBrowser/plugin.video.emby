@@ -187,6 +187,14 @@ class PlayUtils():
 
     def get_http_path(self, source, transcode=False):
         
+        if transcode and settings('ignoreTranscode'): # Specified by user should not be transcoded.
+            ignore_codecs = settings('ignoreTranscode').split(',')
+            for stream in source['MediaStreams']:
+                if stream['Type'] == "Video" and stream['Codec'] in ignore_codecs:
+                    log.info("Ignoring transcode for: %s", stream['Codec'])
+                    transcode = False
+                    break
+
         play_url = self.get_transcode_url(source) if transcode else self.get_direct_url(source)
         
         user_token = downloadutils.DownloadUtils().get_token()

@@ -57,7 +57,7 @@
 	    <setting id="enableExternalSubs" type="bool" label="Enable external subtitles" default="true" />
 	    <setting label="Transcode" type="lsep"/>
 	    <setting id="skipDialogTranscode" type="enum" label="Enable audio/subtitles selection" values="Enabled|Audio only|Subtitles only|Disabled" visible="true" default="0" />
-	    <setting id="ignoreTranscode" type="text" label="Never transcode codecs" visible="eq(-1,true)" subsetting="true" />
+	    <setting id="ignoreTranscode" type="text" label="Never transcode codecs (i.e. h264,h265,...)" visible="true" />
 	    <setting id="transcode_h265" type="bool" label="30522" default="false" />
 	    <setting id="transcodeHi10P" type="bool" label="30537" default="false"/>
 	    <setting id="markPlayed" type="number" visible="false" default="90" />
