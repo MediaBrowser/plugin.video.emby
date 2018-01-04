@@ -3,12 +3,10 @@
 ##################################################################################################
 
 import logging
-import os
 
+import xbmc
 import xbmcgui
 import xbmcaddon
-
-from utils import window
 
 ##################################################################################################
 
@@ -44,9 +42,9 @@ class ResumeDialog(xbmcgui.WindowXMLDialog):
     def onInit(self):
 
         self.getControl(RESUME).setLabel(self._resume_point)
-        self.getControl(START_BEGINNING).setLabel('Start from beginning') # TODO: translate
+        self.getControl(START_BEGINNING).setLabel(xbmc.getLocalizedString(12021))
 
-    def doAction(self, actionID):
+    def onAction(self, action):
         
         if action in (ACTION_BACK, ACTION_PARENT_DIR, ACTION_PREVIOUS_MENU):
             self.close()

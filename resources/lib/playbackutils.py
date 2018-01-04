@@ -55,6 +55,7 @@ class PlaybackUtils():
         listitem = xbmcgui.ListItem()
 
         log.info("Play called: %s", self.item['Name'])
+
         play_url = putils.PlayUtils(self.item, listitem).get_play_url(force_transcode)
 
         if not play_url:
@@ -62,13 +63,12 @@ class PlaybackUtils():
                 self.playlist.clear()
             return xbmcplugin.setResolvedUrl(int(sys.argv[1]), False, listitem)
 
+        seektime = 0 if window('emby.resume') == "true" else self.API.adjust_resume(self.API.get_userdata()['Resume'])
+        window('emby.resume', clear=True)
+
         if force_transcode:
             log.info("Clear the playlist.")
             self.playlist.clear()
-
-        seektime = self.API.adjust_resume(self.API.get_userdata()['Resume'])
-        if seektime:
-            listitem.setProperty('StartOffset', str(seektime))
 
         ##### CHECK FOR INTROS
 
@@ -106,6 +106,7 @@ class PlaybackUtils():
         except IndexError:
             log.info("Playback activated via the context menu or widgets.")
             force_play = True
+            self.stack[0][1].setProperty('StartOffset', str(seektime))
 
         for stack in self.stack:
             self.playlist.add(url=stack[0], listitem=stack[1], index=index)
@@ -251,10 +252,8 @@ class PlaybackUtils():
 
         for k_art, e_art in art.items():
 
-            if e_art == "Backdrop":
-                try: # Backdrop is a list, grab the first backdrop
-                    self._set_art(listitem, k_art, all_artwork[e_art][0])
-                except Exception: pass
+            if e_art == "Backdrop" and all_artwork[e_art]:
+                self._set_art(listitem, k_art, all_artwork[e_art][0])
             else:
                 self._set_art(listitem, k_art, all_artwork.get(e_art))
 

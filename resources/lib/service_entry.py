@@ -10,6 +10,7 @@ from datetime import datetime
 import platform
 
 import xbmc
+import xbmcgui
 
 import userclient
 import clientinfo
@@ -139,6 +140,8 @@ class Service(object):
 
                     elif not self.startup:
                         self.startup = self._startup()
+
+                    self.monitor_special_player()
 
                     if not self.websocket_running:
                         # Start the Websocket Client
@@ -329,3 +332,23 @@ class Service(object):
             self.websocket_thread.stop_client()
 
         log.warn("======== STOP %s ========", self.addon_name)
+
+    def monitor_special_player(self):
+
+        ''' Detect the resume dialog for widgets.
+            Detect external players.
+        '''
+
+        if (xbmc.getCondVisibility('Window.IsVisible(DialogContextMenu.xml)') and
+            not xbmc.getCondVisibility('Window.IsVisible(MyVideoNav.xml)') and
+            xbmc.getInfoLabel('Control.GetLabel(1002)') == xbmc.getLocalizedString(12021)):
+
+            control = int(xbmcgui.Window(10106).getFocusId())
+            if control == 1002: # Start from beginning
+                log.info("Resume dialog: Start from beginning selected.")
+                window('emby.resume', value="true")
+            else:
+                window('emby.resume', clear=True)
+
+        elif window('emby.resume') and not xbmc.getCondVisibility('Window.IsVisible(MyVideoNav.xml)'):
+            window('emby.resume', clear=True)

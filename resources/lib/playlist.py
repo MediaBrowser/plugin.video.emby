@@ -145,7 +145,7 @@ class Playlist(object):
 
     @classmethod
     def verify_playlist(cls):
-        log.debug(JSONRPC('Playlist.GetItems').execute({'playlistid': 1}))
+        log.info(JSONRPC('Playlist.GetItems').execute({'playlistid': 1}))
 
     @classmethod
     def remove_from_playlist(cls, position):
