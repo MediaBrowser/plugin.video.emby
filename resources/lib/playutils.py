@@ -84,7 +84,7 @@ class PlayUtils():
 
             resp = xbmcgui.Dialog().select("Select the source", sources)
             if resp > -1:
-                selected_media_source = media_sources[resp]
+                selected_source = media_sources[resp]
             else:
                 log.info("No media source selected.")
                 return False
