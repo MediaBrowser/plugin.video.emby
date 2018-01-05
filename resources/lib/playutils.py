@@ -128,7 +128,7 @@ class PlayUtils():
             log.info('Strm detected.')
 
             self.method = "DirectPlay"
-            source['Path'] = urllib.urlencode(self.get_direct_path(source))
+            source['Path'] = self.get_direct_path(source)
 
             return True
         
