@@ -379,7 +379,14 @@ class Player(xbmc.Player):
         # Will be called when user stops xbmc playing a file
         log.debug("ONPLAYBACK_STOPPED")
         window('emby_customPlaylist.seektime', clear=True)
-        log.info("Clear playlist properties.")
+
+        if self.currentFile in self.played_info:
+            log.info("Clear playlist.")
+            if self.played_info[self.currentFile]['Type'] == "Audio":
+                xbmc.PlayList(xbmc.PLAYLIST_MUSIC).clear()
+            else:
+                xbmc.PlayList(xbmc.PLAYLIST_VIDEO).clear()
+
         self.stopAll()
 
     @log_error()
