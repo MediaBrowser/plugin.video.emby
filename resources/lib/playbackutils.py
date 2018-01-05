@@ -46,7 +46,7 @@ class PlaybackUtils():
         self.stack = []
 
         if item['Type'] == "Audio":
-            self.playlist = xbmc.Playlist(xbmc.PLAYLIST_MUSIC)
+            self.playlist = xbmc.PlayList(xbmc.PLAYLIST_MUSIC)
         else:
             self.playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
 
@@ -56,6 +56,9 @@ class PlaybackUtils():
 
         log.info("Play called: %s", self.item['Name'])
 
+        resume = window('emby.resume')
+        window('emby.resume', clear=True)
+
         play_url = putils.PlayUtils(self.item, listitem).get_play_url(force_transcode)
 
         if not play_url:
@@ -63,8 +66,7 @@ class PlaybackUtils():
                 self.playlist.clear()
             return xbmcplugin.setResolvedUrl(int(sys.argv[1]), False, listitem)
 
-        seektime = 0 if window('emby.resume') == "true" else self.API.adjust_resume(self.API.get_userdata()['Resume'])
-        window('emby.resume', clear=True)
+        seektime = 0 if resume == "true" else self.API.adjust_resume(self.API.get_userdata()['Resume'])
 
         if force_transcode:
             log.info("Clear the playlist.")
@@ -99,6 +101,7 @@ class PlaybackUtils():
         self.stack[0][1].setPath(self.stack[0][0])
         try:
             if not xbmc.getCondVisibility('Window.IsVisible(MyVideoNav.xml)'):
+                # widgets do not fill artwork correctly
                 raise IndexError
 
             xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, self.stack[0][1])
