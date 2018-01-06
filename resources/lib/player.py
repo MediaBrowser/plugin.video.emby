@@ -268,7 +268,7 @@ class PKC_Player(Player):
         # We might have saved a transient token from a user flinging media via
         # Companion (if we could not use the playqueue to store the token)
         state.PLEX_TRANSIENT_TOKEN = None
-        v.PLAYBACK_SETUP_DONE = False
+        state.PLAYBACK_SETUP_DONE = False
         LOG.debug("Cleared playlist properties.")
 
     def onPlayBackEnded(self):

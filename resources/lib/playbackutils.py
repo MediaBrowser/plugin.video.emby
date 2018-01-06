@@ -113,8 +113,8 @@ class PlaybackUtils():
 
         # We need to ensure we add the intro and additional parts only once.
         # Otherwise we get a loop.
-        if not v.PLAYBACK_SETUP_DONE:
-            v.PLAYBACK_SETUP_DONE = True
+        if not state.PLAYBACK_SETUP_DONE:
+            state.PLAYBACK_SETUP_DONE = True
             LOG.info("Setting up properties in playlist.")
             # Where will the player need to start?
             # Do we need to get trailers?
@@ -139,7 +139,6 @@ class PlaybackUtils():
                 get_playlist_details_from_xml(playqueue, xml=xml)
             except KeyError:
                 return
-            playqueue.items.append(playlist_item_from_xml(playqueue, xml[0]))
 
             if (not homeScreen and not seektime and sizePlaylist < 2 and
                     window('plex_customplaylist') != "true" and
@@ -199,7 +198,7 @@ class PlaybackUtils():
                     api.set_listitem_artwork(listitem)
                     add_listitem_to_Kodi_playlist(
                         playqueue,
-                        self.currentPosition+1,
+                        self.currentPosition,
                         convert_PKC_to_listitem(listitem),
                         file=playurl,
                         kodi_item={'id': kodi_id, 'type': kodi_type})
@@ -207,7 +206,7 @@ class PlaybackUtils():
                     # Full metadata$
                     add_item_to_kodi_playlist(
                         playqueue,
-                        self.currentPosition+1,
+                        self.currentPosition,
                         kodi_id,
                         kodi_type)
                 self.currentPosition += 1
@@ -231,9 +230,9 @@ class PlaybackUtils():
                 return result
 
         # We just skipped adding properties. Reset flag for next time.
-        elif v.PLAYBACK_SETUP_DONE:
+        elif state.PLAYBACK_SETUP_DONE:
             LOG.debug("Resetting properties playback flag.")
-            v.PLAYBACK_SETUP_DONE = False
+            state.PLAYBACK_SETUP_DONE = False
 
         # SETUP MAIN ITEM ##########
         # For transcoding only, ask for audio/subs pref
@@ -276,7 +275,7 @@ class PlaybackUtils():
         Play all items contained in the xml passed in. Called by Plex Companion
         """
         LOG.info("Playbackutils play_all called")
-        v.PLAYBACK_SETUP_DONE = True
+        state.PLAYBACK_SETUP_DONE = True
         self.currentPosition = 0
         for item in self.xml:
             api = API(item)
