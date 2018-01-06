@@ -6,7 +6,7 @@ from logging import getLogger
 from xbmc import Player
 
 from variables import ALEXA_TO_COMPANION
-from playqueue import Playqueue
+import playqueue as PQ
 from PlexFunctions import GetPlexKeyNumber
 import json_rpc as js
 import state
@@ -29,9 +29,8 @@ def skip_to(params):
     LOG.debug('Skipping to playQueueItemID %s, plex_id %s',
               playqueue_item_id, plex_id)
     found = True
-    playqueues = Playqueue()
     for player in js.get_players().values():
-        playqueue = playqueues.playqueues[player['playerid']]
+        playqueue = PQ.PLAYQUEUES[player['playerid']]
         for i, item in enumerate(playqueue.items):
             if item.id == playqueue_item_id:
                 found = True
@@ -57,7 +56,7 @@ def convert_alexa_to_companion(dictionary):
             del dictionary[key]
 
 
-def process_command(request_path, params, queue=None):
+def process_command(request_path, params):
     """
     queue: Queue() of PlexCompanion.py
     """
@@ -67,12 +66,12 @@ def process_command(request_path, params, queue=None):
     if request_path == 'player/playback/playMedia':
         # We need to tell service.py
         action = 'alexa' if params.get('deviceName') == 'Alexa' else 'playlist'
-        queue.put({
+        state.COMPANION_QUEUE.put({
             'action': action,
             'data': params
         })
     elif request_path == 'player/playback/refreshPlayQueue':
-        queue.put({
+        state.COMPANION_QUEUE.put({
             'action': 'refreshPlayQueue',
             'data': params
         })
@@ -114,7 +113,7 @@ def process_command(request_path, params, queue=None):
     elif request_path == "player/navigation/back":
         js.input_back()
     elif request_path == "player/playback/setStreams":
-        queue.put({
+        state.COMPANION_QUEUE.put({
             'action': 'setStreams',
             'data': params
         })

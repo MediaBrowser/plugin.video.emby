@@ -10,6 +10,7 @@ from utils import window, kodi_time_to_millis, Lock_Function
 import state
 import variables as v
 import json_rpc as js
+import playqueue as PQ
 
 ###############################################################################
 
@@ -111,7 +112,7 @@ class SubscriptionMgr(object):
     """
     Manages Plex companion subscriptions
     """
-    def __init__(self, request_mgr, player, mgr):
+    def __init__(self, request_mgr, player):
         self.serverlist = []
         self.subscribers = {}
         self.info = {}
@@ -124,10 +125,7 @@ class SubscriptionMgr(object):
         self.lastplayers = {}
 
         self.xbmcplayer = player
-        self.playqueue = mgr.playqueue
         self.request_mgr = request_mgr
-
-
 
     def _server_by_host(self, host):
         if len(self.serverlist) == 1:
@@ -180,7 +178,7 @@ class SubscriptionMgr(object):
     def _timeline_dict(self, player, ptype):
         playerid = player['playerid']
         info = state.PLAYER_STATES[playerid]
-        playqueue = self.playqueue.playqueues[playerid]
+        playqueue = PQ.PLAYQUEUES[playerid]
         pos = info['position']
         try:
             item = playqueue.items[pos]
@@ -284,7 +282,7 @@ class SubscriptionMgr(object):
 
         stream_type: 'video', 'audio', 'subtitle'
         """
-        playqueue = self.playqueue.playqueues[playerid]
+        playqueue = PQ.PLAYQUEUES[playerid]
         info = state.PLAYER_STATES[playerid]
         return playqueue.items[info['position']].plex_stream_index(
             info[STREAM_DETAILS[stream_type]]['index'], stream_type)
@@ -306,7 +304,7 @@ class SubscriptionMgr(object):
         """
         for player in players.values():
             info = state.PLAYER_STATES[player['playerid']]
-            playqueue = self.playqueue.playqueues[player['playerid']]
+            playqueue = PQ.PLAYQUEUES[player['playerid']]
             try:
                 item = playqueue.items[info['position']]
             except IndexError:
@@ -362,7 +360,7 @@ class SubscriptionMgr(object):
 
     def _get_pms_params(self, playerid):
         info = state.PLAYER_STATES[playerid]
-        playqueue = self.playqueue.playqueues[playerid]
+        playqueue = PQ.PLAYQUEUES[playerid]
         try:
             item = playqueue.items[info['position']]
         except IndexError:
@@ -386,7 +384,7 @@ class SubscriptionMgr(object):
 
     def _send_pms_notification(self, playerid, params):
         serv = self._server_by_host(self.server)
-        playqueue = self.playqueue.playqueues[playerid]
+        playqueue = PQ.PLAYQUEUES[playerid]
         xargs = params_pms()
         xargs.update(params)
         if state.PLEX_TRANSIENT_TOKEN:

@@ -9,7 +9,6 @@ from urlparse import urlparse, parse_qs
 
 from xbmc import sleep
 from companion import process_command
-from utils import window
 import json_rpc as js
 from clientinfo import getXArgsDeviceInfo
 import variables as v
@@ -154,7 +153,7 @@ class MyHandler(BaseHTTPRequestHandler):
             sub_mgr.remove_subscriber(uuid)
         else:
             # Throw it to companion.py
-            process_command(request_path, params, self.server.queue)
+            process_command(request_path, params)
             self.response('', getXArgsDeviceInfo(include_token=False))
 
 
@@ -164,7 +163,7 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
     """
     daemon_threads = True
 
-    def __init__(self, client, subscription_manager, queue, *args, **kwargs):
+    def __init__(self, client, subscription_manager, *args, **kwargs):
         """
         client: Class handle to plexgdm.plexgdm. We can thus ask for an up-to-
         date serverlist without instantiating anything
@@ -173,5 +172,4 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
         """
         self.client = client
         self.subscription_manager = subscription_manager
-        self.queue = queue
         HTTPServer.__init__(self, *args, **kwargs)

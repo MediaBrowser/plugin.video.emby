@@ -97,6 +97,7 @@ class PlaybackUtils():
             startPos = max(playqueue.kodi_pl.getposition(), 0)
         self.currentPosition = startPos
 
+        propertiesPlayback = window('plex_playbackProps') == "true"
         introsPlaylist = False
         dummyPlaylist = False
 
@@ -113,8 +114,8 @@ class PlaybackUtils():
 
         # We need to ensure we add the intro and additional parts only once.
         # Otherwise we get a loop.
-        if not state.PLAYBACK_SETUP_DONE:
-            state.PLAYBACK_SETUP_DONE = True
+        if not propertiesPlayback:
+            window('plex_playbackProps', value="true")
             LOG.info("Setting up properties in playlist.")
             # Where will the player need to start?
             # Do we need to get trailers?
@@ -139,7 +140,6 @@ class PlaybackUtils():
                 get_playlist_details_from_xml(playqueue, xml=xml)
             except KeyError:
                 return
-
             if (not homeScreen and not seektime and sizePlaylist < 2 and
                     window('plex_customplaylist') != "true" and
                     not contextmenu_play):
@@ -198,7 +198,7 @@ class PlaybackUtils():
                     api.set_listitem_artwork(listitem)
                     add_listitem_to_Kodi_playlist(
                         playqueue,
-                        self.currentPosition,
+                        self.currentPosition+1,
                         convert_PKC_to_listitem(listitem),
                         file=playurl,
                         kodi_item={'id': kodi_id, 'type': kodi_type})
@@ -206,7 +206,7 @@ class PlaybackUtils():
                     # Full metadata$
                     add_item_to_kodi_playlist(
                         playqueue,
-                        self.currentPosition,
+                        self.currentPosition+1,
                         kodi_id,
                         kodi_type)
                 self.currentPosition += 1
@@ -230,9 +230,9 @@ class PlaybackUtils():
                 return result
 
         # We just skipped adding properties. Reset flag for next time.
-        elif state.PLAYBACK_SETUP_DONE:
+        elif propertiesPlayback:
             LOG.debug("Resetting properties playback flag.")
-            state.PLAYBACK_SETUP_DONE = False
+            window('plex_playbackProps', clear=True)
 
         # SETUP MAIN ITEM ##########
         # For transcoding only, ask for audio/subs pref
@@ -275,7 +275,7 @@ class PlaybackUtils():
         Play all items contained in the xml passed in. Called by Plex Companion
         """
         LOG.info("Playbackutils play_all called")
-        state.PLAYBACK_SETUP_DONE = True
+        window('plex_playbackProps', value="true")
         self.currentPosition = 0
         for item in self.xml:
             api = API(item)

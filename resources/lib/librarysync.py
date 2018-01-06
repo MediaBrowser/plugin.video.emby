@@ -43,9 +43,7 @@ log = getLogger("PLEX."+__name__)
 class LibrarySync(Thread):
     """
     """
-    def __init__(self, callback=None):
-        self.mgr = callback
-
+    def __init__(self):
         self.itemsToProcess = []
         self.sessionKeys = []
         self.fanartqueue = Queue.Queue()
@@ -1527,7 +1525,7 @@ class LibrarySync(Thread):
         oneDay = 60*60*24
 
         # Link to Websocket queue
-        queue = self.mgr.ws.queue
+        queue = state.WEBSOCKET_QUEUE
 
         startupComplete = False
         self.views = []

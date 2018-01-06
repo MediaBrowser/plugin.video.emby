@@ -6,7 +6,6 @@ import websocket
 from json import loads
 import xml.etree.ElementTree as etree
 from threading import Thread
-from Queue import Queue
 from ssl import CERT_NONE
 
 from xbmc import sleep
@@ -165,9 +164,6 @@ class PMS_Websocket(WebSocket):
     """
     Websocket connection with the PMS for Plex Companion
     """
-    # Communication with librarysync
-    queue = Queue()
-
     def getUri(self):
         server = window('pms_server')
         # Get the appropriate prefix for the websocket
@@ -221,7 +217,7 @@ class PMS_Websocket(WebSocket):
                       % self.__class__.__name__)
         else:
             # Put PMS message on queue and let libsync take care of it
-            self.queue.put(message)
+            state.WEBSOCKET_QUEUE.put(message)
 
     def IOError_response(self):
         log.warn("Repeatedly could not connect to PMS, "
@@ -271,8 +267,7 @@ class Alexa_Websocket(WebSocket):
                       % self.__class__.__name__)
             return
         process_command(message.attrib['path'][1:],
-                        message.attrib,
-                        queue=self.mgr.plexCompanion.queue)
+                        message.attrib)
 
     def IOError_response(self):
         pass

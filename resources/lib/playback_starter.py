@@ -12,7 +12,7 @@ from playbackutils import PlaybackUtils
 from utils import window
 from PlexFunctions import GetPlexMetadata
 from PlexAPI import API
-from playqueue import LOCK
+import playqueue as PQ
 import variables as v
 from downloadutils import DownloadUtils
 from PKC_listitem import convert_PKC_to_listitem
@@ -21,7 +21,8 @@ from context_entry import ContextMenu
 import state
 
 ###############################################################################
-log = getLogger("PLEX."+__name__)
+
+LOG = getLogger("PLEX." + __name__)
 
 ###############################################################################
 
@@ -30,26 +31,21 @@ class Playback_Starter(Thread):
     """
     Processes new plays
     """
-    def __init__(self, callback=None):
-        self.mgr = callback
-        self.playqueue = self.mgr.playqueue
-        Thread.__init__(self)
-
     def process_play(self, plex_id, kodi_id=None):
         """
         Processes Kodi playback init for ONE item
         """
-        log.info("Process_play called with plex_id %s, kodi_id %s"
-                 % (plex_id, kodi_id))
+        LOG.info("Process_play called with plex_id %s, kodi_id %s",
+                 plex_id, kodi_id)
         if not state.AUTHENTICATED:
-            log.error('Not yet authenticated for PMS, abort starting playback')
+            LOG.error('Not yet authenticated for PMS, abort starting playback')
             # Todo: Warn user with dialog
             return
         xml = GetPlexMetadata(plex_id)
         try:
             xml[0].attrib
         except (IndexError, TypeError, AttributeError):
-            log.error('Could not get a PMS xml for plex id %s' % plex_id)
+            LOG.error('Could not get a PMS xml for plex id %s', plex_id)
             return
         api = API(xml[0])
         if api.getType() == v.PLEX_TYPE_PHOTO:
@@ -60,15 +56,14 @@ class Playback_Starter(Thread):
             result.listitem = listitem
         else:
             # Video and Music
-            playqueue = self.playqueue.get_playqueue_from_type(
+            playqueue = PQ.get_playqueue_from_type(
                 v.KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[api.getType()])
-            with LOCK:
+            with PQ.LOCK:
                 result = PlaybackUtils(xml, playqueue).play(
                     plex_id,
                     kodi_id,
                     xml.attrib.get('librarySectionUUID'))
-        log.info('Done process_play, playqueues: %s'
-                 % self.playqueue.playqueues)
+        LOG.info('Done process_play, playqueues: %s', PQ.PLAYQUEUES)
         return result
 
     def process_plex_node(self, url, viewOffset, directplay=False,
@@ -77,8 +72,8 @@ class Playback_Starter(Thread):
         Called for Plex directories or redirect for playback (e.g. trailers,
         clips, watchlater)
         """
-        log.info('process_plex_node called with url: %s, viewOffset: %s'
-                 % (url, viewOffset))
+        LOG.info('process_plex_node called with url: %s, viewOffset: %s',
+                 url, viewOffset)
         # Plex redirect, e.g. watch later. Need to get actual URLs
         if url.startswith('http') or url.startswith('{server}'):
             xml = DownloadUtils().downloadUrl(url)
@@ -87,7 +82,7 @@ class Playback_Starter(Thread):
         try:
             xml[0].attrib
         except:
-            log.error('Could not download PMS metadata')
+            LOG.error('Could not download PMS metadata')
             return
         if viewOffset != '0':
             try:
@@ -96,7 +91,7 @@ class Playback_Starter(Thread):
                 pass
             else:
                 window('plex_customplaylist.seektime', value=str(viewOffset))
-                log.info('Set resume point to %s' % str(viewOffset))
+                LOG.info('Set resume point to %s', viewOffset)
         api = API(xml[0])
         typus = v.KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[api.getType()]
         if node is True:
@@ -110,10 +105,10 @@ class Playback_Starter(Thread):
                 try:
                     kodi_id = plexdb_item[0]
                 except TypeError:
-                    log.info('Couldnt find item %s in Kodi db'
-                             % api.getRatingKey())
-        playqueue = self.playqueue.get_playqueue_from_type(typus)
-        with LOCK:
+                    LOG.info('Couldnt find item %s in Kodi db',
+                             api.getRatingKey())
+        playqueue = PQ.get_playqueue_from_type(typus)
+        with PQ.LOCK:
             result = PlaybackUtils(xml, playqueue).play(
                 plex_id,
                 kodi_id=kodi_id,
@@ -130,7 +125,7 @@ class Playback_Starter(Thread):
         _, params = item.split('?', 1)
         params = dict(parse_qsl(params))
         mode = params.get('mode')
-        log.debug('Received mode: %s, params: %s' % (mode, params))
+        LOG.debug('Received mode: %s, params: %s', mode, params)
         try:
             if mode == 'play':
                 result = self.process_play(params.get('id'),
@@ -147,18 +142,18 @@ class Playback_Starter(Thread):
                 ContextMenu()
                 result = Playback_Successful()
         except:
-            log.error('Error encountered for mode %s, params %s'
-                      % (mode, params))
+            LOG.error('Error encountered for mode %s, params %s',
+                      mode, params)
             import traceback
-            log.error(traceback.format_exc())
+            LOG.error(traceback.format_exc())
             # Let default.py know!
             pickle_me(None)
         else:
             pickle_me(result)
 
     def run(self):
-        queue = self.mgr.command_pipeline.playback_queue
-        log.info("----===## Starting Playback_Starter ##===----")
+        queue = state.COMMAND_PIPELINE_QUEUE
+        LOG.info("----===## Starting Playback_Starter ##===----")
         while True:
             item = queue.get()
             if item is None:
@@ -167,4 +162,4 @@ class Playback_Starter(Thread):
             else:
                 self.triage(item)
                 queue.task_done()
-        log.info("----===## Playback_Starter stopped ##===----")
+        LOG.info("----===## Playback_Starter stopped ##===----")

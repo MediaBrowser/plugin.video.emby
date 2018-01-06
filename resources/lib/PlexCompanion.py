@@ -3,7 +3,7 @@ The Plex Companion master python file
 """
 from logging import getLogger
 from threading import Thread
-from Queue import Queue, Empty
+from Queue import Empty
 from socket import SHUT_RDWR
 from urllib import urlencode
 
@@ -19,6 +19,7 @@ import json_rpc as js
 import player
 import variables as v
 import state
+import playqueue as PQ
 
 ###############################################################################
 
@@ -32,9 +33,9 @@ class PlexCompanion(Thread):
     """
     Plex Companion monitoring class. Invoke only once
     """
-    def __init__(self, callback=None):
+    def __init__(self):
         LOG.info("----===## Starting PlexCompanion ##===----")
-        self.mgr = callback
+        # Init Plex Companion queue
         # Start GDM for server/client discovery
         self.client = plexgdm.plexgdm()
         self.client.clientDetails()
@@ -42,7 +43,6 @@ class PlexCompanion(Thread):
         # kodi player instance
         self.player = player.PKC_Player()
         self.httpd = False
-        self.queue = None
         self.subscription_manager = None
         Thread.__init__(self)
 
@@ -57,8 +57,9 @@ class PlexCompanion(Thread):
         api = API(xml[0])
         if api.getType() == v.PLEX_TYPE_ALBUM:
             LOG.debug('Plex music album detected')
-            self.mgr.playqueue.init_playqueue_from_plex_children(
-                api.getRatingKey(), transient_token=data.get('token'))
+            PQ.init_playqueue_from_plex_children(
+                api.getRatingKey(),
+                transient_token=data.get('token'))
         else:
             state.PLEX_TRANSIENT_TOKEN = data.get('token')
             params = {
@@ -91,7 +92,7 @@ class PlexCompanion(Thread):
         # Get the playqueue ID
         _, container_key, query = ParseContainerKey(data['containerKey'])
         try:
-            playqueue = self.mgr.playqueue.get_playqueue_from_type(
+            playqueue = PQ.get_playqueue_from_type(
                 v.KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[data['type']])
         except KeyError:
             # E.g. Plex web does not supply the media type
@@ -103,13 +104,13 @@ class PlexCompanion(Thread):
                 LOG.error('Could not download Plex metadata')
                 return
             api = API(xml[0])
-            playqueue = self.mgr.playqueue.get_playqueue_from_type(
+            playqueue = PQ.get_playqueue_from_type(
                 v.KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[api.getType()])
         if container_key == playqueue.id:
             LOG.info('Already know this playqueue - ignoring')
             playqueue.transient_token = data.get('token')
         else:
-            self.mgr.playqueue.update_playqueue_from_PMS(
+            PQ.update_playqueue_from_PMS(
                 playqueue,
                 playqueue_id=container_key,
                 repeat=query.get('repeat'),
@@ -121,7 +122,7 @@ class PlexCompanion(Thread):
         """
         Plex Companion client adjusted audio or subtitle stream
         """
-        playqueue = self.mgr.playqueue.get_playqueue_from_type(
+        playqueue = PQ.get_playqueue_from_type(
             v.KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[data['type']])
         pos = js.get_position(playqueue.playlistid)
         if 'audioStreamID' in data:
@@ -151,15 +152,13 @@ class PlexCompanion(Thread):
             plex_type = get_plextype_from_xml(xml)
             if plex_type is None:
                 return
-            playqueue = self.mgr.playqueue.get_playqueue_from_type(
+            playqueue = PQ.get_playqueue_from_type(
                 v.KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[plex_type])
             playqueue.clear()
             return
-        playqueue = self.mgr.playqueue.get_playqueue_from_type(
+        playqueue = PQ.get_playqueue_from_type(
             v.KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[xml[0].attrib['type']])
-        self.mgr.playqueue.update_playqueue_from_PMS(
-            playqueue,
-            data['playQueueID'])
+        PQ.update_playqueue_from_PMS(playqueue, data['playQueueID'])
 
     def _process_tasks(self, task):
         """
@@ -217,11 +216,9 @@ class PlexCompanion(Thread):
 
         # Start up instances
         request_mgr = httppersist.RequestMgr()
-        subscription_manager = subscribers.SubscriptionMgr(
-            request_mgr, self.player, self.mgr)
+        subscription_manager = subscribers.SubscriptionMgr(request_mgr,
+                                                           self.player)
         self.subscription_manager = subscription_manager
-        queue = Queue(maxsize=100)
-        self.queue = queue
 
         if settings('plexCompanion') == 'true':
             # Start up httpd
@@ -231,7 +228,6 @@ class PlexCompanion(Thread):
                     httpd = listener.ThreadedHTTPServer(
                         client,
                         subscription_manager,
-                        queue,
                         ('', v.COMPANION_PORT),
                         listener.MyHandler)
                     httpd.timeout = 0.95
@@ -290,13 +286,13 @@ class PlexCompanion(Thread):
                 LOG.warn(traceback.format_exc())
             # See if there's anything we need to process
             try:
-                task = queue.get(block=False)
+                task = state.COMPANION_QUEUE.get(block=False)
             except Empty:
                 pass
             else:
                 # Got instructions, process them
                 self._process_tasks(task)
-                queue.task_done()
+                state.COMPANION_QUEUE.task_done()
                 # Don't sleep
                 continue
             sleep(50)

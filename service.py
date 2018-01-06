@@ -36,7 +36,6 @@ from librarysync import LibrarySync
 import videonodes
 from websocket_client import PMS_Websocket, Alexa_Websocket
 import downloadutils
-from playqueue import Playqueue
 import clientinfo
 
 import PlexAPI
@@ -80,14 +79,12 @@ class Service():
     ws = None
     library = None
     plexCompanion = None
-    playqueue = None
 
     user_running = False
     ws_running = False
     alexa_running = False
     library_running = False
     plexCompanion_running = False
-    playqueue_running = False
     kodimonitor_running = False
     playback_starter_running = False
     image_cache_thread_running = False
@@ -145,21 +142,20 @@ class Service():
         monitor = self.monitor
         kodiProfile = v.KODI_PROFILE
 
-        # Detect playback start early on
-        self.command_pipeline = Monitor_Window(self)
-        self.command_pipeline.start()
-
         # Server auto-detect
         initialsetup.InitialSetup().setup()
 
+        # Detect playback start early on
+        self.command_pipeline = Monitor_Window()
+        self.command_pipeline.start()
+
         # Initialize important threads, handing over self for callback purposes
-        self.user = UserClient(self)
-        self.ws = PMS_Websocket(self)
-        self.alexa = Alexa_Websocket(self)
-        self.library = LibrarySync(self)
-        self.plexCompanion = PlexCompanion(self)
-        self.playqueue = Playqueue(self)
-        self.playback_starter = Playback_Starter(self)
+        self.user = UserClient()
+        self.ws = PMS_Websocket()
+        self.alexa = Alexa_Websocket()
+        self.library = LibrarySync()
+        self.plexCompanion = PlexCompanion()
+        self.playback_starter = Playback_Starter()
         if settings('enableTextureCache') == "true":
             self.image_cache_thread = Image_Cache_Thread()
 
@@ -200,11 +196,7 @@ class Service():
                                    time=2000,
                                    sound=False)
                         # Start monitoring kodi events
-                        self.kodimonitor_running = KodiMonitor(self)
-                        # Start playqueue client
-                        if not self.playqueue_running:
-                            self.playqueue_running = True
-                            self.playqueue.start()
+                        self.kodimonitor_running = KodiMonitor()
                         # Start the Websocket Client
                         if not self.ws_running:
                             self.ws_running = True

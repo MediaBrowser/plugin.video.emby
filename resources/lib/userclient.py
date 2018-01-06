@@ -30,10 +30,8 @@ class UserClient(Thread):
     # Borg - multiple instances, shared state
     __shared_state = {}
 
-    def __init__(self, callback=None):
+    def __init__(self):
         self.__dict__ = self.__shared_state
-        if callback is not None:
-            self.mgr = callback
 
         self.auth = True
         self.retry = 0

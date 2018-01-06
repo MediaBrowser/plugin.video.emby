@@ -2,7 +2,6 @@
 ###############################################################################
 import logging
 from threading import Thread
-from Queue import Queue
 
 from xbmc import sleep
 
@@ -10,8 +9,7 @@ from utils import window, thread_methods
 import state
 
 ###############################################################################
-log = logging.getLogger("PLEX."+__name__)
-
+LOG = logging.getLogger("PLEX." + __name__)
 ###############################################################################
 
 
@@ -23,16 +21,10 @@ class Monitor_Window(Thread):
 
     Adjusts state.py accordingly
     """
-    # Borg - multiple instances, shared state
-    def __init__(self, callback=None):
-        self.mgr = callback
-        self.playback_queue = Queue()
-        Thread.__init__(self)
-
     def run(self):
         thread_stopped = self.thread_stopped
-        queue = self.playback_queue
-        log.info("----===## Starting Kodi_Play_Client ##===----")
+        queue = state.COMMAND_PIPELINE_QUEUE
+        LOG.info("----===## Starting Kodi_Play_Client ##===----")
         while not thread_stopped():
             if window('plex_command'):
                 value = window('plex_command')
@@ -70,4 +62,4 @@ class Monitor_Window(Thread):
                 sleep(50)
         # Put one last item into the queue to let playback_starter end
         queue.put(None)
-        log.info("----===## Kodi_Play_Client stopped ##===----")
+        LOG.info("----===## Kodi_Play_Client stopped ##===----")

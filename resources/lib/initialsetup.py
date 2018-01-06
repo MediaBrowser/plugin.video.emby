@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-
 ###############################################################################
 from logging import getLogger
+from Queue import Queue
 
 import xbmc
 import xbmcgui
@@ -15,10 +15,11 @@ from PlexAPI import PlexAPI
 from PlexFunctions import GetMachineIdentifier, get_PMS_settings
 import state
 from migration import check_migration
+import playqueue as PQ
 
 ###############################################################################
 
-log = getLogger("PLEX."+__name__)
+LOG = getLogger("PLEX." + __name__)
 
 ###############################################################################
 
@@ -26,7 +27,7 @@ log = getLogger("PLEX."+__name__)
 class InitialSetup():
 
     def __init__(self):
-        log.debug('Entering initialsetup class')
+        LOG.debug('Entering initialsetup class')
         self.doUtils = downloadutils.DownloadUtils().downloadUrl
         self.plx = PlexAPI()
         self.dialog = xbmcgui.Dialog()
@@ -42,7 +43,7 @@ class InitialSetup():
         # Token for the PMS, not plex.tv
         self.pms_token = settings('accessToken')
         if self.plexToken:
-            log.debug('Found a plex.tv token in the settings')
+            LOG.debug('Found a plex.tv token in the settings')
 
     def PlexTVSignIn(self):
         """
@@ -68,7 +69,7 @@ class InitialSetup():
         chk = self.plx.CheckConnection('plex.tv', token=self.plexToken)
         if chk in (401, 403):
             # HTTP Error: unauthorized. Token is no longer valid
-            log.info('plex.tv connection returned HTTP %s' % str(chk))
+            LOG.info('plex.tv connection returned HTTP %s', str(chk))
             # Delete token in the settings
             settings('plexToken', value='')
             settings('plexLogin', value='')
@@ -77,12 +78,12 @@ class InitialSetup():
             answer = self.PlexTVSignIn()
         elif chk is False or chk >= 400:
             # Problems connecting to plex.tv. Network or internet issue?
-            log.info('Problems connecting to plex.tv; connection returned '
-                     'HTTP %s' % str(chk))
+            LOG.info('Problems connecting to plex.tv; connection returned '
+                     'HTTP %s', str(chk))
             self.dialog.ok(lang(29999), lang(39010))
             answer = False
         else:
-            log.info('plex.tv connection with token successful')
+            LOG.info('plex.tv connection with token successful')
             settings('plex_status', value=lang(39227))
             # Refresh the info from Plex.tv
             xml = self.doUtils('https://plex.tv/users/account',
@@ -91,14 +92,14 @@ class InitialSetup():
             try:
                 self.plexLogin = xml.attrib['title']
             except (AttributeError, KeyError):
-                log.error('Failed to update Plex info from plex.tv')
+                LOG.error('Failed to update Plex info from plex.tv')
             else:
                 settings('plexLogin', value=self.plexLogin)
                 home = 'true' if xml.attrib.get('home') == '1' else 'false'
                 settings('plexhome', value=home)
                 settings('plexAvatar', value=xml.attrib.get('thumb'))
                 settings('plexHomeSize', value=xml.attrib.get('homeSize', '1'))
-                log.info('Updated Plex info from plex.tv')
+                LOG.info('Updated Plex info from plex.tv')
         return answer
 
     def CheckPMS(self):
@@ -114,24 +115,24 @@ class InitialSetup():
         answer = True
         chk = self.plx.CheckConnection(self.server, verifySSL=False)
         if chk is False:
-            log.warn('Could not reach PMS %s' % self.server)
+            LOG.warn('Could not reach PMS %s', self.server)
             answer = False
         if answer is True and not self.serverid:
-            log.info('No PMS machineIdentifier found for %s. Trying to '
-                     'get the PMS unique ID' % self.server)
+            LOG.info('No PMS machineIdentifier found for %s. Trying to '
+                     'get the PMS unique ID', self.server)
             self.serverid = GetMachineIdentifier(self.server)
             if self.serverid is None:
-                log.warn('Could not retrieve machineIdentifier')
+                LOG.warn('Could not retrieve machineIdentifier')
                 answer = False
             else:
                 settings('plex_machineIdentifier', value=self.serverid)
         elif answer is True:
             tempServerid = GetMachineIdentifier(self.server)
             if tempServerid != self.serverid:
-                log.warn('The current PMS %s was expected to have a '
+                LOG.warn('The current PMS %s was expected to have a '
                          'unique machineIdentifier of %s. But we got '
-                         '%s. Pick a new server to be sure'
-                         % (self.server, self.serverid, tempServerid))
+                         '%s. Pick a new server to be sure',
+                         self.server, self.serverid, tempServerid)
                 answer = False
         return answer
 
@@ -142,7 +143,7 @@ class InitialSetup():
         self.plx.discoverPMS(xbmc.getIPAddress(),
                              plexToken=self.plexToken)
         serverlist = self.plx.returnServerList(self.plx.g_PMS)
-        log.debug('PMS serverlist: %s' % serverlist)
+        LOG.debug('PMS serverlist: %s', serverlist)
         return serverlist
 
     def _checkServerCon(self, server):
@@ -209,7 +210,7 @@ class InitialSetup():
         try:
             xml.attrib
         except AttributeError:
-            log.error('Could not get PMS settings for %s' % url)
+            LOG.error('Could not get PMS settings for %s', url)
             return
         for entry in xml:
             if entry.attrib.get('id', '') == 'allowMediaDeletion':
@@ -236,9 +237,9 @@ class InitialSetup():
                         server = item
                 if server is None:
                     name = settings('plex_servername')
-                    log.warn('The PMS you have used before with a unique '
+                    LOG.warn('The PMS you have used before with a unique '
                              'machineIdentifier of %s and name %s is '
-                             'offline' % (self.serverid, name))
+                             'offline', self.serverid, name)
                     return
             chk = self._checkServerCon(server)
             if chk == 504 and httpsUpdated is False:
@@ -247,8 +248,8 @@ class InitialSetup():
                 httpsUpdated = True
                 continue
             if chk == 401:
-                log.warn('Not yet authorized for Plex server %s'
-                         % server['name'])
+                LOG.warn('Not yet authorized for Plex server %s',
+                         server['name'])
                 if self.CheckPlexTVSignIn() is True:
                     if checkedPlexTV is False:
                         # Try again
@@ -256,7 +257,7 @@ class InitialSetup():
                         httpsUpdated = False
                         continue
                     else:
-                        log.warn('Not authorized even though we are signed '
+                        LOG.warn('Not authorized even though we are signed '
                                  ' in to plex.tv correctly')
                         self.dialog.ok(lang(29999), '%s %s'
                                        % (lang(39214),
@@ -266,11 +267,11 @@ class InitialSetup():
                     return
             # Problems connecting
             elif chk >= 400 or chk is False:
-                log.warn('Problems connecting to server %s. chk is %s'
-                         % (server['name'], chk))
+                LOG.warn('Problems connecting to server %s. chk is %s',
+                         server['name'], chk)
                 return
-            log.info('We found a server to automatically connect to: %s'
-                     % server['name'])
+            LOG.info('We found a server to automatically connect to: %s',
+                     server['name'])
             return server
 
     def _UserPickPMS(self):
@@ -285,7 +286,7 @@ class InitialSetup():
                 serverlist = self._getServerList()
                 # Exit if no servers found
                 if len(serverlist) == 0:
-                    log.warn('No plex media servers found!')
+                    LOG.warn('No plex media servers found!')
                     self.dialog.ok(lang(29999), lang(39011))
                     return
                 # Get a nicer list
@@ -322,8 +323,8 @@ class InitialSetup():
                 continue
             httpsUpdated = False
             if chk == 401:
-                log.warn('Not yet authorized for Plex server %s'
-                         % server['name'])
+                LOG.warn('Not yet authorized for Plex server %s',
+                         server['name'])
                 # Please sign in to plex.tv
                 self.dialog.ok(lang(29999),
                                lang(39013) + server['name'],
@@ -370,7 +371,7 @@ class InitialSetup():
             scheme = server['scheme']
             settings('ipaddress', server['ip'])
             settings('port', server['port'])
-            log.debug("Setting SSL verify to false, because server is "
+            LOG.debug("Setting SSL verify to false, because server is "
                       "local")
             settings('sslverify', 'false')
         else:
@@ -378,7 +379,7 @@ class InitialSetup():
             scheme = baseURL[0]
             settings('ipaddress', baseURL[1].replace('//', ''))
             settings('port', baseURL[2])
-            log.debug("Setting SSL verify to true, because server is not "
+            LOG.debug("Setting SSL verify to true, because server is not "
                       "local")
             settings('sslverify', 'true')
 
@@ -387,10 +388,10 @@ class InitialSetup():
         else:
             settings('https', 'false')
         # And finally do some logging
-        log.debug("Writing to Kodi user settings file")
-        log.debug("PMS machineIdentifier: %s, ip: %s, port: %s, https: %s "
-                  % (server['machineIdentifier'], server['ip'],
-                     server['port'], server['scheme']))
+        LOG.debug("Writing to Kodi user settings file")
+        LOG.debug("PMS machineIdentifier: %s, ip: %s, port: %s, https: %s ",
+                  server['machineIdentifier'], server['ip'], server['port'],
+                  server['scheme'])
 
     def setup(self):
         """
@@ -399,14 +400,14 @@ class InitialSetup():
         Check server, user, direct paths, music, direct stream if not direct
         path.
         """
-        log.info("Initial setup called.")
+        LOG.info("Initial setup called.")
         dialog = self.dialog
 
         # Get current Kodi video cache setting
         cache, _ = advancedsettings_xml(['cache', 'memorysize'])
         # Kodi default cache if no setting is set
         cache = str(cache.text) if cache is not None else '20971520'
-        log.info('Current Kodi video memory cache in bytes: %s', cache)
+        LOG.info('Current Kodi video memory cache in bytes: %s', cache)
         settings('kodi_video_cache', value=cache)
         # Disable foreground "Loading media information from files"
         # (still used by Kodi, even though the Wiki says otherwise)
@@ -420,13 +421,20 @@ class InitialSetup():
         if self.plexToken and self.myplexlogin:
             self.CheckPlexTVSignIn()
 
+        # Initialize the PKC playqueues
+        PQ.init_playqueues()
+        # Init some Queues()
+        state.COMMAND_PIPELINE_QUEUE = Queue()
+        state.COMPANION_QUEUE = Queue(maxsize=100)
+        state.WEBSOCKET_QUEUE = Queue()
+
         # If a Plex server IP has already been set
         # return only if the right machine identifier is found
         if self.server:
-            log.info("PMS is already set: %s. Checking now..." % self.server)
+            LOG.info("PMS is already set: %s. Checking now...", self.server)
             if self.CheckPMS():
-                log.info("Using PMS %s with machineIdentifier %s"
-                         % (self.server, self.serverid))
+                LOG.info("Using PMS %s with machineIdentifier %s",
+                         self.server, self.serverid)
                 self._write_PMS_settings(self.server, self.pms_token)
                 return
 
@@ -452,19 +460,19 @@ class InitialSetup():
                         lang(39028),
                         nolabel="Addon (Default)",
                         yeslabel="Native (Direct Paths)"):
-            log.debug("User opted to use direct paths.")
+            LOG.debug("User opted to use direct paths.")
             settings('useDirectPaths', value="1")
             state.DIRECT_PATHS = True
             # Are you on a system where you would like to replace paths
             # \\NAS\mymovie.mkv with smb://NAS/mymovie.mkv? (e.g. Windows)
             if dialog.yesno(heading=lang(29999), line1=lang(39033)):
-                log.debug("User chose to replace paths with smb")
+                LOG.debug("User chose to replace paths with smb")
             else:
                 settings('replaceSMB', value="false")
 
             # complete replace all original Plex library paths with custom SMB
             if dialog.yesno(heading=lang(29999), line1=lang(39043)):
-                log.debug("User chose custom smb paths")
+                LOG.debug("User chose custom smb paths")
                 settings('remapSMB', value="true")
                 # Please enter your custom smb paths in the settings under
                 # "Sync Options" and then restart Kodi
@@ -475,22 +483,22 @@ class InitialSetup():
             if dialog.yesno(heading=lang(29999),
                             line1=lang(39029),
                             line2=lang(39030)):
-                log.debug("Presenting network credentials dialog.")
+                LOG.debug("Presenting network credentials dialog.")
                 from utils import passwordsXML
                 passwordsXML()
         # Disable Plex music?
         if dialog.yesno(heading=lang(29999), line1=lang(39016)):
-            log.debug("User opted to disable Plex music library.")
+            LOG.debug("User opted to disable Plex music library.")
             settings('enableMusic', value="false")
 
         # Download additional art from FanArtTV
         if dialog.yesno(heading=lang(29999), line1=lang(39061)):
-            log.debug("User opted to use FanArtTV")
+            LOG.debug("User opted to use FanArtTV")
             settings('FanartTV', value="true")
         # Do you want to replace your custom user ratings with an indicator of
         # how many versions of a media item you posses?
         if dialog.yesno(heading=lang(29999), line1=lang(39718)):
-            log.debug("User opted to replace user ratings with version number")
+            LOG.debug("User opted to replace user ratings with version number")
             settings('indicate_media_versions', value="true")
 
         # If you use several Plex libraries of one kind, e.g. "Kids Movies" and

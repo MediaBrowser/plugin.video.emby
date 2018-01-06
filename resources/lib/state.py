@@ -75,6 +75,13 @@ PLEX_USER_ID = None
 # another user playing something! Token identifies user
 PLEX_TRANSIENT_TOKEN = None
 
+# Plex Companion Queue()
+COMPANION_QUEUE = None
+# Command Pipeline Queue()
+COMMAND_PIPELINE_QUEUE = None
+# Websocket_client queue to communicate with librarysync
+WEBSOCKET_QUEUE = None
+
 # Kodi player states - here, initial values are set
 PLAYER_STATES = {
     1: {
@@ -117,10 +124,6 @@ PLAYER_STATES = {
 # paths for playback (since we're not receiving a Kodi id)
 PLEX_IDS = {}
 PLAYED_INFO = {}
-# Former playbackProps; used by playbackutils.py and set to True if initial
-# playback setup has been done (and playbackutils will be called again
-# subsequently)
-PLAYBACK_SETUP_DONE = False
 
 # Kodi webserver details
 WEBSERVER_PORT = 8080

@@ -16,6 +16,7 @@ import json_rpc as js
 import playlist_func as PL
 import state
 import variables as v
+import playqueue as PQ
 
 ###############################################################################
 
@@ -51,10 +52,8 @@ class KodiMonitor(Monitor):
     """
     PKC implementation of the Kodi Monitor class. Invoke only once.
     """
-    def __init__(self, callback):
-        self.mgr = callback
+    def __init__(self):
         self.xbmcplayer = Player()
-        self.playqueue = self.mgr.playqueue
         Monitor.__init__(self)
         LOG.info("Kodi monitor started.")
 
@@ -198,7 +197,7 @@ class KodiMonitor(Monitor):
         }
         Will NOT be called if playback initiated by Kodi widgets
         """
-        playqueue = self.playqueue.playqueues[data['playlistid']]
+        playqueue = PQ.PLAYQUEUES[data['playlistid']]
         # Did PKC cause this add? Then lets not do anything
         if playqueue.is_kodi_onadd() is False:
             LOG.debug('PKC added this item to the playqueue - ignoring')
@@ -228,7 +227,7 @@ class KodiMonitor(Monitor):
             u'position': 0
         }
         """
-        playqueue = self.playqueue.playqueues[data['playlistid']]
+        playqueue = PQ.PLAYQUEUES[data['playlistid']]
         # Did PKC cause this add? Then lets not do anything
         if playqueue.is_kodi_onremove() is False:
             LOG.debug('PKC removed this item already from playqueue - ignoring')
@@ -249,7 +248,7 @@ class KodiMonitor(Monitor):
             u'playlistid': 1,
         }
         """
-        playqueue = self.playqueue.playqueues[data['playlistid']]
+        playqueue = PQ.PLAYQUEUES[data['playlistid']]
         if playqueue.is_kodi_onclear() is False:
             LOG.debug('PKC already cleared the playqueue - ignoring')
             return
@@ -317,7 +316,7 @@ class KodiMonitor(Monitor):
         LOG.debug('Set the player state: %s', state.PLAYER_STATES[playerid])
         # Check whether we need to init our playqueues (e.g. direct play)
         init = False
-        playqueue = self.playqueue.playqueues[playerid]
+        playqueue = PQ.PLAYQUEUES[playerid]
         try:
             playqueue.items[info['position']]
         except IndexError:
@@ -340,7 +339,7 @@ class KodiMonitor(Monitor):
         container_key = None
         if info['playlistid'] != -1:
             # -1 is Kodi's answer if there is no playlist
-            container_key = self.playqueue.playqueues[playerid].id
+            container_key = PQ.PLAYQUEUES[playerid].id
         if container_key is not None:
             container_key = '/playQueues/%s' % container_key
         elif plex_id is not None:
