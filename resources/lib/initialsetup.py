@@ -2,7 +2,7 @@
 ###############################################################################
 from logging import getLogger
 from Queue import Queue
-from xml.etree.ElementTree import ParseError
+import xml.etree.ElementTree as etree
 
 import xbmc
 import xbmcgui
@@ -416,13 +416,41 @@ class InitialSetup():
                 xml.set_setting(['videolibrary', 'cleanonupdate'],
                                 value='false')
                 reboot = xml.write_xml
-        except ParseError:
+        except etree.ParseError:
             cache = None
             reboot = False
         # Kodi default cache if no setting is set
         cache = str(cache.text) if cache is not None else '20971520'
         LOG.info('Current Kodi video memory cache in bytes: %s', cache)
         settings('kodi_video_cache', value=cache)
+
+        # Hack to make PKC Kodi master lock compatible
+        try:
+            with XmlKodiSetting('sources.xml',
+                                force_create=True,
+                                top_element='sources') as xml:
+                root = xml.set_setting(['video'])
+                count = 2
+                for source in root.findall('.//path'):
+                    if source.text == "smb://":
+                        count -= 1
+                    if count == 0:
+                        # sources already set
+                        break
+                else:
+                    # Missing smb:// occurences, re-add.
+                    for _ in range(0, count):
+                        source = etree.SubElement(root, 'source')
+                        etree.SubElement(source,
+                                         'name').text = "PlexKodiConnect Masterlock Hack"
+                        etree.SubElement(source,
+                                         'path',
+                                         attrib={'pathversion': "1"}).text = "smb://"
+                        etree.SubElement(source, 'allowsharing').text = "true"
+                if reboot is False:
+                    reboot = xml.write_xml
+        except etree.ParseError:
+            pass
 
         # Do we need to migrate stuff?
         check_migration()

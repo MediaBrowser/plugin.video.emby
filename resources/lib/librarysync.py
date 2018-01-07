@@ -8,7 +8,7 @@ from random import shuffle
 import xbmc
 from xbmcvfs import exists
 
-from utils import window, settings, getUnixTimestamp, sourcesXML,\
+from utils import window, settings, getUnixTimestamp, \
     thread_methods, create_actor_db_index, dialog, LogTime, playlistXSP,\
     language as lang, DateToKodi, reset, tryDecode, deletePlaylists, \
     deleteNodes, tryEncode, compare_version
@@ -266,10 +266,6 @@ class LibrarySync(Thread):
         screensaver = js.get_setting('screensaver.mode')
         js.set_setting('screensaver.mode', '')
         if self.new_items_only is True:
-            # Only do the following once for new items
-            # Add sources
-            sourcesXML()
-
             # Set views. Abort if unsuccessful
             if not self.maintainViews():
                 xbmc.executebuiltin('InhibitIdleShutdown(false)')

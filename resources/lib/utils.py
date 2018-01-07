@@ -785,53 +785,6 @@ class XmlKodiSetting(object):
         return element
 
 
-def sourcesXML():
-    # To make Master lock compatible
-    path = tryDecode(xbmc.translatePath("special://profile/"))
-    xmlpath = "%ssources.xml" % path
-
-    try:
-        xmlparse = etree.parse(xmlpath)
-    except IOError:  # Document is blank or missing
-        root = etree.Element('sources')
-    except etree.ParseError:
-        log.error('Error parsing %s' % xmlpath)
-        # "Kodi cannot parse {0}. PKC will not function correctly. Please visit
-        # {1} and correct your file!"
-        dialog('ok', language(29999), language(39716).format(
-            'sources.xml', 'http://kodi.wiki/view/sources.xml'))
-        return
-    else:
-        root = xmlparse.getroot()
-
-    video = root.find('video')
-    if video is None:
-        video = etree.SubElement(root, 'video')
-        etree.SubElement(video, 'default', attrib={'pathversion': "1"})
-
-    # Add elements
-    count = 2
-    for source in root.findall('.//path'):
-        if source.text == "smb://":
-            count -= 1
-
-        if count == 0:
-            # sources already set
-            break
-    else:
-        # Missing smb:// occurences, re-add.
-        for i in range(0, count):
-            source = etree.SubElement(video, 'source')
-            etree.SubElement(source, 'name').text = "Plex"
-            etree.SubElement(source, 'path', attrib={'pathversion': "1"}).text = "smb://"
-            etree.SubElement(source, 'allowsharing').text = "true"
-    # Prettify and write to file
-    try:
-        indent(root)
-    except: pass
-    etree.ElementTree(root).write(xmlpath, encoding="UTF-8")
-
-
 def passwordsXML():
     # To add network credentials
     path = tryDecode(xbmc.translatePath("special://userdata/"))
