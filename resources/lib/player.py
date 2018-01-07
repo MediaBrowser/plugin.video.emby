@@ -43,6 +43,39 @@ class Player(xbmc.Player):
         log.debug("Starting playback monitor.")
         xbmc.Player.__init__(self)
 
+    def set_audio_subs(self, audio_index=None, subs_index=None):
+
+        ''' Only for after playback started
+        '''
+        player = xbmc.Player()
+        log.info("Setting audio: %s subs: %s", audio_index, subs_index)
+
+        if audio_index and len(player.getAvailableAudioStreams()) > 1:
+            player.setAudioStream(audio_index - 1)
+
+        if subs_index:
+            mapping = window('emby_%s.indexMapping.json' % self.current_file)
+
+            if subs_index == -1:
+                player.showSubtitles(False)
+
+            elif mapping:
+                external_index = mapping
+                # If there's external subtitles added via playbackutils
+                for index in external_index:
+                    if external_index[index] == subs_index:
+                        player.setSubtitleStream(int(index))
+                        break
+                else:
+                    # User selected internal subtitles
+                    external = len(external_index)
+                    audio_tracks = len(player.getAvailableAudioStreams())
+                    player.setSubtitleStream(external + subs_index - audio_tracks - 1)
+            else:
+                # Emby merges audio and subtitle index together
+                audio_tracks = len(player.getAvailableAudioStreams())
+                player.setSubtitleStream(subs_index - audio_tracks - 1)
+
     @log_error()
     def onPlayBackStarted(self):
         # Will be called when xbmc starts playing a file
@@ -96,8 +129,9 @@ class Player(xbmc.Player):
             play_method = item.get('playmethod')
             item_type = item.get('type')
 
-            window('emby_skipWatched%s' % item_id, value="true")
+            #self.set_audio_subs(item.get('forcedaudio'), item.get('forcedsubs'))
 
+            window('emby_skipWatched%s' % item_id, value="true")
             customseek = window('emby_customPlaylist.seektime')
             if window('emby_customPlaylist') == "true" and customseek:
                 # Start at, when using custom playlist (play to Kodi from webclient)
@@ -429,6 +463,8 @@ class Player(xbmc.Player):
                     try:
                         if window('emby.external'):
                             window('emby.external', clear=True)
+                            window('emby.external_check', clear=True)
+
                             raise ValueError
 
                         percentComplete = (currentPosition * 10000000) / int(runtime)

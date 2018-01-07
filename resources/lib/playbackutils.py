@@ -21,6 +21,8 @@ import playutils as putils
 import playlist
 import read_embyserver as embyserver
 import shutil
+import embydb_functions as embydb
+from database import DatabaseConn
 from utils import window, settings, language as lang
 
 #################################################################################################
@@ -30,22 +32,22 @@ log = logging.getLogger("EMBY."+__name__)
 #################################################################################################
 
 
-class PlaybackUtils():
+class PlaybackUtils(object):
 
 
-    def __init__(self, item):
-
-        self.item = item
-        self.API = api.API(item)
-
-        self.server = window('emby_server%s' % window('emby_currUser'))
+    def __init__(self, item=None, item_id=None):
 
         self.artwork = artwork.Artwork()
         self.emby = embyserver.Read_EmbyServer()
 
+        self.item = item or self.emby.getItem(item_id)
+        self.API = api.API(self.item)
+
+        self.server = window('emby_server%s' % window('emby_currUser'))
+
         self.stack = []
 
-        if item['Type'] == "Audio":
+        if self.item['Type'] == "Audio":
             self.playlist = xbmc.PlayList(xbmc.PLAYLIST_MUSIC)
         else:
             self.playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
@@ -72,21 +74,7 @@ class PlaybackUtils():
             log.info("Clear the playlist.")
             self.playlist.clear()
 
-        ##### CHECK FOR INTROS
-
-        if settings('enableCinema') == "true" and not seektime:
-            self._set_intros(item_id)
-
-        ##### ADD MAIN ITEM
-
-        self.set_properties(play_url, listitem)
-        self.set_listitem(listitem, dbid)
-        self.stack.append([play_url, listitem])
-
-        ##### ADD ADDITIONAL PARTS
-
-        if self.item.get('PartCount'):
-            self._set_additional_parts(item_id)
+        self.set_playlist(play_url, item_id, listitem, seektime, dbid)
 
         ##### SETUP PLAYBACK
 
@@ -100,8 +88,10 @@ class PlaybackUtils():
         # Stack: [(url, listitem), (url, ...), ...]
         self.stack[0][1].setPath(self.stack[0][0])
         try:
-            if not xbmc.getCondVisibility('Window.IsVisible(MyVideoNav.xml)'):
+            #if not xbmc.getCondVisibility('Window.IsVisible(MyVideoNav.xml)'): # Causes infinite loop with play from here
+            if xbmc.getCondVisibility('Window.IsVisible(10000).xml'):
                 # widgets do not fill artwork correctly
+                log.info("Detected widget.")
                 raise IndexError
 
             xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, self.stack[0][1])
@@ -117,6 +107,24 @@ class PlaybackUtils():
 
         if force_play:
             xbmc.Player().play(self.playlist)
+
+    def set_playlist(self, play_url, item_id, listitem, seektime=None, db_id=None):
+
+        ##### CHECK FOR INTROS
+
+        if settings('enableCinema') == "true" and not seektime:
+            self._set_intros(item_id)
+
+        ##### ADD MAIN ITEM
+
+        self.set_properties(play_url, listitem)
+        self.set_listitem(listitem, db_id)
+        self.stack.append([play_url, listitem])
+
+        ##### ADD ADDITIONAL PARTS
+
+        if self.item.get('PartCount'):
+            self._set_additional_parts(item_id)
 
     def _set_intros(self, item_id):
         # if we have any play them when the movie/show is not being resumed
@@ -270,3 +278,53 @@ class PlaybackUtils():
                 listitem.setProperty(art, path)
             else:
                 listitem.setArt({art: path})
+
+    def play_all(self, item_ids, seektime=None, **kwargs):
+
+        self.playlist.clear()
+        started = False
+
+        for item_id in item_ids:
+
+            listitem = xbmcgui.ListItem()
+            db_id = None
+
+            item = self.emby.getItem(item_id)
+            play_url = putils.PlayUtils(item, listitem, **kwargs if item_ids.index(item_id) == 0 else {}).get_play_url()
+
+            if not play_url:
+                log.info("Failed to retrieve playurl")
+                continue
+
+            log.info("Playurl: %s", play_url)
+
+            with DatabaseConn('emby') as cursor:
+                item_db = embydb.Embydb_Functions(cursor).getItem_byId(item_id)
+                db_id = item_db[0] if item_db else None
+
+            pbutils = PlaybackUtils(item)
+            pbutils.set_playlist(play_url, item_id, listitem, seektime if item_ids.index(item_id) == 1 else None, db_id)
+
+            if item_ids.index(item_id) == 1 and seektime:
+                log.info("Seektime detected: %s", self.API.adjust_resume(seektime))
+                listitem.setProperty('StartOffset', str(self.API.adjust_resume(seektime)))
+                
+
+            index = max(pbutils.playlist.getposition(), 0) + 1 # Can return -1
+            for stack in pbutils.stack:
+                pbutils.playlist.add(url=stack[0], listitem=stack[1], index=index)
+                index += 1
+
+            if not started:
+                started = True
+
+                item = window('emby_%s.json' % play_url)
+                item['forcedaudio'] = kwargs.get('AudioStreamIndex')
+                item['forcedsubs'] = kwargs.get('SubtitleStreamIndex')
+                window('emby_%s.json' % play_url, value=item)
+
+                player = xbmc.Player()
+                player.play(pbutils.playlist)
+
+        if started:
+            return True
