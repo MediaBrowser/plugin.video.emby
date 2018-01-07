@@ -207,7 +207,7 @@
     <string id="30517">Network credentials</string>
     <string id="30518">Enable Emby cinema mode</string>
     <string id="30519">Ask to play trailers</string>
-    <string id="30520">Skip Emby delete confirmation for the context menu (use at your own risk)</string>
+    <string id="30520">Skip Emby delete confirmation (use at your own risk)</string>
     <string id="30521">Jump back on resume (in seconds)</string>
     <string id="30522">Force transcode H265</string>
     <string id="30523">Music metadata options (not compatible with direct stream)</string>
