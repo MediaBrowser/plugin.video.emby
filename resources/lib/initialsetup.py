@@ -9,7 +9,7 @@ import xbmcgui
 
 from utils import settings, window, language as lang, tryEncode, \
     XmlKodiSetting, reboot_kodi
-import downloadutils
+from downloadutils import DownloadUtils as DU
 from userclient import UserClient
 
 from PlexAPI import PlexAPI
@@ -29,7 +29,6 @@ class InitialSetup():
 
     def __init__(self):
         LOG.debug('Entering initialsetup class')
-        self.doUtils = downloadutils.DownloadUtils().downloadUrl
         self.plx = PlexAPI()
         self.dialog = xbmcgui.Dialog()
 
@@ -87,9 +86,9 @@ class InitialSetup():
             LOG.info('plex.tv connection with token successful')
             settings('plex_status', value=lang(39227))
             # Refresh the info from Plex.tv
-            xml = self.doUtils('https://plex.tv/users/account',
-                               authenticate=False,
-                               headerOptions={'X-Plex-Token': self.plexToken})
+            xml = DU().downloadUrl('https://plex.tv/users/account',
+                                   authenticate=False,
+                                   headerOptions={'X-Plex-Token': self.plexToken})
             try:
                 self.plexLogin = xml.attrib['title']
             except (AttributeError, KeyError):
@@ -427,11 +426,6 @@ class InitialSetup():
 
         # Do we need to migrate stuff?
         check_migration()
-        # Optionally sign into plex.tv. Will not be called on very first run
-        # as plexToken will be ''
-        settings('plex_status', value=lang(39226))
-        if self.plexToken and self.myplexlogin:
-            self.CheckPlexTVSignIn()
 
         # Initialize the PKC playqueues
         PQ.init_playqueues()
