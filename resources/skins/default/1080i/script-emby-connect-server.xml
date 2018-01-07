@@ -138,6 +138,7 @@
 										<aligny>center</aligny>
 										<textoffsetx>20</textoffsetx>
 										<font>font10</font>
+										<scroll>true</scroll>
 										<textcolor>ffe1e1e1</textcolor>
 										<shadowcolor>66000000</shadowcolor>
 										<label>$INFO[ListItem.Label]</label>
