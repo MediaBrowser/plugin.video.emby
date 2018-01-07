@@ -65,6 +65,11 @@ class KodiMonitor(xbmc.Monitor):
             log.info("New context setting: %s", current_context)
             window('emby_context', value=current_context)
 
+        current_context = "true" if settings('enableContextTranscode') == "true" else ""
+        if window('emby_context_transcode') != current_context:
+            log.info("New context transcode setting: %s", current_context)
+            window('emby_context_transcode', value=current_context)
+
     @log_error()
     def onNotification(self, sender, method, data):
 

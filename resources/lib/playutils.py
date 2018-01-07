@@ -28,7 +28,9 @@ class PlayUtils():
     force_transcode = False
 
 
-    def __init__(self, item, listitem):
+    def __init__(self, item, listitem, **kwargs):
+
+        self.info = kwargs
 
         self.item = item
         self.listitem = listitem
@@ -76,7 +78,13 @@ class PlayUtils():
 
         selected_source = media_sources[0]
 
-        if len(media_sources) > 1:
+        if self.info.get('MediaSourceId'):
+            for source in media_sources:
+                if source['Id'] == self.info['MediaSourceId']:
+                    selected_source = source
+                    break
+
+        elif len(media_sources) > 1:
             # Offer choices
             sources = []
             for source in media_sources:
@@ -112,7 +120,7 @@ class PlayUtils():
         path = self.get_direct_path(source)
 
         if xbmcvfs.exists(path) or ":" not in path:
-            log.info("Path exists or assumed linux.")
+            log.info("Path exists or assumed linux or web.")
 
             self.method = "DirectPlay"
             source['Path'] = path
@@ -364,7 +372,9 @@ class PlayUtils():
             skip_dialog = int(settings('skipDialogTranscode') or 0)
             audio_selected = None
 
-            if skip_dialog in (0, 1):
+            if self.info.get('AudioStreamIndex'):
+                audio_selected = self.info['AudioStreamIndex']
+            elif skip_dialog in (0, 1):
                 if len(audio_streams) > 1:
                     selection = list(audio_streams.keys())
                     resp = dialog.select(lang(33013), selection)
@@ -377,7 +387,17 @@ class PlayUtils():
             prefs += "&AudioStreamIndex=%s" % audio_selected
             prefs += "&AudioBitrate=384000" if streams[audio_selected].get('Channels', 0) > 2 else "&AudioBitrate=192000"
 
-            if skip_dialog in (0, 2) and len(subs_streams) > 1:
+            if self.info.get('SubtitleStreamIndex'):
+                index = self.info['SubtitleStreamIndex']
+
+                if index:
+                    server_settings = self.emby.get_server_transcoding_settings()
+                    if server_settings['EnableSubtitleExtraction'] and streams[index]['SupportsExternalStream']:
+                        self._get_subtitles(source, index)
+                    else:
+                        prefs += "&SubtitleStreamIndex=%s" % index
+
+            elif (skip_dialog in (0, 2) and len(subs_streams) > 1):
                 selection = list(['No subtitles']) + list(subs_streams.keys())
                 resp = dialog.select(lang(33014), selection)
                 if resp:
@@ -385,16 +405,19 @@ class PlayUtils():
                     if index is not None:
                         server_settings = self.emby.get_server_transcoding_settings()
                         if server_settings['EnableSubtitleExtraction'] and streams[index]['SupportsExternalStream']:
-
-                            url = [("%s/Videos/%s/%s/Subtitles/%s/Stream.srt"
-                                    % (self.server, self.item['Id'], source['Id'], index))]
-
-                            log.info("Set up subtitles: %s %s", index, url)
-                            self.listitem.setSubtitles(url)
+                            self._get_subtitles(source, index)
                         else:
                             prefs += "&SubtitleStreamIndex=%s" % index
 
         return prefs
+
+    def _get_subtitles(self, source, index):
+
+        url = [("%s/Videos/%s/%s/Subtitles/%s/Stream.srt"
+                % (self.server, self.item['Id'], source['Id'], index))]
+
+        log.info("Set up subtitles: %s %s", index, url)
+        self.listitem.setSubtitles(url)
 
     def get_bitrate(self):
 
