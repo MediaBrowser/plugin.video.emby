@@ -53,10 +53,11 @@ class Service(object):
         self.addon_name = self.client_info.get_addon_name()
         log_level = settings('logLevel')
 
+        # General settings which are used by other entrypoints
         window('emby_logLevel', value=str(log_level))
         window('emby_kodiProfile', value=xbmc.translatePath('special://profile'))
-        context_menu = "true" if settings('enableContext') == "true" else ""
-        window('emby_context', value=context_menu)
+        window('emby_context', value="true" if settings('enableContext') == "true" else "")
+        window('emby_context_transcode', value="true" if settings('enableContextTranscode') == "true" else "")
 
         # Initial logging
         log.warn("======== START %s ========", self.addon_name)
