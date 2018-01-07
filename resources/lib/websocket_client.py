@@ -24,12 +24,7 @@ log = getLogger("PLEX."+__name__)
 
 class WebSocket(Thread):
     opcode_data = (websocket.ABNF.OPCODE_TEXT, websocket.ABNF.OPCODE_BINARY)
-
-    def __init__(self, callback=None):
-        if callback is not None:
-            self.mgr = callback
-        self.ws = None
-        Thread.__init__(self)
+    ws = None
 
     def process(self, opcode, message):
         raise NotImplementedError
