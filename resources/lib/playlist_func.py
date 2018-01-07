@@ -189,6 +189,7 @@ class Playlist_Item(object):
     uri = None         [str] Weird Plex uri path involving plex_uuid. STRING!
     guid = None        [str] Weird Plex guid
     xml = None         [etree] XML from PMS, 1 lvl below <MediaContainer>
+    playmethod = None  [str] either 'DirectPlay', 'DirectStream', 'Transcode'
     """
     def __init__(self):
         self.id = None
@@ -201,6 +202,7 @@ class Playlist_Item(object):
         self.uri = None
         self.guid = None
         self.xml = None
+        self.playmethod = None
         # Yet to be implemented: handling of a movie with several parts
         self.part = 0
 

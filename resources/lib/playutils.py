@@ -4,63 +4,49 @@
 from logging import getLogger
 from downloadutils import DownloadUtils
 
-from utils import window, settings, tryEncode, language as lang, dialog
+from utils import window, settings, language as lang, dialog, tryEncode
 import variables as v
-import PlexAPI
 
 ###############################################################################
-
-log = getLogger("PLEX."+__name__)
-
+LOG = getLogger("PLEX." + __name__)
 ###############################################################################
 
 
 class PlayUtils():
 
-    def __init__(self, item):
-        self.item = item
-        self.API = PlexAPI.API(item)
+    def __init__(self, api, playqueue_item):
+        self.api = api
+        self.item = playqueue_item
         self.doUtils = DownloadUtils().downloadUrl
-        self.machineIdentifier = window('plex_machineIdentifier')
 
-    def getPlayUrl(self, partNumber=None):
+    def getPlayUrl(self):
         """
-        Returns the playurl for the part with number partNumber
+        Returns the playurl for the part
         (movie might consist of several files)
 
-        playurl is utf-8 encoded!
+        playurl is in unicode!
         """
-        self.API.setPartNumber(partNumber)
-        self.API.getMediastreamNumber()
+        self.api.getMediastreamNumber()
         playurl = self.isDirectPlay()
-
         if playurl is not None:
-            log.info("File is direct playing.")
-            playurl = tryEncode(playurl)
-            # Set playmethod property
-            window('plex_%s.playmethod' % playurl, "DirectPlay")
-
+            LOG.info("File is direct playing.")
+            self.item.playmethod = 'DirectPlay'
         elif self.isDirectStream():
-            log.info("File is direct streaming.")
-            playurl = tryEncode(
-                self.API.getTranscodeVideoPath('DirectStream'))
-            # Set playmethod property
-            window('plex_%s.playmethod' % playurl, "DirectStream")
-
+            LOG.info("File is direct streaming.")
+            playurl = self.api.getTranscodeVideoPath('DirectStream')
+            self.item.playmethod = 'DirectStream'
         else:
-            log.info("File is transcoding.")
-            playurl = tryEncode(self.API.getTranscodeVideoPath(
+            LOG.info("File is transcoding.")
+            playurl = self.api.getTranscodeVideoPath(
                 'Transcode',
                 quality={
                     'maxVideoBitrate': self.get_bitrate(),
                     'videoResolution': self.get_resolution(),
                     'videoQuality': '100',
                     'mediaBufferSize': int(settings('kodi_video_cache'))/1024,
-                }))
-            # Set playmethod property
-            window('plex_%s.playmethod' % playurl, value="Transcode")
-
-        log.info("The playurl is: %s" % playurl)
+                })
+            self.item.playmethod = 'Transcode'
+        LOG.info("The playurl is: %s", playurl)
         return playurl
 
     def isDirectPlay(self):
@@ -68,51 +54,28 @@ class PlayUtils():
         Returns the path/playurl if we can direct play, None otherwise
         """
         # True for e.g. plex.tv watch later
-        if self.API.shouldStream() is True:
-            log.info("Plex item optimized for direct streaming")
+        if self.api.shouldStream() is True:
+            LOG.info("Plex item optimized for direct streaming")
             return
         # Check whether we have a strm file that we need to throw at Kodi 1:1
-        path = self.API.getFilePath()
+        path = self.api.getFilePath()
         if path is not None and path.endswith('.strm'):
-            log.info('.strm file detected')
-            playurl = self.API.validatePlayurl(path,
-                                               self.API.getType(),
+            LOG.info('.strm file detected')
+            playurl = self.api.validatePlayurl(path,
+                                               self.api.getType(),
                                                forceCheck=True)
-            if playurl is None:
-                return
-            else:
-                return tryEncode(playurl)
+            return playurl
         # set to either 'Direct Stream=1' or 'Transcode=2'
         # and NOT to 'Direct Play=0'
         if settings('playType') != "0":
             # User forcing to play via HTTP
-            log.info("User chose to not direct play")
+            LOG.info("User chose to not direct play")
             return
         if self.mustTranscode():
             return
-        return self.API.validatePlayurl(path,
-                                        self.API.getType(),
+        return self.api.validatePlayurl(path,
+                                        self.api.getType(),
                                         forceCheck=True)
-
-    def directPlay(self):
-        try:
-            playurl = self.item['MediaSources'][0]['Path']
-        except (IndexError, KeyError):
-            playurl = self.item['Path']
-        if self.item.get('VideoType'):
-            # Specific format modification
-            if self.item['VideoType'] == "Dvd":
-                playurl = "%s/VIDEO_TS/VIDEO_TS.IFO" % playurl
-            elif self.item['VideoType'] == "BluRay":
-                playurl = "%s/BDMV/index.bdmv" % playurl
-        # Assign network protocol
-        if playurl.startswith('\\\\'):
-            playurl = playurl.replace("\\\\", "smb://")
-            playurl = playurl.replace("\\", "/")
-        if "apple.com" in playurl:
-            USER_AGENT = "QuickTime/7.7.4"
-            playurl += "?|User-Agent=%s" % USER_AGENT
-        return playurl
 
     def mustTranscode(self):
         """
@@ -125,42 +88,42 @@ class PlayUtils():
             - video bitrate above specified settings bitrate
         if the corresponding file settings are set to 'true'
         """
-        if self.API.getType() in (v.PLEX_TYPE_CLIP, v.PLEX_TYPE_SONG):
-            log.info('Plex clip or music track, not transcoding')
+        if self.api.getType() in (v.PLEX_TYPE_CLIP, v.PLEX_TYPE_SONG):
+            LOG.info('Plex clip or music track, not transcoding')
             return False
-        videoCodec = self.API.getVideoCodec()
-        log.info("videoCodec: %s" % videoCodec)
+        videoCodec = self.api.getVideoCodec()
+        LOG.info("videoCodec: %s" % videoCodec)
         if window('plex_forcetranscode') == 'true':
-            log.info('User chose to force-transcode')
+            LOG.info('User chose to force-transcode')
             return True
         codec = videoCodec['videocodec']
         if codec is None:
             # e.g. trailers. Avoids TypeError with "'h265' in codec"
-            log.info('No codec from PMS, not transcoding.')
+            LOG.info('No codec from PMS, not transcoding.')
             return False
         if ((settings('transcodeHi10P') == 'true' and
                 videoCodec['bitDepth'] == '10') and 
                 ('h264' in codec)):
-            log.info('Option to transcode 10bit h264 video content enabled.')
+            LOG.info('Option to transcode 10bit h264 video content enabled.')
             return True
         try:
             bitrate = int(videoCodec['bitrate'])
         except (TypeError, ValueError):
-            log.info('No video bitrate from PMS, not transcoding.')
+            LOG.info('No video bitrate from PMS, not transcoding.')
             return False
         if bitrate > self.get_max_bitrate():
-            log.info('Video bitrate of %s is higher than the maximal video'
+            LOG.info('Video bitrate of %s is higher than the maximal video'
                      'bitrate of %s that the user chose. Transcoding'
                      % (bitrate, self.get_max_bitrate()))
             return True
         try:
             resolution = int(videoCodec['resolution'])
         except (TypeError, ValueError):
-            log.info('No video resolution from PMS, not transcoding.')
+            LOG.info('No video resolution from PMS, not transcoding.')
             return False
         if 'h265' in codec or 'hevc' in codec:
             if resolution >= self.getH265():
-                log.info("Option to transcode h265/HEVC enabled. Resolution "
+                LOG.info("Option to transcode h265/HEVC enabled. Resolution "
                          "of the media: %s, transcoding limit resolution: %s"
                          % (str(resolution), str(self.getH265())))
                 return True
@@ -168,12 +131,12 @@ class PlayUtils():
 
     def isDirectStream(self):
         # Never transcode Music
-        if self.API.getType() == 'track':
+        if self.api.getType() == 'track':
             return True
         # set to 'Transcode=2'
         if settings('playType') == "2":
             # User forcing to play via HTTP
-            log.info("User chose to transcode")
+            LOG.info("User chose to transcode")
             return False
         if self.mustTranscode():
             return False
@@ -255,7 +218,7 @@ class PlayUtils():
         }
         return res[chosen]
 
-    def audioSubsPref(self, listitem, url, part=None):
+    def audio_subtitle_prefs(self, listitem):
         """
         For transcoding only
 
@@ -263,15 +226,13 @@ class PlayUtils():
         stream by a PUT request to the PMS
         """
         # Set media and part where we're at
-        if self.API.mediastream is None:
-            self.API.getMediastreamNumber()
-        if part is None:
-            part = 0
+        if self.api.mediastream is None:
+            self.api.getMediastreamNumber()
         try:
-            mediastreams = self.item[self.API.mediastream][part]
+            mediastreams = self.api.plex_media_streams()
         except (TypeError, IndexError):
-            log.error('Could not get media %s, part %s'
-                      % (self.API.mediastream, part))
+            LOG.error('Could not get media %s, part %s',
+                      self.api.mediastream, self.api.part)
             return
         part_id = mediastreams.attrib['id']
         audio_streams_list = []
@@ -296,17 +257,17 @@ class PlayUtils():
             # Audio
             if typus == "2":
                 codec = stream.attrib.get('codec')
-                channelLayout = stream.attrib.get('audioChannelLayout', "")
+                channellayout = stream.attrib.get('audioChannelLayout', "")
                 try:
                     track = "%s %s - %s %s" % (audio_numb+1,
                                                stream.attrib['language'],
                                                codec,
-                                               channelLayout)
-                except:
+                                               channellayout)
+                except KeyError:
                     track = "%s %s - %s %s" % (audio_numb+1,
                                                lang(39707),  # unknown
                                                codec,
-                                               channelLayout)
+                                               channellayout)
                 audio_streams_list.append(index)
                 audio_streams.append(tryEncode(track))
                 audio_numb += 1
@@ -330,13 +291,13 @@ class PlayUtils():
                 if downloadable:
                     # We do know the language - temporarily download
                     if 'language' in stream.attrib:
-                        path = self.API.download_external_subtitles(
+                        path = self.api.download_external_subtitles(
                             '{server}%s' % stream.attrib['key'],
                             "subtitle.%s.%s" % (stream.attrib['language'],
                                                 stream.attrib['codec']))
                     # We don't know the language - no need to download
                     else:
-                        path = self.API.addPlexCredentialsToUrl(
+                        path = self.api.addPlexCredentialsToUrl(
                             "%s%s" % (window('pms_server'),
                                       stream.attrib['key']))
                     downloadable_streams.append(index)
@@ -371,7 +332,7 @@ class PlayUtils():
         select_subs_index = None
         if (settings('pickPlexSubtitles') == 'true' and
                 default_sub is not None):
-            log.info('Using default Plex subtitle: %s' % default_sub)
+            LOG.info('Using default Plex subtitle: %s', default_sub)
             select_subs_index = default_sub
         else:
             resp = dialog('select', lang(33014), subtitle_streams)
@@ -381,22 +342,14 @@ class PlayUtils():
                 # User selected no subtitles or backed out of dialog
                 select_subs_index = ''
 
-        log.debug('Adding external subtitles: %s' % download_subs)
+        LOG.debug('Adding external subtitles: %s', download_subs)
         # Enable Kodi to switch autonomously to downloadable subtitles
         if download_subs:
             listitem.setSubtitles(download_subs)
-
+        # Don't additionally burn in subtitles
         if select_subs_index in downloadable_streams:
-            for i, stream in enumerate(downloadable_streams):
-                if stream == select_subs_index:
-                    # Set the correct subtitle
-                    window('plex_%s.subtitle' % tryEncode(url), value=str(i))
-                    break
-            # Don't additionally burn in subtitles
             select_subs_index = ''
-        else:
-            window('plex_%s.subtitle' % tryEncode(url), value='None')
-
+        # Now prep the PMS for our choice
         args = {
             'subtitleStreamID': select_subs_index,
             'allParts': 1

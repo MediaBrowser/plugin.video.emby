@@ -1181,6 +1181,13 @@ class API():
         """
         return self.item.attrib.get('key', '')
 
+    def plex_media_streams(self):
+        """
+        Returns the media streams directly from the PMS xml.
+        Mind self.mediastream to be set before and self.part!
+        """
+        return self.item[self.mediastream][self.part]
+
     def getFilePath(self, forceFirstMediaStream=False):
         """
         Returns the direct path to this item, e.g. '\\NAS\movies\movie.mkv'
@@ -2343,9 +2350,8 @@ class API():
         url = transcodePath + urlencode(xargs) + '&' + urlencode(args)
         return url
 
-    def externalSubs(self, playurl):
+    def externalSubs(self):
         externalsubs = []
-        mapping = {}
         try:
             mediastreams = self.item[0][self.part]
         except (TypeError, KeyError, IndexError):
@@ -2375,13 +2381,9 @@ class API():
                 else:
                     path = self.addPlexCredentialsToUrl(
                         "%s%s" % (self.server, key))
-                # map external subtitles for mapping
-                mapping[kodiindex] = stream.attrib['id']
                 externalsubs.append(path)
                 kodiindex += 1
-        mapping = dumps(mapping)
-        window('plex_%s.indexMapping' % playurl, value=mapping)
-        log.info('Found external subs: %s' % externalsubs)
+        log.info('Found external subs: %s', externalsubs)
         return externalsubs
 
     @staticmethod
@@ -2402,13 +2404,14 @@ class API():
             log.error('Could not temporarily download subtitle %s' % url)
             return
         else:
-            log.debug('Writing temp subtitle to %s' % path)
+            log.debug('Writing temp subtitle to %s', path)
             try:
                 with open(path, 'wb') as f:
                     f.write(r.content)
             except UnicodeEncodeError:
-                log.debug('Need to slugify the filename %s' % path)
-                with open(slugify(path), 'wb') as f:
+                log.debug('Need to slugify the filename %s', path)
+                path = slugify(path)
+                with open(path, 'wb') as f:
                     f.write(r.content)
             return path
 
