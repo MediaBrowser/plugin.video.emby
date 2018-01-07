@@ -458,14 +458,8 @@ class LibrarySync(Thread):
         Compare the views to Plex
         """
         if state.DIRECT_PATHS is True and state.ENABLE_MUSIC is True:
-            if music.set_excludefromscan_music_folders() is True:
-                log.info('Detected new Music library - restarting now')
-                #  'New Plex music library detected. Sorry, but we need to
-                #  restart Kodi now due to the changes made.'
-                dialog('ok', heading='{plex}', line1=lang(39711))
-                from xbmc import executebuiltin
-                executebuiltin('RestartApp')
-                return False
+            # Will reboot Kodi is new library detected
+            music.excludefromscan_music_folders()
 
         self.views = []
         vnodes = self.vnodes

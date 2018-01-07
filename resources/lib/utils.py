@@ -37,6 +37,17 @@ ADDON = xbmcaddon.Addon(id='plugin.video.plexkodiconnect')
 # Main methods
 
 
+def reboot_kodi(message=None):
+    """
+    Displays an OK prompt with 'Kodi will now restart to apply the changes'
+    Kodi will then reboot.
+
+    Set optional custom message
+    """
+    message = message or language(33033)
+    dialog('ok', heading='{plex}', line1=message)
+    xbmc.executebuiltin('RestartApp')
+
 def window(property, value=None, clear=False, windowid=10000):
     """
     Get or set window property - thread safe!
@@ -457,12 +468,7 @@ def reset():
         dataPath = "%ssettings.xml" % addondir
         log.info("Deleting: settings.xml")
         remove(dataPath)
-
-    # Kodi will now restart to apply the changes.
-    dialog('ok',
-           heading='{plex} %s ' % language(30132),
-           line1=language(33033))
-    xbmc.executebuiltin('RestartApp')
+    reboot_kodi()
 
 
 def profiling(sortby="cumulative"):
@@ -617,114 +623,166 @@ def guisettingsXML():
     return root
 
 
-def __setXMLTag(element, tag, value, attrib=None):
+class XmlKodiSetting(object):
     """
-    Looks for an element's subelement and sets its value.
-    If "subelement" does not exist, create it using attrib and value.
+    Used to load a Kodi XML settings file from special://profile as an etree
+    object to read settings or set them. Usage:
+        with XmlKodiSetting(filename,
+                            path=None,
+                            force_create=False,
+                            top_element=None) as xml:
+            xml.get_setting('test')
 
-        element : etree element
-        tag     : unicode for subelement
-        value   : unicode
-        attrib  : dict; will use etree attrib method
+    filename [str]:      filename of the Kodi settings file under
+    path [str]:          if set, replace special://profile path with custom
+                         path
+    force_create:        will create the XML file if it does not exist
+    top_element [str]:   Name of the top xml element; used if xml does not
+                         yet exist
 
-    Returns the subelement
+    Raises IOError if the file does not exist or is empty and force_create
+    has been set to False.
+    Raises etree.ParseError if the file could not be parsed by etree
+
+    xml.write_xml        Set to True if we need to write the XML to disk
     """
-    subelement = element.find(tag)
-    if subelement is None:
-        # Setting does not exist yet; create it
-        if attrib is None:
-            etree.SubElement(element, tag).text = value
+    def __init__(self, filename, path=None, force_create=False,
+                 top_element=None):
+        self.filename = filename
+        if path is None:
+            self.path = join(KODI_PROFILE, filename)
         else:
-            etree.SubElement(element, tag, attrib=attrib).text = value
-    else:
-        subelement.text = value
-    return subelement
+            self.path = join(path, filename)
+        self.force_create = force_create
+        self.top_element = top_element
+        self.tree = None
+        self.root = None
+        self.write_xml = False
 
+    def __enter__(self):
+        try:
+            self.tree = etree.parse(self.path)
+        except IOError:
+            # Document is blank or missing
+            if self.force_create is False:
+                log.debug('%s does not seem to exist; not creating', self.path)
+                # This will abort __enter__
+                self.__exit__(IOError, None, None)
+            # Create topmost xml entry
+            self.tree = etree.ElementTree(
+                element=etree.Element(self.top_element))
+            self.write_xml = True
+        except etree.ParseError:
+            log.error('Error parsing %s', self.path)
+            # "Kodi cannot parse {0}. PKC will not function correctly. Please
+            # visit {1} and correct your file!"
+            dialog('ok', language(29999), language(39716).format(
+                self.filename,
+                'http://kodi.wiki'))
+            self.__exit__(etree.ParseError, None, None)
+        self.root = self.tree.getroot()
+        return self
 
-def __setSubElement(element, subelement):
-    """
-    Returns an etree element's subelement. Creates one if not exist
-    """
-    answ = element.find(subelement)
-    if answ is None:
-        answ = etree.SubElement(element, subelement)
-    return answ
+    def __exit__(self, e_typ, e_val, trcbak):
+        if e_typ:
+            raise
+        # Only safe to file if we did not botch anything
+        if self.write_xml is True:
+            # Indent and make readable
+            indent(self.root)
+            # Safe the changed xml
+            self.tree.write(self.path, encoding="UTF-8")
 
+    @staticmethod
+    def _set_sub_element(element, subelement):
+        """
+        Returns an etree element's subelement. Creates one if not exist
+        """
+        answ = element.find(subelement)
+        if answ is None:
+            answ = etree.SubElement(element, subelement)
+        return answ
 
-def advancedsettings_xml(node_list, new_value=None, attrib=None,
-                         force_create=False):
-    """
-    Returns
-        etree element, tree
-    or
-        None, None
+    def get_setting(self, node_list):
+        """
+        node_list is a list of node names starting from the outside, ignoring
+        the outter advancedsettings.
+        Example nodelist=['video', 'busydialogdelayms'] for the following xml
+        would return the etree Element:
 
-    node_list is a list of node names starting from the outside, ignoring the
-    outter advancedsettings. Example nodelist=['video', 'busydialogdelayms']
-    for the following xml would return the etree Element:
-
-        <busydialogdelayms>750</busydialogdelayms>
-
-    for the following example xml:
-
-    <?xml version="1.0" encoding="UTF-8" ?>
-    <advancedsettings>
-        <video>
             <busydialogdelayms>750</busydialogdelayms>
-        </video>
-    </advancedsettings>
 
-    If new_value is set, '750' will be replaced accordingly, returning the new
-    etree Element. Advancedsettings might be generated if it did not exist
-    already
+        for the following example xml:
 
-    If the dict attrib is set, the Element's attributs will be appended
-    accordingly
+        <advancedsettings>
+            <video>
+                <busydialogdelayms>750</busydialogdelayms>
+            </video>
+        </advancedsettings>
 
-    force_create=True will forcibly create the key even if no value is provided
-    """
-    path = '%sadvancedsettings.xml' % KODI_PROFILE
-    try:
-        tree = etree.parse(path)
-    except IOError:
-        # Document is blank or missing
-        if new_value is None and attrib is None and force_create is False:
-            log.debug('Could not parse advancedsettings.xml, returning None')
-            return None, None
-        # Create topmost xml entry
-        tree = etree.ElementTree(element=etree.Element('advancedsettings'))
-    except etree.ParseError:
-        log.error('Error parsing %s' % path)
-        # "Kodi cannot parse {0}. PKC will not function correctly. Please visit
-        # {1} and correct your file!"
-        dialog('ok', language(29999), language(39716).format(
-            'advancedsettings.xml',
-            'http://kodi.wiki/view/Advancedsettings.xml'))
-        return None, None
-    root = tree.getroot()
-    element = root
-
-    # Reading values
-    if new_value is None and attrib is None and force_create is False:
+        Returns the etree element or None if not found
+        """
+        element = self.root
         for node in node_list:
             element = element.find(node)
             if element is None:
                 break
-        return element, tree
+        return element
 
-    # Setting new values. Get correct element first
-    for node in node_list:
-        element = __setSubElement(element, node)
-    # Write new values
-    element.text = new_value or ''
-    if attrib is not None:
-        for key, attribute in attrib.iteritems():
-            element.set(key, attribute)
-    # Indent and make readable
-    indent(root)
-    # Safe the changed xml
-    tree.write(path, encoding="UTF-8")
-    return element, tree
+    def set_setting(self, node_list, value=None, attrib=None,
+                    check_existing=True):
+        """
+        node_list is a list of node names starting from the outside, ignoring
+        the outter advancedsettings.
+        Example nodelist=['video', 'busydialogdelayms'] for the following xml
+        would return the etree Element:
+
+            <busydialogdelayms>750</busydialogdelayms>
+
+        for the following example xml:
+
+        <advancedsettings>
+            <video>
+                <busydialogdelayms>750</busydialogdelayms>
+            </video>
+        </advancedsettings>
+
+        value, e.g. '750' will be set accordingly, returning the new
+        etree Element. Advancedsettings might be generated if it did not exist
+        already
+
+        If the dict attrib is set, the Element's attributs will be appended
+        accordingly
+
+        If check_existing is True, it will return the FIRST matching element of
+        node_list. Set to False if there are several elements of the same tag!
+
+        Returns the (last) etree element
+        """
+        attrib = attrib or {}
+        value = value or ''
+        if check_existing is True:
+            old = self.get_setting(node_list)
+            if old is not None:
+                already_set = True
+                if old.text.strip() != value:
+                    already_set = False
+                elif old.attrib != attrib:
+                    already_set = False
+                if already_set is True:
+                    log.debug('Element has already been found')
+                    return old
+        # Need to set new setting, indeed
+        self.write_xml = True
+        element = self.root
+        for node in node_list:
+            element = self._set_sub_element(element, node)
+        # Write new values
+        element.text = value
+        if attrib:
+            for key, attribute in attrib.iteritems():
+                element.set(key, attribute)
+        return element
 
 
 def sourcesXML():

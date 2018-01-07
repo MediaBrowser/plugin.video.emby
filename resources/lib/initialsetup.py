@@ -2,12 +2,13 @@
 ###############################################################################
 from logging import getLogger
 from Queue import Queue
+from xml.etree.ElementTree import ParseError
 
 import xbmc
 import xbmcgui
 
 from utils import settings, window, language as lang, tryEncode, \
-    advancedsettings_xml
+    XmlKodiSetting, reboot_kodi
 import downloadutils
 from userclient import UserClient
 
@@ -402,17 +403,28 @@ class InitialSetup():
         """
         LOG.info("Initial setup called.")
         dialog = self.dialog
-
-        # Get current Kodi video cache setting
-        cache, _ = advancedsettings_xml(['cache', 'memorysize'])
+        try:
+            with XmlKodiSetting('advancedsettings.xml',
+                                force_create=True,
+                                top_element='advancedsettings') as xml:
+                # Get current Kodi video cache setting
+                cache = xml.get_setting(['cache', 'memorysize'])
+                # Disable foreground "Loading media information from files"
+                # (still used by Kodi, even though the Wiki says otherwise)
+                xml.set_setting(['musiclibrary', 'backgroundupdate'],
+                                value='true')
+                # Disable cleaning of library - not compatible with PKC
+                xml.set_setting(['videolibrary', 'cleanonupdate'],
+                                value='false')
+                reboot = xml.write_xml
+        except ParseError:
+            cache = None
+            reboot = False
         # Kodi default cache if no setting is set
         cache = str(cache.text) if cache is not None else '20971520'
         LOG.info('Current Kodi video memory cache in bytes: %s', cache)
         settings('kodi_video_cache', value=cache)
-        # Disable foreground "Loading media information from files"
-        # (still used by Kodi, even though the Wiki says otherwise)
-        advancedsettings_xml(['musiclibrary', 'backgroundupdate'],
-                             new_value='true')
+
         # Do we need to migrate stuff?
         check_migration()
         # Optionally sign into plex.tv. Will not be called on very first run
@@ -436,6 +448,8 @@ class InitialSetup():
                 LOG.info("Using PMS %s with machineIdentifier %s",
                          self.server, self.serverid)
                 self._write_PMS_settings(self.server, self.pms_token)
+                if reboot is True:
+                    reboot_kodi()
                 return
 
         # If not already retrieved myplex info, optionally let user sign in
@@ -450,6 +464,8 @@ class InitialSetup():
 
         # User already answered the installation questions
         if settings('InstallQuestionsAnswered') == 'true':
+            if reboot is True:
+                reboot_kodi()
             return
 
         # Additional settings where the user needs to choose
@@ -517,3 +533,5 @@ class InitialSetup():
             state.PMS_STATUS = 'Stop'
             xbmc.executebuiltin(
                 'Addon.OpenSettings(plugin.video.plexkodiconnect)')
+        elif reboot is True:
+            reboot_kodi()
