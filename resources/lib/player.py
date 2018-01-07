@@ -455,7 +455,6 @@ class Player(xbmc.Player):
 
                 # Prevent manually mark as watched in Kodi monitor
                 window('emby_skipWatched%s' % itemid, value="true")
-                window('emby.external_check', clear=True)
 
                 self.stopPlayback(data)
 
@@ -463,8 +462,6 @@ class Player(xbmc.Player):
                     try:
                         if window('emby.external'):
                             window('emby.external', clear=True)
-                            window('emby.external_check', clear=True)
-
                             raise ValueError
 
                         percentComplete = (currentPosition * 10000000) / int(runtime)
@@ -498,6 +495,8 @@ class Player(xbmc.Player):
                             self.doUtils(url, action_type="DELETE")
                         else:
                             log.info("User skipped deletion.")
+
+                window('emby.external_check', clear=True)
 
                 # Stop transcoding
                 if playMethod == "Transcode":
