@@ -306,18 +306,16 @@ class DownloadUtils():
                             log.warn("Unable to convert the response for: "
                                      "%s" % url)
                             log.warn("Received headers were: %s" % r.headers)
-                            log.warn('Received text:')
-                            log.warn(r.text)
+                            log.warn('Received text: %s', r.text)
                         return True
             elif r.status_code == 403:
                 # E.g. deleting a PMS item
                 log.warn('PMS sent 403: Forbidden error for url %s' % url)
                 return None
             else:
-                log.warn('Unknown answer from PMS %s with status code %s. '
-                         'Message:' % (url, r.status_code))
                 r.encoding = 'utf-8'
-                log.warn(r.text)
+                log.warn('Unknown answer from PMS %s with status code %s. '
+                         'Message: %s', url, r.status_code, r.text)
                 return True
 
         # And now deal with the consequences of the exceptions
