@@ -9,6 +9,7 @@ from xbmc import Player
 from PKC_listitem import PKC_ListItem
 from pickler import pickle_me, Playback_Successful
 from playbackutils import PlaybackUtils
+import playback
 from utils import window
 from PlexFunctions import GetPlexMetadata
 from PlexAPI import API
@@ -126,30 +127,23 @@ class Playback_Starter(Thread):
         params = dict(parse_qsl(params))
         mode = params.get('mode')
         LOG.debug('Received mode: %s, params: %s', mode, params)
-        try:
-            if mode == 'play':
-                result = self.process_play(params.get('id'),
-                                           params.get('dbid'))
-            elif mode == 'companion':
-                result = self.process_companion()
-            elif mode == 'plex_node':
-                result = self.process_plex_node(
-                    params.get('key'),
-                    params.get('view_offset'),
-                    directplay=True if params.get('play_directly') else False,
-                    node=False if params.get('node') == 'false' else True)
-            elif mode == 'context_menu':
-                ContextMenu()
-                result = Playback_Successful()
-        except:
-            LOG.error('Error encountered for mode %s, params %s',
-                      mode, params)
-            import traceback
-            LOG.error(traceback.format_exc())
-            # Let default.py know!
-            pickle_me(None)
-        else:
-            pickle_me(result)
+        if mode == 'play':
+            result = playback.playback_triage(plex_id=params.get('plex_id'),
+                                              plex_type=params.get('plex_type'),
+                                              path=params.get('path'))
+        elif mode == 'companion':
+            result = self.process_companion()
+        elif mode == 'plex_node':
+            result = self.process_plex_node(
+                params.get('key'),
+                params.get('view_offset'),
+                directplay=True if params.get('play_directly') else False,
+                node=False if params.get('node') == 'false' else True)
+        elif mode == 'context_menu':
+            ContextMenu()
+            result = Playback_Successful()
+        # Let default.py know!
+        # pickle_me(result)
 
     def run(self):
         queue = state.COMMAND_PIPELINE_QUEUE

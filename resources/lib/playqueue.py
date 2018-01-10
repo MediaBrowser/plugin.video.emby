@@ -58,17 +58,18 @@ def init_playqueues():
     LOG.debug('Initialized the Kodi playqueues: %s', PLAYQUEUES)
 
 
-def get_playqueue_from_type(typus):
+def get_playqueue_from_type(kodi_playlist_type):
     """
-    Returns the playqueue according to the typus ('video', 'audio',
-    'picture') passed in
+    Returns the playqueue according to the kodi_playlist_type ('video',
+    'audio', 'picture') passed in
     """
     with LOCK:
         for playqueue in PLAYQUEUES:
-            if playqueue.type == typus:
+            if playqueue.type == kodi_playlist_type:
                 break
         else:
-            raise ValueError('Wrong playlist type passed in: %s' % typus)
+            raise ValueError('Wrong playlist type passed in: %s',
+                             kodi_playlist_type)
         return playqueue
 
 

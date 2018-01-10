@@ -12,11 +12,11 @@ from PlexFunctions import scrobble
 from kodidb_functions import kodiid_from_filename
 from plexbmchelper.subscribers import LOCKER
 from PlexAPI import API
+import playqueue as PQ
 import json_rpc as js
 import playlist_func as PL
 import state
 import variables as v
-import playqueue as PQ
 
 ###############################################################################
 
@@ -254,31 +254,16 @@ class KodiMonitor(Monitor):
             return
         playqueue.clear()
 
-    @LOCKER.lockthis
-    def PlayBackStart(self, data):
+    def _get_ids(self, json_item):
         """
-        Called whenever playback is started. Example data:
-        {
-            u'item': {u'type': u'movie', u'title': u''},
-            u'player': {u'playerid': 1, u'speed': 1}
-        }
-        Unfortunately when using Widgets, Kodi doesn't tell us shit
         """
-        # Get the type of media we're playing
-        try:
-            kodi_type = data['item']['type']
-            playerid = data['player']['playerid']
-        except (TypeError, KeyError):
-            LOG.info('Aborting playback report - item invalid for updates %s',
-                     data)
-            return
-        json_data = js.get_item(playerid)
-        path = json_data.get('file')
-        kodi_id = json_data.get('id')
+        kodi_id = json_item.get('id')
+        kodi_type = json_item.get('type')
+        path = json_item.get('file')
         if not path and not kodi_id:
             LOG.info('Aborting playback report - no Kodi id or file for %s',
-                     json_data)
-            return
+                     json_item)
+            raise RuntimeError
         # Plex id will NOT be set with direct paths
         plex_id = state.PLEX_IDS.get(path)
         try:
@@ -306,28 +291,49 @@ class KodiMonitor(Monitor):
                 except TypeError:
                     # No plex id, hence item not in the library. E.g. clips
                     pass
-        info = js.get_player_props(playerid)
-        state.PLAYER_STATES[playerid].update(info)
-        state.PLAYER_STATES[playerid]['file'] = path
-        state.PLAYER_STATES[playerid]['kodi_id'] = kodi_id
-        state.PLAYER_STATES[playerid]['kodi_type'] = kodi_type
-        state.PLAYER_STATES[playerid]['plex_id'] = plex_id
-        state.PLAYER_STATES[playerid]['plex_type'] = plex_type
-        LOG.debug('Set the player state: %s', state.PLAYER_STATES[playerid])
-        # Check whether we need to init our playqueues (e.g. direct play)
-        init = False
-        playqueue = PQ.PLAYQUEUES[playerid]
+        return kodi_id, kodi_type, plex_id, plex_type
+
+    @LOCKER.lockthis
+    def PlayBackStart(self, data):
+        """
+        Called whenever playback is started. Example data:
+        {
+            u'item': {u'type': u'movie', u'title': u''},
+            u'player': {u'playerid': 1, u'speed': 1}
+        }
+        Unfortunately when using Widgets, Kodi doesn't tell us shit
+        """
+        # Get the type of media we're playing
         try:
-            playqueue.items[info['position']]
+            kodi_type = data['item']['type']
+            playerid = data['player']['playerid']
+        except (TypeError, KeyError):
+            LOG.info('Aborting playback report - item invalid for updates %s',
+                     data)
+            return
+        playqueue = PQ.PLAYQUEUES[playerid]
+        info = js.get_player_props(playerid)
+        json_item = js.get_item(playerid)
+        path = json_item.get('file')
+        pos = info['position'] if info['position'] != -1 else 0
+        LOG.info('Detected position %s for %s', pos, playqueue)
+        try:
+            item = playqueue.items[pos]
+            # See if playback.py already initiated playback
+            init_done = item.init_done
         except IndexError:
-            init = True
-        if init is False and plex_id is not None:
-            if plex_id != playqueue.items[info['position']].plex_id:
-                init = True
-        elif init is False and path != playqueue.items[info['position']].file:
-            init = True
-        if init is True:
-            LOG.debug('Need to initialize Plex and PKC playqueue')
+            init_done = False
+        if init_done is True:
+            kodi_id = item.kodi_id
+            kodi_type = item.kodi_type
+            plex_id = item.plex_id
+            plex_type = item.plex_type
+        else:
+            try:
+                kodi_id, kodi_type, plex_id, plex_type = self._get_ids(json_item)
+            except RuntimeError:
+                return
+            LOG.info('Need to initialize Plex and PKC playqueue')
             if plex_id:
                 PL.init_Plex_playlist(playqueue, plex_id=plex_id)
             else:
@@ -335,17 +341,25 @@ class KodiMonitor(Monitor):
                                       kodi_item={'id': kodi_id,
                                                  'type': kodi_type,
                                                  'file': path})
-        # Set the Plex container key (e.g. using the Plex playqueue)
-        container_key = None
-        if info['playlistid'] != -1:
-            # -1 is Kodi's answer if there is no playlist
-            container_key = PQ.PLAYQUEUES[playerid].id
-        if container_key is not None:
-            container_key = '/playQueues/%s' % container_key
-        elif plex_id is not None:
-            container_key = '/library/metadata/%s' % plex_id
-        state.PLAYER_STATES[playerid]['container_key'] = container_key
-        LOG.debug('Set the Plex container_key to: %s', container_key)
+            # Set the Plex container key (e.g. using the Plex playqueue)
+            container_key = None
+            if info['playlistid'] != -1:
+                # -1 is Kodi's answer if there is no playlist
+                container_key = PQ.PLAYQUEUES[playerid].id
+            if container_key is not None:
+                container_key = '/playQueues/%s' % container_key
+            elif plex_id is not None:
+                container_key = '/library/metadata/%s' % plex_id
+            state.PLAYER_STATES[playerid]['container_key'] = container_key
+            LOG.debug('Set the Plex container_key to: %s', container_key)
+
+        state.PLAYER_STATES[playerid].update(info)
+        state.PLAYER_STATES[playerid]['file'] = path
+        state.PLAYER_STATES[playerid]['kodi_id'] = kodi_id
+        state.PLAYER_STATES[playerid]['kodi_type'] = kodi_type
+        state.PLAYER_STATES[playerid]['plex_id'] = plex_id
+        state.PLAYER_STATES[playerid]['plex_type'] = plex_type
+        LOG.debug('Set the player state: %s', state.PLAYER_STATES[playerid])
 
     def StartDirectPath(self, plex_id, type, currentFile):
         """

@@ -190,6 +190,8 @@ class Playlist_Item(object):
     guid = None        [str] Weird Plex guid
     xml = None         [etree] XML from PMS, 1 lvl below <MediaContainer>
     playmethod = None  [str] either 'DirectPlay', 'DirectStream', 'Transcode'
+    part = 0           [int] part number if Plex video consists of mult. parts
+    init_done = False  Set to True only if run through playback init
     """
     def __init__(self):
         self.id = None
@@ -203,8 +205,9 @@ class Playlist_Item(object):
         self.guid = None
         self.xml = None
         self.playmethod = None
-        # Yet to be implemented: handling of a movie with several parts
+        # If Plex video consists of several parts; part number
         self.part = 0
+        self.init_done = False
 
     def __repr__(self):
         """
@@ -550,11 +553,11 @@ def add_item_to_PMS_playlist(playlist, pos, plex_id=None, kodi_item=None):
 
 
 def add_item_to_kodi_playlist(playlist, pos, kodi_id=None, kodi_type=None,
-                              file=None):
+                              file=None, xml_video_element=None):
     """
     Adds an item to the KODI playlist only. WILL ALSO UPDATE OUR PLAYLISTS
 
-    Returns False if unsuccessful
+    Returns the playlist item that was just added or None
 
     file: str!
     """
@@ -574,17 +577,20 @@ def add_item_to_kodi_playlist(playlist, pos, kodi_id=None, kodi_type=None,
     if reply.get('error') is not None:
         LOG.error('Could not add item to playlist. Kodi reply. %s', reply)
         playlist.is_kodi_onadd()
-        return False
-    item = playlist_item_from_kodi(
-        {'id': kodi_id, 'type': kodi_type, 'file': file})
-    if item.plex_id is not None:
-        xml = GetPlexMetadata(item.plex_id)
-        try:
+        return
+    if xml_video_element is not None:
+        item = playlist_item_from_xml(playlist, xml_video_element)
+        item.kodi_id = kodi_id
+        item.kodi_type = kodi_type
+        item.file = file
+    elif kodi_id is not None:
+        item = playlist_item_from_kodi(
+            {'id': kodi_id, 'type': kodi_type, 'file': file})
+        if item.plex_id is not None:
+            xml = GetPlexMetadata(item.plex_id)
             item.xml = xml[-1]
-        except (TypeError, IndexError):
-            LOG.error('Could not get metadata for playlist item %s', item)
     playlist.items.insert(pos, item)
-    return True
+    return item
 
 
 def move_playlist_item(playlist, before_pos, after_pos):
@@ -706,6 +712,7 @@ def add_listitem_to_Kodi_playlist(playlist, pos, listitem, file,
         item.file = file
     playlist.items.insert(pos, item)
     LOG.debug('Done inserting for %s', playlist)
+    return item
 
 
 def remove_from_kodi_playlist(playlist, pos):

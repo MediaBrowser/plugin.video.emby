@@ -291,12 +291,11 @@ class Movies(Items):
                 path = playurl.replace(filename, "")
         if doIndirect:
             # Set plugin path and media flags using real filename
-            path = "plugin://plugin.video.plexkodiconnect/movies/"
+            path = "plugin://plugin.video.plexkodiconnect"
             params = {
-                'filename': API.getKey(),
-                'id': itemid,
-                'dbid': movieid,
-                'mode': "play"
+                'mode': 'play',
+                'plex_id': itemid,
+                'plex_type': v.PLEX_TYPE_MOVIE
             }
             filename = "%s?%s" % (path, urlencode(params))
             playurl = filename
