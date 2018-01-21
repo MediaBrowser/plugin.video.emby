@@ -324,7 +324,8 @@ def playlist_item_from_plex(plex_id):
     return item
 
 
-def playlist_item_from_xml(playlist, xml_video_element):
+def playlist_item_from_xml(playlist, xml_video_element, kodi_id=None,
+                           kodi_type=None):
     """
     Returns a playlist element for the playqueue using the Plex xml
 
@@ -338,7 +339,10 @@ def playlist_item_from_xml(playlist, xml_video_element):
     item.guid = xml_video_element.attrib.get('guid')
     if item.guid is not None:
         item.guid = escape_html(item.guid)
-    if item.plex_id:
+    if kodi_id is not None:
+        item.kodi_id = kodi_id
+        item.kodi_type = kodi_type
+    elif item.plex_id is not None:
         with plexdb.Get_Plex_DB() as plex_db:
             db_element = plex_db.getItem_byId(item.plex_id)
         try:
@@ -369,20 +373,13 @@ def get_playlist_details_from_xml(playlist, xml):
     Takes a PMS xml as input and overwrites all the playlist's details, e.g.
     playlist.id with the XML's playQueueID
     """
-    try:
-        playlist.id = xml.attrib['%sID' % playlist.kind]
-        playlist.version = xml.attrib['%sVersion' % playlist.kind]
-        playlist.shuffled = xml.attrib['%sShuffled' % playlist.kind]
-        playlist.selectedItemID = xml.attrib.get(
-            '%sSelectedItemID' % playlist.kind)
-        playlist.selectedItemOffset = xml.attrib.get(
-            '%sSelectedItemOffset' % playlist.kind)
-    except:
-        LOG.error('Could not parse xml answer from PMS for playlist %s',
-                  playlist)
-        import traceback
-        LOG.error(traceback.format_exc())
-        raise KeyError
+    playlist.id = xml.attrib['%sID' % playlist.kind]
+    playlist.version = xml.attrib['%sVersion' % playlist.kind]
+    playlist.shuffled = xml.attrib['%sShuffled' % playlist.kind]
+    playlist.selectedItemID = xml.attrib.get(
+        '%sSelectedItemID' % playlist.kind)
+    playlist.selectedItemOffset = xml.attrib.get(
+        '%sSelectedItemOffset' % playlist.kind)
     LOG.debug('Updated playlist from xml: %s', playlist)
 
 
@@ -702,7 +699,7 @@ def add_listitem_to_Kodi_playlist(playlist, pos, listitem, file,
               pos, playlist)
     # Add the item into Kodi playlist
     playlist.kodi_onadd()
-    playlist.kodi_pl.add(file, listitem, index=pos)
+    playlist.kodi_pl.add(url=file, listitem=listitem, index=pos)
     # We need to add this to our internal queue as well
     if xml_video_element is not None:
         item = playlist_item_from_xml(playlist, xml_video_element)
