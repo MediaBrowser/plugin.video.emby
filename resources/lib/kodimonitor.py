@@ -45,6 +45,7 @@ STATE_SETTINGS = {
     'enableMusic': 'ENABLE_MUSIC',
     'enableBackgroundSync': 'BACKGROUND_SYNC'
 }
+
 ###############################################################################
 
 
@@ -55,6 +56,8 @@ class KodiMonitor(Monitor):
     def __init__(self):
         self.xbmcplayer = Player()
         Monitor.__init__(self)
+        for playerid in state.PLAYER_STATES:
+            state.PLAYER_STATES[playerid] = dict(state.PLAYSTATE)
         LOG.info("Kodi monitor started.")
 
     def onScanStarted(self, library):
@@ -315,6 +318,8 @@ class KodiMonitor(Monitor):
             LOG.info('Aborting playback report - item invalid for updates %s',
                      data)
             return
+        # Remember that this player has been active
+        state.ACTIVE_PLAYERS.append(playerid)
         playqueue = PQ.PLAYQUEUES[playerid]
         info = js.get_player_props(playerid)
         json_item = js.get_item(playerid)
@@ -356,13 +361,15 @@ class KodiMonitor(Monitor):
                 container_key = '/library/metadata/%s' % plex_id
             state.PLAYER_STATES[playerid]['container_key'] = container_key
             LOG.debug('Set the Plex container_key to: %s', container_key)
-
-        state.PLAYER_STATES[playerid].update(info)
-        state.PLAYER_STATES[playerid]['file'] = path
-        state.PLAYER_STATES[playerid]['kodi_id'] = kodi_id
-        state.PLAYER_STATES[playerid]['kodi_type'] = kodi_type
-        state.PLAYER_STATES[playerid]['plex_id'] = plex_id
-        state.PLAYER_STATES[playerid]['plex_type'] = plex_type
+        status = state.PLAYER_STATES[playerid]
+        status.update(info)
+        status['file'] = path
+        status['kodi_id'] = kodi_id
+        status['kodi_type'] = kodi_type
+        status['plex_id'] = plex_id
+        status['plex_type'] = plex_type
+        status['playmethod'] = item.playmethod
+        status['playcount'] = item.playcount
         LOG.debug('Set the player state: %s', state.PLAYER_STATES[playerid])
 
     def StartDirectPath(self, plex_id, type, currentFile):

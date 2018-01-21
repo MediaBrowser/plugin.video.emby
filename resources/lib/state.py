@@ -82,43 +82,47 @@ COMMAND_PIPELINE_QUEUE = None
 # Websocket_client queue to communicate with librarysync
 WEBSOCKET_QUEUE = None
 
+# Which Kodi player is/has been active? (either int 1, 2 or 3)
+ACTIVE_PLAYERS = []
+
 # Kodi player states - here, initial values are set
 PLAYER_STATES = {
-    1: {
-        'type': 'movie',
-        'time':     {
-            'hours': 0,
-            'minutes': 0,
-            'seconds': 0,
-            'milliseconds': 0
-        },
-        'totaltime': {
-            'hours': 0,
-            'minutes': 0,
-            'seconds': 0,
-            'milliseconds': 0
-        },
-        'speed': 0,
-        'shuffled': False,
-        'repeat': 'off',
-        'position': -1,
-        'playlistid': -1,
-        'currentvideostream': -1,
-        'currentaudiostream': -1,
-        'subtitleenabled': False,
-        'currentsubtitle': -1,
-        ######
-        'file': '',
-        'kodi_id': None,
-        'kodi_type': None,
-        'plex_id': None,
-        'plex_type': None,
-        'container_key': None,
-        'volume': 100,
-        'muted': False
-    },
+    1: {},
     2: {},
     3: {}
+}
+# "empty" dict for the PLAYER_STATES above
+PLAYSTATE = {
+    'type': None,
+    'time': {
+        'hours': 0,
+        'minutes': 0,
+        'seconds': 0,
+        'milliseconds': 0},
+    'totaltime': {
+        'hours': 0,
+        'minutes': 0,
+        'seconds': 0,
+        'milliseconds': 0},
+    'speed': 0,
+    'shuffled': False,
+    'repeat': 'off',
+    'position': None,
+    'playlistid': None,
+    'currentvideostream': -1,
+    'currentaudiostream': -1,
+    'subtitleenabled': False,
+    'currentsubtitle': -1,
+    'file': None,
+    'kodi_id': None,
+    'kodi_type': None,
+    'plex_id': None,
+    'plex_type': None,
+    'container_key': None,
+    'volume': 100,
+    'muted': False,
+    'playmethod': None,
+    'playcount': None
 }
 # Dict containing all filenames as keys with plex id as values - used for addon
 # paths for playback (since we're not receiving a Kodi id)

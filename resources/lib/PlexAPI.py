@@ -1268,6 +1268,15 @@ class API():
             res = '2000-01-01 10:00:00'
         return res
 
+    def getViewCount(self):
+        """
+        Returns the play count for the item as an int or the int 0 if not found
+        """
+        try:
+            return int(self.item.attrib['viewCount'])
+        except (KeyError, ValueError):
+            return 0
+
     def getUserData(self):
         """
         Returns a dict with None if a value is missing

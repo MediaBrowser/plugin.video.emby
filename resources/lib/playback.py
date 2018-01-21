@@ -138,6 +138,7 @@ def _prep_playlist_stack(xml):
             # We will never store clips (trailers) in the Kodi DB
             kodi_id = None
             kodi_type = None
+        resume, _ = api.getRuntime()
         for part, _ in enumerate(item[0]):
             api.setPartNumber(part)
             if kodi_id is None:
@@ -161,7 +162,9 @@ def _prep_playlist_stack(xml):
                 'file': path,
                 'xml_video_element': item,
                 'listitem': listitem,
-                'part': part
+                'part': part,
+                'playcount': api.getViewCount(),
+                'offset': resume
             })
     return stack
 
@@ -188,6 +191,8 @@ def _process_stack(playqueue, stack):
                 kodi_id=item['kodi_id'],
                 kodi_type=item['kodi_type'],
                 xml_video_element=item['xml_video_element'])
+        playlist_item.playcount = item['playcount']
+        playlist_item.offset = item['offset']
         playlist_item.part = item['part']
         playlist_item.init_done = True
         pos += 1

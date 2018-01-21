@@ -190,6 +190,8 @@ class Playlist_Item(object):
     guid = None        [str] Weird Plex guid
     xml = None         [etree] XML from PMS, 1 lvl below <MediaContainer>
     playmethod = None  [str] either 'DirectPlay', 'DirectStream', 'Transcode'
+    playcount = None   [int] how many times the item has already been played
+    offset = None      [int] the item's view offset UPON START in Plex time
     part = 0           [int] part number if Plex video consists of mult. parts
     init_done = False  Set to True only if run through playback init
     """
@@ -205,6 +207,8 @@ class Playlist_Item(object):
         self.guid = None
         self.xml = None
         self.playmethod = None
+        self.playcount = None
+        self.offset = None
         # If Plex video consists of several parts; part number
         self.part = 0
         self.init_done = False
