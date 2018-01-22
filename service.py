@@ -31,7 +31,7 @@ sys_path.append(_base_resource)
 from utils import settings, window, language as lang, dialog, tryDecode
 from userclient import UserClient
 import initialsetup
-from kodimonitor import KodiMonitor
+from kodimonitor import KodiMonitor, SpecialMonitor
 from librarysync import LibrarySync
 import videonodes
 from websocket_client import PMS_Websocket, Alexa_Websocket
@@ -155,6 +155,7 @@ class Service():
         self.alexa = Alexa_Websocket()
         self.library = LibrarySync()
         self.plexCompanion = PlexCompanion()
+        self.specialMonitor = SpecialMonitor()
         self.playback_starter = Playback_Starter()
         if settings('enableTextureCache') == "true":
             self.image_cache_thread = Image_Cache_Thread()
@@ -197,6 +198,7 @@ class Service():
                                    sound=False)
                         # Start monitoring kodi events
                         self.kodimonitor_running = KodiMonitor()
+                        self.specialMonitor.start()
                         # Start the Websocket Client
                         if not self.ws_running:
                             self.ws_running = True

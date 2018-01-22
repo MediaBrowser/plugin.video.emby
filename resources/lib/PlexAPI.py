@@ -1505,6 +1505,16 @@ class API():
         """
         return self.item.attrib.get('year', None)
 
+    def getResume(self):
+        """
+        Returns the resume point of time in seconds as int. 0 if not found
+        """
+        try:
+            resume = float(self.item.attrib['viewOffset'])
+        except (KeyError, ValueError):
+            resume = 0.0
+        return int(resume * v.PLEX_TO_KODI_TIMEFACTOR)
+
     def getRuntime(self):
         """
         Resume point of time and runtime/totaltime in rounded to seconds.
@@ -2521,7 +2531,9 @@ class API():
             'mpaa': self.getMpaa(),
             'aired': self.getPremiereDate()
         }
-        listItem.setProperty('resumetime', str(userdata['Resume']))
+        # Do NOT set resumetime - otherwise Kodi always resumes at that time
+        # even if the user chose to start element from the beginning
+        # listItem.setProperty('resumetime', str(userdata['Resume']))
         listItem.setProperty('totaltime', str(userdata['Runtime']))
 
         if typus == v.PLEX_TYPE_EPISODE:

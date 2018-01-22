@@ -32,7 +32,7 @@ def pickle_me(obj, window_var='plex_result'):
     obj can be pretty much any Python object. However, classes and
     functions won't work. See the Pickle documentation
     """
-    log('%sStart pickling: %s' % (PREFIX, obj), level=LOGDEBUG)
+    log('%sStart pickling' % PREFIX, level=LOGDEBUG)
     pickl_window(window_var, value=dumps(obj))
     log('%sSuccessfully pickled' % PREFIX, level=LOGDEBUG)
 

@@ -66,6 +66,44 @@ def playback_triage(plex_id=None, plex_type=None, path=None):
         conclude_playback(playqueue, pos)
 
 
+def play_resume(playqueue, xml, stack):
+    """
+    If there exists a resume point, Kodi will ask the user whether to continue
+    playback. We thus need to use setResolvedUrl "correctly". Mind that there
+    might be several parts!
+    """
+    result = Playback_Successful()
+    listitem = PKC_ListItem()
+    # Only get the very first item of our playqueue (i.e. the very first part)
+    stack_item = stack.pop(0)
+    api = API(xml[0])
+    item = PL.playlist_item_from_xml(playqueue,
+                                     xml[0],
+                                     kodi_id=stack_item['kodi_id'],
+                                     kodi_type=stack_item['kodi_type'])
+    api.setPartNumber(item.part)
+    item.playcount = stack_item['playcount']
+    item.offset = stack_item['offset']
+    item.part = stack_item['part']
+    item.init_done = True
+    api.CreateListItemFromPlexItem(listitem)
+    playutils = PlayUtils(api, item)
+    playurl = playutils.getPlayUrl()
+    listitem.setPath(playurl)
+    if item.playmethod in ('DirectStream', 'DirectPlay'):
+        listitem.setSubtitles(api.externalSubs())
+    else:
+        playutils.audio_subtitle_prefs(listitem)
+    result.listitem = listitem
+    # Add to our playlist
+    playqueue.items.append(item)
+    # This will release default.py with setResolvedUrl
+    pickle_me(result)
+    # Add remaining parts to the playlist, if any
+    if stack:
+        _process_stack(playqueue, stack)
+
+
 def playback_init(plex_id, plex_type, playqueue):
     """
     Playback setup if Kodi starts playing an item for the first time.
@@ -112,10 +150,16 @@ def playback_init(plex_id, plex_type, playqueue):
     playqueue.clear()
     PL.get_playlist_details_from_xml(playqueue, xml)
     stack = _prep_playlist_stack(xml)
+    # if resume:
+    #     # Need to handle this differently so only 1 dialog is displayed whether
+    #     # user wants to resume to start at the beginning
+    #     LOG.info('Resume detected')
+    #     play_resume(playqueue, xml, stack)
+    #     return
     # Release our default.py before starting our own Kodi player instance
     pickle_me(Playback_Successful())
     # Sleep a bit to let setResolvedUrl do its thing - bit ugly
-    sleep(200)
+    sleep(100)
     _process_stack(playqueue, stack)
     # New thread to release this one sooner (e.g. harddisk spinning up)
     thread = Thread(target=Player().play,
@@ -138,7 +182,6 @@ def _prep_playlist_stack(xml):
             # We will never store clips (trailers) in the Kodi DB
             kodi_id = None
             kodi_type = None
-        resume, _ = api.getRuntime()
         for part, _ in enumerate(item[0]):
             api.setPartNumber(part)
             if kodi_id is None:
@@ -164,7 +207,7 @@ def _prep_playlist_stack(xml):
                 'listitem': listitem,
                 'part': part,
                 'playcount': api.getViewCount(),
-                'offset': resume
+                'offset': api.getResume()
             })
     return stack
 
@@ -213,6 +256,7 @@ def conclude_playback(playqueue, pos):
             start playback
             return PKC listitem attached to result
     """
+    LOG.info('Concluding playback for playqueue position %s', pos)
     result = Playback_Successful()
     listitem = PKC_ListItem()
     item = playqueue.items[pos]
@@ -226,10 +270,16 @@ def conclude_playback(playqueue, pos):
     else:
         playurl = item.file
     listitem.setPath(playurl)
-    if item.playmethod in ("DirectStream", "DirectPlay"):
+    if item.playmethod in ('DirectStream', 'DirectPlay'):
         listitem.setSubtitles(api.externalSubs())
     else:
         playutils.audio_subtitle_prefs(listitem)
     listitem.setPath(playurl)
+    if state.RESUME_PLAYBACK is True:
+        state.RESUME_PLAYBACK = False
+        LOG.info('Resuming playback at %s', item.offset)
+        listitem.setProperty('StartOffset', str(item.offset))
+        listitem.setProperty('resumetime', str(item.offset))
     result.listitem = listitem
     pickle_me(result)
+    LOG.info('Done concluding playback')

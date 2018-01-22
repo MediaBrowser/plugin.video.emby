@@ -128,6 +128,9 @@ PLAYSTATE = {
 # paths for playback (since we're not receiving a Kodi id)
 PLEX_IDS = {}
 PLAYED_INFO = {}
+# Set by SpecialMonitor - did user choose to resume playback or start from the
+# beginning?
+RESUME_PLAYBACK = False
 
 # Kodi webserver details
 WEBSERVER_PORT = 8080

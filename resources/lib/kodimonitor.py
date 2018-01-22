@@ -3,11 +3,15 @@ PKC Kodi Monitoring implementation
 """
 from logging import getLogger
 from json import loads
+from threading import Thread
 
-from xbmc import Monitor, Player, sleep
+from xbmc import Monitor, Player, sleep, getCondVisibility, getInfoLabel, \
+    getLocalizedString
+from xbmcgui import Window
 
 import plexdb_functions as plexdb
-from utils import window, settings, CatchExceptions, plex_command
+from utils import window, settings, CatchExceptions, plex_command, \
+    thread_methods
 from PlexFunctions import scrobble
 from kodidb_functions import kodiid_from_filename
 from plexbmchelper.subscribers import LOCKER
@@ -391,3 +395,31 @@ class KodiMonitor(Monitor):
         else:
             window('plex_%s.playmethod' % currentFile, value="DirectPlay")
         LOG.debug('Window properties set for direct paths!')
+
+
+@thread_methods
+class SpecialMonitor(Thread):
+    """
+    Detect the resume dialog for widgets.
+    Could also be used to detect external players (see Emby implementation)
+    """
+    def run(self):
+        LOG.info("----====# Starting Special Monitor #====----")
+        player = Player()
+        while not self.thread_stopped():
+            is_playing = player.isPlaying()
+
+            if (not is_playing and
+                    getCondVisibility('Window.IsVisible(DialogContextMenu.xml)') and
+                    not getCondVisibility('Window.IsVisible(MyVideoNav.xml)') and
+                    getInfoLabel('Control.GetLabel(1002)') == getLocalizedString(12021)):
+                control = int(Window(10106).getFocusId())
+                if control == 1002:
+                    # Start from beginning
+                    LOG.info("Resume dialog: Start from beginning selected")
+                    state.RESUME_PLAYBACK = False
+                else:
+                    LOG.info("Resume dialog: resume selected")
+                    state.RESUME_PLAYBACK = True
+            sleep(200)
+        LOG.info("#====---- Special Monitor Stopped ----====#")

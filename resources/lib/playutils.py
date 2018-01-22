@@ -47,6 +47,7 @@ class PlayUtils():
                 })
             self.item.playmethod = 'Transcode'
         LOG.info("The playurl is: %s", playurl)
+        self.item.file = playurl
         return playurl
 
     def isDirectPlay(self):
