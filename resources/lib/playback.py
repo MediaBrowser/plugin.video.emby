@@ -60,6 +60,8 @@ def playback_triage(plex_id=None, plex_type=None, path=None):
     try:
         playqueue.items[pos]
     except IndexError:
+        # Release our default.py before starting our own Kodi player instance
+        pickle_me(Playback_Successful())
         playback_init(plex_id, plex_type, playqueue)
     else:
         # kick off playback on second pass
@@ -156,10 +158,8 @@ def playback_init(plex_id, plex_type, playqueue):
     #     LOG.info('Resume detected')
     #     play_resume(playqueue, xml, stack)
     #     return
-    # Release our default.py before starting our own Kodi player instance
-    pickle_me(Playback_Successful())
     # Sleep a bit to let setResolvedUrl do its thing - bit ugly
-    sleep(100)
+    sleep(300)
     _process_stack(playqueue, stack)
     # New thread to release this one sooner (e.g. harddisk spinning up)
     thread = Thread(target=Player().play,
