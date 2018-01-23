@@ -322,6 +322,13 @@ class KodiMonitor(Monitor):
             LOG.info('Aborting playback report - item invalid for updates %s',
                      data)
             return
+        if playerid == -1:
+            # Kodi might return -1 for "last player"
+            try:
+                playerid = js.get_player_ids()[0]
+            except IndexError:
+                LOG.error('Could not retreive active player - aborting')
+                return
         # Remember that this player has been active
         state.ACTIVE_PLAYERS.append(playerid)
         playqueue = PQ.PLAYQUEUES[playerid]
