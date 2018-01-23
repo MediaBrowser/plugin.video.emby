@@ -10,12 +10,10 @@ from xbmc import Monitor, Player, sleep, getCondVisibility, getInfoLabel, \
 from xbmcgui import Window
 
 import plexdb_functions as plexdb
-from utils import window, settings, CatchExceptions, plex_command, \
-    thread_methods
+from utils import window, settings, plex_command, thread_methods
 from PlexFunctions import scrobble
 from kodidb_functions import kodiid_from_filename
 from plexbmchelper.subscribers import LOCKER
-from PlexAPI import API
 import playqueue as PQ
 import json_rpc as js
 import playlist_func as PL
@@ -121,7 +119,6 @@ class KodiMonitor(Monitor):
             state.STOP_SYNC = False
             state.PATH_VERIFIED = False
 
-    @CatchExceptions(warnuser=False)
     def onNotification(self, sender, method, data):
         """
         Called when a bunch of different stuff happens on the Kodi side
@@ -382,26 +379,6 @@ class KodiMonitor(Monitor):
         status['playmethod'] = item.playmethod
         status['playcount'] = item.playcount
         LOG.debug('Set the player state: %s', state.PLAYER_STATES[playerid])
-
-    def StartDirectPath(self, plex_id, type, currentFile):
-        """
-        Set some additional stuff if playback was initiated by Kodi, not PKC
-        """
-        xml = self.doUtils('{server}/library/metadata/%s' % plex_id)
-        try:
-            xml[0].attrib
-        except:
-            LOG.error('Did not receive a valid XML for plex_id %s.' % plex_id)
-            return False
-        # Setup stuff, because playback was started by Kodi, not PKC
-        api = API(xml[0])
-        listitem = api.CreateListItemFromPlexItem()
-        api.set_playback_win_props(currentFile, listitem)
-        if type == "song" and settings('streamMusic') == "true":
-            window('plex_%s.playmethod' % currentFile, value="DirectStream")
-        else:
-            window('plex_%s.playmethod' % currentFile, value="DirectPlay")
-        LOG.debug('Window properties set for direct paths!')
 
 
 @thread_methods
