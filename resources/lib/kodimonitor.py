@@ -418,7 +418,6 @@ class SpecialMonitor(Thread):
 
             if (not is_playing and
                     getCondVisibility('Window.IsVisible(DialogContextMenu.xml)') and
-                    not getCondVisibility('Window.IsVisible(MyVideoNav.xml)') and
                     getInfoLabel('Control.GetLabel(1002)') == getLocalizedString(12021)):
                 control = int(Window(10106).getFocusId())
                 if control == 1002:
