@@ -314,8 +314,8 @@ class DownloadUtils():
                 return None
             else:
                 r.encoding = 'utf-8'
-                log.warn('Unknown answer from PMS %s with status code %s. '
-                         'Message: %s', url, r.status_code, r.text)
+                log.warn('Unknown answer from PMS %s with status code %s. ',
+                         url, r.status_code)
                 return True
 
         # And now deal with the consequences of the exceptions
