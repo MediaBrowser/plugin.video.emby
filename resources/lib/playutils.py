@@ -2,7 +2,7 @@
 
 ###############################################################################
 from logging import getLogger
-from downloadutils import DownloadUtils
+from downloadutils import DownloadUtils as DU
 
 from utils import window, settings, language as lang, dialog, tryEncode
 import variables as v
@@ -15,9 +15,12 @@ LOG = getLogger("PLEX." + __name__)
 class PlayUtils():
 
     def __init__(self, api, playqueue_item):
+        """
+        init with api (PlexAPI wrapper of the PMS xml element) and
+        playqueue_item (Playlist_Item())
+        """
         self.api = api
         self.item = playqueue_item
-        self.doUtils = DownloadUtils().downloadUrl
 
     def getPlayUrl(self):
         """
@@ -322,9 +325,9 @@ class PlayUtils():
                     'audioStreamID': audio_streams_list[resp],
                     'allParts': 1
                 }
-                self.doUtils('{server}/library/parts/%s' % part_id,
-                             action_type='PUT',
-                             parameters=args)
+                DU().downloadUrl('{server}/library/parts/%s' % part_id,
+                                 action_type='PUT',
+                                 parameters=args)
 
         if sub_num == 1:
             # No subtitles
@@ -355,6 +358,6 @@ class PlayUtils():
             'subtitleStreamID': select_subs_index,
             'allParts': 1
         }
-        self.doUtils('{server}/library/parts/%s' % part_id,
-                     action_type='PUT',
-                     parameters=args)
+        DU().downloadUrl('{server}/library/parts/%s' % part_id,
+                         action_type='PUT',
+                         parameters=args)
