@@ -61,7 +61,9 @@ def playback_triage(plex_id=None, plex_type=None, path=None):
         playqueue.items[pos]
     except IndexError:
         # Release our default.py before starting our own Kodi player instance
-        pickle_me(Playback_Successful())
+        result = Playback_Successful()
+        result.listitem = PKC_ListItem()
+        pickle_me(result)
         playback_init(plex_id, plex_type, playqueue)
     else:
         # kick off playback on second pass
