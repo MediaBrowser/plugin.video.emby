@@ -91,6 +91,12 @@ PLAYER_STATES = {
     2: {},
     3: {}
 }
+# The LAST playstate once playback is finished
+OLD_PLAYER_STATES = {
+    1: {},
+    2: {},
+    3: {}
+}
 # "empty" dict for the PLAYER_STATES above
 PLAYSTATE = {
     'type': None,

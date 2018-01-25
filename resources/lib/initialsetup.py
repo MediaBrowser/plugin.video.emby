@@ -415,6 +415,10 @@ class InitialSetup():
                 # Disable cleaning of library - not compatible with PKC
                 xml.set_setting(['videolibrary', 'cleanonupdate'],
                                 value='false')
+                # Set completely watched point same as plex (and not 92%)
+                xml.set_setting(['video', 'ignorepercentatend'], value='10')
+                xml.set_setting(['video', 'playcountminimumpercent'],
+                                value='90')
                 reboot = xml.write_xml
         except etree.ParseError:
             cache = None

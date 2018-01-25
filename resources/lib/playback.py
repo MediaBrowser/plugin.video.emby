@@ -29,7 +29,7 @@ LOG = getLogger("PLEX." + __name__)
 
 
 @LOCKER.lockthis
-def playback_triage(plex_id=None, plex_type=None, path=None):
+def playback_triage(plex_id=None, plex_type=None, path=None, resolve=True):
     """
     Hit this function for addon path playback, Plex trailers, etc.
     Will setup playback first, then on second call complete playback.
@@ -40,6 +40,10 @@ def playback_triage(plex_id=None, plex_type=None, path=None):
     If trailers or additional (movie-)parts are added, default.py is released
     and a completely new player instance is called with a new playlist. This
     circumvents most issues with Kodi & playqueues
+
+    Set resolve to False if you do not want setResolvedUrl to be called on
+    the first pass - e.g. if you're calling this function from the original
+    service.py Python instance
     """
     LOG.info('playback_triage called with plex_id %s, plex_type %s, path %s',
              plex_id, plex_type, path)
@@ -61,9 +65,10 @@ def playback_triage(plex_id=None, plex_type=None, path=None):
         playqueue.items[pos]
     except IndexError:
         # Release our default.py before starting our own Kodi player instance
-        result = Playback_Successful()
-        result.listitem = PKC_ListItem()
-        pickle_me(result)
+        if resolve is True:
+            result = Playback_Successful()
+            result.listitem = PKC_ListItem(path='PKC_Dummy_Path')
+            pickle_me(result)
         playback_init(plex_id, plex_type, playqueue)
     else:
         # kick off playback on second pass

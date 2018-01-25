@@ -14,6 +14,7 @@ from utils import window, settings, plex_command, thread_methods
 from PlexFunctions import scrobble
 from kodidb_functions import kodiid_from_filename
 from plexbmchelper.subscribers import LOCKER
+from playback import playback_triage
 import playqueue as PQ
 import json_rpc as js
 import playlist_func as PL
@@ -60,6 +61,7 @@ class KodiMonitor(Monitor):
         Monitor.__init__(self)
         for playerid in state.PLAYER_STATES:
             state.PLAYER_STATES[playerid] = dict(state.PLAYSTATE)
+            state.OLD_PLAYER_STATES[playerid] = dict(state.PLAYSTATE)
         LOG.info("Kodi monitor started.")
 
     def onScanStarted(self, library):
@@ -143,32 +145,34 @@ class KodiMonitor(Monitor):
             # Manually marking as watched/unwatched
             playcount = data.get('playcount')
             item = data.get('item')
+            if playcount is None or item is None:
+                return
             try:
                 kodiid = item['id']
                 item_type = item['type']
             except (KeyError, TypeError):
                 LOG.info("Item is invalid for playstate update.")
+                return
+            # Send notification to the server.
+            with plexdb.Get_Plex_DB() as plexcur:
+                plex_dbitem = plexcur.getItem_byKodiId(kodiid, item_type)
+            try:
+                itemid = plex_dbitem[0]
+            except TypeError:
+                LOG.error("Could not find itemid in plex database for a "
+                          "video library update")
             else:
-                # Send notification to the server.
-                with plexdb.Get_Plex_DB() as plexcur:
-                    plex_dbitem = plexcur.getItem_byKodiId(kodiid, item_type)
-                try:
-                    itemid = plex_dbitem[0]
-                except TypeError:
-                    LOG.error("Could not find itemid in plex database for a "
-                              "video library update")
+                # Stop from manually marking as watched unwatched, with
+                # actual playback.
+                if window('plex_skipWatched%s' % itemid) == "true":
+                    # property is set in player.py
+                    window('plex_skipWatched%s' % itemid, clear=True)
                 else:
-                    # Stop from manually marking as watched unwatched, with
-                    # actual playback.
-                    if window('plex_skipWatched%s' % itemid) == "true":
-                        # property is set in player.py
-                        window('plex_skipWatched%s' % itemid, clear=True)
+                    # notify the server
+                    if playcount > 0:
+                        scrobble(itemid, 'watched')
                     else:
-                        # notify the server
-                        if playcount > 0:
-                            scrobble(itemid, 'watched')
-                        else:
-                            scrobble(itemid, 'unwatched')
+                        scrobble(itemid, 'unwatched')
         elif method == "VideoLibrary.OnRemove":
             pass
         elif method == "System.OnSleep":
@@ -202,6 +206,21 @@ class KodiMonitor(Monitor):
         Will NOT be called if playback initiated by Kodi widgets
         """
         playqueue = PQ.PLAYQUEUES[data['playlistid']]
+        # Kodi remembers the last setResolvedUrl - which is empty in our case
+        kodi_item = js.get_item(data['playlistid'])
+        LOG.debug('kodi_item: %s', kodi_item)
+        # if kodi_item.get('file') == '':
+        #     LOG.info('Detected re-start of playback of last item')
+        #     old = state.OLD_PLAYER_STATES[data['playlistid']]
+        #     kwargs = {
+        #         'plex_id': old['plex_id'],
+        #         'plex_type': old['plex_type'],
+        #         'path': old['file'],
+        #         'resolve': False
+        #     }
+        #     thread = Thread(target=playback_triage, kwargs=kwargs)
+        #     thread.start()
+        #     return
         # Have we initiated the playqueue already? If not, ignore this
         if not playqueue.items:
             LOG.debug('Playqueue not initiated - ignoring')
@@ -211,11 +230,10 @@ class KodiMonitor(Monitor):
             LOG.debug('PKC added this item to the playqueue - ignoring')
             return
         # Check whether we even need to update our known playqueue
-        kodi_playqueue = js.playlist_get_items(data['playlistid'])
-        if playqueue.old_kodi_pl == kodi_playqueue:
-            # We already know the latest playqueue (e.g. because Plex
-            # initiated playback)
-            return
+        # if playqueue.old_kodi_pl == kodi_playqueue:
+        #     # We already know the latest playqueue (e.g. because Plex
+        #     # initiated playback)
+        #     return
         # Playlist has been updated; need to tell Plex about it
         if playqueue.id is None:
             PL.init_Plex_playlist(playqueue, kodi_item=data['item'])
@@ -224,7 +242,7 @@ class KodiMonitor(Monitor):
                                         data['position'],
                                         kodi_item=data['item'])
         # Make sure that we won't re-add this item
-        playqueue.old_kodi_pl = kodi_playqueue
+        # playqueue.old_kodi_pl = kodi_playqueue
 
     @LOCKER.lockthis
     def _playlist_onremove(self, data):
