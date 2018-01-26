@@ -173,6 +173,12 @@ def playback_init(plex_id, plex_type, playqueue):
                     args=(playqueue.kodi_pl, ))
     thread.setDaemon(True)
     LOG.info('Done initializing PKC playback, starting Kodi player')
+    # By design, PKC will start Kodi playback using Player().play(). Kodi
+    # caches paths like our plugin://pkc. If we use Player().play() between
+    # 2 consecutive startups of exactly the same Kodi library item, Kodi's
+    # cache will have been flushed for some reason. Hence the 2nd call for
+    # plugin://pkc will be lost; Kodi will try to startup playback for an empty
+    # path: log entry is "CGUIWindowVideoBase::OnPlayMedia <missing path>"
     thread.start()
 
 
@@ -287,6 +293,8 @@ def conclude_playback(playqueue, pos):
         LOG.info('Resuming playback at %s', item.offset)
         listitem.setProperty('StartOffset', str(item.offset))
         listitem.setProperty('resumetime', str(item.offset))
+    # Reset the resumable flag
+    state.RESUMABLE = False
     result.listitem = listitem
     pickle_me(result)
     LOG.info('Done concluding playback')

@@ -209,18 +209,24 @@ class KodiMonitor(Monitor):
         # Kodi remembers the last setResolvedUrl - which is empty in our case
         kodi_item = js.get_item(data['playlistid'])
         LOG.debug('kodi_item: %s', kodi_item)
-        # if kodi_item.get('file') == '':
-        #     LOG.info('Detected re-start of playback of last item')
-        #     old = state.OLD_PLAYER_STATES[data['playlistid']]
-        #     kwargs = {
-        #         'plex_id': old['plex_id'],
-        #         'plex_type': old['plex_type'],
-        #         'path': old['file'],
-        #         'resolve': False
-        #     }
-        #     thread = Thread(target=playback_triage, kwargs=kwargs)
-        #     thread.start()
-        #     return
+        if (state.RESUMABLE is True and
+                data['position'] == 0 and
+                data['item'].get('title') is not None and
+                getCondVisibility('Window.IsVisible(MyVideoNav.xml)')):
+            # Hack we need for RESUMABLE items because Kodi lost the path of the
+            # last played item that is now being replayed (see playback.py's
+            # Player().play())
+            LOG.info('Detected re-start of playback of last item')
+            old = state.OLD_PLAYER_STATES[data['playlistid']]
+            kwargs = {
+                'plex_id': old['plex_id'],
+                'plex_type': old['plex_type'],
+                'path': old['file'],
+                'resolve': False
+            }
+            thread = Thread(target=playback_triage, kwargs=kwargs)
+            thread.start()
+            return
         # Have we initiated the playqueue already? If not, ignore this
         if not playqueue.items:
             LOG.debug('Playqueue not initiated - ignoring')
@@ -414,6 +420,8 @@ class SpecialMonitor(Thread):
             if (not is_playing and
                     getCondVisibility('Window.IsVisible(DialogContextMenu.xml)') and
                     getInfoLabel('Control.GetLabel(1002)') == getLocalizedString(12021)):
+                # Remember that the item IS indeed resumable
+                state.RESUMABLE = True
                 control = int(Window(10106).getFocusId())
                 if control == 1002:
                     # Start from beginning
