@@ -16,7 +16,7 @@ from playutils import PlayUtils
 from PKC_listitem import PKC_ListItem
 from pickler import pickle_me, Playback_Successful
 import json_rpc as js
-from utils import window, settings, dialog, language as lang
+from utils import window, settings, dialog, language as lang, tryEncode
 from plexbmchelper.subscribers import LOCKER
 import variables as v
 import state
@@ -99,7 +99,7 @@ def play_resume(playqueue, xml, stack):
     api.CreateListItemFromPlexItem(listitem)
     playutils = PlayUtils(api, item)
     playurl = playutils.getPlayUrl()
-    listitem.setPath(playurl)
+    listitem.setPath(tryEncode(playurl))
     if item.playmethod in ('DirectStream', 'DirectPlay'):
         listitem.setSubtitles(api.externalSubs())
     else:
@@ -202,7 +202,7 @@ def _prep_playlist_stack(xml):
                 path = ('plugin://plugin.video.plexkodiconnect?%s'
                         % urlencode(params))
                 listitem = api.CreateListItemFromPlexItem()
-                listitem.setPath(path)
+                listitem.setPath(tryEncode(path))
             else:
                 # Will add directly via the Kodi DB
                 path = None
@@ -277,12 +277,11 @@ def conclude_playback(playqueue, pos):
         playurl = playutils.getPlayUrl()
     else:
         playurl = item.file
-    listitem.setPath(playurl)
+    listitem.setPath(tryEncode(playurl))
     if item.playmethod in ('DirectStream', 'DirectPlay'):
         listitem.setSubtitles(api.externalSubs())
     else:
         playutils.audio_subtitle_prefs(listitem)
-    listitem.setPath(playurl)
     if state.RESUME_PLAYBACK is True:
         state.RESUME_PLAYBACK = False
         LOG.info('Resuming playback at %s', item.offset)
