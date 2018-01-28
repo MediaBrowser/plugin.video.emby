@@ -6,6 +6,7 @@ from Queue import Queue, Empty
 from shutil import rmtree
 from urllib import quote_plus, unquote
 from threading import Thread
+from os import makedirs
 import requests
 
 from xbmc import sleep, translatePath
@@ -136,6 +137,7 @@ class Artwork():
             path = tryDecode(translatePath("special://thumbnails/"))
             if exists_dir(path):
                 rmtree(path, ignore_errors=True)
+                self.restoreCacheDirectories()
 
             # remove all existing data from texture DB
             connection = kodiSQL('texture')
@@ -335,7 +337,14 @@ class Artwork():
             LOG.debug("Deleting cached thumbnail: %s" % path)
             if exists(path):
                 rmtree(tryDecode(path), ignore_errors=True)
+                self.restoreCacheDirectories()
             cursor.execute("DELETE FROM texture WHERE url = ?", (url,))
             connection.commit()
         finally:
             connection.close()
+
+    def restoreCacheDirectories(self):
+        LOG.info("Restoring cache directories...")
+        paths = ("","0","1","2","3","4","5","6","7","8","9","a","b","c","d","e","f","Video","plex")
+        for p in paths:
+            makedirs(tryDecode(translatePath("special://thumbnails/%s" % p)))
