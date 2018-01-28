@@ -161,7 +161,7 @@ def playback_init(plex_id, plex_type, playqueue):
     #     play_resume(playqueue, xml, stack)
     #     return
     # Sleep a bit to let setResolvedUrl do its thing - bit ugly
-    sleep(300)
+    sleep(200)
     _process_stack(playqueue, stack)
     # New thread to release this one sooner (e.g. harddisk spinning up)
     thread = Thread(target=Player().play,
