@@ -1290,6 +1290,10 @@ class LibrarySync(Thread):
             if status == 'buffering':
                 continue
             ratingKey = str(item['ratingKey'])
+            for pid in (1, 2, 3):
+                if ratingKey == state.PLAYER_STATES[pid]['plex_id']:
+                    # Kodi is playing this item - no need to set the playstate
+                    continue
             with plexdb.Get_Plex_DB() as plex_db:
                 kodi_info = plex_db.getItem_byId(ratingKey)
             if kodi_info is None:
