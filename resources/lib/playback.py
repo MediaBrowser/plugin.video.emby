@@ -44,6 +44,8 @@ def process_indirect(key, offset, resolve=True):
     result = Playback_Successful()
     if key.startswith('http') or key.startswith('{server}'):
         xml = DU().downloadUrl(key)
+    elif key.startswith('/system/services'):
+        xml = DU().downloadUrl('http://node.plexapp.com:32400%s' % key)
     else:
         xml = DU().downloadUrl('{server}%s' % key)
     try:
