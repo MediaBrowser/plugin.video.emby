@@ -63,6 +63,10 @@ remapSMBmusicNew = None
 remapSMBphotoOrg = None
 remapSMBphotoNew = None
 
+# Shall we verify SSL certificates?
+VERIFY_SSL_CERT = False
+# Do we have an ssl certificate for PKC we need to use?
+SSL_CERT_PATH = None
 # Along with window('plex_authenticated')
 AUTHENTICATED = False
 # plex.tv username

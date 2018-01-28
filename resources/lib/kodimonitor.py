@@ -46,7 +46,9 @@ STATE_SETTINGS = {
     'remapSMBphotoOrg': 'remapSMBphotoOrg',
     'remapSMBphotoNew': 'remapSMBphotoNew',
     'enableMusic': 'ENABLE_MUSIC',
-    'enableBackgroundSync': 'BACKGROUND_SYNC'
+    'enableBackgroundSync': 'BACKGROUND_SYNC',
+    'sslverify': 'VERIFY_SSL_CERT',
+    'sslcert': 'SSL_CERT_PATH'
 }
 
 ###############################################################################
@@ -113,6 +115,8 @@ class KodiMonitor(Monitor):
         state.BACKGROUNDSYNC_SAFTYMARGIN = int(
             settings('backgroundsync_saftyMargin'))
         state.SYNC_THREAD_NUMBER = int(settings('syncThreadNumber'))
+        state.SSL_CERT_PATH = settings('sslcert') \
+            if settings('sslcert') != 'None' else None
         # Never set through the user
         # state.KODI_PLEX_TIME_OFFSET = float(settings('kodiplextimeoffset'))
         if changed is True:

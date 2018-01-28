@@ -50,33 +50,12 @@ class LibrarySync(Thread):
         if settings('FanartTV') == 'true':
             self.fanartthread = Process_Fanart_Thread(self.fanartqueue)
         # How long should we wait at least to process new/changed PMS items?
-
         self.user = userclient.UserClient()
         self.vnodes = videonodes.VideoNodes()
         self.xbmcplayer = xbmc.Player()
-
         self.installSyncDone = settings('SyncInstallRunDone') == 'true'
-
-        state.FULL_SYNC_INTERVALL = int(settings('fullSyncInterval')) * 60
-        state.SYNC_THREAD_NUMBER = int(settings('syncThreadNumber'))
-        state.SYNC_DIALOG = settings('dbSyncIndicator') == 'true'
-        state.ENABLE_MUSIC = settings('enableMusic') == 'true'
-        state.BACKGROUND_SYNC = settings(
-            'enableBackgroundSync') == 'true'
-        state.BACKGROUNDSYNC_SAFTYMARGIN = int(
-            settings('backgroundsync_saftyMargin'))
-
         # Show sync dialog even if user deactivated?
         self.force_dialog = True
-        # Init for replacing paths
-        state.REPLACE_SMB_PATH = settings('replaceSMB') == 'true'
-        state.REMAP_PATH = settings('remapSMB') == 'true'
-        for typus in v.REMAP_TYPE_FROM_PLEXTYPE.values():
-            for arg in ('Org', 'New'):
-                key = 'remapSMB%s%s' % (typus, arg)
-                setattr(state, key, settings(key))
-        # Just in case a time sync goes wrong
-        state.KODI_PLEX_TIME_OFFSET = float(settings('kodiplextimeoffset'))
         Thread.__init__(self)
 
     def showKodiNote(self, message, icon="plex"):

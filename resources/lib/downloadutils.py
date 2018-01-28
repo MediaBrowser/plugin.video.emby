@@ -67,15 +67,15 @@ class DownloadUtils():
         certificate must be path to certificate or 'None'
         """
         if verifySSL is None:
-            verifySSL = settings('sslverify')
+            verifySSL = state.VERIFY_SSL_CERT
         if certificate is None:
-            certificate = settings('sslcert')
-        log.debug("Verify SSL certificates set to: %s" % verifySSL)
-        log.debug("SSL client side certificate set to: %s" % certificate)
-        if verifySSL != 'true':
-            self.s.verify = False
-        if certificate != 'None':
+            certificate = state.SSL_CERT_PATH
+        # Set the session's parameters
+        self.s.verify = verifySSL
+        if certificate:
             self.s.cert = certificate
+        log.debug("Verify SSL certificates set to: %s", verifySSL)
+        log.debug("SSL client side certificate set to: %s", certificate)
 
     def startSession(self, reset=False):
         """
@@ -177,8 +177,9 @@ class DownloadUtils():
                 headerOptions = self.getHeader(options=headerOptions)
             else:
                 headerOptions = headerOverride
-            if settings('sslcert') != 'None':
-                kwargs['cert'] = settings('sslcert')
+            kwargs['verify'] = state.VERIFY_SSL_CERT
+            if state.SSL_CERT_PATH:
+                kwargs['cert'] = state.SSL_CERT_PATH
 
         # Set the variables we were passed (fallback to request session
         # otherwise - faster)

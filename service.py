@@ -120,6 +120,25 @@ class Service():
         videonodes.VideoNodes().clearProperties()
 
         # Init some stuff
+        state.VERIFY_SSL_CERT = settings('sslverify') == 'true'
+        state.SSL_CERT_PATH = settings('sslcert') \
+            if settings('sslcert') != 'None' else None
+        state.FULL_SYNC_INTERVALL = int(settings('fullSyncInterval')) * 60
+        state.SYNC_THREAD_NUMBER = int(settings('syncThreadNumber'))
+        state.SYNC_DIALOG = settings('dbSyncIndicator') == 'true'
+        state.ENABLE_MUSIC = settings('enableMusic') == 'true'
+        state.BACKGROUND_SYNC = settings(
+            'enableBackgroundSync') == 'true'
+        state.BACKGROUNDSYNC_SAFTYMARGIN = int(
+            settings('backgroundsync_saftyMargin'))
+        state.REPLACE_SMB_PATH = settings('replaceSMB') == 'true'
+        state.REMAP_PATH = settings('remapSMB') == 'true'
+        for typus in v.REMAP_TYPE_FROM_PLEXTYPE.values():
+            for arg in ('Org', 'New'):
+                key = 'remapSMB%s%s' % (typus, arg)
+                setattr(state, key, settings(key))
+        state.KODI_PLEX_TIME_OFFSET = float(settings('kodiplextimeoffset'))
+
         window('plex_minDBVersion', value="1.5.10")
         set_webserver()
         self.monitor = Monitor()
