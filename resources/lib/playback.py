@@ -126,8 +126,6 @@ def playback_init(plex_id, plex_type, playqueue):
         xml[0].attrib
     except (IndexError, TypeError, AttributeError):
         LOG.error('Could not get a PMS xml for plex id %s', plex_id)
-        # Release default.py
-        pickle_me(Playback_Successful())
         # "Play error"
         dialog('notification', lang(29999), lang(30128), icon='{error}')
         return
@@ -149,8 +147,6 @@ def playback_init(plex_id, plex_type, playqueue):
     if xml is None:
         LOG.error('Could not get a playqueue xml for plex id %s, UUID %s',
                   plex_id, xml.attrib.get('librarySectionUUID'))
-        # Release default.py
-        pickle_me(Playback_Successful())
         # "Play error"
         dialog('notification', lang(29999), lang(30128), icon='{error}')
         return
