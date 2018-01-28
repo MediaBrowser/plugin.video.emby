@@ -131,10 +131,8 @@ def playback_init(plex_id, plex_type, playqueue):
         # "Play error"
         dialog('notification', lang(29999), lang(30128), icon='{error}')
         return
-    api = API(xml[0])
-    resume, _ = api.getRuntime()
     trailers = False
-    if (plex_type == v.PLEX_TYPE_MOVIE and not resume and
+    if (plex_type == v.PLEX_TYPE_MOVIE and not state.RESUMABLE and
             settings('enableCinema') == "true"):
         if settings('askCinema') == "true":
             # "Play trailers?"
