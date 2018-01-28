@@ -414,21 +414,23 @@ class SpecialMonitor(Thread):
     def run(self):
         LOG.info("----====# Starting Special Monitor #====----")
         player = Player()
+        # "Start from beginning", "Play from beginning"
+        strings = (getLocalizedString(12021), getLocalizedString(12023))
         while not self.thread_stopped():
             is_playing = player.isPlaying()
-
             if (not is_playing and
                     getCondVisibility('Window.IsVisible(DialogContextMenu.xml)') and
-                    getInfoLabel('Control.GetLabel(1002)') == getLocalizedString(12021)):
+                    getInfoLabel('Control.GetLabel(1002)') in strings):
                 # Remember that the item IS indeed resumable
                 state.RESUMABLE = True
                 control = int(Window(10106).getFocusId())
                 if control == 1002:
                     # Start from beginning
-                    LOG.info("Resume dialog: Start from beginning selected")
                     state.RESUME_PLAYBACK = False
-                else:
-                    LOG.info("Resume dialog: resume selected")
+                elif control == 1001:
                     state.RESUME_PLAYBACK = True
-            sleep(200)
+                else:
+                    # User chose something else from the context menu
+                    state.RESUME_PLAYBACK = False
+            sleep(100)
         LOG.info("#====---- Special Monitor Stopped ----====#")
