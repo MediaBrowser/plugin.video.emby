@@ -46,9 +46,7 @@ STATE_SETTINGS = {
     'remapSMBphotoOrg': 'remapSMBphotoOrg',
     'remapSMBphotoNew': 'remapSMBphotoNew',
     'enableMusic': 'ENABLE_MUSIC',
-    'enableBackgroundSync': 'BACKGROUND_SYNC',
-    'sslverify': 'VERIFY_SSL_CERT',
-    'sslcert': 'SSL_CERT_PATH'
+    'enableBackgroundSync': 'BACKGROUND_SYNC'
 }
 
 ###############################################################################
