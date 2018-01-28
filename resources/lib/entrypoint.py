@@ -815,6 +815,9 @@ def __build_folder(xml_element, plex_section_id=None):
 def __build_item(xml_element):
     api = API(xml_element)
     listitem = api.CreateListItemFromPlexItem()
+    resume = api.getResume()
+    if resume:
+        listitem.setProperty('resumetime', str(resume))
     if (api.getKey().startswith('/system/services') or
             api.getKey().startswith('http')):
         params = {
