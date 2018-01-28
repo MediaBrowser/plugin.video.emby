@@ -49,8 +49,9 @@ def playback_triage(plex_id=None, plex_type=None, path=None, resolve=True):
              plex_id, plex_type, path)
     if not state.AUTHENTICATED:
         LOG.error('Not yet authenticated for PMS, abort starting playback')
-        # Release default.py
-        pickle_me(Playback_Successful())
+        if resolve is True:
+            # Release default.py
+            pickle_me(Playback_Successful())
         # "Unauthorized for PMS"
         dialog('notification', lang(29999), lang(30017))
         return
