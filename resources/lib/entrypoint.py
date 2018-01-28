@@ -820,7 +820,7 @@ def __build_item(xml_element):
         params = {
             'mode': 'plex_node',
             'key': xml_element.attrib.get('key'),
-            'view_offset': xml_element.attrib.get('viewOffset', '0'),
+            'offset': xml_element.attrib.get('viewOffset', '0'),
         }
         url = "plugin://%s?%s" % (v.ADDON_ID, urlencode(params))
     elif api.getType() == v.PLEX_TYPE_PHOTO:
@@ -828,9 +828,8 @@ def __build_item(xml_element):
     else:
         params = {
             'mode': 'play',
-            'filename': api.getKey(),
-            'id': api.getRatingKey(),
-            'dbid': listitem.getProperty('dbid')
+            'plex_id': api.getRatingKey(),
+            'plex_type': api.getType(),
         }
         url = "plugin://%s?%s" % (v.ADDON_ID, urlencode(params))
     xbmcplugin.addDirectoryItem(handle=HANDLE,
