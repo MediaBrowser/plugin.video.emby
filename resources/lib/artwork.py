@@ -337,13 +337,13 @@ class Artwork():
             LOG.debug("Deleting cached thumbnail: %s" % path)
             if exists(path):
                 rmtree(tryDecode(path), ignore_errors=True)
-                self.restoreCacheDirectories()
             cursor.execute("DELETE FROM texture WHERE url = ?", (url,))
             connection.commit()
         finally:
             connection.close()
 
-    def restoreCacheDirectories(self):
+    @staticmethod
+    def restoreCacheDirectories():
         LOG.info("Restoring cache directories...")
         paths = ("","0","1","2","3","4","5","6","7","8","9","a","b","c","d","e","f","Video","plex")
         for p in paths:
