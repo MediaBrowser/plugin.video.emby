@@ -67,7 +67,7 @@ def playback_triage(plex_id=None, plex_type=None, path=None, resolve=True):
         # Release our default.py before starting our own Kodi player instance
         if resolve is True:
             result = Playback_Successful()
-            result.listitem = PKC_ListItem(path='PKC_Dummy_Path')
+            result.listitem = PKC_ListItem(path='PKC_Dummy_Path_Which_Fails')
             pickle_me(result)
         playback_init(plex_id, plex_type, playqueue)
     else:
