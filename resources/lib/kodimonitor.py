@@ -210,10 +210,12 @@ class KodiMonitor(Monitor):
         Will NOT be called if playback initiated by Kodi widgets
         """
         playqueue = PQ.PLAYQUEUES[data['playlistid']]
-        # Kodi remembers the last setResolvedUrl - which is empty in our case
+        # Did PKC cause this add? Then lets not do anything
+        if playqueue.is_kodi_onadd() is False:
+            LOG.debug('PKC added this item to the playqueue - ignoring')
+            return
         kodi_item = js.get_item(data['playlistid'])
-        LOG.debug('kodi_item: %s', kodi_item)
-        if (state.RESUMABLE is True and
+        if (state.RESUMABLE is True and not kodi_item['file'] and
                 data['position'] == 0 and
                 data['item'].get('title') is not None and
                 getCondVisibility('Window.IsVisible(MyVideoNav.xml)')):
@@ -235,15 +237,6 @@ class KodiMonitor(Monitor):
         if not playqueue.items:
             LOG.debug('Playqueue not initiated - ignoring')
             return
-        # Did PKC cause this add? Then lets not do anything
-        if playqueue.is_kodi_onadd() is False:
-            LOG.debug('PKC added this item to the playqueue - ignoring')
-            return
-        # Check whether we even need to update our known playqueue
-        # if playqueue.old_kodi_pl == kodi_playqueue:
-        #     # We already know the latest playqueue (e.g. because Plex
-        #     # initiated playback)
-        #     return
         # Playlist has been updated; need to tell Plex about it
         if playqueue.id is None:
             PL.init_Plex_playlist(playqueue, kodi_item=data['item'])
