@@ -371,12 +371,12 @@ class KodiMonitor(Monitor):
                 return
             LOG.info('Need to initialize Plex and PKC playqueue')
             if plex_id:
-                PL.init_Plex_playlist(playqueue, plex_id=plex_id)
+                item = PL.init_Plex_playlist(playqueue, plex_id=plex_id)
             else:
-                PL.init_Plex_playlist(playqueue,
-                                      kodi_item={'id': kodi_id,
-                                                 'type': kodi_type,
-                                                 'file': path})
+                item = PL.init_Plex_playlist(playqueue,
+                                             kodi_item={'id': kodi_id,
+                                                        'type': kodi_type,
+                                                        'file': path})
             # Set the Plex container key (e.g. using the Plex playqueue)
             container_key = None
             if info['playlistid'] != -1:
