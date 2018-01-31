@@ -362,7 +362,7 @@ def process_indirect(key, offset, resolve=True):
         thread.start()
 
 
-def play_xml(playqueue, xml):
+def play_xml(playqueue, xml, offset=None):
     """
     Play all items contained in the xml passed in. Called by Plex Companion.
     """
@@ -375,9 +375,24 @@ def play_xml(playqueue, xml):
             break
     else:
         startpos = 0
-    # New thread to release this one sooner (e.g. harddisk spinning up)
-    thread = Thread(target=Player().play,
-                    args=(playqueue.kodi_pl, None, False, startpos))
-    thread.setDaemon(True)
+    thread = Thread(target=threaded_playback,
+                    args=(playqueue.kodi_pl, startpos, offset))
     LOG.info('Done play_xml, starting Kodi player at position %s', startpos)
     thread.start()
+
+
+def threaded_playback(kodi_playlist, startpos, offset):
+    """
+    Seek immediately after kicking off playback is not reliable.
+    """
+    player = Player()
+    player.play(kodi_playlist, None, False, startpos)
+    if offset:
+        i = 0
+        while not player.isPlaying():
+            sleep(100)
+            i += 1
+            if i > 100:
+                LOG.error('Could not seek to %s', offset)
+                return
+        js.seek_to(int(offset))

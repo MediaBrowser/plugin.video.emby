@@ -124,4 +124,4 @@ def update_playqueue_from_PMS(playqueue,
             return
         playqueue.repeat = 0 if not repeat else int(repeat)
         playqueue.plex_transient_token = transient_token
-        play_xml(playqueue, xml)
+        play_xml(playqueue, xml, offset)
