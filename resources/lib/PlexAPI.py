@@ -1653,13 +1653,19 @@ class API():
             url = "%s&X-Plex-Token=%s" % (url, window('pms_token'))
         return url
 
-    def GetPlayQueueItemID(self):
+    def getItemId(self):
         """
-        Returns current playQueueItemID for the item.
-
-        If not found, empty str is returned
+        Returns current playQueueItemID or if unsuccessful the playListItemID
+        If not found, None is returned
         """
-        return self.item.attrib.get('playQueueItemID')
+        try:
+            answ = self.item.attrib['playQueueItemID']
+        except KeyError:
+            try:
+                answ = self.item.attrib['playListItemID']
+            except KeyError:
+                answ = None
+        return answ
 
     def getDataFromPartOrMedia(self, key):
         """

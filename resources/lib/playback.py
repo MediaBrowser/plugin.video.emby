@@ -29,73 +29,6 @@ LOG = getLogger("PLEX." + __name__)
 ###############################################################################
 
 
-def process_indirect(key, offset, resolve=True):
-    """
-    Called e.g. for Plex "Play later" - Plex items where we need to fetch an
-    additional xml for the actual playurl. In the PMS metadata, indirect="1" is
-    set.
-
-    Will release default.py with setResolvedUrl
-
-    Set resolve to False if playback should be kicked off directly, not via
-    setResolvedUrl
-    """
-    LOG.info('process_indirect called with key: %s, offset: %s', key, offset)
-    result = Playback_Successful()
-    if key.startswith('http') or key.startswith('{server}'):
-        xml = DU().downloadUrl(key)
-    elif key.startswith('/system/services'):
-        xml = DU().downloadUrl('http://node.plexapp.com:32400%s' % key)
-    else:
-        xml = DU().downloadUrl('{server}%s' % key)
-    try:
-        xml[0].attrib
-    except (TypeError, IndexError, AttributeError):
-        LOG.error('Could not download PMS metadata')
-        if resolve is True:
-            # Release default.py
-            pickle_me(result)
-        return
-    if offset != '0':
-        offset = int(v.PLEX_TO_KODI_TIMEFACTOR * float(offset))
-        # Todo: implement offset
-    api = API(xml[0])
-    listitem = PKC_ListItem()
-    api.CreateListItemFromPlexItem(listitem)
-    playqueue = PQ.get_playqueue_from_type(
-        v.KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[api.getType()])
-    playqueue.clear()
-    item = PL.Playlist_Item()
-    item.xml = xml[0]
-    item.offset = int(offset)
-    item.plex_type = v.PLEX_TYPE_CLIP
-    item.playmethod = 'DirectStream'
-    item.init_done = True
-    # Need to get yet another xml to get the final playback url
-    xml = DU().downloadUrl('http://node.plexapp.com:32400%s'
-                           % xml[0][0][0].attrib['key'])
-    try:
-        xml[0].attrib
-    except (TypeError, IndexError, AttributeError):
-        LOG.error('Could not download last xml for playurl')
-        if resolve is True:
-            # Release default.py
-            pickle_me(result)
-        return
-    playurl = xml[0].attrib['key']
-    item.file = playurl
-    listitem.setPath(tryEncode(playurl))
-    playqueue.items.append(item)
-    if resolve is True:
-        result.listitem = listitem
-        pickle_me(result)
-    else:
-        thread = Thread(target=Player().play,
-                        args={'item': tryEncode(playurl), 'listitem': listitem})
-        thread.setDaemon(True)
-        LOG.info('Done initializing PKC playback, starting Kodi player')
-        thread.start()
-
 @LOCKER.lockthis
 def playback_triage(plex_id=None, plex_type=None, path=None, resolve=True):
     """
@@ -277,14 +210,16 @@ def _prep_playlist_stack(xml):
                 'listitem': listitem,
                 'part': part,
                 'playcount': api.getViewCount(),
-                'offset': api.getResume()
+                'offset': api.getResume(),
+                'id': api.getItemId()
             })
     return stack
 
 
-def _process_stack(playqueue, stack):
+def _process_stack(playqueue, stack, fill_queue=False):
     """
     Takes our stack and adds the items to the PKC and Kodi playqueues.
+    Pass fill_queue=True in order to append Playlist_Items to playqueue.items
     """
     # getposition() can return -1
     pos = max(playqueue.kodi_pl.getposition(), 0) + 1
@@ -307,8 +242,11 @@ def _process_stack(playqueue, stack):
         playlist_item.playcount = item['playcount']
         playlist_item.offset = item['offset']
         playlist_item.part = item['part']
+        playlist_item.id = item['id']
         playlist_item.init_done = True
         pos += 1
+        if fill_queue:
+            playqueue.items.append(playlist_item)
 
 
 def conclude_playback(playqueue, pos):
@@ -354,3 +292,92 @@ def conclude_playback(playqueue, pos):
     result.listitem = listitem
     pickle_me(result)
     LOG.info('Done concluding playback')
+
+
+def process_indirect(key, offset, resolve=True):
+    """
+    Called e.g. for Plex "Play later" - Plex items where we need to fetch an
+    additional xml for the actual playurl. In the PMS metadata, indirect="1" is
+    set.
+
+    Will release default.py with setResolvedUrl
+
+    Set resolve to False if playback should be kicked off directly, not via
+    setResolvedUrl
+    """
+    LOG.info('process_indirect called with key: %s, offset: %s', key, offset)
+    result = Playback_Successful()
+    if key.startswith('http') or key.startswith('{server}'):
+        xml = DU().downloadUrl(key)
+    elif key.startswith('/system/services'):
+        xml = DU().downloadUrl('http://node.plexapp.com:32400%s' % key)
+    else:
+        xml = DU().downloadUrl('{server}%s' % key)
+    try:
+        xml[0].attrib
+    except (TypeError, IndexError, AttributeError):
+        LOG.error('Could not download PMS metadata')
+        if resolve is True:
+            # Release default.py
+            pickle_me(result)
+        return
+    if offset != '0':
+        offset = int(v.PLEX_TO_KODI_TIMEFACTOR * float(offset))
+        # Todo: implement offset
+    api = API(xml[0])
+    listitem = PKC_ListItem()
+    api.CreateListItemFromPlexItem(listitem)
+    playqueue = PQ.get_playqueue_from_type(
+        v.KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[api.getType()])
+    playqueue.clear()
+    item = PL.Playlist_Item()
+    item.xml = xml[0]
+    item.offset = int(offset)
+    item.plex_type = v.PLEX_TYPE_CLIP
+    item.playmethod = 'DirectStream'
+    item.init_done = True
+    # Need to get yet another xml to get the final playback url
+    xml = DU().downloadUrl('http://node.plexapp.com:32400%s'
+                           % xml[0][0][0].attrib['key'])
+    try:
+        xml[0].attrib
+    except (TypeError, IndexError, AttributeError):
+        LOG.error('Could not download last xml for playurl')
+        if resolve is True:
+            # Release default.py
+            pickle_me(result)
+        return
+    playurl = xml[0].attrib['key']
+    item.file = playurl
+    listitem.setPath(tryEncode(playurl))
+    playqueue.items.append(item)
+    if resolve is True:
+        result.listitem = listitem
+        pickle_me(result)
+    else:
+        thread = Thread(target=Player().play,
+                        args={'item': tryEncode(playurl), 'listitem': listitem})
+        thread.setDaemon(True)
+        LOG.info('Done initializing PKC playback, starting Kodi player')
+        thread.start()
+
+
+def play_xml(playqueue, xml):
+    """
+    Play all items contained in the xml passed in. Called by Plex Companion.
+    """
+    LOG.info("play_xml called")
+    stack = _prep_playlist_stack(xml)
+    _process_stack(playqueue, stack, fill_queue=True)
+    LOG.debug('Playqueue after play_xml update: %s', playqueue)
+    for startpos, item in enumerate(playqueue.items):
+        if item.id == playqueue.selectedItemID:
+            break
+    else:
+        startpos = 0
+    # New thread to release this one sooner (e.g. harddisk spinning up)
+    thread = Thread(target=Player().play,
+                    args=(playqueue.kodi_pl, None, False, startpos))
+    thread.setDaemon(True)
+    LOG.info('Done play_xml, starting Kodi player at position %s', startpos)
+    thread.start()

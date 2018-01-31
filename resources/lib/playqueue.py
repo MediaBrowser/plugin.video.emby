@@ -10,7 +10,7 @@ from utils import window
 import playlist_func as PL
 from PlexFunctions import ConvertPlexToKodiTime, GetAllPlexChildren
 from PlexAPI import API
-from playbackutils import PlaybackUtils
+from playback import play_xml
 import json_rpc as js
 import variables as v
 
@@ -124,23 +124,4 @@ def update_playqueue_from_PMS(playqueue,
             return
         playqueue.repeat = 0 if not repeat else int(repeat)
         playqueue.plex_transient_token = transient_token
-        PlaybackUtils(xml, playqueue).play_all()
-        window('plex_customplaylist', value="true")
-        if offset not in (None, "0"):
-            window('plex_customplaylist.seektime',
-                   str(ConvertPlexToKodiTime(offset)))
-        for startpos, item in enumerate(playqueue.items):
-            if item.id == playqueue.selectedItemID:
-                break
-        else:
-            startpos = 0
-        # Start playback. Player does not return in time
-        LOG.debug('Playqueues after Plex Companion update are now: %s',
-                  PLAYQUEUES)
-        thread = Thread(target=Player().play,
-                        args=(playqueue.kodi_pl,
-                              None,
-                              False,
-                              startpos))
-        thread.setDaemon(True)
-        thread.start()
+        play_xml(playqueue, xml)
