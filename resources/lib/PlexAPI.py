@@ -37,7 +37,6 @@ import socket
 from threading import Thread
 import xml.etree.ElementTree as etree
 from re import compile as re_compile, sub
-from json import dumps
 from urllib import urlencode, quote_plus, unquote
 from os.path import basename, join
 from os import makedirs
@@ -56,8 +55,7 @@ import variables as v
 import state
 
 ###############################################################################
-
-log = getLogger("PLEX." + __name__)
+LOG = getLogger("PLEX." + __name__)
 
 REGEX_IMDB = re_compile(r'''/(tt\d+)''')
 REGEX_TVDB = re_compile(r'''thetvdb:\/\/(.+?)\?''')
@@ -129,8 +127,8 @@ class PlexAPI():
                     plexLogin,
                     plexPassword,
                     {'X-Plex-Client-Identifier': window('plex_client_Id')})
-                log.debug("plex.tv username and token: %s, %s"
-                          % (plexLogin, authtoken))
+                LOG.debug("plex.tv username and token: %s, %s",
+                          plexLogin, authtoken)
                 if plexLogin == '':
                     # Could not sign in user
                     dialog.ok(lang(29999), lang(39302) + plexLogin)
@@ -223,7 +221,7 @@ class PlexAPI():
         try:
             temp_token = xml.find('auth_token').text
         except:
-            log.error("Could not find token in plex.tv answer")
+            LOG.error("Could not find token in plex.tv answer")
             return False
         if not temp_token:
             return False
@@ -246,11 +244,11 @@ class PlexAPI():
         try:
             xml.attrib
         except:
-            log.error("Error, no PIN from plex.tv provided")
+            LOG.error("Error, no PIN from plex.tv provided")
             return None, None
         code = xml.find('code').text
         identifier = xml.find('id').text
-        log.info('Successfully retrieved code and id from plex.tv')
+        LOG.info('Successfully retrieved code and id from plex.tv')
         return code, identifier
 
     def CheckConnection(self, url, token=None, verifySSL=None):
@@ -283,8 +281,8 @@ class PlexAPI():
             url = 'https://plex.tv/api/home/users'
         else:
             url = url + '/library/onDeck'
-        log.debug("Checking connection to server %s with verifySSL=%s"
-                  % (url, verifySSL))
+        LOG.debug("Checking connection to server %s with verifySSL=%s",
+                  url, verifySSL)
         count = 0
         while count < 1:
             answer = self.doUtils(url,
@@ -293,7 +291,7 @@ class PlexAPI():
                                   verifySSL=verifySSL,
                                   timeout=10)
             if answer is None:
-                log.debug("Could not connect to %s" % url)
+                LOG.debug("Could not connect to %s", url)
                 count += 1
                 sleep(500)
                 continue
@@ -308,9 +306,9 @@ class PlexAPI():
                 # Success - we downloaded an xml!
                 answer = 200
             # We could connect but maybe were not authenticated. No worries
-            log.debug("Checking connection successfull. Answer: %s" % answer)
+            LOG.debug("Checking connection successfull. Answer: %s", answer)
             return answer
-        log.debug('Failed to connect to %s too many times. PMS is dead' % url)
+        LOG.debug('Failed to connect to %s too many times. PMS is dead', url)
         return False
 
     def GetgPMSKeylist(self):
@@ -359,7 +357,7 @@ class PlexAPI():
         try:
             self.g_PMS[uuid][tag] = value
         except:
-            log.error('%s has not yet been declared ' % uuid)
+            LOG.error('%s has not yet been declared', uuid)
             return False
 
     def getPMSProperty(self, uuid, tag):
@@ -367,7 +365,7 @@ class PlexAPI():
         try:
             answ = self.g_PMS[uuid].get(tag, '')
         except:
-            log.error('%s not found in PMS catalogue' % uuid)
+            LOG.error('%s not found in PMS catalogue', uuid)
             answ = False
         return answ
 
@@ -409,9 +407,9 @@ class PlexAPI():
                     break
         except Exception as e:
             # Probably error: (101, 'Network is unreachable')
-            log.error(e)
+            LOG.error(e)
             import traceback
-            log.error("Traceback:\n%s" % traceback.format_exc())
+            LOG.error("Traceback:\n%s", traceback.format_exc())
         finally:
             GDM.close()
 
@@ -457,20 +455,20 @@ class PlexAPI():
 
         # Look first for local PMS in the LAN
         pmsList = self.PlexGDM()
-        log.debug('PMS found in the local LAN via GDM: %s' % pmsList)
+        LOG.debug('PMS found in the local LAN via GDM: %s', pmsList)
 
         # Get PMS from plex.tv
         if plexToken:
-            log.info('Checking with plex.tv for more PMS to connect to')
+            LOG.info('Checking with plex.tv for more PMS to connect to')
             self.getPMSListFromMyPlex(plexToken)
         else:
-            log.info('No plex token supplied, only checked LAN for PMS')
+            LOG.info('No plex token supplied, only checked LAN for PMS')
 
         for uuid in pmsList:
             PMS = pmsList[uuid]
             if PMS['uuid'] in self.g_PMS:
-                log.debug('We already know of PMS %s from plex.tv'
-                          % PMS['serverName'])
+                LOG.debug('We already know of PMS %s from plex.tv',
+                          PMS['serverName'])
                 # Update with GDM data - potentially more reliable than plex.tv
                 self.updatePMSProperty(PMS['uuid'], 'ip', PMS['ip'])
                 self.updatePMSProperty(PMS['uuid'], 'port', PMS['port'])
@@ -519,7 +517,7 @@ class PlexAPI():
         try:
             xml.attrib
         except AttributeError:
-            log.error('Could not get list of PMS from plex.tv')
+            LOG.error('Could not get list of PMS from plex.tv')
             return
 
         import Queue
@@ -540,8 +538,8 @@ class PlexAPI():
             PMS['name'] = Dir.get('name')
             infoAge = time() - int(Dir.get('lastSeenAt'))
             if infoAge > maxAgeSeconds:
-                log.debug("Server %s not seen for 2 days - skipping."
-                          % PMS['name'])
+                LOG.debug("Server %s not seen for 2 days - skipping.",
+                          PMS['name'])
                 continue
 
             PMS['uuid'] = Dir.get('clientIdentifier')
@@ -607,8 +605,8 @@ class PlexAPI():
                 PMS['uuid'], 'baseURL', PMS['baseURL'])
             self.updatePMSProperty(
                 PMS['uuid'], 'ownername', PMS['ownername'])
-            log.debug('Found PMS %s: %s'
-                      % (PMS['uuid'], self.g_PMS[PMS['uuid']]))
+            LOG.debug('Found PMS %s: %s', 
+                      PMS['uuid'], self.g_PMS[PMS['uuid']])
             queue.task_done()
 
     def pokePMS(self, PMS, queue):
@@ -649,9 +647,9 @@ class PlexAPI():
                 PMS['port'] = port
                 queue.put(PMS)
                 return
-        log.info('Found a PMS at %s, but the expected machineIdentifier of '
-                 '%s did not match the one we found: %s'
-                 % (url, PMS['uuid'], xml.get('machineIdentifier')))
+        LOG.info('Found a PMS at %s, but the expected machineIdentifier of '
+                 '%s did not match the one we found: %s',
+                 url, PMS['uuid'], xml.get('machineIdentifier'))
 
     def MyPlexSignIn(self, username, password, options):
         """
@@ -685,7 +683,7 @@ class PlexAPI():
             response = urlopener.open(request).read()
         except urllib2.HTTPError as e:
             if e.code == 401:
-                log.info("Authentication failed")
+                LOG.info("Authentication failed")
                 return ('', '')
             else:
                 raise
@@ -731,12 +729,12 @@ class PlexAPI():
         url = ''
         # If an error is encountered, set to False
         if not users:
-            log.info("Couldnt get user from plex.tv. No URL for user avatar")
+            LOG.info("Couldnt get user from plex.tv. No URL for user avatar")
             return False
         for user in users:
             if username in user['title']:
                 url = user['thumb']
-        log.debug("Avatar url for user %s is: %s" % (username, url))
+        LOG.debug("Avatar url for user %s is: %s", username, url)
         return url
 
     def ChoosePlexHomeUser(self, plexToken):
@@ -759,7 +757,7 @@ class PlexAPI():
         # Get list of Plex home users
         users = self.MyPlexListHomeUsers(plexToken)
         if not users:
-            log.error("User download failed.")
+            LOG.error("User download failed.")
             return False
 
         userlist = []
@@ -781,7 +779,7 @@ class PlexAPI():
                     lang(29999) + lang(39306),
                     userlistCoded)
                 if user_select == -1:
-                    log.info("No user selected.")
+                    LOG.info("No user selected.")
                     settings('username', value='')
                     executebuiltin('Addon.OpenSettings(%s)'
                                    % v.ADDON_ID)
@@ -790,12 +788,12 @@ class PlexAPI():
             else:
                 user_select = 0
             selected_user = userlist[user_select]
-            log.info("Selected user: %s" % selected_user)
+            LOG.info("Selected user: %s", selected_user)
             user = users[user_select]
             # Ask for PIN, if protected:
             pin = None
             if user['protected'] == '1':
-                log.debug('Asking for users PIN')
+                LOG.debug('Asking for users PIN')
                 pin = dialog.input(
                     lang(39307) + selected_user,
                     '',
@@ -827,7 +825,7 @@ class PlexAPI():
                     # User chose to cancel
                     break
         if not username:
-            log.error('Failed signing in a user to plex.tv')
+            LOG.error('Failed signing in a user to plex.tv')
             executebuiltin('Addon.OpenSettings(%s)' % v.ADDON_ID)
             return False
         return {
@@ -856,7 +854,7 @@ class PlexAPI():
 
         settings('userid') and settings('username') with new plex token
         """
-        log.info('Switching to user %s' % userId)
+        LOG.info('Switching to user %s', userId)
         url = 'https://plex.tv/api/home/users/' + userId + '/switch'
         if pin:
             url += '?pin=' + pin
@@ -867,7 +865,7 @@ class PlexAPI():
         try:
             answer.attrib
         except:
-            log.error('Error: plex.tv switch HomeUser change failed')
+            LOG.error('Error: plex.tv switch HomeUser change failed')
             return False
 
         username = answer.attrib.get('title', '')
@@ -891,15 +889,15 @@ class PlexAPI():
         try:
             xml.attrib
         except:
-            log.error('Answer from plex.tv not as excepted')
+            LOG.error('Answer from plex.tv not as excepted')
             # Set to empty iterable list for loop
             xml = []
 
         found = 0
-        log.debug('Our machineIdentifier is %s' % machineIdentifier)
+        LOG.debug('Our machineIdentifier is %s', machineIdentifier)
         for device in xml:
             identifier = device.attrib.get('clientIdentifier')
-            log.debug('Found a Plex machineIdentifier: %s' % identifier)
+            LOG.debug('Found a Plex machineIdentifier: %s', identifier)
             if (identifier in machineIdentifier or
                     machineIdentifier in identifier):
                 found += 1
@@ -909,12 +907,12 @@ class PlexAPI():
             'username': username,
         }
         if found == 0:
-            log.info('No tokens found for your server! Using empty string')
+            LOG.info('No tokens found for your server! Using empty string')
             result['usertoken'] = ''
         else:
             result['usertoken'] = token
-        log.info('Plex.tv switch HomeUser change successfull for user %s'
-                 % username)
+        LOG.info('Plex.tv switch HomeUser change successfull for user %s',
+                 username)
         return result
 
     def MyPlexListHomeUsers(self, token):
@@ -944,7 +942,7 @@ class PlexAPI():
         try:
             xml.attrib
         except:
-            log.error('Download of Plex home users failed.')
+            LOG.error('Download of Plex home users failed.')
             return False
         users = []
         for user in xml:
@@ -1372,8 +1370,8 @@ class API():
                 elif child.tag == 'Producer':
                     producer.append(child.attrib['tag'])
             except KeyError:
-                log.warn('Malformed PMS answer for getPeople: %s: %s'
-                         % (child.tag, child.attrib))
+                LOG.warn('Malformed PMS answer for getPeople: %s: %s',
+                         child.tag, child.attrib)
         return {
             'Director': director,
             'Writer': writer,
@@ -1943,11 +1941,11 @@ class API():
                 mediaId = self.getProvider('tvdb')
             if mediaId is not None:
                 return mediaId
-            log.info('Plex did not provide ID for IMDB or TVDB. Start '
+            LOG.info('Plex did not provide ID for IMDB or TVDB. Start '
                      'lookup process')
         else:
-            log.info('Start movie set/collection lookup on themoviedb using %s'
-                     % item.get('title', ''))
+            LOG.info('Start movie set/collection lookup on themoviedb using %s',
+                     item.get('title', ''))
 
         apiKey = settings('themoviedbAPIKey')
         if media_type == v.PLEX_TYPE_SHOW:
@@ -1970,11 +1968,11 @@ class API():
         try:
             data.get('test')
         except:
-            log.error('Could not download data from FanartTV')
+            LOG.error('Could not download data from FanartTV')
             return
         if data.get('results') is None:
-            log.info('No match found on themoviedb for type: %s, title: %s'
-                     % (media_type, title))
+            LOG.info('No match found on themoviedb for type: %s, title: %s',
+                     media_type, title)
             return
 
         year = item.get('year')
@@ -1990,7 +1988,7 @@ class API():
                     break
         # find exact match based on title, if we haven't found a year match
         if matchFound is None:
-            log.info('No themoviedb match found using year %s' % year)
+            LOG.info('No themoviedb match found using year %s', year)
             replacements = (
                 ' ',
                 '-',
@@ -2021,21 +2019,21 @@ class API():
 
         # if a match was not found, we accept the closest match from TMDB
         if matchFound is None and len(data.get("results")) > 0:
-            log.info('Using very first match from themoviedb')
+            LOG.info('Using very first match from themoviedb')
             matchFound = entry = data.get("results")[0]
 
         if matchFound is None:
-            log.info('Still no themoviedb match for type: %s, title: %s, '
-                     'year: %s' % (media_type, title, year))
-            log.debug('themoviedb answer was %s' % data['results'])
+            LOG.info('Still no themoviedb match for type: %s, title: %s, '
+                     'year: %s', media_type, title, year)
+            LOG.debug('themoviedb answer was %s', data['results'])
             return
 
-        log.info('Found themoviedb match for %s: %s'
-                 % (item.get('title'), matchFound))
+        LOG.info('Found themoviedb match for %s: %s',
+                 item.get('title'), matchFound)
 
         tmdbId = str(entry.get("id", ""))
         if tmdbId == '':
-            log.error('No themoviedb ID found, aborting')
+            LOG.error('No themoviedb ID found, aborting')
             return
 
         if media_type == "multi" and entry.get("media_type"):
@@ -2061,8 +2059,8 @@ class API():
             try:
                 data.get('test')
             except:
-                log.error('Could not download %s with parameters %s'
-                          % (url, parameters))
+                LOG.error('Could not download %s with parameters %s',
+                          url, parameters)
                 continue
             if collection is False:
                 if data.get("imdb_id") is not None:
@@ -2075,8 +2073,8 @@ class API():
                 if data.get("belongs_to_collection") is None:
                     continue
                 mediaId = str(data.get("belongs_to_collection").get("id"))
-                log.debug('Retrieved collections tmdb id %s for %s'
-                          % (mediaId, title))
+                LOG.debug('Retrieved collections tmdb id %s for %s',
+                          mediaId, title)
                 url = 'https://api.themoviedb.org/3/collection/%s' % mediaId
                 data = DownloadUtils().downloadUrl(
                     url,
@@ -2086,8 +2084,8 @@ class API():
                 try:
                     data.get('poster_path')
                 except AttributeError:
-                    log.info('Could not find TheMovieDB poster paths for %s in'
-                             'the language %s' % (title, language))
+                    LOG.info('Could not find TheMovieDB poster paths for %s in'
+                             'the language %s', title, language)
                     continue
                 else:
                     poster = 'https://image.tmdb.org/t/p/original%s' % data.get('poster_path')
@@ -2124,7 +2122,7 @@ class API():
         try:
             data.get('test')
         except:
-            log.error('Could not download data from FanartTV')
+            LOG.error('Could not download data from FanartTV')
             return allartworks
 
         # we need to use a little mapping between fanart.tv arttypes and kodi
@@ -2234,8 +2232,8 @@ class API():
                 allartworks['Backdrop'].append(background)
             allartworks = self.getFanartTVArt(externalId, allartworks, True)
         else:
-            log.info('Did not find a set/collection ID on TheMovieDB using %s.'
-                     ' Artwork will be missing.' % self.getTitle()[0])
+            LOG.info('Did not find a set/collection ID on TheMovieDB using %s.'
+                     ' Artwork will be missing.', self.getTitle()[0])
         return allartworks
 
     def shouldStream(self):
@@ -2370,7 +2368,7 @@ class API():
         }
         # Look like Android to let the PMS use the transcoding profile
         xargs.update(headers)
-        log.debug("Setting transcode quality to: %s" % quality)
+        LOG.debug("Setting transcode quality to: %s", quality)
         args.update(quality)
         url = transcodePath + urlencode(xargs) + '&' + urlencode(args)
         return url
@@ -2408,7 +2406,7 @@ class API():
                         "%s%s" % (self.server, key))
                 externalsubs.append(path)
                 kodiindex += 1
-        log.info('Found external subs: %s', externalsubs)
+        LOG.info('Found external subs: %s', externalsubs)
         return externalsubs
 
     @staticmethod
@@ -2426,15 +2424,15 @@ class API():
         try:
             r.status_code
         except AttributeError:
-            log.error('Could not temporarily download subtitle %s' % url)
+            LOG.error('Could not temporarily download subtitle %s', url)
             return
         else:
-            log.debug('Writing temp subtitle to %s', path)
+            LOG.debug('Writing temp subtitle to %s', path)
             try:
                 with open(path, 'wb') as f:
                     f.write(r.content)
             except UnicodeEncodeError:
-                log.debug('Need to slugify the filename %s', path)
+                LOG.debug('Need to slugify the filename %s', path)
                 path = slugify(path)
                 with open(path, 'wb') as f:
                     f.write(r.content)
@@ -2662,7 +2660,7 @@ class API():
 
         Returns True if sync should stop, else False
         """
-        log.warn('Cannot access file: %s' % url)
+        LOG.warn('Cannot access file: %s', url)
         resp = xbmcgui.Dialog().yesno(
             heading=lang(29999),
             line1=lang(39031) + url,
