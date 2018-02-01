@@ -13,7 +13,7 @@ import variables as v
 
 ###############################################################################
 
-log = logging.getLogger("PLEX."+__name__)
+LOG = logging.getLogger("PLEX." + __name__)
 
 OPTIONS = {
     'Refresh': lang(30410),
@@ -38,8 +38,8 @@ class ContextMenu(object):
         self.item_type = self._get_item_type()
         self.item_id = self._get_item_id(self.kodi_id, self.item_type)
 
-        log.info("Found item_id: %s item_type: %s"
-                 % (self.item_id, self.item_type))
+        LOG.info("Found item_id: %s item_type: %s",
+                 self.item_id, self.item_type)
 
         if not self.item_id:
             return
@@ -49,7 +49,7 @@ class ContextMenu(object):
 
             if self._selected_option in (OPTIONS['Delete'],
                                          OPTIONS['Refresh']):
-                log.info("refreshing container")
+                LOG.info("refreshing container")
                 xbmc.sleep(500)
                 xbmc.executebuiltin('Container.Refresh')
 
@@ -66,7 +66,7 @@ class ContextMenu(object):
             elif xbmc.getCondVisibility('Container.Content(pictures)'):
                 item_type = "picture"
             else:
-                log.info("item_type is unknown")
+                LOG.info("item_type is unknown")
         return item_type
 
     @classmethod
@@ -78,7 +78,7 @@ class ContextMenu(object):
             try:
                 item_id = item[0]
             except TypeError:
-                log.error('Could not get the Plex id for context menu')
+                LOG.error('Could not get the Plex id for context menu')
         return item_id
 
     def _select_menu(self):
@@ -190,11 +190,11 @@ class ContextMenu(object):
         if settings('skipContextMenu') != "true":
 
             if not dialog("yesno", heading=lang(29999), line1=lang(33041)):
-                log.info("User skipped deletion for: %s", self.item_id)
+                LOG.info("User skipped deletion for: %s", self.item_id)
                 delete = False
 
         if delete:
-            log.info("Deleting Plex item with id %s", self.item_id)
+            LOG.info("Deleting Plex item with id %s", self.item_id)
             if delete_item_from_pms(self.item_id) is False:
                 dialog("ok", heading="{plex}", line1=lang(30414))
 
