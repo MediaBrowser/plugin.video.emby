@@ -10,7 +10,8 @@ from xbmc import Monitor, Player, sleep, getCondVisibility, getInfoLabel, \
 from xbmcgui import Window
 
 import plexdb_functions as plexdb
-from utils import window, settings, plex_command, thread_methods
+from utils import window, settings, plex_command, thread_methods, \
+    set_replace_paths
 from PlexFunctions import scrobble
 from kodidb_functions import kodiid_from_filename
 from plexbmchelper.subscribers import LOCKER
@@ -109,6 +110,7 @@ class KodiMonitor(Monitor):
                           settings_value, getattr(state, state_name), new)
                 setattr(state, state_name, new)
         # Special cases, overwrite all internal settings
+        set_replace_paths()
         state.FULL_SYNC_INTERVALL = int(settings('fullSyncInterval')) * 60
         state.BACKGROUNDSYNC_SAFTYMARGIN = int(
             settings('backgroundsync_saftyMargin'))

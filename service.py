@@ -28,7 +28,8 @@ sys_path.append(_base_resource)
 
 ###############################################################################
 
-from utils import settings, window, language as lang, dialog, tryDecode
+from utils import settings, window, language as lang, dialog, tryDecode, \
+    set_replace_paths
 from userclient import UserClient
 import initialsetup
 from kodimonitor import KodiMonitor, SpecialMonitor
@@ -133,10 +134,7 @@ class Service():
             settings('backgroundsync_saftyMargin'))
         state.REPLACE_SMB_PATH = settings('replaceSMB') == 'true'
         state.REMAP_PATH = settings('remapSMB') == 'true'
-        for typus in v.REMAP_TYPE_FROM_PLEXTYPE.values():
-            for arg in ('Org', 'New'):
-                key = 'remapSMB%s%s' % (typus, arg)
-                setattr(state, key, settings(key))
+        set_replace_paths()
         state.KODI_PLEX_TIME_OFFSET = float(settings('kodiplextimeoffset'))
 
         window('plex_minDBVersion', value="1.5.10")

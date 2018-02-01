@@ -21,9 +21,7 @@ import xbmc
 import xbmcaddon
 import xbmcgui
 from xbmcvfs import exists, delete
-
-from variables import DB_VIDEO_PATH, DB_MUSIC_PATH, DB_TEXTURE_PATH, \
-    DB_PLEX_PATH, KODI_PROFILE, KODIVERSION
+import variables as v
 import state
 
 ###############################################################################
@@ -105,7 +103,7 @@ def exists_dir(path):
 
     Feed with encoded string or unicode
     """
-    if KODIVERSION >= 17:
+    if v.KODIVERSION >= 17:
         answ = exists(tryEncode(path))
     else:
         dummyfile = join(tryDecode(path), 'dummyfile.txt')
@@ -336,13 +334,13 @@ def getUnixTimestamp(secondsIntoTheFuture=None):
 
 def kodiSQL(media_type="video"):
     if media_type == "plex":
-        dbPath = DB_PLEX_PATH
+        dbPath = v.DB_PLEX_PATH
     elif media_type == "music":
-        dbPath = DB_MUSIC_PATH
+        dbPath = v.DB_MUSIC_PATH
     elif media_type == "texture":
-        dbPath = DB_TEXTURE_PATH
+        dbPath = v.DB_TEXTURE_PATH
     else:
-        dbPath = DB_VIDEO_PATH
+        dbPath = v.DB_VIDEO_PATH
     return connect(dbPath, timeout=60.0)
 
 
@@ -362,6 +360,21 @@ def create_actor_db_index():
         pass
     conn.commit()
     conn.close()
+
+
+def set_replace_paths():
+    """
+    Sets our values for direct paths correctly (including using lower-case
+    protocols like smb:// and NOT SMB://)
+    """
+    for typus in v.REMAP_TYPE_FROM_PLEXTYPE.values():
+        for arg in ('Org', 'New'):
+            key = 'remapSMB%s%s' % (typus, arg)
+            value = settings(key)
+            if '://' in value:
+                protocol = value.split('://', 1)[0]
+                value = value.replace(protocol, protocol.lower())
+            setattr(state, key, value)
 
 
 def reset():
@@ -650,7 +663,7 @@ class XmlKodiSetting(object):
                  top_element=None):
         self.filename = filename
         if path is None:
-            self.path = join(KODI_PROFILE, filename)
+            self.path = join(v.KODI_PROFILE, filename)
         else:
             self.path = join(path, filename)
         self.force_create = force_create
