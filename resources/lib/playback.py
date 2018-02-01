@@ -381,13 +381,13 @@ def play_xml(playqueue, xml, offset=None):
     thread.start()
 
 
-def threaded_playback(kodi_playlist, startpos, offset):
+def threaded_playback(kodi_playlist, startpos, offset=None):
     """
     Seek immediately after kicking off playback is not reliable.
     """
     player = Player()
     player.play(kodi_playlist, None, False, startpos)
-    if offset:
+    if offset and if offset != '0':
         i = 0
         while not player.isPlaying():
             sleep(100)
