@@ -14,16 +14,16 @@ try:
 except TypeError:
     _ADDON_PATH = _ADDON.getAddonInfo('path').decode()
 try:
-    _base_resource = translatePath(os_path.join(
+    _BASE_RESOURCE = translatePath(os_path.join(
         _ADDON_PATH,
         'resources',
         'lib')).decode('utf-8')
 except TypeError:
-    _base_resource = translatePath(os_path.join(
+    _BASE_RESOURCE = translatePath(os_path.join(
         _ADDON_PATH,
         'resources',
         'lib')).decode()
-sys_path.append(_base_resource)
+sys_path.append(_BASE_RESOURCE)
 
 from pickler import unpickle_me, pickl_window
 
