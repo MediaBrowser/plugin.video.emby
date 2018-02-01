@@ -387,7 +387,7 @@ def threaded_playback(kodi_playlist, startpos, offset):
     """
     player = Player()
     player.play(kodi_playlist, None, False, startpos)
-    if offset:
+    if offset and offset != '0':
         i = 0
         while not player.isPlaying():
             sleep(100)
