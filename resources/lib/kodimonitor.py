@@ -375,13 +375,18 @@ class KodiMonitor(Monitor):
             except RuntimeError:
                 return
             LOG.info('Need to initialize Plex and PKC playqueue')
-            if plex_id:
-                item = PL.init_Plex_playlist(playqueue, plex_id=plex_id)
-            else:
-                item = PL.init_Plex_playlist(playqueue,
-                                             kodi_item={'id': kodi_id,
-                                                        'type': kodi_type,
-                                                        'file': path})
+            try:
+                if plex_id:
+                    item = PL.init_Plex_playlist(playqueue, plex_id=plex_id)
+                else:
+                    item = PL.init_Plex_playlist(playqueue,
+                                                 kodi_item={'id': kodi_id,
+                                                            'type': kodi_type,
+                                                            'file': path})
+            except PL.PlaylistError:
+                LOG.info('Could not initialize our playlist')
+                # Avoid errors
+                item = PL.Playlist_Item()
             # Set the Plex container key (e.g. using the Plex playqueue)
             container_key = None
             if info['playlistid'] != -1:
