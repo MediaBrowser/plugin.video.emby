@@ -400,7 +400,7 @@ class KodiMonitor(Monitor):
         status['plex_type'] = plex_type
         status['playmethod'] = item.playmethod
         status['playcount'] = item.playcount
-        LOG.debug('Set the player state: %s', state.PLAYER_STATES[playerid])
+        LOG.debug('Set the player state: %s', status)
 
 
 @thread_methods
