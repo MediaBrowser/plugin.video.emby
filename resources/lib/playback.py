@@ -61,7 +61,7 @@ def playback_triage(plex_id=None, plex_type=None, path=None, resolve=True):
     pos = js.get_position(playqueue.playlistid)
     # Can return -1 (as in "no playlist")
     pos = pos if pos != -1 else 0
-    LOG.info('playQueue position: %s for %s', pos, playqueue)
+    LOG.debug('playQueue position: %s for %s', pos, playqueue)
     # Have we already initiated playback?
     try:
         playqueue.items[pos]
