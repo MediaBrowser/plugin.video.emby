@@ -177,7 +177,7 @@ def _prep_playlist_stack(xml):
     stack = []
     for item in xml:
         api = API(item)
-        if (state.CONTEXT_MENU_PLAY is False or
+        if (state.CONTEXT_MENU_PLAY is False and
                 api.getType() != v.PLEX_TYPE_CLIP):
             # If user chose to play via PMS or force transcode, do not
             # use the item path stored in the Kodi DB
