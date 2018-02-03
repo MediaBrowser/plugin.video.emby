@@ -220,10 +220,9 @@ def _prep_playlist_stack(xml):
     return stack
 
 
-def _process_stack(playqueue, stack, fill_queue=False):
+def _process_stack(playqueue, stack):
     """
     Takes our stack and adds the items to the PKC and Kodi playqueues.
-    Pass fill_queue=True in order to append Playlist_Items to playqueue.items
     """
     # getposition() can return -1
     pos = max(playqueue.kodi_pl.getposition(), 0) + 1
@@ -250,8 +249,6 @@ def _process_stack(playqueue, stack, fill_queue=False):
         playlist_item.force_transcode = state.FORCE_TRANSCODE
         playlist_item.init_done = True
         pos += 1
-        if fill_queue:
-            playqueue.items.append(playlist_item)
 
 
 def conclude_playback(playqueue, pos):
@@ -374,7 +371,7 @@ def play_xml(playqueue, xml, offset=None):
     """
     LOG.info("play_xml called")
     stack = _prep_playlist_stack(xml)
-    _process_stack(playqueue, stack, fill_queue=True)
+    _process_stack(playqueue, stack)
     LOG.debug('Playqueue after play_xml update: %s', playqueue)
     for startpos, item in enumerate(playqueue.items):
         if item.id == playqueue.selectedItemID:
