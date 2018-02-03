@@ -349,7 +349,7 @@ class KodiMonitor(Monitor):
         json_item = js.get_item(playerid)
         path = json_item.get('file')
         pos = info['position'] if info['position'] != -1 else 0
-        LOG.info('Detected position %s for %s', pos, playqueue)
+        LOG.debug('Detected position %s for %s', pos, playqueue)
         try:
             item = playqueue.items[pos]
             # See if playback.py already initiated playback
