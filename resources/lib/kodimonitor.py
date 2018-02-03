@@ -238,12 +238,15 @@ class KodiMonitor(Monitor):
             LOG.debug('Playqueue not initiated - ignoring')
             return
         # Playlist has been updated; need to tell Plex about it
-        if playqueue.id is None:
-            PL.init_Plex_playlist(playqueue, kodi_item=data['item'])
-        else:
-            PL.add_item_to_PMS_playlist(playqueue,
-                                        data['position'],
-                                        kodi_item=data['item'])
+        try:
+            if playqueue.id is None:
+                PL.init_Plex_playlist(playqueue, kodi_item=data['item'])
+            else:
+                PL.add_item_to_PMS_playlist(playqueue,
+                                            data['position'],
+                                            kodi_item=data['item'])
+        except PL.PlaylistError:
+            pass
         # Make sure that we won't re-add this item
         # playqueue.old_kodi_pl = kodi_playqueue
 
