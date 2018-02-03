@@ -185,6 +185,18 @@ def skipnext():
 def skipprevious():
     """
     Skips to the previous item to play for all Kodi players
+    Using a HACK to make sure we're not just starting same item over again
+    """
+    for playerid in get_player_ids():
+        try:
+            skipto(get_position(playerid) - 1)
+        except (KeyError, TypeError):
+            pass
+
+
+def wont_work_skipprevious():
+    """
+    Skips to the previous item to play for all Kodi players
     """
     for playerid in get_player_ids():
         JsonRPC("Player.GoTo").execute({"playerid": playerid,
