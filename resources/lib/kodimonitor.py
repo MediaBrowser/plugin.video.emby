@@ -247,8 +247,6 @@ class KodiMonitor(Monitor):
                                             kodi_item=data['item'])
         except PL.PlaylistError:
             pass
-        # Make sure that we won't re-add this item
-        # playqueue.old_kodi_pl = kodi_playqueue
 
     @LOCKER.lockthis
     def _playlist_onremove(self, data):
@@ -264,13 +262,7 @@ class KodiMonitor(Monitor):
         if playqueue.is_kodi_onremove() is False:
             LOG.debug('PKC removed this item already from playqueue - ignoring')
             return
-        # Check whether we even need to update our known playqueue
-        kodi_playqueue = js.playlist_get_items(data['playlistid'])
-        if playqueue.old_kodi_pl == kodi_playqueue:
-            # We already know the latest playqueue - nothing to do
-            return
         PL.delete_playlist_item_from_PMS(playqueue, data['position'])
-        playqueue.old_kodi_pl = kodi_playqueue
 
     @LOCKER.lockthis
     def _playlist_onclear(self, data):

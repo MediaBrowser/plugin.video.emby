@@ -38,7 +38,6 @@ class PlaylistObjectBaseclase(object):
         self.type = None
         self.kodi_pl = None
         self.items = []
-        self.old_kodi_pl = []
         self.id = None
         self.version = None
         self.selectedItemID = None
@@ -137,7 +136,6 @@ class PlaylistObjectBaseclase(object):
             self.kodi_onclear()
             self.kodi_pl.clear()  # Clear Kodi playlist object
         self.items = []
-        self.old_kodi_pl = []
         self.id = None
         self.version = None
         self.selectedItemID = None
@@ -163,7 +161,6 @@ class Playqueue_Object(PlaylistObjectBaseclase):
     type = None           [str] Kodi type: 'audio', 'video', 'picture'
     kodi_pl = None        Kodi xbmc.PlayList object
     items = []            [list] of Playlist_Items
-    old_kodi_pl = []      [list] store old Kodi JSON result with all pl items
     id = None             [str] Plex playQueueID, unique Plex identifier
     version = None        [int] Plex version of the playQueue
     selectedItemID = None
