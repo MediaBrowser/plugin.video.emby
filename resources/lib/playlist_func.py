@@ -126,13 +126,15 @@ class PlaylistObjectBaseclase(object):
             return True
         return False
 
-    def clear(self):
+    def clear(self, kodi=True):
         """
-        Resets the playlist object to an empty playlist
+        Resets the playlist object to an empty playlist.
+
+        Pass kodi=False in order to NOT clear the Kodi playqueue
         """
         # kodi monitor's on_clear method will only be called if there were some
         # items to begin with
-        if self.kodi_pl.size() != 0:
+        if kodi and self.kodi_pl.size() != 0:
             self.kodi_onclear()
             self.kodi_pl.clear()  # Clear Kodi playlist object
         self.items = []
@@ -423,7 +425,7 @@ def init_Plex_playlist(playlist, plex_id=None, kodi_item=None):
     Returns the first PKC playlist item or raises PlaylistError
     """
     LOG.debug('Initializing the playlist %s on the Plex side', playlist)
-    playlist.clear()
+    playlist.clear(kodi=False)
     try:
         if plex_id:
             item = playlist_item_from_plex(plex_id)

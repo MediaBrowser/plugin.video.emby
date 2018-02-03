@@ -276,7 +276,7 @@ class KodiMonitor(Monitor):
         if playqueue.is_kodi_onclear() is False:
             LOG.debug('PKC already cleared the playqueue - ignoring')
             return
-        playqueue.clear()
+        playqueue.clear(kodi=False)
 
     def _get_ids(self, json_item):
         """
