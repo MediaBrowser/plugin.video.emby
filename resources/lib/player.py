@@ -7,6 +7,7 @@ from xbmc import Player
 
 from downloadutils import DownloadUtils as DU
 from plexbmchelper.subscribers import LOCKER
+import playqueue as PQ
 import variables as v
 import state
 
@@ -24,6 +25,7 @@ def playback_cleanup():
     """
     # We might have saved a transient token from a user flinging media via
     # Companion (if we could not use the playqueue to store the token)
+    LOG.debug('playback_cleanup called')
     state.PLEX_TRANSIENT_TOKEN = None
     for playerid in state.ACTIVE_PLAYERS:
         status = state.PLAYER_STATES[playerid]
@@ -35,6 +37,10 @@ def playback_cleanup():
             DU().downloadUrl(
                 '{server}/video/:/transcode/universal/stop',
                 parameters={'session': v.PKC_MACHINE_IDENTIFIER})
+        # Kodi will not clear the playqueue (because there is not really any)
+        # if there is only 1 item in it
+        if len(PQ.PLAYQUEUES[playerid].items) == 1:
+            PQ.PLAYQUEUES[playerid].clear()
         # Reset the player's status
         status = dict(state.PLAYSTATE)
     # As all playback has halted, reset the players that have been active
