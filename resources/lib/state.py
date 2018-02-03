@@ -143,6 +143,10 @@ RESUMABLE = False
 # Set by SpecialMonitor - did user choose to resume playback or start from the
 # beginning?
 RESUME_PLAYBACK = False
+# Was the playback initiated by the user using the Kodi context menu?
+CONTEXT_MENU_PLAY = False
+# Set by context menu - shall we force-transcode the next playing item?
+FORCE_TRANSCODE = False
 
 # Kodi webserver details
 WEBSERVER_PORT = 8080

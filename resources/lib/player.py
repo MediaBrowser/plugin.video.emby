@@ -5,7 +5,6 @@ from logging import getLogger
 
 from xbmc import Player
 
-from utils import window
 from downloadutils import DownloadUtils as DU
 from plexbmchelper.subscribers import LOCKER
 import variables as v
@@ -26,10 +25,6 @@ def playback_cleanup():
     # We might have saved a transient token from a user flinging media via
     # Companion (if we could not use the playqueue to store the token)
     state.PLEX_TRANSIENT_TOKEN = None
-    for item in ('plex_customplaylist',
-                 'plex_customplaylist.seektime',
-                 'plex_forcetranscode'):
-        window(item, clear=True)
     for playerid in state.ACTIVE_PLAYERS:
         status = state.PLAYER_STATES[playerid]
         # Remember the last played item later

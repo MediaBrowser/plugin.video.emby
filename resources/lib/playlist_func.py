@@ -197,6 +197,7 @@ class Playlist_Item(object):
     playcount = None   [int] how many times the item has already been played
     offset = None      [int] the item's view offset UPON START in Plex time
     part = 0           [int] part number if Plex video consists of mult. parts
+    force_transcode    [bool] defaults to False
     init_done = False  Set to True only if run through playback init
     """
     def __init__(self):
@@ -215,6 +216,7 @@ class Playlist_Item(object):
         self.offset = None
         # If Plex video consists of several parts; part number
         self.part = 0
+        self.force_transcode = False
         self.init_done = False
 
     def __repr__(self):

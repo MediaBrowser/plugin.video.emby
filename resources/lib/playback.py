@@ -17,7 +17,7 @@ from playutils import PlayUtils
 from PKC_listitem import PKC_ListItem
 from pickler import pickle_me, Playback_Successful
 import json_rpc as js
-from utils import window, settings, dialog, language as lang, tryEncode
+from utils import settings, dialog, language as lang, tryEncode
 from plexbmchelper.subscribers import LOCKER
 import variables as v
 import state
@@ -120,8 +120,6 @@ def playback_init(plex_id, plex_type, playqueue):
     Playback setup if Kodi starts playing an item for the first time.
     """
     LOG.info('Initializing PKC playback')
-    contextmenu_play = window('plex_contextplay') == 'true'
-    window('plex_contextplay', clear=True)
     xml = GetPlexMetadata(plex_id)
     try:
         xml[0].attrib
@@ -158,6 +156,9 @@ def playback_init(plex_id, plex_type, playqueue):
     # Sleep a bit to let setResolvedUrl do its thing - bit ugly
     sleep(200)
     _process_stack(playqueue, stack)
+    # Reset some playback variables
+    state.CONTEXT_MENU_PLAY = False
+    state.FORCE_TRANSCODE = False
     # New thread to release this one sooner (e.g. harddisk spinning up)
     thread = Thread(target=Player().play,
                     args=(playqueue.kodi_pl, ))
@@ -176,7 +177,10 @@ def _prep_playlist_stack(xml):
     stack = []
     for item in xml:
         api = API(item)
-        if api.getType() != v.PLEX_TYPE_CLIP:
+        if (state.CONTEXT_MENU_PLAY is False or
+                api.getType() != v.PLEX_TYPE_CLIP):
+            # If user chose to play via PMS or force transcode, do not
+            # use the item path stored in the Kodi DB
             with plexdb.Get_Plex_DB() as plex_db:
                 plex_dbitem = plex_db.getItem_byId(api.getRatingKey())
             kodi_id = plex_dbitem[0] if plex_dbitem else None
@@ -243,6 +247,7 @@ def _process_stack(playqueue, stack, fill_queue=False):
         playlist_item.offset = item['offset']
         playlist_item.part = item['part']
         playlist_item.id = item['id']
+        playlist_item.force_transcode = state.FORCE_TRANSCODE
         playlist_item.init_done = True
         pos += 1
         if fill_queue:
@@ -356,7 +361,8 @@ def process_indirect(key, offset, resolve=True):
         pickle_me(result)
     else:
         thread = Thread(target=Player().play,
-                        args={'item': tryEncode(playurl), 'listitem': listitem})
+                        args={'item': tryEncode(playurl),
+                              'listitem': listitem})
         thread.setDaemon(True)
         LOG.info('Done initializing PKC playback, starting Kodi player')
         thread.start()

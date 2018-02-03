@@ -87,7 +87,8 @@ class PlayUtils():
             - codec is in h265
             - 10bit video codec
             - HEVC codec
-            - window variable 'plex_forcetranscode' set to 'true'
+            - playqueue_item force_transcode is set to True
+            - state variable FORCE_TRANSCODE set to True
                 (excepting trailers etc.)
             - video bitrate above specified settings bitrate
         if the corresponding file settings are set to 'true'
@@ -97,7 +98,7 @@ class PlayUtils():
             return False
         videoCodec = self.api.getVideoCodec()
         LOG.info("videoCodec: %s" % videoCodec)
-        if window('plex_forcetranscode') == 'true':
+        if self.item.force_transcode is True:
             LOG.info('User chose to force-transcode')
             return True
         codec = videoCodec['videocodec']
