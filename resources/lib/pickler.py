@@ -46,7 +46,7 @@ def unpickle_me(window_var='plex_result'):
     pickl_window(window_var, clear=True)
     log('%sStart unpickling' % PREFIX, level=LOGDEBUG)
     obj = loads(result)
-    log('%sSuccessfully unpickled: %s' % (PREFIX, obj), level=LOGDEBUG)
+    log('%sSuccessfully unpickled' % PREFIX, level=LOGDEBUG)
     return obj
 
 
