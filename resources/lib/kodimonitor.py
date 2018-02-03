@@ -350,6 +350,7 @@ class KodiMonitor(Monitor):
         path = json_item.get('file')
         pos = info['position'] if info['position'] != -1 else 0
         LOG.debug('Detected position %s for %s', pos, playqueue)
+        status = state.PLAYER_STATES[playerid]
         try:
             item = playqueue.items[pos]
             # See if playback.py already initiated playback
@@ -361,6 +362,7 @@ class KodiMonitor(Monitor):
             kodi_type = item.kodi_type
             plex_id = item.plex_id
             plex_type = item.plex_type
+            container_key = '/playQueues/%s' % playqueue.id
         else:
             try:
                 kodi_id, kodi_type, plex_id, plex_type = self._get_ids(json_item)
@@ -388,10 +390,9 @@ class KodiMonitor(Monitor):
                 container_key = '/playQueues/%s' % container_key
             elif plex_id is not None:
                 container_key = '/library/metadata/%s' % plex_id
-            state.PLAYER_STATES[playerid]['container_key'] = container_key
             LOG.debug('Set the Plex container_key to: %s', container_key)
-        status = state.PLAYER_STATES[playerid]
         status.update(info)
+        status['container_key'] = container_key
         status['file'] = path
         status['kodi_id'] = kodi_id
         status['kodi_type'] = kodi_type
