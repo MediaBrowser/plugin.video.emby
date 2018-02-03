@@ -241,13 +241,12 @@ class SubscriptionMgr(object):
         elif playqueue.plex_transient_token:
             answ['token'] = playqueue.plex_transient_token
         # Process audio and subtitle streams
-        if ptype != v.PLEX_PLAYLIST_TYPE_PHOTO:
+        if ptype == v.PLEX_PLAYLIST_TYPE_VIDEO:
             strm_id = self._plex_stream_index(playerid, 'audio')
             if strm_id:
                 answ['audioStreamID'] = strm_id
             else:
                 LOG.error('We could not select a Plex audiostream')
-        if ptype == v.PLEX_PLAYLIST_TYPE_VIDEO:
             strm_id = self._plex_stream_index(playerid, 'video')
             if strm_id:
                 answ['videoStreamID'] = strm_id
