@@ -31,7 +31,7 @@ def playback_cleanup():
         state.OLD_PLAYER_STATES[playerid] = dict(status)
         # Stop transcoding
         if status['playmethod'] == 'Transcode':
-            LOG.info('Tell the PMS to stop transcoding')
+            LOG.debug('Tell the PMS to stop transcoding')
             DU().downloadUrl(
                 '{server}/video/:/transcode/universal/stop',
                 parameters={'session': v.PKC_MACHINE_IDENTIFIER})
@@ -39,7 +39,7 @@ def playback_cleanup():
         status = dict(state.PLAYSTATE)
     # As all playback has halted, reset the players that have been active
     state.ACTIVE_PLAYERS = []
-    LOG.info('Finished PKC playback cleanup')
+    LOG.debug('Finished PKC playback cleanup')
 
 
 class PKC_Player(Player):
@@ -75,12 +75,12 @@ class PKC_Player(Player):
         """
         Will be called when playback is stopped by the user
         """
-        LOG.info("ONPLAYBACK_STOPPED")
+        LOG.debug("ONPLAYBACK_STOPPED")
         playback_cleanup()
 
     def onPlayBackEnded(self):
         """
         Will be called when playback ends due to the media file being finished
         """
-        LOG.info("ONPLAYBACK_ENDED")
+        LOG.debug("ONPLAYBACK_ENDED")
         playback_cleanup()
