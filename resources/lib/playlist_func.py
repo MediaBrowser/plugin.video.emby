@@ -445,7 +445,7 @@ def init_Plex_playlist(playlist, plex_id=None, kodi_item=None):
         item = playlist_item_from_xml(playlist, xml[0])
     except (KeyError, IndexError, TypeError):
         raise PlaylistError('Could not init Plex playlist with plex_id %s and '
-                            'kodi_item %s', plex_id, kodi_item)
+                            'kodi_item %s' % (plex_id, kodi_item))
     playlist.items.append(item)
     LOG.debug('Initialized the playlist on the Plex side: %s', playlist)
     return item
