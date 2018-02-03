@@ -91,15 +91,15 @@ ACTIVE_PLAYERS = []
 
 # Kodi player states - here, initial values are set
 PLAYER_STATES = {
+    0: {},
     1: {},
-    2: {},
-    3: {}
+    2: {}
 }
 # The LAST playstate once playback is finished
 OLD_PLAYER_STATES = {
+    0: {},
     1: {},
-    2: {},
-    3: {}
+    2: {}
 }
 # "empty" dict for the PLAYER_STATES above
 PLAYSTATE = {
