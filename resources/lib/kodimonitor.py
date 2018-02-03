@@ -317,6 +317,24 @@ class KodiMonitor(Monitor):
                     pass
         return kodi_id, kodi_type, plex_id, plex_type
 
+    @staticmethod
+    def _add_remaining_items_to_playlist(playqueue):
+        """
+        Adds all but the very first item of the Kodi playlist to the Plex
+        playqueue
+        """
+        items = js.playlist_get_items(playqueue.playlistid)
+        if not items:
+            LOG.error('Could not retrieve Kodi playlist items')
+            return
+        # Remove first item
+        items.pop(0)
+        try:
+            for i, item in enumerate(items):
+                PL.add_item_to_PMS_playlist(playqueue, i + 1, kodi_item=item)
+        except PL.PlaylistError:
+            LOG.info('Could not build Plex playlist for: %s', items)
+
     @LOCKER.lockthis
     def PlayBackStart(self, data):
         """
@@ -381,6 +399,9 @@ class KodiMonitor(Monitor):
                 LOG.info('Could not initialize our playlist')
                 # Avoid errors
                 item = PL.Playlist_Item()
+            # Make sure we've added all items of the Kodi playqueue
+            if playqueue.kodi_pl.size() > 1:
+                self._add_remaining_items_to_playlist(playqueue)
             # Set the Plex container key (e.g. using the Plex playqueue)
             container_key = None
             if info['playlistid'] != -1:
