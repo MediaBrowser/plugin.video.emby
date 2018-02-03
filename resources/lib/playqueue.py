@@ -119,7 +119,7 @@ def update_playqueue_from_PMS(playqueue,
         playqueue.clear()
         try:
             PL.get_playlist_details_from_xml(playqueue, xml)
-        except KeyError:
+        except PL.PlaylistError:
             LOG.error('Could not get playqueue ID %s', playqueue_id)
             return
         playqueue.repeat = 0 if not repeat else int(repeat)
