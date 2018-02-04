@@ -298,7 +298,7 @@ class PlayUtils():
                     if 'language' in stream.attrib:
                         path = self.api.download_external_subtitles(
                             '{server}%s' % stream.attrib['key'],
-                            "subtitle.%s.%s" % (stream.attrib['language'],
+                            "subtitle.%s.%s" % (stream.attrib['languageCode'],
                                                 stream.attrib['codec']))
                     # We don't know the language - no need to download
                     else:
