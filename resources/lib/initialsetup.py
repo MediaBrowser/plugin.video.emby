@@ -419,6 +419,8 @@ class InitialSetup():
                 xml.set_setting(['video', 'ignorepercentatend'], value='10')
                 xml.set_setting(['video', 'playcountminimumpercent'],
                                 value='90')
+                xml.set_setting(['video', 'ignoresecondsatstart'],
+                                value='60')
                 reboot = xml.write_xml
         except etree.ParseError:
             cache = None
