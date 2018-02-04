@@ -337,11 +337,8 @@ class SubscriptionMgr(object):
         self._notify_server(players)
         if self.subscribers:
             msg = self.msg(players)
-            if self.isplaying is True:
-                # If we don't check here, Plex Companion devices will simply
-                # drop out of the Plex Companion playback screen
-                for subscriber in self.subscribers.values():
-                    subscriber.send_update(msg)
+            for subscriber in self.subscribers.values():
+                subscriber.send_update(msg)
         self.lastplayers = players
 
     def _notify_server(self, players):
