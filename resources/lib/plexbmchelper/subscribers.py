@@ -123,6 +123,8 @@ class SubscriptionMgr(object):
         # In order to be able to signal a stop at the end
         self.last_params = {}
         self.lastplayers = {}
+        # In order to signal a stop to Plex Web ONCE on playback stop
+        self.stop_sent_to_web = True
 
         self.xbmcplayer = player
         self.request_mgr = request_mgr
@@ -190,6 +192,7 @@ class SubscriptionMgr(object):
                 'state': 'stopped'
             }
         self.isplaying = True
+        self.stop_sent_to_web = False
         pbmc_server = window('pms_server')
         if pbmc_server:
             (self.protocol, self.server, self.port) = pbmc_server.split(':')

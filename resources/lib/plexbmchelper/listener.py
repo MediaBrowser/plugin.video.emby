@@ -7,7 +7,8 @@ from SocketServer import ThreadingMixIn
 from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
 from urlparse import urlparse, parse_qs
 
-from xbmc import sleep
+from xbmc import sleep, Player, Monitor
+
 from companion import process_command
 import json_rpc as js
 from clientinfo import getXArgsDeviceInfo
@@ -16,6 +17,11 @@ import variables as v
 ###############################################################################
 
 LOG = getLogger("PLEX." + __name__)
+PLAYER = Player()
+MONITOR = Monitor()
+
+# Hack we need in order to keep track of the open connections from Plex Web
+CLIENT_DICT = {}
 
 ###############################################################################
 
@@ -42,8 +48,8 @@ class MyHandler(BaseHTTPRequestHandler):
     protocol_version = 'HTTP/1.1'
 
     def __init__(self, *args, **kwargs):
-        BaseHTTPRequestHandler.__init__(self, *args, **kwargs)
         self.serverlist = []
+        BaseHTTPRequestHandler.__init__(self, *args, **kwargs)
 
     def do_HEAD(self):
         LOG.debug("Serving HEAD request...")
@@ -117,21 +123,69 @@ class MyHandler(BaseHTTPRequestHandler):
                     title=v.DEVICENAME,
                     machineIdentifier=v.PKC_MACHINE_IDENTIFIER),
                 getXArgsDeviceInfo(include_token=False))
-        elif "/poll" in request_path:
+        elif request_path == 'player/timeline/poll':
+            # Plex web does polling if connected to PKC via Companion
+            # Only reply if there is indeed something playing
+            # Otherwise, all clients seem to keep connection open
             if params.get('wait') == '1':
-                sleep(950)
-            self.response(
-                sub_mgr.msg(js.get_players()).format(
-                    command_id=params.get('commandID', 0)),
-                {
-                    'X-Plex-Client-Identifier': v.PKC_MACHINE_IDENTIFIER,
-                    'X-Plex-Protocol': '1.0',
-                    'Access-Control-Allow-Origin': '*',
-                    'Access-Control-Max-Age': '1209600',
-                    'Access-Control-Expose-Headers':
-                        'X-Plex-Client-Identifier',
-                    'Content-Type': 'text/xml;charset=utf-8'
-                })
+                MONITOR.waitForAbort(0.95)
+            if self.client_address[0] not in CLIENT_DICT:
+                CLIENT_DICT[self.client_address[0]] = []
+            tracker = CLIENT_DICT[self.client_address[0]]
+            tracker.append(self.client_address[1])
+            while (not PLAYER.isPlaying() and
+                   not MONITOR.abortRequested() and
+                   sub_mgr.stop_sent_to_web and not
+                   (len(tracker) >= 4 and
+                    tracker[0] == self.client_address[1])):
+                # Keep at most 3 connections open, then drop the first one
+                # Doesn't need to be thread-save
+                # Silly stuff really
+                MONITOR.waitForAbort(1)
+            # Let PKC know that we're releasing this connection
+            tracker.pop(0)
+            msg = sub_mgr.msg(js.get_players()).format(
+                command_id=params.get('commandID', 0))
+            if sub_mgr.isplaying:
+                self.response(
+                    msg,
+                    {
+                        'X-Plex-Client-Identifier': v.PKC_MACHINE_IDENTIFIER,
+                        'X-Plex-Protocol': '1.0',
+                        'Access-Control-Allow-Origin': '*',
+                        'Access-Control-Max-Age': '1209600',
+                        'Access-Control-Expose-Headers':
+                            'X-Plex-Client-Identifier',
+                        'Content-Type': 'text/xml;charset=utf-8'
+                    })
+            elif not sub_mgr.stop_sent_to_web:
+                sub_mgr.stop_sent_to_web = True
+                LOG.debug('Signaling STOP to Plex Web')
+                self.response(
+                    msg,
+                    {
+                        'X-Plex-Client-Identifier': v.PKC_MACHINE_IDENTIFIER,
+                        'X-Plex-Protocol': '1.0',
+                        'Access-Control-Allow-Origin': '*',
+                        'Access-Control-Max-Age': '1209600',
+                        'Access-Control-Expose-Headers':
+                            'X-Plex-Client-Identifier',
+                        'Content-Type': 'text/xml;charset=utf-8'
+                    })
+            else:
+                # Fail connection with HTTP 500 error - has been open too long
+                self.response(
+                    'Need to close this connection on the PKC side',
+                    {
+                        'X-Plex-Client-Identifier': v.PKC_MACHINE_IDENTIFIER,
+                        'X-Plex-Protocol': '1.0',
+                        'Access-Control-Allow-Origin': '*',
+                        'Access-Control-Max-Age': '1209600',
+                        'Access-Control-Expose-Headers':
+                            'X-Plex-Client-Identifier',
+                        'Content-Type': 'text/xml;charset=utf-8'
+                    },
+                    code=500)
         elif "/subscribe" in request_path:
             self.response(v.COMPANION_OK_MESSAGE,
                           getXArgsDeviceInfo(include_token=False))
