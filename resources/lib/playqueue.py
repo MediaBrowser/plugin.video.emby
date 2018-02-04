@@ -186,6 +186,10 @@ class PlayqueueMonitor(Thread):
                 for j in range(i, len(index)):
                     index[j] += 1
         for i in reversed(index):
+            if self.thread_stopped():
+                # Chances are that we got an empty Kodi playlist due to
+                # Kodi exit
+                return
             LOG.debug('Detected deletion of playqueue element at pos %s', i)
             PL.delete_playlist_item_from_PMS(playqueue, i)
         LOG.debug('Done comparing playqueues')
