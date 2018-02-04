@@ -45,11 +45,8 @@ class PlaylistObjectBaseclase(object):
         self.shuffled = 0
         self.repeat = 0
         self.plex_transient_token = None
-        # Needed to not add an item twice (first through PKC, then the kodi
-        # monitor)
-        self._onadd_queue = []
-        self._onremove_queue = []
-        self._onclear_queue = []
+        # Need a hack for detecting swaps of elements
+        self.old_kodi_pl = []
 
     def __repr__(self):
         """
@@ -69,63 +66,6 @@ class PlaylistObjectBaseclase(object):
                 answ += '\'%s\': %s, ' % (key, str(getattr(self, key)))
         return answ + '\'items\': %s}}' % self.items
 
-    def kodi_onadd(self):
-        """
-        Call this before adding an item to the Kodi playqueue
-        """
-        self._onadd_queue.append(None)
-
-    def is_kodi_onadd(self):
-        """
-        Returns False if the last kodimonitor on_add was caused by PKC - so that
-        we are not adding a playlist item twice.
-
-        Calling this function will remove the item from our "checklist"
-        """
-        try:
-            self._onadd_queue.pop()
-        except IndexError:
-            return True
-        return False
-
-    def kodi_onremove(self):
-        """
-        Call this before removing an item from the Kodi playqueue
-        """
-        self._onremove_queue.append(None)
-
-    def is_kodi_onremove(self):
-        """
-        Returns False if the last kodimonitor on_remove was caused by PKC - so
-        that we are not adding a playlist item twice.
-
-        Calling this function will remove the item from our "checklist"
-        """
-        try:
-            self._onremove_queue.pop()
-        except IndexError:
-            return True
-        return False
-
-    def kodi_onclear(self):
-        """
-        Call this before clearing the Kodi playqueue IF it was not empty
-        """
-        self._onclear_queue.append(None)
-
-    def is_kodi_onclear(self):
-        """
-        Returns False if the last kodimonitor on_remove was caused by PKC - so
-        that we are not clearing the playlist twice.
-
-        Calling this function will remove the item from our "checklist"
-        """
-        try:
-            self._onclear_queue.pop()
-        except IndexError:
-            return True
-        return False
-
     def clear(self, kodi=True):
         """
         Resets the playlist object to an empty playlist.
@@ -135,7 +75,6 @@ class PlaylistObjectBaseclase(object):
         # kodi monitor's on_clear method will only be called if there were some
         # items to begin with
         if kodi and self.kodi_pl.size() != 0:
-            self.kodi_onclear()
             self.kodi_pl.clear()  # Clear Kodi playlist object
         self.items = []
         self.id = None
@@ -145,6 +84,7 @@ class PlaylistObjectBaseclase(object):
         self.shuffled = 0
         self.repeat = 0
         self.plex_transient_token = None
+        self.old_kodi_pl = []
         LOG.debug('Playlist cleared: %s', self)
 
 
@@ -503,10 +443,8 @@ def add_item_to_playlist(playlist, pos, kodi_id=None, kodi_type=None,
         params['item'] = {'%sid' % item.kodi_type: int(item.kodi_id)}
     else:
         params['item'] = {'file': item.file}
-    playlist.kodi_onadd()
     reply = js.playlist_insert(params)
     if reply.get('error') is not None:
-        playlist.is_kodi_onadd()
         raise PlaylistError('Could not add item to playlist. Kodi reply. %s',
                             reply)
     return item
@@ -572,10 +510,8 @@ def add_item_to_kodi_playlist(playlist, pos, kodi_id=None, kodi_type=None,
         params['item'] = {'%sid' % kodi_type: int(kodi_id)}
     else:
         params['item'] = {'file': file}
-    playlist.kodi_onadd()
     reply = js.playlist_insert(params)
     if reply.get('error') is not None:
-        playlist.is_kodi_onadd()
         raise PlaylistError('Could not add item to playlist. Kodi reply. %s',
                             reply)
     if xml_video_element is not None:
@@ -694,7 +630,6 @@ def add_listitem_to_Kodi_playlist(playlist, pos, listitem, file,
     LOG.debug('Insert listitem at position %s for Kodi only for %s',
               pos, playlist)
     # Add the item into Kodi playlist
-    playlist.kodi_onadd()
     playlist.kodi_pl.add(url=file, listitem=listitem, index=pos)
     # We need to add this to our internal queue as well
     if xml_video_element is not None:

@@ -69,7 +69,7 @@ class KodiMonitor(Monitor):
         """
         Will be called when Kodi starts scanning the library
         """
-        LOG.debug("Kodi library scan %s running." % library)
+        LOG.debug("Kodi library scan %s running.", library)
         if library == "video":
             window('plex_kodiScan', value="true")
 
@@ -77,7 +77,7 @@ class KodiMonitor(Monitor):
         """
         Will be called when Kodi finished scanning the library
         """
-        LOG.debug("Kodi library scan %s finished." % library)
+        LOG.debug("Kodi library scan %s finished.", library)
         if library == "video":
             window('plex_kodiScan', clear=True)
 
@@ -209,11 +209,6 @@ class KodiMonitor(Monitor):
         }
         Will NOT be called if playback initiated by Kodi widgets
         """
-        playqueue = PQ.PLAYQUEUES[data['playlistid']]
-        # Did PKC cause this add? Then lets not do anything
-        if playqueue.is_kodi_onadd() is False:
-            LOG.debug('PKC added this item to the playqueue - ignoring')
-            return
         kodi_item = js.get_item(data['playlistid'])
         if (state.RESUMABLE is True and not kodi_item['file'] and
                 data['position'] == 0 and
@@ -233,22 +228,7 @@ class KodiMonitor(Monitor):
             thread = Thread(target=playback_triage, kwargs=kwargs)
             thread.start()
             return
-        # Have we initiated the playqueue already? If not, ignore this
-        if not playqueue.items:
-            LOG.debug('Playqueue not initiated - ignoring')
-            return
-        # Playlist has been updated; need to tell Plex about it
-        try:
-            if playqueue.id is None:
-                PL.init_Plex_playlist(playqueue, kodi_item=data['item'])
-            else:
-                PL.add_item_to_PMS_playlist(playqueue,
-                                            data['position'],
-                                            kodi_item=data['item'])
-        except PL.PlaylistError:
-            pass
 
-    @LOCKER.lockthis
     def _playlist_onremove(self, data):
         """
         Called if an item is removed from a Kodi playlist. Example data dict:
@@ -257,14 +237,8 @@ class KodiMonitor(Monitor):
             u'position': 0
         }
         """
-        playqueue = PQ.PLAYQUEUES[data['playlistid']]
-        # Did PKC cause this add? Then lets not do anything
-        if playqueue.is_kodi_onremove() is False:
-            LOG.debug('PKC removed this item already from playqueue - ignoring')
-            return
-        PL.delete_playlist_item_from_PMS(playqueue, data['position'])
+        pass
 
-    @LOCKER.lockthis
     def _playlist_onclear(self, data):
         """
         Called if a Kodi playlist is cleared. Example data dict:
@@ -272,11 +246,7 @@ class KodiMonitor(Monitor):
             u'playlistid': 1,
         }
         """
-        playqueue = PQ.PLAYQUEUES[data['playlistid']]
-        if playqueue.is_kodi_onclear() is False:
-            LOG.debug('PKC already cleared the playqueue - ignoring')
-            return
-        playqueue.clear(kodi=False)
+        pass
 
     def _get_ids(self, json_item):
         """
@@ -399,9 +369,6 @@ class KodiMonitor(Monitor):
                 LOG.info('Could not initialize our playlist')
                 # Avoid errors
                 item = PL.Playlist_Item()
-            # Make sure we've added all items of the Kodi playqueue
-            if playqueue.kodi_pl.size() > 1:
-                self._add_remaining_items_to_playlist(playqueue)
             # Set the Plex container key (e.g. using the Plex playqueue)
             container_key = None
             if info['playlistid'] != -1:

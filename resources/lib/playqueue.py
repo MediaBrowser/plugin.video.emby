@@ -2,14 +2,15 @@
 Monitors the Kodi playqueue and adjusts the Plex playqueue accordingly
 """
 from logging import getLogger
-from threading import RLock, Thread
+from threading import Thread
 
-from xbmc import Player, PlayList, PLAYLIST_MUSIC, PLAYLIST_VIDEO
+from xbmc import Player, PlayList, PLAYLIST_MUSIC, PLAYLIST_VIDEO, sleep
 
-from utils import window
+from utils import thread_methods
 import playlist_func as PL
-from PlexFunctions import ConvertPlexToKodiTime, GetAllPlexChildren
+from PlexFunctions import GetAllPlexChildren
 from PlexAPI import API
+from plexbmchelper.subscribers import LOCK
 from playback import play_xml
 import json_rpc as js
 import variables as v
@@ -17,8 +18,6 @@ import variables as v
 ###############################################################################
 LOG = getLogger("PLEX." + __name__)
 
-# lock used for playqueue manipulations
-LOCK = RLock()
 PLUGIN = 'plugin://%s' % v.ADDON_ID
 
 # Our PKC playqueues (3 instances of Playqueue_Object())
@@ -125,3 +124,87 @@ def update_playqueue_from_PMS(playqueue,
         playqueue.repeat = 0 if not repeat else int(repeat)
         playqueue.plex_transient_token = transient_token
         play_xml(playqueue, xml, offset)
+
+
+@thread_methods(add_suspends=['PMS_STATUS'])
+class PlayqueueMonitor(Thread):
+    """
+    Unfortunately, Kodi does not tell if items within a Kodi playqueue
+    (playlist) are swapped. This is what this monitor is for. Don't replace
+    this mechanism till Kodi's implementation of playlists has improved
+    """
+    def _compare_playqueues(self, playqueue, new):
+        """
+        Used to poll the Kodi playqueue and update the Plex playqueue if needed
+        """
+        old = list(playqueue.items)
+        index = list(range(0, len(old)))
+        LOG.debug('Comparing new Kodi playqueue %s with our play queue %s',
+                  new, old)
+        for i, new_item in enumerate(new):
+            if (new_item['file'].startswith('plugin://') and
+                    not new_item['file'].startswith(PLUGIN)):
+                # Ignore new media added by other addons
+                continue
+            for j, old_item in enumerate(old):
+                if self.thread_stopped():
+                    # Chances are that we got an empty Kodi playlist due to
+                    # Kodi exit
+                    return
+                try:
+                    if (old_item.file.startswith('plugin://') and
+                            not old_item.file.startswith(PLUGIN)):
+                        # Ignore media by other addons
+                        continue
+                except AttributeError:
+                    # were not passed a filename; ignore
+                    pass
+                if new_item.get('id') is None:
+                    identical = old_item.file == new_item['file']
+                else:
+                    identical = (old_item.kodi_id == new_item['id'] and
+                                 old_item.kodi_type == new_item['type'])
+                if j == 0 and identical:
+                    del old[j], index[j]
+                    break
+                elif identical:
+                    LOG.debug('Detected playqueue item %s moved to position %s',
+                              i + j, i)
+                    PL.move_playlist_item(playqueue, i + j, i)
+                    del old[j], index[j]
+                    break
+            else:
+                LOG.debug('Detected new Kodi element at position %s: %s ',
+                          i, new_item)
+                if playqueue.id is None:
+                    PL.init_Plex_playlist(playqueue,
+                                          kodi_item=new_item)
+                else:
+                    PL.add_item_to_PMS_playlist(playqueue,
+                                                i,
+                                                kodi_item=new_item)
+                for j in range(i, len(index)):
+                    index[j] += 1
+        for i in reversed(index):
+            LOG.debug('Detected deletion of playqueue element at pos %s', i)
+            PL.delete_playlist_item_from_PMS(playqueue, i)
+        LOG.debug('Done comparing playqueues')
+
+    def run(self):
+        thread_stopped = self.thread_stopped
+        thread_suspended = self.thread_suspended
+        LOG.info("----===## Starting PlayqueueMonitor ##===----")
+        while not thread_stopped():
+            while thread_suspended():
+                if thread_stopped():
+                    break
+                sleep(1000)
+            with LOCK:
+                for playqueue in PLAYQUEUES:
+                    kodi_pl = js.playlist_get_items(playqueue.playlistid)
+                    if playqueue.old_kodi_pl != kodi_pl:
+                        # compare old and new playqueue
+                        self._compare_playqueues(playqueue, kodi_pl)
+                        playqueue.old_kodi_pl = list(kodi_pl)
+            sleep(200)
+        LOG.info("----===## PlayqueueMonitor stopped ##===----")

@@ -43,6 +43,7 @@ import PlexAPI
 from PlexCompanion import PlexCompanion
 from command_pipeline import Monitor_Window
 from playback_starter import Playback_Starter
+from playqueue import PlayqueueMonitor
 from artwork import Image_Cache_Thread
 from json_rpc import get_setting, set_setting
 import variables as v
@@ -174,6 +175,7 @@ class Service():
         self.plexCompanion = PlexCompanion()
         self.specialMonitor = SpecialMonitor()
         self.playback_starter = Playback_Starter()
+        self.playqueue = PlayqueueMonitor()
         if settings('enableTextureCache') == "true":
             self.image_cache_thread = Image_Cache_Thread()
 
@@ -236,6 +238,7 @@ class Service():
                         if not self.playback_starter_running:
                             self.playback_starter_running = True
                             self.playback_starter.start()
+                        self.playqueue.start()
                         if (not self.image_cache_thread_running and
                                 settings('enableTextureCache') == "true"):
                             self.image_cache_thread_running = True
