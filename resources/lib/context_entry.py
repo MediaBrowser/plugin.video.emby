@@ -9,6 +9,7 @@ import plexdb_functions as plexdb
 from utils import window, settings, dialog, language as lang
 from dialogs import context
 from PlexFunctions import delete_item_from_pms
+import playqueue as PQ
 import variables as v
 import state
 
@@ -169,6 +170,9 @@ class ContextMenu(object):
         """
         For using direct paths: Initiates playback using the PMS
         """
+        playqueue = PQ.get_playqueue_from_type(
+            v.KODI_PLAYLIST_TYPE_FROM_KODI_TYPE[self.kodi_type])
+        playqueue.clear()
         state.CONTEXT_MENU_PLAY = True
         params = {
             'mode': 'play',
