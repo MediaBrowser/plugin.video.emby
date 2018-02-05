@@ -138,7 +138,7 @@ class Service():
         set_replace_paths()
         state.KODI_PLEX_TIME_OFFSET = float(settings('kodiplextimeoffset'))
 
-        window('plex_minDBVersion', value="1.5.10")
+        window('plex_minDBVersion', value="2.0.0")
         set_webserver()
         self.monitor = Monitor()
         window('plex_kodiProfile',
