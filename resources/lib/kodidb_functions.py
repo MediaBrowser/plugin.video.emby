@@ -983,7 +983,7 @@ class Kodidb_Functions():
                 '''
             )
             self.cursor.execute(query, (bookmarkId, fileid, resume_seconds, total_seconds,
-                "DVDPlayer", 1))
+                "VideoPlayer", 1))
 
     def addTags(self, kodiid, tags, mediatype):
         # First, delete any existing tags associated to the id
