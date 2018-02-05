@@ -149,37 +149,26 @@ class Items(object):
                                                db_item[4],
                                                userdata['UserRating'])
 
-    def updatePlaystate(self, item):
+    def updatePlaystate(self, mark_played, view_count, resume, duration,
+                        file_id, lastViewedAt):
         """
         Use with websockets, not xml
         """
         # If the playback was stopped, check whether we need to increment the
         # playcount. PMS won't tell us the playcount via websockets
-        if item['state'] in ('stopped', 'ended'):
-
-            # If offset exceeds duration skip update
-            if item['viewOffset'] > item['duration']:
-                log.error("Error while updating play state, viewOffset "
-                          "exceeded duration")
-                return
-
-            complete = float(item['viewOffset']) / float(item['duration'])
-            log.info('Item %s stopped with completion rate %s percent.'
-                     'Mark item played at %s percent.'
-                     % (item['ratingKey'], str(complete), v.MARK_PLAYED_AT), 1)
-            if complete >= v.MARK_PLAYED_AT:
-                log.info('Marking as completely watched in Kodi')
-                try:
-                    item['viewCount'] += 1
-                except TypeError:
-                    item['viewCount'] = 1
-                item['viewOffset'] = 0
+        if mark_played:
+            log.info('Marking as completely watched in Kodi')
+            try:
+                view_count += 1
+            except TypeError:
+                view_count = 1
+            resume = 0
         # Do the actual update
-        self.kodi_db.addPlaystate(item['file_id'],
-                                  item['viewOffset'],
-                                  item['duration'],
-                                  item['viewCount'],
-                                  item['lastViewedAt'])
+        self.kodi_db.addPlaystate(file_id,
+                                  resume,
+                                  duration,
+                                  view_count,
+                                  lastViewedAt)
 
 
 class Movies(Items):

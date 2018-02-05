@@ -45,7 +45,7 @@ class LibrarySync(Thread):
     """
     def __init__(self):
         self.itemsToProcess = []
-        self.sessionKeys = []
+        self.sessionKeys = {}
         self.fanartqueue = Queue.Queue()
         if settings('FanartTV') == 'true':
             self.fanartthread = Process_Fanart_Thread(self.fanartqueue)
@@ -223,6 +223,8 @@ class LibrarySync(Thread):
         """
         repair=True: force sync EVERY item
         """
+        # Reset our keys
+        self.sessionKeys = {}
         # self.compare == False: we're syncing EVERY item
         # True: we're syncing only the delta, e.g. different checksum
         self.compare = not repair
@@ -1283,110 +1285,108 @@ class LibrarySync(Thread):
         Someone (not necessarily the user signed in) is playing something some-
         where
         """
-        items = []
         for item in data:
-            # Drop buffering messages immediately
             status = item['state']
             if status == 'buffering':
+                # Drop buffering messages immediately
                 continue
-            ratingKey = str(item['ratingKey'])
+            plex_id = str(item['ratingKey'])
             for pid in (0, 1, 2):
-                if ratingKey == state.PLAYER_STATES[pid]['plex_id']:
+                if plex_id == state.PLAYER_STATES[pid]['plex_id']:
                     # Kodi is playing this item - no need to set the playstate
                     continue
-            with plexdb.Get_Plex_DB() as plex_db:
-                kodi_info = plex_db.getItem_byId(ratingKey)
-            if kodi_info is None:
-                # Item not (yet) in Kodi library
-                continue
             sessionKey = item['sessionKey']
             # Do we already have a sessionKey stored?
             if sessionKey not in self.sessionKeys:
+                with plexdb.Get_Plex_DB() as plex_db:
+                    kodi_info = plex_db.getItem_byId(plex_id)
+                if kodi_info is None:
+                    # Item not (yet) in Kodi library
+                    continue
                 if settings('plex_serverowned') == 'false':
-                    # Not our PMS, we are not authorized to get the
-                    # sessions
+                    # Not our PMS, we are not authorized to get the sessions
                     # On the bright side, it must be us playing :-)
-                    self.sessionKeys = {
-                        sessionKey: {}
-                    }
+                    self.sessionKeys[sessionKey] = {}
                 else:
                     # PMS is ours - get all current sessions
-                    self.sessionKeys = GetPMSStatus(state.PLEX_TOKEN)
-                    log.debug('Updated current sessions. They are: %s'
-                              % self.sessionKeys)
+                    self.sessionKeys.update(GetPMSStatus(state.PLEX_TOKEN))
+                    log.debug('Updated current sessions. They are: %s',
+                              self.sessionKeys)
                     if sessionKey not in self.sessionKeys:
-                        log.warn('Session key %s still unknown! Skip '
-                                 'item' % sessionKey)
+                        log.info('Session key %s still unknown! Skip '
+                                 'playstate update', sessionKey)
                         continue
-
-            currSess = self.sessionKeys[sessionKey]
+                # Attach Kodi info to the session
+                self.sessionKeys[sessionKey]['kodi_id'] = kodi_info[0]
+                self.sessionKeys[sessionKey]['file_id'] = kodi_info[1]
+                self.sessionKeys[sessionKey]['kodi_type'] = kodi_info[4]
+            session = self.sessionKeys[sessionKey]
             if settings('plex_serverowned') != 'false':
                 # Identify the user - same one as signed on with PKC? Skip
                 # update if neither session's username nor userid match
                 # (Owner sometime's returns id '1', not always)
-                if (not state.PLEX_TOKEN and currSess['userId'] == '1'):
+                if not state.PLEX_TOKEN and session['userId'] == '1':
                     # PKC not signed in to plex.tv. Plus owner of PMS is
                     # playing (the '1').
                     # Hence must be us (since several users require plex.tv
                     # token for PKC)
                     pass
-                elif not (currSess['userId'] == state.PLEX_USER_ID
-                          or
-                          currSess['username'] == state.PLEX_USERNAME):
+                elif not (session['userId'] == state.PLEX_USER_ID or
+                          session['username'] == state.PLEX_USERNAME):
                     log.debug('Our username %s, userid %s did not match '
-                              'the session username %s with userid %s'
-                              % (state.PLEX_USERNAME,
-                                 state.PLEX_USER_ID,
-                                 currSess['username'],
-                                 currSess['userId']))
+                              'the session username %s with userid %s',
+                              state.PLEX_USERNAME,
+                              state.PLEX_USER_ID,
+                              session['username'],
+                              session['userId'])
                     continue
-
-            # Get an up-to-date XML from the PMS
-            # because PMS will NOT directly tell us:
-            #   duration of item
-            #   viewCount
-            if currSess.get('duration') is None:
-                xml = GetPlexMetadata(ratingKey)
+            # Get an up-to-date XML from the PMS because PMS will NOT directly
+            # tell us: duration of item viewCount
+            if session.get('duration') is None:
+                xml = GetPlexMetadata(plex_id)
                 if xml in (None, 401):
-                    log.error('Could not get up-to-date xml for item %s'
-                              % ratingKey)
+                    log.error('Could not get up-to-date xml for item %s',
+                              plex_id)
                     continue
-                API = PlexAPI.API(xml[0])
-                userdata = API.getUserData()
-                currSess['duration'] = userdata['Runtime']
-                currSess['viewCount'] = userdata['PlayCount']
+                api = PlexAPI.API(xml[0])
+                userdata = api.getUserData()
+                session['duration'] = userdata['Runtime']
+                session['viewCount'] = userdata['PlayCount']
             # Sometimes, Plex tells us resume points in milliseconds and
             # not in seconds - thank you very much!
-            if item.get('viewOffset') > currSess['duration']:
-                resume = item.get('viewOffset') / 1000
+            if item['viewOffset'] > session['duration']:
+                resume = item['viewOffset'] / 1000
             else:
-                resume = item.get('viewOffset')
-            if resume >= v.MARK_PLAYED_AT and status not in ('stopped', 'ended'):
-                # We need to drop these as we'll otherwise NOT mark an item as
-                # completely watched after having seen >90%
+                resume = item['viewOffset']
+            if resume < v.IGNORE_SECONDS_AT_START:
                 continue
-            # Append to list that we need to process
-            items.append({
-                'ratingKey': ratingKey,
-                'kodi_id': kodi_info[0],
-                'file_id': kodi_info[1],
-                'kodi_type': kodi_info[4],
-                'viewOffset': resume,
-                'state': status,
-                'duration': currSess['duration'],
-                'viewCount': currSess['viewCount'],
-                'lastViewedAt': DateToKodi(getUnixTimestamp())
-            })
-            log.debug('Update playstate for user %s with id %s: %s'
-                      % (state.PLEX_USERNAME,
-                         state.PLEX_USER_ID,
-                         items[-1]))
-        # Now tell Kodi where we are
-        for item in items:
-            itemFkt = getattr(itemtypes,
-                              v.ITEMTYPE_FROM_KODITYPE[item['kodi_type']])
-            with itemFkt() as Fkt:
-                Fkt.updatePlaystate(item)
+            try:
+                completed = float(resume) / float(session['duration'])
+            except (ZeroDivisionError, TypeError):
+                log.error('Could not mark playstate for %s and session %s',
+                          data, session)
+                continue
+            if completed >= v.MARK_PLAYED_AT:
+                # Only mark completely watched ONCE
+                if session.get('marked_played') is None:
+                    session['marked_played'] = True
+                    mark_played = True
+                else:
+                    # Don't mark it as completely watched again
+                    continue
+            else:
+                mark_played = False
+            log.debug('Update playstate for user %s with id %s for plex id %s',
+                      state.PLEX_USERNAME, state.PLEX_USER_ID, plex_id)
+            item_fkt = getattr(itemtypes,
+                               v.ITEMTYPE_FROM_KODITYPE[session['kodi_type']])
+            with item_fkt() as fkt:
+                fkt.updatePlaystate(mark_played,
+                                    session['viewCount'],
+                                    resume,
+                                    session['duration'],
+                                    session['file_id'],
+                                    DateToKodi(getUnixTimestamp()))
 
     def fanartSync(self, refresh=False):
         """

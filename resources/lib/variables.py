@@ -21,7 +21,13 @@ def tryDecode(string, encoding='utf-8'):
         string = string.decode()
     return string
 
+
+# Percent of playback progress for watching item as partially watched. Anything
+# more and item will NOT be marked as partially, but fully watched
 MARK_PLAYED_AT = 0.9
+# How many seconds of playback do we ignore before marking an item as partially
+# watched?
+IGNORE_SECONDS_AT_START = 60
 
 _ADDON = Addon()
 ADDON_NAME = 'PlexKodiConnect'
