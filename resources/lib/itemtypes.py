@@ -1360,7 +1360,8 @@ class Music(Items):
         artwork.addArtwork(artworks, artistid, v.KODI_TYPE_ARTIST, kodicursor)
 
     @CatchExceptions(warnuser=True)
-    def add_updateAlbum(self, item, viewtag=None, viewid=None, children=None):
+    def add_updateAlbum(self, item, viewtag=None, viewid=None, children=None,
+                        scan_children=True):
         """
         children: list of child xml's, so in this case songs
         """
@@ -1550,8 +1551,9 @@ class Music(Items):
         # Update artwork
         artwork.addArtwork(artworks, albumid, v.KODI_TYPE_ALBUM, kodicursor)
         # Add all children - all tracks
-        for child in children:
-            self.add_updateSong(child, viewtag, viewid)
+        if scan_children:
+            for child in children:
+                self.add_updateSong(child, viewtag, viewid)
 
     @CatchExceptions(warnuser=True)
     def add_updateSong(self, item, viewtag=None, viewid=None):
@@ -1716,7 +1718,9 @@ class Music(Items):
                 if album is None or album == 401:
                     log.error('Could not download album, abort')
                     return
-                self.add_updateAlbum(album[0], children=[item])
+                self.add_updateAlbum(album[0],
+                                     children=[item],
+                                     scan_children=False)
                 plex_dbalbum = plex_db.getItem_byId(plex_albumId)
                 try:
                     albumid = plex_dbalbum[0]
