@@ -5,10 +5,9 @@ from logging import getLogger
 from urllib import urlencode
 from ntpath import dirname
 from datetime import datetime
-from xbmc import sleep
 
 import artwork
-from utils import tryEncode, tryDecode, window, kodiSQL, CatchExceptions
+from utils import window, kodiSQL, CatchExceptions
 import plexdb_functions as plexdb
 import kodidb_functions as kodidb
 
@@ -918,7 +917,7 @@ class TVShows(Items):
                 'plex_type': v.PLEX_TYPE_EPISODE,
                 'mode': 'play'
             }
-            filename = "%s?%s" % (path, tryDecode(urlencode(params)))
+            filename = "%s?%s" % (path, urlencode(params))
             playurl = filename
             parentPathId = self.kodi_db.addPath(
                 'plugin://plugin.video.plexkodiconnect/tvshows/')
