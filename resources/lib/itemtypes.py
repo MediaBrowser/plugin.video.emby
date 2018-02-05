@@ -255,8 +255,9 @@ class Movies(Items):
         for extra in extras:
             # Only get 1st trailer element
             if extra['extraType'] == 1:
-                trailer = ("plugin://plugin.video.plexkodiconnect/trailer/?"
-                           "id=%s&mode=play") % extra['key']
+                trailer = ("plugin://plugin.video.plexkodiconnect?"
+                           "plex_id=%s&plex_type=%s&mode=play"
+                           % (extra['key'], v.PLEX_TYPE_CLIP))
                 break
 
         # GET THE FILE AND PATH #####
@@ -913,10 +914,9 @@ class TVShows(Items):
                 filename = 'file_not_found.mkv'
             path = "plugin://plugin.video.plexkodiconnect/tvshows/%s/" % seriesId
             params = {
-                'filename': tryEncode(filename),
-                'id': itemid,
-                'dbid': episodeid,
-                'mode': "play"
+                'plex_id': itemid,
+                'plex_type': v.PLEX_TYPE_EPISODE,
+                'mode': 'play'
             }
             filename = "%s?%s" % (path, tryDecode(urlencode(params)))
             playurl = filename

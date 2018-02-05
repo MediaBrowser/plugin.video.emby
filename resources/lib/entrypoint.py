@@ -566,8 +566,8 @@ def getOnDeck(viewid, mediatype, tagname, limit):
             else:
                 params = {
                     'mode': "play",
-                    'id': api.getRatingKey(),
-                    'dbid': listitem.getProperty('dbid')
+                    'plex_id': api.getRatingKey(),
+                    'plex_type': api.getType()
                 }
                 url = "plugin://plugin.video.plexkodiconnect/tvshows/?%s" \
                       % urlencode(params)
