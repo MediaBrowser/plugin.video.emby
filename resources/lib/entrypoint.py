@@ -593,6 +593,12 @@ def getOnDeck(viewid, mediatype, tagname, limit):
                 {'operator': "is", 'field': "tag", 'value': "%s" % tagname}
             ]}
     }
+    items = js.get_tv_shows(params)
+    if not items:
+        # Now items retrieved - empty directory
+        xbmcplugin.endOfDirectory(handle=HANDLE)
+        return
+
     params = {
         'sort': {'method': "episode"},
         'limits': {"end": 1},
@@ -617,6 +623,7 @@ def getOnDeck(viewid, mediatype, tagname, limit):
                 {'operator': "true", 'field': "inprogress", 'value': ""}
             ]
         }
+
     # Are there any episodes still in progress/not yet finished watching?!?
     # Then we should show this episode, NOT the "next up"
     inprog_params = {
@@ -626,23 +633,25 @@ def getOnDeck(viewid, mediatype, tagname, limit):
     }
 
     count = 0
-    for item in js.get_tv_shows(params):
+    for item in items:
         inprog_params['tvshowid'] = item['tvshowid']
         episodes = js.get_episodes(inprog_params)
         if not episodes:
             # No, there are no episodes not yet finished. Get "next up"
             params['tvshowid'] = item['tvshowid']
             episodes = js.get_episodes(params)
+            if not episodes:
+                # Also no episodes currently coming up
+                continue
         for episode in episodes:
             # There will always be only 1 episode ('limit=1')
             listitem = createListItem(episode,
                                       appendShowTitle=appendShowTitle,
                                       appendSxxExx=appendSxxExx)
-            xbmcplugin.addDirectoryItem(
-                handle=HANDLE,
-                url=episode['file'],
-                listitem=listitem,
-                isFolder=False)
+            xbmcplugin.addDirectoryItem(handle=HANDLE,
+                                        url=episode['file'],
+                                        listitem=listitem,
+                                        isFolder=False)
         count += 1
         if count >= limit:
             break
