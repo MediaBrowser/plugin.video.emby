@@ -139,20 +139,21 @@ def playback_init(plex_id, plex_type, playqueue):
         else:
             trailers = True
     LOG.info('Playing trailers: %s', trailers)
-    # Post to the PMS to create a playqueue - in any case due to Plex Companion
-    xml = init_plex_playqueue(plex_id,
-                              xml.attrib.get('librarySectionUUID'),
-                              mediatype=plex_type,
-                              trailers=trailers)
-    if xml is None:
-        LOG.error('Could not get a playqueue xml for plex id %s, UUID %s',
-                  plex_id, xml.attrib.get('librarySectionUUID'))
-        # "Play error"
-        dialog('notification', lang(29999), lang(30128), icon='{error}')
-        return
-    # Should already be empty, but just in case
     playqueue.clear()
-    PL.get_playlist_details_from_xml(playqueue, xml)
+    if plex_type != v.PLEX_TYPE_CLIP:
+        # Post to the PMS to create a playqueue - in any case due to Companion
+        xml = init_plex_playqueue(plex_id,
+                                  xml.attrib.get('librarySectionUUID'),
+                                  mediatype=plex_type,
+                                  trailers=trailers)
+        if xml is None:
+            LOG.error('Could not get a playqueue xml for plex id %s, UUID %s',
+                      plex_id, xml.attrib.get('librarySectionUUID'))
+            # "Play error"
+            dialog('notification', lang(29999), lang(30128), icon='{error}')
+            return
+        # Should already be empty, but just in case
+        PL.get_playlist_details_from_xml(playqueue, xml)
     stack = _prep_playlist_stack(xml)
     # Sleep a bit to let setResolvedUrl do its thing - bit ugly
     sleep(200)

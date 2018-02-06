@@ -284,7 +284,10 @@ def playlist_item_from_xml(playlist, xml_video_element, kodi_id=None,
     api = API(xml_video_element)
     item.plex_id = api.getRatingKey()
     item.plex_type = api.getType()
-    item.id = xml_video_element.attrib['%sItemID' % playlist.kind]
+    try:
+        item.id = xml_video_element.attrib['%sItemID' % playlist.kind]
+    except KeyError:
+        pass
     item.guid = xml_video_element.attrib.get('guid')
     if item.guid is not None:
         item.guid = escape_html(item.guid)
