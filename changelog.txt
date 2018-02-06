@@ -1,3 +1,7 @@
+version 2.0.1 (beta only):
+- Fix empty On Deck for tv shows
+- Fix trailers not playing
+
 version 2.0.0 (beta only):
 - HUGE code overhaul - Remember that you can go back to earlier version ;-)
 - Completely rewritten Plex Companion
