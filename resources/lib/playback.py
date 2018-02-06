@@ -138,7 +138,7 @@ def playback_init(plex_id, plex_type, playqueue):
             trailers = True if trailers else False
         else:
             trailers = True
-    LOG.info('Playing trailers: %s', trailers)
+    LOG.debug('Playing trailers: %s', trailers)
     playqueue.clear()
     if plex_type != v.PLEX_TYPE_CLIP:
         # Post to the PMS to create a playqueue - in any case due to Companion
