@@ -363,7 +363,7 @@ def get_tv_shows(params):
     """
     ret = JsonRPC('VideoLibrary.GetTVShows').execute(params)
     try:
-        ret['result']['tvshows']
+        ret = ret['result']['tvshows']
     except (KeyError, TypeError):
         ret = []
     return ret
@@ -375,7 +375,7 @@ def get_episodes(params):
     """
     ret = JsonRPC('VideoLibrary.GetEpisodes').execute(params)
     try:
-        ret['result']['episodes']
+        ret = ret['result']['episodes']
     except (KeyError, TypeError):
         ret = []
     return ret
