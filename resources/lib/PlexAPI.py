@@ -1729,7 +1729,7 @@ class API():
             5:    Behind the scenes
 
         Output: list of dicts with one entry of the form:
-            'key':                     e.g. /library/metadata/xxxx
+            'ratingKey':                e.g. '12345'
             'title':
             'thumb':                    artwork
             'duration':
@@ -1744,27 +1744,20 @@ class API():
         for extra in extras:
             try:
                 extraType = int(extra.attrib['extraType'])
-            except:
+            except (KeyError, TypeError):
                 extraType = None
             if extraType != 1:
                 continue
-            key = extra.attrib.get('key', None)
-            title = extra.attrib.get('title', None)
-            thumb = extra.attrib.get('thumb', None)
             duration = float(extra.attrib.get('duration', 0.0))
-            year = extra.attrib.get('year', None)
-            originallyAvailableAt = extra.attrib.get(
-                'originallyAvailableAt', None)
-            elements.append(
-                {
-                    'key': key,
-                    'title': title,
-                    'thumb': thumb,
-                    'duration': int(duration * v.PLEX_TO_KODI_TIMEFACTOR),
-                    'extraType': extraType,
-                    'originallyAvailableAt': originallyAvailableAt,
-                    'year': year
-                })
+            elements.append({
+                'ratingKey': extra.attrib.get('ratingKey'),
+                'title': extra.attrib.get('title'),
+                'thumb': extra.attrib.get('thumb'),
+                'duration': int(duration * v.PLEX_TO_KODI_TIMEFACTOR),
+                'extraType': extraType,
+                'originallyAvailableAt': extra.attrib.get('originallyAvailableAt'),
+                'year': extra.attrib.get('year')
+            })
             break
         return elements
 

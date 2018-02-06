@@ -256,7 +256,7 @@ class Movies(Items):
             if extra['extraType'] == 1:
                 trailer = ("plugin://plugin.video.plexkodiconnect?"
                            "plex_id=%s&plex_type=%s&mode=play"
-                           % (extra['key'], v.PLEX_TYPE_CLIP))
+                           % (extra['ratingKey'], v.PLEX_TYPE_CLIP))
                 break
 
         # GET THE FILE AND PATH #####
