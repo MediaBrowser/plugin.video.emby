@@ -315,7 +315,7 @@ def _get_playListVersion_from_xml(playlist, xml):
         playlist.version = int(xml.attrib['%sVersion' % playlist.kind])
     except (TypeError, AttributeError, KeyError):
         raise PlaylistError('Could not get new playlist Version for playlist '
-                            '%s', playlist)
+                            '%s' % playlist)
 
 
 def get_playlist_details_from_xml(playlist, xml):
