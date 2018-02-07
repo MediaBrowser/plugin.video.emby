@@ -96,7 +96,6 @@ def play_resume(playqueue, xml, stack):
     item.playcount = stack_item['playcount']
     item.offset = stack_item['offset']
     item.part = stack_item['part']
-    item.init_done = True
     api.CreateListItemFromPlexItem(listitem)
     playutils = PlayUtils(api, item)
     playurl = playutils.getPlayUrl()
@@ -249,7 +248,6 @@ def _process_stack(playqueue, stack):
         playlist_item.part = item['part']
         playlist_item.id = item['id']
         playlist_item.force_transcode = state.FORCE_TRANSCODE
-        playlist_item.init_done = True
         pos += 1
 
 
@@ -339,7 +337,6 @@ def process_indirect(key, offset, resolve=True):
     item.offset = int(offset)
     item.plex_type = v.PLEX_TYPE_CLIP
     item.playmethod = 'DirectStream'
-    item.init_done = True
     # Need to get yet another xml to get the final playback url
     xml = DU().downloadUrl('http://node.plexapp.com:32400%s'
                            % xml[0][0][0].attrib['key'])

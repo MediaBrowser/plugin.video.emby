@@ -255,8 +255,8 @@ class KodiMonitor(Monitor):
         kodi_type = json_item.get('type')
         path = json_item.get('file')
         if not path and not kodi_id:
-            LOG.info('Aborting playback report - no Kodi id or file for %s',
-                     json_item)
+            LOG.debug('Aborting playback report - no Kodi id or file for %s',
+                      json_item)
             raise RuntimeError
         # Plex id will NOT be set with direct paths
         plex_id = state.PLEX_IDS.get(path)
@@ -341,17 +341,7 @@ class KodiMonitor(Monitor):
         status = state.PLAYER_STATES[playerid]
         try:
             item = playqueue.items[pos]
-            # See if playback.py already initiated playback
-            init_done = item.init_done
         except IndexError:
-            init_done = False
-        if init_done is True:
-            kodi_id = item.kodi_id
-            kodi_type = item.kodi_type
-            plex_id = item.plex_id
-            plex_type = item.plex_type
-            container_key = '/playQueues/%s' % playqueue.id
-        else:
             try:
                 kodi_id, kodi_type, plex_id, plex_type = self._get_ids(json_item)
             except RuntimeError:
@@ -379,6 +369,15 @@ class KodiMonitor(Monitor):
             elif plex_id is not None:
                 container_key = '/library/metadata/%s' % plex_id
             LOG.debug('Set the Plex container_key to: %s', container_key)
+        else:
+            kodi_id = item.kodi_id
+            kodi_type = item.kodi_type
+            plex_id = item.plex_id
+            plex_type = item.plex_type
+            if playqueue.id:
+                container_key = '/playQueues/%s' % playqueue.id
+            else:
+                container_key = '/library/metadata/%s' % plex_id
         status.update(info)
         status['container_key'] = container_key
         status['file'] = path
