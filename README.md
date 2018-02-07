@@ -98,7 +98,7 @@ PKC uses additional artwork for free from [TheMovieDB](https://www.themoviedb.or
 
 ### Donations
 I'm not in any way affiliated with Plex. Thank you very much for a small donation via ko-fi.com and PayPal, Bitcoin or Ether if you appreciate PKC.  
-**Full disclaimer:** I will see your name and address on my PayPal account. Rest assured that I will not share this with anyone. 
+**Full disclaimer:** I will see your name and address if you use PayPal. Rest assured that I will not share this with anyone. 
 
 [![Donations](https://az743702.vo.msecnd.net/cdn/kofi1.png?v=a)](https://ko-fi.com/A8182EB)
 
