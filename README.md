@@ -102,7 +102,9 @@ I'm not in any way affiliated with Plex. Thank you very much for a small donatio
 
 [![Donations](https://az743702.vo.msecnd.net/cdn/kofi1.png?v=a)](https://ko-fi.com/A8182EB)
 
-| [![Ether-Donations](https://chart.googleapis.com/chart?chs=250x250&cht=qr&chl=0x0f57D98E08e617292D8bC0B3448dd79BF4Cf8e7F)] | ETH address: 0x0f57D98E08e617292D8bC0B3448dd79BF4Cf8e7F |
+
+**Ether**:    
+[Ether-Donations](https://chart.googleapis.com/chart?chs=250x250&cht=qr&chl=0x0f57D98E08e617292D8bC0B3448dd79BF4Cf8e7F)ETH address: 0x0f57D98E08e617292D8bC0B3448dd79BF4Cf8e7F
 
 
 ### Request a New Feature
