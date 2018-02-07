@@ -68,6 +68,7 @@ def playback_triage(plex_id=None, plex_type=None, path=None, resolve=True):
     except IndexError:
         # Release our default.py before starting our own Kodi player instance
         if resolve is True:
+            state.PKC_CAUSED_STOP = True
             result = Playback_Successful()
             result.listitem = PKC_ListItem(path='PKC_Dummy_Path_Which_Fails')
             pickle_me(result)

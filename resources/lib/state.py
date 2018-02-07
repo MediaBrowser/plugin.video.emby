@@ -88,6 +88,8 @@ WEBSOCKET_QUEUE = None
 
 # Which Kodi player is/has been active? (either int 1, 2 or 3)
 ACTIVE_PLAYERS = []
+# Failsafe for throwing failing ListItems() back to Kodi's setResolvedUrl
+PKC_CAUSED_STOP = False
 
 # Kodi player states - here, initial values are set
 PLAYER_STATES = {

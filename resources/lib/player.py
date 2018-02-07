@@ -82,7 +82,11 @@ class PKC_Player(Player):
         Will be called when playback is stopped by the user
         """
         LOG.debug("ONPLAYBACK_STOPPED")
-        playback_cleanup()
+        if state.PKC_CAUSED_STOP is True:
+            state.PKC_CAUSED_STOP = False
+            LOG.debug('PKC caused this playback stop - ignoring')
+        else:
+            playback_cleanup()
 
     def onPlayBackEnded(self):
         """
