@@ -367,7 +367,7 @@ def init_Plex_playlist(playlist, plex_id=None, kodi_item=None):
 
     Returns the first PKC playlist item or raises PlaylistError
     """
-    LOG.debug('Initializing the playlist %s on the Plex side', playlist)
+    LOG.debug('Initializing the playlist on the Plex side: %s', playlist)
     playlist.clear(kodi=False)
     try:
         if plex_id:
