@@ -3,6 +3,7 @@ Monitors the Kodi playqueue and adjusts the Plex playqueue accordingly
 """
 from logging import getLogger
 from threading import Thread
+from re import compile as re_compile
 
 from xbmc import Player, PlayList, PLAYLIST_MUSIC, PLAYLIST_VIDEO, sleep
 
@@ -19,6 +20,7 @@ import variables as v
 LOG = getLogger("PLEX." + __name__)
 
 PLUGIN = 'plugin://%s' % v.ADDON_ID
+REGEX = re_compile(r'''plex_id=(\d+)''')
 
 # Our PKC playqueues (3 instances of Playqueue_Object())
 PLAYQUEUES = []
@@ -159,11 +161,17 @@ class PlayqueueMonitor(Thread):
                 except AttributeError:
                     # were not passed a filename; ignore
                     pass
-                if new_item.get('id') is None:
-                    identical = old_item.file == new_item['file']
-                else:
+                if 'id' in new_item:
                     identical = (old_item.kodi_id == new_item['id'] and
                                  old_item.kodi_type == new_item['type'])
+                else:
+                    try:
+                        plex_id = REGEX.findall(new_item['file'])[0]
+                    except IndexError:
+                        LOG.debug('Comparing paths directly as a fallback')
+                        identical = old_item.file == new_item['file']
+                    else:
+                        identical = plex_id == old_item.plex_id
                 if j == 0 and identical:
                     del old[j], index[j]
                     break
