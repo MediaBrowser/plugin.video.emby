@@ -312,8 +312,6 @@ class SubscriptionMgr(object):
             except IndexError:
                 # E.g. for direct path playback for single item
                 return False
-            LOG.debug('item: %s', item)
-            LOG.debug('playstate: %s', info)
             if item.plex_id != info['plex_id']:
                 # Kodi playqueue already progressed; need to wait until
                 # everything is loaded
