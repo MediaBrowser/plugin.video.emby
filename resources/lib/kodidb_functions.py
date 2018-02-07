@@ -952,6 +952,24 @@ class Kodidb_Functions():
             return None
         return int(runtime)
 
+    def get_resume(self, file_id):
+        """
+        Returns the first resume point in seconds (int) if found, else None for
+        the Kodi file_id provided
+        """
+        query = '''
+            SELECT timeInSeconds
+            FROM bookmark
+            WHERE idFile = ?
+        '''
+        self.cursor.execute(query, (file_id,))
+        resume = self.cursor.fetchone()
+        try:
+            resume = resume[0]
+        except TypeError:
+            resume = None
+        return resume
+
     def addPlaystate(self, fileid, resume_seconds, total_seconds, playcount, dateplayed):
         # Delete existing resume point
         query = ' '.join((

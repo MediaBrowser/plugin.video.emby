@@ -11,6 +11,7 @@ from PlexAPI import API
 from PlexFunctions import GetPlexMetadata, init_plex_playqueue
 from downloadutils import DownloadUtils as DU
 import plexdb_functions as plexdb
+import kodidb_functions as kodidb
 import playlist_func as PL
 import playqueue as PQ
 from playutils import PlayUtils
@@ -287,6 +288,13 @@ def conclude_playback(playqueue, pos):
         playutils.audio_subtitle_prefs(listitem)
     if state.RESUME_PLAYBACK is True:
         state.RESUME_PLAYBACK = False
+        if (item.offset is None and
+                item.plex_type not in (v.PLEX_TYPE_SONG, v.PLEX_TYPE_CLIP)):
+            with plexdb.Get_Plex_DB() as plex_db:
+                plex_dbitem = plex_db.getItem_byId(item.plex_id)
+                file_id = plex_dbitem[1] if plex_dbitem else None
+            with kodidb.GetKodiDB('video') as kodi_db:
+                item.offset = kodi_db.get_resume(file_id)
         LOG.info('Resuming playback at %s', item.offset)
         listitem.setProperty('StartOffset', str(item.offset))
         listitem.setProperty('resumetime', str(item.offset))
