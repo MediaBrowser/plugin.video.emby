@@ -73,6 +73,7 @@ class PlexCompanion(Thread):
                 v.KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[api.getType()])
             playqueue.clear()
             get_playlist_details_from_xml(playqueue, xml)
+            playqueue.plex_transient_token = data.get('token')
             if data.get('offset') != '0':
                 offset = float(data['offset']) / 1000.0
             else:
