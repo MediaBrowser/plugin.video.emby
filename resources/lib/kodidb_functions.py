@@ -992,16 +992,15 @@ class Kodidb_Functions():
         if resume_seconds:
             self.cursor.execute("select coalesce(max(idBookmark),0) from bookmark")
             bookmarkId =  self.cursor.fetchone()[0] + 1
-            query = (
-                '''
-                INSERT INTO bookmark(
-                    idBookmark, idFile, timeInSeconds, totalTimeInSeconds, player, type)
-                
-                VALUES (?, ?, ?, ?, ?, ?)
-                '''
-            )
-            self.cursor.execute(query, (bookmarkId, fileid, resume_seconds, total_seconds,
-                "VideoPlayer", 1))
+            query = '''
+            INSERT INTO bookmark(
+                idBookmark, idFile, timeInSeconds, totalTimeInSeconds,
+                thumbNailImage, player, playerState, type)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            '''
+            self.cursor.execute(query, (bookmarkId, fileid, resume_seconds,
+                                        total_seconds, None, "DVDPlayer", 
+                                        None, 1))
 
     def addTags(self, kodiid, tags, mediatype):
         # First, delete any existing tags associated to the id
