@@ -79,43 +79,6 @@ def playback_triage(plex_id=None, plex_type=None, path=None, resolve=True):
         conclude_playback(playqueue, pos)
 
 
-def play_resume(playqueue, xml, stack):
-    """
-    If there exists a resume point, Kodi will ask the user whether to continue
-    playback. We thus need to use setResolvedUrl "correctly". Mind that there
-    might be several parts!
-    """
-    result = Playback_Successful()
-    listitem = PKC_ListItem()
-    # Only get the very first item of our playqueue (i.e. the very first part)
-    stack_item = stack.pop(0)
-    api = API(xml[0])
-    item = PL.playlist_item_from_xml(playqueue,
-                                     xml[0],
-                                     kodi_id=stack_item['kodi_id'],
-                                     kodi_type=stack_item['kodi_type'])
-    api.setPartNumber(item.part)
-    item.playcount = stack_item['playcount']
-    item.offset = stack_item['offset']
-    item.part = stack_item['part']
-    api.CreateListItemFromPlexItem(listitem)
-    playutils = PlayUtils(api, item)
-    playurl = playutils.getPlayUrl()
-    listitem.setPath(tryEncode(playurl))
-    if item.playmethod in ('DirectStream', 'DirectPlay'):
-        listitem.setSubtitles(api.externalSubs())
-    else:
-        playutils.audio_subtitle_prefs(listitem)
-    result.listitem = listitem
-    # Add to our playlist
-    playqueue.items.append(item)
-    # This will release default.py with setResolvedUrl
-    pickle_me(result)
-    # Add remaining parts to the playlist, if any
-    if stack:
-        _process_stack(playqueue, stack)
-
-
 def playback_init(plex_id, plex_type, playqueue):
     """
     Playback setup if Kodi starts playing an item for the first time.
