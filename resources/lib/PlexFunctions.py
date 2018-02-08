@@ -76,32 +76,6 @@ def GetMethodFromPlexType(plexType):
     return methods[plexType]
 
 
-def XbmcItemtypes():
-    return ['photo', 'video', 'audio']
-
-
-def PlexItemtypes():
-    return ['photo', 'video', 'audio']
-
-
-def PlexLibraryItemtypes():
-    return ['movie', 'show']
-    # later add: 'artist', 'photo'
-
-
-def EmbyItemtypes():
-    return ['Movie', 'Series', 'Season', 'Episode']
-
-
-def SelectStreams(url, args):
-    """
-    Does a PUT request to tell the PMS what audio and subtitle streams we have
-    chosen.
-    """
-    downloadutils.DownloadUtils().downloadUrl(
-        url + '?' + urlencode(args), action_type='PUT')
-
-
 def GetPlexMetadata(key):
     """
     Returns raw API metadata for key as an etree XML.
