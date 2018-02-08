@@ -9,12 +9,14 @@ from urllib import urlencode
 
 from xbmc import sleep, executebuiltin
 
-from utils import settings, thread_methods
+from utils import settings, thread_methods, language as lang, dialog
 from plexbmchelper import listener, plexgdm, subscribers, httppersist
 from plexbmchelper.subscribers import LOCKER
-from PlexFunctions import ParseContainerKey, GetPlexMetadata
+from PlexFunctions import ParseContainerKey, GetPlexMetadata, DownloadChunks
 from PlexAPI import API
-from playlist_func import get_pms_playqueue, get_plextype_from_xml
+from playlist_func import get_pms_playqueue, get_plextype_from_xml, \
+    get_playlist_details_from_xml
+from playback import playback_triage, play_xml
 import json_rpc as js
 import player
 import variables as v
@@ -60,17 +62,28 @@ class PlexCompanion(Thread):
             PQ.init_playqueue_from_plex_children(
                 api.getRatingKey(),
                 transient_token=data.get('token'))
+        elif data['containerKey'].startswith('/playQueues/'):
+            _, container_key, _ = ParseContainerKey(data['containerKey'])
+            xml = DownloadChunks('{server}/playQueues/%s?' % container_key)
+            if xml is None:
+                # "Play error"
+                dialog('notification', lang(29999), lang(30128), icon='{error}')
+                return
+            playqueue = PQ.get_playqueue_from_type(
+                v.KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[api.getType()])
+            playqueue.clear()
+            get_playlist_details_from_xml(playqueue, xml)
+            if data.get('offset') != '0':
+                offset = float(data['offset']) / 1000.0
+            else:
+                offset = None
+            play_xml(playqueue, xml, offset)
         else:
             state.PLEX_TRANSIENT_TOKEN = data.get('token')
-            params = {
-                'mode': 'plex_node',
-                'key': '{server}%s' % data.get('key'),
-                'view_offset': data.get('offset'),
-                'play_directly': 'true',
-                'node': 'false'
-            }
-            executebuiltin('RunPlugin(plugin://%s?%s)'
-                           % (v.ADDON_ID, urlencode(params)))
+            if data.get('offset') != '0':
+                state.RESUMABLE = True
+                state.RESUME_PLAYBACK = True
+            playback_triage(api.getRatingKey(), api.getType(), resolve=False)
 
     @staticmethod
     def _process_node(data):

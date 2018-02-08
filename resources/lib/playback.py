@@ -336,19 +336,30 @@ def process_indirect(key, offset, resolve=True):
         thread.start()
 
 
-def play_xml(playqueue, xml, offset=None):
+def play_xml(playqueue, xml, offset=None, start_plex_id=None):
     """
     Play all items contained in the xml passed in. Called by Plex Companion.
+
+    Either supply the ratingKey of the starting Plex element. Or set
+    playqueue.selectedItemID
     """
-    LOG.info("play_xml called")
+    LOG.info("play_xml called with offset %s, start_plex_id %s",
+             offset, start_plex_id)
     stack = _prep_playlist_stack(xml)
     _process_stack(playqueue, stack)
     LOG.debug('Playqueue after play_xml update: %s', playqueue)
-    for startpos, item in enumerate(playqueue.items):
-        if item.id == playqueue.selectedItemID:
-            break
+    if start_plex_id is not None:
+        for startpos, item in enumerate(playqueue.items):
+            if item.plex_id == start_plex_id:
+                break
+        else:
+            startpos = 0
     else:
-        startpos = 0
+        for startpos, item in enumerate(playqueue.items):
+            if item.id == playqueue.selectedItemID:
+                break
+        else:
+            startpos = 0
     thread = Thread(target=threaded_playback,
                     args=(playqueue.kodi_pl, startpos, offset))
     LOG.info('Done play_xml, starting Kodi player at position %s', startpos)
