@@ -28,6 +28,8 @@ DIRECT_PATHS = False
 INDICATE_MEDIA_VERSIONS = False
 # Do we need to run a special library scan?
 RUN_LIB_SCAN = None
+# Number of items to fetch and display in widgets
+FETCH_PMS_ITEM_NUMBER = None
 
 # Stemming from the PKC settings.xml
 # Shall we show Kodi dialogs when synching?

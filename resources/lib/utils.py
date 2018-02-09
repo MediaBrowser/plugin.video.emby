@@ -362,21 +362,6 @@ def create_actor_db_index():
     conn.close()
 
 
-def set_replace_paths():
-    """
-    Sets our values for direct paths correctly (including using lower-case
-    protocols like smb:// and NOT SMB://)
-    """
-    for typus in v.REMAP_TYPE_FROM_PLEXTYPE.values():
-        for arg in ('Org', 'New'):
-            key = 'remapSMB%s%s' % (typus, arg)
-            value = settings(key)
-            if '://' in value:
-                protocol = value.split('://', 1)[0]
-                value = value.replace(protocol, protocol.lower())
-            setattr(state, key, value)
-
-
 def reset():
     # Are you sure you want to reset your local Kodi database?
     if not dialog('yesno',

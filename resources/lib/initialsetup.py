@@ -7,22 +7,112 @@ import xml.etree.ElementTree as etree
 import xbmc
 import xbmcgui
 
-from utils import settings, window, language as lang, tryEncode, \
+from utils import settings, window, language as lang, tryEncode, tryDecode, \
     XmlKodiSetting, reboot_kodi
+from migration import check_migration
 from downloadutils import DownloadUtils as DU
 from userclient import UserClient
-
+from clientinfo import getDeviceId
 from PlexAPI import PlexAPI
 from PlexFunctions import GetMachineIdentifier, get_PMS_settings
-import state
-from migration import check_migration
+from json_rpc import get_setting, set_setting
 import playqueue as PQ
+from videonodes import VideoNodes
+import state
+import variables as v
 
 ###############################################################################
 
 LOG = getLogger("PLEX." + __name__)
 
 ###############################################################################
+
+
+WINDOW_PROPERTIES = (
+    "plex_online", "plex_serverStatus", "plex_onWake", "plex_kodiScan",
+    "plex_shouldStop", "plex_dbScan", "plex_initialScan",
+    "plex_customplayqueue", "plex_playbackProps", "pms_token", "plex_token",
+    "pms_server", "plex_machineIdentifier", "plex_servername",
+    "plex_authenticated", "PlexUserImage", "useDirectPaths", "countError",
+    "countUnauthorized", "plex_restricteduser", "plex_allows_mediaDeletion",
+    "plex_command", "plex_result", "plex_force_transcode_pix"
+)
+
+
+def reload_pkc():
+    """
+    Will reload state.py entirely and then initiate some values from the Kodi
+    settings file
+    """
+    LOG.info('Start (re-)loading PKC settings')
+    # Reset state.py
+    reload(state)
+    # Reset window props
+    for prop in WINDOW_PROPERTIES:
+        window(prop, clear=True)
+    # Clear video nodes properties
+    VideoNodes().clearProperties()
+
+    # Initializing
+    state.VERIFY_SSL_CERT = settings('sslverify') == 'true'
+    state.SSL_CERT_PATH = settings('sslcert') \
+        if settings('sslcert') != 'None' else None
+    state.FULL_SYNC_INTERVALL = int(settings('fullSyncInterval')) * 60
+    state.SYNC_THREAD_NUMBER = int(settings('syncThreadNumber'))
+    state.SYNC_DIALOG = settings('dbSyncIndicator') == 'true'
+    state.ENABLE_MUSIC = settings('enableMusic') == 'true'
+    state.BACKGROUND_SYNC = settings(
+        'enableBackgroundSync') == 'true'
+    state.BACKGROUNDSYNC_SAFTYMARGIN = int(
+        settings('backgroundsync_saftyMargin'))
+    state.REPLACE_SMB_PATH = settings('replaceSMB') == 'true'
+    state.REMAP_PATH = settings('remapSMB') == 'true'
+    state.KODI_PLEX_TIME_OFFSET = float(settings('kodiplextimeoffset'))
+    state.FETCH_PMS_ITEM_NUMBER = settings('fetch_pms_item_number')
+    # Init some Queues()
+    state.COMMAND_PIPELINE_QUEUE = Queue()
+    state.COMPANION_QUEUE = Queue(maxsize=100)
+    state.WEBSOCKET_QUEUE = Queue()
+    set_replace_paths()
+    set_webserver()
+    # To detect Kodi profile switches
+    window('plex_kodiProfile',
+           value=tryDecode(xbmc.translatePath("special://profile")))
+    getDeviceId()
+    # Initialize the PKC playqueues
+    PQ.init_playqueues()
+    LOG.info('Done (re-)loading PKC settings')
+
+
+def set_replace_paths():
+    """
+    Sets our values for direct paths correctly (including using lower-case
+    protocols like smb:// and NOT SMB://)
+    """
+    for typus in v.REMAP_TYPE_FROM_PLEXTYPE.values():
+        for arg in ('Org', 'New'):
+            key = 'remapSMB%s%s' % (typus, arg)
+            value = settings(key)
+            if '://' in value:
+                protocol = value.split('://', 1)[0]
+                value = value.replace(protocol, protocol.lower())
+            setattr(state, key, value)
+
+
+def set_webserver():
+    """
+    Set the Kodi webserver details - used to set the texture cache
+    """
+    if get_setting('services.webserver') in (None, False):
+        # Enable the webserver, it is disabled
+        set_setting('services.webserver', True)
+        # Set standard port and username
+        # set_setting('services.webserverport', 8080)
+        # set_setting('services.webserverusername', 'kodi')
+    # Webserver already enabled
+    state.WEBSERVER_PORT = get_setting('services.webserverport')
+    state.WEBSERVER_USERNAME = get_setting('services.webserverusername')
+    state.WEBSERVER_PASSWORD = get_setting('services.webserverpassword')
 
 
 class InitialSetup():
@@ -460,13 +550,6 @@ class InitialSetup():
 
         # Do we need to migrate stuff?
         check_migration()
-
-        # Initialize the PKC playqueues
-        PQ.init_playqueues()
-        # Init some Queues()
-        state.COMMAND_PIPELINE_QUEUE = Queue()
-        state.COMPANION_QUEUE = Queue(maxsize=100)
-        state.WEBSOCKET_QUEUE = Queue()
 
         # If a Plex server IP has already been set
         # return only if the right machine identifier is found

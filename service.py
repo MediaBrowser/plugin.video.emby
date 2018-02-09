@@ -9,35 +9,31 @@ from xbmcaddon import Addon
 
 ###############################################################################
 
-_addon = Addon(id='plugin.video.plexkodiconnect')
+_ADDON = Addon(id='plugin.video.plexkodiconnect')
 try:
-    _addon_path = _addon.getAddonInfo('path').decode('utf-8')
+    _ADDON_PATH = _ADDON.getAddonInfo('path').decode('utf-8')
 except TypeError:
-    _addon_path = _addon.getAddonInfo('path').decode()
+    _ADDON_PATH = _ADDON.getAddonInfo('path').decode()
 try:
-    _base_resource = translatePath(os_path.join(
-        _addon_path,
+    _BASE_RESOURCE = translatePath(os_path.join(
+        _ADDON_PATH,
         'resources',
         'lib')).decode('utf-8')
 except TypeError:
-    _base_resource = translatePath(os_path.join(
-        _addon_path,
+    _BASE_RESOURCE = translatePath(os_path.join(
+        _ADDON_PATH,
         'resources',
         'lib')).decode()
-sys_path.append(_base_resource)
+sys_path.append(_BASE_RESOURCE)
 
 ###############################################################################
 
-from utils import settings, window, language as lang, dialog, tryDecode, \
-    set_replace_paths
+from utils import settings, window, language as lang, dialog
 from userclient import UserClient
 import initialsetup
 from kodimonitor import KodiMonitor, SpecialMonitor
 from librarysync import LibrarySync
-import videonodes
 from websocket_client import PMS_Websocket, Alexa_Websocket
-import downloadutils
-import clientinfo
 
 import PlexAPI
 from PlexCompanion import PlexCompanion
@@ -45,7 +41,6 @@ from command_pipeline import Monitor_Window
 from playback_starter import Playback_Starter
 from playqueue import PlayqueueMonitor
 from artwork import Image_Cache_Thread
-from json_rpc import get_setting, set_setting
 import variables as v
 import state
 
@@ -55,21 +50,6 @@ import loghandler
 loghandler.config()
 LOG = getLogger("PLEX.service")
 ###############################################################################
-
-def set_webserver():
-    """
-    Set the Kodi webserver details - used to set the texture cache
-    """
-    if get_setting('services.webserver') in (None, False):
-        # Enable the webserver, it is disabled
-        set_setting('services.webserver', True)
-        # Set standard port and username
-        # set_setting('services.webserverport', 8080)
-        # set_setting('services.webserverusername', 'kodi')
-    # Webserver already enabled
-    state.WEBSERVER_PORT = get_setting('services.webserverport')
-    state.WEBSERVER_USERNAME = get_setting('services.webserverusername')
-    state.WEBSERVER_PASSWORD = get_setting('services.webserverpassword')
 
 
 class Service():
@@ -100,51 +80,9 @@ class Service():
         LOG.info("PKC Direct Paths: %s", settings('useDirectPaths') == "true")
         LOG.info("Number of sync threads: %s", settings('syncThreadNumber'))
         LOG.info("Full sys.argv received: %s", argv)
-
-        # Reset window props for profile switch
-        properties = [
-            "plex_online", "plex_serverStatus", "plex_onWake",
-            "plex_kodiScan",
-            "plex_shouldStop", "plex_dbScan",
-            "plex_initialScan", "plex_customplayqueue", "plex_playbackProps",
-            "pms_token", "plex_token",
-            "pms_server", "plex_machineIdentifier", "plex_servername",
-            "plex_authenticated", "PlexUserImage", "useDirectPaths",
-            "countError", "countUnauthorized",
-            "plex_restricteduser", "plex_allows_mediaDeletion",
-            "plex_command", "plex_result", "plex_force_transcode_pix"
-        ]
-        for prop in properties:
-            window(prop, clear=True)
-
-        # Clear video nodes properties
-        videonodes.VideoNodes().clearProperties()
-
-        # Init some stuff
-        state.VERIFY_SSL_CERT = settings('sslverify') == 'true'
-        state.SSL_CERT_PATH = settings('sslcert') \
-            if settings('sslcert') != 'None' else None
-        state.FULL_SYNC_INTERVALL = int(settings('fullSyncInterval')) * 60
-        state.SYNC_THREAD_NUMBER = int(settings('syncThreadNumber'))
-        state.SYNC_DIALOG = settings('dbSyncIndicator') == 'true'
-        state.ENABLE_MUSIC = settings('enableMusic') == 'true'
-        state.BACKGROUND_SYNC = settings(
-            'enableBackgroundSync') == 'true'
-        state.BACKGROUNDSYNC_SAFTYMARGIN = int(
-            settings('backgroundsync_saftyMargin'))
-        state.REPLACE_SMB_PATH = settings('replaceSMB') == 'true'
-        state.REMAP_PATH = settings('remapSMB') == 'true'
-        set_replace_paths()
-        state.KODI_PLEX_TIME_OFFSET = float(settings('kodiplextimeoffset'))
-
-        window('plex_minDBVersion', value="2.0.0")
-        set_webserver()
         self.monitor = Monitor()
-        window('plex_kodiProfile',
-               value=tryDecode(translatePath("special://profile")))
-        window('fetch_pms_item_number',
-               value=settings('fetch_pms_item_number'))
-        clientinfo.getDeviceId()
+        # Load/Reset PKC entirely - important for user/Kodi profile switch
+        initialsetup.reload_pkc()
 
     def __stop_PKC(self):
         """
@@ -187,9 +125,8 @@ class Service():
             if window('plex_kodiProfile') != kodiProfile:
                 # Profile change happened, terminate this thread and others
                 LOG.info("Kodi profile was: %s and changed to: %s. "
-                         "Terminating old PlexKodiConnect thread."
-                         % (kodiProfile,
-                            window('plex_kodiProfile')))
+                         "Terminating old PlexKodiConnect thread.",
+                         kodiProfile, window('plex_kodiProfile'))
                 break
 
             # Before proceeding, need to make sure:
@@ -313,7 +250,7 @@ class Service():
                                        icon='{plex}',
                                        time=5000,
                                        sound=False)
-                        LOG.info("Server %s is online and ready." % server)
+                        LOG.info("Server %s is online and ready.", server)
                         window('plex_online', value="true")
                         if state.AUTHENTICATED:
                             # Server got offline when we were authenticated.
@@ -338,28 +275,24 @@ class Service():
 
         # Tell all threads to terminate (e.g. several lib sync threads)
         state.STOP_PKC = True
-        try:
-            downloadutils.DownloadUtils().stopSession()
-        except:
-            pass
         window('plex_service_started', clear=True)
-        LOG.info("======== STOP %s ========" % v.ADDON_NAME)
+        LOG.info("======== STOP %s ========", v.ADDON_NAME)
 
 
 # Safety net - Kody starts PKC twice upon first installation!
 if window('plex_service_started') == 'true':
-    exit = True
+    EXIT = True
 else:
     window('plex_service_started', value='true')
-    exit = False
+    EXIT = False
 
 # Delay option
-delay = int(settings('startupDelay'))
+DELAY = int(settings('startupDelay'))
 
-LOG.info("Delaying Plex startup by: %s sec..." % delay)
-if exit:
+LOG.info("Delaying Plex startup by: %s sec...", DELAY)
+if EXIT:
     LOG.error('PKC service.py already started - exiting this instance')
-elif delay and Monitor().waitForAbort(delay):
+elif DELAY and Monitor().waitForAbort(DELAY):
     # Start the service
     LOG.info("Abort requested while waiting. PKC not started.")
 else:

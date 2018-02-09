@@ -10,12 +10,12 @@ from xbmc import Monitor, Player, sleep, getCondVisibility, getInfoLabel, \
 from xbmcgui import Window
 
 import plexdb_functions as plexdb
-from utils import window, settings, plex_command, thread_methods, \
-    set_replace_paths
+from utils import window, settings, plex_command, thread_methods
 from PlexFunctions import scrobble
 from kodidb_functions import kodiid_from_filename
 from plexbmchelper.subscribers import LOCKER
 from playback import playback_triage
+from initialsetup import set_replace_paths
 import playqueue as PQ
 import json_rpc as js
 import playlist_func as PL
@@ -29,8 +29,7 @@ LOG = getLogger("PLEX." + __name__)
 # settings: window-variable
 WINDOW_SETTINGS = {
     'plex_restricteduser': 'plex_restricteduser',
-    'force_transcode_pix': 'plex_force_transcode_pix',
-    'fetch_pms_item_number': 'fetch_pms_item_number'
+    'force_transcode_pix': 'plex_force_transcode_pix'
 }
 
 # settings: state-variable (state.py)
@@ -47,7 +46,8 @@ STATE_SETTINGS = {
     'remapSMBphotoOrg': 'remapSMBphotoOrg',
     'remapSMBphotoNew': 'remapSMBphotoNew',
     'enableMusic': 'ENABLE_MUSIC',
-    'enableBackgroundSync': 'BACKGROUND_SYNC'
+    'enableBackgroundSync': 'BACKGROUND_SYNC',
+    'fetch_pms_item_number': 'FETCH_PMS_ITEM_NUMBER'
 }
 
 ###############################################################################
@@ -94,9 +94,6 @@ class KodiMonitor(Monitor):
                 LOG.debug('PKC window settings changed: %s is now %s',
                           settings_value, settings(settings_value))
                 window(window_value, value=settings(settings_value))
-                if settings_value == 'fetch_pms_item_number':
-                    LOG.info('Requesting playlist/nodes refresh')
-                    plex_command('RUN_LIB_SCAN', 'views')
         # Reset the state variables in state.py
         for settings_value, state_name in STATE_SETTINGS.iteritems():
             new = settings(settings_value)
@@ -109,6 +106,9 @@ class KodiMonitor(Monitor):
                 LOG.debug('PKC state settings %s changed from %s to %s',
                           settings_value, getattr(state, state_name), new)
                 setattr(state, state_name, new)
+                if state_name == 'FETCH_PMS_ITEM_NUMBER':
+                    LOG.info('Requesting playlist/nodes refresh')
+                    plex_command('RUN_LIB_SCAN', 'views')
         # Special cases, overwrite all internal settings
         set_replace_paths()
         state.FULL_SYNC_INTERVALL = int(settings('fullSyncInterval')) * 60
