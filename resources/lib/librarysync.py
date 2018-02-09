@@ -1527,11 +1527,9 @@ class LibrarySync(Thread):
                 self.force_dialog = False
                 # Verify the validity of the database
                 currentVersion = settings('dbCreatedWithVersion')
-                minVersion = window('plex_minDBVersion')
-
-                if not compare_version(currentVersion, minVersion):
+                if not compare_version(currentVersion, v.MIN_DB_VERSION):
                     log.warn("Db version out of date: %s minimum version "
-                             "required: %s" % (currentVersion, minVersion))
+                             "required: %s", (currentVersion, v.MIN_DB_VERSION))
                     # DB out of date. Proceed to recreate?
                     resp = dialog('yesno',
                                   heading=lang(29999),

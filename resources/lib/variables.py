@@ -74,6 +74,9 @@ COMPANION_PORT = int(_ADDON.getSetting('companionPort'))
 # Unique ID for this Plex client; also see clientinfo.py
 PKC_MACHINE_IDENTIFIER = None
 
+# Minimal PKC version needed for the Kodi database - otherwise need to recreate
+MIN_DB_VERSION = '2.0.0'
+
 # Database paths
 _DB_VIDEO_VERSION = {
     13: 78,   # Gotham
