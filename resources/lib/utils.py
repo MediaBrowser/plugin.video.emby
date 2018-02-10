@@ -129,22 +129,19 @@ def dialog(typus, *args, **kwargs):
     """
     Displays xbmcgui Dialog. Pass a string as typus:
         'yesno', 'ok', 'notification', 'input', 'select', 'numeric'
-
     kwargs:
         heading='{plex}'        title bar (here PlexKodiConnect)
-        message=lang(30128),    Actual dialog content. Don't use with OK
+        message=lang(30128),    Dialog content. Don't use with 'OK', 'yesno'
         line1=str(),            For 'OK' and 'yesno' dialogs use line1...line3!
         time=5000,
         sound=True,
         nolabel=str(),          For 'yesno' dialogs
         yeslabel=str(),         For 'yesno' dialogs
-
     Icons:
         icon='{plex}'       Display Plex standard icon
         icon='{info}'       xbmcgui.NOTIFICATION_INFO
         icon='{warning}'    xbmcgui.NOTIFICATION_WARNING
         icon='{error}'      xbmcgui.NOTIFICATION_ERROR
-
     Input Types:
         type='{alphanum}'   xbmcgui.INPUT_ALPHANUM (standard keyboard)
         type='{numeric}'    xbmcgui.INPUT_NUMERIC (format: #)
@@ -153,9 +150,12 @@ def dialog(typus, *args, **kwargs):
         type='{ipaddress}'  xbmcgui.INPUT_IPADDRESS (format: #.#.#.#)
         type='{password}'   xbmcgui.INPUT_PASSWORD
                             (return md5 hash of input, input is masked)
+    Options:
+        option='{password}' xbmcgui.PASSWORD_VERIFY (verifies an existing
+                            (default) md5 hashed password)
+        option='{hide}'     xbmcgui.ALPHANUM_HIDE_INPUT (masks input)
     """
-    d = xbmcgui.Dialog()
-    if "icon" in kwargs:
+    if 'icon' in kwargs:
         types = {
             '{plex}': 'special://home/addons/plugin.video.plexkodiconnect/icon.png',
             '{info}': xbmcgui.NOTIFICATION_INFO,
@@ -174,16 +174,23 @@ def dialog(typus, *args, **kwargs):
             '{password}': xbmcgui.INPUT_PASSWORD
         }
         kwargs['type'] = types[kwargs['type']]
-    if "heading" in kwargs:
+    if 'option' in kwargs:
+        types = {
+            '{password}': xbmcgui.PASSWORD_VERIFY,
+            '{hide}': xbmcgui.ALPHANUM_HIDE_INPUT
+        }
+        kwargs['option'] = types[kwargs['option']]
+    if 'heading' in kwargs:
         kwargs['heading'] = kwargs['heading'].replace("{plex}",
                                                       language(29999))
+    dia = xbmcgui.Dialog()
     types = {
-        'yesno': d.yesno,
-        'ok': d.ok,
-        'notification': d.notification,
-        'input': d.input,
-        'select': d.select,
-        'numeric': d.numeric
+        'yesno': dia.yesno,
+        'ok': dia.ok,
+        'notification': dia.notification,
+        'input': dia.input,
+        'select': dia.select,
+        'numeric': dia.numeric
     }
     return types[typus](*args, **kwargs)
 
