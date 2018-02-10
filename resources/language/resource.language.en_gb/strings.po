@@ -23,6 +23,10 @@ msgctxt "#30000"
 msgid "Server Address (IP)"
 msgstr ""
 
+msgctxt "#30001"
+msgid "Searching for PMS"
+msgstr ""
+
 msgctxt "#30002"
 msgid "Preferred playback method"
 msgstr ""

@@ -375,6 +375,12 @@ class InitialSetup(object):
         Returns server or None if unsuccessful
         """
         https_updated = False
+        # Searching for PMS
+        dialog('notification',
+               heading='{plex}',
+               message=lang(30001),
+               icon='{plex}',
+               time=5000)
         while True:
             if https_updated is False:
                 serverlist = PF.discover_pms(self.plex_token)
