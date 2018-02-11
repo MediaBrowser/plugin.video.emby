@@ -1004,13 +1004,13 @@ def thread_methods(cls=None, add_stops=None, add_suspends=None):
     """
     Decorator to add the following methods to a threading class:
 
-    suspend_thread():    pauses the thread
-    resume_thread():     resumes the thread
-    stop_thread():       stopps/kills the thread
+    suspend():          pauses the thread
+    resume():           resumes the thread
+    stop():             stopps/kills the thread
 
-    thread_suspended():  returns True if thread is suspended
-    thread_stopped():    returns True if thread is stopped (or should stop ;-))
-                         ALSO returns True if PKC should exit
+    suspended():        returns True if thread is suspended
+    stopped():          returns True if thread is stopped (or should stop ;-))
+                        ALSO returns True if PKC should exit
 
     Also adds the following class attributes:
         thread_stopped
@@ -1043,28 +1043,28 @@ def thread_methods(cls=None, add_stops=None, add_suspends=None):
     cls.thread_suspended = False
 
     # Define new class methods and attach them to class
-    def stop_thread(self):
+    def stop(self):
         """
         Call to stop this thread
         """
         self.thread_stopped = True
-    cls.stop_thread = stop_thread
+    cls.stop = stop
 
-    def suspend_thread(self):
+    def suspend(self):
         """
         Call to suspend this thread
         """
         self.thread_suspended = True
-    cls.suspend_thread = suspend_thread
+    cls.suspend = suspend
 
-    def resume_thread(self):
+    def resume(self):
         """
         Call to revive a suspended thread back to life
         """
         self.thread_suspended = False
-    cls.resume_thread = resume_thread
+    cls.resume = resume
 
-    def thread_suspended(self):
+    def suspended(self):
         """
         Returns True if the thread is suspended
         """
@@ -1074,9 +1074,9 @@ def thread_methods(cls=None, add_stops=None, add_suspends=None):
             if getattr(state, suspend):
                 return True
         return False
-    cls.thread_suspended = thread_suspended
+    cls.suspended = suspended
 
-    def thread_stopped(self):
+    def stopped(self):
         """
         Returns True if the thread is stopped
         """
@@ -1086,7 +1086,7 @@ def thread_methods(cls=None, add_stops=None, add_suspends=None):
             if getattr(state, stop):
                 return True
         return False
-    cls.thread_stopped = thread_stopped
+    cls.stopped = stopped
 
     # Return class to render this a decorator
     return cls

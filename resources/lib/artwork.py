@@ -50,15 +50,15 @@ class Image_Cache_Thread(Thread):
         Thread.__init__(self)
 
     def run(self):
-        thread_stopped = self.thread_stopped
-        thread_suspended = self.thread_suspended
+        stopped = self.stopped
+        suspended = self.suspended
         queue = self.queue
         sleep_between = self.sleep_between
-        while not thread_stopped():
+        while not stopped():
             # In the event the server goes offline
-            while thread_suspended():
+            while suspended():
                 # Set in service.py
-                if thread_stopped():
+                if stopped():
                     # Abort was requested while waiting. We should exit
                     LOG.info("---===### Stopped Image_Cache_Thread ###===---")
                     return
@@ -84,7 +84,7 @@ class Image_Cache_Thread(Thread):
                     # download. All is well
                     break
                 except requests.ConnectionError:
-                    if thread_stopped():
+                    if stopped():
                         # Kodi terminated
                         break
                     # Server thinks its a DOS attack, ('error 10053')

@@ -287,11 +287,11 @@ class UserClient(Thread):
 
     def run(self):
         LOG.info("----===## Starting UserClient ##===----")
-        thread_stopped = self.thread_stopped
-        thread_suspended = self.thread_suspended
-        while not thread_stopped():
-            while thread_suspended():
-                if thread_stopped():
+        stopped = self.stopped
+        suspended = self.suspended
+        while not stopped():
+            while suspended():
+                if stopped():
                     break
                 sleep(1000)
 

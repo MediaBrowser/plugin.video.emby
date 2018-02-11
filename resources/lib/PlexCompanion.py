@@ -221,8 +221,8 @@ class PlexCompanion(Thread):
         httpd = self.httpd
         # Cache for quicker while loops
         client = self.client
-        thread_stopped = self.thread_stopped
-        thread_suspended = self.thread_suspended
+        stopped = self.stopped
+        suspended = self.suspended
 
         # Start up instances
         request_mgr = httppersist.RequestMgr()
@@ -259,12 +259,12 @@ class PlexCompanion(Thread):
         if httpd:
             thread = Thread(target=httpd.handle_request)
 
-        while not thread_stopped():
+        while not stopped():
             # If we are not authorized, sleep
             # Otherwise, we trigger a download which leads to a
             # re-authorizations
-            while thread_suspended():
-                if thread_stopped():
+            while suspended():
+                if stopped():
                     break
                 sleep(1000)
             try:

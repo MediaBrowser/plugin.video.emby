@@ -22,10 +22,10 @@ class Monitor_Window(Thread):
     Adjusts state.py accordingly
     """
     def run(self):
-        thread_stopped = self.thread_stopped
+        stopped = self.stopped
         queue = state.COMMAND_PIPELINE_QUEUE
         LOG.info("----===## Starting Kodi_Play_Client ##===----")
-        while not thread_stopped():
+        while not stopped():
             if window('plex_command'):
                 value = window('plex_command')
                 window('plex_command', clear=True)

@@ -262,8 +262,8 @@ class LibrarySync(Thread):
 
         # Do the processing
         for itemtype in process:
-            if (self.thread_stopped() or
-                    self.thread_suspended() or
+            if (self.stopped() or
+                    self.suspended() or
                     not process[itemtype]()):
                 xbmc.executebuiltin('InhibitIdleShutdown(false)')
                 js.set_setting('screensaver.mode', screensaver)
@@ -705,7 +705,7 @@ class LibrarySync(Thread):
         for thread in threads:
             # Threads might already have quit by themselves (e.g. Kodi exit)
             try:
-                thread.stop_thread()
+                thread.stop()
             except AttributeError:
                 pass
         log.debug("Stop sent to all threads")
@@ -753,7 +753,7 @@ class LibrarySync(Thread):
         for view in views:
             if self.installSyncDone is not True:
                 state.PATH_VERIFIED = False
-            if self.thread_stopped() or self.thread_suspended():
+            if self.stopped() or self.suspended():
                 return False
             # Get items per view
             viewId = view['id']
@@ -773,7 +773,7 @@ class LibrarySync(Thread):
         self.GetAndProcessXMLs(itemType)
         # Update viewstate for EVERY item
         for view in views:
-            if self.thread_stopped() or self.thread_suspended():
+            if self.stopped() or self.suspended():
                 return False
             self.PlexUpdateWatched(view['id'], itemType)
 
@@ -847,7 +847,7 @@ class LibrarySync(Thread):
         for view in views:
             if self.installSyncDone is not True:
                 state.PATH_VERIFIED = False
-            if self.thread_stopped() or self.thread_suspended():
+            if self.stopped() or self.suspended():
                 return False
             # Get items per view
             viewId = view['id']
@@ -876,7 +876,7 @@ class LibrarySync(Thread):
         # PROCESS TV Seasons #####
         # Cycle through tv shows
         for tvShowId in allPlexTvShowsId:
-            if self.thread_stopped() or self.thread_suspended():
+            if self.stopped() or self.suspended():
                 return False
             # Grab all seasons to tvshow from PMS
             seasons = GetAllPlexChildren(tvShowId)
@@ -901,7 +901,7 @@ class LibrarySync(Thread):
         # PROCESS TV Episodes #####
         # Cycle through tv shows
         for view in views:
-            if self.thread_stopped() or self.thread_suspended():
+            if self.stopped() or self.suspended():
                 return False
             # Grab all episodes to tvshow from PMS
             episodes = GetAllPlexLeaves(view['id'])
@@ -936,7 +936,7 @@ class LibrarySync(Thread):
 
         # Update viewstate:
         for view in views:
-            if self.thread_stopped() or self.thread_suspended():
+            if self.stopped() or self.suspended():
                 return False
             self.PlexUpdateWatched(view['id'], itemType)
 
@@ -973,7 +973,7 @@ class LibrarySync(Thread):
         for kind in (v.PLEX_TYPE_ARTIST,
                      v.PLEX_TYPE_ALBUM,
                      v.PLEX_TYPE_SONG):
-            if self.thread_stopped() or self.thread_suspended():
+            if self.stopped() or self.suspended():
                 return False
             log.debug("Start processing music %s" % kind)
             self.allKodiElementsId = {}
@@ -990,7 +990,7 @@ class LibrarySync(Thread):
 
         # Update viewstate for EVERY item
         for view in views:
-            if self.thread_stopped() or self.thread_suspended():
+            if self.stopped() or self.suspended():
                 return False
             self.PlexUpdateWatched(view['id'], itemType)
 
@@ -1017,7 +1017,7 @@ class LibrarySync(Thread):
         for view in views:
             if self.installSyncDone is not True:
                 state.PATH_VERIFIED = False
-            if self.thread_stopped() or self.thread_suspended():
+            if self.stopped() or self.suspended():
                 return False
             # Get items per view
             itemsXML = GetPlexSectionResults(view['id'], args=urlArgs)
@@ -1105,7 +1105,7 @@ class LibrarySync(Thread):
         now = unix_timestamp()
         deleteListe = []
         for i, item in enumerate(self.itemsToProcess):
-            if self.thread_stopped() or self.thread_suspended():
+            if self.stopped() or self.suspended():
                 # Chances are that Kodi gets shut down
                 break
             if item['state'] == 9:
@@ -1484,8 +1484,8 @@ class LibrarySync(Thread):
 
     def run_internal(self):
         # Re-assign handles to have faster calls
-        thread_stopped = self.thread_stopped
-        thread_suspended = self.thread_suspended
+        stopped = self.stopped
+        suspended = self.suspended
         installSyncDone = self.installSyncDone
         background_sync = state.BACKGROUND_SYNC
         fullSync = self.fullSync
@@ -1511,12 +1511,12 @@ class LibrarySync(Thread):
         if settings('FanartTV') == 'true':
             self.fanartthread.start()
 
-        while not thread_stopped():
+        while not stopped():
 
             # In the event the server goes offline
-            while thread_suspended():
+            while suspended():
                 # Set in service.py
-                if thread_stopped():
+                if stopped():
                     # Abort was requested while waiting. We should exit
                     log.info("###===--- LibrarySync Stopped ---===###")
                     return
@@ -1613,7 +1613,7 @@ class LibrarySync(Thread):
                     log.info('Doing scheduled full library scan')
                     state.DB_SCAN = True
                     window('plex_dbScan', value="true")
-                    if fullSync() is False and not thread_stopped():
+                    if fullSync() is False and not stopped():
                         log.error('Could not finish scheduled full sync')
                         self.force_dialog = True
                         self.showKodiNote(lang(39410),

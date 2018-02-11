@@ -58,16 +58,16 @@ class WebSocket(Thread):
 
         counter = 0
         handshake_counter = 0
-        thread_stopped = self.thread_stopped
-        thread_suspended = self.thread_suspended
-        while not thread_stopped():
+        stopped = self.stopped
+        suspended = self.suspended
+        while not stopped():
             # In the event the server goes offline
-            while thread_suspended():
+            while suspended():
                 # Set in service.py
                 if self.ws is not None:
                     self.ws.close()
                     self.ws = None
-                if thread_stopped():
+                if stopped():
                     # Abort was requested while waiting. We should exit
                     LOG.info("##===---- %s Stopped ----===##",
                              self.__class__.__name__)
@@ -255,16 +255,16 @@ class Alexa_Websocket(WebSocket):
         pass
 
     # Path in thread_methods
-    def stop_thread(self):
+    def stop(self):
         self.thread_stopped = True
 
-    def suspend_thread(self):
+    def suspend(self):
         self.thread_suspended = True
 
-    def resume_thread(self):
+    def resume(self):
         self.thread_suspended = False
 
-    def thread_stopped(self):
+    def stopped(self):
         if self.thread_stopped is True:
             return True
         if state.STOP_PKC:
@@ -272,7 +272,7 @@ class Alexa_Websocket(WebSocket):
         return False
 
     # The culprit
-    def thread_suspended(self):
+    def suspended(self):
         """
         Overwrite method since we need to check for plex token
         """

@@ -400,7 +400,7 @@ class SpecialMonitor(Thread):
         LOG.info("----====# Starting Special Monitor #====----")
         # "Start from beginning", "Play from beginning"
         strings = (getLocalizedString(12021), getLocalizedString(12023))
-        while not self.thread_stopped():
+        while not self.stopped():
             if (getCondVisibility('Window.IsVisible(DialogContextMenu.xml)') and
                     getInfoLabel('Control.GetLabel(1002)') in strings):
                 # Remember that the item IS indeed resumable

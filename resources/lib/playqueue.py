@@ -149,7 +149,7 @@ class PlayqueueMonitor(Thread):
                 # Ignore new media added by other addons
                 continue
             for j, old_item in enumerate(old):
-                if self.thread_stopped():
+                if self.stopped():
                     # Chances are that we got an empty Kodi playlist due to
                     # Kodi exit
                     return
@@ -194,7 +194,7 @@ class PlayqueueMonitor(Thread):
                 for j in range(i, len(index)):
                     index[j] += 1
         for i in reversed(index):
-            if self.thread_stopped():
+            if self.stopped():
                 # Chances are that we got an empty Kodi playlist due to
                 # Kodi exit
                 return
@@ -203,12 +203,12 @@ class PlayqueueMonitor(Thread):
         LOG.debug('Done comparing playqueues')
 
     def run(self):
-        thread_stopped = self.thread_stopped
-        thread_suspended = self.thread_suspended
+        stopped = self.stopped
+        suspended = self.suspended
         LOG.info("----===## Starting PlayqueueMonitor ##===----")
-        while not thread_stopped():
-            while thread_suspended():
-                if thread_stopped():
+        while not stopped():
+            while suspended():
+                if stopped():
                     break
                 sleep(1000)
             with LOCK:
