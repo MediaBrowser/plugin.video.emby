@@ -568,7 +568,7 @@ class LibrarySync(Thread):
 
         Output: self.updatelist, self.allPlexElementsId
             self.updatelist         APPENDED(!!) list itemids (Plex Keys as
-                                    as received from API.getRatingKey())
+                                    as received from API.plex_id())
             One item in this list is of the form:
                 'itemId': xxx,
                 'itemType': 'Movies','TVShows', ...
@@ -744,7 +744,7 @@ class LibrarySync(Thread):
                 # Pull the list of movies and boxsets in Kodi
                 try:
                     self.allKodiElementsId = dict(
-                        plex_db.getChecksum(v.PLEX_TYPE_MOVIE))
+                        plex_db.checksum(v.PLEX_TYPE_MOVIE))
                 except ValueError:
                     self.allKodiElementsId = {}
 
@@ -836,7 +836,7 @@ class LibrarySync(Thread):
                              v.PLEX_TYPE_SEASON,
                              v.PLEX_TYPE_EPISODE):
                     try:
-                        elements = dict(plex.getChecksum(kind))
+                        elements = dict(plex.checksum(kind))
                         self.allKodiElementsId.update(elements)
                     # Yet empty/not yet synched
                     except ValueError:
@@ -1009,7 +1009,7 @@ class LibrarySync(Thread):
             with plexdb.Get_Plex_DB() as plex_db:
                 # Pull the list of items already in Kodi
                 try:
-                    elements = dict(plex_db.getChecksum(kind))
+                    elements = dict(plex_db.checksum(kind))
                     self.allKodiElementsId.update(elements)
                 # Yet empty/nothing yet synched
                 except ValueError:
@@ -1349,7 +1349,7 @@ class LibrarySync(Thread):
                               plex_id)
                     continue
                 api = PlexAPI.API(xml[0])
-                userdata = api.getUserData()
+                userdata = api.userdata()
                 session['duration'] = userdata['Runtime']
                 session['viewCount'] = userdata['PlayCount']
             # Sometimes, Plex tells us resume points in milliseconds and

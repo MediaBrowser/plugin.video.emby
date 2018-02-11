@@ -194,7 +194,7 @@ def GetSubFolders(nodeindex):
 
 
 ##### LISTITEM SETUP FOR VIDEONODES #####
-def createListItem(item, appendShowTitle=False, appendSxxExx=False):
+def createListItem(item, append_show_title=False, append_sxxexx=False):
     title = item['title']
     li = ListItem(title)
     li.setProperty('IsPlayable', "true")
@@ -215,7 +215,7 @@ def createListItem(item, appendShowTitle=False, appendSxxExx=False):
 
     if season and episode:
         li.setProperty('episodeno', "s%.2de%.2d" % (season, episode))
-        if appendSxxExx is True:
+        if append_sxxexx is True:
             title = "S%.2dE%.2d - %s" % (season, episode, title)
 
     if "firstaired" in item:
@@ -223,7 +223,7 @@ def createListItem(item, appendShowTitle=False, appendSxxExx=False):
 
     if "showtitle" in item:
         metadata['TVshowTitle'] = item['showtitle']
-        if appendShowTitle is True:
+        if append_show_title is True:
             title = item['showtitle'] + ' - ' + title
 
     if "rating" in item:
@@ -375,8 +375,8 @@ def getRecentEpisodes(viewid, mediatype, tagname, limit):
     # if the addon is called with recentepisodes parameter,
     # we return the recentepisodes list of the given tagname
     xbmcplugin.setContent(HANDLE, 'episodes')
-    appendShowTitle = settings('RecentTvAppendShow') == 'true'
-    appendSxxExx = settings('RecentTvAppendSeason') == 'true'
+    append_show_title = settings('RecentTvAppendShow') == 'true'
+    append_sxxexx = settings('RecentTvAppendSeason') == 'true'
     # First we get a list of all the TV shows - filtered by tag
     allshowsIds = set()
     params = {
@@ -402,8 +402,8 @@ def getRecentEpisodes(viewid, mediatype, tagname, limit):
     for episode in js.get_episodes(params):
         if episode['tvshowid'] in allshowsIds:
             listitem = createListItem(episode,
-                                appendShowTitle=appendShowTitle,
-                                appendSxxExx=appendSxxExx)
+                                append_show_title=append_show_title,
+                                append_sxxexx=append_sxxexx)
             xbmcplugin.addDirectoryItem(
                         handle=HANDLE,
                         url=episode['file'],
@@ -501,7 +501,7 @@ def getExtraFanArt(plexid, plexPath):
             return xbmcplugin.endOfDirectory(HANDLE)
 
         api = API(xml[0])
-        backdrops = api.getAllArtwork()['Backdrop']
+        backdrops = api.artwork()['Backdrop']
         for count, backdrop in enumerate(backdrops):
             # Same ordering as in artwork
             fanartFile = try_encode(join(fanartDir, "fanart%.3d.jpg" % count))
@@ -536,8 +536,8 @@ def getOnDeck(viewid, mediatype, tagname, limit):
         limit:              Max. number of items to retrieve, e.g. 50
     """
     xbmcplugin.setContent(HANDLE, 'episodes')
-    appendShowTitle = settings('OnDeckTvAppendShow') == 'true'
-    appendSxxExx = settings('OnDeckTvAppendSeason') == 'true'
+    append_show_title = settings('OnDeckTvAppendShow') == 'true'
+    append_sxxexx = settings('OnDeckTvAppendSeason') == 'true'
     directpaths = settings('useDirectPaths') == 'true'
     if settings('OnDeckTVextended') == 'false':
         # Chances are that this view is used on Kodi startup
@@ -558,16 +558,16 @@ def getOnDeck(viewid, mediatype, tagname, limit):
         limitcounter = 0
         for item in xml:
             api = API(item)
-            listitem = api.CreateListItemFromPlexItem(
-                appendShowTitle=appendShowTitle,
-                appendSxxExx=appendSxxExx)
+            listitem = api.create_listitem(
+                append_show_title=append_show_title,
+                append_sxxexx=append_sxxexx)
             if directpaths:
-                url = api.getFilePath()
+                url = api.file_path()
             else:
                 params = {
                     'mode': "play",
-                    'plex_id': api.getRatingKey(),
-                    'plex_type': api.getType()
+                    'plex_id': api.plex_id(),
+                    'plex_type': api.plex_type()
                 }
                 url = "plugin://plugin.video.plexkodiconnect/tvshows/?%s" \
                       % urlencode(params)
@@ -646,8 +646,8 @@ def getOnDeck(viewid, mediatype, tagname, limit):
         for episode in episodes:
             # There will always be only 1 episode ('limit=1')
             listitem = createListItem(episode,
-                                      appendShowTitle=appendShowTitle,
-                                      appendSxxExx=appendSxxExx)
+                                      append_show_title=append_show_title,
+                                      append_sxxexx=append_sxxexx)
             xbmcplugin.addDirectoryItem(handle=HANDLE,
                                         url=episode['file'],
                                         listitem=listitem,
@@ -823,25 +823,25 @@ def __build_folder(xml_element, plex_section_id=None):
 
 def __build_item(xml_element):
     api = API(xml_element)
-    listitem = api.CreateListItemFromPlexItem()
-    resume = api.getResume()
+    listitem = api.create_listitem()
+    resume = api.resume_point()
     if resume:
         listitem.setProperty('resumetime', str(resume))
-    if (api.getKey().startswith('/system/services') or
-            api.getKey().startswith('http')):
+    if (api.path_and_plex_id().startswith('/system/services') or
+            api.path_and_plex_id().startswith('http')):
         params = {
             'mode': 'plex_node',
             'key': xml_element.attrib.get('key'),
             'offset': xml_element.attrib.get('viewOffset', '0'),
         }
         url = "plugin://%s?%s" % (v.ADDON_ID, urlencode(params))
-    elif api.getType() == v.PLEX_TYPE_PHOTO:
+    elif api.plex_type() == v.PLEX_TYPE_PHOTO:
         url = api.get_picture_path()
     else:
         params = {
             'mode': 'play',
-            'plex_id': api.getRatingKey(),
-            'plex_type': api.getType(),
+            'plex_id': api.plex_id(),
+            'plex_type': api.plex_type(),
         }
         url = "plugin://%s?%s" % (v.ADDON_ID, urlencode(params))
     xbmcplugin.addDirectoryItem(handle=HANDLE,

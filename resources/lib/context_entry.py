@@ -100,7 +100,7 @@ class ContextMenu(object):
             options.append(OPTIONS['PMS_Play'])
         if self.kodi_type in v.KODI_VIDEOTYPES:
             options.append(OPTIONS['Transcode'])
-        # userdata = self.api.getUserData()
+        # userdata = self.api.userdata()
         # if userdata['Favorite']:
         #     # Remove from emby favourites
         #     options.append(OPTIONS['RemoveFav'])

@@ -29,18 +29,18 @@ class PlayUtils():
 
         playurl is in unicode!
         """
-        self.api.getMediastreamNumber()
+        self.api.mediastream_number()
         playurl = self.isDirectPlay()
         if playurl is not None:
             LOG.info("File is direct playing.")
             self.item.playmethod = 'DirectPlay'
         elif self.isDirectStream():
             LOG.info("File is direct streaming.")
-            playurl = self.api.getTranscodeVideoPath('DirectStream')
+            playurl = self.api.transcode_video_path('DirectStream')
             self.item.playmethod = 'DirectStream'
         else:
             LOG.info("File is transcoding.")
-            playurl = self.api.getTranscodeVideoPath(
+            playurl = self.api.transcode_video_path(
                 'Transcode',
                 quality={
                     'maxVideoBitrate': self.get_bitrate(),
@@ -58,16 +58,16 @@ class PlayUtils():
         Returns the path/playurl if we can direct play, None otherwise
         """
         # True for e.g. plex.tv watch later
-        if self.api.shouldStream() is True:
+        if self.api.should_stream() is True:
             LOG.info("Plex item optimized for direct streaming")
             return
         # Check whether we have a strm file that we need to throw at Kodi 1:1
-        path = self.api.getFilePath()
+        path = self.api.file_path()
         if path is not None and path.endswith('.strm'):
             LOG.info('.strm file detected')
-            playurl = self.api.validatePlayurl(path,
-                                               self.api.getType(),
-                                               forceCheck=True)
+            playurl = self.api.validate_playurl(path,
+                                                self.api.plex_type(),
+                                                force_check=True)
             return playurl
         # set to either 'Direct Stream=1' or 'Transcode=2'
         # and NOT to 'Direct Play=0'
@@ -77,9 +77,9 @@ class PlayUtils():
             return
         if self.mustTranscode():
             return
-        return self.api.validatePlayurl(path,
-                                        self.api.getType(),
-                                        forceCheck=True)
+        return self.api.validate_playurl(path,
+                                        self.api.plex_type(),
+                                        force_check=True)
 
     def mustTranscode(self):
         """
@@ -93,10 +93,10 @@ class PlayUtils():
             - video bitrate above specified settings bitrate
         if the corresponding file settings are set to 'true'
         """
-        if self.api.getType() in (v.PLEX_TYPE_CLIP, v.PLEX_TYPE_SONG):
+        if self.api.plex_type() in (v.PLEX_TYPE_CLIP, v.PLEX_TYPE_SONG):
             LOG.info('Plex clip or music track, not transcoding')
             return False
-        videoCodec = self.api.getVideoCodec()
+        videoCodec = self.api.video_codec()
         LOG.info("videoCodec: %s" % videoCodec)
         if self.item.force_transcode is True:
             LOG.info('User chose to force-transcode')
@@ -136,7 +136,7 @@ class PlayUtils():
 
     def isDirectStream(self):
         # Never transcode Music
-        if self.api.getType() == 'track':
+        if self.api.plex_type() == 'track':
             return True
         # set to 'Transcode=2'
         if settings('playType') == "2":
@@ -232,7 +232,7 @@ class PlayUtils():
         """
         # Set media and part where we're at
         if self.api.mediastream is None:
-            self.api.getMediastreamNumber()
+            self.api.mediastream_number()
         try:
             mediastreams = self.api.plex_media_streams()
         except (TypeError, IndexError):
@@ -302,7 +302,7 @@ class PlayUtils():
                                                 stream.attrib['codec']))
                     # We don't know the language - no need to download
                     else:
-                        path = self.api.addPlexCredentialsToUrl(
+                        path = self.api.attach_plex_token_to_url(
                             "%s%s" % (window('pms_server'),
                                       stream.attrib['key']))
                     downloadable_streams.append(index)

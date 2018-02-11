@@ -280,8 +280,8 @@ def playlist_item_from_xml(playlist, xml_video_element, kodi_id=None,
     """
     item = Playlist_Item()
     api = API(xml_video_element)
-    item.plex_id = api.getRatingKey()
-    item.plex_type = api.getType()
+    item.plex_id = api.plex_id()
+    item.plex_type = api.plex_type()
     try:
         item.id = xml_video_element.attrib['%sItemID' % playlist.kind]
     except KeyError:

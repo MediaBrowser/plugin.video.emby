@@ -296,7 +296,7 @@ class Plex_DB_Functions():
         self.plexcursor.execute(query, (parent_id, kodi_type,))
         return self.plexcursor.fetchall()
 
-    def getChecksum(self, plex_type):
+    def checksum(self, plex_type):
         """
         Returns a list of tuples (plex_id, checksum) for plex_type
         """

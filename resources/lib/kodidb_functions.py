@@ -766,7 +766,7 @@ class Kodidb_Functions():
                 )
                 self.cursor.execute(query, (fileid, 2, subtitletrack))
 
-    def getResumes(self):
+    def resume_points(self):
         """
         VIDEOS
 

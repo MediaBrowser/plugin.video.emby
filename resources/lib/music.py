@@ -38,9 +38,9 @@ def excludefromscan_music_folders():
             continue
         for location in library:
             if location.tag == 'Location':
-                path = api.validatePlayurl(location.attrib['path'],
-                                           typus=v.PLEX_TYPE_ARTIST,
-                                           omitCheck=True)
+                path = api.validate_playurl(location.attrib['path'],
+                                            typus=v.PLEX_TYPE_ARTIST,
+                                            omit_check=True)
                 paths.append(__turn_to_regex(path))
     try:
         with XmlKodiSetting('advancedsettings.xml',

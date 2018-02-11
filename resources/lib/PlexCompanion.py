@@ -57,10 +57,10 @@ class PlexCompanion(Thread):
             LOG.error('Could not download Plex metadata for: %s', data)
             return
         api = API(xml[0])
-        if api.getType() == v.PLEX_TYPE_ALBUM:
+        if api.plex_type() == v.PLEX_TYPE_ALBUM:
             LOG.debug('Plex music album detected')
             PQ.init_playqueue_from_plex_children(
-                api.getRatingKey(),
+                api.plex_id(),
                 transient_token=data.get('token'))
         elif data['containerKey'].startswith('/playQueues/'):
             _, container_key, _ = ParseContainerKey(data['containerKey'])
@@ -70,7 +70,7 @@ class PlexCompanion(Thread):
                 dialog('notification', lang(29999), lang(30128), icon='{error}')
                 return
             playqueue = PQ.get_playqueue_from_type(
-                v.KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[api.getType()])
+                v.KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[api.plex_type()])
             playqueue.clear()
             get_playlist_details_from_xml(playqueue, xml)
             playqueue.plex_transient_token = data.get('token')
@@ -84,7 +84,7 @@ class PlexCompanion(Thread):
             if data.get('offset') != '0':
                 state.RESUMABLE = True
                 state.RESUME_PLAYBACK = True
-            playback_triage(api.getRatingKey(), api.getType(), resolve=False)
+            playback_triage(api.plex_id(), api.plex_type(), resolve=False)
 
     @staticmethod
     def _process_node(data):
@@ -119,7 +119,7 @@ class PlexCompanion(Thread):
                 return
             api = API(xml[0])
             playqueue = PQ.get_playqueue_from_type(
-                v.KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[api.getType()])
+                v.KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[api.plex_type()])
         PQ.update_playqueue_from_PMS(
             playqueue,
             playqueue_id=container_key,

@@ -94,7 +94,7 @@ def playback_init(plex_id, plex_type, playqueue):
         return
     trailers = False
     api = API(xml[0])
-    if (plex_type == v.PLEX_TYPE_MOVIE and not api.getResume() and
+    if (plex_type == v.PLEX_TYPE_MOVIE and not api.resume_point() and
             settings('enableCinema') == "true"):
         if settings('askCinema') == "true":
             # "Play trailers?"
@@ -144,11 +144,11 @@ def _prep_playlist_stack(xml):
     for item in xml:
         api = API(item)
         if (state.CONTEXT_MENU_PLAY is False and
-                api.getType() != v.PLEX_TYPE_CLIP):
+                api.plex_type() != v.PLEX_TYPE_CLIP):
             # If user chose to play via PMS or force transcode, do not
             # use the item path stored in the Kodi DB
             with plexdb.Get_Plex_DB() as plex_db:
-                plex_dbitem = plex_db.getItem_byId(api.getRatingKey())
+                plex_dbitem = plex_db.getItem_byId(api.plex_id())
             kodi_id = plex_dbitem[0] if plex_dbitem else None
             kodi_type = plex_dbitem[4] if plex_dbitem else None
         else:
@@ -156,17 +156,17 @@ def _prep_playlist_stack(xml):
             kodi_id = None
             kodi_type = None
         for part, _ in enumerate(item[0]):
-            api.setPartNumber(part)
+            api.set_part_number(part)
             if kodi_id is None:
                 # Need to redirect again to PKC to conclude playback
                 params = {
                     'mode': 'play',
-                    'plex_id': api.getRatingKey(),
-                    'plex_type': api.getType()
+                    'plex_id': api.plex_id(),
+                    'plex_type': api.plex_type()
                 }
                 path = ('plugin://plugin.video.plexkodiconnect?%s'
                         % urlencode(params))
-                listitem = api.CreateListItemFromPlexItem()
+                listitem = api.create_listitem()
                 listitem.setPath(try_encode(path))
             else:
                 # Will add directly via the Kodi DB
@@ -179,9 +179,9 @@ def _prep_playlist_stack(xml):
                 'xml_video_element': item,
                 'listitem': listitem,
                 'part': part,
-                'playcount': api.getViewCount(),
-                'offset': api.getResume(),
-                'id': api.getItemId()
+                'playcount': api.viewcount(),
+                'offset': api.resume_point(),
+                'id': api.item_id()
             })
     return stack
 
@@ -238,15 +238,15 @@ def conclude_playback(playqueue, pos):
     if item.xml is not None:
         # Got a Plex element
         api = API(item.xml)
-        api.setPartNumber(item.part)
-        api.CreateListItemFromPlexItem(listitem)
+        api.set_part_number(item.part)
+        api.create_listitem(listitem)
         playutils = PlayUtils(api, item)
         playurl = playutils.getPlayUrl()
     else:
         playurl = item.file
     listitem.setPath(try_encode(playurl))
     if item.playmethod in ('DirectStream', 'DirectPlay'):
-        listitem.setSubtitles(api.externalSubs())
+        listitem.setSubtitles(api.cache_external_subs())
     else:
         playutils.audio_subtitle_prefs(listitem)
     if state.RESUME_PLAYBACK is True:
@@ -300,9 +300,9 @@ def process_indirect(key, offset, resolve=True):
         # Todo: implement offset
     api = API(xml[0])
     listitem = PKC_ListItem()
-    api.CreateListItemFromPlexItem(listitem)
+    api.create_listitem(listitem)
     playqueue = PQ.get_playqueue_from_type(
-        v.KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[api.getType()])
+        v.KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[api.plex_type()])
     playqueue.clear()
     item = PL.Playlist_Item()
     item.xml = xml[0]
