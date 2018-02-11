@@ -40,8 +40,8 @@ from xbmcvfs import exists
 
 import clientinfo as client
 from downloadutils import DownloadUtils as DU
-from utils import window, settings, language as lang, tryDecode, tryEncode, \
-    DateToKodi, exists_dir, slugify, dialog
+from utils import window, settings, language as lang, try_decode, try_encode, \
+    unix_date_to_kodi, exists_dir, slugify, dialog
 import PlexFunctions as PF
 import plexdb_functions as plexdb
 import variables as v
@@ -139,7 +139,7 @@ class API():
             ans = None
         if ans is not None:
             try:
-                ans = tryDecode(unquote(ans))
+                ans = try_decode(unquote(ans))
             except UnicodeDecodeError:
                 # Sometimes, Plex seems to have encoded in latin1
                 ans = unquote(ans).decode('latin1')
@@ -167,7 +167,7 @@ class API():
                           self.item[0][0].attrib['key']))
         # Attach Plex id to url to let it be picked up by our playqueue agent
         # later
-        return tryEncode('%s&plex_id=%s' % (path, self.getRatingKey()))
+        return try_encode('%s&plex_id=%s' % (path, self.getRatingKey()))
 
     def getTVShowPath(self):
         """
@@ -194,7 +194,7 @@ class API():
         """
         res = self.item.attrib.get('addedAt')
         if res is not None:
-            res = DateToKodi(res)
+            res = unix_date_to_kodi(res)
         else:
             res = '2000-01-01 10:00:00'
         return res
@@ -231,7 +231,7 @@ class API():
         played = True if playcount else False
 
         try:
-            lastPlayedDate = DateToKodi(int(item['lastViewedAt']))
+            lastPlayedDate = unix_date_to_kodi(int(item['lastViewedAt']))
         except (KeyError, ValueError):
             lastPlayedDate = None
 
@@ -884,7 +884,7 @@ class API():
         parameters = {
             'api_key': apiKey,
             'language': v.KODILANGUAGE,
-            'query': tryEncode(title)
+            'query': try_encode(title)
         }
         data = DU().downloadUrl(url,
                                 authenticate=False,
@@ -1196,12 +1196,12 @@ class API():
                         languages.append(stream.attrib['language'])
                 languages = ', '.join(languages)
                 if filename:
-                    option = tryEncode(filename)
+                    option = try_encode(filename)
                 if languages:
                     if option:
-                        option = '%s (%s): ' % (option, tryEncode(languages))
+                        option = '%s (%s): ' % (option, try_encode(languages))
                     else:
-                        option = '%s: ' % tryEncode(languages)
+                        option = '%s: ' % try_encode(languages)
                 if 'videoResolution' in entry.attrib:
                     option = '%s%sp ' % (option,
                                          entry.attrib.get('videoResolution'))
@@ -1544,7 +1544,7 @@ class API():
         # exist() needs a / or \ at the end to work for directories
         if folder is False:
             # files
-            check = exists(tryEncode(path))
+            check = exists(try_encode(path))
         else:
             # directories
             if "\\" in path:
@@ -1640,7 +1640,7 @@ class API():
         plexitem = "plex_%s" % playurl
         window('%s.runtime' % plexitem, value=str(userdata['Runtime']))
         window('%s.type' % plexitem, value=itemtype)
-        state.PLEX_IDS[tryDecode(playurl)] = self.getRatingKey()
+        state.PLEX_IDS[try_decode(playurl)] = self.getRatingKey()
         # window('%s.itemid' % plexitem, value=self.getRatingKey())
         window('%s.playcount' % plexitem, value=str(userdata['PlayCount']))
 

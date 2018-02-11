@@ -6,7 +6,7 @@ import xml.etree.ElementTree as etree
 
 from xbmc import executebuiltin, translatePath
 
-from utils import settings, window, language as lang, tryEncode, tryDecode, \
+from utils import settings, window, language as lang, try_encode, try_decode, \
     XmlKodiSetting, reboot_kodi, dialog
 from migration import check_migration
 from downloadutils import DownloadUtils as DU
@@ -76,7 +76,7 @@ def reload_pkc():
     set_webserver()
     # To detect Kodi profile switches
     window('plex_kodiProfile',
-           value=tryDecode(translatePath("special://profile")))
+           value=try_decode(translatePath("special://profile")))
     getDeviceId()
     # Initialize the PKC playqueues
     PQ.init_playqueues()
@@ -355,7 +355,7 @@ class InitialSetup(object):
                         dialog('ok',
                                lang(29999),
                                '%s %s' % (lang(39214),
-                                          tryEncode(server['name'])))
+                                          try_encode(server['name'])))
                         return
                 else:
                     return
@@ -610,8 +610,8 @@ class InitialSetup(object):
                       line1=lang(39029),
                       line2=lang(39030)):
                 LOG.debug("Presenting network credentials dialog.")
-                from utils import passwordsXML
-                passwordsXML()
+                from utils import passwords_xml
+                passwords_xml()
         # Disable Plex music?
         if dialog('yesno', heading=lang(29999), line1=lang(39016)):
             LOG.debug("User opted to disable Plex music library.")

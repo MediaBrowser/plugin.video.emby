@@ -4,7 +4,7 @@
 from logging import getLogger
 from downloadutils import DownloadUtils as DU
 
-from utils import window, settings, language as lang, dialog, tryEncode
+from utils import window, settings, language as lang, dialog, try_encode
 import variables as v
 
 ###############################################################################
@@ -274,7 +274,7 @@ class PlayUtils():
                                                codec,
                                                channellayout)
                 audio_streams_list.append(index)
-                audio_streams.append(tryEncode(track))
+                audio_streams.append(try_encode(track))
                 audio_numb += 1
 
             # Subtitles
@@ -306,7 +306,7 @@ class PlayUtils():
                             "%s%s" % (window('pms_server'),
                                       stream.attrib['key']))
                     downloadable_streams.append(index)
-                    download_subs.append(tryEncode(path))
+                    download_subs.append(try_encode(path))
                 else:
                     track = "%s (%s)" % (track, lang(39710))  # burn-in
                 if stream.attrib.get('selected') == '1' and downloadable:
@@ -315,7 +315,7 @@ class PlayUtils():
                     default_sub = index
 
                 subtitle_streams_list.append(index)
-                subtitle_streams.append(tryEncode(track))
+                subtitle_streams.append(try_encode(track))
                 sub_num += 1
 
         if audio_numb > 1:

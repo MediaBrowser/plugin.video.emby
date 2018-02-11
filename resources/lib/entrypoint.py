@@ -11,8 +11,8 @@ import xbmcplugin
 from xbmc import sleep, executebuiltin, translatePath
 from xbmcgui import ListItem
 
-from utils import window, settings, language as lang, dialog, tryEncode, \
-    CatchExceptions, exists_dir, plex_command, tryDecode
+from utils import window, settings, language as lang, dialog, try_encode, \
+    CatchExceptions, exists_dir, plex_command, try_decode
 import downloadutils
 
 from PlexFunctions import GetPlexMetadata, GetPlexSectionResults, \
@@ -53,11 +53,11 @@ def chooseServer():
     if not __LogOut():
         return
 
-    from utils import deletePlaylists, deleteNodes
+    from utils import delete_playlists, delete_nodes
     # First remove playlists
-    deletePlaylists()
+    delete_playlists()
     # Remove video nodes
-    deleteNodes()
+    delete_nodes()
 
     # Log in again
     __LogIn()
@@ -175,10 +175,10 @@ def switchPlexUser():
         return
 
     # First remove playlists of old user
-    from utils import deletePlaylists, deleteNodes
-    deletePlaylists()
+    from utils import delete_playlists, delete_nodes
+    delete_playlists()
     # Remove video nodes
-    deleteNodes()
+    delete_nodes()
     __LogIn()
 
 
@@ -455,14 +455,14 @@ def getVideoFiles(plexId, params):
     if exists_dir(path):
         for root, dirs, files in walk(path):
             for directory in dirs:
-                item_path = tryEncode(join(root, directory))
+                item_path = try_encode(join(root, directory))
                 li = ListItem(item_path, path=item_path)
                 xbmcplugin.addDirectoryItem(handle=HANDLE,
                                             url=item_path,
                                             listitem=li,
                                             isFolder=True)
             for file in files:
-                item_path = tryEncode(join(root, file))
+                item_path = try_encode(join(root, file))
                 li = ListItem(item_path, path=item_path)
                 xbmcplugin.addDirectoryItem(handle=HANDLE,
                                             url=file,
@@ -490,7 +490,7 @@ def getExtraFanArt(plexid, plexPath):
 
     # We need to store the images locally for this to work
     # because of the caching system in xbmc
-    fanartDir = tryDecode(translatePath(
+    fanartDir = try_decode(translatePath(
         "special://thumbnails/plex/%s/" % plexid))
     if not exists_dir(fanartDir):
         # Download the images to the cache directory
@@ -504,19 +504,19 @@ def getExtraFanArt(plexid, plexPath):
         backdrops = api.getAllArtwork()['Backdrop']
         for count, backdrop in enumerate(backdrops):
             # Same ordering as in artwork
-            fanartFile = tryEncode(join(fanartDir, "fanart%.3d.jpg" % count))
+            fanartFile = try_encode(join(fanartDir, "fanart%.3d.jpg" % count))
             li = ListItem("%.3d" % count, path=fanartFile)
             xbmcplugin.addDirectoryItem(
                 handle=HANDLE,
                 url=fanartFile,
                 listitem=li)
-            copyfile(backdrop, tryDecode(fanartFile))
+            copyfile(backdrop, try_decode(fanartFile))
     else:
         log.info("Found cached backdrop.")
         # Use existing cached images
         for root, dirs, files in walk(fanartDir):
             for file in files:
-                fanartFile = tryEncode(join(root, file))
+                fanartFile = try_encode(join(root, file))
                 li = ListItem(file, path=fanartFile)
                 xbmcplugin.addDirectoryItem(handle=HANDLE,
                                             url=fanartFile,

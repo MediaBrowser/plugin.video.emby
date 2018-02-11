@@ -11,7 +11,7 @@ from threading import Thread
 from xbmc import sleep
 
 from downloadutils import DownloadUtils as DU
-from utils import settings, tryEncode, tryDecode
+from utils import settings, try_encode, try_decode
 from variables import PLEX_TO_KODI_TIMEFACTOR
 import plex_tv
 
@@ -306,11 +306,11 @@ def _plex_gdm():
         }
         for line in response['data'].split('\n'):
             if 'Content-Type:' in line:
-                pms['product'] = tryDecode(line.split(':')[1].strip())
+                pms['product'] = try_decode(line.split(':')[1].strip())
             elif 'Host:' in line:
                 pms['baseURL'] = line.split(':')[1].strip()
             elif 'Name:' in line:
-                pms['name'] = tryDecode(line.split(':')[1].strip())
+                pms['name'] = try_decode(line.split(':')[1].strip())
             elif 'Port:' in line:
                 pms['port'] = line.split(':')[1].strip()
             elif 'Resource-Identifier:' in line:
@@ -820,7 +820,7 @@ def transcode_image_path(key, AuthToken, path, width, height):
         path = 'http://127.0.0.1:32400' + key
     else:  # internal path, add-on
         path = 'http://127.0.0.1:32400' + path + '/' + key
-    path = tryEncode(path)
+    path = try_encode(path)
     # This is bogus (note the extra path component) but ATV is stupid when it
     # comes to caching images, it doesn't use querystrings. Fortunately PMS is
     # lenient...

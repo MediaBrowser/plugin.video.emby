@@ -5,7 +5,7 @@ from logging import getLogger
 from ntpath import dirname
 
 import artwork
-from utils import kodiSQL
+from utils import kodi_sql
 import variables as v
 
 ###############################################################################
@@ -30,7 +30,7 @@ class GetKodiDB():
         self.db_type = db_type
 
     def __enter__(self):
-        self.kodiconn = kodiSQL(self.db_type)
+        self.kodiconn = kodi_sql(self.db_type)
         kodi_db = Kodidb_Functions(self.kodiconn.cursor())
         return kodi_db
 

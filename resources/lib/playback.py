@@ -18,7 +18,7 @@ from playutils import PlayUtils
 from PKC_listitem import PKC_ListItem
 from pickler import pickle_me, Playback_Successful
 import json_rpc as js
-from utils import settings, dialog, language as lang, tryEncode
+from utils import settings, dialog, language as lang, try_encode
 from plexbmchelper.subscribers import LOCKER
 import variables as v
 import state
@@ -167,7 +167,7 @@ def _prep_playlist_stack(xml):
                 path = ('plugin://plugin.video.plexkodiconnect?%s'
                         % urlencode(params))
                 listitem = api.CreateListItemFromPlexItem()
-                listitem.setPath(tryEncode(path))
+                listitem.setPath(try_encode(path))
             else:
                 # Will add directly via the Kodi DB
                 path = None
@@ -244,7 +244,7 @@ def conclude_playback(playqueue, pos):
         playurl = playutils.getPlayUrl()
     else:
         playurl = item.file
-    listitem.setPath(tryEncode(playurl))
+    listitem.setPath(try_encode(playurl))
     if item.playmethod in ('DirectStream', 'DirectPlay'):
         listitem.setSubtitles(api.externalSubs())
     else:
@@ -322,14 +322,14 @@ def process_indirect(key, offset, resolve=True):
         return
     playurl = xml[0].attrib['key']
     item.file = playurl
-    listitem.setPath(tryEncode(playurl))
+    listitem.setPath(try_encode(playurl))
     playqueue.items.append(item)
     if resolve is True:
         result.listitem = listitem
         pickle_me(result)
     else:
         thread = Thread(target=Player().play,
-                        args={'item': tryEncode(playurl),
+                        args={'item': try_encode(playurl),
                               'listitem': listitem})
         thread.setDaemon(True)
         LOG.info('Done initializing PKC playback, starting Kodi player')

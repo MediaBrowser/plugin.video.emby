@@ -12,8 +12,8 @@ import requests
 from xbmc import sleep, translatePath
 from xbmcvfs import exists
 
-from utils import window, settings, language as lang, kodiSQL, tryEncode, \
-    thread_methods, dialog, exists_dir, tryDecode
+from utils import window, settings, language as lang, kodi_sql, try_encode, \
+    thread_methods, dialog, exists_dir, try_decode
 import state
 
 # Disable annoying requests warnings
@@ -134,13 +134,13 @@ class Artwork():
         if dialog('yesno', "Image Texture Cache", lang(39251)):
             LOG.info("Resetting all cache data first")
             # Remove all existing textures first
-            path = tryDecode(translatePath("special://thumbnails/"))
+            path = try_decode(translatePath("special://thumbnails/"))
             if exists_dir(path):
                 rmtree(path, ignore_errors=True)
                 self.restoreCacheDirectories()
 
             # remove all existing data from texture DB
-            connection = kodiSQL('texture')
+            connection = kodi_sql('texture')
             cursor = connection.cursor()
             query = 'SELECT tbl_name FROM sqlite_master WHERE type=?'
             cursor.execute(query, ('table', ))
@@ -153,7 +153,7 @@ class Artwork():
             connection.close()
 
         # Cache all entries in video DB
-        connection = kodiSQL('video')
+        connection = kodi_sql('video')
         cursor = connection.cursor()
         # dont include actors
         query = "SELECT url FROM art WHERE media_type != ?"
@@ -166,7 +166,7 @@ class Artwork():
         for url in result:
             self.cacheTexture(url[0])
         # Cache all entries in music DB
-        connection = kodiSQL('music')
+        connection = kodi_sql('music')
         cursor = connection.cursor()
         cursor.execute("SELECT url FROM art")
         result = cursor.fetchall()
@@ -179,7 +179,7 @@ class Artwork():
     def cacheTexture(self, url):
         # Cache a single image url to the texture cache
         if url and self.enableTextureCache:
-            self.queue.put(double_urlencode(tryEncode(url)))
+            self.queue.put(double_urlencode(try_encode(url)))
 
     def addArtwork(self, artwork, kodiId, mediaType, cursor):
         # Kodi conversion table
@@ -323,7 +323,7 @@ class Artwork():
 
     def deleteCachedArtwork(self, url):
         # Only necessary to remove and apply a new backdrop or poster
-        connection = kodiSQL('texture')
+        connection = kodi_sql('texture')
         cursor = connection.cursor()
         try:
             cursor.execute("SELECT cachedurl FROM texture WHERE url = ?",
@@ -336,7 +336,7 @@ class Artwork():
             path = translatePath("special://thumbnails/%s" % cachedurl)
             LOG.debug("Deleting cached thumbnail: %s" % path)
             if exists(path):
-                rmtree(tryDecode(path), ignore_errors=True)
+                rmtree(try_decode(path), ignore_errors=True)
             cursor.execute("DELETE FROM texture WHERE url = ?", (url,))
             connection.commit()
         finally:
@@ -347,4 +347,4 @@ class Artwork():
         LOG.info("Restoring cache directories...")
         paths = ("","0","1","2","3","4","5","6","7","8","9","a","b","c","d","e","f","Video","plex")
         for p in paths:
-            makedirs(tryDecode(translatePath("special://thumbnails/%s" % p)))
+            makedirs(try_decode(translatePath("special://thumbnails/%s" % p)))

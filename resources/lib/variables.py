@@ -6,7 +6,7 @@ from xbmcaddon import Addon
 # For any file operations with KODI function, use encoded strings!
 
 
-def tryDecode(string, encoding='utf-8'):
+def try_decode(string, encoding='utf-8'):
     """
     Will try to decode string (encoded) using encoding. This possibly
     fails with e.g. Android TV's Python, which does not accept arguments for
@@ -37,7 +37,7 @@ ADDON_VERSION = _ADDON.getAddonInfo('version')
 KODILANGUAGE = xbmc.getLanguage(xbmc.ISO_639_1)
 KODIVERSION = int(xbmc.getInfoLabel("System.BuildVersion")[:2])
 KODILONGVERSION = xbmc.getInfoLabel('System.BuildVersion')
-KODI_PROFILE = tryDecode(xbmc.translatePath("special://profile"))
+KODI_PROFILE = try_decode(xbmc.translatePath("special://profile"))
 
 if xbmc.getCondVisibility('system.platform.osx'):
     PLATFORM = "MacOSX"
@@ -56,7 +56,7 @@ elif xbmc.getCondVisibility('system.platform.android'):
 else:
     PLATFORM = "Unknown"
 
-DEVICENAME = tryDecode(_ADDON.getSetting('deviceName'))
+DEVICENAME = try_decode(_ADDON.getSetting('deviceName'))
 DEVICENAME = DEVICENAME.replace(":", "")
 DEVICENAME = DEVICENAME.replace("/", "-")
 DEVICENAME = DEVICENAME.replace("\\", "-")
@@ -86,7 +86,7 @@ _DB_VIDEO_VERSION = {
     17: 107,  # Krypton
     18: 108   # Leia
 }
-DB_VIDEO_PATH = tryDecode(xbmc.translatePath(
+DB_VIDEO_PATH = try_decode(xbmc.translatePath(
     "special://database/MyVideos%s.db" % _DB_VIDEO_VERSION[KODIVERSION]))
 
 _DB_MUSIC_VERSION = {
@@ -97,7 +97,7 @@ _DB_MUSIC_VERSION = {
     17: 60,   # Krypton
     18: 62    # Leia
 }
-DB_MUSIC_PATH = tryDecode(xbmc.translatePath(
+DB_MUSIC_PATH = try_decode(xbmc.translatePath(
     "special://database/MyMusic%s.db" % _DB_MUSIC_VERSION[KODIVERSION]))
 
 _DB_TEXTURE_VERSION = {
@@ -108,12 +108,12 @@ _DB_TEXTURE_VERSION = {
     17: 13,   # Krypton
     18: 13    # Leia
 }
-DB_TEXTURE_PATH = tryDecode(xbmc.translatePath(
+DB_TEXTURE_PATH = try_decode(xbmc.translatePath(
     "special://database/Textures%s.db" % _DB_TEXTURE_VERSION[KODIVERSION]))
 
-DB_PLEX_PATH = tryDecode(xbmc.translatePath("special://database/plex.db"))
+DB_PLEX_PATH = try_decode(xbmc.translatePath("special://database/plex.db"))
 
-EXTERNAL_SUBTITLE_TEMP_PATH = tryDecode(xbmc.translatePath(
+EXTERNAL_SUBTITLE_TEMP_PATH = try_decode(xbmc.translatePath(
     "special://profile/addon_data/%s/temp/" % ADDON_ID))
 
 

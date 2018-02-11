@@ -292,7 +292,7 @@ class ABNF(object):
         opcode: operation code. please see OPCODE_XXX.
         """
         if opcode == ABNF.OPCODE_TEXT and isinstance(data, unicode):
-            data = utils.tryEncode(data)
+            data = utils.try_encode(data)
         # mask must be set if send data from client
         return ABNF(1, 0, 0, 0, opcode, 1, data)
 

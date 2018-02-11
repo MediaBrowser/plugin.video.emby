@@ -6,7 +6,7 @@ from ntpath import dirname
 from datetime import datetime
 
 from artwork import Artwork
-from utils import window, kodiSQL, CatchExceptions
+from utils import window, kodi_sql, CatchExceptions
 import plexdb_functions as plexdb
 import kodidb_functions as kodidb
 
@@ -43,9 +43,9 @@ class Items(object):
         """
         Open DB connections and cursors
         """
-        self.plexconn = kodiSQL('plex')
+        self.plexconn = kodi_sql('plex')
         self.plexcursor = self.plexconn.cursor()
-        self.kodiconn = kodiSQL('video')
+        self.kodiconn = kodi_sql('video')
         self.kodicursor = self.kodiconn.cursor()
         self.plex_db = plexdb.Plex_DB_Functions(self.plexcursor)
         self.kodi_db = kodidb.Kodidb_Functions(self.kodicursor)
@@ -1273,10 +1273,10 @@ class Music(Items):
         OVERWRITE this method, because we need to open another DB.
         Open DB connections and cursors
         """
-        self.plexconn = kodiSQL('plex')
+        self.plexconn = kodi_sql('plex')
         self.plexcursor = self.plexconn.cursor()
         # Here it is, not 'video' but 'music'
-        self.kodiconn = kodiSQL('music')
+        self.kodiconn = kodi_sql('music')
         self.kodicursor = self.kodiconn.cursor()
         self.plex_db = plexdb.Plex_DB_Functions(self.plexcursor)
         self.kodi_db = kodidb.Kodidb_Functions(self.kodicursor)

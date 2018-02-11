@@ -8,10 +8,10 @@ from random import shuffle
 import xbmc
 from xbmcvfs import exists
 
-from utils import window, settings, getUnixTimestamp, \
-    thread_methods, create_actor_db_index, dialog, LogTime, playlistXSP,\
-    language as lang, DateToKodi, reset, tryDecode, deletePlaylists, \
-    deleteNodes, tryEncode, compare_version
+from utils import window, settings, unix_timestamp, thread_methods, \
+    create_actor_db_index, dialog, LogTime, playlist_xsp, language as lang, \
+    unix_date_to_kodi, reset, try_decode, delete_playlists, delete_nodes, \
+    try_encode, compare_version
 import downloadutils
 import itemtypes
 import plexdb_functions as plexdb
@@ -155,7 +155,7 @@ class LibrarySync(Thread):
                     log.debug('No timestamp; using 0')
 
         # Set the timer
-        koditime = getUnixTimestamp()
+        koditime = unix_timestamp()
         # Toggle watched state
         scrobble(plexId, 'watched')
         # Let the PMS process this first!
@@ -329,7 +329,7 @@ class LibrarySync(Thread):
             # Create playlist for the video library
             if (foldername not in playlists and
                     mediatype in (v.PLEX_TYPE_MOVIE, v.PLEX_TYPE_SHOW)):
-                playlistXSP(mediatype, foldername, folderid, viewtype)
+                playlist_xsp(mediatype, foldername, folderid, viewtype)
                 playlists.append(foldername)
             # Create the video node
             if (foldername not in nodes and
@@ -371,7 +371,7 @@ class LibrarySync(Thread):
                         # The tag could be a combined view. Ensure there's
                         # no other tags with the same name before deleting
                         # playlist.
-                        playlistXSP(mediatype,
+                        playlist_xsp(mediatype,
                                     current_viewname,
                                     folderid,
                                     current_viewtype,
@@ -388,7 +388,7 @@ class LibrarySync(Thread):
                     # Added new playlist
                     if (foldername not in playlists and mediatype in
                             (v.PLEX_TYPE_MOVIE, v.PLEX_TYPE_SHOW)):
-                        playlistXSP(mediatype,
+                        playlist_xsp(mediatype,
                                     foldername,
                                     folderid,
                                     viewtype)
@@ -414,7 +414,7 @@ class LibrarySync(Thread):
                 if mediatype != v.PLEX_TYPE_ARTIST:
                     if (foldername not in playlists and mediatype in
                             (v.PLEX_TYPE_MOVIE, v.PLEX_TYPE_SHOW)):
-                        playlistXSP(mediatype,
+                        playlist_xsp(mediatype,
                                     foldername,
                                     folderid,
                                     viewtype)
@@ -1102,7 +1102,7 @@ class LibrarySync(Thread):
         """
         self.videoLibUpdate = False
         self.musicLibUpdate = False
-        now = getUnixTimestamp()
+        now = unix_timestamp()
         deleteListe = []
         for i, item in enumerate(self.itemsToProcess):
             if self.thread_stopped() or self.thread_suspended():
@@ -1220,7 +1220,7 @@ class LibrarySync(Thread):
                     'state': status,
                     'type': typus,
                     'ratingKey': str(item['itemID']),
-                    'timestamp': getUnixTimestamp(),
+                    'timestamp': unix_timestamp(),
                     'attempt': 0
                 })
             elif typus in (v.PLEX_TYPE_MOVIE,
@@ -1237,7 +1237,7 @@ class LibrarySync(Thread):
                         'state': status,
                         'type': typus,
                         'ratingKey': plex_id,
-                        'timestamp': getUnixTimestamp(),
+                        'timestamp': unix_timestamp(),
                         'attempt': 0
                     })
 
@@ -1276,7 +1276,7 @@ class LibrarySync(Thread):
                     'state': None,  # Don't need a state here
                     'type': kodi_info[5],
                     'ratingKey': plex_id,
-                    'timestamp': getUnixTimestamp(),
+                    'timestamp': unix_timestamp(),
                     'attempt': 0
                 })
 
@@ -1386,7 +1386,7 @@ class LibrarySync(Thread):
                                     resume,
                                     session['duration'],
                                     session['file_id'],
-                                    DateToKodi(getUnixTimestamp()))
+                                    unix_date_to_kodi(unix_timestamp()))
 
     def fanartSync(self, refresh=False):
         """
@@ -1430,9 +1430,9 @@ class LibrarySync(Thread):
             window('plex_dbScan', value="true")
             state.DB_SCAN = True
             # First remove playlists
-            deletePlaylists()
+            delete_playlists()
             # Remove video nodes
-            deleteNodes()
+            delete_nodes()
             # Kick off refresh
             if self.maintainViews() is True:
                 # Ran successfully
@@ -1549,11 +1549,11 @@ class LibrarySync(Thread):
                 # Also runs when first installed
                 # Verify the video database can be found
                 videoDb = v.DB_VIDEO_PATH
-                if not exists(tryEncode(videoDb)):
+                if not exists(try_encode(videoDb)):
                     # Database does not exists
                     log.error("The current Kodi version is incompatible "
                               "to know which Kodi versions are supported.")
-                    log.error('Current Kodi version: %s' % tryDecode(
+                    log.error('Current Kodi version: %s' % try_decode(
                         xbmc.getInfoLabel('System.BuildVersion')))
                     # "Current Kodi version is unsupported, cancel lib sync"
                     dialog('ok', heading='{plex}', line1=lang(39403))
@@ -1562,10 +1562,10 @@ class LibrarySync(Thread):
                 state.DB_SCAN = True
                 window('plex_dbScan', value="true")
                 log.info("Db version: %s" % settings('dbCreatedWithVersion'))
-                lastTimeSync = getUnixTimestamp()
+                lastTimeSync = unix_timestamp()
                 # Initialize time offset Kodi - PMS
                 self.syncPMStime()
-                lastSync = getUnixTimestamp()
+                lastSync = unix_timestamp()
                 if settings('FanartTV') == 'true':
                     # Start getting additional missing artwork
                     with plexdb.Get_Plex_DB() as plex_db:
@@ -1579,8 +1579,8 @@ class LibrarySync(Thread):
                                 'refresh': True
                             })
                 log.info('Refreshing video nodes and playlists now')
-                deletePlaylists()
-                deleteNodes()
+                delete_playlists()
+                delete_nodes()
                 log.info("Initial start-up full sync starting")
                 librarySync = fullSync()
                 window('plex_dbScan', clear=True)
@@ -1604,7 +1604,7 @@ class LibrarySync(Thread):
                     self.triage_lib_scans()
                     self.force_dialog = False
                     continue
-                now = getUnixTimestamp()
+                now = unix_timestamp()
                 # Standard syncs - don't force-show dialogs
                 self.force_dialog = False
                 if (now - lastSync > FULL_SYNC_INTERVALL and

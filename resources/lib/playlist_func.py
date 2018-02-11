@@ -8,7 +8,7 @@ from re import compile as re_compile
 
 import plexdb_functions as plexdb
 from downloadutils import DownloadUtils as DU
-from utils import tryEncode, escape_html
+from utils import try_encode, escape_html
 from PlexAPI import API
 from PlexFunctions import GetPlexMetadata
 import json_rpc as js
@@ -60,7 +60,7 @@ class PlaylistObjectBaseclase(object):
                 continue
             if isinstance(getattr(self, key), (str, unicode)):
                 answ += '\'%s\': \'%s\', ' % (key,
-                                              tryEncode(getattr(self, key)))
+                                              try_encode(getattr(self, key)))
             else:
                 # e.g. int
                 answ += '\'%s\': %s, ' % (key, str(getattr(self, key)))
@@ -168,7 +168,7 @@ class Playlist_Item(object):
                 continue
             if isinstance(getattr(self, key), (str, unicode)):
                 answ += '\'%s\': \'%s\', ' % (key,
-                                              tryEncode(getattr(self, key)))
+                                              try_encode(getattr(self, key)))
             else:
                 # e.g. int
                 answ += '\'%s\': %s, ' % (key, str(getattr(self, key)))

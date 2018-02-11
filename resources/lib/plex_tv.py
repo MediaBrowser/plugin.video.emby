@@ -4,7 +4,7 @@ from logging import getLogger
 from xbmc import sleep, executebuiltin
 
 from downloadutils import DownloadUtils as DU
-from utils import dialog, language as lang, settings, tryEncode
+from utils import dialog, language as lang, settings, try_encode
 import variables as v
 import state
 
@@ -39,7 +39,7 @@ def choose_home_user(token):
         username = user['title']
         userlist.append(username)
         # To take care of non-ASCII usernames
-        userlist_coded.append(tryEncode(username))
+        userlist_coded.append(try_encode(username))
     usernumber = len(userlist)
     username = ''
     usertoken = ''
