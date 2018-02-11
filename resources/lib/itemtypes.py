@@ -1,24 +1,22 @@
 # -*- coding: utf-8 -*-
-
 ###############################################################################
 from logging import getLogger
 from urllib import urlencode
 from ntpath import dirname
 from datetime import datetime
 
-import artwork
+from artwork import Artwork
 from utils import window, kodiSQL, CatchExceptions
 import plexdb_functions as plexdb
 import kodidb_functions as kodidb
 
-import PlexAPI
+from PlexAPI import API
 from PlexFunctions import GetPlexMetadata
 import variables as v
 import state
-
 ###############################################################################
 
-log = getLogger("PLEX."+__name__)
+LOG = getLogger("PLEX." + __name__)
 
 ###############################################################################
 
@@ -31,10 +29,15 @@ class Items(object):
     Input:
         kodiType:       optional argument; e.g. 'video' or 'music'
     """
-
     def __init__(self):
-        self.artwork = artwork.Artwork()
+        self.artwork = Artwork()
         self.server = window('pms_server')
+        self.plexconn = None
+        self.plexcursor = None
+        self.kodiconn = None
+        self.kodicursor = None
+        self.plex_db = None
+        self.kodi_db = None
 
     def __enter__(self):
         """
@@ -71,8 +74,8 @@ class Items(object):
             kodi_id = db_item[0]
             kodi_type = db_item[4]
         except TypeError:
-            log.error('Could not get Kodi id for plex id %s, abort getfanart'
-                      % plex_id)
+            LOG.error('Could not get Kodi id for plex id %s, abort getfanart',
+                      plex_id)
             return False
         if refresh is True:
             # Leave the Plex art untouched
@@ -87,40 +90,40 @@ class Items(object):
                     needsupdate = True
                     break
             if needsupdate is False:
-                log.debug('Already got all fanart for Plex id %s' % plex_id)
+                LOG.debug('Already got all fanart for Plex id %s', plex_id)
                 return True
 
         xml = GetPlexMetadata(plex_id)
         if xml is None:
             # Did not receive a valid XML - skip that item for now
-            log.error("Could not get metadata for %s. Skipping that item "
-                      "for now" % plex_id)
+            LOG.error("Could not get metadata for %s. Skipping that item "
+                      "for now", plex_id)
             return False
         elif xml == 401:
-            log.error('HTTP 401 returned by PMS. Too much strain? '
+            LOG.error('HTTP 401 returned by PMS. Too much strain? '
                       'Cancelling sync for now')
             # Kill remaining items in queue (for main thread to cont.)
             return False
-        API = PlexAPI.API(xml[0])
+        api = API(xml[0])
         if allartworks is None:
-            allartworks = API.getAllArtwork()
-        self.artwork.addArtwork(API.getFanartArtwork(allartworks),
+            allartworks = api.getAllArtwork()
+        self.artwork.addArtwork(api.getFanartArtwork(allartworks),
                                 kodi_id,
                                 kodi_type,
                                 self.kodicursor)
         # Also get artwork for collections/movie sets
         if kodi_type == v.KODI_TYPE_MOVIE:
-            for setname in API.getCollections():
-                log.debug('Getting artwork for movie set %s' % setname)
+            for setname in api.getCollections():
+                LOG.debug('Getting artwork for movie set %s', setname)
                 setid = self.kodi_db.createBoxset(setname)
-                self.artwork.addArtwork(API.getSetArtwork(),
+                self.artwork.addArtwork(api.getSetArtwork(),
                                         setid,
                                         v.KODI_TYPE_SET,
                                         self.kodicursor)
                 self.kodi_db.assignBoxset(setid, kodi_id)
         return True
 
-    def updateUserdata(self, xml, viewtag=None, viewid=None):
+    def updateUserdata(self, xml):
         """
         Updates the Kodi watched state of the item from PMS. Also retrieves
         Plex resume points for movies in progress.
@@ -128,15 +131,15 @@ class Items(object):
         viewtag and viewid only serve as dummies
         """
         for mediaitem in xml:
-            API = PlexAPI.API(mediaitem)
+            api = API(mediaitem)
             # Get key and db entry on the Kodi db side
-            db_item = self.plex_db.getItem_byId(API.getRatingKey())
+            db_item = self.plex_db.getItem_byId(api.getRatingKey())
             try:
                 fileid = db_item[1]
             except TypeError:
                 continue
             # Grab the user's viewcount, resume points etc. from PMS' answer
-            userdata = API.getUserData()
+            userdata = api.getUserData()
             # Write to Kodi DB
             self.kodi_db.addPlaystate(fileid,
                                       userdata['Resume'],
@@ -156,7 +159,7 @@ class Items(object):
         # If the playback was stopped, check whether we need to increment the
         # playcount. PMS won't tell us the playcount via websockets
         if mark_played:
-            log.info('Marking as completely watched in Kodi')
+            LOG.info('Marking as completely watched in Kodi')
             try:
                 view_count += 1
             except TypeError:
@@ -171,23 +174,27 @@ class Items(object):
 
 
 class Movies(Items):
-
+    """
+    Used for plex library-type movies
+    """
     @CatchExceptions(warnuser=True)
     def add_update(self, item, viewtag=None, viewid=None):
-        # Process single movie
+        """
+        Process single movie
+        """
         kodicursor = self.kodicursor
         plex_db = self.plex_db
         artwork = self.artwork
-        API = PlexAPI.API(item)
+        api = API(item)
 
         # If the item already exist in the local Kodi DB we'll perform a full
         # item update
         # If the item doesn't exist, we'll add it to the database
         update_item = True
-        itemid = API.getRatingKey()
+        itemid = api.getRatingKey()
         # Cannot parse XML, abort
         if not itemid:
-            log.error("Cannot parse XML data for movie")
+            LOG.error("Cannot parse XML data for movie")
             return
         plex_dbitem = plex_db.getItem_byId(itemid)
         try:
@@ -210,39 +217,39 @@ class Movies(Items):
             except TypeError:
                 # item is not found, let's recreate it.
                 update_item = False
-                log.info("movieid: %s missing from Kodi, repairing the entry."
-                         % movieid)
+                LOG.info("movieid: %s missing from Kodi, repairing the entry.",
+                         movieid)
 
         # fileId information
-        checksum = API.getChecksum()
-        dateadded = API.getDateCreated()
-        userdata = API.getUserData()
+        checksum = api.getChecksum()
+        dateadded = api.getDateCreated()
+        userdata = api.getUserData()
         playcount = userdata['PlayCount']
         dateplayed = userdata['LastPlayedDate']
         resume = userdata['Resume']
         runtime = userdata['Runtime']
 
         # item details
-        people = API.getPeople()
-        writer = API.joinList(people['Writer'])
-        director = API.joinList(people['Director'])
-        genres = API.getGenres()
-        genre = API.joinList(genres)
-        title, sorttitle = API.getTitle()
-        plot = API.getPlot()
+        people = api.getPeople()
+        writer = api.joinList(people['Writer'])
+        director = api.joinList(people['Director'])
+        genres = api.getGenres()
+        genre = api.joinList(genres)
+        title, sorttitle = api.getTitle()
+        plot = api.getPlot()
         shortplot = None
-        tagline = API.getTagline()
+        tagline = api.getTagline()
         votecount = None
-        collections = API.getCollections()
+        collections = api.getCollections()
 
         rating = userdata['Rating']
-        year = API.getYear()
-        premieredate = API.getPremiereDate()
-        imdb = API.getProvider('imdb')
-        mpaa = API.getMpaa()
-        countries = API.getCountry()
-        country = API.joinList(countries)
-        studios = API.getStudios()
+        year = api.getYear()
+        premieredate = api.getPremiereDate()
+        imdb = api.getProvider('imdb')
+        mpaa = api.getMpaa()
+        countries = api.getCountry()
+        country = api.joinList(countries)
+        studios = api.getStudios()
         try:
             studio = studios[0]
         except IndexError:
@@ -250,25 +257,24 @@ class Movies(Items):
 
         # Find one trailer
         trailer = None
-        extras = API.getExtras()
+        extras = api.getExtras()
         for extra in extras:
             # Only get 1st trailer element
             if extra['extraType'] == 1:
-                trailer = ("plugin://plugin.video.plexkodiconnect?"
-                           "plex_id=%s&plex_type=%s&mode=play"
-                           % (extra['ratingKey'], v.PLEX_TYPE_CLIP))
+                trailer = ('plugin://%s?plex_id=%s&plex_type=%s&mode=play'
+                           % (v.ADDON_ID, extra['ratingKey'], v.PLEX_TYPE_CLIP))
                 break
 
         # GET THE FILE AND PATH #####
-        doIndirect = not state.DIRECT_PATHS
+        do_indirect = not state.DIRECT_PATHS
         if state.DIRECT_PATHS:
             # Direct paths is set the Kodi way
-            playurl = API.getFilePath(forceFirstMediaStream=True)
+            playurl = api.getFilePath(forceFirstMediaStream=True)
             if playurl is None:
                 # Something went wrong, trying to use non-direct paths
-                doIndirect = True
+                do_indirect = True
             else:
-                playurl = API.validatePlayurl(playurl, API.getType())
+                playurl = api.validatePlayurl(playurl, api.getType())
                 if playurl is None:
                     return False
                 if "\\" in playurl:
@@ -278,9 +284,9 @@ class Movies(Items):
                     # Network share
                     filename = playurl.rsplit("/", 1)[1]
                 path = playurl.replace(filename, "")
-        if doIndirect:
+        if do_indirect:
             # Set plugin path and media flags using real filename
-            path = "plugin://plugin.video.plexkodiconnect"
+            path = 'plugin://%s' % v.ADDON_ID
             params = {
                 'mode': 'play',
                 'plex_id': itemid,
@@ -301,8 +307,7 @@ class Movies(Items):
 
         # UPDATE THE MOVIE #####
         if update_item:
-            log.info("UPDATE movie itemid: %s - Title: %s"
-                     % (itemid, title))
+            LOG.info("UPDATE movie itemid: %s - Title: %s", itemid, title)
             # Update the movie entry
             if v.KODIVERSION >= 17:
                 # update new ratings Kodi 17
@@ -355,7 +360,7 @@ class Movies(Items):
 
         # OR ADD THE MOVIE #####
         else:
-            log.info("ADD movie itemid: %s - Title: %s" % (itemid, title))
+            LOG.info("ADD movie itemid: %s - Title: %s", itemid, title)
             if v.KODIVERSION >= 17:
                 # add new ratings Kodi 17
                 rating_id = self.kodi_db.create_entry_rating()
@@ -430,17 +435,17 @@ class Movies(Items):
             "WHERE idFile = ?"
         ))
         kodicursor.execute(query, (pathid, filename, dateadded, fileid))
-        
+
         # Process countries
         self.kodi_db.addCountries(movieid, countries, "movie")
         # Process cast
-        self.kodi_db.addPeople(movieid, API.getPeopleList(), "movie")
+        self.kodi_db.addPeople(movieid, api.getPeopleList(), "movie")
         # Process genres
         self.kodi_db.addGenres(movieid, genres, "movie")
         # Process artwork
-        artwork.addArtwork(API.getAllArtwork(), movieid, "movie", kodicursor)
+        artwork.addArtwork(api.getAllArtwork(), movieid, "movie", kodicursor)
         # Process stream details
-        self.kodi_db.addStreams(fileid, API.getMediaStreams(), runtime)
+        self.kodi_db.addStreams(fileid, api.getMediaStreams(), runtime)
         # Process studios
         self.kodi_db.addStudios(movieid, studios, "movie")
         # Process tags: view, Plex collection tags
@@ -455,7 +460,9 @@ class Movies(Items):
         self.kodi_db.addPlaystate(fileid, resume, runtime, playcount, dateplayed)
 
     def remove(self, itemid):
-        # Remove movieid, fileid, plex reference
+        """
+        Remove movieid, fileid, plex reference
+        """
         plex_db = self.plex_db
         kodicursor = self.kodicursor
         artwork = self.artwork
@@ -465,8 +472,8 @@ class Movies(Items):
             kodi_id = plex_dbitem[0]
             file_id = plex_dbitem[1]
             kodi_type = plex_dbitem[4]
-            log.info("Removing %sid: %s file_id: %s"
-                     % (kodi_type, kodi_id, file_id))
+            LOG.info("Removing %sid: %s file_id: %s",
+                     kodi_type, kodi_id, file_id)
         except TypeError:
             return
 
@@ -495,27 +502,30 @@ class Movies(Items):
                 # Update plex reference
                 plex_db.updateParentId(plexid, None)
             kodicursor.execute("DELETE FROM sets WHERE idSet = ?", (kodi_id,))
-        log.info("Deleted %s %s from kodi database" % (kodi_type, itemid))
+        LOG.info("Deleted %s %s from kodi database", kodi_type, itemid)
 
 
 class TVShows(Items):
-
+    """
+    For Plex library-type TV shows
+    """
     @CatchExceptions(warnuser=True)
     def add_update(self, item, viewtag=None, viewid=None):
-        # Process single tvshow
+        """
+        Process a single show
+        """
         kodicursor = self.kodicursor
         plex_db = self.plex_db
         artwork = self.artwork
-        API = PlexAPI.API(item)
+        api = API(item)
 
         update_item = True
-        itemid = API.getRatingKey()
+        itemid = api.getRatingKey()
 
         if not itemid:
-            log.error("Cannot parse XML data for TV show")
+            LOG.error("Cannot parse XML data for TV show")
             return
         update_item = True
-        force_episodes = False
         plex_dbitem = plex_db.getItem_byId(itemid)
         try:
             showid = plex_dbitem[0]
@@ -534,42 +544,40 @@ class TVShows(Items):
             except TypeError:
                 # item is not found, let's recreate it.
                 update_item = False
-                log.info("showid: %s missing from Kodi, repairing the entry."
-                         % showid)
-                # Force re-add episodes after the show is re-created.
-                force_episodes = True
+                LOG.info("showid: %s missing from Kodi, repairing the entry.",
+                         showid)
 
         # fileId information
-        checksum = API.getChecksum()
+        checksum = api.getChecksum()
 
         # item details
-        genres = API.getGenres()
-        title, sorttitle = API.getTitle()
-        plot = API.getPlot()
-        rating = API.getAudienceRating()
+        genres = api.getGenres()
+        title, sorttitle = api.getTitle()
+        plot = api.getPlot()
+        rating = api.getAudienceRating()
         votecount = None
-        premieredate = API.getPremiereDate()
-        tvdb = API.getProvider('tvdb')
-        mpaa = API.getMpaa()
-        genre = API.joinList(genres)
-        studios = API.getStudios()
-        collections = API.getCollections()
+        premieredate = api.getPremiereDate()
+        tvdb = api.getProvider('tvdb')
+        mpaa = api.getMpaa()
+        genre = api.joinList(genres)
+        studios = api.getStudios()
+        collections = api.getCollections()
         try:
             studio = studios[0]
         except IndexError:
             studio = None
 
         # GET THE FILE AND PATH #####
-        doIndirect = not state.DIRECT_PATHS
+        do_indirect = not state.DIRECT_PATHS
         if state.DIRECT_PATHS:
             # Direct paths is set the Kodi way
-            playurl = API.getTVShowPath()
+            playurl = api.getTVShowPath()
             if playurl is None:
                 # Something went wrong, trying to use non-direct paths
-                doIndirect = True
+                do_indirect = True
             else:
-                playurl = API.validatePlayurl(playurl,
-                                              API.getType(),
+                playurl = api.validatePlayurl(playurl,
+                                              api.getType(),
                                               folder=True)
                 if playurl is None:
                     return False
@@ -581,9 +589,9 @@ class TVShows(Items):
                     # Network path
                     path = "%s/" % playurl
                     toplevelpath = "%s/" % dirname(dirname(path))
-        if doIndirect:
+        if do_indirect:
             # Set plugin path
-            toplevelpath = "plugin://plugin.video.plexkodiconnect/tvshows/"
+            toplevelpath = "plugin://%s/tvshows/" % v.ADDON_ID
             path = "%s%s/" % (toplevelpath, itemid)
 
         # Add top path
@@ -593,8 +601,7 @@ class TVShows(Items):
         pathid = self.kodi_db.addPath(path)
         # UPDATE THE TVSHOW #####
         if update_item:
-            log.info("UPDATE tvshow itemid: %s - Title: %s"
-                     % (itemid, title))
+            LOG.info("UPDATE tvshow itemid: %s - Title: %s", itemid, title)
             # Add reference is idempotent; the call here updates also fileid
             # and pathid when item is moved or renamed
             plex_db.addReference(itemid,
@@ -649,7 +656,7 @@ class TVShows(Items):
 
         # OR ADD THE TVSHOW #####
         else:
-            log.info("ADD tvshow itemid: %s - Title: %s" % (itemid, title))
+            LOG.info("ADD tvshow itemid: %s - Title: %s", itemid, title)
             query = '''
                 UPDATE path
                 SET strPath = ?, strContent = ?, strScraper = ?, noUpdate = ?
@@ -721,12 +728,12 @@ class TVShows(Items):
         kodicursor.execute(query, (path, None, None, 1, toppathid, pathid))
 
         # Process cast
-        people = API.getPeopleList()
+        people = api.getPeopleList()
         self.kodi_db.addPeople(showid, people, "tvshow")
         # Process genres
         self.kodi_db.addGenres(showid, genres, "tvshow")
         # Process artwork
-        allartworks = API.getAllArtwork()
+        allartworks = api.getAllArtwork()
         artwork.addArtwork(allartworks, showid, "tvshow", kodicursor)
         # Process studios
         self.kodi_db.addStudios(showid, studios, "tvshow")
@@ -737,38 +744,37 @@ class TVShows(Items):
 
     @CatchExceptions(warnuser=True)
     def add_updateSeason(self, item, viewtag=None, viewid=None):
-        API = PlexAPI.API(item)
-        plex_id = API.getRatingKey()
+        """
+        Process a single season of a certain tv show
+        """
+        api = API(item)
+        plex_id = api.getRatingKey()
         if not plex_id:
-            log.error('Error getting plex_id for season, skipping')
+            LOG.error('Error getting plex_id for season, skipping')
             return
         kodicursor = self.kodicursor
         plex_db = self.plex_db
         artwork = self.artwork
-        seasonnum = API.getIndex()
+        seasonnum = api.getIndex()
         # Get parent tv show Plex id
         plexshowid = item.attrib.get('parentRatingKey')
         # Get Kodi showid
         plex_dbitem = plex_db.getItem_byId(plexshowid)
         try:
             showid = plex_dbitem[0]
-        except:
-            log.error('Could not find parent tv show for season %s. '
-                      'Skipping season for now.' % (plex_id))
+        except TypeError:
+            LOG.error('Could not find parent tv show for season %s. '
+                      'Skipping season for now.', plex_id)
             return
 
         seasonid = self.kodi_db.addSeason(showid, seasonnum)
-        checksum = API.getChecksum()
+        checksum = api.getChecksum()
         # Check whether Season already exists
-        update_item = True
         plex_dbitem = plex_db.getItem_byId(plex_id)
-        try:
-            plexdbItemId = plex_dbitem[0]
-        except TypeError:
-            update_item = False
+        update_item = False if plex_dbitem is None else True
 
         # Process artwork
-        allartworks = API.getAllArtwork()
+        allartworks = api.getAllArtwork()
         artwork.addArtwork(allartworks, seasonid, "season", kodicursor)
 
         if update_item:
@@ -787,20 +793,20 @@ class TVShows(Items):
     @CatchExceptions(warnuser=True)
     def add_updateEpisode(self, item, viewtag=None, viewid=None):
         """
+        Process single episode
         """
-        # Process single episode
         kodicursor = self.kodicursor
         plex_db = self.plex_db
         artwork = self.artwork
-        API = PlexAPI.API(item)
+        api = API(item)
 
         # If the item already exist in the local Kodi DB we'll perform a full
         # item update
         # If the item doesn't exist, we'll add it to the database
         update_item = True
-        itemid = API.getRatingKey()
+        itemid = api.getRatingKey()
         if not itemid:
-            log.error('Error getting itemid for episode, skipping')
+            LOG.error('Error getting itemid for episode, skipping')
             return
         plex_dbitem = plex_db.getItem_byId(itemid)
         try:
@@ -822,30 +828,30 @@ class TVShows(Items):
             except TypeError:
                 # item is not found, let's recreate it.
                 update_item = False
-                log.info("episodeid: %s missing from Kodi, repairing entry."
-                         % episodeid)
+                LOG.info("episodeid: %s missing from Kodi, repairing entry.",
+                         episodeid)
 
         # fileId information
-        checksum = API.getChecksum()
-        dateadded = API.getDateCreated()
-        userdata = API.getUserData()
+        checksum = api.getChecksum()
+        dateadded = api.getDateCreated()
+        userdata = api.getUserData()
         playcount = userdata['PlayCount']
         dateplayed = userdata['LastPlayedDate']
-        tvdb = API.getProvider('tvdb')
+        tvdb = api.getProvider('tvdb')
         votecount = None
 
         # item details
-        peoples = API.getPeople()
-        director = API.joinList(peoples['Director'])
-        writer = API.joinList(peoples['Writer'])
-        title, sorttitle = API.getTitle()
-        plot = API.getPlot()
+        peoples = api.getPeople()
+        director = api.joinList(peoples['Director'])
+        writer = api.joinList(peoples['Writer'])
+        title, _ = api.getTitle()
+        plot = api.getPlot()
         rating = userdata['Rating']
-        resume, runtime = API.getRuntime()
-        premieredate = API.getPremiereDate()
+        resume, runtime = api.getRuntime()
+        premieredate = api.getPremiereDate()
 
         # episode details
-        seriesId, seriesName, season, episode = API.getEpisodeDetails()
+        series_id, _, season, episode = api.getEpisodeDetails()
 
         if season is None:
             season = -1
@@ -858,40 +864,36 @@ class TVShows(Items):
             # else:
             #     season = -1
 
-        # Specials ordering within season
-        if item.get('AirsAfterSeasonNumber'):
-            airsBeforeSeason = item['AirsAfterSeasonNumber']
-            # Kodi default number for afterseason ordering
-            airsBeforeEpisode = 4096
-        else:
-            airsBeforeSeason = item.get('AirsBeforeSeasonNumber')
-            airsBeforeEpisode = item.get('AirsBeforeEpisodeNumber')
-
-        airsBeforeSeason = "-1"
-        airsBeforeEpisode = "-1"
-        # Append multi episodes to title
-        # if item.get('IndexNumberEnd'):
-        #     title = "| %02d | %s" % (item['IndexNumberEnd'], title)
+        # # Specials ordering within season
+        # if item.get('AirsAfterSeasonNumber'):
+        #     airs_before_season = item['AirsAfterSeasonNumber']
+        #     # Kodi default number for afterseason ordering
+        #     airs_before_episode = 4096
+        # else:
+        #     airs_before_season = item.get('AirsBeforeSeasonNumber')
+        #     airs_before_episode = item.get('AirsBeforeEpisodeNumber')
+        airs_before_season = "-1"
+        airs_before_episode = "-1"
 
         # Get season id
-        show = plex_db.getItem_byId(seriesId)
+        show = plex_db.getItem_byId(series_id)
         try:
             showid = show[0]
         except TypeError:
-            log.error("Parent tvshow now found, skip item")
+            LOG.error("Parent tvshow now found, skip item")
             return False
         seasonid = self.kodi_db.addSeason(showid, season)
 
         # GET THE FILE AND PATH #####
-        doIndirect = not state.DIRECT_PATHS
-        playurl = API.getFilePath(forceFirstMediaStream=True)
+        do_indirect = not state.DIRECT_PATHS
+        playurl = api.getFilePath(forceFirstMediaStream=True)
         if state.DIRECT_PATHS:
             # Direct paths is set the Kodi way
             if playurl is None:
                 # Something went wrong, trying to use non-direct paths
-                doIndirect = True
+                do_indirect = True
             else:
-                playurl = API.validatePlayurl(playurl, API.getType())
+                playurl = api.validatePlayurl(playurl, api.getType())
                 if playurl is None:
                     return False
                 if "\\" in playurl:
@@ -901,8 +903,8 @@ class TVShows(Items):
                     # Network share
                     filename = playurl.rsplit("/", 1)[1]
                 path = playurl.replace(filename, "")
-                parentPathId = self.kodi_db.getParentPathId(path)
-        if doIndirect:
+                parent_path_id = self.kodi_db.getParentPathId(path)
+        if do_indirect:
             # Set plugin path and media flags using real filename
             if playurl is not None:
                 if '\\' in playurl:
@@ -911,7 +913,7 @@ class TVShows(Items):
                     filename = playurl.rsplit('/', 1)[1]
             else:
                 filename = 'file_not_found.mkv'
-            path = "plugin://plugin.video.plexkodiconnect/tvshows/%s/" % seriesId
+            path = 'plugin://%s/tvshows/%s/' % (v.ADDON_ID, series_id)
             params = {
                 'plex_id': itemid,
                 'plex_type': v.PLEX_TYPE_EPISODE,
@@ -919,13 +921,8 @@ class TVShows(Items):
             }
             filename = "%s?%s" % (path, urlencode(params))
             playurl = filename
-            parentPathId = self.kodi_db.addPath(
-                'plugin://plugin.video.plexkodiconnect/tvshows/')
-
-        # episodes table:
-        # c18 - playurl
-        # c19 - pathid
-        # This information is used later by file browser.
+            parent_path_id = self.kodi_db.addPath('plugin://%s/tvshows/'
+                                                  % v.ADDON_ID)
 
         # add/retrieve pathid and fileid
         # if the path or file already exists, the calls return current value
@@ -934,7 +931,7 @@ class TVShows(Items):
 
         # UPDATE THE EPISODE #####
         if update_item:
-            log.info("UPDATE episode itemid: %s" % (itemid))
+            LOG.info("UPDATE episode itemid: %s", itemid)
             # Update the movie entry
             if v.KODIVERSION >= 17:
                 # update new ratings Kodi 17
@@ -964,7 +961,7 @@ class TVShows(Items):
                 '''
                 kodicursor.execute(query, (title, plot, rating, writer,
                     premieredate, runtime, director, season, episode, title,
-                    airsBeforeSeason, airsBeforeEpisode, playurl, pathid,
+                    airs_before_season, airs_before_episode, playurl, pathid,
                     fileid, seasonid, userdata['UserRating'], episodeid))
             elif v.KODIVERSION == 16:
                 # Kodi Jarvis
@@ -977,7 +974,7 @@ class TVShows(Items):
                 '''
                 kodicursor.execute(query, (title, plot, rating, writer,
                     premieredate, runtime, director, season, episode, title,
-                    airsBeforeSeason, airsBeforeEpisode, playurl, pathid,
+                    airs_before_season, airs_before_episode, playurl, pathid,
                     fileid, seasonid, episodeid))
             else:
                 query = '''
@@ -989,14 +986,14 @@ class TVShows(Items):
                 '''
                 kodicursor.execute(query, (title, plot, rating, writer,
                     premieredate, runtime, director, season, episode, title,
-                    airsBeforeSeason, airsBeforeEpisode, playurl, pathid,
+                    airs_before_season, airs_before_episode, playurl, pathid,
                     fileid, episodeid))
             # Update parentid reference
             plex_db.updateParentId(itemid, seasonid)
 
         # OR ADD THE EPISODE #####
         else:
-            log.info("ADD episode itemid: %s - Title: %s" % (itemid, title))
+            LOG.info("ADD episode itemid: %s - Title: %s", itemid, title)
             # Create the episode entry
             if v.KODIVERSION >= 17:
                 # add new ratings Kodi 17
@@ -1022,8 +1019,8 @@ class TVShows(Items):
                 '''
                 kodicursor.execute(query, (episodeid, fileid, title, plot,
                     rating_id, writer, premieredate, runtime, director, season,
-                    episode, title, showid, airsBeforeSeason,
-                    airsBeforeEpisode, playurl, pathid, seasonid,
+                    episode, title, showid, airs_before_season,
+                    airs_before_episode, playurl, pathid, seasonid,
                     userdata['UserRating']))
             elif v.KODIVERSION == 16:
                 # Kodi Jarvis
@@ -1036,8 +1033,8 @@ class TVShows(Items):
                     '''
                 kodicursor.execute(query, (episodeid, fileid, title, plot,
                     rating, writer, premieredate, runtime, director, season,
-                    episode, title, showid, airsBeforeSeason,
-                    airsBeforeEpisode, playurl, pathid, seasonid))
+                    episode, title, showid, airs_before_season,
+                    airs_before_episode, playurl, pathid, seasonid))
             else:
                 query = (
                     '''
@@ -1048,9 +1045,10 @@ class TVShows(Items):
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     '''
                 )
-                kodicursor.execute(query, (episodeid, fileid, title, plot, rating, writer,
-                    premieredate, runtime, director, season, episode, title, showid,
-                    airsBeforeSeason, airsBeforeEpisode, playurl, pathid))
+                kodicursor.execute(query, (episodeid, fileid, title, plot,
+                    rating, writer, premieredate, runtime, director, season,
+                    episode, title, showid, airs_before_season,
+                    airs_before_episode, playurl, pathid))
 
         # Create or update the reference in plex table Add reference is
         # idempotent; the call here updates also fileid and pathid when item is
@@ -1073,7 +1071,7 @@ class TVShows(Items):
             "idParentPath = ?"
             "WHERE idPath = ?"
         ))
-        kodicursor.execute(query, (path, None, None, 1, parentPathId, pathid))
+        kodicursor.execute(query, (path, None, None, 1, parent_path_id, pathid))
         # Update the file
         query = ' '.join((
 
@@ -1083,39 +1081,37 @@ class TVShows(Items):
         ))
         kodicursor.execute(query, (pathid, filename, dateadded, fileid))
         # Process cast
-        people = API.getPeopleList()
+        people = api.getPeopleList()
         self.kodi_db.addPeople(episodeid, people, "episode")
         # Process artwork
         # Wide "screenshot" of particular episode
         poster = item.attrib.get('thumb')
         if poster:
-            poster = API.addPlexCredentialsToUrl(
+            poster = api.addPlexCredentialsToUrl(
                 "%s%s" % (self.server, poster))
             artwork.addOrUpdateArt(
                 poster, episodeid, "episode", "thumb", kodicursor)
-        # poster of TV show itself
-        # poster = item.attrib.get('grandparentThumb')
-        # if poster:
-        #     poster = API.addPlexCredentialsToUrl(
-        #         "%s%s" % (self.server, poster))
-        #     artwork.addOrUpdateArt(
-        #         poster, episodeid, "episode", "poster", kodicursor)
 
         # Process stream details
-        streams = API.getMediaStreams()
+        streams = api.getMediaStreams()
         self.kodi_db.addStreams(fileid, streams, runtime)
         # Process playstates
-        self.kodi_db.addPlaystate(fileid, resume, runtime, playcount, dateplayed)
+        self.kodi_db.addPlaystate(fileid,
+                                  resume,
+                                  runtime,
+                                  playcount,
+                                  dateplayed)
         if not state.DIRECT_PATHS and resume:
-            # Create additional entry for widgets. This is only required for plugin/episode.
-            temppathid = self.kodi_db.getPath("plugin://plugin.video.plexkodiconnect/tvshows/")
+            # Create additional entry for widgets. This is only required for
+            # plugin/episode.
+            temppathid = self.kodi_db.getPath('plugin://%s/tvshows/'
+                                              % v.ADDON_ID)
             tempfileid = self.kodi_db.addFile(filename, temppathid)
-            query = ' '.join((
-
-                "UPDATE files",
-                "SET idPath = ?, strFilename = ?, dateAdded = ?",
-                "WHERE idFile = ?"
-            ))
+            query = '''
+                UPDATE files
+                SET idPath = ?, strFilename = ?, dateAdded = ?
+                WHERE idFile = ?
+            '''
             kodicursor.execute(query,
                                (temppathid, filename, dateadded, tempfileid))
             self.kodi_db.addPlaystate(tempfileid,
@@ -1125,7 +1121,9 @@ class TVShows(Items):
                                       dateplayed)
 
     def remove(self, itemid):
-        # Remove showid, fileid, pathid, plex reference
+        """
+        Remove showid, fileid, pathid, plex reference
+        """
         plex_db = self.plex_db
         kodicursor = self.kodicursor
 
@@ -1135,8 +1133,8 @@ class TVShows(Items):
             fileid = plex_dbitem[1]
             parentid = plex_dbitem[3]
             mediatype = plex_dbitem[4]
-            log.info("Removing %s kodiid: %s fileid: %s"
-                     % (mediatype, kodiid, fileid))
+            LOG.info("Removing %s kodiid: %s fileid: %s",
+                     mediatype, kodiid, fileid)
         except TypeError:
             return
 
@@ -1217,7 +1215,7 @@ class TVShows(Items):
                 self.removeEpisode(episode[1], episode[2])
             # Remove plex episodes
             plex_db.removeItems_byParentId(kodiid, v.KODI_TYPE_EPISODE)
-            
+
             # Remove season
             self.removeSeason(kodiid)
 
@@ -1227,26 +1225,34 @@ class TVShows(Items):
                 # There's no seasons, delete the show
                 self.removeShow(parentid)
                 plex_db.removeItem_byKodiId(parentid, v.KODI_TYPE_SHOW)
-
-        log.debug("Deleted %s: %s from kodi database" % (mediatype, itemid))
+        LOG.debug("Deleted %s: %s from kodi database", mediatype, itemid)
 
     def removeShow(self, kodi_id):
+        """
+        Remove a TV show, and only the show, no seasons or episodes
+        """
         kodicursor = self.kodicursor
         self.artwork.deleteArtwork(kodi_id, v.KODI_TYPE_SHOW, kodicursor)
         kodicursor.execute("DELETE FROM tvshow WHERE idShow = ?", (kodi_id,))
         if v.KODIVERSION >= 17:
             self.kodi_db.remove_uniqueid(kodi_id, v.KODI_TYPE_SHOW)
             self.kodi_db.remove_ratings(kodi_id, v.KODI_TYPE_SHOW)
-        log.info("Removed tvshow: %s." % kodi_id)
+        LOG.info("Removed tvshow: %s.", kodi_id)
 
     def removeSeason(self, kodi_id):
+        """
+        Remove a season, and only a season, not the show or episodes
+        """
         kodicursor = self.kodicursor
         self.artwork.deleteArtwork(kodi_id, "season", kodicursor)
         kodicursor.execute("DELETE FROM seasons WHERE idSeason = ?",
                            (kodi_id,))
-        log.info("Removed season: %s." % kodi_id)
+        LOG.info("Removed season: %s.", kodi_id)
 
     def removeEpisode(self, kodi_id, fileid):
+        """
+        Remove an episode, and episode only
+        """
         kodicursor = self.kodicursor
         self.artwork.deleteArtwork(kodi_id, "episode", kodicursor)
         kodicursor.execute("DELETE FROM episode WHERE idEpisode = ?",
@@ -1255,11 +1261,13 @@ class TVShows(Items):
         if v.KODIVERSION >= 17:
             self.kodi_db.remove_uniqueid(kodi_id, v.KODI_TYPE_EPISODE)
             self.kodi_db.remove_ratings(kodi_id, v.KODI_TYPE_EPISODE)
-        log.info("Removed episode: %s." % kodi_id)
+        LOG.info("Removed episode: %s.", kodi_id)
 
 
 class Music(Items):
-
+    """
+    For Plex library-type music. Also works for premium music libraries
+    """
     def __enter__(self):
         """
         OVERWRITE this method, because we need to open another DB.
@@ -1275,15 +1283,17 @@ class Music(Items):
         return self
 
     @CatchExceptions(warnuser=True)
-    def add_updateArtist(self, item, viewtag=None, viewid=None,
-                         artisttype="MusicArtist"):
+    def add_updateArtist(self, item, viewtag=None, viewid=None):
+        """
+        Adds a single artist
+        """
         kodicursor = self.kodicursor
         plex_db = self.plex_db
         artwork = self.artwork
-        API = PlexAPI.API(item)
+        api = API(item)
 
         update_item = True
-        itemid = API.getRatingKey()
+        itemid = api.getRatingKey()
         plex_dbitem = plex_db.getItem_byId(itemid)
         try:
             artistid = plex_dbitem[0]
@@ -1292,17 +1302,17 @@ class Music(Items):
 
         # The artist details #####
         lastScraped = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        dateadded = API.getDateCreated()
-        checksum = API.getChecksum()
+        dateadded = api.getDateCreated()
+        checksum = api.getChecksum()
 
-        name, sortname = API.getTitle()
-        # musicBrainzId = API.getProvider('MusicBrainzArtist')
+        name, _ = api.getTitle()
+        # musicBrainzId = api.getProvider('MusicBrainzArtist')
         musicBrainzId = None
-        genres = ' / '.join(API.getGenres())
-        bio = API.getPlot()
+        genres = ' / '.join(api.getGenres())
+        bio = api.getPlot()
 
         # Associate artwork
-        artworks = API.getAllArtwork(parentInfo=True)
+        artworks = api.getAllArtwork(parentInfo=True)
         thumb = artworks['Primary']
         backdrops = artworks['Backdrop']  # List
 
@@ -1315,13 +1325,13 @@ class Music(Items):
 
         # UPDATE THE ARTIST #####
         if update_item:
-            log.info("UPDATE artist itemid: %s - Name: %s" % (itemid, name))
+            LOG.info("UPDATE artist itemid: %s - Name: %s", itemid, name)
             # Update the checksum in plex table
             plex_db.updateReference(itemid, checksum)
 
         # OR ADD THE ARTIST #####
         else:
-            log.info("ADD artist itemid: %s - Name: %s" % (itemid, name))
+            LOG.info("ADD artist itemid: %s - Name: %s", itemid, name)
             # safety checks: It looks like plex supports the same artist
             # multiple times.
             # Kodi doesn't allow that. In case that happens we just merge the
@@ -1362,17 +1372,18 @@ class Music(Items):
     def add_updateAlbum(self, item, viewtag=None, viewid=None, children=None,
                         scan_children=True):
         """
-        children: list of child xml's, so in this case songs
+        Adds a single music album
+            children: list of child xml's, so in this case songs
         """
         kodicursor = self.kodicursor
         plex_db = self.plex_db
         artwork = self.artwork
-        API = PlexAPI.API(item)
+        api = API(item)
 
         update_item = True
-        itemid = API.getRatingKey()
+        itemid = api.getRatingKey()
         if not itemid:
-            log.error('Error processing Album, skipping')
+            LOG.error('Error processing Album, skipping')
             return
         plex_dbitem = plex_db.getItem_byId(itemid)
         try:
@@ -1383,19 +1394,19 @@ class Music(Items):
 
         # The album details #####
         lastScraped = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        dateadded = API.getDateCreated()
-        userdata = API.getUserData()
-        checksum = API.getChecksum()
+        dateadded = api.getDateCreated()
+        userdata = api.getUserData()
+        checksum = api.getChecksum()
 
-        name, sorttitle = API.getTitle()
-        # musicBrainzId = API.getProvider('MusicBrainzAlbum')
+        name, _ = api.getTitle()
+        # musicBrainzId = api.getProvider('MusicBrainzAlbum')
         musicBrainzId = None
-        year = API.getYear()
-        self.genres = API.getGenres()
+        year = api.getYear()
+        self.genres = api.getGenres()
         self.genre = ' / '.join(self.genres)
-        bio = API.getPlot()
+        bio = api.getPlot()
         rating = userdata['UserRating']
-        studio = API.getMusicStudio()
+        studio = api.getMusicStudio()
         artistname = item.attrib.get('parentTitle')
         if not artistname:
             artistname = item.attrib.get('originalTitle')
@@ -1407,20 +1418,20 @@ class Music(Items):
                 self.compilation = 1
                 break
         # Associate artwork
-        artworks = API.getAllArtwork(parentInfo=True)
+        artworks = api.getAllArtwork(parentInfo=True)
         thumb = artworks['Primary']
         if thumb:
             thumb = "<thumb>%s</thumb>" % thumb
 
         # UPDATE THE ALBUM #####
         if update_item:
-            log.info("UPDATE album itemid: %s - Name: %s" % (itemid, name))
+            LOG.info("UPDATE album itemid: %s - Name: %s", itemid, name)
             # Update the checksum in plex table
             plex_db.updateReference(itemid, checksum)
 
         # OR ADD THE ALBUM #####
         else:
-            log.info("ADD album itemid: %s - Name: %s" % (itemid, name))
+            LOG.info("ADD album itemid: %s - Name: %s", itemid, name)
             # safety checks: It looks like plex supports the same artist
             # multiple times.
             # Kodi doesn't allow that. In case that happens we just merge the
@@ -1487,49 +1498,49 @@ class Music(Items):
                                        studio, albumid))
 
         # Associate the parentid for plex reference
-        parentId = item.attrib.get('parentRatingKey')
-        if parentId is not None:
-            plex_dbartist = plex_db.getItem_byId(parentId)
+        parent_id = item.attrib.get('parentRatingKey')
+        if parent_id is not None:
+            plex_dbartist = plex_db.getItem_byId(parent_id)
             try:
                 artistid = plex_dbartist[0]
             except TypeError:
-                log.info('Artist %s does not exist in plex database'
-                         % parentId)
-                artist = GetPlexMetadata(parentId)
+                LOG.info('Artist %s does not exist in plex database',
+                         parent_id)
+                artist = GetPlexMetadata(parent_id)
                 # Item may not be an artist, verification necessary.
                 if artist is not None and artist != 401:
                     if artist[0].attrib.get('type') == v.PLEX_TYPE_ARTIST:
-                        # Update with the parentId, for remove reference
-                        plex_db.addReference(parentId,
+                        # Update with the parent_id, for remove reference
+                        plex_db.addReference(parent_id,
                                              v.PLEX_TYPE_ARTIST,
-                                             parentId,
+                                             parent_id,
                                              v.KODI_TYPE_ARTIST,
                                              view_id=viewid)
-                        plex_db.updateParentId(itemid, parentId)
+                        plex_db.updateParentId(itemid, parent_id)
             else:
                 # Update plex reference with the artistid
                 plex_db.updateParentId(itemid, artistid)
 
         # Assign main artists to album
         # Plex unfortunately only supports 1 artist :-(
-        artistId = parentId
-        plex_dbartist = plex_db.getItem_byId(artistId)
+        artist_id = parent_id
+        plex_dbartist = plex_db.getItem_byId(artist_id)
         try:
             artistid = plex_dbartist[0]
         except TypeError:
             # Artist does not exist in plex database, create the reference
-            log.info('Artist %s does not exist in Plex database' % artistId)
-            artist = GetPlexMetadata(artistId)
+            LOG.info('Artist %s does not exist in Plex database', artist_id)
+            artist = GetPlexMetadata(artist_id)
             if artist is not None and artist != 401:
-                self.add_updateArtist(artist[0], artisttype="AlbumArtist")
-                plex_dbartist = plex_db.getItem_byId(artistId)
+                self.add_updateArtist(artist[0])
+                plex_dbartist = plex_db.getItem_byId(artist_id)
                 artistid = plex_dbartist[0]
         else:
             # Best take this name over anything else.
             query = "UPDATE artist SET strArtist = ? WHERE idArtist = ?"
             kodicursor.execute(query, (artistname, artistid,))
-            log.info("UPDATE artist: strArtist: %s, idArtist: %s"
-                     % (artistname, artistid))
+            LOG.info("UPDATE artist: strArtist: %s, idArtist: %s",
+                     artistname, artistid)
 
         # Add artist to album
         query = '''
@@ -1544,7 +1555,7 @@ class Music(Items):
         '''
         kodicursor.execute(query, (artistid, name, year))
         # Update plex reference with parentid
-        plex_db.updateParentId(artistId, albumid)
+        plex_db.updateParentId(artist_id, albumid)
         # Add genres
         self.kodi_db.addMusicGenres(albumid, self.genres, v.KODI_TYPE_ALBUM)
         # Update artwork
@@ -1556,16 +1567,18 @@ class Music(Items):
 
     @CatchExceptions(warnuser=True)
     def add_updateSong(self, item, viewtag=None, viewid=None):
-        # Process single song
+        """
+        Process single song
+        """
         kodicursor = self.kodicursor
         plex_db = self.plex_db
         artwork = self.artwork
-        API = PlexAPI.API(item)
+        api = API(item)
 
         update_item = True
-        itemid = API.getRatingKey()
+        itemid = api.getRatingKey()
         if not itemid:
-            log.error('Error processing Song; skipping')
+            LOG.error('Error processing Song; skipping')
             return
         plex_dbitem = plex_db.getItem_byId(itemid)
         try:
@@ -1579,9 +1592,9 @@ class Music(Items):
             songid = kodicursor.fetchone()[0] + 1
 
         # The song details #####
-        checksum = API.getChecksum()
-        dateadded = API.getDateCreated()
-        userdata = API.getUserData()
+        checksum = api.getChecksum()
+        dateadded = api.getDateCreated()
+        userdata = api.getUserData()
         playcount = userdata['PlayCount']
         if playcount is None:
             # This is different to Video DB!
@@ -1589,8 +1602,8 @@ class Music(Items):
         dateplayed = userdata['LastPlayedDate']
 
         # item details
-        title, sorttitle = API.getTitle()
-        # musicBrainzId = API.getProvider('MusicBrainzTrackId')
+        title, _ = api.getTitle()
+        # musicBrainzId = api.getProvider('MusicBrainzTrackId')
         musicBrainzId = None
         try:
             genres = self.genres
@@ -1614,8 +1627,8 @@ class Music(Items):
             track = tracknumber
         else:
             track = disc*2**16 + tracknumber
-        year = API.getYear()
-        resume, duration = API.getRuntime()
+        year = api.getYear()
+        _, duration = api.getRuntime()
         rating = userdata['UserRating']
         comment = None
         # Moods
@@ -1626,15 +1639,15 @@ class Music(Items):
         mood = ' / '.join(moods)
 
         # GET THE FILE AND PATH #####
-        doIndirect = not state.DIRECT_PATHS
+        do_indirect = not state.DIRECT_PATHS
         if state.DIRECT_PATHS:
             # Direct paths is set the Kodi way
-            playurl = API.getFilePath(forceFirstMediaStream=True)
+            playurl = api.getFilePath(forceFirstMediaStream=True)
             if playurl is None:
                 # Something went wrong, trying to use non-direct paths
-                doIndirect = True
+                do_indirect = True
             else:
-                playurl = API.validatePlayurl(playurl, API.getType())
+                playurl = api.validatePlayurl(playurl, api.getType())
                 if playurl is None:
                     return False
                 if "\\" in playurl:
@@ -1644,17 +1657,17 @@ class Music(Items):
                     # Network share
                     filename = playurl.rsplit("/", 1)[1]
                 path = playurl.replace(filename, "")
-        if doIndirect:
+        if do_indirect:
             # Plex works a bit differently
             path = "%s%s" % (self.server, item[0][0].attrib.get('key'))
-            path = API.addPlexCredentialsToUrl(path)
+            path = api.addPlexCredentialsToUrl(path)
             filename = path.rsplit('/', 1)[1]
             path = path.replace(filename, '')
 
         # UPDATE THE SONG #####
         if update_item:
-            log.info("UPDATE song itemid: %s - Title: %s with path: %s"
-                     % (itemid, title, path))
+            LOG.info("UPDATE song itemid: %s - Title: %s with path: %s",
+                     itemid, title, path)
             # Update path
             # Use dummy strHash '123' for Kodi
             query = "UPDATE path SET strPath = ?, strHash = ? WHERE idPath = ?"
@@ -1679,7 +1692,7 @@ class Music(Items):
 
         # OR ADD THE SONG #####
         else:
-            log.info("ADD song itemid: %s - Title: %s" % (itemid, title))
+            LOG.info("ADD song itemid: %s - Title: %s", itemid, title)
 
             # Add path
             pathid = self.kodi_db.addPath(path, strHash="123")
@@ -1693,11 +1706,11 @@ class Music(Items):
                 # Verify if there's an album associated.
                 album_name = item.get('parentTitle')
                 if album_name:
-                    log.info("Creating virtual music album for song: %s."
-                             % itemid)
+                    LOG.info("Creating virtual music album for song: %s.",
+                             itemid)
                     albumid = self.kodi_db.addAlbum(
                         album_name,
-                        API.getProvider('MusicBrainzAlbum'))
+                        api.getProvider('MusicBrainzAlbum'))
                     plex_db.addReference("%salbum%s" % (itemid, albumid),
                                          v.PLEX_TYPE_ALBUM,
                                          albumid,
@@ -1705,28 +1718,28 @@ class Music(Items):
                                          view_id=viewid)
                 else:
                     # No album Id associated to the song.
-                    log.error("Song itemid: %s has no albumId associated."
-                              % itemid)
+                    LOG.error("Song itemid: %s has no albumId associated.",
+                              itemid)
                     return False
 
             except TypeError:
                 # No album found. Let's create it
-                log.info("Album database entry missing.")
-                plex_albumId = item.attrib.get('parentRatingKey')
-                album = GetPlexMetadata(plex_albumId)
+                LOG.info("Album database entry missing.")
+                plex_album_id = item.attrib.get('parentRatingKey')
+                album = GetPlexMetadata(plex_album_id)
                 if album is None or album == 401:
-                    log.error('Could not download album, abort')
+                    LOG.error('Could not download album, abort')
                     return
                 self.add_updateAlbum(album[0],
                                      children=[item],
                                      scan_children=False)
-                plex_dbalbum = plex_db.getItem_byId(plex_albumId)
+                plex_dbalbum = plex_db.getItem_byId(plex_album_id)
                 try:
                     albumid = plex_dbalbum[0]
-                    log.debug("Found albumid: %s" % albumid)
+                    LOG.debug("Found albumid: %s", albumid)
                 except TypeError:
                     # No album found, create a single's album
-                    log.info("Failed to add album. Creating singles.")
+                    LOG.info("Failed to add album. Creating singles.")
                     kodicursor.execute(
                         "select coalesce(max(idAlbum),0) from album")
                     albumid = kodicursor.fetchone()[0] + 1
@@ -1792,12 +1805,12 @@ class Music(Items):
         kodicursor.execute(query, (songid, albumid, track, title, duration))
 
         # Link song to artists
-        artistLoop = [{
+        artist_loop = [{
             'Name': item.attrib.get('grandparentTitle'),
             'Id': item.attrib.get('grandparentRatingKey')
         }]
         # for index, artist in enumerate(item['ArtistItems']):
-        for index, artist in enumerate(artistLoop):
+        for index, artist in enumerate(artist_loop):
 
             artist_name = artist['Name']
             artist_eid = artist['Id']
@@ -1806,11 +1819,11 @@ class Music(Items):
                 artistid = artist_edb[0]
             except TypeError:
                 # Artist is missing from plex database, add it.
-                artistXml = GetPlexMetadata(artist_eid)
-                if artistXml is None or artistXml == 401:
-                    log.error('Error getting artist, abort')
+                artist_xml = GetPlexMetadata(artist_eid)
+                if artist_xml is None or artist_xml == 401:
+                    LOG.error('Error getting artist, abort')
                     return
-                self.add_updateArtist(artistXml[0])
+                self.add_updateArtist(artist_xml[0])
                 artist_edb = plex_db.getItem_byId(artist_eid)
                 artistid = artist_edb[0]
             finally:
@@ -1837,87 +1850,27 @@ class Music(Items):
                     '''
                     kodicursor.execute(query, (artistid, songid, index,
                                                artist_name))
-
-        # Verify if album artist exists
-        album_artists = []
-        # for artist in item['AlbumArtists']:
-        if False:
-            artist_name = artist['Name']
-            album_artists.append(artist_name)
-            artist_eid = artist['Id']
-            artist_edb = plex_db.getItem_byId(artist_eid)
-            try:
-                artistid = artist_edb[0]
-            except TypeError:
-                # Artist is missing from plex database, add it.
-                artistXml = GetPlexMetadata(artist_eid)
-                if artistXml is None or artistXml == 401:
-                    log.error('Error getting artist, abort')
-                    return
-                self.add_updateArtist(artistXml)
-                artist_edb = plex_db.getItem_byId(artist_eid)
-                artistid = artist_edb[0]
-            finally:
-                query = '''
-                    INSERT OR REPLACE INTO album_artist(
-                        idArtist, idAlbum, strArtist)
-                    VALUES (?, ?, ?)
-                '''
-                kodicursor.execute(query, (artistid, albumid, artist_name))
-                # Update discography
-                if item.get('Album'):
-                    query = '''
-                        INSERT OR REPLACE INTO discography(
-                            idArtist, strAlbum, strYear)
-                        VALUES (?, ?, ?)
-                    '''
-                    kodicursor.execute(query, (artistid, item['Album'], 0))
-        # else:
-        if False:
-            album_artists = " / ".join(album_artists)
-            query = '''
-                SELECT strArtists
-                FROM album
-                WHERE idAlbum = ?
-            '''
-            kodicursor.execute(query, (albumid,))
-            result = kodicursor.fetchone()
-            if result and result[0] != album_artists:
-                # Field is empty
-                if v.KODIVERSION >= 16:
-                    # Kodi Jarvis, Krypton
-                    query = "UPDATE album SET strArtists = ? WHERE idAlbum = ?"
-                    kodicursor.execute(query, (album_artists, albumid))
-                elif v.KODIVERSION == 15:
-                    # Kodi Isengard
-                    query = "UPDATE album SET strArtists = ? WHERE idAlbum = ?"
-                    kodicursor.execute(query, (album_artists, albumid))
-                else:
-                    # Kodi Helix
-                    query = "UPDATE album SET strArtists = ? WHERE idAlbum = ?"
-                    kodicursor.execute(query, (album_artists, albumid))
-
         # Add genres
         if genres:
             self.kodi_db.addMusicGenres(songid, genres, v.KODI_TYPE_SONG)
-
         # Update artwork
-        allart = API.getAllArtwork(parentInfo=True)
+        allart = api.getAllArtwork(parentInfo=True)
         artwork.addArtwork(allart, songid, v.KODI_TYPE_SONG, kodicursor)
-
         if item.get('parentKey') is None:
             # Update album artwork
             artwork.addArtwork(allart, albumid, v.KODI_TYPE_ALBUM, kodicursor)
 
     def remove(self, itemid):
-        # Remove kodiid, fileid, pathid, plex reference
+        """
+        Remove kodiid, fileid, pathid, plex reference
+        """
         plex_db = self.plex_db
 
         plex_dbitem = plex_db.getItem_byId(itemid)
         try:
             kodiid = plex_dbitem[0]
             mediatype = plex_dbitem[4]
-            log.info("Removing %s kodiid: %s" % (mediatype, kodiid))
+            LOG.info("Removing %s kodiid: %s", mediatype, kodiid)
         except TypeError:
             return
 
@@ -1932,7 +1885,7 @@ class Music(Items):
             # Delete song
             self.removeSong(kodiid)
             # This should only address single song scenario, where server doesn't actually
-            # create an album for the song. 
+            # create an album for the song.
             plex_db.removeWildItem(itemid)
 
             for item in plex_db.getItem_byWildId(itemid):
@@ -1948,23 +1901,19 @@ class Music(Items):
                         self.removeAlbum(item_kid)
 
         ##### IF ALBUM #####
-
         elif mediatype == v.KODI_TYPE_ALBUM:
             # Delete songs, album
             album_songs = plex_db.getItem_byParentId(kodiid,
                                                      v.KODI_TYPE_SONG)
             for song in album_songs:
                 self.removeSong(song[1])
-            else:
-                # Remove plex songs
-                plex_db.removeItems_byParentId(kodiid,
-                                               v.KODI_TYPE_SONG)
-
+            # Remove plex songs
+            plex_db.removeItems_byParentId(kodiid,
+                                           v.KODI_TYPE_SONG)
             # Remove the album
             self.removeAlbum(kodiid)
 
         ##### IF ARTIST #####
-
         elif mediatype == v.KODI_TYPE_ARTIST:
             # Delete songs, album, artist
             albums = plex_db.getItem_byParentId(kodiid,
@@ -1975,36 +1924,43 @@ class Music(Items):
                                                          v.KODI_TYPE_SONG)
                 for song in album_songs:
                     self.removeSong(song[1])
-                else:
-                    # Remove plex song
-                    plex_db.removeItems_byParentId(albumid,
-                                                   v.KODI_TYPE_SONG)
-                    # Remove plex artist
-                    plex_db.removeItems_byParentId(albumid,
-                                                   v.KODI_TYPE_ARTIST)
-                    # Remove kodi album
-                    self.removeAlbum(albumid)
-            else:
-                # Remove plex albums
-                plex_db.removeItems_byParentId(kodiid,
-                                               v.KODI_TYPE_ALBUM)
+                # Remove plex song
+                plex_db.removeItems_byParentId(albumid,
+                                               v.KODI_TYPE_SONG)
+                # Remove plex artist
+                plex_db.removeItems_byParentId(albumid,
+                                               v.KODI_TYPE_ARTIST)
+                # Remove kodi album
+                self.removeAlbum(albumid)
+            # Remove plex albums
+            plex_db.removeItems_byParentId(kodiid,
+                                           v.KODI_TYPE_ALBUM)
 
             # Remove artist
             self.removeArtist(kodiid)
 
-        log.info("Deleted %s: %s from kodi database" % (mediatype, itemid))
+        LOG.info("Deleted %s: %s from kodi database", mediatype, itemid)
 
     def removeSong(self, kodiid):
+        """
+        Remove song, and only the song
+        """
         self.artwork.deleteArtwork(kodiid, v.KODI_TYPE_SONG, self.kodicursor)
         self.kodicursor.execute("DELETE FROM song WHERE idSong = ?",
                                 (kodiid,))
 
     def removeAlbum(self, kodiid):
+        """
+        Remove an album, and only the album
+        """
         self.artwork.deleteArtwork(kodiid, v.KODI_TYPE_ALBUM, self.kodicursor)
         self.kodicursor.execute("DELETE FROM album WHERE idAlbum = ?",
                                 (kodiid,))
 
     def removeArtist(self, kodiid):
+        """
+        Remove an artist, and only the artist
+        """
         self.artwork.deleteArtwork(kodiid,
                                    v.KODI_TYPE_ARTIST,
                                    self.kodicursor)
