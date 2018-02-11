@@ -6,7 +6,7 @@ from logging import getLogger
 from threading import Thread, RLock
 
 from downloadutils import DownloadUtils as DU
-from utils import window, kodi_time_to_millis, Lock_Function
+from utils import window, kodi_time_to_millis, LockFunction
 import state
 import variables as v
 import json_rpc as js
@@ -17,7 +17,7 @@ import playqueue as PQ
 LOG = getLogger("PLEX." + __name__)
 # Need to lock all methods and functions messing with subscribers or state
 LOCK = RLock()
-LOCKER = Lock_Function(LOCK)
+LOCKER = LockFunction(LOCK)
 
 ###############################################################################
 

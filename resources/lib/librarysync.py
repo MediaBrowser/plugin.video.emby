@@ -9,7 +9,7 @@ import xbmc
 from xbmcvfs import exists
 
 from utils import window, settings, unix_timestamp, thread_methods, \
-    create_actor_db_index, dialog, LogTime, playlist_xsp, language as lang, \
+    create_actor_db_index, dialog, log_time, playlist_xsp, language as lang, \
     unix_date_to_kodi, reset, try_decode, delete_playlists, delete_nodes, \
     try_encode, compare_version
 import downloadutils
@@ -218,7 +218,7 @@ class LibrarySync(Thread):
         # Create an index for actors to speed up sync
         create_actor_db_index()
 
-    @LogTime
+    @log_time
     def fullSync(self, repair=False):
         """
         repair=True: force sync EVERY item
@@ -727,7 +727,7 @@ class LibrarySync(Thread):
                     })
         self.updatelist = []
 
-    @LogTime
+    @log_time
     def PlexMovies(self):
         # Initialize
         self.allPlexElementsId = {}
@@ -819,7 +819,7 @@ class LibrarySync(Thread):
         with itemMth() as method:
             method.updateUserdata(xml)
 
-    @LogTime
+    @log_time
     def PlexTVShows(self):
         # Initialize
         self.allPlexElementsId = {}
@@ -949,7 +949,7 @@ class LibrarySync(Thread):
         log.info("%s sync is finished." % itemType)
         return True
 
-    @LogTime
+    @log_time
     def PlexMusic(self):
         itemType = 'Music'
 

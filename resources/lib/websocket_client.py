@@ -213,8 +213,8 @@ class Alexa_Websocket(WebSocket):
 
     Can't use thread_methods!
     """
-    __thread_stopped = False
-    __thread_suspended = False
+    thread_stopped = False
+    thread_suspended = False
 
     def getUri(self):
         uri = ('wss://pubsub.plex.tv/sub/websockets/%s/%s?X-Plex-Token=%s'
@@ -256,16 +256,16 @@ class Alexa_Websocket(WebSocket):
 
     # Path in thread_methods
     def stop_thread(self):
-        self.__thread_stopped = True
+        self.thread_stopped = True
 
     def suspend_thread(self):
-        self.__thread_suspended = True
+        self.thread_suspended = True
 
     def resume_thread(self):
-        self.__thread_suspended = False
+        self.thread_suspended = False
 
     def thread_stopped(self):
-        if self.__thread_stopped is True:
+        if self.thread_stopped is True:
             return True
         if state.STOP_PKC:
             return True
@@ -276,7 +276,7 @@ class Alexa_Websocket(WebSocket):
         """
         Overwrite method since we need to check for plex token
         """
-        if self.__thread_suspended is True:
+        if self.thread_suspended is True:
             return True
         if not state.PLEX_TOKEN:
             return True

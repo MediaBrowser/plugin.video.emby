@@ -12,7 +12,7 @@ from xbmc import sleep, executebuiltin, translatePath
 from xbmcgui import ListItem
 
 from utils import window, settings, language as lang, dialog, try_encode, \
-    CatchExceptions, exists_dir, plex_command, try_decode
+    catch_exceptions, exists_dir, plex_command, try_decode
 import downloadutils
 
 from PlexFunctions import GetPlexMetadata, GetPlexSectionResults, \
@@ -473,7 +473,7 @@ def getVideoFiles(plexId, params):
     xbmcplugin.endOfDirectory(HANDLE)
 
 
-@CatchExceptions(warnuser=False)
+@catch_exceptions(warnuser=False)
 def getExtraFanArt(plexid, plexPath):
     """
     Get extrafanart for listitem

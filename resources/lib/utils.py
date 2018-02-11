@@ -242,20 +242,20 @@ def kodi_time_to_millis(time):
     return ret
 
 
-def try_encode(uniString, encoding='utf-8'):
+def try_encode(input_str, encoding='utf-8'):
     """
-    Will try to encode uniString (in unicode) to encoding. This possibly
+    Will try to encode input_str (in unicode) to encoding. This possibly
     fails with e.g. Android TV's Python, which does not accept arguments for
     string.encode()
     """
-    if isinstance(uniString, str):
+    if isinstance(input_str, str):
         # already encoded
-        return uniString
+        return input_str
     try:
-        uniString = uniString.encode(encoding, "ignore")
+        input_str = input_str.encode(encoding, "ignore")
     except TypeError:
-        uniString = uniString.encode()
-    return uniString
+        input_str = input_str.encode()
+    return input_str
 
 
 def try_decode(string, encoding='utf-8'):
@@ -878,10 +878,7 @@ def passwords_xml():
     settings('networkCreds', value="%s" % server)
     LOG.info("Added server: %s to passwords.xml", server)
     # Prettify and write to file
-    try:
-        indent(root)
-    except:
-        pass
+    indent(root)
     etree.ElementTree(root).write(xmlpath, encoding="UTF-8")
 
 
@@ -957,7 +954,7 @@ def delete_nodes():
 ###############################################################################
 # WRAPPERS
 
-def CatchExceptions(warnuser=False):
+def catch_exceptions(warnuser=False):
     """
     Decorator for methods to catch exceptions and log them. Useful for e.g.
     librarysync threads using itemtypes.py, because otherwise we would not
@@ -967,12 +964,18 @@ def CatchExceptions(warnuser=False):
                         which will trigger a Kodi infobox to inform user
     """
     def decorate(func):
+        """
+        Decorator construct
+        """
         @wraps(func)
         def wrapper(*args, **kwargs):
+            """
+            Wrapper construct
+            """
             try:
                 return func(*args, **kwargs)
-            except Exception as e:
-                LOG.error('%s has crashed. Error: %s', func.__name__, e)
+            except Exception as err:
+                LOG.error('%s has crashed. Error: %s', func.__name__, err)
                 import traceback
                 LOG.error("Traceback:\n%s", traceback.format_exc())
                 if warnuser:
@@ -982,7 +985,7 @@ def CatchExceptions(warnuser=False):
     return decorate
 
 
-def LogTime(func):
+def log_time(func):
     """
     Decorator for functions and methods to log the time it took to run the code
     """
@@ -1010,10 +1013,10 @@ def thread_methods(cls=None, add_stops=None, add_suspends=None):
                          ALSO returns True if PKC should exit
 
     Also adds the following class attributes:
-        __thread_stopped
-        __thread_suspended
-        __stops
-        __suspends
+        thread_stopped
+        thread_suspended
+        stops
+        suspends
 
     invoke with either
         @Newthread_methods
@@ -1030,41 +1033,56 @@ def thread_methods(cls=None, add_stops=None, add_suspends=None):
                        add_suspends=add_suspends)
     # Because we need a reference, not a copy of the immutable objects in
     # state, we need to look up state every time explicitly
-    cls.__stops = ['STOP_PKC']
+    cls.stops = ['STOP_PKC']
     if add_stops is not None:
-        cls.__stops.extend(add_stops)
-    cls.__suspends = add_suspends or []
+        cls.stops.extend(add_stops)
+    cls.suspends = add_suspends or []
 
     # Attach new attributes to class
-    cls.__thread_stopped = False
-    cls.__thread_suspended = False
+    cls.thread_stopped = False
+    cls.thread_suspended = False
 
     # Define new class methods and attach them to class
     def stop_thread(self):
-        self.__thread_stopped = True
+        """
+        Call to stop this thread
+        """
+        self.thread_stopped = True
     cls.stop_thread = stop_thread
 
     def suspend_thread(self):
-        self.__thread_suspended = True
+        """
+        Call to suspend this thread
+        """
+        self.thread_suspended = True
     cls.suspend_thread = suspend_thread
 
     def resume_thread(self):
-        self.__thread_suspended = False
+        """
+        Call to revive a suspended thread back to life
+        """
+        self.thread_suspended = False
     cls.resume_thread = resume_thread
 
     def thread_suspended(self):
-        if self.__thread_suspended is True:
+        """
+        Returns True if the thread is suspended
+        """
+        if self.thread_suspended is True:
             return True
-        for suspend in self.__suspends:
+        for suspend in self.suspends:
             if getattr(state, suspend):
                 return True
         return False
     cls.thread_suspended = thread_suspended
 
     def thread_stopped(self):
-        if self.__thread_stopped is True:
+        """
+        Returns True if the thread is stopped
+        """
+        if self.thread_stopped is True:
             return True
-        for stop in self.__stops:
+        for stop in self.stops:
             if getattr(state, stop):
                 return True
         return False
@@ -1074,12 +1092,12 @@ def thread_methods(cls=None, add_stops=None, add_suspends=None):
     return cls
 
 
-class Lock_Function(object):
+class LockFunction(object):
     """
     Decorator for class methods and functions to lock them with lock.
 
     Initialize this class first
-    lockfunction = Lock_Function(lock), where lock is a threading.Lock() object
+    lockfunction = LockFunction(lock), where lock is a threading.Lock() object
 
     To then lock a function or method:
 
@@ -1090,8 +1108,14 @@ class Lock_Function(object):
         self.lock = lock
 
     def lockthis(self, func):
+        """
+        Use this method to actually lock a function or method
+        """
         @wraps(func)
         def wrapper(*args, **kwargs):
+            """
+            Wrapper construct
+            """
             with self.lock:
                 result = func(*args, **kwargs)
             return result

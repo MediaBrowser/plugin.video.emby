@@ -6,7 +6,7 @@ from ntpath import dirname
 from datetime import datetime
 
 from artwork import Artwork
-from utils import window, kodi_sql, CatchExceptions
+from utils import window, kodi_sql, catch_exceptions
 import plexdb_functions as plexdb
 import kodidb_functions as kodidb
 
@@ -61,7 +61,7 @@ class Items(object):
         self.kodiconn.close()
         return self
 
-    @CatchExceptions(warnuser=True)
+    @catch_exceptions(warnuser=True)
     def getfanart(self, plex_id, refresh=False):
         """
         Tries to get additional fanart for movies (+sets) and TV shows.
@@ -177,7 +177,7 @@ class Movies(Items):
     """
     Used for plex library-type movies
     """
-    @CatchExceptions(warnuser=True)
+    @catch_exceptions(warnuser=True)
     def add_update(self, item, viewtag=None, viewid=None):
         """
         Process single movie
@@ -509,7 +509,7 @@ class TVShows(Items):
     """
     For Plex library-type TV shows
     """
-    @CatchExceptions(warnuser=True)
+    @catch_exceptions(warnuser=True)
     def add_update(self, item, viewtag=None, viewid=None):
         """
         Process a single show
@@ -742,7 +742,7 @@ class TVShows(Items):
         tags.extend(collections)
         self.kodi_db.addTags(showid, tags, "tvshow")
 
-    @CatchExceptions(warnuser=True)
+    @catch_exceptions(warnuser=True)
     def add_updateSeason(self, item, viewtag=None, viewid=None):
         """
         Process a single season of a certain tv show
@@ -790,7 +790,7 @@ class TVShows(Items):
                                  view_id=viewid,
                                  checksum=checksum)
 
-    @CatchExceptions(warnuser=True)
+    @catch_exceptions(warnuser=True)
     def add_updateEpisode(self, item, viewtag=None, viewid=None):
         """
         Process single episode
@@ -1282,7 +1282,7 @@ class Music(Items):
         self.kodi_db = kodidb.Kodidb_Functions(self.kodicursor)
         return self
 
-    @CatchExceptions(warnuser=True)
+    @catch_exceptions(warnuser=True)
     def add_updateArtist(self, item, viewtag=None, viewid=None):
         """
         Adds a single artist
@@ -1368,7 +1368,7 @@ class Music(Items):
         # Update artwork
         artwork.addArtwork(artworks, artistid, v.KODI_TYPE_ARTIST, kodicursor)
 
-    @CatchExceptions(warnuser=True)
+    @catch_exceptions(warnuser=True)
     def add_updateAlbum(self, item, viewtag=None, viewid=None, children=None,
                         scan_children=True):
         """
@@ -1565,7 +1565,7 @@ class Music(Items):
             for child in children:
                 self.add_updateSong(child, viewtag, viewid)
 
-    @CatchExceptions(warnuser=True)
+    @catch_exceptions(warnuser=True)
     def add_updateSong(self, item, viewtag=None, viewid=None):
         """
         Process single song
