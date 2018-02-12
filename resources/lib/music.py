@@ -55,7 +55,7 @@ def excludefromscan_music_folders():
                 else:
                     LOG.info('New Plex music library detected: %s', path)
                     xml.set_setting(['audio', 'excludefromscan', 'regexp'],
-                                    value=path, check_existing=False)
+                                    value=path, append=True)
             # We only need to reboot if we ADD new paths!
             reboot = xml.write_xml
             # Delete obsolete entries

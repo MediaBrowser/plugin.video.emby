@@ -705,8 +705,7 @@ class XmlKodiSetting(object):
                 break
         return element
 
-    def set_setting(self, node_list, value=None, attrib=None,
-                    check_existing=True):
+    def set_setting(self, node_list, value=None, attrib=None, append=False):
         """
         node_list is a list of node names starting from the outside, ignoring
         the outter advancedsettings.
@@ -730,29 +729,29 @@ class XmlKodiSetting(object):
         If the dict attrib is set, the Element's attributs will be appended
         accordingly
 
-        If check_existing is True, it will return the FIRST matching element of
-        node_list. Set to False if there are several elements of the same tag!
+        If append is True, the last element of node_list with value and attrib
+        will always be added. WARNING: this will set self.write_xml to True!
 
         Returns the (last) etree element
         """
         attrib = attrib or {}
         value = value or ''
-        if check_existing is True:
+        if not append:
             old = self.get_setting(node_list)
-            if old is not None:
-                already_set = True
-                if old.text.strip() != value:
-                    already_set = False
-                elif old.attrib != attrib:
-                    already_set = False
-                if already_set is True:
-                    LOG.debug('Element has already been found')
-                    return old
-        # Need to set new setting, indeed
+            if (old is not None and
+                    old.text.strip() == value and
+                    old.attrib == attrib):
+                # Already set exactly these values
+                return old
+        LOG.debug('Adding etree to: %s, value: %s, attrib: %s, append: %s',
+                  node_list, value, attrib, append)
         self.write_xml = True
         element = self.root
-        for node in node_list:
+        nodes = node_list[:-1] if append else node_list
+        for node in nodes:
             element = self._set_sub_element(element, node)
+        if append:
+            element = etree.SubElement(element, node_list[-1])
         # Write new values
         element.text = value
         if attrib:
