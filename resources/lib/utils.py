@@ -590,8 +590,8 @@ def indent(elem, level=0):
             elem.text = i + "  "
         if not elem.tail or not elem.tail.strip():
             elem.tail = i
-        for item in elem:
-            indent(item, level+1)
+        for elem in elem:
+            indent(elem, level+1)
         if not elem.tail or not elem.tail.strip():
             elem.tail = i
     else:
