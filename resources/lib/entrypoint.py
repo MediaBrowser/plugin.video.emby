@@ -831,7 +831,7 @@ def __build_item(xml_element):
             api.path_and_plex_id().startswith('http')):
         params = {
             'mode': 'plex_node',
-            'key': âpi.path_and_plex_id(),
+            'key': xml_element.attrib.get('key'),
             'offset': xml_element.attrib.get('viewOffset', '0'),
         }
         url = "plugin://%s?%s" % (v.ADDON_ID, urlencode(params))
