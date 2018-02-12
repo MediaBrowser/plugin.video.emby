@@ -469,11 +469,15 @@ class API(object):
         """
         Get the content rating or None
         """
-        mpaa = self.item.get('contentRating', None)
+        mpaa = self.item.get('contentRating')
+        if mpaa is None:
+            return
         # Convert more complex cases
         if mpaa in ("NR", "UR"):
             # Kodi seems to not like NR, but will accept Rated Not Rated
             mpaa = "Rated Not Rated"
+        elif mpaa.startswith('gb/'):
+            mpaa = mpaa.replace('gb/', 'UK:', 1)
         return mpaa
 
     def country_list(self):
