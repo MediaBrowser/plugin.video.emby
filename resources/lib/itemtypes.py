@@ -255,15 +255,10 @@ class Movies(Items):
         except IndexError:
             studio = None
 
-        # Find one trailer
-        trailer = None
-        extras = api.extras_list()
-        for extra in extras:
-            # Only get 1st trailer element
-            if extra['extraType'] == 1:
-                trailer = ('plugin://%s?plex_id=%s&plex_type=%s&mode=play'
-                           % (v.ADDON_ID, extra['ratingKey'], v.PLEX_TYPE_CLIP))
-                break
+        trailer = api.trailer_id()
+        if trailer:
+            trailer = ('plugin://%s?plex_id=%s&plex_type=%s&mode=play'
+                       % (v.ADDON_ID, trailer, v.PLEX_TYPE_CLIP))
 
         # GET THE FILE AND PATH #####
         do_indirect = not state.DIRECT_PATHS

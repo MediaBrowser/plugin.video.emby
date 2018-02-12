@@ -102,7 +102,7 @@ class API(object):
         """
         Returns the type of media, e.g. 'movie' or 'clip' for trailers
         """
-        return self.item.attrib.get('type')
+        return self.item.get('type')
 
     def checksum(self):
         """
@@ -110,21 +110,19 @@ class API(object):
         WATCH OUT - time in Plex, not Kodi ;-)
         """
         # Include a letter to prohibit saving as an int!
-        checksum = "K%s%s" % (self.plex_id(),
-                              self.item.attrib.get('updatedAt', ''))
-        return checksum
+        return "K%s%s" % (self.plex_id(), self.item.get('updatedAt', ''))
 
     def plex_id(self):
         """
         Returns the Plex ratingKey such as '246922' as a string or None
         """
-        return self.item.attrib.get('ratingKey')
+        return self.item.get('ratingKey')
 
     def path_and_plex_id(self):
         """
         Returns the Plex key such as '/library/metadata/246922' or None
         """
-        return self.item.attrib.get('key')
+        return self.item.get('key')
 
     def plex_media_streams(self):
         """
@@ -170,9 +168,9 @@ class API(object):
             # Let Plex transcode
             # max width/height supported by plex image transcoder is 1920x1080
             path = self.server + PF.transcode_image_path(
-                self.item[0][0].attrib.get('key'),
+                self.item[0][0].get('key'),
                 window('pms_token'),
-                "%s%s" % (self.server, self.item[0][0].attrib.get('key')),
+                "%s%s" % (self.server, self.item[0][0].get('key')),
                 1920,
                 1080)
         else:
@@ -191,14 +189,14 @@ class API(object):
         res = None
         for child in self.item:
             if child.tag == 'Location':
-                res = child.attrib.get('path')
+                res = child.get('path')
         return res
 
     def season_number(self):
         """
         Returns the 'index' of an PMS XML reply. Depicts e.g. season number.
         """
-        return self.item.attrib.get('index')
+        return self.item.get('index')
 
     def date_created(self):
         """
@@ -206,7 +204,7 @@ class API(object):
 
         If not found, returns 2000-01-01 10:00:00
         """
-        res = self.item.attrib.get('addedAt')
+        res = self.item.get('addedAt')
         if res is not None:
             res = unix_date_to_kodi(res)
         else:
@@ -343,8 +341,8 @@ class API(object):
                 name = child.attrib['tag']
                 name_id = child.attrib['id']
                 typus = PEOPLE_OF_INTEREST[child.tag]
-                url = child.attrib.get('thumb')
-                role = child.attrib.get('role')
+                url = child.get('thumb')
+                role = child.get('role')
                 people.append({
                     'Name': name,
                     'Type': typus,
@@ -373,9 +371,8 @@ class API(object):
 
         Return IMDB, e.g. "tt0903624". Returns None if not found
         """
-        item = self.item.attrib
         try:
-            item = item['guid']
+            item = self.item.attrib['guid']
         except KeyError:
             return None
 
@@ -402,29 +399,29 @@ class API(object):
 
         sorttitle = title, if no sorttitle is found
         """
-        title = self.item.attrib.get('title', 'Missing Title Name')
-        sorttitle = self.item.attrib.get('titleSort', title)
+        title = self.item.get('title', 'Missing Title Name')
+        sorttitle = self.item.get('titleSort', title)
         return title, sorttitle
 
     def plot(self):
         """
         Returns the plot or None.
         """
-        return self.item.attrib.get('summary', None)
+        return self.item.get('summary')
 
     def tagline(self):
         """
         Returns a shorter tagline or None
         """
-        return self.item.attrib.get('tagline', None)
+        return self.item.get('tagline')
 
     def audience_rating(self):
         """
         Returns the audience rating, 'rating' itself or 0.0
         """
-        res = self.item.attrib.get('audienceRating')
+        res = self.item.get('audienceRating')
         if res is None:
-            res = self.item.attrib.get('rating')
+            res = self.item.get('rating')
         try:
             res = float(res)
         except (ValueError, TypeError):
@@ -435,7 +432,7 @@ class API(object):
         """
         Returns the production(?) year ("year") or None
         """
-        return self.item.attrib.get('year', None)
+        return self.item.get('year')
 
     def resume_point(self):
         """
@@ -456,17 +453,14 @@ class API(object):
         Output is the tuple:
             resume, runtime         as ints. 0 if not found
         """
-        item = self.item.attrib
-
         try:
-            runtime = float(item['duration'])
+            runtime = float(self.item.attrib['duration'])
         except (KeyError, ValueError):
             runtime = 0.0
         try:
-            resume = float(item['viewOffset'])
+            resume = float(self.item.attrib['viewOffset'])
         except (KeyError, ValueError):
             resume = 0.0
-
         runtime = int(runtime * v.PLEX_TO_KODI_TIMEFACTOR)
         resume = int(resume * v.PLEX_TO_KODI_TIMEFACTOR)
         return resume, runtime
@@ -475,7 +469,7 @@ class API(object):
         """
         Get the content rating or None
         """
-        mpaa = self.item.attrib.get('contentRating', None)
+        mpaa = self.item.get('contentRating', None)
         # Convert more complex cases
         if mpaa in ("NR", "UR"):
             # Kodi seems to not like NR, but will accept Rated Not Rated
@@ -496,13 +490,13 @@ class API(object):
         """
         Returns the "originallyAvailableAt" or None
         """
-        return self.item.attrib.get('originallyAvailableAt')
+        return self.item.get('originallyAvailableAt')
 
     def music_studio(self):
         """
         Returns the 'studio' or None
         """
-        return self.item.attrib.get('studio')
+        return self.item.get('studio')
 
     def music_studio_list(self):
         """
@@ -532,7 +526,7 @@ class API(object):
     @staticmethod
     def list_to_string(listobject):
         """
-        Smart-joins the listobject into a single string using a " / " separator.
+        Smart-joins the listobject into a single string using a " / " separator
         If the list is empty, smart_join returns an empty string.
         """
         string = " / ".join(listobject)
@@ -542,7 +536,7 @@ class API(object):
         """
         Returns the 'parentRatingKey' as a string or None
         """
-        return self.item.attrib.get('parentRatingKey')
+        return self.item.get('parentRatingKey')
 
     def episode_data(self):
         """
@@ -581,13 +575,9 @@ class API(object):
         Returns current playQueueItemID or if unsuccessful the playListItemID
         If not found, None is returned
         """
-        try:
-            answ = self.item.attrib['playQueueItemID']
-        except KeyError:
-            try:
-                answ = self.item.attrib['playListItemID']
-            except KeyError:
-                answ = None
+        answ = self.item.get('playQueueItemID')
+        if answ is None:
+            answ = self.item.get('playListItemID')
         return answ
 
     def _data_from_part_or_media(self, key):
@@ -597,17 +587,10 @@ class API(object):
 
         If all fails, None is returned.
         """
-        media = self.item[0].attrib
-        part = self.item[0][self.part].attrib
-
-        try:
-            try:
-                value = part[key]
-            except KeyError:
-                value = media[key]
-        except KeyError:
-            value = None
-        return value
+        answ = self.item[0][self.part].get(key)
+        if answ is None:
+            answ = self.item[0].get(key)
+        return answ
 
     def video_codec(self):
         """
@@ -638,53 +621,24 @@ class API(object):
             'container': self._data_from_part_or_media('container'),
         }
         try:
-            answ['bitDepth'] = self.item[0][self.part][self.mediastream].get('bitDepth')
+            answ['bitDepth'] = self.item[0][self.part][self.mediastream].get(
+                'bitDepth')
         except (TypeError, AttributeError, KeyError, IndexError):
             answ['bitDepth'] = None
         return answ
 
-    def extras_list(self):
+    def trailer_id(self):
         """
-        Currently ONLY returns the very first trailer found!
-
-        Returns a list of trailer and extras from PMS XML. Returns [] if
-        no extras are found.
-        Extratypes:
-            1:    Trailer
-            5:    Behind the scenes
-
-        Output: list of dicts with one entry of the form:
-            'ratingKey':                e.g. '12345'
-            'title':
-            'thumb':                    artwork
-            'duration':
-            'extraType':
-            'originallyAvailableAt':
-            'year':
+        Returns the ratingKey (plex_id) of the trailer or None
         """
-        elements = []
-        extras = self.item.find('Extras')
-        if extras is None:
-            return elements
-        for extra in extras:
+        for extra in self.item.iterfind('Extras'):
             try:
                 typus = int(extra.attrib['extraType'])
             except (KeyError, TypeError):
                 typus = None
             if typus != 1:
                 continue
-            duration = float(extra.attrib.get('duration', 0.0))
-            elements.append({
-                'ratingKey': extra.attrib.get('ratingKey'),
-                'title': extra.attrib.get('title'),
-                'thumb': extra.attrib.get('thumb'),
-                'duration': int(duration * v.PLEX_TO_KODI_TIMEFACTOR),
-                'extraType': typus,
-                'originallyAvailableAt': extra.attrib.get('originallyAvailableAt'),
-                'year': extra.attrib.get('year')
-            })
-            break
-        return elements
+            return extra.get('ratingKey')
 
     def mediastreams(self):
         """
@@ -704,7 +658,7 @@ class API(object):
         subtitlelanguages = []
         try:
             # Sometimes, aspectratio is on the "toplevel"
-            aspect = self.item[0].attrib.get('aspectRatio')
+            aspect = self.item[0].get('aspectRatio')
         except IndexError:
             # There is no stream info at all, returning empty
             return {
@@ -714,7 +668,7 @@ class API(object):
             }
         # Loop over parts
         for child in self.item[0]:
-            container = child.attrib.get('container')
+            container = child.get('container')
             # Loop over Streams
             for grandchild in child:
                 stream = grandchild.attrib
@@ -789,30 +743,19 @@ class API(object):
         }
         """
         allartworks = {
-            'Primary': "",  # corresponds to Plex poster ('thumb')
+            'Primary': self._one_artwork('thumb'),
             'Art': "",
-            'Banner': "",   # corresponds to Plex banner ('banner') for series
+            'Banner': self._one_artwork('banner'),
             'Logo': "",
-            'Thumb': "",    # corresponds to Plex (grand)parent posters (thumb)
+            'Thumb': self._one_artwork('grandparentThumb'),
             'Disc': "",
-            'Backdrop': []  # Corresponds to Plex fanart ('art')
+            'Backdrop': [self._one_artwork('art')]
         }
-        # Process backdrops
-        # Get background artwork URL
-        allartworks['Backdrop'].append(self._one_artwork('art'))
-        # Get primary "thumb" pictures:
-        allartworks['Primary'] = self._one_artwork('thumb')
-        # Banner (usually only on tv series level)
-        allartworks['Banner'] = self._one_artwork('banner')
-        # For e.g. TV shows, get series thumb
-        allartworks['Thumb'] = self._one_artwork('grandparentThumb')
-
         # Process parent items if the main item is missing artwork
         if parent_info:
             # Process parent backdrops
             if not allartworks['Backdrop']:
-                allartworks['Backdrop'].append(
-                    self._one_artwork('parentArt'))
+                allartworks['Backdrop'].append(self._one_artwork('parentArt'))
             if not allartworks['Primary']:
                 allartworks['Primary'] = self._one_artwork('parentThumb')
         return allartworks
@@ -863,7 +806,7 @@ class API(object):
             LOG.info('Plex did not provide ID for IMDB or TVDB. Start '
                      'lookup process')
         else:
-            LOG.info('Start movie set/collection lookup on themoviedb using %s',
+            LOG.info('Start movie set/collection lookup on themoviedb with %s',
                      item.get('title', ''))
 
         api_key = settings('themoviedbAPIKey')
@@ -936,7 +879,7 @@ class API(object):
                     break
 
         # if a match was not found, we accept the closest match from TMDB
-        if match_found is None and len(data.get("results")):
+        if match_found is None and data.get("results"):
             LOG.info('Using very first match from themoviedb')
             match_found = entry = data.get("results")[0]
 
@@ -1068,14 +1011,16 @@ class API(object):
                 # select image in preferred language
                 for entry in data[fanarttvimage]:
                     if entry.get("lang") == v.KODILANGUAGE:
-                        allartworks[fanarttype[1]] = entry.get("url", "").replace(' ', '%20')
+                        allartworks[fanarttype[1]] = \
+                            entry.get("url", "").replace(' ', '%20')
                         break
                 # just grab the first english OR undefinded one as fallback
                 # (so we're actually grabbing the more popular one)
                 if not allartworks.get(fanarttype[1]):
                     for entry in data[fanarttvimage]:
                         if entry.get("lang") in ("en", "00"):
-                            allartworks[fanarttype[1]] = entry.get("url", "").replace(' ', '%20')
+                            allartworks[fanarttype[1]] = \
+                                entry.get("url", "").replace(' ', '%20')
                             break
 
         # grab extrafanarts in list
@@ -1148,7 +1093,7 @@ class API(object):
         Returns True if the item's 'optimizedForStreaming' is set, False other-
         wise
         """
-        return self.item[0].attrib.get('optimizedForStreaming') == '1'
+        return self.item[0].get('optimizedForStreaming') == '1'
 
     def mediastream_number(self):
         """
@@ -1158,17 +1103,17 @@ class API(object):
         """
         # How many streams do we have?
         count = 0
-        for entry in self.item.findall('./Media'):
+        for entry in self.item.iterfind('./Media'):
             count += 1
         if (count > 1 and (
                 (self.plex_type() != 'clip' and
                  settings('bestQuality') == 'false')
-                or
+            or
                 (self.plex_type() == 'clip' and
                  settings('bestTrailer') == 'false'))):
             # Several streams/files available.
             dialoglist = []
-            for entry in self.item.findall('./Media'):
+            for entry in self.item.iterfind('./Media'):
                 # Get additional info (filename / languages)
                 filename = None
                 if 'file' in entry[0].attrib:
@@ -1189,17 +1134,17 @@ class API(object):
                         option = '%s: ' % try_encode(languages)
                 if 'videoResolution' in entry.attrib:
                     option = '%s%sp ' % (option,
-                                         entry.attrib.get('videoResolution'))
+                                         entry.get('videoResolution'))
                 if 'videoCodec' in entry.attrib:
                     option = '%s%s' % (option,
-                                       entry.attrib.get('videoCodec'))
+                                       entry.get('videoCodec'))
                 option = option.strip() + ' - '
                 if 'audioProfile' in entry.attrib:
                     option = '%s%s ' % (option,
-                                        entry.attrib.get('audioProfile'))
+                                        entry.get('audioProfile'))
                 if 'audioCodec' in entry.attrib:
                     option = '%s%s ' % (option,
-                                        entry.attrib.get('audioCodec'))
+                                        entry.get('audioCodec'))
                 dialoglist.append(option)
             media = dialog('select', 'Select stream', dialoglist)
         else:
@@ -1262,7 +1207,7 @@ class API(object):
             'directPlay': 0,
             'directStream': 1,
             'protocol': 'hls',   # seen in the wild: 'dash', 'http', 'hls'
-            'session':  window('plex_client_Id'),
+            'session': window('plex_client_Id'),
             'fastSeek': 1,
             'path': path,
             'mediaIndex': self.mediastream,
@@ -1293,16 +1238,16 @@ class API(object):
         for stream in mediastreams:
             # Since plex returns all possible tracks together, have to pull
             # only external subtitles - only for these a 'key' exists
-            if stream.attrib.get('streamType') != "3":
+            if stream.get('streamType') != "3":
                 # Not a subtitle
                 continue
             # Only set for additional external subtitles NOT lying beside video
-            key = stream.attrib.get('key')
+            key = stream.get('key')
             # Only set for dedicated subtitle files lying beside video
             # ext = stream.attrib.get('format')
             if key:
                 # We do know the language - temporarily download
-                if stream.attrib.get('languageCode') is not None:
+                if stream.get('languageCode') is not None:
                     path = self.download_external_subtitles(
                         "{server}%s" % key,
                         "subtitle%02d.%s.%s" % (fileindex,
@@ -1390,9 +1335,9 @@ class API(object):
             listitem.setLabel(title)
         metadata = {
             'date': self.kodi_premiere_date(),
-            'size': long(self.item[0][0].attrib.get('size', 0)),
-            'exif:width': self.item[0].attrib.get('width', ''),
-            'exif:height': self.item[0].attrib.get('height', ''),
+            'size': long(self.item[0][0].get('size', 0)),
+            'exif:width': self.item[0].get('width', ''),
+            'exif:height': self.item[0].get('height', ''),
         }
         listitem.setInfo(type='image', infoLabels=metadata)
         listitem.setProperty('plot', self.plot())
