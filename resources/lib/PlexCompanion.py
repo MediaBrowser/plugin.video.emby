@@ -95,7 +95,7 @@ class PlexCompanion(Thread):
         params = {
             'mode': 'plex_node',
             'key': '{server}%s' % data.get('key'),
-            'view_offset': data.get('offset'),
+            'offset': data.get('offset'),
             'play_directly': 'true'
         }
         executebuiltin('RunPlugin(plugin://%s?%s)'
