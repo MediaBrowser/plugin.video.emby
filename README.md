@@ -103,11 +103,11 @@ I'm not in any way affiliated with Plex. Thank you very much for a small donatio
 [![Donations](https://az743702.vo.msecnd.net/cdn/kofi1.png?v=a)](https://ko-fi.com/A8182EB)
 
 ![ETH-Donations](https://chart.googleapis.com/chart?chs=150x150&cht=qr&chld=L0&chl=0x0f57D98E08e617292D8bC0B3448dd79BF4Cf8e7F)    
-**Ethereum (ETH) address:    
+**Ethereum address:    
 0x0f57D98E08e617292D8bC0B3448dd79BF4Cf8e7F**
 
 ![BTX-Donations](https://chart.googleapis.com/chart?chs=150x150&cht=qr&chld=L0&chl=3BhwvUsqAGtAZodGUx4mTP7pTECjf1AejT)    
-**Bitcoin (BTX) address:    
+**Bitcoin address:    
 3BhwvUsqAGtAZodGUx4mTP7pTECjf1AejT**
 
 
