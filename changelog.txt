@@ -1,3 +1,12 @@
+version 2.0.3 (beta only):
+- Fix Alexa playback
+- Fix Kodi boot loop
+- Fix playback being reported to the wrong Plex user
+- Fix GB/BBFC content ratings
+- Fix KeyError when browsing On Deck
+- Make sure that empty XML elements get deleted
+- Code optimizations
+
 version 2.0.2 (beta only):
 - Fix playback reporting not starting up correctly
 - Fix playback cleanup if PKC causes stop
