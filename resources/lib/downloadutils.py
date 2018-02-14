@@ -48,16 +48,6 @@ class DownloadUtils():
         self.server = server
         LOG.debug("Set server: %s", server)
 
-    def setToken(self, token):
-        """
-        Reserved for userclient only
-        """
-        self.token = token
-        if token == '':
-            LOG.debug('Set token: empty token!')
-        else:
-            LOG.debug("Set token: xxxxxxx")
-
     def setSSL(self, verifySSL=None, certificate=None):
         """
         Reserved for userclient only
@@ -94,7 +84,6 @@ class DownloadUtils():
 
         # Set other stuff
         self.setServer(window('pms_server'))
-        self.setToken(window('pms_token'))
 
         # Counters to declare PMS dead or unauthorized
         # Use window variables because start of movies will be called with a

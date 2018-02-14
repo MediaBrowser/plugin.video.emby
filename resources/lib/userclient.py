@@ -276,9 +276,6 @@ class UserClient(Thread):
         settings('userid', value='')
         settings('accessToken', value='')
 
-        # Reset token in downloads
-        self.doUtils.setToken('')
-
         self.currToken = None
         self.auth = True
         self.currUser = None
