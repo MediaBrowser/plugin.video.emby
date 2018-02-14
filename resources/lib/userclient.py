@@ -263,6 +263,7 @@ class UserClient(Thread):
         state.AUTHENTICATED = False
         window('pms_token', clear=True)
         state.PLEX_TOKEN = None
+        state.PLEX_TRANSIENT_TOKEN = None
         window('plex_token', clear=True)
         window('pms_server', clear=True)
         window('plex_machineIdentifier', clear=True)
