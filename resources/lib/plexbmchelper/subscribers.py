@@ -388,8 +388,8 @@ class SubscriptionMgr(object):
             xargs['X-Plex-Token'] = state.PLEX_TRANSIENT_TOKEN
         elif playqueue.plex_transient_token:
             xargs['X-Plex-Token'] = playqueue.plex_transient_token
-        elif state.PLEX_TOKEN:
-            xargs['X-Plex-Token'] = state.PLEX_TOKEN
+        elif state.PMS_TOKEN:
+            xargs['X-Plex-Token'] = state.PMS_TOKEN
         url = '%s://%s:%s/:/timeline' % (serv.get('protocol', 'http'),
                                          serv.get('server', 'localhost'),
                                          serv.get('port', '32400'))

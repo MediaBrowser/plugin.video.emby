@@ -75,6 +75,9 @@ AUTHENTICATED = False
 PLEX_USERNAME = None
 # Token for that user for plex.tv
 PLEX_TOKEN = None
+# Plex token for the active PMS for the active user
+# (might be diffent to PLEX_TOKEN)
+PMS_TOKEN = None
 # Plex ID of that user (e.g. for plex.tv) as a STRING
 PLEX_USER_ID = None
 # Token passed along, e.g. if playback initiated by Plex Companion. Might be

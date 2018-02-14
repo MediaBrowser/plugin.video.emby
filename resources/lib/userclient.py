@@ -141,7 +141,8 @@ class UserClient(Thread):
         state.PLEX_USER_ID = userId or None
         state.PLEX_USERNAME = username
         # This is the token for the current PMS (might also be '')
-        window('pms_token', value=self.currToken)
+        window('pms_token', value=usertoken)
+        state.PMS_TOKEN = usertoken
         # This is the token for plex.tv for the current user
         # Is only '' if user is not signed in to plex.tv
         window('plex_token', value=settings('plexToken'))
@@ -264,6 +265,7 @@ class UserClient(Thread):
         window('pms_token', clear=True)
         state.PLEX_TOKEN = None
         state.PLEX_TRANSIENT_TOKEN = None
+        state.PMS_TOKEN = None
         window('plex_token', clear=True)
         window('pms_server', clear=True)
         window('plex_machineIdentifier', clear=True)
