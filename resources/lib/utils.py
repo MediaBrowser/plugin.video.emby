@@ -664,10 +664,39 @@ class XmlKodiSetting(object):
             raise
         # Only safe to file if we did not botch anything
         if self.write_xml is True:
+            self._remove_empty_elements()
             # Indent and make readable
             indent(self.root)
             # Safe the changed xml
             self.tree.write(self.path, encoding="UTF-8")
+
+    def _is_empty(self, element, empty_elements):
+        empty = True
+        for child in element:
+            empty_child = True
+            if list(child):
+                empty_child = self._is_empty(child, empty_elements)
+            if empty_child and (child.attrib or
+                                (child.text and child.text.strip())):
+                empty_child = False
+            if empty_child:
+                empty_elements.append((element, child))
+            else:
+                # At least one non-empty entry - hence we cannot delete the
+                # original element itself
+                empty = False
+        return empty
+
+    def _remove_empty_elements(self):
+        """
+        Deletes all empty XML elements, otherwise Kodi/PKC gets confused
+        This is recursive, so an empty element with empty children will also
+        get deleted
+        """
+        empty_elements = []
+        self._is_empty(self.root, empty_elements)
+        for element, child in empty_elements:
+            element.remove(child)
 
     @staticmethod
     def _set_sub_element(element, subelement):
