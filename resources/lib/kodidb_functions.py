@@ -5,7 +5,7 @@ from logging import getLogger
 from ntpath import dirname
 
 import artwork
-from utils import kodi_sql, tryDecode
+from utils import kodi_sql, try_decode
 import variables as v
 
 ###############################################################################
@@ -1574,7 +1574,7 @@ def kodiid_from_filename(path, kodi_type):
     Returns None if not possible
     """
     kodi_id = None
-    path = tryDecode(path)
+    path = try_decode(path)
     try:
         filename = path.rsplit('/', 1)[1]
         path = path.rsplit('/', 1)[0] + '/'
