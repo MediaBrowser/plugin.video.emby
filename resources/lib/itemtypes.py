@@ -158,6 +158,8 @@ class Items(object):
         """
         # If the playback was stopped, check whether we need to increment the
         # playcount. PMS won't tell us the playcount via websockets
+        LOG.debug('Set playstate for file_id %s: viewcount: %s, resume: %s',
+                  file_id, view_count, resume)
         if mark_played:
             LOG.info('Marking as completely watched in Kodi')
             try:
