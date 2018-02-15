@@ -243,11 +243,9 @@ class LibrarySync(Thread):
         return True
 
     def _fullSync(self):
-        xbmc.executebuiltin('InhibitIdleShutdown(true)')
         if self.new_items_only is True:
             # Set views. Abort if unsuccessful
             if not self.maintainViews():
-                xbmc.executebuiltin('InhibitIdleShutdown(false)')
                 return False
 
         process = {
@@ -262,7 +260,6 @@ class LibrarySync(Thread):
             if (self.stopped() or
                     self.suspended() or
                     not process[itemtype]()):
-                xbmc.executebuiltin('InhibitIdleShutdown(false)')
                 return False
 
         # Let kodi update the views in any case, since we're doing a full sync
@@ -271,7 +268,6 @@ class LibrarySync(Thread):
             xbmc.executebuiltin('UpdateLibrary(music)')
 
         window('plex_initialScan', clear=True)
-        xbmc.executebuiltin('InhibitIdleShutdown(false)')
         if window('plex_scancrashed') == 'true':
             # Show warning if itemtypes.py crashed at some point
             dialog('ok', heading='{plex}', line1=lang(39408))
