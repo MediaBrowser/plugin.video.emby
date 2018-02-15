@@ -1575,7 +1575,9 @@ class LibrarySync(Thread):
                 delete_playlists()
                 delete_nodes()
                 log.info("Initial start-up full sync starting")
+                xbmc.executebuiltin('InhibitIdleShutdown(true)')
                 librarySync = fullSync()
+                xbmc.executebuiltin('InhibitIdleShutdown(false)')
                 window('plex_dbScan', clear=True)
                 state.DB_SCAN = False
                 if librarySync:
