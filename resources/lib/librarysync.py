@@ -244,13 +244,10 @@ class LibrarySync(Thread):
 
     def _fullSync(self):
         xbmc.executebuiltin('InhibitIdleShutdown(true)')
-        screensaver = js.get_setting('screensaver.mode')
-        js.set_setting('screensaver.mode', '')
         if self.new_items_only is True:
             # Set views. Abort if unsuccessful
             if not self.maintainViews():
                 xbmc.executebuiltin('InhibitIdleShutdown(false)')
-                js.set_setting('screensaver.mode', screensaver)
                 return False
 
         process = {
@@ -266,7 +263,6 @@ class LibrarySync(Thread):
                     self.suspended() or
                     not process[itemtype]()):
                 xbmc.executebuiltin('InhibitIdleShutdown(false)')
-                js.set_setting('screensaver.mode', screensaver)
                 return False
 
         # Let kodi update the views in any case, since we're doing a full sync
@@ -276,7 +272,6 @@ class LibrarySync(Thread):
 
         window('plex_initialScan', clear=True)
         xbmc.executebuiltin('InhibitIdleShutdown(false)')
-        js.set_setting('screensaver.mode', screensaver)
         if window('plex_scancrashed') == 'true':
             # Show warning if itemtypes.py crashed at some point
             dialog('ok', heading='{plex}', line1=lang(39408))
@@ -295,7 +290,6 @@ class LibrarySync(Thread):
             except Exception as e:
                 # Empty movies, tv shows?
                 log.error('Path hack failed with error message: %s' % str(e))
-        js.set_setting('screensaver.mode', screensaver)
         return True
 
     def processView(self, folderItem, kodi_db, plex_db, totalnodes):
