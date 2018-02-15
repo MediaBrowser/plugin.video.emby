@@ -184,15 +184,20 @@ class PlayqueueMonitor(Thread):
             else:
                 LOG.debug('Detected new Kodi element at position %s: %s ',
                           i, new_item)
-                if playqueue.id is None:
-                    PL.init_Plex_playlist(playqueue,
-                                          kodi_item=new_item)
+                try:
+                    if playqueue.id is None:
+                        PL.init_Plex_playlist(playqueue,
+                                              kodi_item=new_item)
+                    else:
+                        PL.add_item_to_PMS_playlist(playqueue,
+                                                    i,
+                                                    kodi_item=new_item)
+                except PL.PlaylistError:
+                    # Could not add the element
+                    pass
                 else:
-                    PL.add_item_to_PMS_playlist(playqueue,
-                                                i,
-                                                kodi_item=new_item)
-                for j in range(i, len(index)):
-                    index[j] += 1
+                    for j in range(i, len(index)):
+                        index[j] += 1
         for i in reversed(index):
             if self.stopped():
                 # Chances are that we got an empty Kodi playlist due to
