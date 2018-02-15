@@ -970,6 +970,12 @@ class Kodidb_Functions():
             resume = None
         return resume
 
+    def delete_all_playstates(self):
+        """
+        Entirely resets the table bookmark and thus all resume points
+        """
+        self.cursor.execute("DELETE FROM bookmark")
+
     def addPlaystate(self, fileid, resume_seconds, total_seconds, playcount, dateplayed):
         # Delete existing resume point
         query = ' '.join((

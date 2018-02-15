@@ -247,6 +247,9 @@ class LibrarySync(Thread):
             # Set views. Abort if unsuccessful
             if not self.maintainViews():
                 return False
+            # Delete all existing resume points first
+            with kodidb.GetKodiDB('video') as kodi_db:
+                kodi_db.delete_all_playstates()
 
         process = {
             'movies': self.PlexMovies,
