@@ -32,11 +32,9 @@ class Playback_Starter(Thread):
         elif mode == 'plex_node':
             playback.process_indirect(params['key'], params['offset'])
         elif mode == 'context_menu':
-            ContextMenu()
-            result = Playback_Successful()
-            # Let default.py know!
-            pickle_me(result)
-
+            ContextMenu(kodi_id=params['kodi_id'],
+                        kodi_type=params['kodi_type'])
+ 
     def run(self):
         queue = state.COMMAND_PIPELINE_QUEUE
         LOG.info("----===## Starting Playback_Starter ##===----")

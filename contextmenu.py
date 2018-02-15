@@ -1,41 +1,36 @@
 # -*- coding: utf-8 -*-
-
 ###############################################################################
-from os import path as os_path
-from sys import path as sys_path
+from sys import listitem
+from urllib import urlencode
 
-from xbmcaddon import Addon
-from xbmc import translatePath, sleep, log, LOGERROR
+from xbmc import getCondVisibility, sleep
 from xbmcgui import Window
 
-_ADDON = Addon(id='plugin.video.plexkodiconnect')
-try:
-    _ADDON_PATH = _ADDON.getAddonInfo('path').decode('utf-8')
-except TypeError:
-    _ADDON_PATH = _ADDON.getAddonInfo('path').decode()
-try:
-    _BASE_RESOURCE = translatePath(os_path.join(
-        _ADDON_PATH,
-        'resources',
-        'lib')).decode('utf-8')
-except TypeError:
-    _BASE_RESOURCE = translatePath(os_path.join(
-        _ADDON_PATH,
-        'resources',
-        'lib')).decode()
-sys_path.append(_BASE_RESOURCE)
-
-from pickler import unpickle_me, pickl_window
-
 ###############################################################################
+
+
+def _get_kodi_type():
+    kodi_type = listitem.getVideoInfoTag().getMediaType().decode('utf-8')
+    if not kodi_type:
+        if getCondVisibility('Container.Content(albums)'):
+            kodi_type = "album"
+        elif getCondVisibility('Container.Content(artists)'):
+            kodi_type = "artist"
+        elif getCondVisibility('Container.Content(songs)'):
+            kodi_type = "song"
+        elif getCondVisibility('Container.Content(pictures)'):
+            kodi_type = "picture"
+    return kodi_type
+
 
 if __name__ == "__main__":
     WINDOW = Window(10000)
+    KODI_ID = listitem.getVideoInfoTag().getDbId()
+    KODI_TYPE = _get_kodi_type()
+    ARGS = {
+        'kodi_id': KODI_ID,
+        'kodi_type': KODI_TYPE
+    }
     while WINDOW.getProperty('plex_command'):
         sleep(20)
-    WINDOW.setProperty('plex_command', 'CONTEXT_menu')
-    while not pickl_window('plex_result'):
-        sleep(50)
-    RESULT = unpickle_me()
-    if RESULT is None:
-        log('PLEX.%s: Error encountered, aborting' % __name__, level=LOGERROR)
+    WINDOW.setProperty('plex_command', 'CONTEXT_menu?%s' % urlencode(ARGS))

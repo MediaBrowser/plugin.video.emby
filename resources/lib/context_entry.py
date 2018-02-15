@@ -38,12 +38,12 @@ class ContextMenu(object):
     """
     _selected_option = None
 
-    def __init__(self):
+    def __init__(self, kodi_id=None, kodi_type=None):
         """
         Simply instantiate with ContextMenu() - no need to call any methods
         """
-        self.kodi_id = getInfoLabel('ListItem.DBID').decode('utf-8')
-        self.kodi_type = self._get_kodi_type()
+        self.kodi_id = kodi_id
+        self.kodi_type = kodi_type
         self.plex_id = self._get_plex_id(self.kodi_id, self.kodi_type)
         if self.kodi_type:
             self.plex_type = v.PLEX_TYPE_FROM_KODI_TYPE[self.kodi_type]
@@ -60,23 +60,6 @@ class ContextMenu(object):
                 LOG.info("refreshing container")
                 sleep(500)
                 executebuiltin('Container.Refresh')
-
-    @staticmethod
-    def _get_kodi_type():
-        kodi_type = getInfoLabel('ListItem.DBTYPE').decode('utf-8')
-        if not kodi_type:
-            if getCondVisibility('Container.Content(albums)'):
-                kodi_type = v.KODI_TYPE_ALBUM
-            elif getCondVisibility('Container.Content(artists)'):
-                kodi_type = v.KODI_TYPE_ARTIST
-            elif getCondVisibility('Container.Content(songs)'):
-                kodi_type = v.KODI_TYPE_SONG
-            elif getCondVisibility('Container.Content(pictures)'):
-                kodi_type = v.KODI_TYPE_PHOTO
-            else:
-                LOG.info("kodi_type is unknown")
-                kodi_type = None
-        return kodi_type
 
     @staticmethod
     def _get_plex_id(kodi_id, kodi_type):
