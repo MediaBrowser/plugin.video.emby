@@ -444,7 +444,7 @@ def _poke_pms(pms, queue):
         if xml.get('machineIdentifier') == pms['machineIdentifier']:
             # process later
             pms['baseURL'] = url
-            pms['protocol'] = protocol
+            pms['scheme'] = protocol
             pms['ip'] = address
             pms['port'] = port
             queue.put(pms)
