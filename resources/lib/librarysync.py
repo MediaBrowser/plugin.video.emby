@@ -1290,11 +1290,14 @@ class LibrarySync(Thread):
             if status == 'buffering':
                 # Drop buffering messages immediately
                 continue
-            plex_id = str(item['ratingKey'])
+            plex_id = item['ratingKey']
+            skip = False
             for pid in (0, 1, 2):
                 if plex_id == state.PLAYER_STATES[pid]['plex_id']:
                     # Kodi is playing this item - no need to set the playstate
-                    continue
+                    skip = True
+            if skip:
+                continue
             sessionKey = item['sessionKey']
             # Do we already have a sessionKey stored?
             if sessionKey not in self.sessionKeys:
