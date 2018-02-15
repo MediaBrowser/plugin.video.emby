@@ -367,11 +367,6 @@ def init_Plex_playlist(playlist, plex_id=None, kodi_item=None):
     """
     LOG.debug('Initializing the playlist on the Plex side: %s', playlist)
     playlist.clear(kodi=False)
-    if plex_id is None and kodi_item.get('id') is None:
-        LOG.debug('We dont know plex nor Kodi id, starting lookup')
-        for playerid in js.get_player_ids():
-            json_item = js.get_item(playerid)
-            kodi_item.update(json_item)
     try:
         if plex_id:
             item = playlist_item_from_plex(plex_id)
