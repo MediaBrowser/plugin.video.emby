@@ -1585,11 +1585,11 @@ def kodiid_from_filename(path, kodi_type):
             try:
                 kodi_id, _ = kodi_db.music_id_from_filename(filename, path)
             except TypeError:
-                log.info('No Kodi audio db element found for path %s', path)
+                log.debug('No Kodi audio db element found for path %s', path)
     else:
         with GetKodiDB('video') as kodi_db:
             try:
                 kodi_id, _ = kodi_db.video_id_from_filename(filename, path)
             except TypeError:
-                log.info('No kodi video db element found for path %s', path)
+                log.debug('No kodi video db element found for path %s', path)
     return kodi_id

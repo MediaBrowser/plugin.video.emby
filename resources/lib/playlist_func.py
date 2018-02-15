@@ -11,6 +11,7 @@ from downloadutils import DownloadUtils as DU
 from utils import try_encode, escape_html
 from PlexAPI import API
 from PlexFunctions import GetPlexMetadata
+from kodidb_functions import kodiid_from_filename
 import json_rpc as js
 import variables as v
 
@@ -248,6 +249,42 @@ def playlist_item_from_kodi(kodi_item):
     return item
 
 
+def verify_kodi_item(plex_id, kodi_item):
+    """
+    Tries to lookup kodi_id and kodi_type for kodi_item (with kodi_item['file']
+    supplied) - if and only if plex_id is None.
+
+    Returns the kodi_item with kodi_item['id'] and kodi_item['type'] possibly
+    set to None if unsuccessful.
+
+    Will raise a PlaylistError if plex_id is None and kodi_item['file'] starts
+    with either 'plugin' or 'http'
+    """
+    if plex_id is not None or kodi_item.get('id') is not None:
+        # Got all the info we need
+        return kodi_item
+    # Need more info since we don't have kodi_id nor type. Use file path.
+    if (kodi_item['file'].startswith('plugin') or
+            kodi_item['file'].startswith('http')):
+        raise PlaylistError('Cannot start our plex playlist, aborting')
+    LOG.debug('Starting research for Kodi id since we didnt get one: %s',
+              kodi_item)
+    kodi_id = kodiid_from_filename(kodi_item['file'], v.KODI_TYPE_MOVIE)
+    kodi_item['type'] = v.KODI_TYPE_MOVIE
+    if kodi_id is None:
+        kodi_id = kodiid_from_filename(kodi_item['file'],
+                                       v.KODI_TYPE_EPISODE)
+        kodi_item['type'] = v.KODI_TYPE_EPISODE
+    if kodi_id is None:
+        kodi_id = kodiid_from_filename(kodi_item['file'],
+                                       v.KODI_TYPE_SONG)
+        kodi_item['type'] = v.KODI_TYPE_SONG
+    kodi_item['id'] = kodi_id
+    kodi_item['type'] = None if kodi_id is None else kodi_item['type']
+    LOG.debug('Research results for kodi_item: %s', kodi_item)
+    return kodi_item
+
+
 def playlist_item_from_plex(plex_id):
     """
     Returns a playlist element providing the plex_id ("ratingKey")
@@ -367,6 +404,7 @@ def init_Plex_playlist(playlist, plex_id=None, kodi_item=None):
     """
     LOG.debug('Initializing the playlist on the Plex side: %s', playlist)
     playlist.clear(kodi=False)
+    verify_kodi_item(plex_id, kodi_item)
     try:
         if plex_id:
             item = playlist_item_from_plex(plex_id)
@@ -459,6 +497,7 @@ def add_item_to_PMS_playlist(playlist, pos, plex_id=None, kodi_item=None):
 
     Returns the PKC PlayList item or raises PlaylistError
     """
+    verify_kodi_item(plex_id, kodi_item)
     if plex_id:
         item = playlist_item_from_plex(plex_id)
     else:
