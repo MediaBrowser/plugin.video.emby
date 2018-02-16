@@ -195,6 +195,13 @@ class PlayqueueMonitor(Thread):
                 except PL.PlaylistError:
                     # Could not add the element
                     pass
+                except IndexError:
+                    # This is really a hack - happens when using Addon Paths
+                    # and repeatedly  starting the same element. Kodi will then
+                    # not pass kodi id nor file path AND will also not
+                    # start-up playback. Hence kodimonitor kicks off playback.
+                    # Also see kodimonitor.py - _playlist_onadd()
+                    pass
                 else:
                     for j in range(i, len(index)):
                         index[j] += 1

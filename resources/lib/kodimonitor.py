@@ -217,6 +217,7 @@ class KodiMonitor(Monitor):
             # Hack we need for RESUMABLE items because Kodi lost the path of the
             # last played item that is now being replayed (see playback.py's
             # Player().play())
+            # Also see playqueue.py _compare_playqueues()
             LOG.info('Detected re-start of playback of last item')
             old = state.OLD_PLAYER_STATES[data['playlistid']]
             kwargs = {
