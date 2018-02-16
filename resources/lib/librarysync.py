@@ -1525,7 +1525,7 @@ class LibrarySync(Thread):
                 currentVersion = settings('dbCreatedWithVersion')
                 if not compare_version(currentVersion, v.MIN_DB_VERSION):
                     log.warn("Db version out of date: %s minimum version "
-                             "required: %s", (currentVersion, v.MIN_DB_VERSION))
+                             "required: %s", currentVersion, v.MIN_DB_VERSION)
                     # DB out of date. Proceed to recreate?
                     resp = dialog('yesno',
                                   heading=lang(29999),
