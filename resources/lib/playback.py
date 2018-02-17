@@ -36,9 +36,6 @@ def playback_triage(plex_id=None, plex_type=None, path=None, resolve=True):
     Hit this function for addon path playback, Plex trailers, etc.
     Will setup playback first, then on second call complete playback.
 
-        path: either the complete plugin://plugin.video.plexkodiconnect path
-              OR just the query '?plex_id=458160&mode=play&plex_type=movie'
-
     Will set Playback_Successful() with potentially a PKC_ListItem() attached
     (to be consumed by setResolvedURL in default.py)
 
@@ -68,7 +65,7 @@ def playback_triage(plex_id=None, plex_type=None, path=None, resolve=True):
     LOG.debug('playQueue position: %s for %s', pos, playqueue)
     # Have we already initiated playback?
     try:
-        item = playqueue.items[pos]
+        playqueue.items[pos]
     except IndexError:
         # Release our default.py before starting our own Kodi player instance
         if resolve is True:
@@ -78,20 +75,8 @@ def playback_triage(plex_id=None, plex_type=None, path=None, resolve=True):
             pickle_me(result)
         playback_init(plex_id, plex_type, playqueue)
     else:
-        if item.playback_init is False:
-            # Hack: we need to use setResolvedUrl twice. Otherwise, Kodi
-            # overwrites the path in the Kodi database (addon-path) with the
-            # result of the first setResolvedUrl
-            item.playback_init = True
-            if not path.startswith('plugin://'):
-                path = 'plugin://%s%s' % (v.ADDON_ID, path)
-            LOG.debug('Initializing playback for one item using path %s', path)
-            result = Playback_Successful()
-            result.listitem = PKC_ListItem(path=path)
-            pickle_me(result)
-        else:
-            # kick off playback on second pass
-            conclude_playback(playqueue, pos)
+        # kick off playback on second pass
+        conclude_playback(playqueue, pos)
 
 
 def playback_init(plex_id, plex_type, playqueue):

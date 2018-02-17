@@ -28,7 +28,7 @@ class Playback_Starter(Thread):
         if mode == 'play':
             playback.playback_triage(plex_id=params.get('plex_id'),
                                      plex_type=params.get('plex_type'),
-                                     path=item)
+                                     path=params.get('path'))
         elif mode == 'plex_node':
             playback.process_indirect(params['key'], params['offset'])
         elif mode == 'context_menu':

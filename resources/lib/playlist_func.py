@@ -138,8 +138,6 @@ class Playlist_Item(object):
     offset = None      [int] the item's view offset UPON START in Plex time
     part = 0           [int] part number if Plex video consists of mult. parts
     force_transcode    [bool] defaults to False
-    playback_init      [bool] Hack to use setResolvedUrl twice (and thus only
-                        "correctly") if playback_init is set to True
     """
     def __init__(self):
         self.id = None
@@ -158,7 +156,6 @@ class Playlist_Item(object):
         # If Plex video consists of several parts; part number
         self.part = 0
         self.force_transcode = False
-        self.playback_init = False
 
     def __repr__(self):
         """
