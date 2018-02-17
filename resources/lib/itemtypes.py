@@ -259,7 +259,7 @@ class Movies(Items):
 
         trailer = api.trailer_id()
         if trailer:
-            trailer = ('plugin://%s?plex_id=%s&plex_type=%s&mode=play'
+            trailer = ('plugin://%s/movies/?plex_id=%s&plex_type=%s&mode=play'
                        % (v.ADDON_ID, trailer, v.PLEX_TYPE_CLIP))
 
         # GET THE FILE AND PATH #####
@@ -283,7 +283,7 @@ class Movies(Items):
                 path = playurl.replace(filename, "")
         if do_indirect:
             # Set plugin path and media flags using real filename
-            path = 'plugin://%s' % v.ADDON_ID
+            path = 'plugin://%s/movies/' % v.ADDON_ID
             params = {
                 'mode': 'play',
                 'plex_id': itemid,
