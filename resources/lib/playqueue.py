@@ -15,6 +15,7 @@ from plexbmchelper.subscribers import LOCK
 from playback import play_xml
 import json_rpc as js
 import variables as v
+import kodidb_functions as kodidb
 
 ###############################################################################
 LOG = getLogger("PLEX." + __name__)
@@ -218,6 +219,7 @@ class PlayqueueMonitor(Thread):
         stopped = self.stopped
         suspended = self.suspended
         LOG.info("----===## Starting PlayqueueMonitor ##===----")
+        tested = False
         while not stopped():
             while suspended():
                 if stopped():
@@ -230,5 +232,10 @@ class PlayqueueMonitor(Thread):
                         # compare old and new playqueue
                         self._compare_playqueues(playqueue, kodi_pl)
                         playqueue.old_kodi_pl = list(kodi_pl)
-            sleep(200)
+            with kodidb.GetKodiDB('video') as kodi_db:
+                # Setup the paths for addon-paths (even when using direct paths)
+                if kodi_db.check_path() and not tested:
+                    tested = True
+                    LOG.error('NOW!')
+            sleep(50)
         LOG.info("----===## PlayqueueMonitor stopped ##===----")
