@@ -249,6 +249,9 @@ class LibrarySync(Thread):
                 return False
             # Delete all existing resume points first
             with kodidb.GetKodiDB('video') as kodi_db:
+                # Setup the paths for addon-paths (even when using direct paths)
+                kodi_db.setup_path_table()
+                # Delete all resume points because we'll get new ones
                 kodi_db.delete_all_playstates()
 
         process = {
@@ -280,15 +283,6 @@ class LibrarySync(Thread):
             if state.PMS_STATUS not in ('401', 'Auth'):
                 # Plex server had too much and returned ERROR
                 dialog('ok', heading='{plex}', line1=lang(39409))
-
-        # Path hack, so Kodis Information screen works
-        with kodidb.GetKodiDB('video') as kodi_db:
-            try:
-                kodi_db.pathHack()
-                log.info('Path hack successful')
-            except Exception as e:
-                # Empty movies, tv shows?
-                log.error('Path hack failed with error message: %s' % str(e))
         return True
 
     def processView(self, folderItem, kodi_db, plex_db, totalnodes):
