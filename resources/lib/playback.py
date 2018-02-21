@@ -5,7 +5,7 @@ from logging import getLogger
 from threading import Thread
 from urllib import urlencode
 
-from xbmc import Player, sleep, getCondVisibility
+from xbmc import Player, sleep
 
 from PlexAPI import API
 from PlexFunctions import GetPlexMetadata, init_plex_playqueue
@@ -47,10 +47,8 @@ def playback_triage(plex_id=None, plex_type=None, path=None, resolve=True):
     the first pass - e.g. if you're calling this function from the original
     service.py Python instance
     """
-    # Widget playback? Pain in the butt...
-    widget = getCondVisibility('Window.IsActive(home)')
-    LOG.info('playback_triage called with plex_id %s, plex_type %s, path %s,'
-             ' widget playback: %s', plex_id, plex_type, path, widget)
+    LOG.info('playback_triage called with plex_id %s, plex_type %s, path %s',
+             plex_id, plex_type, path)
     if not state.AUTHENTICATED:
         LOG.error('Not yet authenticated for PMS, abort starting playback')
         if resolve is True:
@@ -70,18 +68,18 @@ def playback_triage(plex_id=None, plex_type=None, path=None, resolve=True):
         playqueue.items[pos]
     except IndexError:
         # Release our default.py before starting our own Kodi player instance
-        if resolve is True and not widget:
+        if resolve is True:
             state.PKC_CAUSED_STOP = True
             result = Playback_Successful()
             result.listitem = PKC_ListItem(path='PKC_Dummy_Path_Which_Fails')
             pickle_me(result)
-        playback_init(plex_id, plex_type, playqueue, widget)
+        playback_init(plex_id, plex_type, playqueue)
     else:
         # kick off playback on second pass
         conclude_playback(playqueue, pos)
 
 
-def playback_init(plex_id, plex_type, playqueue, widget):
+def playback_init(plex_id, plex_type, playqueue):
     """
     Playback setup if Kodi starts playing an item for the first time.
     """
@@ -121,47 +119,24 @@ def playback_init(plex_id, plex_type, playqueue, widget):
         # Should already be empty, but just in case
         PL.get_playlist_details_from_xml(playqueue, xml)
     stack = _prep_playlist_stack(xml)
-    if widget:
-        # Need to use setResolvedUrl when using widgets :-(
-        # Grab the very first item of our stack
-        stack_item = stack.pop(0)
-        # Get the PKC playlist element
-        item = PL.playlist_item_from_xml(playqueue,
-                                         stack_item['xml_video_element'],
-                                         stack_item['kodi_id'],
-                                         stack_item['kodi_type'])
-        item.playcount = stack_item['playcount']
-        item.offset = stack_item['offset']
-        item.part = stack_item['part']
-        item.id = stack_item['id']
-        item.force_transcode = state.FORCE_TRANSCODE
-        # Only add our very first item to our playqueue
-        playqueue.items.append(item)
-        # Conclude the playback with setResolvedUrl
-        LOG.debug('Start concluding playback for 1st widget element')
-        conclude_playback(playqueue, 0)
-        LOG.debug('Add remaining items to playqueues for widget playback')
-        _process_stack(playqueue, stack)
-    else:
-        # Sleep a bit to let setResolvedUrl do its thing - bit ugly
-        sleep(200)
-        _process_stack(playqueue, stack)
-        # New thread to release this one sooner (e.g. harddisk spinning up)
-        thread = Thread(target=Player().play,
-                        args=(playqueue.kodi_pl, ))
-        thread.setDaemon(True)
-        LOG.info('Done initializing PKC playback, starting Kodi player')
-        # By design, PKC will start Kodi playback using Player().play(). Kodi
-        # caches paths like our plugin://pkc. If we use Player().play() between
-        # 2 consecutive startups of exactly the same Kodi library item, Kodi's
-        # cache will have been flushed for some reason. Hence the 2nd call for
-        # plugin://pkc will be lost; Kodi will try to startup playback for an
-        # empty path: log entry is "CGUIWindowVideoBase::OnPlayMedia <missing
-        # path>"
-        thread.start()
+    # Sleep a bit to let setResolvedUrl do its thing - bit ugly
+    sleep(200)
+    _process_stack(playqueue, stack)
     # Reset some playback variables
     state.CONTEXT_MENU_PLAY = False
     state.FORCE_TRANSCODE = False
+    # New thread to release this one sooner (e.g. harddisk spinning up)
+    thread = Thread(target=Player().play,
+                    args=(playqueue.kodi_pl, ))
+    thread.setDaemon(True)
+    LOG.info('Done initializing PKC playback, starting Kodi player')
+    # By design, PKC will start Kodi playback using Player().play(). Kodi
+    # caches paths like our plugin://pkc. If we use Player().play() between
+    # 2 consecutive startups of exactly the same Kodi library item, Kodi's
+    # cache will have been flushed for some reason. Hence the 2nd call for
+    # plugin://pkc will be lost; Kodi will try to startup playback for an empty
+    # path: log entry is "CGUIWindowVideoBase::OnPlayMedia <missing path>"
+    thread.start()
 
 
 def _prep_playlist_stack(xml):
