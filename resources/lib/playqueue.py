@@ -185,12 +185,6 @@ class PlayqueueMonitor(Thread):
             else:
                 LOG.debug('Detected new Kodi element at position %s: %s ',
                           i, new_item)
-                if playqueue.id is None and (not state.DIRECT_PATHS or
-                                             state.CONTEXT_MENU_PLAY):
-                    # Only initialize if directly fired up using direct paths.
-                    # Otherwise let default.py do its magic
-                    LOG.debug('Not yet initiating playback')
-                    return
                 try:
                     if playqueue.id is None:
                         PL.init_Plex_playlist(playqueue, kodi_item=new_item)
@@ -233,8 +227,14 @@ class PlayqueueMonitor(Thread):
                 for playqueue in PLAYQUEUES:
                     kodi_pl = js.playlist_get_items(playqueue.playlistid)
                     if playqueue.old_kodi_pl != kodi_pl:
-                        # compare old and new playqueue
-                        self._compare_playqueues(playqueue, kodi_pl)
+                        if playqueue.id is None and (not state.DIRECT_PATHS or
+                                                     state.CONTEXT_MENU_PLAY):
+                            # Only initialize if directly fired up using direct
+                            # paths. Otherwise let default.py do its magic
+                            LOG.debug('Not yet initiating playback')
+                        else:
+                            # compare old and new playqueue
+                            self._compare_playqueues(playqueue, kodi_pl)
                         playqueue.old_kodi_pl = list(kodi_pl)
             sleep(200)
         LOG.info("----===## PlayqueueMonitor stopped ##===----")
