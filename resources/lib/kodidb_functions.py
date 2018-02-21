@@ -44,20 +44,6 @@ class Kodidb_Functions():
         self.cursor = cursor
         self.artwork = artwork.Artwork()
 
-    def check_path(self):
-        query = ' '.join((
-            "SELECT idPath",
-            "FROM path",
-            "WHERE strPath = ?"
-        ))
-        self.cursor.execute(query, ('smb://TOMSNAS/PlexMovies/',))
-        try:
-            pathid = self.cursor.fetchone()[0]
-        except TypeError:
-            pathid = None
-
-        return pathid
-
     def setup_path_table(self):
         """
         Use with Kodi video DB
