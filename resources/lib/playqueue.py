@@ -15,6 +15,7 @@ from plexbmchelper.subscribers import LOCK
 from playback import play_xml
 import json_rpc as js
 import variables as v
+import state
 import kodidb_functions as kodidb
 
 ###############################################################################
@@ -185,13 +186,19 @@ class PlayqueueMonitor(Thread):
             else:
                 LOG.debug('Detected new Kodi element at position %s: %s ',
                           i, new_item)
-                if playqueue.id is None:
+                if playqueue.id is None and (not state.DIRECT_PATHS or
+                                             state.CONTEXT_MENU_PLAY):
+                    # Only initialize if directly fired up using direct paths.
+                    # Otherwise let default.py do its magic
                     LOG.debug('Not yet initiating playback')
                     return
                 try:
-                    PL.add_item_to_PMS_playlist(playqueue,
-                                                i,
-                                                kodi_item=new_item)
+                    if playqueue.id is None:
+                        PL.init_Plex_playlist(playqueue, kodi_item=new_item)
+                    else:
+                        PL.add_item_to_PMS_playlist(playqueue,
+                                                    i,
+                                                    kodi_item=new_item)
                 except PL.PlaylistError:
                     # Could not add the element
                     pass
