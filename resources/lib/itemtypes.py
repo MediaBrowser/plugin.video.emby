@@ -259,7 +259,7 @@ class Movies(Items):
 
         trailer = api.trailer_id()
         if trailer:
-            trailer = ('plugin://%s/movies/?plex_id=%s&plex_type=%s&mode=play'
+            trailer = ('plugin://%s.movies/?plex_id=%s&plex_type=%s&mode=play'
                        % (v.ADDON_ID, trailer, v.PLEX_TYPE_CLIP))
 
         # GET THE FILE AND PATH #####
@@ -283,7 +283,7 @@ class Movies(Items):
                 path = playurl.replace(filename, "")
         if do_indirect:
             # Set plugin path and media flags using real filename
-            path = 'plugin://%s/movies/' % v.ADDON_ID
+            path = 'plugin://%s.movies/' % v.ADDON_ID
             params = {
                 'mode': 'play',
                 'plex_id': itemid,
@@ -588,7 +588,7 @@ class TVShows(Items):
                     toplevelpath = "%s/" % dirname(dirname(path))
         if do_indirect:
             # Set plugin path
-            toplevelpath = "plugin://%s/tvshows/" % v.ADDON_ID
+            toplevelpath = "plugin://%s.tvshows/" % v.ADDON_ID
             path = "%s%s/" % (toplevelpath, itemid)
 
         # Add top path
@@ -910,7 +910,7 @@ class TVShows(Items):
                     filename = playurl.rsplit('/', 1)[1]
             else:
                 filename = 'file_not_found.mkv'
-            path = 'plugin://%s/tvshows/%s/' % (v.ADDON_ID, series_id)
+            path = 'plugin://%s.tvshows/%s/' % (v.ADDON_ID, series_id)
             params = {
                 'plex_id': itemid,
                 'plex_type': v.PLEX_TYPE_EPISODE,
@@ -918,7 +918,7 @@ class TVShows(Items):
             }
             filename = "%s?%s" % (path, urlencode(params))
             playurl = filename
-            parent_path_id = self.kodi_db.addPath('plugin://%s/tvshows/'
+            parent_path_id = self.kodi_db.addPath('plugin://%s.tvshows/'
                                                   % v.ADDON_ID)
 
         # add/retrieve pathid and fileid
@@ -1101,7 +1101,7 @@ class TVShows(Items):
         if not state.DIRECT_PATHS and resume:
             # Create additional entry for widgets. This is only required for
             # plugin/episode.
-            temppathid = self.kodi_db.getPath('plugin://%s/tvshows/'
+            temppathid = self.kodi_db.getPath('plugin://%s.tvshows/'
                                               % v.ADDON_ID)
             tempfileid = self.kodi_db.addFile(filename, temppathid)
             query = '''

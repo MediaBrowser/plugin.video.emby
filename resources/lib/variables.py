@@ -171,9 +171,6 @@ KODI_TYPE_MUSICVIDEO = 'musicvideo'
 
 KODI_TYPE_PHOTO = 'photo'
 
-
-# Translation tables
-
 KODI_VIDEOTYPES = (
     KODI_TYPE_VIDEO,
     KODI_TYPE_MOVIE,
@@ -188,6 +185,14 @@ KODI_AUDIOTYPES = (
     KODI_TYPE_ALBUM,
     KODI_TYPE_ARTIST,
 )
+
+# Translation tables
+
+ADDON_TYPE = {
+    PLEX_TYPE_MOVIE: 'plugin.video.plexkodiconnect.movies',
+    PLEX_TYPE_CLIP: 'plugin.video.plexkodiconnect.movies',
+    PLEX_TYPE_EPISODE: 'plugin.video.plexkodiconnect.tvshows'
+}
 
 ITEMTYPE_FROM_PLEXTYPE = {
     PLEX_TYPE_MOVIE: 'Movies',

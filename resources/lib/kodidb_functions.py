@@ -53,69 +53,49 @@ class Kodidb_Functions():
         For some reason, Kodi ignores this if done via itemtypes while e.g.
         adding or updating items. (addPath method does NOT work)
         """
-        root_path_id = self.getPath('plugin://%s/' % v.ADDON_ID)
-        if root_path_id is not None:
-            return
-        # add the very root plugin://plugin.video.plexkodiconnect to paths
-        self.cursor.execute("select coalesce(max(idPath),0) from path")
-        root_path_id = self.cursor.fetchone()[0] + 1
-        query = '''
-            INSERT INTO path(idPath,
-                             strPath,
-                             useFolderNames,
-                             noUpdate,
-                             exclude)
-            VALUES (?, ?, ?, ?, ?)
-        '''
-        self.cursor.execute(query, (root_path_id,
-                                    'plugin://%s/' % v.ADDON_ID,
-                                    False,
-                                    True,
-                                    True))
-        # Now add the root folders for movies
-        self.cursor.execute("select coalesce(max(idPath),0) from path")
-        path_id = self.cursor.fetchone()[0] + 1
-        query = '''
-            INSERT INTO path(idPath,
-                             strPath,
-                             strContent,
-                             strScraper,
-                             useFolderNames,
-                             noUpdate,
-                             exclude,
-                             idParentPath)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        '''
-        self.cursor.execute(query, (path_id,
-                                    'plugin://%s/movies/' % v.ADDON_ID,
-                                    'movies',
-                                    'metadata.local',
-                                    False,
-                                    True,
-                                    True,
-                                    root_path_id))
+        path_id = self.getPath('plugin://%s.movies/' % v.ADDON_ID)
+        if path_id is None:
+            self.cursor.execute("select coalesce(max(idPath),0) from path")
+            path_id = self.cursor.fetchone()[0] + 1
+            query = '''
+                INSERT INTO path(idPath,
+                                 strPath,
+                                 strContent,
+                                 strScraper,
+                                 useFolderNames,
+                                 noUpdate,
+                                 exclude)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            '''
+            self.cursor.execute(query, (path_id,
+                                        'plugin://%s.movies/' % v.ADDON_ID,
+                                        'movies',
+                                        'metadata.local',
+                                        0,
+                                        1,
+                                        1))
         # And TV shows
-        self.cursor.execute("select coalesce(max(idPath),0) from path")
-        path_id = self.cursor.fetchone()[0] + 1
-        query = '''
-            INSERT INTO path(idPath,
-                             strPath,
-                             strContent,
-                             strScraper,
-                             useFolderNames,
-                             noUpdate,
-                             exclude,
-                             idParentPath)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        '''
-        self.cursor.execute(query, (path_id,
-                                    'plugin://%s/tvshows/' % v.ADDON_ID,
-                                    'tvshows',
-                                    'metadata.local',
-                                    False,
-                                    True,
-                                    True,
-                                    root_path_id))
+        path_id = self.getPath('plugin://%s.tvshows/' % v.ADDON_ID)
+        if path_id is None:
+            self.cursor.execute("select coalesce(max(idPath),0) from path")
+            path_id = self.cursor.fetchone()[0] + 1
+            query = '''
+                INSERT INTO path(idPath,
+                                 strPath,
+                                 strContent,
+                                 strScraper,
+                                 useFolderNames,
+                                 noUpdate,
+                                 exclude)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            '''
+            self.cursor.execute(query, (path_id,
+                                        'plugin://%s.tvshows/' % v.ADDON_ID,
+                                        'tvshows',
+                                        'metadata.local',
+                                        0,
+                                        1,
+                                        1))
 
     def getParentPathId(self, path):
         """
