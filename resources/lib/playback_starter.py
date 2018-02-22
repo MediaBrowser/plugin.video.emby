@@ -4,7 +4,6 @@ from logging import getLogger
 from threading import Thread
 from urlparse import parse_qsl
 
-from pickler import pickle_me, Playback_Successful
 import playback
 from context_entry import ContextMenu
 import state
@@ -34,7 +33,7 @@ class Playback_Starter(Thread):
         elif mode == 'context_menu':
             ContextMenu(kodi_id=params['kodi_id'],
                         kodi_type=params['kodi_type'])
- 
+
     def run(self):
         queue = state.COMMAND_PIPELINE_QUEUE
         LOG.info("----===## Starting Playback_Starter ##===----")
