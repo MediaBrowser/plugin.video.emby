@@ -164,15 +164,9 @@ def _prep_playlist_stack(xml):
                     'plex_id': api.plex_id(),
                     'plex_type': api.plex_type()
                 }
-                if api.plex_type() == v.PLEX_TYPE_EPISODE:
-                    path = ('plugin://%s/%s/?%s'
-                            % (v.ADDON_TYPE[api.plex_type()],
-                               api.grandparent_id(),
-                               urlencode(params)))
-                else:
-                    path = ('plugin://%s/?%s'
-                            % (v.ADDON_TYPE[api.plex_type()],
-                               urlencode(params)))
+                path = ('plugin://%s/?%s'
+                        % (v.ADDON_TYPE[api.plex_type()],
+                           urlencode(params)))
                 listitem = api.create_listitem()
                 listitem.setPath(try_encode(path))
             else:

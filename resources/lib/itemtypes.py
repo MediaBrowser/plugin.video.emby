@@ -815,7 +815,6 @@ class TVShows(Items):
             # episodeid
             kodicursor.execute("select coalesce(max(idEpisode),0) from episode")
             episodeid = kodicursor.fetchone()[0] + 1
-
         else:
             # Verification the item is still in Kodi
             query = "SELECT * FROM episode WHERE idEpisode = ?"
@@ -902,15 +901,9 @@ class TVShows(Items):
                 path = playurl.replace(filename, "")
                 parent_path_id = self.kodi_db.getParentPathId(path)
         if do_indirect:
-            # Set plugin path and media flags using real filename
-            if playurl is not None:
-                if '\\' in playurl:
-                    filename = playurl.rsplit('\\', 1)[1]
-                else:
-                    filename = playurl.rsplit('/', 1)[1]
-            else:
-                filename = 'file_not_found.mkv'
-            path = 'plugin://%s.tvshows/%s/' % (v.ADDON_ID, series_id)
+            # Set plugin path - do NOT use "intermediate" paths for the show
+            # as with direct paths!
+            path = 'plugin://%s.tvshows/' % v.ADDON_ID
             params = {
                 'plex_id': itemid,
                 'plex_type': v.PLEX_TYPE_EPISODE,
@@ -918,8 +911,6 @@ class TVShows(Items):
             }
             filename = "%s?%s" % (path, urlencode(params))
             playurl = filename
-            parent_path_id = self.kodi_db.addPath('plugin://%s.tvshows/'
-                                                  % v.ADDON_ID)
 
         # add/retrieve pathid and fileid
         # if the path or file already exists, the calls return current value
@@ -1060,15 +1051,16 @@ class TVShows(Items):
                              checksum=checksum,
                              view_id=viewid)
 
-        # Update the path
-        query = ' '.join((
-
-            "UPDATE path",
-            "SET strPath = ?, strContent = ?, strScraper = ?, noUpdate = ?, ",
-            "idParentPath = ?"
-            "WHERE idPath = ?"
-        ))
-        kodicursor.execute(query, (path, None, None, 1, parent_path_id, pathid))
+        # Update the path for Direct Paths only
+        if not do_indirect:
+            query = '''
+                UPDATE path
+                SET strPath = ?, strContent = ?, strScraper = ?, noUpdate = ?,
+                    idParentPath = ?
+                WHERE idPath = ?
+            '''
+            kodicursor.execute(query, (path, None, None, 1, parent_path_id,
+                                       pathid))
         # Update the file
         query = ' '.join((
 
@@ -1098,24 +1090,6 @@ class TVShows(Items):
                                   runtime,
                                   playcount,
                                   dateplayed)
-        if not state.DIRECT_PATHS and resume:
-            # Create additional entry for widgets. This is only required for
-            # plugin/episode.
-            temppathid = self.kodi_db.getPath('plugin://%s.tvshows/'
-                                              % v.ADDON_ID)
-            tempfileid = self.kodi_db.addFile(filename, temppathid)
-            query = '''
-                UPDATE files
-                SET idPath = ?, strFilename = ?, dateAdded = ?
-                WHERE idFile = ?
-            '''
-            kodicursor.execute(query,
-                               (temppathid, filename, dateadded, tempfileid))
-            self.kodi_db.addPlaystate(tempfileid,
-                                      resume,
-                                      runtime,
-                                      playcount,
-                                      dateplayed)
 
     def remove(self, itemid):
         """
