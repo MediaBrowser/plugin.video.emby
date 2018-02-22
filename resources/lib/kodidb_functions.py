@@ -807,16 +807,11 @@ class Kodidb_Functions():
         Returns all Kodi idFile that have a resume point set (not unwatched
         ones or items that have already been completely watched)
         """
-        cursor = self.cursor
-
-        query = ' '.join((
-            "SELECT idFile",
-            "FROM bookmark"
-        ))
-        try:
-            rows = cursor.execute(query)
-        except:
-            return []
+        query = '''
+            SELECT idFile
+            FROM bookmark
+        '''
+        rows = self.cursor.execute(query)
         ids = []
         for row in rows:
             ids.append(row[0])
@@ -1010,37 +1005,40 @@ class Kodidb_Functions():
         """
         self.cursor.execute("DELETE FROM bookmark")
 
-    def addPlaystate(self, fileid, resume_seconds, total_seconds, playcount, dateplayed):
+    def addPlaystate(self, fileid, resume_seconds, total_seconds, playcount,
+                     dateplayed):
         # Delete existing resume point
-        query = ' '.join((
-
-            "DELETE FROM bookmark",
-            "WHERE idFile = ?"
-        ))
+        query = '''
+            DELETE FROM bookmark
+            WHERE idFile = ?
+        '''
         self.cursor.execute(query, (fileid,))
-        
         # Set watched count
-        query = ' '.join((
-
-            "UPDATE files",
-            "SET playCount = ?, lastPlayed = ?",
-            "WHERE idFile = ?"
-        ))
+        query = '''
+            UPDATE files
+            SET playCount = ?, lastPlayed = ?
+            WHERE idFile = ?
+        '''
         self.cursor.execute(query, (playcount, dateplayed, fileid))
-        
         # Set the resume bookmark
         if resume_seconds:
-            self.cursor.execute("select coalesce(max(idBookmark),0) from bookmark")
-            bookmarkId =  self.cursor.fetchone()[0] + 1
+            self.cursor.execute(
+                'select coalesce(max(idBookmark),0) from bookmark')
+            bookmark_id = self.cursor.fetchone()[0] + 1
             query = '''
             INSERT INTO bookmark(
                 idBookmark, idFile, timeInSeconds, totalTimeInSeconds,
                 thumbNailImage, player, playerState, type)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             '''
-            self.cursor.execute(query, (bookmarkId, fileid, resume_seconds,
-                                        total_seconds, None, "DVDPlayer", 
-                                        None, 1))
+            self.cursor.execute(query, (bookmark_id,
+                                        fileid,
+                                        resume_seconds,
+                                        total_seconds,
+                                        '',
+                                        "VideoPlayer",
+                                        '',
+                                        1))
 
     def addTags(self, kodiid, tags, mediatype):
         # First, delete any existing tags associated to the id
