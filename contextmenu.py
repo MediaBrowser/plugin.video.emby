@@ -23,14 +23,26 @@ def _get_kodi_type():
     return kodi_type
 
 
-if __name__ == "__main__":
-    WINDOW = Window(10000)
-    KODI_ID = listitem.getVideoInfoTag().getDbId()
-    KODI_TYPE = _get_kodi_type()
-    ARGS = {
-        'kodi_id': KODI_ID,
-        'kodi_type': KODI_TYPE
+def main():
+    """
+    Grabs kodi_id and kodi_type and sends a request to our main python instance
+    that context menu needs to be displayed
+    """
+    window = Window(10000)
+    kodi_id = listitem.getVideoInfoTag().getDbId()
+    if kodi_id == -1:
+        # There is no getDbId() method for getMusicInfoTag
+        # YET TO BE IMPLEMENTED - lookup ID using path
+        kodi_id = listitem.getMusicInfoTag().getURL()
+    kodi_type = _get_kodi_type()
+    args = {
+        'kodi_id': kodi_id,
+        'kodi_type': kodi_type
     }
-    while WINDOW.getProperty('plex_command'):
+    while window.getProperty('plex_command'):
         sleep(20)
-    WINDOW.setProperty('plex_command', 'CONTEXT_menu?%s' % urlencode(ARGS))
+    window.setProperty('plex_command', 'CONTEXT_menu?%s' % urlencode(args))
+
+
+if __name__ == "__main__":
+    main()
