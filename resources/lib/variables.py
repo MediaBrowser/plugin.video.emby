@@ -191,7 +191,8 @@ KODI_AUDIOTYPES = (
 ADDON_TYPE = {
     PLEX_TYPE_MOVIE: 'plugin.video.plexkodiconnect.movies',
     PLEX_TYPE_CLIP: 'plugin.video.plexkodiconnect.movies',
-    PLEX_TYPE_EPISODE: 'plugin.video.plexkodiconnect.tvshows'
+    PLEX_TYPE_EPISODE: 'plugin.video.plexkodiconnect.tvshows',
+    PLEX_TYPE_SONG: 'plugin.video.plexkodiconnect'
 }
 
 ITEMTYPE_FROM_PLEXTYPE = {
