@@ -41,7 +41,7 @@ from xbmcvfs import exists
 import clientinfo as client
 from downloadutils import DownloadUtils as DU
 from utils import window, settings, language as lang, try_decode, try_encode, \
-    unix_date_to_kodi, exists_dir, slugify, dialog
+    unix_date_to_kodi, exists_dir, slugify, dialog, escape_html
 import PlexFunctions as PF
 import plexdb_functions as plexdb
 import variables as v
@@ -364,6 +364,17 @@ class API(object):
             if child.tag == 'Genre':
                 genre.append(child.attrib['tag'])
         return genre
+
+    def guid_html_escaped(self):
+        """
+        Returns the 'guid' attribute, e.g.
+            'com.plexapp.agents.thetvdb://76648/2/4?lang=en'
+        as an HTML-escaped string or None
+        """
+        answ = self.item.get('guid')
+        if answ is not None:
+            answ = escape_html(answ)
+        return answ
 
     def provider(self, providername=None):
         """
