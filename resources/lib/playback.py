@@ -291,9 +291,9 @@ def _conclude_playback(playqueue, pos):
     else:
         playurl = item.file
     listitem.setPath(try_encode(playurl))
-    if item.playmethod in ('DirectStream', 'DirectPlay'):
+    if item.playmethod == 'DirectStream':
         listitem.setSubtitles(api.cache_external_subs())
-    else:
+    elif item.playmethod == 'Transcode':
         playutils.audio_subtitle_prefs(listitem)
     if state.RESUME_PLAYBACK is True:
         state.RESUME_PLAYBACK = False
