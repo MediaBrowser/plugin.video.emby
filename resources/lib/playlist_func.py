@@ -190,8 +190,16 @@ class Playlist_Item(object):
         """
         stream_type = v.PLEX_STREAM_TYPE_FROM_STREAM_TYPE[stream_type]
         count = 0
+        # Kodi indexes differently than Plex
         for stream in self.xml[0][self.part]:
-            if stream.attrib['streamType'] == stream_type:
+            if (stream.attrib['streamType'] == stream_type and 
+                    'key' in stream.attrib):
+                if count == kodi_stream_index:
+                    return stream.attrib['id']
+                count += 1
+        for stream in self.xml[0][self.part]:
+            if (stream.attrib['streamType'] == stream_type and 
+                    'key' not in stream.attrib):
                 if count == kodi_stream_index:
                     return stream.attrib['id']
                 count += 1
@@ -208,7 +216,14 @@ class Playlist_Item(object):
         stream_type = v.PLEX_STREAM_TYPE_FROM_STREAM_TYPE[stream_type]
         count = 0
         for stream in self.xml[0][self.part]:
-            if stream.attrib['streamType'] == stream_type:
+            if (stream.attrib['streamType'] == stream_type and
+                    'key' in stream.attrib):
+                if stream.attrib['id'] == plex_stream_index:
+                    return count
+                count += 1
+        for stream in self.xml[0][self.part]:
+            if (stream.attrib['streamType'] == stream_type and
+                    'key' not in stream.attrib):
                 if stream.attrib['id'] == plex_stream_index:
                     return count
                 count += 1
