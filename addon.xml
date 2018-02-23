@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon  id="plugin.video.plexkodiconnect" name="PlexKodiConnect" version="2.0.3" provider-name="croneter">
+<addon  id="plugin.video.plexkodiconnect" name="PlexKodiConnect" version="2.0.4" provider-name="croneter">
   <requires>
     <import addon="xbmc.python" version="2.1.0"/>
     <import addon="script.module.requests" version="2.9.1" />
@@ -61,7 +61,22 @@
     <summary lang="da_DK">Indbygget Integration af Plex i Kodi</summary>
     <description lang="da_DK">Tilslut Kodi til din Plex Media Server. Dette plugin forudsætter, at du administrere alle dine videoer med Plex (og ikke med Kodi). Du kan miste data som allerede er gemt i Kodi video og musik-databaser (dette plugin ændrer direkte i dem). Brug på eget ansvar!</description>
     <disclaimer lang="da_DK">Brug på eget ansvar</disclaimer>
-    <news>version 2.0.3 (beta only):
+    <news>version 2.0.4 (beta only):
+- WARNING: You will need to reset the Kodi database!
+- Many improvements to the Kodi database handling which should get rid of some weird bugs
+- Many improvements to playback startup
+- Fix info screen and actors not working
+- Fix Companion displaying and selecting wrong subtitle
+- Don't cache subtitles if direct playing
+- Wipe all existing resume point, e.g. on user switch
+- Don't mess with Kodi's screensaver settings
+- Inhibit idle shutdown only during initial sync
+- Fix KeyError for server discovery 
+- Increase Python requests dependency to version 2.9.1
+- Re-introduce PlexKodiConnect dependency add-ons for movies and tv shows
+- And a lot of other stuff
+
+version 2.0.3 (beta only):
 - Fix Alexa playback
 - Fix Kodi boot loop
 - Fix playback being reported to the wrong Plex user
