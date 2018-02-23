@@ -62,18 +62,16 @@ class Kodidb_Functions():
                                  strPath,
                                  strContent,
                                  strScraper,
-                                 useFolderNames,
                                  noUpdate,
                                  exclude)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?)
             '''
             self.cursor.execute(query, (path_id,
                                         'plugin://%s.movies/' % v.ADDON_ID,
                                         'movies',
                                         'metadata.local',
-                                        0,
                                         1,
-                                        1))
+                                        0))
         # And TV shows
         path_id = self.getPath('plugin://%s.tvshows/' % v.ADDON_ID)
         if path_id is None:
@@ -84,18 +82,16 @@ class Kodidb_Functions():
                                  strPath,
                                  strContent,
                                  strScraper,
-                                 useFolderNames,
                                  noUpdate,
                                  exclude)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?)
             '''
             self.cursor.execute(query, (path_id,
                                         'plugin://%s.tvshows/' % v.ADDON_ID,
                                         'tvshows',
                                         'metadata.local',
-                                        0,
                                         1,
-                                        1))
+                                        0))
 
     def getParentPathId(self, path):
         """
