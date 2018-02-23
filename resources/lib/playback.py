@@ -100,6 +100,8 @@ def _playback_init(plex_id, plex_type, playqueue, pos):
         return
     # "Usual" case - consider trailers and parts and build both Kodi and Plex
     # playqueues
+    # Fail the item we're trying to play now so we can restart the player
+    _ensure_resolve()
     api = API(xml[0])
     trailers = False
     if (plex_type == v.PLEX_TYPE_MOVIE and not api.resume_point() and
