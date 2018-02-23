@@ -365,7 +365,7 @@ class Kodidb_Functions():
         return castorder
 
     def addPeople(self, kodiid, people, mediatype):
-        castorder = 1
+        castorder = 0
         for person in people:
             # Kodi Isengard, Jarvis, Krypton
             if v.KODIVERSION > 14:
