@@ -645,14 +645,15 @@ class API(object):
         """
         Returns the ratingKey (plex_id) of the trailer or None
         """
-        for extra in self.item.iterfind('Extras'):
-            try:
-                typus = int(extra.attrib['extraType'])
-            except (KeyError, TypeError):
-                typus = None
-            if typus != 1:
-                continue
-            return extra.get('ratingKey')
+        for extras in self.item.iterfind('Extras'):
+            for extra in extras:
+                try:
+                    typus = int(extra.attrib['extraType'])
+                except (KeyError, TypeError):
+                    typus = None
+                if typus != 1:
+                    continue
+                return extra.get('ratingKey')
 
     def mediastreams(self):
         """
