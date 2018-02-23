@@ -337,22 +337,14 @@ class API(object):
         """
         people = []
         for child in self.item:
-            if child.tag in PEOPLE_OF_INTEREST.keys():
-                name = child.attrib['tag']
-                name_id = child.attrib['id']
-                typus = PEOPLE_OF_INTEREST[child.tag]
-                url = child.get('thumb')
-                role = child.get('role')
+            if child.tag in PEOPLE_OF_INTEREST:
                 people.append({
-                    'Name': name,
-                    'Type': typus,
-                    'Id': name_id,
-                    'imageurl': url
+                    'Name': child.attrib['tag'],
+                    'Type': PEOPLE_OF_INTEREST[child.tag],
+                    'Id': child.attrib['id'],
+                    'imageurl': child.get('thumb'),
+                    'Role': child.get('role')
                 })
-                if url:
-                    people[-1].update({'imageurl': url})
-                if role:
-                    people[-1].update({'Role': role})
         return people
 
     def genre_list(self):
