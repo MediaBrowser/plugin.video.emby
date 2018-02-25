@@ -10,7 +10,7 @@ import variables as v
 
 ###############################################################################
 
-log = getLogger("PLEX."+__name__)
+LOG = getLogger("PLEX." + __name__)
 
 ###############################################################################
 
@@ -254,7 +254,7 @@ class Kodidb_Functions():
 
                 query = "INSERT INTO country(country_id, name) values(?, ?)"
                 self.cursor.execute(query, (country_id, country))
-                log.debug("Add country to media, processing: %s" % country)
+                LOG.debug("Add country to media, processing: %s", country)
 
             finally: # Assign country to content
                 query = (
@@ -413,7 +413,7 @@ class Kodidb_Functions():
                 
                 query = "INSERT INTO genre(genre_id, name) values(?, ?)"
                 self.cursor.execute(query, (genre_id, genre))
-                log.debug("Add Genres to media, processing: %s" % genre)
+                LOG.debug("Add Genres to media, processing: %s", genre)
             
             finally:
                 # Assign genre to item
@@ -447,7 +447,7 @@ class Kodidb_Functions():
 
                 query = "INSERT INTO studio(studio_id, name) values(?, ?)"
                 self.cursor.execute(query, (studioid, studio))
-                log.debug("Add Studios to media, processing: %s" % studio)
+                LOG.debug("Add Studios to media, processing: %s", studio)
 
             finally: # Assign studio to item
                 query = (
@@ -557,7 +557,7 @@ class Kodidb_Functions():
         self.cursor.execute(query, (filename,))
         files = self.cursor.fetchall()
         if len(files) == 0:
-            log.info('Did not find any file, abort')
+            LOG.info('Did not find any file, abort')
             return
         query = ' '.join((
             "SELECT strPath",
@@ -581,12 +581,12 @@ class Kodidb_Functions():
             if strPath == path:
                 result.append(file[0])
         if len(result) == 0:
-            log.info('Did not find matching paths, abort')
+            LOG.info('Did not find matching paths, abort')
             return
         # Kodi seems to make ONE temporary entry; we only want the earlier,
         # permanent one
         if len(result) > 2:
-            log.warn('We found too many items with matching filenames and '
+            LOG.warn('We found too many items with matching filenames and '
                      ' paths, aborting')
             return
         idFile = result[0]
@@ -613,7 +613,7 @@ class Kodidb_Functions():
                 itemId = self.cursor.fetchone()[0]
                 typus = v.KODI_TYPE_EPISODE
             except TypeError:
-                log.warn('Unexpectantly did not find a match!')
+                LOG.warn('Unexpectantly did not find a match!')
                 return
         return itemId, typus
 
@@ -630,7 +630,7 @@ class Kodidb_Functions():
         self.cursor.execute(query, (path,))
         path_id = self.cursor.fetchall()
         if len(path_id) != 1:
-            log.error('Found wrong number of path ids: %s for path %s, abort',
+            LOG.error('Found wrong number of path ids: %s for path %s, abort',
                      path_id, path)
             return
         query = '''
@@ -641,7 +641,7 @@ class Kodidb_Functions():
         self.cursor.execute(query, (filename, path_id[0]))
         song_id = self.cursor.fetchall()
         if len(song_id) != 1:
-            log.info('Found wrong number of songs %s, abort', song_id)
+            LOG.info('Found wrong number of songs %s, abort', song_id)
             return
         return song_id[0]
 
@@ -755,7 +755,7 @@ class Kodidb_Functions():
         self.cursor.execute(query, (kodiid, mediatype))
     
         # Add tags
-        log.debug("Adding Tags: %s" % tags)
+        LOG.debug("Adding Tags: %s", tags)
         for tag in tags:
             self.addTag(kodiid, tag, mediatype)
 
@@ -774,7 +774,7 @@ class Kodidb_Functions():
         except TypeError:
             # Create the tag, because it does not exist
             tag_id = self.createTag(tag)
-            log.debug("Adding tag: %s" % tag)
+            LOG.debug("Adding tag: %s", tag)
 
         finally:
             # Assign tag to item
@@ -807,7 +807,7 @@ class Kodidb_Functions():
 
             query = "INSERT INTO tag(tag_id, name) values(?, ?)"
             self.cursor.execute(query, (tag_id, name))
-            log.debug("Create tag_id: %s name: %s" % (tag_id, name))
+            LOG.debug("Create tag_id: %s name: %s", tag_id, name)
         return tag_id
 
     def updateTag(self, oldtag, newtag, kodiid, mediatype):
@@ -863,7 +863,7 @@ class Kodidb_Functions():
 
     def createBoxset(self, boxsetname):
 
-        log.debug("Adding boxset: %s" % boxsetname)
+        LOG.debug("Adding boxset: %s", boxsetname)
         query = ' '.join((
 
             "SELECT idSet",
@@ -1202,11 +1202,11 @@ def kodiid_from_filename(path, kodi_type):
             try:
                 kodi_id, _ = kodi_db.music_id_from_filename(filename, path)
             except TypeError:
-                log.debug('No Kodi audio db element found for path %s', path)
+                LOG.debug('No Kodi audio db element found for path %s', path)
     else:
         with GetKodiDB('video') as kodi_db:
             try:
                 kodi_id, _ = kodi_db.video_id_from_filename(filename, path)
             except TypeError:
-                log.debug('No kodi video db element found for path %s', path)
+                LOG.debug('No kodi video db element found for path %s', path)
     return kodi_id
