@@ -942,29 +942,6 @@ class KodiDBMethods(object):
             ))
             self.cursor.execute(query, (kodiid, mediatype, oldtag,))
 
-    def removeTag(self, kodiid, tagname, mediatype):
-        query = ' '.join((
-
-            "SELECT tag_id",
-            "FROM tag",
-            "WHERE name = ?",
-            "COLLATE NOCASE"
-        ))
-        self.cursor.execute(query, (tagname,))
-        try:
-            tag_id = self.cursor.fetchone()[0]
-        except TypeError:
-            return
-        else:
-            query = ' '.join((
-
-                "DELETE FROM tag_link",
-                "WHERE media_id = ?",
-                "AND media_type = ?",
-                "AND tag_id = ?"
-            ))
-            self.cursor.execute(query, (kodiid, mediatype, tag_id,))
-
     def addSets(self, movieid, collections, kodicursor):
         for setname in collections:
             setid = self.createBoxset(setname)
