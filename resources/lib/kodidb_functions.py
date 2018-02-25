@@ -506,6 +506,16 @@ class KodiDBMethods(object):
                 '''
                 self.cursor.execute(query, (genre_id, kodi_id, kodi_type))
 
+    def delete_genre(self, kodi_id, kodi_type):
+        """
+        Removes the genre links as well as orphaned genres from the Kodi DB
+        """
+        self._delete_from_link_and_table(kodi_id,
+                                         kodi_type,
+                                         'genre_link',
+                                         'genre',
+                                         'genre_id')
+
     def addStudios(self, kodiid, studios, mediatype):
         for studio in studios:
             query = ' '.join((

@@ -482,6 +482,7 @@ class Movies(Items):
         if kodi_type == v.KODI_TYPE_MOVIE:
             self.kodi_db.delete_countries(kodi_id, kodi_type)
             self.kodi_db.delete_people(kodi_id, kodi_type)
+            self.kodi_db.delete_genre(kodi_id, kodi_type)
             # Delete kodi movie and file
             kodicursor.execute("DELETE FROM movie WHERE idMovie = ?",
                                (kodi_id,))
@@ -1205,6 +1206,7 @@ class TVShows(Items):
         Remove a TV show, and only the show, no seasons or episodes
         """
         kodicursor = self.kodicursor
+        self.kodi_db.delete_genre(kodi_id, v.KODI_TYPE_SHOW)
         self.artwork.deleteArtwork(kodi_id, v.KODI_TYPE_SHOW, kodicursor)
         kodicursor.execute("DELETE FROM tvshow WHERE idShow = ?", (kodi_id,))
         if v.KODIVERSION >= 17:
