@@ -470,51 +470,34 @@ class KodiDBMethods(object):
         result['Backdrop'] = [d[0] for d in data]
         return result
 
-    def addGenres(self, kodiid, genres, mediatype):
+    def addGenres(self, kodi_id, genres, kodi_type):
+        """
+        Adds the genres (list of strings) to the Kodi DB and associates them
+        with the element kodi_id, kodi_type
+        """
         # Delete current genres for clean slate
-        query = ' '.join((
-
-            "DELETE FROM genre_link",
-            "WHERE media_id = ?",
-            "AND media_type = ?"
-        ))
-        self.cursor.execute(query, (kodiid, mediatype,))
-
+        query = 'DELETE FROM genre_link WHERE media_id = ? AND media_type = ?'
+        self.cursor.execute(query, (kodi_id, kodi_type,))
         # Add genres
         for genre in genres:
-            
-            query = ' '.join((
-
-                "SELECT genre_id",
-                "FROM genre",
-                "WHERE name = ?",
-                "COLLATE NOCASE"
-            ))
+            query = ' SELECT genre_id FROM genre WHERE name = ? COLLATE NOCASE'
             self.cursor.execute(query, (genre,))
-            
             try:
                 genre_id = self.cursor.fetchone()[0]
-            
             except TypeError:
                 # Create genre in database
                 self.cursor.execute("select coalesce(max(genre_id),0) from genre")
                 genre_id = self.cursor.fetchone()[0] + 1
-                
                 query = "INSERT INTO genre(genre_id, name) values(?, ?)"
                 self.cursor.execute(query, (genre_id, genre))
-                LOG.debug("Add Genres to media, processing: %s", genre)
-            
             finally:
                 # Assign genre to item
-                query = (
-                    '''
+                query = '''
                     INSERT OR REPLACE INTO genre_link(
                         genre_id, media_id, media_type)
-
                     VALUES (?, ?, ?)
-                    '''
-                )
-                self.cursor.execute(query, (genre_id, kodiid, mediatype))
+                '''
+                self.cursor.execute(query, (genre_id, kodi_id, kodi_type))
 
     def addStudios(self, kodiid, studios, mediatype):
         for studio in studios:
