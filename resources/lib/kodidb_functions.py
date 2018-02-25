@@ -273,30 +273,37 @@ class KodiDBMethods(object):
                 )
                 self.cursor.execute(query, (country_id, kodiid, mediatype))
 
+    def _delete_from_link_and_table(self, kodi_id, kodi_type, link_table,
+                                    table, key):
+        # Get all existing links
+        query = ('SELECT %s FROM %s WHERE media_id = ? AND media_type = ? '
+                 % (key, link_table))
+        self.cursor.execute(query, (kodi_id, kodi_type))
+        key_list = self.cursor.fetchall()
+        # Delete all links
+        query = ('DELETE FROM %s WHERE media_id = ? AND media_type = ?'
+                 % link_table)
+        self.cursor.execute(query, (kodi_id, kodi_type))
+        # Which countries are now orphaned?
+        query = 'SELECT %s FROM %s WHERE %s = ?' % (key, link_table, key)
+        query_delete = 'DELETE FROM %s WHERE %s = ?' % (table, key)
+        for entry in key_list:
+            # country_id still in table?
+            self.cursor.execute(query, (entry[0],))
+            if self.cursor.fetchone() is None:
+                self.cursor.execute(query_delete, (entry[0],))
+
     def delete_countries(self, kodi_id, kodi_type):
         """
         Assuming that video kodi_id, kodi_type gets deleted, will delete any
         associated country links in the table country_link and also deletes
         orphaned countries in the table country
         """
-        # Get all existing links
-        query = '''
-            SELECT country_id FROM country_link
-            WHERE media_id = ? AND media_type = ?
-        '''
-        self.cursor.execute(query, (kodi_id, kodi_type))
-        country_ids = self.cursor.fetchall()
-        # Delete all links
-        query = 'DELETE FROM country_link WHERE media_id = ? AND media_type = ?'
-        self.cursor.execute(query, (kodi_id, kodi_type))
-        # Which countries are now orphaned?
-        query = 'SELECT country_id FROM country_link WHERE country_id = ?'
-        query_delete = 'DELETE FROM country WHERE country_id = ?'
-        for country_id in country_ids:
-            # country_id still in table?
-            self.cursor.execute(query, (country_id,))
-            if self.cursor.fetchone() is None:
-                self.cursor.execute(query_delete, (country_id,))
+        self._delete_from_link_and_table(kodi_id,
+                                         kodi_type,
+                                         'country_link',
+                                         'country',
+                                         'country_id')
 
     def _getactorid(self, name):
         """
@@ -414,16 +421,16 @@ class KodiDBMethods(object):
         query_delete = 'DELETE FROM actor WHERE actor_id = ?'
         # Delete orphaned people
         for actor_id in actor_ids:
-            self.cursor.execute(query_actor, (actor_id,))
+            self.cursor.execute(query_actor, (actor_id[0],))
             if self.cursor.fetchone() is None:
-                self.cursor.execute(query_director, (actor_id,))
+                self.cursor.execute(query_director, (actor_id[0],))
                 if self.cursor.fetchone() is None:
-                    self.cursor.execute(query_writer, (actor_id,))
+                    self.cursor.execute(query_writer, (actor_id[0],))
                     if self.cursor.fetchone() is None:
                         # Delete the person itself from actor table
-                        self.cursor.execute(query_delete, (actor_id,))
+                        self.cursor.execute(query_delete, (actor_id[0],))
                         # Delete any associated artwork
-                        self.artwork.deleteArtwork(actor_id,
+                        self.artwork.deleteArtwork(actor_id[0],
                                                    'actor',
                                                    self.cursor)
 
