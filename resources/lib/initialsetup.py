@@ -317,7 +317,6 @@ class InitialSetup(object):
         Returns server or None if unsuccessful
         """
         https_updated = False
-        checked_plex_tv = False
         server = None
         while True:
             if https_updated is False:
@@ -340,25 +339,6 @@ class InitialSetup(object):
                     server['scheme'] = 'https'
                 https_updated = True
                 continue
-            if chk == 401:
-                LOG.warn('Not yet authorized for Plex server %s',
-                         server['name'])
-                if self.check_plex_tv_sign_in() is True:
-                    if checked_plex_tv is False:
-                        # Try again
-                        checked_plex_tv = True
-                        https_updated = False
-                        continue
-                    else:
-                        LOG.warn('Not authorized even though we are signed '
-                                 ' in to plex.tv correctly')
-                        dialog('ok',
-                               lang(29999),
-                               '%s %s' % (lang(39214),
-                                          try_encode(server['name'])))
-                        return
-                else:
-                    return
             # Problems connecting
             elif chk >= 400 or chk is False:
                 LOG.warn('Problems connecting to server %s. chk is %s',
