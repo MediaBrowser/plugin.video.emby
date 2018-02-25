@@ -15,7 +15,7 @@ LOG = getLogger("PLEX." + __name__)
 ###############################################################################
 
 
-class GetKodiDB():
+class GetKodiDB(object):
     """
     Usage: with GetKodiDB(db_type) as kodi_db:
                do stuff with kodi_db
@@ -27,19 +27,25 @@ class GetKodiDB():
     and the db gets closed
     """
     def __init__(self, db_type):
+        self.kodiconn = None
         self.db_type = db_type
 
     def __enter__(self):
         self.kodiconn = kodi_sql(self.db_type)
-        kodi_db = Kodidb_Functions(self.kodiconn.cursor())
+        kodi_db = KodiDBMethods(self.kodiconn.cursor())
         return kodi_db
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, typus, value, traceback):
         self.kodiconn.commit()
         self.kodiconn.close()
 
 
-class Kodidb_Functions():
+class KodiDBMethods(object):
+    """
+    Best used indirectly with another Class GetKodiDB:
+        with GetKodiDB(db_type) as kodi_db:
+            kodi_db.method()
+    """
     def __init__(self, cursor):
         self.cursor = cursor
         self.artwork = artwork.Artwork()

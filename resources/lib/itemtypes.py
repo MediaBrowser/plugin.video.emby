@@ -48,7 +48,7 @@ class Items(object):
         self.kodiconn = kodi_sql('video')
         self.kodicursor = self.kodiconn.cursor()
         self.plex_db = plexdb.Plex_DB_Functions(self.plexcursor)
-        self.kodi_db = kodidb.Kodidb_Functions(self.kodicursor)
+        self.kodi_db = kodidb.KodiDBMethods(self.kodicursor)
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -1250,7 +1250,7 @@ class Music(Items):
         self.kodiconn = kodi_sql('music')
         self.kodicursor = self.kodiconn.cursor()
         self.plex_db = plexdb.Plex_DB_Functions(self.plexcursor)
-        self.kodi_db = kodidb.Kodidb_Functions(self.kodicursor)
+        self.kodi_db = kodidb.KodiDBMethods(self.kodicursor)
         return self
 
     @catch_exceptions(warnuser=True)
