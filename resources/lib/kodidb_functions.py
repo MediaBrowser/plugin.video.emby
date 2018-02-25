@@ -370,6 +370,64 @@ class KodiDBMethods(object):
                                             person['Type'].lower(), "thumb",
                                             self.cursor)
 
+    def delete_people(self, kodi_id, kodi_type):
+        """
+        Assuming that the video kodi_id, kodi_type gets deleted, will delete any
+        associated actor_, director_, writer_links and also deletes
+        orphaned actors
+        """
+        # Actors
+        query = '''
+            SELECT actor_id FROM actor_link
+            WHERE media_id = ? AND media_type = ?
+        '''
+        self.cursor.execute(query, (kodi_id, kodi_type))
+        actor_ids = self.cursor.fetchall()
+        query = 'DELETE FROM actor_link WHERE media_id = ? AND media_type = ?'
+        self.cursor.execute(query, (kodi_id, kodi_type))
+        # Directors
+        query = '''
+            SELECT actor_id FROM director_link
+            WHERE media_id = ? AND media_type = ?
+        '''
+        self.cursor.execute(query, (kodi_id, kodi_type))
+        actor_ids.extend(self.cursor.fetchall())
+        query = '''
+            DELETE FROM director_link WHERE media_id = ? AND media_type = ?
+        '''
+        self.cursor.execute(query, (kodi_id, kodi_type))
+        # Writers
+        query = '''
+            SELECT actor_id FROM writer_link
+            WHERE media_id = ? AND media_type = ?
+        '''
+        self.cursor.execute(query, (kodi_id, kodi_type))
+        actor_ids.extend(self.cursor.fetchall())
+        query = '''
+            DELETE FROM writer_link WHERE media_id = ? AND media_type = ?
+        '''
+        self.cursor.execute(query, (kodi_id, kodi_type))
+        # Which people are now orphaned?
+        query_actor = 'SELECT actor_id FROM actor_link WHERE actor_id = ?'
+        query_director = 'SELECT actor_id FROM director_link WHERE actor_id = ?'
+        query_writer = 'SELECT actor_id FROM writer_link WHERE actor_id = ?'
+        query_delete = 'DELETE FROM actor WHERE actor_id = ?'
+        # Delete orphaned people
+        for actor_id in actor_ids:
+            self.cursor.execute(query_actor, (actor_id,))
+            if self.cursor.fetchone() is None:
+                self.cursor.execute(query_director, (actor_id,))
+                if self.cursor.fetchone() is None:
+                    self.cursor.execute(query_writer, (actor_id,))
+                    if self.cursor.fetchone() is None:
+                        # Delete the person itself from actor table
+                        self.cursor.execute(query_delete, (actor_id,))
+                        # Delete any associated artwork
+                        self.artwork.deleteArtwork(actor_id,
+                                                   'actor',
+                                                   self.cursor)
+
+
     def existingArt(self, kodiId, mediaType, refresh=False):
         """
         For kodiId, returns an artwork dict with already existing art from
