@@ -273,6 +273,31 @@ class KodiDBMethods(object):
                 )
                 self.cursor.execute(query, (country_id, kodiid, mediatype))
 
+    def delete_countries(self, kodi_id, kodi_type):
+        """
+        Assuming that video kodi_id, kodi_type gets deleted, will delete any
+        associated country links in the table country_link and also deletes
+        orphaned countries in the table country
+        """
+        # Get all existing links
+        query = '''
+            SELECT country_id FROM country_link
+            WHERE media_id = ? AND media_type = ?
+        '''
+        self.cursor.execute(query, (kodi_id, kodi_type))
+        country_ids = self.cursor.fetchall()
+        # Delete all links
+        query = 'DELETE FROM country_link WHERE media_id = ? AND media_type = ?'
+        self.cursor.execute(query, (kodi_id, kodi_type))
+        # Which countries are now orphaned?
+        query = 'SELECT country_id FROM country_link WHERE country_id = ?'
+        query_delete = 'DELETE FROM country WHERE country_id = ?'
+        for country_id in country_ids:
+            # country_id still in table?
+            self.cursor.execute(query, (country_id,))
+            if self.cursor.fetchone() is None:
+                self.cursor.execute(query_delete, (country_id,))
+
     def _getactorid(self, name):
         """
         Crucial für sync speed!
