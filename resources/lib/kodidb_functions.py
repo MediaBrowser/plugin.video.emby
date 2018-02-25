@@ -548,6 +548,16 @@ class KodiDBMethods(object):
                     ''')
                 self.cursor.execute(query, (studioid, kodiid, mediatype))
 
+    def delete_studios(self, kodi_id, kodi_type):
+        """
+        Removes the studio links as well as orphaned studios from the Kodi DB
+        """
+        self._delete_from_link_and_table(kodi_id,
+                                         kodi_type,
+                                         'studio_link',
+                                         'studio',
+                                         'studio_id')
+
     def addStreams(self, fileid, streamdetails, runtime):
         
         # First remove any existing entries
