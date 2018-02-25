@@ -858,6 +858,16 @@ class KodiDBMethods(object):
         for tag in tags:
             self.addTag(kodiid, tag, mediatype)
 
+    def delete_tags(self, kodi_id, kodi_type):
+        """
+        Removes the genre links as well as orphaned genres from the Kodi DB
+        """
+        self._delete_from_link_and_table(kodi_id,
+                                         kodi_type,
+                                         'tag_link',
+                                         'tag',
+                                         'tag_id')
+
     def addTag(self, kodiid, tag, mediatype):
         query = ' '.join((
 
