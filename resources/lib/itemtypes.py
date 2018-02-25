@@ -447,6 +447,7 @@ class Movies(Items):
         self.kodi_db.addStudios(movieid, studios, "movie")
         # Process tags: view, Plex collection tags
         tags = [viewtag]
+        tags.extend(collections)
         if userdata['Favorite']:
             tags.append("Favorite movies")
         self.kodi_db.addTags(movieid, tags, "movie")
@@ -735,6 +736,7 @@ class TVShows(Items):
         self.kodi_db.addStudios(showid, studios, "tvshow")
         # Process tags: view, PMS collection tags
         tags = [viewtag]
+        tags.extend(collections)
         self.kodi_db.addTags(showid, tags, "tvshow")
 
     @catch_exceptions(warnuser=True)
