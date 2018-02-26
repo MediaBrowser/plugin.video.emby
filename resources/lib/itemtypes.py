@@ -640,6 +640,7 @@ class TVShows(Items):
                                                  "unknown",
                                                  uniqueid)
                 else:
+                    self.kodi_db.remove_uniqueid(showid, v.KODI_TYPE_SHOW)
                     uniqueid = -1
                 # Update the tvshow entry
                 query = '''
