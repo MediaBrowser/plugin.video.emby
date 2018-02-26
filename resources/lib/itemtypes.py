@@ -487,6 +487,7 @@ class Movies(Items):
             self.kodi_db.delete_studios(kodi_id, kodi_type)
             self.kodi_db.delete_tags(kodi_id, kodi_type)
             self.kodi_db.modify_streams(file_id)
+            self.kodi_db.delete_playstate(file_id)
             # Delete kodi movie and file
             kodicursor.execute("DELETE FROM movie WHERE idMovie = ?",
                                (kodi_id,))
@@ -1232,17 +1233,18 @@ class TVShows(Items):
                            (kodi_id,))
         LOG.info("Removed season: %s.", kodi_id)
 
-    def removeEpisode(self, kodi_id, fileid):
+    def removeEpisode(self, kodi_id, file_id):
         """
         Remove an episode, and episode only
         """
         kodicursor = self.kodicursor
         self.kodi_db.delete_people(kodi_id, v.KODI_TYPE_EPISODE)
-        self.kodi_db.modify_streams(fileid)
+        self.kodi_db.modify_streams(file_id)
+        self.kodi_db.delete_playstate(file_id)
         self.artwork.deleteArtwork(kodi_id, "episode", kodicursor)
         kodicursor.execute("DELETE FROM episode WHERE idEpisode = ?",
                            (kodi_id,))
-        kodicursor.execute("DELETE FROM files WHERE idFile = ?", (fileid,))
+        kodicursor.execute("DELETE FROM files WHERE idFile = ?", (file_id,))
         if v.KODIVERSION >= 17:
             self.kodi_db.remove_uniqueid(kodi_id, v.KODI_TYPE_EPISODE)
             self.kodi_db.remove_ratings(kodi_id, v.KODI_TYPE_EPISODE)
