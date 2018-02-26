@@ -326,6 +326,7 @@ class Movies(Items):
                                                  "imdb",
                                                  uniqueid)
                 else:
+                    self.kodi_db.remove_uniqueid(movieid, v.KODI_TYPE_MOVIE)
                     uniqueid = -1
                 query = '''
                     UPDATE movie
