@@ -469,7 +469,7 @@ class Movies(Items):
             kodi_id = plex_dbitem[0]
             file_id = plex_dbitem[1]
             kodi_type = plex_dbitem[4]
-            LOG.info("Removing %sid: %s file_id: %s",
+            LOG.debug("Removing %sid: %s file_id: %s",
                      kodi_type, kodi_id, file_id)
         except TypeError:
             return
@@ -509,7 +509,7 @@ class Movies(Items):
                 # Update plex reference
                 plex_db.updateParentId(plexid, None)
             kodicursor.execute("DELETE FROM sets WHERE idSet = ?", (kodi_id,))
-        LOG.info("Deleted %s %s from kodi database", kodi_type, itemid)
+        LOG.debug("Deleted %s %s from kodi database", kodi_type, itemid)
 
 
 class TVShows(Items):
