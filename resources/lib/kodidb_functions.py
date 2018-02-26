@@ -1197,11 +1197,6 @@ class KodiDBMethods(object):
         query = '''UPDATE %s SET userrating = ? WHERE ? = ?''' % kodi_type
         self.cursor.execute(query, (userrating, ID, kodi_id))
 
-    def create_entry_uniqueid(self):
-        self.cursor.execute(
-            "select coalesce(max(uniqueid_id),0) from uniqueid")
-        return self.cursor.fetchone()[0] + 1
-
     def add_uniqueid(self, *args):
         """
         Feed with:
@@ -1227,7 +1222,9 @@ class KodiDBMethods(object):
         try:
             uniqueid = self.cursor.fetchone()[0]
         except TypeError:
-            uniqueid = None
+            self.cursor.execute(
+                'SELECT COALESCE(MAX(uniqueid_id),0) FROM uniqueid')
+            uniqueid = self.cursor.fetchone()[0] + 1
         return uniqueid
 
     def update_uniqueid(self, *args):
@@ -1248,10 +1245,6 @@ class KodiDBMethods(object):
         '''
         self.cursor.execute(query, (kodi_id, kodi_type))
 
-    def create_entry_rating(self):
-        self.cursor.execute("select coalesce(max(rating_id),0) from rating")
-        return self.cursor.fetchone()[0] + 1
-
     def get_ratingid(self, kodi_id, kodi_type):
         query = '''
             SELECT rating_id FROM rating
@@ -1261,7 +1254,8 @@ class KodiDBMethods(object):
         try:
             ratingid = self.cursor.fetchone()[0]
         except TypeError:
-            ratingid = None
+            self.cursor.execute('SELECT COALESCE(MAX(rating_id),0) FROM rating')
+            ratingid = self.cursor.fetchone()[0] + 1
         return ratingid
 
     def update_ratings(self, *args):

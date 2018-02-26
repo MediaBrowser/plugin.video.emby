@@ -360,7 +360,8 @@ class Movies(Items):
             LOG.info("ADD movie itemid: %s - Title: %s", itemid, title)
             if v.KODIVERSION >= 17:
                 # add new ratings Kodi 17
-                rating_id = self.kodi_db.create_entry_rating()
+                rating_id = self.kodi_db.get_ratingid(movieid,
+                                                      v.KODI_TYPE_MOVIE)
                 self.kodi_db.add_ratings(rating_id,
                                          movieid,
                                          v.KODI_TYPE_MOVIE,
@@ -369,7 +370,8 @@ class Movies(Items):
                                          votecount)
                 # add new uniqueid Kodi 17
                 if imdb is not None:
-                    uniqueid = self.kodi_db.create_entry_uniqueid()
+                    uniqueid = self.kodi_db.get_uniqueid(movieid,
+                                                         v.KODI_TYPE_MOVIE)
                     self.kodi_db.add_uniqueid(uniqueid,
                                               movieid,
                                               v.KODI_TYPE_MOVIE,
@@ -687,7 +689,7 @@ class TVShows(Items):
                                  view_id=viewid)
             if v.KODIVERSION >= 17:
                 # add new ratings Kodi 17
-                rating_id = self.kodi_db.create_entry_rating()
+                rating_id = self.kodi_db.get_ratingid(showid, v.KODI_TYPE_SHOW)
                 self.kodi_db.add_ratings(rating_id,
                                          showid,
                                          v.KODI_TYPE_SHOW,
@@ -696,7 +698,8 @@ class TVShows(Items):
                                          votecount)
                 # add new uniqueid Kodi 17
                 if tvdb is not None:
-                    uniqueid = self.kodi_db.create_entry_uniqueid()
+                    uniqueid = self.kodi_db.get_uniqueid(showid,
+                                                         v.KODI_TYPE_SHOW)
                     self.kodi_db.add_uniqueid(uniqueid,
                                               showid,
                                               v.KODI_TYPE_SHOW,
@@ -995,7 +998,8 @@ class TVShows(Items):
             # Create the episode entry
             if v.KODIVERSION >= 17:
                 # add new ratings Kodi 17
-                rating_id = self.kodi_db.create_entry_rating()
+                rating_id = self.kodi_db.get_ratingid(episodeid,
+                                                      v.KODI_TYPE_EPISODE)
                 self.kodi_db.add_ratings(rating_id,
                                          episodeid,
                                          v.KODI_TYPE_EPISODE,
@@ -1003,7 +1007,9 @@ class TVShows(Items):
                                          rating,
                                          votecount)
                 # add new uniqueid Kodi 17
-                self.kodi_db.add_uniqueid(self.kodi_db.create_entry_uniqueid(),
+                uniqueid = self.kodi_db.get_uniqueid(episodeid,
+                                                     v.KODI_TYPE_EPISODE)
+                self.kodi_db.add_uniqueid(uniqueid,
                                           episodeid,
                                           v.KODI_TYPE_EPISODE,
                                           tvdb,
