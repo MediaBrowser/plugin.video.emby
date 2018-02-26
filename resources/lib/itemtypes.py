@@ -480,6 +480,7 @@ class Movies(Items):
         artwork.deleteArtwork(kodi_id, kodi_type, kodicursor)
 
         if kodi_type == v.KODI_TYPE_MOVIE:
+            set_id = self.kodi_db.get_set_id(kodi_id)
             self.kodi_db.delete_countries(kodi_id, kodi_type)
             self.kodi_db.delete_people(kodi_id, kodi_type)
             self.kodi_db.delete_genre(kodi_id, kodi_type)
@@ -490,6 +491,8 @@ class Movies(Items):
                                (kodi_id,))
             kodicursor.execute("DELETE FROM files WHERE idFile = ?",
                                (file_id,))
+            if set_id:
+                self.kodi_db.delete_possibly_empty_set(set_id)
             if v.KODIVERSION >= 17:
                 self.kodi_db.remove_uniqueid(kodi_id, kodi_type)
                 self.kodi_db.remove_ratings(kodi_id, kodi_type)

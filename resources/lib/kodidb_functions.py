@@ -990,6 +990,29 @@ class KodiDBMethods(object):
         ))
         self.cursor.execute(query, (movieid,))
 
+    def get_set_id(self, kodi_id):
+        """
+        Returns the set_id for the movie with kodi_id or None
+        """
+        query = 'SELECT idSet FROM movie WHERE idMovie = ?'
+        self.cursor.execute(query, (kodi_id,))
+        try:
+            answ = self.cursor.fetchone()[0]
+        except TypeError:
+            answ = None
+        return answ
+
+    def delete_possibly_empty_set(self, set_id):
+        """
+        Checks whether there are other movies in the set set_id. If not,
+        deletes the set
+        """
+        query = 'SELECT idSet FROM movie WHERE idSet = ?'
+        self.cursor.execute(query, (set_id,))
+        if self.cursor.fetchone() is None:
+            query = 'DELETE FROM sets WHERE idSet = ?'
+            self.cursor.execute(query, (set_id,))
+
     def addSeason(self, showid, seasonnumber):
 
         query = ' '.join((
