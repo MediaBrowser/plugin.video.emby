@@ -442,7 +442,7 @@ class Movies(Items):
         # Process artwork
         artwork.addArtwork(api.artwork(), movieid, "movie", kodicursor)
         # Process stream details
-        self.kodi_db.addStreams(fileid, api.mediastreams(), runtime)
+        self.kodi_db.modify_streams(fileid, api.mediastreams(), runtime)
         # Process studios
         self.kodi_db.addStudios(movieid, studios, "movie")
         # Process tags: view, Plex collection tags
@@ -486,6 +486,7 @@ class Movies(Items):
             self.kodi_db.delete_genre(kodi_id, kodi_type)
             self.kodi_db.delete_studios(kodi_id, kodi_type)
             self.kodi_db.delete_tags(kodi_id, kodi_type)
+            self.kodi_db.modify_streams(file_id)
             # Delete kodi movie and file
             kodicursor.execute("DELETE FROM movie WHERE idMovie = ?",
                                (kodi_id,))
@@ -1091,7 +1092,7 @@ class TVShows(Items):
 
         # Process stream details
         streams = api.mediastreams()
-        self.kodi_db.addStreams(fileid, streams, runtime)
+        self.kodi_db.modify_streams(fileid, streams, runtime)
         # Process playstates
         self.kodi_db.addPlaystate(fileid,
                                   resume,
@@ -1237,6 +1238,7 @@ class TVShows(Items):
         """
         kodicursor = self.kodicursor
         self.kodi_db.delete_people(kodi_id, v.KODI_TYPE_EPISODE)
+        self.kodi_db.modify_streams(fileid)
         self.artwork.deleteArtwork(kodi_id, "episode", kodicursor)
         kodicursor.execute("DELETE FROM episode WHERE idEpisode = ?",
                            (kodi_id,))

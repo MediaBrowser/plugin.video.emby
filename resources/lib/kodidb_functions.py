@@ -558,8 +558,11 @@ class KodiDBMethods(object):
                                          'studio',
                                          'studio_id')
 
-    def addStreams(self, fileid, streamdetails, runtime):
-        
+    def modify_streams(self, fileid, streamdetails=None, runtime=None):
+        """
+        Leave streamdetails and runtime empty to delete all stream entries for
+        fileid
+        """
         # First remove any existing entries
         self.cursor.execute("DELETE FROM streamdetails WHERE idFile = ?", (fileid,))
         if streamdetails:
