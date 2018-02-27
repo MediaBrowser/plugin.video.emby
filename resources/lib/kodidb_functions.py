@@ -239,6 +239,103 @@ class KodiDBMethods(object):
             ))
             self.cursor.execute(query, (pathid, filename,))
 
+    def _modify_link_and_table(self, kodi_id, kodi_type, entries, link_table,
+                              table, key):
+        query = '''
+            SELECT %s FROM %s WHERE name = ? COLLATE NOCASE LIMIT 1
+        ''' % (key, table)
+        query_id = 'SELECT COALESCE(MAX(%s),0) FROM %s' % (key, table)
+        query_new = ('INSERT INTO %s(%s, name) values(?, ?)'
+                     % (table, key))
+        entry_ids = []
+        for entry in entries:
+            self.cursor.execute(query, (entry,))
+            try:
+                entry_id = self.cursor.fetchone()[0]
+            except TypeError:
+                self.cursor.execute(query_id)
+                entry_id = self.cursor.fetchone()[0] + 1
+                self.cursor.execute(query_new, (entry_id, entry))
+            finally:
+                entry_ids.append(entry_id)
+        # Now process the ids obtained from the names
+        # Get the existing, old entries
+        query = ('SELECT %s FROM %s WHERE media_id = ? AND media_type = ?'
+                 % (key, link_table))
+        self.cursor.execute(query, (kodi_id, kodi_type))
+        old_entries = self.cursor.fetchall()
+        outdated_entries = []
+        for entry_id in old_entries:
+            try:
+                entry_ids.remove(entry_id)
+            except ValueError:
+                outdated_entries.append(entry_id)
+        # Add all new entries that haven't already been added
+        query = 'INSERT INTO %s VALUES (?, ?, ?)' % link_table
+        for entry_id in entry_ids:
+            self.cursor.execute(query, (entry_id, kodi_id, kodi_type))
+        # Delete all outdated references in the link table. Also check whether
+        # we need to delete orphaned entries in the master table
+        query = '''
+            DELETE FROM %s WHERE %s = ? AND media_id = ? AND media_type = ?
+        ''' % (link_table, key)
+        query_rem = 'SELECT %s FROM %s WHERE %s = ?' % (key, link_table, key)
+        query_delete = 'DELETE FROM %s WHERE %s = ?' % (table, key)
+        for entry_id in outdated_entries:
+            self.cursor.execute(query, (entry_id, kodi_id, kodi_type))
+            self.cursor.execute(query_rem, (entry_id,))
+            if self.cursor.fetchone() is None:
+                # Delete in the original table because entry is now orphaned
+                self.cursor.execute(query_delete, (entry_id,))
+
+    def modify_countries(self, kodi_id, kodi_type, countries):
+        """
+        Writes a country (string) in the list countries into the Kodi DB. Will
+        also delete any orphaned country entries.
+        """
+        self._modify_link_and_table(kodi_id,
+                                    kodi_type,
+                                    countries,
+                                    'country_link',
+                                    'country',
+                                    'country_id')
+
+    def modify_genres(self, kodi_id, kodi_type, genres):
+        """
+        Writes a country (string) in the list countries into the Kodi DB. Will
+        also delete any orphaned country entries.
+        """
+        self._modify_link_and_table(kodi_id,
+                                    kodi_type,
+                                    genres,
+                                    'genre_link',
+                                    'genre',
+                                    'genre_id')
+
+    def modify_studios(self, kodi_id, kodi_type, studios):
+        """
+        Writes a country (string) in the list countries into the Kodi DB. Will
+        also delete any orphaned country entries.
+        """
+        self._modify_link_and_table(kodi_id,
+                                    kodi_type,
+                                    studios,
+                                    'studio_link',
+                                    'studio',
+                                    'studio_id')
+
+    def modify_tags(self, kodi_id, kodi_type, tags):
+        """
+        Writes a country (string) in the list countries into the Kodi DB. Will
+        also delete any orphaned country entries.
+        """
+        self._modify_link_and_table(kodi_id,
+                                    kodi_type,
+                                    tags,
+                                    'tag_link',
+                                    'tag',
+                                    'tag_id')
+
     def addCountries(self, kodiid, countries, mediatype):
         for country in countries:
             query = ' '.join((

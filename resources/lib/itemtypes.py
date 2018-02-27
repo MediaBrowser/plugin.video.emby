@@ -437,23 +437,23 @@ class Movies(Items):
         kodicursor.execute(query, (pathid, filename, dateadded, fileid))
 
         # Process countries
-        self.kodi_db.addCountries(movieid, countries, "movie")
+        self.kodi_db.modify_countries(movieid, v.KODI_TYPE_MOVIE, countries)
         # Process cast
         self.kodi_db.addPeople(movieid, api.people_list(), "movie")
         # Process genres
-        self.kodi_db.addGenres(movieid, genres, "movie")
+        self.kodi_db.modify_genres(movieid, v.KODI_TYPE_MOVIE, genres)
         # Process artwork
         artwork.addArtwork(api.artwork(), movieid, "movie", kodicursor)
         # Process stream details
         self.kodi_db.modify_streams(fileid, api.mediastreams(), runtime)
         # Process studios
-        self.kodi_db.addStudios(movieid, studios, "movie")
+        self.kodi_db.modify_studios(movieid, v.KODI_TYPE_MOVIE, studios)
         # Process tags: view, Plex collection tags
         tags = [viewtag]
         tags.extend(collections)
         if userdata['Favorite']:
             tags.append("Favorite movies")
-        self.kodi_db.addTags(movieid, tags, "movie")
+        self.kodi_db.modify_tags(movieid, v.KODI_TYPE_MOVIE, tags)
         # Add any sets from Plex collection tags
         self.kodi_db.addSets(movieid, collections, kodicursor)
         # Process playstates
