@@ -439,7 +439,9 @@ class Movies(Items):
         # Process countries
         self.kodi_db.modify_countries(movieid, v.KODI_TYPE_MOVIE, countries)
         # Process cast
-        self.kodi_db.addPeople(movieid, api.people_list(), "movie")
+        self.kodi_db.modify_people(movieid,
+                                   v.KODI_TYPE_MOVIE,
+                                   api.people_list())
         # Process genres
         self.kodi_db.modify_genres(movieid, v.KODI_TYPE_MOVIE, genres)
         # Process artwork
@@ -472,8 +474,8 @@ class Movies(Items):
             kodi_id = plex_dbitem[0]
             file_id = plex_dbitem[1]
             kodi_type = plex_dbitem[4]
-            LOG.debug("Removing %sid: %s file_id: %s",
-                     kodi_type, kodi_id, file_id)
+            LOG.debug('Removing %sid: %s file_id: %s',
+                      kodi_type, kodi_id, file_id)
         except TypeError:
             return
 
@@ -484,11 +486,11 @@ class Movies(Items):
 
         if kodi_type == v.KODI_TYPE_MOVIE:
             set_id = self.kodi_db.get_set_id(kodi_id)
-            self.kodi_db.delete_countries(kodi_id, kodi_type)
-            self.kodi_db.delete_people(kodi_id, kodi_type)
-            self.kodi_db.delete_genre(kodi_id, kodi_type)
-            self.kodi_db.delete_studios(kodi_id, kodi_type)
-            self.kodi_db.delete_tags(kodi_id, kodi_type)
+            self.kodi_db.modify_countries(kodi_id, kodi_type)
+            self.kodi_db.modify_people(kodi_id, kodi_type)
+            self.kodi_db.modify_genres(kodi_id, kodi_type)
+            self.kodi_db.modify_studios(kodi_id, kodi_type)
+            self.kodi_db.modify_tags(kodi_id, kodi_type)
             self.kodi_db.modify_streams(file_id)
             self.kodi_db.delete_playstate(file_id)
             # Delete kodi movie and file
@@ -739,20 +741,15 @@ class TVShows(Items):
         '''
         kodicursor.execute(query, (path, None, None, 1, toppathid, pathid))
 
-        # Process cast
-        people = api.people_list()
-        self.kodi_db.addPeople(showid, people, "tvshow")
-        # Process genres
-        self.kodi_db.addGenres(showid, genres, "tvshow")
-        # Process artwork
-        allartworks = api.artwork()
-        artwork.addArtwork(allartworks, showid, "tvshow", kodicursor)
+        self.kodi_db.modify_people(showid, v.KODI_TYPE_SHOW, api.people_list())
+        self.kodi_db.modify_genres(showid, v.KODI_TYPE_SHOW, genres)
+        artwork.addArtwork(api.artwork(), showid, v.KODI_TYPE_SHOW, kodicursor)
         # Process studios
-        self.kodi_db.addStudios(showid, studios, "tvshow")
+        self.kodi_db.modify_studios(showid, v.KODI_TYPE_SHOW, studios)
         # Process tags: view, PMS collection tags
         tags = [viewtag]
         tags.extend(collections)
-        self.kodi_db.addTags(showid, tags, "tvshow")
+        self.kodi_db.modify_tags(showid, v.KODI_TYPE_SHOW, tags)
 
     @catch_exceptions(warnuser=True)
     def add_updateSeason(self, item, viewtag=None, viewid=None):
@@ -1088,8 +1085,9 @@ class TVShows(Items):
         ))
         kodicursor.execute(query, (pathid, filename, dateadded, fileid))
         # Process cast
-        people = api.people_list()
-        self.kodi_db.addPeople(episodeid, people, "episode")
+        self.kodi_db.modify_people(episodeid,
+                                   v.KODI_TYPE_EPISODE,
+                                   api.people_list())
         # Process artwork
         # Wide "screenshot" of particular episode
         poster = item.attrib.get('thumb')
@@ -1221,9 +1219,9 @@ class TVShows(Items):
         Remove a TV show, and only the show, no seasons or episodes
         """
         kodicursor = self.kodicursor
-        self.kodi_db.delete_genre(kodi_id, v.KODI_TYPE_SHOW)
-        self.kodi_db.delete_studios(kodi_id, v.KODI_TYPE_SHOW)
-        self.kodi_db.delete_tags(kodi_id, v.KODI_TYPE_SHOW)
+        self.kodi_db.modify_genres(kodi_id, v.KODI_TYPE_SHOW)
+        self.kodi_db.modify_studios(kodi_id, v.KODI_TYPE_SHOW)
+        self.kodi_db.modify_tags(kodi_id, v.KODI_TYPE_SHOW)
         self.artwork.deleteArtwork(kodi_id, v.KODI_TYPE_SHOW, kodicursor)
         kodicursor.execute("DELETE FROM tvshow WHERE idShow = ?", (kodi_id,))
         if v.KODIVERSION >= 17:
@@ -1246,7 +1244,7 @@ class TVShows(Items):
         Remove an episode, and episode only
         """
         kodicursor = self.kodicursor
-        self.kodi_db.delete_people(kodi_id, v.KODI_TYPE_EPISODE)
+        self.kodi_db.modify_people(kodi_id, v.KODI_TYPE_EPISODE)
         self.kodi_db.modify_streams(file_id)
         self.kodi_db.delete_playstate(file_id)
         self.artwork.deleteArtwork(kodi_id, "episode", kodicursor)

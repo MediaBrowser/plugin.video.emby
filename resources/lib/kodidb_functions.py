@@ -3,6 +3,7 @@
 ###############################################################################
 from logging import getLogger
 from ntpath import dirname
+from sqlite3 import IntegrityError
 
 import artwork
 from utils import kodi_sql, try_decode
@@ -287,14 +288,15 @@ class KodiDBMethods(object):
             self.cursor.execute(query_rem, (entry_id,))
             if self.cursor.fetchone() is None:
                 # Delete in the original table because entry is now orphaned
-                LOG.debug('Deleting %s from Kodi DB: %s', table, entry_id)
+                LOG.debug('Removing %s from Kodi DB: %s', table, entry_id)
                 self.cursor.execute(query_delete, (entry_id,))
 
-    def modify_countries(self, kodi_id, kodi_type, countries):
+    def modify_countries(self, kodi_id, kodi_type, countries=None):
         """
         Writes a country (string) in the list countries into the Kodi DB. Will
         also delete any orphaned country entries.
         """
+        countries = countries if countries else []
         self._modify_link_and_table(kodi_id,
                                     kodi_type,
                                     countries,
@@ -302,11 +304,12 @@ class KodiDBMethods(object):
                                     'country',
                                     'country_id')
 
-    def modify_genres(self, kodi_id, kodi_type, genres):
+    def modify_genres(self, kodi_id, kodi_type, genres=None):
         """
         Writes a country (string) in the list countries into the Kodi DB. Will
         also delete any orphaned country entries.
         """
+        genres = genres if genres else []
         self._modify_link_and_table(kodi_id,
                                     kodi_type,
                                     genres,
@@ -314,11 +317,12 @@ class KodiDBMethods(object):
                                     'genre',
                                     'genre_id')
 
-    def modify_studios(self, kodi_id, kodi_type, studios):
+    def modify_studios(self, kodi_id, kodi_type, studios=None):
         """
         Writes a country (string) in the list countries into the Kodi DB. Will
         also delete any orphaned country entries.
         """
+        studios = studios if studios else []
         self._modify_link_and_table(kodi_id,
                                     kodi_type,
                                     studios,
@@ -326,11 +330,12 @@ class KodiDBMethods(object):
                                     'studio',
                                     'studio_id')
 
-    def modify_tags(self, kodi_id, kodi_type, tags):
+    def modify_tags(self, kodi_id, kodi_type, tags=None):
         """
         Writes a country (string) in the list countries into the Kodi DB. Will
         also delete any orphaned country entries.
         """
+        tags = tags if tags else []
         self._modify_link_and_table(kodi_id,
                                     kodi_type,
                                     tags,
@@ -338,201 +343,123 @@ class KodiDBMethods(object):
                                     'tag',
                                     'tag_id')
 
-    def addCountries(self, kodiid, countries, mediatype):
-        for country in countries:
-            query = ' '.join((
+    def modify_people(self, kodi_id, kodi_type, people=None):
+        """
+        Makes sure that actors, directors and writers are recorded correctly
+        for the elmement kodi_id, kodi_type.
+        Will also delete a freshly orphaned actor entry.
+        """
+        people = people if people else {'actor': [],
+                                        'director': [],
+                                        'writer': []}
+        for kind, people_list in people.iteritems():
+            self._modify_people_kind(kodi_id, kodi_type, kind, people_list)
 
-                "SELECT country_id",
-                "FROM country",
-                "WHERE name = ?",
-                "COLLATE NOCASE"
-            ))
-            self.cursor.execute(query, (country,))
-
+    def _modify_people_kind(self, kodi_id, kodi_type, kind, people_list):
+        # Get the people already saved in the DB for this specific item
+        if kind == 'actor':
+            query = '''
+                SELECT actor.actor_id, actor.name, art.url, actor_link.role,
+                    actor_link.cast_order
+                FROM actor_link
+                LEFT JOIN actor ON actor.actor_id = actor_link.actor_id
+                LEFT JOIN art ON (art.media_id = actor_link.actor_id AND
+                                  art.media_type = 'actor')
+                WHERE actor_link.media_id = ? AND actor_link.media_type = ?
+            '''
+        else:
+            query = '''
+                SELECT actor.actor_id, actor.name
+                FROM {0}_link
+                LEFT JOIN actor ON actor.actor_id = {0}_link.actor_id
+                WHERE {0}_link.media_id = ? AND {0}_link.media_type = ?
+            '''.format(kind)
+        self.cursor.execute(query, (kodi_id, kodi_type))
+        old_people = self.cursor.fetchall()
+        # Determine which people we need to save or delete
+        outdated_people = []
+        for person in old_people:
             try:
-                country_id = self.cursor.fetchone()[0]
+                people_list.remove(person[1:])
+            except ValueError:
+                outdated_people.append(person)
+        # Get rid of old entries
+        query = '''
+            DELETE FROM %s_link
+            WHERE actor_id = ? AND media_id = ? AND media_type = ?
+        ''' % kind
+        query_actor_check = 'SELECT actor_id FROM %s_link WHERE actor_id = ?'
+        query_actor_delete = 'DELETE FROM actor WHERE actor_id = ?'
+        for person in outdated_people:
+            # Delete the outdated entry
+            self.cursor.execute(query, (person[0], kodi_id, kodi_type))
+            # Do we now have orphaned entries?
+            for person_kind in ('actor', 'writer', 'director'):
+                self.cursor.execute(query_actor_check % person_kind,
+                                    (person[0],))
+                if self.cursor.fetchone() is not None:
+                    break
+            else:
+                # person entry in actor table is now orphaned
+                # Delete the person from actor table
+                LOG.debug('Removing person from Kodi DB: %s', person)
+                self.cursor.execute(query_actor_delete, (person[0],))
+                if kind == 'actor':
+                    # Delete any associated artwork
+                    self.artwork.deleteArtwork(person[0], 'actor', self.cursor)
+        # Save new people to Kodi DB by iterating over the remaining entries
+        if kind == 'actor':
+            query = 'INSERT INTO actor_link VALUES (?, ?, ?, ?, ?)'
+            for person in people_list:
+                LOG.debug('Adding actor to Kodi DB: %s', person)
+                # Make sure the person entry in table actor exists
+                actor_id = self._get_actor_id(person[0], art_url=person[1])
+                # Link the person with the media element
+                try:
+                    self.cursor.execute(query, (actor_id, kodi_id, kodi_type,
+                                                person[2], person[3]))
+                except IntegrityError:
+                    # With Kodi, an actor may have only one role, unlike Plex
+                    pass
+        else:
+            query = 'INSERT INTO %s_link VALUES (?, ?, ?)' % kind
+            for person in people_list:
+                LOG.debug('Adding %s to Kodi DB: %s', kind, person[0])
+                # Make sure the person entry in table actor exists:
+                actor_id = self._get_actor_id(person[0])
+                # Link the person with the media element
+                try:
+                    self.cursor.execute(query, (actor_id, kodi_id, kodi_type))
+                except IntegrityError:
+                    # Again, Kodi may have only one person assigned to a role
+                    pass
 
-            except TypeError:
-                # Country entry does not exists
-                self.cursor.execute("select coalesce(max(country_id),0) from country")
-                country_id = self.cursor.fetchone()[0] + 1
-
-                query = "INSERT INTO country(country_id, name) values(?, ?)"
-                self.cursor.execute(query, (country_id, country))
-                LOG.debug("Add country to media, processing: %s", country)
-
-            finally: # Assign country to content
-                query = (
-                    '''
-                    INSERT OR REPLACE INTO country_link(
-                        country_id, media_id, media_type)
-                    
-                    VALUES (?, ?, ?)
-                    '''
-                )
-                self.cursor.execute(query, (country_id, kodiid, mediatype))
-
-    def _delete_from_link_and_table(self, kodi_id, kodi_type, link_table,
-                                    table, key):
-        # Get all existing links
-        query = ('SELECT %s FROM %s WHERE media_id = ? AND media_type = ? '
-                 % (key, link_table))
-        self.cursor.execute(query, (kodi_id, kodi_type))
-        key_list = self.cursor.fetchall()
-        # Delete all links
-        query = ('DELETE FROM %s WHERE media_id = ? AND media_type = ?'
-                 % link_table)
-        self.cursor.execute(query, (kodi_id, kodi_type))
-        # Which countries are now orphaned?
-        query = 'SELECT %s FROM %s WHERE %s = ?' % (key, link_table, key)
-        query_delete = 'DELETE FROM %s WHERE %s = ?' % (table, key)
-        for entry in key_list:
-            # country_id still in table?
-            self.cursor.execute(query, (entry[0],))
-            if self.cursor.fetchone() is None:
-                self.cursor.execute(query_delete, (entry[0],))
-
-    def delete_countries(self, kodi_id, kodi_type):
+    def _get_actor_id(self, name, art_url=None):
         """
-        Assuming that video kodi_id, kodi_type gets deleted, will delete any
-        associated country links in the table country_link and also deletes
-        orphaned countries in the table country
-        """
-        self._delete_from_link_and_table(kodi_id,
-                                         kodi_type,
-                                         'country_link',
-                                         'country',
-                                         'country_id')
+        Returns the actor_id [int] for name [unicode] in table actor (without
+        ensuring that the name matches).
+        If not, will create a new record with actor_id, name, art_url
 
-    def _getactorid(self, name):
+        Uses Plex ids and thus assumes that Plex person id is unique!
         """
-        Crucial für sync speed!
-        """
-        query = ' '.join((
-            "SELECT actor_id",
-            "FROM actor",
-            "WHERE name = ?",
-            "LIMIT 1"
-        ))
-        self.cursor.execute(query, (name,))
+        self.cursor.execute('SELECT actor_id FROM actor WHERE name=? LIMIT 1',
+                            (name,))
         try:
-            actorid = self.cursor.fetchone()[0]
+            actor_id = self.cursor.fetchone()[0]
         except TypeError:
-            # Cast entry does not exists
-            self.cursor.execute("select coalesce(max(actor_id),0) from actor")
-            actorid = self.cursor.fetchone()[0] + 1
-            query = "INSERT INTO actor(actor_id, name) VALUES (?, ?)"
-            self.cursor.execute(query, (actorid, name))
-        return actorid
-
-    def _addPerson(self, role, person_type, actorid, kodiid, mediatype,
-                   castorder):
-        if "Actor" == person_type:
-            query = '''
-                INSERT OR REPLACE INTO actor_link(
-                    actor_id, media_id, media_type, role, cast_order)
-                VALUES (?, ?, ?, ?, ?)
-            '''
-            self.cursor.execute(query, (actorid, kodiid, mediatype, role,
-                                        castorder))
-            castorder += 1
-        elif "Director" == person_type:
-            query = '''
-                INSERT OR REPLACE INTO director_link(
-                    actor_id, media_id, media_type)
-                VALUES (?, ?, ?)
-                '''
-            self.cursor.execute(query, (actorid, kodiid, mediatype))
-        elif person_type == "Writer":
-            query = '''
-                INSERT OR REPLACE INTO writer_link(
-                    actor_id, media_id, media_type)
-                VALUES (?, ?, ?)
-            '''
-            self.cursor.execute(query, (actorid, kodiid, mediatype))
-        elif "Artist" == person_type:
-            query = '''
-                INSERT OR REPLACE INTO actor_link(
-                    actor_id, media_id, media_type)
-                VALUES (?, ?, ?)
-            '''
-            self.cursor.execute(query, (actorid, kodiid, mediatype))
-        return castorder
-
-    def addPeople(self, kodiid, people, mediatype):
-        castorder = 0
-        for person in people:
-            actorid = self._getactorid(person['Name'])
-            # Link person to content
-            castorder = self._addPerson(person.get('Role'),
-                                        person['Type'],
-                                        actorid,
-                                        kodiid,
-                                        mediatype,
-                                        castorder)
-            # Add person image to art table
-            if person['imageurl']:
-                self.artwork.addOrUpdateArt(person['imageurl'], actorid,
-                                            person['Type'].lower(), "thumb",
+            # Not yet in actor DB, add person
+            self.cursor.execute('SELECT COALESCE(MAX(actor_id),-1) FROM actor')
+            actor_id = self.cursor.fetchone()[0] + 1
+            self.cursor.execute('INSERT INTO actor(actor_id, name) '
+                                'VALUES (?, ?)',
+                                (actor_id, name))
+            if art_url:
+                self.artwork.addOrUpdateArt(art_url,
+                                            actor_id,
+                                            'actor',
+                                            "thumb",
                                             self.cursor)
-
-    def delete_people(self, kodi_id, kodi_type):
-        """
-        Assuming that the video kodi_id, kodi_type gets deleted, will delete any
-        associated actor_, director_, writer_links and also deletes
-        orphaned actors
-        """
-        # Actors
-        query = '''
-            SELECT actor_id FROM actor_link
-            WHERE media_id = ? AND media_type = ?
-        '''
-        self.cursor.execute(query, (kodi_id, kodi_type))
-        actor_ids = self.cursor.fetchall()
-        query = 'DELETE FROM actor_link WHERE media_id = ? AND media_type = ?'
-        self.cursor.execute(query, (kodi_id, kodi_type))
-        # Directors
-        query = '''
-            SELECT actor_id FROM director_link
-            WHERE media_id = ? AND media_type = ?
-        '''
-        self.cursor.execute(query, (kodi_id, kodi_type))
-        actor_ids.extend(self.cursor.fetchall())
-        query = '''
-            DELETE FROM director_link WHERE media_id = ? AND media_type = ?
-        '''
-        self.cursor.execute(query, (kodi_id, kodi_type))
-        # Writers
-        query = '''
-            SELECT actor_id FROM writer_link
-            WHERE media_id = ? AND media_type = ?
-        '''
-        self.cursor.execute(query, (kodi_id, kodi_type))
-        actor_ids.extend(self.cursor.fetchall())
-        query = '''
-            DELETE FROM writer_link WHERE media_id = ? AND media_type = ?
-        '''
-        self.cursor.execute(query, (kodi_id, kodi_type))
-        # Which people are now orphaned?
-        query_actor = 'SELECT actor_id FROM actor_link WHERE actor_id = ?'
-        query_director = 'SELECT actor_id FROM director_link WHERE actor_id = ?'
-        query_writer = 'SELECT actor_id FROM writer_link WHERE actor_id = ?'
-        query_delete = 'DELETE FROM actor WHERE actor_id = ?'
-        # Delete orphaned people
-        for actor_id in actor_ids:
-            self.cursor.execute(query_actor, (actor_id[0],))
-            if self.cursor.fetchone() is None:
-                self.cursor.execute(query_director, (actor_id[0],))
-                if self.cursor.fetchone() is None:
-                    self.cursor.execute(query_writer, (actor_id[0],))
-                    if self.cursor.fetchone() is None:
-                        # Delete the person itself from actor table
-                        self.cursor.execute(query_delete, (actor_id[0],))
-                        # Delete any associated artwork
-                        self.artwork.deleteArtwork(actor_id[0],
-                                                   'actor',
-                                                   self.cursor)
-
+        return actor_id
 
     def existingArt(self, kodiId, mediaType, refresh=False):
         """
@@ -576,134 +503,46 @@ class KodiDBMethods(object):
         result['Backdrop'] = [d[0] for d in data]
         return result
 
-    def addGenres(self, kodi_id, genres, kodi_type):
-        """
-        Adds the genres (list of strings) to the Kodi DB and associates them
-        with the element kodi_id, kodi_type
-        """
-        # Delete current genres for clean slate
-        query = 'DELETE FROM genre_link WHERE media_id = ? AND media_type = ?'
-        self.cursor.execute(query, (kodi_id, kodi_type,))
-        # Add genres
-        for genre in genres:
-            query = ' SELECT genre_id FROM genre WHERE name = ? COLLATE NOCASE'
-            self.cursor.execute(query, (genre,))
-            try:
-                genre_id = self.cursor.fetchone()[0]
-            except TypeError:
-                # Create genre in database
-                self.cursor.execute("select coalesce(max(genre_id),0) from genre")
-                genre_id = self.cursor.fetchone()[0] + 1
-                query = "INSERT INTO genre(genre_id, name) values(?, ?)"
-                self.cursor.execute(query, (genre_id, genre))
-            finally:
-                # Assign genre to item
-                query = '''
-                    INSERT OR REPLACE INTO genre_link(
-                        genre_id, media_id, media_type)
-                    VALUES (?, ?, ?)
-                '''
-                self.cursor.execute(query, (genre_id, kodi_id, kodi_type))
-
-    def delete_genre(self, kodi_id, kodi_type):
-        """
-        Removes the genre links as well as orphaned genres from the Kodi DB
-        """
-        self._delete_from_link_and_table(kodi_id,
-                                         kodi_type,
-                                         'genre_link',
-                                         'genre',
-                                         'genre_id')
-
-    def addStudios(self, kodiid, studios, mediatype):
-        for studio in studios:
-            query = ' '.join((
-
-                "SELECT studio_id",
-                "FROM studio",
-                "WHERE name = ?",
-                "COLLATE NOCASE"
-            ))
-            self.cursor.execute(query, (studio,))
-            try:
-                studioid = self.cursor.fetchone()[0]
-            
-            except TypeError:
-                # Studio does not exists.
-                self.cursor.execute("select coalesce(max(studio_id),0) from studio")
-                studioid = self.cursor.fetchone()[0] + 1
-
-                query = "INSERT INTO studio(studio_id, name) values(?, ?)"
-                self.cursor.execute(query, (studioid, studio))
-                LOG.debug("Add Studios to media, processing: %s", studio)
-
-            finally: # Assign studio to item
-                query = (
-                    '''
-                    INSERT OR REPLACE INTO studio_link(
-                        studio_id, media_id, media_type)
-                    
-                    VALUES (?, ?, ?)
-                    ''')
-                self.cursor.execute(query, (studioid, kodiid, mediatype))
-
-    def delete_studios(self, kodi_id, kodi_type):
-        """
-        Removes the studio links as well as orphaned studios from the Kodi DB
-        """
-        self._delete_from_link_and_table(kodi_id,
-                                         kodi_type,
-                                         'studio_link',
-                                         'studio',
-                                         'studio_id')
-
     def modify_streams(self, fileid, streamdetails=None, runtime=None):
         """
         Leave streamdetails and runtime empty to delete all stream entries for
         fileid
         """
         # First remove any existing entries
-        self.cursor.execute("DELETE FROM streamdetails WHERE idFile = ?", (fileid,))
-        if streamdetails:
-            # Video details
-            for videotrack in streamdetails['video']:
-                query = (
-                    '''
-                    INSERT INTO streamdetails(
-                        idFile, iStreamType, strVideoCodec, fVideoAspect, 
-                        iVideoWidth, iVideoHeight, iVideoDuration ,strStereoMode)
-                    
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                    '''
-                )
-                self.cursor.execute(query, (fileid, 0, videotrack['codec'],
-                    videotrack['aspect'], videotrack['width'], videotrack['height'],
-                    runtime ,videotrack['video3DFormat']))
-            
-            # Audio details
-            for audiotrack in streamdetails['audio']:
-                query = (
-                    '''
-                    INSERT INTO streamdetails(
-                        idFile, iStreamType, strAudioCodec, iAudioChannels, strAudioLanguage)
-                    
-                    VALUES (?, ?, ?, ?, ?)
-                    '''
-                )
-                self.cursor.execute(query, (fileid, 1, audiotrack['codec'],
-                    audiotrack['channels'], audiotrack['language']))
-
-            # Subtitles details
-            for subtitletrack in streamdetails['subtitle']:
-                query = (
-                    '''
-                    INSERT INTO streamdetails(
-                        idFile, iStreamType, strSubtitleLanguage)
-
-                    VALUES (?, ?, ?)
-                    '''
-                )
-                self.cursor.execute(query, (fileid, 2, subtitletrack))
+        self.cursor.execute('DELETE FROM streamdetails WHERE idFile = ?',
+                            (fileid,))
+        if not streamdetails:
+            return
+        for videotrack in streamdetails['video']:
+            query = '''
+                INSERT INTO streamdetails(
+                    idFile, iStreamType, strVideoCodec, fVideoAspect,
+                    iVideoWidth, iVideoHeight, iVideoDuration ,strStereoMode)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            '''
+            self.cursor.execute(query,
+                                (fileid, 0, videotrack['codec'],
+                                 videotrack['aspect'], videotrack['width'],
+                                 videotrack['height'], runtime,
+                                 videotrack['video3DFormat']))
+        for audiotrack in streamdetails['audio']:
+            query = '''
+                INSERT INTO streamdetails(
+                    idFile, iStreamType, strAudioCodec, iAudioChannels,
+                    strAudioLanguage)
+                VALUES (?, ?, ?, ?, ?)
+            '''
+            self.cursor.execute(query,
+                                (fileid, 1, audiotrack['codec'],
+                                 audiotrack['channels'],
+                                 audiotrack['language']))
+        for subtitletrack in streamdetails['subtitle']:
+            query = '''
+                INSERT INTO streamdetails(idFile, iStreamType,
+                    strSubtitleLanguage)
+                VALUES (?, ?, ?)
+            '''
+            self.cursor.execute(query, (fileid, 2, subtitletrack))
 
     def resume_points(self):
         """
@@ -717,26 +556,6 @@ class KodiDBMethods(object):
             FROM bookmark
         '''
         rows = self.cursor.execute(query)
-        ids = []
-        for row in rows:
-            ids.append(row[0])
-        return ids
-
-    def getUnplayedMusicItems(self):
-        """
-        MUSIC
-
-        Returns all Kodi Item idFile that have not yet been completely played
-        """
-        query = ' '.join((
-            "SELECT idSong",
-            "FROM song",
-            "WHERE iTimesPlayed = ?"
-        ))
-        try:
-            rows = self.cursor.execute(query, (0, ))
-        except:
-            return []
         ids = []
         for row in rows:
             ids.append(row[0])
@@ -846,46 +665,6 @@ class KodiDBMethods(object):
             return
         return song_id[0]
 
-    def getUnplayedItems(self):
-        """
-        VIDEOS
-
-        Returns all Kodi Item idFile that have not yet been completely played
-        """
-        query = ' '.join((
-            "SELECT idFile",
-            "FROM files",
-            "WHERE playCount IS NULL OR playCount = ''"
-        ))
-        try:
-            rows = self.cursor.execute(query)
-        except:
-            return []
-        ids = []
-        for row in rows:
-            ids.append(row[0])
-        return ids
-
-    def getVideoRuntime(self, kodiid, mediatype):
-        if mediatype == v.KODI_TYPE_MOVIE:
-            query = ' '.join((
-                "SELECT c11",
-                "FROM movie",
-                "WHERE idMovie = ?",
-            ))
-        elif mediatype == v.KODI_TYPE_EPISODE:
-            query = ' '.join((
-                "SELECT c09",
-                "FROM episode",
-                "WHERE idEpisode = ?",
-            ))
-        self.cursor.execute(query, (kodiid,))
-        try:
-            runtime = self.cursor.fetchone()[0]
-        except TypeError:
-            return None
-        return int(runtime)
-
     def get_resume(self, file_id):
         """
         Returns the first resume point in seconds (int) if found, else None for
@@ -950,60 +729,6 @@ class KodiDBMethods(object):
         Removes all playstates/bookmarks for the file with file_id
         """
         self.cursor.execute('DELETE FROM bookmark where idFile = ?', (file_id,))
-
-    def addTags(self, kodiid, tags, mediatype):
-        # First, delete any existing tags associated to the id
-        query = ' '.join((
-
-            "DELETE FROM tag_link",
-            "WHERE media_id = ?",
-            "AND media_type = ?"
-        ))
-        self.cursor.execute(query, (kodiid, mediatype))
-    
-        # Add tags
-        LOG.debug("Adding Tags: %s", tags)
-        for tag in tags:
-            self.addTag(kodiid, tag, mediatype)
-
-    def delete_tags(self, kodi_id, kodi_type):
-        """
-        Removes the genre links as well as orphaned genres from the Kodi DB
-        """
-        self._delete_from_link_and_table(kodi_id,
-                                         kodi_type,
-                                         'tag_link',
-                                         'tag',
-                                         'tag_id')
-
-    def addTag(self, kodiid, tag, mediatype):
-        query = ' '.join((
-
-            "SELECT tag_id",
-            "FROM tag",
-            "WHERE name = ?",
-            "COLLATE NOCASE"
-        ))
-        self.cursor.execute(query, (tag,))
-        try:
-            tag_id = self.cursor.fetchone()[0]
-        
-        except TypeError:
-            # Create the tag, because it does not exist
-            tag_id = self.createTag(tag)
-            LOG.debug("Adding tag: %s", tag)
-
-        finally:
-            # Assign tag to item
-            query = (
-                '''
-                INSERT OR REPLACE INTO tag_link(
-                    tag_id, media_id, media_type)
-                
-                VALUES (?, ?, ?)
-                '''
-            )
-            self.cursor.execute(query, (tag_id, kodiid, mediatype))
 
     def createTag(self, name):
         # This will create and return the tag_id

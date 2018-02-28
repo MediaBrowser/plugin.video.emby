@@ -53,13 +53,6 @@ LOG = getLogger("PLEX." + __name__)
 REGEX_IMDB = re_compile(r'''/(tt\d+)''')
 REGEX_TVDB = re_compile(r'''thetvdb:\/\/(.+?)\?''')
 
-# Key of library: Plex-identifier. Value represents the Kodi/emby side
-PEOPLE_OF_INTEREST = {
-    'Director': 'Director',
-    'Writer': 'Writer',
-    'Role': 'Actor',
-    'Producer': 'Producer'
-}
 # we need to use a little mapping between fanart.tv arttypes and kodi
 # artttypes
 FANART_TV_TYPES = [
@@ -326,25 +319,35 @@ class API(object):
 
     def people_list(self):
         """
-        Returns a list of people from item, with a list item of the form
+        Returns a dict with lists of tuples:
         {
-            'Name': xxx,
-            'Type': xxx,
-            'Id': xxx
-            'imageurl': url to picture, None otherwise
-            ('Role': xxx for cast/actors only, None if not found)
+            'actor': [..., (<name>, <artwork url>, <role>, <cast order>), ...],
+            'director': [..., (<name>, ), ...],
+            'writer': [..., (<name>, ), ...]
         }
+        Everything in unicode, except <cast order> which is an int.
+        Only <art-url> and <role> may be None if not found.
+
+        Kodi does not yet support a Producer. People may appear several times
+        per category and overall!
         """
-        people = []
+        people = {
+            'actor': [],
+            'director': [],
+            'writer': []
+        }
+        cast_order = 0
         for child in self.item:
-            if child.tag in PEOPLE_OF_INTEREST:
-                people.append({
-                    'Name': child.attrib['tag'],
-                    'Type': PEOPLE_OF_INTEREST[child.tag],
-                    'Id': child.attrib['id'],
-                    'imageurl': child.get('thumb'),
-                    'Role': child.get('role')
-                })
+            if child.tag == 'Role':
+                people['actor'].append((child.attrib['tag'],
+                                        child.get('thumb'),
+                                        child.get('role'),
+                                        cast_order))
+                cast_order += 1
+            elif child.tag == 'Writer':
+                people['writer'].append((child.attrib['tag'], ))
+            elif child.tag == 'Director':
+                people['director'].append((child.attrib['tag'], ))
         return people
 
     def genre_list(self):
