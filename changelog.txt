@@ -1,3 +1,18 @@
+version 2.0.4 (beta only):
+- WARNING: You will need to reset the Kodi database!
+- Many improvements to the Kodi database handling which should get rid of some weird bugs
+- Many improvements to playback startup
+- Fix info screen and actors not working
+- Fix Companion displaying and selecting wrong subtitle
+- Don't cache subtitles if direct playing
+- Wipe all existing resume point, e.g. on user switch
+- Don't mess with Kodi's screensaver settings
+- Inhibit idle shutdown only during initial sync
+- Fix KeyError for server discovery 
+- Increase Python requests dependency to version 2.9.1
+- Re-introduce PlexKodiConnect dependency add-ons for movies and tv shows
+- And a lot of other stuff
+
 version 2.0.3 (beta only):
 - Fix Alexa playback
 - Fix Kodi boot loop

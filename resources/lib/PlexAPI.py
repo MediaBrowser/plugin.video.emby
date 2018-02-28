@@ -41,7 +41,7 @@ from xbmcvfs import exists
 import clientinfo as client
 from downloadutils import DownloadUtils as DU
 from utils import window, settings, language as lang, try_decode, try_encode, \
-    unix_date_to_kodi, exists_dir, slugify, dialog
+    unix_date_to_kodi, exists_dir, slugify, dialog, escape_html
 import PlexFunctions as PF
 import plexdb_functions as plexdb
 import variables as v
@@ -337,22 +337,14 @@ class API(object):
         """
         people = []
         for child in self.item:
-            if child.tag in PEOPLE_OF_INTEREST.keys():
-                name = child.attrib['tag']
-                name_id = child.attrib['id']
-                typus = PEOPLE_OF_INTEREST[child.tag]
-                url = child.get('thumb')
-                role = child.get('role')
+            if child.tag in PEOPLE_OF_INTEREST:
                 people.append({
-                    'Name': name,
-                    'Type': typus,
-                    'Id': name_id,
-                    'imageurl': url
+                    'Name': child.attrib['tag'],
+                    'Type': PEOPLE_OF_INTEREST[child.tag],
+                    'Id': child.attrib['id'],
+                    'imageurl': child.get('thumb'),
+                    'Role': child.get('role')
                 })
-                if url:
-                    people[-1].update({'imageurl': url})
-                if role:
-                    people[-1].update({'Role': role})
         return people
 
     def genre_list(self):
@@ -364,6 +356,17 @@ class API(object):
             if child.tag == 'Genre':
                 genre.append(child.attrib['tag'])
         return genre
+
+    def guid_html_escaped(self):
+        """
+        Returns the 'guid' attribute, e.g.
+            'com.plexapp.agents.thetvdb://76648/2/4?lang=en'
+        as an HTML-escaped string or None
+        """
+        answ = self.item.get('guid')
+        if answ is not None:
+            answ = escape_html(answ)
+        return answ
 
     def provider(self, providername=None):
         """
@@ -642,14 +645,15 @@ class API(object):
         """
         Returns the ratingKey (plex_id) of the trailer or None
         """
-        for extra in self.item.iterfind('Extras'):
-            try:
-                typus = int(extra.attrib['extraType'])
-            except (KeyError, TypeError):
-                typus = None
-            if typus != 1:
-                continue
-            return extra.get('ratingKey')
+        for extras in self.item.iterfind('Extras'):
+            for extra in extras:
+                try:
+                    typus = int(extra.attrib['extraType'])
+                except (KeyError, TypeError):
+                    typus = None
+                if typus != 1:
+                    continue
+                return extra.get('ratingKey')
 
     def mediastreams(self):
         """

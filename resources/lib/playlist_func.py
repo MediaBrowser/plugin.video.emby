@@ -8,7 +8,7 @@ from re import compile as re_compile
 
 import plexdb_functions as plexdb
 from downloadutils import DownloadUtils as DU
-from utils import try_encode, escape_html
+from utils import try_encode
 from PlexAPI import API
 from PlexFunctions import GetPlexMetadata
 from kodidb_functions import kodiid_from_filename
@@ -190,8 +190,16 @@ class Playlist_Item(object):
         """
         stream_type = v.PLEX_STREAM_TYPE_FROM_STREAM_TYPE[stream_type]
         count = 0
+        # Kodi indexes differently than Plex
         for stream in self.xml[0][self.part]:
-            if stream.attrib['streamType'] == stream_type:
+            if (stream.attrib['streamType'] == stream_type and 
+                    'key' in stream.attrib):
+                if count == kodi_stream_index:
+                    return stream.attrib['id']
+                count += 1
+        for stream in self.xml[0][self.part]:
+            if (stream.attrib['streamType'] == stream_type and 
+                    'key' not in stream.attrib):
                 if count == kodi_stream_index:
                     return stream.attrib['id']
                 count += 1
@@ -208,7 +216,14 @@ class Playlist_Item(object):
         stream_type = v.PLEX_STREAM_TYPE_FROM_STREAM_TYPE[stream_type]
         count = 0
         for stream in self.xml[0][self.part]:
-            if stream.attrib['streamType'] == stream_type:
+            if (stream.attrib['streamType'] == stream_type and
+                    'key' in stream.attrib):
+                if stream.attrib['id'] == plex_stream_index:
+                    return count
+                count += 1
+        for stream in self.xml[0][self.part]:
+            if (stream.attrib['streamType'] == stream_type and
+                    'key' not in stream.attrib):
                 if stream.attrib['id'] == plex_stream_index:
                     return count
                 count += 1
@@ -308,8 +323,7 @@ def playlist_item_from_plex(plex_id):
     return item
 
 
-def playlist_item_from_xml(playlist, xml_video_element, kodi_id=None,
-                           kodi_type=None):
+def playlist_item_from_xml(xml_video_element, kodi_id=None, kodi_type=None):
     """
     Returns a playlist element for the playqueue using the Plex xml
 
@@ -319,13 +333,9 @@ def playlist_item_from_xml(playlist, xml_video_element, kodi_id=None,
     api = API(xml_video_element)
     item.plex_id = api.plex_id()
     item.plex_type = api.plex_type()
-    try:
-        item.id = xml_video_element.attrib['%sItemID' % playlist.kind]
-    except KeyError:
-        pass
-    item.guid = xml_video_element.attrib.get('guid')
-    if item.guid is not None:
-        item.guid = escape_html(item.guid)
+    # item.id will only be set if you passed in an xml_video_element from e.g.
+    # a playQueue
+    item.id = api.item_id()
     if kodi_id is not None:
         item.kodi_id = kodi_id
         item.kodi_type = kodi_type
@@ -333,9 +343,12 @@ def playlist_item_from_xml(playlist, xml_video_element, kodi_id=None,
         with plexdb.Get_Plex_DB() as plex_db:
             db_element = plex_db.getItem_byId(item.plex_id)
         try:
-            item.kodi_id, item.kodi_type = int(db_element[0]), db_element[4]
+            item.kodi_id, item.kodi_type = db_element[0], db_element[4]
         except TypeError:
             pass
+    item.guid = api.guid_html_escaped()
+    item.playcount = api.viewcount()
+    item.offset = api.resume_point()
     item.xml = xml_video_element
     LOG.debug('Created new playlist item from xml: %s', item)
     return item
@@ -420,7 +433,7 @@ def init_Plex_playlist(playlist, plex_id=None, kodi_item=None):
                                parameters=params)
         get_playlist_details_from_xml(playlist, xml)
         # Need to get the details for the playlist item
-        item = playlist_item_from_xml(playlist, xml[0])
+        item = playlist_item_from_xml(xml[0])
     except (KeyError, IndexError, TypeError):
         raise PlaylistError('Could not init Plex playlist with plex_id %s and '
                             'kodi_item %s' % (plex_id, kodi_item))
@@ -484,8 +497,8 @@ def add_item_to_playlist(playlist, pos, kodi_id=None, kodi_type=None,
         params['item'] = {'file': item.file}
     reply = js.playlist_insert(params)
     if reply.get('error') is not None:
-        raise PlaylistError('Could not add item to playlist. Kodi reply. %s',
-                            reply)
+        raise PlaylistError('Could not add item to playlist. Kodi reply. %s'
+                            % reply)
     return item
 
 
@@ -506,17 +519,16 @@ def add_item_to_PMS_playlist(playlist, pos, plex_id=None, kodi_item=None):
     # Will always put the new item at the end of the Plex playlist
     xml = DU().downloadUrl(url, action_type="PUT")
     try:
-        item.xml = xml[-1]
-        item.id = xml[-1].attrib['%sItemID' % playlist.kind]
-    except IndexError:
-        LOG.info('Could not get playlist children. Adding a dummy')
-    except (TypeError, AttributeError, KeyError):
-        raise PlaylistError('Could not add item %s to playlist %s',
-                            kodi_item, playlist)
-    # Get the guid for this item
-    for plex_item in xml:
-        if plex_item.attrib['%sItemID' % playlist.kind] == item.id:
-            item.guid = escape_html(plex_item.attrib['guid'])
+        xml[-1].attrib
+    except (TypeError, AttributeError, KeyError, IndexError):
+        raise PlaylistError('Could not add item %s to playlist %s'
+                            % (kodi_item, playlist))
+    api = API(xml[-1])
+    item.xml = xml[-1]
+    item.id = api.item_id()
+    item.guid = api.guid_html_escaped()
+    item.offset = api.resume_point()
+    item.playcount = api.viewcount()
     playlist.items.append(item)
     if pos == len(playlist.items) - 1:
         # Item was added at the end
@@ -555,7 +567,7 @@ def add_item_to_kodi_playlist(playlist, pos, kodi_id=None, kodi_type=None,
         raise PlaylistError('Could not add item to playlist. Kodi reply. %s',
                             reply)
     if xml_video_element is not None:
-        item = playlist_item_from_xml(playlist, xml_video_element)
+        item = playlist_item_from_xml(xml_video_element)
         item.kodi_id = kodi_id
         item.kodi_type = kodi_type
         item.file = file
@@ -646,7 +658,7 @@ def add_to_Kodi_playlist(playlist, xml_video_element):
 
     Returns a Playlist_Item or raises PlaylistError
     """
-    item = playlist_item_from_xml(playlist, xml_video_element)
+    item = playlist_item_from_xml(xml_video_element)
     if item.kodi_id:
         json_item = {'%sid' % item.kodi_type: item.kodi_id}
     else:
@@ -673,7 +685,7 @@ def add_listitem_to_Kodi_playlist(playlist, pos, listitem, file,
     playlist.kodi_pl.add(url=file, listitem=listitem, index=pos)
     # We need to add this to our internal queue as well
     if xml_video_element is not None:
-        item = playlist_item_from_xml(playlist, xml_video_element)
+        item = playlist_item_from_xml(xml_video_element)
     else:
         item = playlist_item_from_kodi(kodi_item)
     if file is not None:

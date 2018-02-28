@@ -310,15 +310,9 @@ class Artwork():
             self.cacheTexture(imageUrl)
 
     def deleteArtwork(self, kodiId, mediaType, cursor):
-        query = ' '.join((
-            "SELECT url",
-            "FROM art",
-            "WHERE media_id = ?",
-            "AND media_type = ?"
-        ))
+        query = 'SELECT url FROM art WHERE media_id = ? AND media_type = ?'
         cursor.execute(query, (kodiId, mediaType,))
-        rows = cursor.fetchall()
-        for row in rows:
+        for row in cursor.fetchall():
             self.deleteCachedArtwork(row[0])
 
     def deleteCachedArtwork(self, url):
@@ -330,7 +324,7 @@ class Artwork():
                            (url,))
             cachedurl = cursor.fetchone()[0]
         except TypeError:
-            LOG.info("Could not find cached url.")
+            LOG.debug("Could not find cached url.")
         else:
             # Delete thumbnail as well as the entry
             path = translatePath("special://thumbnails/%s" % cachedurl)

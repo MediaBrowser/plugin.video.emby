@@ -1670,10 +1670,6 @@ msgctxt "#39213"
 msgid "is offline"
 msgstr ""
 
-msgctxt "#39214"
-msgid "Even though we signed in to plex.tv, we could not authorize for PMS"
-msgstr ""
-
 msgctxt "#39215"
 msgid "Enter your Plex Media Server's IP or URL, Examples are:"
 msgstr ""

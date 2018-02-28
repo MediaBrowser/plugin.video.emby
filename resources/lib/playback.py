@@ -24,9 +24,9 @@ import variables as v
 import state
 
 ###############################################################################
-
 LOG = getLogger("PLEX." + __name__)
-
+# Do we need to return ultimately with a setResolvedUrl?
+RESOLVE = True
 ###############################################################################
 
 
@@ -49,13 +49,13 @@ def playback_triage(plex_id=None, plex_type=None, path=None, resolve=True):
     """
     LOG.info('playback_triage called with plex_id %s, plex_type %s, path %s',
              plex_id, plex_type, path)
+    global RESOLVE
+    RESOLVE = resolve
     if not state.AUTHENTICATED:
         LOG.error('Not yet authenticated for PMS, abort starting playback')
-        if resolve is True:
-            # Release default.py
-            pickle_me(Playback_Successful())
         # "Unauthorized for PMS"
         dialog('notification', lang(29999), lang(30017))
+        _ensure_resolve()
         return
     playqueue = PQ.get_playqueue_from_type(
         v.KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[plex_type])
@@ -67,19 +67,13 @@ def playback_triage(plex_id=None, plex_type=None, path=None, resolve=True):
     try:
         playqueue.items[pos]
     except IndexError:
-        # Release our default.py before starting our own Kodi player instance
-        if resolve is True:
-            state.PKC_CAUSED_STOP = True
-            result = Playback_Successful()
-            result.listitem = PKC_ListItem(path='PKC_Dummy_Path_Which_Fails')
-            pickle_me(result)
-        playback_init(plex_id, plex_type, playqueue)
+        _playback_init(plex_id, plex_type, playqueue, pos)
     else:
         # kick off playback on second pass
-        conclude_playback(playqueue, pos)
+        _conclude_playback(playqueue, pos)
 
 
-def playback_init(plex_id, plex_type, playqueue):
+def _playback_init(plex_id, plex_type, playqueue, pos):
     """
     Playback setup if Kodi starts playing an item for the first time.
     """
@@ -91,9 +85,25 @@ def playback_init(plex_id, plex_type, playqueue):
         LOG.error('Could not get a PMS xml for plex id %s', plex_id)
         # "Play error"
         dialog('notification', lang(29999), lang(30128), icon='{error}')
+        _ensure_resolve()
         return
-    trailers = False
+    if playqueue.kodi_pl.size() > 1:
+        # Special case - we already got a filled Kodi playqueue
+        try:
+            _init_existing_kodi_playlist(playqueue)
+        except PL.PlaylistError:
+            LOG.error('Aborting playback_init for longer Kodi playlist')
+            _ensure_resolve()
+            return
+        # Now we need to use setResolvedUrl for the item at position pos
+        _conclude_playback(playqueue, pos)
+        return
+    # "Usual" case - consider trailers and parts and build both Kodi and Plex
+    # playqueues
+    # Fail the item we're trying to play now so we can restart the player
+    _ensure_resolve()
     api = API(xml[0])
+    trailers = False
     if (plex_type == v.PLEX_TYPE_MOVIE and not api.resume_point() and
             settings('enableCinema') == "true"):
         if settings('askCinema') == "true":
@@ -115,6 +125,7 @@ def playback_init(plex_id, plex_type, playqueue):
                       plex_id, xml.attrib.get('librarySectionUUID'))
             # "Play error"
             dialog('notification', lang(29999), lang(30128), icon='{error}')
+            _ensure_resolve()
             return
         # Should already be empty, but just in case
         PL.get_playlist_details_from_xml(playqueue, xml)
@@ -139,6 +150,39 @@ def playback_init(plex_id, plex_type, playqueue):
     thread.start()
 
 
+def _ensure_resolve():
+    """
+    Will check whether RESOLVE=True and if so, fail Kodi playback startup
+    with the path 'PKC_Dummy_Path_Which_Fails' using setResolvedUrl (and some
+    pickling)
+
+    This way we're making sure that other Python instances (calling default.py)
+    will be destroyed.
+    """
+    if RESOLVE is True:
+        state.PKC_CAUSED_STOP = True
+        result = Playback_Successful()
+        result.listitem = PKC_ListItem(path='PKC_Dummy_Path_Which_Fails')
+        pickle_me(result)
+
+
+def _init_existing_kodi_playlist(playqueue):
+    """
+    Will take the playqueue's kodi_pl with MORE than 1 element and initiate
+    playback (without adding trailers)
+    """
+    LOG.debug('Kodi playlist size: %s', playqueue.kodi_pl.size())
+    for i, kodi_item in enumerate(js.playlist_get_items(playqueue.playlistid)):
+        if i == 0:
+            item = PL.init_Plex_playlist(playqueue, kodi_item=kodi_item)
+        else:
+            item = PL.add_item_to_PMS_playlist(playqueue,
+                                               i,
+                                               kodi_item=kodi_item)
+        item.force_transcode = state.FORCE_TRANSCODE
+    LOG.debug('Done building Plex playlist from Kodi playlist')
+
+
 def _prep_playlist_stack(xml):
     stack = []
     for item in xml:
@@ -152,7 +196,9 @@ def _prep_playlist_stack(xml):
             kodi_id = plex_dbitem[0] if plex_dbitem else None
             kodi_type = plex_dbitem[4] if plex_dbitem else None
         else:
-            # We will never store clips (trailers) in the Kodi DB
+            # We will never store clips (trailers) in the Kodi DB.
+            # Also set kodi_id to None for playback via PMS, so that we're
+            # using add-on paths.
             kodi_id = None
             kodi_type = None
         for part, _ in enumerate(item[0]):
@@ -165,8 +211,7 @@ def _prep_playlist_stack(xml):
                     'plex_type': api.plex_type()
                 }
                 path = ('plugin://%s/?%s'
-                        % (v.ADDON_TYPE[api.plex_type()],
-                           urlencode(params)))
+                        % (v.ADDON_TYPE[api.plex_type()], urlencode(params)))
                 listitem = api.create_listitem()
                 listitem.setPath(try_encode(path))
             else:
@@ -217,7 +262,7 @@ def _process_stack(playqueue, stack):
         pos += 1
 
 
-def conclude_playback(playqueue, pos):
+def _conclude_playback(playqueue, pos):
     """
     ONLY if actually being played (e.g. at 5th position of a playqueue).
 
@@ -246,9 +291,9 @@ def conclude_playback(playqueue, pos):
     else:
         playurl = item.file
     listitem.setPath(try_encode(playurl))
-    if item.playmethod in ('DirectStream', 'DirectPlay'):
+    if item.playmethod == 'DirectStream':
         listitem.setSubtitles(api.cache_external_subs())
-    else:
+    elif item.playmethod == 'Transcode':
         playutils.audio_subtitle_prefs(listitem)
     if state.RESUME_PLAYBACK is True:
         state.RESUME_PLAYBACK = False
@@ -281,6 +326,8 @@ def process_indirect(key, offset, resolve=True):
     setResolvedUrl
     """
     LOG.info('process_indirect called with key: %s, offset: %s', key, offset)
+    global RESOLVE
+    RESOLVE = resolve
     result = Playback_Successful()
     if key.startswith('http') or key.startswith('{server}'):
         xml = DU().downloadUrl(key)
@@ -292,9 +339,7 @@ def process_indirect(key, offset, resolve=True):
         xml[0].attrib
     except (TypeError, IndexError, AttributeError):
         LOG.error('Could not download PMS metadata')
-        if resolve is True:
-            # Release default.py
-            pickle_me(result)
+        _ensure_resolve()
         return
     if offset != '0':
         offset = int(v.PLEX_TO_KODI_TIMEFACTOR * float(offset))
@@ -317,9 +362,7 @@ def process_indirect(key, offset, resolve=True):
         xml[0].attrib
     except (TypeError, IndexError, AttributeError):
         LOG.error('Could not download last xml for playurl')
-        if resolve is True:
-            # Release default.py
-            pickle_me(result)
+        _ensure_resolve()
         return
     playurl = xml[0].attrib['key']
     item.file = playurl

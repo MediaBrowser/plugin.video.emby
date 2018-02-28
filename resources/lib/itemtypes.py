@@ -48,7 +48,7 @@ class Items(object):
         self.kodiconn = kodi_sql('video')
         self.kodicursor = self.kodiconn.cursor()
         self.plex_db = plexdb.Plex_DB_Functions(self.plexcursor)
-        self.kodi_db = kodidb.Kodidb_Functions(self.kodicursor)
+        self.kodi_db = kodidb.KodiDBMethods(self.kodicursor)
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -326,6 +326,7 @@ class Movies(Items):
                                                  "imdb",
                                                  uniqueid)
                 else:
+                    self.kodi_db.remove_uniqueid(movieid, v.KODI_TYPE_MOVIE)
                     uniqueid = -1
                 query = '''
                     UPDATE movie
@@ -360,7 +361,8 @@ class Movies(Items):
             LOG.info("ADD movie itemid: %s - Title: %s", itemid, title)
             if v.KODIVERSION >= 17:
                 # add new ratings Kodi 17
-                rating_id = self.kodi_db.create_entry_rating()
+                rating_id = self.kodi_db.get_ratingid(movieid,
+                                                      v.KODI_TYPE_MOVIE)
                 self.kodi_db.add_ratings(rating_id,
                                          movieid,
                                          v.KODI_TYPE_MOVIE,
@@ -369,7 +371,8 @@ class Movies(Items):
                                          votecount)
                 # add new uniqueid Kodi 17
                 if imdb is not None:
-                    uniqueid = self.kodi_db.create_entry_uniqueid()
+                    uniqueid = self.kodi_db.get_uniqueid(movieid,
+                                                         v.KODI_TYPE_MOVIE)
                     self.kodi_db.add_uniqueid(uniqueid,
                                               movieid,
                                               v.KODI_TYPE_MOVIE,
@@ -434,23 +437,23 @@ class Movies(Items):
         kodicursor.execute(query, (pathid, filename, dateadded, fileid))
 
         # Process countries
-        self.kodi_db.addCountries(movieid, countries, "movie")
+        self.kodi_db.modify_countries(movieid, v.KODI_TYPE_MOVIE, countries)
         # Process cast
         self.kodi_db.addPeople(movieid, api.people_list(), "movie")
         # Process genres
-        self.kodi_db.addGenres(movieid, genres, "movie")
+        self.kodi_db.modify_genres(movieid, v.KODI_TYPE_MOVIE, genres)
         # Process artwork
         artwork.addArtwork(api.artwork(), movieid, "movie", kodicursor)
         # Process stream details
-        self.kodi_db.addStreams(fileid, api.mediastreams(), runtime)
+        self.kodi_db.modify_streams(fileid, api.mediastreams(), runtime)
         # Process studios
-        self.kodi_db.addStudios(movieid, studios, "movie")
+        self.kodi_db.modify_studios(movieid, v.KODI_TYPE_MOVIE, studios)
         # Process tags: view, Plex collection tags
         tags = [viewtag]
         tags.extend(collections)
         if userdata['Favorite']:
             tags.append("Favorite movies")
-        self.kodi_db.addTags(movieid, tags, "movie")
+        self.kodi_db.modify_tags(movieid, v.KODI_TYPE_MOVIE, tags)
         # Add any sets from Plex collection tags
         self.kodi_db.addSets(movieid, collections, kodicursor)
         # Process playstates
@@ -469,7 +472,7 @@ class Movies(Items):
             kodi_id = plex_dbitem[0]
             file_id = plex_dbitem[1]
             kodi_type = plex_dbitem[4]
-            LOG.info("Removing %sid: %s file_id: %s",
+            LOG.debug("Removing %sid: %s file_id: %s",
                      kodi_type, kodi_id, file_id)
         except TypeError:
             return
@@ -480,11 +483,21 @@ class Movies(Items):
         artwork.deleteArtwork(kodi_id, kodi_type, kodicursor)
 
         if kodi_type == v.KODI_TYPE_MOVIE:
+            set_id = self.kodi_db.get_set_id(kodi_id)
+            self.kodi_db.delete_countries(kodi_id, kodi_type)
+            self.kodi_db.delete_people(kodi_id, kodi_type)
+            self.kodi_db.delete_genre(kodi_id, kodi_type)
+            self.kodi_db.delete_studios(kodi_id, kodi_type)
+            self.kodi_db.delete_tags(kodi_id, kodi_type)
+            self.kodi_db.modify_streams(file_id)
+            self.kodi_db.delete_playstate(file_id)
             # Delete kodi movie and file
             kodicursor.execute("DELETE FROM movie WHERE idMovie = ?",
                                (kodi_id,))
             kodicursor.execute("DELETE FROM files WHERE idFile = ?",
                                (file_id,))
+            if set_id:
+                self.kodi_db.delete_possibly_empty_set(set_id)
             if v.KODIVERSION >= 17:
                 self.kodi_db.remove_uniqueid(kodi_id, kodi_type)
                 self.kodi_db.remove_ratings(kodi_id, kodi_type)
@@ -499,7 +512,7 @@ class Movies(Items):
                 # Update plex reference
                 plex_db.updateParentId(plexid, None)
             kodicursor.execute("DELETE FROM sets WHERE idSet = ?", (kodi_id,))
-        LOG.info("Deleted %s %s from kodi database", kodi_type, itemid)
+        LOG.debug("Deleted %s %s from kodi database", kodi_type, itemid)
 
 
 class TVShows(Items):
@@ -627,6 +640,7 @@ class TVShows(Items):
                                                  "unknown",
                                                  uniqueid)
                 else:
+                    self.kodi_db.remove_uniqueid(showid, v.KODI_TYPE_SHOW)
                     uniqueid = -1
                 # Update the tvshow entry
                 query = '''
@@ -677,7 +691,7 @@ class TVShows(Items):
                                  view_id=viewid)
             if v.KODIVERSION >= 17:
                 # add new ratings Kodi 17
-                rating_id = self.kodi_db.create_entry_rating()
+                rating_id = self.kodi_db.get_ratingid(showid, v.KODI_TYPE_SHOW)
                 self.kodi_db.add_ratings(rating_id,
                                          showid,
                                          v.KODI_TYPE_SHOW,
@@ -686,7 +700,8 @@ class TVShows(Items):
                                          votecount)
                 # add new uniqueid Kodi 17
                 if tvdb is not None:
-                    uniqueid = self.kodi_db.create_entry_uniqueid()
+                    uniqueid = self.kodi_db.get_uniqueid(showid,
+                                                         v.KODI_TYPE_SHOW)
                     self.kodi_db.add_uniqueid(uniqueid,
                                               showid,
                                               v.KODI_TYPE_SHOW,
@@ -985,7 +1000,8 @@ class TVShows(Items):
             # Create the episode entry
             if v.KODIVERSION >= 17:
                 # add new ratings Kodi 17
-                rating_id = self.kodi_db.create_entry_rating()
+                rating_id = self.kodi_db.get_ratingid(episodeid,
+                                                      v.KODI_TYPE_EPISODE)
                 self.kodi_db.add_ratings(rating_id,
                                          episodeid,
                                          v.KODI_TYPE_EPISODE,
@@ -993,7 +1009,9 @@ class TVShows(Items):
                                          rating,
                                          votecount)
                 # add new uniqueid Kodi 17
-                self.kodi_db.add_uniqueid(self.kodi_db.create_entry_uniqueid(),
+                uniqueid = self.kodi_db.get_uniqueid(episodeid,
+                                                     v.KODI_TYPE_EPISODE)
+                self.kodi_db.add_uniqueid(uniqueid,
                                           episodeid,
                                           v.KODI_TYPE_EPISODE,
                                           tvdb,
@@ -1083,7 +1101,7 @@ class TVShows(Items):
 
         # Process stream details
         streams = api.mediastreams()
-        self.kodi_db.addStreams(fileid, streams, runtime)
+        self.kodi_db.modify_streams(fileid, streams, runtime)
         # Process playstates
         self.kodi_db.addPlaystate(fileid,
                                   resume,
@@ -1203,6 +1221,9 @@ class TVShows(Items):
         Remove a TV show, and only the show, no seasons or episodes
         """
         kodicursor = self.kodicursor
+        self.kodi_db.delete_genre(kodi_id, v.KODI_TYPE_SHOW)
+        self.kodi_db.delete_studios(kodi_id, v.KODI_TYPE_SHOW)
+        self.kodi_db.delete_tags(kodi_id, v.KODI_TYPE_SHOW)
         self.artwork.deleteArtwork(kodi_id, v.KODI_TYPE_SHOW, kodicursor)
         kodicursor.execute("DELETE FROM tvshow WHERE idShow = ?", (kodi_id,))
         if v.KODIVERSION >= 17:
@@ -1220,15 +1241,18 @@ class TVShows(Items):
                            (kodi_id,))
         LOG.info("Removed season: %s.", kodi_id)
 
-    def removeEpisode(self, kodi_id, fileid):
+    def removeEpisode(self, kodi_id, file_id):
         """
         Remove an episode, and episode only
         """
         kodicursor = self.kodicursor
+        self.kodi_db.delete_people(kodi_id, v.KODI_TYPE_EPISODE)
+        self.kodi_db.modify_streams(file_id)
+        self.kodi_db.delete_playstate(file_id)
         self.artwork.deleteArtwork(kodi_id, "episode", kodicursor)
         kodicursor.execute("DELETE FROM episode WHERE idEpisode = ?",
                            (kodi_id,))
-        kodicursor.execute("DELETE FROM files WHERE idFile = ?", (fileid,))
+        kodicursor.execute("DELETE FROM files WHERE idFile = ?", (file_id,))
         if v.KODIVERSION >= 17:
             self.kodi_db.remove_uniqueid(kodi_id, v.KODI_TYPE_EPISODE)
             self.kodi_db.remove_ratings(kodi_id, v.KODI_TYPE_EPISODE)
@@ -1250,7 +1274,7 @@ class Music(Items):
         self.kodiconn = kodi_sql('music')
         self.kodicursor = self.kodiconn.cursor()
         self.plex_db = plexdb.Plex_DB_Functions(self.plexcursor)
-        self.kodi_db = kodidb.Kodidb_Functions(self.kodicursor)
+        self.kodi_db = kodidb.KodiDBMethods(self.kodicursor)
         return self
 
     @catch_exceptions(warnuser=True)
