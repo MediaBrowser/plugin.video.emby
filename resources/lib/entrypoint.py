@@ -53,11 +53,9 @@ def chooseServer():
     if not __LogOut():
         return
 
-    from utils import delete_playlists, delete_nodes
-    # First remove playlists
-    delete_playlists()
-    # Remove video nodes
-    delete_nodes()
+    from utils import wipe_database
+    # Wipe Kodi and Plex database as well as playlists and video nodes
+    wipe_database()
 
     # Log in again
     __LogIn()

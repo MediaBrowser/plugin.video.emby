@@ -368,34 +368,14 @@ def create_actor_db_index():
     conn.close()
 
 
-def reset():
+def wipe_database():
     """
-    User navigated to the PKC settings, Advanced, and wants to reset the Kodi
-    database and possibly PKC entirely
+    Deletes all Plex playlists as well as video nodes, then clears Kodi as well
+    as Plex databases completely.
+    Will also delete all cached artwork.
     """
-    # Are you sure you want to reset your local Kodi database?
-    if not dialog('yesno',
-                  heading='{plex} %s ' % language(30132),
-                  line1=language(39600)):
-        return
-
-    # first stop any db sync
-    plex_command('STOP_SYNC', 'True')
-    count = 10
-    while window('plex_dbScan') == "true":
-        LOG.debug("Sync is running, will retry: %s...", count)
-        count -= 1
-        if count == 0:
-            # Could not stop the database from running. Please try again later.
-            dialog('ok',
-                   heading='{plex} %s' % language(30132),
-                   line1=language(39601))
-            return
-        xbmc.sleep(1000)
-
     # Clean up the playlists
     delete_playlists()
-
     # Clean up the video nodes
     delete_nodes()
 
@@ -435,35 +415,58 @@ def reset():
         tablename = row[0]
         if tablename != "version":
             cursor.execute("DELETE FROM %s" % tablename)
-    cursor.execute('DROP table IF EXISTS plex')
-    cursor.execute('DROP table IF EXISTS view')
     connection.commit()
     cursor.close()
 
-    # Remove all cached artwork? (recommended!)
-    if dialog('yesno',
-              heading='{plex} %s ' % language(30132),
-              line1=language(39602)):
-        LOG.info("Resetting all cached artwork.")
-        # Remove all existing textures first
-        path = xbmc.translatePath("special://thumbnails/")
-        if exists(path):
-            rmtree(try_decode(path), ignore_errors=True)
-        # remove all existing data from texture DB
-        connection = kodi_sql('texture')
-        cursor = connection.cursor()
-        query = 'SELECT tbl_name FROM sqlite_master WHERE type=?'
-        cursor.execute(query, ("table", ))
-        rows = cursor.fetchall()
-        for row in rows:
-            table_name = row[0]
-            if table_name != "version":
-                cursor.execute("DELETE FROM %s" % table_name)
-        connection.commit()
-        cursor.close()
+    LOG.info("Resetting all cached artwork.")
+    # Remove all existing textures first
+    path = xbmc.translatePath("special://thumbnails/")
+    if exists(path):
+        rmtree(try_decode(path), ignore_errors=True)
+    # remove all existing data from texture DB
+    connection = kodi_sql('texture')
+    cursor = connection.cursor()
+    query = 'SELECT tbl_name FROM sqlite_master WHERE type=?'
+    cursor.execute(query, ("table", ))
+    rows = cursor.fetchall()
+    for row in rows:
+        table_name = row[0]
+        if table_name != "version":
+            cursor.execute("DELETE FROM %s" % table_name)
+    connection.commit()
+    cursor.close()
 
     # reset the install run flag
     settings('SyncInstallRunDone', value="false")
+
+
+def reset():
+    """
+    User navigated to the PKC settings, Advanced, and wants to reset the Kodi
+    database and possibly PKC entirely
+    """
+    # Are you sure you want to reset your local Kodi database?
+    if not dialog('yesno',
+                  heading='{plex} %s ' % language(30132),
+                  line1=language(39600)):
+        return
+
+    # first stop any db sync
+    plex_command('STOP_SYNC', 'True')
+    count = 10
+    while window('plex_dbScan') == "true":
+        LOG.debug("Sync is running, will retry: %s...", count)
+        count -= 1
+        if count == 0:
+            # Could not stop the database from running. Please try again later.
+            dialog('ok',
+                   heading='{plex} %s' % language(30132),
+                   line1=language(39601))
+            return
+        xbmc.sleep(1000)
+
+    # Wipe everything
+    wipe_database()
 
     # Reset all PlexKodiConnect Addon settings? (this is usually NOT
     # recommended and unnecessary!)

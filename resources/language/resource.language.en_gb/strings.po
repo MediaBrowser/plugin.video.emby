@@ -1851,10 +1851,6 @@ msgctxt "#39601"
 msgid "Could not stop the database from running. Please try again later."
 msgstr ""
 
-msgctxt "#39602"
-msgid "Remove all cached artwork? (recommended!)"
-msgstr ""
-
 msgctxt "#39603"
 msgid "Reset all PlexKodiConnect Addon settings? (this is usually NOT recommended and unnecessary!)"
 msgstr ""
