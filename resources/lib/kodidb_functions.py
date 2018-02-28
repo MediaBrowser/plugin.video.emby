@@ -244,7 +244,7 @@ class KodiDBMethods(object):
         query = '''
             SELECT %s FROM %s WHERE name = ? COLLATE NOCASE LIMIT 1
         ''' % (key, table)
-        query_id = 'SELECT COALESCE(MAX(%s),0) FROM %s' % (key, table)
+        query_id = 'SELECT COALESCE(MAX(%s), -1) FROM %s' % (key, table)
         query_new = ('INSERT INTO %s(%s, name) values(?, ?)'
                      % (table, key))
         entry_ids = []
