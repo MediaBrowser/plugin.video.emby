@@ -240,7 +240,7 @@ class KodiDBMethods(object):
             self.cursor.execute(query, (pathid, filename,))
 
     def _modify_link_and_table(self, kodi_id, kodi_type, entries, link_table,
-                              table, key):
+                               table, key):
         query = '''
             SELECT %s FROM %s WHERE name = ? COLLATE NOCASE LIMIT 1
         ''' % (key, table)
@@ -255,6 +255,7 @@ class KodiDBMethods(object):
             except TypeError:
                 self.cursor.execute(query_id)
                 entry_id = self.cursor.fetchone()[0] + 1
+                LOG.debug('Adding %s: %s with id %s', table, entry, entry_id)
                 self.cursor.execute(query_new, (entry_id, entry))
             finally:
                 entry_ids.append(entry_id)
@@ -286,6 +287,7 @@ class KodiDBMethods(object):
             self.cursor.execute(query_rem, (entry_id,))
             if self.cursor.fetchone() is None:
                 # Delete in the original table because entry is now orphaned
+                LOG.debug('Deleting %s from Kodi DB: %s', table, entry_id)
                 self.cursor.execute(query_delete, (entry_id,))
 
     def modify_countries(self, kodi_id, kodi_type, countries):
