@@ -267,9 +267,9 @@ class KodiDBMethods(object):
         outdated_entries = []
         for entry_id in old_entries:
             try:
-                entry_ids.remove(entry_id)
+                entry_ids.remove(entry_id[0])
             except ValueError:
-                outdated_entries.append(entry_id)
+                outdated_entries.append(entry_id[0])
         # Add all new entries that haven't already been added
         query = 'INSERT INTO %s VALUES (?, ?, ?)' % link_table
         for entry_id in entry_ids:
