@@ -324,7 +324,8 @@ class Artwork():
                            (url,))
             cachedurl = cursor.fetchone()[0]
         except TypeError:
-            LOG.debug("Could not find cached url.")
+            # Could not find cached url
+            pass
         else:
             # Delete thumbnail as well as the entry
             path = translatePath("special://thumbnails/%s" % cachedurl)
