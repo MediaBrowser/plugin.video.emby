@@ -62,7 +62,7 @@ class KodiDBMethods(object):
         """
         path_id = self.getPath('plugin://%s.movies/' % v.ADDON_ID)
         if path_id is None:
-            self.cursor.execute("select coalesce(max(idPath),0) from path")
+            self.cursor.execute("SELECT COALESCE(MAX(idPath),-1) FROM path")
             path_id = self.cursor.fetchone()[0] + 1
             query = '''
                 INSERT INTO path(idPath,
@@ -82,7 +82,7 @@ class KodiDBMethods(object):
         # And TV shows
         path_id = self.getPath('plugin://%s.tvshows/' % v.ADDON_ID)
         if path_id is None:
-            self.cursor.execute("select coalesce(max(idPath),0) from path")
+            self.cursor.execute("SELECT COALESCE(MAX(idPath),-1) FROM path")
             path_id = self.cursor.fetchone()[0] + 1
             query = '''
                 INSERT INTO path(idPath,
@@ -113,7 +113,7 @@ class KodiDBMethods(object):
             parentpath = "%s/" % dirname(dirname(path))
         pathid = self.getPath(parentpath)
         if pathid is None:
-            self.cursor.execute("select coalesce(max(idPath),0) from path")
+            self.cursor.execute("SELECT COALESCE(MAX(idPath),-1) FROM path")
             pathid = self.cursor.fetchone()[0] + 1
             query = ' '.join((
                 "INSERT INTO path(idPath, strPath)",
@@ -143,7 +143,7 @@ class KodiDBMethods(object):
         try:
             pathid = self.cursor.fetchone()[0]
         except TypeError:
-            self.cursor.execute("select coalesce(max(idPath),0) from path")
+            self.cursor.execute("SELECT COALESCE(MAX(idPath),-1) FROM path")
             pathid = self.cursor.fetchone()[0] + 1
             if strHash is None:
                 query = (
@@ -197,7 +197,7 @@ class KodiDBMethods(object):
         try:
             fileid = self.cursor.fetchone()[0]
         except TypeError:
-            self.cursor.execute("select coalesce(max(idFile),0) from files")
+            self.cursor.execute("SELECT COALESCE(MAX(idFile),-1) FROM files")
             fileid = self.cursor.fetchone()[0] + 1
             query = (
                 '''
@@ -707,7 +707,7 @@ class KodiDBMethods(object):
         # Set the resume bookmark
         if resume_seconds:
             self.cursor.execute(
-                'select coalesce(max(idBookmark),0) from bookmark')
+                'SELECT COALESCE(MAX(idBookmark),-1) FROM bookmark')
             bookmark_id = self.cursor.fetchone()[0] + 1
             query = '''
             INSERT INTO bookmark(
@@ -744,7 +744,7 @@ class KodiDBMethods(object):
             tag_id = self.cursor.fetchone()[0]
         
         except TypeError:
-            self.cursor.execute("select coalesce(max(tag_id),0) from tag")
+            self.cursor.execute("SELECT COALESCE(MAX(tag_id),-1) FROM tag")
             tag_id = self.cursor.fetchone()[0] + 1
 
             query = "INSERT INTO tag(tag_id, name) values(?, ?)"
@@ -795,7 +795,7 @@ class KodiDBMethods(object):
             setid = self.cursor.fetchone()[0]
 
         except TypeError:
-            self.cursor.execute("select coalesce(max(idSet),0) from sets")
+            self.cursor.execute("SELECT COALESCE(MAX(idSet),-1) FROM sets")
             setid = self.cursor.fetchone()[0] + 1
 
             query = "INSERT INTO sets(idSet, strSet) values(?, ?)"
@@ -859,9 +859,9 @@ class KodiDBMethods(object):
         try:
             seasonid = self.cursor.fetchone()[0]
         except TypeError:
-            self.cursor.execute("select coalesce(max(idSeason),0) from seasons")
+            self.cursor.execute("SELECT COALESCE(MAX(idSeason),-1) FROM seasons")
             seasonid = self.cursor.fetchone()[0] + 1
-            query = "INSERT INTO seasons(idSeason, idShow, season) values(?, ?, ?)"
+            query = "INSERT INTO seasons(idSeason, idShow, season) VALUES(?, ?, ?)"
             self.cursor.execute(query, (seasonid, showid, seasonnumber))
 
         return seasonid
@@ -897,10 +897,10 @@ class KodiDBMethods(object):
                 # [Missing Tag] strMusicBrainzArtistID: Artist Tag Missing
                 if v.KODIVERSION >= 17:
                     self.cursor.execute(
-                        "select coalesce(max(idArtist),1) from artist")
+                        "SELECT COALESCE(MAX(idArtist),1) FROM artist")
                 else:
                     self.cursor.execute(
-                        "select coalesce(max(idArtist),0) from artist")
+                        "SELECT COALESCE(MAX(idArtist),-1) FROM artist")
                 artistid = self.cursor.fetchone()[0] + 1
                 query = (
                     '''
@@ -930,7 +930,7 @@ class KodiDBMethods(object):
             albumid = self.cursor.fetchone()[0]
         except TypeError:
             # Create the album
-            self.cursor.execute("select coalesce(max(idAlbum),0) from album")
+            self.cursor.execute("SELECT COALESCE(MAX(idAlbum),-1) FROM album")
             albumid = self.cursor.fetchone()[0] + 1
             query = (
                 '''
@@ -967,7 +967,7 @@ class KodiDBMethods(object):
                     genreid = self.cursor.fetchone()[0]
                 except TypeError:
                     # Create the genre
-                    self.cursor.execute("select coalesce(max(idGenre),0) from genre")
+                    self.cursor.execute("SELECT COALESCE(MAX(idGenre),-1) FROM genre")
                     genreid = self.cursor.fetchone()[0] + 1
                     query = "INSERT INTO genre(idGenre, strGenre) values(?, ?)"
                     self.cursor.execute(query, (genreid, genre))
@@ -998,7 +998,7 @@ class KodiDBMethods(object):
                     genreid = self.cursor.fetchone()[0]
                 except TypeError:
                     # Create the genre
-                    self.cursor.execute("select coalesce(max(idGenre),0) from genre")
+                    self.cursor.execute("SELECT COALESCE(MAX(idGenre),-1) FROM genre")
                     genreid = self.cursor.fetchone()[0] + 1
                     query = "INSERT INTO genre(idGenre, strGenre) values(?, ?)"
                     self.cursor.execute(query, (genreid, genre))
@@ -1047,7 +1047,7 @@ class KodiDBMethods(object):
             uniqueid = self.cursor.fetchone()[0]
         except TypeError:
             self.cursor.execute(
-                'SELECT COALESCE(MAX(uniqueid_id),0) FROM uniqueid')
+                'SELECT COALESCE(MAX(uniqueid_id),-1) FROM uniqueid')
             uniqueid = self.cursor.fetchone()[0] + 1
         return uniqueid
 
@@ -1078,7 +1078,7 @@ class KodiDBMethods(object):
         try:
             ratingid = self.cursor.fetchone()[0]
         except TypeError:
-            self.cursor.execute('SELECT COALESCE(MAX(rating_id),0) FROM rating')
+            self.cursor.execute('SELECT COALESCE(MAX(rating_id),-1) FROM rating')
             ratingid = self.cursor.fetchone()[0] + 1
         return ratingid
 

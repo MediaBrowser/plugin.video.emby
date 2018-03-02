@@ -207,7 +207,7 @@ class Movies(Items):
         except TypeError:
             # movieid
             update_item = False
-            kodicursor.execute("select coalesce(max(idMovie),0) from movie")
+            kodicursor.execute("SELECT COALESCE(MAX(idMovie),-1) FROM movie")
             movieid = kodicursor.fetchone()[0] + 1
 
         else:
@@ -544,7 +544,7 @@ class TVShows(Items):
             pathid = plex_dbitem[2]
         except TypeError:
             update_item = False
-            kodicursor.execute("select coalesce(max(idShow),0) from tvshow")
+            kodicursor.execute("SELECT COALESCE(MAX(idShow),-1) from tvshow")
             showid = kodicursor.fetchone()[0] + 1
 
         else:
@@ -825,7 +825,8 @@ class TVShows(Items):
         except TypeError:
             update_item = False
             # episodeid
-            kodicursor.execute("select coalesce(max(idEpisode),0) from episode")
+            query = 'SELECT COALESCE(MAX(idEpisode),-1) FROM episode'
+            kodicursor.execute(query)
             episodeid = kodicursor.fetchone()[0] + 1
         else:
             # Verification the item is still in Kodi
@@ -1581,7 +1582,7 @@ class Music(Items):
         except TypeError:
             # Songid not found
             update_item = False
-            kodicursor.execute("select coalesce(max(idSong),0) from song")
+            kodicursor.execute("SELECT COALESCE(MAX(idSong),-1) FROM song")
             songid = kodicursor.fetchone()[0] + 1
 
         # The song details #####
@@ -1734,7 +1735,7 @@ class Music(Items):
                     # No album found, create a single's album
                     LOG.info("Failed to add album. Creating singles.")
                     kodicursor.execute(
-                        "select coalesce(max(idAlbum),0) from album")
+                        "SELECT COALESCE(MAX(idAlbum),-1) FROM album")
                     albumid = kodicursor.fetchone()[0] + 1
                     if v.KODIVERSION >= 16:
                         # Kodi Jarvis
