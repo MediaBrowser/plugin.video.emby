@@ -16,13 +16,11 @@ from utils import window, settings, language as lang, kodi_sql, try_encode, \
     thread_methods, dialog, exists_dir, try_decode
 import state
 
-# Disable annoying requests warnings
-import requests.packages.urllib3
-requests.packages.urllib3.disable_warnings()
 ###############################################################################
-
 LOG = getLogger("PLEX." + __name__)
 
+# Disable annoying requests warnings
+requests.packages.urllib3.disable_warnings()
 ###############################################################################
 
 ARTWORK_QUEUE = Queue()
