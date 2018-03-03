@@ -180,6 +180,14 @@ KODI_VIDEOTYPES = (
     KODI_TYPE_SET
 )
 
+PLEX_VIDEOTYPES = (
+    PLEX_TYPE_MOVIE,
+    PLEX_TYPE_CLIP,
+    PLEX_TYPE_EPISODE,
+    PLEX_TYPE_SEASON,
+    PLEX_TYPE_SHOW
+)
+
 KODI_AUDIOTYPES = (
     KODI_TYPE_SONG,
     KODI_TYPE_ALBUM,
@@ -307,6 +315,13 @@ PLEX_TYPE_FROM_WEBSOCKET = {
     9: PLEX_TYPE_ALBUM,
     10: PLEX_TYPE_SONG,
     12: PLEX_TYPE_CLIP
+}
+
+
+KODI_TO_PLEX_ARTWORK = {
+    'poster': 'thumb',
+    'banner': 'banner',
+    'fanart1': 'art'
 }
 
 

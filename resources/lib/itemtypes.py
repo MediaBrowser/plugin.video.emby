@@ -1306,16 +1306,15 @@ class Music(Items):
         bio = api.plot()
 
         # Associate artwork
-        artworks = api.artwork(parent_info=True)
-        thumb = artworks['Primary']
-        backdrops = artworks['Backdrop']  # List
-
-        if thumb:
-            thumb = "<thumb>%s</thumb>" % thumb
-        if backdrops:
-            fanart = "<fanart>%s</fanart>" % backdrops[0]
+        artworks = api.artwork()
+        if 'poster' in artworks:
+            thumb = "<thumb>%s</thumb>" % artworks['poster']
         else:
-            fanart = ""
+            thumb = None
+        if 'fanart1' in artworks:
+            fanart = "<fanart>%s</fanart>" % artworks['fanart1']
+        else:
+            fanart = None
 
         # UPDATE THE ARTIST #####
         if update_item:
@@ -1412,10 +1411,11 @@ class Music(Items):
                 self.compilation = 1
                 break
         # Associate artwork
-        artworks = api.artwork(parent_info=True)
-        thumb = artworks['Primary']
-        if thumb:
-            thumb = "<thumb>%s</thumb>" % thumb
+        artworks = api.artwork()
+        if 'poster' in artworks:
+            thumb = "<thumb>%s</thumb>" % artworks['poster']
+        else:
+            thumb = None
 
         # UPDATE THE ALBUM #####
         if update_item:
@@ -1847,9 +1847,7 @@ class Music(Items):
         # Add genres
         if genres:
             self.kodi_db.addMusicGenres(songid, genres, v.KODI_TYPE_SONG)
-        # Update artwork
-        allart = api.artwork(parent_info=True)
-        artwork.addArtwork(allart, songid, v.KODI_TYPE_SONG, kodicursor)
+        artwork.addArtwork(api.artwork(), songid, v.KODI_TYPE_SONG, kodicursor)
         if item.get('parentKey') is None:
             # Update album artwork
             artwork.addArtwork(allart, albumid, v.KODI_TYPE_ALBUM, kodicursor)

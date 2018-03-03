@@ -461,6 +461,25 @@ class KodiDBMethods(object):
                                             self.cursor)
         return actor_id
 
+    def get_art(self, kodi_id, kodi_type):
+        """
+        Returns a dict of all available artwork with unicode urls/paths:
+        {
+            'thumb'
+            'poster'
+            'banner'
+            'fanart'
+            'clearart'
+            'clearlogo'
+            'landscape'
+            'icon'
+        }
+        Missing fanart will not appear in the dict.
+        """
+        query = 'SELECT type, url FROM art WHERE media_id=? AND media_type=?'
+        self.cursor.execute(query, (kodi_id, kodi_type))
+        return dict(self.cursor.fetchall())
+
     def existingArt(self, kodiId, mediaType, refresh=False):
         """
         For kodiId, returns an artwork dict with already existing art from

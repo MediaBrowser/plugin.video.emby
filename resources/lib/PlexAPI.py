@@ -44,6 +44,7 @@ from utils import window, settings, language as lang, try_decode, try_encode, \
     unix_date_to_kodi, exists_dir, slugify, dialog, escape_html
 import PlexFunctions as PF
 import plexdb_functions as plexdb
+import kodidb_functions as kodidb
 import variables as v
 import state
 
@@ -732,51 +733,66 @@ class API(object):
             'subtitle': subtitlelanguages
         }
 
-    def _one_artwork(self, entry):
-        if entry not in self.item.attrib:
-            return ''
-        artwork = self.item.attrib[entry]
-        if artwork.startswith('http'):
-            pass
-        else:
+    def _one_artwork(self, art_kind):
+        artwork = self.item.get(art_kind)
+        if artwork and not artwork.startswith('http'):
             artwork = self.attach_plex_token_to_url(
                 '%s/photo/:/transcode?width=4000&height=4000&'
                 'minSize=1&upscale=0&url=%s' % (self.server, artwork))
         return artwork
 
-    def artwork(self, parent_info=False):
+    def artwork(self, kodi_id=None, kodi_type=None):
         """
-        Gets the URLs to the Plex artwork, or empty string if not found.
-        parent_info=True will check for parent's artwork if None is found
+        Gets the URLs to the Plex artwork. Dict keys will be missing if there
+        is no corresponding artwork.
+        Pass kodi_id and kodi_type to grab the artwork saved in the Kodi DB
+        (thus potentially more artwork, e.g. clearart, discart)
 
-        Output:
+        Output ('max' version)
         {
-            'Primary'
-            'Art'
-            'Banner'
-            'Logo'
-            'Thumb'
-            'Disc'
-            'Backdrop' : LIST with the first entry xml key "art"
+            'thumb'
+            'poster'
+            'banner'
+            'clearart'
+            'clearlogo'
+            'landscape'
+            'icon'
+            'fanart'
         }
         """
-        allartworks = {
-            'Primary': self._one_artwork('thumb'),
-            'Art': "",
-            'Banner': self._one_artwork('banner'),
-            'Logo': "",
-            'Thumb': self._one_artwork('grandparentThumb'),
-            'Disc': "",
-            'Backdrop': [self._one_artwork('art')]
-        }
-        # Process parent items if the main item is missing artwork
-        if parent_info:
-            # Process parent backdrops
-            if not allartworks['Backdrop']:
-                allartworks['Backdrop'].append(self._one_artwork('parentArt'))
-            if not allartworks['Primary']:
-                allartworks['Primary'] = self._one_artwork('parentThumb')
-        return allartworks
+        if kodi_id:
+            # in Kodi database, potentially with additional e.g. clearart
+            if self.plex_type() in v.PLEX_VIDEOTYPES:
+                with kodidb.GetKodiDB('video') as kodi_db:
+                    return kodi_db.get_art(kodi_id, kodi_type)
+            else:
+                with kodidb.GetKodiDB('music') as kodi_db:
+                    return kodi_db.get_art(kodi_id, kodi_type)
+
+        # Grab artwork from Plex
+        artworks = {}
+        for kodi_artwork, plex_artwork in v.KODI_TO_PLEX_ARTWORK.iteritems():
+            art = self._one_artwork(plex_artwork)
+            if art:
+                artworks[kodi_artwork] = art
+        if self.plex_type() in (v.PLEX_TYPE_EPISODE,
+                                v.PLEX_TYPE_SONG,
+                                v.PLEX_TYPE_ALBUM):
+            # Process parent item's poster
+            art = self._one_artwork('grandparentThumb')
+            if art:
+                artworks['tvshow.poster'] = art
+            # Get parent item artwork if the main item is missing artwork
+            if 'fanart1' not in artworks:
+                art = self._one_artwork('parentArt')
+                if art:
+                    artworks['fanart1'] = art
+            if 'poster' not in artworks:
+                art = self._one_artwork('parentThumb')
+                if art:
+                    artworks['poster'] = art
+        LOG.debug('artworks: %s', artworks)
+        return artworks
 
     def fanart_artwork(self, allartworks):
         """
@@ -1339,7 +1355,9 @@ class API(object):
                                                    append_show_title,
                                                    append_sxxexx)
             self.add_video_streams(listitem)
-            self.set_listitem_artwork(listitem)
+            artwork = self.artwork()
+            LOG.debug('artwork: %s', artwork)
+            listitem.setArt(artwork)
         return listitem
 
     def _create_photo_listitem(self, listitem=None):
@@ -1545,19 +1563,8 @@ class API(object):
         """
         Set all artwork to the listitem
         """
-        allartwork = self.artwork(parent_info=True)
-        arttypes = {
-            'poster': "Primary",
-            'tvshow.poster': "Thumb",
-            'clearart': "Primary",
-            'tvshow.clearart': "Primary",
-            'clearlogo': "Logo",
-            'tvshow.clearlogo': "Logo",
-            'discart': "Disc",
-            'fanart_image': "Backdrop",
-            'landscape': "Backdrop",
-            "banner": "Banner"
-        }
+        allartwork = self.artwork()
+        listitem.setArt(self.artwork())
         for arttype in arttypes:
             art = arttypes[arttype]
             if art == "Backdrop":
