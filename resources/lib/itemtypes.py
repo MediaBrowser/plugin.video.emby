@@ -82,11 +82,11 @@ class Items(object):
             allartworks = None
         else:
             with kodidb.GetKodiDB('video') as kodi_db:
-                allartworks = kodi_db.existingArt(kodi_id, kodi_type)
+                allartworks = kodi_db.get_art(kodi_id, kodi_type)
             # Check if we even need to get additional art
             needsupdate = False
-            for key, value in allartworks.iteritems():
-                if not value and not key == 'BoxRear':
+            for key in v.ALL_KODI_ARTWORK:
+                if key not in allartworks:
                     needsupdate = True
                     break
             if needsupdate is False:
@@ -107,19 +107,19 @@ class Items(object):
         api = API(xml[0])
         if allartworks is None:
             allartworks = api.artwork()
-        self.artwork.addArtwork(api.fanart_artwork(allartworks),
-                                kodi_id,
-                                kodi_type,
-                                self.kodicursor)
+        self.artwork.modify_artwork(api.fanart_artwork(allartworks),
+                                    kodi_id,
+                                    kodi_type,
+                                    self.kodicursor)
         # Also get artwork for collections/movie sets
         if kodi_type == v.KODI_TYPE_MOVIE:
             for setname in api.collection_list():
                 LOG.debug('Getting artwork for movie set %s', setname)
                 setid = self.kodi_db.createBoxset(setname)
-                self.artwork.addArtwork(api.set_artwork(),
-                                        setid,
-                                        v.KODI_TYPE_SET,
-                                        self.kodicursor)
+                self.artwork.modify_artwork(api.set_artwork(),
+                                            setid,
+                                            v.KODI_TYPE_SET,
+                                            self.kodicursor)
                 self.kodi_db.assignBoxset(setid, kodi_id)
         return True
 
@@ -445,7 +445,10 @@ class Movies(Items):
         # Process genres
         self.kodi_db.modify_genres(movieid, v.KODI_TYPE_MOVIE, genres)
         # Process artwork
-        artwork.addArtwork(api.artwork(), movieid, "movie", kodicursor)
+        artwork.modify_artwork(api.artwork(),
+                               movieid,
+                               v.KODI_TYPE_MOVIE,
+                               kodicursor)
         # Process stream details
         self.kodi_db.modify_streams(fileid, api.mediastreams(), runtime)
         # Process studios
@@ -482,7 +485,7 @@ class Movies(Items):
         # Remove the plex reference
         plex_db.removeItem(itemid)
         # Remove artwork
-        artwork.deleteArtwork(kodi_id, kodi_type, kodicursor)
+        artwork.delete_artwork(kodi_id, kodi_type, kodicursor)
 
         if kodi_type == v.KODI_TYPE_MOVIE:
             set_id = self.kodi_db.get_set_id(kodi_id)
@@ -743,7 +746,10 @@ class TVShows(Items):
 
         self.kodi_db.modify_people(showid, v.KODI_TYPE_SHOW, api.people_list())
         self.kodi_db.modify_genres(showid, v.KODI_TYPE_SHOW, genres)
-        artwork.addArtwork(api.artwork(), showid, v.KODI_TYPE_SHOW, kodicursor)
+        artwork.modify_artwork(api.artwork(),
+                               showid,
+                               v.KODI_TYPE_SHOW,
+                               kodicursor)
         # Process studios
         self.kodi_db.modify_studios(showid, v.KODI_TYPE_SHOW, studios)
         # Process tags: view, PMS collection tags
@@ -784,7 +790,10 @@ class TVShows(Items):
 
         # Process artwork
         allartworks = api.artwork()
-        artwork.addArtwork(allartworks, seasonid, "season", kodicursor)
+        artwork.modify_artwork(allartworks,
+                               seasonid,
+                               v.KODI_TYPE_SEASON,
+                               kodicursor)
 
         if update_item:
             # Update a reference: checksum in plex table
@@ -1095,8 +1104,8 @@ class TVShows(Items):
         if poster:
             poster = api.attach_plex_token_to_url(
                 "%s%s" % (self.server, poster))
-            artwork.addOrUpdateArt(
-                poster, episodeid, "episode", "thumb", kodicursor)
+            artwork.modify_art(
+                poster, episodeid, v.KODI_TYPE_EPISODE, "thumb", kodicursor)
 
         # Process stream details
         streams = api.mediastreams()
@@ -1223,7 +1232,7 @@ class TVShows(Items):
         self.kodi_db.modify_genres(kodi_id, v.KODI_TYPE_SHOW)
         self.kodi_db.modify_studios(kodi_id, v.KODI_TYPE_SHOW)
         self.kodi_db.modify_tags(kodi_id, v.KODI_TYPE_SHOW)
-        self.artwork.deleteArtwork(kodi_id, v.KODI_TYPE_SHOW, kodicursor)
+        self.artwork.delete_artwork(kodi_id, v.KODI_TYPE_SHOW, kodicursor)
         kodicursor.execute("DELETE FROM tvshow WHERE idShow = ?", (kodi_id,))
         if v.KODIVERSION >= 17:
             self.kodi_db.remove_uniqueid(kodi_id, v.KODI_TYPE_SHOW)
@@ -1235,7 +1244,7 @@ class TVShows(Items):
         Remove a season, and only a season, not the show or episodes
         """
         kodicursor = self.kodicursor
-        self.artwork.deleteArtwork(kodi_id, "season", kodicursor)
+        self.artwork.delete_artwork(kodi_id, "season", kodicursor)
         kodicursor.execute("DELETE FROM seasons WHERE idSeason = ?",
                            (kodi_id,))
         LOG.info("Removed season: %s.", kodi_id)
@@ -1248,7 +1257,7 @@ class TVShows(Items):
         self.kodi_db.modify_people(kodi_id, v.KODI_TYPE_EPISODE)
         self.kodi_db.modify_streams(file_id)
         self.kodi_db.delete_playstate(file_id)
-        self.artwork.deleteArtwork(kodi_id, "episode", kodicursor)
+        self.artwork.delete_artwork(kodi_id, "episode", kodicursor)
         kodicursor.execute("DELETE FROM episode WHERE idEpisode = ?",
                            (kodi_id,))
         kodicursor.execute("DELETE FROM files WHERE idFile = ?", (file_id,))
@@ -1359,7 +1368,10 @@ class Music(Items):
                                        dateadded, artistid))
 
         # Update artwork
-        artwork.addArtwork(artworks, artistid, v.KODI_TYPE_ARTIST, kodicursor)
+        artwork.modify_artwork(artworks,
+                               artistid,
+                               v.KODI_TYPE_ARTIST,
+                               kodicursor)
 
     @catch_exceptions(warnuser=True)
     def add_updateAlbum(self, item, viewtag=None, viewid=None, children=None,
@@ -1553,7 +1565,7 @@ class Music(Items):
         # Add genres
         self.kodi_db.addMusicGenres(albumid, self.genres, v.KODI_TYPE_ALBUM)
         # Update artwork
-        artwork.addArtwork(artworks, albumid, v.KODI_TYPE_ALBUM, kodicursor)
+        artwork.modify_artwork(artworks, albumid, v.KODI_TYPE_ALBUM, kodicursor)
         # Add all children - all tracks
         if scan_children:
             for child in children:
@@ -1847,10 +1859,11 @@ class Music(Items):
         # Add genres
         if genres:
             self.kodi_db.addMusicGenres(songid, genres, v.KODI_TYPE_SONG)
-        artwork.addArtwork(api.artwork(), songid, v.KODI_TYPE_SONG, kodicursor)
+        artworks = api.artwork()
+        artwork.modify_artwork(artworks, songid, v.KODI_TYPE_SONG, kodicursor)
         if item.get('parentKey') is None:
             # Update album artwork
-            artwork.addArtwork(allart, albumid, v.KODI_TYPE_ALBUM, kodicursor)
+            artwork.modify_artwork(artworks, albumid, v.KODI_TYPE_ALBUM, kodicursor)
 
     def remove(self, itemid):
         """
@@ -1937,7 +1950,7 @@ class Music(Items):
         """
         Remove song, and only the song
         """
-        self.artwork.deleteArtwork(kodiid, v.KODI_TYPE_SONG, self.kodicursor)
+        self.artwork.delete_artwork(kodiid, v.KODI_TYPE_SONG, self.kodicursor)
         self.kodicursor.execute("DELETE FROM song WHERE idSong = ?",
                                 (kodiid,))
 
@@ -1945,7 +1958,7 @@ class Music(Items):
         """
         Remove an album, and only the album
         """
-        self.artwork.deleteArtwork(kodiid, v.KODI_TYPE_ALBUM, self.kodicursor)
+        self.artwork.delete_artwork(kodiid, v.KODI_TYPE_ALBUM, self.kodicursor)
         self.kodicursor.execute("DELETE FROM album WHERE idAlbum = ?",
                                 (kodiid,))
 
@@ -1953,7 +1966,7 @@ class Music(Items):
         """
         Remove an artist, and only the artist
         """
-        self.artwork.deleteArtwork(kodiid,
+        self.artwork.delete_artwork(kodiid,
                                    v.KODI_TYPE_ARTIST,
                                    self.kodicursor)
         self.kodicursor.execute("DELETE FROM artist WHERE idArtist = ?",

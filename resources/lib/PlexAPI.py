@@ -54,19 +54,6 @@ LOG = getLogger("PLEX." + __name__)
 REGEX_IMDB = re_compile(r'''/(tt\d+)''')
 REGEX_TVDB = re_compile(r'''thetvdb:\/\/(.+?)\?''')
 
-# we need to use a little mapping between fanart.tv arttypes and kodi
-# artttypes
-FANART_TV_TYPES = [
-    ("logo", "Logo"),
-    ("musiclogo", "clearlogo"),
-    ("disc", "Disc"),
-    ("clearart", "Art"),
-    ("banner", "Banner"),
-    ("clearlogo", "Logo"),
-    ("background", "fanart"),
-    ("showbackground", "fanart"),
-    ("characterart", "characterart")
-]
 ###############################################################################
 
 
@@ -755,10 +742,9 @@ class API(object):
             'banner'
             'clearart'
             'clearlogo'
-            'landscape'
-            'icon'
             'fanart'
         }
+        'landscape' and 'icon' might be implemented later
         """
         if kodi_id:
             # in Kodi database, potentially with additional e.g. clearart
@@ -783,7 +769,7 @@ class API(object):
             if art:
                 artworks['tvshow.poster'] = art
             # Get parent item artwork if the main item is missing artwork
-            if 'fanart1' not in artworks:
+            if 'fanart' not in artworks:
                 art = self._one_artwork('parentArt')
                 if art:
                     artworks['fanart1'] = art
@@ -791,39 +777,31 @@ class API(object):
                 art = self._one_artwork('parentThumb')
                 if art:
                     artworks['poster'] = art
-        LOG.debug('artworks: %s', artworks)
         return artworks
 
-    def fanart_artwork(self, allartworks):
+    def fanart_artwork(self, artworks):
         """
         Downloads additional fanart from third party sources (well, link to
         fanart only).
-
-        allartworks = {
-            'Primary': "",
-            'Art': "",
-            'Banner': "",
-            'Logo': "",
-            'Thumb': "",
-            'Disc': "",
-            'Backdrop': []
-        }
         """
         external_id = self.retrieve_external_item_id()
         if external_id is not None:
-            allartworks = self.lookup_fanart_tv(external_id, allartworks)
-        return allartworks
+            artworks = self.lookup_fanart_tv(external_id[0], artworks)
+        LOG.debug('fanart artworks: %s', artworks)
+        return artworks
 
     def retrieve_external_item_id(self, collection=False):
         """
-        Returns the item's IMDB id for movies or tvdb id for TV shows
+        Returns the set
+            media_id [unicode]:     the item's IMDB id for movies or tvdb id for
+                                    TV shows
+            poster [unicode]:       path to the item's poster artwork
+            background [unicode]:   path to the item's background artwork
+        
+        The last two might be None if not found. Generally None is returned
+        if unsuccessful.
 
-        If not found in item's Plex metadata, check themovidedb.org
-
-        collection=True will try to return the three-tuple:
-            collection ID, poster-path, background-path
-
-        None is returned if unsuccessful
+        If not found in item's Plex metadata, check themovidedb.org.
         """
         item = self.item.attrib
         media_type = item.get('type')
@@ -836,7 +814,7 @@ class API(object):
             elif media_type == v.PLEX_TYPE_SHOW:
                 media_id = self.provider('tvdb')
             if media_id is not None:
-                return media_id
+                return media_id, None, None
             LOG.info('Plex did not provide ID for IMDB or TVDB. Start '
                      'lookup process')
         else:
@@ -935,9 +913,8 @@ class API(object):
             media_type = entry.get("media_type")
         name = entry.get("name", entry.get("title"))
         # lookup external tmdb_id and perform artwork lookup on fanart.tv
-        parameters = {
-            'api_key': api_key
-        }
+        parameters = {'api_key': api_key}
+        media_id, poster, background = None, None, None
         for language in [v.KODILANGUAGE, "en"]:
             parameters['language'] = language
             if media_type == "movie":
@@ -977,7 +954,7 @@ class API(object):
                 try:
                     data.get('poster_path')
                 except AttributeError:
-                    LOG.info('Could not find TheMovieDB poster paths for %s in'
+                    LOG.info('Could not find TheMovieDB poster paths for %s in '
                              'the language %s', title, language)
                     continue
                 else:
@@ -985,23 +962,21 @@ class API(object):
                               data.get('poster_path'))
                     background = ('https://image.tmdb.org/t/p/original%s' %
                                   data.get('backdrop_path'))
-                    media_id = media_id, poster, background
                     break
-        return media_id
+        return media_id, poster, background
 
-    def lookup_fanart_tv(self, media_id, allartworks, set_info=False):
+    def lookup_fanart_tv(self, media_id, artworks, set_info=False):
         """
         perform artwork lookup on fanart.tv
 
         media_id: IMDB id for movies, tvdb id for TV shows
         """
-        item = self.item.attrib
         api_key = settings('FanArtTVAPIKey')
-        typus = item.get('type')
-        if typus == 'show':
+        typus = self.plex_type()
+        if typus == v.PLEX_TYPE_SHOW:
             typus = 'tv'
 
-        if typus == "movie":
+        if typus == v.PLEX_TYPE_MOVIE:
             url = 'http://webservice.fanart.tv/v3/movies/%s?api_key=%s' \
                 % (media_id, api_key)
         elif typus == 'tv':
@@ -1009,24 +984,20 @@ class API(object):
                 % (media_id, api_key)
         else:
             # Not supported artwork
-            return allartworks
-        data = DU().downloadUrl(url,
-                                authenticate=False,
-                                timeout=15)
+            return artworks
+        data = DU().downloadUrl(url, authenticate=False, timeout=15)
         try:
             data.get('test')
         except AttributeError:
             LOG.error('Could not download data from FanartTV')
-            return allartworks
+            return artworks
 
-        fanart_tv_types = list(FANART_TV_TYPES)
+        fanart_tv_types = list(v.FANART_TV_TO_KODI_TYPE)
 
-        if typus == "artist":
+        if typus == v.PLEX_TYPE_ARTIST:
             fanart_tv_types.append(("thumb", "folder"))
         else:
-            fanart_tv_types.append(("thumb", "Thumb"))
-        if set_info:
-            fanart_tv_types.append(("poster", "Primary"))
+            fanart_tv_types.append(("thumb", "thumb"))
 
         prefixes = (
             "hd" + typus,
@@ -1034,32 +1005,31 @@ class API(object):
             typus,
             "",
         )
-        for fanarttype in fanart_tv_types:
+        for fanart_tv_type, kodi_type in fanart_tv_types:
             # Skip the ones we already have
-            if allartworks.get(fanarttype[1]):
+            if kodi_type in artworks:
                 continue
             for prefix in prefixes:
-                fanarttvimage = prefix + fanarttype[0]
+                fanarttvimage = prefix + fanart_tv_type
                 if fanarttvimage not in data:
                     continue
                 # select image in preferred language
                 for entry in data[fanarttvimage]:
                     if entry.get("lang") == v.KODILANGUAGE:
-                        allartworks[fanarttype[1]] = \
+                        artworks[kodi_type] = \
                             entry.get("url", "").replace(' ', '%20')
                         break
                 # just grab the first english OR undefinded one as fallback
                 # (so we're actually grabbing the more popular one)
-                if not allartworks.get(fanarttype[1]):
+                if kodi_type not in artworks:
                     for entry in data[fanarttvimage]:
                         if entry.get("lang") in ("en", "00"):
-                            allartworks[fanarttype[1]] = \
+                            artworks[kodi_type] = \
                                 entry.get("url", "").replace(' ', '%20')
                             break
 
         # grab extrafanarts in list
-        maxfanarts = 10
-        fanartcount = 0
+        fanartcount = 1 if 'fanart' in artworks else ''
         for prefix in prefixes:
             fanarttvimage = prefix + 'background'
             if fanarttvimage not in data:
@@ -1067,60 +1037,38 @@ class API(object):
             for entry in data[fanarttvimage]:
                 if entry.get("url") is None:
                     continue
-                if fanartcount > maxfanarts:
+                artworks['fanart%s' % fanartcount] = \
+                    entry['url'].replace(' ', '%20')
+                try:
+                    fanartcount += 1
+                except TypeError:
+                    fanartcount = 1
+                if fanartcount >= v.MAX_BACKGROUND_COUNT:
                     break
-                allartworks['Backdrop'].append(
-                    entry['url'].replace(' ', '%20'))
-                fanartcount += 1
-        return allartworks
+        return artworks
 
     def set_artwork(self):
         """
         Gets the URLs to the Plex artwork, or empty string if not found.
-        parentInfo=True will check for parent's artwork if None is found
-
         Only call on movies
-
-        Output:
-        {
-            'Primary'
-            'Art'
-            'Banner'
-            'Logo'
-            'Thumb'
-            'Disc'
-            'Backdrop' : LIST with the first entry xml key "art"
-        }
         """
-        allartworks = {
-            'Primary': "",
-            'Art': "",
-            'Banner': "",
-            'Logo': "",
-            'Thumb': "",
-            'Disc': "",
-            'Backdrop': []
-        }
-
+        artworks = {}
         # Plex does not get much artwork - go ahead and get the rest from
         # fanart tv only for movie or tv show
         external_id = self.retrieve_external_item_id(collection=True)
         if external_id is not None:
-            try:
-                external_id, poster, background = external_id
-            except TypeError:
-                poster, background = None, None
+            external_id, poster, background = external_id
             if poster is not None:
-                allartworks['Primary'] = poster
+                artworks['poster'] = poster
             if background is not None:
-                allartworks['Backdrop'].append(background)
-            allartworks = self.lookup_fanart_tv(external_id,
-                                                allartworks,
-                                                set_info=True)
+                artworks['fanart'] = background
+            artworks = self.lookup_fanart_tv(external_id,
+                                             artworks,
+                                             set_info=True)
         else:
             LOG.info('Did not find a set/collection ID on TheMovieDB using %s.'
                      ' Artwork will be missing.', self.titles()[0])
-        return allartworks
+        return artworks
 
     def should_stream(self):
         """

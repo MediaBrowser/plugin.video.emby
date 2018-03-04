@@ -406,7 +406,7 @@ class KodiDBMethods(object):
                 self.cursor.execute(query_actor_delete, (person[0],))
                 if kind == 'actor':
                     # Delete any associated artwork
-                    self.artwork.deleteArtwork(person[0], 'actor', self.cursor)
+                    self.artwork.delete_artwork(person[0], 'actor', self.cursor)
         # Save new people to Kodi DB by iterating over the remaining entries
         if kind == 'actor':
             query = 'INSERT INTO actor_link VALUES (?, ?, ?, ?, ?)'
@@ -454,11 +454,11 @@ class KodiDBMethods(object):
                                 'VALUES (?, ?)',
                                 (actor_id, name))
             if art_url:
-                self.artwork.addOrUpdateArt(art_url,
-                                            actor_id,
-                                            'actor',
-                                            "thumb",
-                                            self.cursor)
+                self.artwork.modify_art(art_url,
+                                        actor_id,
+                                        'actor',
+                                        'thumb',
+                                        self.cursor)
         return actor_id
 
     def get_art(self, kodi_id, kodi_type):
@@ -468,59 +468,17 @@ class KodiDBMethods(object):
             'thumb'
             'poster'
             'banner'
-            'fanart'
             'clearart'
             'clearlogo'
             'landscape'
             'icon'
+            'fanart'    and also potentially more fanart 'fanart1', 2, 3, ...
         }
         Missing fanart will not appear in the dict.
         """
         query = 'SELECT type, url FROM art WHERE media_id=? AND media_type=?'
         self.cursor.execute(query, (kodi_id, kodi_type))
         return dict(self.cursor.fetchall())
-
-    def existingArt(self, kodiId, mediaType, refresh=False):
-        """
-        For kodiId, returns an artwork dict with already existing art from
-        the Kodi db
-        """
-        # Only get EITHER poster OR thumb (should have same URL)
-        kodiToPKC = {
-            'banner': 'Banner',
-            'clearart': 'Art',
-            'clearlogo': 'Logo',
-            'discart': 'Disc',
-            'landscape': 'Thumb',
-            'thumb': 'Primary'
-        }
-        # BoxRear yet unused
-        result = {'BoxRear': ''}
-        for art in kodiToPKC:
-            query = ' '.join((
-                "SELECT url",
-                "FROM art",
-                "WHERE media_id = ?",
-                "AND media_type = ?",
-                "AND type = ?"
-            ))
-            self.cursor.execute(query, (kodiId, mediaType, art,))
-            try:
-                url = self.cursor.fetchone()[0]
-            except TypeError:
-                url = ""
-            result[kodiToPKC[art]] = url
-        # There may be several fanart URLs saved
-        query = ' '.join((
-            "SELECT url",
-            "FROM art",
-            "WHERE media_id = ?",
-            "AND media_type = ?",
-            "AND type LIKE ?"
-        ))
-        data = self.cursor.execute(query, (kodiId, mediaType, "fanart%",))
-        result['Backdrop'] = [d[0] for d in data]
-        return result
 
     def modify_streams(self, fileid, streamdetails=None, runtime=None):
         """

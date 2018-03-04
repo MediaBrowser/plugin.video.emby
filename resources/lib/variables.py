@@ -321,8 +321,35 @@ PLEX_TYPE_FROM_WEBSOCKET = {
 KODI_TO_PLEX_ARTWORK = {
     'poster': 'thumb',
     'banner': 'banner',
-    'fanart1': 'art'
+    'fanart': 'art'
 }
+
+# Might be implemented in the future: 'icon', 'landscape' (16:9)
+ALL_KODI_ARTWORK = (
+    'thumb',
+    'poster',
+    'banner',
+    'clearart',
+    'clearlogo',
+    'fanart',
+    'discart'
+)
+
+# we need to use a little mapping between fanart.tv arttypes and kodi artttypes
+FANART_TV_TO_KODI_TYPE = [
+    ('poster', 'poster'),
+    ('logo', 'clearlogo'),
+    ('musiclogo', 'clearlogo'),
+    ('disc', 'discart'),
+    ('clearart', 'clearart'),
+    ('banner', 'banner'),
+    ('clearlogo', 'clearlogo'),
+    ('background', 'fanart'),
+    ('showbackground', 'fanart'),
+    ('characterart', 'characterart')
+]
+# How many different backgrounds do we want to load from fanart.tv?
+MAX_BACKGROUND_COUNT = 10
 
 
 # extensions from:
