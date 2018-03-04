@@ -1,3 +1,12 @@
+version 2.0.5 (beta only):
+- WARNING: You will need to reset the Kodi database!
+- Fix art and show info not showing for addon paths
+- Fix episode information not working
+- Big Kodi DB overhaul - ensure video metadata updates/deletes correctly
+- Artwork code overhaul
+- Greatly speed up switch of PMS
+- And a lot of other stuff
+
 version 2.0.4 (beta only):
 - WARNING: You will need to reset the Kodi database!
 - Many improvements to the Kodi database handling which should get rid of some weird bugs
