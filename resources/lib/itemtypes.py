@@ -1319,8 +1319,8 @@ class Music(Items):
             thumb = "<thumb>%s</thumb>" % artworks['poster']
         else:
             thumb = None
-        if 'fanart1' in artworks:
-            fanart = "<fanart>%s</fanart>" % artworks['fanart1']
+        if 'fanart' in artworks:
+            fanart = "<fanart>%s</fanart>" % artworks['fanart']
         else:
             fanart = None
 

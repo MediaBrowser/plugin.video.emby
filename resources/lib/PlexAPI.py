@@ -773,6 +773,13 @@ class API(object):
                 art = self._one_artwork('parentThumb')
                 if art:
                     artworks['poster'] = art
+        if self.plex_type() in (v.PLEX_TYPE_SONG,
+                                v.PLEX_TYPE_ALBUM,
+                                v.PLEX_TYPE_ARTIST):
+            # need to set poster also as thumb
+            art = self._one_artwork('thumb')
+            if art:
+                artworks['thumb'] = art
         return artworks
 
     def fanart_artwork(self, artworks):
