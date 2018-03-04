@@ -764,10 +764,6 @@ class API(object):
         if self.plex_type() in (v.PLEX_TYPE_EPISODE,
                                 v.PLEX_TYPE_SONG,
                                 v.PLEX_TYPE_ALBUM):
-            # Process parent item's poster
-            art = self._one_artwork('grandparentThumb')
-            if art:
-                artworks['tvshow.poster'] = art
             # Get parent item artwork if the main item is missing artwork
             if 'fanart' not in artworks:
                 art = self._one_artwork('parentArt')
