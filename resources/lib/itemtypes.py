@@ -299,7 +299,7 @@ class Movies(Items):
 
         # add/retrieve pathid and fileid
         # if the path or file already exists, the calls return current value
-        pathid = self.kodi_db.addPath(path)
+        pathid = self.kodi_db.add_video_path(path)
         fileid = self.kodi_db.addFile(filename, pathid)
 
         # UPDATE THE MOVIE #####
@@ -610,10 +610,10 @@ class TVShows(Items):
             path = "%s%s/" % (toplevelpath, itemid)
 
         # Add top path
-        toppathid = self.kodi_db.addPath(toplevelpath)
+        toppathid = self.kodi_db.add_video_path(toplevelpath)
         # add/retrieve pathid and fileid
         # if the path or file already exists, the calls return current value
-        pathid = self.kodi_db.addPath(path)
+        pathid = self.kodi_db.add_video_path(path)
         # UPDATE THE TVSHOW #####
         if update_item:
             LOG.info("UPDATE tvshow itemid: %s - Title: %s", itemid, title)
@@ -924,7 +924,7 @@ class TVShows(Items):
         if do_indirect:
             # Set plugin path - do NOT use "intermediate" paths for the show
             # as with direct paths!
-            path = 'plugin://%s.tvshows/' % v.ADDON_ID
+            path = 'plugin://%s.tvshows/%s/' % (v.ADDON_ID, series_id)
             params = {
                 'plex_id': itemid,
                 'plex_type': v.PLEX_TYPE_EPISODE,
@@ -932,10 +932,11 @@ class TVShows(Items):
             }
             filename = "%s?%s" % (path, urlencode(params))
             playurl = filename
+            parent_path_id = self.kodi_db.getParentPathId(path)
 
         # add/retrieve pathid and fileid
         # if the path or file already exists, the calls return current value
-        pathid = self.kodi_db.addPath(path)
+        pathid = self.kodi_db.add_video_path(path)
         fileid = self.kodi_db.addFile(filename, pathid)
 
         # UPDATE THE EPISODE #####
@@ -1700,7 +1701,7 @@ class Music(Items):
             LOG.info("ADD song itemid: %s - Title: %s", itemid, title)
 
             # Add path
-            pathid = self.kodi_db.addPath(path, strHash="123")
+            pathid = self.kodi_db.add_music_path(path, strHash="123")
 
             try:
                 # Get the album

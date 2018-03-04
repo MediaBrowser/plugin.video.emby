@@ -6,7 +6,7 @@ from ntpath import dirname
 from sqlite3 import IntegrityError
 
 import artwork
-from utils import kodi_sql, try_decode
+from utils import kodi_sql, try_decode, unix_timestamp, unix_date_to_kodi
 import variables as v
 
 ###############################################################################
@@ -113,59 +113,54 @@ class KodiDBMethods(object):
             parentpath = "%s/" % dirname(dirname(path))
         pathid = self.getPath(parentpath)
         if pathid is None:
-            self.cursor.execute("select coalesce(max(idPath),0) from path")
+            self.cursor.execute("SELECT COALESCE(MAX(idPath),0) FROM path")
             pathid = self.cursor.fetchone()[0] + 1
-            query = ' '.join((
-                "INSERT INTO path(idPath, strPath)",
-                "VALUES (?, ?)"
-            ))
-            self.cursor.execute(query, (pathid, parentpath))
-            parentPathid = self.getParentPathId(parentpath)
-            query = ' '.join((
-                "UPDATE path",
-                "SET idParentPath = ?",
-                "WHERE idPath = ?"
-            ))
-            self.cursor.execute(query, (parentPathid, pathid))
+            datetime = unix_date_to_kodi(unix_timestamp())
+            query = '''
+                INSERT INTO path(idPath, strPath, dateAdded)
+                VALUES (?, ?, ?)
+            '''
+            self.cursor.execute(query, (pathid, parentpath, datetime))
+            parent_path_id = self.getParentPathId(parentpath)
+            query = 'UPDATE path SET idParentPath = ? WHERE idPath = ?'
+            self.cursor.execute(query, (parent_path_id, pathid))
         return pathid
 
-    def addPath(self, path, strHash=None):
+    def add_video_path(self, path):
         # SQL won't return existing paths otherwise
         if path is None:
-            path = ""
-        query = ' '.join((
-
-            "SELECT idPath",
-            "FROM path",
-            "WHERE strPath = ?"
-        ))
+            path = ''
+        query = 'SELECT idPath FROM path WHERE strPath = ?'
         self.cursor.execute(query, (path,))
         try:
             pathid = self.cursor.fetchone()[0]
         except TypeError:
-            self.cursor.execute("select coalesce(max(idPath),0) from path")
+            self.cursor.execute("SELECT COALESCE(MAX(idPath),0) FROM path")
             pathid = self.cursor.fetchone()[0] + 1
-            if strHash is None:
-                query = (
-                    '''
-                    INSERT INTO path(
-                        idPath, strPath)
+            datetime = unix_date_to_kodi(unix_timestamp())
+            query = '''
+                INSERT INTO path(idPath, strPath, dateAdded)
+                VALUES (?, ?, ?)
+            '''
+            self.cursor.execute(query, (pathid, path, datetime))
+        return pathid
 
-                    VALUES (?, ?)
-                    '''
-                )
-                self.cursor.execute(query, (pathid, path))
-            else:
-                query = (
-                    '''
-                    INSERT INTO path(
-                        idPath, strPath, strHash)
-
-                    VALUES (?, ?, ?)
-                    '''
-                )
-                self.cursor.execute(query, (pathid, path, strHash))
-
+    def add_music_path(self, path, strHash=None):
+        # SQL won't return existing paths otherwise
+        if path is None:
+            path = ''
+        query = 'SELECT idPath FROM path WHERE strPath = ?'
+        self.cursor.execute(query, (path,))
+        try:
+            pathid = self.cursor.fetchone()[0]
+        except TypeError:
+            self.cursor.execute("SELECT COALESCE(MAX(idPath),0) FROM path")
+            pathid = self.cursor.fetchone()[0] + 1
+            query = '''
+                INSERT INTO path(idPath, strPath, strHash)
+                VALUES (?, ?, ?)
+            '''
+            self.cursor.execute(query, (pathid, path, strHash))
         return pathid
 
     def getPath(self, path):
