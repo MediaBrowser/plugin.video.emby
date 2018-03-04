@@ -277,7 +277,7 @@ class API(object):
         {
             'Director': list,
             'Writer': list,
-            'Cast': list,
+            'Cast': list of tuples (<actor>, <role>), <role> might be ''
             'Producer': list
         }
         """
@@ -291,7 +291,7 @@ class API(object):
             elif child.tag == 'Writer':
                 writer.append(child.attrib['tag'])
             elif child.tag == 'Role':
-                cast.append(child.attrib['tag'])
+                cast.append((child.attrib['tag'], child.get('role', '')))
             elif child.tag == 'Producer':
                 producer.append(child.attrib['tag'])
         return {
@@ -1355,23 +1355,24 @@ class API(object):
         people = self.people()
         userdata = self.userdata()
         metadata = {
-            'genre': self.list_to_string(self.genre_list()),
+            'genre': self.genre_list(),
+            'country': self.country_list(),
             'year': self.year(),
             'rating': self.audience_rating(),
             'playcount': userdata['PlayCount'],
             'cast': people['Cast'],
-            'director': self.list_to_string(people.get('Director')),
+            'director': people['Director'],
             'plot': self.plot(),
             'sorttitle': sorttitle,
             'duration': userdata['Runtime'],
-            'studio': self.list_to_string(self.music_studio_list()),
+            'studio': self.music_studio_list(),
             'tagline': self.tagline(),
-            'writer': self.list_to_string(people.get('Writer')),
+            'writer': people.get('Writer'),
             'premiered': self.premiere_date(),
             'dateadded': self.date_created(),
             'lastplayed': userdata['LastPlayedDate'],
             'mpaa': self.content_rating(),
-            'aired': self.premiere_date()
+            'aired': self.premiere_date(),
         }
         # Do NOT set resumetime - otherwise Kodi always resumes at that time
         # even if the user chose to start element from the beginning
@@ -1379,38 +1380,37 @@ class API(object):
         listitem.setProperty('totaltime', str(userdata['Runtime']))
 
         if typus == v.PLEX_TYPE_EPISODE:
+            metadata['mediatype'] = 'episode'
             _, show, season, episode = self.episode_data()
             season = -1 if season is None else int(season)
             episode = -1 if episode is None else int(episode)
             metadata['episode'] = episode
+            metadata['sortepisode'] = episode
             metadata['season'] = season
+            metadata['sortseason'] = season
             metadata['tvshowtitle'] = show
             if season and episode:
-                listitem.setProperty('episodeno',
-                                     "s%.2de%.2d" % (season, episode))
                 if append_sxxexx is True:
                     title = "S%.2dE%.2d - %s" % (season, episode, title)
-            listitem.setArt({'icon': 'DefaultTVShows.png'})
             if append_show_title is True:
                 title = "%s - %s " % (show, title)
             if append_show_title or append_sxxexx:
                 listitem.setLabel(title)
         elif typus == v.PLEX_TYPE_MOVIE:
-            listitem.setArt({'icon': 'DefaultMovies.png'})
+            metadata['mediatype'] = 'movie'
         else:
             # E.g. clips, trailers, ...
-            listitem.setArt({'icon': 'DefaultVideo.png'})
+            pass
 
         plex_id = self.plex_id()
         listitem.setProperty('plexid', plex_id)
         with plexdb.Get_Plex_DB() as plex_db:
-            try:
-                listitem.setProperty('dbid',
-                                     str(plex_db.getItem_byId(plex_id)[0]))
-            except TypeError:
-                pass
-        # Expensive operation
+            kodi_id = plex_db.getItem_byId(plex_id)
+            if kodi_id:
+                kodi_id = kodi_id[0]
+                metadata['dbid'] = kodi_id
         metadata['title'] = title
+        # Expensive operation
         listitem.setInfo('video', infoLabels=metadata)
         try:
             # Add context menu entry for information screen
