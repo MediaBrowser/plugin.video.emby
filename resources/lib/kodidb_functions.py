@@ -470,11 +470,11 @@ class KodiDBMethods(object):
             'banner'
             'clearart'
             'clearlogo'
-            'landscape'
-            'icon'
-            'fanart'    and also potentially more fanart 'fanart1', 2, 3, ...
+            'discart'
+            'fanart'    and also potentially more fanart 'fanart1', 'fanart2',
         }
-        Missing fanart will not appear in the dict.
+        Missing fanart will not appear in the dict. 'landscape' and 'icon'
+        might be implemented in the future.
         """
         query = 'SELECT type, url FROM art WHERE media_id=? AND media_type=?'
         self.cursor.execute(query, (kodi_id, kodi_type))
