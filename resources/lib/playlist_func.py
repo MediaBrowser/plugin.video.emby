@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Collection of functions associated with Kodi and Plex playlists and playqueues
 """
@@ -8,7 +9,7 @@ from re import compile as re_compile
 
 import plexdb_functions as plexdb
 from downloadutils import DownloadUtils as DU
-from utils import try_encode
+from utils import try_decode, try_encode
 from PlexAPI import API
 from PlexFunctions import GetPlexMetadata
 from kodidb_functions import kodiid_from_filename
@@ -53,21 +54,20 @@ class PlaylistObjectBaseclase(object):
 
     def __repr__(self):
         """
-        Print the playlist, e.g. to log
+        Print the playlist, e.g. to log. Returns utf-8 encoded string
         """
-        answ = '{\'%s\': {' % (self.__class__.__name__)
+        answ = u'{\'%s\': {\'id\': %s, ' % (self.__class__.__name__, self.id)
         # For some reason, can't use dir directly
-        answ += '\'id\': %s, ' % self.id
         for key in self.__dict__:
             if key in ('id', 'items', 'kodi_pl'):
                 continue
-            if isinstance(getattr(self, key), (str, unicode)):
+            if isinstance(getattr(self, key), str):
                 answ += '\'%s\': \'%s\', ' % (key,
-                                              try_encode(getattr(self, key)))
+                                              try_decode(getattr(self, key)))
             else:
                 # e.g. int
-                answ += '\'%s\': %s, ' % (key, str(getattr(self, key)))
-        return answ + '\'items\': %s}}' % self.items
+                answ += '\'%s\': %s, ' % (key, unicode(getattr(self, key)))
+        return try_encode(answ + '\'items\': %s}}' % self.items)
 
     def is_pkc_clear(self):
         """
@@ -174,25 +174,27 @@ class Playlist_Item(object):
 
     def __repr__(self):
         """
-        Print the playlist item, e.g. to log
+        Print the playlist item, e.g. to log. Returns utf-8 encoded string
         """
-        answ = '{\'%s\': {' % (self.__class__.__name__)
-        answ += '\'id\': \'%s\', ' % self.id
-        answ += '\'plex_id\': \'%s\', ' % self.plex_id
+        answ = (u'{\'%s\': {\'id\': \'%s\', \'plex_id\': \'%s\', '
+                % (self.__class__.__name__, self.id, self.plex_id))
         for key in self.__dict__:
             if key in ('id', 'plex_id', 'xml'):
                 continue
-            if isinstance(getattr(self, key), (str, unicode)):
+            if isinstance(getattr(self, key), str):
+                LOG.debug('key: %s, type: %s', key, type(key))
+                LOG.debug('answ: %s, type: %s', answ, type(answ))
+                LOG.debug('content: %s, type: %s', getattr(self, key), type(getattr(self, key)))
                 answ += '\'%s\': \'%s\', ' % (key,
-                                              try_encode(getattr(self, key)))
+                                              try_decode(getattr(self, key)))
             else:
                 # e.g. int
-                answ += '\'%s\': %s, ' % (key, str(getattr(self, key)))
+                answ += '\'%s\': %s, ' % (key, unicode(getattr(self, key)))
         if self.xml is None:
             answ += '\'xml\': None}}'
         else:
             answ += '\'xml\': \'%s\'}}' % self.xml.tag
-        return answ
+        return try_encode(answ)
 
     def plex_stream_index(self, kodi_stream_index, stream_type):
         """
