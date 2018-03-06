@@ -37,10 +37,6 @@ def playback_cleanup():
             DU().downloadUrl(
                 '{server}/video/:/transcode/universal/stop',
                 parameters={'session': v.PKC_MACHINE_IDENTIFIER})
-        # Kodi will not clear the playqueue (because there is not really any)
-        # if there is only 1 item in it
-        if len(PQ.PLAYQUEUES[playerid].items) == 1:
-            PQ.PLAYQUEUES[playerid].clear()
         # Reset the player's status
         status = dict(state.PLAYSTATE)
     # As all playback has halted, reset the players that have been active

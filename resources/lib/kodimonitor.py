@@ -209,17 +209,15 @@ class KodiMonitor(Monitor):
         }
         Will NOT be called if playback initiated by Kodi widgets
         """
-        kodi_item = js.get_item(data['playlistid'])
-        if (state.RESUMABLE is True and not kodi_item['file'] and
-                data['position'] == 0 and
-                data['item'].get('title') is not None and
-                getCondVisibility('Window.IsVisible(MyVideoNav.xml)')):
+        old = state.OLD_PLAYER_STATES[data['playlistid']]
+        if (not state.DIRECT_PATHS and data['position'] == 0 and
+                not PQ.PLAYQUEUES[data['playlistid']].items and
+                data['item']['type'] == old['kodi_type'] and
+                data['item']['id'] == old['kodi_id']):
             # Hack we need for RESUMABLE items because Kodi lost the path of the
             # last played item that is now being replayed (see playback.py's
-            # Player().play())
-            # Also see playqueue.py _compare_playqueues()
+            # Player().play()) Also see playqueue.py _compare_playqueues()
             LOG.info('Detected re-start of playback of last item')
-            old = state.OLD_PLAYER_STATES[data['playlistid']]
             kwargs = {
                 'plex_id': old['plex_id'],
                 'plex_type': old['plex_type'],
@@ -240,6 +238,7 @@ class KodiMonitor(Monitor):
         """
         pass
 
+    @LOCKER.lockthis
     def _playlist_onclear(self, data):
         """
         Called if a Kodi playlist is cleared. Example data dict:
@@ -247,7 +246,11 @@ class KodiMonitor(Monitor):
             u'playlistid': 1,
         }
         """
-        pass
+        playqueue = PQ.PLAYQUEUES[data['playlistid']]
+        if not playqueue.is_pkc_clear():
+            playqueue.clear(kodi=False)
+        else:
+            LOG.debug('Detected PKC clear - ignoring')
 
     def _get_ids(self, json_item):
         """
