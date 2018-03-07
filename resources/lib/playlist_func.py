@@ -182,9 +182,6 @@ class Playlist_Item(object):
             if key in ('id', 'plex_id', 'xml'):
                 continue
             if isinstance(getattr(self, key), str):
-                LOG.debug('key: %s, type: %s', key, type(key))
-                LOG.debug('answ: %s, type: %s', answ, type(answ))
-                LOG.debug('content: %s, type: %s', getattr(self, key), type(getattr(self, key)))
                 answ += '\'%s\': \'%s\', ' % (key,
                                               try_decode(getattr(self, key)))
             else:
