@@ -67,7 +67,7 @@ class PlaylistObjectBaseclase(object):
             else:
                 # e.g. int
                 answ += '\'%s\': %s, ' % (key, unicode(getattr(self, key)))
-        return try_encode(answ + '\'items\': %s}}' % self.items)
+        return try_encode(answ + '\'items\': %s}}') % self.items
 
     def is_pkc_clear(self):
         """
@@ -206,13 +206,13 @@ class Playlist_Item(object):
         count = 0
         # Kodi indexes differently than Plex
         for stream in self.xml[0][self.part]:
-            if (stream.attrib['streamType'] == stream_type and 
+            if (stream.attrib['streamType'] == stream_type and
                     'key' in stream.attrib):
                 if count == kodi_stream_index:
                     return stream.attrib['id']
                 count += 1
         for stream in self.xml[0][self.part]:
-            if (stream.attrib['streamType'] == stream_type and 
+            if (stream.attrib['streamType'] == stream_type and
                     'key' not in stream.attrib):
                 if count == kodi_stream_index:
                     return stream.attrib['id']
