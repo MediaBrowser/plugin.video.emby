@@ -2,7 +2,7 @@
 ###############################################################################
 from logging import getLogger
 
-from xbmc import getInfoLabel, sleep, executebuiltin, getCondVisibility
+from xbmc import getInfoLabel, sleep, executebuiltin
 from xbmcaddon import Addon
 
 import plexdb_functions as plexdb
@@ -157,12 +157,8 @@ class ContextMenu(object):
             v.KODI_PLAYLIST_TYPE_FROM_KODI_TYPE[self.kodi_type])
         playqueue.clear()
         state.CONTEXT_MENU_PLAY = True
-        params = {
-            'mode': 'play',
-            'plex_id': self.plex_id,
-            'plex_type': self.plex_type
-        }
-        from urllib import urlencode
-        handle = ("plugin://plugin.video.plexkodiconnect/movies?%s"
-                  % urlencode(params))
+        handle = ('plugin://%s/?plex_id=%s&plex_type=%s&mode=play'
+                  % (v.ADDON_TYPE[self.plex_type],
+                     self.plex_id,
+                     self.plex_type))
         executebuiltin('RunPlugin(%s)' % handle)

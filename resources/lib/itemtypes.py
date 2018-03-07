@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 ###############################################################################
 from logging import getLogger
-from urllib import urlencode
 from ntpath import dirname
 from datetime import datetime
 
@@ -17,6 +16,9 @@ import state
 ###############################################################################
 
 LOG = getLogger("PLEX." + __name__)
+
+# Note: always use same order of URL arguments, NOT urlencode:
+#   plex_id=<plex_id>&plex_type=<plex_type>&mode=play
 
 ###############################################################################
 
@@ -284,12 +286,8 @@ class Movies(Items):
         if do_indirect:
             # Set plugin path and media flags using real filename
             path = 'plugin://%s.movies/' % v.ADDON_ID
-            params = {
-                'mode': 'play',
-                'plex_id': itemid,
-                'plex_type': v.PLEX_TYPE_MOVIE
-            }
-            filename = "%s?%s" % (path, urlencode(params))
+            filename = ('%s?plex_id=%s&plex_type=%s&mode=play'
+                        % (path, itemid, v.PLEX_TYPE_MOVIE))
             playurl = filename
 
         # movie table:
@@ -925,12 +923,8 @@ class TVShows(Items):
             # Set plugin path - do NOT use "intermediate" paths for the show
             # as with direct paths!
             path = 'plugin://%s.tvshows/%s/' % (v.ADDON_ID, series_id)
-            params = {
-                'plex_id': itemid,
-                'plex_type': v.PLEX_TYPE_EPISODE,
-                'mode': 'play'
-            }
-            filename = "%s?%s" % (path, urlencode(params))
+            filename = ('%s?plex_id=%s&plex_type=%s&mode=play'
+                        % (path, itemid, v.PLEX_TYPE_EPISODE))
             playurl = filename
             parent_path_id = self.kodi_db.getParentPathId(path)
 

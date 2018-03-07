@@ -3,7 +3,6 @@ Used to kick off Kodi playback
 """
 from logging import getLogger
 from threading import Thread
-from urllib import urlencode
 
 from xbmc import Player, sleep
 
@@ -205,13 +204,10 @@ def _prep_playlist_stack(xml):
             api.set_part_number(part)
             if kodi_id is None:
                 # Need to redirect again to PKC to conclude playback
-                params = {
-                    'mode': 'play',
-                    'plex_id': api.plex_id(),
-                    'plex_type': api.plex_type()
-                }
-                path = ('plugin://%s/?%s'
-                        % (v.ADDON_TYPE[api.plex_type()], urlencode(params)))
+                path = ('plugin://%s/?plex_id=%s&plex_type=%s&mode=play'
+                        % (v.ADDON_TYPE[api.plex_type()],
+                           api.plex_id(),
+                           api.plex_type()))
                 listitem = api.create_listitem()
                 listitem.setPath(try_encode(path))
             else:
