@@ -38,10 +38,21 @@
 		<setting type="lsep" label="39700" />
 		<setting id="enable_alexa" label="39701" type="bool" default="true"/>
 		<setting type="lsep" label="" />
-		<setting id="skipContextMenu" type="bool" label="30520" default="false" visible="eq(-1,true)" subsetting="true" />
+        <!-- Different settings that are not visible - to avoid warnings in the log -->
+		<setting id="skipContextMenu" type="bool" label="30520" default="false"/>
 		<setting id="plex_restricteduser" type="bool" default="false" visible="false"/>
 		<setting id="plex_allows_mediaDeletion" type="bool" default="true" visible="false"/>
 		<setting id="companion_show_gdm_port_warning" type="bool" default="true" visible="false"/>
+        <setting id="InstallQuestionsAnswered" type="bool" default="false" visible="false"/>
+        <setting id="SyncInstallRunDone" type="bool" default="false" visible="false"/>
+        <setting id="last_migrated_PKC_version" type="text" default="" visible="false"/>
+        <setting id="plexAvatar" type="text" default="" visible="false"/>
+        <setting id="plex_client_Id" type="text" default="" visible="false"/>
+        <setting id="plex_machineIdentifier" type="text" default="" visible="false"/>
+        <setting id="dbCreatedWithVersion" type="text" default="" visible="false"/>
+        <setting id="plexid" type="text" default="" visible="false"/>
+        <setting id="userid" type="text" default="" visible="false"/>
+        <setting id="username" type="text" default="" visible="false"/>
 	</category>
 
 	<category label="30506"><!-- Sync Options -->
