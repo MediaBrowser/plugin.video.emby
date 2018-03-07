@@ -1,3 +1,8 @@
+version 2.0.7 (beta only):
+- Fix another UnicodeDecodeError for playlists
+- Hardcode plugin-calls instead of using urlencode
+- Fix Kodi 18 log warnings by declaring all settings variables
+
 version 2.0.6 (beta only):
 - Addon paths playback was basically broken - hope it works again!
 - Fixes to add-on paths playback startup
