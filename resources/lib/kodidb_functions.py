@@ -824,24 +824,23 @@ class KodiDBMethods(object):
             query = 'DELETE FROM sets WHERE idSet = ?'
             self.cursor.execute(query, (set_id,))
 
-    def addSeason(self, showid, seasonnumber):
-
-        query = ' '.join((
-
-            "SELECT idSeason",
-            "FROM seasons",
-            "WHERE idShow = ?",
-            "AND season = ?"
-        ))
+    def add_season(self, showid, seasonnumber):
+        """
+        Adds a TV show season to the Kodi video DB or simply returns the ID,
+        if there already is an entry in the DB
+        """
+        query = 'SELECT idSeason FROM seasons WHERE idShow = ? AND season = ?'
         self.cursor.execute(query, (showid, seasonnumber,))
         try:
             seasonid = self.cursor.fetchone()[0]
         except TypeError:
-            self.cursor.execute("select coalesce(max(idSeason),0) from seasons")
+            self.cursor.execute("SELECT COALESCE(MAX(idSeason),0) FROM seasons")
             seasonid = self.cursor.fetchone()[0] + 1
-            query = "INSERT INTO seasons(idSeason, idShow, season) values(?, ?, ?)"
+            query = '''
+                INSERT INTO seasons(idSeason, idShow, season)
+                VALUES (?, ?, ?)
+            '''
             self.cursor.execute(query, (seasonid, showid, seasonnumber))
-
         return seasonid
 
     def addArtist(self, name, musicbrainz):

@@ -755,7 +755,7 @@ class TVShows(Items):
                       'Skipping season for now.', plex_id)
             return
 
-        seasonid = self.kodi_db.addSeason(showid, seasonnum)
+        seasonid = self.kodi_db.add_season(showid, seasonnum)
         checksum = api.checksum()
         # Check whether Season already exists
         plex_dbitem = plex_db.getItem_byId(plex_id)
@@ -857,7 +857,7 @@ class TVShows(Items):
         except TypeError:
             LOG.error("Parent tvshow now found, skip item")
             return False
-        seasonid = self.kodi_db.addSeason(showid, season)
+        seasonid = self.kodi_db.add_season(showid, season)
 
         # GET THE FILE AND PATH #####
         do_indirect = not state.DIRECT_PATHS
