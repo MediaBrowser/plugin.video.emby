@@ -298,7 +298,7 @@ class Movies(Items):
         # add/retrieve pathid and fileid
         # if the path or file already exists, the calls return current value
         pathid = self.kodi_db.add_video_path(path)
-        fileid = self.kodi_db.addFile(filename, pathid)
+        fileid = self.kodi_db.add_file(filename, pathid)
 
         # UPDATE THE MOVIE #####
         if update_item:
@@ -785,10 +785,6 @@ class TVShows(Items):
         plex_db = self.plex_db
         artwork = self.artwork
         api = API(item)
-
-        # If the item already exist in the local Kodi DB we'll perform a full
-        # item update
-        # If the item doesn't exist, we'll add it to the database
         update_item = True
         itemid = api.plex_id()
         if not itemid:
@@ -802,18 +798,18 @@ class TVShows(Items):
         except TypeError:
             update_item = False
             # episodeid
-            kodicursor.execute("select coalesce(max(idEpisode),0) from episode")
+            kodicursor.execute('SELECT COALESCE(MAX(idEpisode),0) FROM episode')
             episodeid = kodicursor.fetchone()[0] + 1
         else:
             # Verification the item is still in Kodi
-            query = "SELECT * FROM episode WHERE idEpisode = ?"
+            query = 'SELECT * FROM episode WHERE idEpisode = ?'
             kodicursor.execute(query, (episodeid,))
             try:
                 kodicursor.fetchone()[0]
             except TypeError:
                 # item is not found, let's recreate it.
                 update_item = False
-                LOG.info("episodeid: %s missing from Kodi, repairing entry.",
+                LOG.info('episodeid: %s missing from Kodi, repairing entry.',
                          episodeid)
 
         # fileId information
@@ -855,38 +851,33 @@ class TVShows(Items):
         seasonid = self.kodi_db.add_season(showid, season)
 
         # GET THE FILE AND PATH #####
-        do_indirect = not state.DIRECT_PATHS
-        playurl = api.file_path(force_first_media=True)
         if state.DIRECT_PATHS:
-            # Direct paths is set the Kodi way
+            playurl = api.file_path(force_first_media=True)
+            playurl = api.validate_playurl(playurl, api.plex_type())
             if playurl is None:
-                # Something went wrong, trying to use non-direct paths
-                do_indirect = True
+                return False
+            if "\\" in playurl:
+                # Local path
+                filename = playurl.rsplit("\\", 1)[1]
             else:
-                playurl = api.validate_playurl(playurl, api.plex_type())
-                if playurl is None:
-                    return False
-                if "\\" in playurl:
-                    # Local path
-                    filename = playurl.rsplit("\\", 1)[1]
-                else:
-                    # Network share
-                    filename = playurl.rsplit("/", 1)[1]
-                path = playurl.replace(filename, "")
-                parent_path_id = self.kodi_db.getParentPathId(path)
-        if do_indirect:
+                # Network share
+                filename = playurl.rsplit("/", 1)[1]
+            path = playurl.replace(filename, "")
+            parent_path_id = self.kodi_db.parent_path_id(path)
+        else:
             # Set plugin path - do NOT use "intermediate" paths for the show
             # as with direct paths!
             path = 'plugin://%s.tvshows/%s/' % (v.ADDON_ID, series_id)
             filename = ('%s?plex_id=%s&plex_type=%s&mode=play'
                         % (path, itemid, v.PLEX_TYPE_EPISODE))
             playurl = filename
-            parent_path_id = self.kodi_db.getParentPathId(path)
+            parent_path_id = self.kodi_db.parent_path_id(path)
 
         # add/retrieve pathid and fileid
         # if the path or file already exists, the calls return current value
-        pathid = self.kodi_db.add_video_path(path)
-        fileid = self.kodi_db.addFile(filename, pathid)
+        pathid = self.kodi_db.add_video_path(path,
+                                             id_parent_path=parent_path_id)
+        fileid = self.kodi_db.add_file(filename, pathid)
 
         # UPDATE THE EPISODE #####
         if update_item:
@@ -1024,24 +1015,12 @@ class TVShows(Items):
                              parent_id=seasonid,
                              checksum=checksum,
                              view_id=viewid)
-
-        # Update the path for Direct Paths only
-        if not do_indirect:
-            query = '''
-                UPDATE path
-                SET strPath = ?, strContent = ?, strScraper = ?, noUpdate = ?,
-                    idParentPath = ?
-                WHERE idPath = ?
-            '''
-            kodicursor.execute(query, (path, None, None, 1, parent_path_id,
-                                       pathid))
         # Update the file
-        query = ' '.join((
-
-            "UPDATE files",
-            "SET idPath = ?, strFilename = ?, dateAdded = ?",
-            "WHERE idFile = ?"
-        ))
+        query = '''
+            UPDATE files
+            SET idPath = ?, strFilename = ?, dateAdded = ?
+            WHERE idFile = ?
+        '''
         kodicursor.execute(query, (pathid, filename, dateadded, fileid))
         # Process cast
         self.kodi_db.modify_people(episodeid,

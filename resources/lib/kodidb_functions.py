@@ -100,10 +100,10 @@ class KodiDBMethods(object):
                                         1,
                                         0))
 
-    def getParentPathId(self, path):
+    def parent_path_id(self, path):
         """
-        Video DB: Adds all subdirectories to SQL path while setting a "trail"
-        of parentPathId
+        Video DB: Adds all subdirectories to path table while setting a "trail"
+        of parent path ids
         """
         if "\\" in path:
             # Local path
@@ -121,9 +121,9 @@ class KodiDBMethods(object):
                 VALUES (?, ?, ?)
             '''
             self.cursor.execute(query, (pathid, parentpath, datetime))
-            parent_path_id = self.getParentPathId(parentpath)
+            parent_id = self.parent_path_id(parentpath)
             query = 'UPDATE path SET idParentPath = ? WHERE idPath = ?'
-            self.cursor.execute(query, (parent_path_id, pathid))
+            self.cursor.execute(query, (parent_id, pathid))
         return pathid
 
     def add_video_path(self, path, date_added=None, id_parent_path=None,
@@ -185,31 +185,20 @@ class KodiDBMethods(object):
             pathid = None
         return pathid
 
-    def addFile(self, filename, pathid):
-
-        query = ' '.join((
-
-            "SELECT idFile",
-            "FROM files",
-            "WHERE strFilename = ?",
-            "AND idPath = ?"
-        ))
-        self.cursor.execute(query, (filename, pathid,))
+    def add_file(self, filename, path_id):
+        """
+        Adds the filename [unicode] to the table files if not already added
+        and returns the idFile.
+        """
+        query = 'SELECT idFile FROM files WHERE strFilename = ? AND idPath = ?'
+        self.cursor.execute(query, (filename, path_id))
         try:
             fileid = self.cursor.fetchone()[0]
         except TypeError:
-            self.cursor.execute("select coalesce(max(idFile),0) from files")
+            self.cursor.execute('SELECT COALESCE(MAX(idFile), 0) FROM files')
             fileid = self.cursor.fetchone()[0] + 1
-            query = (
-                '''
-                INSERT INTO files(
-                    idFile, strFilename)
-
-                VALUES (?, ?)
-                '''
-            )
+            query = 'INSERT INTO files(idFile, strFilename) VALUES (?, ?)'
             self.cursor.execute(query, (fileid, filename))
-
         return fileid
 
     def getFile(self, fileid):
