@@ -185,7 +185,7 @@ class KodiDBMethods(object):
             pathid = None
         return pathid
 
-    def add_file(self, filename, path_id):
+    def add_file(self, filename, path_id, date_added):
         """
         Adds the filename [unicode] to the table files if not already added
         and returns the idFile.
@@ -193,13 +193,30 @@ class KodiDBMethods(object):
         query = 'SELECT idFile FROM files WHERE strFilename = ? AND idPath = ?'
         self.cursor.execute(query, (filename, path_id))
         try:
-            fileid = self.cursor.fetchone()[0]
+            file_id = self.cursor.fetchone()[0]
         except TypeError:
             self.cursor.execute('SELECT COALESCE(MAX(idFile), 0) FROM files')
-            fileid = self.cursor.fetchone()[0] + 1
-            query = 'INSERT INTO files(idFile, strFilename) VALUES (?, ?)'
-            self.cursor.execute(query, (fileid, filename))
-        return fileid
+            file_id = self.cursor.fetchone()[0] + 1
+            query = '''
+                INSERT INTO files(idFile, idPath, strFilename, dateAdded)
+                VALUES (?, ?, ?, ?)
+            '''
+            self.cursor.execute(query, (file_id, path_id, filename, date_added))
+        return file_id
+
+    def remove_file(self, file_id):
+        """
+        Removes the entry for file_id from the files table. Will also delete
+        entries from the associated tables: bookmark, settings, streamdetails
+        """
+        self.cursor.execute('DELETE FROM files WHERE idFile = ?',
+                            (file_id,))
+        self.cursor.execute('DELETE FROM bookmark WHERE idFile = ?',
+                            (file_id,))
+        self.cursor.execute('DELETE FROM settings WHERE idFile = ?',
+                            (file_id,))
+        self.cursor.execute('DELETE FROM streamdetails WHERE idFile = ?',
+                            (file_id,))
 
     def getFile(self, fileid):
 
@@ -216,19 +233,6 @@ class KodiDBMethods(object):
             filename = ""
 
         return filename
-
-    def removeFile(self, path, filename):
-        
-        pathid = self.get_path(path)
-
-        if pathid is not None:
-            query = ' '.join((
-
-                "DELETE FROM files",
-                "WHERE idPath = ?",
-                "AND strFilename = ?"
-            ))
-            self.cursor.execute(query, (pathid, filename,))
 
     def _modify_link_and_table(self, kodi_id, kodi_type, entries, link_table,
                                table, key):
@@ -656,21 +660,17 @@ class KodiDBMethods(object):
         """
         self.cursor.execute("DELETE FROM bookmark")
 
-    def addPlaystate(self, fileid, resume_seconds, total_seconds, playcount,
+    def addPlaystate(self, file_id, resume_seconds, total_seconds, playcount,
                      dateplayed):
         # Delete existing resume point
-        query = '''
-            DELETE FROM bookmark
-            WHERE idFile = ?
-        '''
-        self.cursor.execute(query, (fileid,))
+        self.cursor.execute('DELETE FROM bookmark WHERE idFile = ?', (file_id,))
         # Set watched count
         query = '''
             UPDATE files
             SET playCount = ?, lastPlayed = ?
             WHERE idFile = ?
         '''
-        self.cursor.execute(query, (playcount, dateplayed, fileid))
+        self.cursor.execute(query, (playcount, dateplayed, file_id))
         # Set the resume bookmark
         if resume_seconds:
             self.cursor.execute(
@@ -683,11 +683,11 @@ class KodiDBMethods(object):
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             '''
             self.cursor.execute(query, (bookmark_id,
-                                        fileid,
+                                        file_id,
                                         resume_seconds,
                                         total_seconds,
                                         '',
-                                        "VideoPlayer",
+                                        'VideoPlayer',
                                         '',
                                         1))
 

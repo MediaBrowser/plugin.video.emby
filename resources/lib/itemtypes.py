@@ -203,7 +203,7 @@ class Movies(Items):
         plex_dbitem = plex_db.getItem_byId(itemid)
         try:
             movieid = plex_dbitem[0]
-            fileid = plex_dbitem[1]
+            old_fileid = plex_dbitem[1]
             pathid = plex_dbitem[2]
 
         except TypeError:
@@ -283,12 +283,16 @@ class Movies(Items):
                     # Network share
                     filename = playurl.rsplit("/", 1)[1]
                 path = playurl.replace(filename, "")
+                pathid = self.kodi_db.add_video_path(path,
+                                                     content='movies',
+                                                     scraper='metadata.local')
         if do_indirect:
             # Set plugin path and media flags using real filename
             path = 'plugin://%s.movies/' % v.ADDON_ID
             filename = ('%s?plex_id=%s&plex_type=%s&mode=play'
                         % (path, itemid, v.PLEX_TYPE_MOVIE))
             playurl = filename
+            pathid = self.kodi_db.get_path(path)
 
         # movie table:
         # c22 - playurl
@@ -297,12 +301,13 @@ class Movies(Items):
 
         # add/retrieve pathid and fileid
         # if the path or file already exists, the calls return current value
-        pathid = self.kodi_db.add_video_path(path)
-        fileid = self.kodi_db.add_file(filename, pathid)
+        fileid = self.kodi_db.add_file(filename, pathid, dateadded)
 
         # UPDATE THE MOVIE #####
         if update_item:
             LOG.info("UPDATE movie itemid: %s - Title: %s", itemid, title)
+            if fileid != old_fileid:
+                self.kodi_db.remove_file(old_fileid)
             # Update the movie entry
             if v.KODIVERSION >= 17:
                 # update new ratings Kodi 17
@@ -415,25 +420,6 @@ class Movies(Items):
                              parent_id=None,
                              checksum=checksum,
                              view_id=viewid)
-
-        # Update the path
-        query = ' '.join((
-
-            "UPDATE path",
-            "SET strPath = ?, strContent = ?, strScraper = ?, noUpdate = ?",
-            "WHERE idPath = ?"
-        ))
-        kodicursor.execute(query, (path, "movies", "metadata.local", 1, pathid))
-
-        # Update the file
-        query = ' '.join((
-
-            "UPDATE files",
-            "SET idPath = ?, strFilename = ?, dateAdded = ?",
-            "WHERE idFile = ?"
-        ))
-        kodicursor.execute(query, (pathid, filename, dateadded, fileid))
-
         # Process countries
         self.kodi_db.modify_countries(movieid, v.KODI_TYPE_MOVIE, countries)
         # Process cast
@@ -793,7 +779,7 @@ class TVShows(Items):
         plex_dbitem = plex_db.getItem_byId(itemid)
         try:
             episodeid = plex_dbitem[0]
-            fileid = plex_dbitem[1]
+            old_fileid = plex_dbitem[1]
             pathid = plex_dbitem[2]
         except TypeError:
             update_item = False
@@ -877,11 +863,13 @@ class TVShows(Items):
         # if the path or file already exists, the calls return current value
         pathid = self.kodi_db.add_video_path(path,
                                              id_parent_path=parent_path_id)
-        fileid = self.kodi_db.add_file(filename, pathid)
+        fileid = self.kodi_db.add_file(filename, pathid, dateadded)
 
         # UPDATE THE EPISODE #####
         if update_item:
             LOG.info("UPDATE episode itemid: %s", itemid)
+            if fileid != old_fileid:
+                self.kodi_db.remove_file(old_fileid)
             # Update the movie entry
             if v.KODIVERSION >= 17:
                 # update new ratings Kodi 17
@@ -913,7 +901,7 @@ class TVShows(Items):
                     premieredate, runtime, director, season, episode, title,
                     airs_before_season, airs_before_episode, playurl, pathid,
                     fileid, seasonid, userdata['UserRating'], episodeid))
-            elif v.KODIVERSION == 16:
+            else:
                 # Kodi Jarvis
                 query = '''
                     UPDATE episode
@@ -926,18 +914,6 @@ class TVShows(Items):
                     premieredate, runtime, director, season, episode, title,
                     airs_before_season, airs_before_episode, playurl, pathid,
                     fileid, seasonid, episodeid))
-            else:
-                query = '''
-                    UPDATE episode
-                    SET c00 = ?, c01 = ?, c03 = ?, c04 = ?, c05 = ?, c09 = ?,
-                        c10 = ?, c12 = ?, c13 = ?, c14 = ?, c15 = ?, c16 = ?,
-                        c18 = ?, c19 = ?, idFile = ?
-                    WHERE idEpisode = ?
-                '''
-                kodicursor.execute(query, (title, plot, rating, writer,
-                    premieredate, runtime, director, season, episode, title,
-                    airs_before_season, airs_before_episode, playurl, pathid,
-                    fileid, episodeid))
             # Update parentid reference
             plex_db.updateParentId(itemid, seasonid)
 
@@ -1015,18 +991,9 @@ class TVShows(Items):
                              parent_id=seasonid,
                              checksum=checksum,
                              view_id=viewid)
-        # Update the file
-        query = '''
-            UPDATE files
-            SET idPath = ?, strFilename = ?, dateAdded = ?
-            WHERE idFile = ?
-        '''
-        kodicursor.execute(query, (pathid, filename, dateadded, fileid))
-        # Process cast
         self.kodi_db.modify_people(episodeid,
                                    v.KODI_TYPE_EPISODE,
                                    api.people_list())
-        # Process artwork
         # Wide "screenshot" of particular episode
         poster = item.attrib.get('thumb')
         if poster:
@@ -1034,11 +1001,8 @@ class TVShows(Items):
                 "%s%s" % (self.server, poster))
             artwork.modify_art(
                 poster, episodeid, v.KODI_TYPE_EPISODE, "thumb", kodicursor)
-
-        # Process stream details
         streams = api.mediastreams()
         self.kodi_db.modify_streams(fileid, streams, runtime)
-        # Process playstates
         self.kodi_db.addPlaystate(fileid,
                                   resume,
                                   runtime,
