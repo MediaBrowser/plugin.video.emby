@@ -847,21 +847,6 @@ class TVShows(Items):
             season = -1
         if episode is None:
             episode = -1
-            # if item.get('AbsoluteEpisodeNumber'):
-            #     # Anime scenario
-            #     season = 1
-            #     episode = item['AbsoluteEpisodeNumber']
-            # else:
-            #     season = -1
-
-        # # Specials ordering within season
-        # if item.get('AirsAfterSeasonNumber'):
-        #     airs_before_season = item['AirsAfterSeasonNumber']
-        #     # Kodi default number for afterseason ordering
-        #     airs_before_episode = 4096
-        # else:
-        #     airs_before_season = item.get('AirsBeforeSeasonNumber')
-        #     airs_before_episode = item.get('AirsBeforeEpisodeNumber')
         airs_before_season = "-1"
         airs_before_episode = "-1"
 
