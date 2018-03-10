@@ -60,7 +60,7 @@ class KodiDBMethods(object):
         For some reason, Kodi ignores this if done via itemtypes while e.g.
         adding or updating items. (addPath method does NOT work)
         """
-        path_id = self.getPath('plugin://%s.movies/' % v.ADDON_ID)
+        path_id = self.get_path('plugin://%s.movies/' % v.ADDON_ID)
         if path_id is None:
             self.cursor.execute("select coalesce(max(idPath),0) from path")
             path_id = self.cursor.fetchone()[0] + 1
@@ -80,7 +80,7 @@ class KodiDBMethods(object):
                                         1,
                                         0))
         # And TV shows
-        path_id = self.getPath('plugin://%s.tvshows/' % v.ADDON_ID)
+        path_id = self.get_path('plugin://%s.tvshows/' % v.ADDON_ID)
         if path_id is None:
             self.cursor.execute("select coalesce(max(idPath),0) from path")
             path_id = self.cursor.fetchone()[0] + 1
@@ -111,7 +111,7 @@ class KodiDBMethods(object):
         else:
             # Network path
             parentpath = "%s/" % dirname(dirname(path))
-        pathid = self.getPath(parentpath)
+        pathid = self.get_path(parentpath)
         if pathid is None:
             self.cursor.execute("SELECT COALESCE(MAX(idPath),0) FROM path")
             pathid = self.cursor.fetchone()[0] + 1
@@ -126,8 +126,16 @@ class KodiDBMethods(object):
             self.cursor.execute(query, (parent_path_id, pathid))
         return pathid
 
-    def add_video_path(self, path):
-        # SQL won't return existing paths otherwise
+    def add_video_path(self, path, date_added=None, id_parent_path=None,
+                       content=None, scraper=None):
+        """
+        Returns the idPath from the path table. Creates a new entry if path
+        [unicode] does not yet exist (using date_added [kodi date type],
+        id_parent_path [int], content ['tvshows', 'movies', None], scraper
+        [usually 'metadata.local'])
+
+        WILL activate noUpdate for the path!
+        """
         if path is None:
             path = ''
         query = 'SELECT idPath FROM path WHERE strPath = ?'
@@ -137,12 +145,14 @@ class KodiDBMethods(object):
         except TypeError:
             self.cursor.execute("SELECT COALESCE(MAX(idPath),0) FROM path")
             pathid = self.cursor.fetchone()[0] + 1
-            datetime = unix_date_to_kodi(unix_timestamp())
             query = '''
-                INSERT INTO path(idPath, strPath, dateAdded)
-                VALUES (?, ?, ?)
+                INSERT INTO path(idPath, strPath, dateAdded, idParentPath,
+                                 strContent, strScraper, noUpdate)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
             '''
-            self.cursor.execute(query, (pathid, path, datetime))
+            self.cursor.execute(query,
+                                (pathid, path, date_added, id_parent_path,
+                                 content, scraper, 1))
         return pathid
 
     def add_music_path(self, path, strHash=None):
@@ -163,20 +173,16 @@ class KodiDBMethods(object):
             self.cursor.execute(query, (pathid, path, strHash))
         return pathid
 
-    def getPath(self, path):
-
-        query = ' '.join((
-
-            "SELECT idPath",
-            "FROM path",
-            "WHERE strPath = ?"
-        ))
-        self.cursor.execute(query, (path,))
+    def get_path(self, path):
+        """
+        Returns the idPath from the path table for path [unicode] or None
+        """
+        self.cursor.execute('SELECT idPath FROM path WHERE strPath = ?',
+                            (path,))
         try:
             pathid = self.cursor.fetchone()[0]
         except TypeError:
             pathid = None
-
         return pathid
 
     def addFile(self, filename, pathid):
@@ -224,7 +230,7 @@ class KodiDBMethods(object):
 
     def removeFile(self, path, filename):
         
-        pathid = self.getPath(path)
+        pathid = self.get_path(path)
 
         if pathid is not None:
             query = ' '.join((

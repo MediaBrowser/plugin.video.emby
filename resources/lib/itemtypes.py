@@ -531,10 +531,8 @@ class TVShows(Items):
         plex_db = self.plex_db
         artwork = self.artwork
         api = API(item)
-
         update_item = True
         itemid = api.plex_id()
-
         if not itemid:
             LOG.error("Cannot parse XML data for TV show")
             return
@@ -547,7 +545,6 @@ class TVShows(Items):
             update_item = False
             kodicursor.execute("select coalesce(max(idShow),0) from tvshow")
             showid = kodicursor.fetchone()[0] + 1
-
         else:
             # Verification the item is still in Kodi
             query = "SELECT * FROM tvshow WHERE idShow = ?"
@@ -562,7 +559,6 @@ class TVShows(Items):
 
         # fileId information
         checksum = api.checksum()
-
         # item details
         genres = api.genre_list()
         title, sorttitle = api.titles()
@@ -581,37 +577,34 @@ class TVShows(Items):
             studio = None
 
         # GET THE FILE AND PATH #####
-        do_indirect = not state.DIRECT_PATHS
         if state.DIRECT_PATHS:
             # Direct paths is set the Kodi way
-            playurl = api.tv_show_path()
+            playurl = api.validate_playurl(api.tv_show_path(),
+                                           api.plex_type(),
+                                           folder=True)
             if playurl is None:
-                # Something went wrong, trying to use non-direct paths
-                do_indirect = True
+                return
+            if "\\" in playurl:
+                # Local path
+                path = "%s\\" % playurl
+                toplevelpath = "%s\\" % dirname(dirname(path))
             else:
-                playurl = api.validate_playurl(playurl,
-                                               api.plex_type(),
-                                               folder=True)
-                if playurl is None:
-                    return False
-                if "\\" in playurl:
-                    # Local path
-                    path = "%s\\" % playurl
-                    toplevelpath = "%s\\" % dirname(dirname(path))
-                else:
-                    # Network path
-                    path = "%s/" % playurl
-                    toplevelpath = "%s/" % dirname(dirname(path))
-        if do_indirect:
+                # Network path
+                path = "%s/" % playurl
+                toplevelpath = "%s/" % dirname(dirname(path))
+            toppathid = self.kodi_db.add_video_path(
+                toplevelpath,
+                content='tvshows',
+                scraper='metadata.local')
+        else:
             # Set plugin path
             toplevelpath = "plugin://%s.tvshows/" % v.ADDON_ID
             path = "%s%s/" % (toplevelpath, itemid)
+            toppathid = self.kodi_db.get_path(toplevelpath)
 
-        # Add top path
-        toppathid = self.kodi_db.add_video_path(toplevelpath)
-        # add/retrieve pathid and fileid
-        # if the path or file already exists, the calls return current value
-        pathid = self.kodi_db.add_video_path(path)
+        pathid = self.kodi_db.add_video_path(path,
+                                             date_added=api.date_created(),
+                                             id_parent_path=toppathid)
         # UPDATE THE TVSHOW #####
         if update_item:
             LOG.info("UPDATE tvshow itemid: %s - Title: %s", itemid, title)
@@ -671,16 +664,6 @@ class TVShows(Items):
         # OR ADD THE TVSHOW #####
         else:
             LOG.info("ADD tvshow itemid: %s - Title: %s", itemid, title)
-            query = '''
-                UPDATE path
-                SET strPath = ?, strContent = ?, strScraper = ?, noUpdate = ?
-                WHERE idPath = ?
-            '''
-            kodicursor.execute(query, (toplevelpath,
-                                       "tvshows",
-                                       "metadata.local",
-                                       1,
-                                       toppathid))
             # Link the path
             query = "INSERT INTO tvshowlinkpath(idShow, idPath) values (?, ?)"
             kodicursor.execute(query, (showid, pathid))
@@ -733,14 +716,6 @@ class TVShows(Items):
                 kodicursor.execute(query, (showid, title, plot, rating,
                                            premieredate, genre, title, tvdb,
                                            mpaa, studio, sorttitle))
-        # Update the path
-        query = '''
-            UPDATE path
-            SET strPath = ?, strContent = ?, strScraper = ?, noUpdate = ?,
-            idParentPath = ?
-            WHERE idPath = ?
-        '''
-        kodicursor.execute(query, (path, None, None, 1, toppathid, pathid))
 
         self.kodi_db.modify_people(showid, v.KODI_TYPE_SHOW, api.people_list())
         self.kodi_db.modify_genres(showid, v.KODI_TYPE_SHOW, genres)

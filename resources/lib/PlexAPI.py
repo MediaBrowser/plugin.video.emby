@@ -1442,7 +1442,7 @@ class API(object):
             omit_check  : Will entirely omit validity check if True
         """
         if path is None:
-            return None
+            return
         typus = v.REMAP_TYPE_FROM_PLEXTYPE[typus]
         if state.REMAP_PATH is True:
             path = path.replace(getattr(state, 'remapSMB%sOrg' % typus),
