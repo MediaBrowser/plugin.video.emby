@@ -539,6 +539,13 @@ class API(object):
         """
         return self.item.get('grandparentRatingKey')
 
+    def grandparent_title(self):
+        """
+        Returns the title for the corresponding grandparent, e.g. a TV show
+        name for episodes, or None
+        """
+        return self.item.get('grandparentTitle')
+
     def episode_data(self):
         """
         Call on a single episode.

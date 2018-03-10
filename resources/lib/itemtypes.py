@@ -1589,13 +1589,12 @@ class Music(Items):
             genre = None
         try:
             if self.compilation == 0:
-                artists = item.attrib.get('grandparentTitle')
+                artists = api.grandparent_title()
             else:
                 artists = item.attrib.get('originalTitle')
         except AttributeError:
             # compilation not set
-            artists = item.attrib.get('originalTitle',
-                                      item.attrib.get('grandparentTitle'))
+            artists = item.attrib.get('originalTitle', api.grandparent_title())
         tracknumber = int(item.attrib.get('index', 0))
         disc = int(item.attrib.get('parentIndex', 1))
         if disc == 1:
@@ -1780,8 +1779,8 @@ class Music(Items):
 
         # Link song to artists
         artist_loop = [{
-            'Name': item.attrib.get('grandparentTitle'),
-            'Id': item.attrib.get('grandparentRatingKey')
+            'Name': api.grandparent_title(),
+            'Id': api.grandparent_id()
         }]
         # for index, artist in enumerate(item['ArtistItems']):
         for index, artist in enumerate(artist_loop):
