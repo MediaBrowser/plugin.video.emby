@@ -754,20 +754,15 @@ class TVShows(Items):
             LOG.error('Could not find parent tv show for season %s. '
                       'Skipping season for now.', plex_id)
             return
-
         seasonid = self.kodi_db.add_season(showid, seasonnum)
         checksum = api.checksum()
         # Check whether Season already exists
         plex_dbitem = plex_db.getItem_byId(plex_id)
         update_item = False if plex_dbitem is None else True
-
-        # Process artwork
-        allartworks = api.artwork()
-        artwork.modify_artwork(allartworks,
+        artwork.modify_artwork(api.artwork(),
                                seasonid,
                                v.KODI_TYPE_SEASON,
                                kodicursor)
-
         if update_item:
             # Update a reference: checksum in plex table
             plex_db.updateReference(plex_id, checksum)
