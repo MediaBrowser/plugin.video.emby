@@ -141,7 +141,8 @@ class WebSocket(Thread):
         LOG.info("##===---- %s Stopped ----===##", self.__class__.__name__)
 
 
-@thread_methods(add_suspends=['SUSPEND_LIBRARY_THREAD'])
+@thread_methods(add_suspends=['SUSPEND_LIBRARY_THREAD',
+                              'BACKGROUND_SYNC_DISABLED'])
 class PMS_Websocket(WebSocket):
     """
     Websocket connection with the PMS for Plex Companion

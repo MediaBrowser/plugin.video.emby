@@ -60,8 +60,8 @@ def reload_pkc():
     state.SYNC_THREAD_NUMBER = int(settings('syncThreadNumber'))
     state.SYNC_DIALOG = settings('dbSyncIndicator') == 'true'
     state.ENABLE_MUSIC = settings('enableMusic') == 'true'
-    state.BACKGROUND_SYNC = settings(
-        'enableBackgroundSync') == 'true'
+    state.BACKGROUND_SYNC_DISABLED = settings(
+        'enableBackgroundSync') == 'false'
     state.BACKGROUNDSYNC_SAFTYMARGIN = int(
         settings('backgroundsync_saftyMargin'))
     state.REPLACE_SMB_PATH = settings('replaceSMB') == 'true'

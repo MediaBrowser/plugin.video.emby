@@ -46,7 +46,6 @@ STATE_SETTINGS = {
     'remapSMBphotoOrg': 'remapSMBphotoOrg',
     'remapSMBphotoNew': 'remapSMBphotoNew',
     'enableMusic': 'ENABLE_MUSIC',
-    'enableBackgroundSync': 'BACKGROUND_SYNC',
     'fetch_pms_item_number': 'FETCH_PMS_ITEM_NUMBER'
 }
 
@@ -111,6 +110,8 @@ class KodiMonitor(Monitor):
                     plex_command('RUN_LIB_SCAN', 'views')
         # Special cases, overwrite all internal settings
         set_replace_paths()
+        state.BACKGROUND_SYNC_DISABLED = settings(
+            'enableBackgroundSync') == 'false'
         state.FULL_SYNC_INTERVALL = int(settings('fullSyncInterval')) * 60
         state.BACKGROUNDSYNC_SAFTYMARGIN = int(
             settings('backgroundsync_saftyMargin'))

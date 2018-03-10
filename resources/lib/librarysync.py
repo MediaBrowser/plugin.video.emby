@@ -1621,7 +1621,7 @@ class LibrarySync(Thread):
                     self.syncPMStime()
                     window('plex_dbScan', clear=True)
                     state.DB_SCAN = False
-                elif state.BACKGROUND_SYNC:
+                elif not state.BACKGROUND_SYNC_DISABLED:
                     # Check back whether we should process something
                     # Only do this once every while (otherwise, potentially
                     # many screen refreshes lead to flickering)

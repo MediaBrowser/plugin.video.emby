@@ -40,8 +40,8 @@ KODI_DB_CHECKED = False
 ENABLE_MUSIC = True
 # How often shall we sync?
 FULL_SYNC_INTERVALL = 0
-# Background Sync enabled at all?
-BACKGROUND_SYNC = True
+# Background Sync disabled?
+BACKGROUND_SYNC_DISABLED = False
 # How long shall we wait with synching a new item to make sure Plex got all
 # metadata?
 BACKGROUNDSYNC_SAFTYMARGIN = 0
