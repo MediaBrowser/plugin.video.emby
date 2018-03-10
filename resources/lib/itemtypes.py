@@ -745,7 +745,7 @@ class TVShows(Items):
         artwork = self.artwork
         seasonnum = api.season_number()
         # Get parent tv show Plex id
-        plexshowid = item.attrib.get('parentRatingKey')
+        plexshowid = api.parent_plex_id()
         # Get Kodi showid
         plex_dbitem = plex_db.getItem_byId(plexshowid)
         try:
@@ -1473,7 +1473,7 @@ class Music(Items):
                                        studio, albumid))
 
         # Associate the parentid for plex reference
-        parent_id = item.attrib.get('parentRatingKey')
+        parent_id = api.parent_plex_id()
         if parent_id is not None:
             plex_dbartist = plex_db.getItem_byId(parent_id)
             try:
@@ -1674,8 +1674,7 @@ class Music(Items):
 
             try:
                 # Get the album
-                plex_dbalbum = plex_db.getItem_byId(
-                    item.attrib.get('parentRatingKey'))
+                plex_dbalbum = plex_db.getItem_byId(api.parent_plex_id())
                 albumid = plex_dbalbum[0]
             except KeyError:
                 # Verify if there's an album associated.
@@ -1700,7 +1699,7 @@ class Music(Items):
             except TypeError:
                 # No album found. Let's create it
                 LOG.info("Album database entry missing.")
-                plex_album_id = item.attrib.get('parentRatingKey')
+                plex_album_id = api.parent_plex_id()
                 album = GetPlexMetadata(plex_album_id)
                 if album is None or album == 401:
                     LOG.error('Could not download album, abort')
