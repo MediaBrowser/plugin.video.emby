@@ -895,7 +895,7 @@ class TVShows(Items):
                         userrating = ?
                     WHERE idEpisode = ?
                 '''
-                kodicursor.execute(query, (title, plot, rating, writer,
+                kodicursor.execute(query, (title, plot, ratingid, writer,
                     premieredate, runtime, director, season, episode, title,
                     airs_before_season, airs_before_episode, playurl, pathid,
                     fileid, seasonid, userdata['UserRating'], episodeid))
