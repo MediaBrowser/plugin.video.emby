@@ -493,7 +493,7 @@ class Movies(Items):
             for movie in boxset_movies:
                 plexid = movie[0]
                 movieid = movie[1]
-                self.kodi_db.removefromBoxset(movieid)
+                self.kodi_db.remove_from_set(movieid)
                 # Update plex reference
                 self.plex_db.updateParentId(plexid, None)
             self.kodicursor.execute("DELETE FROM sets WHERE idSet = ?",
