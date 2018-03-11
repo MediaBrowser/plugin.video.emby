@@ -229,22 +229,6 @@ class KodiDBMethods(object):
             self.cursor.execute('DELETE FROM path WHERE idPath = ?',
                                 (path_id,))
 
-    def getFile(self, fileid):
-
-        query = ' '.join((
-
-            "SELECT strFilename",
-            "FROM files",
-            "WHERE idFile = ?"
-        ))
-        self.cursor.execute(query, (fileid,))
-        try:
-            filename = self.cursor.fetchone()[0]
-        except TypeError:
-            filename = ""
-
-        return filename
-
     def _modify_link_and_table(self, kodi_id, kodi_type, entries, link_table,
                                table, key):
         query = '''
