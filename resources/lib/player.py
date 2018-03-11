@@ -31,7 +31,7 @@ def playback_cleanup():
     for playerid in state.ACTIVE_PLAYERS:
         status = state.PLAYER_STATES[playerid]
         # Remember the last played item later
-        state.OLD_PLAYER_STATES[playerid] = dict(status)
+        state.OLD_PLAYER_STATES[playerid] = copy.deepcopy(status)
         # Stop transcoding
         if status['playmethod'] == 'Transcode':
             LOG.debug('Tell the PMS to stop transcoding')
