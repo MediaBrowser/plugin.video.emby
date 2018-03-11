@@ -307,6 +307,7 @@ class Movies(Items):
         if update_item:
             LOG.info("UPDATE movie itemid: %s - Title: %s", itemid, title)
             if fileid != old_fileid:
+                LOG.debug('Removing old file entry: %s', old_fileid)
                 self.kodi_db.remove_file(old_fileid)
             # Update the movie entry
             if v.KODIVERSION >= 17:
@@ -869,6 +870,7 @@ class TVShows(Items):
         if update_item:
             LOG.info("UPDATE episode itemid: %s", itemid)
             if fileid != old_fileid:
+                LOG.debug('Removing old file entry: %s', old_fileid)
                 self.kodi_db.remove_file(old_fileid)
             # Update the movie entry
             if v.KODIVERSION >= 17:

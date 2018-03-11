@@ -209,6 +209,9 @@ class KodiDBMethods(object):
         Removes the entry for file_id from the files table. Will also delete
         entries from the associated tables: bookmark, settings, streamdetails
         """
+        self.cursor.execute('SELECT idPath FROM files WHERE idFile = ? LIMIT 1',
+                            (file_id,))
+        path_id = self.cursor.fetchone()[0]
         self.cursor.execute('DELETE FROM files WHERE idFile = ?',
                             (file_id,))
         self.cursor.execute('DELETE FROM bookmark WHERE idFile = ?',
@@ -217,6 +220,14 @@ class KodiDBMethods(object):
                             (file_id,))
         self.cursor.execute('DELETE FROM streamdetails WHERE idFile = ?',
                             (file_id,))
+        self.cursor.execute('DELETE FROM stacktimes WHERE idFile = ?',
+                            (file_id,))
+        # Delete orphaned path entry
+        self.cursor.execute('SELECT idFile FROM files WHERE idPath = ? LIMIT 1',
+                            (path_id,))
+        if self.cursor.fetchone() is None:
+            self.cursor.execute('DELETE FROM path WHERE idPath = ?',
+                                (path_id,))
 
     def getFile(self, fileid):
 
