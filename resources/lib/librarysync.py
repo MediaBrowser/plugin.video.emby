@@ -1171,7 +1171,8 @@ class LibrarySync(Thread):
         elif item['type'] in (v.PLEX_TYPE_SHOW,
                               v.PLEX_TYPE_SEASON,
                               v.PLEX_TYPE_EPISODE):
-            log.debug("Removing episode/season/tv show %s" % item['ratingKey'])
+            log.debug("Removing episode/season/show with plex id %s",
+                      item['ratingKey'])
             self.videoLibUpdate = True
             with itemtypes.TVShows() as show:
                 show.remove(item['ratingKey'])

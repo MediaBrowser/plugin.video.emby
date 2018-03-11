@@ -220,16 +220,13 @@ class Plex_DB_Functions():
         None if not found
         """
         query = '''
-            SELECT kodi_id, kodi_fileid, kodi_pathid,
-                parent_id, kodi_type, plex_type
-            FROM plex
-            WHERE plex_id = ?
+            SELECT kodi_id, kodi_fileid, kodi_pathid, parent_id, kodi_type,
+                   plex_type
+            FROM plex WHERE plex_id = ?
+            LIMIT 1
         '''
-        try:
-            self.plexcursor.execute(query, (plex_id,))
-            return self.plexcursor.fetchone()
-        except:
-            return None
+        self.plexcursor.execute(query, (plex_id,))
+        return self.plexcursor.fetchone()
 
     def getItem_byWildId(self, plex_id):
         """
@@ -271,14 +268,13 @@ class Plex_DB_Functions():
 
     def getItem_byParentId(self, parent_id, kodi_type):
         """
-        Returns the tuple (plex_id, kodi_id, kodi_fileid) for parent_id,
+        Returns a list of tuples (plex_id, kodi_id, kodi_fileid) for parent_id,
         kodi_type
         """
         query = '''
             SELECT plex_id, kodi_id, kodi_fileid
             FROM plex
-            WHERE parent_id = ?
-            AND kodi_type = ?"
+            WHERE parent_id = ? AND kodi_type = ?
         '''
         self.plexcursor.execute(query, (parent_id, kodi_type,))
         return self.plexcursor.fetchall()
@@ -382,8 +378,8 @@ class Plex_DB_Functions():
         """
         Removes the one entry with plex_id
         """
-        query = "DELETE FROM plex WHERE plex_id = ?"
-        self.plexcursor.execute(query, (plex_id,))
+        self.plexcursor.execute('DELETE FROM plex WHERE plex_id = ?',
+                                (plex_id,))
 
     def removeWildItem(self, plex_id):
         """
