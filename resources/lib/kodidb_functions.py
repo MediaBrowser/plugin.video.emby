@@ -655,6 +655,21 @@ class KodiDBMethods(object):
         """
         self.cursor.execute("DELETE FROM bookmark")
 
+    def get_playcount(self, file_id):
+        """
+        Returns the playcount for the item file_id or None if not found
+        """
+        query = '''
+            SELECT playCount FROM files
+            WHERE idFile = ? LIMIT 1
+        '''
+        self.cursor.execute(query, (file_id, ))
+        try:
+            answ = self.cursor.fetchone()[0]
+        except TypeError:
+            answ = None
+        return answ
+
     def addPlaystate(self, file_id, resume_seconds, total_seconds, playcount,
                      dateplayed):
         # Delete existing resume point
