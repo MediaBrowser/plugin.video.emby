@@ -479,13 +479,10 @@ class Movies(Items):
             self.kodi_db.modify_genres(kodi_id, kodi_type)
             self.kodi_db.modify_studios(kodi_id, kodi_type)
             self.kodi_db.modify_tags(kodi_id, kodi_type)
-            self.kodi_db.modify_streams(file_id)
-            self.kodi_db.delete_playstate(file_id)
             # Delete kodi movie and file
+            self.kodi_db.remove_file(file_id)
             kodicursor.execute("DELETE FROM movie WHERE idMovie = ?",
                                (kodi_id,))
-            kodicursor.execute("DELETE FROM files WHERE idFile = ?",
-                               (file_id,))
             if set_id:
                 self.kodi_db.delete_possibly_empty_set(set_id)
             if v.KODIVERSION >= 17:
@@ -1149,8 +1146,7 @@ class TVShows(Items):
         """
         kodicursor = self.kodicursor
         self.kodi_db.modify_people(kodi_id, v.KODI_TYPE_EPISODE)
-        self.kodi_db.modify_streams(file_id)
-        self.kodi_db.delete_playstate(file_id)
+        self.kodi_db.remove_file(file_id)
         self.artwork.delete_artwork(kodi_id, "episode", kodicursor)
         kodicursor.execute("DELETE FROM episode WHERE idEpisode = ?",
                            (kodi_id,))

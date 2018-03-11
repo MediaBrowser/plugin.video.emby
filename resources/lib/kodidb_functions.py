@@ -686,12 +686,6 @@ class KodiDBMethods(object):
                                         '',
                                         1))
 
-    def delete_playstate(self, file_id):
-        """
-        Removes all playstates/bookmarks for the file with file_id
-        """
-        self.cursor.execute('DELETE FROM bookmark where idFile = ?', (file_id,))
-
     def createTag(self, name):
         # This will create and return the tag_id
         query = ' '.join((
