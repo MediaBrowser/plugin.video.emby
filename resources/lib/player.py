@@ -2,6 +2,7 @@
 
 ###############################################################################
 from logging import getLogger
+import copy
 
 from xbmc import Player
 
@@ -23,9 +24,9 @@ def playback_cleanup():
     """
     PKC cleanup after playback ends/is stopped
     """
+    LOG.debug('playback_cleanup called')
     # We might have saved a transient token from a user flinging media via
     # Companion (if we could not use the playqueue to store the token)
-    LOG.debug('playback_cleanup called')
     state.PLEX_TRANSIENT_TOKEN = None
     for playerid in state.ACTIVE_PLAYERS:
         status = state.PLAYER_STATES[playerid]
@@ -38,7 +39,7 @@ def playback_cleanup():
                 '{server}/video/:/transcode/universal/stop',
                 parameters={'session': v.PKC_MACHINE_IDENTIFIER})
         # Reset the player's status
-        status = dict(state.PLAYSTATE)
+        status = copy.deepcopy(state.PLAYSTATE)
     # As all playback has halted, reset the players that have been active
     state.ACTIVE_PLAYERS = []
     LOG.debug('Finished PKC playback cleanup')

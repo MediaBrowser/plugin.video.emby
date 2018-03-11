@@ -4,6 +4,7 @@ PKC Kodi Monitoring implementation
 from logging import getLogger
 from json import loads
 from threading import Thread
+import copy
 
 from xbmc import Monitor, Player, sleep, getCondVisibility, getInfoLabel, \
     getLocalizedString
@@ -60,8 +61,8 @@ class KodiMonitor(Monitor):
         self.xbmcplayer = Player()
         Monitor.__init__(self)
         for playerid in state.PLAYER_STATES:
-            state.PLAYER_STATES[playerid] = dict(state.PLAYSTATE)
-            state.OLD_PLAYER_STATES[playerid] = dict(state.PLAYSTATE)
+            state.PLAYER_STATES[playerid] = copy.deepcopy(state.PLAYSTATE)
+            state.OLD_PLAYER_STATES[playerid] = copy.deepcopy(state.PLAYSTATE)
         LOG.info("Kodi monitor started.")
 
     def onScanStarted(self, library):

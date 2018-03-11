@@ -108,7 +108,7 @@ OLD_PLAYER_STATES = {
     1: {},
     2: {}
 }
-# "empty" dict for the PLAYER_STATES above
+# "empty" dict for the PLAYER_STATES above. Use copy.deepcopy to duplicate!
 PLAYSTATE = {
     'type': None,
     'time': {
