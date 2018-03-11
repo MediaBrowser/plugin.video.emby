@@ -449,15 +449,12 @@ class Movies(Items):
         # Process playstates
         self.kodi_db.addPlaystate(fileid, resume, runtime, playcount, dateplayed)
 
-    def remove(self, itemid):
+    def remove(self, plex_id):
         """
-        Remove movieid, fileid, plex reference
+        Remove a movie with all references and all orphaned associated entries
+        from the Kodi DB
         """
-        plex_db = self.plex_db
-        kodicursor = self.kodicursor
-        artwork = self.artwork
-
-        plex_dbitem = plex_db.getItem_byId(itemid)
+        plex_dbitem = self.plex_db.getItem_byId(plex_id)
         try:
             kodi_id = plex_dbitem[0]
             file_id = plex_dbitem[1]
@@ -465,13 +462,14 @@ class Movies(Items):
             LOG.debug('Removing %sid: %s file_id: %s',
                       kodi_type, kodi_id, file_id)
         except TypeError:
+            LOG.error('Movie with plex_id %s not found in DB - cannot delete',
+                      plex_id)
             return
 
         # Remove the plex reference
-        plex_db.removeItem(itemid)
+        self.plex_db.removeItem(plex_id)
         # Remove artwork
-        artwork.delete_artwork(kodi_id, kodi_type, kodicursor)
-
+        self.artwork.delete_artwork(kodi_id, kodi_type, self.kodicursor)
         if kodi_type == v.KODI_TYPE_MOVIE:
             set_id = self.kodi_db.get_set_id(kodi_id)
             self.kodi_db.modify_countries(kodi_id, kodi_type)
@@ -481,8 +479,8 @@ class Movies(Items):
             self.kodi_db.modify_tags(kodi_id, kodi_type)
             # Delete kodi movie and file
             self.kodi_db.remove_file(file_id)
-            kodicursor.execute("DELETE FROM movie WHERE idMovie = ?",
-                               (kodi_id,))
+            self.kodicursor.execute("DELETE FROM movie WHERE idMovie = ?",
+                                    (kodi_id,))
             if set_id:
                 self.kodi_db.delete_possibly_empty_set(set_id)
             if v.KODIVERSION >= 17:
@@ -490,16 +488,17 @@ class Movies(Items):
                 self.kodi_db.remove_ratings(kodi_id, kodi_type)
         elif kodi_type == v.KODI_TYPE_SET:
             # Delete kodi boxset
-            boxset_movies = plex_db.getItem_byParentId(kodi_id,
-                                                       v.KODI_TYPE_MOVIE)
+            boxset_movies = self.plex_db.getItem_byParentId(kodi_id,
+                                                            v.KODI_TYPE_MOVIE)
             for movie in boxset_movies:
                 plexid = movie[0]
                 movieid = movie[1]
                 self.kodi_db.removefromBoxset(movieid)
                 # Update plex reference
-                plex_db.updateParentId(plexid, None)
-            kodicursor.execute("DELETE FROM sets WHERE idSet = ?", (kodi_id,))
-        LOG.debug("Deleted %s %s from kodi database", kodi_type, itemid)
+                self.plex_db.updateParentId(plexid, None)
+            self.kodicursor.execute("DELETE FROM sets WHERE idSet = ?",
+                                    (kodi_id,))
+        LOG.debug("Deleted %s %s from kodi database", kodi_type, plex_id)
 
 
 class TVShows(Items):

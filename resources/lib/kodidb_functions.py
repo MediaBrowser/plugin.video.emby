@@ -769,15 +769,13 @@ class KodiDBMethods(object):
         ))
         self.cursor.execute(query, (setid, movieid,))
 
-    def removefromBoxset(self, movieid):
-
-        query = ' '.join((
-
-            "UPDATE movie",
-            "SET idSet = null",
-            "WHERE idMovie = ?"
-        ))
-        self.cursor.execute(query, (movieid,))
+    def remove_from_set(self, movieid):
+        """
+        Remove the movie with movieid [int] from an associated movie set, movie
+        collection
+        """
+        self.cursor.execute('UPDATE movie SET idSet = null WHERE idMovie = ?',
+                            (movieid,))
 
     def get_set_id(self, kodi_id):
         """
