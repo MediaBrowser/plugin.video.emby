@@ -1,3 +1,6 @@
+version 2.0.9 (beta only):
+- Fix AttributeError on playback start
+
 version 2.0.8 (beta only):
 - Fix videos not being correctly marked as played
 - Improve playback startup resiliance
