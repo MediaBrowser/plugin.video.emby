@@ -279,18 +279,17 @@ class KodiMonitor(Monitor):
             except TypeError:
                 kodi_id = None
         # If using direct paths and starting playback from a widget
-        if not path.startswith('http'):
-            if not kodi_id:
-                kodi_id = kodiid_from_filename(path, kodi_type)
-            if not plex_id and kodi_id:
-                with plexdb.Get_Plex_DB() as plex_db:
-                    plex_dbitem = plex_db.getItem_byKodiId(kodi_id, kodi_type)
-                try:
-                    plex_id = plex_dbitem[0]
-                    plex_type = plex_dbitem[2]
-                except TypeError:
-                    # No plex id, hence item not in the library. E.g. clips
-                    pass
+        if not kodi_id and kodi_type and path and not path.startswith('http'):
+            kodi_id = kodiid_from_filename(path, kodi_type)
+        if not plex_id and kodi_id and kodi_type:
+            with plexdb.Get_Plex_DB() as plex_db:
+                plex_dbitem = plex_db.getItem_byKodiId(kodi_id, kodi_type)
+            try:
+                plex_id = plex_dbitem[0]
+                plex_type = plex_dbitem[2]
+            except TypeError:
+                # No plex id, hence item not in the library. E.g. clips
+                pass
         return kodi_id, kodi_type, plex_id, plex_type
 
     @staticmethod
