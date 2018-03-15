@@ -204,6 +204,14 @@ class KodiDBMethods(object):
             self.cursor.execute(query, (file_id, path_id, filename, date_added))
         return file_id
 
+    def clean_file_table(self):
+        """
+        Hack: using Direct Paths, Kodi adds all addon paths to the files table
+        but without a dateAdded entry. This method cleans up all file entries
+        without a dateAdded entry - to be called after playback has ended.
+        """
+        self.cursor.execute('DELETE FROM files where dateAdded IS NULL')
+
     def remove_file(self, file_id):
         """
         Removes the entry for file_id from the files table. Will also delete

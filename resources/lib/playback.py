@@ -164,7 +164,10 @@ def _ensure_resolve(abort=False):
     will be destroyed.
     """
     if RESOLVE:
-        state.PKC_CAUSED_STOP = True
+        LOG.debug('Passing dummy path to Kodi')
+        if not state.CONTEXT_MENU_PLAY:
+            # Because playback won't start with context menu play
+            state.PKC_CAUSED_STOP = True
         result = Playback_Successful()
         result.listitem = PKC_ListItem(path='PKC_Dummy_Path_Which_Fails')
         pickle_me(result)
