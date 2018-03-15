@@ -175,7 +175,6 @@ def _ensure_resolve(abort=False):
         # Reset some playback variables
         state.CONTEXT_MENU_PLAY = False
         state.FORCE_TRANSCODE = False
-        state.RESUMABLE = False
         state.RESUME_PLAYBACK = False
 
 
@@ -319,7 +318,6 @@ def _conclude_playback(playqueue, pos):
         listitem.setProperty('StartOffset', str(item.offset))
         listitem.setProperty('resumetime', str(item.offset))
     # Reset the resumable flag
-    state.RESUMABLE = False
     result.listitem = listitem
     pickle_me(result)
     LOG.info('Done concluding playback')

@@ -145,8 +145,6 @@ PLAYSTATE = {
 # paths for playback (since we're not receiving a Kodi id)
 PLEX_IDS = {}
 PLAYED_INFO = {}
-# Flag whether Kodi item where the playback is being started is even resumable
-RESUMABLE = False
 # Set by SpecialMonitor - did user choose to resume playback or start from the
 # beginning?
 RESUME_PLAYBACK = False

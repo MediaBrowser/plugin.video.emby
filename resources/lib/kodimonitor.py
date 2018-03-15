@@ -415,7 +415,6 @@ class SpecialMonitor(Thread):
             if (getCondVisibility('Window.IsVisible(DialogContextMenu.xml)') and
                     getInfoLabel('Control.GetLabel(1002)') in strings):
                 # Remember that the item IS indeed resumable
-                state.RESUMABLE = True
                 control = int(Window(10106).getFocusId())
                 if control == 1002:
                     # Start from beginning
