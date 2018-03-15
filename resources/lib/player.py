@@ -80,6 +80,7 @@ def _record_playstate(status, ended):
         LOG.debug('Playback progress %s (%s of %s seconds)',
                   progress, time, totaltime)
     playcount = status['playcount']
+    last_played = unix_date_to_kodi(unix_timestamp())
     if playcount is None:
         LOG.info('playcount not found, looking it up in the Kodi DB')
         with kodidb.GetKodiDB('video') as kodi_db:
@@ -90,6 +91,7 @@ def _record_playstate(status, ended):
                   v.IGNORE_SECONDS_AT_START)
         # Annoying Plex bug - it'll reset an already watched video to unwatched
         playcount = 0
+        last_played = None
         time = 0
     elif progress >= v.MARK_PLAYED_AT:
         LOG.debug('Recording entirely played video since progress > %s',
@@ -101,7 +103,7 @@ def _record_playstate(status, ended):
                              time,
                              totaltime,
                              playcount,
-                             unix_date_to_kodi(unix_timestamp()))
+                             last_played)
 
 
 class PKC_Player(Player):
