@@ -260,10 +260,6 @@ class KodiMonitor(Monitor):
         kodi_id = json_item.get('id')
         kodi_type = json_item.get('type')
         path = json_item.get('file')
-        if not path and not kodi_id:
-            LOG.debug('Aborting playback report - no Kodi id or file for %s',
-                      json_item)
-            raise RuntimeError
         # Plex id will NOT be set with direct paths
         plex_id = state.PLEX_IDS.get(path)
         try:
@@ -340,30 +336,39 @@ class KodiMonitor(Monitor):
         playqueue = PQ.PLAYQUEUES[playerid]
         info = js.get_player_props(playerid)
         json_item = js.get_item(playerid)
-        path = json_item.get('file')
         pos = info['position'] if info['position'] != -1 else 0
         LOG.debug('Detected position %s for %s', pos, playqueue)
+        LOG.debug('Detected Kodi playing item properties: %s', json_item)
         status = state.PLAYER_STATES[playerid]
+        path = json_item.get('file')
         try:
             item = playqueue.items[pos]
         except IndexError:
-            try:
-                kodi_id, kodi_type, plex_id, plex_type = self._get_ids(json_item)
-            except RuntimeError:
-                return
-            LOG.info('Need to initialize Plex and PKC playqueue')
-            try:
-                if plex_id:
-                    item = PL.init_Plex_playlist(playqueue, plex_id=plex_id)
+            # PKC playqueue not yet initialized
+            initialize = True
+        else:
+            if item.kodi_id:
+                if (item.kodi_id != json_item.get('id') or
+                        item.kodi_type != json_item.get('type')):
+                    initialize = True
                 else:
-                    item = PL.init_Plex_playlist(playqueue,
-                                                 kodi_item={'id': kodi_id,
-                                                            'type': kodi_type,
-                                                            'file': path})
-            except PL.PlaylistError:
-                LOG.info('Could not initialize our playlist')
-                # Avoid errors
-                item = PL.Playlist_Item()
+                    initialize = False
+            else:
+                # E.g. clips set-up previously with no Kodi DB entry
+                if item.file != json_item.get('file'):
+                    initialize = True
+                else:
+                    initialize = False
+        if initialize:
+            LOG.debug('Need to initialize Plex and PKC playqueue')
+            if not json_item.get('id') or not json_item.get('type'):
+                LOG.debug('No Kodi id or type obtained - aborting report')
+                return
+            kodi_id, kodi_type, plex_id, plex_type = self._get_ids(json_item)
+            if not plex_id:
+                LOG.debug('No Plex id obtained - aborting playback report')
+                return
+            item = PL.init_Plex_playlist(playqueue, plex_id=plex_id)
             # Set the Plex container key (e.g. using the Plex playqueue)
             container_key = None
             if info['playlistid'] != -1:
@@ -375,6 +380,7 @@ class KodiMonitor(Monitor):
                 container_key = '/library/metadata/%s' % plex_id
             LOG.debug('Set the Plex container_key to: %s', container_key)
         else:
+            LOG.debug('No need to initialize playqueues')
             kodi_id = item.kodi_id
             kodi_type = item.kodi_type
             plex_id = item.plex_id
