@@ -136,16 +136,19 @@ def _playback_init(plex_id, plex_type, playqueue, pos):
     # Sleep a bit to let setResolvedUrl do its thing - bit ugly
     sleep(200)
     _process_stack(playqueue, stack)
+    # Always resume if playback initiated via PMS and there IS a resume
+    # point
+    offset = api.resume_point() * 1000 if state.CONTEXT_MENU_PLAY else None
     # Reset some playback variables
     state.CONTEXT_MENU_PLAY = False
     state.FORCE_TRANSCODE = False
     # Do NOT set offset, because Kodi player will return here to resolveURL
     # New thread to release this one sooner (e.g. harddisk spinning up)
     thread = Thread(target=threaded_playback,
-                    args=(playqueue.kodi_pl, pos, None))
+                    args=(playqueue.kodi_pl, pos, offset))
     thread.setDaemon(True)
-    LOG.info('Done initializing playback, starting Kodi player at pos %s',
-             pos)
+    LOG.info('Done initializing playback, starting Kodi player at pos %s and '
+             'resume point %s', pos, offset)
     # By design, PKC will start Kodi playback using Player().play(). Kodi
     # caches paths like our plugin://pkc. If we use Player().play() between
     # 2 consecutive startups of exactly the same Kodi library item, Kodi's
