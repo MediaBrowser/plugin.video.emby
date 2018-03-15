@@ -22,9 +22,11 @@ LOG = getLogger("PLEX." + __name__)
 
 
 @LOCKER.lockthis
-def playback_cleanup():
+def playback_cleanup(ended=False):
     """
-    PKC cleanup after playback ends/is stopped
+    PKC cleanup after playback ends/is stopped. Pass ended=True if Kodi
+    completely finished playing an item (because we will get and use wrong
+    timing data otherwise)
     """
     LOG.debug('playback_cleanup called')
     # We might have saved a transient token from a user flinging media via
@@ -44,7 +46,7 @@ def playback_cleanup():
             # Bookmarks might not be pickup up correctly, so let's do them
             # manually. Applies to addon paths, but direct paths might have
             # started playback via PMS
-            _record_playstate(status)
+            _record_playstate(status, ended)
         # Reset the player's status
         status = copy.deepcopy(state.PLAYSTATE)
     # As all playback has halted, reset the players that have been active
@@ -52,7 +54,7 @@ def playback_cleanup():
     LOG.debug('Finished PKC playback cleanup')
 
 
-def _record_playstate(status):
+def _record_playstate(status, ended):
     with kodidb.GetKodiDB('video') as kodi_db:
         # Hack - remove any obsolete file entries Kodi made
         kodi_db.clean_file_table()
@@ -65,14 +67,18 @@ def _record_playstate(status):
         # Item not (yet) in Kodi library
         LOG.debug('No playstate update due to Plex id not found: %s', status)
         return
-    time = float(kodi_time_to_millis(status['time'])) / 1000
     totaltime = float(kodi_time_to_millis(status['totaltime'])) / 1000
-    try:
-        progress = time / totaltime
-    except ZeroDivisionError:
-        progress = 0.0
-    LOG.debug('Playback progress %s (%s of %s seconds)',
-              progress, time, totaltime)
+    if ended:
+        progress = 0.99
+        time = v.IGNORE_SECONDS_AT_START + 1
+    else:
+        time = float(kodi_time_to_millis(status['time'])) / 1000
+        try:
+            progress = time / totaltime
+        except ZeroDivisionError:
+            progress = 0.0
+        LOG.debug('Playback progress %s (%s of %s seconds)',
+                  progress, time, totaltime)
     playcount = status['playcount']
     if playcount is None:
         LOG.info('playcount not found, looking it up in the Kodi DB')
@@ -143,4 +149,4 @@ class PKC_Player(Player):
         Will be called when playback ends due to the media file being finished
         """
         LOG.debug("ONPLAYBACK_ENDED")
-        playback_cleanup()
+        playback_cleanup(ended=True)
