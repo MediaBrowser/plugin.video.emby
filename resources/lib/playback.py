@@ -105,8 +105,9 @@ def _playback_init(plex_id, plex_type, playqueue, pos):
     # playqueues
     # Fail the item we're trying to play now so we can restart the player
     _ensure_resolve()
+    api = API(xml[0])
     trailers = False
-    if (plex_type == v.PLEX_TYPE_MOVIE and not state.RESUME_PLAYBACK and
+    if (plex_type == v.PLEX_TYPE_MOVIE and not api.resume_point() and
             settings('enableCinema') == "true"):
         if settings('askCinema') == "true":
             # "Play trailers?"
