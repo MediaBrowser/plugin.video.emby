@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon  id="plugin.video.plexkodiconnect" name="PlexKodiConnect" version="2.0.9" provider-name="croneter">
+<addon  id="plugin.video.plexkodiconnect" name="PlexKodiConnect" version="2.0.10" provider-name="croneter">
   <requires>
     <import addon="xbmc.python" version="2.1.0"/>
     <import addon="script.module.requests" version="2.9.1" />
@@ -61,7 +61,17 @@
     <summary lang="da_DK">Indbygget Integration af Plex i Kodi</summary>
     <description lang="da_DK">Tilslut Kodi til din Plex Media Server. Dette plugin forudsætter, at du administrere alle dine videoer med Plex (og ikke med Kodi). Du kan miste data som allerede er gemt i Kodi video og musik-databaser (dette plugin ændrer direkte i dem). Brug på eget ansvar!</description>
     <disclaimer lang="da_DK">Brug på eget ansvar</disclaimer>
-    <news>version 2.0.9 (beta only):
+    <news>version 2.0.10 (beta only):
+- Fix wrong item being reported using direct paths
+- Direct paths: correctly clean up after context menu play
+- Always resume playback if playback initiated via context menu
+- Do not play trailers for resumable movies using playback via PMS
+- Fix for "In Progress" widget not appearing 
+- Fix correctly recording ended (not stopped!) video
+- Don't record last played date if state unwatched
+- Clean Kodi DB more thoroughly after playback start via PMS
+
+version 2.0.9 (beta only):
 - Fix AttributeError on playback start
 
 version 2.0.8 (beta only):

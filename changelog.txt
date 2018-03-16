@@ -1,3 +1,13 @@
+version 2.0.10 (beta only):
+- Fix wrong item being reported using direct paths
+- Direct paths: correctly clean up after context menu play
+- Always resume playback if playback initiated via context menu
+- Do not play trailers for resumable movies using playback via PMS
+- Fix for "In Progress" widget not appearing 
+- Fix correctly recording ended (not stopped!) video
+- Don't record last played date if state unwatched
+- Clean Kodi DB more thoroughly after playback start via PMS
+
 version 2.0.9 (beta only):
 - Fix AttributeError on playback start
 
