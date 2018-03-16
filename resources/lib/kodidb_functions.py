@@ -210,7 +210,18 @@ class KodiDBMethods(object):
         but without a dateAdded entry. This method cleans up all file entries
         without a dateAdded entry - to be called after playback has ended.
         """
+        self.cursor.execute('SELECT idFile FROM files WHERE dateAdded IS NULL')
+        files = self.cursor.fetchall()
         self.cursor.execute('DELETE FROM files where dateAdded IS NULL')
+        for file in files:
+            self.cursor.execute('DELETE FROM bookmark WHERE idFile = ?',
+                                (file[0],))
+            self.cursor.execute('DELETE FROM settings WHERE idFile = ?',
+                                (file[0],))
+            self.cursor.execute('DELETE FROM streamdetails WHERE idFile = ?',
+                                (file[0],))
+            self.cursor.execute('DELETE FROM stacktimes WHERE idFile = ?',
+                                (file[0],))
 
     def remove_file(self, file_id):
         """
