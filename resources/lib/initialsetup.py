@@ -68,6 +68,7 @@ def reload_pkc():
     state.REMAP_PATH = settings('remapSMB') == 'true'
     state.KODI_PLEX_TIME_OFFSET = float(settings('kodiplextimeoffset'))
     state.FETCH_PMS_ITEM_NUMBER = settings('fetch_pms_item_number')
+    state.FORCE_RELOAD_SKIN = settings('forceReloadSkin') == 'true'
     # Init some Queues()
     state.COMMAND_PIPELINE_QUEUE = Queue()
     state.COMPANION_QUEUE = Queue(maxsize=100)

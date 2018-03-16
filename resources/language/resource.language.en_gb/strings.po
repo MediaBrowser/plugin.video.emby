@@ -1560,6 +1560,11 @@ msgctxt "#39064"
 msgid "Recently Added: Also show already watched episodes"
 msgstr ""
 
+# PKC settings, Appearance Tweaks
+msgctxt "#39065"
+msgid "Force-refresh Kodi skin on stopping playback"
+msgstr ""
+
 msgctxt "#39066"
 msgid "Recently Added: Also show already watched movies (Refresh Plex playlist/nodes!)"
 msgstr ""

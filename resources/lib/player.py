@@ -4,7 +4,7 @@
 from logging import getLogger
 import copy
 
-from xbmc import Player
+import xbmc
 
 import kodidb_functions as kodidb
 import plexdb_functions as plexdb
@@ -104,11 +104,16 @@ def _record_playstate(status, ended):
                              totaltime,
                              playcount,
                              last_played)
+    # Hack to force "in progress" widget to appear if it wasn't visible before
+    if (state.FORCE_RELOAD_SKIN and
+            xbmc.getCondVisibility('Window.IsVisible(Home.xml)')):
+        LOG.debug('Refreshing skin to update widgets')
+        xbmc.executebuiltin('ReloadSkin()')
 
 
-class PKC_Player(Player):
+class PKC_Player(xbmc.Player):
     def __init__(self):
-        Player.__init__(self)
+        xbmc.Player.__init__(self)
         LOG.info("Started playback monitor.")
 
     def onPlayBackStarted(self):
