@@ -836,7 +836,7 @@ class TVShows(Items):
         # GET THE FILE AND PATH #####
         if state.DIRECT_PATHS:
             playurl = api.file_path(force_first_media=True)
-            playurl = api.validate_playurl(playurl, api.plex_type())
+            playurl = api.validate_playurl(playurl, v.PLEX_TYPE_EPISODE)
             if playurl is None:
                 return False
             if "\\" in playurl:
@@ -847,19 +847,20 @@ class TVShows(Items):
                 filename = playurl.rsplit("/", 1)[1]
             path = playurl.replace(filename, "")
             parent_path_id = self.kodi_db.parent_path_id(path)
+            pathid = self.kodi_db.add_video_path(path,
+                                                 id_parent_path=parent_path_id)
         else:
             # Set plugin path - do NOT use "intermediate" paths for the show
             # as with direct paths!
-            path = 'plugin://%s.tvshows/%s/' % (v.ADDON_ID, series_id)
+            path = 'plugin://%s.tvshows/' % v.ADDON_ID
             filename = ('%s?plex_id=%s&plex_type=%s&mode=play'
                         % (path, itemid, v.PLEX_TYPE_EPISODE))
             playurl = filename
-            parent_path_id = self.kodi_db.parent_path_id(path)
+            # Root path tvshows/ already saved in Kodi DB
+            pathid = self.kodi_db.add_video_path(path)
 
         # add/retrieve pathid and fileid
         # if the path or file already exists, the calls return current value
-        pathid = self.kodi_db.add_video_path(path,
-                                             id_parent_path=parent_path_id)
         fileid = self.kodi_db.add_file(filename, pathid, dateadded)
 
         # UPDATE THE EPISODE #####
