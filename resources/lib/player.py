@@ -90,7 +90,7 @@ def _record_playstate(status, ended):
         LOG.debug('Ignoring playback less than %s seconds',
                   v.IGNORE_SECONDS_AT_START)
         # Annoying Plex bug - it'll reset an already watched video to unwatched
-        playcount = 0
+        playcount = None
         last_played = None
         time = 0
     elif progress >= v.MARK_PLAYED_AT:
