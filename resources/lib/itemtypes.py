@@ -991,13 +991,10 @@ class TVShows(Items):
         self.kodi_db.modify_people(episodeid,
                                    v.KODI_TYPE_EPISODE,
                                    api.people_list())
-        # Wide "screenshot" of particular episode
-        poster = item.attrib.get('thumb')
-        if poster:
-            poster = api.attach_plex_token_to_url(
-                "%s%s" % (self.server, poster))
-            artwork.modify_art(
-                poster, episodeid, v.KODI_TYPE_EPISODE, "thumb", kodicursor)
+        artwork.modify_artwork(api.artwork(),
+                               episodeid,
+                               v.KODI_TYPE_EPISODE,
+                               kodicursor)
         streams = api.mediastreams()
         self.kodi_db.modify_streams(fileid, streams, runtime)
         self.kodi_db.addPlaystate(fileid,

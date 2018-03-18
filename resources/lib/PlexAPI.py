@@ -760,13 +760,17 @@ class API(object):
 
         # Grab artwork from Plex
         artworks = {}
+        if self.plex_type() == v.PLEX_TYPE_EPISODE:
+            # Episodes is a bit special, only get the thumb
+            art = self._one_artwork('thumb')
+            if art:
+                artworks['thumb'] = art
+            return artworks
         for kodi_artwork, plex_artwork in v.KODI_TO_PLEX_ARTWORK.iteritems():
             art = self._one_artwork(plex_artwork)
             if art:
                 artworks[kodi_artwork] = art
-        if self.plex_type() in (v.PLEX_TYPE_EPISODE,
-                                v.PLEX_TYPE_SONG,
-                                v.PLEX_TYPE_ALBUM):
+        if self.plex_type() in (v.PLEX_TYPE_SONG, v.PLEX_TYPE_ALBUM):
             # Get parent item artwork if the main item is missing artwork
             if 'fanart' not in artworks:
                 art = self._one_artwork('parentArt')
