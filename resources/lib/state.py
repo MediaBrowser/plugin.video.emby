@@ -30,8 +30,6 @@ INDICATE_MEDIA_VERSIONS = False
 RUN_LIB_SCAN = None
 # Number of items to fetch and display in widgets
 FETCH_PMS_ITEM_NUMBER = None
-# Hack to force Kodi widget for "in progress" to show up if it was empty before
-FORCE_RELOAD_SKIN = True
 
 # Stemming from the PKC settings.xml
 # Shall we show Kodi dialogs when synching?

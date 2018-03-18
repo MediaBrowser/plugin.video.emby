@@ -47,7 +47,6 @@ STATE_SETTINGS = {
     'remapSMBphotoOrg': 'remapSMBphotoOrg',
     'remapSMBphotoNew': 'remapSMBphotoNew',
     'enableMusic': 'ENABLE_MUSIC',
-    'forceReloadSkin': 'FORCE_RELOAD_SKIN',
     'fetch_pms_item_number': 'FETCH_PMS_ITEM_NUMBER'
 }
 
