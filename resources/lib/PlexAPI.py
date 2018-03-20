@@ -1420,10 +1420,7 @@ class API(object):
         listitem.setProperty('totaltime', str(userdata['Runtime']))
 
         if typus == v.PLEX_TYPE_EPISODE:
-            if state.DIRECT_PATHS:
-                # Do NOT set a link to the Kodi DB to force Kodi to use our
-                # ListItem artwork for Addon Paths
-                metadata['mediatype'] = 'episode'
+            metadata['mediatype'] = 'episode'
             _, show, season, episode = self.episode_data()
             season = -1 if season is None else int(season)
             episode = -1 if episode is None else int(episode)
