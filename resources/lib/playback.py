@@ -215,6 +215,9 @@ def _prep_playlist_stack(xml):
             # We will never store clips (trailers) in the Kodi DB.
             # Also set kodi_id to None for playback via PMS, so that we're
             # using add-on paths.
+            # Also do NOT associate episodes with library items for addon paths
+            # as artwork lookup is broken (episode path does not link back to
+            # season and show)
             kodi_id = None
             kodi_type = None
         for part, _ in enumerate(item[0]):
