@@ -1314,7 +1314,6 @@ class API(object):
                                                    append_sxxexx)
             self.add_video_streams(listitem)
             artwork = self.artwork()
-            LOG.debug('artwork: %s', artwork)
             listitem.setArt(artwork)
         return listitem
 
