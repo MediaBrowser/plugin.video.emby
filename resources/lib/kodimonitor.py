@@ -412,17 +412,20 @@ class SpecialMonitor(Thread):
         # "Start from beginning", "Play from beginning"
         strings = (getLocalizedString(12021), getLocalizedString(12023))
         while not self.stopped():
-            if (getCondVisibility('Window.IsVisible(DialogContextMenu.xml)') and
-                    getInfoLabel('Control.GetLabel(1002)') in strings):
-                # Remember that the item IS indeed resumable
-                control = int(Window(10106).getFocusId())
-                if control == 1002:
-                    # Start from beginning
-                    state.RESUME_PLAYBACK = False
-                elif control == 1001:
-                    state.RESUME_PLAYBACK = True
+            if getCondVisibility('Window.IsVisible(DialogContextMenu.xml)'):
+                if getInfoLabel('Control.GetLabel(1002)') in strings:
+                    # Remember that the item IS indeed resumable
+                    control = int(Window(10106).getFocusId())
+                    if control == 1002:
+                        # Start from beginning
+                        state.RESUME_PLAYBACK = False
+                    elif control == 1001:
+                        state.RESUME_PLAYBACK = True
+                    else:
+                        # User chose something else from the context menu
+                        state.RESUME_PLAYBACK = False
                 else:
-                    # User chose something else from the context menu
+                    # Different context menu is displayed
                     state.RESUME_PLAYBACK = False
             sleep(200)
         LOG.info("#====---- Special Monitor Stopped ----====#")
