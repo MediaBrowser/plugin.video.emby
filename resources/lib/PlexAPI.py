@@ -731,7 +731,7 @@ class API(object):
                 'minSize=1&upscale=0&url=%s' % (self.server, artwork))
         return artwork
 
-    def artwork(self, kodi_id=None, kodi_type=None):
+    def artwork(self, kodi_id=None, kodi_type=None, full_artwork=False):
         """
         Gets the URLs to the Plex artwork. Dict keys will be missing if there
         is no corresponding artwork.
@@ -748,7 +748,36 @@ class API(object):
             'fanart'
         }
         'landscape' and 'icon' might be implemented later
+        Passing full_artwork=True returns ALL the artwork for the item, so not
+        just 'thumb' for episodes, but also season and show artwork
         """
+        artworks = {}
+        if self.plex_type() == v.PLEX_TYPE_EPISODE:
+            # Artwork lookup for episodes is broken for addon paths
+            if full_artwork:
+                with plexdb.Get_Plex_DB() as plex_db:
+                    db_item = plex_db.getItem_byId(self.plex_id())
+                try:
+                    kodi_id = db_item[0]
+                except TypeError:
+                    pass
+                else:
+                    with kodidb.GetKodiDB('video') as kodi_db:
+                        return kodi_db.get_art(kodi_id, v.KODI_TYPE_EPISODE)
+                # If episode is not in Kodi DB
+                for kodi_artwork, plex_artwork \
+                        in v.KODI_TO_PLEX_ARTWORK_EPISODE.iteritems():
+                    art = self._one_artwork(plex_artwork)
+                    if art:
+                        artworks[kodi_artwork] = art
+            else:
+                # Episodes is a bit special, only get the thumb, because all
+                # the other artwork will be saved under season and show
+                art = self._one_artwork('thumb')
+                if art:
+                    artworks['thumb'] = art
+            return artworks
+
         if kodi_id:
             # in Kodi database, potentially with additional e.g. clearart
             if self.plex_type() in v.PLEX_VIDEOTYPES:
@@ -759,13 +788,8 @@ class API(object):
                     return kodi_db.get_art(kodi_id, kodi_type)
 
         # Grab artwork from Plex
-        artworks = {}
-        if self.plex_type() == v.PLEX_TYPE_EPISODE:
-            # Episodes is a bit special, only get the thumb
-            art = self._one_artwork('thumb')
-            if art:
-                artworks['thumb'] = art
-            return artworks
+        # if self.plex_type() == v.PLEX_TYPE_EPISODE:
+
         for kodi_artwork, plex_artwork in v.KODI_TO_PLEX_ARTWORK.iteritems():
             art = self._one_artwork(plex_artwork)
             if art:
@@ -1313,7 +1337,7 @@ class API(object):
                                                    append_show_title,
                                                    append_sxxexx)
             self.add_video_streams(listitem)
-            listitem.setArt(self.artwork())
+            listitem.setArt(self.artwork(full_artwork=True))
         return listitem
 
     def _create_photo_listitem(self, listitem=None):
@@ -1389,7 +1413,10 @@ class API(object):
         listitem.setProperty('totaltime', str(userdata['Runtime']))
 
         if typus == v.PLEX_TYPE_EPISODE:
-            metadata['mediatype'] = 'episode'
+            if state.DIRECT_PATHS:
+                # Do NOT set a link to the Kodi DB to force Kodi to use our
+                # ListItem artwork for Addon Paths
+                metadata['mediatype'] = 'episode'
             _, show, season, episode = self.episode_data()
             season = -1 if season is None else int(season)
             episode = -1 if episode is None else int(episode)
