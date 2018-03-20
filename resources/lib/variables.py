@@ -324,15 +324,6 @@ KODI_TO_PLEX_ARTWORK = {
     'fanart': 'art'
 }
 
-KODI_TO_PLEX_ARTWORK_EPISODE = {
-    'tvshow.poster': 'grandparentThumb',
-    'tvshow.fanart': 'grandparentArt',
-    'season.poster': 'parentThumb',
-    'season.fanart': 'parentArt',
-    'poster': 'thumb',
-    'fanart': 'art'
-}
-
 # Might be implemented in the future: 'icon', 'landscape' (16:9)
 ALL_KODI_ARTWORK = (
     'thumb',
