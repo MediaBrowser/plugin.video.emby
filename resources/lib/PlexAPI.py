@@ -1313,8 +1313,7 @@ class API(object):
                                                    append_show_title,
                                                    append_sxxexx)
             self.add_video_streams(listitem)
-            artwork = self.artwork()
-            listitem.setArt(artwork)
+            listitem.setArt(self.artwork())
         return listitem
 
     def _create_photo_listitem(self, listitem=None):
