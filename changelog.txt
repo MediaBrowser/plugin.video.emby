@@ -1,3 +1,10 @@
+version 2.0.11 (beta only):
+- WARNING: You will need to reset the Kodi database!
+- Fix playback for add-on paths
+- Fix artwork for episodes for add-on paths
+- Revert "Fix for "In Progress" not appearing"
+- Fix playback resuming potentially too often
+
 version 2.0.10 (beta only):
 - Fix wrong item being reported using direct paths
 - Direct paths: correctly clean up after context menu play

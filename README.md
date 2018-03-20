@@ -1,5 +1,5 @@
 [![stable version](https://img.shields.io/badge/stable_version-1.8.18-blue.svg?maxAge=60&style=flat) ](https://github.com/croneter/binary_repo/raw/master/stable/repository.plexkodiconnect/repository.plexkodiconnect-1.0.2.zip) 
-[![beta version](https://img.shields.io/badge/beta_version-2.0.10-red.svg?maxAge=60&style=flat) ](https://github.com/croneter/binary_repo/raw/master/beta/repository.plexkodiconnectbeta/repository.plexkodiconnectbeta-1.0.2.zip)
+[![beta version](https://img.shields.io/badge/beta_version-2.0.11-red.svg?maxAge=60&style=flat) ](https://github.com/croneter/binary_repo/raw/master/beta/repository.plexkodiconnectbeta/repository.plexkodiconnectbeta-1.0.2.zip)
 
 [![Installation](https://img.shields.io/badge/wiki-installation-brightgreen.svg?maxAge=60&style=flat)](https://github.com/croneter/PlexKodiConnect/wiki/Installation)
 [![FAQ](https://img.shields.io/badge/wiki-FAQ-brightgreen.svg?maxAge=60&style=flat)](https://github.com/croneter/PlexKodiConnect/wiki/faq)
@@ -74,11 +74,12 @@ PKC synchronizes your media from your Plex server to the native Kodi database. H
     + Chinese Simplified, thanks @everdream
     + Norwegian, thanks @mjorud
     + Portuguese, thanks @goncalo532 
+    + Russian, thanks @UncleStark
     + [Please help translating](https://www.transifex.com/croneter/pkc)
 
 ### Download and Installation
 
-Install PKC via the PlexKodiConnect Kodi repository below (we cannot use the official Kodi repository as PKC messes with Kodi's databases). See the [github wiki installation manual](https://github.com/croneter/PlexKodiConnect/wiki/Installation) for a detailed guide. Please use the stable version except if you really know what you're doing. Kodi will update PKC automatically. 
+Install PKC via the PlexKodiConnect Kodi repository download button just below (do NOT use the standard GitHub download!). See the [github wiki installation manual](https://github.com/croneter/PlexKodiConnect/wiki/Installation) for a detailed guide. Please use the stable version except if you really know what you're doing. Kodi will update PKC automatically. 
 
 | Stable version | Beta version |
 |----------------|--------------|
