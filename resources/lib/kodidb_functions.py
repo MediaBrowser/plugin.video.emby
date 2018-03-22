@@ -230,7 +230,10 @@ class KodiDBMethods(object):
         """
         self.cursor.execute('SELECT idPath FROM files WHERE idFile = ? LIMIT 1',
                             (file_id,))
-        path_id = self.cursor.fetchone()[0]
+        try:
+            path_id = self.cursor.fetchone()[0]
+        except TypeError:
+            return
         self.cursor.execute('DELETE FROM files WHERE idFile = ?',
                             (file_id,))
         self.cursor.execute('DELETE FROM bookmark WHERE idFile = ?',
