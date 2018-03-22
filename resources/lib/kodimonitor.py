@@ -11,7 +11,7 @@ from xbmc import Monitor, Player, sleep, getCondVisibility, getInfoLabel, \
 from xbmcgui import Window
 
 import plexdb_functions as plexdb
-from utils import window, settings, plex_command, thread_methods
+from utils import window, settings, plex_command, thread_methods, try_encode
 from PlexFunctions import scrobble
 from kodidb_functions import kodiid_from_filename
 from plexbmchelper.subscribers import LOCKER
@@ -410,7 +410,8 @@ class SpecialMonitor(Thread):
     def run(self):
         LOG.info("----====# Starting Special Monitor #====----")
         # "Start from beginning", "Play from beginning"
-        strings = (getLocalizedString(12021), getLocalizedString(12023))
+        strings = (try_encode(getLocalizedString(12021)),
+                   try_encode(getLocalizedString(12023)))
         while not self.stopped():
             if getCondVisibility('Window.IsVisible(DialogContextMenu.xml)'):
                 if getInfoLabel('Control.GetLabel(1002)') in strings:
