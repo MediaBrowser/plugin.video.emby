@@ -1540,10 +1540,9 @@ class API(object):
         Returns True if sync should stop, else False
         """
         LOG.warn('Cannot access file: %s', url)
-        resp = dialog('yesno',
-                      heading=lang(29999),
-                      line1=lang(39031) + url,
-                      line2=lang(39032))
+        # Kodi cannot locate the file #s. Please verify your PKC settings. Stop
+        # syncing?
+        resp = dialog('yesno', heading='{plex}', line1=lang(39031) % url)
         return resp
 
     def set_listitem_artwork(self, listitem):

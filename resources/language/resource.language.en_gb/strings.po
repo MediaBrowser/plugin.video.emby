@@ -1428,12 +1428,9 @@ msgctxt "#39030"
 msgid "Add network credentials to allow Kodi access to your content? Note: Skipping this step may generate a message during the initial scan of your content if Kodi can't locate your content."
 msgstr ""
 
+# Error message displayed when verifying Direct Path sync paths passed by Plex
 msgctxt "#39031"
-msgid "Kodi can't locate file: "
-msgstr ""
-
-msgctxt "#39032"
-msgid "Please verify the path. You may need to verify your network credentials in the add-on settings or use different Plex paths. Stop syncing?"
+msgid "Kodi cannot locate the file %s. Please verify your PKC settings. Stop syncing?"
 msgstr ""
 
 msgctxt "#39033"
