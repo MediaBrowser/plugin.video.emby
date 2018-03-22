@@ -1,3 +1,10 @@
+version 2.0.12 (beta only):
+- Fix resume not working for some Kodi interface languages
+- Fix widget navigating to entire TV show not working
+- Fix library sync crash TypeError
+- Revert "Revert "Fix for "In Progress" not appearing""
+- Simplify error message
+
 version 2.0.11 (beta only):
 - WARNING: You will need to reset the Kodi database!
 - Fix playback for add-on paths
