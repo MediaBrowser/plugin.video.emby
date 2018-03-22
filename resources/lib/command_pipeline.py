@@ -57,6 +57,8 @@ class Monitor_Window(Thread):
                 elif value.startswith('CONTEXT_menu?'):
                     queue.put('dummy?mode=context_menu&%s'
                               % value.replace('CONTEXT_menu?', ''))
+                elif value.startswith('NAVIGATE'):
+                    queue.put(value.replace('NAVIGATE-', ''))
                 else:
                     raise NotImplementedError('%s not implemented' % value)
             else:

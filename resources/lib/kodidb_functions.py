@@ -223,6 +223,24 @@ class KodiDBMethods(object):
             self.cursor.execute('DELETE FROM stacktimes WHERE idFile = ?',
                                 (file[0],))
 
+    def show_id_from_path(self, path):
+        """
+        Returns the idShow for path [unicode] or None
+        """
+        self.cursor.execute('SELECT idPath FROM path WHERE strPath = ? LIMIT 1',
+                            (path, ))
+        try:
+            path_id = self.cursor.fetchone()[0]
+        except TypeError:
+            return
+        query = 'SELECT idShow FROM tvshowlinkpath WHERE idPath = ? LIMIT 1'
+        self.cursor.execute(query, (path_id, ))
+        try:
+            show_id = self.cursor.fetchone()[0]
+        except TypeError:
+            show_id = None
+        return show_id
+
     def remove_file(self, file_id):
         """
         Removes the entry for file_id from the files table. Will also delete

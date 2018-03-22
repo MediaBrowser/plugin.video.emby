@@ -496,3 +496,11 @@ def ping():
     Pings the JSON RPC interface
     """
     return JsonRPC('JSONRPC.Ping').execute()
+
+
+def activate_window(window, parameters):
+    """
+    Pass the parameters as str/unicode to open the corresponding window
+    """
+    return JsonRPC('GUI.ActivateWindow').execute({'window': window,
+                                                  'parameters': [parameters]})
