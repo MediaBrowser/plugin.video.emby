@@ -3,6 +3,7 @@ Used to kick off Kodi playback
 """
 from logging import getLogger
 from threading import Thread
+from os.path import join
 
 from xbmc import Player, sleep
 
@@ -26,6 +27,8 @@ import state
 LOG = getLogger("PLEX." + __name__)
 # Do we need to return ultimately with a setResolvedUrl?
 RESOLVE = True
+# We're "failing" playback with a video of 0 length
+NULL_VIDEO = join(v.ADDON_FOLDER, 'addons', v.ADDON_ID, 'empty_video.mp4')
 ###############################################################################
 
 
@@ -173,7 +176,7 @@ def _ensure_resolve(abort=False):
             # Because playback won't start with context menu play
             state.PKC_CAUSED_STOP = True
         result = Playback_Successful()
-        result.listitem = PKC_ListItem(path='PKC_Dummy_Path_Which_Fails')
+        result.listitem = PKC_ListItem(path=NULL_VIDEO)
         pickle_me(result)
     if abort:
         # Reset some playback variables
