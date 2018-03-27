@@ -145,15 +145,15 @@ class PKC_Player(xbmc.Player):
         Will be called when playback is stopped by the user
         """
         LOG.debug("ONPLAYBACK_STOPPED")
-        if state.PKC_CAUSED_STOP is True:
-            state.PKC_CAUSED_STOP = False
-            LOG.debug('PKC caused this playback stop - ignoring')
-        else:
-            playback_cleanup()
+        playback_cleanup()
 
     def onPlayBackEnded(self):
         """
         Will be called when playback ends due to the media file being finished
         """
         LOG.debug("ONPLAYBACK_ENDED")
-        playback_cleanup(ended=True)
+        if state.PKC_CAUSED_STOP is True:
+            state.PKC_CAUSED_STOP = False
+            LOG.debug('PKC caused this playback stop - ignoring')
+        else:
+            playback_cleanup()
