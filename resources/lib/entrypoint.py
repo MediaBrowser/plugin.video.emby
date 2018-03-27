@@ -567,6 +567,9 @@ def getOnDeck(viewid, mediatype, tagname, limit):
                           api.plex_id(),
                           api.plex_type(),
                           api.file_name(force_first_media=True)))
+            if api.resume_point():
+                listitem.setProperty('resumetime',
+                                     str(api.resume_point()))
             xbmcplugin.addDirectoryItem(
                 handle=HANDLE,
                 url=url,
@@ -839,6 +842,8 @@ def __build_item(xml_element):
                  api.plex_id(),
                  api.plex_type(),
                  api.file_name(force_first_media=True))
+    if api.resume_point():
+        listitem.setProperty('resumetime', str(api.resume_point()))
     xbmcplugin.addDirectoryItem(handle=HANDLE,
                                 url=url,
                                 listitem=listitem)
