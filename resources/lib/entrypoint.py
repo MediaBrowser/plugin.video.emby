@@ -562,8 +562,11 @@ def getOnDeck(viewid, mediatype, tagname, limit):
             if directpaths:
                 url = api.file_path()
             else:
-                url = ('plugin://%s.tvshows/?plex_id=%s&plex_type=%s&mode=play'
-                       % (v.ADDON_ID, api.plex_id(), api.plex_type()))
+                url = ('plugin://%s.tvshows/?plex_id=%s&plex_type=%s&mode=play&filename=%s'
+                       % (v.ADDON_ID,
+                          api.plex_id(),
+                          api.plex_type(),
+                          api.file_path(force_first_media=True)))
             xbmcplugin.addDirectoryItem(
                 handle=HANDLE,
                 url=url,
@@ -831,8 +834,11 @@ def __build_item(xml_element):
     elif api.plex_type() == v.PLEX_TYPE_PHOTO:
         url = api.get_picture_path()
     else:
-        url = 'plugin://%s/?plex_id=%s&plex_type=%s&mode=play' \
-              % (v.ADDON_TYPE[api.plex_type()], api.plex_id(), api.plex_type())
+        url = 'plugin://%s/?plex_id=%s&plex_type=%s&mode=play&filename=%s' \
+              % (v.ADDON_TYPE[api.plex_type()],
+                 api.plex_id(),
+                 api.plex_type(),
+                 api.file_path(force_first_media=True))
     xbmcplugin.addDirectoryItem(handle=HANDLE,
                                 url=url,
                                 listitem=listitem)
