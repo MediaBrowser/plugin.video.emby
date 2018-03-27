@@ -566,7 +566,7 @@ def getOnDeck(viewid, mediatype, tagname, limit):
                        % (v.ADDON_ID,
                           api.plex_id(),
                           api.plex_type(),
-                          api.file_path(force_first_media=True)))
+                          api.file_name(force_first_media=True)))
             xbmcplugin.addDirectoryItem(
                 handle=HANDLE,
                 url=url,
@@ -838,7 +838,7 @@ def __build_item(xml_element):
               % (v.ADDON_TYPE[api.plex_type()],
                  api.plex_id(),
                  api.plex_type(),
-                 api.file_path(force_first_media=True))
+                 api.file_name(force_first_media=True))
     xbmcplugin.addDirectoryItem(handle=HANDLE,
                                 url=url,
                                 listitem=listitem)
