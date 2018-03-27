@@ -288,13 +288,7 @@ class Movies(Items):
                                                      scraper='metadata.local')
         if do_indirect:
             # Set plugin path and media flags using real filename
-            filename = api.file_path(force_first_media=True)
-            if "\\" in filename:
-                # Local path
-                filename = filename.rsplit("\\", 1)[1]
-            else:
-                # Network share
-                filename = filename.rsplit("/", 1)[1]
+            filename = api.file_name(force_first_media=True)
             path = 'plugin://%s.movies/' % v.ADDON_ID
             filename = ('%s?plex_id=%s&plex_type=%s&mode=play&filename=%s'
                         % (path, itemid, v.PLEX_TYPE_MOVIE, filename))
@@ -857,13 +851,7 @@ class TVShows(Items):
         else:
             # Set plugin path - do NOT use "intermediate" paths for the show
             # as with direct paths!
-            filename = api.file_path(force_first_media=True)
-            if "\\" in filename:
-                # Local path
-                filename = filename.rsplit("\\", 1)[1]
-            else:
-                # Network share
-                filename = filename.rsplit("/", 1)[1]
+            filename = api.file_name(force_first_media=True)
             path = 'plugin://%s.tvshows/' % v.ADDON_ID
             filename = ('%s?plex_id=%s&plex_type=%s&mode=play&filename=%s'
                         % (path, itemid, v.PLEX_TYPE_EPISODE, filename))

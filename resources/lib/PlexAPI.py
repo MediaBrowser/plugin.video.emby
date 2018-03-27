@@ -112,6 +112,22 @@ class API(object):
         """
         return self.item[self.mediastream][self.part]
 
+    def file_name(self, force_first_media=False):
+        """
+        Returns only the filename, e.g. 'movie.mkv' as unicode or None if not
+        found
+        """
+        ans = self.file_path(force_first_media=force_first_media)
+        if ans is None:
+            return
+        if "\\" in ans:
+            # Local path
+            filename = ans.rsplit("\\", 1)[1]
+        else:
+            # Network share
+            filename = ans.rsplit("/", 1)[1]
+        return filename
+
     def file_path(self, force_first_media=False):
         """
         Returns the direct path to this item, e.g. '\\NAS\movies\movie.mkv'
