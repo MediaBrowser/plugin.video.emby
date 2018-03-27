@@ -63,6 +63,9 @@ class Items(object):
         self.direct_path = settings('useDirectPaths') == "1"
         self.content_msg = settings('newContent') == "true"
 
+        self.userid = window('emby_currUser')
+        self.server = window('emby_server%s' % self.userid)
+
     @classmethod
     def path_validation(cls, path):
         # Verify if direct path is accessible or not

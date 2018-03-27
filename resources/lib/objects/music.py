@@ -36,8 +36,6 @@ class Music(Items):
         self.enableimportsongrating = settings('enableImportSongRating') == "true"
         self.enableexportsongrating = settings('enableExportSongRating') == "true"
         self.enableupdatesongrating = settings('enableUpdateSongRating') == "true"
-        self.userid = window('emby_currUser')
-        self.server = window('emby_server%s' % self.userid)
 
         Items.__init__(self)
 
