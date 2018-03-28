@@ -212,6 +212,8 @@ class KodiMonitor(Monitor):
         }
         Will NOT be called if playback initiated by Kodi widgets
         """
+        if 'id' not in data['item']:
+            return
         old = state.OLD_PLAYER_STATES[data['playlistid']]
         if (not state.DIRECT_PATHS and data['position'] == 0 and
                 not PQ.PLAYQUEUES[data['playlistid']].items and
