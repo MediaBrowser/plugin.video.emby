@@ -380,6 +380,7 @@ class KodiMonitor(Monitor):
             plex_id, plex_type = self._get_ids(kodi_id, kodi_type, path)
             if not plex_id:
                 LOG.debug('No Plex id obtained - aborting playback report')
+                status = copy.deepcopy(state.PLAYSTATE)
                 return
             item = PL.init_Plex_playlist(playqueue, plex_id=plex_id)
             # Set the Plex container key (e.g. using the Plex playqueue)
