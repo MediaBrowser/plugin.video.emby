@@ -143,9 +143,6 @@ PLAYSTATE = {
     'playmethod': None,
     'playcount': None
 }
-# Dict containing all filenames as keys with plex id as values - used for addon
-# paths for playback (since we're not receiving a Kodi id)
-PLEX_IDS = {}
 PLAYED_INFO = {}
 # Set by SpecialMonitor - did user choose to resume playback or start from the
 # beginning?
