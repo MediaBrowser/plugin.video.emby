@@ -21,7 +21,6 @@ import playqueue as PQ
 import json_rpc as js
 import playlist_func as PL
 import state
-import variables as v
 
 ###############################################################################
 
