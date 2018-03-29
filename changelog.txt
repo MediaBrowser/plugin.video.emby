@@ -1,3 +1,11 @@
+version 2.0.13 (beta only):
+- Fix resume for On Deck and browse by folder
+- Fix PKC sometimes telling wrong item being played
+- Don't tell PMS last item is playing if non-Plex item is played
+- Fix rare KeyError for playback including trailers
+- Use an empty video file to "fail" playback
+- Use identical add-on paths for On Deck and browsing folders
+
 version 2.0.12 (beta only):
 - Fix resume not working for some Kodi interface languages
 - Fix widget navigating to entire TV show not working
