@@ -235,15 +235,14 @@ class Movies(Items):
             window('emby_pathverified', value="true")
         else:
             # Set plugin path and media flags using real filename
-            path = "plugin://plugin.video.emby.movies/"
+            path = "%s/emby/Kodi/movies/" % self.server
+            #path = "plugin://plugin.video.emby.movies/"
             params = {
 
                 'filename': filename.encode('utf-8'),
-                'id': itemid,
                 'dbid': movieid,
-                'mode': "play"
             }
-            filename = "%s?%s" % (path, urllib.urlencode(params))
+            filename = "%s/file.strm?%s" % (itemid, urllib.urlencode(params))
 
 
         ##### UPDATE THE MOVIE #####

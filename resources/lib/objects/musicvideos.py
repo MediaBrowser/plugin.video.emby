@@ -177,15 +177,14 @@ class MusicVideos(Items):
             window('emby_pathverified', value="true")
         else:
             # Set plugin path and media flags using real filename
-            path = "plugin://plugin.video.emby.musicvideos/"
+            path = "%s/emby/Kodi/musicvideos/" % self.server
+            #path = "plugin://plugin.video.emby.musicvideos/"
             params = {
 
                 'filename': filename.encode('utf-8'),
-                'id': itemid,
                 'dbid': mvideoid,
-                'mode': "play"
             }
-            filename = "%s?%s" % (path, urllib.urlencode(params))
+            filename = "%s/file.strm?%s" % (itemid, urllib.urlencode(params))
 
 
         ##### UPDATE THE MUSIC VIDEO #####

@@ -4,6 +4,7 @@
 
 import logging
 from datetime import datetime
+import urllib
 
 import api
 import emby as mb
@@ -403,18 +404,25 @@ class Music(Items):
 
 
         ##### GET THE FILE AND PATH #####
+        playurl = API.get_file_path()
+
+        if "\\" in playurl:
+            # Local path
+            filename = playurl.rsplit("\\", 1)[1]
+        else: # Network share
+            filename = playurl.rsplit("/", 1)[1]
+
         if self.directstream:
-            path = "%s/emby/Audio/%s/" % (self.server, itemid)
-            filename = "stream.%s?static=true" % item['MediaSources'][0]['Container']
+            #path = "%s/emby/Audio/%s/" % (self.server, itemid)
+            #filename = "stream.%s?static=true" % item['MediaSources'][0]['Container']
+            path = "%s/emby/Kodi/music/" % self.server
+            params = {
+
+                'filename': filename.encode('utf-8'),
+                'dbid': songid
+            }
+            filename = "%s/file.strm?%s" % (itemid, urllib.urlencode(params))
         else:
-            playurl = API.get_file_path()
-
-            if "\\" in playurl:
-                # Local path
-                filename = playurl.rsplit("\\", 1)[1]
-            else: # Network share
-                filename = playurl.rsplit("/", 1)[1]
-
             # Direct paths is set the Kodi way
             if not self.path_validation(playurl):
                 return False

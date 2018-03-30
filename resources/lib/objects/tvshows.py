@@ -4,6 +4,7 @@
 
 import logging
 from ntpath import dirname
+import urllib
 
 import api
 import emby as mb
@@ -295,7 +296,9 @@ class TVShows(Items):
             window('emby_pathverified', value="true")
         else:
             # Set plugin path
-            toplevelpath = "plugin://plugin.video.emby.tvshows/"
+            #toplevelpath = "plugin://plugin.video.emby.tvshows/"
+            #path = "%s%s/" % (toplevelpath, itemid)
+            toplevelpath = "%s/emby/Kodi/tvshows/" % self.server
             path = "%s%s/" % (toplevelpath, itemid)
 
 
@@ -453,6 +456,9 @@ class TVShows(Items):
         if item['LocationType'] != "Virtual":
             # Create the reference in emby table
             emby_db.addReference(item['Id'], seasonid, "Season", "season", parentid=showid)
+            
+            path = "%s/emby/Kodi/tvshows/%s/%s/" % (self.server, item['SeriesId'], seasonnum)
+            self.kodi_db.add_path(path)
 
         # Process artwork
         artwork.add_artwork(artwork.get_all_artwork(item), seasonid, "season", kodicursor)
@@ -583,15 +589,14 @@ class TVShows(Items):
             window('emby_pathverified', value="true")
         else:
             # Set plugin path and media flags using real filename
-            path = "plugin://plugin.video.emby.tvshows/%s/" % seriesId
+            #path = "plugin://plugin.video.emby.tvshows/%s/" % seriesId
+            path = "%s/emby/Kodi/tvshows/%s/%s/" % (self.server, item['SeriesId'], season)
             params = {
 
                 'filename': filename.encode('utf-8'),
-                'id': itemid,
-                'dbid': episodeid,
-                'mode': "play"
+                'dbid': episodeid
             }
-            filename = urllib_path(path, params)
+            filename = "%s/file.strm?%s" % (itemid, urllib_path(path, params))
 
         ##### UPDATE THE EPISODE #####
         if update_item:
