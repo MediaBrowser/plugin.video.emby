@@ -596,7 +596,7 @@ class TVShows(Items):
                 'filename': filename.encode('utf-8'),
                 'dbid': episodeid
             }
-            filename = "%s/file.strm?%s" % (itemid, urllib_path(path, params))
+            filename = "%s/file.strm?%s" % (itemid, urllib.urlencode(params))
 
         ##### UPDATE THE EPISODE #####
         if update_item:
