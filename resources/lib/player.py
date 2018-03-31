@@ -82,7 +82,7 @@ def _record_playstate(status, ended):
     playcount = status['playcount']
     last_played = unix_date_to_kodi(unix_timestamp())
     if playcount is None:
-        LOG.info('playcount not found, looking it up in the Kodi DB')
+        LOG.debug('playcount not found, looking it up in the Kodi DB')
         with kodidb.GetKodiDB('video') as kodi_db:
             playcount = kodi_db.get_playcount(kodi_db_item[1])
         playcount = 0 if playcount is None else playcount
@@ -156,4 +156,4 @@ class PKC_Player(xbmc.Player):
             state.PKC_CAUSED_STOP = False
             LOG.debug('PKC caused this playback stop - ignoring')
         else:
-            playback_cleanup()
+            playback_cleanup(ended=True)
