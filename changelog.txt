@@ -1,3 +1,9 @@
+version 2.0.14 (beta only):
+- Fix resetting PKC player state - should fix PKC telling the PMS that an old, just-played item is playing
+- Play the selected element first, then add the Kodi playqueue to the Plex playqueue
+- Ensure that playstate for ended (not stopped) video is recorded correctly
+- Make sure that LOCK is released after adding one element
+
 version 2.0.13 (beta only):
 - Fix resume for On Deck and browse by folder
 - Fix PKC sometimes telling wrong item being played
