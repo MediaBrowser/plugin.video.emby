@@ -96,13 +96,14 @@ def _playback_init(plex_id, plex_type, playqueue, pos):
     if playqueue.kodi_pl.size() > 1:
         # Special case - we already got a filled Kodi playqueue
         try:
-            _init_existing_kodi_playlist(playqueue)
+            _init_existing_kodi_playlist(playqueue, pos)
         except PL.PlaylistError:
             LOG.error('Aborting playback_init for longer Kodi playlist')
             _ensure_resolve(abort=True)
             return
-        # Now we need to use setResolvedUrl for the item at position pos
-        _conclude_playback(playqueue, pos)
+        # Now we need to use setResolvedUrl for the item at position ZERO
+        # playqueue.py will pick up the missing items
+        _conclude_playback(playqueue, 0)
         return
     # "Usual" case - consider trailers and parts and build both Kodi and Plex
     # playqueues
@@ -185,21 +186,21 @@ def _ensure_resolve(abort=False):
         state.RESUME_PLAYBACK = False
 
 
-def _init_existing_kodi_playlist(playqueue):
+def _init_existing_kodi_playlist(playqueue, pos):
     """
     Will take the playqueue's kodi_pl with MORE than 1 element and initiate
     playback (without adding trailers)
     """
     LOG.debug('Kodi playlist size: %s', playqueue.kodi_pl.size())
-    for i, kodi_item in enumerate(js.playlist_get_items(playqueue.playlistid)):
-        if i == 0:
-            item = PL.init_Plex_playlist(playqueue, kodi_item=kodi_item)
-        else:
-            item = PL.add_item_to_PMS_playlist(playqueue,
-                                               i,
-                                               kodi_item=kodi_item)
-        item.force_transcode = state.FORCE_TRANSCODE
-    LOG.debug('Done building Plex playlist from Kodi playlist')
+    kodi_items = js.playlist_get_items(playqueue.playlistid)
+    if not kodi_items:
+        raise PL.PlaylistError('No Kodi items returned')
+    item = PL.init_Plex_playlist(playqueue, kodi_item=kodi_items[pos])
+    item.force_transcode = state.FORCE_TRANSCODE
+    # playqueue.py will add the rest - this will likely put the PMS under
+    # a LOT of strain if the following Kodi setting is enabled:
+    # Settings -> Player -> Videos -> Play next video automatically
+    LOG.debug('Done init_existing_kodi_playlist')
 
 
 def _prep_playlist_stack(xml):
