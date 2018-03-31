@@ -48,7 +48,7 @@ def playback_cleanup(ended=False):
             # started playback via PMS
             _record_playstate(status, ended)
         # Reset the player's status
-        status = copy.deepcopy(state.PLAYSTATE)
+        state.PLAYER_STATES[playerid] = copy.deepcopy(state.PLAYSTATE)
     # As all playback has halted, reset the players that have been active
     state.ACTIVE_PLAYERS = []
     LOG.debug('Finished PKC playback cleanup')
