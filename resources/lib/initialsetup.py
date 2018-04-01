@@ -14,7 +14,7 @@ from userclient import UserClient
 from clientinfo import getDeviceId
 import PlexFunctions as PF
 import plex_tv
-from json_rpc import get_setting, set_setting
+import json_rpc as js
 import playqueue as PQ
 from videonodes import VideoNodes
 import state
@@ -103,16 +103,16 @@ def set_webserver():
     """
     Set the Kodi webserver details - used to set the texture cache
     """
-    if get_setting('services.webserver') in (None, False):
+    if js.get_setting('services.webserver') in (None, False):
         # Enable the webserver, it is disabled
-        set_setting('services.webserver', True)
+        js.set_setting('services.webserver', True)
         # Set standard port and username
         # set_setting('services.webserverport', 8080)
         # set_setting('services.webserverusername', 'kodi')
     # Webserver already enabled
-    state.WEBSERVER_PORT = get_setting('services.webserverport')
-    state.WEBSERVER_USERNAME = get_setting('services.webserverusername')
-    state.WEBSERVER_PASSWORD = get_setting('services.webserverpassword')
+    state.WEBSERVER_PORT = js.get_setting('services.webserverport')
+    state.WEBSERVER_USERNAME = js.get_setting('services.webserverusername')
+    state.WEBSERVER_PASSWORD = js.get_setting('services.webserverpassword')
 
 
 def _write_pms_settings(url, token):
