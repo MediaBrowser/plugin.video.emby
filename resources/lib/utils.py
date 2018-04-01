@@ -13,7 +13,6 @@ from time import localtime, strftime
 from unicodedata import normalize
 import xml.etree.ElementTree as etree
 from functools import wraps, partial
-from calendar import timegm
 from os.path import join
 from os import remove, walk, makedirs
 from shutil import rmtree
@@ -33,6 +32,7 @@ LOG = getLogger("PLEX." + __name__)
 
 WINDOW = xbmcgui.Window(10000)
 ADDON = xbmcaddon.Addon(id='plugin.video.plexkodiconnect')
+EPOCH = datetime.utcfromtimestamp(0)
 
 ###############################################################################
 # Main methods
@@ -331,7 +331,7 @@ def unix_timestamp(seconds_into_the_future=None):
         future = datetime.utcnow() + timedelta(seconds=seconds_into_the_future)
     else:
         future = datetime.utcnow()
-    return timegm(future.timetuple())
+    return int((future - EPOCH).total_seconds())
 
 
 def kodi_sql(media_type=None):
