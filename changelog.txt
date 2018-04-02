@@ -1,3 +1,10 @@
+version 2.0.15 (beta only):
+- Fix Plex Companion thinking video is playing again
+- Warn if "Play next video automatically" is enabled, cause it breaks PKC playback report 
+- Don't clean the Kodi file table
+- Only remember which player has been active if we got a Plex id
+- Hopefully fix ValueError for datetime.utcnow() 
+
 version 2.0.14 (beta only):
 - Fix resetting PKC player state - should fix PKC telling the PMS that an old, just-played item is playing
 - Play the selected element first, then add the Kodi playqueue to the Plex playqueue
