@@ -176,6 +176,7 @@ class Movies(Items):
         tagline = API.get_tagline()
         votecount = item.get('VoteCount')
         rating = item.get('CommunityRating')
+        rotten = item.get('CriticRating')
         year = item.get('ProductionYear')
         imdb = API.get_provider('Imdb')
         sorttitle = item['SortName']
@@ -249,10 +250,6 @@ class Movies(Items):
         if update_item:
             log.info("UPDATE movie itemid: %s - Title: %s", itemid, title)
 
-            # update ratings
-            ratingid =  self.kodi_db.get_ratingid(movieid)
-            self.kodi_db.update_ratings(movieid, "movie", "default", rating, votecount, ratingid)
-
             # update uniqueid
             uniqueid =  self.kodi_db.get_uniqueid(movieid)
             self.kodi_db.update_uniqueid(movieid, "movie", imdb, "imdb", uniqueid)
@@ -268,10 +265,6 @@ class Movies(Items):
         ##### OR ADD THE MOVIE #####
         else:
             log.info("ADD movie itemid: %s - Title: %s", itemid, title)
-
-            # Add ratings
-            ratingid =  self.kodi_db.create_entry_rating()
-            self.kodi_db.add_ratings(ratingid, movieid, "movie", "default", rating, votecount)
 
             # Add uniqueid
             uniqueid =  self.kodi_db.create_entry_uniqueid()
@@ -305,6 +298,8 @@ class Movies(Items):
         self.kodi_db.add_people(movieid, people, "movie")
         # Process genres
         self.kodi_db.add_genres(movieid, genres, "movie")
+        # Process ratings
+        self.kodi_db.add_ratings({'default': rating, 'rotten': rotten}, movieid, "movie", votecount)
         # Process artwork
         artwork.add_artwork(artwork.get_all_artwork(item), movieid, "movie", self.kodicursor)
         # Process stream details

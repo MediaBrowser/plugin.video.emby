@@ -27,12 +27,6 @@ class KodiMovies(KodiItems):
 
         return kodi_id
 
-    def create_entry_rating(self):
-        self.cursor.execute("select coalesce(max(rating_id),0) from rating")
-        kodi_id = self.cursor.fetchone()[0] + 1
-
-        return kodi_id
-
     def create_entry(self):
         self.cursor.execute("select coalesce(max(idMovie),0) from movie")
         kodi_id = self.cursor.fetchone()[0] + 1
@@ -89,37 +83,6 @@ class KodiMovies(KodiItems):
     def remove_movie(self, kodi_id, file_id):
         self.cursor.execute("DELETE FROM movie WHERE idMovie = ?", (kodi_id,))
         self.cursor.execute("DELETE FROM files WHERE idFile = ?", (file_id,))
-
-    def get_ratingid(self, media_id):
-
-        query = "SELECT rating_id FROM rating WHERE media_type = ? AND media_id = ?"
-        self.cursor.execute(query, ("movie", media_id,))
-        try:
-            ratingid = self.cursor.fetchone()[0]
-        except TypeError:
-            ratingid = None
-
-        return ratingid
-
-    def add_ratings(self, *args):
-        query = (
-            '''
-            INSERT INTO rating(
-                rating_id, media_id, media_type, rating_type, rating, votes)
-
-            VALUES (?, ?, ?, ?, ?, ?)
-            '''
-        )
-        self.cursor.execute(query, (args))
-
-    def update_ratings(self, *args):
-        query = ' '.join((
-
-            "UPDATE rating",
-            "SET media_id = ?, media_type = ?, rating_type = ?, rating = ?, votes = ?",
-            "WHERE rating_id = ?"
-        ))
-        self.cursor.execute(query, (args))
 
     def get_uniqueid(self, media_id):
 

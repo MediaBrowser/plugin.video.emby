@@ -65,6 +65,12 @@ class KodiItems(object):
 
         return kodi_id
 
+    def create_entry_rating(self):
+        self.cursor.execute("select coalesce(max(rating_id),0) from rating")
+        kodi_id = self.cursor.fetchone()[0] + 1
+
+        return kodi_id
+
     def add_path(self, path):
 
         path_id = self.get_path(path)
@@ -384,6 +390,33 @@ class KodiItems(object):
             person_id = self._add_person(name)
 
         return person_id
+
+    def add_ratings(self, ratings, kodi_id, media_type, votes):
+        
+        ''' Ratings is a dict {rating_type:rating}
+            This resets all values.
+        '''
+        self.cursor.execute(' '.join((
+
+            "DELETE FROM rating",
+            "WHERE media_id = ?",
+            "AND media_type = ?"
+        )), (kodi_id, media_type,))
+
+        # Add ratings
+        for rating in ratings:
+            if ratings[rating] is not None:
+
+                rating_id = self.create_entry_rating()
+                self.cursor.execute((
+                    '''
+                    INSERT INTO rating(
+                        rating_id, media_id, media_type, rating_type, rating, votes)
+
+                    VALUES (?, ?, ?, ?, ?, ?)
+                    '''
+                ), (rating_id, kodi_id, media_type, rating, ratings[rating], votes))
+
 
     def add_genres(self, kodi_id, genres, media_type):
 

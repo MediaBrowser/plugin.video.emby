@@ -267,6 +267,7 @@ class TVShows(Items):
         title = item['Name']
         plot = API.get_overview()
         rating = item.get('CommunityRating')
+        rotten = item.get('CriticRating')
         votecount = item.get('VoteCount')
         premieredate = API.get_premiere_date()
         tvdb = API.get_provider('Tvdb')
@@ -348,10 +349,6 @@ class TVShows(Items):
         if update_item:
             log.info("UPDATE tvshow itemid: %s - Title: %s", itemid, title)
 
-            # update ratings
-            ratingid =  self.kodi_db.get_ratingid("tvshow", showid)
-            self.kodi_db.update_ratings(showid, "tvshow", "default", rating, votecount,ratingid)
-
             # update uniqueid
             uniqueid =  self.kodi_db.get_uniqueid("tvshow", showid)
             self.kodi_db.update_uniqueid(showid, "tvshow", tvdb, "unknown", uniqueid)
@@ -366,10 +363,6 @@ class TVShows(Items):
         ##### OR ADD THE TVSHOW #####
         else:
             log.info("ADD tvshow itemid: %s - Title: %s", itemid, title)
-
-            # add ratings
-            ratingid =  self.kodi_db.create_entry_rating()
-            self.kodi_db.add_ratings(ratingid, showid, "tvshow", "default", rating, votecount)
 
             # add uniqueid
             uniqueid =  self.kodi_db.create_entry_uniqueid()
@@ -402,6 +395,8 @@ class TVShows(Items):
         self.kodi_db.add_people(showid, people, "tvshow")
         # Process genres
         self.kodi_db.add_genres(showid, genres, "tvshow")
+        # Process ratings
+        self.kodi_db.add_ratings({'default': rating, 'rotten': rotten}, showid, "tvshow", votecount)
         # Process artwork
         artwork.add_artwork(artwork.get_all_artwork(item), showid, "tvshow", kodicursor)
         # Process studios
@@ -516,6 +511,7 @@ class TVShows(Items):
         title = item['Name']
         plot = API.get_overview()
         rating = item.get('CommunityRating')
+        rotten = item.get('CriticRating')
         runtime = API.get_runtime()
         premieredate = API.get_premiere_date()
 
@@ -602,10 +598,6 @@ class TVShows(Items):
         if update_item:
             log.info("UPDATE episode itemid: %s - Title: %s", itemid, title)
 
-            # update ratings
-            ratingid =  self.kodi_db.get_ratingid("episode", episodeid)
-            self.kodi_db.update_ratings(episodeid, "episode", "default", rating, votecount, ratingid)
-
             # update uniqueid
             uniqueid =  self.kodi_db.get_uniqueid("episode", episodeid)
             self.kodi_db.update_uniqueid(episodeid, "episode", tvdb, "tvdb", uniqueid)
@@ -623,10 +615,6 @@ class TVShows(Items):
         ##### OR ADD THE EPISODE #####
         else:
             log.info("ADD episode itemid: %s - Title: %s", itemid, title)
-
-            # add ratings
-            ratingid =  self.kodi_db.create_entry_rating()
-            self.kodi_db.add_ratings(ratingid, episodeid, "episode", "default", rating, votecount)
 
             # add uniqueid
             uniqueid =  self.kodi_db.create_entry_uniqueid()
@@ -651,6 +639,8 @@ class TVShows(Items):
         # Update the file
         self.kodi_db.update_file(fileid, filename, pathid, dateadded)
 
+        # Process ratings
+        self.kodi_db.add_ratings({'default': rating, 'rotten': rotten}, episodeid, "episode", votecount)
         # Process cast
         people = artwork.get_people_artwork(item['People'])
         self.kodi_db.add_people(episodeid, people, "episode")
