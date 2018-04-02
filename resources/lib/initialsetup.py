@@ -529,6 +529,20 @@ class InitialSetup(object):
         # Do we need to migrate stuff?
         check_migration()
 
+        # Display a warning if Kodi puts ALL movies into the queue, basically
+        # breaking playback reporting for PKC
+        if js.settings_getsettingvalue('videoplayer.autoplaynextitem'):
+            LOG.warn('Kodi setting videoplayer.autoplaynextitem is enabled!')
+            if settings('warned_setting_videoplayer.autoplaynextitem') == 'false':
+                # Only warn once
+                settings('warned_setting_videoplayer.autoplaynextitem',
+                         value='true')
+                # Warning: Kodi setting "Play next video automatically" is
+                # enabled. This could break PKC. Deactivate?
+                if dialog('yesno', lang(29999), lang(30003)):
+                    js.settings_setsettingvalue('videoplayer.autoplaynextitem',
+                                                False)
+
         # If a Plex server IP has already been set
         # return only if the right machine identifier is found
         if self.server:

@@ -31,6 +31,11 @@ msgctxt "#30002"
 msgid "Preferred playback method"
 msgstr ""
 
+# Warning displayed if Kodi setting is enabled. Be sure to escape the quotes again! The exact wording can be found in the Kodi settings, player settings, videos
+msgctxt "#30003"
+msgid "Warning: Kodi setting \"Play next video automatically\" is enabled. This could break PKC. Deactivate?"
+msgstr ""
+
 msgctxt "#30004"
 msgid "Log level"
 msgstr ""

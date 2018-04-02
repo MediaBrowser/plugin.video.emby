@@ -122,6 +122,7 @@
 	    <setting id="bestTrailer" type="bool" label="30542" default="true" />
 	    <setting id="force_transcode_pix" type="bool" label="30545" default="false" />
 	    <setting id="kodi_video_cache" type="number" visible="false" default="20971520" />
+        <setting id="warned_setting_videoplayer.autoplaynextitem" type="bool" visible="false" default="false" />
 	</category>
 
 	<category label="30544"><!-- artwork -->
