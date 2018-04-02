@@ -197,7 +197,7 @@ class SubscriptionMgr(object):
         if pbmc_server:
             (self.protocol, self.server, self.port) = pbmc_server.split(':')
             self.server = self.server.replace('/', '')
-        status = 'paused' if info['speed'] == '0' else 'playing'
+        status = 'paused' if int(info['speed']) == 0 else 'playing'
         duration = kodi_time_to_millis(info['totaltime'])
         shuffle = '1' if info['shuffled'] else '0'
         mute = '1' if info['muted'] is True else '0'
@@ -362,7 +362,7 @@ class SubscriptionMgr(object):
             item = playqueue.items[info['position']]
         except IndexError:
             return self.last_params
-        status = 'paused' if info['speed'] == '0' else 'playing'
+        status = 'paused' if int(info['speed']) == 0 else 'playing'
         params = {
             'state': status,
             'ratingKey': item.plex_id,
