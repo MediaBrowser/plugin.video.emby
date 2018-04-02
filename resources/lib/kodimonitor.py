@@ -339,8 +339,6 @@ class KodiMonitor(Monitor):
             except IndexError:
                 LOG.error('Could not retreive active player - aborting')
                 return
-        # Remember that this player has been active
-        state.ACTIVE_PLAYERS.append(playerid)
         playqueue = PQ.PLAYQUEUES[playerid]
         info = js.get_player_props(playerid)
         pos = info['position'] if info['position'] != -1 else 0
@@ -402,6 +400,8 @@ class KodiMonitor(Monitor):
                 container_key = '/playQueues/%s' % playqueue.id
             else:
                 container_key = '/library/metadata/%s' % plex_id
+        # Remember that this player has been active
+        state.ACTIVE_PLAYERS.append(playerid)
         status.update(info)
         LOG.debug('Set the Plex container_key to: %s', container_key)
         status['container_key'] = container_key
