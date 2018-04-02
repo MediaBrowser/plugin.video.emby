@@ -1,3 +1,6 @@
+version 2.0.16 (beta only):
+- Do NOT delete playstates before getting new ones from the PMS
+
 version 2.0.15 (beta only):
 - Fix Plex Companion thinking video is playing again
 - Warn if "Play next video automatically" is enabled, cause it breaks PKC playback report 
