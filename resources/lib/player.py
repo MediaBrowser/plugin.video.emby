@@ -55,9 +55,6 @@ def playback_cleanup(ended=False):
 
 
 def _record_playstate(status, ended):
-    with kodidb.GetKodiDB('video') as kodi_db:
-        # Hack - remove any obsolete file entries Kodi made
-        kodi_db.clean_file_table()
     if not status['plex_id']:
         LOG.debug('No Plex id found to record playstate for status %s', status)
         return
