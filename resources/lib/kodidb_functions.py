@@ -689,12 +689,6 @@ class KodiDBMethods(object):
             resume = None
         return resume
 
-    def delete_all_playstates(self):
-        """
-        Entirely resets the table bookmark and thus all resume points
-        """
-        self.cursor.execute("DELETE FROM bookmark")
-
     def get_playcount(self, file_id):
         """
         Returns the playcount for the item file_id or None if not found

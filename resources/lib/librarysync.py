@@ -251,8 +251,6 @@ class LibrarySync(Thread):
             with kodidb.GetKodiDB('video') as kodi_db:
                 # Setup the paths for addon-paths (even when using direct paths)
                 kodi_db.setup_path_table()
-                # Delete all resume points because we'll get new ones
-                kodi_db.delete_all_playstates()
 
         process = {
             'movies': self.PlexMovies,
