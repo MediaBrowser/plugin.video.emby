@@ -504,3 +504,52 @@ def activate_window(window, parameters):
     """
     return JsonRPC('GUI.ActivateWindow').execute({'window': window,
                                                   'parameters': [parameters]})
+
+
+def settings_getsections():
+    '''
+    Retrieve all Kodi settings sections
+    '''
+    return JsonRPC('Settings.GetSections').execute({'level': 'expert'})
+
+
+def settings_getcategories():
+    '''
+    Retrieve all Kodi settings categories (one level below sections)
+    '''
+    return JsonRPC('Settings.GetCategories').execute({'level': 'expert'})
+
+
+def settings_getsettings(filter_params):
+    '''
+    Get all the settings for
+        filter_params = {'category': <str>, 'section': <str>}
+        e.g.          = {'category':'videoplayer', 'section':'player'}
+    '''
+    return JsonRPC('Settings.GetSettings').execute({
+        'level': 'expert',
+        'filter': filter_params
+    })
+
+
+def settings_getsettingvalue(setting):
+    '''
+    Pass in the setting id as a string (as retrieved from settings_getsettings),
+    e.g. 'videoplayer.autoplaynextitem' or None is something went wrong
+    '''
+    ret = JsonRPC('Settings.GetSettingValue').execute({'setting': setting})
+    try:
+        ret = ret['result']['value']
+    except (TypeError, KeyError):
+        ret = None
+    return ret
+
+
+def settings_setsettingvalue(setting, value):
+    '''
+    Set the Kodi setting (str) to value (type depends, see JSON wiki)
+    '''
+    return JsonRPC('Settings.SetSettingValue').execute({
+        'setting': setting,
+        'value': value
+    })
