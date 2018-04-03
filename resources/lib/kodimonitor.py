@@ -431,14 +431,7 @@ class SpecialMonitor(Thread):
                 if getInfoLabel('Control.GetLabel(1002)') in strings:
                     # Remember that the item IS indeed resumable
                     control = int(Window(10106).getFocusId())
-                    if control == 1002:
-                        # Start from beginning
-                        state.RESUME_PLAYBACK = False
-                    elif control == 1001:
-                        state.RESUME_PLAYBACK = True
-                    else:
-                        # User chose something else from the context menu
-                        state.RESUME_PLAYBACK = False
+                    state.RESUME_PLAYBACK = True if control == 1001 else False
                 else:
                     # Different context menu is displayed
                     state.RESUME_PLAYBACK = False
