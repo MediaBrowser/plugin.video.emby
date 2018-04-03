@@ -542,6 +542,9 @@ class InitialSetup(object):
                 if dialog('yesno', lang(29999), lang(30003)):
                     js.settings_setsettingvalue('videoplayer.autoplaynextitem',
                                                 False)
+        # Set any video library updates to happen in the background in order to
+        # hide "Compressing database"
+        js.settings_setsettingvalue('videolibrary.backgroundupdate', True)
 
         # If a Plex server IP has already been set
         # return only if the right machine identifier is found
