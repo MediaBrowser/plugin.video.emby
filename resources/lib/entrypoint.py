@@ -193,47 +193,40 @@ def GetSubFolders(nodeindex):
 
 ##### LISTITEM SETUP FOR VIDEONODES #####
 def createListItem(item, append_show_title=False, append_sxxexx=False):
+    log.debug('createListItem called with append_show_title %s, append_sxxexx '
+              '%s, item: %s', append_show_title, append_sxxexx, item)
     title = item['title']
     li = ListItem(title)
-    li.setProperty('IsPlayable', "true")
-
+    li.setProperty('IsPlayable', 'true')
     metadata = {
         'duration': str(item['runtime']/60),
         'Plot': item['plot'],
         'Playcount': item['playcount']
     }
 
-    if "episode" in item:
+    if 'episode' in item:
         episode = item['episode']
         metadata['Episode'] = episode
-
-    if "season" in item:
+    if 'season' in item:
         season = item['season']
         metadata['Season'] = season
-
     if season and episode:
-        li.setProperty('episodeno', "s%.2de%.2d" % (season, episode))
+        li.setProperty('episodeno', 's%.2de%.2d' % (season, episode))
         if append_sxxexx is True:
-            title = "S%.2dE%.2d - %s" % (season, episode, title)
-
-    if "firstaired" in item:
+            title = 'S%.2dE%.2d - %s' % (season, episode, title)
+    if 'firstaired' in item:
         metadata['Premiered'] = item['firstaired']
-
-    if "showtitle" in item:
+    if 'showtitle' in item:
         metadata['TVshowTitle'] = item['showtitle']
         if append_show_title is True:
             title = item['showtitle'] + ' - ' + title
-
-    if "rating" in item:
-        metadata['Rating'] = str(round(float(item['rating']),1))
-
-    if "director" in item:
-        metadata['Director'] = " / ".join(item['director'])
-
-    if "writer" in item:
-        metadata['Writer'] = " / ".join(item['writer'])
-
-    if "cast" in item:
+    if 'rating' in item:
+        metadata['Rating'] = str(round(float(item['rating']), 1))
+    if 'director' in item:
+        metadata['Director'] = item['director']
+    if 'writer' in item:
+        metadata['Writer'] = item['writer']
+    if 'cast' in item:
         cast = []
         castandrole = []
         for person in item['cast']:
@@ -244,16 +237,17 @@ def createListItem(item, append_show_title=False, append_sxxexx=False):
         metadata['CastAndRole'] = castandrole
 
     metadata['Title'] = title
+    metadata['mediatype'] = 'episode'
+    metadata['dbid'] = str(item['episodeid'])
     li.setLabel(title)
+    li.setInfo(type='Video', infoLabels=metadata)
 
-    li.setInfo(type="Video", infoLabels=metadata)  
     li.setProperty('resumetime', str(item['resume']['position']))
     li.setProperty('totaltime', str(item['resume']['total']))
     li.setArt(item['art'])
-    li.setThumbnailImage(item['art'].get('thumb',''))
+    li.setThumbnailImage(item['art'].get('thumb', ''))
     li.setArt({'icon': 'DefaultTVShows.png'})
-    li.setProperty('dbid', str(item['episodeid']))
-    li.setProperty('fanart_image', item['art'].get('tvshow.fanart',''))
+    li.setProperty('fanart_image', item['art'].get('tvshow.fanart', ''))
     try:
         li.addContextMenuItems([(lang(30032), 'XBMC.Action(Info)',)])
     except TypeError:
@@ -262,7 +256,6 @@ def createListItem(item, append_show_title=False, append_sxxexx=False):
     for key, value in item['streamdetails'].iteritems():
         for stream in value:
             li.addStreamInfo(key, stream)
-    
     return li
 
 ##### GET NEXTUP EPISODES FOR TAGNAME #####    
