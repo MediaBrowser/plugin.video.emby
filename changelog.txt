@@ -1,3 +1,11 @@
+version 2.0.17 (beta only):
+- Finally make PKC compatible with Kodi 18 Leia Alpha 1
+- Fix information screen and Plex option not working
+- Activate Kodi background updates to hide "Compressing Database"
+- Update translations
+- Remove most strings not being used by PKC
+- Remove some legacy settings
+
 version 2.0.16 (beta only):
 - Do NOT delete playstates before getting new ones from the PMS
 
