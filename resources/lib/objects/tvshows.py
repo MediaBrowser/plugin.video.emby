@@ -267,7 +267,6 @@ class TVShows(Items):
         title = item['Name']
         plot = API.get_overview()
         rating = item.get('CommunityRating')
-        rotten = item.get('CriticRating')
         votecount = item.get('VoteCount')
         premieredate = API.get_premiere_date()
         tvdb = API.get_provider('Tvdb')
@@ -396,7 +395,7 @@ class TVShows(Items):
         # Process genres
         self.kodi_db.add_genres(showid, genres, "tvshow")
         # Process ratings
-        self.kodi_db.add_ratings({'default': rating, 'rotten': rotten}, showid, "tvshow", votecount)
+        self.kodi_db.add_ratings({'default': rating}, showid, "tvshow", votecount)
         # Process artwork
         artwork.add_artwork(artwork.get_all_artwork(item), showid, "tvshow", kodicursor)
         # Process studios
@@ -511,7 +510,6 @@ class TVShows(Items):
         title = item['Name']
         plot = API.get_overview()
         rating = item.get('CommunityRating')
-        rotten = item.get('CriticRating')
         runtime = API.get_runtime()
         premieredate = API.get_premiere_date()
 
@@ -640,7 +638,7 @@ class TVShows(Items):
         self.kodi_db.update_file(fileid, filename, pathid, dateadded)
 
         # Process ratings
-        self.kodi_db.add_ratings({'default': rating, 'rotten': rotten}, episodeid, "episode", votecount)
+        self.kodi_db.add_ratings({'default': rating}, episodeid, "episode", votecount)
         # Process cast
         people = artwork.get_people_artwork(item['People'])
         self.kodi_db.add_people(episodeid, people, "episode")

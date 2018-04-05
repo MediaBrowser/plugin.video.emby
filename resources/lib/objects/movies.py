@@ -176,7 +176,6 @@ class Movies(Items):
         tagline = API.get_tagline()
         votecount = item.get('VoteCount')
         rating = item.get('CommunityRating')
-        rotten = item.get('CriticRating')
         year = item.get('ProductionYear')
         imdb = API.get_provider('Imdb')
         sorttitle = item['SortName']
@@ -299,7 +298,7 @@ class Movies(Items):
         # Process genres
         self.kodi_db.add_genres(movieid, genres, "movie")
         # Process ratings
-        self.kodi_db.add_ratings({'default': rating, 'rotten': rotten}, movieid, "movie", votecount)
+        self.kodi_db.add_ratings({'default': rating}, movieid, "movie", votecount)
         # Process artwork
         artwork.add_artwork(artwork.get_all_artwork(item), movieid, "movie", self.kodicursor)
         # Process stream details
