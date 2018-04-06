@@ -75,6 +75,7 @@ PKC synchronizes your media from your Plex server to the native Kodi database. H
     + Norwegian, thanks @mjorud
     + Portuguese, thanks @goncalo532 
     + Russian, thanks @UncleStark
+    + Hungarian, thanks @savage93
     + [Please help translating](https://www.transifex.com/croneter/pkc)
 
 ### Download and Installation
@@ -116,18 +117,7 @@ I'm not in any way affiliated with Plex. Thank you very much for a small donatio
 
 [![Feature Requests](http://feathub.com/croneter/PlexKodiConnect?format=svg)](http://feathub.com/croneter/PlexKodiConnect)
 
-### Known Larger Issues
-
-Solutions are unlikely due to the nature of these issues
-- A Plex Media Server "bug" leads to frequent and slow syncs, see [here for more info](https://github.com/croneter/PlexKodiConnect/issues/135)
-- *Plex Music when using Addon paths instead of Native Direct Paths:* Kodi tries to scan every(!) single Plex song on startup. This leads to errors in the Kodi log file and potentially even crashes. See the [Github issues](https://github.com/croneter/PlexKodiConnect/issues/14) for more details. **Workaround**: use [PKC direct paths](https://github.com/croneter/PlexKodiConnect/wiki/Set-up-Direct-Paths) instead of addon paths.
-
-*Background Sync:*
-The Plex Server does not tell anyone of the following changes. Hence PKC cannot detect these changes instantly but will notice them only on full/delta syncs (standard settings is every 60 minutes)
-- Toggle the viewstate of an item to (un)watched outside of Kodi
-
-
-### Issues being worked on
+### Issues and Bugs
 
 Have a look at the [Github Issues Page](https://github.com/croneter/PlexKodiConnect/issues). Before you open your own issue, please read [How to report a bug](https://github.com/croneter/PlexKodiConnect/wiki/How-to-Report-A-Bug).
 
