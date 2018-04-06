@@ -27,7 +27,7 @@ msgstr "Adresse du serveur (IP)"
 
 msgctxt "#30001"
 msgid "Searching for PMS"
-msgstr ""
+msgstr "Recherche d'un serveur plex"
 
 msgctxt "#30002"
 msgid "Preferred playback method"
@@ -41,6 +41,8 @@ msgid ""
 "Warning: Kodi setting \"Play next video automatically\" is enabled. This "
 "could break PKC. Deactivate?"
 msgstr ""
+"Attention, les paramètres de Kodi sont réglés pour joueur automatiquement la"
+" vidéo suivante. Cette option va casser PlexKodiConnect. Désactiver ?"
 
 msgctxt "#30005"
 msgid "Username: "
@@ -434,6 +436,7 @@ msgstr "Demander de jouer les bandes-annonces"
 msgctxt "#30520"
 msgid "Skip PMS delete confirmation (use at your own risk)"
 msgstr ""
+"Passer la confirmation de suppression de PlexMediaServer (à vos risques)"
 
 # PKC Settings - Playback
 msgctxt "#30521"
@@ -760,6 +763,8 @@ msgid ""
 "Kodi cannot locate the file %s. Please verify your PKC settings. Stop "
 "syncing?"
 msgstr ""
+"Kodi ne peut pas localiser le fichier %s. Veuillez vérifier les paramètres "
+"de PlexKodiConnect. Arrêter la synchronisation ?"
 
 # Pop-up on initial sync
 msgctxt "#39033"
@@ -941,7 +946,7 @@ msgstr "Recently Added: Also show already watched episodes"
 # PKC Settings - Appearance Tweaks
 msgctxt "#39065"
 msgid "Force-refresh Kodi skin on stopping playback"
-msgstr ""
+msgstr "Forcer le rafraîchissement du skin de Kodi va arrêter le playback."
 
 # PKC Settings - Appearance Tweaks
 msgctxt "#39066"

@@ -1,21 +1,21 @@
 #  XBMC Media Center language file
+# Translators:
+# Croneter None <croneter@gmail.com>, 2017
 msgid ""
 msgstr ""
 "Project-Id-Version: PlexKodiConnect\n"
 "Report-Msgid-Bugs-To: croneter@gmail.com\n"
 "POT-Creation-Date: 2017-04-15 13:13+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE\n"
+"Last-Translator: Croneter None <croneter@gmail.com>, 2017\n"
+"Language-Team: Hungarian (Hungary) (https://www.transifex.com/croneter/teams/73837/hu_HU/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: en_GB\n"
-"Plural-Forms: nplurals=2; plural=(n != 1)\n"
+"Language: hu_HU\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 # Add-on settings
-
-
 msgctxt "#29999"
 msgid "PlexKodiConnect"
 msgstr "PlexKodiConnect"
@@ -32,10 +32,16 @@ msgctxt "#30002"
 msgid "Preferred playback method"
 msgstr "Előnyben részesített lejátszási mód"
 
-# Warning displayed if Kodi setting is enabled. Be sure to escape the quotes again! The exact wording can be found in the Kodi settings, player settings, videos
+# Warning displayed if Kodi setting is enabled. Be sure to escape the quotes
+# again! The exact wording can be found in the Kodi settings, player settings,
+# videos
 msgctxt "#30003"
-msgid "Warning: Kodi setting \"Play next video automatically\" is enabled. This could break PKC. Deactivate?"
-msgstr "Figyelem: \"A következő videó automatikus lejátszása\" be van kapcsolva. Ez megakadályozhatja a PKC megfelelő működését. Kikapcsolja?"
+msgid ""
+"Warning: Kodi setting \"Play next video automatically\" is enabled. This "
+"could break PKC. Deactivate?"
+msgstr ""
+"Figyelem: \"A következő videó automatikus lejátszása\" be van kapcsolva. Ez "
+"megakadályozhatja a PKC megfelelő működését. Kikapcsolja?"
 
 msgctxt "#30005"
 msgid "Username: "
@@ -329,8 +335,11 @@ msgstr "Transzkódolás kényszerítése"
 
 # Error dialog text
 msgctxt "#30414"
-msgid "Could not delete the Plex item. Is item deletion enabled on the Plex Media Server?"
-msgstr "Az elem törlése sikertelen. Engedélyezve van az elemek törlése a szerveren?"
+msgid ""
+"Could not delete the Plex item. Is item deletion enabled on the Plex Media "
+"Server?"
+msgstr ""
+"Az elem törlése sikertelen. Engedélyezve van az elemek törlése a szerveren?"
 
 # contextmenu entry
 msgctxt "#30415"
@@ -354,7 +363,8 @@ msgstr "Kliens SSL tanúsítvány"
 # PKC Settings - Connection
 msgctxt "#30505"
 msgid "[COLOR yellow]Reset login attempts[/COLOR]"
-msgstr "[COLOR yellow]Bejelentkezési kísérletek számának visszaállítása[/COLOR]"
+msgstr ""
+"[COLOR yellow]Bejelentkezési kísérletek számának visszaállítása[/COLOR]"
 
 # PKC Settings, category name
 msgctxt "#30506"
@@ -393,7 +403,9 @@ msgstr "Képek gyorsítótárazásának kényszerítése"
 # PKC Settings - Artwork
 msgctxt "#30513"
 msgid "Limit artwork cache threads (recommended for rpi)"
-msgstr "Képek gyorsítótárazására használt processzorszálak korlátozása (Raspberry Pi esetén javasolt)"
+msgstr ""
+"Képek gyorsítótárazására használt processzorszálak korlátozása (Raspberry Pi"
+" esetén javasolt)"
 
 # PKC Settings - Sync Options
 msgctxt "#30515"
@@ -467,13 +479,19 @@ msgstr "Szerverüzenetek"
 
 # PKC Settings - Advanced
 msgctxt "#30535"
-msgid "[COLOR yellow]Generate a new unique device Id (e.g. when cloning Kodi)[/COLOR]"
-msgstr "[COLOR yellow]Új egyedi eszközazonosító létrehozása (pl. Kodi klónozásakor)[/COLOR]"
+msgid ""
+"[COLOR yellow]Generate a new unique device Id (e.g. when cloning "
+"Kodi)[/COLOR]"
+msgstr ""
+"[COLOR yellow]Új egyedi eszközazonosító létrehozása (pl. Kodi "
+"klónozásakor)[/COLOR]"
 
 # PKC Settings - Connection
 msgctxt "#30536"
 msgid "Users must log in every time Kodi restarts"
-msgstr "Bejelentkezés megkövetelése a felhasználóktól minden Kodi újraindítást követően"
+msgstr ""
+"Bejelentkezés megkövetelése a felhasználóktól minden Kodi újraindítást "
+"követően"
 
 # PKC Settings warning
 msgctxt "#30537"
@@ -541,7 +559,8 @@ msgstr "Hibás felhasználónév vagy jelszó"
 
 msgctxt "#33010"
 msgid "Failed to authenticate too many times. Reset in the settings."
-msgstr "Túl sok sikertelen bejelentkezési kísérlet. Állítsa vissza a beállításoknál."
+msgstr ""
+"Túl sok sikertelen bejelentkezési kísérlet. Állítsa vissza a beállításoknál."
 
 # Dialog before playback
 msgctxt "#33013"
@@ -560,8 +579,11 @@ msgstr "Filmelőzetesek lejátszása?"
 
 # Error message
 msgctxt "#33032"
-msgid "Failed to generate a new device Id. See your logs for more information."
-msgstr "Új eszközazonosító létrehozása sikertelen. Tekintse meg a hibanaplót további információkért."
+msgid ""
+"Failed to generate a new device Id. See your logs for more information."
+msgstr ""
+"Új eszközazonosító létrehozása sikertelen. Tekintse meg a hibanaplót további"
+" információkért."
 
 # Pop-up informing about Kodi restart
 msgctxt "#33033"
@@ -570,8 +592,12 @@ msgstr "A Kodi most újra fog indulni a változások alkalmazásához."
 
 # Confirmation dialog before item gets deleted from the PMS
 msgctxt "#33041"
-msgid "Delete file(s) from Plex Server? This will also delete the file(s) from disk!"
-msgstr "Biztosan letörli a fájlokat a Plex szerverről? Ez a lemezről is eltávolítja a fájlokat!"
+msgid ""
+"Delete file(s) from Plex Server? This will also delete the file(s) from "
+"disk!"
+msgstr ""
+"Biztosan letörli a fájlokat a Plex szerverről? Ez a lemezről is eltávolítja "
+"a fájlokat!"
 
 # PKC Settings - Playback
 msgctxt "#39000"
@@ -606,7 +632,8 @@ msgstr "Plex Companion port (csak szükség esetén változtassa)"
 # PKC Settings - Plex
 msgctxt "#39008"
 msgid "Plex Companion: Allows flinging media to Kodi through Plex"
-msgstr "Plex Companion: Lehetővé teszi más Plex eszközök tartalmának lejátszását"
+msgstr ""
+"Plex Companion: Lehetővé teszi más Plex eszközök tartalmának lejátszását"
 
 # Error message
 msgctxt "#39009"
@@ -616,7 +643,8 @@ msgstr "Plex.tv bejelentkezés sikertelen. Kérem próbálja újra."
 # Error message
 msgctxt "#39010"
 msgid "Problems connecting to plex.tv. Network or internet issue?"
-msgstr "Csatlakozás a plex.tv-hez sikertelen. Hálózati- vagy internetprobléma?"
+msgstr ""
+"Csatlakozás a plex.tv-hez sikertelen. Hálózati- vagy internetprobléma?"
 
 # Error message
 msgctxt "#39011"
@@ -645,28 +673,42 @@ msgstr "A szerverhez való csatlakozás sikertelen. Másik szerver választása?
 
 # Pop-up on initial sync
 msgctxt "#39016"
-msgid "Disable Plex music library? (It is HIGHLY recommended to use Plex music only with direct paths for large music libraries. Kodi might crash otherwise)"
-msgstr "Kikapcsolja a Plex zenekönyvtárat? (Nagy könyvtárak esetén ERŐSEN ajánlott kizárólag a közvetlen elérési utak használata, máskülönben a Kodi összeomolhat.)"
+msgid ""
+"Disable Plex music library? (It is HIGHLY recommended to use Plex music only"
+" with direct paths for large music libraries. Kodi might crash otherwise)"
+msgstr ""
+"Kikapcsolja a Plex zenekönyvtárat? (Nagy könyvtárak esetén ERŐSEN ajánlott "
+"kizárólag a közvetlen elérési utak használata, máskülönben a Kodi "
+"összeomolhat.)"
 
 # Pop-up on initial sync
 msgctxt "#39017"
-msgid "Would you now like to go to the plugin's settings to fine-tune PKC? You will need to RESTART Kodi!"
-msgstr "Szeretné most megnyitni a kiegészítő beállításait a PKC finomhangolásához? A Kodi-t utána újra KELL indítani."
+msgid ""
+"Would you now like to go to the plugin's settings to fine-tune PKC? You will"
+" need to RESTART Kodi!"
+msgstr ""
+"Szeretné most megnyitni a kiegészítő beállításait a PKC finomhangolásához? A"
+" Kodi-t utána újra KELL indítani."
 
 # PKC Settings - Advanced
 msgctxt "#39018"
 msgid "[COLOR yellow]Repair local database (force update all content)[/COLOR]"
-msgstr "[COLOR yellow]Helyi adatbázis helyreállítása (minden tartalom frissítésének kényszerítése)[/COLOR]"
+msgstr ""
+"[COLOR yellow]Helyi adatbázis helyreállítása (minden tartalom frissítésének "
+"kényszerítése)[/COLOR]"
 
 # PKC Settings - Advanced
 msgctxt "#39019"
 msgid "[COLOR red]Partial or full reset of Database and PKC[/COLOR]"
-msgstr "[COLOR red]Az adatbázis és a PKC részleges vagy teljes visszaállítása[/COLOR]"
+msgstr ""
+"[COLOR red]Az adatbázis és a PKC részleges vagy teljes "
+"visszaállítása[/COLOR]"
 
 # PKC Settings - Artwork
 msgctxt "#39020"
 msgid "[COLOR yellow]Cache all images to Kodi texture cache now[/COLOR]"
-msgstr "[COLOR yellow]Minden kép gyorsítótárazása a Kodi gyorsítótárába most[/COLOR]"
+msgstr ""
+"[COLOR yellow]Minden kép gyorsítótárazása a Kodi gyorsítótárába most[/COLOR]"
 
 # Appended to a listed PMS if it is in the same LAN network as PKC
 msgctxt "#39022"
@@ -690,8 +732,16 @@ msgstr "Folyamatos háttérbeli szinkronizáció engedélyezése"
 
 # Pop-up on initial sync
 msgctxt "#39028"
-msgid "CAUTION! If you choose \"Native\" mode , you might loose access to certain Plex features such as: Plex trailers and transcoding options. ALL Plex shares need to use direct paths (e.g. smb://myNAS/mymovie.mkv or \\\\myNAS/mymovie.mkv)!"
-msgstr "VIGYÁZAT! Ha a \"Native\" módot választja, elveszítheti a hozzáférést bizonyos Plex funkciókoz, mint pl.: Plex filmelőzetesek és transzkódolás. MINDEN Plex megosztás közvetlen elérési utakat kell használjon (pl. smb://myNAS/mymovie.mkv vagy \\\\myNAS/mymovie.mkv)!"
+msgid ""
+"CAUTION! If you choose \"Native\" mode , you might loose access to certain "
+"Plex features such as: Plex trailers and transcoding options. ALL Plex "
+"shares need to use direct paths (e.g. smb://myNAS/mymovie.mkv or "
+"\\\\myNAS/mymovie.mkv)!"
+msgstr ""
+"VIGYÁZAT! Ha a \"Native\" módot választja, elveszítheti a hozzáférést "
+"bizonyos Plex funkciókoz, mint pl.: Plex filmelőzetesek és transzkódolás. "
+"MINDEN Plex megosztás közvetlen elérési utakat kell használjon (pl. "
+"smb://myNAS/mymovie.mkv vagy \\\\myNAS/mymovie.mkv)!"
 
 # Pop-up on initial sync
 msgctxt "#39029"
@@ -700,18 +750,32 @@ msgstr "Hálózati hitelesítő adatok"
 
 # Pop-up on initial sync
 msgctxt "#39030"
-msgid "Add network credentials to allow Kodi access to your content? Note: Skipping this step may generate a message during the initial scan of your content if Kodi can't locate your content."
-msgstr "Hozzáadja a hálózati hitelesítési adatokat, hogy a Kodi elérhesse a tartalmait? Megjegyzés: ezen lépés kihagyása üzenetet generálhat a tartalmak kezdeti beolvasása során, ha a Kodi nem tudja elérni a tartalmakat."
+msgid ""
+"Add network credentials to allow Kodi access to your content? Note: Skipping"
+" this step may generate a message during the initial scan of your content if"
+" Kodi can't locate your content."
+msgstr ""
+"Hozzáadja a hálózati hitelesítési adatokat, hogy a Kodi elérhesse a "
+"tartalmait? Megjegyzés: ezen lépés kihagyása üzenetet generálhat a tartalmak"
+" kezdeti beolvasása során, ha a Kodi nem tudja elérni a tartalmakat."
 
 # Error message displayed when verifying Direct Path sync paths passed by Plex
 msgctxt "#39031"
-msgid "Kodi cannot locate the file %s. Please verify your PKC settings. Stop syncing?"
-msgstr "A Kodi nem találja a(z) %s fájlt. Kérem ellenőrizze a PKC beállításait. Szinkronizáció megszakítása?"
+msgid ""
+"Kodi cannot locate the file %s. Please verify your PKC settings. Stop "
+"syncing?"
+msgstr ""
+"A Kodi nem találja a(z) %s fájlt. Kérem ellenőrizze a PKC beállításait. "
+"Szinkronizáció megszakítása?"
 
 # Pop-up on initial sync
 msgctxt "#39033"
-msgid "Transform Plex UNC library paths \\\\myNas\\mymovie.mkv automatically to smb paths, smb://myNas/mymovie.mkv? (recommended)"
-msgstr "Átalakítja a Plex UNC útvonalakat (\\\\myNas\\mymovie.mkv) automatikusan SMB útvonalakká (smb://myNas/mymovie.mkv)? (ajánlott)"
+msgid ""
+"Transform Plex UNC library paths \\\\myNas\\mymovie.mkv automatically to smb"
+" paths, smb://myNas/mymovie.mkv? (recommended)"
+msgstr ""
+"Átalakítja a Plex UNC útvonalakat (\\\\myNas\\mymovie.mkv) automatikusan SMB"
+" útvonalakká (smb://myNas/mymovie.mkv)? (ajánlott)"
 
 # PKC Settings - Customize Paths
 msgctxt "#39034"
@@ -720,8 +784,12 @@ msgstr "Lecseréli a Plex UNC útvonalakat (\\\\myNas) smb://myNas-ra"
 
 # PKC Settings - Customize Paths
 msgctxt "#39035"
-msgid "Replace Plex paths /volume1/media or \\\\myserver\\media with custom SMB paths smb://NAS/mystuff"
-msgstr "Lecseréli a Plex útvonalakat (/volume1/media vagy \\\\myserver\\media) egyéni SMB útvonalakra (smb://NAS/mystuff)"
+msgid ""
+"Replace Plex paths /volume1/media or \\\\myserver\\media with custom SMB "
+"paths smb://NAS/mystuff"
+msgstr ""
+"Lecseréli a Plex útvonalakat (/volume1/media vagy \\\\myserver\\media) "
+"egyéni SMB útvonalakra (smb://NAS/mystuff)"
 
 # PKC Settings - Customize Paths
 msgctxt "#39037"
@@ -755,13 +823,21 @@ msgstr "Plex útvonal lecserélése a ZENÉKHEZ erre:"
 
 # Pop-up on initial sync
 msgctxt "#39043"
-msgid "Go a step further and completely replace all original Plex library paths (/volume1/media) with custom SMB paths (smb://NAS/MyStuff)?"
-msgstr "Lecseréli az összes eredeti Plex útvonalat (/volume1/media) egyéni SMB útvonalakra (smb://NAS/MyStuff)?"
+msgid ""
+"Go a step further and completely replace all original Plex library paths "
+"(/volume1/media) with custom SMB paths (smb://NAS/MyStuff)?"
+msgstr ""
+"Lecseréli az összes eredeti Plex útvonalat (/volume1/media) egyéni SMB "
+"útvonalakra (smb://NAS/MyStuff)?"
 
 # Pop-up on initial sync
 msgctxt "#39044"
-msgid "Please enter your custom smb paths in the settings under \"Sync Options\" and then restart Kodi"
-msgstr "Kérem adja meg az egyéni SMB útvonalakat a beállítások \"Szinkronizáció beállításai\" menüpontja alatt, majd indítsa újra a Kodi-t"
+msgid ""
+"Please enter your custom smb paths in the settings under \"Sync Options\" "
+"and then restart Kodi"
+msgstr ""
+"Kérem adja meg az egyéni SMB útvonalakat a beállítások \"Szinkronizáció "
+"beállításai\" menüpontja alatt, majd indítsa újra a Kodi-t"
 
 # PKC Settings - Customize Paths
 msgctxt "#39045"
@@ -831,7 +907,9 @@ msgstr "Útvonalak testreszabása"
 # PKC Settings - Appearance Tweaks
 msgctxt "#39058"
 msgid "Extend Plex TV Series \"On Deck\" view to all shows"
-msgstr "A Plex TV sorozatok \"A fedélzeten\" nézetének kiterjesztése az összes sorozatra"
+msgstr ""
+"A Plex TV sorozatok \"A fedélzeten\" nézetének kiterjesztése az összes "
+"sorozatra"
 
 # PKC Settings - Appearance Tweaks
 msgctxt "#39059"
@@ -845,7 +923,9 @@ msgstr "Mostanában hozzáadott: évad- és epizódszám hozzáfűzése (SxxExx)
 
 # Pop-up during initial sync
 msgctxt "#39061"
-msgid "Would you like to download additional artwork from FanArtTV in the background?"
+msgid ""
+"Would you like to download additional artwork from FanArtTV in the "
+"background?"
 msgstr "Szeretne további képeket letölteni a háttérben a FanArtTV-ről?"
 
 # PKC Settings - Sync
@@ -870,8 +950,12 @@ msgstr "Kodi felület kényszerített frissítése a lejátszás megállításak
 
 # PKC Settings - Appearance Tweaks
 msgctxt "#39066"
-msgid "Recently Added: Also show already watched movies (Refresh Plex playlist/nodes!)"
-msgstr "Mostanában hozzáadott: már látott filmek mutatása (frissítse a Plex lejátszási listát/csomópontokat!)"
+msgid ""
+"Recently Added: Also show already watched movies (Refresh Plex "
+"playlist/nodes!)"
+msgstr ""
+"Mostanában hozzáadott: már látott filmek mutatása (frissítse a Plex "
+"lejátszási listát/csomópontokat!)"
 
 # PKC Settings - Connection
 msgctxt "#39067"
@@ -911,12 +995,18 @@ msgstr "TV sorozatok"
 # PKC Settings - Playback
 msgctxt "#39075"
 msgid "Always use default Plex subtitle if possible"
-msgstr "Mindig használja az alapértelmezett Plex feliratot amennyiben lehetséges"
+msgstr ""
+"Mindig használja az alapértelmezett Plex feliratot amennyiben lehetséges"
 
 # Pop-up during initial sync
 msgctxt "#39076"
-msgid "If you use several Plex libraries of one kind, e.g. \"Kids Movies\" and \"Parents Movies\", be sure to check the Wiki: https://goo.gl/JFtQV9"
-msgstr "Ha több különböző könyvtárat is használ egy fajtából, pl. \"Gyerekfilmek\" és \"Felnőtt filmek\", mindenképpen olvassa el a Wiki-t: https://goo.gl/JFtQV9"
+msgid ""
+"If you use several Plex libraries of one kind, e.g. \"Kids Movies\" and "
+"\"Parents Movies\", be sure to check the Wiki: https://goo.gl/JFtQV9"
+msgstr ""
+"Ha több különböző könyvtárat is használ egy fajtából, pl. \"Gyerekfilmek\" "
+"és \"Felnőtt filmek\", mindenképpen olvassa el a Wiki-t: "
+"https://goo.gl/JFtQV9"
 
 # PKC Settings - Appearance Tweaks
 msgctxt "#39077"
@@ -930,8 +1020,12 @@ msgstr "Plex Companion frissítési port (csak szükség esetén változtassa)"
 
 # Error message
 msgctxt "#39079"
-msgid "Plex Companion could not open the GDM port. Please change it in the PKC settings."
-msgstr "A Plex Companion nem tudta megnyitni a GDM portot. Kérem változtassa meg a PKC beállításokban."
+msgid ""
+"Plex Companion could not open the GDM port. Please change it in the PKC "
+"settings."
+msgstr ""
+"A Plex Companion nem tudta megnyitni a GDM portot. Kérem változtassa meg a "
+"PKC beállításokban."
 
 msgctxt "#39200"
 msgid "Log-out Plex Home User "
@@ -952,11 +1046,17 @@ msgstr "Kézi könyvtárszinkronizáció végrehajtása"
 # Error message
 msgctxt "#39205"
 msgid "Unable to run the sync, the add-on is not connected to a Plex server."
-msgstr "A szinkronizáció nem hajtható végre, a kiegészítő nincs Plex szerverhez csatlakoztatva."
+msgstr ""
+"A szinkronizáció nem hajtható végre, a kiegészítő nincs Plex szerverhez "
+"csatlakoztatva."
 
 msgctxt "#39206"
-msgid "Plex might lock your account if you fail to log in too many times. Proceed anyway?"
-msgstr "A Plex lezárhatja a fiókját amennyiben túl sokszor próbál sikertelenül bejelentkezni. Mindenképpen folytatja?"
+msgid ""
+"Plex might lock your account if you fail to log in too many times. Proceed "
+"anyway?"
+msgstr ""
+"A Plex lezárhatja a fiókját amennyiben túl sokszor próbál sikertelenül "
+"bejelentkezni. Mindenképpen folytatja?"
 
 msgctxt "#39207"
 msgid "Resetting PMS connections, please wait"
@@ -969,7 +1069,9 @@ msgstr "A PKC visszaállítása sikertelen. Kérem indítsa újra a Kodi-t."
 # PKC Settings - Plex
 msgctxt "#39209"
 msgid "[COLOR yellow]Toggle plex.tv login (sign in or sign out)[/COLOR]"
-msgstr "[COLOR yellow]Plex.tv bejelentkezés átkapcsolása (bejelentkezés vagy kijelentkezés)[/COLOR]"
+msgstr ""
+"[COLOR yellow]Plex.tv bejelentkezés átkapcsolása (bejelentkezés vagy "
+"kijelentkezés)[/COLOR]"
 
 msgctxt "#39210"
 msgid "Not yet connected to Plex Server"
@@ -989,8 +1091,12 @@ msgid "Enter your Plex Media Server's IP or URL, Examples are:"
 msgstr "Adja meg a Plex médiaszerver IP-címét vagy URL-jét, például:"
 
 msgctxt "#39217"
-msgid "Does your Plex Media Server support SSL connections? (https instead of http)?"
-msgstr "Támogatja a Plex médiaszervere az SSL csatlakozásokat (https a http helyett)?"
+msgid ""
+"Does your Plex Media Server support SSL connections? (https instead of "
+"http)?"
+msgstr ""
+"Támogatja a Plex médiaszervere az SSL csatlakozásokat (https a http "
+"helyett)?"
 
 msgctxt "#39218"
 msgid "Error contacting PMS"
@@ -1014,8 +1120,12 @@ msgid "[COLOR yellow]Look for missing fanart on FanartTV now[/COLOR]"
 msgstr "[COLOR yellow]Hiányzó művészképek keresése a FanArtTV-n most[/COLOR]"
 
 msgctxt "#39223"
-msgid "Only look for missing fanart or refresh all fanart? The scan will take quite a while and happen in the background."
-msgstr "Csak hiányzó művészképeket keressen, vagy frissítse az összeset? A keresés elég sokáig eltarthat és a háttérben történik."
+msgid ""
+"Only look for missing fanart or refresh all fanart? The scan will take quite"
+" a while and happen in the background."
+msgstr ""
+"Csak hiányzó művészképeket keressen, vagy frissítse az összeset? A keresés "
+"elég sokáig eltarthat és a háttérben történik."
 
 msgctxt "#39224"
 msgid "Refresh all"
@@ -1035,14 +1145,19 @@ msgctxt "#39227"
 msgid "Logged in to plex.tv"
 msgstr "Be van jelentkezve a plex.tv-be"
 
-# Message in the PKC settings to display the plex.tv username. Leave the colon :
+# Message in the PKC settings to display the plex.tv username. Leave the colon
+# :
 msgctxt "#39228"
 msgid "Plex user:"
 msgstr "Plex felhasználó:"
 
 msgctxt "#39250"
-msgid "Running the image cache process can take some time. It will happen in the background. Are you sure you want continue?"
-msgstr "A kép gyorsítótárazási folyamat futtatása sokáig eltarthat. A folyamat a háttérben történik. Biztosan folytatja?"
+msgid ""
+"Running the image cache process can take some time. It will happen in the "
+"background. Are you sure you want continue?"
+msgstr ""
+"A kép gyorsítótárazási folyamat futtatása sokáig eltarthat. A folyamat a "
+"háttérben történik. Biztosan folytatja?"
 
 msgctxt "#39251"
 msgid "Reset all existing cache data first?"
@@ -1054,7 +1169,8 @@ msgstr "Nem sikerült csatlakozni a plex.tv-hez. Kérem próbálja meg később.
 
 msgctxt "#39304"
 msgid "Go to https://plex.tv/pin and enter the code: "
-msgstr "Keresse fel a https://plex.tv/pin weboldalt és adja meg a következő kódot: "
+msgstr ""
+"Keresse fel a https://plex.tv/pin weboldalt és adja meg a következő kódot: "
 
 msgctxt "#39305"
 msgid "Could not sign in to plex.tv. Try again later"
@@ -1085,20 +1201,32 @@ msgid "or press No to not sign in."
 msgstr "vagy válassza a Nem-et a bejelentkezés kihagyásához."
 
 msgctxt "#39400"
-msgid "Library sync thread has crashed. You should restart Kodi now. Please report this on the forum"
-msgstr "A könvtárszinkronizációs szál összeomlott. Indítsa újra a Kodi-t. Kérem jelentse a problémát a fórumon."
+msgid ""
+"Library sync thread has crashed. You should restart Kodi now. Please report "
+"this on the forum"
+msgstr ""
+"A könvtárszinkronizációs szál összeomlott. Indítsa újra a Kodi-t. Kérem "
+"jelentse a problémát a fórumon."
 
 msgctxt "#39401"
-msgid "Detected Kodi database needs to be recreated for this version. This might take a while. Proceed?"
-msgstr "Az észlelt Kodi adatbázist újra létre kell hozni a jelenlegi verzióhoz. Ez eltarthat egy ideig. Folytatja?"
+msgid ""
+"Detected Kodi database needs to be recreated for this version. This might "
+"take a while. Proceed?"
+msgstr ""
+"Az észlelt Kodi adatbázist újra létre kell hozni a jelenlegi verzióhoz. Ez "
+"eltarthat egy ideig. Folytatja?"
 
 msgctxt "#39402"
 msgid " may not work correctly until the database is reset."
 msgstr " lehet nem fog megfelelően működni az adatbázis visszaállításáig."
 
 msgctxt "#39403"
-msgid "Cancelling the database syncing process. Current Kodi version is unsupported. Please verify your logs for more info."
-msgstr "Az adatbázis szinkronizációs folyamat megszakítása. A jelenlegi Kodi verzió nem támogatott. Kérem tekintse meg a hibanaplót további információkért."
+msgid ""
+"Cancelling the database syncing process. Current Kodi version is "
+"unsupported. Please verify your logs for more info."
+msgstr ""
+"Az adatbázis szinkronizációs folyamat megszakítása. A jelenlegi Kodi verzió "
+"nem támogatott. Kérem tekintse meg a hibanaplót további információkért."
 
 msgctxt "#39405"
 msgid "Plex playlists/nodes refreshed"
@@ -1113,12 +1241,23 @@ msgid "Full library sync finished"
 msgstr "Teljes könyvtárszinkronizáció befejezve"
 
 msgctxt "#39408"
-msgid "Sync had to skip some items because they could not be processed. Kodi may be instable now!! Please post your Kodi logs to the Plex forum."
-msgstr "A szinkronizáció során néhány elem feldolgozása sikertelen volt. A Kodi jelenleg instabil lehet! Kérem töltse fel a hibanapló tartalmát a Plex fórumra."
+msgid ""
+"Sync had to skip some items because they could not be processed. Kodi may be"
+" instable now!! Please post your Kodi logs to the Plex forum."
+msgstr ""
+"A szinkronizáció során néhány elem feldolgozása sikertelen volt. A Kodi "
+"jelenleg instabil lehet! Kérem töltse fel a hibanapló tartalmát a Plex "
+"fórumra."
 
 msgctxt "#39409"
-msgid "The Plex Server did not like you asking for so much data at once and returned ERRORS. Try lowering the number of sync download threads in the settings. Skipped some items for now."
-msgstr "A Plex szerver sokallta az egyszerre kért adatmennyiséget és HIBÁKKAL válaszolt. Próbálja meg csökkenteni a szinkronizációs szálak számát a beállításokban. Néhány elem kihagyásra került."
+msgid ""
+"The Plex Server did not like you asking for so much data at once and "
+"returned ERRORS. Try lowering the number of sync download threads in the "
+"settings. Skipped some items for now."
+msgstr ""
+"A Plex szerver sokallta az egyszerre kért adatmennyiséget és HIBÁKKAL "
+"válaszolt. Próbálja meg csökkenteni a szinkronizációs szálak számát a "
+"beállításokban. Néhány elem kihagyásra került."
 
 msgctxt "#39410"
 msgid "ERROR in library sync"
@@ -1133,16 +1272,24 @@ msgid "Collections"
 msgstr "Gyűjtemények"
 
 msgctxt "#39600"
-msgid "Are you sure you want to reset your local Kodi database? A re-sync of the Plex data will take time afterwards."
-msgstr "Biztosan vissza akarja állítani a helyi Kodi adatbázist? A Plex adatok újraszinkronizálása később időt vesz majd igénybe."
+msgid ""
+"Are you sure you want to reset your local Kodi database? A re-sync of the "
+"Plex data will take time afterwards."
+msgstr ""
+"Biztosan vissza akarja állítani a helyi Kodi adatbázist? A Plex adatok "
+"újraszinkronizálása később időt vesz majd igénybe."
 
 msgctxt "#39601"
 msgid "Could not stop the database from running. Please try again later."
 msgstr "A Kodi adatbázis megállítása sikertelen. Kérem próbálja újra később."
 
 msgctxt "#39603"
-msgid "Reset all PlexKodiConnect Addon settings? (this is usually NOT recommended and unnecessary!)"
-msgstr "Visszaállítja az összes PlexKodiConnect kiegészítő beállítást? (ez általában NEM ajánlott és szükségtelen!)"
+msgid ""
+"Reset all PlexKodiConnect Addon settings? (this is usually NOT recommended "
+"and unnecessary!)"
+msgstr ""
+"Visszaállítja az összes PlexKodiConnect kiegészítő beállítást? (ez általában"
+" NEM ajánlott és szükségtelen!)"
 
 msgctxt "#39700"
 msgid "Amazon Alexa (Voice Recognition)"
@@ -1165,8 +1312,17 @@ msgstr "a Plex natív integrációja a Kodi-ba"
 # For use with addon.xml (PKC metadata for Kodi, e.g. description)
 # Addon Description
 msgctxt "#39704"
-msgid "Connect Kodi to your Plex Media Server. This plugin assumes that you manage all your videos with Plex (and none with Kodi). You might lose data already stored in the Kodi video and music databases (as this plugin directly changes them). Use at your own risk!"
-msgstr "Csatlakoztassa a Kodi-t a Plex médiaszerveréhez. Ez a kiegészítő feltételezi, hogy az összes videóját a Plex-szel kezeli (és egyiket sem a Kodi-val). Elveszítheti a már a Kodi videó- és zene-adatbázisában tárolt adatokat (mivel ez a kiegészítő közvetlenül módosítja az adatbázisokat). Csak saját felelősségére használja!"
+msgid ""
+"Connect Kodi to your Plex Media Server. This plugin assumes that you manage "
+"all your videos with Plex (and none with Kodi). You might lose data already "
+"stored in the Kodi video and music databases (as this plugin directly "
+"changes them). Use at your own risk!"
+msgstr ""
+"Csatlakoztassa a Kodi-t a Plex médiaszerveréhez. Ez a kiegészítő "
+"feltételezi, hogy az összes videóját a Plex-szel kezeli (és egyiket sem a "
+"Kodi-val). Elveszítheti a már a Kodi videó- és zene-adatbázisában tárolt "
+"adatokat (mivel ez a kiegészítő közvetlenül módosítja az adatbázisokat). "
+"Csak saját felelősségére használja!"
 
 # For use with addon.xml (PKC metadata for Kodi, e.g. description)
 # Addon Disclaimer
@@ -1174,36 +1330,46 @@ msgctxt "#39705"
 msgid "Use at your own risk"
 msgstr "Csak saját felelősségre használja"
 
-
-# If user gets prompted to choose between several subtitles. Leave the number one at the beginning of the string!
+# If user gets prompted to choose between several subtitles. Leave the number
+# one at the beginning of the string!
 msgctxt "#39706"
 msgid "1 No subtitles"
 msgstr "1 Feliratok kikapcsolása"
 
-# If user gets prompted to choose between several audio/subtitle tracks and language is unknown
+# If user gets prompted to choose between several audio/subtitle tracks and
+# language is unknown
 msgctxt "#39707"
 msgid "unknown"
 msgstr "ismeretlen"
 
-# If user gets prompted to choose between several subtitles and Plex adds the "default" flag
+# If user gets prompted to choose between several subtitles and Plex adds the
+# "default" flag
 msgctxt "#39708"
 msgid "Default"
 msgstr "Alapértelmezett"
 
-# If user gets prompted to choose between several subtitles and Plex adds the "forced" flag
+# If user gets prompted to choose between several subtitles and Plex adds the
+# "forced" flag
 msgctxt "#39709"
 msgid "Forced"
 msgstr "Kényszerített"
 
-# If user gets prompted to choose between several subtitles the subtitle cannot be downloaded (has no 'key' attribute from the PMS), the subtitle needs to be burned in
+# If user gets prompted to choose between several subtitles the subtitle
+# cannot be downloaded (has no 'key' attribute from the PMS), the subtitle
+# needs to be burned in
 msgctxt "#39710"
 msgid "burn-in"
 msgstr "égetett"
 
-# Dialog text if PKC detected a new Music library and Kodi needs to be restarted
+# Dialog text if PKC detected a new Music library and Kodi needs to be
+# restarted
 msgctxt "#39711"
-msgid "New Plex music library detected. Sorry, but we need to restart Kodi now due to the changes made."
-msgstr "Új Plex zenekönyvtár észlelve. Sajnálom, de most a változások érvényesítéséhez újra kell induljon a Kodi."
+msgid ""
+"New Plex music library detected. Sorry, but we need to restart Kodi now due "
+"to the changes made."
+msgstr ""
+"Új Plex zenekönyvtár észlelve. Sajnálom, de most a változások "
+"érvényesítéséhez újra kell induljon a Kodi."
 
 # Shown during sync process
 msgctxt "#39712"
@@ -1225,20 +1391,32 @@ msgctxt "#39715"
 msgid "items"
 msgstr "elemek"
 
-# Error message if an xml, e.g. advancedsettings.xml cannot be parsed (xml is screwed up; formated the wrong way). Do NOT replace {0} and {1}!
+# Error message if an xml, e.g. advancedsettings.xml cannot be parsed (xml is
+# screwed up; formated the wrong way). Do NOT replace {0} and {1}!
 msgctxt "#39716"
-msgid "Kodi cannot parse {0}. PKC will not function correctly. Please visit {1} and correct your file!"
-msgstr "A Kodi nem tudja elemezni a(z) {0}-t. A PKC nem fog megfelelően működni. Kérem látogassa meg a(z) {1}-t és javítsa ki a fájlt!"
+msgid ""
+"Kodi cannot parse {0}. PKC will not function correctly. Please visit {1} and"
+" correct your file!"
+msgstr ""
+"A Kodi nem tudja elemezni a(z) {0}-t. A PKC nem fog megfelelően működni. "
+"Kérem látogassa meg a(z) {1}-t és javítsa ki a fájlt!"
 
-# Shown once on first installation to comply with the terms of use of themoviedb.org
+# Shown once on first installation to comply with the terms of use of
+# themoviedb.org
 msgctxt "#39717"
 msgid "PKC uses free additional artwork from www.themoviedb.org. Many thanks!"
-msgstr "A PKC további ingyenes művészképeket használ a www.themoviedb.org-ról. Nagyon köszönjük!"
+msgstr ""
+"A PKC további ingyenes művészképeket használ a www.themoviedb.org-ról. "
+"Nagyon köszönjük!"
 
 # Shown during very first PKC setup only
 msgctxt "#39718"
-msgid "Do you want to replace your custom user ratings with an indicator of how many versions of a media item you posses?"
-msgstr "Kívánja lecserélni a felhasználói osztályzatokat egy jelzővel, amely megmutatja, hogy az adott média elemből hány verzióval rendelkezik?"
+msgid ""
+"Do you want to replace your custom user ratings with an indicator of how "
+"many versions of a media item you posses?"
+msgstr ""
+"Kívánja lecserélni a felhasználói osztályzatokat egy jelzővel, amely "
+"megmutatja, hogy az adott média elemből hány verzióval rendelkezik?"
 
 # In PKC Settings under Sync
 msgctxt "#39719"
