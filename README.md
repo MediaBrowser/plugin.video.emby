@@ -15,7 +15,7 @@ PKC combines the best of Kodi - ultra smooth navigation, beautiful and highly cu
 
 Have a look at [some screenshots](https://github.com/croneter/PlexKodiConnect/wiki/Some-PKC-Screenshots) to see what's possible. 
 
-### UPDATE YOUR PKC REPO TO RECEIVE UPDATES!
+### Update Your PKC Repo to Receive Updates!
 
 Unfortunately, the PKC Kodi repository had to move because it stopped working (thanks https://bintray.com). If you installed PKC before December 15, 2017, you need to [**MANUALLY** update the repo once](https://github.com/croneter/PlexKodiConnect/wiki/Update-PKC-Repository).
 
