@@ -999,7 +999,7 @@ class TVShows(Items):
         """
         plex_dbitem = self.plex_db.getItem_byId(plex_id)
         if plex_dbitem is None:
-            LOG.info('Cannot delete plex_id %s - not found in DB', plex_id)
+            LOG.debug('Cannot delete plex_id %s - not found in DB', plex_id)
             return
         kodi_id = plex_dbitem[0]
         file_id = plex_dbitem[1]
@@ -1075,7 +1075,7 @@ class TVShows(Items):
         if v.KODIVERSION >= 17:
             self.kodi_db.remove_uniqueid(kodi_id, v.KODI_TYPE_SHOW)
             self.kodi_db.remove_ratings(kodi_id, v.KODI_TYPE_SHOW)
-        LOG.info("Removed tvshow: %s", kodi_id)
+        LOG.debug("Removed tvshow: %s", kodi_id)
 
     def remove_season(self, kodi_id):
         """
@@ -1086,7 +1086,7 @@ class TVShows(Items):
                                     self.kodicursor)
         self.kodicursor.execute("DELETE FROM seasons WHERE idSeason = ?",
                                 (kodi_id,))
-        LOG.info("Removed season: %s", kodi_id)
+        LOG.debug("Removed season: %s", kodi_id)
 
     def remove_episode(self, kodi_id, file_id):
         """
@@ -1102,7 +1102,7 @@ class TVShows(Items):
         if v.KODIVERSION >= 17:
             self.kodi_db.remove_uniqueid(kodi_id, v.KODI_TYPE_EPISODE)
             self.kodi_db.remove_ratings(kodi_id, v.KODI_TYPE_EPISODE)
-        LOG.info("Removed episode: %s", kodi_id)
+        LOG.debug("Removed episode: %s", kodi_id)
 
 
 class Music(Items):
