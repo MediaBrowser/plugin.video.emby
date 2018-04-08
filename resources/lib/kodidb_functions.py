@@ -5,6 +5,8 @@ from logging import getLogger
 from ntpath import dirname
 from sqlite3 import IntegrityError
 
+import xbmc
+
 import artwork
 from utils import kodi_sql, try_decode, unix_timestamp, unix_date_to_kodi
 import variables as v
@@ -210,18 +212,33 @@ class KodiDBMethods(object):
         but without a dateAdded entry. This method cleans up all file entries
         without a dateAdded entry - to be called after playback has ended.
         """
-        self.cursor.execute('SELECT idFile FROM files WHERE dateAdded IS NULL')
-        files = self.cursor.fetchall()
-        self.cursor.execute('DELETE FROM files where dateAdded IS NULL')
-        for file in files:
+        query = '''
+            SELECT idFile FROM files
+            WHERE dateAdded IS NULL
+            AND strFilename LIKE \'plugin://plugin.video.plexkodiconnect%\'
+        '''
+        i = 0
+        while i < 100:
+            self.cursor.execute(query)
+            files = self.cursor.fetchall()
+            if files:
+                break
+            # Make sure Kodi recorded "false" playstate FIRST before
+            # cleaning it
+            i += 1
+            xbmc.sleep(100)
+        for item in files:
+            LOG.debug('Cleaning file id: %s', item[0])
+            self.cursor.execute('DELETE FROM files WHERE idFile = ?',
+                                (item[0],))
             self.cursor.execute('DELETE FROM bookmark WHERE idFile = ?',
-                                (file[0],))
+                                (item[0],))
             self.cursor.execute('DELETE FROM settings WHERE idFile = ?',
-                                (file[0],))
+                                (item[0],))
             self.cursor.execute('DELETE FROM streamdetails WHERE idFile = ?',
-                                (file[0],))
+                                (item[0],))
             self.cursor.execute('DELETE FROM stacktimes WHERE idFile = ?',
-                                (file[0],))
+                                (item[0],))
 
     def show_id_from_path(self, path):
         """

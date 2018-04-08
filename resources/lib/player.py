@@ -28,7 +28,8 @@ def playback_cleanup(ended=False):
     completely finished playing an item (because we will get and use wrong
     timing data otherwise)
     """
-    LOG.debug('playback_cleanup called')
+    LOG.debug('playback_cleanup called. Active players: %s',
+              state.ACTIVE_PLAYERS)
     # We might have saved a transient token from a user flinging media via
     # Companion (if we could not use the playqueue to store the token)
     state.PLEX_TRANSIENT_TOKEN = None
@@ -106,6 +107,11 @@ def _record_playstate(status, ended):
             xbmc.getCondVisibility('Window.IsVisible(Home.xml)')):
         LOG.debug('Refreshing skin to update widgets')
         xbmc.executebuiltin('ReloadSkin()')
+    if (state.DIRECT_PATHS and
+            status['playmethod'] in ('DirectStream', 'Transcode')):
+        LOG.debug('Start cleaning Kodi files table')
+        with kodidb.GetKodiDB('video') as kodi_db:
+            kodi_db.clean_file_table()
 
 
 class PKC_Player(xbmc.Player):
