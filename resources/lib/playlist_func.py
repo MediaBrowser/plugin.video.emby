@@ -64,6 +64,8 @@ class PlaylistObjectBaseclase(object):
             if isinstance(getattr(self, key), str):
                 answ += '\'%s\': \'%s\', ' % (key,
                                               try_decode(getattr(self, key)))
+            elif isinstance(getattr(self, key), unicode):
+                answ += '\'%s\': \'%s\', ' % (key, getattr(self, key))
             else:
                 # e.g. int
                 answ += '\'%s\': %s, ' % (key, unicode(getattr(self, key)))
@@ -184,6 +186,8 @@ class Playlist_Item(object):
             if isinstance(getattr(self, key), str):
                 answ += '\'%s\': \'%s\', ' % (key,
                                               try_decode(getattr(self, key)))
+            elif isinstance(getattr(self, key), unicode):
+                answ += '\'%s\': \'%s\', ' % (key, getattr(self, key))
             else:
                 # e.g. int
                 answ += '\'%s\': %s, ' % (key, unicode(getattr(self, key)))
