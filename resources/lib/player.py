@@ -151,6 +151,7 @@ class PKC_Player(xbmc.Player):
         LOG.debug("ONPLAYBACK_ENDED")
         if state.PKC_CAUSED_STOP is True:
             state.PKC_CAUSED_STOP = False
+            state.PKC_CAUSED_STOP_DONE = True
             LOG.debug('PKC caused this playback stop - ignoring')
         else:
             playback_cleanup(ended=True)
