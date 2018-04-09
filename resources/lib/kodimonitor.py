@@ -71,16 +71,12 @@ class KodiMonitor(Monitor):
         Will be called when Kodi starts scanning the library
         """
         LOG.debug("Kodi library scan %s running.", library)
-        if library == "video":
-            window('plex_kodiScan', value="true")
 
     def onScanFinished(self, library):
         """
         Will be called when Kodi finished scanning the library
         """
         LOG.debug("Kodi library scan %s finished.", library)
-        if library == "video":
-            window('plex_kodiScan', clear=True)
 
     def onSettingsChanged(self):
         """
@@ -169,17 +165,11 @@ class KodiMonitor(Monitor):
                 LOG.error("Could not find itemid in plex database for a "
                           "video library update")
             else:
-                # Stop from manually marking as watched unwatched, with
-                # actual playback.
-                if window('plex_skipWatched%s' % itemid) == "true":
-                    # property is set in player.py
-                    window('plex_skipWatched%s' % itemid, clear=True)
+                # notify the server
+                if playcount > 0:
+                    scrobble(itemid, 'watched')
                 else:
-                    # notify the server
-                    if playcount > 0:
-                        scrobble(itemid, 'watched')
-                    else:
-                        scrobble(itemid, 'unwatched')
+                    scrobble(itemid, 'unwatched')
         elif method == "VideoLibrary.OnRemove":
             pass
         elif method == "System.OnSleep":
@@ -189,7 +179,6 @@ class KodiMonitor(Monitor):
         elif method == "System.OnWake":
             # Allow network to wake up
             sleep(10000)
-            window('plex_onWake', value="true")
             window('plex_online', value="false")
         elif method == "GUI.OnScreensaverDeactivated":
             if settings('dbSyncScreensaver') == "true":

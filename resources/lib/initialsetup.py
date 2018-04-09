@@ -28,13 +28,13 @@ LOG = getLogger("PLEX." + __name__)
 
 
 WINDOW_PROPERTIES = (
-    "plex_online", "plex_serverStatus", "plex_onWake", "plex_kodiScan",
-    "plex_shouldStop", "plex_dbScan", "plex_initialScan",
-    "plex_customplayqueue", "plex_playbackProps", "pms_token", "plex_token",
-    "pms_server", "plex_machineIdentifier", "plex_servername",
-    "plex_authenticated", "PlexUserImage", "useDirectPaths", "countError",
-    "countUnauthorized", "plex_restricteduser", "plex_allows_mediaDeletion",
-    "plex_command", "plex_result", "plex_force_transcode_pix"
+    "plex_online", "plex_serverStatus", "plex_shouldStop", "plex_dbScan",
+    "plex_initialScan", "plex_customplayqueue", "plex_playbackProps",
+    "pms_token", "plex_token", "pms_server", "plex_machineIdentifier",
+    "plex_servername", "plex_authenticated", "PlexUserImage", "useDirectPaths",
+    "countError", "countUnauthorized", "plex_restricteduser",
+    "plex_allows_mediaDeletion", "plex_command", "plex_result",
+    "plex_force_transcode_pix"
 )
 
 
