@@ -6,8 +6,8 @@ import xml.etree.ElementTree as etree
 
 from xbmc import executebuiltin, translatePath
 
-from utils import settings, window, language as lang, try_encode, try_decode, \
-    XmlKodiSetting, reboot_kodi, dialog
+from utils import settings, window, language as lang, try_decode, dialog, \
+    XmlKodiSetting, reboot_kodi
 from migration import check_migration
 from downloadutils import DownloadUtils as DU
 from userclient import UserClient
