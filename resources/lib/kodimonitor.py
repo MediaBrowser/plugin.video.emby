@@ -14,7 +14,7 @@ import kodidb_functions as kodidb
 from utils import window, settings, plex_command, thread_methods, try_encode, \
     kodi_time_to_millis, unix_date_to_kodi, unix_timestamp
 from PlexFunctions import scrobble
-import downloadutils as DU
+from downloadutils import DownloadUtils as DU
 from kodidb_functions import kodiid_from_filename
 from plexbmchelper.subscribers import LOCKER
 from playback import playback_triage
