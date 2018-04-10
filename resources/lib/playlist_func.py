@@ -49,6 +49,9 @@ class PlaylistObjectBaseclase(object):
         self.plex_transient_token = None
         # Need a hack for detecting swaps of elements
         self.old_kodi_pl = []
+        # Did PKC itself just change the playqueue so the PKC playqueue monitor
+        # should not pick up any changes?
+        self.pkc_edit = False
         # Workaround to avoid endless loops of detecting PL clears
         self._clear_list = []
 

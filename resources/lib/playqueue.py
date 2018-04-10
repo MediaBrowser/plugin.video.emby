@@ -234,6 +234,9 @@ class PlayqueueMonitor(Thread):
                         # Only initialize if directly fired up using direct
                         # paths. Otherwise let default.py do its magic
                         LOG.debug('Not yet initiating playback')
+                    elif playqueue.pkc_edit:
+                        playqueue.pkc_edit = False
+                        LOG.debug('PKC just edited the playqueue - skipping')
                     else:
                         # compare old and new playqueue
                         self._compare_playqueues(playqueue, kodi_pl)

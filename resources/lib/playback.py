@@ -165,6 +165,8 @@ def _playback_init(plex_id, plex_type, playqueue, pos):
     # plugin://pkc will be lost; Kodi will try to startup playback for an empty
     # path: log entry is "CGUIWindowVideoBase::OnPlayMedia <missing path>"
     thread.start()
+    # Ensure that PKC playqueue monitor ignores the changes we just made
+    playqueue.pkc_edit = True
 
 
 def _ensure_resolve(abort=False):
