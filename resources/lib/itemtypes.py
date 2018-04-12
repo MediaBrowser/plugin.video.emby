@@ -1732,9 +1732,9 @@ class Music(Items):
             path_id = plex_dbitem[2]
             parent_id = plex_dbitem[3]
             kodi_type = plex_dbitem[4]
-            LOG.info('Removing plex_id %s with kodi_type %s, kodi_id %s, '
-                     'parent_id %s, file_id %s, pathid %s',
-                     plex_id, kodi_type, kodi_id, parent_id, file_id, path_id)
+            LOG.debug('Removing plex_id %s with kodi_type %s, kodi_id %s, '
+                      'parent_id %s, file_id %s, pathid %s',
+                      plex_id, kodi_type, kodi_id, parent_id, file_id, path_id)
         except TypeError:
             LOG.debug('Cannot delete item with plex id %s from Kodi', plex_id)
             return
