@@ -18,11 +18,12 @@ LOG = getLogger("PLEX." + __name__)
 ###############################################################################
 
 
-class Playback_Starter(Thread):
+class PlaybackStarter(Thread):
     """
     Processes new plays
     """
-    def triage(self, item):
+    @staticmethod
+    def _triage(item):
         try:
             _, params = item.split('?', 1)
         except ValueError:
@@ -58,6 +59,6 @@ class Playback_Starter(Thread):
                 # Need to shutdown - initiated by command_pipeline
                 break
             else:
-                self.triage(item)
+                self._triage(item)
                 queue.task_done()
         LOG.info("----===## Playback_Starter stopped ##===----")
