@@ -52,7 +52,7 @@ class PlaybackStarter(Thread):
 
     def run(self):
         queue = state.COMMAND_PIPELINE_QUEUE
-        LOG.info("----===## Starting Playback_Starter ##===----")
+        LOG.info("----===## Starting PlaybackStarter ##===----")
         while True:
             item = queue.get()
             if item is None:
@@ -61,4 +61,4 @@ class PlaybackStarter(Thread):
             else:
                 self._triage(item)
                 queue.task_done()
-        LOG.info("----===## Playback_Starter stopped ##===----")
+        LOG.info("----===## PlaybackStarter stopped ##===----")
