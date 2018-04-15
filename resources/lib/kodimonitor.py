@@ -254,7 +254,6 @@ class KodiMonitor(xbmc.Monitor):
         playqueue = PQ.PLAYQUEUES[data['playlistid']]
         if not playqueue.is_pkc_clear():
             playqueue.clear(kodi=False)
-            playqueue.pkc_edit = True
         else:
             LOG.debug('Detected PKC clear - ignoring')
 
