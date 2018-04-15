@@ -271,7 +271,6 @@ class LibrarySync(Thread):
         if state.ENABLE_MUSIC:
             xbmc.executebuiltin('UpdateLibrary(music)')
 
-        window('plex_initialScan', clear=True)
         if window('plex_scancrashed') == 'true':
             # Show warning if itemtypes.py crashed at some point
             dialog('ok', heading='{plex}', line1=lang(39408))
