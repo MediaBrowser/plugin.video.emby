@@ -124,31 +124,29 @@ class KodiMonitor(xbmc.Monitor):
                 xbmc.sleep(200)
                 return self._on_play_(data)
         else:
-            if ((settings('useDirectPaths') == "1" and not item_type == "song") or
-                (item_type == "song" and settings('enableMusic') == "true")):
-                # Set up properties for player
-                item_id = self._get_item_id(kodi_id, item_type)
-                if item_id:
-                    url = "{server}/emby/Users/{UserId}/Items/%s?format=json" % item_id
-                    result = self.download(url)
-                    log.debug("Item: %s", result)
+            # Set up properties for player
+            item_id = self._get_item_id(kodi_id, item_type)
+            if item_id:
+                url = "{server}/emby/Users/{UserId}/Items/%s?format=json" % item_id
+                result = self.download(url)
+                log.debug("Item: %s", result)
 
-                    playurl = None
-                    count = 0
-                    while not playurl and count < 2:
-                        try:
-                            playurl = xbmc.Player().getPlayingFile()
-                        except RuntimeError:
-                            count += 1
-                            xbmc.sleep(200)
-                        else:
-                            window('emby_%s.play.json' % playurl, {
+                playurl = None
+                count = 0
+                while not playurl and count < 2:
+                    try:
+                        playurl = xbmc.Player().getPlayingFile()
+                    except RuntimeError:
+                        count += 1
+                        xbmc.sleep(200)
+                    else:
+                        window('emby_%s.play.json' % playurl, {
 
-                                'playmethod': "DirectStream" if item_type == "song" and settings('streamMusic') == "true" else "DirectPlay",
-                                'playsession_id': str(create_id()).replace("-", "")
-                            })
-                            listitem = xbmcgui.ListItem()
-                            pbutils.PlaybackUtils(result).set_properties(playurl, listitem)
+                            'playmethod': "DirectStream" if item_type == "song" and settings('streamMusic') == "true" else "DirectPlay",
+                            'playsession_id': str(create_id()).replace("-", "")
+                        })
+                        listitem = xbmcgui.ListItem()
+                        pbutils.PlaybackUtils(result).set_properties(playurl, listitem)
 
     def _video_update(self, data):
         # Manually marking as watched/unwatched
@@ -225,18 +223,8 @@ class SpecialMonitor(threading.Thread):
 
             player = xbmc.Player()
             isPlaying = player.isPlaying()
-
-            if (not isPlaying and xbmc.getCondVisibility('Window.IsVisible(DialogContextMenu.xml)') and
-                xbmc.getInfoLabel('Control.GetLabel(1002)') == xbmc.getLocalizedString(12021)):
-
-                control = int(xbmcgui.Window(10106).getFocusId())
-                if control == 1002: # Start from beginning
-                    log.info("Resume dialog: Start from beginning selected.")
-                    window('emby.resume', clear=True)
-                else:
-                    window('emby.resume', value="true")
-
-            elif isPlaying and not window('emby.external_check'):
+            
+            if isPlaying and not window('emby.external_check'):
                 time = player.getTime()
 
                 if time > 1: # Not external player.
