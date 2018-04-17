@@ -182,7 +182,7 @@ class MusicVideos(Items):
             params = {
 
                 'filename': filename.encode('utf-8'),
-                'dbid': mvideoid,
+                'kodiid': mvideoid,
             }
             filename = "%s/file.strm?%s" % (itemid, urllib.urlencode(params))
 

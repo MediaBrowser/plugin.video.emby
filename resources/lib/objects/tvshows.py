@@ -588,7 +588,7 @@ class TVShows(Items):
             params = {
 
                 'filename': filename.encode('utf-8'),
-                'dbid': episodeid
+                'kodiid': episodeid
             }
             filename = "%s/file.strm?%s" % (itemid, urllib.urlencode(params))
 

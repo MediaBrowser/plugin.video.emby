@@ -240,7 +240,7 @@ class Movies(Items):
             params = {
 
                 'filename': filename.encode('utf-8'),
-                'dbid': movieid,
+                'kodiid': movieid,
             }
             filename = "%s/file.strm?%s" % (itemid, urllib.urlencode(params))
 
