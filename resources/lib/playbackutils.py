@@ -92,9 +92,6 @@ class PlaybackUtils(object):
 
         log.info("Play called: %s", self.item['Name'])
 
-        resume = window('emby.resume')
-        window('emby.resume', clear=True)
-
         play_url = putils.PlayUtils(self.item, listitem).get_play_url(force_transcode)
 
         if not play_url:
@@ -102,17 +99,14 @@ class PlaybackUtils(object):
                 self.playlist.clear()
             return xbmcplugin.setResolvedUrl(int(sys.argv[1]), False, listitem)
 
-        if force_transcode:
             
-            seektime = self.API.get_userdata()['Resume']
-            if seektime:
-                resume = self.resume_dialog(seektime)
-                if resume is None:
-                    return xbmcplugin.setResolvedUrl(int(sys.argv[1]), False, listitem)
-                elif not resume:
-                    seektime = 0
-        else:
-            seektime = self.API.adjust_resume(self.API.get_userdata()['Resume']) if resume == "true" else 0
+        seektime = self.API.get_userdata()['Resume']
+        if seektime:
+            resume = self.resume_dialog(seektime)
+            if resume is None:
+                return xbmcplugin.setResolvedUrl(int(sys.argv[1]), False, listitem)
+            elif not resume:
+                seektime = 0
 
         if force_transcode:
             log.info("Clear the playlist.")
