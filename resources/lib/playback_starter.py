@@ -50,8 +50,8 @@ class PlaybackStarter(Thread):
             if resolve:
                 pickle_me(Playback_Successful())
         elif mode == 'context_menu':
-            ContextMenu(kodi_id=params['kodi_id'],
-                        kodi_type=params['kodi_type'])
+            ContextMenu(kodi_id=params.get('kodi_id'),
+                        kodi_type=params.get('kodi_type'))
 
     def run(self):
         queue = state.COMMAND_PIPELINE_QUEUE
