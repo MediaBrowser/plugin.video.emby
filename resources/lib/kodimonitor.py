@@ -144,12 +144,12 @@ class KodiMonitor(xbmc.Monitor):
             if data.get('end'):
                 if state.PKC_CAUSED_STOP is True:
                     state.PKC_CAUSED_STOP = False
-                    state.PKC_CAUSED_STOP_DONE = True
                     LOG.debug('PKC caused this playback stop - ignoring')
                 else:
                     _playback_cleanup(ended=True)
             else:
                 _playback_cleanup()
+            state.PKC_CAUSED_STOP_DONE = True
             state.SUSPEND_SYNC = False
         elif method == 'Playlist.OnAdd':
             self._playlist_onadd(data)
