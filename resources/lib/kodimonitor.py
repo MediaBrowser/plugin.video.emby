@@ -136,6 +136,7 @@ class KodiMonitor(xbmc.Monitor):
             LOG.debug("Method: %s Data: %s", method, data)
 
         if method == "Player.OnPlay":
+            state.SUSPEND_SYNC = True
             self.PlayBackStart(data)
         elif method == "Player.OnStop":
             # Should refresh our video nodes, e.g. on deck
@@ -149,6 +150,7 @@ class KodiMonitor(xbmc.Monitor):
                     _playback_cleanup(ended=True)
             else:
                 _playback_cleanup()
+            state.SUSPEND_SYNC = False
         elif method == 'Playlist.OnAdd':
             self._playlist_onadd(data)
         elif method == 'Playlist.OnRemove':
