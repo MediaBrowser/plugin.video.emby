@@ -956,7 +956,7 @@ class KodiDBMethods(object):
             return
         query = '''
             DELETE FROM discography
-            WHERE idArtist = ?, strAlbum = ?, strYear = ?
+            WHERE idArtist = ? AND strAlbum = ? AND strYear = ?
         '''
         self.cursor.execute(query, (artist[0], name, year))
 
