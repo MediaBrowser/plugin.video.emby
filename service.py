@@ -135,7 +135,7 @@ class Service():
             if window('plex_online') == "true":
                 # Plex server is online
                 # Verify if user is set and has access to the server
-                if (self.user.currUser is not None) and self.user.HasAccess:
+                if (self.user.currUser is not None) and self.user.has_access:
                     if not self.kodimonitor_running:
                         # Start up events
                         self.warn_auth = True
@@ -187,9 +187,9 @@ class Service():
                     # User access is restricted.
                     # Keep verifying until access is granted
                     # unless server goes offline or Kodi is shut down.
-                    while self.user.HasAccess is False:
+                    while self.user.has_access is False:
                         # Verify access with an API call
-                        self.user.hasAccess()
+                        self.user.check_access()
 
                         if window('plex_online') != "true":
                             # Server went offline
@@ -202,7 +202,7 @@ class Service():
                 # Wait until Plex server is online
                 # or Kodi is shut down.
                 while not self.__stop_PKC():
-                    server = self.user.getServer()
+                    server = self.user.get_server()
                     if server is False:
                         # No server info set in add-on settings
                         pass
