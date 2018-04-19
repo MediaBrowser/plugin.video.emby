@@ -553,7 +553,7 @@ def getOnDeck(viewid, mediatype, tagname, limit):
                 append_show_title=append_show_title,
                 append_sxxexx=append_sxxexx)
             if directpaths:
-                url = api.file_path()
+                url = api.file_path(force_first_media=True)
             else:
                 url = ('plugin://%s.tvshows/?plex_id=%s&plex_type=%s&mode=play&filename=%s'
                        % (v.ADDON_ID,
