@@ -135,7 +135,7 @@ class Service():
             if window('plex_online') == "true":
                 # Plex server is online
                 # Verify if user is set and has access to the server
-                if (self.user.currUser is not None) and self.user.has_access:
+                if (self.user.user is not None) and self.user.has_access:
                     if not self.kodimonitor_running:
                         # Start up events
                         self.warn_auth = True
@@ -145,7 +145,7 @@ class Service():
                             dialog('notification',
                                    lang(29999),
                                    "%s %s" % (lang(33000),
-                                              self.user.currUser),
+                                              self.user.user),
                                    icon='{plex}',
                                    time=2000,
                                    sound=False)
@@ -178,7 +178,7 @@ class Service():
                             self.image_cache_thread_running = True
                             self.image_cache_thread.start()
                 else:
-                    if (self.user.currUser is None) and self.warn_auth:
+                    if (self.user.user is None) and self.warn_auth:
                         # Alert user is not authenticated and suppress future
                         # warning
                         self.warn_auth = False
