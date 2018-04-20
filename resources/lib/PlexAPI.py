@@ -772,34 +772,35 @@ class API(object):
             # Artwork lookup for episodes is broken for addon paths
             # Episodes is a bit special, only get the thumb, because all
             # the other artwork will be saved under season and show
-            for kodi_artwork, plex_artwork in v.KODI_TO_PLEX_ARTWORK.iteritems():
+            for kodi_artwork, plex_artwork in \
+                    v.KODI_TO_PLEX_ARTWORK_EPISODE.iteritems():
                 art = self._one_artwork(plex_artwork)
                 if art:
                     artworks[kodi_artwork] = art
-            if full_artwork:
-                with plexdb.Get_Plex_DB() as plex_db:
-                    db_item = plex_db.getItem_byId(self.plex_id())
+            if not full_artwork:
+                return artworks
+            with plexdb.Get_Plex_DB() as plex_db:
                 try:
-                    season_id = db_item[3]
+                    season_id = plex_db.getItem_byId(self.plex_id())[3]
                 except TypeError:
                     return artworks
-                # Grab artwork from the season
-                with kodidb.GetKodiDB('video') as kodi_db:
-                    season_art = kodi_db.get_art(season_id, v.KODI_TYPE_SEASON)
-                for kodi_art in season_art:
-                    artworks['season.%s' % kodi_art] = season_art[kodi_art]
-                # Get the show id
-                with plexdb.Get_Plex_DB() as plex_db:
-                    db_item = plex_db.getItem_byId(self.grandparent_id())
+            # Grab artwork from the season
+            with kodidb.GetKodiDB('video') as kodi_db:
+                season_art = kodi_db.get_art(season_id, v.KODI_TYPE_SEASON)
+            for kodi_art in season_art:
+                artworks['season.%s' % kodi_art] = season_art[kodi_art]
+            # Get the show id
+            with plexdb.Get_Plex_DB() as plex_db:
                 try:
-                    show_id = db_item[0]
+                    show_id = plex_db.getItem_byKodiId(season_id,
+                                                       v.KODI_TYPE_SEASON)[1]
                 except TypeError:
                     return artworks
-                # Grab more artwork from the show
-                with kodidb.GetKodiDB('video') as kodi_db:
-                    show_art = kodi_db.get_art(show_id, v.KODI_TYPE_SHOW)
-                for kodi_art in show_art:
-                    artworks['tvshow.%s' % kodi_art] = show_art[kodi_art]
+            # Grab more artwork from the show
+            with kodidb.GetKodiDB('video') as kodi_db:
+                show_art = kodi_db.get_art(show_id, v.KODI_TYPE_SHOW)
+            for kodi_art in show_art:
+                artworks['tvshow.%s' % kodi_art] = show_art[kodi_art]
             return artworks
 
         if kodi_id:
