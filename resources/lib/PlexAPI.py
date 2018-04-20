@@ -846,7 +846,6 @@ class API(object):
         external_id = self.retrieve_external_item_id()
         if external_id is not None:
             artworks = self.lookup_fanart_tv(external_id[0], artworks)
-        LOG.debug('fanart artworks: %s', artworks)
         return artworks
 
     def retrieve_external_item_id(self, collection=False):
