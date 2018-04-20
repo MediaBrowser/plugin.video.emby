@@ -772,9 +772,10 @@ class API(object):
             # Artwork lookup for episodes is broken for addon paths
             # Episodes is a bit special, only get the thumb, because all
             # the other artwork will be saved under season and show
-            art = self._one_artwork('thumb')
-            if art:
-                artworks['thumb'] = art
+            for kodi_artwork, plex_artwork in v.KODI_TO_PLEX_ARTWORK.iteritems():
+                art = self._one_artwork(plex_artwork)
+                if art:
+                    artworks[kodi_artwork] = art
             if full_artwork:
                 with plexdb.Get_Plex_DB() as plex_db:
                     db_item = plex_db.getItem_byId(self.plex_id())
