@@ -265,7 +265,8 @@ class Player(xbmc.Player):
                 'playmethod': play_method,
                 'Type': item_type,
                 'currentPosition': int(seekTime),
-                'playsession_id': playsession_id
+                'playsession_id': playsession_id,
+                'IsExternalPlayer': self.xbmcplayer.IsExternalPlayer()
             }
 
             self.played_info[currentFile] = data
@@ -461,8 +462,7 @@ class Player(xbmc.Player):
 
                 if currentPosition and runtime:
                     try:
-                        if window('emby.external'):
-                            window('emby.external', clear=True)
+                        if data['IsExternalPlayer']:
                             raise ValueError
 
                         percentComplete = (currentPosition * 10000000) / int(runtime)
@@ -530,7 +530,7 @@ class Player(xbmc.Player):
         log.info("stop playback called.")
 
         position_ticks = int(data['currentPosition'] * 10000000)
-        position = data['runtime'] if position_ticks and window('emby.external') else position_ticks
+        position = data['runtime'] if position_ticks and data['IsExternalPlayer'] else position_ticks
 
         self.emby.stop_playback(data['item_id'], position, data['playsession_id'], data.get('mediasource_id'))
 

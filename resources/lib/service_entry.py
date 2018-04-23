@@ -322,9 +322,6 @@ class Service(object):
         #ga = GoogleAnalytics()
         #ga.sendEventData("Application", "Shutdown")     
 
-        if self.monitor.special_monitor:
-            self.monitor.special_monitor.stop_monitor()
-
         if self.userclient_running:
             self.userclient_thread.stop_client()
 
