@@ -124,8 +124,12 @@ class API(object):
             # Local path
             filename = ans.rsplit("\\", 1)[1]
         else:
-            # Network share
-            filename = ans.rsplit("/", 1)[1]
+            try:
+                # Network share
+                filename = ans.rsplit("/", 1)[1]
+            except IndexError:
+                # E.g. certain Plex channels
+                filename = None
         return filename
 
     def file_path(self, force_first_media=False):
