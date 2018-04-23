@@ -63,7 +63,7 @@ class PlaybackUtils(object):
         if KODI_V == 18:
             return False
 
-        elif kodi_version and "Git:" in kodi_version and kodi_version.split('Git:')[1].split("-")[0] == '20171119':
+        elif kodi_version and "Git:" in kodi_version and kodi_version.split('Git:')[1].split("-")[0] in ('20171119', 'a9a7a20'):
             #TODO: To be reviewed once Leia is out.
             log.info("Build does not require workaround for widgets?")
             return False
@@ -361,6 +361,7 @@ class PlaybackUtils(object):
         self.playlist.clear()
         started = False
 
+        index = max(self.playlist.getposition(), 0) + 1 # Can return -1
         for item_id in item_ids:
 
             listitem = xbmcgui.ListItem()
@@ -388,9 +389,8 @@ class PlaybackUtils(object):
                 
             pbutils.set_playlist(play_url, item_id, listitem, seektime if item_ids.index(item_id) == 0 else None, db_id)
 
-            index = max(pbutils.playlist.getposition(), 0) + 1 # Can return -1
             for stack in pbutils.stack:
-                pbutils.playlist.add(url=stack[0], listitem=stack[1], index=index)
+                self.playlist.add(url=stack[0], listitem=stack[1], index=index)
                 index += 1
 
             if not started:
