@@ -337,6 +337,8 @@ class LibrarySync(threading.Thread):
                             log.info("SyncDatabase (finished music in: %s)"
                                 % (str(elapsedTime).split('.')[0]))
 
+                        database.verify_kodi_music(cursor_music)
+
         if pDialog:
             pDialog.close()
 

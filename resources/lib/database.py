@@ -19,26 +19,25 @@ from utils import window, should_stop, settings, language
 
 log = logging.getLogger("EMBY."+__name__)
 KODI = xbmc.getInfoLabel('System.BuildVersion')[:2]
+VIDEODB = {
+    '17': 107, # Krypton
+    '18': 109  # Leia
+}
+MUSICDB = {
+    '17': 60, # Krypton
+    '18': 70  # Leia
+}
+
 
 #################################################################################################
 
 def video_database():
-    db_version = {
-
-        '17': 107,# Krypton
-        '18': 109 # Leia
-    }
     return xbmc.translatePath("special://database/MyVideos%s.db"
-                              % db_version.get(KODI, "")).decode('utf-8')
+                              % VIDEODB.get(KODI, "")).decode('utf-8')
 
 def music_database():
-    db_version = {
-
-        '17': 60, # Krypton
-        '18': 70  # Leia
-    }
     return xbmc.translatePath("special://database/MyMusic%s.db"
-                              % db_version.get(KODI, "")).decode('utf-8')
+                              % MUSICDB.get(KODI, "")).decode('utf-8')
 
 def texture_database():
     return xbmc.translatePath("special://database/Textures13.db").decode('utf-8')
@@ -149,6 +148,17 @@ def verify_emby_database(cursor):
         log.info("Add missing column group_series")
         cursor.execute("ALTER TABLE view ADD COLUMN group_series 'TEXT'")
 
+def verify_kodi_music(cursor):
+
+    log.info("Verifying kodi music DB")
+    validate = cursor.execute("SELECT * FROM versiontagscan")
+    query = ' '.join((
+
+        "UPDATE versiontagscan",
+        "SET iNeedsScan = ?",
+        "WHERE idVersion = ?"
+    ))
+    cursor.execute(query, ("0", MUSICDB.get(KODI)))
 
 def db_reset():
 
