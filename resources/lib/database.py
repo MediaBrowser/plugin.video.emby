@@ -151,14 +151,25 @@ def verify_emby_database(cursor):
 def verify_kodi_music(cursor):
 
     log.info("Verifying kodi music DB")
-    validate = cursor.execute("SELECT * FROM versiontagscan")
-    query = ' '.join((
+    try:
+        cursor.execute("SELECT * FROM versiontagscan")
+        cursor.fetchone()[0]
+    except TypeError:
+        query = (
+            '''
+            INSERT OR REPLACE INTO versiontagscan(idVersion, iNeedsScan)
+            VALUES (?, ?)
+            '''
+        )
+        cursor.execute(query, (MUSICDB.get(KODI), "0"))
+    else:
+        query = ' '.join((
 
-        "UPDATE versiontagscan",
-        "SET iNeedsScan = ?",
-        "WHERE idVersion = ?"
-    ))
-    cursor.execute(query, ("0", MUSICDB.get(KODI)))
+            "UPDATE versiontagscan",
+            "SET iNeedsScan = ?",
+            "WHERE idVersion = ?"
+        ))
+        cursor.execute(query, ("0", MUSICDB.get(KODI)))
 
 def db_reset():
 
