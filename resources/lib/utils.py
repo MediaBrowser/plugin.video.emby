@@ -17,6 +17,7 @@ from os.path import join
 from os import remove, walk, makedirs
 from shutil import rmtree
 from urllib import quote_plus
+import hashlib
 
 import xbmc
 import xbmcaddon
@@ -980,6 +981,21 @@ def delete_nodes():
             if directory.startswith('Plex-'):
                 rmtree(join(root, directory))
         break
+
+
+def generate_file_md5(path):
+    """
+    Generates the md5 hash value for the file located at path [unicode]
+    Returns a unique string containing only hexadecimal digits
+    """
+    m = hashlib.md5()
+    with open(path, 'rb') as f:
+        while True:
+            piece = f.read(32768)
+            if not piece:
+                break
+            m.update(piece)
+    return m.hexdigest()
 
 
 ###############################################################################

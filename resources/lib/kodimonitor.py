@@ -269,7 +269,7 @@ class KodiMonitor(xbmc.Monitor):
         plex_type = None
         # If using direct paths and starting playback from a widget
         if not kodi_id and kodi_type and path:
-            kodi_id = kodiid_from_filename(path, kodi_type)
+            kodi_id, _ = kodiid_from_filename(path, kodi_type)
         if kodi_id:
             with plexdb.Get_Plex_DB() as plex_db:
                 plex_dbitem = plex_db.getItem_byKodiId(kodi_id, kodi_type)
@@ -438,6 +438,13 @@ class SpecialMonitor(Thread):
                 else:
                     # Different context menu is displayed
                     state.RESUME_PLAYBACK = False
+            if xbmc.getCondVisibility('Window.IsVisible(MyVideoNav.xml)'):
+                path = xbmc.getInfoLabel('container.folderpath')
+                if (isinstance(path, str) and
+                        path.startswith('special://profile/playlists')):
+                    pass
+                    # TODO: start polling PMS for playlist changes
+                    # Optionally: poll PMS continuously with custom intervall
             xbmc.sleep(200)
         LOG.info("#====---- Special Monitor Stopped ----====#")
 

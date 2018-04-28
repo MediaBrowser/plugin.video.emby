@@ -115,6 +115,39 @@ class Playlist_Object(PlaylistObjectBaseclase):
     """
     kind = 'playList'
 
+    def __init__(self):
+        self.plex_name = None
+        self.plex_updatedat = None
+        self._kodi_path = None
+        self.kodi_filename = None
+        self.kodi_extension = None
+        self.kodi_hash = None
+        PlaylistObjectBaseclase.__init__()
+
+    @property
+    def kodi_path(self):
+        return self._kodi_path
+
+    @kodi_path.setter
+    def kodi_path(self, path):
+        if '/' in path:
+            file = path.rsplit('/', 1)
+        else:
+            file = path.rsplit('\\', 1)
+        try:
+            self.kodi_filename, self.kodi_extension = file.split('.', 1)[1]
+        except ValueError:
+            raise PlaylistError('Invalid path: %s' % path)
+        if path.startswith(v.PLAYLIST_PATH_VIDEO):
+            self.type = 'video'
+        elif path.startswith(v.PLAYLIST_PATH_MUSIC):
+            self.type = 'music'
+        else:
+            raise PlaylistError('Playlist type not supported: %s' % path)
+        if not self.plex_name:
+            self.plex_name = self.kodi_filename
+        self._kodi_path = path
+
 
 class Playqueue_Object(PlaylistObjectBaseclase):
     """
@@ -305,15 +338,14 @@ def verify_kodi_item(plex_id, kodi_item):
         raise PlaylistError('kodi_item cannot be used for Plex playback')
     LOG.debug('Starting research for Kodi id since we didnt get one: %s',
               kodi_item)
-    kodi_id = kodiid_from_filename(kodi_item['file'], v.KODI_TYPE_MOVIE)
+    kodi_id, _ = kodiid_from_filename(kodi_item['file'], v.KODI_TYPE_MOVIE)
     kodi_item['type'] = v.KODI_TYPE_MOVIE
     if kodi_id is None:
-        kodi_id = kodiid_from_filename(kodi_item['file'],
-                                       v.KODI_TYPE_EPISODE)
+        kodi_id, _ = kodiid_from_filename(kodi_item['file'],
+                                          v.KODI_TYPE_EPISODE)
         kodi_item['type'] = v.KODI_TYPE_EPISODE
     if kodi_id is None:
-        kodi_id = kodiid_from_filename(kodi_item['file'],
-                                       v.KODI_TYPE_SONG)
+        kodi_id, _ = kodiid_from_filename(kodi_item['file'], v.KODI_TYPE_SONG)
         kodi_item['type'] = v.KODI_TYPE_SONG
     kodi_item['id'] = kodi_id
     kodi_item['type'] = None if kodi_id is None else kodi_item['type']
@@ -405,9 +437,9 @@ def get_playlist_details_from_xml(playlist, xml):
         playlist.selectedItemOffset = xml.attrib.get(
             '%sSelectedItemOffset' % playlist.kind)
         LOG.debug('Updated playlist from xml: %s', playlist)
-    except (TypeError, KeyError, AttributeError) as msg:
+    except (TypeError, KeyError, AttributeError) as err:
         raise PlaylistError('Could not get playlist details from xml: %s',
-                            msg)
+                            err.strerror)
 
 
 def update_playlist_from_PMS(playlist, playlist_id=None, xml=None):
@@ -629,6 +661,19 @@ def move_playlist_item(playlist, before_pos, after_pos):
     LOG.debug('Done moving for %s', playlist)
 
 
+def get_all_playlists():
+    """
+    Returns an XML with all Plex playlists or None
+    """
+    xml = DU().downloadUrl("{server}/playlists",
+                           headerOptions={'Accept': 'application/xml'})
+    try:
+        xml.attrib
+    except (AttributeError, TypeError):
+        xml = None
+    return xml
+
+
 def get_PMS_playlist(playlist, playlist_id=None):
     """
     Fetches the PMS playlist/playqueue as an XML. Pass in playlist_id if we
@@ -768,3 +813,16 @@ def get_plextype_from_xml(xml):
         LOG.error('Could not get plex metadata for plex id %s', plex_id)
         return
     return new_xml[0].attrib.get('type')
+
+
+def delete_playlist_from_pms(playlist):
+    """
+    Deletes the playlist from the PMS
+    """
+    xml = DU().downloadUrl("{server}/%ss/%s" %
+                           (playlist.kind, playlist.id),
+                           action_type="DELETE")
+    try:
+        xml.attrib
+    except (TypeError, AttributeError):
+        raise PlaylistError('Could not delete playlist %s' % playlist)

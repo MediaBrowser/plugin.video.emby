@@ -1182,11 +1182,12 @@ class KodiDBMethods(object):
         self.cursor.execute(query, (kodi_id, kodi_type))
 
 
-def kodiid_from_filename(path, kodi_type):
+def kodiid_from_filename(path, kodi_type=None, db_type=None):
     """
     Returns kodi_id if we have an item in the Kodi video or audio database with
-    said path. Feed with the Kodi itemtype, e.v. 'movie', 'song'
-    Returns None if not possible
+    said path. Feed with either koditype, e.v. 'movie', 'song' or the DB
+    you want to poll ('video' or 'music')
+    Returns None, <kodi_type> if not possible
     """
     kodi_id = None
     path = try_decode(path)
@@ -1196,16 +1197,18 @@ def kodiid_from_filename(path, kodi_type):
     except IndexError:
         filename = path.rsplit('\\', 1)[1]
         path = path.rsplit('\\', 1)[0] + '\\'
-    if kodi_type == v.KODI_TYPE_SONG:
+    if kodi_type == v.KODI_TYPE_SONG or db_type == 'music':
         with GetKodiDB('music') as kodi_db:
             try:
-                kodi_id, _ = kodi_db.music_id_from_filename(filename, path)
+                kodi_id, kodi_type = kodi_db.music_id_from_filename(filename,
+                                                                    path)
             except TypeError:
                 LOG.debug('No Kodi audio db element found for path %s', path)
     else:
         with GetKodiDB('video') as kodi_db:
             try:
-                kodi_id, _ = kodi_db.video_id_from_filename(filename, path)
+                kodi_id, kodi_type = kodi_db.video_id_from_filename(filename,
+                                                                    path)
             except TypeError:
                 LOG.debug('No kodi video db element found for path %s', path)
-    return kodi_id
+    return kodi_id, kodi_type

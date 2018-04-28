@@ -99,6 +99,35 @@ class API(object):
         """
         return self.item.get('ratingKey')
 
+    def path(self, force_first_media=True):
+        """
+        Returns a "fully qualified path": add-on paths or direct paths
+        depending on the current settings. Will NOT valide the playurl
+        Returns unicode or None if something went wrong.
+        """
+        filename = self.file_path(force_first_media=force_first_media)
+        if not state.DIRECT_PATHS or self.plex_type() == v.PLEX_TYPE_CLIP:
+            if filename and '/' in filename:
+                filename = filename.rsplit('/', 1)
+            elif filename:
+                filename = filename.rsplit('\\', 1)
+            try:
+                filename = filename[1]
+            except (TypeError, IndexError):
+                filename = None
+            # Set plugin path and media flags using real filename
+            path = ('plugin://%s/?plex_id=%s&plex_type=%s&mode=play&filename=%s'
+                    % (v.ADDON_TYPE[self.plex_type()],
+                       self.plex_id(),
+                       self.plex_type(),
+                       filename))
+        else:
+            # Direct paths is set the Kodi way
+            path = self.validate_playurl(filename,
+                                         self.plex_type(),
+                                         omit_check=True)
+        return path
+
     def path_and_plex_id(self):
         """
         Returns the Plex key such as '/library/metadata/246922' or None
@@ -401,6 +430,12 @@ class API(object):
             provider = None
         return provider
 
+    def title(self):
+        """
+        Returns the title of the element as unicode or 'Missing Title Name'
+        """
+        return self.item.get('title', 'Missing Title Name')
+
     def titles(self):
         """
         Returns an item's name/title or "Missing Title Name".
@@ -453,6 +488,16 @@ class API(object):
         except (KeyError, ValueError):
             resume = 0.0
         return int(resume * v.PLEX_TO_KODI_TIMEFACTOR)
+
+    def runtime(self):
+        """
+        Returns the total duration of the element as int. 0 if not found
+        """
+        try:
+            runtime = float(self.item.attrib['duration'])
+        except (KeyError, ValueError):
+            runtime = 0.0
+        return int(runtime * v.PLEX_TO_KODI_TIMEFACTOR)
 
     def resume_runtime(self):
         """

@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from os.path import join
+
 import xbmc
 from xbmcaddon import Addon
 
@@ -39,6 +41,10 @@ KODILANGUAGE = xbmc.getLanguage(xbmc.ISO_639_1)
 KODIVERSION = int(xbmc.getInfoLabel("System.BuildVersion")[:2])
 KODILONGVERSION = xbmc.getInfoLabel('System.BuildVersion')
 KODI_PROFILE = try_decode(xbmc.translatePath("special://profile"))
+PLAYLIST_PATH = join(KODI_PROFILE, 'playlist')
+PLAYLIST_PATH_MIXED = join(PLAYLIST_PATH, 'mixed')
+PLAYLIST_PATH_VIDEO = join(PLAYLIST_PATH, 'video')
+PLAYLIST_PATH_MUSIC = join(PLAYLIST_PATH, 'music')
 
 if xbmc.getCondVisibility('system.platform.osx'):
     PLATFORM = "MacOSX"

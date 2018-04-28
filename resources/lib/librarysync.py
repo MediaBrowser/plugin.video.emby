@@ -26,6 +26,7 @@ from library_sync.process_metadata import ThreadedProcessMetadata
 import library_sync.sync_info as sync_info
 from library_sync.fanart import ThreadedProcessFanart
 import music
+import playlists
 import state
 
 ###############################################################################
@@ -233,6 +234,15 @@ class LibrarySync(Thread):
             ''')
             plex_db.plexcursor.execute('''
                 CREATE TABLE IF NOT EXISTS version(idVersion TEXT)
+            ''')
+            plex_db.plexcursor.execute('''
+                CREATE TABLE IF NOT EXISTS playlists(
+                    plex_id TEXT UNIQUE,
+                    plex_name TEXT,
+                    plex_updatedat TEXT,
+                    kodi_path TEXT,
+                    kodi_type TEXT,
+                    kodi_hash TEXT)
             ''')
         # Create an index for actors to speed up sync
         utils.create_actor_db_index()
@@ -1519,6 +1529,7 @@ class LibrarySync(Thread):
         state.DB_SCAN = False
         # Start the fanart download thread
         self.fanartthread.start()
+        kodi_playlist_monitor = None
 
         while not self.stopped():
             # In the event the server goes offline
@@ -1551,6 +1562,7 @@ class LibrarySync(Thread):
                 state.DB_SCAN = False
                 if settings('FanartTV') == 'true':
                     self.sync_fanart()
+                kodi_playlist_monitor = playlists.kodi_playlist_monitor()
 
             elif not kodi_db_version_checked:
                 # Install sync was already done, don't force-show dialogs
@@ -1591,6 +1603,7 @@ class LibrarySync(Thread):
                     LOG.info('Startup sync has not yet been successful')
                 window('plex_dbScan', clear=True)
                 state.DB_SCAN = False
+                kodi_playlist_monitor = playlists.kodi_playlist_monitor()
 
             # Currently no db scan, so we can start a new scan
             elif state.DB_SCAN is False:
@@ -1650,7 +1663,9 @@ class LibrarySync(Thread):
                         xbmc.sleep(10)
                         continue
             xbmc.sleep(100)
-
+        # Shut down playlist monitoring
+        if kodi_playlist_monitor:
+            kodi_playlist_monitor.stop()
         # doUtils could still have a session open due to interrupted sync
         try:
             DU().stopSession()
