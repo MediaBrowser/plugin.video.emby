@@ -16,6 +16,7 @@ from downloadutils import DownloadUtils as DU
 import itemtypes
 import plexdb_functions as plexdb
 import kodidb_functions as kodidb
+import artwork
 import videonodes
 import variables as v
 
@@ -1463,7 +1464,6 @@ class LibrarySync(Thread):
         elif state.RUN_LIB_SCAN == 'textures':
             state.DB_SCAN = True
             window('plex_dbScan', value="true")
-            import artwork
             artwork.Artwork().fullTextureCacheSync()
             window('plex_dbScan', clear=True)
             state.DB_SCAN = False
@@ -1527,8 +1527,6 @@ class LibrarySync(Thread):
         last_time_sync = utils.unix_timestamp()
         window('plex_dbScan', clear=True)
         state.DB_SCAN = False
-        # Start the fanart download thread
-        self.fanartthread.start()
         kodi_playlist_monitor = None
 
         while not self.stopped():
@@ -1555,6 +1553,7 @@ class LibrarySync(Thread):
                     initial_sync_done = True
                     kodi_db_version_checked = True
                     last_sync = utils.unix_timestamp()
+                    self.fanartthread.start()
                 else:
                     LOG.error('Initial start-up full sync unsuccessful')
                 xbmc.executebuiltin('InhibitIdleShutdown(false)')
@@ -1599,6 +1598,8 @@ class LibrarySync(Thread):
                     if settings('FanartTV') == 'true':
                         self.sync_fanart()
                     LOG.info('Done initial sync on Kodi startup')
+                    artwork.Artwork().cache_major_artwork()
+                    self.fanartthread.start()
                 else:
                     LOG.info('Startup sync has not yet been successful')
                 window('plex_dbScan', clear=True)
