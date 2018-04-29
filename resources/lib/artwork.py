@@ -148,8 +148,6 @@ class Artwork():
                                (typus, ))
                 artworks.extend(cursor.fetchall())
             connection.close()
-        LOG.debug('artworks: %s', artworks)
-        LOG.debug('artworks: %s', len(artworks))
         artworks_to_cache = list()
         connection = kodi_sql('texture')
         cursor = connection.cursor()
