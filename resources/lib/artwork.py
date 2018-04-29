@@ -39,7 +39,7 @@ def double_urldecode(text):
 
 @thread_methods(add_suspends=IMAGE_CACHING_SUSPENDS)
 class Image_Cache_Thread(Thread):
-    sleep_between = 50
+    sleep_between = 200
     # Potentially issues with limited number of threads
     # Hence let Kodi wait till download is successful
     timeout = (35.1, 35.1)
