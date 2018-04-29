@@ -68,6 +68,16 @@ class Image_Cache_Thread(Thread):
             except Empty:
                 sleep(1000)
                 continue
+            if isinstance(url, ArtworkSyncMessage):
+                if state.IMAGE_SYNC_NOTIFICATIONS:
+                    dialog('notification',
+                           heading=lang(29999),
+                           message=url.message,
+                           icon='{plex}',
+                           sound=False)
+                queue.task_done()
+                continue
+            url = double_urlencode(try_encode(url))
             sleeptime = 0
             while True:
                 try:
@@ -118,6 +128,46 @@ class Artwork():
     enableTextureCache = settings('enableTextureCache') == "true"
     if enableTextureCache:
         queue = ARTWORK_QUEUE
+
+    def cache_major_artwork(self):
+        """
+        Takes the existing Kodi library and caches posters and fanart.
+        Necessary because otherwise PKC caches artwork e.g. from fanart.tv
+        which basically blocks Kodi from getting needed artwork fast (e.g.
+        while browsing the library)
+        """
+        if not self.enableTextureCache:
+            return
+        artworks = list()
+        # Get all posters and fanart/background for video and music
+        for kind in ('video', 'music'):
+            connection = kodi_sql(kind)
+            cursor = connection.cursor()
+            for typus in ('poster', 'fanart'):
+                cursor.execute('SELECT url FROM art WHERE type == ?',
+                               (typus, ))
+                artworks.extend(cursor.fetchall())
+            connection.close()
+        LOG.debug('artworks: %s', artworks)
+        LOG.debug('artworks: %s', len(artworks))
+        artworks_to_cache = list()
+        connection = kodi_sql('texture')
+        cursor = connection.cursor()
+        for url in artworks:
+            query = 'SELECT url FROM texture WHERE url == ? LIMIT 1'
+            cursor.execute(query, (url[0], ))
+            if not cursor.fetchone():
+                artworks_to_cache.append(url)
+        connection.close()
+        if not artworks_to_cache:
+            LOG.info('Caching of major images to Kodi texture cache done')
+            return
+        LOG.info('Caching has not been completed - caching %s major images',
+                 len(artworks_to_cache))
+        self.queue.put(ArtworkSyncMessage(lang(30006) % len(artworks_to_cache)))
+        for url in artworks_to_cache:
+            self.queue.put(url[0])
+        self.queue.put(ArtworkSyncMessage(lang(30007)))
 
     def fullTextureCacheSync(self):
         """
@@ -177,10 +227,10 @@ class Artwork():
 
     def cache_texture(self, url):
         '''
-        Cache a single image url to the texture cache
+        Cache a single image url to the texture cache. url: unicode
         '''
         if url and self.enableTextureCache:
-            self.queue.put(double_urlencode(try_encode(url)))
+            self.queue.put(url)
 
     def modify_artwork(self, artworks, kodi_id, kodi_type, cursor):
         """
@@ -269,3 +319,11 @@ class Artwork():
         for path in paths:
             makedirs(try_decode(translatePath("special://thumbnails/%s"
                                               % path)))
+
+
+class ArtworkSyncMessage(object):
+    """
+    Put in artwork queue to display the message as a Kodi notification
+    """
+    def __init__(self, message):
+        self.message = message
