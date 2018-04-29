@@ -22,6 +22,10 @@ LOG = getLogger("PLEX." + __name__)
 # Disable annoying requests warnings
 requests.packages.urllib3.disable_warnings()
 ARTWORK_QUEUE = Queue()
+IMAGE_CACHING_SUSPENDS = ['SUSPEND_LIBRARY_THREAD', 'DB_SCAN', 'STOP_SYNC']
+if not settings('imageSyncDuringPlayback') == 'true':
+    IMAGE_CACHING_SUSPENDS.append('SUSPEND_SYNC')
+
 ###############################################################################
 
 
@@ -33,9 +37,7 @@ def double_urldecode(text):
     return unquote(unquote(text))
 
 
-@thread_methods(add_suspends=['SUSPEND_LIBRARY_THREAD',
-                              'DB_SCAN',
-                              'STOP_SYNC'])
+@thread_methods(add_suspends=IMAGE_CACHING_SUSPENDS)
 class Image_Cache_Thread(Thread):
     sleep_between = 50
     # Potentially issues with limited number of threads
@@ -47,6 +49,7 @@ class Image_Cache_Thread(Thread):
         Thread.__init__(self)
 
     def run(self):
+        LOG.info("---===### Starting Image_Cache_Thread ###===---")
         stopped = self.stopped
         suspended = self.suspended
         queue = self.queue

@@ -41,6 +41,11 @@ msgctxt "#30005"
 msgid "Username: "
 msgstr ""
 
+# PKC settings artwork: Enable image caching during Kodi playback
+msgctxt "#30009"
+msgid "Enable image caching during Kodi playback (restart Kodi!)"
+msgstr ""
+
 # Button text
 msgctxt "#30012"
 msgid "OK"
