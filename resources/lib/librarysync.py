@@ -1586,12 +1586,12 @@ class LibrarySync(Thread):
                     if settings('FanartTV') == 'true':
                         self.sync_fanart()
                     LOG.info('Done initial sync on Kodi startup')
+                    artwork.Artwork().cache_major_artwork()
+                    self.fanartthread.start()
                 else:
                     LOG.info('Startup sync has not yet been successful')
                 window('plex_dbScan', clear=True)
                 state.DB_SCAN = False
-                artwork.Artwork().cache_major_artwork()
-                self.fanartthread.start()
 
             # Currently no db scan, so we can start a new scan
             elif state.DB_SCAN is False:
