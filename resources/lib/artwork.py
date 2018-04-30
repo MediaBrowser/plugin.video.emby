@@ -12,8 +12,8 @@ import requests
 from xbmc import sleep, translatePath
 from xbmcvfs import exists
 
-from utils import window, settings, language as lang, kodi_sql, try_encode, \
-    thread_methods, dialog, exists_dir, try_decode
+from utils import settings, language as lang, kodi_sql, try_encode, try_decode,\
+    thread_methods, dialog, exists_dir
 import state
 
 ###############################################################################
@@ -107,7 +107,7 @@ class Image_Cache_Thread(Thread):
                               'over-loaded. Sleep %s seconds before trying '
                               'again to download %s',
                               2**sleeptime, double_urldecode(url))
-                    sleep((2**sleeptime)*1000)
+                    sleep((2**sleeptime) * 1000)
                     sleeptime += 1
                     continue
                 except Exception as e:
