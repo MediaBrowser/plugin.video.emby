@@ -162,9 +162,11 @@ class Artwork():
             return
         LOG.info('Caching has not been completed - caching %s major images',
                  len(artworks_to_cache))
+        # Caching %s images
         self.queue.put(ArtworkSyncMessage(lang(30006) % len(artworks_to_cache)))
         for url in artworks_to_cache:
             self.queue.put(url[0])
+        # Major image caching done
         self.queue.put(ArtworkSyncMessage(lang(30007)))
 
     def fullTextureCacheSync(self):
