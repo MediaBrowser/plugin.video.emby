@@ -1554,6 +1554,7 @@ class LibrarySync(Thread):
                     kodi_db_version_checked = True
                     last_sync = utils.unix_timestamp()
                     self.fanartthread.start()
+                    kodi_playlist_monitor = playlists.kodi_playlist_monitor()
                 else:
                     LOG.error('Initial start-up full sync unsuccessful')
                 xbmc.executebuiltin('InhibitIdleShutdown(false)')
@@ -1561,7 +1562,6 @@ class LibrarySync(Thread):
                 state.DB_SCAN = False
                 if settings('FanartTV') == 'true':
                     self.sync_fanart()
-                kodi_playlist_monitor = playlists.kodi_playlist_monitor()
 
             elif not kodi_db_version_checked:
                 # Install sync was already done, don't force-show dialogs
