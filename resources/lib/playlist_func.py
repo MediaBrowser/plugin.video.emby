@@ -3,6 +3,7 @@
 Collection of functions associated with Kodi and Plex playlists and playqueues
 """
 from logging import getLogger
+import os
 from urllib import quote
 from urlparse import parse_qsl, urlsplit
 from re import compile as re_compile
@@ -130,10 +131,7 @@ class Playlist_Object(PlaylistObjectBaseclase):
 
     @kodi_path.setter
     def kodi_path(self, path):
-        if '/' in path:
-            file = path.rsplit('/', 1)
-        else:
-            file = path.rsplit('\\', 1)
+        file = os.path.dirname(path)
         try:
             self.kodi_filename, self.kodi_extension = file.split('.', 1)[1]
         except ValueError:
