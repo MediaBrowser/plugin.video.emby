@@ -305,7 +305,10 @@ def full_sync():
                 create_kodi_playlist(api.plex_id())
         except PL.PlaylistError:
             LOG.info('Skipping playlist %s: %s', api.plex_id(), api.title())
-        old_plex_ids.remove(api.plex_id())
+        try:
+            old_plex_ids.remove(api.plex_id())
+        except ValueError:
+            pass
     # Get rid of old Plex playlists that were deleted on the Plex side
     for plex_id in old_plex_ids:
         playlist = playlist_object_from_db(plex_id=api.plex_id())
