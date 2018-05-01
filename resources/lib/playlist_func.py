@@ -122,7 +122,7 @@ class Playlist_Object(PlaylistObjectBaseclase):
         self.kodi_filename = None
         self.kodi_extension = None
         self.kodi_hash = None
-        PlaylistObjectBaseclase.__init__()
+        PlaylistObjectBaseclase.__init__(self)
 
     @property
     def kodi_path(self):
