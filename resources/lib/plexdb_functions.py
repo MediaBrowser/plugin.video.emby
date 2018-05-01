@@ -456,7 +456,7 @@ class Plex_DB_Functions():
         playlist.plex_name = answ[1]
         playlist.plex_updatedat = answ[2]
         playlist.kodi_path = answ[3]
-        playlist.kodi_type = answ[4]
+        playlist.type = answ[4]
         playlist.kodi_hash = answ[5]
         return playlist
 
@@ -473,7 +473,7 @@ class Plex_DB_Functions():
         self.plexcursor.execute(query,
                                 (playlist.id, playlist.plex_name,
                                  playlist.plex_updatedat, playlist.kodi_path,
-                                 playlist.kodi_type, playlist.kodi_hash))
+                                 playlist.type, playlist.kodi_hash))
 
     def delete_playlist_entry(self, playlist):
         """
