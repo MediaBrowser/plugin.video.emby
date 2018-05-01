@@ -80,7 +80,7 @@ def create_kodi_playlist(plex_id=None):
     is deleted from both disk and the Plex database.
     Returns the playlist or raises PL.PlaylistError
     """
-    xml = PL.get_PMS_playlist(playlist_id=plex_id)
+    xml = PL.get_PMS_playlist(PL.Playlist_Object(), playlist_id=plex_id)
     if not xml:
         LOG.error('Could not get Plex playlist %s', plex_id)
         return
