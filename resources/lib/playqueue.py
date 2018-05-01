@@ -189,7 +189,8 @@ class PlayqueueMonitor(Thread):
                 with LOCK:
                     try:
                         if playqueue.id is None:
-                            PL.init_Plex_playlist(playqueue, kodi_item=new_item)
+                            PL.init_plex_playqueue(playqueue,
+                                                   kodi_item=new_item)
                         else:
                             PL.add_item_to_PMS_playlist(playqueue,
                                                         i,

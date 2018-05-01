@@ -456,7 +456,7 @@ def update_playlist_from_PMS(playlist, playlist_id=None, xml=None):
             playlist.items.append(playlist_item)
 
 
-def init_Plex_playlist(playlist, plex_id=None, kodi_item=None):
+def init_plex_playqueue(playlist, plex_id=None, kodi_item=None):
     """
     Initializes the Plex side without changing the Kodi playlists
     WILL ALSO UPDATE OUR PLAYLISTS. 
@@ -503,7 +503,7 @@ def add_listitem_to_playlist(playlist, pos, listitem, kodi_id=None,
               '%s', pos, playlist)
     kodi_item = {'id': kodi_id, 'type': kodi_type, 'file': file}
     if playlist.id is None:
-        init_Plex_playlist(playlist, plex_id, kodi_item)
+        init_plex_playqueue(playlist, plex_id, kodi_item)
     else:
         add_item_to_PMS_playlist(playlist, pos, plex_id, kodi_item)
     if kodi_id is None and playlist.items[pos].kodi_id:
@@ -532,7 +532,7 @@ def add_item_to_playlist(playlist, pos, kodi_id=None, kodi_type=None,
     LOG.debug('add_item_to_playlist. Playlist before adding: %s', playlist)
     kodi_item = {'id': kodi_id, 'type': kodi_type, 'file': file}
     if playlist.id is None:
-        item = init_Plex_playlist(playlist, plex_id, kodi_item)
+        item = init_plex_playqueue(playlist, plex_id, kodi_item)
     else:
         item = add_item_to_PMS_playlist(playlist, pos, plex_id, kodi_item)
     params = {

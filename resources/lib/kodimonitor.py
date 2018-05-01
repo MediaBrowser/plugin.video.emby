@@ -384,7 +384,7 @@ class KodiMonitor(xbmc.Monitor):
                 LOG.debug('No Plex id obtained - aborting playback report')
                 state.PLAYER_STATES[playerid] = copy.deepcopy(state.PLAYSTATE)
                 return
-            item = PL.init_Plex_playlist(playqueue, plex_id=plex_id)
+            item = PL.init_plex_playqueue(playqueue, plex_id=plex_id)
             # Set the Plex container key (e.g. using the Plex playqueue)
             container_key = None
             if info['playlistid'] != -1:
