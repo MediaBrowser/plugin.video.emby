@@ -177,7 +177,7 @@ def m3u_to_plex_ids(playlist):
     Adapter to process *.m3u playlist files. Encoding is not uniform except for
     m3u8 files!
     """
-    plex_ids = set()
+    plex_ids = list()
     with open(playlist.kodi_path, 'rb') as f:
         text = f.read()
     if playlist.kodi_extension == 'm3u8':
