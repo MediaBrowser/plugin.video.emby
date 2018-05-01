@@ -437,9 +437,8 @@ def get_playlist_details_from_xml(playlist, xml):
         playlist.selectedItemOffset = xml.attrib.get(
             '%sSelectedItemOffset' % playlist.kind)
         LOG.debug('Updated playlist from xml: %s', playlist)
-    except (TypeError, KeyError, AttributeError) as err:
-        raise PlaylistError('Could not get playlist details from xml: %s',
-                            err.strerror)
+    except (TypeError, KeyError, AttributeError):
+        raise PlaylistError('Could not get playlist details from xml')
 
 
 def update_playlist_from_PMS(playlist, playlist_id=None, xml=None):
