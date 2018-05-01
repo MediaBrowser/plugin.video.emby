@@ -5,7 +5,8 @@ import sys
 
 from xbmcvfs import exists
 
-import watchdog
+from watchdog.events import FileSystemEventHandler
+from watchdog.observers import Observer
 import playlist_func as PL
 from PlexAPI import API
 import kodidb_functions as kodidb
@@ -364,7 +365,7 @@ def full_sync():
     return True
 
 
-class PlaylistEventhandler(watchdog.events.FileSystemEventHandler):
+class PlaylistEventhandler(FileSystemEventHandler):
     """
     PKC eventhandler to monitor Kodi playlists safed to disk
     """
@@ -436,7 +437,7 @@ def kodi_playlist_monitor():
     observer.stop() (and maybe observer.join()) to shut down properly
     """
     event_handler = PlaylistEventhandler()
-    observer = watchdog.observers.Observer()
+    observer = Observer()
     observer.schedule(event_handler, v.PLAYLIST_PATH, recursive=True)
     observer.start()
     return observer
