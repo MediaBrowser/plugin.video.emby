@@ -1527,7 +1527,7 @@ class LibrarySync(Thread):
         last_time_sync = utils.unix_timestamp()
         window('plex_dbScan', clear=True)
         state.DB_SCAN = False
-        kodi_playlist_monitor = None
+        playlist_monitor = None
 
         while not self.stopped():
             # In the event the server goes offline
@@ -1554,7 +1554,8 @@ class LibrarySync(Thread):
                     kodi_db_version_checked = True
                     last_sync = utils.unix_timestamp()
                     self.fanartthread.start()
-                    kodi_playlist_monitor = playlists.kodi_playlist_monitor()
+                    if playlists.full_sync():
+                        playlist_monitor = playlists.kodi_playlist_monitor()
                 else:
                     LOG.error('Initial start-up full sync unsuccessful')
                 xbmc.executebuiltin('InhibitIdleShutdown(false)')
@@ -1600,11 +1601,12 @@ class LibrarySync(Thread):
                     LOG.info('Done initial sync on Kodi startup')
                     artwork.Artwork().cache_major_artwork()
                     self.fanartthread.start()
+                    if playlists.full_sync():
+                        playlist_monitor = playlists.kodi_playlist_monitor()
                 else:
                     LOG.info('Startup sync has not yet been successful')
                 window('plex_dbScan', clear=True)
                 state.DB_SCAN = False
-                kodi_playlist_monitor = playlists.kodi_playlist_monitor()
 
             # Currently no db scan, so we can start a new scan
             elif state.DB_SCAN is False:
@@ -1665,8 +1667,8 @@ class LibrarySync(Thread):
                         continue
             xbmc.sleep(100)
         # Shut down playlist monitoring
-        if kodi_playlist_monitor:
-            kodi_playlist_monitor.stop()
+        if playlist_monitor:
+            playlist_monitor.stop()
         # doUtils could still have a session open due to interrupted sync
         try:
             DU().stopSession()

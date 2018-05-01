@@ -139,9 +139,9 @@ class Playlist_Object(PlaylistObjectBaseclase):
         except ValueError:
             raise PlaylistError('Invalid path: %s' % path)
         if path.startswith(v.PLAYLIST_PATH_VIDEO):
-            self.type = 'video'
+            self.type = v.KODI_TYPE_VIDEO_PLAYLIST
         elif path.startswith(v.PLAYLIST_PATH_MUSIC):
-            self.type = 'music'
+            self.type = v.KODI_TYPE_AUDIO_PLAYLIST
         else:
             raise PlaylistError('Playlist type not supported: %s' % path)
         if not self.plex_name:
@@ -670,6 +670,7 @@ def get_all_playlists():
     try:
         xml.attrib
     except (AttributeError, TypeError):
+        LOG.error('Could not download a list of all playlists')
         xml = None
     return xml
 
@@ -682,9 +683,7 @@ def get_PMS_playlist(playlist, playlist_id=None):
     Returns None if something went wrong
     """
     playlist_id = playlist_id if playlist_id else playlist.id
-    xml = DU().downloadUrl(
-        "{server}/%ss/%s" % (playlist.kind, playlist_id),
-        headerOptions={'Accept': 'application/xml'})
+    xml = DU().downloadUrl("{server}/%ss/%s" % (playlist.kind, playlist_id))
     try:
         xml.attrib['%sID' % playlist.kind]
     except (AttributeError, KeyError):

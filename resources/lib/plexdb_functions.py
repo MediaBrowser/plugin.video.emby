@@ -406,6 +406,60 @@ class Plex_DB_Functions():
             plex_id = None
         return plex_id
 
+    def plex_ids_all_playlists(self):
+        """
+        Returns a list of all Plex ids of playlists.
+        """
+        answ = []
+        self.plexcursor.execute('SELECT plex_id FROM playlists')
+        for entry in self.plexcursor.fetchall():
+            answ.append(entry[0])
+        return answ
+
+    def kodi_hashes_all_playlists(self):
+        """
+        Returns a list of all Kodi hashes of playlists.
+        """
+        answ = []
+        self.plexcursor.execute('SELECT kodi_hash FROM playlists')
+        for entry in self.plexcursor.fetchall():
+            answ.append(entry[0])
+        return answ
+
+    def retrieve_playlist(self, playlist, plex_id=None, path=None,
+                          kodi_hash=None):
+        """
+        Returns a complete Playlist_Object (empty one passed in via playlist)
+        for the entry with plex_id. Or None if not found
+        """
+        query = '''
+            SELECT plex_id, plex_name, plex_updatedat, kodi_path, kodi_type,
+                   kodi_hash
+            FROM playlists
+            WHERE %s = ?
+            LIMIT 1
+        '''
+        if plex_id:
+            query = query % 'plex_id'
+            var = plex_id
+        elif kodi_hash:
+            query = query % 'kodi_hash'
+            var = kodi_hash
+        else:
+            query = query % 'kodi_path'
+            var = path
+        self.plexcursor.execute(query, (var, ))
+        answ = self.plexcursor.fetchone()
+        if not answ:
+            return
+        playlist.plex_id = answ[0]
+        playlist.plex_name = answ[1]
+        playlist.plex_updatedat = answ[2]
+        playlist.kodi_path = answ[3]
+        playlist.kodi_type = answ[4]
+        playlist.kodi_hash = answ[5]
+        return playlist
+
     def insert_playlist_entry(self, playlist):
         """
         Inserts or modifies an existing entry in the Plex playlists table.

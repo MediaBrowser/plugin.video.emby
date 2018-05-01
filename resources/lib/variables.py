@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from os.path import join
+import os
 
 import xbmc
 from xbmcaddon import Addon
@@ -41,10 +41,6 @@ KODILANGUAGE = xbmc.getLanguage(xbmc.ISO_639_1)
 KODIVERSION = int(xbmc.getInfoLabel("System.BuildVersion")[:2])
 KODILONGVERSION = xbmc.getInfoLabel('System.BuildVersion')
 KODI_PROFILE = try_decode(xbmc.translatePath("special://profile"))
-PLAYLIST_PATH = join(KODI_PROFILE, 'playlist')
-PLAYLIST_PATH_MIXED = join(PLAYLIST_PATH, 'mixed')
-PLAYLIST_PATH_VIDEO = join(PLAYLIST_PATH, 'video')
-PLAYLIST_PATH_MUSIC = join(PLAYLIST_PATH, 'music')
 
 if xbmc.getCondVisibility('system.platform.osx'):
     PLATFORM = "MacOSX"
@@ -126,6 +122,21 @@ EXTERNAL_SUBTITLE_TEMP_PATH = try_decode(xbmc.translatePath(
 
 # Multiply Plex time by this factor to receive Kodi time
 PLEX_TO_KODI_TIMEFACTOR = 1.0 / 1000.0
+
+# Playlist stuff
+PLAYLIST_PATH = os.path.join(KODI_PROFILE, 'playlist')
+PLAYLIST_PATH_MIXED = os.path.join(PLAYLIST_PATH, 'mixed')
+PLAYLIST_PATH_VIDEO = os.path.join(PLAYLIST_PATH, 'video')
+PLAYLIST_PATH_MUSIC = os.path.join(PLAYLIST_PATH, 'music')
+
+PLEX_TYPE_AUDIO_PLAYLIST = 'audio'
+PLEX_TYPE_VIDEO_PLAYLIST = 'video'
+KODI_TYPE_AUDIO_PLAYLIST = 'music'
+KODI_TYPE_VIDEO_PLAYLIST = 'video'
+KODI_PLAYLIST_TYPE_FROM_PLEX = {
+    PLEX_TYPE_AUDIO_PLAYLIST: KODI_TYPE_AUDIO_PLAYLIST,
+    PLEX_TYPE_VIDEO_PLAYLIST: KODI_TYPE_VIDEO_PLAYLIST
+}
 
 
 # All the Plex types as communicated in the PMS xml replies
