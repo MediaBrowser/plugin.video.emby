@@ -93,20 +93,20 @@ def create_kodi_playlist(plex_id=None):
     LOG.info('Creating new Kodi playlist from Plex playlist %s: %s',
              playlist.id, playlist.plex_name)
     name = utils.valid_filename(playlist.plex_name)
-    path = os.join(v.PLAYLIST_PATH, playlist.type, '%s.m3u8' % name)
+    path = os.path.join(v.PLAYLIST_PATH, playlist.type, '%s.m3u8' % name)
     while exists(path) or playlist_object_from_db(path=path):
         # In case the Plex playlist names are not unique
         occurance = utils.REGEX_FILE_NUMBERING.search(path)
         if not occurance:
-            path = os.join(v.PLAYLIST_PATH,
-                           playlist.type,
-                           '%s_01.m3u8' % name[:min(len(name), 247)])
+            path = os.path.join(v.PLAYLIST_PATH,
+                                playlist.type,
+                                '%s_01.m3u8' % name[:min(len(name), 247)])
         else:
             occurance = int(occurance.group(1)) + 1
-            path = os.join(v.PLAYLIST_PATH,
-                           playlist.type,
-                           '%s_%02d.m3u8' % (name[:min(len(name), 247)],
-                                             occurance))
+            path = os.path.join(v.PLAYLIST_PATH,
+                                playlist.type,
+                                '%s_%02d.m3u8' % (name[:min(len(name), 247)],
+                                                  occurance))
     LOG.debug('Kodi playlist path: %s', path)
     playlist.kodi_path = path
     # Derive filename close to Plex playlist name
