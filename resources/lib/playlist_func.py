@@ -135,12 +135,14 @@ class Playlist_Object(PlaylistObjectBaseclase):
         try:
             self.kodi_filename, self.kodi_extension = file.split('.', 1)
         except ValueError:
+            LOG.error('Trying to set invalid path: %s', path)
             raise PlaylistError('Invalid path: %s' % path)
         if path.startswith(v.PLAYLIST_PATH_VIDEO):
             self.type = v.KODI_TYPE_VIDEO_PLAYLIST
         elif path.startswith(v.PLAYLIST_PATH_MUSIC):
             self.type = v.KODI_TYPE_AUDIO_PLAYLIST
         else:
+            LOG.error('Playlist type not supported for %s', path)
             raise PlaylistError('Playlist type not supported: %s' % path)
         if not self.plex_name:
             self.plex_name = self.kodi_filename
