@@ -81,7 +81,7 @@ def create_kodi_playlist(plex_id=None):
     Returns the playlist or raises PL.PlaylistError
     """
     xml = PL.get_PMS_playlist(PL.Playlist_Object(), playlist_id=plex_id)
-    if not xml:
+    if xml is None:
         LOG.error('Could not get Plex playlist %s', plex_id)
         return
     api = API(xml)
@@ -280,7 +280,7 @@ def full_sync():
     LOG.info('Starting playlist full sync')
     # Get all Plex playlists
     xml = PL.get_all_playlists()
-    if not xml:
+    if xml is None:
         return False
     # For each playlist, check Plex database to see whether we already synced
     # before. If yes, make sure that hashes are identical. If not, sync it.
