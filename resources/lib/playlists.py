@@ -71,7 +71,7 @@ def delete_plex_playlist(playlist):
         update_plex_table(playlist, delete=True)
 
 
-def create_kodi_playlist(plex_id=None):
+def create_kodi_playlist(plex_id=None, updated_at=None):
     """
     Creates a new Kodi playlist file. Will also add (or modify an existing) Plex
     playlist table entry.
@@ -89,7 +89,7 @@ def create_kodi_playlist(plex_id=None):
     playlist.id = api.plex_id()
     playlist.type = v.KODI_PLAYLIST_TYPE_FROM_PLEX[api.playlist_type()]
     playlist.plex_name = api.title()
-    playlist.plex_updatedat = api.updated_at()
+    playlist.plex_updatedat = updated_at
     LOG.info('Creating new Kodi playlist from Plex playlist %s: %s',
              playlist.id, playlist.plex_name)
     name = utils.valid_filename(playlist.plex_name)
@@ -296,7 +296,7 @@ def full_sync():
             if not playlist:
                 LOG.debug('New Plex playlist %s discovered: %s',
                           api.plex_id(), api.title())
-                create_kodi_playlist(api.plex_id())
+                create_kodi_playlist(api.plex_id(), api.updated_at())
                 continue
             elif playlist.plex_updatedat != api.updated_at():
                 LOG.debug('Detected changed Plex playlist %s: %s',
@@ -305,7 +305,7 @@ def full_sync():
                     delete_kodi_playlist(playlist)
                 else:
                     update_plex_table(playlist, delete=True)
-                create_kodi_playlist(api.plex_id())
+                create_kodi_playlist(api.plex_id(), api.updated_at())
         except PL.PlaylistError:
             LOG.info('Skipping playlist %s: %s', api.plex_id(), api.title())
         try:
