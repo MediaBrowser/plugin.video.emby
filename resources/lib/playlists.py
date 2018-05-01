@@ -301,7 +301,10 @@ def full_sync():
             elif playlist.plex_updatedat != api.updated_at():
                 LOG.debug('Detected changed Plex playlist %s: %s',
                           api.plex_id(), api.title())
-                delete_kodi_playlist(playlist)
+                if exists(playlist.kodi_path):
+                    delete_kodi_playlist(playlist)
+                else:
+                    update_plex_table(playlist, delete=True)
                 create_kodi_playlist(api.plex_id())
         except PL.PlaylistError:
             LOG.info('Skipping playlist %s: %s', api.plex_id(), api.title())
