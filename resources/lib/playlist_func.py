@@ -133,7 +133,7 @@ class Playlist_Object(PlaylistObjectBaseclase):
     def kodi_path(self, path):
         file = os.path.dirname(path)
         try:
-            self.kodi_filename, self.kodi_extension = file.split('.', 1)[1]
+            self.kodi_filename, self.kodi_extension = file.split('.', 1)
         except ValueError:
             raise PlaylistError('Invalid path: %s' % path)
         if path.startswith(v.PLAYLIST_PATH_VIDEO):
