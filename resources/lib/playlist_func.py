@@ -131,7 +131,7 @@ class Playlist_Object(PlaylistObjectBaseclase):
 
     @kodi_path.setter
     def kodi_path(self, path):
-        file = os.path.dirname(path)
+        file = os.path.basename(path)
         try:
             self.kodi_filename, self.kodi_extension = file.split('.', 1)
         except ValueError:
