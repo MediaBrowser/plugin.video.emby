@@ -452,7 +452,7 @@ class Plex_DB_Functions():
         answ = self.plexcursor.fetchone()
         if not answ:
             return
-        playlist.plex_id = answ[0]
+        playlist.id = answ[0]
         playlist.plex_name = answ[1]
         playlist.plex_updatedat = answ[2]
         playlist.kodi_path = answ[3]
@@ -471,7 +471,7 @@ class Plex_DB_Functions():
             VALUES (?, ?, ?, ?, ?, ?)
             '''
         self.plexcursor.execute(query,
-                                (playlist.plex_id, playlist.plex_name,
+                                (playlist.id, playlist.plex_name,
                                  playlist.plex_updatedat, playlist.kodi_path,
                                  playlist.kodi_type, playlist.kodi_hash))
 

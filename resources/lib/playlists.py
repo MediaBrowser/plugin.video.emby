@@ -33,7 +33,7 @@ DEFAULT_ENCODING = sys.getdefaultencoding()
 
 def create_plex_playlist(playlist=None, path=None):
     """
-    Adds the playlist [Playlist_Object] to the PMS. If playlist.plex_id is
+    Adds the playlist [Playlist_Object] to the PMS. If playlist.id is
     not None the existing Plex playlist will be overwritten; otherwise a new
     playlist will be generated and stored accordingly in the playlist object.
 
