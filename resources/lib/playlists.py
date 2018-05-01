@@ -272,6 +272,7 @@ def _kodi_playlist_identical(xml_element):
     pass
 
 
+@utils.log_time
 def full_sync():
     """
     Full sync of playlists between Kodi and Plex. Returns True is successful,
@@ -368,6 +369,7 @@ def full_sync():
                 delete_plex_playlist(playlist)
             except PL.PlaylistError:
                 pass
+    LOG.info('Playlist full sync done')
     return True
 
 
