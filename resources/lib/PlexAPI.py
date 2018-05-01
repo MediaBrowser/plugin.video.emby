@@ -85,6 +85,12 @@ class API(object):
         """
         return self.item.get('type')
 
+    def playlist_type(self):
+        """
+        Returns the playlist type ('video', 'audio') or None
+        """
+        return self.item.get('playlistType')
+
     def updated_at(self):
         """
         Returns the last time this item was updated as unicode, e.g.

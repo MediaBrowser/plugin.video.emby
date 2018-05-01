@@ -87,7 +87,7 @@ def create_kodi_playlist(plex_id=None):
     api = API(xml[0])
     playlist = PL.Playlist_Object()
     playlist.id = api.plex_id()
-    playlist.type = v.KODI_PLAYLIST_TYPE_FROM_PLEX[xml.get('playlistType')]
+    playlist.type = v.KODI_PLAYLIST_TYPE_FROM_PLEX[api.playlist_type()]
     playlist.plex_name = api.title()
     playlist.plex_updatedat = api.updated_at()
     LOG.info('Creating new Kodi playlist from Plex playlist %s: %s',
@@ -289,7 +289,7 @@ def full_sync():
     for xml_playlist in xml:
         api = API(xml_playlist)
         if (not state.ENABLE_MUSIC and
-                xml.get('playlistType') == v.PLEX_TYPE_AUDIO_PLAYLIST):
+                api.playlist_type() == v.PLEX_TYPE_AUDIO_PLAYLIST):
             continue
         playlist = playlist_object_from_db(plex_id=api.plex_id())
         try:
