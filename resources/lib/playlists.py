@@ -22,13 +22,16 @@ LOG = getLogger("PLEX." + __name__)
 # Which playlist formates are supported by PKC?
 SUPPORTED_FILETYPES = (
     'm3u',
-    'm3u8'
+    # 'm3u8'
     # 'pls',
     # 'cue',
 )
 
 # m3u files do not have encoding specified
-DEFAULT_ENCODING = sys.getdefaultencoding()
+if v.PLATFORM == 'Windows':
+    ENCODING = 'mbcs'
+else:
+    ENCODING = sys.getdefaultencoding()
 
 
 def create_plex_playlist(playlist=None, path=None):
@@ -93,19 +96,19 @@ def create_kodi_playlist(plex_id=None, updated_at=None):
     LOG.info('Creating new Kodi playlist from Plex playlist %s: %s',
              playlist.id, playlist.plex_name)
     name = utils.valid_filename(playlist.plex_name)
-    path = os.path.join(v.PLAYLIST_PATH, playlist.type, '%s.m3u8' % name)
+    path = os.path.join(v.PLAYLIST_PATH, playlist.type, '%s.m3u' % name)
     while exists(path) or playlist_object_from_db(path=path):
         # In case the Plex playlist names are not unique
         occurance = utils.REGEX_FILE_NUMBERING.search(path)
         if not occurance:
             path = os.path.join(v.PLAYLIST_PATH,
                                 playlist.type,
-                                '%s_01.m3u8' % name[:min(len(name), 247)])
+                                '%s_01.m3u' % name[:min(len(name), 247)])
         else:
             occurance = int(occurance.group(1)) + 1
             path = os.path.join(v.PLAYLIST_PATH,
                                 playlist.type,
-                                '%s_%02d.m3u8' % (name[:min(len(name), 247)],
+                                '%s_%02d.m3u' % (name[:min(len(name), 247)],
                                                   occurance))
     LOG.debug('Kodi playlist path: %s', path)
     playlist.kodi_path = path
@@ -157,7 +160,7 @@ def _playlist_file_to_plex_ids(playlist):
     Returns a list of plex_ids (str) or raises PL.PlaylistError if a single
     item cannot be parsed from Kodi to Plex.
     """
-    if playlist.kodi_extension in ('m3u', 'm3u8'):
+    if playlist.kodi_extension  == 'm3u':
         plex_ids = m3u_to_plex_ids(playlist)
     return plex_ids
 
@@ -174,20 +177,13 @@ def _m3u_iterator(text):
 
 def m3u_to_plex_ids(playlist):
     """
-    Adapter to process *.m3u playlist files. Encoding is not uniform except for
-    m3u8 files!
+    Adapter to process *.m3u playlist files. Encoding is not uniform!
     """
     plex_ids = list()
     with open(playlist.kodi_path, 'rb') as f:
         text = f.read()
-    if playlist.kodi_extension == 'm3u8':
-        encoding = 'utf-8'
-    elif v.PLATFORM == 'Windows':
-        encoding = 'mbcs'
-    else:
-        encoding = DEFAULT_ENCODING
     try:
-        text = text.decode(encoding)
+        text = text.decode(ENCODING)
     except UnicodeDecodeError:
         LOG.warning('Fallback to ISO-8859-1 decoding for %s',
                     playlist.kodi_path)
@@ -212,7 +208,7 @@ def m3u_to_plex_ids(playlist):
 
 def _write_playlist_to_file(playlist, xml):
     """
-    Feed with playlist [Playlist_Object]. Will write the playlist to a m3u8 file
+    Feed with playlist [Playlist_Object]. Will write the playlist to a m3u file
     Returns None or raises PL.PlaylistError
     """
     text = u'#EXTCPlayListM3U::M3U\n'
@@ -221,7 +217,7 @@ def _write_playlist_to_file(playlist, xml):
         text += (u'#EXTINF:%s,%s\n%s\n'
                  % (api.runtime(), api.title(), api.path()))
     text += '\n'
-    text = text.encode('utf-8')
+    text = text.encode(ENCODING, 'ignore')
     try:
         with open(playlist.kodi_path, 'wb') as f:
             f.write(text)
