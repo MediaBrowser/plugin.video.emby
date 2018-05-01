@@ -124,7 +124,7 @@ EXTERNAL_SUBTITLE_TEMP_PATH = try_decode(xbmc.translatePath(
 PLEX_TO_KODI_TIMEFACTOR = 1.0 / 1000.0
 
 # Playlist stuff
-PLAYLIST_PATH = os.path.join(KODI_PROFILE, 'playlist')
+PLAYLIST_PATH = os.path.join(KODI_PROFILE, 'playlists')
 PLAYLIST_PATH_MIXED = os.path.join(PLAYLIST_PATH, 'mixed')
 PLAYLIST_PATH_VIDEO = os.path.join(PLAYLIST_PATH, 'video')
 PLAYLIST_PATH_MUSIC = os.path.join(PLAYLIST_PATH, 'music')
