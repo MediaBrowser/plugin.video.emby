@@ -428,17 +428,13 @@ def get_playlist_details_from_xml(playlist, xml):
 
     Raises PlaylistError if something went wrong.
     """
-    try:
-        playlist.id = xml.attrib['%sID' % playlist.kind]
-        playlist.version = xml.attrib['%sVersion' % playlist.kind]
-        playlist.shuffled = xml.attrib['%sShuffled' % playlist.kind]
-        playlist.selectedItemID = xml.attrib.get(
-            '%sSelectedItemID' % playlist.kind)
-        playlist.selectedItemOffset = xml.attrib.get(
-            '%sSelectedItemOffset' % playlist.kind)
-        LOG.debug('Updated playlist from xml: %s', playlist)
-    except (TypeError, KeyError, AttributeError):
-        raise PlaylistError('Could not get playlist details from xml')
+    playlist.id = xml.get('%sID' % playlist.kind)
+    playlist.version = xml.get('%sVersion' % playlist.kind)
+    playlist.shuffled = xml.get('%sShuffled' % playlist.kind)
+    playlist.selectedItemID = xml.get('%sSelectedItemID' % playlist.kind)
+    playlist.selectedItemOffset = xml.get(
+        '%sSelectedItemOffset' % playlist.kind)
+    LOG.debug('Updated playlist from xml: %s', playlist)
 
 
 def update_playlist_from_PMS(playlist, playlist_id=None, xml=None):
