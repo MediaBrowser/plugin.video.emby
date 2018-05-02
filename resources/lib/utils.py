@@ -448,6 +448,11 @@ def wipe_database():
     LOG.info("Resetting the Plex database.")
     connection = kodi_sql('plex')
     cursor = connection.cursor()
+    # First get the paths to all synced playlists
+    playlist_paths = []
+    cursor.execute('SELECT kodi_path FROM playlists')
+    for entry in cursor.fetchall():
+        playlist_paths.append(entry[0])
     cursor.execute('SELECT tbl_name FROM sqlite_master WHERE type="table"')
     rows = cursor.fetchall()
     for row in rows:
@@ -456,6 +461,13 @@ def wipe_database():
             cursor.execute("DELETE FROM %s" % tablename)
     connection.commit()
     cursor.close()
+
+    # Delete all synced playlists
+    for path in playlist_paths:
+        try:
+            os.remove(path)
+        except (OSError, IOError):
+            pass
 
     LOG.info("Resetting all cached artwork.")
     # Remove all existing textures first
