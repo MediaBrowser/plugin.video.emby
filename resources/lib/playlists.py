@@ -47,11 +47,14 @@ def create_plex_playlist(playlist=None, path=None):
     if not playlist:
         playlist = PL.Playlist_Object()
         playlist.kodi_path = path
-    LOG.info('Creating Plex playlist from Kodi file: %s', playlist.kodi_path)
+    LOG.info('Creating Plex playlist from Kodi file: %s', path)
     plex_ids = _playlist_file_to_plex_ids(playlist)
+    if not plex_ids:
+        LOG.info('No Plex ids found for playlist %s', path)
+        raise PL.PlaylistError
     for pos, plex_id in enumerate(plex_ids):
         if pos == 0:
-            PL.init_Plex_playlist(playlist, plex_id=plex_id)
+            PL.init_plex_playlist(playlist, plex_id)
         else:
             PL.add_item_to_PMS_playlist(playlist, pos, plex_id=plex_id)
     update_plex_table(playlist, update_kodi_hash=True)

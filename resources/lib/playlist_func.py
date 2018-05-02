@@ -4,7 +4,7 @@ Collection of functions associated with Kodi and Plex playlists and playqueues
 """
 from logging import getLogger
 import os
-from urllib import quote
+import urllib
 from urlparse import parse_qsl, urlsplit
 from re import compile as re_compile
 
@@ -309,7 +309,8 @@ def playlist_item_from_kodi(kodi_item):
         item.plex_id = query.get('plex_id')
         item.plex_type = query.get('itemType')
     if item.plex_id is None and item.file is not None:
-        item.uri = 'library://whatever/item/%s' % quote(item.file, safe='')
+        item.uri = ('library://whatever/item/%s'
+                    % urllib.quote(item.file, safe=''))
     else:
         # TO BE VERIFIED - PLEX DOESN'T LIKE PLAYLIST ADDS IN THIS MANNER
         item.uri = ('library://%s/item/library%%2Fmetadata%%2F%s' %
@@ -456,6 +457,26 @@ def update_playlist_from_PMS(playlist, playlist_id=None, xml=None):
             playlist.items.append(playlist_item)
 
 
+def init_plex_playlist(playlist, plex_id):
+    """
+    Initializes a new playlist on the PMS side
+    """
+    LOG.debug('Initializing the playlist with Plex id %s on the Plex side: %s',
+              plex_id, playlist)
+    params = {
+        'type': playlist.type,
+        'title': playlist.plex_name,
+        'smart': 0,
+        'uri': ('library://None/item/%s' % (urllib.quote('/library/metadata/%s'
+                                                         % plex_id, safe='')))
+    }
+    xml = DU().downloadUrl(url='{server}/playlists',
+                           action_type='POST',
+                           parameters=params)
+    get_playlist_details_from_xml(playlist, xml)
+    LOG.debug('Initialized the playlist on the Plex side: %s', playlist)
+
+
 def init_plex_playqueue(playlist, plex_id=None, kodi_item=None):
     """
     Initializes the Plex side without changing the Kodi playlists
@@ -463,7 +484,7 @@ def init_plex_playqueue(playlist, plex_id=None, kodi_item=None):
 
     Returns the first PKC playlist item or raises PlaylistError
     """
-    LOG.debug('Initializing the playlist on the Plex side: %s', playlist)
+    LOG.debug('Initializing the playqueue on the Plex side: %s', playlist)
     playlist.clear(kodi=False)
     verify_kodi_item(plex_id, kodi_item)
     try:
@@ -486,7 +507,7 @@ def init_plex_playqueue(playlist, plex_id=None, kodi_item=None):
         raise PlaylistError('Could not init Plex playlist with plex_id %s and '
                             'kodi_item %s' % (plex_id, kodi_item))
     playlist.items.append(item)
-    LOG.debug('Initialized the playlist on the Plex side: %s', playlist)
+    LOG.debug('Initialized the playqueue on the Plex side: %s', playlist)
     return item
 
 
