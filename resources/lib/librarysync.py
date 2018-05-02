@@ -1200,7 +1200,11 @@ class LibrarySync(Thread):
                 # No need to process extras or trailers
                 continue
             status = int(item['state'])
-            if status == 9:
+            if typus == 'playlist':
+                playlists.process_websocket(plex_id=str(item['itemID']),
+                                            updated_at=str(item['updatedAt']),
+                                            state=status)
+            elif status == 9:
                 # Immediately and always process deletions (as the PMS will
                 # send additional message with other codes)
                 self.items_to_process.append({

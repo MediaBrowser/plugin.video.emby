@@ -267,6 +267,32 @@ def _kodi_playlist_identical(xml_element):
     pass
 
 
+def process_websocket(plex_id, updated_at, state):
+    """
+    Hit by librarysync to process websocket messages concerning playlists
+    """
+    create = False
+    playlist = playlist_object_from_db(plex_id=plex_id)
+    if playlist and state == 9:
+        LOG.debug('Plex deletion of playlist detected: %s', playlist)
+        delete_kodi_playlist(playlist)
+    elif playlist and playlist.plex_updatedat == updated_at:
+        LOG.debug('Playlist with id %s already synced: %s', plex_id, playlist)
+    elif playlist:
+        LOG.debug('Change of Plex playlist detected: %s', playlist)
+        delete_kodi_playlist(playlist)
+        create = True
+    elif not playlist and not state == 9:
+        LOG.debug('Creation of new Plex playlist detected: %s', plex_id)
+        create = True
+    # To the actual work
+    if create:
+        try:
+            create_kodi_playlist(plex_id=plex_id, updated_at=updated_at)
+        except PL.PlaylistError:
+            pass
+
+
 @utils.log_time
 def full_sync():
     """
