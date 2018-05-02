@@ -465,7 +465,7 @@ def init_plex_playlist(playlist, plex_id):
     LOG.debug('Initializing the playlist with Plex id %s on the Plex side: %s',
               plex_id, playlist)
     params = {
-        'type': playlist.type,
+        'type': v.PLEX_PLAYLIST_TYPE_FROM_KODI[playlist.type],
         'title': playlist.plex_name,
         'smart': 0,
         'uri': ('library://None/item/%s' % (urllib.quote('/library/metadata/%s'

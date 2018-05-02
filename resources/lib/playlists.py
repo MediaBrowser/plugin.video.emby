@@ -200,13 +200,13 @@ def m3u_to_plex_ids(playlist):
         else:
             # Add-on paths not working, try direct
             kodi_id, kodi_type = kodidb.kodiid_from_filename(
-                playlist.kodi_path, db_type=playlist.type)
+                entry, db_type=playlist.type)
             if not kodi_id:
                 continue
             with plexdb.Get_Plex_DB() as plex_db:
                 plex_id = plex_db.getItem_byKodiId(kodi_id, kodi_type)
             if plex_id:
-                plex_ids.append(plex_id)
+                plex_ids.append(plex_id[0])
     return plex_ids
 
 

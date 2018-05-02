@@ -653,22 +653,22 @@ class KodiDBMethods(object):
             WHERE strPath = ?
         '''
         self.cursor.execute(query, (path,))
-        path_id = self.cursor.fetchall()
-        if len(path_id) != 1:
+        path_ids = self.cursor.fetchall()
+        if len(path_ids) != 1:
             LOG.error('Found wrong number of path ids: %s for path %s, abort',
-                     path_id, path)
+                      path_ids, path)
             return
         query = '''
             SELECT idSong
             FROM song
             WHERE strFileName = ? AND idPath = ?
         '''
-        self.cursor.execute(query, (filename, path_id[0]))
-        song_id = self.cursor.fetchall()
-        if len(song_id) != 1:
-            LOG.info('Found wrong number of songs %s, abort', song_id)
+        self.cursor.execute(query, (filename, path_ids[0][0]))
+        song_ids = self.cursor.fetchall()
+        if len(song_ids) != 1:
+            LOG.info('Found wrong number of songs %s, abort', song_ids)
             return
-        return song_id[0]
+        return song_ids[0][0]
 
     def get_resume(self, file_id):
         """
@@ -1200,10 +1200,11 @@ def kodiid_from_filename(path, kodi_type=None, db_type=None):
     if kodi_type == v.KODI_TYPE_SONG or db_type == 'music':
         with GetKodiDB('music') as kodi_db:
             try:
-                kodi_id, kodi_type = kodi_db.music_id_from_filename(filename,
-                                                                    path)
+                kodi_id = kodi_db.music_id_from_filename(filename, path)
             except TypeError:
                 LOG.debug('No Kodi audio db element found for path %s', path)
+            else:
+                kodi_type = v.KODI_TYPE_SONG
     else:
         with GetKodiDB('video') as kodi_db:
             try:
