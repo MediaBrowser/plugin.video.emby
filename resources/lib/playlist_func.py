@@ -875,4 +875,5 @@ def delete_playlist_from_pms(playlist):
     try:
         xml.attrib
     except (TypeError, AttributeError):
+        LOG.error('Could not delete playlist from server: %s', playlist)
         raise PlaylistError('Could not delete playlist %s' % playlist)
