@@ -126,7 +126,8 @@ def create_kodi_playlist(plex_id=None, updated_at=None):
     playlist.kodi_path = path
     # Derive filename close to Plex playlist name
     _write_playlist_to_file(playlist, xml)
-    update_plex_table(playlist, update_kodi_hash=True)
+    playlist.kodi_hash = utils.generate_file_md5(path)
+    update_plex_table(playlist)
     LOG.info('Created Kodi playlist based on Plex playlist: %s', playlist)
 
 
@@ -147,8 +148,7 @@ def delete_kodi_playlist(playlist):
         update_plex_table(playlist, delete=True)
 
 
-def update_plex_table(playlist, delete=False, new_path=None,
-                      update_kodi_hash=False):
+def update_plex_table(playlist, delete=False):
     """
     Assumes that all sync operations are over. Takes playlist [Playlist_Object]
     and creates/updates the corresponding Plex playlists table entry
@@ -159,8 +159,6 @@ def update_plex_table(playlist, delete=False, new_path=None,
         with plexdb.Get_Plex_DB() as plex_db:
             plex_db.delete_playlist_entry(playlist)
         return
-    if update_kodi_hash:
-        playlist.kodi_hash = utils.generate_file_md5(playlist.kodi_path)
     with plexdb.Get_Plex_DB() as plex_db:
         plex_db.insert_playlist_entry(playlist)
 
