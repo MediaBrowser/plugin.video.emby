@@ -79,12 +79,8 @@ def delete_plex_playlist(playlist):
     Returns None or raises PL.PlaylistError
     """
     LOG.info('Deleting playlist %s from the PMS', playlist.plex_name)
-    try:
-        PL.delete_playlist_from_pms(playlist)
-    except PL.PlaylistError:
-        pass
-    else:
-        update_plex_table(playlist, delete=True)
+    PL.delete_playlist_from_pms(playlist)
+    update_plex_table(playlist, delete=True)
 
 
 def create_kodi_playlist(plex_id=None, updated_at=None):
