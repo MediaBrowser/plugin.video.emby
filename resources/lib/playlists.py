@@ -54,7 +54,8 @@ def create_plex_playlist(playlist=None, path=None):
         raise PL.PlaylistError
     for pos, plex_id in enumerate(plex_ids):
         if pos == 0:
-            PL.init_plex_playlist(playlist, plex_id)
+            if not PL.init_plex_playlist(playlist, plex_id):
+                return
         else:
             PL.add_item_to_PMS_playlist(playlist, pos, plex_id=plex_id)
     update_plex_table(playlist, update_kodi_hash=True)

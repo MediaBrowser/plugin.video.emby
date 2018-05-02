@@ -459,7 +459,8 @@ def update_playlist_from_PMS(playlist, playlist_id=None, xml=None):
 
 def init_plex_playlist(playlist, plex_id):
     """
-    Initializes a new playlist on the PMS side
+    Initializes a new playlist on the PMS side. Returns True if it worked,
+    False otherwise. Will set playlist.id and playlist.plex_updatedat
     """
     LOG.debug('Initializing the playlist with Plex id %s on the Plex side: %s',
               plex_id, playlist)
@@ -473,8 +474,16 @@ def init_plex_playlist(playlist, plex_id):
     xml = DU().downloadUrl(url='{server}/playlists',
                            action_type='POST',
                            parameters=params)
-    get_playlist_details_from_xml(playlist, xml)
-    LOG.debug('Initialized the playlist on the Plex side: %s', playlist)
+    try:
+        xml[0].attrib
+    except (TypeError, IndexError, AttributeError):
+        LOG.error('Could not initialize playlist on Plex side with plex id %s',
+                  plex_id)
+        return False
+    api = API(xml[0])
+    playlist.id = api.plex_id()
+    playlist.plex_updatedat = api.updated_at()
+    return True
 
 
 def init_plex_playqueue(playlist, plex_id=None, kodi_item=None):
