@@ -190,8 +190,7 @@ def m3u_to_plex_ids(playlist):
     try:
         text = text.decode(ENCODING)
     except UnicodeDecodeError:
-        LOG.warning('Fallback to ISO-8859-1 decoding for %s',
-                    playlist.kodi_path)
+        LOG.warning('Fallback to ISO-8859-1 decoding for %s', playlist)
         text = text.decode('ISO-8859-1')
     for entry in _m3u_iterator(text):
         plex_id = utils.REGEX_PLEX_ID.search(entry)
