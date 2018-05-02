@@ -296,7 +296,7 @@ class KodiMonitor(xbmc.Monitor):
         items.pop(0)
         try:
             for i, item in enumerate(items):
-                PL.add_item_to_PMS_playlist(playqueue, i + 1, kodi_item=item)
+                PL.add_item_to_plex_playqueue(playqueue, i + 1, kodi_item=item)
         except PL.PlaylistError:
             LOG.info('Could not build Plex playlist for: %s', items)
 

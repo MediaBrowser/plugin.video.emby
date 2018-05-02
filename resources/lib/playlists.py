@@ -57,7 +57,7 @@ def create_plex_playlist(playlist=None, path=None):
             if not PL.init_plex_playlist(playlist, plex_id):
                 return
         else:
-            PL.add_item_to_PMS_playlist(playlist, pos, plex_id=plex_id)
+            PL.add_item_to_plex_playqueue(playlist, pos, plex_id=plex_id)
     update_plex_table(playlist, update_kodi_hash=True)
     LOG.info('Done creating Plex %s playlist %s',
              playlist.type, playlist.plex_name)

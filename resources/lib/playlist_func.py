@@ -535,7 +535,7 @@ def add_listitem_to_playlist(playlist, pos, listitem, kodi_id=None,
     if playlist.id is None:
         init_plex_playqueue(playlist, plex_id, kodi_item)
     else:
-        add_item_to_PMS_playlist(playlist, pos, plex_id, kodi_item)
+        add_item_to_plex_playqueue(playlist, pos, plex_id, kodi_item)
     if kodi_id is None and playlist.items[pos].kodi_id:
         kodi_id = playlist.items[pos].kodi_id
         kodi_type = playlist.items[pos].kodi_type
@@ -564,7 +564,7 @@ def add_item_to_playlist(playlist, pos, kodi_id=None, kodi_type=None,
     if playlist.id is None:
         item = init_plex_playqueue(playlist, plex_id, kodi_item)
     else:
-        item = add_item_to_PMS_playlist(playlist, pos, plex_id, kodi_item)
+        item = add_item_to_plex_playqueue(playlist, pos, plex_id, kodi_item)
     params = {
         'playlistid': playlist.playlistid,
         'position': pos
@@ -580,7 +580,7 @@ def add_item_to_playlist(playlist, pos, kodi_id=None, kodi_type=None,
     return item
 
 
-def add_item_to_PMS_playlist(playlist, pos, plex_id=None, kodi_item=None):
+def add_item_to_plex_playqueue(playlist, pos, plex_id=None, kodi_item=None):
     """
     Adds a new item to the playlist at position pos [int] only on the Plex
     side of things (e.g. because the user changed the Kodi side)
