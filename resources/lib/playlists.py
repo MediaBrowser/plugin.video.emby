@@ -2,6 +2,7 @@
 from logging import getLogger
 import os
 import sys
+from threading import Lock
 
 from xbmcvfs import exists
 
@@ -19,6 +20,11 @@ import state
 
 LOG = getLogger("PLEX." + __name__)
 
+# Necessary to temporarily hold back librarysync/websocket listener when doing
+# a full sync
+LOCK = Lock()
+LOCKER = utils.LockFunction(LOCK)
+
 # Which playlist formates are supported by PKC?
 SUPPORTED_FILETYPES = (
     'm3u',
@@ -26,6 +32,12 @@ SUPPORTED_FILETYPES = (
     # 'pls',
     # 'cue',
 )
+
+# Watchdog copy-paste
+EVENT_TYPE_MOVED = 'moved'
+EVENT_TYPE_DELETED = 'deleted'
+EVENT_TYPE_CREATED = 'created'
+EVENT_TYPE_MODIFIED = 'modified'
 
 # m3u files do not have encoding specified
 if v.PLATFORM == 'Windows':
@@ -267,6 +279,7 @@ def _kodi_playlist_identical(xml_element):
     pass
 
 
+@LOCKER.lockthis
 def process_websocket(plex_id, updated_at, state):
     """
     Hit by librarysync to process websocket messages concerning playlists
@@ -293,7 +306,7 @@ def process_websocket(plex_id, updated_at, state):
             pass
 
 
-@utils.log_time
+@LOCKER.lockthis
 def full_sync():
     """
     Full sync of playlists between Kodi and Plex. Returns True is successful,
@@ -399,30 +412,37 @@ class PlaylistEventhandler(FileSystemEventHandler):
     """
     PKC eventhandler to monitor Kodi playlists safed to disk
     """
-    @staticmethod
-    def _event_relevant(event):
+    def dispatch(self, event):
         """
-        Returns True if the event is relevant for PKC, False otherwise (e.g.
-        when a smart playlist *.xsp is considered)
+        Dispatches events to the appropriate methods.
+
+        :param event:
+            The event object representing the file system event.
+        :type event:
+            :class:`FileSystemEvent`
         """
-        LOG.debug('event.is_directory: %s, event.src_path: %s',
-                  event.is_directory, event.src_path)
         if event.is_directory:
             # todo: take care of folder renames
-            return False
+            return
         try:
             _, extension = event.src_path.rsplit('.', 1)
         except ValueError:
-            return False
+            return
         if extension.lower() not in SUPPORTED_FILETYPES:
-            return False
+            return
         if event.src_path.startswith(v.PLAYLIST_PATH_MIXED):
-            return False
-        return True
+            return
+        _method_map = {
+            EVENT_TYPE_MODIFIED: self.on_modified,
+            EVENT_TYPE_MOVED: self.on_moved,
+            EVENT_TYPE_CREATED: self.on_created,
+            EVENT_TYPE_DELETED: self.on_deleted,
+        }
+        event_type = event.event_type
+        with LOCK:
+            _method_map[event_type](event)
 
     def on_created(self, event):
-        if not self._event_relevant(event):
-            return
         LOG.debug('on_created: %s', event.src_path)
         playlist = PL.Playlist_Object()
         playlist.kodi_path = event.src_path
@@ -433,8 +453,6 @@ class PlaylistEventhandler(FileSystemEventHandler):
             pass
 
     def on_deleted(self, event):
-        if not self._event_relevant(event):
-            return
         LOG.debug('on_deleted: %s', event.src_path)
         playlist = playlist_object_from_db(path=event.src_path)
         if not playlist:
@@ -443,8 +461,6 @@ class PlaylistEventhandler(FileSystemEventHandler):
             delete_plex_playlist(playlist)
 
     def on_modified(self, event):
-        if not self._event_relevant(event):
-            return
         LOG.debug('on_modified: %s', event.src_path)
         old_playlist = playlist_object_from_db(path=event.src_path)
         new_playlist = PL.Playlist_Object()
@@ -468,8 +484,6 @@ class PlaylistEventhandler(FileSystemEventHandler):
             pass
 
     def on_moved(self, event):
-        if not self._event_relevant(event):
-            return
         LOG.debug('on_moved: %s to %s', event.src_path, event.dest_path)
         old_playlist = playlist_object_from_db(path=event.src_path)
         if not old_playlist:
