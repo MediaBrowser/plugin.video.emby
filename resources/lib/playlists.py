@@ -61,8 +61,7 @@ def create_plex_playlist(playlist=None, path=None):
         except PL.PlaylistError:
             continue
     update_plex_table(playlist, update_kodi_hash=True)
-    LOG.info('Done creating Plex %s playlist %s',
-             playlist.type, playlist.plex_name)
+    LOG.info('Done creating Plex playlist %s', playlist)
 
 
 def delete_plex_playlist(playlist):
