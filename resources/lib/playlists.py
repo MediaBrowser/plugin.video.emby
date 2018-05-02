@@ -47,10 +47,10 @@ def create_plex_playlist(playlist=None, path=None):
     if not playlist:
         playlist = PL.Playlist_Object()
         playlist.kodi_path = path
-    LOG.info('Creating Plex playlist from Kodi file: %s', path)
+    LOG.info('Creating Plex playlist from Kodi file: %s', playlist.kodi_path)
     plex_ids = _playlist_file_to_plex_ids(playlist)
     if not plex_ids:
-        LOG.info('No Plex ids found for playlist %s', path)
+        LOG.info('No Plex ids found for playlist %s', playlist.kodi_path)
         raise PL.PlaylistError
     for pos, plex_id in enumerate(plex_ids):
         try:
