@@ -34,19 +34,15 @@ else:
     ENCODING = sys.getdefaultencoding()
 
 
-def create_plex_playlist(playlist=None, path=None):
+def create_plex_playlist(playlist):
     """
     Adds the playlist [Playlist_Object] to the PMS. If playlist.id is
     not None the existing Plex playlist will be overwritten; otherwise a new
     playlist will be generated and stored accordingly in the playlist object.
-
     Will also add (or modify an existing) Plex playlist table entry.
-
+    Make sure that playlist.kodi_hash is set!
     Returns None or raises PL.PlaylistError
     """
-    if not playlist:
-        playlist = PL.Playlist_Object()
-        playlist.kodi_path = path
     LOG.info('Creating Plex playlist from Kodi file: %s', playlist.kodi_path)
     plex_ids = _playlist_file_to_plex_ids(playlist)
     if not plex_ids:
@@ -60,7 +56,7 @@ def create_plex_playlist(playlist=None, path=None):
                 PL.add_item_to_plex_playlist(playlist, plex_id=plex_id)
         except PL.PlaylistError:
             continue
-    update_plex_table(playlist, update_kodi_hash=True)
+    update_plex_table(playlist)
     LOG.info('Done creating Plex playlist %s', playlist)
 
 
@@ -348,19 +344,20 @@ def full_sync():
                     old_kodi_hashes.remove(kodi_hash)
                     continue
                 try:
+                    playlist = PL.Playlist_Object()
+                    playlist.kodi_path = path
+                    playlist.kodi_hash = kodi_hash
                     if playlist_2:
                         LOG.debug('Changed Kodi playlist %s detected: %s',
                                   playlist_2.plex_name, path)
-                        playlist = PL.Playlist_Object()
                         playlist.id = playlist_2.id
-                        playlist.kodi_path = path
                         playlist.plex_name = playlist_2.plex_name
                         delete_plex_playlist(playlist_2)
                         create_plex_playlist(playlist)
                     else:
                         LOG.debug('New Kodi playlist detected: %s', path)
                         # Make sure that we delete any playlist with other hash
-                        create_plex_playlist(path=path)
+                        create_plex_playlist(playlist)
                 except PL.PlaylistError:
                     LOG.info('Skipping Kodi playlist %s', path)
     for kodi_hash in old_kodi_hashes:
@@ -405,36 +402,63 @@ class PlaylistEventhandler(FileSystemEventHandler):
         LOG.debug('on_created: %s', event.src_path)
         playlist = PL.Playlist_Object()
         playlist.kodi_path = event.src_path
-        create_plex_playlist(playlist)
+        playlist.kodi_hash = utils.generate_file_md5(event.src_path)
+        try:
+            create_plex_playlist(playlist)
+        except PL.PlaylistError:
+            pass
 
     def on_deleted(self, event):
         if not self._event_relevant(event):
             return
         LOG.debug('on_deleted: %s', event.src_path)
-        playlist = PL.Playlist_Object()
-        playlist.kodi_path = event.src_path
-        delete_plex_playlist(playlist)
+        playlist = playlist_object_from_db(path=event.src_path)
+        if not playlist:
+            LOG.error('Playlist not found in DB for path %s', event.src_path)
+        else:
+            delete_plex_playlist(playlist)
 
     def on_modified(self, event):
         if not self._event_relevant(event):
             return
         LOG.debug('on_modified: %s', event.src_path)
-        playlist = PL.Playlist_Object()
-        playlist.kodi_path = event.src_path
-        delete_plex_playlist(playlist)
-        create_plex_playlist(playlist)
+        old_playlist = playlist_object_from_db(path=event.src_path)
+        new_playlist = PL.Playlist_Object()
+        # Retain the name! Might've vom from Plex
+        new_playlist.plex_name = old_playlist.plex_name
+        new_playlist.kodi_path = event.src_path
+        new_playlist.kodi_hash = utils.generate_file_md5(event.src_path)
+        try:
+            if not old_playlist:
+                LOG.debug('Old playlist not found, creating a new one')
+                try:
+                    create_plex_playlist(new_playlist)
+                except PL.PlaylistError:
+                    pass
+            elif old_playlist.kodi_hash == new_playlist.kodi_hash:
+                LOG.debug('Old and new playlist are identical - nothing to do')
+            else:
+                delete_plex_playlist(old_playlist)
+                create_plex_playlist(new_playlist)
+        except PL.PlaylistError:
+            pass
 
     def on_moved(self, event):
         if not self._event_relevant(event):
             return
         LOG.debug('on_moved: %s to %s', event.src_path, event.dest_path)
-        playlist = PL.Playlist_Object()
-        playlist.id = plex_id_from_playlist_path(event.src_path)
-        if not playlist.id:
-            return
-        playlist.kodi_path = event.dest_path
-        change_plex_playlist_name(playlist, playlist.kodi_filename)
-        update_plex_table(playlist)
+        old_playlist = playlist_object_from_db(path=event.src_path)
+        if not old_playlist:
+            LOG.error('Did not have source path in the DB', event.src_path)
+        else:
+            delete_plex_playlist(old_playlist)
+        new_playlist = PL.Playlist_Object()
+        new_playlist.kodi_path = event.dest_path
+        new_playlist.kodi_hash = utils.generate_file_md5(event.dest_path)
+        try:
+            create_plex_playlist(new_playlist)
+        except PL.PlaylistError:
+            pass
 
 
 def kodi_playlist_monitor():
