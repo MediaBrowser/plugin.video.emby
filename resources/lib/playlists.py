@@ -94,8 +94,7 @@ def create_kodi_playlist(plex_id=None, updated_at=None):
     playlist.type = v.KODI_PLAYLIST_TYPE_FROM_PLEX[api.playlist_type()]
     playlist.plex_name = api.title()
     playlist.plex_updatedat = updated_at
-    LOG.info('Creating new Kodi playlist from Plex playlist %s: %s',
-             playlist.id, playlist.plex_name)
+    LOG.info('Creating new Kodi playlist from Plex playlist: %s', playlist)
     name = utils.valid_filename(playlist.plex_name)
     path = os.path.join(v.PLAYLIST_PATH, playlist.type, '%s.m3u' % name)
     while exists(path) or playlist_object_from_db(path=path):
@@ -110,14 +109,13 @@ def create_kodi_playlist(plex_id=None, updated_at=None):
             path = os.path.join(v.PLAYLIST_PATH,
                                 playlist.type,
                                 '%s_%02d.m3u' % (name[:min(len(name), 247)],
-                                                  occurance))
+                                                 occurance))
     LOG.debug('Kodi playlist path: %s', path)
     playlist.kodi_path = path
     # Derive filename close to Plex playlist name
     _write_playlist_to_file(playlist, xml)
     update_plex_table(playlist, update_kodi_hash=True)
-    LOG.info('Created Kodi playlist %s based on Plex playlist %s',
-             playlist.kodi_filename, playlist.plex_name)
+    LOG.info('Created Kodi playlist based on Plex playlist: %s', playlist)
 
 
 def delete_kodi_playlist(playlist):
@@ -161,7 +159,7 @@ def _playlist_file_to_plex_ids(playlist):
     Returns a list of plex_ids (str) or raises PL.PlaylistError if a single
     item cannot be parsed from Kodi to Plex.
     """
-    if playlist.kodi_extension  == 'm3u':
+    if playlist.kodi_extension == 'm3u':
         plex_ids = m3u_to_plex_ids(playlist)
     return plex_ids
 
