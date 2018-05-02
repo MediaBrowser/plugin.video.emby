@@ -870,7 +870,7 @@ def delete_playlist_from_pms(playlist):
     Deletes the playlist from the PMS
     """
     xml = DU().downloadUrl("{server}/%ss/%s" %
-                           (playlist.kind, playlist.id),
+                           (playlist.kind.lower(), playlist.id),
                            action_type="DELETE")
     try:
         xml.attrib
