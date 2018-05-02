@@ -466,8 +466,9 @@ class PlaylistEventhandler(FileSystemEventHandler):
         LOG.debug('on_modified: %s', event.src_path)
         old_playlist = playlist_object_from_db(path=event.src_path)
         new_playlist = PL.Playlist_Object()
-        # Retain the name! Might've vom from Plex
-        new_playlist.plex_name = old_playlist.plex_name
+        if old_playlist:
+            # Retain the name! Might've vom from Plex
+            new_playlist.plex_name = old_playlist.plex_name
         new_playlist.kodi_path = event.src_path
         new_playlist.kodi_hash = utils.generate_file_md5(event.src_path)
         try:
