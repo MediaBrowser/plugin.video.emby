@@ -459,8 +459,8 @@ def update_playlist_from_PMS(playlist, playlist_id=None, xml=None):
 
 def init_plex_playlist(playlist, plex_id):
     """
-    Initializes a new playlist on the PMS side. Returns True if it worked,
-    False otherwise. Will set playlist.id and playlist.plex_updatedat
+    Initializes a new playlist on the PMS side. Will set playlist.id and
+    playlist.plex_updatedat. Will raise PlaylistError if something went wrong.
     """
     LOG.debug('Initializing the playlist with Plex id %s on the Plex side: %s',
               plex_id, playlist)
@@ -479,17 +479,16 @@ def init_plex_playlist(playlist, plex_id):
     except (TypeError, IndexError, AttributeError):
         LOG.error('Could not initialize playlist on Plex side with plex id %s',
                   plex_id)
-        return False
+        raise PlaylistError('Could not initialize Plex playlist %s', plex_id)
     api = API(xml[0])
     playlist.id = api.plex_id()
     playlist.plex_updatedat = api.updated_at()
-    return True
 
 
 def init_plex_playqueue(playlist, plex_id=None, kodi_item=None):
     """
     Initializes the Plex side without changing the Kodi playlists
-    WILL ALSO UPDATE OUR PLAYLISTS. 
+    WILL ALSO UPDATE OUR PLAYLISTS.
 
     Returns the first PKC playlist item or raises PlaylistError
     """
@@ -578,6 +577,30 @@ def add_item_to_playlist(playlist, pos, kodi_id=None, kodi_type=None,
         raise PlaylistError('Could not add item to playlist. Kodi reply. %s'
                             % reply)
     return item
+
+
+def add_item_to_plex_playlist(playlist, plex_id):
+    """
+    Adds the item with plex_id to the existing Plex playlist (at the end).
+    Will set playlist.plex_updatedat
+    Raises PlaylistError if that did not work out.
+    """
+    params = {
+        'uri': ('library://None/item/%s' % (urllib.quote('/library/metadata/%s'
+                                                         % plex_id, safe='')))
+    }
+    xml = DU().downloadUrl(url='{server}/playlists/%s/items' % playlist.id,
+                           action_type='PUT',
+                           parameters=params)
+    try:
+        xml[0].attrib
+    except (TypeError, IndexError, AttributeError):
+        LOG.error('Could not initialize playlist on Plex side with plex id %s',
+                  plex_id)
+        raise PlaylistError('Could not item %s to Plex playlist %s',
+                            plex_id, playlist)
+    api = API(xml[0])
+    playlist.plex_updatedat = api.updated_at()
 
 
 def add_item_to_plex_playqueue(playlist, pos, plex_id=None, kodi_item=None):

@@ -53,11 +53,13 @@ def create_plex_playlist(playlist=None, path=None):
         LOG.info('No Plex ids found for playlist %s', path)
         raise PL.PlaylistError
     for pos, plex_id in enumerate(plex_ids):
-        if pos == 0:
-            if not PL.init_plex_playlist(playlist, plex_id):
-                return
-        else:
-            PL.add_item_to_plex_playqueue(playlist, pos, plex_id=plex_id)
+        try:
+            if pos == 0 or not playlist.id:
+                PL.init_plex_playlist(playlist, plex_id)
+            else:
+                PL.add_item_to_plex_playqueue(playlist, pos, plex_id=plex_id)
+        except PL.PlaylistError:
+            continue
     update_plex_table(playlist, update_kodi_hash=True)
     LOG.info('Done creating Plex %s playlist %s',
              playlist.type, playlist.plex_name)
