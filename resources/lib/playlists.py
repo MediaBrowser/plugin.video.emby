@@ -444,6 +444,10 @@ class PlaylistEventhandler(FileSystemEventHandler):
 
     def on_created(self, event):
         LOG.debug('on_created: %s', event.src_path)
+        old_playlist = playlist_object_from_db(path=event.src_path)
+        if old_playlist:
+            LOG.debug('Playlist already in DB - skipping')
+            return
         playlist = PL.Playlist_Object()
         playlist.kodi_path = event.src_path
         playlist.kodi_hash = utils.generate_file_md5(event.src_path)
