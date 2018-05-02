@@ -57,7 +57,7 @@ def create_plex_playlist(playlist=None, path=None):
             if pos == 0 or not playlist.id:
                 PL.init_plex_playlist(playlist, plex_id)
             else:
-                PL.add_item_to_plex_playqueue(playlist, pos, plex_id=plex_id)
+                PL.add_item_to_plex_playlist(playlist, plex_id=plex_id)
         except PL.PlaylistError:
             continue
     update_plex_table(playlist, update_kodi_hash=True)
