@@ -37,24 +37,8 @@ class PlaylistObjectBaseclase(object):
     Base class
     """
     def __init__(self):
-        self.playlistid = None
-        self.type = None
-        self.kodi_pl = None
-        self.items = []
         self.id = None
-        self.version = None
-        self.selectedItemID = None
-        self.selectedItemOffset = None
-        self.shuffled = 0
-        self.repeat = 0
-        self.plex_transient_token = None
-        # Need a hack for detecting swaps of elements
-        self.old_kodi_pl = []
-        # Did PKC itself just change the playqueue so the PKC playqueue monitor
-        # should not pick up any changes?
-        self.pkc_edit = False
-        # Workaround to avoid endless loops of detecting PL clears
-        self._clear_list = []
+        self.type = None
 
     def __repr__(self):
         """
@@ -63,7 +47,7 @@ class PlaylistObjectBaseclase(object):
         answ = u'{\'%s\': {\'id\': %s, ' % (self.__class__.__name__, self.id)
         # For some reason, can't use dir directly
         for key in self.__dict__:
-            if key in ('id', 'items', 'kodi_pl'):
+            if key in ('id', 'kodi_pl'):
                 continue
             if isinstance(getattr(self, key), str):
                 answ += '\'%s\': \'%s\', ' % (key,
@@ -73,41 +57,7 @@ class PlaylistObjectBaseclase(object):
             else:
                 # e.g. int
                 answ += '\'%s\': %s, ' % (key, unicode(getattr(self, key)))
-        return try_encode(answ + '\'items\': %s}}') % self.items
-
-    def is_pkc_clear(self):
-        """
-        Returns True if PKC has cleared the Kodi playqueue just recently.
-        Then this clear will be ignored from now on
-        """
-        try:
-            self._clear_list.pop()
-        except IndexError:
-            return False
-        else:
-            return True
-
-    def clear(self, kodi=True):
-        """
-        Resets the playlist object to an empty playlist.
-
-        Pass kodi=False in order to NOT clear the Kodi playqueue
-        """
-        # kodi monitor's on_clear method will only be called if there were some
-        # items to begin with
-        if kodi and self.kodi_pl.size() != 0:
-            self._clear_list.append(None)
-            self.kodi_pl.clear()  # Clear Kodi playlist object
-        self.items = []
-        self.id = None
-        self.version = None
-        self.selectedItemID = None
-        self.selectedItemOffset = None
-        self.shuffled = 0
-        self.repeat = 0
-        self.plex_transient_token = None
-        self.old_kodi_pl = []
-        LOG.debug('Playlist cleared: %s', self)
+        return try_encode(answ + '}}')
 
 
 class Playlist_Object(PlaylistObjectBaseclase):
@@ -170,6 +120,59 @@ class Playqueue_Object(PlaylistObjectBaseclase):
     plex_transient_token = None
     """
     kind = 'playQueue'
+
+    def __init__(self):
+        self.playlistid = None
+        self.kodi_pl = None
+        self.items = []
+        self.version = None
+        self.selectedItemID = None
+        self.selectedItemOffset = None
+        self.shuffled = 0
+        self.repeat = 0
+        self.plex_transient_token = None
+        # Need a hack for detecting swaps of elements
+        self.old_kodi_pl = []
+        # Did PKC itself just change the playqueue so the PKC playqueue monitor
+        # should not pick up any changes?
+        self.pkc_edit = False
+        # Workaround to avoid endless loops of detecting PL clears
+        self._clear_list = []
+        PlaylistObjectBaseclase.__init__(self)
+
+    def is_pkc_clear(self):
+        """
+        Returns True if PKC has cleared the Kodi playqueue just recently.
+        Then this clear will be ignored from now on
+        """
+        try:
+            self._clear_list.pop()
+        except IndexError:
+            return False
+        else:
+            return True
+
+    def clear(self, kodi=True):
+        """
+        Resets the playlist object to an empty playlist.
+
+        Pass kodi=False in order to NOT clear the Kodi playqueue
+        """
+        # kodi monitor's on_clear method will only be called if there were some
+        # items to begin with
+        if kodi and self.kodi_pl.size() != 0:
+            self._clear_list.append(None)
+            self.kodi_pl.clear()  # Clear Kodi playlist object
+        self.items = []
+        self.id = None
+        self.version = None
+        self.selectedItemID = None
+        self.selectedItemOffset = None
+        self.shuffled = 0
+        self.repeat = 0
+        self.plex_transient_token = None
+        self.old_kodi_pl = []
+        LOG.debug('Playlist cleared: %s', self)
 
 
 class Playlist_Item(object):
