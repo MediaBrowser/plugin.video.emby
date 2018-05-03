@@ -313,7 +313,7 @@ class LibrarySync(Thread):
         # Prevent duplicate for nodes of the same type
         nodes = self.nodes[mediatype]
         # Prevent duplicate for playlists of the same type
-        playlists = self.playlists[mediatype]
+        lists = self.playlists[mediatype]
         sorted_views = self.sorted_views
 
         folderid = folder['key']
@@ -330,10 +330,10 @@ class LibrarySync(Thread):
             LOG.info('Creating viewid: %s in Plex database.', folderid)
             tagid = kodi_db.createTag(foldername)
             # Create playlist for the video library
-            if (foldername not in playlists and
+            if (foldername not in lists and
                     mediatype in (v.PLEX_TYPE_MOVIE, v.PLEX_TYPE_SHOW)):
                 utils.playlist_xsp(mediatype, foldername, folderid, viewtype)
-                playlists.append(foldername)
+                lists.append(foldername)
             # Create the video node
             if (foldername not in nodes and
                     mediatype != v.PLEX_TYPE_ARTIST):
@@ -388,13 +388,13 @@ class LibrarySync(Thread):
                                 viewid=folderid,
                                 delete=True)
                     # Added new playlist
-                    if (foldername not in playlists and mediatype in
+                    if (foldername not in lists and mediatype in
                             (v.PLEX_TYPE_MOVIE, v.PLEX_TYPE_SHOW)):
                         utils.playlist_xsp(mediatype,
                                            foldername,
                                            folderid,
                                            viewtype)
-                        playlists.append(foldername)
+                        lists.append(foldername)
                     # Add new video node
                     if foldername not in nodes and mediatype != "musicvideos":
                         vnodes.viewNode(sorted_views.index(foldername),
@@ -414,13 +414,13 @@ class LibrarySync(Thread):
             else:
                 # Validate the playlist exists or recreate it
                 if mediatype != v.PLEX_TYPE_ARTIST:
-                    if (foldername not in playlists and mediatype in
+                    if (foldername not in lists and mediatype in
                             (v.PLEX_TYPE_MOVIE, v.PLEX_TYPE_SHOW)):
                         utils.playlist_xsp(mediatype,
                                            foldername,
                                            folderid,
                                            viewtype)
-                        playlists.append(foldername)
+                        lists.append(foldername)
                     # Create the video node if not already exists
                     if foldername not in nodes and mediatype != "musicvideos":
                         vnodes.viewNode(sorted_views.index(foldername),
