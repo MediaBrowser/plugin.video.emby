@@ -270,6 +270,7 @@ class LibrarySync(Thread):
                  repair)
         if self._full_sync() is False:
             return False
+        playlists.full_sync()
         return True
 
     def _full_sync(self):
