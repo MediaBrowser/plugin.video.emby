@@ -12,8 +12,8 @@ import requests
 from xbmc import sleep, translatePath
 from xbmcvfs import exists
 
-from utils import window, settings, language as lang, kodi_sql, try_encode, \
-    thread_methods, dialog, exists_dir, try_decode
+from utils import settings, language as lang, kodi_sql, try_encode, try_decode,\
+    thread_methods, dialog, exists_dir
 import state
 
 ###############################################################################
@@ -107,7 +107,7 @@ class Image_Cache_Thread(Thread):
                               'over-loaded. Sleep %s seconds before trying '
                               'again to download %s',
                               2**sleeptime, double_urldecode(url))
-                    sleep((2**sleeptime)*1000)
+                    sleep((2**sleeptime) * 1000)
                     sleeptime += 1
                     continue
                 except Exception as e:
@@ -162,9 +162,11 @@ class Artwork():
             return
         LOG.info('Caching has not been completed - caching %s major images',
                  len(artworks_to_cache))
+        # Caching %s images
         self.queue.put(ArtworkSyncMessage(lang(30006) % len(artworks_to_cache)))
         for url in artworks_to_cache:
             self.queue.put(url[0])
+        # Major image caching done
         self.queue.put(ArtworkSyncMessage(lang(30007)))
 
     def fullTextureCacheSync(self):

@@ -369,7 +369,7 @@ def getRecentEpisodes(viewid, mediatype, tagname, limit):
     append_show_title = settings('RecentTvAppendShow') == 'true'
     append_sxxexx = settings('RecentTvAppendSeason') == 'true'
     # First we get a list of all the TV shows - filtered by tag
-    allshowsIds = list()
+    allshowsIds = set()
     params = {
         'sort': {'order': "descending", 'method': "dateadded"},
         'filter': {'operator': "is", 'field': "tag", 'value': "%s" % tagname},
