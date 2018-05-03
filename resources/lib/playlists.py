@@ -100,6 +100,8 @@ def create_kodi_playlist(plex_id=None, updated_at=None):
     playlist = PL.Playlist_Object()
     playlist.id = api.plex_id()
     playlist.type = v.KODI_PLAYLIST_TYPE_FROM_PLEX[api.playlist_type()]
+    if not state.ENABLE_MUSIC and playlist.type == v.KODI_PLAYLIST_TYPE_AUDIO:
+        return
     playlist.plex_name = api.title()
     playlist.plex_updatedat = updated_at
     LOG.info('Creating new Kodi playlist from Plex playlist: %s', playlist)
@@ -425,6 +427,9 @@ class PlaylistEventhandler(FileSystemEventHandler):
         if extension.lower() not in SUPPORTED_FILETYPES:
             return
         if event.src_path.startswith(v.PLAYLIST_PATH_MIXED):
+            return
+        if (not state.ENABLE_MUSIC and
+                event.src_path.startswith(v.PLAYLIST_PATH_MUSIC)):
             return
         _method_map = {
             EVENT_TYPE_MODIFIED: self.on_modified,
