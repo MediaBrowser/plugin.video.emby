@@ -138,7 +138,7 @@ def delete_kodi_playlist(playlist):
         os.remove(playlist.kodi_path)
     except (OSError, IOError) as err:
         LOG.error('Could not delete Kodi playlist file %s. Error:\n %s: %s',
-                  playlist.kodi_path, err.errno, err.strerror)
+                  playlist, err.errno, err.strerror)
         raise PL.PlaylistError('Could not delete %s' % playlist.kodi_path)
     else:
         update_plex_table(playlist, delete=True)
