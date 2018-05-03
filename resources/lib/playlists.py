@@ -55,10 +55,10 @@ def create_plex_playlist(playlist):
     Make sure that playlist.kodi_hash is set!
     Returns None or raises PL.PlaylistError
     """
-    LOG.info('Creating Plex playlist from Kodi file: %s', playlist.kodi_path)
+    LOG.debug('Creating Plex playlist from Kodi file: %s', playlist)
     plex_ids = _playlist_file_to_plex_ids(playlist)
     if not plex_ids:
-        LOG.info('No Plex ids found for playlist %s', playlist.kodi_path)
+        LOG.info('No Plex ids found for playlist %s', playlist)
         raise PL.PlaylistError
     for pos, plex_id in enumerate(plex_ids):
         try:
@@ -69,7 +69,7 @@ def create_plex_playlist(playlist):
         except PL.PlaylistError:
             continue
     update_plex_table(playlist)
-    LOG.info('Done creating Plex playlist %s', playlist)
+    LOG.debug('Done creating Plex playlist %s', playlist)
 
 
 def delete_plex_playlist(playlist):
@@ -78,7 +78,7 @@ def delete_plex_playlist(playlist):
     entry in the Plex playlist table.
     Returns None or raises PL.PlaylistError
     """
-    LOG.info('Deleting playlist %s from the PMS', playlist.plex_name)
+    LOG.debug('Deleting playlist %s from the PMS', playlist)
     PL.delete_playlist_from_pms(playlist)
     update_plex_table(playlist, delete=True)
 
@@ -104,7 +104,7 @@ def create_kodi_playlist(plex_id=None, updated_at=None):
         return
     playlist.plex_name = api.title()
     playlist.plex_updatedat = updated_at
-    LOG.info('Creating new Kodi playlist from Plex playlist: %s', playlist)
+    LOG.debug('Creating new Kodi playlist from Plex playlist: %s', playlist)
     name = utils.valid_filename(playlist.plex_name)
     path = os.path.join(v.PLAYLIST_PATH, playlist.type, '%s.m3u' % name)
     while exists(path) or playlist_object_from_db(path=path):
@@ -126,7 +126,7 @@ def create_kodi_playlist(plex_id=None, updated_at=None):
     _write_playlist_to_file(playlist, xml)
     playlist.kodi_hash = utils.generate_file_md5(path)
     update_plex_table(playlist)
-    LOG.info('Created Kodi playlist based on Plex playlist: %s', playlist)
+    LOG.debug('Created Kodi playlist based on Plex playlist: %s', playlist)
 
 
 def delete_kodi_playlist(playlist):
@@ -228,10 +228,10 @@ def _write_playlist_to_file(playlist, xml):
         with open(playlist.kodi_path, 'wb') as f:
             f.write(text)
     except (OSError, IOError) as err:
-        LOG.error('Could not write Kodi playlist file: %s', playlist.kodi_path)
+        LOG.error('Could not write Kodi playlist file: %s', playlist)
         LOG.error('Error message %s: %s', err.errno, err.strerror)
-        raise PL.PlaylistError('Cannot write Kodi playlist to path %s'
-                               % playlist.kodi_path)
+        raise PL.PlaylistError('Cannot write Kodi playlist to path for %s'
+                               % playlist)
 
 
 def change_plex_playlist_name(playlist, new_name):
