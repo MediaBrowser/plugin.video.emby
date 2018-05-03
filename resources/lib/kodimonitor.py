@@ -51,7 +51,8 @@ STATE_SETTINGS = {
     'enableMusic': 'ENABLE_MUSIC',
     'forceReloadSkinOnPlaybackStop': 'FORCE_RELOAD_SKIN',
     'fetch_pms_item_number': 'FETCH_PMS_ITEM_NUMBER',
-    'imageSyncNotifications': 'IMAGE_SYNC_NOTIFICATIONS'
+    'imageSyncNotifications': 'IMAGE_SYNC_NOTIFICATIONS',
+    'enablePlaylistSync': 'SYNC_PLAYLISTS'
 }
 
 ###############################################################################

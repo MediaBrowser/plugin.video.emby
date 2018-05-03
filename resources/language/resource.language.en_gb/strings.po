@@ -61,6 +61,11 @@ msgctxt "#30009"
 msgid "Enable image caching during Kodi playback (restart Kodi!)"
 msgstr ""
 
+# PKC settings sync options
+msgctxt "#30010"
+msgid "Sync Plex playlists"
+msgstr ""
+
 # Button text
 msgctxt "#30012"
 msgid "OK"

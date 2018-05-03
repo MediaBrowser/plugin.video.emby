@@ -1201,6 +1201,8 @@ class LibrarySync(Thread):
                 continue
             status = int(item['state'])
             if typus == 'playlist':
+                if not state.SYNC_PLAYLISTS:
+                    continue
                 playlists.process_websocket(plex_id=str(item['itemID']),
                                             updated_at=str(item['updatedAt']),
                                             state=status)
@@ -1558,7 +1560,7 @@ class LibrarySync(Thread):
                     kodi_db_version_checked = True
                     last_sync = utils.unix_timestamp()
                     self.fanartthread.start()
-                    if playlists.full_sync():
+                    if state.SYNC_PLAYLISTS and playlists.full_sync():
                         playlist_monitor = playlists.kodi_playlist_monitor()
                 else:
                     LOG.error('Initial start-up full sync unsuccessful')
@@ -1605,7 +1607,7 @@ class LibrarySync(Thread):
                     LOG.info('Done initial sync on Kodi startup')
                     artwork.Artwork().cache_major_artwork()
                     self.fanartthread.start()
-                    if playlists.full_sync():
+                    if state.SYNC_PLAYLISTS and playlists.full_sync():
                         playlist_monitor = playlists.kodi_playlist_monitor()
                 else:
                     LOG.info('Startup sync has not yet been successful')
