@@ -113,12 +113,12 @@ def create_kodi_playlist(plex_id=None, updated_at=None):
         if not occurance:
             path = os.path.join(v.PLAYLIST_PATH,
                                 playlist.type,
-                                '%s_01.m3u' % name[:min(len(name), 247)])
+                                '%s_01.m3u' % name[:min(len(name), 248)])
         else:
             occurance = int(occurance.group(1)) + 1
             path = os.path.join(v.PLAYLIST_PATH,
                                 playlist.type,
-                                '%s_%02d.m3u' % (name[:min(len(name), 247)],
+                                '%s_%02d.m3u' % (name[:min(len(name), 248)],
                                                  occurance))
     LOG.debug('Kodi playlist path: %s', path)
     playlist.kodi_path = path

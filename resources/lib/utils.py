@@ -317,9 +317,9 @@ def valid_filename(text):
         text = unicodedata.normalize('NFKD', text)
         text = text.encode('ascii', 'ignore')
         text = text.decode('ascii')
-    # Ensure that filename length is at most 255 chars (including 4 chars for
+    # Ensure that filename length is at most 255 chars (including 3 chars for
     # filename extension and 1 dot to separate the extension)
-    text = text[:min(len(text), 250)]
+    text = text[:min(len(text), 251)]
     return text
 
 
