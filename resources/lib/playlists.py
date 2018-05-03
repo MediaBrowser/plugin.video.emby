@@ -95,7 +95,7 @@ def create_kodi_playlist(plex_id=None, updated_at=None):
     xml = PL.get_PMS_playlist(PL.Playlist_Object(), playlist_id=plex_id)
     if xml is None:
         LOG.error('Could not get Plex playlist %s', plex_id)
-        return
+        raise PL.PlaylistError('Could not get Plex playlist %s' % plex_id)
     api = API(xml)
     playlist = PL.Playlist_Object()
     playlist.id = api.plex_id()
