@@ -78,7 +78,7 @@ def delete_plex_playlist(playlist):
     entry in the Plex playlist table.
     Returns None or raises PL.PlaylistError
     """
-    LOG.debug('Deleting playlist %s from the PMS', playlist)
+    LOG.debug('Deleting playlist from PMS: %s', playlist)
     PL.delete_playlist_from_pms(playlist)
     update_plex_table(playlist, delete=True)
 
