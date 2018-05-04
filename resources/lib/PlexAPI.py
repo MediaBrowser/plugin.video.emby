@@ -713,6 +713,16 @@ class API(object):
             answ['bitDepth'] = None
         return answ
 
+    def extras(self):
+        """
+        Returns a list of XML etree elements for each extra, e.g. a trailer.
+        """
+        answ = []
+        for extras in self.item.iterfind('Extras'):
+            for extra in extras:
+                answ.append(extra)
+        return answ
+
     def trailer_id(self):
         """
         Returns the ratingKey (plex_id) of the trailer or None

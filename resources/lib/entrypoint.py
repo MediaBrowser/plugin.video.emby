@@ -841,6 +841,26 @@ def __build_item(xml_element):
                                 listitem=listitem)
 
 
+def extras(plex_id):
+    """
+    Lists all extras for plex_id
+    """
+    xbmcplugin.setContent(HANDLE, 'movies')
+    xml = GetPlexMetadata(plex_id)
+    try:
+        xml[0].attrib
+    except (TypeError, IndexError, KeyError):
+        xbmcplugin.endOfDirectory(HANDLE)
+        return
+    for item in API(xml[0]).extras():
+        api = API(item)
+        listitem = api.create_listitem()
+        xbmcplugin.addDirectoryItem(handle=HANDLE,
+                                    url=api.path(),
+                                    listitem=listitem)
+    xbmcplugin.endOfDirectory(HANDLE)
+
+
 def enterPMS():
     """
     Opens dialogs for the user the plug in the PMS details
