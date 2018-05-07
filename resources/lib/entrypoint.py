@@ -46,7 +46,7 @@ def doPlayback(itemId, dbId):
 
     emby = embyserver.Read_EmbyServer()
     item = emby.getItem(itemId)
-    pbutils.PlaybackUtils(item).play(itemId, dbId[0])
+    pbutils.PlaybackUtils(item).play(itemId, dbId[0] if dbId else dbId)
 
 ##### DO RESET AUTH #####
 def resetAuth():
