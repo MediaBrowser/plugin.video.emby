@@ -266,7 +266,7 @@ class Player(xbmc.Player):
                 'Type': item_type,
                 'currentPosition': int(seekTime),
                 'playsession_id': playsession_id,
-                'IsExternalPlayer': self.xbmcplayer.IsExternalPlayer()
+                'IsExternalPlayer': self.xbmcplayer.isExternalPlayer()
             }
 
             self.played_info[currentFile] = data
@@ -513,12 +513,14 @@ class Player(xbmc.Player):
                     log.info("Clear playlist, end detected.")
                     playlist.clear()
 
+                '''
                 path = xbmc.translatePath(
                        "special://profile/addon_data/plugin.video.emby/temp/").decode('utf-8')
 
                 dirs, files = xbmcvfs.listdir(path)
                 for file in files:
                     xbmcvfs.delete("%s%s" % (path, file))
+                '''
     
         self.played_info.clear()
         
