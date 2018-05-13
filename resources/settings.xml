@@ -130,7 +130,7 @@
         <setting id="imageSyncDuringPlayback" label="30009" type="bool" default="true" /><!-- Enable image caching during Kodi playback (restart Kodi!) -->
 		<setting label="39020" type="action" action="RunPlugin(plugin://plugin.video.plexkodiconnect/?mode=texturecache)" option="close" /> <!-- Cache all images to Kodi texture cache now -->
         <setting type="sep" visible="eq(-6,true)" />
-        <setting type="lsep" label="30010" visible="eq(-7,true)" /><!-- Approximate caching progress (updated on Kodi restart at the latest) -->
+        <setting type="lsep" label="30010" visible="eq(-7,true)" /><!-- Approximate caching progress -->
         <setting id="caching_major_artwork" label="30011" type="text" default="$ADDON[plugin.video.plexkodiconnect 39310]" enable="false" visible="eq(-8,true)"/><!-- Plex artwork (posters and backgrounds) left to cache: -->
 	</category>
 	<!--
