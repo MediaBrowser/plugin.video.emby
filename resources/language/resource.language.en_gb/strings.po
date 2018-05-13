@@ -487,7 +487,7 @@ msgstr ""
 
 # PKC Settings - Advanced
 msgctxt "#30535"
-msgid "[COLOR yellow]Generate a new unique device Id (e.g. when cloning Kodi)[/COLOR]"
+msgid "Generate a new unique Plex device Id (e.g. to clone Kodi)"
 msgstr ""
 
 # PKC Settings - Connection
@@ -502,7 +502,7 @@ msgstr ""
 
 # PKC Settings warning
 msgctxt "#30538"
-msgid "Complete Re-Sync necessary"
+msgid "Manual complete reset of Kodi database necessary, see \"Advanced\""
 msgstr ""
 
 # PKC Settings - Artwork
@@ -610,7 +610,7 @@ msgstr ""
 
 # PKC Settings - Sync
 msgctxt "#39003"
-msgid "Limit download sync threads (rec. for rpi: 1)"
+msgid "Number of simultaneous download threads"
 msgstr ""
 
 # PKC Settings - Plex
@@ -675,12 +675,12 @@ msgstr ""
 
 # PKC Settings - Advanced
 msgctxt "#39018"
-msgid "[COLOR yellow]Repair local database (force update all content)[/COLOR]"
+msgid "Repair the Kodi database (force update all content)"
 msgstr ""
 
 # PKC Settings - Advanced
 msgctxt "#39019"
-msgid "[COLOR red]Partial or full reset of Database and PKC[/COLOR]"
+msgid "Reset the Kodi database and optionally reset PlexKodiConnect"
 msgstr ""
 
 # PKC Settings - Artwork
