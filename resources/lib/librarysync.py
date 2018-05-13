@@ -640,7 +640,6 @@ class LibrarySync(Thread):
             self.updatelist
         """
         # Some logging, just in case.
-        LOG.debug("self.updatelist: %s", self.updatelist)
         item_number = len(self.updatelist)
         if item_number == 0:
             return
