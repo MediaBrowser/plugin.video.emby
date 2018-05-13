@@ -1375,6 +1375,8 @@ class LibrarySync(Thread):
         missing_only=True    False will start look-up for EVERY item
         refresh=False        True will force refresh all external fanart
         """
+        if settings('FanartTV') == 'false':
+            return
         with plexdb.Get_Plex_DB() as plex_db:
             if missing_only:
                 with plexdb.Get_Plex_DB() as plex_db:
@@ -1541,14 +1543,13 @@ class LibrarySync(Thread):
                     initial_sync_done = True
                     kodi_db_version_checked = True
                     last_sync = utils.unix_timestamp()
+                    self.sync_fanart()
                     self.fanartthread.start()
                 else:
                     LOG.error('Initial start-up full sync unsuccessful')
                 xbmc.executebuiltin('InhibitIdleShutdown(false)')
                 window('plex_dbScan', clear=True)
                 state.DB_SCAN = False
-                if settings('FanartTV') == 'true':
-                    self.sync_fanart()
 
             elif not kodi_db_version_checked:
                 # Install sync was already done, don't force-show dialogs
@@ -1582,10 +1583,9 @@ class LibrarySync(Thread):
                 if self.full_sync():
                     initial_sync_done = True
                     last_sync = utils.unix_timestamp()
-                    if settings('FanartTV') == 'true':
-                        self.sync_fanart()
                     LOG.info('Done initial sync on Kodi startup')
                     artwork.Artwork().cache_major_artwork()
+                    self.sync_fanart()
                     self.fanartthread.start()
                 else:
                     LOG.info('Startup sync has not yet been successful')
