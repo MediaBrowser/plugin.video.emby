@@ -43,12 +43,12 @@ msgstr ""
 
 # Sync notification displayed if there is still artwork to be cached to Kodi
 msgctxt "#30006"
-msgid "Caching %s images"
+msgid "Caching %s Plex images"
 msgstr ""
 
 # Sync notification displayed if syncing of major artwork is done
 msgctxt "#30007"
-msgid "Major image caching done"
+msgid "Plex image caching done"
 msgstr ""
 
 # PKC settings artwork: Enable notifications for artwork image sync
@@ -59,6 +59,16 @@ msgstr ""
 # PKC settings artwork: Enable image caching during Kodi playback
 msgctxt "#30009"
 msgid "Enable image caching during Kodi playback (restart Kodi!)"
+msgstr ""
+
+# PKC settings - Artwork
+msgctxt "#30010"
+msgid "Approximate caching progress"
+msgstr ""
+
+# PKC settings - Artwork
+msgctxt "#30011"
+msgid "Plex artwork (posters and backgrounds) left to cache:"
 msgstr ""
 
 # Button text
@@ -407,7 +417,7 @@ msgstr ""
 
 # PKC Settings - Artwork
 msgctxt "#30512"
-msgid "Force artwork caching"
+msgid "Cache all artwork for a smooth Kodi experience"
 msgstr ""
 
 # PKC Settings - Artwork
