@@ -69,14 +69,14 @@ class Image_Cache_Thread(Thread):
                 sleep(1000)
                 continue
             if isinstance(url, ArtworkSyncMessage):
-                if url.major_artwork_counter is not None:
-                    if url.major_artwork_counter == 0:
+                if url.artwork_counter is not None:
+                    if url.artwork_counter == 0:
                         # Done caching, show this in the PKC settings, too
                         settings('caching_major_artwork', value=lang(30069))
                         LOG.info('Done caching major images!')
                     else:
                         settings('caching_major_artwork',
-                                 value=str(url.major_artwork_counter))
+                                 value=str(url.artwork_counter))
                 if url.message and state.IMAGE_SYNC_NOTIFICATIONS:
                     dialog('notification',
                            heading=lang(29999),
@@ -176,16 +176,16 @@ class Artwork():
         settings('caching_major_artwork', value=str(length))
         # Caching %s Plex images
         self.queue.put(ArtworkSyncMessage(message=lang(30006) % length,
-                                          major_artwork_counter=length))
+                                          artwork_counter=length))
         for i, url in enumerate(artworks_to_cache):
             self.queue.put(url[0])
             if (length - i) % 10 == 0:
                 # Update the PKC settings for artwork caching progress
-                msg = ArtworkSyncMessage(major_artwork_counter=length - i)
+                msg = ArtworkSyncMessage(artwork_counter=length - i)
                 self.queue.put(msg)
         # Plex image caching done
         self.queue.put(ArtworkSyncMessage(message=lang(30007),
-                                          major_artwork_counter=0))
+                                          artwork_counter=0))
 
     def fullTextureCacheSync(self):
         """
@@ -343,6 +343,6 @@ class ArtworkSyncMessage(object):
     """
     Put in artwork queue to display the message as a Kodi notification
     """
-    def __init__(self, message=None, major_artwork_counter=None):
+    def __init__(self, message=None, artwork_counter=None):
         self.message = message
-        self.major_artwork_counter = major_artwork_counter
+        self.artwork_counter = artwork_counter

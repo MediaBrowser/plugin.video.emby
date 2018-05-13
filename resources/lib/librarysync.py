@@ -1388,14 +1388,26 @@ class LibrarySync(Thread):
                     items.extend(plex_db.itemsByType(plex_type))
                 LOG.info('Trying to get ALL additional fanart for %s items',
                          len(items))
+        if not items:
+            return
         # Shuffle the list to not always start out identically
         shuffle(items)
-        for item in items:
+        # Checking FanartTV for %s items
+        self.fanartqueue.put(artwork.ArtworkSyncMessage(
+            message=lang(30018) % len(items), artwork_counter=len(items)))
+        for i, item in enumerate(items):
             self.fanartqueue.put({
                 'plex_id': item['plex_id'],
                 'plex_type': item['plex_type'],
                 'refresh': refresh
             })
+            if (len(items) - i) % 10 == 0:
+                # Update the PKC settings for fanart.tv lookup
+                msg = artwork.ArtworkSyncMessage(artwork_counter=len(items) - i)
+                self.fanartqueue.put(msg)
+        # FanartTV lookup completed
+        self.fanartqueue.put(artwork.ArtworkSyncMessage(message=lang(30019),
+                                                        artwork_counter=0))
 
     def triage_lib_scans(self):
         """

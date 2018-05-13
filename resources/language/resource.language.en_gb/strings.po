@@ -63,7 +63,7 @@ msgstr ""
 
 # PKC settings - Artwork
 msgctxt "#30010"
-msgid "Approximate caching progress"
+msgid "Approximate progress"
 msgstr ""
 
 # PKC settings - Artwork
@@ -85,6 +85,11 @@ msgctxt "#30014"
 msgid "Connection"
 msgstr ""
 
+# PKC settings - Artwork
+msgctxt "#30015"
+msgid "Movie and show FanartTV lookups left to do:"
+msgstr ""
+
 msgctxt "#30016"
 msgid "Device Name"
 msgstr ""
@@ -92,6 +97,16 @@ msgstr ""
 # Error message
 msgctxt "#30017"
 msgid "Unauthorized for PMS"
+msgstr ""
+
+# Sync notification displayed for the number of fanart.tv lookups left
+msgctxt "#30018"
+msgid "Checking FanartTV for %s items"
+msgstr ""
+
+# Sync notification displayed when FanartTV lookup is completed
+msgctxt "#30019"
+msgid "FanartTV lookup completed"
 msgstr ""
 
 # PKC settings category
