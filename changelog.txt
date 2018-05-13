@@ -1,3 +1,13 @@
+version 2.0.23 (beta only):
+- WARNING: You will need to reset the Kodi database!
+- Finally support for Extras!
+- Fix context menu not working for shows in library view
+- Fix Plex Companion music playstate status for iOS
+- Show caching progress and FanartTV lookup progress in PKC settings
+- Fix rare library sync errors
+- Fix ValueError for third party add-ons calling PKC
+- Tweak PKC settings
+
 version 2.0.22 (beta only):
 - Fix Recently Added for tv shows not working
 - Fix PKC crashing on startup

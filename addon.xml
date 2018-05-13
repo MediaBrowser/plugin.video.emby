@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon  id="plugin.video.plexkodiconnect" name="PlexKodiConnect" version="2.0.22" provider-name="croneter">
+<addon  id="plugin.video.plexkodiconnect" name="PlexKodiConnect" version="2.0.23" provider-name="croneter">
   <requires>
     <import addon="xbmc.python" version="2.1.0"/>
     <import addon="script.module.requests" version="2.9.1" />
@@ -67,7 +67,17 @@
     <summary lang="ru_RU">Нативная интеграция сервера Plex в Kodi</summary>
     <description lang="ru_RU">Подключите Kodi к своему серверу Plex. Плагин предполагает что вы управляете своими видео с помощью Plex (а не в Kodi). Вы можете потерять текущие базы данных музыки и видео в Kodi (так как плагин напрямую их изменяет). Используйте на свой страх и риск</description>
     <disclaimer lang="ru_RU">Используйте на свой страх и риск</disclaimer>
-    <news>version 2.0.22 (beta only):
+    <news>version 2.0.23 (beta only):
+- WARNING: You will need to reset the Kodi database!
+- Finally support for Extras!
+- Fix context menu not working for shows in library view
+- Fix Plex Companion music playstate status for iOS
+- Show caching progress and FanartTV lookup progress in PKC settings
+- Fix rare library sync errors
+- Fix ValueError for third party add-ons calling PKC
+- Tweak PKC settings
+
+version 2.0.22 (beta only):
 - Fix Recently Added for tv shows not working
 - Fix PKC crashing on startup
 
