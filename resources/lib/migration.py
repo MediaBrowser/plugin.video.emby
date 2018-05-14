@@ -11,6 +11,8 @@ def check_migration():
     last_migration = settings('last_migrated_PKC_version')
     if last_migration == v.ADDON_VERSION:
         log.info('Already migrated to PKC version %s' % v.ADDON_VERSION)
+        # Ensure later migration if user downgraded PKC!
+        settings('last_migrated_PKC_version', value=v.ADDON_VERSION)
         return
 
     if not compare_version(v.ADDON_VERSION, '1.8.2'):
