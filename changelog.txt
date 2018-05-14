@@ -1,3 +1,12 @@
+version 2.0.24 (beta only):
+- WARNING: You will need to reset the Kodi database! Sorry for that...
+- PKC will force you to re-connect with your PMS
+- Use plex.direct url instead of local ip to use correct SSL certificate; thus fix artwork caching
+- Revert "Increase timeout between syncing images"
+- Don't ask user for DB reset if forced by PKC
+- Ensure movies and tv shows are synced before music
+- Ensure a later migration if user downgraded PKC
+
 version 2.0.23 (beta only):
 - WARNING: You will need to reset the Kodi database!
 - Finally support for Extras!
