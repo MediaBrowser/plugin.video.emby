@@ -442,15 +442,15 @@ def wipe_database():
     settings('SyncInstallRunDone', value="false")
 
 
-def reset():
+def reset(ask_user=True):
     """
     User navigated to the PKC settings, Advanced, and wants to reset the Kodi
     database and possibly PKC entirely
     """
     # Are you sure you want to reset your local Kodi database?
-    if not dialog('yesno',
-                  heading='{plex} %s ' % language(30132),
-                  line1=language(39600)):
+    if ask_user and not dialog('yesno',
+                               heading='{plex} %s ' % language(30132),
+                               line1=language(39600)):
         return
 
     # first stop any db sync
@@ -472,9 +472,9 @@ def reset():
 
     # Reset all PlexKodiConnect Addon settings? (this is usually NOT
     # recommended and unnecessary!)
-    if dialog('yesno',
-              heading='{plex} %s ' % language(30132),
-              line1=language(39603)):
+    if ask_user and dialog('yesno',
+                           heading='{plex} %s ' % language(30132),
+                           line1=language(39603)):
         # Delete the settings
         addon = xbmcaddon.Addon()
         addondir = try_decode(xbmc.translatePath(addon.getAddonInfo('profile')))

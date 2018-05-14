@@ -1579,7 +1579,7 @@ class LibrarySync(Thread):
                                heading='{plex}',
                                line1=lang(29999) + lang(39402))
                     else:
-                        utils.reset()
+                        utils.reset(ask_user=False)
                     break
                 kodi_db_version_checked = True
 
