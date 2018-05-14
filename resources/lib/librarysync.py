@@ -263,16 +263,13 @@ class LibrarySync(Thread):
         return True
 
     def _full_sync(self):
-        process = {
-            'movies': self.plex_movies,
-            'tvshows': self.plex_tv_show,
-        }
+        process = [self.plex_movies, self.plex_tv_show]
         if state.ENABLE_MUSIC:
-            process['music'] = self.plex_music
+            process.append(self.plex_music)
 
         # Do the processing
-        for itemtype in process:
-            if self.suspend_item_sync() or not process[itemtype]():
+        for kind in process:
+            if self.suspend_item_sync() or not kind():
                 return False
 
         # Let kodi update the views in any case, since we're doing a full sync
