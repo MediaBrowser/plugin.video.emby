@@ -21,4 +21,10 @@ def check_migration():
         # Set the new PKC theMovieDB key
         settings('themoviedbAPIKey', value='19c90103adb9e98f2172c6a6a3d85dc4')
 
+    if not compare_version(v.ADDON_VERSION, '2.0.24'):
+        log.info('Migrating to version 2.0.24')
+        # Need to re-connect with PMS to pick up on plex.direct URIs
+        settings('ipaddress', value='')
+        settings('port', value='')
+
     settings('last_migrated_PKC_version', value=v.ADDON_VERSION)

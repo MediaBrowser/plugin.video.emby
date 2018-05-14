@@ -212,38 +212,28 @@ def discover_pms(token=None):
         LOG.info('No plex token supplied, only checked LAN for available PMS')
         plex_pms_list = []
 
-    # See if we found a PMS both locally and using plex.tv. If so, use local
-    # connection data
-    all_pms = []
+    # Add PMS found only in the LAN to the Plex.tv PMS list
     for pms in local_pms_list:
-        for i, plex_pms in enumerate(plex_pms_list):
+        for plex_pms in plex_pms_list:
             if pms['machineIdentifier'] == plex_pms['machineIdentifier']:
-                # Update with GDM data - potentially more reliable than plex.tv
-                LOG.debug('Found this PMS also in the LAN: %s', plex_pms)
-                plex_pms['ip'] = pms['ip']
-                plex_pms['port'] = pms['port']
-                plex_pms['local'] = True
-                # Use all the other data we know from plex.tv
-                pms = plex_pms
-                # Remove this particular pms since we already know it
-                plex_pms_list.pop(i)
-                break
-        https = _pms_https_enabled('%s:%s' % (pms['ip'], pms['port']))
-        if https is None:
-            # Error contacting url. Skip and ignore this PMS for now
-            continue
-        elif https is True:
-            pms['scheme'] = 'https'
-            pms['baseURL'] = 'https://%s:%s' % (pms['ip'], pms['port'])
+                continue
         else:
-            pms['scheme'] = 'http'
-            pms['baseURL'] = 'http://%s:%s' % (pms['ip'], pms['port'])
-        all_pms.append(pms)
-    # Now add the remaining PMS from plex.tv (where we already checked connect.)
-    for plex_pms in plex_pms_list:
-        all_pms.append(plex_pms)
-    LOG.debug('Found the following PMS in total: %s', all_pms)
-    return all_pms
+            # Only found PMS using GDM - add it to the PMS from plex.tv
+            https = _pms_https_enabled('%s:%s' % (pms['ip'], pms['port']))
+            if https is None:
+                # Error contacting url. Skip and ignore this PMS for now
+                LOG.error('Could not contact PMS %s but we should have', pms)
+                continue
+            elif https is True:
+                pms['scheme'] = 'https'
+            else:
+                pms['scheme'] = 'http'
+            pms['baseURL'] = '%s://%s:%s' % (pms['scheme'],
+                                             pms['ip'],
+                                             pms['port'])
+            plex_pms_list.append(pms)
+    LOG.debug('Found the following PMS in total: %s', plex_pms_list)
+    return plex_pms_list
 
 
 def _plex_gdm():
@@ -414,17 +404,11 @@ def _pms_list_from_plex_tv(token):
 
 def _poke_pms(pms, queue):
     data = pms['connections'][0].attrib
-    if data['local'] == '1':
-        protocol = data['protocol']
-        address = data['address']
-        port = data['port']
-        url = '%s://%s:%s' % (protocol, address, port)
-    else:
-        url = data['uri']
-        if url.count(':') == 1:
-            url = '%s:%s' % (url, data['port'])
-        protocol, address, port = url.split(':', 2)
-        address = address.replace('/', '')
+    url = data['uri']
+    if url.count(':') == 1:
+        url = '%s:%s' % (url, data['port'])
+    protocol, address, port = url.split(':', 2)
+    address = address.replace('/', '')
     xml = DU().downloadUrl('%s/identity' % url,
                            authenticate=False,
                            headerOptions={'X-Plex-Token': pms['token']},
