@@ -54,6 +54,8 @@ class Image_Cache_Thread(Thread):
         suspended = self.suspended
         queue = self.queue
         sleep_between = self.sleep_between
+        counter = 0
+        set_zero = False
         while not stopped():
             # In the event the server goes offline
             while suspended():
@@ -63,21 +65,25 @@ class Image_Cache_Thread(Thread):
                     LOG.info("---===### Stopped Image_Cache_Thread ###===---")
                     return
                 sleep(1000)
+            # Update the caching state in the PKC settings. Avoid saving '0'
+            counter += 1
+            if counter > 10:
+                counter = 0
+                length = queue.qsize()
+                if not set_zero:
+                    settings('caching_artwork_count', value=str(length))
+                    set_zero = False if length else True
+                elif length:
+                    settings('caching_artwork_count', value=str(length))
+                    set_zero = False
+
             try:
                 url = queue.get(block=False)
             except Empty:
                 sleep(1000)
                 continue
             if isinstance(url, ArtworkSyncMessage):
-                if url.artwork_counter is not None:
-                    if url.artwork_counter == 0:
-                        # Done caching, show this in the PKC settings, too
-                        settings('caching_major_artwork', value=lang(30069))
-                        LOG.info('Done caching major images!')
-                    else:
-                        settings('caching_major_artwork',
-                                 value=str(url.artwork_counter))
-                if url.message and state.IMAGE_SYNC_NOTIFICATIONS:
+                if state.IMAGE_SYNC_NOTIFICATIONS:
                     dialog('notification',
                            heading=lang(29999),
                            message=url.message,
@@ -168,24 +174,18 @@ class Artwork():
         if not artworks_to_cache:
             LOG.info('Caching of major images to Kodi texture cache done')
             # Set to "None"
-            settings('caching_major_artwork', value=lang(30069))
+            settings('caching_artwork_count', value=lang(30069))
             return
         length = len(artworks_to_cache)
         LOG.info('Caching has not been completed - caching %s major images',
                  length)
-        settings('caching_major_artwork', value=str(length))
+        settings('caching_artwork_count', value=str(length))
         # Caching %s Plex images
-        self.queue.put(ArtworkSyncMessage(message=lang(30006) % length,
-                                          artwork_counter=length))
+        self.queue.put(ArtworkSyncMessage(lang(30006) % length))
         for i, url in enumerate(artworks_to_cache):
             self.queue.put(url[0])
-            if (length - i) % 10 == 0:
-                # Update the PKC settings for artwork caching progress
-                msg = ArtworkSyncMessage(artwork_counter=length - i)
-                self.queue.put(msg)
         # Plex image caching done
-        self.queue.put(ArtworkSyncMessage(message=lang(30007),
-                                          artwork_counter=0))
+        self.queue.put(ArtworkSyncMessage(lang(30007)))
 
     def fullTextureCacheSync(self):
         """
@@ -343,6 +343,5 @@ class ArtworkSyncMessage(object):
     """
     Put in artwork queue to display the message as a Kodi notification
     """
-    def __init__(self, message=None, artwork_counter=None):
+    def __init__(self, message):
         self.message = message
-        self.artwork_counter = artwork_counter
