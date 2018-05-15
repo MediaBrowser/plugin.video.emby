@@ -1,3 +1,8 @@
+version 2.0.25 (beta only):
+- Fix migration not working correctly for re-connecting PMS
+- Fix PMS showing up twice
+- Improve artwork caching counter in PKC settings
+
 version 2.0.24 (beta only):
 - WARNING: You will need to reset the Kodi database! Sorry for that...
 - PKC will force you to re-connect with your PMS
