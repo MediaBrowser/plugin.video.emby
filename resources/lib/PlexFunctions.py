@@ -216,7 +216,7 @@ def discover_pms(token=None):
     for pms in local_pms_list:
         for plex_pms in plex_pms_list:
             if pms['machineIdentifier'] == plex_pms['machineIdentifier']:
-                continue
+                break
         else:
             # Only found PMS using GDM - add it to the PMS from plex.tv
             https = _pms_https_enabled('%s:%s' % (pms['ip'], pms['port']))
