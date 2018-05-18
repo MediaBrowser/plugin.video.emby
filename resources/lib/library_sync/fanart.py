@@ -60,25 +60,17 @@ class ThreadedProcessFanart(Thread):
                     LOG.info("---===### Stopped FanartSync ###===---")
                     return
                 sleep(1000)
-            # Update the caching state in the PKC settings. Avoid saving '0'
-            counter += 1
-            if counter > 10:
-                counter = 0
-                length = queue.qsize()
-                if not set_zero:
-                    settings('fanarttv_lookups', value=str(length))
-                    set_zero = False if length else True
-                elif length:
-                    settings('fanarttv_lookups', value=str(length))
-                    set_zero = False
-
             # grabs Plex item from queue
             try:
                 item = queue.get(block=False)
             except Empty:
+                if not set_zero:
+                    # Avoid saving '0' all the time
+                    set_zero = True
+                    settings('fanarttv_lookups', value='0')
                 sleep(200)
                 continue
-
+            set_zero = False
             if isinstance(item, ArtworkSyncMessage):
                 if state.IMAGE_SYNC_NOTIFICATIONS:
                     dialog('notification',
@@ -98,5 +90,10 @@ class ThreadedProcessFanart(Thread):
                 LOG.debug('Done getting fanart for Plex id %s', item['plex_id'])
                 with plexdb.Get_Plex_DB() as plex_db:
                     plex_db.set_fanart_synched(item['plex_id'])
+            # Update the caching state in the PKC settings. Avoid saving '0'
+            counter += 1
+            if counter > 10:
+                counter = 0
+                settings('fanarttv_lookups', value=str(queue.qsize()))
             queue.task_done()
         LOG.debug("---===### Stopped FanartSync ###===---")

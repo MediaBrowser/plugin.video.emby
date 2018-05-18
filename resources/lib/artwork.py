@@ -65,23 +65,17 @@ class Image_Cache_Thread(Thread):
                     LOG.info("---===### Stopped Image_Cache_Thread ###===---")
                     return
                 sleep(1000)
-            # Update the caching state in the PKC settings. Avoid saving '0'
-            counter += 1
-            if counter > 10:
-                counter = 0
-                length = queue.qsize()
-                if not set_zero:
-                    settings('caching_artwork_count', value=str(length))
-                    set_zero = False if length else True
-                elif length:
-                    settings('caching_artwork_count', value=str(length))
-                    set_zero = False
 
             try:
                 url = queue.get(block=False)
             except Empty:
+                if not set_zero:
+                    # Avoid saving '0' all the time
+                    set_zero = True
+                    settings('caching_artwork_count', value='0')
                 sleep(1000)
                 continue
+            set_zero = False
             if isinstance(url, ArtworkSyncMessage):
                 if state.IMAGE_SYNC_NOTIFICATIONS:
                     dialog('notification',
@@ -133,6 +127,11 @@ class Image_Cache_Thread(Thread):
                 # We did not even get a timeout
                 break
             queue.task_done()
+            # Update the caching state in the PKC settings.
+            counter += 1
+            if counter > 20:
+                counter = 0
+                settings('caching_artwork_count', value=str(queue.qsize()))
             # Sleep for a bit to reduce CPU strain
             sleep(sleep_between)
         LOG.info("---===### Stopped Image_Cache_Thread ###===---")
