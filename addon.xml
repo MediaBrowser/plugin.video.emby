@@ -71,6 +71,7 @@
 - Reduce CPU strain for artwork caching progress
 - Fallback connection if plex.direct does not resolve
 - Prettify Plex context menu, thanks @dazedcrazy
+- Update translations
 - Default to not show image caching notifications
 
 version 2.0.25 (beta only):
