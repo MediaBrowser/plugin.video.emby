@@ -20,6 +20,7 @@ LOG = getLogger("PLEX." + __name__)
 
 CONTAINERSIZE = int(settings('limitindex'))
 REGEX_PLEX_KEY = re_compile(r'''/(.+)/(\d+)$''')
+REGEX_PLEX_DIRECT = re_compile(r'''\.plex\.direct:\d+$''')
 
 # For discovery of PMS in the local LAN
 PLEX_GDM_IP = '239.0.0.250'  # multicast to PMS
@@ -405,8 +406,15 @@ def _pms_list_from_plex_tv(token):
 def _poke_pms(pms, queue):
     data = pms['connections'][0].attrib
     url = data['uri']
-    if url.count(':') == 1:
-        url = '%s:%s' % (url, data['port'])
+    if data['local'] == '1' and REGEX_PLEX_DIRECT.findall(url):
+        # In case DNS resolve of plex.direct does not work, append a new
+        # connection that will directly access the local IP (e.g. internet down)
+        conn = deepcopy(pms['connections'][0])
+        # Overwrite plex.direct
+        conn.attrib['uri'] = '%s://%s:%s' % (data['protocol'],
+                                             data['address'],
+                                             data['port'])
+        pms['connections'].insert(1, conn)
     protocol, address, port = url.split(':', 2)
     address = address.replace('/', '')
     xml = DU().downloadUrl('%s/identity' % url,
