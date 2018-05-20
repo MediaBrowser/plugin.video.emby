@@ -1021,15 +1021,15 @@ class API(object):
         name = entry.get('name', entry.get('title'))
         # lookup external tmdb_id and perform artwork lookup on fanart.tv
         parameters = {'api_key': api_key}
+        if media_type == 'movie':
+            url = 'https://api.themoviedb.org/3/movie/%s' % tmdb_id
+            parameters['append_to_response'] = 'videos'
+        elif media_type == 'tv':
+            url = 'https://api.themoviedb.org/3/tv/%s' % tmdb_id
+            parameters['append_to_response'] = 'external_ids,videos'
         media_id, poster, background = None, None, None
         for language in [v.KODILANGUAGE, 'en']:
             parameters['language'] = language
-            if media_type == 'movie':
-                url = 'https://api.themoviedb.org/3/movie/%s' % tmdb_id
-                parameters['append_to_response'] = 'videos'
-            elif media_type == 'tv':
-                url = 'https://api.themoviedb.org/3/tv/%s' % tmdb_id
-                parameters['append_to_response'] = 'external_ids,videos'
             data = DU().downloadUrl(url,
                                     authenticate=False,
                                     parameters=parameters,
@@ -1037,20 +1037,24 @@ class API(object):
             try:
                 data.get('test')
             except AttributeError:
-                LOG.error('Could not download %s with parameters %s',
-                          url, parameters)
+                LOG.warning('Could not download %s with parameters %s',
+                            url, parameters)
                 continue
             if collection is False:
-                if data.get('imdb_id') is not None:
+                if data.get('imdb_id'):
                     media_id = str(data.get('imdb_id'))
                     break
-                if data.get('external_ids') is not None:
-                    media_id = str(data['external_ids'].get('tvdb_id'))
+                if (data.get('external_ids') and
+                        data['external_ids'].get('tvdb_id')):
+                    media_id = str(data['external_ids']['tvdb_id'])
                     break
             else:
-                if data.get('belongs_to_collection') is None:
+                if not data.get('belongs_to_collection'):
                     continue
-                media_id = str(data.get('belongs_to_collection').get('id'))
+                media_id = data.get('belongs_to_collection').get('id')
+                if not media_id:
+                    continue
+                media_id = str(media_id)
                 LOG.debug('Retrieved collections tmdb id %s for %s',
                           media_id, title)
                 url = 'https://api.themoviedb.org/3/collection/%s' % media_id
@@ -1061,15 +1065,15 @@ class API(object):
                 try:
                     data.get('poster_path')
                 except AttributeError:
-                    LOG.info('Could not find TheMovieDB poster paths for %s in '
-                             'the language %s', title, language)
+                    LOG.debug('Could not find TheMovieDB poster paths for %s in '
+                              'the language %s', title, language)
                     continue
-                else:
+                if not poster and data.get('poster_path'):
                     poster = ('https://image.tmdb.org/t/p/original%s' %
                               data.get('poster_path'))
+                if not background and data.get('backdrop_path'):
                     background = ('https://image.tmdb.org/t/p/original%s' %
                                   data.get('backdrop_path'))
-                    break
         return media_id, poster, background
 
     def lookup_fanart_tv(self, media_id, artworks):
