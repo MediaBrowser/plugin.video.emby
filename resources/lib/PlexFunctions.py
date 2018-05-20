@@ -413,12 +413,7 @@ def _poke_pms(pms, queue):
                                              data['address'],
                                              data['port'])
         pms['connections'].insert(1, conn)
-    try:
-        protocol, address, port = url.split(':', 2)
-    except ValueError:
-        # e.g. .ork.plex.services uri, thanks Plex
-        protocol, address = url.split(':', 1)
-        port = data['port']
+    protocol, address, port = url.split(':', 2)
     address = address.replace('/', '')
     xml = DU().downloadUrl('%s/identity' % url,
                            authenticate=False,
