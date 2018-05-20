@@ -1072,7 +1072,7 @@ class API(object):
                     break
         return media_id, poster, background
 
-    def lookup_fanart_tv(self, media_id, artworks, set_info=False):
+    def lookup_fanart_tv(self, media_id, artworks):
         """
         perform artwork lookup on fanart.tv
 
@@ -1169,9 +1169,7 @@ class API(object):
                 artworks['poster'] = poster
             if background is not None:
                 artworks['fanart'] = background
-            artworks = self.lookup_fanart_tv(external_id,
-                                             artworks,
-                                             set_info=True)
+            artworks = self.lookup_fanart_tv(external_id, artworks)
         else:
             LOG.info('Did not find a set/collection ID on TheMovieDB using %s.'
                      ' Artwork will be missing.', self.titles()[0])
