@@ -191,13 +191,14 @@ class Plex_DB_Functions():
     def getItem_byId(self, plex_id):
         """
         For plex_id, returns the tuple
-          (kodi_id, kodi_fileid, kodi_pathid, parent_id, kodi_type, plex_type)
+          (kodi_id, kodi_fileid, kodi_pathid, parent_id, kodi_type, plex_type,
+           kodi_fileid_2)
 
         None if not found
         """
         query = '''
             SELECT kodi_id, kodi_fileid, kodi_pathid, parent_id, kodi_type,
-                   plex_type
+                   plex_type, kodi_fileid_2
             FROM plex WHERE plex_id = ?
             LIMIT 1
         '''
@@ -281,20 +282,22 @@ class Plex_DB_Functions():
         return self.plexcursor.fetchall()
 
     def addReference(self, plex_id, plex_type, kodi_id, kodi_type,
-                     kodi_fileid=None, kodi_pathid=None, parent_id=None,
-                     checksum=None, view_id=None):
+                     kodi_fileid=None, kodi_fileid_2=None, kodi_pathid=None,
+                     parent_id=None, checksum=None, view_id=None):
         """
         Appends or replaces an entry into the plex table
         """
         query = '''
             INSERT OR REPLACE INTO plex(
-                plex_id, kodi_id, kodi_fileid, kodi_pathid, plex_type,
-                kodi_type, parent_id, checksum, view_id, fanart_synced)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                plex_id, kodi_id, kodi_fileid, kodi_fileid_2, kodi_pathid,
+                plex_type, kodi_type, parent_id, checksum, view_id,
+                fanart_synced)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             '''
         self.plexcursor.execute(query, (plex_id, kodi_id, kodi_fileid,
-                                        kodi_pathid, plex_type, kodi_type,
-                                        parent_id, checksum, view_id, 0))
+                                        kodi_fileid_2, kodi_pathid, plex_type,
+                                        kodi_type, parent_id, checksum, view_id,
+                                        0))
 
     def updateReference(self, plex_id, checksum):
         """

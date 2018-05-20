@@ -524,6 +524,13 @@ def _record_playstate(status, ended):
                              totaltime,
                              playcount,
                              last_played)
+        if kodi_db_item[6]:
+            # Kodi Widget hack
+            kodi_db.addPlaystate(kodi_db_item[6],
+                                 time,
+                                 totaltime,
+                                 playcount,
+                                 last_played)
     # Hack to force "in progress" widget to appear if it wasn't visible before
     if (state.FORCE_RELOAD_SKIN and
             xbmc.getCondVisibility('Window.IsVisible(Home.xml)')):
