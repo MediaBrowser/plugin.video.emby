@@ -948,9 +948,9 @@ class API(object):
         try:
             data.get('test')
         except AttributeError:
-            LOG.error('Could not download data from FanartTV')
+            LOG.warning('Could not download data from FanartTV')
             return
-        if data.get('results') is None:
+        if not data.get('results'):
             LOG.info('No match found on themoviedb for type: %s, title: %s',
                      media_type, title)
             return
@@ -958,12 +958,12 @@ class API(object):
         year = item.get('year')
         match_found = None
         # find year match
-        if year is not None:
-            for entry in data["results"]:
-                if year in entry.get("first_air_date", ""):
+        if year:
+            for entry in data['results']:
+                if year in entry.get('first_air_date', ''):
                     match_found = entry
                     break
-                elif year in entry.get("release_date", ""):
+                elif year in entry.get('release_date', ''):
                     match_found = entry
                     break
         # find exact match based on title, if we haven't found a year match
@@ -977,9 +977,9 @@ class API(object):
                 ':',
                 ';'
             )
-            for entry in data["results"]:
-                name = entry.get("name", entry.get("title", ""))
-                original_name = entry.get("original_name", "")
+            for entry in data['results']:
+                name = entry.get('name', entry.get('title', ''))
+                original_name = entry.get('original_name', '')
                 title_alt = title.lower()
                 name_alt = name.lower()
                 org_name_alt = original_name.lower()
@@ -991,16 +991,16 @@ class API(object):
                     # match found for exact title name
                     match_found = entry
                     break
-                elif (name.split(" (")[0] == title or title_alt == name_alt
+                elif (name.split(' (')[0] == title or title_alt == name_alt
                       or title_alt == org_name_alt):
                     # match found with substituting some stuff
                     match_found = entry
                     break
 
         # if a match was not found, we accept the closest match from TMDB
-        if match_found is None and data.get("results"):
+        if match_found is None and data.get('results'):
             LOG.info('Using very first match from themoviedb')
-            match_found = entry = data.get("results")[0]
+            match_found = entry = data.get('results')[0]
 
         if match_found is None:
             LOG.info('Still no themoviedb match for type: %s, title: %s, '
@@ -1011,23 +1011,23 @@ class API(object):
         LOG.info('Found themoviedb match for %s: %s',
                  item.get('title'), match_found)
 
-        tmdb_id = str(entry.get("id", ""))
+        tmdb_id = str(entry.get('id', ''))
         if tmdb_id == '':
             LOG.error('No themoviedb ID found, aborting')
             return
 
-        if media_type == "multi" and entry.get("media_type"):
-            media_type = entry.get("media_type")
-        name = entry.get("name", entry.get("title"))
+        if media_type == 'multi' and entry.get('media_type'):
+            media_type = entry.get('media_type')
+        name = entry.get('name', entry.get('title'))
         # lookup external tmdb_id and perform artwork lookup on fanart.tv
         parameters = {'api_key': api_key}
         media_id, poster, background = None, None, None
-        for language in [v.KODILANGUAGE, "en"]:
+        for language in [v.KODILANGUAGE, 'en']:
             parameters['language'] = language
-            if media_type == "movie":
+            if media_type == 'movie':
                 url = 'https://api.themoviedb.org/3/movie/%s' % tmdb_id
                 parameters['append_to_response'] = 'videos'
-            elif media_type == "tv":
+            elif media_type == 'tv':
                 url = 'https://api.themoviedb.org/3/tv/%s' % tmdb_id
                 parameters['append_to_response'] = 'external_ids,videos'
             data = DU().downloadUrl(url,
@@ -1041,16 +1041,16 @@ class API(object):
                           url, parameters)
                 continue
             if collection is False:
-                if data.get("imdb_id") is not None:
-                    media_id = str(data.get("imdb_id"))
+                if data.get('imdb_id') is not None:
+                    media_id = str(data.get('imdb_id'))
                     break
-                if data.get("external_ids") is not None:
-                    media_id = str(data["external_ids"].get("tvdb_id"))
+                if data.get('external_ids') is not None:
+                    media_id = str(data['external_ids'].get('tvdb_id'))
                     break
             else:
-                if data.get("belongs_to_collection") is None:
+                if data.get('belongs_to_collection') is None:
                     continue
-                media_id = str(data.get("belongs_to_collection").get("id"))
+                media_id = str(data.get('belongs_to_collection').get('id'))
                 LOG.debug('Retrieved collections tmdb id %s for %s',
                           media_id, title)
                 url = 'https://api.themoviedb.org/3/collection/%s' % media_id
