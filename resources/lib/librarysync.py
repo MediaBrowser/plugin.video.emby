@@ -1486,6 +1486,7 @@ class LibrarySync(Thread):
         kodi_db_version_checked = False
         last_sync = 0
         last_processing = 0
+        last_time_sync = 0
         one_day_in_seconds = 60*60*24
         # Link to Websocket queue
         queue = state.WEBSOCKET_QUEUE
@@ -1516,9 +1517,6 @@ class LibrarySync(Thread):
         # Setup the paths for addon-paths (even when using direct paths)
         with kodidb.GetKodiDB('video') as kodi_db:
             kodi_db.setup_path_table()
-        # Initialize time offset Kodi - PMS
-        self.sync_pms_time()
-        last_time_sync = utils.unix_timestamp()
         window('plex_dbScan', clear=True)
         state.DB_SCAN = False
 
@@ -1535,6 +1533,9 @@ class LibrarySync(Thread):
                 # Very first sync upon installation or reset of Kodi DB
                 state.DB_SCAN = True
                 window('plex_dbScan', value='true')
+                # Initialize time offset Kodi - PMS
+                self.sync_pms_time()
+                last_time_sync = utils.unix_timestamp()
                 LOG.info('Initial start-up full sync starting')
                 xbmc.executebuiltin('InhibitIdleShutdown(true)')
                 if self.full_sync():
