@@ -904,7 +904,7 @@ class API(object):
                                     TV shows
             poster [unicode]:       path to the item's poster artwork
             background [unicode]:   path to the item's background artwork
-        
+
         The last two might be None if not found. Generally None is returned
         if unsuccessful.
 
@@ -992,7 +992,7 @@ class API(object):
                     match_found = entry
                     break
                 elif (name.split(" (")[0] == title or title_alt == name_alt
-                        or title_alt == org_name_alt):
+                      or title_alt == org_name_alt):
                     # match found with substituting some stuff
                     match_found = entry
                     break
