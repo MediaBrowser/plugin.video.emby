@@ -143,8 +143,6 @@ def check_connection(url, token=None, verifySSL=None):
         verifySSL = None if settings('sslverify') == 'true' else False
     if 'plex.tv' in url:
         url = 'https://plex.tv/api/home/users'
-    else:
-        url = url + '/library/onDeck'
     LOG.debug("Checking connection to server %s with verifySSL=%s",
               url, verifySSL)
     answer = DU().downloadUrl(url,
