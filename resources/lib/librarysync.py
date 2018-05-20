@@ -219,7 +219,6 @@ class LibrarySync(Thread):
                     kodi_type TEXT,
                     kodi_id INTEGER,
                     kodi_fileid INTEGER,
-                    kodi_fileid_2 INTEGER,
                     kodi_pathid INTEGER,
                     parent_id INTEGER,
                     checksum INTEGER,
@@ -1296,7 +1295,6 @@ class LibrarySync(Thread):
                 # Attach Kodi info to the session
                 self.session_keys[session_key]['kodi_id'] = kodi_info[0]
                 self.session_keys[session_key]['file_id'] = kodi_info[1]
-                self.session_keys[session_key]['file_id_2'] = kodi_info[6]
                 self.session_keys[session_key]['kodi_type'] = kodi_info[4]
             session = self.session_keys[session_key]
             if settings('plex_serverowned') != 'false':
@@ -1358,21 +1356,13 @@ class LibrarySync(Thread):
                       state.PLEX_USERNAME, state.PLEX_USER_ID, plex_id)
             item_fkt = getattr(itemtypes,
                                v.ITEMTYPE_FROM_KODITYPE[session['kodi_type']])
-            time = utils.unix_date_to_kodi(utils.unix_timestamp())
             with item_fkt() as fkt:
                 fkt.updatePlaystate(mark_played,
                                     session['viewCount'],
                                     resume,
                                     session['duration'],
                                     session['file_id'],
-                                    time)
-                if session['file_id_2']:
-                    fkt.updatePlaystate(mark_played,
-                                        session['viewCount'],
-                                        resume,
-                                        session['duration'],
-                                        session['file_id_2'],
-                                        time)
+                                    utils.unix_date_to_kodi(utils.unix_timestamp()))
 
     def sync_fanart(self, missing_only=True, refresh=False):
         """

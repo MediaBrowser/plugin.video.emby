@@ -137,7 +137,7 @@ class Items(object):
             # Get key and db entry on the Kodi db side
             db_item = self.plex_db.getItem_byId(api.plex_id())
             try:
-                fileid, fileid_2 = db_item[1], db_item[6]
+                fileid = db_item[1]
             except TypeError:
                 continue
             # Grab the user's viewcount, resume points etc. from PMS' answer
@@ -148,13 +148,6 @@ class Items(object):
                                       userdata['Runtime'],
                                       userdata['PlayCount'],
                                       userdata['LastPlayedDate'])
-            if fileid_2:
-                # Widget hack for addon paths and episodes
-                self.kodi_db.addPlaystate(fileid_2,
-                                          userdata['Resume'],
-                                          userdata['Runtime'],
-                                          userdata['PlayCount'],
-                                          userdata['LastPlayedDate'])
             if v.KODIVERSION >= 17:
                 self.kodi_db.update_userrating(db_item[0],
                                                db_item[4],
@@ -163,8 +156,7 @@ class Items(object):
     def updatePlaystate(self, mark_played, view_count, resume, duration,
                         file_id, lastViewedAt):
         """
-        Use with websockets, not xml. This does NOT take care of the Kodi
-        widget hack for episodes & addon paths!
+        Use with websockets, not xml
         """
         # If the playback was stopped, check whether we need to increment the
         # playcount. PMS won't tell us the playcount via websockets
@@ -787,7 +779,6 @@ class TVShows(Items):
             episodeid = plex_dbitem[0]
             old_fileid = plex_dbitem[1]
             pathid = plex_dbitem[2]
-            old_fileid_2 = plex_dbitem[6]
         except TypeError:
             update_item = False
             # episodeid
@@ -858,6 +849,8 @@ class TVShows(Items):
             pathid = self.kodi_db.add_video_path(path,
                                                  id_parent_path=parent_path_id)
         else:
+            # Set plugin path - do NOT use "intermediate" paths for the show
+            # as with direct paths!
             filename = api.file_name(force_first_media=True)
             path = 'plugin://%s.tvshows/%s/' % (v.ADDON_ID, series_id)
             filename = ('%s?plex_id=%s&plex_type=%s&mode=play&filename=%s'
@@ -870,29 +863,12 @@ class TVShows(Items):
         # if the path or file already exists, the calls return current value
         fileid = self.kodi_db.add_file(filename, pathid, dateadded)
 
-        # Hack for direct paths and Kodi episode widgets - resume won't work
-        # otherwise because widgets will look for paths like
-        # plugin://...tvshows/?plex_id=1&plex_type=episode&mode=play
-        # instead of
-        # plugin://...tvshows/431926/?plex_id=1&plex_type=episode&mode=play
-        # We need TWO entries in the file and bookmark tables! (and only there)
-        if not state.DIRECT_PATHS:
-            filename_2 = api.file_name(force_first_media=True)
-            path_2 = 'plugin://%s.tvshows/' % v.ADDON_ID
-            filename_2 = ('%s?plex_id=%s&plex_type=%s&mode=play&filename=%s'
-                          % (path_2, itemid, v.PLEX_TYPE_EPISODE, filename_2))
-            pathid_2 = self.kodi_db.add_video_path(path_2)
-            fileid_2 = self.kodi_db.add_file(filename_2, pathid_2, dateadded)
-        else:
-            fileid_2 = None
-
         # UPDATE THE EPISODE #####
         if update_item:
             LOG.info("UPDATE episode itemid: %s", itemid)
             if fileid != old_fileid:
+                LOG.debug('Removing old file entry: %s', old_fileid)
                 self.kodi_db.remove_file(old_fileid)
-            if old_fileid_2 and fileid_2 != old_fileid_2:
-                self.kodi_db.remove_file(old_fileid_2)
             # Update the movie entry
             if v.KODIVERSION >= 17:
                 # update new ratings Kodi 17
@@ -996,7 +972,6 @@ class TVShows(Items):
                              episodeid,
                              v.KODI_TYPE_EPISODE,
                              kodi_fileid=fileid,
-                             kodi_fileid_2=fileid_2,
                              kodi_pathid=pathid,
                              parent_id=seasonid,
                              checksum=checksum,
@@ -1015,12 +990,6 @@ class TVShows(Items):
                                   runtime,
                                   playcount,
                                   dateplayed)
-        if not state.DIRECT_PATHS:
-            self.kodi_db.addPlaystate(fileid_2,
-                                      resume,
-                                      runtime,
-                                      playcount,
-                                      dateplayed)
 
     @catch_exceptions(warnuser=True)
     def remove(self, plex_id):
