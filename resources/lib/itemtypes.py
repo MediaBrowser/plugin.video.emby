@@ -586,7 +586,9 @@ class TVShows(Items):
             path = "%s%s/" % (toplevelpath, itemid)
             toppathid = self.kodi_db.get_path(toplevelpath)
 
-        pathid = self.kodi_db.add_video_path(path)
+        pathid = self.kodi_db.add_video_path(path,
+                                             date_added=api.date_created(),
+                                             id_parent_path=toppathid)
         # UPDATE THE TVSHOW #####
         if update_item:
             LOG.info("UPDATE tvshow itemid: %s - Title: %s", itemid, title)
@@ -850,11 +852,9 @@ class TVShows(Items):
             # Set plugin path - do NOT use "intermediate" paths for the show
             # as with direct paths!
             filename = api.file_name(force_first_media=True)
-            # If we don't set this path, Widget resume won't work
-            path = 'plugin://%s.tvshows/' % v.ADDON_ID
-            filename = ('%s%s/?plex_id=%s&plex_type=%s&mode=play&filename=%s'
-                        % (path, series_id, itemid, v.PLEX_TYPE_EPISODE,
-                           filename))
+            path = 'plugin://%s.tvshows/%s/' % (v.ADDON_ID, series_id)
+            filename = ('%s?plex_id=%s&plex_type=%s&mode=play&filename=%s'
+                        % (path, itemid, v.PLEX_TYPE_EPISODE, filename))
             playurl = filename
             # Root path tvshows/ already saved in Kodi DB
             pathid = self.kodi_db.add_video_path(path)
@@ -891,14 +891,15 @@ class TVShows(Items):
                 query = '''
                     UPDATE episode
                     SET c00 = ?, c01 = ?, c03 = ?, c04 = ?, c05 = ?, c09 = ?,
-                        c10 = ?, c12 = ?, c13 = ?, c14 = ?,
-                        c19 = ?, idFile=?, idSeason = ?, userrating = ?
+                        c10 = ?, c12 = ?, c13 = ?, c14 = ?, c15 = ?, c16 = ?,
+                        c18 = ?, c19 = ?, idFile=?, idSeason = ?,
+                        userrating = ?
                     WHERE idEpisode = ?
                 '''
                 kodicursor.execute(query, (title, plot, ratingid, writer,
                     premieredate, runtime, director, season, episode, title,
-                    pathid, fileid,
-                    seasonid, userdata['UserRating'], episodeid))
+                    airs_before_season, airs_before_episode, playurl, pathid,
+                    fileid, seasonid, userdata['UserRating'], episodeid))
             else:
                 # Kodi Jarvis
                 query = '''
@@ -939,13 +940,15 @@ class TVShows(Items):
                                           "tvdb")
                 query = '''
                     INSERT INTO episode( idEpisode, idFile, c00, c01, c03, c04,
-                        c05, c09, c10, c12, c13, c14, idShow, c19,
-                        idSeason, userrating)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        c05, c09, c10, c12, c13, c14, idShow, c15, c16, c18,
+                        c19, idSeason, userrating)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+                    ?, ?)
                 '''
                 kodicursor.execute(query, (episodeid, fileid, title, plot,
                     rating_id, writer, premieredate, runtime, director, season,
-                    episode, title, showid, pathid, seasonid,
+                    episode, title, showid, airs_before_season,
+                    airs_before_episode, playurl, pathid, seasonid,
                     userdata['UserRating']))
             else:
                 # Kodi Jarvis
