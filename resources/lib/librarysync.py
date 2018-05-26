@@ -1357,12 +1357,14 @@ class LibrarySync(Thread):
             item_fkt = getattr(itemtypes,
                                v.ITEMTYPE_FROM_KODITYPE[session['kodi_type']])
             with item_fkt() as fkt:
+                plex_type = v.PLEX_TYPE_FROM_KODI_TYPE[session['kodi_type']]
                 fkt.updatePlaystate(mark_played,
                                     session['viewCount'],
                                     resume,
                                     session['duration'],
                                     session['file_id'],
-                                    utils.unix_date_to_kodi(utils.unix_timestamp()))
+                                    utils.unix_date_to_kodi(utils.unix_timestamp()),
+                                    plex_type)
 
     def sync_fanart(self, missing_only=True, refresh=False):
         """

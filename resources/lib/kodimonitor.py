@@ -523,7 +523,8 @@ def _record_playstate(status, ended):
                              time,
                              totaltime,
                              playcount,
-                             last_played)
+                             last_played,
+                             status['plex_type'])
     # Hack to force "in progress" widget to appear if it wasn't visible before
     if (state.FORCE_RELOAD_SKIN and
             xbmc.getCondVisibility('Window.IsVisible(Home.xml)')):

@@ -8,6 +8,7 @@ from sqlite3 import IntegrityError
 import artwork
 from utils import kodi_sql, try_decode, unix_timestamp, unix_date_to_kodi
 import variables as v
+import state
 
 ###############################################################################
 
@@ -237,13 +238,31 @@ class KodiDBMethods(object):
             show_id = None
         return show_id
 
-    def remove_file(self, file_id, remove_orphans=True):
+    def remove_file(self, file_id, remove_orphans=True, plex_type=None):
         """
         Removes the entry for file_id from the files table. Will also delete
         entries from the associated tables: bookmark, settings, streamdetails.
         If remove_orphans is true, this method will delete any orphaned path
         entries in the Kodi path table
+
+        Passing plex_type = v.PLEX_TYPE_EPISODE deletes any secondary files for
+        add-on paths
         """
+        if not state.DIRECT_PATHS and plex_type == v.PLEX_TYPE_EPISODE:
+            # Hack for the 2 entries for episodes for addon paths
+            query = 'SELECT strFilename FROM files WHERE idFile = ? LIMIT 1'
+            self.cursor.execute(query, (file_id, ))
+            filename = self.cursor.fetchone()
+            if not filename:
+                LOG.error('Could not find file_id %s', file_id)
+                return
+            query = 'SELECT idFile FROM files WHERE strFilename = ? LIMIT 2'
+            self.cursor.execute(query, (filename[0], ))
+            file_ids = self.cursor.fetchall()
+            for new_id in file_ids:
+                self.remove_file(new_id[0], remove_orphans=remove_orphans)
+            return
+
         self.cursor.execute('SELECT idPath FROM files WHERE idFile = ? LIMIT 1',
                             (file_id,))
         try:
@@ -708,7 +727,29 @@ class KodiDBMethods(object):
         return answ
 
     def addPlaystate(self, file_id, resume_seconds, total_seconds, playcount,
-                     dateplayed):
+                     dateplayed, plex_type):
+        if not state.DIRECT_PATHS and plex_type == v.PLEX_TYPE_EPISODE:
+            # Need to make sure to set a SECOND bookmark entry for another,
+            # second file_id that points to the path .tvshows instead of
+            # .tvshows/<plex show id/!
+            query = 'SELECT strFilename FROM files WHERE idFile = ? LIMIT 1'
+            self.cursor.execute(query, (file_id, ))
+            filename = self.cursor.fetchone()
+            if not filename:
+                LOG.error('Could not find fileid %s in Kodi DB', file_id)
+                raise RuntimeError
+            query = 'SELECT idFile FROM files WHERE strFilename = ? LIMIT 2'
+            self.cursor.execute(query, (filename[0], ))
+            file_ids = self.cursor.fetchall()
+            if len(file_ids) != 2:
+                LOG.error('Expected to find 2 file ids but found %s',
+                          len(file_ids))
+                raise RuntimeError
+            for new_id in file_ids:
+                self.addPlaystate(new_id[0], resume_seconds, total_seconds,
+                                  playcount, dateplayed, None)
+            return
+
         # Delete existing resume point
         self.cursor.execute('DELETE FROM bookmark WHERE idFile = ?', (file_id,))
         # Set watched count

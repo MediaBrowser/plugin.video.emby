@@ -155,10 +155,7 @@ class ContextMenu(object):
             v.KODI_PLAYLIST_TYPE_FROM_KODI_TYPE[self.kodi_type])
         playqueue.clear()
         state.CONTEXT_MENU_PLAY = True
-        handle = ('plugin://%s/?plex_id=%s&plex_type=%s&mode=play'
-                  % (v.ADDON_TYPE[self.plex_type],
-                     self.plex_id,
-                     self.plex_type))
+        handle = self.api.path(force_first_media=False, force_addon=True)
         xbmc.executebuiltin('RunPlugin(%s)' % handle)
 
     def _extras(self):

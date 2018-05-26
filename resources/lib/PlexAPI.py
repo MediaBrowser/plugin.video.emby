@@ -99,14 +99,15 @@ class API(object):
         """
         return self.item.get('ratingKey')
 
-    def path(self, force_first_media=True):
+    def path(self, force_first_media=True, force_addon=False):
         """
         Returns a "fully qualified path": add-on paths or direct paths
         depending on the current settings. Will NOT valide the playurl
         Returns unicode or None if something went wrong.
         """
         filename = self.file_path(force_first_media=force_first_media)
-        if not state.DIRECT_PATHS or self.plex_type() == v.PLEX_TYPE_CLIP:
+        if (not state.DIRECT_PATHS or force_addon
+                or self.plex_type() == v.PLEX_TYPE_CLIP):
             if filename and '/' in filename:
                 filename = filename.rsplit('/', 1)
             elif filename:
@@ -116,11 +117,14 @@ class API(object):
             except (TypeError, IndexError):
                 filename = None
             # Set plugin path and media flags using real filename
-            path = ('plugin://%s/?plex_id=%s&plex_type=%s&mode=play&filename=%s'
-                    % (v.ADDON_TYPE[self.plex_type()],
-                       self.plex_id(),
-                       self.plex_type(),
-                       filename))
+            if self.plex_type() == v.PLEX_TYPE_EPISODE:
+                # need to include the plex show id in the path
+                path = ('plugin://plugin.video.plexkodiconnect.tvshows/%s/'
+                        % self.grandparent_id())
+            else:
+                path = 'plugin://%s/' % v.ADDON_TYPE[self.plex_type()]
+            path = ('%s?plex_id=%s&plex_type=%s&mode=play&filename=%s'
+                    % (path, self.plex_id(), self.plex_type(), filename))
         else:
             # Direct paths is set the Kodi way
             path = self.validate_playurl(filename,
