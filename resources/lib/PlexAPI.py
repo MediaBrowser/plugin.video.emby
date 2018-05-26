@@ -428,8 +428,6 @@ class API(object):
             provider = provider[0]
         except IndexError:
             provider = None
-        if provider and self.plex_type() == v.PLEX_TYPE_EPISODE:
-            provider = provider.replace('/', '')
         return provider
 
     def titles(self):
@@ -502,8 +500,8 @@ class API(object):
             resume = float(self.item.attrib['viewOffset'])
         except (KeyError, ValueError):
             resume = 0.0
-        runtime = runtime * v.PLEX_TO_KODI_TIMEFACTOR
-        resume = resume * v.PLEX_TO_KODI_TIMEFACTOR
+        runtime = int(runtime * v.PLEX_TO_KODI_TIMEFACTOR)
+        resume = int(resume * v.PLEX_TO_KODI_TIMEFACTOR)
         return resume, runtime
 
     def content_rating(self):
@@ -533,14 +531,9 @@ class API(object):
 
     def premiere_date(self):
         """
-        Returns the "originallyAvailableAt". If no time is present, 11pm will be
-        set. Example: string "2017-02-01 23:00:00"
-        Returns None if not found
+        Returns the "originallyAvailableAt" or None
         """
-        date = self.item.get('originallyAvailableAt')
-        if date and len(date) == 10:
-            date = '%s 23:00:00' % date
-        return date
+        return self.item.get('originallyAvailableAt')
 
     def music_studio(self):
         """

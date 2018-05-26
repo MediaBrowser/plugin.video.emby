@@ -78,7 +78,7 @@ class KodiDBMethods(object):
                                         'movies',
                                         'metadata.local',
                                         1,
-                                        None))
+                                        0))
         # And TV shows
         path_id = self.get_path('plugin://%s.tvshows/' % v.ADDON_ID)
         if path_id is None:
@@ -98,7 +98,7 @@ class KodiDBMethods(object):
                                         'tvshows',
                                         'metadata.local',
                                         1,
-                                        None))
+                                        0))
 
     def parent_path_id(self, path):
         """
@@ -147,12 +147,12 @@ class KodiDBMethods(object):
             pathid = self.cursor.fetchone()[0] + 1
             query = '''
                 INSERT INTO path(idPath, strPath, dateAdded, idParentPath,
-                                 strContent, strScraper, noUpdate, exclude)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                                 strContent, strScraper, noUpdate)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
             '''
             self.cursor.execute(query,
                                 (pathid, path, date_added, id_parent_path,
-                                 content, scraper, 1, None))
+                                 content, scraper, 1))
         return pathid
 
     def add_music_path(self, path, strHash=None):
@@ -733,9 +733,9 @@ class KodiDBMethods(object):
                                         file_id,
                                         resume_seconds,
                                         total_seconds,
-                                        None,
-                                        'DVDPlayer',
-                                        None,
+                                        '',
+                                        'VideoPlayer',
+                                        '',
                                         1))
 
     def createTag(self, name):

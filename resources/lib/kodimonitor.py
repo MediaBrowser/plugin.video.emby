@@ -465,11 +465,11 @@ def _playback_cleanup(ended=False):
             DU().downloadUrl(
                 '{server}/video/:/transcode/universal/stop',
                 parameters={'session': v.PKC_MACHINE_IDENTIFIER})
-        # if playerid == 1:
+        if playerid == 1:
             # Bookmarks might not be pickup up correctly, so let's do them
             # manually. Applies to addon paths, but direct paths might have
             # started playback via PMS
-            # _record_playstate(status, ended)
+            _record_playstate(status, ended)
         # Reset the player's status
         state.PLAYER_STATES[playerid] = copy.deepcopy(state.PLAYSTATE)
     # As all playback has halted, reset the players that have been active
@@ -531,7 +531,7 @@ def _record_playstate(status, ended):
         xbmc.executebuiltin('ReloadSkin()')
     thread = Thread(target=_clean_file_table)
     thread.setDaemon(True)
-    # thread.start()
+    thread.start()
 
 
 def _clean_file_table():

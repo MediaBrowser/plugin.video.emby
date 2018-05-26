@@ -555,14 +555,13 @@ def getOnDeck(viewid, mediatype, tagname, limit):
             if directpaths:
                 url = api.file_path(force_first_media=True)
             else:
-                url = ('plugin://%s.tvshows/%s/?plex_id=%s&plex_type=%s&mode=play&filename=%s'
+                url = ('plugin://%s.tvshows/?plex_id=%s&plex_type=%s&mode=play&filename=%s'
                        % (v.ADDON_ID,
-                          api.grandparent_id(),
                           api.plex_id(),
                           api.plex_type(),
                           api.file_name(force_first_media=True)))
-            # if api.resume_point():
-            #     listitem.setProperty('resumetime', str(api.resume_point()))
+            if api.resume_point():
+                listitem.setProperty('resumetime', str(api.resume_point()))
             xbmcplugin.addDirectoryItem(
                 handle=HANDLE,
                 url=url,
