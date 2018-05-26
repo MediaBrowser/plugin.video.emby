@@ -241,11 +241,19 @@ def _prep_playlist_stack(xml):
             api.set_part_number(part)
             if kodi_id is None:
                 # Need to redirect again to PKC to conclude playback
-                path = ('plugin://%s/?plex_id=%s&plex_type=%s&mode=play&filename=%s'
-                        % (v.ADDON_TYPE[api.plex_type()],
-                           api.plex_id(),
-                           api.plex_type(),
-                           api.file_name(force_first_media=True)))
+                if api.plex_type() == v.PLEX_TYPE_EPISODE:
+                    path = ('plugin://%s/%s/?plex_id=%s&plex_type=%s&mode=play&filename=%s'
+                            % (v.ADDON_TYPE[api.plex_type()],
+                               api.grandparent_id(),
+                               api.plex_id(),
+                               api.plex_type(),
+                               api.file_name(force_first_media=True)))
+                else:
+                    path = ('plugin://%s/?plex_id=%s&plex_type=%s&mode=play&filename=%s'
+                            % (v.ADDON_TYPE[api.plex_type()],
+                               api.plex_id(),
+                               api.plex_type(),
+                               api.file_name(force_first_media=True)))
                 listitem = api.create_listitem()
                 listitem.setPath(try_encode(path))
             else:

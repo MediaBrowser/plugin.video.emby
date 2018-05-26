@@ -584,10 +584,9 @@ class TVShows(Items):
             # Set plugin path
             toplevelpath = "plugin://%s.tvshows/" % v.ADDON_ID
             path = "%s%s/" % (toplevelpath, itemid)
-            toppathid = self.kodi_db.get_path(toplevelpath)
+            toppathid = None
 
         pathid = self.kodi_db.add_video_path(path,
-                                             date_added=api.date_created(),
                                              id_parent_path=toppathid)
         # UPDATE THE TVSHOW #####
         if update_item:
@@ -892,13 +891,13 @@ class TVShows(Items):
                     UPDATE episode
                     SET c00 = ?, c01 = ?, c03 = ?, c04 = ?, c05 = ?, c09 = ?,
                         c10 = ?, c12 = ?, c13 = ?, c14 = ?, c15 = ?, c16 = ?,
-                        c18 = ?, c19 = ?, idFile=?, idSeason = ?,
+                        c19 = ?, idFile=?, idSeason = ?,
                         userrating = ?
                     WHERE idEpisode = ?
                 '''
                 kodicursor.execute(query, (title, plot, ratingid, writer,
                     premieredate, runtime, director, season, episode, title,
-                    airs_before_season, airs_before_episode, playurl, pathid,
+                    None, None, pathid,
                     fileid, seasonid, userdata['UserRating'], episodeid))
             else:
                 # Kodi Jarvis
@@ -911,7 +910,7 @@ class TVShows(Items):
                 '''
                 kodicursor.execute(query, (title, plot, rating, writer,
                     premieredate, runtime, director, season, episode, title,
-                    airs_before_season, airs_before_episode, playurl, pathid,
+                    None, None, playurl, pathid,
                     fileid, seasonid, episodeid))
             # Update parentid reference
             plex_db.updateParentId(itemid, seasonid)
@@ -940,16 +939,16 @@ class TVShows(Items):
                                           "tvdb")
                 query = '''
                     INSERT INTO episode( idEpisode, idFile, c00, c01, c03, c04,
-                        c05, c09, c10, c12, c13, c14, idShow, c15, c16, c18,
-                        c19, idSeason, userrating)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
-                    ?, ?)
+                        c05, c09, c10, c12, c13, c14, idShow, c15, c16, 
+                        idSeason, userrating)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+                    ?)
                 '''
                 kodicursor.execute(query, (episodeid, fileid, title, plot,
-                    rating_id, writer, premieredate, runtime, director, season,
-                    episode, title, showid, airs_before_season,
-                    airs_before_episode, playurl, pathid, seasonid,
-                    userdata['UserRating']))
+                    uniqueid, '', premieredate, runtime, director, season,
+                    episode, title, showid, None,
+                    None, seasonid,
+                    None))
             else:
                 # Kodi Jarvis
                 query = '''
@@ -961,8 +960,8 @@ class TVShows(Items):
                     '''
                 kodicursor.execute(query, (episodeid, fileid, title, plot,
                     rating, writer, premieredate, runtime, director, season,
-                    episode, title, showid, airs_before_season,
-                    airs_before_episode, playurl, pathid, seasonid))
+                    episode, title, showid, None,
+                    None, playurl, pathid, seasonid))
 
         # Create or update the reference in plex table Add reference is
         # idempotent; the call here updates also fileid and pathid when item is
@@ -985,11 +984,27 @@ class TVShows(Items):
                                kodicursor)
         streams = api.mediastreams()
         self.kodi_db.modify_streams(fileid, streams, runtime)
-        self.kodi_db.addPlaystate(fileid,
-                                  resume,
-                                  runtime,
-                                  playcount,
-                                  dateplayed)
+        if resume:
+            self.kodi_db.addPlaystate(fileid,
+                                      resume,
+                                      runtime,
+                                      playcount,
+                                      dateplayed)
+            filename = api.file_name(force_first_media=True)
+            path = 'plugin://%s.tvshows/' % v.ADDON_ID
+            filename = ('%s%s/?plex_id=%s&plex_type=%s&mode=play&filename=%s'
+                        % (path, series_id, itemid, v.PLEX_TYPE_EPISODE, filename))
+            # Root path tvshows/ already saved in Kodi DB
+            pathid = self.kodi_db.add_video_path(path)
+            # add/retrieve pathid and fileid
+            # if the path or file already exists, the calls return current value
+            fileid = self.kodi_db.add_file(filename, pathid, dateadded)
+            LOG.debug('pathid: %s, fileid: %s', pathid, fileid)
+            self.kodi_db.addPlaystate(fileid,
+                                      resume,
+                                      runtime,
+                                      playcount,
+                                      dateplayed)
 
     @catch_exceptions(warnuser=True)
     def remove(self, plex_id):
