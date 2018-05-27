@@ -504,8 +504,8 @@ class API(object):
             resume = float(self.item.attrib['viewOffset'])
         except (KeyError, ValueError):
             resume = 0.0
-        runtime = int(runtime * v.PLEX_TO_KODI_TIMEFACTOR)
-        resume = int(resume * v.PLEX_TO_KODI_TIMEFACTOR)
+        runtime = runtime * v.PLEX_TO_KODI_TIMEFACTOR
+        resume = resume * v.PLEX_TO_KODI_TIMEFACTOR
         return resume, runtime
 
     def content_rating(self):
