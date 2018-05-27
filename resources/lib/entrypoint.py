@@ -553,8 +553,6 @@ def getOnDeck(viewid, mediatype, tagname, limit):
                 append_show_title=append_show_title,
                 append_sxxexx=append_sxxexx)
             url = api.path()
-            if api.resume_point():
-                listitem.setProperty('resumetime', str(api.resume_point()))
             xbmcplugin.addDirectoryItem(
                 handle=HANDLE,
                 url=url,
