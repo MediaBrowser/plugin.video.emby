@@ -485,7 +485,7 @@ class API(object):
             resume = float(self.item.attrib['viewOffset'])
         except (KeyError, ValueError):
             resume = 0.0
-        return int(resume * v.PLEX_TO_KODI_TIMEFACTOR)
+        return resume * v.PLEX_TO_KODI_TIMEFACTOR
 
     def resume_runtime(self):
         """
