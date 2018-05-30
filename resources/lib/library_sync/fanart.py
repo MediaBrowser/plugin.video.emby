@@ -65,7 +65,7 @@ class ThreadedProcessFanart(Thread):
                 item = queue.get(block=False)
             except Empty:
                 if not set_zero and not xbmc.getCondVisibility(
-                        'Window.IsVisible(DialogAddonSettings.xml)')::
+                        'Window.IsVisible(DialogAddonSettings.xml)'):
                     # Avoid saving '0' all the time
                     set_zero = True
                     settings('fanarttv_lookups', value='0')
