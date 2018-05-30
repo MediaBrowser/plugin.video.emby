@@ -57,7 +57,6 @@ class WebSocket(Thread):
         LOG.info("----===## Starting %s ##===----", self.__class__.__name__)
 
         counter = 0
-        handshake_counter = 0
         stopped = self.stopped
         suspended = self.suspended
         while not stopped():
@@ -94,9 +93,10 @@ class WebSocket(Thread):
                     LOG.info("%s: Error connecting", self.__class__.__name__)
                     self.ws = None
                     counter += 1
-                    if counter > 3:
-                        counter = 0
-                        self.IOError_response()
+                    if counter >= 10:
+                        LOG.info('%s: Repeated IOError detected. Stopping now',
+                                 self.__class__.__name__)
+                        break
                     sleep(1000)
                 except websocket.WebSocketTimeoutException:
                     LOG.info("%s: Timeout while connecting, trying again",
@@ -106,10 +106,10 @@ class WebSocket(Thread):
                 except websocket.WebSocketException as e:
                     LOG.info('%s: WebSocketException: %s',
                              self.__class__.__name__, e)
-                    if ('Handshake Status 401' in e.args
-                            or 'Handshake Status 403' in e.args):
-                        handshake_counter += 1
-                        if handshake_counter >= 5:
+                    if ('Handshake Status 401' in e.args or
+                            'Handshake Status 403' in e.args):
+                        counter += 1
+                        if counter >= 5:
                             LOG.info('%s: Error in handshake detected. '
                                      'Stopping now', self.__class__.__name__)
                             break
@@ -125,7 +125,6 @@ class WebSocket(Thread):
                     sleep(1000)
                 else:
                     counter = 0
-                    handshake_counter = 0
             except Exception as e:
                 LOG.error("%s: Unknown exception encountered: %s",
                           self.__class__.__name__, e)
@@ -202,11 +201,6 @@ class PMS_Websocket(WebSocket):
             # Put PMS message on queue and let libsync take care of it
             state.WEBSOCKET_QUEUE.put(message)
 
-    def IOError_response(self):
-        LOG.warn("Repeatedly could not connect to PMS, "
-                 "declaring the connection dead")
-        window('plex_online', value='false')
-
 
 class Alexa_Websocket(WebSocket):
     """
@@ -251,9 +245,6 @@ class Alexa_Websocket(WebSocket):
                       self.__class__.__name__)
             return
         process_command(message.attrib['path'][1:], message.attrib)
-
-    def IOError_response(self):
-        pass
 
     # Path in thread_methods
     def stop(self):
