@@ -9,7 +9,7 @@ from threading import Thread
 from os import makedirs
 import requests
 
-from xbmc import sleep, translatePath
+import xbmc
 from xbmcvfs import exists
 
 from utils import settings, language as lang, kodi_sql, try_encode, try_decode,\
@@ -64,16 +64,17 @@ class Image_Cache_Thread(Thread):
                     # Abort was requested while waiting. We should exit
                     LOG.info("---===### Stopped Image_Cache_Thread ###===---")
                     return
-                sleep(1000)
+                xbmc.sleep(1000)
 
             try:
                 url = queue.get(block=False)
             except Empty:
-                if not set_zero:
+                if not set_zero and not xbmc.getCondVisibility(
+                        'Window.IsVisible(DialogAddonSettings.xml)'):
                     # Avoid saving '0' all the time
                     set_zero = True
                     settings('caching_artwork_count', value='0')
-                sleep(1000)
+                xbmc.sleep(1000)
                 continue
             set_zero = False
             if isinstance(url, ArtworkSyncMessage):
@@ -115,7 +116,7 @@ class Image_Cache_Thread(Thread):
                               'over-loaded. Sleep %s seconds before trying '
                               'again to download %s',
                               2**sleeptime, double_urldecode(url))
-                    sleep((2**sleeptime) * 1000)
+                    xbmc.sleep((2**sleeptime) * 1000)
                     sleeptime += 1
                     continue
                 except Exception as err:
@@ -129,11 +130,12 @@ class Image_Cache_Thread(Thread):
             queue.task_done()
             # Update the caching state in the PKC settings.
             counter += 1
-            if counter > 20:
+            if (counter > 20 and not xbmc.getCondVisibility(
+                    'Window.IsVisible(DialogAddonSettings.xml)')):
                 counter = 0
                 settings('caching_artwork_count', value=str(queue.qsize()))
             # Sleep for a bit to reduce CPU strain
-            sleep(sleep_between)
+            xbmc.sleep(sleep_between)
         LOG.info("---===### Stopped Image_Cache_Thread ###===---")
 
 
@@ -200,7 +202,7 @@ class Artwork():
         if dialog('yesno', "Image Texture Cache", lang(39251)):
             LOG.info("Resetting all cache data first")
             # Remove all existing textures first
-            path = try_decode(translatePath("special://thumbnails/"))
+            path = try_decode(xbmc.translatePath("special://thumbnails/"))
             if exists_dir(path):
                 rmtree(path, ignore_errors=True)
                 self.restore_cache_directories()
@@ -318,7 +320,7 @@ class Artwork():
             pass
         else:
             # Delete thumbnail as well as the entry
-            path = translatePath("special://thumbnails/%s" % cachedurl)
+            path = xbmc.translatePath("special://thumbnails/%s" % cachedurl)
             LOG.debug("Deleting cached thumbnail: %s", path)
             if exists(path):
                 rmtree(try_decode(path), ignore_errors=True)
@@ -334,8 +336,8 @@ class Artwork():
                  "a", "b", "c", "d", "e", "f",
                  "Video", "plex")
         for path in paths:
-            makedirs(try_decode(translatePath("special://thumbnails/%s"
-                                              % path)))
+            makedirs(try_decode(xbmc.translatePath("special://thumbnails/%s"
+                                                   % path)))
 
 
 class ArtworkSyncMessage(object):
