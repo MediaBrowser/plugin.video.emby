@@ -231,7 +231,12 @@ def discover_pms(token=None):
                                              pms['ip'],
                                              pms['port'])
             plex_pms_list.append(pms)
-    LOG.debug('Found the following PMS in total: %s', plex_pms_list)
+
+    log_list = deepcopy(plex_pms_list)
+    for pms in log_list:
+        if pms.get('token') is not None:
+            pms['token'] = '%s...' % pms['token'][:5]
+    LOG.debug('Found the following PMS in total: %s', log_list)
     return plex_pms_list
 
 
