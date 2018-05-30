@@ -264,8 +264,10 @@ class UserClient(Thread):
         Reset all user settings
         """
         LOG.debug("Reset UserClient authentication.")
-        self.do_utils.stopSession()
-
+        try:
+            self.do_utils.stopSession()
+        except AttributeError:
+            pass
         window('plex_authenticated', clear=True)
         state.AUTHENTICATED = False
         window('pms_token', clear=True)
