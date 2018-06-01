@@ -318,7 +318,7 @@ class DownloadUtils():
                     LOG.warn('Failed to connect to %s too many times. '
                              'Declare PMS dead', url)
                     window('plex_online', value="false")
-            except:
+            except ValueError:
                 # 'countError' not yet set
                 pass
         return None
