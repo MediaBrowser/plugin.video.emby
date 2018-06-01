@@ -1,3 +1,15 @@
+version 2.0.28 (beta only):
+- Fix endless reboots if Plex music library missing
+- Fix Plex Companion failing leading to PMS connection loss
+- Fix PKC add-on setting user changes not saving
+- Fix playback of last item not starting up
+- Update Czech translation
+- Declare PMS connection dead on first failed connection
+- Fix KeyErrors if Kodi player does not return position
+- Fix AttributeError
+- Fix logging
+- Use float for resume and runtime instead of int
+
 version 2.0.27 (beta only):
 - WARNING: You will need to reset the Kodi database! Sorry for that...
 - Fix PKC not connecting: Fix ValueError if plex.tv returns Plex Cloud URIs
