@@ -32,7 +32,7 @@ class DownloadUtils():
     _shared_state = {}
 
     # How many failed attempts before declaring PMS dead?
-    connectionAttempts = 2
+    connectionAttempts = 1
     # How many 401 returns before declaring unauthorized?
     unauthorizedAttempts = 2
     # How long should we wait for an answer from the
@@ -318,7 +318,7 @@ class DownloadUtils():
                     LOG.warn('Failed to connect to %s too many times. '
                              'Declare PMS dead', url)
                     window('plex_online', value="false")
-            except:
+            except ValueError:
                 # 'countError' not yet set
                 pass
         return None

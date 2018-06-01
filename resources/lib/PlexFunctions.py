@@ -206,7 +206,7 @@ def discover_pms(token=None):
     if token:
         LOG.info('Checking with plex.tv for more PMS to connect to')
         plex_pms_list = _pms_list_from_plex_tv(token)
-        LOG.debug('PMS found on plex.tv: %s', plex_pms_list)
+        _log_pms(plex_pms_list)
     else:
         LOG.info('No plex token supplied, only checked LAN for available PMS')
         plex_pms_list = []
@@ -231,8 +231,16 @@ def discover_pms(token=None):
                                              pms['ip'],
                                              pms['port'])
             plex_pms_list.append(pms)
-    LOG.debug('Found the following PMS in total: %s', plex_pms_list)
+    _log_pms(plex_pms_list)
     return plex_pms_list
+
+
+def _log_pms(pms_list):
+    log_list = deepcopy(pms_list)
+    for pms in log_list:
+        if pms.get('token') is not None:
+            pms['token'] = '%s...' % pms['token'][:5]
+    LOG.debug('Found the following PMS: %s', log_list)
 
 
 def _plex_gdm():

@@ -195,7 +195,10 @@ class PlexCompanion(Thread):
         elif task['action'] == 'refreshPlayQueue':
             self._process_refresh(data)
         elif task['action'] == 'setStreams':
-            self._process_streams(data)
+            try:
+                self._process_streams(data)
+            except KeyError:
+                pass
 
     def run(self):
         """

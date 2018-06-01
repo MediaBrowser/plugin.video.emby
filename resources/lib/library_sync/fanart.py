@@ -3,7 +3,7 @@ from logging import getLogger
 from threading import Thread
 from Queue import Empty
 
-from xbmc import sleep
+import xbmc
 
 from utils import thread_methods, settings, language as lang, dialog
 import plexdb_functions as plexdb
@@ -59,16 +59,17 @@ class ThreadedProcessFanart(Thread):
                     # Abort was requested while waiting. We should exit
                     LOG.info("---===### Stopped FanartSync ###===---")
                     return
-                sleep(1000)
+                xbmc.sleep(1000)
             # grabs Plex item from queue
             try:
                 item = queue.get(block=False)
             except Empty:
-                if not set_zero:
+                if not set_zero and not xbmc.getCondVisibility(
+                        'Window.IsVisible(DialogAddonSettings.xml)'):
                     # Avoid saving '0' all the time
                     set_zero = True
                     settings('fanarttv_lookups', value='0')
-                sleep(200)
+                xbmc.sleep(200)
                 continue
             set_zero = False
             if isinstance(item, ArtworkSyncMessage):
@@ -92,7 +93,8 @@ class ThreadedProcessFanart(Thread):
                     plex_db.set_fanart_synched(item['plex_id'])
             # Update the caching state in the PKC settings. Avoid saving '0'
             counter += 1
-            if counter > 10:
+            if (counter > 20 and not xbmc.getCondVisibility(
+                    'Window.IsVisible(DialogAddonSettings.xml)')):
                 counter = 0
                 settings('fanarttv_lookups', value=str(queue.qsize()))
             queue.task_done()
