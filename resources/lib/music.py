@@ -31,6 +31,7 @@ def excludefromscan_music_folders():
         return
     # Build paths
     paths = []
+    reboot = False
     api = API(item=None)
     for library in xml:
         if library.attrib['type'] != v.PLEX_TYPE_ARTIST:
@@ -56,9 +57,12 @@ def excludefromscan_music_folders():
                     LOG.info('New Plex music library detected: %s', path)
                     xml.set_setting(['audio', 'excludefromscan', 'regexp'],
                                     value=path, append=True)
-            # We only need to reboot if we ADD new paths!
-            reboot = xml.write_xml
+            if paths:
+                # We only need to reboot if we ADD new paths!
+                reboot = xml.write_xml
             # Delete obsolete entries
+            # Make sure we're not saving an empty audio-excludefromscan
+            xml.write_xml = reboot
             for element in parent:
                 for path in paths:
                     if element.text == path:
@@ -67,6 +71,7 @@ def excludefromscan_music_folders():
                     LOG.info('Deleting music library from advancedsettings: %s',
                              element.text)
                     parent.remove(element)
+                    xml.write_xml = True
     except (ParseError, IOError):
         LOG.error('Could not adjust advancedsettings.xml')
         reboot = False
