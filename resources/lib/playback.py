@@ -62,7 +62,11 @@ def playback_triage(plex_id=None, plex_type=None, path=None, resolve=True):
         return
     playqueue = PQ.get_playqueue_from_type(
         v.KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[plex_type])
-    pos = js.get_position(playqueue.playlistid)
+    try:
+        pos = js.get_position(playqueue.playlistid)
+    except KeyError:
+        LOG.warning('No position returned from Kodi player! Assuming 0')
+        pos = 0
     # Can return -1 (as in "no playlist")
     pos = pos if pos != -1 else 0
     LOG.debug('playQueue position %s for %s', pos, playqueue)
