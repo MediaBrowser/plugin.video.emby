@@ -32,7 +32,7 @@ class DownloadUtils():
     _shared_state = {}
 
     # How many failed attempts before declaring PMS dead?
-    connectionAttempts = 2
+    connectionAttempts = 1
     # How many 401 returns before declaring unauthorized?
     unauthorizedAttempts = 2
     # How long should we wait for an answer from the
