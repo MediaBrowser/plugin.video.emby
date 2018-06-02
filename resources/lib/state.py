@@ -99,7 +99,7 @@ COMMAND_PIPELINE_QUEUE = None
 WEBSOCKET_QUEUE = None
 
 # Which Kodi player is/has been active? (either int 1, 2 or 3)
-ACTIVE_PLAYERS = []
+ACTIVE_PLAYERS = set()
 # Failsafe for throwing an empty video back to Kodi's setResolvedUrl to set
 # up our own playlist from the very beginning
 PKC_CAUSED_STOP = False

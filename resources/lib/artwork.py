@@ -9,7 +9,7 @@ from threading import Thread
 from os import makedirs
 import requests
 
-from xbmc import sleep, translatePath
+import xbmc
 from xbmcvfs import exists
 
 from utils import settings, language as lang, kodi_sql, try_encode, try_decode,\
@@ -39,7 +39,7 @@ def double_urldecode(text):
 
 @thread_methods(add_suspends=IMAGE_CACHING_SUSPENDS)
 class Image_Cache_Thread(Thread):
-    sleep_between = 200
+    sleep_between = 50
     # Potentially issues with limited number of threads
     # Hence let Kodi wait till download is successful
     timeout = (35.1, 35.1)
@@ -54,6 +54,8 @@ class Image_Cache_Thread(Thread):
         suspended = self.suspended
         queue = self.queue
         sleep_between = self.sleep_between
+        counter = 0
+        set_zero = False
         while not stopped():
             # In the event the server goes offline
             while suspended():
@@ -62,12 +64,19 @@ class Image_Cache_Thread(Thread):
                     # Abort was requested while waiting. We should exit
                     LOG.info("---===### Stopped Image_Cache_Thread ###===---")
                     return
-                sleep(1000)
+                xbmc.sleep(1000)
+
             try:
                 url = queue.get(block=False)
             except Empty:
-                sleep(1000)
+                if not set_zero and not xbmc.getCondVisibility(
+                        'Window.IsVisible(DialogAddonSettings.xml)'):
+                    # Avoid saving '0' all the time
+                    set_zero = True
+                    settings('caching_artwork_count', value='0')
+                xbmc.sleep(1000)
                 continue
+            set_zero = False
             if isinstance(url, ArtworkSyncMessage):
                 if state.IMAGE_SYNC_NOTIFICATIONS:
                     dialog('notification',
@@ -107,20 +116,26 @@ class Image_Cache_Thread(Thread):
                               'over-loaded. Sleep %s seconds before trying '
                               'again to download %s',
                               2**sleeptime, double_urldecode(url))
-                    sleep((2**sleeptime) * 1000)
+                    xbmc.sleep((2**sleeptime) * 1000)
                     sleeptime += 1
                     continue
-                except Exception as e:
+                except Exception as err:
                     LOG.error('Unknown exception for url %s: %s'.
-                              double_urldecode(url), e)
+                              double_urldecode(url), err)
                     import traceback
                     LOG.error("Traceback:\n%s", traceback.format_exc())
                     break
                 # We did not even get a timeout
                 break
             queue.task_done()
+            # Update the caching state in the PKC settings.
+            counter += 1
+            if (counter > 20 and not xbmc.getCondVisibility(
+                    'Window.IsVisible(DialogAddonSettings.xml)')):
+                counter = 0
+                settings('caching_artwork_count', value=str(queue.qsize()))
             # Sleep for a bit to reduce CPU strain
-            sleep(sleep_between)
+            xbmc.sleep(sleep_between)
         LOG.info("---===### Stopped Image_Cache_Thread ###===---")
 
 
@@ -159,14 +174,18 @@ class Artwork():
         connection.close()
         if not artworks_to_cache:
             LOG.info('Caching of major images to Kodi texture cache done')
+            # Set to "None"
+            settings('caching_artwork_count', value=lang(30069))
             return
+        length = len(artworks_to_cache)
         LOG.info('Caching has not been completed - caching %s major images',
-                 len(artworks_to_cache))
-        # Caching %s images
-        self.queue.put(ArtworkSyncMessage(lang(30006) % len(artworks_to_cache)))
-        for url in artworks_to_cache:
+                 length)
+        settings('caching_artwork_count', value=str(length))
+        # Caching %s Plex images
+        self.queue.put(ArtworkSyncMessage(lang(30006) % length))
+        for i, url in enumerate(artworks_to_cache):
             self.queue.put(url[0])
-        # Major image caching done
+        # Plex image caching done
         self.queue.put(ArtworkSyncMessage(lang(30007)))
 
     def fullTextureCacheSync(self):
@@ -183,7 +202,7 @@ class Artwork():
         if dialog('yesno', "Image Texture Cache", lang(39251)):
             LOG.info("Resetting all cache data first")
             # Remove all existing textures first
-            path = try_decode(translatePath("special://thumbnails/"))
+            path = try_decode(xbmc.translatePath("special://thumbnails/"))
             if exists_dir(path):
                 rmtree(path, ignore_errors=True)
                 self.restore_cache_directories()
@@ -301,7 +320,7 @@ class Artwork():
             pass
         else:
             # Delete thumbnail as well as the entry
-            path = translatePath("special://thumbnails/%s" % cachedurl)
+            path = xbmc.translatePath("special://thumbnails/%s" % cachedurl)
             LOG.debug("Deleting cached thumbnail: %s", path)
             if exists(path):
                 rmtree(try_decode(path), ignore_errors=True)
@@ -317,8 +336,8 @@ class Artwork():
                  "a", "b", "c", "d", "e", "f",
                  "Video", "plex")
         for path in paths:
-            makedirs(try_decode(translatePath("special://thumbnails/%s"
-                                              % path)))
+            makedirs(try_decode(xbmc.translatePath("special://thumbnails/%s"
+                                                   % path)))
 
 
 class ArtworkSyncMessage(object):

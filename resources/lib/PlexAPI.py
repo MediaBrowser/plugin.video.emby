@@ -112,14 +112,15 @@ class API(object):
         """
         return self.item.get('ratingKey')
 
-    def path(self, force_first_media=True):
+    def path(self, force_first_media=True, force_addon=False):
         """
         Returns a "fully qualified path": add-on paths or direct paths
         depending on the current settings. Will NOT valide the playurl
         Returns unicode or None if something went wrong.
         """
         filename = self.file_path(force_first_media=force_first_media)
-        if not state.DIRECT_PATHS or self.plex_type() == v.PLEX_TYPE_CLIP:
+        if (not state.DIRECT_PATHS or force_addon
+                or self.plex_type() == v.PLEX_TYPE_CLIP):
             if filename and '/' in filename:
                 filename = filename.rsplit('/', 1)
             elif filename:
@@ -129,11 +130,14 @@ class API(object):
             except (TypeError, IndexError):
                 filename = None
             # Set plugin path and media flags using real filename
-            path = ('plugin://%s/?plex_id=%s&plex_type=%s&mode=play&filename=%s'
-                    % (v.ADDON_TYPE[self.plex_type()],
-                       self.plex_id(),
-                       self.plex_type(),
-                       filename))
+            if self.plex_type() == v.PLEX_TYPE_EPISODE:
+                # need to include the plex show id in the path
+                path = ('plugin://plugin.video.plexkodiconnect.tvshows/%s/'
+                        % self.grandparent_id())
+            else:
+                path = 'plugin://%s/' % v.ADDON_TYPE[self.plex_type()]
+            path = ('%s?plex_id=%s&plex_type=%s&mode=play&filename=%s'
+                    % (path, self.plex_id(), self.plex_type(), filename))
         else:
             # Direct paths is set the Kodi way
             path = self.validate_playurl(filename,
@@ -500,7 +504,7 @@ class API(object):
             resume = float(self.item.attrib['viewOffset'])
         except (KeyError, ValueError):
             resume = 0.0
-        return int(resume * v.PLEX_TO_KODI_TIMEFACTOR)
+        return resume * v.PLEX_TO_KODI_TIMEFACTOR
 
     def runtime(self):
         """
@@ -529,8 +533,8 @@ class API(object):
             resume = float(self.item.attrib['viewOffset'])
         except (KeyError, ValueError):
             resume = 0.0
-        runtime = int(runtime * v.PLEX_TO_KODI_TIMEFACTOR)
-        resume = int(resume * v.PLEX_TO_KODI_TIMEFACTOR)
+        runtime = runtime * v.PLEX_TO_KODI_TIMEFACTOR
+        resume = resume * v.PLEX_TO_KODI_TIMEFACTOR
         return resume, runtime
 
     def content_rating(self):
@@ -933,7 +937,7 @@ class API(object):
                                     TV shows
             poster [unicode]:       path to the item's poster artwork
             background [unicode]:   path to the item's background artwork
-        
+
         The last two might be None if not found. Generally None is returned
         if unsuccessful.
 
@@ -977,9 +981,9 @@ class API(object):
         try:
             data.get('test')
         except AttributeError:
-            LOG.error('Could not download data from FanartTV')
+            LOG.warning('Could not download data from FanartTV')
             return
-        if data.get('results') is None:
+        if not data.get('results'):
             LOG.info('No match found on themoviedb for type: %s, title: %s',
                      media_type, title)
             return
@@ -987,12 +991,12 @@ class API(object):
         year = item.get('year')
         match_found = None
         # find year match
-        if year is not None:
-            for entry in data["results"]:
-                if year in entry.get("first_air_date", ""):
+        if year:
+            for entry in data['results']:
+                if year in entry.get('first_air_date', ''):
                     match_found = entry
                     break
-                elif year in entry.get("release_date", ""):
+                elif year in entry.get('release_date', ''):
                     match_found = entry
                     break
         # find exact match based on title, if we haven't found a year match
@@ -1006,9 +1010,9 @@ class API(object):
                 ':',
                 ';'
             )
-            for entry in data["results"]:
-                name = entry.get("name", entry.get("title", ""))
-                original_name = entry.get("original_name", "")
+            for entry in data['results']:
+                name = entry.get('name', entry.get('title', ''))
+                original_name = entry.get('original_name', '')
                 title_alt = title.lower()
                 name_alt = name.lower()
                 org_name_alt = original_name.lower()
@@ -1020,16 +1024,16 @@ class API(object):
                     # match found for exact title name
                     match_found = entry
                     break
-                elif (name.split(" (")[0] == title or title_alt == name_alt
-                        or title_alt == org_name_alt):
+                elif (name.split(' (')[0] == title or title_alt == name_alt
+                      or title_alt == org_name_alt):
                     # match found with substituting some stuff
                     match_found = entry
                     break
 
         # if a match was not found, we accept the closest match from TMDB
-        if match_found is None and data.get("results"):
+        if match_found is None and data.get('results'):
             LOG.info('Using very first match from themoviedb')
-            match_found = entry = data.get("results")[0]
+            match_found = entry = data.get('results')[0]
 
         if match_found is None:
             LOG.info('Still no themoviedb match for type: %s, title: %s, '
@@ -1040,25 +1044,25 @@ class API(object):
         LOG.info('Found themoviedb match for %s: %s',
                  item.get('title'), match_found)
 
-        tmdb_id = str(entry.get("id", ""))
+        tmdb_id = str(entry.get('id', ''))
         if tmdb_id == '':
             LOG.error('No themoviedb ID found, aborting')
             return
 
-        if media_type == "multi" and entry.get("media_type"):
-            media_type = entry.get("media_type")
-        name = entry.get("name", entry.get("title"))
+        if media_type == 'multi' and entry.get('media_type'):
+            media_type = entry.get('media_type')
+        name = entry.get('name', entry.get('title'))
         # lookup external tmdb_id and perform artwork lookup on fanart.tv
         parameters = {'api_key': api_key}
+        if media_type == 'movie':
+            url = 'https://api.themoviedb.org/3/movie/%s' % tmdb_id
+            parameters['append_to_response'] = 'videos'
+        elif media_type == 'tv':
+            url = 'https://api.themoviedb.org/3/tv/%s' % tmdb_id
+            parameters['append_to_response'] = 'external_ids,videos'
         media_id, poster, background = None, None, None
-        for language in [v.KODILANGUAGE, "en"]:
+        for language in [v.KODILANGUAGE, 'en']:
             parameters['language'] = language
-            if media_type == "movie":
-                url = 'https://api.themoviedb.org/3/movie/%s' % tmdb_id
-                parameters['append_to_response'] = 'videos'
-            elif media_type == "tv":
-                url = 'https://api.themoviedb.org/3/tv/%s' % tmdb_id
-                parameters['append_to_response'] = 'external_ids,videos'
             data = DU().downloadUrl(url,
                                     authenticate=False,
                                     parameters=parameters,
@@ -1066,20 +1070,24 @@ class API(object):
             try:
                 data.get('test')
             except AttributeError:
-                LOG.error('Could not download %s with parameters %s',
-                          url, parameters)
+                LOG.warning('Could not download %s with parameters %s',
+                            url, parameters)
                 continue
             if collection is False:
-                if data.get("imdb_id") is not None:
-                    media_id = str(data.get("imdb_id"))
+                if data.get('imdb_id'):
+                    media_id = str(data.get('imdb_id'))
                     break
-                if data.get("external_ids") is not None:
-                    media_id = str(data["external_ids"].get("tvdb_id"))
+                if (data.get('external_ids') and
+                        data['external_ids'].get('tvdb_id')):
+                    media_id = str(data['external_ids']['tvdb_id'])
                     break
             else:
-                if data.get("belongs_to_collection") is None:
+                if not data.get('belongs_to_collection'):
                     continue
-                media_id = str(data.get("belongs_to_collection").get("id"))
+                media_id = data.get('belongs_to_collection').get('id')
+                if not media_id:
+                    continue
+                media_id = str(media_id)
                 LOG.debug('Retrieved collections tmdb id %s for %s',
                           media_id, title)
                 url = 'https://api.themoviedb.org/3/collection/%s' % media_id
@@ -1090,18 +1098,18 @@ class API(object):
                 try:
                     data.get('poster_path')
                 except AttributeError:
-                    LOG.info('Could not find TheMovieDB poster paths for %s in '
-                             'the language %s', title, language)
+                    LOG.debug('Could not find TheMovieDB poster paths for %s in '
+                              'the language %s', title, language)
                     continue
-                else:
+                if not poster and data.get('poster_path'):
                     poster = ('https://image.tmdb.org/t/p/original%s' %
                               data.get('poster_path'))
+                if not background and data.get('backdrop_path'):
                     background = ('https://image.tmdb.org/t/p/original%s' %
                                   data.get('backdrop_path'))
-                    break
         return media_id, poster, background
 
-    def lookup_fanart_tv(self, media_id, artworks, set_info=False):
+    def lookup_fanart_tv(self, media_id, artworks):
         """
         perform artwork lookup on fanart.tv
 
@@ -1198,9 +1206,7 @@ class API(object):
                 artworks['poster'] = poster
             if background is not None:
                 artworks['fanart'] = background
-            artworks = self.lookup_fanart_tv(external_id,
-                                             artworks,
-                                             set_info=True)
+            artworks = self.lookup_fanart_tv(external_id, artworks)
         else:
             LOG.info('Did not find a set/collection ID on TheMovieDB using %s.'
                      ' Artwork will be missing.', self.titles()[0])

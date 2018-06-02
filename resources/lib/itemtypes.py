@@ -147,21 +147,22 @@ class Items(object):
                                       userdata['Resume'],
                                       userdata['Runtime'],
                                       userdata['PlayCount'],
-                                      userdata['LastPlayedDate'])
+                                      userdata['LastPlayedDate'],
+                                      api.plex_type())
             if v.KODIVERSION >= 17:
                 self.kodi_db.update_userrating(db_item[0],
                                                db_item[4],
                                                userdata['UserRating'])
 
     def updatePlaystate(self, mark_played, view_count, resume, duration,
-                        file_id, lastViewedAt):
+                        file_id, lastViewedAt, plex_type):
         """
         Use with websockets, not xml
         """
         # If the playback was stopped, check whether we need to increment the
         # playcount. PMS won't tell us the playcount via websockets
-        LOG.debug('Set playstate for file_id %s: viewcount: %s, resume: %s',
-                  file_id, view_count, resume)
+        LOG.debug('Playstate file_id %s: viewcount: %s, resume: %s, type: %s',
+                  file_id, view_count, resume, plex_type)
         if mark_played:
             LOG.info('Marking as completely watched in Kodi')
             try:
@@ -174,7 +175,8 @@ class Items(object):
                                   resume,
                                   duration,
                                   view_count,
-                                  lastViewedAt)
+                                  lastViewedAt,
+                                  plex_type)
 
 
 class Movies(Items):
@@ -448,7 +450,12 @@ class Movies(Items):
         # Add any sets from Plex collection tags
         self.kodi_db.addSets(movieid, collections, kodicursor)
         # Process playstates
-        self.kodi_db.addPlaystate(fileid, resume, runtime, playcount, dateplayed)
+        self.kodi_db.addPlaystate(fileid,
+                                  resume,
+                                  runtime,
+                                  playcount,
+                                  dateplayed,
+                                  v.PLEX_TYPE_MOVIE)
 
     def remove(self, plex_id):
         """
@@ -584,7 +591,8 @@ class TVShows(Items):
             # Set plugin path
             toplevelpath = "plugin://%s.tvshows/" % v.ADDON_ID
             path = "%s%s/" % (toplevelpath, itemid)
-            toppathid = self.kodi_db.get_path(toplevelpath)
+            # Do NOT set a parent id because addon-path cannot be "stacked"
+            toppathid = None
 
         pathid = self.kodi_db.add_video_path(path,
                                              date_added=api.date_created(),
@@ -852,7 +860,7 @@ class TVShows(Items):
             # Set plugin path - do NOT use "intermediate" paths for the show
             # as with direct paths!
             filename = api.file_name(force_first_media=True)
-            path = 'plugin://%s.tvshows/' % v.ADDON_ID
+            path = 'plugin://%s.tvshows/%s/' % (v.ADDON_ID, series_id)
             filename = ('%s?plex_id=%s&plex_type=%s&mode=play&filename=%s'
                         % (path, itemid, v.PLEX_TYPE_EPISODE, filename))
             playurl = filename
@@ -989,7 +997,24 @@ class TVShows(Items):
                                   resume,
                                   runtime,
                                   playcount,
-                                  dateplayed)
+                                  dateplayed,
+                                  None)  # Do send None, we check here
+        if not state.DIRECT_PATHS:
+            # need to set a SECOND file entry for a path without plex show id
+            filename = api.file_name(force_first_media=True)
+            path = 'plugin://%s.tvshows/' % v.ADDON_ID
+            # Filename is exactly the same, WITH plex show id!
+            filename = ('%s%s/?plex_id=%s&plex_type=%s&mode=play&filename=%s'
+                        % (path, series_id, itemid, v.PLEX_TYPE_EPISODE,
+                           filename))
+            pathid = self.kodi_db.add_video_path(path)
+            fileid = self.kodi_db.add_file(filename, pathid, dateadded)
+            self.kodi_db.addPlaystate(fileid,
+                                      resume,
+                                      runtime,
+                                      playcount,
+                                      dateplayed,
+                                      None)  # Do send None - 2nd entry
 
     @catch_exceptions(warnuser=True)
     def remove(self, plex_id):
@@ -1093,7 +1118,7 @@ class TVShows(Items):
         Remove an episode, and episode only from the Kodi DB (not Plex DB)
         """
         self.kodi_db.modify_people(kodi_id, v.KODI_TYPE_EPISODE)
-        self.kodi_db.remove_file(file_id)
+        self.kodi_db.remove_file(file_id, plex_type=v.PLEX_TYPE_EPISODE)
         self.artwork.delete_artwork(kodi_id,
                                     v.KODI_TYPE_EPISODE,
                                     self.kodicursor)

@@ -62,7 +62,11 @@ def playback_triage(plex_id=None, plex_type=None, path=None, resolve=True):
         return
     playqueue = PQ.get_playqueue_from_type(
         v.KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[plex_type])
-    pos = js.get_position(playqueue.playlistid)
+    try:
+        pos = js.get_position(playqueue.playlistid)
+    except KeyError:
+        LOG.warning('No position returned from Kodi player! Assuming 0')
+        pos = 0
     # Can return -1 (as in "no playlist")
     pos = pos if pos != -1 else 0
     LOG.debug('playQueue position %s for %s', pos, playqueue)
@@ -206,6 +210,7 @@ def _init_existing_kodi_playlist(playqueue, pos):
     LOG.debug('Kodi playlist size: %s', playqueue.kodi_pl.size())
     kodi_items = js.playlist_get_items(playqueue.playlistid)
     if not kodi_items:
+        LOG.error('No Kodi items returned')
         raise PL.PlaylistError('No Kodi items returned')
     item = PL.init_plex_playqueue(playqueue, kodi_item=kodi_items[pos])
     item.force_transcode = state.FORCE_TRANSCODE
@@ -240,10 +245,7 @@ def _prep_playlist_stack(xml):
             api.set_part_number(part)
             if kodi_id is None:
                 # Need to redirect again to PKC to conclude playback
-                path = ('plugin://%s/?plex_id=%s&plex_type=%s&mode=play'
-                        % (v.ADDON_TYPE[api.plex_type()],
-                           api.plex_id(),
-                           api.plex_type()))
+                path = api.path()
                 listitem = api.create_listitem()
                 listitem.setPath(try_encode(path))
             else:

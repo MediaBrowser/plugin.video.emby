@@ -6,10 +6,10 @@ from xbmcaddon import Addon
 import xbmc
 import xbmcplugin
 import xbmcgui
+import context
 
 import plexdb_functions as plexdb
 from utils import window, settings, dialog, language as lang
-from dialogs import context
 import PlexFunctions as PF
 from PlexAPI import API
 import playqueue as PQ
@@ -96,18 +96,7 @@ class ContextMenu(object):
             options.append(OPTIONS['PMS_Play'])
         if self.kodi_type in v.KODI_VIDEOTYPES:
             options.append(OPTIONS['Transcode'])
-        # userdata = self.api.userdata()
-        # if userdata['Favorite']:
-        #     # Remove from emby favourites
-        #     options.append(OPTIONS['RemoveFav'])
-        # else:
-        #     # Add to emby favourites
-        #     options.append(OPTIONS['AddFav'])
-        # if self.kodi_type == "song":
-        #     # Set custom song rating
-        #     options.append(OPTIONS['RateSong'])
-        # Refresh item
-        # options.append(OPTIONS['Refresh'])
+
         # Delete item, only if the Plex Home main user is logged in
         if (window('plex_restricteduser') != 'true' and
                 window('plex_allows_mediaDeletion') == 'true'):
@@ -115,7 +104,7 @@ class ContextMenu(object):
         # Addon settings
         options.append(OPTIONS['Addon'])
         context_menu = context.ContextMenu(
-            "script-emby-context.xml",
+            "script-plex-context.xml",
             Addon('plugin.video.plexkodiconnect').getAddonInfo('path'),
             "default",
             "1080i")
@@ -137,14 +126,7 @@ class ContextMenu(object):
             self._PMS_play()
         elif selected == OPTIONS['Extras']:
             self._extras()
-        # elif selected == OPTIONS['Refresh']:
-        #     self.emby.refreshItem(self.item_id)
-        # elif selected == OPTIONS['AddFav']:
-        #     self.emby.updateUserRating(self.item_id, favourite=True)
-        # elif selected == OPTIONS['RemoveFav']:
-        #     self.emby.updateUserRating(self.item_id, favourite=False)
-        # elif selected == OPTIONS['RateSong']:
-        #     self._rate_song()
+
         elif selected == OPTIONS['Addon']:
             xbmc.executebuiltin(
                 'Addon.OpenSettings(plugin.video.plexkodiconnect)')
@@ -173,10 +155,7 @@ class ContextMenu(object):
             v.KODI_PLAYLIST_TYPE_FROM_KODI_TYPE[self.kodi_type])
         playqueue.clear()
         state.CONTEXT_MENU_PLAY = True
-        handle = ('plugin://%s/?plex_id=%s&plex_type=%s&mode=play'
-                  % (v.ADDON_TYPE[self.plex_type],
-                     self.plex_id,
-                     self.plex_type))
+        handle = self.api.path(force_first_media=False, force_addon=True)
         xbmc.executebuiltin('RunPlugin(%s)' % handle)
 
     def _extras(self):

@@ -274,16 +274,13 @@ class LibrarySync(Thread):
         return True
 
     def _full_sync(self):
-        process = {
-            'movies': self.plex_movies,
-            'tvshows': self.plex_tv_show,
-        }
+        process = [self.plex_movies, self.plex_tv_show]
         if state.ENABLE_MUSIC:
-            process['music'] = self.plex_music
+            process.append(self.plex_music)
 
         # Do the processing
-        for itemtype in process:
-            if self.suspend_item_sync() or not process[itemtype]():
+        for kind in process:
+            if self.suspend_item_sync() or not kind():
                 return False
 
         # Let kodi update the views in any case, since we're doing a full sync
@@ -651,7 +648,6 @@ class LibrarySync(Thread):
             self.updatelist
         """
         # Some logging, just in case.
-        LOG.debug("self.updatelist: %s", self.updatelist)
         item_number = len(self.updatelist)
         if item_number == 0:
             return
@@ -1378,12 +1374,14 @@ class LibrarySync(Thread):
             item_fkt = getattr(itemtypes,
                                v.ITEMTYPE_FROM_KODITYPE[session['kodi_type']])
             with item_fkt() as fkt:
+                plex_type = v.PLEX_TYPE_FROM_KODI_TYPE[session['kodi_type']]
                 fkt.updatePlaystate(mark_played,
                                     session['viewCount'],
                                     resume,
                                     session['duration'],
                                     session['file_id'],
-                                    utils.unix_date_to_kodi(utils.unix_timestamp()))
+                                    utils.unix_date_to_kodi(utils.unix_timestamp()),
+                                    plex_type)
 
     def sync_fanart(self, missing_only=True, refresh=False):
         """
@@ -1393,6 +1391,8 @@ class LibrarySync(Thread):
         missing_only=True    False will start look-up for EVERY item
         refresh=False        True will force refresh all external fanart
         """
+        if settings('FanartTV') == 'false':
+            return
         with plexdb.Get_Plex_DB() as plex_db:
             if missing_only:
                 with plexdb.Get_Plex_DB() as plex_db:
@@ -1404,14 +1404,20 @@ class LibrarySync(Thread):
                     items.extend(plex_db.itemsByType(plex_type))
                 LOG.info('Trying to get ALL additional fanart for %s items',
                          len(items))
+        if not items:
+            return
         # Shuffle the list to not always start out identically
         shuffle(items)
-        for item in items:
+        # Checking FanartTV for %s items
+        self.fanartqueue.put(artwork.ArtworkSyncMessage(lang(30018) % len(items)))
+        for i, item in enumerate(items):
             self.fanartqueue.put({
                 'plex_id': item['plex_id'],
                 'plex_type': item['plex_type'],
                 'refresh': refresh
             })
+        # FanartTV lookup completed
+        self.fanartqueue.put(artwork.ArtworkSyncMessage(lang(30019)))
 
     def triage_lib_scans(self):
         """
@@ -1499,6 +1505,7 @@ class LibrarySync(Thread):
         kodi_db_version_checked = False
         last_sync = 0
         last_processing = 0
+        last_time_sync = 0
         one_day_in_seconds = 60*60*24
         # Link to Websocket queue
         queue = state.WEBSOCKET_QUEUE
@@ -1529,9 +1536,6 @@ class LibrarySync(Thread):
         # Setup the paths for addon-paths (even when using direct paths)
         with kodidb.GetKodiDB('video') as kodi_db:
             kodi_db.setup_path_table()
-        # Initialize time offset Kodi - PMS
-        self.sync_pms_time()
-        last_time_sync = utils.unix_timestamp()
         window('plex_dbScan', clear=True)
         state.DB_SCAN = False
         playlist_monitor = None
@@ -1549,6 +1553,9 @@ class LibrarySync(Thread):
                 # Very first sync upon installation or reset of Kodi DB
                 state.DB_SCAN = True
                 window('plex_dbScan', value='true')
+                # Initialize time offset Kodi - PMS
+                self.sync_pms_time()
+                last_time_sync = utils.unix_timestamp()
                 LOG.info('Initial start-up full sync starting')
                 xbmc.executebuiltin('InhibitIdleShutdown(true)')
                 if self.full_sync():
@@ -1560,6 +1567,7 @@ class LibrarySync(Thread):
                     initial_sync_done = True
                     kodi_db_version_checked = True
                     last_sync = utils.unix_timestamp()
+                    self.sync_fanart()
                     self.fanartthread.start()
                     if state.SYNC_PLAYLISTS and playlists.full_sync():
                         playlist_monitor = playlists.kodi_playlist_monitor()
@@ -1568,8 +1576,6 @@ class LibrarySync(Thread):
                 xbmc.executebuiltin('InhibitIdleShutdown(false)')
                 window('plex_dbScan', clear=True)
                 state.DB_SCAN = False
-                if settings('FanartTV') == 'true':
-                    self.sync_fanart()
 
             elif not kodi_db_version_checked:
                 # Install sync was already done, don't force-show dialogs
@@ -1590,7 +1596,7 @@ class LibrarySync(Thread):
                                heading='{plex}',
                                line1=lang(29999) + lang(39402))
                     else:
-                        utils.reset()
+                        utils.reset(ask_user=False)
                     break
                 kodi_db_version_checked = True
 
@@ -1603,10 +1609,9 @@ class LibrarySync(Thread):
                 if self.full_sync():
                     initial_sync_done = True
                     last_sync = utils.unix_timestamp()
-                    if settings('FanartTV') == 'true':
-                        self.sync_fanart()
                     LOG.info('Done initial sync on Kodi startup')
                     artwork.Artwork().cache_major_artwork()
+                    self.sync_fanart()
                     self.fanartthread.start()
                     if state.SYNC_PLAYLISTS and playlists.full_sync():
                         playlist_monitor = playlists.kodi_playlist_monitor()

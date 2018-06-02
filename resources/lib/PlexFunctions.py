@@ -20,6 +20,7 @@ LOG = getLogger("PLEX." + __name__)
 
 CONTAINERSIZE = int(settings('limitindex'))
 REGEX_PLEX_KEY = re_compile(r'''/(.+)/(\d+)$''')
+REGEX_PLEX_DIRECT = re_compile(r'''\.plex\.direct:\d+$''')
 
 # For discovery of PMS in the local LAN
 PLEX_GDM_IP = '239.0.0.250'  # multicast to PMS
@@ -142,8 +143,6 @@ def check_connection(url, token=None, verifySSL=None):
         verifySSL = None if settings('sslverify') == 'true' else False
     if 'plex.tv' in url:
         url = 'https://plex.tv/api/home/users'
-    else:
-        url = url + '/library/onDeck'
     LOG.debug("Checking connection to server %s with verifySSL=%s",
               url, verifySSL)
     answer = DU().downloadUrl(url,
@@ -207,43 +206,41 @@ def discover_pms(token=None):
     if token:
         LOG.info('Checking with plex.tv for more PMS to connect to')
         plex_pms_list = _pms_list_from_plex_tv(token)
-        LOG.debug('PMS found on plex.tv: %s', plex_pms_list)
+        _log_pms(plex_pms_list)
     else:
         LOG.info('No plex token supplied, only checked LAN for available PMS')
         plex_pms_list = []
 
-    # See if we found a PMS both locally and using plex.tv. If so, use local
-    # connection data
-    all_pms = []
+    # Add PMS found only in the LAN to the Plex.tv PMS list
     for pms in local_pms_list:
-        for i, plex_pms in enumerate(plex_pms_list):
+        for plex_pms in plex_pms_list:
             if pms['machineIdentifier'] == plex_pms['machineIdentifier']:
-                # Update with GDM data - potentially more reliable than plex.tv
-                LOG.debug('Found this PMS also in the LAN: %s', plex_pms)
-                plex_pms['ip'] = pms['ip']
-                plex_pms['port'] = pms['port']
-                plex_pms['local'] = True
-                # Use all the other data we know from plex.tv
-                pms = plex_pms
-                # Remove this particular pms since we already know it
-                plex_pms_list.pop(i)
                 break
-        https = _pms_https_enabled('%s:%s' % (pms['ip'], pms['port']))
-        if https is None:
-            # Error contacting url. Skip and ignore this PMS for now
-            continue
-        elif https is True:
-            pms['scheme'] = 'https'
-            pms['baseURL'] = 'https://%s:%s' % (pms['ip'], pms['port'])
         else:
-            pms['scheme'] = 'http'
-            pms['baseURL'] = 'http://%s:%s' % (pms['ip'], pms['port'])
-        all_pms.append(pms)
-    # Now add the remaining PMS from plex.tv (where we already checked connect.)
-    for plex_pms in plex_pms_list:
-        all_pms.append(plex_pms)
-    LOG.debug('Found the following PMS in total: %s', all_pms)
-    return all_pms
+            # Only found PMS using GDM - add it to the PMS from plex.tv
+            https = _pms_https_enabled('%s:%s' % (pms['ip'], pms['port']))
+            if https is None:
+                # Error contacting url. Skip and ignore this PMS for now
+                LOG.error('Could not contact PMS %s but we should have', pms)
+                continue
+            elif https is True:
+                pms['scheme'] = 'https'
+            else:
+                pms['scheme'] = 'http'
+            pms['baseURL'] = '%s://%s:%s' % (pms['scheme'],
+                                             pms['ip'],
+                                             pms['port'])
+            plex_pms_list.append(pms)
+    _log_pms(plex_pms_list)
+    return plex_pms_list
+
+
+def _log_pms(pms_list):
+    log_list = deepcopy(pms_list)
+    for pms in log_list:
+        if pms.get('token') is not None:
+            pms['token'] = '%s...' % pms['token'][:5]
+    LOG.debug('Found the following PMS: %s', log_list)
 
 
 def _plex_gdm():
@@ -414,17 +411,24 @@ def _pms_list_from_plex_tv(token):
 
 def _poke_pms(pms, queue):
     data = pms['connections'][0].attrib
-    if data['local'] == '1':
-        protocol = data['protocol']
-        address = data['address']
-        port = data['port']
-        url = '%s://%s:%s' % (protocol, address, port)
-    else:
-        url = data['uri']
-        if url.count(':') == 1:
-            url = '%s:%s' % (url, data['port'])
+    url = data['uri']
+    if data['local'] == '1' and REGEX_PLEX_DIRECT.findall(url):
+        # In case DNS resolve of plex.direct does not work, append a new
+        # connection that will directly access the local IP (e.g. internet down)
+        conn = deepcopy(pms['connections'][0])
+        # Overwrite plex.direct
+        conn.attrib['uri'] = '%s://%s:%s' % (data['protocol'],
+                                             data['address'],
+                                             data['port'])
+        pms['connections'].insert(1, conn)
+    try:
         protocol, address, port = url.split(':', 2)
-        address = address.replace('/', '')
+    except ValueError:
+        # e.g. .ork.plex.services uri, thanks Plex
+        protocol, address = url.split(':', 1)
+        port = data['port']
+        url = '%s:%s' % (url, port)
+    address = address.replace('/', '')
     xml = DU().downloadUrl('%s/identity' % url,
                            authenticate=False,
                            headerOptions={'X-Plex-Token': pms['token']},
