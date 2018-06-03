@@ -434,10 +434,6 @@ class LibrarySync(Thread):
         """
         Compare the views to Plex
         """
-        if state.DIRECT_PATHS is True and state.ENABLE_MUSIC is True:
-            # Will reboot Kodi is new library detected
-            music.excludefromscan_music_folders()
-
         self.views = []
         vnodes = self.vnodes
 
@@ -448,6 +444,9 @@ class LibrarySync(Thread):
         except AttributeError:
             LOG.error("Error download PMS views, abort maintain_views")
             return False
+        if state.DIRECT_PATHS is True and state.ENABLE_MUSIC is True:
+            # Will reboot Kodi is new library detected
+            music.excludefromscan_music_folders(xml=sections)
 
         self.nodes = {
             v.PLEX_TYPE_MOVIE: [],
@@ -1606,6 +1605,9 @@ class LibrarySync(Thread):
                 state.DB_SCAN = True
                 window('plex_dbScan', value="true")
                 LOG.info('Doing initial sync on Kodi startup')
+                if state.SUSPEND_SYNC:
+                    LOG.warning('Forcing startup sync even if Kodi is playing')
+                    state.SUSPEND_SYNC = False
                 if self.full_sync():
                     initial_sync_done = True
                     last_sync = utils.unix_timestamp()

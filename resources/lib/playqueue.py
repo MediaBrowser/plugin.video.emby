@@ -179,43 +179,39 @@ class PlayqueueMonitor(Thread):
                 elif identical:
                     LOG.debug('Detected playqueue item %s moved to position %s',
                               i + j, i)
-                    with LOCK:
-                        PL.move_playlist_item(playqueue, i + j, i)
+                    PL.move_playlist_item(playqueue, i + j, i)
                     del old[j], index[j]
                     break
             else:
                 LOG.debug('Detected new Kodi element at position %s: %s ',
                           i, new_item)
-                with LOCK:
-                    try:
-                        if playqueue.id is None:
-                            PL.init_plex_playqueue(playqueue,
-                                                   kodi_item=new_item)
-                        else:
-                            PL.add_item_to_plex_playqueue(playqueue,
-                                                          i,
-                                                          kodi_item=new_item)
-                    except PL.PlaylistError:
-                        # Could not add the element
-                        pass
-                    except IndexError:
-                        # This is really a hack - happens when using Addon Paths
-                        # and repeatedly  starting the same element. Kodi will
-                        # then not pass kodi id nor file path AND will also not
-                        # start-up playback. Hence kodimonitor kicks off
-                        # playback. Also see kodimonitor.py - _playlist_onadd()
-                        pass
+                try:
+                    if playqueue.id is None:
+                        PL.init_plex_playqueue(playqueue, kodi_item=new_item)
                     else:
-                        for j in range(i, len(index)):
-                            index[j] += 1
+                        PL.add_item_to_plex_playqueue(playqueue,
+                                                      i,
+                                                      kodi_item=new_item)
+                except PL.PlaylistError:
+                    # Could not add the element
+                    pass
+                except IndexError:
+                    # This is really a hack - happens when using Addon Paths
+                    # and repeatedly  starting the same element. Kodi will then
+                    # not pass kodi id nor file path AND will also not
+                    # start-up playback. Hence kodimonitor kicks off playback.
+                    # Also see kodimonitor.py - _playlist_onadd()
+                    pass
+                else:
+                    for j in range(i, len(index)):
+                        index[j] += 1
         for i in reversed(index):
             if self.stopped():
                 # Chances are that we got an empty Kodi playlist due to
                 # Kodi exit
                 return
             LOG.debug('Detected deletion of playqueue element at pos %s', i)
-            with LOCK:
-                PL.delete_playlist_item_from_PMS(playqueue, i)
+            PL.delete_playlist_item_from_PMS(playqueue, i)
         LOG.debug('Done comparing playqueues')
 
     def run(self):
@@ -227,8 +223,6 @@ class PlayqueueMonitor(Thread):
                 if stopped():
                     break
                 sleep(1000)
-            work = []
-            # Detect changed playqueues first, do the work afterwards
             with LOCK:
                 for playqueue in PLAYQUEUES:
                     kodi_pl = js.playlist_get_items(playqueue.playlistid)
@@ -238,15 +232,9 @@ class PlayqueueMonitor(Thread):
                             # Only initialize if directly fired up using direct
                             # paths. Otherwise let default.py do its magic
                             LOG.debug('Not yet initiating playback')
-                        elif playqueue.pkc_edit:
-                            playqueue.pkc_edit = False
-                            LOG.debug('PKC edited the playqueue - skipping')
                         else:
-                            # We do need to update our playqueues
-                            work.append((playqueue, kodi_pl))
-                        playqueue.old_kodi_pl = kodi_pl
-            # Now do the work - LOCK individual playqueue edits
-            for playqueue, kodi_pl in work:
-                self._compare_playqueues(playqueue, kodi_pl)
+                            # compare old and new playqueue
+                            self._compare_playqueues(playqueue, kodi_pl)
+                        playqueue.old_kodi_pl = list(kodi_pl)
             sleep(200)
         LOG.info("----===## PlayqueueMonitor stopped ##===----")

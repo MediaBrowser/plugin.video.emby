@@ -1,3 +1,10 @@
+version 2.0.29 (beta only):
+- Fix a racing condition leading to e.g. Plex Companion not working as intended
+- Force a sync on startup even if Kodi is playing something
+- Include Plex Home username in "Log-out Plex Home user"
+- Direct paths: Don't download PMS sections twice
+- Less logging
+
 version 2.0.28 (beta only):
 - Fix endless reboots if Plex music library missing
 - Fix Plex Companion failing leading to PMS connection loss

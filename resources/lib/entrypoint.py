@@ -146,7 +146,7 @@ def doMainListing(content_type=None):
     addDirectoryItem(lang(30173),
                      "plugin://%s?mode=channels" % v.ADDON_ID)
     # Plex user switch
-    addDirectoryItem(lang(39200),
+    addDirectoryItem('%s%s' % (lang(39200), settings('username')),
                      "plugin://%s?mode=switchuser" % v.ADDON_ID)
 
     # some extra entries for settings and stuff

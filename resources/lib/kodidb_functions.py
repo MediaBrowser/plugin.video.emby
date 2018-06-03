@@ -678,7 +678,7 @@ class KodiDBMethods(object):
         self.cursor.execute(query, (path,))
         path_ids = self.cursor.fetchall()
         if len(path_ids) != 1:
-            LOG.error('Found wrong number of path ids: %s for path %s, abort',
+            LOG.debug('Found wrong number of path ids: %s for path %s, abort',
                       path_ids, path)
             return
         query = '''
