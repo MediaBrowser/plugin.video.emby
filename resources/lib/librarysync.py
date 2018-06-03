@@ -1585,6 +1585,9 @@ class LibrarySync(Thread):
                 state.DB_SCAN = True
                 window('plex_dbScan', value="true")
                 LOG.info('Doing initial sync on Kodi startup')
+                if state.SUSPEND_SYNC:
+                    LOG.warning('Forcing startup sync even if Kodi is playing')
+                    state.SUSPEND_SYNC = False
                 if self.full_sync():
                     initial_sync_done = True
                     last_sync = utils.unix_timestamp()
