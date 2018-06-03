@@ -4,7 +4,6 @@ from re import compile as re_compile
 from xml.etree.ElementTree import ParseError
 
 from utils import XmlKodiSetting, reboot_kodi, language as lang
-from PlexFunctions import get_plex_sections
 from PlexAPI import API
 import variables as v
 
@@ -15,21 +14,15 @@ REGEX_MUSICPATH = re_compile(r'''^\^(.+)\$$''')
 ###############################################################################
 
 
-def excludefromscan_music_folders():
+def excludefromscan_music_folders(xml):
     """
     Gets a complete list of paths for music libraries from the PMS. Sets them
     to be excluded in the advancedsettings.xml from being scanned by Kodi.
     Existing keys will be replaced
+    xml: etree XML PMS answer containing all library sections
 
     Reboots Kodi if new library detected
     """
-    xml = get_plex_sections()
-    try:
-        xml[0].attrib
-    except (TypeError, IndexError, AttributeError):
-        LOG.error('Could not get Plex sections')
-        return
-    # Build paths
     paths = []
     reboot = False
     api = API(item=None)
@@ -46,8 +39,8 @@ def excludefromscan_music_folders():
     try:
         with XmlKodiSetting('advancedsettings.xml',
                             force_create=True,
-                            top_element='advancedsettings') as xml:
-            parent = xml.set_setting(['audio', 'excludefromscan'])
+                            top_element='advancedsettings') as xml_file:
+            parent = xml_file.set_setting(['audio', 'excludefromscan'])
             for path in paths:
                 for element in parent:
                     if element.text == path:
@@ -55,14 +48,15 @@ def excludefromscan_music_folders():
                         break
                 else:
                     LOG.info('New Plex music library detected: %s', path)
-                    xml.set_setting(['audio', 'excludefromscan', 'regexp'],
-                                    value=path, append=True)
+                    xml_file.set_setting(['audio', 'excludefromscan', 'regexp'],
+                                         value=path,
+                                         append=True)
             if paths:
                 # We only need to reboot if we ADD new paths!
-                reboot = xml.write_xml
+                reboot = xml_file.write_xml
             # Delete obsolete entries
             # Make sure we're not saving an empty audio-excludefromscan
-            xml.write_xml = reboot
+            xml_file.write_xml = reboot
             for element in parent:
                 for path in paths:
                     if element.text == path:
@@ -71,10 +65,9 @@ def excludefromscan_music_folders():
                     LOG.info('Deleting music library from advancedsettings: %s',
                              element.text)
                     parent.remove(element)
-                    xml.write_xml = True
+                    xml_file.write_xml = True
     except (ParseError, IOError):
         LOG.error('Could not adjust advancedsettings.xml')
-        reboot = False
     if reboot is True:
         #  'New Plex music library detected. Sorry, but we need to
         #  restart Kodi now due to the changes made.'
