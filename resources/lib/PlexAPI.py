@@ -99,15 +99,20 @@ class API(object):
         """
         return self.item.get('ratingKey')
 
-    def path(self, force_first_media=True, force_addon=False):
+    def path(self, force_first_media=True, force_addon=False,
+             direct_paths=None):
         """
         Returns a "fully qualified path": add-on paths or direct paths
         depending on the current settings. Will NOT valide the playurl
         Returns unicode or None if something went wrong.
+
+        Pass direct_path=True if you're calling from another Plex python
+        instance - because otherwise direct paths will evaluate to False!
         """
+        direct_paths = direct_paths or state.DIRECT_PATHS
         filename = self.file_path(force_first_media=force_first_media)
-        if (not state.DIRECT_PATHS or force_addon
-                or self.plex_type() == v.PLEX_TYPE_CLIP):
+        if (not direct_paths or force_addon or
+                self.plex_type() == v.PLEX_TYPE_CLIP):
             if filename and '/' in filename:
                 filename = filename.rsplit('/', 1)
             elif filename:

@@ -529,40 +529,45 @@ def getOnDeck(viewid, mediatype, tagname, limit):
     xbmcplugin.setContent(HANDLE, 'episodes')
     append_show_title = settings('OnDeckTvAppendShow') == 'true'
     append_sxxexx = settings('OnDeckTvAppendSeason') == 'true'
-    directpaths = settings('useDirectPaths') == 'true'
     if settings('OnDeckTVextended') == 'false':
         # Chances are that this view is used on Kodi startup
         # Wait till we've connected to a PMS. At most 30s
         counter = 0
         while window('plex_authenticated') != 'true':
             counter += 1
-            if counter >= 300:
+            if counter == 300:
                 log.error('Aborting On Deck view, we were not authenticated '
                           'for the PMS')
-                return xbmcplugin.endOfDirectory(HANDLE, False)
+                xbmcplugin.endOfDirectory(HANDLE, False)
+                return
             sleep(100)
         xml = downloadutils.DownloadUtils().downloadUrl(
             '{server}/library/sections/%s/onDeck' % viewid)
         if xml in (None, 401):
             log.error('Could not download PMS xml for view %s' % viewid)
-            return xbmcplugin.endOfDirectory(HANDLE)
-        limitcounter = 0
+            xbmcplugin.endOfDirectory(HANDLE, False)
+            return
+        direct_paths = settings('useDirectPaths') == '1'
+        counter = 0
         for item in xml:
             api = API(item)
             listitem = api.create_listitem(
                 append_show_title=append_show_title,
                 append_sxxexx=append_sxxexx)
-            url = api.path()
+            if api.resume_point():
+                listitem.setProperty('resumetime', str(api.resume_point()))
+            path = api.path(force_first_media=False, direct_paths=direct_paths)
             xbmcplugin.addDirectoryItem(
                 handle=HANDLE,
-                url=url,
+                url=path,
                 listitem=listitem)
-            limitcounter += 1
-            if limitcounter == limit:
+            counter += 1
+            if counter == limit:
                 break
-        return xbmcplugin.endOfDirectory(
+        xbmcplugin.endOfDirectory(
             handle=HANDLE,
             cacheToDisc=settings('enableTextureCache') == 'true')
+        return
 
     # if the addon is called with nextup parameter,
     # we return the nextepisodes list of the given tagname
@@ -661,8 +666,9 @@ def watchlater():
 
     log.info('Displaying watch later plex.tv items')
     xbmcplugin.setContent(HANDLE, 'movies')
+    direct_paths = settings('useDirectPaths') == '1'
     for item in xml:
-        __build_item(item)
+        __build_item(item, direct_paths)
 
     xbmcplugin.endOfDirectory(
         handle=HANDLE,
@@ -715,12 +721,13 @@ def browse_plex(key=None, plex_section_id=None):
     artists = False
     albums = False
     musicvideos = False
+    direct_paths = settings('useDirectPaths') == '1'
     for item in xml:
         if item.tag == 'Directory':
             __build_folder(item, plex_section_id=plex_section_id)
         else:
             typus = item.attrib.get('type')
-            __build_item(item)
+            __build_item(item, direct_paths)
             if typus == v.PLEX_TYPE_PHOTO:
                 photos = True
             elif typus == v.PLEX_TYPE_MOVIE:
@@ -803,7 +810,7 @@ def __build_folder(xml_element, plex_section_id=None):
                                 listitem=listitem)
 
 
-def __build_item(xml_element):
+def __build_item(xml_element, direct_paths):
     api = API(xml_element)
     listitem = api.create_listitem()
     resume = api.resume_point()
@@ -820,7 +827,7 @@ def __build_item(xml_element):
     elif api.plex_type() == v.PLEX_TYPE_PHOTO:
         url = api.get_picture_path()
     else:
-        url = api.path()
+        url = api.path(direct_paths=direct_paths)
     if api.resume_point():
         listitem.setProperty('resumetime', str(api.resume_point()))
     xbmcplugin.addDirectoryItem(handle=HANDLE,
