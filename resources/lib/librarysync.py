@@ -423,9 +423,6 @@ class LibrarySync(Thread):
         """
         Compare the views to Plex
         """
-        self.views = []
-        vnodes = self.vnodes
-
         # Get views
         sections = PF.get_plex_sections()
         try:
@@ -436,6 +433,8 @@ class LibrarySync(Thread):
         if state.DIRECT_PATHS is True and state.ENABLE_MUSIC is True:
             # Will reboot Kodi is new library detected
             music.excludefromscan_music_folders(xml=sections)
+        self.views = []
+        vnodes = self.vnodes
 
         self.nodes = {
             v.PLEX_TYPE_MOVIE: [],
@@ -1511,10 +1510,6 @@ class LibrarySync(Thread):
         LOG.info("Db version: %s", settings('dbCreatedWithVersion'))
 
         LOG.info('Refreshing video nodes and playlists now')
-        # Completely refresh Kodi playlists and video nodes
-        utils.delete_playlists()
-        utils.delete_nodes()
-        self.maintain_views()
         # Setup the paths for addon-paths (even when using direct paths)
         with kodidb.GetKodiDB('video') as kodi_db:
             kodi_db.setup_path_table()
@@ -1539,7 +1534,12 @@ class LibrarySync(Thread):
                 last_time_sync = utils.unix_timestamp()
                 LOG.info('Initial start-up full sync starting')
                 xbmc.executebuiltin('InhibitIdleShutdown(true)')
-                if self.full_sync():
+                # Completely refresh Kodi playlists and video nodes
+                utils.delete_playlists()
+                utils.delete_nodes()
+                if not self.maintain_views():
+                    LOG.error('Initial maintain_views not successful')
+                elif self.full_sync():
                     LOG.info('Initial start-up full sync successful')
                     settings('SyncInstallRunDone', value='true')
                     self.install_sync_done = True
@@ -1588,7 +1588,12 @@ class LibrarySync(Thread):
                 if state.SUSPEND_SYNC:
                     LOG.warning('Forcing startup sync even if Kodi is playing')
                     state.SUSPEND_SYNC = False
-                if self.full_sync():
+                # Completely refresh Kodi playlists and video nodes
+                utils.delete_playlists()
+                utils.delete_nodes()
+                if not self.maintain_views():
+                    LOG.info('Initial maintain_views on startup unsuccessful')
+                elif self.full_sync():
                     initial_sync_done = True
                     last_sync = utils.unix_timestamp()
                     LOG.info('Done initial sync on Kodi startup')
