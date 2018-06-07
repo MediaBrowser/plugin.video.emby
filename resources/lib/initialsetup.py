@@ -128,10 +128,9 @@ def _write_pms_settings(url, token):
         return
     for entry in xml:
         if entry.attrib.get('id', '') == 'allowMediaDeletion':
-            settings('plex_allows_mediaDeletion',
-                     value=entry.attrib.get('value', 'true'))
-            window('plex_allows_mediaDeletion',
-                   value=entry.attrib.get('value', 'true'))
+            value = 'true' if entry.get('value', '1') == '1' else 'false'
+            settings('plex_allows_mediaDeletion', value=value)
+            window('plex_allows_mediaDeletion', value=value)
 
 
 class InitialSetup(object):
