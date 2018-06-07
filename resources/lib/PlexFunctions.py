@@ -330,7 +330,7 @@ def _pms_list_from_plex_tv(token):
         xml.attrib
     except AttributeError:
         LOG.error('Could not get list of PMS from plex.tv')
-        return
+        return []
 
     from Queue import Queue
     queue = Queue()
