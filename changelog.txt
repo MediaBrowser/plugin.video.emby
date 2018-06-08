@@ -1,3 +1,17 @@
+version 2.1.0:
+Finally a new update for the stable version. You will need to reconnect to your PMS and reset the Kodi database once. Highlights of v2 include:
+- Support for Plex extras
+- Huge improvements to Plex Companion
+- Fixes to Alexa voice control
+- Kodi 18 Leia Alpha 1 support
+- Improvements to playback start-up
+- Improvements to the syncing mechanism, which should get rid of a ton of small bugs
+- Fixes to widgets and resuming playback
+- Use of plex.direct paths instead of local IP addresses to ensure the SSL certificates shown by the PMS are deemed valid
+- Fix Kodi screensaver
+- Faster PKC startup
+- And tons of other stuff...
+
 version 2.0.30 (beta only):
 - Fix resume for On Deck widget for direct paths
 - Fix DB reset on Startup if PMS connection fails
