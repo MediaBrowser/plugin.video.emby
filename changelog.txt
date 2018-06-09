@@ -1,3 +1,6 @@
+version 2.1.1 (beta only):
+- Fix Library Sync crash on Android
+
 version 2.1.0:
 Finally a new update for the stable version. You will need to reconnect to your PMS and reset the Kodi database once. Highlights of v2 include:
 - Support for Plex extras
