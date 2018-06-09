@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 ###############################################################################
 from logging import getLogger
-from shutil import copytree
+from distutils import dir_util
 import xml.etree.ElementTree as etree
 from os import makedirs
 
@@ -77,11 +77,10 @@ class VideoNodes(object):
 
         # Verify the video directory
         if not exists_dir(path):
-            copytree(
-                src=try_decode(xbmc.translatePath(
-                    "special://xbmc/system/library/video")),
-                dst=try_decode(xbmc.translatePath(
-                    "special://profile/library/video")))
+            dir_util.copy_tree(
+                src=xbmc.translatePath("special://xbmc/system/library/video"),
+                dst=xbmc.translatePath("special://profile/library/video"),
+                preserve_mode=0)  # do not copy permission bits!
 
         # Create the node directory
         if mediatype != "photos":
@@ -394,11 +393,10 @@ class VideoNodes(object):
         # Create the video node directory
         if not exists_dir(nodepath):
             # We need to copy over the default items
-            copytree(
-                src=try_decode(xbmc.translatePath(
-                    "special://xbmc/system/library/video")),
-                dst=try_decode(xbmc.translatePath(
-                    "special://profile/library/video")))
+            dir_util.copy_tree(
+                src=xbmc.translatePath("special://xbmc/system/library/video"),
+                dst=xbmc.translatePath("special://profile/library/video"),
+                preserve_mode=0)  # do not copy permission bits!
 
         labels = {
             'Favorite movies': 30180,
