@@ -78,8 +78,10 @@ class VideoNodes(object):
         # Verify the video directory
         if not exists_dir(path):
             dir_util.copy_tree(
-                src=xbmc.translatePath("special://xbmc/system/library/video"),
-                dst=xbmc.translatePath("special://profile/library/video"),
+                src=try_decode(
+                    xbmc.translatePath("special://xbmc/system/library/video")),
+                dst=try_decode(
+                    xbmc.translatePath("special://profile/library/video")),
                 preserve_mode=0)  # do not copy permission bits!
 
         # Create the node directory
@@ -394,8 +396,10 @@ class VideoNodes(object):
         if not exists_dir(nodepath):
             # We need to copy over the default items
             dir_util.copy_tree(
-                src=xbmc.translatePath("special://xbmc/system/library/video"),
-                dst=xbmc.translatePath("special://profile/library/video"),
+                src=try_decode(
+                    xbmc.translatePath("special://xbmc/system/library/video")),
+                dst=try_decode(
+                    xbmc.translatePath("special://profile/library/video")),
                 preserve_mode=0)  # do not copy permission bits!
 
         labels = {
