@@ -1,4 +1,4 @@
-version 2.1.1 (beta only):
+version 2.1.1:
 - Fix Library Sync crash on Android
 
 version 2.1.0:

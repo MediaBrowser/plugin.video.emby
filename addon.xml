@@ -67,7 +67,7 @@
     <summary lang="ru_RU">Нативная интеграция сервера Plex в Kodi</summary>
     <description lang="ru_RU">Подключите Kodi к своему серверу Plex. Плагин предполагает что вы управляете своими видео с помощью Plex (а не в Kodi). Вы можете потерять текущие базы данных музыки и видео в Kodi (так как плагин напрямую их изменяет). Используйте на свой страх и риск</description>
     <disclaimer lang="ru_RU">Используйте на свой страх и риск</disclaimer>
-    <news>version 2.1.1 (beta only):
+    <news>version 2.1.1:
 - Fix Library Sync crash on Android
 
 version 2.1.0:
