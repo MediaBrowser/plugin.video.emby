@@ -1,3 +1,6 @@
+version 2.2.0 (beta only):
+- Support for syncing Plex playlists to Kodi and vice-versa! (Kodi mixed music and video playlists cannot be supported as Plex does not support them)
+
 version 2.1.1:
 - Fix Library Sync crash on Android
 
