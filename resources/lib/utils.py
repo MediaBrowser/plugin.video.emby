@@ -4,6 +4,7 @@ Various functions and decorators for PKC
 """
 ###############################################################################
 from logging import getLogger
+import os
 from cProfile import Profile
 from pstats import Stats
 from sqlite3 import connect, OperationalError
@@ -13,10 +14,11 @@ from time import localtime, strftime
 from unicodedata import normalize
 import xml.etree.ElementTree as etree
 from functools import wraps, partial
-from os.path import join
-from os import remove, walk, makedirs
 from shutil import rmtree
 from urllib import quote_plus
+import hashlib
+import re
+import unicodedata
 
 import xbmc
 import xbmcaddon
@@ -33,6 +35,10 @@ LOG = getLogger("PLEX." + __name__)
 WINDOW = xbmcgui.Window(10000)
 ADDON = xbmcaddon.Addon(id='plugin.video.plexkodiconnect')
 EPOCH = datetime.utcfromtimestamp(0)
+
+REGEX_PLEX_ID = re.compile(r'''plex_id=(\d+)''')
+REGEX_FILE_NUMBERING = re.compile(r'''_(\d+)\.\w+$''')
+
 
 ###############################################################################
 # Main methods
@@ -110,7 +116,7 @@ def exists_dir(path):
     if v.KODIVERSION >= 17:
         answ = exists(try_encode(path))
     else:
-        dummyfile = join(try_decode(path), 'dummyfile.txt')
+        dummyfile = os.path.join(try_decode(path), 'dummyfile.txt')
         try:
             with open(dummyfile, 'w') as filer:
                 filer.write('text')
@@ -284,6 +290,39 @@ def slugify(text):
     return unicode(normalize('NFKD', text).encode('ascii', 'ignore'))
 
 
+def valid_filename(text):
+    """
+    Return a valid filename after passing it in [unicode].
+    """
+    # Get rid of all whitespace except a normal space
+    text = re.sub(r'(?! )\s', '', text)
+    # ASCII characters 0 to 31 (non-printable, just in case)
+    text = re.sub(u'[\x00-\x1f]', '', text)
+    if v.PLATFORM == 'Windows':
+        # Whitespace at the end of the filename is illegal
+        text = text.strip()
+        # Dot at the end of a filename is illegal
+        text = re.sub(r'\.+$', '', text)
+        # Illegal Windows characters
+        text = re.sub(r'[/\\:*?"<>|\^]', '', text)
+    elif v.PLATFORM == 'MacOSX':
+        # Colon is illegal
+        text = re.sub(r':', '', text)
+        # Files cannot begin with a dot
+        text = re.sub(r'^\.+', '', text)
+    else:
+        # Linux
+        text = re.sub(r'/', '', text)
+    if not os.path.supports_unicode_filenames:
+        text = unicodedata.normalize('NFKD', text)
+        text = text.encode('ascii', 'ignore')
+        text = text.decode('ascii')
+    # Ensure that filename length is at most 255 chars (including 3 chars for
+    # filename extension and 1 dot to separate the extension)
+    text = text[:min(len(text), 251)]
+    return text
+
+
 def escape_html(string):
     """
     Escapes the following:
@@ -409,6 +448,11 @@ def wipe_database():
     LOG.info("Resetting the Plex database.")
     connection = kodi_sql('plex')
     cursor = connection.cursor()
+    # First get the paths to all synced playlists
+    playlist_paths = []
+    cursor.execute('SELECT kodi_path FROM playlists')
+    for entry in cursor.fetchall():
+        playlist_paths.append(entry[0])
     cursor.execute('SELECT tbl_name FROM sqlite_master WHERE type="table"')
     rows = cursor.fetchall()
     for row in rows:
@@ -417,6 +461,13 @@ def wipe_database():
             cursor.execute("DELETE FROM %s" % tablename)
     connection.commit()
     cursor.close()
+
+    # Delete all synced playlists
+    for path in playlist_paths:
+        try:
+            os.remove(path)
+        except (OSError, IOError):
+            pass
 
     LOG.info("Resetting all cached artwork.")
     # Remove all existing textures first
@@ -479,7 +530,7 @@ def reset(ask_user=True):
         addon = xbmcaddon.Addon()
         addondir = try_decode(xbmc.translatePath(addon.getAddonInfo('profile')))
         LOG.info("Deleting: settings.xml")
-        remove("%ssettings.xml" % addondir)
+        os.remove("%ssettings.xml" % addondir)
     reboot_kodi()
 
 
@@ -631,9 +682,9 @@ class XmlKodiSetting(object):
                  top_element=None):
         self.filename = filename
         if path is None:
-            self.path = join(v.KODI_PROFILE, filename)
+            self.path = os.path.join(v.KODI_PROFILE, filename)
         else:
-            self.path = join(path, filename)
+            self.path = os.path.join(path, filename)
         self.force_create = force_create
         self.top_element = top_element
         self.tree = None
@@ -930,13 +981,13 @@ def playlist_xsp(mediatype, tagname, viewid, viewtype="", delete=False):
     # Create the playlist directory
     if not exists(try_encode(path)):
         LOG.info("Creating directory: %s", path)
-        makedirs(path)
+        os.makedirs(path)
 
     # Only add the playlist if it doesn't already exists
     if exists(try_encode(xsppath)):
         LOG.info('Path %s does exist', xsppath)
         if delete:
-            remove(xsppath)
+            os.remove(xsppath)
             LOG.info("Successfully removed playlist: %s.", tagname)
         return
 
@@ -967,21 +1018,39 @@ def delete_playlists():
     Clean up the playlists
     """
     path = try_decode(xbmc.translatePath("special://profile/playlists/video/"))
-    for root, _, files in walk(path):
+    for root, _, files in os.walk(path):
         for file in files:
             if file.startswith('Plex'):
-                remove(join(root, file))
+                os.remove(os.path.join(root, file))
 
 def delete_nodes():
     """
     Clean up video nodes
     """
     path = try_decode(xbmc.translatePath("special://profile/library/video/"))
-    for root, dirs, _ in walk(path):
+    for root, dirs, _ in os.walk(path):
         for directory in dirs:
             if directory.startswith('Plex-'):
-                rmtree(join(root, directory))
+                rmtree(os.path.join(root, directory))
         break
+
+
+def generate_file_md5(path):
+    """
+    Generates the md5 hash value for the file located at path [unicode].
+    The hash includes the path and is thus different for the same file for
+    different filenames.
+    Returns a unique string containing only hexadecimal digits
+    """
+    m = hashlib.md5()
+    m.update(path.encode('utf-8'))
+    with open(path, 'rb') as f:
+        while True:
+            piece = f.read(32768)
+            if not piece:
+                break
+            m.update(piece)
+    return m.hexdigest()
 
 
 ###############################################################################

@@ -27,6 +27,7 @@ from library_sync.process_metadata import ThreadedProcessMetadata
 import library_sync.sync_info as sync_info
 from library_sync.fanart import ThreadedProcessFanart
 import music
+import playlists
 import state
 
 ###############################################################################
@@ -235,6 +236,15 @@ class LibrarySync(Thread):
             plex_db.plexcursor.execute('''
                 CREATE TABLE IF NOT EXISTS version(idVersion TEXT)
             ''')
+            plex_db.plexcursor.execute('''
+                CREATE TABLE IF NOT EXISTS playlists(
+                    plex_id TEXT UNIQUE,
+                    plex_name TEXT,
+                    plex_updatedat TEXT,
+                    kodi_path TEXT,
+                    kodi_type TEXT,
+                    kodi_hash TEXT)
+            ''')
         # Create an index for actors to speed up sync
         utils.create_actor_db_index()
 
@@ -260,6 +270,7 @@ class LibrarySync(Thread):
                  repair)
         if self._full_sync() is False:
             return False
+        playlists.full_sync()
         return True
 
     def _full_sync(self):
@@ -300,7 +311,7 @@ class LibrarySync(Thread):
         # Prevent duplicate for nodes of the same type
         nodes = self.nodes[mediatype]
         # Prevent duplicate for playlists of the same type
-        playlists = self.playlists[mediatype]
+        lists = self.playlists[mediatype]
         sorted_views = self.sorted_views
 
         folderid = folder['key']
@@ -317,10 +328,10 @@ class LibrarySync(Thread):
             LOG.info('Creating viewid: %s in Plex database.', folderid)
             tagid = kodi_db.createTag(foldername)
             # Create playlist for the video library
-            if (foldername not in playlists and
+            if (foldername not in lists and
                     mediatype in (v.PLEX_TYPE_MOVIE, v.PLEX_TYPE_SHOW)):
                 utils.playlist_xsp(mediatype, foldername, folderid, viewtype)
-                playlists.append(foldername)
+                lists.append(foldername)
             # Create the video node
             if (foldername not in nodes and
                     mediatype != v.PLEX_TYPE_ARTIST):
@@ -375,13 +386,13 @@ class LibrarySync(Thread):
                                 viewid=folderid,
                                 delete=True)
                     # Added new playlist
-                    if (foldername not in playlists and mediatype in
+                    if (foldername not in lists and mediatype in
                             (v.PLEX_TYPE_MOVIE, v.PLEX_TYPE_SHOW)):
                         utils.playlist_xsp(mediatype,
                                            foldername,
                                            folderid,
                                            viewtype)
-                        playlists.append(foldername)
+                        lists.append(foldername)
                     # Add new video node
                     if foldername not in nodes and mediatype != "musicvideos":
                         vnodes.viewNode(sorted_views.index(foldername),
@@ -401,13 +412,13 @@ class LibrarySync(Thread):
             else:
                 # Validate the playlist exists or recreate it
                 if mediatype != v.PLEX_TYPE_ARTIST:
-                    if (foldername not in playlists and mediatype in
+                    if (foldername not in lists and mediatype in
                             (v.PLEX_TYPE_MOVIE, v.PLEX_TYPE_SHOW)):
                         utils.playlist_xsp(mediatype,
                                            foldername,
                                            folderid,
                                            viewtype)
-                        playlists.append(foldername)
+                        lists.append(foldername)
                     # Create the video node if not already exists
                     if foldername not in nodes and mediatype != "musicvideos":
                         vnodes.viewNode(sorted_views.index(foldername),
@@ -1184,7 +1195,13 @@ class LibrarySync(Thread):
                 # No need to process extras or trailers
                 continue
             status = int(item['state'])
-            if status == 9:
+            if typus == 'playlist':
+                if not state.SYNC_PLAYLISTS:
+                    continue
+                playlists.process_websocket(plex_id=str(item['itemID']),
+                                            updated_at=str(item['updatedAt']),
+                                            state=status)
+            elif status == 9:
                 # Immediately and always process deletions (as the PMS will
                 # send additional message with other codes)
                 self.items_to_process.append({
@@ -1515,6 +1532,7 @@ class LibrarySync(Thread):
             kodi_db.setup_path_table()
         window('plex_dbScan', clear=True)
         state.DB_SCAN = False
+        playlist_monitor = None
 
         while not self.stopped():
             # In the event the server goes offline
@@ -1550,6 +1568,8 @@ class LibrarySync(Thread):
                     last_sync = utils.unix_timestamp()
                     self.sync_fanart()
                     self.fanartthread.start()
+                    if state.SYNC_PLAYLISTS and playlists.full_sync():
+                        playlist_monitor = playlists.kodi_playlist_monitor()
                 else:
                     LOG.error('Initial start-up full sync unsuccessful')
                 xbmc.executebuiltin('InhibitIdleShutdown(false)')
@@ -1600,6 +1620,8 @@ class LibrarySync(Thread):
                     artwork.Artwork().cache_major_artwork()
                     self.sync_fanart()
                     self.fanartthread.start()
+                    if state.SYNC_PLAYLISTS and playlists.full_sync():
+                        playlist_monitor = playlists.kodi_playlist_monitor()
                 else:
                     LOG.info('Startup sync has not yet been successful')
                 window('plex_dbScan', clear=True)
@@ -1663,7 +1685,9 @@ class LibrarySync(Thread):
                         xbmc.sleep(10)
                         continue
             xbmc.sleep(100)
-
+        # Shut down playlist monitoring
+        if playlist_monitor:
+            playlist_monitor.stop()
         # doUtils could still have a session open due to interrupted sync
         try:
             DU().stopSession()

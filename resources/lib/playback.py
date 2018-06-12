@@ -212,7 +212,7 @@ def _init_existing_kodi_playlist(playqueue, pos):
     if not kodi_items:
         LOG.error('No Kodi items returned')
         raise PL.PlaylistError('No Kodi items returned')
-    item = PL.init_Plex_playlist(playqueue, kodi_item=kodi_items[pos])
+    item = PL.init_plex_playqueue(playqueue, kodi_item=kodi_items[pos])
     item.force_transcode = state.FORCE_TRANSCODE
     # playqueue.py will add the rest - this will likely put the PMS under
     # a LOT of strain if the following Kodi setting is enabled:

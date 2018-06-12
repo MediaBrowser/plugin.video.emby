@@ -3,7 +3,8 @@
 Collection of functions associated with Kodi and Plex playlists and playqueues
 """
 from logging import getLogger
-from urllib import quote
+import os
+import urllib
 from urlparse import parse_qsl, urlsplit
 from re import compile as re_compile
 
@@ -36,11 +37,94 @@ class PlaylistObjectBaseclase(object):
     Base class
     """
     def __init__(self):
-        self.playlistid = None
+        self.id = None
         self.type = None
+
+    def __repr__(self):
+        """
+        Print the playlist, e.g. to log. Returns utf-8 encoded string
+        """
+        answ = u'{\'%s\': {\'id\': %s, ' % (self.__class__.__name__, self.id)
+        # For some reason, can't use dir directly
+        for key in self.__dict__:
+            if key in ('id', 'kodi_pl'):
+                continue
+            if isinstance(getattr(self, key), str):
+                answ += '\'%s\': \'%s\', ' % (key,
+                                              try_decode(getattr(self, key)))
+            elif isinstance(getattr(self, key), unicode):
+                answ += '\'%s\': \'%s\', ' % (key, getattr(self, key))
+            else:
+                # e.g. int
+                answ += '\'%s\': %s, ' % (key, unicode(getattr(self, key)))
+        return try_encode(answ + '}}')
+
+
+class Playlist_Object(PlaylistObjectBaseclase):
+    """
+    To be done for synching Plex playlists to Kodi
+    """
+    kind = 'playList'
+
+    def __init__(self):
+        self.plex_name = None
+        self.plex_updatedat = None
+        self._kodi_path = None
+        self.kodi_filename = None
+        self.kodi_extension = None
+        self.kodi_hash = None
+        PlaylistObjectBaseclase.__init__(self)
+
+    @property
+    def kodi_path(self):
+        return self._kodi_path
+
+    @kodi_path.setter
+    def kodi_path(self, path):
+        file = os.path.basename(path)
+        try:
+            self.kodi_filename, self.kodi_extension = file.split('.', 1)
+        except ValueError:
+            LOG.error('Trying to set invalid path: %s', path)
+            raise PlaylistError('Invalid path: %s' % path)
+        if path.startswith(v.PLAYLIST_PATH_VIDEO):
+            self.type = v.KODI_TYPE_VIDEO_PLAYLIST
+        elif path.startswith(v.PLAYLIST_PATH_MUSIC):
+            self.type = v.KODI_TYPE_AUDIO_PLAYLIST
+        else:
+            LOG.error('Playlist type not supported for %s', path)
+            raise PlaylistError('Playlist type not supported: %s' % path)
+        if not self.plex_name:
+            self.plex_name = self.kodi_filename
+        self._kodi_path = path
+
+
+class Playqueue_Object(PlaylistObjectBaseclase):
+    """
+    PKC object to represent PMS playQueues and Kodi playlist for queueing
+
+    playlistid = None     [int] Kodi playlist id (0, 1, 2)
+    type = None           [str] Kodi type: 'audio', 'video', 'picture'
+    kodi_pl = None        Kodi xbmc.PlayList object
+    items = []            [list] of Playlist_Items
+    id = None             [str] Plex playQueueID, unique Plex identifier
+    version = None        [int] Plex version of the playQueue
+    selectedItemID = None
+                          [str] Plex selectedItemID, playing element in queue
+    selectedItemOffset = None
+                          [str] Offset of the playing element in queue
+    shuffled = 0          [int] 0: not shuffled, 1: ??? 2: ???
+    repeat = 0            [int] 0: not repeated, 1: ??? 2: ???
+
+    If Companion playback is initiated by another user:
+    plex_transient_token = None
+    """
+    kind = 'playQueue'
+
+    def __init__(self):
+        self.playlistid = None
         self.kodi_pl = None
         self.items = []
-        self.id = None
         self.version = None
         self.selectedItemID = None
         self.selectedItemOffset = None
@@ -54,25 +138,7 @@ class PlaylistObjectBaseclase(object):
         self.pkc_edit = False
         # Workaround to avoid endless loops of detecting PL clears
         self._clear_list = []
-
-    def __repr__(self):
-        """
-        Print the playlist, e.g. to log. Returns utf-8 encoded string
-        """
-        answ = u'{\'%s\': {\'id\': %s, ' % (self.__class__.__name__, self.id)
-        # For some reason, can't use dir directly
-        for key in self.__dict__:
-            if key in ('id', 'items', 'kodi_pl'):
-                continue
-            if isinstance(getattr(self, key), str):
-                answ += '\'%s\': \'%s\', ' % (key,
-                                              try_decode(getattr(self, key)))
-            elif isinstance(getattr(self, key), unicode):
-                answ += '\'%s\': \'%s\', ' % (key, getattr(self, key))
-            else:
-                # e.g. int
-                answ += '\'%s\': %s, ' % (key, unicode(getattr(self, key)))
-        return try_encode(answ + '\'items\': %s}}') % self.items
+        PlaylistObjectBaseclase.__init__(self)
 
     def is_pkc_clear(self):
         """
@@ -107,36 +173,6 @@ class PlaylistObjectBaseclase(object):
         self.plex_transient_token = None
         self.old_kodi_pl = []
         LOG.debug('Playlist cleared: %s', self)
-
-
-class Playlist_Object(PlaylistObjectBaseclase):
-    """
-    To be done for synching Plex playlists to Kodi
-    """
-    kind = 'playList'
-
-
-class Playqueue_Object(PlaylistObjectBaseclase):
-    """
-    PKC object to represent PMS playQueues and Kodi playlist for queueing
-
-    playlistid = None     [int] Kodi playlist id (0, 1, 2)
-    type = None           [str] Kodi type: 'audio', 'video', 'picture'
-    kodi_pl = None        Kodi xbmc.PlayList object
-    items = []            [list] of Playlist_Items
-    id = None             [str] Plex playQueueID, unique Plex identifier
-    version = None        [int] Plex version of the playQueue
-    selectedItemID = None
-                          [str] Plex selectedItemID, playing element in queue
-    selectedItemOffset = None
-                          [str] Offset of the playing element in queue
-    shuffled = 0          [int] 0: not shuffled, 1: ??? 2: ???
-    repeat = 0            [int] 0: not repeated, 1: ??? 2: ???
-
-    If Companion playback is initiated by another user:
-    plex_transient_token = None
-    """
-    kind = 'playQueue'
 
 
 class Playlist_Item(object):
@@ -276,7 +312,8 @@ def playlist_item_from_kodi(kodi_item):
         item.plex_id = query.get('plex_id')
         item.plex_type = query.get('itemType')
     if item.plex_id is None and item.file is not None:
-        item.uri = 'library://whatever/item/%s' % quote(item.file, safe='')
+        item.uri = ('library://whatever/item/%s'
+                    % urllib.quote(item.file, safe=''))
     else:
         # TO BE VERIFIED - PLEX DOESN'T LIKE PLAYLIST ADDS IN THIS MANNER
         item.uri = ('library://%s/item/library%%2Fmetadata%%2F%s' %
@@ -305,15 +342,14 @@ def verify_kodi_item(plex_id, kodi_item):
         raise PlaylistError('kodi_item cannot be used for Plex playback')
     LOG.debug('Starting research for Kodi id since we didnt get one: %s',
               kodi_item)
-    kodi_id = kodiid_from_filename(kodi_item['file'], v.KODI_TYPE_MOVIE)
+    kodi_id, _ = kodiid_from_filename(kodi_item['file'], v.KODI_TYPE_MOVIE)
     kodi_item['type'] = v.KODI_TYPE_MOVIE
     if kodi_id is None:
-        kodi_id = kodiid_from_filename(kodi_item['file'],
-                                       v.KODI_TYPE_EPISODE)
+        kodi_id, _ = kodiid_from_filename(kodi_item['file'],
+                                          v.KODI_TYPE_EPISODE)
         kodi_item['type'] = v.KODI_TYPE_EPISODE
     if kodi_id is None:
-        kodi_id = kodiid_from_filename(kodi_item['file'],
-                                       v.KODI_TYPE_SONG)
+        kodi_id, _ = kodiid_from_filename(kodi_item['file'], v.KODI_TYPE_SONG)
         kodi_item['type'] = v.KODI_TYPE_SONG
     kodi_item['id'] = kodi_id
     kodi_item['type'] = None if kodi_id is None else kodi_item['type']
@@ -396,18 +432,13 @@ def get_playlist_details_from_xml(playlist, xml):
 
     Raises PlaylistError if something went wrong.
     """
-    try:
-        playlist.id = xml.attrib['%sID' % playlist.kind]
-        playlist.version = xml.attrib['%sVersion' % playlist.kind]
-        playlist.shuffled = xml.attrib['%sShuffled' % playlist.kind]
-        playlist.selectedItemID = xml.attrib.get(
-            '%sSelectedItemID' % playlist.kind)
-        playlist.selectedItemOffset = xml.attrib.get(
-            '%sSelectedItemOffset' % playlist.kind)
-        LOG.debug('Updated playlist from xml: %s', playlist)
-    except (TypeError, KeyError, AttributeError) as msg:
-        raise PlaylistError('Could not get playlist details from xml: %s',
-                            msg)
+    playlist.id = xml.get('%sID' % playlist.kind)
+    playlist.version = xml.get('%sVersion' % playlist.kind)
+    playlist.shuffled = xml.get('%sShuffled' % playlist.kind)
+    playlist.selectedItemID = xml.get('%sSelectedItemID' % playlist.kind)
+    playlist.selectedItemOffset = xml.get(
+        '%sSelectedItemOffset' % playlist.kind)
+    LOG.debug('Updated playlist from xml: %s', playlist)
 
 
 def update_playlist_from_PMS(playlist, playlist_id=None, xml=None):
@@ -429,14 +460,42 @@ def update_playlist_from_PMS(playlist, playlist_id=None, xml=None):
             playlist.items.append(playlist_item)
 
 
-def init_Plex_playlist(playlist, plex_id=None, kodi_item=None):
+def init_plex_playlist(playlist, plex_id):
+    """
+    Initializes a new playlist on the PMS side. Will set playlist.id and
+    playlist.plex_updatedat. Will raise PlaylistError if something went wrong.
+    """
+    LOG.debug('Initializing the playlist with Plex id %s on the Plex side: %s',
+              plex_id, playlist)
+    params = {
+        'type': v.PLEX_PLAYLIST_TYPE_FROM_KODI[playlist.type],
+        'title': playlist.plex_name,
+        'smart': 0,
+        'uri': ('library://None/item/%s' % (urllib.quote('/library/metadata/%s'
+                                                         % plex_id, safe='')))
+    }
+    xml = DU().downloadUrl(url='{server}/playlists',
+                           action_type='POST',
+                           parameters=params)
+    try:
+        xml[0].attrib
+    except (TypeError, IndexError, AttributeError):
+        LOG.error('Could not initialize playlist on Plex side with plex id %s',
+                  plex_id)
+        raise PlaylistError('Could not initialize Plex playlist %s', plex_id)
+    api = API(xml[0])
+    playlist.id = api.plex_id()
+    playlist.plex_updatedat = api.updated_at()
+
+
+def init_plex_playqueue(playlist, plex_id=None, kodi_item=None):
     """
     Initializes the Plex side without changing the Kodi playlists
-    WILL ALSO UPDATE OUR PLAYLISTS. 
+    WILL ALSO UPDATE OUR PLAYLISTS.
 
     Returns the first PKC playlist item or raises PlaylistError
     """
-    LOG.debug('Initializing the playlist on the Plex side: %s', playlist)
+    LOG.debug('Initializing the playqueue on the Plex side: %s', playlist)
     playlist.clear(kodi=False)
     verify_kodi_item(plex_id, kodi_item)
     try:
@@ -459,7 +518,7 @@ def init_Plex_playlist(playlist, plex_id=None, kodi_item=None):
         raise PlaylistError('Could not init Plex playlist with plex_id %s and '
                             'kodi_item %s' % (plex_id, kodi_item))
     playlist.items.append(item)
-    LOG.debug('Initialized the playlist on the Plex side: %s', playlist)
+    LOG.debug('Initialized the playqueue on the Plex side: %s', playlist)
     return item
 
 
@@ -476,9 +535,9 @@ def add_listitem_to_playlist(playlist, pos, listitem, kodi_id=None,
               '%s', pos, playlist)
     kodi_item = {'id': kodi_id, 'type': kodi_type, 'file': file}
     if playlist.id is None:
-        init_Plex_playlist(playlist, plex_id, kodi_item)
+        init_plex_playqueue(playlist, plex_id, kodi_item)
     else:
-        add_item_to_PMS_playlist(playlist, pos, plex_id, kodi_item)
+        add_item_to_plex_playqueue(playlist, pos, plex_id, kodi_item)
     if kodi_id is None and playlist.items[pos].kodi_id:
         kodi_id = playlist.items[pos].kodi_id
         kodi_type = playlist.items[pos].kodi_type
@@ -505,9 +564,9 @@ def add_item_to_playlist(playlist, pos, kodi_id=None, kodi_type=None,
     LOG.debug('add_item_to_playlist. Playlist before adding: %s', playlist)
     kodi_item = {'id': kodi_id, 'type': kodi_type, 'file': file}
     if playlist.id is None:
-        item = init_Plex_playlist(playlist, plex_id, kodi_item)
+        item = init_plex_playqueue(playlist, plex_id, kodi_item)
     else:
-        item = add_item_to_PMS_playlist(playlist, pos, plex_id, kodi_item)
+        item = add_item_to_plex_playqueue(playlist, pos, plex_id, kodi_item)
     params = {
         'playlistid': playlist.playlistid,
         'position': pos
@@ -523,7 +582,31 @@ def add_item_to_playlist(playlist, pos, kodi_id=None, kodi_type=None,
     return item
 
 
-def add_item_to_PMS_playlist(playlist, pos, plex_id=None, kodi_item=None):
+def add_item_to_plex_playlist(playlist, plex_id):
+    """
+    Adds the item with plex_id to the existing Plex playlist (at the end).
+    Will set playlist.plex_updatedat
+    Raises PlaylistError if that did not work out.
+    """
+    params = {
+        'uri': ('library://None/item/%s' % (urllib.quote('/library/metadata/%s'
+                                                         % plex_id, safe='')))
+    }
+    xml = DU().downloadUrl(url='{server}/playlists/%s/items' % playlist.id,
+                           action_type='PUT',
+                           parameters=params)
+    try:
+        xml[0].attrib
+    except (TypeError, IndexError, AttributeError):
+        LOG.error('Could not initialize playlist on Plex side with plex id %s',
+                  plex_id)
+        raise PlaylistError('Could not item %s to Plex playlist %s',
+                            plex_id, playlist)
+    api = API(xml[0])
+    playlist.plex_updatedat = api.updated_at()
+
+
+def add_item_to_plex_playqueue(playlist, pos, plex_id=None, kodi_item=None):
     """
     Adds a new item to the playlist at position pos [int] only on the Plex
     side of things (e.g. because the user changed the Kodi side)
@@ -629,6 +712,20 @@ def move_playlist_item(playlist, before_pos, after_pos):
     LOG.debug('Done moving for %s', playlist)
 
 
+def get_all_playlists():
+    """
+    Returns an XML with all Plex playlists or None
+    """
+    xml = DU().downloadUrl("{server}/playlists",
+                           headerOptions={'Accept': 'application/xml'})
+    try:
+        xml.attrib
+    except (AttributeError, TypeError):
+        LOG.error('Could not download a list of all playlists')
+        xml = None
+    return xml
+
+
 def get_PMS_playlist(playlist, playlist_id=None):
     """
     Fetches the PMS playlist/playqueue as an XML. Pass in playlist_id if we
@@ -637,12 +734,13 @@ def get_PMS_playlist(playlist, playlist_id=None):
     Returns None if something went wrong
     """
     playlist_id = playlist_id if playlist_id else playlist.id
-    xml = DU().downloadUrl(
-        "{server}/%ss/%s" % (playlist.kind, playlist_id),
-        headerOptions={'Accept': 'application/xml'})
+    if playlist.kind == 'playList':
+        xml = DU().downloadUrl("{server}/playlists/%s/items" % playlist_id)
+    else:
+        xml = DU().downloadUrl("{server}/playqueues/%s" % playlist_id)
     try:
-        xml.attrib['%sID' % playlist.kind]
-    except (AttributeError, KeyError):
+        xml.attrib
+    except AttributeError:
         xml = None
     return xml
 
@@ -768,3 +866,11 @@ def get_plextype_from_xml(xml):
         LOG.error('Could not get plex metadata for plex id %s', plex_id)
         return
     return new_xml[0].attrib.get('type')
+
+
+def delete_playlist_from_pms(playlist):
+    """
+    Deletes the playlist from the PMS
+    """
+    DU().downloadUrl("{server}/%ss/%s" % (playlist.kind.lower(), playlist.id),
+                     action_type="DELETE")

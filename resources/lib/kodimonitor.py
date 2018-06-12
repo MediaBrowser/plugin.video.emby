@@ -51,7 +51,8 @@ STATE_SETTINGS = {
     'enableMusic': 'ENABLE_MUSIC',
     'forceReloadSkinOnPlaybackStop': 'FORCE_RELOAD_SKIN',
     'fetch_pms_item_number': 'FETCH_PMS_ITEM_NUMBER',
-    'imageSyncNotifications': 'IMAGE_SYNC_NOTIFICATIONS'
+    'imageSyncNotifications': 'IMAGE_SYNC_NOTIFICATIONS',
+    'enablePlaylistSync': 'SYNC_PLAYLISTS'
 }
 
 ###############################################################################
@@ -270,7 +271,7 @@ class KodiMonitor(xbmc.Monitor):
         plex_type = None
         # If using direct paths and starting playback from a widget
         if not kodi_id and kodi_type and path:
-            kodi_id = kodiid_from_filename(path, kodi_type)
+            kodi_id, _ = kodiid_from_filename(path, kodi_type)
         if kodi_id:
             with plexdb.Get_Plex_DB() as plex_db:
                 plex_dbitem = plex_db.getItem_byKodiId(kodi_id, kodi_type)
@@ -296,7 +297,7 @@ class KodiMonitor(xbmc.Monitor):
         items.pop(0)
         try:
             for i, item in enumerate(items):
-                PL.add_item_to_PMS_playlist(playqueue, i + 1, kodi_item=item)
+                PL.add_item_to_plex_playqueue(playqueue, i + 1, kodi_item=item)
         except PL.PlaylistError:
             LOG.info('Could not build Plex playlist for: %s', items)
 
@@ -384,7 +385,7 @@ class KodiMonitor(xbmc.Monitor):
                 LOG.debug('No Plex id obtained - aborting playback report')
                 state.PLAYER_STATES[playerid] = copy.deepcopy(state.PLAYSTATE)
                 return
-            item = PL.init_Plex_playlist(playqueue, plex_id=plex_id)
+            item = PL.init_plex_playqueue(playqueue, plex_id=plex_id)
             # Set the Plex container key (e.g. using the Plex playqueue)
             container_key = None
             if info['playlistid'] != -1:
@@ -439,6 +440,13 @@ class SpecialMonitor(Thread):
                 else:
                     # Different context menu is displayed
                     state.RESUME_PLAYBACK = False
+            if xbmc.getCondVisibility('Window.IsVisible(MyVideoNav.xml)'):
+                path = xbmc.getInfoLabel('container.folderpath')
+                if (isinstance(path, str) and
+                        path.startswith('special://profile/playlists')):
+                    pass
+                    # TODO: start polling PMS for playlist changes
+                    # Optionally: poll PMS continuously with custom intervall
             xbmc.sleep(200)
         LOG.info("#====---- Special Monitor Stopped ----====#")
 

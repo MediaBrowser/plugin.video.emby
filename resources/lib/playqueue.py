@@ -187,11 +187,11 @@ class PlayqueueMonitor(Thread):
                           i, new_item)
                 try:
                     if playqueue.id is None:
-                        PL.init_Plex_playlist(playqueue, kodi_item=new_item)
+                        PL.init_plex_playqueue(playqueue, kodi_item=new_item)
                     else:
-                        PL.add_item_to_PMS_playlist(playqueue,
-                                                    i,
-                                                    kodi_item=new_item)
+                        PL.add_item_to_plex_playqueue(playqueue,
+                                                      i,
+                                                      kodi_item=new_item)
                 except PL.PlaylistError:
                     # Could not add the element
                     pass

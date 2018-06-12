@@ -57,6 +57,7 @@
 	<category label="30506"><!-- Sync Options -->
 		<setting type="lsep" label="30537" /><!-- Restart if you make changes -->
 		<setting type="sep" />
+        <setting id="enablePlaylistSync" type="bool" label="30020" default="true" visible="true"/><!-- Sync Plex playlists -->
         <setting id="fullSyncInterval" type="number" label="39053" default="60" option="int" />
         <setting id="dbSyncScreensaver" type="bool" label="39062" default="false" /><!--Sync when screensaver is deactivated-->
         <setting id="dbSyncIndicator" label="30507" type="bool" default="true" /><!-- show syncing progress -->

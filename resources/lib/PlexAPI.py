@@ -85,6 +85,19 @@ class API(object):
         """
         return self.item.get('type')
 
+    def playlist_type(self):
+        """
+        Returns the playlist type ('video', 'audio') or None
+        """
+        return self.item.get('playlistType')
+
+    def updated_at(self):
+        """
+        Returns the last time this item was updated as unicode, e.g.
+        '1524739868', or None
+        """
+        return self.item.get('updatedAt')
+
     def checksum(self):
         """
         Returns a string, not int.
@@ -439,6 +452,12 @@ class API(object):
             provider = None
         return provider
 
+    def title(self):
+        """
+        Returns the title of the element as unicode or 'Missing Title Name'
+        """
+        return self.item.get('title', 'Missing Title Name')
+
     def titles(self):
         """
         Returns an item's name/title or "Missing Title Name".
@@ -491,6 +510,16 @@ class API(object):
         except (KeyError, ValueError):
             resume = 0.0
         return resume * v.PLEX_TO_KODI_TIMEFACTOR
+
+    def runtime(self):
+        """
+        Returns the total duration of the element as int. 0 if not found
+        """
+        try:
+            runtime = float(self.item.attrib['duration'])
+        except (KeyError, ValueError):
+            runtime = 0.0
+        return int(runtime * v.PLEX_TO_KODI_TIMEFACTOR)
 
     def resume_runtime(self):
         """
