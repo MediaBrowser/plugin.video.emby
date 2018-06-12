@@ -456,7 +456,7 @@ class API(object):
         """
         Returns the title of the element as unicode or 'Missing Title Name'
         """
-        return self.item.get('title', 'Missing Title Name')
+        return try_decode(self.item.get('title', 'Missing Title Name'))
 
     def titles(self):
         """
