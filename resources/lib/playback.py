@@ -60,21 +60,36 @@ def playback_triage(plex_id=None, plex_type=None, path=None, resolve=True):
         dialog('notification', lang(29999), lang(30017))
         _ensure_resolve(abort=True)
         return
-    if state.PLAYLIST_PLAY:
-        LOG.debug('Kodi playlist play detected')
-        state.PLAYLIST_PLAY = False
-        _playlist_playback(plex_id, plex_type)
-        return
     playqueue = PQ.get_playqueue_from_type(
         v.KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[plex_type])
     try:
         pos = js.get_position(playqueue.playlistid)
     except KeyError:
-        LOG.error('No position returned from Kodi player!')
-        # "Play error"
-        dialog('notification', lang(29999), lang(30128), icon='{error}')
-        _ensure_resolve(abort=True)
-        return
+        # Kodi bug - Playlist plays (not Playqueue) will ALWAYS be audio for
+        # add-on paths
+        LOG.info('No position returned from Kodi player! Assuming playlist')
+        playqueue = PQ.get_playqueue_from_type(v.KODI_PLAYLIST_TYPE_AUDIO)
+        try:
+            pos = js.get_position(playqueue.playlistid)
+        except KeyError:
+            LOG.error('Still no position - abort')
+            # "Play error"
+            dialog('notification', lang(29999), lang(30128), icon='{error}')
+            _ensure_resolve(abort=True)
+            return
+    # HACK to detect playback of playlists for add-on paths
+    items = js.playlist_get_items(playqueue.playlistid)
+    try:
+        item = items[pos]
+    except IndexError:
+        LOG.info('Could not apply playlist hack! Probably Widget playback')
+    else:
+        if ('id' not in item and
+                item.get('type') == 'unknown' and item.get('title') == ''):
+            LOG.info('Kodi playlist play detected')
+            _playlist_playback(plex_id, plex_type)
+            return
+
     # Can return -1 (as in "no playlist")
     pos = pos if pos != -1 else 0
     LOG.debug('playQueue position %s for %s', pos, playqueue)
