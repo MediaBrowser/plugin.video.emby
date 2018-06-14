@@ -307,8 +307,13 @@ class SubscriptionMgr(object):
         for player in players.values():
             info = state.PLAYER_STATES[player['playerid']]
             playqueue = PQ.PLAYQUEUES[player['playerid']]
+            if playqueue.kodi_playlist_playback:
+                # Bug: Kodi will tell us the PLAYLIST instead of playqueue pos
+                position = 0
+            else:
+                position = info['position']
             try:
-                item = playqueue.items[info['position']]
+                item = playqueue.items[position]
             except IndexError:
                 # E.g. for direct path playback for single item
                 return False
