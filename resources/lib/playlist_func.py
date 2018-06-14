@@ -175,6 +175,7 @@ class Playqueue_Object(PlaylistObjectBaseclase):
         self.repeat = 0
         self.plex_transient_token = None
         self.old_kodi_pl = []
+        self.kodi_playlist_playback = False
         LOG.debug('Playlist cleared: %s', self)
 
 
