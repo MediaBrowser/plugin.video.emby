@@ -138,6 +138,9 @@ class Playqueue_Object(PlaylistObjectBaseclase):
         self.pkc_edit = False
         # Workaround to avoid endless loops of detecting PL clears
         self._clear_list = []
+        # To keep track if Kodi playback was initiated from a Kodi playlist
+        # There are a couple of pitfalls, unfortunately...
+        self.kodi_playlist_playback = False
         PlaylistObjectBaseclase.__init__(self)
 
     def is_pkc_clear(self):

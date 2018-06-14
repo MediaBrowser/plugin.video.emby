@@ -346,8 +346,14 @@ class KodiMonitor(xbmc.Monitor):
                 return
         playqueue = PQ.PLAYQUEUES[playerid]
         info = js.get_player_props(playerid)
-        pos = info['position'] if info['position'] != -1 else 0
-        LOG.debug('Detected position %s for %s', pos, playqueue)
+        if playqueue.kodi_playlist_playback:
+            # Kodi will tell us the wrong position - of the playlist, not the
+            # playqueue, when user starts playing from a playlist :-(
+            pos = 0
+            LOG.debug('Detected playback from a Kodi playlist')
+        else:
+            pos = info['position'] if info['position'] != -1 else 0
+            LOG.debug('Detected position %s for %s', pos, playqueue)
         status = state.PLAYER_STATES[playerid]
         kodi_id = data.get('id')
         kodi_type = data.get('type')

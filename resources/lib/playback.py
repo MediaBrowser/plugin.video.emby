@@ -66,7 +66,7 @@ def playback_triage(plex_id=None, plex_type=None, path=None, resolve=True):
         pos = js.get_position(playqueue.playlistid)
     except KeyError:
         LOG.info('No position returned from Kodi player! Assuming playlist')
-        _playlist_playback(plex_id, plex_type, playqueue)
+        _playlist_playback(plex_id, plex_type)
     else:
         # Can return -1 (as in "no playlist")
         pos = pos if pos != -1 else 0
@@ -85,19 +85,25 @@ def playback_triage(plex_id=None, plex_type=None, path=None, resolve=True):
             _conclude_playback(playqueue, pos)
 
 
-def _playlist_playback(plex_id, plex_type, playqueue):
+def _playlist_playback(plex_id, plex_type):
     """
     Really annoying Kodi behavior: Kodi will throw the ENTIRE playlist some-
     where, causing Playlist.onAdd to fire for each item like this:
     Playlist.OnAdd Data: {u'item': {u'type': u'episode', u'id': 164},
                           u'playlistid': 0,
                           u'position': 2}
-    This does NOT work for Addon paths, type and id will be unknown
+    This does NOT work for Addon paths, type and id will be unknown:
+        {u'item': {u'type': u'unknown'},
+         u'playlistid': 0,
+         u'position': 7}
     At the end, only the element being played actually shows up in the Kodi
     playqueue.
     Hence: if we fail the first addon paths call, Kodi will start playback
     for the next item in line :-)
+    (by the way: trying to get active Kodi player id will return [])
     """
+    # Kodi bug: playqueue will ALWAYS be audio playqueue
+    playqueue = PQ.get_playqueue_from_type(v.KODI_PLAYLIST_TYPE_AUDIO)
     playqueue.clear(kodi=False)
     xml = GetPlexMetadata(plex_id)
     try:
@@ -109,8 +115,8 @@ def _playlist_playback(plex_id, plex_type, playqueue):
         _ensure_resolve(abort=True)
         return
     playlist_item = PL.playlist_item_from_xml(xml[0])
-    playlist_item.part = 0
     playqueue.items.append(playlist_item)
+    playqueue.kodi_playlist_playback = True
     _conclude_playback(playqueue, pos=0)
 
 
