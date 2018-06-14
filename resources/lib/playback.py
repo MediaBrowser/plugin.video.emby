@@ -65,23 +65,53 @@ def playback_triage(plex_id=None, plex_type=None, path=None, resolve=True):
     try:
         pos = js.get_position(playqueue.playlistid)
     except KeyError:
-        LOG.warning('No position returned from Kodi player! Assuming 0')
-        pos = 0
-    # Can return -1 (as in "no playlist")
-    pos = pos if pos != -1 else 0
-    LOG.debug('playQueue position %s for %s', pos, playqueue)
-    # Have we already initiated playback?
+        LOG.info('No position returned from Kodi player! Assuming playlist')
+        _playlist_playback(plex_id, plex_type, playqueue)
+    else:
+        # Can return -1 (as in "no playlist")
+        pos = pos if pos != -1 else 0
+        LOG.debug('playQueue position %s for %s', pos, playqueue)
+        # Have we already initiated playback?
+        try:
+            item = playqueue.items[pos]
+        except IndexError:
+            initiate = True
+        else:
+            initiate = True if item.plex_id != plex_id else False
+        if initiate:
+            _playback_init(plex_id, plex_type, playqueue, pos)
+        else:
+            # kick off playback on second pass
+            _conclude_playback(playqueue, pos)
+
+
+def _playlist_playback(plex_id, plex_type, playqueue):
+    """
+    Really annoying Kodi behavior: Kodi will throw the ENTIRE playlist some-
+    where, causing Playlist.onAdd to fire for each item like this:
+    Playlist.OnAdd Data: {u'item': {u'type': u'episode', u'id': 164},
+                          u'playlistid': 0,
+                          u'position': 2}
+    This does NOT work for Addon paths, type and id will be unknown
+    At the end, only the element being played actually shows up in the Kodi
+    playqueue.
+    Hence: if we fail the first addon paths call, Kodi will start playback
+    for the next item in line :-)
+    """
+    playqueue.clear(kodi=False)
+    xml = GetPlexMetadata(plex_id)
     try:
-        item = playqueue.items[pos]
-    except IndexError:
-        initiate = True
-    else:
-        initiate = True if item.plex_id != plex_id else False
-    if initiate:
-        _playback_init(plex_id, plex_type, playqueue, pos)
-    else:
-        # kick off playback on second pass
-        _conclude_playback(playqueue, pos)
+        xml[0].attrib
+    except (IndexError, TypeError, AttributeError):
+        LOG.error('Could not get a PMS xml for plex id %s', plex_id)
+        # "Play error"
+        dialog('notification', lang(29999), lang(30128), icon='{error}')
+        _ensure_resolve(abort=True)
+        return
+    playlist_item = PL.playlist_item_from_xml(xml[0])
+    playlist_item.part = 0
+    playqueue.items.append(playlist_item)
+    _conclude_playback(playqueue, pos=0)
 
 
 def _playback_init(plex_id, plex_type, playqueue, pos):
