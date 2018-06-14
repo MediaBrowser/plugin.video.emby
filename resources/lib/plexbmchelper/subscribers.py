@@ -138,6 +138,18 @@ class SubscriptionMgr(object):
                 return server
         return {}
 
+    @staticmethod
+    def _get_correct_position(info, playqueue):
+        """
+        Kodi tells us the PLAYLIST position, not PLAYQUEUE position, if the
+        user initiated playback of a playlist
+        """
+        if playqueue.kodi_playlist_playback:
+            position = 0
+        else:
+            position = info['position']
+        return position
+
     @LOCKER.lockthis
     def msg(self, players):
         """
@@ -181,9 +193,9 @@ class SubscriptionMgr(object):
         playerid = player['playerid']
         info = state.PLAYER_STATES[playerid]
         playqueue = PQ.PLAYQUEUES[playerid]
-        pos = info['position']
+        position = self._get_correct_position(info, playqueue)
         try:
-            item = playqueue.items[pos]
+            item = playqueue.items[position]
         except IndexError:
             # E.g. for direct path playback for single item
             return {
@@ -236,7 +248,7 @@ class SubscriptionMgr(object):
             answ['playQueueID'] = playqueue.id
             answ['playQueueVersion'] = playqueue.version
             answ['playQueueItemID'] = item.id
-        if playqueue.items[pos].guid:
+        if playqueue.items[position].guid:
             answ['guid'] = item.guid
         # Temp. token set?
         if state.PLEX_TRANSIENT_TOKEN:
@@ -286,7 +298,8 @@ class SubscriptionMgr(object):
         """
         playqueue = PQ.PLAYQUEUES[playerid]
         info = state.PLAYER_STATES[playerid]
-        return playqueue.items[info['position']].plex_stream_index(
+        position = self._get_correct_position(info, playqueue)
+        return playqueue.items[position].plex_stream_index(
             info[STREAM_DETAILS[stream_type]]['index'], stream_type)
 
     @LOCKER.lockthis
@@ -307,11 +320,9 @@ class SubscriptionMgr(object):
         for player in players.values():
             info = state.PLAYER_STATES[player['playerid']]
             playqueue = PQ.PLAYQUEUES[player['playerid']]
-            if playqueue.kodi_playlist_playback:
-                # Bug: Kodi will tell us the PLAYLIST instead of playqueue pos
-                position = 0
-            else:
-                position = info['position']
+            LOG.debug('playqueue is: %s', playqueue)
+            LOG.debug('info is: %s', info)
+            position = self._get_correct_position(info, playqueue)
             try:
                 item = playqueue.items[position]
             except IndexError:
@@ -349,6 +360,8 @@ class SubscriptionMgr(object):
 
     def _notify_server(self, players):
         for typus, player in players.iteritems():
+            LOG.debug('player is %s', player)
+            LOG.debug('typus is %s', typus)
             self._send_pms_notification(
                 player['playerid'], self._get_pms_params(player['playerid']))
             try:
@@ -363,8 +376,9 @@ class SubscriptionMgr(object):
     def _get_pms_params(self, playerid):
         info = state.PLAYER_STATES[playerid]
         playqueue = PQ.PLAYQUEUES[playerid]
+        position = self._get_correct_position(info, playqueue)
         try:
-            item = playqueue.items[info['position']]
+            item = playqueue.items[position]
         except IndexError:
             return self.last_params
         status = 'paused' if int(info['speed']) == 0 else 'playing'
