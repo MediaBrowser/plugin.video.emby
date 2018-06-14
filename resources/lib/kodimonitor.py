@@ -216,6 +216,18 @@ class KodiMonitor(xbmc.Monitor):
         }
         Will NOT be called if playback initiated by Kodi widgets
         """
+        if data['item'] == {'type': 'unknown'}:
+            # Kodi will return something like this if user started a PLAYLIST
+            # from add-on paths:
+            #   {u'item': {u'type': u'unknown'},
+            #    u'playlistid': 0,
+            #    u'position': 4}
+            if not state.PLAYLIST_PLAY:
+                LOG.debug('Detected playback from a playlist')
+                state.PLAYLIST_PLAY = True
+            return
+        else:
+            state.PLAYLIST_PLAY = False
         if 'id' not in data['item']:
             return
         old = state.OLD_PLAYER_STATES[data['playlistid']]

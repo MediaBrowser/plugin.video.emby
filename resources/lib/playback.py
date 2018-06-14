@@ -60,29 +60,36 @@ def playback_triage(plex_id=None, plex_type=None, path=None, resolve=True):
         dialog('notification', lang(29999), lang(30017))
         _ensure_resolve(abort=True)
         return
+    if state.PLAYLIST_PLAY:
+        LOG.debug('Kodi playlist play detected')
+        state.PLAYLIST_PLAY = False
+        _playlist_playback(plex_id, plex_type)
+        return
     playqueue = PQ.get_playqueue_from_type(
         v.KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[plex_type])
     try:
         pos = js.get_position(playqueue.playlistid)
     except KeyError:
-        LOG.info('No position returned from Kodi player! Assuming playlist')
-        _playlist_playback(plex_id, plex_type)
+        LOG.error('No position returned from Kodi player!')
+        # "Play error"
+        dialog('notification', lang(29999), lang(30128), icon='{error}')
+        _ensure_resolve(abort=True)
+        return
+    # Can return -1 (as in "no playlist")
+    pos = pos if pos != -1 else 0
+    LOG.debug('playQueue position %s for %s', pos, playqueue)
+    # Have we already initiated playback?
+    try:
+        item = playqueue.items[pos]
+    except IndexError:
+        initiate = True
     else:
-        # Can return -1 (as in "no playlist")
-        pos = pos if pos != -1 else 0
-        LOG.debug('playQueue position %s for %s', pos, playqueue)
-        # Have we already initiated playback?
-        try:
-            item = playqueue.items[pos]
-        except IndexError:
-            initiate = True
-        else:
-            initiate = True if item.plex_id != plex_id else False
-        if initiate:
-            _playback_init(plex_id, plex_type, playqueue, pos)
-        else:
-            # kick off playback on second pass
-            _conclude_playback(playqueue, pos)
+        initiate = True if item.plex_id != plex_id else False
+    if initiate:
+        _playback_init(plex_id, plex_type, playqueue, pos)
+    else:
+        # kick off playback on second pass
+        _conclude_playback(playqueue, pos)
 
 
 def _playlist_playback(plex_id, plex_type):
@@ -102,9 +109,6 @@ def _playlist_playback(plex_id, plex_type):
     for the next item in line :-)
     (by the way: trying to get active Kodi player id will return [])
     """
-    # Kodi bug: playqueue will ALWAYS be audio playqueue
-    playqueue = PQ.get_playqueue_from_type(v.KODI_PLAYLIST_TYPE_AUDIO)
-    playqueue.clear(kodi=False)
     xml = GetPlexMetadata(plex_id)
     try:
         xml[0].attrib
@@ -114,9 +118,15 @@ def _playlist_playback(plex_id, plex_type):
         dialog('notification', lang(29999), lang(30128), icon='{error}')
         _ensure_resolve(abort=True)
         return
+    # Kodi bug: playqueue will ALWAYS be audio playqueue UNTIL playback
+    # has actually started. Need to tell Kodimonitor
+    playqueue = PQ.get_playqueue_from_type(v.KODI_PLAYLIST_TYPE_AUDIO)
+    playqueue.clear(kodi=False)
+    # Set the flag for the potentially WRONG audio playlist so Kodimonitor
+    # can pick up on it
+    playqueue.kodi_playlist_playback = True
     playlist_item = PL.playlist_item_from_xml(xml[0])
     playqueue.items.append(playlist_item)
-    playqueue.kodi_playlist_playback = True
     _conclude_playback(playqueue, pos=0)
 
 

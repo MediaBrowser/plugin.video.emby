@@ -160,6 +160,8 @@ RESUME_PLAYBACK = False
 CONTEXT_MENU_PLAY = False
 # Set by context menu - shall we force-transcode the next playing item?
 FORCE_TRANSCODE = False
+# Flag if user started playback of a PLAYLIST (not playqueue) for add-on paths
+PLAYLIST_PLAY = False
 
 # Kodi webserver details
 WEBSERVER_PORT = 8080
