@@ -317,7 +317,7 @@ def playlist_item_from_kodi(kodi_item):
         item.plex_type = query.get('itemType')
     if item.plex_id is None and item.file is not None:
         item.uri = ('library://whatever/item/%s'
-                    % urllib.quote(item.file, safe=''))
+                    % urllib.quote(try_encode(item.file), safe=''))
     else:
         # TO BE VERIFIED - PLEX DOESN'T LIKE PLAYLIST ADDS IN THIS MANNER
         item.uri = ('library://%s/item/library%%2Fmetadata%%2F%s' %
