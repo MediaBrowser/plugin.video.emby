@@ -360,9 +360,10 @@ def in_progress_episodes(tagname, limit):
                 'field': "inprogress",
                 'value': ""},
             'properties': ["title", "playcount", "season", "episode",
-                "showtitle", "plot", "file", "rating", "resume",
-                "tvshowid", "art", "cast", "streamdetails", "firstaired",
-                "runtime", "writer", "dateadded", "lastplayed"]
+                           "showtitle", "plot", "file", "rating", "resume",
+                           "tvshowid", "art", "cast", "streamdetails",
+                           "firstaired", "runtime", "writer", "dateadded",
+                           "lastplayed"]
         }
         for episode in js.get_episodes(params):
             xbmcplugin.addDirectoryItem(handle=HANDLE,
@@ -373,9 +374,11 @@ def in_progress_episodes(tagname, limit):
             break
     xbmcplugin.endOfDirectory(handle=HANDLE)
 
-##### GET RECENT EPISODES FOR TAGNAME #####    
-# def getRecentEpisodes(tagname, limit):
-def getRecentEpisodes(viewid, mediatype, tagname, limit):
+
+def recent_episodes(viewid, mediatype, tagname, limit):
+    """
+    List the recently added episodes for tagname
+    """
     count = 0
     # if the addon is called with recentepisodes parameter,
     # we return the recentepisodes list of the given tagname

@@ -73,10 +73,10 @@ class Main():
                                  int(params.get('limit')))
 
         elif mode == 'recentepisodes':
-            entrypoint.getRecentEpisodes(itemid,
-                                         params.get('type'),
-                                         params.get('tagname'),
-                                         int(params.get('limit')))
+            entrypoint.recent_episodes(itemid,
+                                       params.get('type'),
+                                       params.get('tagname'),
+                                       int(params.get('limit')))
 
         elif mode == 'nextup':
             entrypoint.next_up_episodes(params['tagname'],
