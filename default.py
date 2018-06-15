@@ -121,7 +121,7 @@ class Main():
             passwords_xml()
 
         elif mode == 'switchuser':
-            entrypoint.switchPlexUser()
+            entrypoint.switch_plex_user()
 
         elif mode in ('manualsync', 'repair'):
             if window('plex_online') != 'true':

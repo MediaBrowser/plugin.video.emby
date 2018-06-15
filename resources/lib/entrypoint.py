@@ -180,7 +180,7 @@ def show_main_menu(content_type=None):
     xbmcplugin.endOfDirectory(HANDLE)
 
 
-def switchPlexUser():
+def switch_plex_user():
     """
     Signs out currently logged in user (if applicable). Triggers sign-in of a
     new user
@@ -192,7 +192,6 @@ def switchPlexUser():
     LOG.info("Plex home user switch requested")
     if not __LogOut():
         return
-
     # First remove playlists of old user
     from utils import delete_playlists, delete_nodes
     delete_playlists()
