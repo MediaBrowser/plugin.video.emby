@@ -869,19 +869,19 @@ def extras(plex_id):
     xbmcplugin.endOfDirectory(HANDLE)
 
 
-def enterPMS():
+def create_new_pms():
     """
     Opens dialogs for the user the plug in the PMS details
     """
     # "Enter your Plex Media Server's IP or URL. Examples are:"
     dialog('ok', lang(29999), lang(39215), '192.168.1.2', 'plex.myServer.org')
-    ip = dialog('input', "Enter PMS IP or URL")
-    if ip == '':
+    address = dialog('input', "Enter PMS IP or URL")
+    if address == '':
         return
     port = dialog('input', "Enter PMS port", '32400', type='{numeric}')
     if port == '':
         return
-    url = '%s:%s' % (ip, port)
+    url = '%s:%s' % (address, port)
     # "Does your Plex Media Server support SSL connections?
     # (https instead of http)"
     https = dialog('yesno', lang(29999), lang(39217))
@@ -890,9 +890,8 @@ def enterPMS():
     else:
         url = 'http://%s' % url
     https = 'true' if https else 'false'
-
-    machineIdentifier = GetMachineIdentifier(url)
-    if machineIdentifier is None:
+    machine_identifier = GetMachineIdentifier(url)
+    if machine_identifier is None:
         # "Error contacting url
         # Abort (Yes) or save address anyway (No)"
         if dialog('yesno',
@@ -902,11 +901,11 @@ def enterPMS():
         else:
             settings('plex_machineIdentifier', '')
     else:
-        settings('plex_machineIdentifier', machineIdentifier)
-    LOG.info('Set new PMS to https %s, ip %s, port %s, machineIdentifier %s'
-             % (https, ip, port, machineIdentifier))
+        settings('plex_machineIdentifier', machine_identifier)
+    LOG.info('Set new PMS to https %s, address %s, port %s, machineId %s',
+             https, address, port, machine_identifier)
     settings('https', value=https)
-    settings('ipaddress', value=ip)
+    settings('ipaddress', value=address)
     settings('port', value=port)
     # Chances are this is a local PMS, so disable SSL certificate check
     settings('sslverify', value='false')

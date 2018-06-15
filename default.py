@@ -101,7 +101,7 @@ class Main():
             executebuiltin('Addon.OpenSettings(%s)' % v.ADDON_ID)
 
         elif mode == 'enterPMS':
-            entrypoint.enterPMS()
+            entrypoint.create_new_pms()
 
         elif mode == 'reset':
             reset()
