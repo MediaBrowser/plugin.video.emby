@@ -326,7 +326,7 @@ class LibrarySync(Thread):
             current_tagid = view[2]
         except TypeError:
             LOG.info('Creating viewid: %s in Plex database.', folderid)
-            tagid = kodi_db.createTag(foldername)
+            tagid = kodi_db.create_tag(foldername)
             # Create playlist for the video library
             if (foldername not in lists and
                     mediatype in (v.PLEX_TYPE_MOVIE, v.PLEX_TYPE_SHOW)):
@@ -361,7 +361,7 @@ class LibrarySync(Thread):
             # View was modified, update with latest info
             if current_viewname != foldername:
                 LOG.info('viewid: %s new viewname: %s', folderid, foldername)
-                tagid = kodi_db.createTag(foldername)
+                tagid = kodi_db.create_tag(foldername)
 
                 # Update view with new info
                 plex_db.updateView(foldername, tagid, folderid)
@@ -407,7 +407,7 @@ class LibrarySync(Thread):
                 items = plex_db.getItem_byView(folderid)
                 for item in items:
                     # Remove the "s" from viewtype for tags
-                    kodi_db.updateTag(
+                    kodi_db.update_tag(
                         current_tagid, tagid, item[0], current_viewtype[:-1])
             else:
                 # Validate the playlist exists or recreate it
