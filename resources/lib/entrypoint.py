@@ -114,12 +114,21 @@ def reset_authorization():
         executebuiltin('Addon.OpenSettings(plugin.video.plexkodiconnect)')
 
 
-def addDirectoryItem(label, path, folder=True):
-    li = ListItem(label, path=path)
-    li.setThumbnailImage("special://home/addons/plugin.video.plexkodiconnect/icon.png")
-    li.setArt({"fanart":"special://home/addons/plugin.video.plexkodiconnect/fanart.jpg"})
-    li.setArt({"landscape":"special://home/addons/plugin.video.plexkodiconnect/fanart.jpg"})
-    xbmcplugin.addDirectoryItem(handle=HANDLE, url=path, listitem=li, isFolder=folder)
+def directory_item(label, path, folder=True):
+    """
+    Adds a xbmcplugin.addDirectoryItem() directory itemlistitem
+    """
+    listitem = ListItem(label, path=path)
+    listitem.setThumbnailImage(
+        "special://home/addons/plugin.video.plexkodiconnect/icon.png")
+    listitem.setArt(
+        {"fanart": "special://home/addons/plugin.video.plexkodiconnect/fanart.jpg"})
+    listitem.setArt(
+        {"landscape":"special://home/addons/plugin.video.plexkodiconnect/fanart.jpg"})
+    xbmcplugin.addDirectoryItem(handle=HANDLE,
+                                url=path,
+                                listitem=listitem,
+                                isFolder=folder)
 
 
 def doMainListing(content_type=None):
@@ -142,28 +151,28 @@ def doMainListing(content_type=None):
             # now we just only show picture nodes in the picture library video
             # nodes in the video library and all nodes in any other window
             if node_type == 'photos' and content_type == 'image':
-                addDirectoryItem(label, path)
+                directory_item(label, path)
             elif (node_type != 'photos' and
                     content_type not in ('image', 'audio')):
-                addDirectoryItem(label, path)
+                directory_item(label, path)
 
     # Plex Watch later
     if content_type not in ('image', 'audio'):
-        addDirectoryItem(lang(39211),
+        directory_item(lang(39211),
                          "plugin://%s?mode=watchlater" % v.ADDON_ID)
     # Plex Channels
-    addDirectoryItem(lang(30173),
+    directory_item(lang(30173),
                      "plugin://%s?mode=channels" % v.ADDON_ID)
     # Plex user switch
-    addDirectoryItem('%s%s' % (lang(39200), settings('username')),
+    directory_item('%s%s' % (lang(39200), settings('username')),
                      "plugin://%s?mode=switchuser" % v.ADDON_ID)
 
     # some extra entries for settings and stuff
-    addDirectoryItem(lang(39201),
+    directory_item(lang(39201),
                      "plugin://%s?mode=settings" % v.ADDON_ID)
-    addDirectoryItem(lang(39203),
+    directory_item(lang(39203),
                      "plugin://%s?mode=refreshplaylist" % v.ADDON_ID)
-    addDirectoryItem(lang(39204),
+    directory_item(lang(39204),
                      "plugin://%s?mode=manualsync" % v.ADDON_ID)
     xbmcplugin.endOfDirectory(HANDLE)
 
@@ -196,7 +205,7 @@ def GetSubFolders(nodeindex):
         title = window('Plex.nodes.%s%s.title' %(nodeindex,node))
         if title:
             path = window('Plex.nodes.%s%s.content' %(nodeindex,node))
-            addDirectoryItem(title, path)
+            directory_item(title, path)
     xbmcplugin.endOfDirectory(HANDLE)
 
 
