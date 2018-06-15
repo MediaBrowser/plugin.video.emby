@@ -67,10 +67,9 @@ class Main():
             self.play()
 
         elif mode == 'ondeck':
-            entrypoint.getOnDeck(itemid,
-                                 params.get('type'),
-                                 params.get('tagname'),
-                                 int(params.get('limit')))
+            entrypoint.on_deck_episodes(itemid,
+                                        params.get('tagname'),
+                                        int(params.get('limit')))
 
         elif mode == 'recentepisodes':
             entrypoint.recent_episodes(params.get('type'),

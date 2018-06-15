@@ -531,14 +531,12 @@ def extra_fanart(plex_id, plex_path):
     xbmcplugin.endOfDirectory(HANDLE)
 
 
-def getOnDeck(viewid, mediatype, tagname, limit):
+def on_deck_episodes(viewid, tagname, limit):
     """
     Retrieves Plex On Deck items, currently only for TV shows
 
     Input:
         viewid:             Plex id of the library section, e.g. '1'
-        mediatype:          Kodi mediatype, e.g. 'tvshows', 'movies',
-                            'homevideos', 'photos'
         tagname:            Name of the Plex library, e.g. "My Movies"
         limit:              Max. number of items to retrieve, e.g. 50
     """
