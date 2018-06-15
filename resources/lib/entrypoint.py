@@ -131,7 +131,10 @@ def directory_item(label, path, folder=True):
                                 isFolder=folder)
 
 
-def doMainListing(content_type=None):
+def show_main_menu(content_type=None):
+    """
+    Shows the main PKC menu listing with all libraries, Channel, settings, etc.
+    """
     LOG.debug('Do main listing with content_type: %s' % content_type)
     xbmcplugin.setContent(HANDLE, 'files')
     # Get emby nodes from the window props
@@ -159,21 +162,21 @@ def doMainListing(content_type=None):
     # Plex Watch later
     if content_type not in ('image', 'audio'):
         directory_item(lang(39211),
-                         "plugin://%s?mode=watchlater" % v.ADDON_ID)
+                       "plugin://%s?mode=watchlater" % v.ADDON_ID)
     # Plex Channels
     directory_item(lang(30173),
-                     "plugin://%s?mode=channels" % v.ADDON_ID)
+                   "plugin://%s?mode=channels" % v.ADDON_ID)
     # Plex user switch
     directory_item('%s%s' % (lang(39200), settings('username')),
-                     "plugin://%s?mode=switchuser" % v.ADDON_ID)
+                   "plugin://%s?mode=switchuser" % v.ADDON_ID)
 
     # some extra entries for settings and stuff
     directory_item(lang(39201),
-                     "plugin://%s?mode=settings" % v.ADDON_ID)
+                   "plugin://%s?mode=settings" % v.ADDON_ID)
     directory_item(lang(39203),
-                     "plugin://%s?mode=refreshplaylist" % v.ADDON_ID)
+                   "plugin://%s?mode=refreshplaylist" % v.ADDON_ID)
     directory_item(lang(39204),
-                     "plugin://%s?mode=manualsync" % v.ADDON_ID)
+                   "plugin://%s?mode=manualsync" % v.ADDON_ID)
     xbmcplugin.endOfDirectory(HANDLE)
 
 
