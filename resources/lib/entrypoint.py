@@ -512,11 +512,11 @@ def extra_fanart(plex_id, plex_path):
         for count, backdrop in enumerate(backdrops):
             # Same ordering as in artwork
             art_file = try_encode(join(fanart_dir, "fanart%.3d.jpg" % count))
-            li = ListItem("%.3d" % count, path=art_file)
+            listitem = ListItem("%.3d" % count, path=art_file)
             xbmcplugin.addDirectoryItem(
                 handle=HANDLE,
                 url=art_file,
-                listitem=li)
+                listitem=listitem)
             copyfile(backdrop, try_decode(art_file))
     else:
         LOG.info("Found cached backdrop.")
@@ -524,10 +524,10 @@ def extra_fanart(plex_id, plex_path):
         for root, dirs, files in walk(fanart_dir):
             for file in files:
                 art_file = try_encode(join(root, file))
-                li = ListItem(file, path=art_file)
+                listitem = ListItem(file, path=art_file)
                 xbmcplugin.addDirectoryItem(handle=HANDLE,
                                             url=art_file,
-                                            listitem=li)
+                                            listitem=listitem)
     xbmcplugin.endOfDirectory(HANDLE)
 
 
