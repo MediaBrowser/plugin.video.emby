@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon  id="plugin.video.plexkodiconnect" name="PlexKodiConnect" version="2.2.0" provider-name="croneter">
+<addon  id="plugin.video.plexkodiconnect" name="PlexKodiConnect" version="2.2.1" provider-name="croneter">
   <requires>
     <import addon="xbmc.python" version="2.1.0"/>
     <import addon="script.module.requests" version="2.9.1" />
@@ -67,7 +67,16 @@
     <summary lang="ru_RU">Нативная интеграция сервера Plex в Kodi</summary>
     <description lang="ru_RU">Подключите Kodi к своему серверу Plex. Плагин предполагает что вы управляете своими видео с помощью Plex (а не в Kodi). Вы можете потерять текущие базы данных музыки и видео в Kodi (так как плагин напрямую их изменяет). Используйте на свой страх и риск</description>
     <disclaimer lang="ru_RU">Используйте на свой страх и риск</disclaimer>
-    <news>version 2.2.0 (beta only):
+    <news>version 2.2.1 (beta only):
+- Fix library sync crash due to PMS sending string, not unicode
+- Fix playback from playlists for add-on paths
+- Detect playback from a Kodi playlist for add-on paths - because we need some hacks due to Kodi bugs
+- Fix add-on paths playstate and Plex Companion for playlists
+- Fix Kodi telling Plex companion false playqueue position
+- Don't try to get a Kodi library items for Plex clips
+- Update translations
+
+version 2.2.0 (beta only):
 - Support for syncing Plex playlists to Kodi and vice-versa! (Kodi mixed music and video playlists cannot be supported as Plex does not support them)
 
 version 2.1.1:

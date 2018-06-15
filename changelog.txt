@@ -1,3 +1,12 @@
+version 2.2.1 (beta only):
+- Fix library sync crash due to PMS sending string, not unicode
+- Fix playback from playlists for add-on paths
+- Detect playback from a Kodi playlist for add-on paths - because we need some hacks due to Kodi bugs
+- Fix add-on paths playstate and Plex Companion for playlists
+- Fix Kodi telling Plex companion false playqueue position
+- Don't try to get a Kodi library items for Plex clips
+- Update translations
+
 version 2.2.0 (beta only):
 - Support for syncing Plex playlists to Kodi and vice-versa! (Kodi mixed music and video playlists cannot be supported as Plex does not support them)
 
