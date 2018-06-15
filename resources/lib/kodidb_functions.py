@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
-
+#
+# Connect to the Kodi databases (video and music) and operate on them
+#
 ###############################################################################
 from logging import getLogger
 from ntpath import dirname
@@ -156,7 +158,12 @@ class KodiDBMethods(object):
                                  content, scraper, 1))
         return pathid
 
-    def add_music_path(self, path, strHash=None):
+    def add_music_path(self, path, hash_string=None):
+        """
+        Add the path (unicode) to the music DB, if it does not exist already.
+        Returns the path id
+        Set hash_string to something unicode to set the strHash attribute
+        """
         # SQL won't return existing paths otherwise
         if path is None:
             path = ''
@@ -171,7 +178,7 @@ class KodiDBMethods(object):
                 INSERT INTO path(idPath, strPath, strHash)
                 VALUES (?, ?, ?)
             '''
-            self.cursor.execute(query, (pathid, path, strHash))
+            self.cursor.execute(query, (pathid, path, hash_string))
         return pathid
 
     def get_path(self, path):
@@ -597,21 +604,13 @@ class KodiDBMethods(object):
 
         Returns None if not found OR if too many entries were found
         """
-        query = ' '.join((
-            "SELECT idFile, idPath",
-            "FROM files",
-            "WHERE strFilename = ?"
-        ))
+        query = 'SELECT idFile, idPath FROM files WHERE strFilename = ?'
         self.cursor.execute(query, (filename,))
         files = self.cursor.fetchall()
         if len(files) == 0:
             LOG.info('Did not find any file, abort')
             return
-        query = ' '.join((
-            "SELECT strPath",
-            "FROM path",
-            "WHERE idPath = ?"
-        ))
+        query = 'SELECT strPath FROM path WHERE idPath = ?'
         # result will contain a list of all idFile with matching filename and
         # matching path
         result = []
@@ -619,14 +618,14 @@ class KodiDBMethods(object):
             # Use idPath to get path as a string
             self.cursor.execute(query, (file[1],))
             try:
-                strPath = self.cursor.fetchone()[0]
+                path_str = self.cursor.fetchone()[0]
             except TypeError:
                 # idPath not found; skip
                 continue
             # For whatever reason, double might have become triple
-            strPath = strPath.replace('///', '//')
-            strPath = strPath.replace('\\\\\\', '\\\\')
-            if strPath == path:
+            path_str = path_str.replace('///', '//')
+            path_str = path_str.replace('\\\\\\', '\\\\')
+            if path_str == path:
                 result.append(file[0])
         if len(result) == 0:
             LOG.info('Did not find matching paths, abort')
@@ -637,33 +636,26 @@ class KodiDBMethods(object):
             LOG.warn('We found too many items with matching filenames and '
                      ' paths, aborting')
             return
-        idFile = result[0]
+        file_id = result[0]
 
         # Try movies first
-        query = ' '.join((
-            "SELECT idMovie",
-            "FROM movie",
-            "WHERE idFile = ?"
-        ))
-        self.cursor.execute(query, (idFile,))
+        self.cursor.execute('SELECT idMovie FROM movie WHERE idFile = ?',
+                            (file_id, ))
         try:
-            itemId = self.cursor.fetchone()[0]
+            movie_id = self.cursor.fetchone()[0]
             typus = v.KODI_TYPE_MOVIE
         except TypeError:
             # Try tv shows next
-            query = ' '.join((
-                "SELECT idEpisode",
-                "FROM episode",
-                "WHERE idFile = ?"
-            ))
-            self.cursor.execute(query, (idFile,))
+            query = 'SELECT idEpisode FROM episode WHERE idFile = ?'
+            self.cursor.execute(query,
+                                (file_id, ))
             try:
-                itemId = self.cursor.fetchone()[0]
+                movie_id = self.cursor.fetchone()[0]
                 typus = v.KODI_TYPE_EPISODE
             except TypeError:
                 LOG.warn('Unexpectantly did not find a match!')
                 return
-        return itemId, typus
+        return movie_id, typus
 
     def music_id_from_filename(self, filename, path):
         """
@@ -726,8 +718,12 @@ class KodiDBMethods(object):
             answ = None
         return answ
 
-    def addPlaystate(self, file_id, resume_seconds, total_seconds, playcount,
-                     dateplayed, plex_type):
+    def set_resume(self, file_id, resume_seconds, total_seconds, playcount,
+                   dateplayed, plex_type):
+        """
+        Adds a resume marker for a video library item. Will even set 2,
+        considering add-on path widget hacks.
+        """
         if not state.DIRECT_PATHS and plex_type == v.PLEX_TYPE_EPISODE:
             # Need to make sure to set a SECOND bookmark entry for another,
             # second file_id that points to the path .tvshows instead of
@@ -746,8 +742,8 @@ class KodiDBMethods(object):
                           len(file_ids))
                 raise RuntimeError
             for new_id in file_ids:
-                self.addPlaystate(new_id[0], resume_seconds, total_seconds,
-                                  playcount, dateplayed, None)
+                self.set_resume(new_id[0], resume_seconds, total_seconds,
+                                playcount, dateplayed, None)
             return
 
         # Delete existing resume point
@@ -779,87 +775,72 @@ class KodiDBMethods(object):
                                         '',
                                         1))
 
-    def createTag(self, name):
-        # This will create and return the tag_id
-        query = ' '.join((
-
-            "SELECT tag_id",
-            "FROM tag",
-            "WHERE name = ?",
-            "COLLATE NOCASE"
-        ))
+    def create_tag(self, name):
+        """
+        Will create a new tag if needed and return the tag_id
+        """
+        query = '''
+            SELECT tag_id FROM tag WHERE name = ? COLLATE NOCASE
+        '''
         self.cursor.execute(query, (name,))
         try:
             tag_id = self.cursor.fetchone()[0]
-        
         except TypeError:
             self.cursor.execute("select coalesce(max(tag_id),0) from tag")
             tag_id = self.cursor.fetchone()[0] + 1
-
             query = "INSERT INTO tag(tag_id, name) values(?, ?)"
             self.cursor.execute(query, (tag_id, name))
             LOG.debug("Create tag_id: %s name: %s", tag_id, name)
         return tag_id
 
-    def updateTag(self, oldtag, newtag, kodiid, mediatype):
+    def update_tag(self, oldtag, newtag, kodiid, mediatype):
+        """
+        Updates the tag_id by replaying oldtag with newtag
+        """
+        query = '''
+            UPDATE tag_link SET tag_id = ?
+            WHERE media_id = ? AND media_type = ? AND tag_id = ?
+        '''
         try:
-            query = ' '.join((
-
-                "UPDATE tag_link",
-                "SET tag_id = ?",
-                "WHERE media_id = ?",
-                "AND media_type = ?",
-                "AND tag_id = ?"
-            ))
             self.cursor.execute(query, (newtag, kodiid, mediatype, oldtag,))
-        except Exception as e:
+        except:
             # The new tag we are going to apply already exists for this item
             # delete current tag instead
-            query = ' '.join((
-
-                "DELETE FROM tag_link",
-                "WHERE media_id = ?",
-                "AND media_type = ?",
-                "AND tag_id = ?"
-            ))
+            query = '''
+                DELETE FROM tag_link
+                WHERE media_id = ? AND media_type = ? AND tag_id = ?
+            '''
             self.cursor.execute(query, (kodiid, mediatype, oldtag,))
 
-    def addSets(self, movieid, collections, kodicursor):
+    def add_sets(self, movieid, collections):
+        """
+        Will add the movie to all collections (a list of unicodes)
+        """
         for setname in collections:
-            setid = self.createBoxset(setname)
-            self.assignBoxset(setid, movieid)
+            setid = self.create_collection(setname)
+            self.assign_collection(setid, movieid)
 
-    def createBoxset(self, boxsetname):
-
-        LOG.debug("Adding boxset: %s", boxsetname)
-        query = ' '.join((
-
-            "SELECT idSet",
-            "FROM sets",
-            "WHERE strSet = ?",
-            "COLLATE NOCASE"
-        ))
-        self.cursor.execute(query, (boxsetname,))
+    def create_collection(self, set_name):
+        """
+        Returns the collection/set id for set_name [unicode]
+        """
+        LOG.debug("Adding boxset: %s", set_name)
+        query = 'SELECT idSet FROM sets WHERE strSet = ? COLLATE NOCASE'
+        self.cursor.execute(query, (set_name,))
         try:
             setid = self.cursor.fetchone()[0]
-
         except TypeError:
             self.cursor.execute("select coalesce(max(idSet),0) from sets")
             setid = self.cursor.fetchone()[0] + 1
-
             query = "INSERT INTO sets(idSet, strSet) values(?, ?)"
-            self.cursor.execute(query, (setid, boxsetname))
-
+            self.cursor.execute(query, (setid, set_name))
         return setid
 
-    def assignBoxset(self, setid, movieid):
-        
-        query = ' '.join((
-
-            "UPDATE movie",
-            "SET idSet = ?",
-            "WHERE idMovie = ?"
-        ))
+    def assign_collection(self, setid, movieid):
+        """
+        Assign the movie to one set/collection
+        """
+        query = 'UPDATE movie SET idSet = ? WHERE idMovie = ?'
         self.cursor.execute(query, (setid, movieid,))
 
     def remove_from_set(self, movieid):
@@ -912,7 +893,10 @@ class KodiDBMethods(object):
             self.cursor.execute(query, (seasonid, showid, seasonnumber))
         return seasonid
 
-    def addArtist(self, name, musicbrainz):
+    def add_artist(self, name, musicbrainz):
+        """
+        Adds a single artist's name to the db
+        """
         query = '''
             SELECT idArtist, strArtist
             FROM artist
@@ -1047,8 +1031,10 @@ class KodiDBMethods(object):
                     self.cursor.execute('DELETE FROM genre WHERE idGenre = ?',
                                         (genre[0], ))
 
-
-    def addAlbum(self, name, musicbrainz):
+    def add_album(self, name, musicbrainz):
+        """
+        Adds a single album to the DB
+        """
         query = 'SELECT idAlbum FROM album WHERE strMusicBrainzAlbumID = ?'
         self.cursor.execute(query, (musicbrainz,))
         try:
@@ -1065,7 +1051,10 @@ class KodiDBMethods(object):
             self.cursor.execute(query, (albumid, name, musicbrainz, 'album'))
         return albumid
 
-    def addMusicGenres(self, kodiid, genres, mediatype):
+    def add_music_genres(self, kodiid, genres, mediatype):
+        """
+        Adds a list of genres (list of unicode) for a certain Kodi item
+        """
         if mediatype == "album":
             # Delete current genres for clean slate
             query = 'DELETE FROM album_genre WHERE idAlbum = ?'
@@ -1121,13 +1110,13 @@ class KodiDBMethods(object):
         Updates userrating for >=Krypton
         """
         if kodi_type == v.KODI_TYPE_MOVIE:
-            ID = 'idMovie'
+            identifier = 'idMovie'
         elif kodi_type == v.KODI_TYPE_EPISODE:
-            ID = 'idEpisode'
+            identifier = 'idEpisode'
         elif kodi_type == v.KODI_TYPE_SONG:
-            ID = 'idSong'
+            identifier = 'idSong'
         query = '''UPDATE %s SET userrating = ? WHERE ? = ?''' % kodi_type
-        self.cursor.execute(query, (userrating, ID, kodi_id))
+        self.cursor.execute(query, (userrating, identifier, kodi_id))
 
     def add_uniqueid(self, *args):
         """
@@ -1146,6 +1135,9 @@ class KodiDBMethods(object):
         self.cursor.execute(query, (args))
 
     def get_uniqueid(self, kodi_id, kodi_type):
+        """
+        Returns the uniqueid_id
+        """
         query = '''
             SELECT uniqueid_id FROM uniqueid
             WHERE media_id = ? AND media_type = ?
@@ -1171,6 +1163,9 @@ class KodiDBMethods(object):
         self.cursor.execute(query, (args))
 
     def remove_uniqueid(self, kodi_id, kodi_type):
+        """
+        Deletes the entry from the uniqueid table for the item
+        """
         query = '''
             DELETE FROM uniqueid
             WHERE media_id = ? AND media_type = ?
@@ -1178,6 +1173,9 @@ class KodiDBMethods(object):
         self.cursor.execute(query, (kodi_id, kodi_type))
 
     def get_ratingid(self, kodi_id, kodi_type):
+        """
+        Create if needed and return the unique rating_id from rating table
+        """
         query = '''
             SELECT rating_id FROM rating
             WHERE media_id = ? AND media_type = ?
@@ -1220,6 +1218,9 @@ class KodiDBMethods(object):
         self.cursor.execute(query, (args))
 
     def remove_ratings(self, kodi_id, kodi_type):
+        """
+        Removes all ratings from the rating table for the item
+        """
         query = '''
             DELETE FROM rating
             WHERE media_id = ? AND media_type = ?
