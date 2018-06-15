@@ -200,17 +200,6 @@ def switch_plex_user():
     __LogIn()
 
 
-#### SHOW SUBFOLDERS FOR NODE #####
-def GetSubFolders(nodeindex):
-    nodetypes = ["",".recent",".recentepisodes",".inprogress",".inprogressepisodes",".unwatched",".nextepisodes",".sets",".genres",".random",".recommended"]
-    for node in nodetypes:
-        title = window('Plex.nodes.%s%s.title' %(nodeindex,node))
-        if title:
-            path = window('Plex.nodes.%s%s.content' %(nodeindex,node))
-            directory_item(title, path)
-    xbmcplugin.endOfDirectory(HANDLE)
-
-
 ##### LISTITEM SETUP FOR VIDEONODES #####
 def createListItem(item, append_show_title=False, append_sxxexx=False):
     LOG.debug('createListItem called with append_show_title %s, append_sxxexx '

@@ -90,9 +90,6 @@ class Main():
             entrypoint.browse_plex(key=params.get('key'),
                                    plex_section_id=params.get('id'))
 
-        elif mode == 'getsubfolders':
-            entrypoint.GetSubFolders(itemid)
-
         elif mode == 'watchlater':
             entrypoint.watchlater()
 
