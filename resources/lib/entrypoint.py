@@ -200,19 +200,19 @@ def switch_plex_user():
     __LogIn()
 
 
-##### LISTITEM SETUP FOR VIDEONODES #####
-def createListItem(item, append_show_title=False, append_sxxexx=False):
-    LOG.debug('createListItem called with append_show_title %s, append_sxxexx '
-              '%s, item: %s', append_show_title, append_sxxexx, item)
+def create_listitem(item, append_show_title=False, append_sxxexx=False):
+    """
+    Feed with a Kodi json item response to get a xbmcgui.ListItem() with
+    everything set and ready.
+    """
     title = item['title']
-    li = ListItem(title)
-    li.setProperty('IsPlayable', 'true')
+    listitem = ListItem(title)
+    listitem.setProperty('IsPlayable', 'true')
     metadata = {
-        'duration': str(item['runtime']/60),
+        'duration': str(item['runtime'] / 60),
         'Plot': item['plot'],
         'Playcount': item['playcount']
     }
-
     if 'episode' in item:
         episode = item['episode']
         metadata['Episode'] = episode
@@ -220,7 +220,7 @@ def createListItem(item, append_show_title=False, append_sxxexx=False):
         season = item['season']
         metadata['Season'] = season
     if season and episode:
-        li.setProperty('episodeno', 's%.2de%.2d' % (season, episode))
+        listitem.setProperty('episodeno', 's%.2de%.2d' % (season, episode))
         if append_sxxexx is True:
             title = 'S%.2dE%.2d - %s' % (season, episode, title)
     if 'firstaired' in item:
@@ -248,24 +248,25 @@ def createListItem(item, append_show_title=False, append_sxxexx=False):
     metadata['Title'] = title
     metadata['mediatype'] = 'episode'
     metadata['dbid'] = str(item['episodeid'])
-    li.setLabel(title)
-    li.setInfo(type='Video', infoLabels=metadata)
+    listitem.setLabel(title)
+    listitem.setInfo(type='Video', infoLabels=metadata)
 
-    li.setProperty('resumetime', str(item['resume']['position']))
-    li.setProperty('totaltime', str(item['resume']['total']))
-    li.setArt(item['art'])
-    li.setThumbnailImage(item['art'].get('thumb', ''))
-    li.setArt({'icon': 'DefaultTVShows.png'})
-    li.setProperty('fanart_image', item['art'].get('tvshow.fanart', ''))
+    listitem.setProperty('resumetime', str(item['resume']['position']))
+    listitem.setProperty('totaltime', str(item['resume']['total']))
+    listitem.setArt(item['art'])
+    listitem.setThumbnailImage(item['art'].get('thumb', ''))
+    listitem.setArt({'icon': 'DefaultTVShows.png'})
+    listitem.setProperty('fanart_image', item['art'].get('tvshow.fanart', ''))
     try:
-        li.addContextMenuItems([(lang(30032), 'XBMC.Action(Info)',)])
+        listitem.addContextMenuItems([(lang(30032), 'XBMC.Action(Info)',)])
     except TypeError:
         # Kodi fuck-up
         pass
     for key, value in item['streamdetails'].iteritems():
         for stream in value:
-            li.addStreamInfo(key, stream)
-    return li
+            listitem.addStreamInfo(key, stream)
+    return listitem
+
 
 ##### GET NEXTUP EPISODES FOR TAGNAME #####    
 def getNextUpEpisodes(tagname, limit):
@@ -323,7 +324,7 @@ def getNextUpEpisodes(tagname, limit):
         for episode in js.get_episodes(params):
             xbmcplugin.addDirectoryItem(handle=HANDLE,
                                         url=episode['file'],
-                                        listitem=createListItem(episode))
+                                        listitem=create_listitem(episode))
             count += 1
         if count == limit:
             break
@@ -362,7 +363,7 @@ def getInProgressEpisodes(tagname, limit):
         for episode in js.get_episodes(params):
             xbmcplugin.addDirectoryItem(handle=HANDLE,
                                         url=episode['file'],
-                                        listitem=createListItem(episode))
+                                        listitem=create_listitem(episode))
             count += 1
         if count == limit:
             break
@@ -401,13 +402,12 @@ def getRecentEpisodes(viewid, mediatype, tagname, limit):
         }
     for episode in js.get_episodes(params):
         if episode['tvshowid'] in allshowsIds:
-            listitem = createListItem(episode,
-                                append_show_title=append_show_title,
-                                append_sxxexx=append_sxxexx)
-            xbmcplugin.addDirectoryItem(
-                        handle=HANDLE,
-                        url=episode['file'],
-                        listitem=listitem)
+            listitem = create_listitem(episode,
+                                       append_show_title=append_show_title,
+                                       append_sxxexx=append_sxxexx)
+            xbmcplugin.addDirectoryItem(handle=HANDLE,
+                                        url=episode['file'],
+                                        listitem=listitem)
             count += 1
         if count == limit:
             break
@@ -641,9 +641,9 @@ def getOnDeck(viewid, mediatype, tagname, limit):
                 continue
         for episode in episodes:
             # There will always be only 1 episode ('limit=1')
-            listitem = createListItem(episode,
-                                      append_show_title=append_show_title,
-                                      append_sxxexx=append_sxxexx)
+            listitem = create_listitem(episode,
+                                       append_show_title=append_show_title,
+                                       append_sxxexx=append_sxxexx)
             xbmcplugin.addDirectoryItem(handle=HANDLE,
                                         url=episode['file'],
                                         listitem=listitem,
