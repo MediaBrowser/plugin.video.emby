@@ -36,7 +36,7 @@ except IndexError:
 ###############################################################################
 
 
-def chooseServer():
+def choose_pms_server():
     """
     Lets user choose from list of PMS
     """
@@ -73,7 +73,11 @@ def chooseServer():
            sound=False)
 
 
-def togglePlexTV():
+def toggle_plex_tv_sign_in():
+    """
+    Signs out of Plex.tv if there was a token saved and thus deletes the token.
+    Or signs in to plex.tv if the user was not logged in before.
+    """
     if settings('plexToken'):
         LOG.info('Reseting plex.tv credentials in settings')
         settings('plexLogin', value="")
@@ -98,9 +102,10 @@ def togglePlexTV():
            sound=False)
 
 
-##### DO RESET AUTH #####
-def resetAuth():
-    # User tried login and failed too many times
+def reset_authorization():
+    """
+    User tried login and failed too many times. Reset # of logins
+    """
     resp = dialog('yesno', heading="{plex}", line1=lang(39206))
     if resp == 1:
         LOG.info("Reset login attempts.")

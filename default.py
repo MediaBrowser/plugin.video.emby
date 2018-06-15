@@ -112,10 +112,10 @@ class Main():
             reset()
 
         elif mode == 'togglePlexTV':
-            entrypoint.togglePlexTV()
+            entrypoint.toggle_plex_tv_sign_in()
 
         elif mode == 'resetauth':
-            entrypoint.resetAuth()
+            entrypoint.reset_authorization()
 
         elif mode == 'passwords':
             passwords_xml()
@@ -141,7 +141,7 @@ class Main():
             plex_command('RUN_LIB_SCAN', 'textures')
 
         elif mode == 'chooseServer':
-            entrypoint.chooseServer()
+            entrypoint.choose_pms_server()
 
         elif mode == 'refreshplaylist':
             log.info('Requesting playlist/nodes refresh')
