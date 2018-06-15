@@ -153,14 +153,14 @@ class Main():
         elif '/extrafanart' in argv[0]:
             plexpath = argv[2][1:]
             plexid = itemid
-            entrypoint.getExtraFanArt(plexid, plexpath)
-            entrypoint.getVideoFiles(plexid, plexpath)
+            entrypoint.extra_fanart(plexid, plexpath)
+            entrypoint.get_video_files(plexid, plexpath)
 
         # Called by e.g. 3rd party plugin video extras
         elif ('/Extras' in argv[0] or '/VideoFiles' in argv[0] or
                 '/Extras' in argv[2]):
             plexId = itemid or None
-            entrypoint.getVideoFiles(plexId, params)
+            entrypoint.get_video_files(plexId, params)
 
         else:
             entrypoint.show_main_menu(content_type=params.get('content_type'))

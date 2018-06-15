@@ -386,13 +386,13 @@ def recent_episodes(mediatype, tagname, limit):
     append_show_title = settings('RecentTvAppendShow') == 'true'
     append_sxxexx = settings('RecentTvAppendSeason') == 'true'
     # First we get a list of all the TV shows - filtered by tag
-    allshowsIds = set()
+    show_ids = set()
     params = {
         'sort': {'order': "descending", 'method': "dateadded"},
         'filter': {'operator': "is", 'field': "tag", 'value': "%s" % tagname},
     }
     for tv_show in js.get_tv_shows(params):
-        allshowsIds.add(tv_show['tvshowid'])
+        show_ids.add(tv_show['tvshowid'])
     params = {
         'sort': {'order': "descending", 'method': "dateadded"},
         'properties': ["title", "playcount", "season", "episode", "showtitle",
@@ -408,7 +408,7 @@ def recent_episodes(mediatype, tagname, limit):
             'value': "1"
         }
     for episode in js.get_episodes(params):
-        if episode['tvshowid'] in allshowsIds:
+        if episode['tvshowid'] in show_ids:
             listitem = create_listitem(episode,
                                        append_show_title=append_show_title,
                                        append_sxxexx=append_sxxexx)
@@ -421,14 +421,14 @@ def recent_episodes(mediatype, tagname, limit):
     xbmcplugin.endOfDirectory(handle=HANDLE)
 
 
-def getVideoFiles(plexId, params):
+def get_video_files(plex_id, params):
     """
     GET VIDEO EXTRAS FOR LISTITEM
 
     returns the video files for the item as plugin listing, can be used for
     browsing the actual files or videoextras etc.
     """
-    if plexId is None:
+    if plex_id is None:
         filename = params.get('filename')
         if filename is not None:
             filename = filename[0]
@@ -436,19 +436,19 @@ def getVideoFiles(plexId, params):
             regex = re.compile(r'''library/metadata/(\d+)''')
             filename = regex.findall(filename)
             try:
-                plexId = filename[0]
+                plex_id = filename[0]
             except IndexError:
                 pass
 
-    if plexId is None:
+    if plex_id is None:
         LOG.info('No Plex ID found, abort getting Extras')
         return xbmcplugin.endOfDirectory(HANDLE)
 
-    item = GetPlexMetadata(plexId)
+    item = GetPlexMetadata(plex_id)
     try:
         path = item[0][0][0].attrib['file']
-    except:
-        LOG.error('Could not get file path for item %s' % plexId)
+    except (TypeError, IndexError, AttributeError, KeyError):
+        LOG.error('Could not get file path for item %s' % plex_id)
         return xbmcplugin.endOfDirectory(HANDLE)
     # Assign network protocol
     if path.startswith('\\\\'):
@@ -463,17 +463,17 @@ def getVideoFiles(plexId, params):
         for root, dirs, files in walk(path):
             for directory in dirs:
                 item_path = try_encode(join(root, directory))
-                li = ListItem(item_path, path=item_path)
+                listitem = ListItem(item_path, path=item_path)
                 xbmcplugin.addDirectoryItem(handle=HANDLE,
                                             url=item_path,
-                                            listitem=li,
+                                            listitem=listitem,
                                             isFolder=True)
             for file in files:
                 item_path = try_encode(join(root, file))
-                li = ListItem(item_path, path=item_path)
+                listitem = ListItem(item_path, path=item_path)
                 xbmcplugin.addDirectoryItem(handle=HANDLE,
                                             url=file,
-                                            listitem=li)
+                                            listitem=listitem)
             break
     else:
         LOG.error('Kodi cannot access folder %s' % path)
@@ -481,30 +481,30 @@ def getVideoFiles(plexId, params):
 
 
 @catch_exceptions(warnuser=False)
-def getExtraFanArt(plexid, plexPath):
+def extra_fanart(plex_id, plex_path):
     """
     Get extrafanart for listitem
     will be called by skinhelper script to get the extrafanart
-    for tvshows we get the plexid just from the path
+    for tvshows we get the plex_id just from the path
     """
-    LOG.debug('Called with plexid: %s, plexPath: %s' % (plexid, plexPath))
-    if not plexid:
-        if "plugin.video.plexkodiconnect" in plexPath:
-            plexid = plexPath.split("/")[-2]
-    if not plexid:
-        LOG.error('Could not get a plexid, aborting')
+    LOG.debug('Called with plex_id: %s, plex_path: %s', plex_id, plex_path)
+    if not plex_id:
+        if "plugin.video.plexkodiconnect" in plex_path:
+            plex_id = plex_path.split("/")[-2]
+    if not plex_id:
+        LOG.error('Could not get a plex_id, aborting')
         return xbmcplugin.endOfDirectory(HANDLE)
 
     # We need to store the images locally for this to work
     # because of the caching system in xbmc
     fanartDir = try_decode(translatePath(
-        "special://thumbnails/plex/%s/" % plexid))
+        "special://thumbnails/plex/%s/" % plex_id))
     if not exists_dir(fanartDir):
         # Download the images to the cache directory
         makedirs(fanartDir)
-        xml = GetPlexMetadata(plexid)
+        xml = GetPlexMetadata(plex_id)
         if xml is None:
-            LOG.error('Could not download metadata for %s' % plexid)
+            LOG.error('Could not download metadata for %s', plex_id)
             return xbmcplugin.endOfDirectory(HANDLE)
 
         api = API(xml[0])
