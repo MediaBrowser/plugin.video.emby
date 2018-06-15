@@ -67,31 +67,26 @@ class Main():
             self.play()
 
         elif mode == 'ondeck':
-            entrypoint.getOnDeck(itemid,
-                                 params.get('type'),
-                                 params.get('tagname'),
-                                 int(params.get('limit')))
+            entrypoint.on_deck_episodes(itemid,
+                                        params.get('tagname'),
+                                        int(params.get('limit')))
 
         elif mode == 'recentepisodes':
-            entrypoint.getRecentEpisodes(itemid,
-                                         params.get('type'),
-                                         params.get('tagname'),
-                                         int(params.get('limit')))
+            entrypoint.recent_episodes(params.get('type'),
+                                       params.get('tagname'),
+                                       int(params.get('limit')))
 
         elif mode == 'nextup':
-            entrypoint.getNextUpEpisodes(params['tagname'],
-                                         int(params['limit']))
+            entrypoint.next_up_episodes(params['tagname'],
+                                        int(params['limit']))
 
         elif mode == 'inprogressepisodes':
-            entrypoint.getInProgressEpisodes(params['tagname'],
-                                             int(params['limit']))
+            entrypoint.in_progress_episodes(params['tagname'],
+                                            int(params['limit']))
 
         elif mode == 'browseplex':
             entrypoint.browse_plex(key=params.get('key'),
                                    plex_section_id=params.get('id'))
-
-        elif mode == 'getsubfolders':
-            entrypoint.GetSubFolders(itemid)
 
         elif mode == 'watchlater':
             entrypoint.watchlater()
@@ -106,22 +101,22 @@ class Main():
             executebuiltin('Addon.OpenSettings(%s)' % v.ADDON_ID)
 
         elif mode == 'enterPMS':
-            entrypoint.enterPMS()
+            entrypoint.create_new_pms()
 
         elif mode == 'reset':
             reset()
 
         elif mode == 'togglePlexTV':
-            entrypoint.togglePlexTV()
+            entrypoint.toggle_plex_tv_sign_in()
 
         elif mode == 'resetauth':
-            entrypoint.resetAuth()
+            entrypoint.reset_authorization()
 
         elif mode == 'passwords':
             passwords_xml()
 
         elif mode == 'switchuser':
-            entrypoint.switchPlexUser()
+            entrypoint.switch_plex_user()
 
         elif mode in ('manualsync', 'repair'):
             if window('plex_online') != 'true':
@@ -141,7 +136,7 @@ class Main():
             plex_command('RUN_LIB_SCAN', 'textures')
 
         elif mode == 'chooseServer':
-            entrypoint.chooseServer()
+            entrypoint.choose_pms_server()
 
         elif mode == 'refreshplaylist':
             log.info('Requesting playlist/nodes refresh')
@@ -157,17 +152,17 @@ class Main():
         elif '/extrafanart' in argv[0]:
             plexpath = argv[2][1:]
             plexid = itemid
-            entrypoint.getExtraFanArt(plexid, plexpath)
-            entrypoint.getVideoFiles(plexid, plexpath)
+            entrypoint.extra_fanart(plexid, plexpath)
+            entrypoint.get_video_files(plexid, plexpath)
 
         # Called by e.g. 3rd party plugin video extras
         elif ('/Extras' in argv[0] or '/VideoFiles' in argv[0] or
                 '/Extras' in argv[2]):
             plexId = itemid or None
-            entrypoint.getVideoFiles(plexId, params)
+            entrypoint.get_video_files(plexId, params)
 
         else:
-            entrypoint.doMainListing(content_type=params.get('content_type'))
+            entrypoint.show_main_menu(content_type=params.get('content_type'))
 
     @staticmethod
     def play():

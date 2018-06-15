@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+#
+# Loads of different functions called in SEPARATE Python instances through
+# e.g. plugin://... calls. Hence be careful to only rely on window variables.
+#
 ###############################################################################
 from logging import getLogger
 from shutil import copyfile
@@ -22,7 +26,7 @@ import json_rpc as js
 import variables as v
 
 ###############################################################################
-log = getLogger("PLEX."+__name__)
+LOG = getLogger("PLEX." + __name__)
 
 try:
     HANDLE = int(argv[1])
@@ -32,25 +36,25 @@ except IndexError:
 ###############################################################################
 
 
-def chooseServer():
+def choose_pms_server():
     """
     Lets user choose from list of PMS
     """
-    log.info("Choosing PMS server requested, starting")
+    LOG.info("Choosing PMS server requested, starting")
 
     import initialsetup
     setup = initialsetup.InitialSetup()
     server = setup.pick_pms(showDialog=True)
     if server is None:
-        log.error('We did not connect to a new PMS, aborting')
+        LOG.error('We did not connect to a new PMS, aborting')
         plex_command('SUSPEND_USER_CLIENT', 'False')
         plex_command('SUSPEND_LIBRARY_THREAD', 'False')
         return
 
-    log.info("User chose server %s" % server['name'])
+    LOG.info("User chose server %s", server['name'])
     setup.write_pms_to_settings(server)
 
-    if not __LogOut():
+    if not _log_out():
         return
 
     from utils import wipe_database
@@ -58,8 +62,8 @@ def chooseServer():
     wipe_database()
 
     # Log in again
-    __LogIn()
-    log.info("Choosing new PMS complete")
+    _log_in()
+    LOG.info("Choosing new PMS complete")
     # '<PMS> connected'
     dialog('notification',
            lang(29999),
@@ -69,9 +73,13 @@ def chooseServer():
            sound=False)
 
 
-def togglePlexTV():
+def toggle_plex_tv_sign_in():
+    """
+    Signs out of Plex.tv if there was a token saved and thus deletes the token.
+    Or signs in to plex.tv if the user was not logged in before.
+    """
     if settings('plexToken'):
-        log.info('Reseting plex.tv credentials in settings')
+        LOG.info('Reseting plex.tv credentials in settings')
         settings('plexLogin', value="")
         settings('plexToken', value="")
         settings('plexid', value="")
@@ -83,7 +91,7 @@ def togglePlexTV():
         plex_command('PLEX_TOKEN', '')
         plex_command('PLEX_USERNAME', '')
     else:
-        log.info('Login to plex.tv')
+        LOG.info('Login to plex.tv')
         import initialsetup
         initialsetup.InitialSetup().plex_tv_sign_in()
     dialog('notification',
@@ -94,27 +102,40 @@ def togglePlexTV():
            sound=False)
 
 
-##### DO RESET AUTH #####
-def resetAuth():
-    # User tried login and failed too many times
+def reset_authorization():
+    """
+    User tried login and failed too many times. Reset # of logins
+    """
     resp = dialog('yesno', heading="{plex}", line1=lang(39206))
     if resp == 1:
-        log.info("Reset login attempts.")
+        LOG.info("Reset login attempts.")
         plex_command('PMS_STATUS', 'Auth')
     else:
         executebuiltin('Addon.OpenSettings(plugin.video.plexkodiconnect)')
 
 
-def addDirectoryItem(label, path, folder=True):
-    li = ListItem(label, path=path)
-    li.setThumbnailImage("special://home/addons/plugin.video.plexkodiconnect/icon.png")
-    li.setArt({"fanart":"special://home/addons/plugin.video.plexkodiconnect/fanart.jpg"})
-    li.setArt({"landscape":"special://home/addons/plugin.video.plexkodiconnect/fanart.jpg"})
-    xbmcplugin.addDirectoryItem(handle=HANDLE, url=path, listitem=li, isFolder=folder)
+def directory_item(label, path, folder=True):
+    """
+    Adds a xbmcplugin.addDirectoryItem() directory itemlistitem
+    """
+    listitem = ListItem(label, path=path)
+    listitem.setThumbnailImage(
+        "special://home/addons/plugin.video.plexkodiconnect/icon.png")
+    listitem.setArt(
+        {"fanart": "special://home/addons/plugin.video.plexkodiconnect/fanart.jpg"})
+    listitem.setArt(
+        {"landscape":"special://home/addons/plugin.video.plexkodiconnect/fanart.jpg"})
+    xbmcplugin.addDirectoryItem(handle=HANDLE,
+                                url=path,
+                                listitem=listitem,
+                                isFolder=folder)
 
 
-def doMainListing(content_type=None):
-    log.debug('Do main listing with content_type: %s' % content_type)
+def show_main_menu(content_type=None):
+    """
+    Shows the main PKC menu listing with all libraries, Channel, settings, etc.
+    """
+    LOG.debug('Do main listing with content_type: %s', content_type)
     xbmcplugin.setContent(HANDLE, 'files')
     # Get emby nodes from the window props
     plexprops = window('Plex.nodes.total')
@@ -133,33 +154,33 @@ def doMainListing(content_type=None):
             # now we just only show picture nodes in the picture library video
             # nodes in the video library and all nodes in any other window
             if node_type == 'photos' and content_type == 'image':
-                addDirectoryItem(label, path)
+                directory_item(label, path)
             elif (node_type != 'photos' and
                     content_type not in ('image', 'audio')):
-                addDirectoryItem(label, path)
+                directory_item(label, path)
 
     # Plex Watch later
     if content_type not in ('image', 'audio'):
-        addDirectoryItem(lang(39211),
-                         "plugin://%s?mode=watchlater" % v.ADDON_ID)
+        directory_item(lang(39211),
+                       "plugin://%s?mode=watchlater" % v.ADDON_ID)
     # Plex Channels
-    addDirectoryItem(lang(30173),
-                     "plugin://%s?mode=channels" % v.ADDON_ID)
+    directory_item(lang(30173),
+                   "plugin://%s?mode=channels" % v.ADDON_ID)
     # Plex user switch
-    addDirectoryItem('%s%s' % (lang(39200), settings('username')),
-                     "plugin://%s?mode=switchuser" % v.ADDON_ID)
+    directory_item('%s%s' % (lang(39200), settings('username')),
+                   "plugin://%s?mode=switchuser" % v.ADDON_ID)
 
     # some extra entries for settings and stuff
-    addDirectoryItem(lang(39201),
-                     "plugin://%s?mode=settings" % v.ADDON_ID)
-    addDirectoryItem(lang(39203),
-                     "plugin://%s?mode=refreshplaylist" % v.ADDON_ID)
-    addDirectoryItem(lang(39204),
-                     "plugin://%s?mode=manualsync" % v.ADDON_ID)
+    directory_item(lang(39201),
+                   "plugin://%s?mode=settings" % v.ADDON_ID)
+    directory_item(lang(39203),
+                   "plugin://%s?mode=refreshplaylist" % v.ADDON_ID)
+    directory_item(lang(39204),
+                   "plugin://%s?mode=manualsync" % v.ADDON_ID)
     xbmcplugin.endOfDirectory(HANDLE)
 
 
-def switchPlexUser():
+def switch_plex_user():
     """
     Signs out currently logged in user (if applicable). Triggers sign-in of a
     new user
@@ -168,42 +189,30 @@ def switchPlexUser():
     # Delete any userimages. Since there's always only 1 user: position = 0
     # position = 0
     # window('EmbyAdditionalUserImage.%s' % position, clear=True)
-    log.info("Plex home user switch requested")
-    if not __LogOut():
+    LOG.info("Plex home user switch requested")
+    if not _log_out():
         return
-
     # First remove playlists of old user
     from utils import delete_playlists, delete_nodes
     delete_playlists()
     # Remove video nodes
     delete_nodes()
-    __LogIn()
+    _log_in()
 
 
-#### SHOW SUBFOLDERS FOR NODE #####
-def GetSubFolders(nodeindex):
-    nodetypes = ["",".recent",".recentepisodes",".inprogress",".inprogressepisodes",".unwatched",".nextepisodes",".sets",".genres",".random",".recommended"]
-    for node in nodetypes:
-        title = window('Plex.nodes.%s%s.title' %(nodeindex,node))
-        if title:
-            path = window('Plex.nodes.%s%s.content' %(nodeindex,node))
-            addDirectoryItem(title, path)
-    xbmcplugin.endOfDirectory(HANDLE)
-
-
-##### LISTITEM SETUP FOR VIDEONODES #####
-def createListItem(item, append_show_title=False, append_sxxexx=False):
-    log.debug('createListItem called with append_show_title %s, append_sxxexx '
-              '%s, item: %s', append_show_title, append_sxxexx, item)
+def create_listitem(item, append_show_title=False, append_sxxexx=False):
+    """
+    Feed with a Kodi json item response to get a xbmcgui.ListItem() with
+    everything set and ready.
+    """
     title = item['title']
-    li = ListItem(title)
-    li.setProperty('IsPlayable', 'true')
+    listitem = ListItem(title)
+    listitem.setProperty('IsPlayable', 'true')
     metadata = {
-        'duration': str(item['runtime']/60),
+        'duration': str(item['runtime'] / 60),
         'Plot': item['plot'],
         'Playcount': item['playcount']
     }
-
     if 'episode' in item:
         episode = item['episode']
         metadata['Episode'] = episode
@@ -211,7 +220,7 @@ def createListItem(item, append_show_title=False, append_sxxexx=False):
         season = item['season']
         metadata['Season'] = season
     if season and episode:
-        li.setProperty('episodeno', 's%.2de%.2d' % (season, episode))
+        listitem.setProperty('episodeno', 's%.2de%.2d' % (season, episode))
         if append_sxxexx is True:
             title = 'S%.2dE%.2d - %s' % (season, episode, title)
     if 'firstaired' in item:
@@ -239,27 +248,30 @@ def createListItem(item, append_show_title=False, append_sxxexx=False):
     metadata['Title'] = title
     metadata['mediatype'] = 'episode'
     metadata['dbid'] = str(item['episodeid'])
-    li.setLabel(title)
-    li.setInfo(type='Video', infoLabels=metadata)
+    listitem.setLabel(title)
+    listitem.setInfo(type='Video', infoLabels=metadata)
 
-    li.setProperty('resumetime', str(item['resume']['position']))
-    li.setProperty('totaltime', str(item['resume']['total']))
-    li.setArt(item['art'])
-    li.setThumbnailImage(item['art'].get('thumb', ''))
-    li.setArt({'icon': 'DefaultTVShows.png'})
-    li.setProperty('fanart_image', item['art'].get('tvshow.fanart', ''))
+    listitem.setProperty('resumetime', str(item['resume']['position']))
+    listitem.setProperty('totaltime', str(item['resume']['total']))
+    listitem.setArt(item['art'])
+    listitem.setThumbnailImage(item['art'].get('thumb', ''))
+    listitem.setArt({'icon': 'DefaultTVShows.png'})
+    listitem.setProperty('fanart_image', item['art'].get('tvshow.fanart', ''))
     try:
-        li.addContextMenuItems([(lang(30032), 'XBMC.Action(Info)',)])
+        listitem.addContextMenuItems([(lang(30032), 'XBMC.Action(Info)',)])
     except TypeError:
         # Kodi fuck-up
         pass
     for key, value in item['streamdetails'].iteritems():
         for stream in value:
-            li.addStreamInfo(key, stream)
-    return li
+            listitem.addStreamInfo(key, stream)
+    return listitem
 
-##### GET NEXTUP EPISODES FOR TAGNAME #####    
-def getNextUpEpisodes(tagname, limit):
+
+def next_up_episodes(tagname, limit):
+    """
+    List the next up episodes for tagname.
+    """
     count = 0
     # if the addon is called with nextup parameter,
     # we return the nextepisodes list of the given tagname
@@ -314,15 +326,17 @@ def getNextUpEpisodes(tagname, limit):
         for episode in js.get_episodes(params):
             xbmcplugin.addDirectoryItem(handle=HANDLE,
                                         url=episode['file'],
-                                        listitem=createListItem(episode))
+                                        listitem=create_listitem(episode))
             count += 1
         if count == limit:
             break
     xbmcplugin.endOfDirectory(handle=HANDLE)
 
 
-##### GET INPROGRESS EPISODES FOR TAGNAME #####
-def getInProgressEpisodes(tagname, limit):
+def in_progress_episodes(tagname, limit):
+    """
+    List the episodes that are in progress for tagname
+    """
     count = 0
     # if the addon is called with inprogressepisodes parameter,
     # we return the inprogressepisodes list of the given tagname
@@ -346,22 +360,25 @@ def getInProgressEpisodes(tagname, limit):
                 'field': "inprogress",
                 'value': ""},
             'properties': ["title", "playcount", "season", "episode",
-                "showtitle", "plot", "file", "rating", "resume",
-                "tvshowid", "art", "cast", "streamdetails", "firstaired",
-                "runtime", "writer", "dateadded", "lastplayed"]
+                           "showtitle", "plot", "file", "rating", "resume",
+                           "tvshowid", "art", "cast", "streamdetails",
+                           "firstaired", "runtime", "writer", "dateadded",
+                           "lastplayed"]
         }
         for episode in js.get_episodes(params):
             xbmcplugin.addDirectoryItem(handle=HANDLE,
                                         url=episode['file'],
-                                        listitem=createListItem(episode))
+                                        listitem=create_listitem(episode))
             count += 1
         if count == limit:
             break
     xbmcplugin.endOfDirectory(handle=HANDLE)
 
-##### GET RECENT EPISODES FOR TAGNAME #####    
-# def getRecentEpisodes(tagname, limit):
-def getRecentEpisodes(viewid, mediatype, tagname, limit):
+
+def recent_episodes(mediatype, tagname, limit):
+    """
+    List the recently added episodes for tagname
+    """
     count = 0
     # if the addon is called with recentepisodes parameter,
     # we return the recentepisodes list of the given tagname
@@ -369,13 +386,13 @@ def getRecentEpisodes(viewid, mediatype, tagname, limit):
     append_show_title = settings('RecentTvAppendShow') == 'true'
     append_sxxexx = settings('RecentTvAppendSeason') == 'true'
     # First we get a list of all the TV shows - filtered by tag
-    allshowsIds = set()
+    show_ids = set()
     params = {
         'sort': {'order': "descending", 'method': "dateadded"},
         'filter': {'operator': "is", 'field': "tag", 'value': "%s" % tagname},
     }
     for tv_show in js.get_tv_shows(params):
-        allshowsIds.add(tv_show['tvshowid'])
+        show_ids.add(tv_show['tvshowid'])
     params = {
         'sort': {'order': "descending", 'method': "dateadded"},
         'properties': ["title", "playcount", "season", "episode", "showtitle",
@@ -391,28 +408,27 @@ def getRecentEpisodes(viewid, mediatype, tagname, limit):
             'value': "1"
         }
     for episode in js.get_episodes(params):
-        if episode['tvshowid'] in allshowsIds:
-            listitem = createListItem(episode,
-                                append_show_title=append_show_title,
-                                append_sxxexx=append_sxxexx)
-            xbmcplugin.addDirectoryItem(
-                        handle=HANDLE,
-                        url=episode['file'],
-                        listitem=listitem)
+        if episode['tvshowid'] in show_ids:
+            listitem = create_listitem(episode,
+                                       append_show_title=append_show_title,
+                                       append_sxxexx=append_sxxexx)
+            xbmcplugin.addDirectoryItem(handle=HANDLE,
+                                        url=episode['file'],
+                                        listitem=listitem)
             count += 1
         if count == limit:
             break
     xbmcplugin.endOfDirectory(handle=HANDLE)
 
 
-def getVideoFiles(plexId, params):
+def get_video_files(plex_id, params):
     """
     GET VIDEO EXTRAS FOR LISTITEM
 
     returns the video files for the item as plugin listing, can be used for
     browsing the actual files or videoextras etc.
     """
-    if plexId is None:
+    if plex_id is None:
         filename = params.get('filename')
         if filename is not None:
             filename = filename[0]
@@ -420,19 +436,19 @@ def getVideoFiles(plexId, params):
             regex = re.compile(r'''library/metadata/(\d+)''')
             filename = regex.findall(filename)
             try:
-                plexId = filename[0]
+                plex_id = filename[0]
             except IndexError:
                 pass
 
-    if plexId is None:
-        log.info('No Plex ID found, abort getting Extras')
+    if plex_id is None:
+        LOG.info('No Plex ID found, abort getting Extras')
         return xbmcplugin.endOfDirectory(HANDLE)
 
-    item = GetPlexMetadata(plexId)
+    item = GetPlexMetadata(plex_id)
     try:
         path = item[0][0][0].attrib['file']
-    except:
-        log.error('Could not get file path for item %s' % plexId)
+    except (TypeError, IndexError, AttributeError, KeyError):
+        LOG.error('Could not get file path for item %s', plex_id)
         return xbmcplugin.endOfDirectory(HANDLE)
     # Assign network protocol
     if path.startswith('\\\\'):
@@ -447,82 +463,80 @@ def getVideoFiles(plexId, params):
         for root, dirs, files in walk(path):
             for directory in dirs:
                 item_path = try_encode(join(root, directory))
-                li = ListItem(item_path, path=item_path)
+                listitem = ListItem(item_path, path=item_path)
                 xbmcplugin.addDirectoryItem(handle=HANDLE,
                                             url=item_path,
-                                            listitem=li,
+                                            listitem=listitem,
                                             isFolder=True)
             for file in files:
                 item_path = try_encode(join(root, file))
-                li = ListItem(item_path, path=item_path)
+                listitem = ListItem(item_path, path=item_path)
                 xbmcplugin.addDirectoryItem(handle=HANDLE,
                                             url=file,
-                                            listitem=li)
+                                            listitem=listitem)
             break
     else:
-        log.error('Kodi cannot access folder %s' % path)
+        LOG.error('Kodi cannot access folder %s', path)
     xbmcplugin.endOfDirectory(HANDLE)
 
 
 @catch_exceptions(warnuser=False)
-def getExtraFanArt(plexid, plexPath):
+def extra_fanart(plex_id, plex_path):
     """
     Get extrafanart for listitem
     will be called by skinhelper script to get the extrafanart
-    for tvshows we get the plexid just from the path
+    for tvshows we get the plex_id just from the path
     """
-    log.debug('Called with plexid: %s, plexPath: %s' % (plexid, plexPath))
-    if not plexid:
-        if "plugin.video.plexkodiconnect" in plexPath:
-            plexid = plexPath.split("/")[-2]
-    if not plexid:
-        log.error('Could not get a plexid, aborting')
+    LOG.debug('Called with plex_id: %s, plex_path: %s', plex_id, plex_path)
+    if not plex_id:
+        if "plugin.video.plexkodiconnect" in plex_path:
+            plex_id = plex_path.split("/")[-2]
+    if not plex_id:
+        LOG.error('Could not get a plex_id, aborting')
         return xbmcplugin.endOfDirectory(HANDLE)
 
     # We need to store the images locally for this to work
     # because of the caching system in xbmc
-    fanartDir = try_decode(translatePath(
-        "special://thumbnails/plex/%s/" % plexid))
-    if not exists_dir(fanartDir):
+    fanart_dir = try_decode(translatePath(
+        "special://thumbnails/plex/%s/" % plex_id))
+    if not exists_dir(fanart_dir):
         # Download the images to the cache directory
-        makedirs(fanartDir)
-        xml = GetPlexMetadata(plexid)
+        makedirs(fanart_dir)
+        xml = GetPlexMetadata(plex_id)
         if xml is None:
-            log.error('Could not download metadata for %s' % plexid)
+            LOG.error('Could not download metadata for %s', plex_id)
             return xbmcplugin.endOfDirectory(HANDLE)
 
         api = API(xml[0])
         backdrops = api.artwork()['Backdrop']
         for count, backdrop in enumerate(backdrops):
             # Same ordering as in artwork
-            fanartFile = try_encode(join(fanartDir, "fanart%.3d.jpg" % count))
-            li = ListItem("%.3d" % count, path=fanartFile)
+            art_file = try_encode(join(fanart_dir, "fanart%.3d.jpg" % count))
+            listitem = ListItem("%.3d" % count, path=art_file)
             xbmcplugin.addDirectoryItem(
                 handle=HANDLE,
-                url=fanartFile,
-                listitem=li)
-            copyfile(backdrop, try_decode(fanartFile))
+                url=art_file,
+                listitem=listitem)
+            copyfile(backdrop, try_decode(art_file))
     else:
-        log.info("Found cached backdrop.")
+        LOG.info("Found cached backdrop.")
         # Use existing cached images
-        for root, dirs, files in walk(fanartDir):
+        for root, _, files in walk(fanart_dir):
             for file in files:
-                fanartFile = try_encode(join(root, file))
-                li = ListItem(file, path=fanartFile)
+                art_file = try_encode(join(root, file))
+                listitem = ListItem(file, path=art_file)
                 xbmcplugin.addDirectoryItem(handle=HANDLE,
-                                            url=fanartFile,
-                                            listitem=li)
+                                            url=art_file,
+                                            listitem=listitem)
     xbmcplugin.endOfDirectory(HANDLE)
 
 
-def getOnDeck(viewid, mediatype, tagname, limit):
+def on_deck_episodes(viewid, tagname, limit):
     """
     Retrieves Plex On Deck items, currently only for TV shows
 
     Input:
         viewid:             Plex id of the library section, e.g. '1'
-        mediatype:          Kodi mediatype, e.g. 'tvshows', 'movies',
-                            'homevideos', 'photos'
         tagname:            Name of the Plex library, e.g. "My Movies"
         limit:              Max. number of items to retrieve, e.g. 50
     """
@@ -536,7 +550,7 @@ def getOnDeck(viewid, mediatype, tagname, limit):
         while window('plex_authenticated') != 'true':
             counter += 1
             if counter == 300:
-                log.error('Aborting On Deck view, we were not authenticated '
+                LOG.error('Aborting On Deck view, we were not authenticated '
                           'for the PMS')
                 xbmcplugin.endOfDirectory(HANDLE, False)
                 return
@@ -544,7 +558,7 @@ def getOnDeck(viewid, mediatype, tagname, limit):
         xml = downloadutils.DownloadUtils().downloadUrl(
             '{server}/library/sections/%s/onDeck' % viewid)
         if xml in (None, 401):
-            log.error('Could not download PMS xml for view %s' % viewid)
+            LOG.error('Could not download PMS xml for view %s', viewid)
             xbmcplugin.endOfDirectory(HANDLE, False)
             return
         direct_paths = settings('useDirectPaths') == '1'
@@ -632,9 +646,9 @@ def getOnDeck(viewid, mediatype, tagname, limit):
                 continue
         for episode in episodes:
             # There will always be only 1 episode ('limit=1')
-            listitem = createListItem(episode,
-                                      append_show_title=append_show_title,
-                                      append_sxxexx=append_sxxexx)
+            listitem = create_listitem(episode,
+                                       append_show_title=append_show_title,
+                                       append_sxxexx=append_sxxexx)
             xbmcplugin.addDirectoryItem(handle=HANDLE,
                                         url=episode['file'],
                                         listitem=listitem,
@@ -650,10 +664,10 @@ def watchlater():
     Listing for plex.tv Watch Later section (if signed in to plex.tv)
     """
     if window('plex_token') == '':
-        log.error('No watch later - not signed in to plex.tv')
+        LOG.error('No watch later - not signed in to plex.tv')
         return xbmcplugin.endOfDirectory(HANDLE, False)
     if window('plex_restricteduser') == 'true':
-        log.error('No watch later - restricted user')
+        LOG.error('No watch later - restricted user')
         return xbmcplugin.endOfDirectory(HANDLE, False)
 
     xml = downloadutils.DownloadUtils().downloadUrl(
@@ -661,10 +675,10 @@ def watchlater():
         authenticate=False,
         headerOptions={'X-Plex-Token': window('plex_token')})
     if xml in (None, 401):
-        log.error('Could not download watch later list from plex.tv')
+        LOG.error('Could not download watch later list from plex.tv')
         return xbmcplugin.endOfDirectory(HANDLE, False)
 
-    log.info('Displaying watch later plex.tv items')
+    LOG.info('Displaying watch later plex.tv items')
     xbmcplugin.setContent(HANDLE, 'movies')
     direct_paths = settings('useDirectPaths') == '1'
     for item in xml:
@@ -683,10 +697,10 @@ def channels():
     try:
         xml[0].attrib
     except (ValueError, AttributeError, IndexError, TypeError):
-        log.error('Could not download Plex Channels')
+        LOG.error('Could not download Plex Channels')
         return xbmcplugin.endOfDirectory(HANDLE, False)
 
-    log.info('Displaying Plex Channels')
+    LOG.info('Displaying Plex Channels')
     xbmcplugin.setContent(HANDLE, 'files')
     for method in v.SORT_METHODS_DIRECTORY:
         xbmcplugin.addSortMethod(HANDLE, getattr(xbmcplugin, method))
@@ -709,7 +723,7 @@ def browse_plex(key=None, plex_section_id=None):
     try:
         xml[0].attrib
     except (ValueError, AttributeError, IndexError, TypeError):
-        log.error('Could not browse to %s' % key)
+        LOG.error('Could not browse to %s', key)
         return xbmcplugin.endOfDirectory(HANDLE, False)
 
     photos = False
@@ -855,19 +869,19 @@ def extras(plex_id):
     xbmcplugin.endOfDirectory(HANDLE)
 
 
-def enterPMS():
+def create_new_pms():
     """
     Opens dialogs for the user the plug in the PMS details
     """
     # "Enter your Plex Media Server's IP or URL. Examples are:"
     dialog('ok', lang(29999), lang(39215), '192.168.1.2', 'plex.myServer.org')
-    ip = dialog('input', "Enter PMS IP or URL")
-    if ip == '':
+    address = dialog('input', "Enter PMS IP or URL")
+    if address == '':
         return
     port = dialog('input', "Enter PMS port", '32400', type='{numeric}')
     if port == '':
         return
-    url = '%s:%s' % (ip, port)
+    url = '%s:%s' % (address, port)
     # "Does your Plex Media Server support SSL connections?
     # (https instead of http)"
     https = dialog('yesno', lang(29999), lang(39217))
@@ -876,9 +890,8 @@ def enterPMS():
     else:
         url = 'http://%s' % url
     https = 'true' if https else 'false'
-
-    machineIdentifier = GetMachineIdentifier(url)
-    if machineIdentifier is None:
+    machine_identifier = GetMachineIdentifier(url)
+    if machine_identifier is None:
         # "Error contacting url
         # Abort (Yes) or save address anyway (No)"
         if dialog('yesno',
@@ -888,22 +901,22 @@ def enterPMS():
         else:
             settings('plex_machineIdentifier', '')
     else:
-        settings('plex_machineIdentifier', machineIdentifier)
-    log.info('Set new PMS to https %s, ip %s, port %s, machineIdentifier %s'
-             % (https, ip, port, machineIdentifier))
+        settings('plex_machineIdentifier', machine_identifier)
+    LOG.info('Set new PMS to https %s, address %s, port %s, machineId %s',
+             https, address, port, machine_identifier)
     settings('https', value=https)
-    settings('ipaddress', value=ip)
+    settings('ipaddress', value=address)
     settings('port', value=port)
     # Chances are this is a local PMS, so disable SSL certificate check
     settings('sslverify', value='false')
 
     # Sign out to trigger new login
-    if __LogOut():
+    if _log_out():
         # Only login again if logout was successful
-        __LogIn()
+        _log_in()
 
 
-def __LogIn():
+def _log_in():
     """
     Resets (clears) window properties to enable (re-)login
 
@@ -915,7 +928,7 @@ def __LogIn():
     plex_command('SUSPEND_USER_CLIENT', 'False')
 
 
-def __LogOut():
+def _log_out():
     """
     Finishes lib scans, logs out user.
 
@@ -938,11 +951,11 @@ def __LogOut():
             dialog('ok', lang(29999), lang(39208))
             # Resuming threads, just in case
             plex_command('SUSPEND_LIBRARY_THREAD', 'False')
-            log.error("Could not stop library sync, aborting")
+            LOG.error("Could not stop library sync, aborting")
             return False
         counter += 1
         sleep(50)
-    log.debug("Successfully stopped library sync")
+    LOG.debug("Successfully stopped library sync")
 
     counter = 0
     # Log out currently signed in user:
@@ -953,7 +966,7 @@ def __LogOut():
         if counter > 100:
             # 'Failed to reset PKC. Try to restart Kodi.'
             dialog('ok', lang(29999), lang(39208))
-            log.error("Could not sign out user, aborting")
+            LOG.error("Could not sign out user, aborting")
             return False
         counter += 1
         sleep(50)
