@@ -521,7 +521,7 @@ def extra_fanart(plex_id, plex_path):
     else:
         LOG.info("Found cached backdrop.")
         # Use existing cached images
-        for root, dirs, files in walk(fanart_dir):
+        for root, _, files in walk(fanart_dir):
             for file in files:
                 art_file = try_encode(join(root, file))
                 listitem = ListItem(file, path=art_file)
