@@ -333,8 +333,10 @@ def next_up_episodes(tagname, limit):
     xbmcplugin.endOfDirectory(handle=HANDLE)
 
 
-##### GET INPROGRESS EPISODES FOR TAGNAME #####
-def getInProgressEpisodes(tagname, limit):
+def in_progress_episodes(tagname, limit):
+    """
+    List the episodes that are in progress for tagname
+    """
     count = 0
     # if the addon is called with inprogressepisodes parameter,
     # we return the inprogressepisodes list of the given tagname

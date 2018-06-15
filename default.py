@@ -83,8 +83,8 @@ class Main():
                                         int(params['limit']))
 
         elif mode == 'inprogressepisodes':
-            entrypoint.getInProgressEpisodes(params['tagname'],
-                                             int(params['limit']))
+            entrypoint.in_progress_episodes(params['tagname'],
+                                            int(params['limit']))
 
         elif mode == 'browseplex':
             entrypoint.browse_plex(key=params.get('key'),
