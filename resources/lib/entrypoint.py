@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+#
+# Loads of different functions called in SEPARATE Python instances through
+# e.g. plugin://... calls. Hence be careful to only rely on window variables.
+#
 ###############################################################################
 from logging import getLogger
 from shutil import copyfile
@@ -22,7 +26,7 @@ import json_rpc as js
 import variables as v
 
 ###############################################################################
-log = getLogger("PLEX."+__name__)
+LOG = getLogger("PLEX." + __name__)
 
 try:
     HANDLE = int(argv[1])
@@ -36,18 +40,18 @@ def chooseServer():
     """
     Lets user choose from list of PMS
     """
-    log.info("Choosing PMS server requested, starting")
+    LOG.info("Choosing PMS server requested, starting")
 
     import initialsetup
     setup = initialsetup.InitialSetup()
     server = setup.pick_pms(showDialog=True)
     if server is None:
-        log.error('We did not connect to a new PMS, aborting')
+        LOG.error('We did not connect to a new PMS, aborting')
         plex_command('SUSPEND_USER_CLIENT', 'False')
         plex_command('SUSPEND_LIBRARY_THREAD', 'False')
         return
 
-    log.info("User chose server %s" % server['name'])
+    LOG.info("User chose server %s" % server['name'])
     setup.write_pms_to_settings(server)
 
     if not __LogOut():
@@ -59,7 +63,7 @@ def chooseServer():
 
     # Log in again
     __LogIn()
-    log.info("Choosing new PMS complete")
+    LOG.info("Choosing new PMS complete")
     # '<PMS> connected'
     dialog('notification',
            lang(29999),
@@ -71,7 +75,7 @@ def chooseServer():
 
 def togglePlexTV():
     if settings('plexToken'):
-        log.info('Reseting plex.tv credentials in settings')
+        LOG.info('Reseting plex.tv credentials in settings')
         settings('plexLogin', value="")
         settings('plexToken', value="")
         settings('plexid', value="")
@@ -83,7 +87,7 @@ def togglePlexTV():
         plex_command('PLEX_TOKEN', '')
         plex_command('PLEX_USERNAME', '')
     else:
-        log.info('Login to plex.tv')
+        LOG.info('Login to plex.tv')
         import initialsetup
         initialsetup.InitialSetup().plex_tv_sign_in()
     dialog('notification',
@@ -99,7 +103,7 @@ def resetAuth():
     # User tried login and failed too many times
     resp = dialog('yesno', heading="{plex}", line1=lang(39206))
     if resp == 1:
-        log.info("Reset login attempts.")
+        LOG.info("Reset login attempts.")
         plex_command('PMS_STATUS', 'Auth')
     else:
         executebuiltin('Addon.OpenSettings(plugin.video.plexkodiconnect)')
@@ -114,7 +118,7 @@ def addDirectoryItem(label, path, folder=True):
 
 
 def doMainListing(content_type=None):
-    log.debug('Do main listing with content_type: %s' % content_type)
+    LOG.debug('Do main listing with content_type: %s' % content_type)
     xbmcplugin.setContent(HANDLE, 'files')
     # Get emby nodes from the window props
     plexprops = window('Plex.nodes.total')
@@ -168,7 +172,7 @@ def switchPlexUser():
     # Delete any userimages. Since there's always only 1 user: position = 0
     # position = 0
     # window('EmbyAdditionalUserImage.%s' % position, clear=True)
-    log.info("Plex home user switch requested")
+    LOG.info("Plex home user switch requested")
     if not __LogOut():
         return
 
@@ -193,7 +197,7 @@ def GetSubFolders(nodeindex):
 
 ##### LISTITEM SETUP FOR VIDEONODES #####
 def createListItem(item, append_show_title=False, append_sxxexx=False):
-    log.debug('createListItem called with append_show_title %s, append_sxxexx '
+    LOG.debug('createListItem called with append_show_title %s, append_sxxexx '
               '%s, item: %s', append_show_title, append_sxxexx, item)
     title = item['title']
     li = ListItem(title)
@@ -425,14 +429,14 @@ def getVideoFiles(plexId, params):
                 pass
 
     if plexId is None:
-        log.info('No Plex ID found, abort getting Extras')
+        LOG.info('No Plex ID found, abort getting Extras')
         return xbmcplugin.endOfDirectory(HANDLE)
 
     item = GetPlexMetadata(plexId)
     try:
         path = item[0][0][0].attrib['file']
     except:
-        log.error('Could not get file path for item %s' % plexId)
+        LOG.error('Could not get file path for item %s' % plexId)
         return xbmcplugin.endOfDirectory(HANDLE)
     # Assign network protocol
     if path.startswith('\\\\'):
@@ -460,7 +464,7 @@ def getVideoFiles(plexId, params):
                                             listitem=li)
             break
     else:
-        log.error('Kodi cannot access folder %s' % path)
+        LOG.error('Kodi cannot access folder %s' % path)
     xbmcplugin.endOfDirectory(HANDLE)
 
 
@@ -471,12 +475,12 @@ def getExtraFanArt(plexid, plexPath):
     will be called by skinhelper script to get the extrafanart
     for tvshows we get the plexid just from the path
     """
-    log.debug('Called with plexid: %s, plexPath: %s' % (plexid, plexPath))
+    LOG.debug('Called with plexid: %s, plexPath: %s' % (plexid, plexPath))
     if not plexid:
         if "plugin.video.plexkodiconnect" in plexPath:
             plexid = plexPath.split("/")[-2]
     if not plexid:
-        log.error('Could not get a plexid, aborting')
+        LOG.error('Could not get a plexid, aborting')
         return xbmcplugin.endOfDirectory(HANDLE)
 
     # We need to store the images locally for this to work
@@ -488,7 +492,7 @@ def getExtraFanArt(plexid, plexPath):
         makedirs(fanartDir)
         xml = GetPlexMetadata(plexid)
         if xml is None:
-            log.error('Could not download metadata for %s' % plexid)
+            LOG.error('Could not download metadata for %s' % plexid)
             return xbmcplugin.endOfDirectory(HANDLE)
 
         api = API(xml[0])
@@ -503,7 +507,7 @@ def getExtraFanArt(plexid, plexPath):
                 listitem=li)
             copyfile(backdrop, try_decode(fanartFile))
     else:
-        log.info("Found cached backdrop.")
+        LOG.info("Found cached backdrop.")
         # Use existing cached images
         for root, dirs, files in walk(fanartDir):
             for file in files:
@@ -536,7 +540,7 @@ def getOnDeck(viewid, mediatype, tagname, limit):
         while window('plex_authenticated') != 'true':
             counter += 1
             if counter == 300:
-                log.error('Aborting On Deck view, we were not authenticated '
+                LOG.error('Aborting On Deck view, we were not authenticated '
                           'for the PMS')
                 xbmcplugin.endOfDirectory(HANDLE, False)
                 return
@@ -544,7 +548,7 @@ def getOnDeck(viewid, mediatype, tagname, limit):
         xml = downloadutils.DownloadUtils().downloadUrl(
             '{server}/library/sections/%s/onDeck' % viewid)
         if xml in (None, 401):
-            log.error('Could not download PMS xml for view %s' % viewid)
+            LOG.error('Could not download PMS xml for view %s' % viewid)
             xbmcplugin.endOfDirectory(HANDLE, False)
             return
         direct_paths = settings('useDirectPaths') == '1'
@@ -650,10 +654,10 @@ def watchlater():
     Listing for plex.tv Watch Later section (if signed in to plex.tv)
     """
     if window('plex_token') == '':
-        log.error('No watch later - not signed in to plex.tv')
+        LOG.error('No watch later - not signed in to plex.tv')
         return xbmcplugin.endOfDirectory(HANDLE, False)
     if window('plex_restricteduser') == 'true':
-        log.error('No watch later - restricted user')
+        LOG.error('No watch later - restricted user')
         return xbmcplugin.endOfDirectory(HANDLE, False)
 
     xml = downloadutils.DownloadUtils().downloadUrl(
@@ -661,10 +665,10 @@ def watchlater():
         authenticate=False,
         headerOptions={'X-Plex-Token': window('plex_token')})
     if xml in (None, 401):
-        log.error('Could not download watch later list from plex.tv')
+        LOG.error('Could not download watch later list from plex.tv')
         return xbmcplugin.endOfDirectory(HANDLE, False)
 
-    log.info('Displaying watch later plex.tv items')
+    LOG.info('Displaying watch later plex.tv items')
     xbmcplugin.setContent(HANDLE, 'movies')
     direct_paths = settings('useDirectPaths') == '1'
     for item in xml:
@@ -683,10 +687,10 @@ def channels():
     try:
         xml[0].attrib
     except (ValueError, AttributeError, IndexError, TypeError):
-        log.error('Could not download Plex Channels')
+        LOG.error('Could not download Plex Channels')
         return xbmcplugin.endOfDirectory(HANDLE, False)
 
-    log.info('Displaying Plex Channels')
+    LOG.info('Displaying Plex Channels')
     xbmcplugin.setContent(HANDLE, 'files')
     for method in v.SORT_METHODS_DIRECTORY:
         xbmcplugin.addSortMethod(HANDLE, getattr(xbmcplugin, method))
@@ -709,7 +713,7 @@ def browse_plex(key=None, plex_section_id=None):
     try:
         xml[0].attrib
     except (ValueError, AttributeError, IndexError, TypeError):
-        log.error('Could not browse to %s' % key)
+        LOG.error('Could not browse to %s' % key)
         return xbmcplugin.endOfDirectory(HANDLE, False)
 
     photos = False
@@ -889,7 +893,7 @@ def enterPMS():
             settings('plex_machineIdentifier', '')
     else:
         settings('plex_machineIdentifier', machineIdentifier)
-    log.info('Set new PMS to https %s, ip %s, port %s, machineIdentifier %s'
+    LOG.info('Set new PMS to https %s, ip %s, port %s, machineIdentifier %s'
              % (https, ip, port, machineIdentifier))
     settings('https', value=https)
     settings('ipaddress', value=ip)
@@ -938,11 +942,11 @@ def __LogOut():
             dialog('ok', lang(29999), lang(39208))
             # Resuming threads, just in case
             plex_command('SUSPEND_LIBRARY_THREAD', 'False')
-            log.error("Could not stop library sync, aborting")
+            LOG.error("Could not stop library sync, aborting")
             return False
         counter += 1
         sleep(50)
-    log.debug("Successfully stopped library sync")
+    LOG.debug("Successfully stopped library sync")
 
     counter = 0
     # Log out currently signed in user:
@@ -953,7 +957,7 @@ def __LogOut():
         if counter > 100:
             # 'Failed to reset PKC. Try to restart Kodi.'
             dialog('ok', lang(29999), lang(39208))
-            log.error("Could not sign out user, aborting")
+            LOG.error("Could not sign out user, aborting")
             return False
         counter += 1
         sleep(50)
