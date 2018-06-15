@@ -268,8 +268,10 @@ def create_listitem(item, append_show_title=False, append_sxxexx=False):
     return listitem
 
 
-##### GET NEXTUP EPISODES FOR TAGNAME #####    
-def getNextUpEpisodes(tagname, limit):
+def next_up_episodes(tagname, limit):
+    """
+    List the next up episodes for tagname.
+    """
     count = 0
     # if the addon is called with nextup parameter,
     # we return the nextepisodes list of the given tagname
