@@ -51,10 +51,10 @@ def choose_pms_server():
         plex_command('SUSPEND_LIBRARY_THREAD', 'False')
         return
 
-    LOG.info("User chose server %s" % server['name'])
+    LOG.info("User chose server %s", server['name'])
     setup.write_pms_to_settings(server)
 
-    if not __LogOut():
+    if not _log_out():
         return
 
     from utils import wipe_database
@@ -62,7 +62,7 @@ def choose_pms_server():
     wipe_database()
 
     # Log in again
-    __LogIn()
+    _log_in()
     LOG.info("Choosing new PMS complete")
     # '<PMS> connected'
     dialog('notification',
@@ -135,7 +135,7 @@ def show_main_menu(content_type=None):
     """
     Shows the main PKC menu listing with all libraries, Channel, settings, etc.
     """
-    LOG.debug('Do main listing with content_type: %s' % content_type)
+    LOG.debug('Do main listing with content_type: %s', content_type)
     xbmcplugin.setContent(HANDLE, 'files')
     # Get emby nodes from the window props
     plexprops = window('Plex.nodes.total')
@@ -190,14 +190,14 @@ def switch_plex_user():
     # position = 0
     # window('EmbyAdditionalUserImage.%s' % position, clear=True)
     LOG.info("Plex home user switch requested")
-    if not __LogOut():
+    if not _log_out():
         return
     # First remove playlists of old user
     from utils import delete_playlists, delete_nodes
     delete_playlists()
     # Remove video nodes
     delete_nodes()
-    __LogIn()
+    _log_in()
 
 
 def create_listitem(item, append_show_title=False, append_sxxexx=False):
@@ -448,7 +448,7 @@ def get_video_files(plex_id, params):
     try:
         path = item[0][0][0].attrib['file']
     except (TypeError, IndexError, AttributeError, KeyError):
-        LOG.error('Could not get file path for item %s' % plex_id)
+        LOG.error('Could not get file path for item %s', plex_id)
         return xbmcplugin.endOfDirectory(HANDLE)
     # Assign network protocol
     if path.startswith('\\\\'):
@@ -476,7 +476,7 @@ def get_video_files(plex_id, params):
                                             listitem=listitem)
             break
     else:
-        LOG.error('Kodi cannot access folder %s' % path)
+        LOG.error('Kodi cannot access folder %s', path)
     xbmcplugin.endOfDirectory(HANDLE)
 
 
@@ -558,7 +558,7 @@ def on_deck_episodes(viewid, tagname, limit):
         xml = downloadutils.DownloadUtils().downloadUrl(
             '{server}/library/sections/%s/onDeck' % viewid)
         if xml in (None, 401):
-            LOG.error('Could not download PMS xml for view %s' % viewid)
+            LOG.error('Could not download PMS xml for view %s', viewid)
             xbmcplugin.endOfDirectory(HANDLE, False)
             return
         direct_paths = settings('useDirectPaths') == '1'
@@ -723,7 +723,7 @@ def browse_plex(key=None, plex_section_id=None):
     try:
         xml[0].attrib
     except (ValueError, AttributeError, IndexError, TypeError):
-        LOG.error('Could not browse to %s' % key)
+        LOG.error('Could not browse to %s', key)
         return xbmcplugin.endOfDirectory(HANDLE, False)
 
     photos = False
@@ -911,12 +911,12 @@ def create_new_pms():
     settings('sslverify', value='false')
 
     # Sign out to trigger new login
-    if __LogOut():
+    if _log_out():
         # Only login again if logout was successful
-        __LogIn()
+        _log_in()
 
 
-def __LogIn():
+def _log_in():
     """
     Resets (clears) window properties to enable (re-)login
 
@@ -928,7 +928,7 @@ def __LogIn():
     plex_command('SUSPEND_USER_CLIENT', 'False')
 
 
-def __LogOut():
+def _log_out():
     """
     Finishes lib scans, logs out user.
 
