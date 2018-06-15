@@ -497,11 +497,11 @@ def extra_fanart(plex_id, plex_path):
 
     # We need to store the images locally for this to work
     # because of the caching system in xbmc
-    fanartDir = try_decode(translatePath(
+    fanart_dir = try_decode(translatePath(
         "special://thumbnails/plex/%s/" % plex_id))
-    if not exists_dir(fanartDir):
+    if not exists_dir(fanart_dir):
         # Download the images to the cache directory
-        makedirs(fanartDir)
+        makedirs(fanart_dir)
         xml = GetPlexMetadata(plex_id)
         if xml is None:
             LOG.error('Could not download metadata for %s', plex_id)
@@ -511,7 +511,7 @@ def extra_fanart(plex_id, plex_path):
         backdrops = api.artwork()['Backdrop']
         for count, backdrop in enumerate(backdrops):
             # Same ordering as in artwork
-            fanartFile = try_encode(join(fanartDir, "fanart%.3d.jpg" % count))
+            fanartFile = try_encode(join(fanart_dir, "fanart%.3d.jpg" % count))
             li = ListItem("%.3d" % count, path=fanartFile)
             xbmcplugin.addDirectoryItem(
                 handle=HANDLE,
@@ -521,7 +521,7 @@ def extra_fanart(plex_id, plex_path):
     else:
         LOG.info("Found cached backdrop.")
         # Use existing cached images
-        for root, dirs, files in walk(fanartDir):
+        for root, dirs, files in walk(fanart_dir):
             for file in files:
                 fanartFile = try_encode(join(root, file))
                 li = ListItem(file, path=fanartFile)
