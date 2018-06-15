@@ -533,12 +533,12 @@ def _record_playstate(status, ended):
         playcount += 1
         time = 0
     with kodidb.GetKodiDB('video') as kodi_db:
-        kodi_db.addPlaystate(kodi_db_item[1],
-                             time,
-                             totaltime,
-                             playcount,
-                             last_played,
-                             status['plex_type'])
+        kodi_db.set_resume(kodi_db_item[1],
+                           time,
+                           totaltime,
+                           playcount,
+                           last_played,
+                           status['plex_type'])
     # Hack to force "in progress" widget to appear if it wasn't visible before
     if (state.FORCE_RELOAD_SKIN and
             xbmc.getCondVisibility('Window.IsVisible(Home.xml)')):

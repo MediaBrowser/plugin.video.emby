@@ -117,12 +117,12 @@ class Items(object):
         if kodi_type == v.KODI_TYPE_MOVIE:
             for setname in api.collection_list():
                 LOG.debug('Getting artwork for movie set %s', setname)
-                setid = self.kodi_db.createBoxset(setname)
+                setid = self.kodi_db.create_collection(setname)
                 self.artwork.modify_artwork(api.set_artwork(),
                                             setid,
                                             v.KODI_TYPE_SET,
                                             self.kodicursor)
-                self.kodi_db.assignBoxset(setid, kodi_id)
+                self.kodi_db.assign_collection(setid, kodi_id)
         return True
 
     def updateUserdata(self, xml):
@@ -143,12 +143,12 @@ class Items(object):
             # Grab the user's viewcount, resume points etc. from PMS' answer
             userdata = api.userdata()
             # Write to Kodi DB
-            self.kodi_db.addPlaystate(fileid,
-                                      userdata['Resume'],
-                                      userdata['Runtime'],
-                                      userdata['PlayCount'],
-                                      userdata['LastPlayedDate'],
-                                      api.plex_type())
+            self.kodi_db.set_resume(fileid,
+                                    userdata['Resume'],
+                                    userdata['Runtime'],
+                                    userdata['PlayCount'],
+                                    userdata['LastPlayedDate'],
+                                    api.plex_type())
             if v.KODIVERSION >= 17:
                 self.kodi_db.update_userrating(db_item[0],
                                                db_item[4],
@@ -171,12 +171,12 @@ class Items(object):
                 view_count = 1
             resume = 0
         # Do the actual update
-        self.kodi_db.addPlaystate(file_id,
-                                  resume,
-                                  duration,
-                                  view_count,
-                                  lastViewedAt,
-                                  plex_type)
+        self.kodi_db.set_resume(file_id,
+                                resume,
+                                duration,
+                                view_count,
+                                lastViewedAt,
+                                plex_type)
 
 
 class Movies(Items):
@@ -448,14 +448,14 @@ class Movies(Items):
             tags.append("Favorite movies")
         self.kodi_db.modify_tags(movieid, v.KODI_TYPE_MOVIE, tags)
         # Add any sets from Plex collection tags
-        self.kodi_db.addSets(movieid, collections, kodicursor)
+        self.kodi_db.add_sets(movieid, collections)
         # Process playstates
-        self.kodi_db.addPlaystate(fileid,
-                                  resume,
-                                  runtime,
-                                  playcount,
-                                  dateplayed,
-                                  v.PLEX_TYPE_MOVIE)
+        self.kodi_db.set_resume(fileid,
+                                resume,
+                                runtime,
+                                playcount,
+                                dateplayed,
+                                v.PLEX_TYPE_MOVIE)
 
     def remove(self, plex_id):
         """
@@ -993,11 +993,11 @@ class TVShows(Items):
                                kodicursor)
         streams = api.mediastreams()
         self.kodi_db.modify_streams(fileid, streams, runtime)
-        self.kodi_db.addPlaystate(fileid,
-                                  resume,
-                                  runtime,
-                                  playcount,
-                                  dateplayed,
+        self.kodi_db.set_resume(fileid,
+                                resume,
+                                runtime,
+                                playcount,
+                                dateplayed,
                                   None)  # Do send None, we check here
         if not state.DIRECT_PATHS:
             # need to set a SECOND file entry for a path without plex show id
@@ -1009,11 +1009,11 @@ class TVShows(Items):
                            filename))
             pathid = self.kodi_db.add_video_path(path)
             fileid = self.kodi_db.add_file(filename, pathid, dateadded)
-            self.kodi_db.addPlaystate(fileid,
-                                      resume,
-                                      runtime,
-                                      playcount,
-                                      dateplayed,
+            self.kodi_db.set_resume(fileid,
+                                    resume,
+                                    runtime,
+                                    playcount,
+                                    dateplayed,
                                       None)  # Do send None - 2nd entry
 
     @catch_exceptions(warnuser=True)
@@ -1201,7 +1201,7 @@ class Music(Items):
             # multiple times.
             # Kodi doesn't allow that. In case that happens we just merge the
             # artist entries.
-            artistid = self.kodi_db.addArtist(name, musicBrainzId)
+            artistid = self.kodi_db.add_artist(name, musicBrainzId)
             # Create the reference in plex table
             plex_db.addReference(itemid,
                                  v.PLEX_TYPE_ARTIST,
@@ -1304,7 +1304,7 @@ class Music(Items):
             # multiple times.
             # Kodi doesn't allow that. In case that happens we just merge the
             # artist entries.
-            album_id = self.kodi_db.addAlbum(name, musicBrainzId)
+            album_id = self.kodi_db.add_album(name, musicBrainzId)
             # Create the reference in plex table
             plex_db.addReference(plex_id,
                                  v.PLEX_TYPE_ALBUM,
@@ -1389,7 +1389,9 @@ class Music(Items):
         '''
         kodicursor.execute(query, (artist_id, name, year))
         if v.KODIVERSION < 18:
-            self.kodi_db.addMusicGenres(album_id, self.genres, v.KODI_TYPE_ALBUM)
+            self.kodi_db.add_music_genres(album_id,
+                                          self.genres,
+                                          v.KODI_TYPE_ALBUM)
         # Update artwork
         artwork.modify_artwork(artworks, album_id, v.KODI_TYPE_ALBUM, kodicursor)
         # Add all children - all tracks
@@ -1541,7 +1543,7 @@ class Music(Items):
             LOG.info("ADD song itemid: %s - Title: %s", itemid, title)
 
             # Add path
-            pathid = self.kodi_db.add_music_path(path, strHash="123")
+            pathid = self.kodi_db.add_music_path(path, hash_string="123")
 
             try:
                 # Get the album
@@ -1553,7 +1555,7 @@ class Music(Items):
                 if album_name:
                     LOG.info("Creating virtual music album for song: %s.",
                              itemid)
-                    albumid = self.kodi_db.addAlbum(
+                    albumid = self.kodi_db.add_album(
                         album_name,
                         api.provider('MusicBrainzAlbum'))
                     plex_db.addReference("%salbum%s" % (itemid, albumid),
@@ -1711,7 +1713,7 @@ class Music(Items):
                                                artist_name))
         # Add genres
         if genres:
-            self.kodi_db.addMusicGenres(songid, genres, v.KODI_TYPE_SONG)
+            self.kodi_db.add_music_genres(songid, genres, v.KODI_TYPE_SONG)
         artworks = api.artwork()
         artwork.modify_artwork(artworks, songid, v.KODI_TYPE_SONG, kodicursor)
         if item.get('parentKey') is None:
