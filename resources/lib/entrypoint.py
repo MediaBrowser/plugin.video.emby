@@ -511,22 +511,22 @@ def extra_fanart(plex_id, plex_path):
         backdrops = api.artwork()['Backdrop']
         for count, backdrop in enumerate(backdrops):
             # Same ordering as in artwork
-            fanartFile = try_encode(join(fanart_dir, "fanart%.3d.jpg" % count))
-            li = ListItem("%.3d" % count, path=fanartFile)
+            art_file = try_encode(join(fanart_dir, "fanart%.3d.jpg" % count))
+            li = ListItem("%.3d" % count, path=art_file)
             xbmcplugin.addDirectoryItem(
                 handle=HANDLE,
-                url=fanartFile,
+                url=art_file,
                 listitem=li)
-            copyfile(backdrop, try_decode(fanartFile))
+            copyfile(backdrop, try_decode(art_file))
     else:
         LOG.info("Found cached backdrop.")
         # Use existing cached images
         for root, dirs, files in walk(fanart_dir):
             for file in files:
-                fanartFile = try_encode(join(root, file))
-                li = ListItem(file, path=fanartFile)
+                art_file = try_encode(join(root, file))
+                li = ListItem(file, path=art_file)
                 xbmcplugin.addDirectoryItem(handle=HANDLE,
-                                            url=fanartFile,
+                                            url=art_file,
                                             listitem=li)
     xbmcplugin.endOfDirectory(HANDLE)
 
