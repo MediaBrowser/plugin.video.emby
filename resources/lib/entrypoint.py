@@ -375,7 +375,7 @@ def in_progress_episodes(tagname, limit):
     xbmcplugin.endOfDirectory(handle=HANDLE)
 
 
-def recent_episodes(viewid, mediatype, tagname, limit):
+def recent_episodes(mediatype, tagname, limit):
     """
     List the recently added episodes for tagname
     """
