@@ -77,7 +77,7 @@ class Service():
         LOG.info("Platform: %s", v.PLATFORM)
         LOG.info("KODI Version: %s", v.KODILONGVERSION)
         LOG.info("%s Version: %s", v.ADDON_NAME, v.ADDON_VERSION)
-        LOG.info("PKC Direct Paths: %s", settings('useDirectPaths') == "true")
+        LOG.info("PKC Direct Paths: %s", settings('useDirectPaths') == '1')
         LOG.info("Number of sync threads: %s", settings('syncThreadNumber'))
         LOG.info("Full sys.argv received: %s", argv)
         self.monitor = Monitor()
