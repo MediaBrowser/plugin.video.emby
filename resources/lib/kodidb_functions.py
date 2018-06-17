@@ -653,7 +653,7 @@ class KodiDBMethods(object):
                 movie_id = self.cursor.fetchone()[0]
                 typus = v.KODI_TYPE_EPISODE
             except TypeError:
-                LOG.warn('Unexpectantly did not find a match!')
+                LOG.debug('Did not find a video DB match')
                 return
         return movie_id, typus
 
