@@ -313,7 +313,11 @@ class KodiMonitor(xbmc.Monitor):
             # element otherwise
             self._already_slept = True
             xbmc.sleep(1000)
-        json_item = js.get_item(playerid)
+        try:
+            json_item = js.get_item(playerid)
+        except KeyError:
+            LOG.debug('No playing item returned by Kodi')
+            return None, None, None
         LOG.debug('Kodi playing item properties: %s', json_item)
         return (json_item.get('id'),
                 json_item.get('type'),
