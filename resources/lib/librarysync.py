@@ -1491,7 +1491,10 @@ class LibrarySync(Thread):
         # Link to Websocket queue
         queue = state.WEBSOCKET_QUEUE
 
-        if not exists(try_encode(v.DB_VIDEO_PATH)):
+        if (not exists(try_encode(v.DB_VIDEO_PATH)) or
+                not exists(try_encode(v.DB_TEXTURE_PATH)) or
+                (state.ENABLE_MUSIC and
+                 not exists(try_encode(v.DB_MUSIC_PATH)))):
             # Database does not exists
             LOG.error("The current Kodi version is incompatible "
                       "to know which Kodi versions are supported.")
