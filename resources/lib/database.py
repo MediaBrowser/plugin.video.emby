@@ -6,6 +6,7 @@ import logging
 import sqlite3
 import sys
 import traceback
+import re
 
 import xbmc
 import xbmcgui
@@ -18,27 +19,34 @@ from utils import window, should_stop, settings, language
 #################################################################################################
 
 log = logging.getLogger("EMBY."+__name__)
-KODI = xbmc.getInfoLabel('System.BuildVersion')[:2]
+KODI = xbmc.getInfoLabel('System.BuildVersion')
 
 #################################################################################################
+
+def find(dict, item):
+    for key,value in sorted(dict.iteritems(), key=lambda (k,v): (v,k)):
+        if re.match(key, item):
+            return dict[key]
 
 def video_database():
     db_version = {
 
-        '17': 107,# Krypton
-        '18': 110 # Leia
+        '17.*': 107, # Krypton
+		'18.0-ALPHA1.*': 109, # Leia Alpha1
+		'18.*': 110 # Leia Nightly 
     }
     return xbmc.translatePath("special://database/MyVideos%s.db"
-                              % db_version.get(KODI, "")).decode('utf-8')
+                              % find(db_version, KODI)).decode('utf-8')
 
 def music_database():
     db_version = {
 
-        '17': 60, # Krypton
-        '18': 70  # Leia
+        '17.*': 60, # Krypton
+        '18.0-ALPHA1.*': 70, # Leia Alpha1
+		'18.*': 72 # Leia Nightly 
     }
     return xbmc.translatePath("special://database/MyMusic%s.db"
-                              % db_version.get(KODI, "")).decode('utf-8')
+                              % find(db_version, KODI)).decode('utf-8')
 
 def texture_database():
     return xbmc.translatePath("special://database/Textures13.db").decode('utf-8')
