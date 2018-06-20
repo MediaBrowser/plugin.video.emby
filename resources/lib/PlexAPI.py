@@ -54,6 +54,9 @@ LOG = getLogger("PLEX." + __name__)
 REGEX_IMDB = re_compile(r'''/(tt\d+)''')
 REGEX_TVDB = re_compile(r'''thetvdb:\/\/(.+?)\?''')
 
+if not exists_dir(v.EXTERNAL_SUBTITLE_TEMP_PATH):
+    makedirs(v.EXTERNAL_SUBTITLE_TEMP_PATH)
+
 ###############################################################################
 
 
@@ -1400,8 +1403,6 @@ class API(object):
 
         Returns the path to the downloaded subtitle or None
         """
-        if not exists_dir(v.EXTERNAL_SUBTITLE_TEMP_PATH):
-            makedirs(v.EXTERNAL_SUBTITLE_TEMP_PATH)
         path = join(v.EXTERNAL_SUBTITLE_TEMP_PATH, filename)
         response = DU().downloadUrl(url, return_response=True)
         try:
