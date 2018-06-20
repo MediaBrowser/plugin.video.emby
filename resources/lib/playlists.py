@@ -345,7 +345,7 @@ def full_sync():
             pass
     # Get rid of old Plex playlists that were deleted on the Plex side
     for plex_id in old_plex_ids:
-        playlist = playlist_object_from_db(plex_id=api.plex_id())
+        playlist = playlist_object_from_db(plex_id=plex_id)
         if playlist:
             LOG.debug('Removing outdated Plex playlist %s from %s',
                       playlist.plex_name, playlist.kodi_path)
