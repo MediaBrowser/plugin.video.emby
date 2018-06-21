@@ -138,7 +138,8 @@ class KodiMonitor(xbmc.Monitor):
 
         if method == "Player.OnPlay":
             state.SUSPEND_SYNC = True
-            self.PlayBackStart(data)
+            with state.LOCK_PLAYQUEUES:
+                self.PlayBackStart(data)
         elif method == "Player.OnStop":
             # Should refresh our video nodes, e.g. on deck
             # xbmc.executebuiltin('ReloadSkin()')
@@ -146,23 +147,28 @@ class KodiMonitor(xbmc.Monitor):
                     self.hack_replay == data['item']):
                 # Hack for add-on paths
                 self.hack_replay = None
-                self._hack_addon_paths_replay_video()
+                with state.LOCK_PLAYQUEUES:
+                    self._hack_addon_paths_replay_video()
             elif data.get('end'):
                 if state.PKC_CAUSED_STOP is True:
                     state.PKC_CAUSED_STOP = False
                     LOG.debug('PKC caused this playback stop - ignoring')
                 else:
-                    _playback_cleanup(ended=True)
+                    with state.LOCK_PLAYQUEUES: 
+                        _playback_cleanup(ended=True)
             else:
-                _playback_cleanup()
+                with state.LOCK_PLAYQUEUES:
+                    _playback_cleanup()
             state.PKC_CAUSED_STOP_DONE = True
             state.SUSPEND_SYNC = False
         elif method == 'Playlist.OnAdd':
-            self._playlist_onadd(data)
+            with state.LOCK_PLAYQUEUES:
+                self._playlist_onadd(data)
         elif method == 'Playlist.OnRemove':
             self._playlist_onremove(data)
         elif method == 'Playlist.OnClear':
-            self._playlist_onclear(data)
+            with state.LOCK_PLAYQUEUES:
+                self._playlist_onclear(data)
         elif method == "VideoLibrary.OnUpdate":
             # Manually marking as watched/unwatched
             playcount = data.get('playcount')
@@ -208,7 +214,6 @@ class KodiMonitor(xbmc.Monitor):
             state.STOP_PKC = True
 
     @staticmethod
-    @state.LOCKER_SUBSCRIBER.lockthis
     def _hack_addon_paths_replay_video():
         """
         Hack we need for RESUMABLE items because Kodi lost the path of the
@@ -239,7 +244,6 @@ class KodiMonitor(xbmc.Monitor):
         thread = Thread(target=playback.playback_triage, kwargs=kwargs)
         thread.start()
 
-    @state.LOCKER_SUBSCRIBER.lockthis
     def _playlist_onadd(self, data):
         """
         Called if an item is added to a Kodi playlist. Example data dict:
@@ -272,7 +276,6 @@ class KodiMonitor(xbmc.Monitor):
         """
         pass
 
-    @state.LOCKER_SUBSCRIBER.lockthis
     def _playlist_onclear(self, data):
         """
         Called if a Kodi playlist is cleared. Example data dict:
@@ -348,7 +351,6 @@ class KodiMonitor(xbmc.Monitor):
                 json_item.get('type'),
                 json_item.get('file'))
 
-    @state.LOCKER_SUBSCRIBER.lockthis
     def PlayBackStart(self, data):
         """
         Called whenever playback is started. Example data:
@@ -486,7 +488,6 @@ class SpecialMonitor(Thread):
         LOG.info("#====---- Special Monitor Stopped ----====#")
 
 
-@state.LOCKER_SUBSCRIBER.lockthis
 def _playback_cleanup(ended=False):
     """
     PKC cleanup after playback ends/is stopped. Pass ended=True if Kodi

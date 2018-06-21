@@ -34,7 +34,7 @@ def init_playqueues():
         LOG.debug('Playqueues have already been initialized')
         return
     # Initialize Kodi playqueues
-    with state.LOCK_SUBSCRIBER:
+    with state.LOCK_PLAYQUEUES:
         for i in (0, 1, 2):
             # Just in case the Kodi response is not sorted correctly
             for queue in js.get_playlists():
@@ -62,14 +62,13 @@ def get_playqueue_from_type(kodi_playlist_type):
     Returns the playqueue according to the kodi_playlist_type ('video',
     'audio', 'picture') passed in
     """
-    with state.LOCK_SUBSCRIBER:
-        for playqueue in PLAYQUEUES:
-            if playqueue.type == kodi_playlist_type:
-                break
-        else:
-            raise ValueError('Wrong playlist type passed in: %s',
-                             kodi_playlist_type)
-        return playqueue
+    for playqueue in PLAYQUEUES:
+        if playqueue.type == kodi_playlist_type:
+            break
+    else:
+        raise ValueError('Wrong playlist type passed in: %s',
+                         kodi_playlist_type)
+    return playqueue
 
 
 def init_playqueue_from_plex_children(plex_id, transient_token=None):
@@ -190,7 +189,7 @@ class PlayqueueMonitor(Thread):
                 if stopped():
                     break
                 xbmc.sleep(1000)
-            with state.LOCK_SUBSCRIBER:
+            with state.LOCK_PLAYQUEUES:
                 for playqueue in PLAYQUEUES:
                     kodi_pl = js.playlist_get_items(playqueue.playlistid)
                     if playqueue.old_kodi_pl != kodi_pl:

@@ -1,48 +1,17 @@
 # -*- coding: utf-8 -*-
 # THREAD SAFE
 from threading import Lock, RLock
-from functools import wraps
-
-
-class LockFunction(object):
-    """
-    Decorator for class methods and functions to lock them with lock.
-
-    Initialize this class first
-    lockfunction = LockFunction(lock), where lock is a threading.Lock() object
-
-    To then lock a function or method:
-
-    @lockfunction.lockthis
-    def some_function(args, kwargs)
-    """
-    def __init__(self, lock):
-        self.lock = lock
-
-    def lockthis(self, func):
-        """
-        Use this method to actually lock a function or method
-        """
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-            """
-            Wrapper construct
-            """
-            with self.lock:
-                result = func(*args, **kwargs)
-            return result
-        return wrapper
 
 
 # LOCKS
 ####################
-# Need to lock all methods and functions messing with subscribers
+# Need to lock all methods and functions messing with Plex Companion subscribers
 LOCK_SUBSCRIBER = RLock()
-LOCKER_SUBSCRIBER = LockFunction(LOCK_SUBSCRIBER)
+# Need to lock everything messing with Kodi/PKC playqueues
+LOCK_PLAYQUEUES = RLock()
 # Necessary to temporarily hold back librarysync/websocket listener when doing
 # a full sync
 LOCK_PLAYLISTS = Lock()
-LOCKER_PLAYLISTS = LockFunction(LOCK_PLAYLISTS)
 
 # Quit PKC
 STOP_PKC = False

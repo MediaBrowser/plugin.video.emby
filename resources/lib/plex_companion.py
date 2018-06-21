@@ -43,7 +43,7 @@ def update_playqueue_from_PMS(playqueue,
     # Safe transient token from being deleted
     if transient_token is None:
         transient_token = playqueue.plex_transient_token
-    with state.LOCK_SUBSCRIBER:
+    with state.LOCK_PLAYQUEUES:
         xml = PL.get_PMS_playlist(playqueue, playqueue_id)
         playqueue.clear()
         try:
@@ -74,7 +74,6 @@ class PlexCompanion(Thread):
         self.subscription_manager = None
         Thread.__init__(self)
 
-    @state.LOCKER_SUBSCRIBER.lockthis
     def _process_alexa(self, data):
         xml = PF.GetPlexMetadata(data['key'])
         try:
@@ -131,7 +130,6 @@ class PlexCompanion(Thread):
         executebuiltin('RunPlugin(plugin://%s?%s)'
                        % (v.ADDON_ID, urlencode(params)))
 
-    @state.LOCKER_SUBSCRIBER.lockthis
     def _process_playlist(self, data):
         # Get the playqueue ID
         _, container_key, query = PF.ParseContainerKey(data['containerKey'])
@@ -156,7 +154,6 @@ class PlexCompanion(Thread):
                                   offset=data.get('offset'),
                                   transient_token=data.get('token'))
 
-    @state.LOCKER_SUBSCRIBER.lockthis
     def _process_streams(self, data):
         """
         Plex Companion client adjusted audio or subtitle stream
@@ -178,7 +175,6 @@ class PlexCompanion(Thread):
         else:
             LOG.error('Unknown setStreams command: %s', data)
 
-    @state.LOCKER_SUBSCRIBER.lockthis
     def _process_refresh(self, data):
         """
         example data: {'playQueueID': '8475', 'commandID': '11'}
@@ -217,14 +213,17 @@ class PlexCompanion(Thread):
         LOG.debug('Processing: %s', task)
         data = task['data']
         if task['action'] == 'alexa':
-            self._process_alexa(data)
+            with state.LOCK_PLAYQUEUES:
+                self._process_alexa(data)
         elif (task['action'] == 'playlist' and
                 data.get('address') == 'node.plexapp.com'):
             self._process_node(data)
         elif task['action'] == 'playlist':
-            self._process_playlist(data)
+            with state.LOCK_PLAYQUEUES:
+                self._process_playlist(data)
         elif task['action'] == 'refreshPlayQueue':
-            self._process_refresh(data)
+            with state.LOCK_PLAYQUEUES:
+                self._process_refresh(data)
         elif task['action'] == 'setStreams':
             try:
                 self._process_streams(data)

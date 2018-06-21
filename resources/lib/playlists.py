@@ -267,41 +267,49 @@ def _kodi_playlist_identical(xml_element):
     pass
 
 
-@state.LOCKER_PLAYLISTS.lockthis
 def process_websocket(plex_id, updated_at, state):
     """
     Hit by librarysync to process websocket messages concerning playlists
     """
     create = False
     playlist = playlist_object_from_db(plex_id=plex_id)
-    try:
-        if playlist and state == 9:
-            LOG.debug('Plex deletion of playlist detected: %s', playlist)
-            delete_kodi_playlist(playlist)
-        elif playlist and playlist.plex_updatedat == updated_at:
-            LOG.debug('Playlist with id %s already synced: %s',
-                      plex_id, playlist)
-        elif playlist:
-            LOG.debug('Change of Plex playlist detected: %s', playlist)
-            delete_kodi_playlist(playlist)
-            create = True
-        elif not playlist and not state == 9:
-            LOG.debug('Creation of new Plex playlist detected: %s', plex_id)
-            create = True
-        # To the actual work
-        if create:
-            create_kodi_playlist(plex_id=plex_id, updated_at=updated_at)
-    except PL.PlaylistError:
-        pass
+    with state.LOCK_PLAYLISTS:
+        try:
+            if playlist and state == 9:
+                LOG.debug('Plex deletion of playlist detected: %s', playlist)
+                delete_kodi_playlist(playlist)
+            elif playlist and playlist.plex_updatedat == updated_at:
+                LOG.debug('Playlist with id %s already synced: %s',
+                          plex_id, playlist)
+            elif playlist:
+                LOG.debug('Change of Plex playlist detected: %s', playlist)
+                delete_kodi_playlist(playlist)
+                create = True
+            elif not playlist and not state == 9:
+                LOG.debug('Creation of new Plex playlist detected: %s',
+                          plex_id)
+                create = True
+            # To the actual work
+            if create:
+                create_kodi_playlist(plex_id=plex_id, updated_at=updated_at)
+        except PL.PlaylistError:
+            pass
 
 
-@state.LOCKER_PLAYLISTS.lockthis
 def full_sync():
     """
     Full sync of playlists between Kodi and Plex. Returns True is successful,
     False otherwise
     """
     LOG.info('Starting playlist full sync')
+    with state.LOCK_PLAYLISTS:
+        return _full_sync()
+
+
+def _full_sync():
+    """
+    Need to lock because we're messing with playlists
+    """
     # Get all Plex playlists
     xml = PL.get_all_playlists()
     if xml is None:

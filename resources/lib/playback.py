@@ -30,7 +30,6 @@ NULL_VIDEO = join(v.ADDON_FOLDER, 'addons', v.ADDON_ID, 'empty_video.mp4')
 ###############################################################################
 
 
-@state.LOCKER_SUBSCRIBER.lockthis
 def playback_triage(plex_id=None, plex_type=None, path=None, resolve=True):
     """
     Hit this function for addon path playback, Plex trailers, etc.
@@ -107,11 +106,12 @@ def playback_triage(plex_id=None, plex_type=None, path=None, resolve=True):
             initiate = True
         else:
             initiate = False
-    if initiate:
-        _playback_init(plex_id, plex_type, playqueue, pos)
-    else:
-        # kick off playback on second pass
-        _conclude_playback(playqueue, pos)
+    with state.LOCK_PLAYQUEUES:
+        if initiate:
+            _playback_init(plex_id, plex_type, playqueue, pos)
+        else:
+            # kick off playback on second pass
+            _conclude_playback(playqueue, pos)
 
 
 def _playlist_playback(plex_id, plex_type):
