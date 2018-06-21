@@ -4,18 +4,17 @@ from logging import getLogger
 from ntpath import dirname
 from datetime import datetime
 
-from artwork import Artwork
-from utils import window, kodi_sql, catch_exceptions
-import plexdb_functions as plexdb
-import kodidb_functions as kodidb
-
-from PlexAPI import API
-from PlexFunctions import GetPlexMetadata
-import variables as v
-import state
+from . import artwork
+from . import utils
+from . import plexdb_functions as plexdb
+from . import kodidb_functions as kodidb
+from .plex_api import API
+from . import plex_functions as PF
+from . import variables as v
+from . import state
 ###############################################################################
 
-LOG = getLogger("PLEX." + __name__)
+LOG = getLogger('PLEX.itemtypes')
 
 # Note: always use same order of URL arguments, NOT urlencode:
 #   plex_id=<plex_id>&plex_type=<plex_type>&mode=play
@@ -32,8 +31,8 @@ class Items(object):
         kodiType:       optional argument; e.g. 'video' or 'music'
     """
     def __init__(self):
-        self.artwork = Artwork()
-        self.server = window('pms_server')
+        self.artwork = artwork.Artwork()
+        self.server = utils.window('pms_server')
         self.plexconn = None
         self.plexcursor = None
         self.kodiconn = None
@@ -45,9 +44,9 @@ class Items(object):
         """
         Open DB connections and cursors
         """
-        self.plexconn = kodi_sql('plex')
+        self.plexconn = utils.kodi_sql('plex')
         self.plexcursor = self.plexconn.cursor()
-        self.kodiconn = kodi_sql('video')
+        self.kodiconn = utils.kodi_sql('video')
         self.kodicursor = self.kodiconn.cursor()
         self.plex_db = plexdb.Plex_DB_Functions(self.plexcursor)
         self.kodi_db = kodidb.KodiDBMethods(self.kodicursor)
@@ -63,7 +62,7 @@ class Items(object):
         self.kodiconn.close()
         return self
 
-    @catch_exceptions(warnuser=True)
+    @utils.catch_exceptions(warnuser=True)
     def getfanart(self, plex_id, refresh=False):
         """
         Tries to get additional fanart for movies (+sets) and TV shows.
@@ -95,7 +94,7 @@ class Items(object):
                 LOG.debug('Already got all fanart for Plex id %s', plex_id)
                 return True
 
-        xml = GetPlexMetadata(plex_id)
+        xml = PF.GetPlexMetadata(plex_id)
         if xml is None:
             # Did not receive a valid XML - skip that item for now
             LOG.error("Could not get metadata for %s. Skipping that item "
@@ -183,7 +182,7 @@ class Movies(Items):
     """
     Used for plex library-type movies
     """
-    @catch_exceptions(warnuser=True)
+    @utils.catch_exceptions(warnuser=True)
     def add_update(self, item, viewtag=None, viewid=None):
         """
         Process single movie
@@ -513,7 +512,7 @@ class TVShows(Items):
     """
     For Plex library-type TV shows
     """
-    @catch_exceptions(warnuser=True)
+    @utils.catch_exceptions(warnuser=True)
     def add_update(self, item, viewtag=None, viewid=None):
         """
         Process a single show
@@ -722,7 +721,7 @@ class TVShows(Items):
         tags.extend(collections)
         self.kodi_db.modify_tags(showid, v.KODI_TYPE_SHOW, tags)
 
-    @catch_exceptions(warnuser=True)
+    @utils.catch_exceptions(warnuser=True)
     def add_updateSeason(self, item, viewtag=None, viewid=None):
         """
         Process a single season of a certain tv show
@@ -768,7 +767,7 @@ class TVShows(Items):
                                  view_id=viewid,
                                  checksum=checksum)
 
-    @catch_exceptions(warnuser=True)
+    @utils.catch_exceptions(warnuser=True)
     def add_updateEpisode(self, item, viewtag=None, viewid=None):
         """
         Process single episode
@@ -998,7 +997,7 @@ class TVShows(Items):
                                 runtime,
                                 playcount,
                                 dateplayed,
-                                  None)  # Do send None, we check here
+                                None)  # Do send None, we check here
         if not state.DIRECT_PATHS:
             # need to set a SECOND file entry for a path without plex show id
             filename = api.file_name(force_first_media=True)
@@ -1014,9 +1013,9 @@ class TVShows(Items):
                                     runtime,
                                     playcount,
                                     dateplayed,
-                                      None)  # Do send None - 2nd entry
+                                    None)  # Do send None - 2nd entry
 
-    @catch_exceptions(warnuser=True)
+    @utils.catch_exceptions(warnuser=True)
     def remove(self, plex_id):
         """
         Remove the entire TV shows object (show, season or episode) including
@@ -1139,16 +1138,16 @@ class Music(Items):
         OVERWRITE this method, because we need to open another DB.
         Open DB connections and cursors
         """
-        self.plexconn = kodi_sql('plex')
+        self.plexconn = utils.kodi_sql('plex')
         self.plexcursor = self.plexconn.cursor()
         # Here it is, not 'video' but 'music'
-        self.kodiconn = kodi_sql('music')
+        self.kodiconn = utils.kodi_sql('music')
         self.kodicursor = self.kodiconn.cursor()
         self.plex_db = plexdb.Plex_DB_Functions(self.plexcursor)
         self.kodi_db = kodidb.KodiDBMethods(self.kodicursor)
         return self
 
-    @catch_exceptions(warnuser=True)
+    @utils.catch_exceptions(warnuser=True)
     def add_updateArtist(self, item, viewtag=None, viewid=None):
         """
         Adds a single artist
@@ -1236,7 +1235,7 @@ class Music(Items):
                                v.KODI_TYPE_ARTIST,
                                kodicursor)
 
-    @catch_exceptions(warnuser=True)
+    @utils.catch_exceptions(warnuser=True)
     def add_updateAlbum(self, item, viewtag=None, viewid=None, children=None,
                         scan_children=True):
         """
@@ -1362,7 +1361,7 @@ class Music(Items):
                 artist_id = plex_db.getItem_byId(parent_id)[0]
             except TypeError:
                 LOG.info('Artist %s does not yet exist in Plex DB', parent_id)
-                artist = GetPlexMetadata(parent_id)
+                artist = PF.GetPlexMetadata(parent_id)
                 try:
                     artist[0].attrib
                 except (TypeError, IndexError, AttributeError):
@@ -1393,13 +1392,16 @@ class Music(Items):
                                           self.genres,
                                           v.KODI_TYPE_ALBUM)
         # Update artwork
-        artwork.modify_artwork(artworks, album_id, v.KODI_TYPE_ALBUM, kodicursor)
+        artwork.modify_artwork(artworks,
+                               album_id,
+                               v.KODI_TYPE_ALBUM,
+                               kodicursor)
         # Add all children - all tracks
         if scan_children:
             for child in children:
                 self.add_updateSong(child, viewtag, viewid)
 
-    @catch_exceptions(warnuser=True)
+    @utils.catch_exceptions(warnuser=True)
     def add_updateSong(self, item, viewtag=None, viewid=None):
         """
         Process single song
@@ -1459,7 +1461,7 @@ class Music(Items):
         if disc == 1:
             track = tracknumber
         else:
-            track = disc*2**16 + tracknumber
+            track = disc * 2 ** 16 + tracknumber
         year = api.year()
         _, duration = api.resume_runtime()
         rating = userdata['UserRating']
@@ -1573,7 +1575,7 @@ class Music(Items):
                 # No album found. Let's create it
                 LOG.info("Album database entry missing.")
                 plex_album_id = api.parent_plex_id()
-                album = GetPlexMetadata(plex_album_id)
+                album = PF.GetPlexMetadata(plex_album_id)
                 if album is None or album == 401:
                     LOG.error('Could not download album, abort')
                     return
@@ -1664,7 +1666,8 @@ class Music(Items):
                     idAlbumInfoSong, idAlbumInfo, iTrack, strTitle, iDuration)
                 VALUES (?, ?, ?, ?, ?)
             '''
-            kodicursor.execute(query, (songid, albumid, track, title, duration))
+            kodicursor.execute(query,
+                               (songid, albumid, track, title, duration))
         # Link song to artists
         artist_loop = [{
             'Name': api.grandparent_title(),
@@ -1680,7 +1683,7 @@ class Music(Items):
                 artistid = artist_edb[0]
             except TypeError:
                 # Artist is missing from plex database, add it.
-                artist_xml = GetPlexMetadata(artist_eid)
+                artist_xml = PF.GetPlexMetadata(artist_eid)
                 if artist_xml is None or artist_xml == 401:
                     LOG.error('Error getting artist, abort')
                     return
@@ -1718,9 +1721,12 @@ class Music(Items):
         artwork.modify_artwork(artworks, songid, v.KODI_TYPE_SONG, kodicursor)
         if item.get('parentKey') is None:
             # Update album artwork
-            artwork.modify_artwork(artworks, albumid, v.KODI_TYPE_ALBUM, kodicursor)
+            artwork.modify_artwork(artworks,
+                                   albumid,
+                                   v.KODI_TYPE_ALBUM,
+                                   kodicursor)
 
-    @catch_exceptions(warnuser=True)
+    @utils.catch_exceptions(warnuser=True)
     def remove(self, plex_id):
         """
         Completely remove the item with plex_id from the Kodi and Plex DBs.
@@ -1768,7 +1774,8 @@ class Music(Items):
         ##### IF ARTIST #####
         elif kodi_type == v.KODI_TYPE_ARTIST:
             # Delete songs, album, artist
-            albums = self.plex_db.getItem_byParentId(kodi_id, v.KODI_TYPE_ALBUM)
+            albums = self.plex_db.getItem_byParentId(kodi_id,
+                                                     v.KODI_TYPE_ALBUM)
             for album in albums:
                 songs = self.plex_db.getItem_byParentId(album[1],
                                                         v.KODI_TYPE_SONG)

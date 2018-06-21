@@ -24,7 +24,7 @@
 
 import sys
 
-from watchdog.utils import platform
+from . import platform
 
 try:
     # Python 2

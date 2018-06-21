@@ -3,8 +3,9 @@ Collection of functions using the Kodi JSON RPC interface.
 See http://kodi.wiki/view/JSON-RPC_API
 """
 from json import loads, dumps
-from utils import millis_to_kodi_time
 from xbmc import executeJSONRPC
+
+from . import utils
 
 
 class JsonRPC(object):
@@ -152,7 +153,7 @@ def seek_to(offset):
     for playerid in get_player_ids():
         JsonRPC("Player.Seek").execute(
             {"playerid": playerid,
-             "value": millis_to_kodi_time(offset)})
+             "value": utils.millis_to_kodi_time(offset)})
 
 
 def smallforward():

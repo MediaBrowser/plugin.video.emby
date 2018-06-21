@@ -4,6 +4,10 @@ Various functions and decorators for PKC
 """
 ###############################################################################
 from logging import getLogger
+import xbmc
+import xbmcaddon
+import xbmcgui
+from xbmcvfs import exists, delete
 import os
 from cProfile import Profile
 from pstats import Stats
@@ -20,17 +24,12 @@ import hashlib
 import re
 import unicodedata
 
-import xbmc
-import xbmcaddon
-import xbmcgui
-from xbmcvfs import exists, delete
-
-import variables as v
-import state
+from . import variables as v
+from . import state
 
 ###############################################################################
 
-LOG = getLogger("PLEX." + __name__)
+LOG = getLogger('PLEX.utils')
 
 WINDOW = xbmcgui.Window(10000)
 ADDON = xbmcaddon.Addon(id='plugin.video.plexkodiconnect')
@@ -51,7 +50,7 @@ def reboot_kodi(message=None):
 
     Set optional custom message
     """
-    message = message or language(33033)
+    message = message or lang(33033)
     dialog('ok', heading='{plex}', line1=message)
     xbmc.executebuiltin('RestartApp')
 
@@ -130,7 +129,7 @@ def exists_dir(path):
     return answ
 
 
-def language(stringid):
+def lang(stringid):
     """
     Central string retrieval from strings.po
     """
@@ -194,7 +193,7 @@ def dialog(typus, *args, **kwargs):
         kwargs['option'] = types[kwargs['option']]
     if 'heading' in kwargs:
         kwargs['heading'] = kwargs['heading'].replace("{plex}",
-                                                      language(29999))
+                                                      lang(29999))
     dia = xbmcgui.Dialog()
     types = {
         'yesno': dia.yesno,
@@ -487,8 +486,8 @@ def wipe_database():
     connection.commit()
     cursor.close()
     # Reset the artwork sync status in the PKC settings
-    settings('caching_artwork_count', value=language(39310))
-    settings('fanarttv_lookups', value=language(39310))
+    settings('caching_artwork_count', value=lang(39310))
+    settings('fanarttv_lookups', value=lang(39310))
     # reset the install run flag
     settings('SyncInstallRunDone', value="false")
 
@@ -500,8 +499,8 @@ def reset(ask_user=True):
     """
     # Are you sure you want to reset your local Kodi database?
     if ask_user and not dialog('yesno',
-                               heading='{plex} %s ' % language(30132),
-                               line1=language(39600)):
+                               heading='{plex} %s ' % lang(30132),
+                               line1=lang(39600)):
         return
 
     # first stop any db sync
@@ -513,8 +512,8 @@ def reset(ask_user=True):
         if count == 0:
             # Could not stop the database from running. Please try again later.
             dialog('ok',
-                   heading='{plex} %s' % language(30132),
-                   line1=language(39601))
+                   heading='{plex} %s' % lang(30132),
+                   line1=lang(39601))
             return
         xbmc.sleep(1000)
 
@@ -524,8 +523,8 @@ def reset(ask_user=True):
     # Reset all PlexKodiConnect Addon settings? (this is usually NOT
     # recommended and unnecessary!)
     if ask_user and dialog('yesno',
-                           heading='{plex} %s ' % language(30132),
-                           line1=language(39603)):
+                           heading='{plex} %s ' % lang(30132),
+                           line1=lang(39603)):
         # Delete the settings
         addon = xbmcaddon.Addon()
         addondir = try_decode(xbmc.translatePath(addon.getAddonInfo('profile')))
@@ -708,7 +707,7 @@ class XmlKodiSetting(object):
             LOG.error('Error parsing %s', self.path)
             # "Kodi cannot parse {0}. PKC will not function correctly. Please
             # visit {1} and correct your file!"
-            dialog('ok', language(29999), language(39716).format(
+            dialog('ok', lang(29999), lang(39716).format(
                 self.filename,
                 'http://kodi.wiki'))
             self.__exit__(etree.ParseError, None, None)
@@ -861,7 +860,7 @@ def passwords_xml():
         LOG.error('Error parsing %s', xmlpath)
         # "Kodi cannot parse {0}. PKC will not function correctly. Please visit
         # {1} and correct your file!"
-        dialog('ok', language(29999), language(39716).format(
+        dialog('ok', lang(29999), lang(39716).format(
             'passwords.xml', 'http://forum.kodi.tv/'))
         return
     else:
@@ -1192,33 +1191,3 @@ def thread_methods(cls=None, add_stops=None, add_suspends=None):
 
     # Return class to render this a decorator
     return cls
-
-
-class LockFunction(object):
-    """
-    Decorator for class methods and functions to lock them with lock.
-
-    Initialize this class first
-    lockfunction = LockFunction(lock), where lock is a threading.Lock() object
-
-    To then lock a function or method:
-
-    @lockfunction.lockthis
-    def some_function(args, kwargs)
-    """
-    def __init__(self, lock):
-        self.lock = lock
-
-    def lockthis(self, func):
-        """
-        Use this method to actually lock a function or method
-        """
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-            """
-            Wrapper construct
-            """
-            with self.lock:
-                result = func(*args, **kwargs)
-            return result
-        return wrapper

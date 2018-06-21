@@ -1,13 +1,12 @@
 # -*- coding: utf-8 -*-
 ###############################################################################
 from cPickle import dumps, loads
-
 from xbmcgui import Window
 from xbmc import log, LOGDEBUG
 
 ###############################################################################
 WINDOW = Window(10000)
-PREFIX = 'PLEX.%s: ' % __name__
+PREFIX = 'PLEX.pickler: '
 ###############################################################################
 
 

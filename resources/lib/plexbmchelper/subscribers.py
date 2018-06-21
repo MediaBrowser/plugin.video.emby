@@ -3,22 +3,17 @@ Manages getting playstate from Kodi and sending it to the PMS as well as
 subscribed Plex Companion clients.
 """
 from logging import getLogger
-from threading import Thread, RLock
+from threading import Thread
 
-from downloadutils import DownloadUtils as DU
-from utils import window, kodi_time_to_millis, LockFunction
-import state
-import variables as v
-import json_rpc as js
-import playqueue as PQ
+from ..downloadutils import DownloadUtils as DU
+from .. import utils
+from .. import state
+from .. import variables as v
+from .. import json_rpc as js
+from .. import playqueue as PQ
 
 ###############################################################################
-
-LOG = getLogger("PLEX." + __name__)
-# Need to lock all methods and functions messing with subscribers or state
-LOCK = RLock()
-LOCKER = LockFunction(LOCK)
-
+LOG = getLogger('PLEX.subscribers')
 ###############################################################################
 
 # What is Companion controllable?
@@ -150,7 +145,7 @@ class SubscriptionMgr(object):
             position = info['position']
         return position
 
-    @LOCKER.lockthis
+    @state.LOCKER_SUBSCRIBER.lockthis
     def msg(self, players):
         """
         Returns a timeline xml as str
@@ -206,12 +201,12 @@ class SubscriptionMgr(object):
         if ptype in (v.PLEX_PLAYLIST_TYPE_VIDEO, v.PLEX_PLAYLIST_TYPE_PHOTO):
             self.location = 'fullScreenVideo'
         self.stop_sent_to_web = False
-        pbmc_server = window('pms_server')
+        pbmc_server = utils.window('pms_server')
         if pbmc_server:
             (self.protocol, self.server, self.port) = pbmc_server.split(':')
             self.server = self.server.replace('/', '')
         status = 'paused' if int(info['speed']) == 0 else 'playing'
-        duration = kodi_time_to_millis(info['totaltime'])
+        duration = utils.kodi_time_to_millis(info['totaltime'])
         shuffle = '1' if info['shuffled'] else '0'
         mute = '1' if info['muted'] is True else '0'
         answ = {
@@ -219,11 +214,11 @@ class SubscriptionMgr(object):
             'protocol': self.protocol,
             'address': self.server,
             'port': self.port,
-            'machineIdentifier': window('plex_machineIdentifier'),
+            'machineIdentifier': utils.window('plex_machineIdentifier'),
             'state': status,
             'type': ptype,
             'itemType': ptype,
-            'time': kodi_time_to_millis(info['time']),
+            'time': utils.kodi_time_to_millis(info['time']),
             'duration': duration,
             'seekRange': '0-%s' % duration,
             'shuffle': shuffle,
@@ -231,7 +226,7 @@ class SubscriptionMgr(object):
             'volume': info['volume'],
             'mute': mute,
             'mediaIndex': 0,  # Still to implement from here
-            'partIndex':0,
+            'partIndex': 0,
             'partCount': 1,
             'providerIdentifier': 'com.plexapp.plugins.library',
         }
@@ -302,7 +297,7 @@ class SubscriptionMgr(object):
         return playqueue.items[position].plex_stream_index(
             info[STREAM_DETAILS[stream_type]]['index'], stream_type)
 
-    @LOCKER.lockthis
+    @state.LOCKER_SUBSCRIBER.lockthis
     def update_command_id(self, uuid, command_id):
         """
         Updates the Plex Companien client with the machine identifier uuid with
@@ -320,8 +315,6 @@ class SubscriptionMgr(object):
         for player in players.values():
             info = state.PLAYER_STATES[player['playerid']]
             playqueue = PQ.PLAYQUEUES[player['playerid']]
-            LOG.debug('playqueue is: %s', playqueue)
-            LOG.debug('info is: %s', info)
             position = self._get_correct_position(info, playqueue)
             try:
                 item = playqueue.items[position]
@@ -334,7 +327,7 @@ class SubscriptionMgr(object):
                 return False
         return True
 
-    @LOCKER.lockthis
+    @state.LOCKER_SUBSCRIBER.lockthis
     def notify(self):
         """
         Causes PKC to tell the PMS and Plex Companion players to receive a
@@ -360,8 +353,6 @@ class SubscriptionMgr(object):
 
     def _notify_server(self, players):
         for typus, player in players.iteritems():
-            LOG.debug('player is %s', player)
-            LOG.debug('typus is %s', typus)
             self._send_pms_notification(
                 player['playerid'], self._get_pms_params(player['playerid']))
             try:
@@ -386,8 +377,8 @@ class SubscriptionMgr(object):
             'state': status,
             'ratingKey': item.plex_id,
             'key': '/library/metadata/%s' % item.plex_id,
-            'time': kodi_time_to_millis(info['time']),
-            'duration': kodi_time_to_millis(info['totaltime'])
+            'time': utils.kodi_time_to_millis(info['time']),
+            'duration': utils.kodi_time_to_millis(info['totaltime'])
         }
         if info['container_key'] is not None:
             # params['containerKey'] = info['container_key']
@@ -419,7 +410,7 @@ class SubscriptionMgr(object):
         LOG.debug("Sent server notification with parameters: %s to %s",
                   xargs, url)
 
-    @LOCKER.lockthis
+    @state.LOCKER_SUBSCRIBER.lockthis
     def add_subscriber(self, protocol, host, port, uuid, command_id):
         """
         Adds a new Plex Companion subscriber to PKC.
@@ -434,7 +425,7 @@ class SubscriptionMgr(object):
         self.subscribers[subscriber.uuid] = subscriber
         return subscriber
 
-    @LOCKER.lockthis
+    @state.LOCKER_SUBSCRIBER.lockthis
     def remove_subscriber(self, uuid):
         """
         Removes a connected Plex Companion subscriber with machine identifier

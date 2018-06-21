@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
-
 ###############################################################################
-
-from utils import kodi_sql
-import variables as v
+from . import utils
+from . import variables as v
 
 ###############################################################################
 
@@ -17,7 +15,7 @@ class Get_Plex_DB():
     and the db gets closed
     """
     def __enter__(self):
-        self.plexconn = kodi_sql('plex')
+        self.plexconn = utils.kodi_sql('plex')
         return Plex_DB_Functions(self.plexconn.cursor())
 
     def __exit__(self, type, value, traceback):

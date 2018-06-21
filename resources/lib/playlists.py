@@ -2,28 +2,21 @@
 from logging import getLogger
 import os
 import sys
-from threading import Lock
-
 from xbmcvfs import exists
 
-from watchdog.events import FileSystemEventHandler
-from watchdog.observers import Observer
-import playlist_func as PL
-from PlexAPI import API
-import kodidb_functions as kodidb
-import plexdb_functions as plexdb
-import utils
-import variables as v
-import state
+from .watchdog.events import FileSystemEventHandler
+from .watchdog.observers import Observer
+from . import playlist_func as PL
+from .plex_api import API
+from . import kodidb_functions as kodidb
+from . import plexdb_functions as plexdb
+from . import utils
+from . import variables as v
+from . import state
 
 ###############################################################################
 
-LOG = getLogger("PLEX." + __name__)
-
-# Necessary to temporarily hold back librarysync/websocket listener when doing
-# a full sync
-LOCK = Lock()
-LOCKER = utils.LockFunction(LOCK)
+LOG = getLogger('PLEX.playlists')
 
 # Which playlist formates are supported by PKC?
 SUPPORTED_FILETYPES = (
@@ -274,7 +267,7 @@ def _kodi_playlist_identical(xml_element):
     pass
 
 
-@LOCKER.lockthis
+@state.LOCKER_PLAYLISTS.lockthis
 def process_websocket(plex_id, updated_at, state):
     """
     Hit by librarysync to process websocket messages concerning playlists
@@ -302,7 +295,7 @@ def process_websocket(plex_id, updated_at, state):
         pass
 
 
-@LOCKER.lockthis
+@state.LOCKER_PLAYLISTS.lockthis
 def full_sync():
     """
     Full sync of playlists between Kodi and Plex. Returns True is successful,
@@ -438,7 +431,7 @@ class PlaylistEventhandler(FileSystemEventHandler):
             EVENT_TYPE_DELETED: self.on_deleted,
         }
         event_type = event.event_type
-        with LOCK:
+        with state.LOCK_PLAYLISTS:
             _method_map[event_type](event)
 
     def on_created(self, event):

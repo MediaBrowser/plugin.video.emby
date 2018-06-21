@@ -2,15 +2,14 @@
 from logging import getLogger
 from threading import Thread
 from Queue import Empty
-
 import xbmc
 
-from utils import thread_methods, settings, language as lang, dialog
-import plexdb_functions as plexdb
-import itemtypes
-from artwork import ArtworkSyncMessage
-import variables as v
-import state
+from .. import utils
+from .. import plexdb_functions as plexdb
+from .. import itemtypes
+from .. import artwork
+from .. import variables as v
+from .. import state
 
 ###############################################################################
 
@@ -19,10 +18,10 @@ LOG = getLogger("PLEX." + __name__)
 ###############################################################################
 
 
-@thread_methods(add_suspends=['SUSPEND_LIBRARY_THREAD',
-                              'DB_SCAN',
-                              'STOP_SYNC',
-                              'SUSPEND_SYNC'])
+@utils.thread_methods(add_suspends=['SUSPEND_LIBRARY_THREAD',
+                                    'DB_SCAN',
+                                    'STOP_SYNC',
+                                    'SUSPEND_SYNC'])
 class ThreadedProcessFanart(Thread):
     """
     Threaded download of additional fanart in the background
@@ -68,17 +67,17 @@ class ThreadedProcessFanart(Thread):
                         'Window.IsVisible(DialogAddonSettings.xml)'):
                     # Avoid saving '0' all the time
                     set_zero = True
-                    settings('fanarttv_lookups', value='0')
+                    utils.settings('fanarttv_lookups', value='0')
                 xbmc.sleep(200)
                 continue
             set_zero = False
-            if isinstance(item, ArtworkSyncMessage):
+            if isinstance(item, artwork.ArtworkSyncMessage):
                 if state.IMAGE_SYNC_NOTIFICATIONS:
-                    dialog('notification',
-                           heading=lang(29999),
-                           message=item.message,
-                           icon='{plex}',
-                           sound=False)
+                    utils.dialog('notification',
+                                 heading=utils.lang(29999),
+                                 message=item.message,
+                                 icon='{plex}',
+                                 sound=False)
                 queue.task_done()
                 continue
 
@@ -96,6 +95,6 @@ class ThreadedProcessFanart(Thread):
             if (counter > 20 and not xbmc.getCondVisibility(
                     'Window.IsVisible(DialogAddonSettings.xml)')):
                 counter = 0
-                settings('fanarttv_lookups', value=str(queue.qsize()))
+                utils.settings('fanarttv_lookups', value=str(queue.qsize()))
             queue.task_done()
         LOG.debug("---===### Stopped FanartSync ###===---")

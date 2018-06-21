@@ -2,15 +2,14 @@
 ###############################################################################
 from logging import getLogger
 from os.path import join
-
 import xbmcgui
 from xbmcaddon import Addon
 
-from utils import window
+from . import utils
 
 ###############################################################################
 
-LOG = getLogger("PLEX." + __name__)
+LOG = getLogger('PLEX.context')
 ADDON = Addon('plugin.video.plexkodiconnect')
 
 ACTION_PARENT_DIR = 9
@@ -44,8 +43,8 @@ class ContextMenu(xbmcgui.WindowXMLDialog):
         return self.selected_option
 
     def onInit(self):
-        if window('PlexUserImage'):
-            self.getControl(USER_IMAGE).setImage(window('PlexUserImage'))
+        if utils.window('PlexUserImage'):
+            self.getControl(USER_IMAGE).setImage(utils.window('PlexUserImage'))
         height = 479 + (len(self._options) * 55)
         LOG.debug("options: %s", self._options)
         self.list_ = self.getControl(LIST)

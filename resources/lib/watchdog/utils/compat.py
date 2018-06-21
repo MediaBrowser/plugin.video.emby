@@ -24,6 +24,6 @@ except ImportError:
 
 
 if sys.version_info < (2, 7):
-    from watchdog.utils.event_backport import Event
+    from .event_backport import Event
 else:
     from threading import Event

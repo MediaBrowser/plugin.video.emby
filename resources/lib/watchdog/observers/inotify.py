@@ -73,14 +73,14 @@ import os
 import threading
 from .inotify_buffer import InotifyBuffer
 
-from watchdog.observers.api import (
+from ..observers.api import (
     EventEmitter,
     BaseObserver,
     DEFAULT_EMITTER_TIMEOUT,
     DEFAULT_OBSERVER_TIMEOUT
 )
 
-from watchdog.events import (
+from ..events import (
     DirDeletedEvent,
     DirModifiedEvent,
     DirMovedEvent,
@@ -92,7 +92,7 @@ from watchdog.events import (
     generate_sub_moved_events,
     generate_sub_created_events,
 )
-from watchdog.utils import unicode_paths
+from ..utils import unicode_paths
 
 
 class InotifyEmitter(EventEmitter):
