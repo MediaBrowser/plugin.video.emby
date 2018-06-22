@@ -180,7 +180,7 @@ def m3u_to_plex_ids(playlist):
     Adapter to process *.m3u playlist files. Encoding is not uniform!
     """
     plex_ids = list()
-    with open(playlist.kodi_path, 'rb') as f:
+    with open(utils.encode_path(playlist.kodi_path), 'rb') as f:
         text = f.read()
     try:
         text = text.decode(ENCODING)
@@ -218,7 +218,7 @@ def _write_playlist_to_file(playlist, xml):
     text += '\n'
     text = text.encode(ENCODING, 'ignore')
     try:
-        with open(playlist.kodi_path, 'wb') as f:
+        with open(utils.encode_path(playlist.kodi_path), 'wb') as f:
             f.write(text)
     except (OSError, IOError) as err:
         LOG.error('Could not write Kodi playlist file: %s', playlist)
@@ -361,8 +361,10 @@ def _full_sync():
     if state.ENABLE_MUSIC:
         master_paths.append(v.PLAYLIST_PATH_MUSIC)
     for master_path in master_paths:
-        for root, _, files in os.walk(master_path):
+        for root, _, files in os.walk(utils.encode_path(master_path)):
+            root = utils.decode_path(root)
             for file in files:
+                file = utils.decode_path(file)
                 try:
                     extension = file.rsplit('.', 1)[1]
                 except IndexError:

@@ -1410,14 +1410,8 @@ class API(object):
             return
         else:
             LOG.debug('Writing temp subtitle to %s', path)
-            try:
-                with open(path, 'wb') as filer:
-                    filer.write(response.content)
-            except UnicodeEncodeError:
-                LOG.debug('Need to slugify the filename %s', path)
-                path = utils.slugify(path)
-                with open(path, 'wb') as filer:
-                    filer.write(response.content)
+            with open(utils.encode_path(path), 'wb') as filer:
+                filer.write(response.content)
             return path
 
     def kodi_premiere_date(self):

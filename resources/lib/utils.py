@@ -24,6 +24,7 @@ import hashlib
 import re
 import unicodedata
 
+from .watchdog.utils import unicode_paths
 from . import variables as v
 from . import state
 
@@ -117,7 +118,7 @@ def exists_dir(path):
     else:
         dummyfile = os.path.join(try_decode(path), 'dummyfile.txt')
         try:
-            with open(dummyfile, 'w') as filer:
+            with open(encode_path(dummyfile), 'w') as filer:
                 filer.write('text')
         except IOError:
             # folder does not exist yet
@@ -245,6 +246,26 @@ def kodi_time_to_millis(time):
            time['seconds']) * 1000 + time['milliseconds']
     ret = 0 if ret < 0 else ret
     return ret
+
+
+def encode_path(path):
+    """
+    Filenames and paths are not necessarily utf-8 encoded. Use this function
+    instead of try_encode/trydecode if working with filenames and paths!
+    (os.walk only feeds on encoded paths. sys.getfilesystemencoding returns None
+    for Raspberry Pi)
+    """
+    return unicode_paths.encode(path)
+
+
+def decode_path(path):
+    """
+    Filenames and paths are not necessarily utf-8 encoded. Use this function
+    instead of try_encode/trydecode if working with filenames and paths!
+    (os.walk only feeds on encoded paths. sys.getfilesystemencoding returns None
+    for Raspberry Pi)
+    """
+    return unicode_paths.decode(path)
 
 
 def try_encode(input_str, encoding='utf-8'):
@@ -998,7 +1019,7 @@ def playlist_xsp(mediatype, tagname, viewid, viewtype="", delete=False):
         'show': 'tvshows'
     }
     LOG.info("Writing playlist file to: %s", xsppath)
-    with open(xsppath, 'wb') as filer:
+    with open(encode_path(xsppath), 'wb') as filer:
         filer.write(try_encode(
             '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n'
             '<smartplaylist type="%s">\n\t'
@@ -1022,6 +1043,7 @@ def delete_playlists():
             if file.startswith('Plex'):
                 os.remove(os.path.join(root, file))
 
+
 def delete_nodes():
     """
     Clean up video nodes
@@ -1043,7 +1065,7 @@ def generate_file_md5(path):
     """
     m = hashlib.md5()
     m.update(path.encode('utf-8'))
-    with open(path, 'rb') as f:
+    with open(encode_path(path), 'rb') as f:
         while True:
             piece = f.read(32768)
             if not piece:
