@@ -154,7 +154,7 @@ class KodiMonitor(xbmc.Monitor):
                     state.PKC_CAUSED_STOP = False
                     LOG.debug('PKC caused this playback stop - ignoring')
                 else:
-                    with state.LOCK_PLAYQUEUES: 
+                    with state.LOCK_PLAYQUEUES:
                         _playback_cleanup(ended=True)
             else:
                 with state.LOCK_PLAYQUEUES:
