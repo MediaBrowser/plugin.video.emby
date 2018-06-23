@@ -55,6 +55,7 @@ class Service():
                  utils.settings('useDirectPaths') == '1')
         LOG.info("Number of sync threads: %s",
                  utils.settings('syncThreadNumber'))
+        LOG.info('Playlist m3u encoding: %s', v.M3U_ENCODING)
         LOG.info("Full sys.argv received: %s", sys.argv)
         self.monitor = xbmc.Monitor()
         # Load/Reset PKC entirely - important for user/Kodi profile switch

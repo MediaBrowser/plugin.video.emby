@@ -3,10 +3,8 @@
 Collection of functions associated with Kodi and Plex playlists and playqueues
 """
 from logging import getLogger
-import os
 import urllib
 from urlparse import parse_qsl, urlsplit
-from re import compile as re_compile
 
 from .plex_api import API
 from . import plex_functions as PF
@@ -14,6 +12,7 @@ from . import plexdb_functions as plexdb
 from . import kodidb_functions as kodidb
 from .downloadutils import DownloadUtils as DU
 from . import utils
+from . import path_ops
 from . import json_rpc as js
 from . import variables as v
 
@@ -21,7 +20,6 @@ from . import variables as v
 
 LOG = getLogger('PLEX.playlist_func')
 
-REGEX = re_compile(r'''metadata%2F(\d+)''')
 ###############################################################################
 
 
@@ -42,9 +40,9 @@ class PlaylistObjectBaseclase(object):
 
     def __repr__(self):
         """
-        Print the playlist, e.g. to log. Returns utf-8 encoded string
+        Print the playlist, e.g. to log. Returns unicode
         """
-        answ = u'{\'%s\': {\'id\': %s, ' % (self.__class__.__name__, self.id)
+        answ = '{\'%s\': {\'id\': %s, ' % (self.__class__.__name__, self.id)
         # For some reason, can't use dir directly
         for key in self.__dict__:
             if key in ('id', 'kodi_pl'):
@@ -58,7 +56,7 @@ class PlaylistObjectBaseclase(object):
             else:
                 # e.g. int
                 answ += '\'%s\': %s, ' % (key, unicode(getattr(self, key)))
-        return utils.try_encode(answ + '}}')
+        return answ + '}}'
 
 
 class Playlist_Object(PlaylistObjectBaseclase):
@@ -82,7 +80,9 @@ class Playlist_Object(PlaylistObjectBaseclase):
 
     @kodi_path.setter
     def kodi_path(self, path):
-        file = os.path.basename(path)
+        if not isinstance(path, unicode):
+            raise RuntimeError('Path is %s, not unicode!' % type(path))
+        file = path_ops.path.basename(path)
         try:
             self.kodi_filename, self.kodi_extension = file.split('.', 1)
         except ValueError:
@@ -220,9 +220,9 @@ class Playlist_Item(object):
 
     def __repr__(self):
         """
-        Print the playlist item, e.g. to log. Returns utf-8 encoded string
+        Print the playlist item, e.g. to log. Returns unicode
         """
-        answ = (u'{\'%s\': {\'id\': \'%s\', \'plex_id\': \'%s\', '
+        answ = ('{\'%s\': {\'id\': \'%s\', \'plex_id\': \'%s\', '
                 % (self.__class__.__name__, self.id, self.plex_id))
         for key in self.__dict__:
             if key in ('id', 'plex_id', 'xml'):
@@ -240,7 +240,7 @@ class Playlist_Item(object):
             answ += '\'xml\': None}}'
         else:
             answ += '\'xml\': \'%s\'}}' % self.xml.tag
-        return utils.try_encode(answ)
+        return answ
 
     def plex_stream_index(self, kodi_stream_index, stream_type):
         """
@@ -865,7 +865,8 @@ def get_plextype_from_xml(xml):
     returns None if unsuccessful
     """
     try:
-        plex_id = REGEX.findall(xml.attrib['playQueueSourceURI'])[0]
+        plex_id = utils.REGEX_PLEX_ID_FROM_URL.findall(
+            xml.attrib['playQueueSourceURI'])[0]
     except IndexError:
         LOG.error('Could not get plex_id from xml: %s', xml.attrib)
         return

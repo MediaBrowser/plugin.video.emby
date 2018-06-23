@@ -3,7 +3,6 @@ from logging import getLogger
 from urllib import urlencode, quote_plus
 from ast import literal_eval
 from urlparse import urlparse, parse_qsl
-from re import compile as re_compile
 from copy import deepcopy
 from time import time
 from threading import Thread
@@ -18,8 +17,6 @@ from . import variables as v
 LOG = getLogger('PLEX.plex_functions')
 
 CONTAINERSIZE = int(utils.settings('limitindex'))
-REGEX_PLEX_KEY = re_compile(r'''/(.+)/(\d+)$''')
-REGEX_PLEX_DIRECT = re_compile(r'''\.plex\.direct:\d+$''')
 
 # For discovery of PMS in the local LAN
 PLEX_GDM_IP = '239.0.0.250'  # multicast to PMS
@@ -47,7 +44,7 @@ def GetPlexKeyNumber(plexKey):
     Returns ('','') if nothing is found
     """
     try:
-        result = REGEX_PLEX_KEY.findall(plexKey)[0]
+        result = utils.REGEX_END_DIGITS.findall(plexKey)[0]
     except IndexError:
         result = ('', '')
     return result
@@ -411,7 +408,7 @@ def _pms_list_from_plex_tv(token):
 def _poke_pms(pms, queue):
     data = pms['connections'][0].attrib
     url = data['uri']
-    if data['local'] == '1' and REGEX_PLEX_DIRECT.findall(url):
+    if data['local'] == '1' and utils.REGEX_PLEX_DIRECT.findall(url):
         # In case DNS resolve of plex.direct does not work, append a new
         # connection that will directly access the local IP (e.g. internet down)
         conn = deepcopy(pms['connections'][0])

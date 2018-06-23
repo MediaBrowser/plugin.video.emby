@@ -7,6 +7,7 @@ import xml.etree.ElementTree as etree
 from xbmc import executebuiltin, translatePath
 
 from . import utils
+from . import path_ops
 from . import migration
 from .downloadutils import DownloadUtils as DU
 from . import videonodes
@@ -24,6 +25,9 @@ from . import variables as v
 LOG = getLogger('PLEX.initialsetup')
 
 ###############################################################################
+
+if not path_ops.exists(v.EXTERNAL_SUBTITLE_TEMP_PATH):
+    path_ops.makedirs(v.EXTERNAL_SUBTITLE_TEMP_PATH)
 
 
 WINDOW_PROPERTIES = (

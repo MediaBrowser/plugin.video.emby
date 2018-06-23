@@ -5,16 +5,14 @@
 #
 ###############################################################################
 from logging import getLogger
-from shutil import copyfile
-from os import walk, makedirs
-from os.path import basename, join
 from sys import argv
 from urllib import urlencode
 import xbmcplugin
-from xbmc import sleep, executebuiltin, translatePath
+from xbmc import sleep, executebuiltin
 from xbmcgui import ListItem
 
 from . import utils
+from . import path_ops
 from .downloadutils import DownloadUtils as DU
 from .plex_api import API
 from . import plex_functions as PF
@@ -441,7 +439,7 @@ def get_video_files(plex_id, params):
 
     item = PF.GetPlexMetadata(plex_id)
     try:
-        path = item[0][0][0].attrib['file']
+        path = utils.try_decode(item[0][0][0].attrib['file'])
     except (TypeError, IndexError, AttributeError, KeyError):
         LOG.error('Could not get file path for item %s', plex_id)
         return xbmcplugin.endOfDirectory(HANDLE)
@@ -453,18 +451,19 @@ def get_video_files(plex_id, params):
     elif '\\' in path:
         path = path.replace('\\', '\\\\')
     # Directory only, get rid of filename
-    path = path.replace(basename(path), '')
-    if utils.exists_dir(path):
-        for root, dirs, files in walk(path):
+    path = path.replace(path_ops.path.basename(path), '')
+    if path_ops.exists(path):
+        for root, dirs, files in path_ops.walk(path):
             for directory in dirs:
-                item_path = utils.try_encode(join(root, directory))
+                item_path = utils.try_encode(path_ops.path.join(root,
+                                                                directory))
                 listitem = ListItem(item_path, path=item_path)
                 xbmcplugin.addDirectoryItem(handle=HANDLE,
                                             url=item_path,
                                             listitem=listitem,
                                             isFolder=True)
             for file in files:
-                item_path = utils.try_encode(join(root, file))
+                item_path = utils.try_encode(path_ops.path.join(root, file))
                 listitem = ListItem(item_path, path=item_path)
                 xbmcplugin.addDirectoryItem(handle=HANDLE,
                                             url=file,
@@ -492,11 +491,11 @@ def extra_fanart(plex_id, plex_path):
 
     # We need to store the images locally for this to work
     # because of the caching system in xbmc
-    fanart_dir = utils.try_decode(translatePath(
-        "special://thumbnails/plex/%s/" % plex_id))
-    if not utils.exists_dir(fanart_dir):
+    fanart_dir = path_ops.translate_path("special://thumbnails/plex/%s/"
+                                         % plex_id)
+    if not path_ops.exists(fanart_dir):
         # Download the images to the cache directory
-        makedirs(fanart_dir)
+        path_ops.makedirs(fanart_dir)
         xml = PF.GetPlexMetadata(plex_id)
         if xml is None:
             LOG.error('Could not download metadata for %s', plex_id)
@@ -506,20 +505,23 @@ def extra_fanart(plex_id, plex_path):
         backdrops = api.artwork()['Backdrop']
         for count, backdrop in enumerate(backdrops):
             # Same ordering as in artwork
-            art_file = utils.try_encode(join(fanart_dir,
-                                             "fanart%.3d.jpg" % count))
+            art_file = utils.try_encode(path_ops.path.join(
+                fanart_dir, "fanart%.3d.jpg" % count))
             listitem = ListItem("%.3d" % count, path=art_file)
             xbmcplugin.addDirectoryItem(
                 handle=HANDLE,
                 url=art_file,
                 listitem=listitem)
-            copyfile(backdrop, utils.try_decode(art_file))
+            path_ops.copyfile(backdrop, utils.try_decode(art_file))
     else:
         LOG.info("Found cached backdrop.")
         # Use existing cached images
-        for root, _, files in walk(fanart_dir):
+        fanart_dir = utils.try_decode(fanart_dir)
+        for root, _, files in path_ops.walk(fanart_dir):
+            root = utils.decode_path(root)
             for file in files:
-                art_file = utils.try_encode(join(root, file))
+                file = utils.decode_path(file)
+                art_file = utils.try_encode(path_ops.path.join(root, file))
                 listitem = ListItem(file, path=art_file)
                 xbmcplugin.addDirectoryItem(handle=HANDLE,
                                             url=art_file,

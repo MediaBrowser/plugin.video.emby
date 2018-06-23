@@ -30,15 +30,15 @@ http://stackoverflow.com/questions/111945/is-there-any-way-to-do-http-put-in-pyt
 (and others...)
 """
 from logging import getLogger
-from re import compile as re_compile, sub
+from re import sub
 from urllib import urlencode, unquote
-import os
 from xbmcgui import ListItem
 from xbmcvfs import exists
 
 from .downloadutils import DownloadUtils as DU
 from . import clientinfo
 from . import utils
+from . import path_ops
 from . import plex_functions as PF
 from . import plexdb_functions as plexdb
 from . import kodidb_functions as kodidb
@@ -47,12 +47,6 @@ from . import state
 
 ###############################################################################
 LOG = getLogger('PLEX.plex_api')
-
-REGEX_IMDB = re_compile(r'''/(tt\d+)''')
-REGEX_TVDB = re_compile(r'''thetvdb:\/\/(.+?)\?''')
-
-if not utils.exists_dir(v.EXTERNAL_SUBTITLE_TEMP_PATH):
-    os.makedirs(v.EXTERNAL_SUBTITLE_TEMP_PATH)
 
 ###############################################################################
 
@@ -438,10 +432,10 @@ class API(object):
             return None
 
         if providername == 'imdb':
-            regex = REGEX_IMDB
+            regex = utils.REGEX_IMDB
         elif providername == 'tvdb':
             # originally e.g. com.plexapp.agents.thetvdb://276564?lang=en
-            regex = REGEX_TVDB
+            regex = utils.REGEX_TVDB
         else:
             return None
 
@@ -1246,7 +1240,7 @@ class API(object):
                 # Get additional info (filename / languages)
                 filename = None
                 if 'file' in entry[0].attrib:
-                    filename = os.path.basename(entry[0].attrib['file'])
+                    filename = path_ops.path.basename(entry[0].attrib['file'])
                 # Languages of audio streams
                 languages = []
                 for stream in entry[0]:
@@ -1401,7 +1395,7 @@ class API(object):
 
         Returns the path to the downloaded subtitle or None
         """
-        path = os.path.join(v.EXTERNAL_SUBTITLE_TEMP_PATH, filename)
+        path = path_ops.path.join(v.EXTERNAL_SUBTITLE_TEMP_PATH, filename)
         response = DU().downloadUrl(url, return_response=True)
         try:
             response.status_code
@@ -1410,7 +1404,7 @@ class API(object):
             return
         else:
             LOG.debug('Writing temp subtitle to %s', path)
-            with open(utils.encode_path(path), 'wb') as filer:
+            with open(path_ops.encode_path(path), 'wb') as filer:
                 filer.write(response.content)
             return path
 
@@ -1603,17 +1597,18 @@ class API(object):
             check = exists(utils.try_encode(path))
         else:
             # directories
-            if "\\" in path:
-                if not path.endswith('\\'):
+            checkpath = utils.try_encode(path)
+            if b"\\" in checkpath:
+                if not checkpath.endswith('\\'):
                     # Add the missing backslash
-                    check = utils.exists_dir(path + "\\")
+                    check = utils.exists_dir(checkpath + "\\")
                 else:
-                    check = utils.exists_dir(path)
+                    check = utils.exists_dir(checkpath)
             else:
-                if not path.endswith('/'):
-                    check = utils.exists_dir(path + "/")
+                if not checkpath.endswith('/'):
+                    check = utils.exists_dir(checkpath + "/")
                 else:
-                    check = utils.exists_dir(path)
+                    check = utils.exists_dir(checkpath)
 
         if not check:
             if force_check is False:

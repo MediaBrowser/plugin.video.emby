@@ -1025,23 +1025,11 @@ class LibrarySync(Thread):
         do with "process_" methods
         """
         if message['type'] == 'playing':
-            try:
-                self.process_playing(message['PlaySessionStateNotification'])
-            except KeyError:
-                LOG.error('Received invalid PMS message for playstate: %s',
-                          message)
+            self.process_playing(message['PlaySessionStateNotification'])
         elif message['type'] == 'timeline':
-            try:
-                self.process_timeline(message['TimelineEntry'])
-            except (KeyError, ValueError):
-                LOG.error('Received invalid PMS message for timeline: %s',
-                          message)
+            self.process_timeline(message['TimelineEntry'])
         elif message['type'] == 'activity':
-            try:
-                self.process_activity(message['ActivityNotification'])
-            except KeyError:
-                LOG.error('Received invalid PMS message for activity: %s',
-                          message)
+            self.process_activity(message['ActivityNotification'])
 
     def multi_delete(self, liste, delete_list):
         """
@@ -1196,7 +1184,7 @@ class LibrarySync(Thread):
                     continue
                 playlists.process_websocket(plex_id=str(item['itemID']),
                                             updated_at=str(item['updatedAt']),
-                                            state=status)
+                                            status=status)
             elif status == 9:
                 # Immediately and always process deletions (as the PMS will
                 # send additional message with other codes)

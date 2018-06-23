@@ -3,14 +3,14 @@
 from logging import getLogger
 from threading import Thread
 
-from xbmc import sleep, executebuiltin, translatePath
-import xbmcaddon
-from xbmcvfs import exists
+from xbmc import sleep, executebuiltin
 
 from .downloadutils import DownloadUtils as DU
 from . import utils
+from . import path_ops
 from . import plex_tv
 from . import plex_functions as PF
+from . import variables as v
 from . import state
 
 ###############################################################################
@@ -44,7 +44,6 @@ class UserClient(Thread):
         self.ssl = None
         self.sslcert = None
 
-        self.addon = xbmcaddon.Addon()
         self.do_utils = None
 
         Thread.__init__(self)
@@ -197,11 +196,8 @@ class UserClient(Thread):
                 'Addon.Openutils.settings(plugin.video.plexkodiconnect)')
             return False
 
-        # Get /profile/addon_data
-        addondir = translatePath(self.addon.getAddonInfo('profile'))
-
         # If there's no settings.xml
-        if not exists("%ssettings.xml" % addondir):
+        if not path_ops.exists("%ssettings.xml" % v.ADDON_PROFILE):
             LOG.error("Error, no settings.xml found.")
             self.auth = False
             return False

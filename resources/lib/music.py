@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from logging import getLogger
-from re import compile as re_compile
 from xml.etree.ElementTree import ParseError
 
 from . import utils
@@ -9,8 +8,6 @@ from . import variables as v
 
 ###############################################################################
 LOG = getLogger('PLEX.music')
-
-REGEX_MUSICPATH = re_compile(r'''^\^(.+)\$$''')
 ###############################################################################
 
 

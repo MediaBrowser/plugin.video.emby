@@ -3,15 +3,13 @@
 ###############################################################################
 from logging import getLogger
 from Queue import Queue, Empty
-from shutil import rmtree
 from urllib import quote_plus, unquote
 from threading import Thread
-from os import makedirs
 import requests
 
 import xbmc
-from xbmcvfs import exists
 
+from . import path_ops
 from . import utils
 from . import state
 
@@ -202,10 +200,9 @@ class Artwork():
         if utils.dialog('yesno', "Image Texture Cache", utils.lang(39251)):
             LOG.info("Resetting all cache data first")
             # Remove all existing textures first
-            path = utils.try_decode(
-                xbmc.translatePath("special://thumbnails/"))
-            if utils.exists_dir(path):
-                rmtree(path, ignore_errors=True)
+            path = path_ops.translate_path('special://thumbnails/')
+            if path_ops.exists(path):
+                path_ops.rmtree(path, ignore_errors=True)
                 self.restore_cache_directories()
 
             # remove all existing data from texture DB
@@ -321,10 +318,11 @@ class Artwork():
             pass
         else:
             # Delete thumbnail as well as the entry
-            path = xbmc.translatePath("special://thumbnails/%s" % cachedurl)
+            path = path_ops.translate_path("special://thumbnails/%s"
+                                           % cachedurl)
             LOG.debug("Deleting cached thumbnail: %s", path)
-            if exists(path):
-                rmtree(utils.try_decode(path), ignore_errors=True)
+            if path_ops.exists(path):
+                path_ops.rmtree(path, ignore_errors=True)
             cursor.execute("DELETE FROM texture WHERE url = ?", (url,))
             connection.commit()
         finally:
@@ -337,8 +335,8 @@ class Artwork():
                  "a", "b", "c", "d", "e", "f",
                  "Video", "plex")
         for path in paths:
-            makedirs(utils.try_decode(
-                xbmc.translatePath("special://thumbnails/%s" % path)))
+            new_path = path_ops.translate_path("special://thumbnails/%s" % path)
+            path_ops.makedirs(utils.encode_path(new_path))
 
 
 class ArtworkSyncMessage(object):

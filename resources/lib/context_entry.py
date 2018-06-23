@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 ###############################################################################
 from logging import getLogger
-from xbmcaddon import Addon
 import xbmc
 import xbmcgui
 
@@ -103,7 +102,7 @@ class ContextMenu(object):
         options.append(OPTIONS['Addon'])
         context_menu = context.ContextMenu(
             "script-plex-context.xml",
-            Addon('plugin.video.plexkodiconnect').getAddonInfo('path'),
+            utils.try_encode(v.ADDON_PATH),
             "default",
             "1080i")
         context_menu.set_options(options)

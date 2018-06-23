@@ -1,13 +1,11 @@
 # -*- coding: utf-8 -*-
 ###############################################################################
 from logging import getLogger
-from distutils import dir_util
 import xml.etree.ElementTree as etree
-from os import makedirs
 import xbmc
-from xbmcvfs import exists
 
 from . import utils
+from . import path_ops
 from . import variables as v
 from . import state
 
@@ -16,7 +14,6 @@ from . import state
 LOG = getLogger('PLEX.videonodes')
 
 ###############################################################################
-# Paths are strings, NOT unicode!
 
 
 class VideoNodes(object):
@@ -66,33 +63,30 @@ class VideoNodes(object):
             dirname = viewid
 
         # Returns strings
-        path = utils.try_decode(xbmc.translatePath(
-            "special://profile/library/video/"))
-        nodepath = utils.try_decode(xbmc.translatePath(
-            "special://profile/library/video/Plex-%s/" % dirname))
+        path = path_ops.translate_path('special://profile/library/video/')
+        nodepath = path_ops.translate_path(
+            'special://profile/library/video/Plex-%s/' % dirname)
 
         if delete:
-            if utils.exists_dir(nodepath):
-                from shutil import rmtree
-                rmtree(nodepath)
+            if path_ops.exists(nodepath):
+                path_ops.rmtree(nodepath)
                 LOG.info("Sucessfully removed videonode: %s." % tagname)
             return
 
         # Verify the video directory
-        if not utils.exists_dir(path):
-            dir_util.copy_tree(
-                src=utils.try_decode(
-                    xbmc.translatePath("special://xbmc/system/library/video")),
-                dst=utils.try_decode(
-                    xbmc.translatePath("special://profile/library/video")),
+        if not path_ops.exists(path):
+            path_ops.copy_tree(
+                src=path_ops.translate_path(
+                    'special://xbmc/system/library/video'),
+                dst=path_ops.translate_path('special://profile/library/video'),
                 preserve_mode=0)  # do not copy permission bits!
 
         # Create the node directory
         if mediatype != "photos":
-            if not utils.exists_dir(nodepath):
+            if not path_ops.exists(nodepath):
                 # folder does not exist yet
                 LOG.debug('Creating folder %s' % nodepath)
-                makedirs(nodepath)
+                path_ops.makedirs(nodepath)
 
         # Create index entry
         nodeXML = "%sindex.xml" % nodepath
@@ -298,7 +292,7 @@ class VideoNodes(object):
                 # kodi picture sources somehow
                 continue
 
-            if exists(utils.try_encode(nodeXML)):
+            if path_ops.exists(nodeXML):
                 # Don't recreate xml if already exists
                 continue
 
@@ -403,13 +397,12 @@ class VideoNodes(object):
                 utils.indent(root)
             except:
                 pass
-            etree.ElementTree(root).write(nodeXML, encoding="UTF-8")
+            etree.ElementTree(root).write(path_ops.encode_path(nodeXML),
+                                          encoding="UTF-8")
 
     def singleNode(self, indexnumber, tagname, mediatype, itemtype):
-        tagname = utils.try_encode(tagname)
-        cleantagname = utils.try_decode(utils.normalize_nodes(tagname))
-        nodepath = utils.try_decode(xbmc.translatePath(
-            "special://profile/library/video/"))
+        cleantagname = utils.normalize_nodes(tagname)
+        nodepath = path_ops.translate_path('special://profile/library/video/')
         nodeXML = "%splex_%s.xml" % (nodepath, cleantagname)
         path = "library://video/plex_%s.xml" % cleantagname
         if v.KODIVERSION >= 17:
@@ -419,13 +412,12 @@ class VideoNodes(object):
             windowpath = "ActivateWindow(Video,%s,return)" % path
 
         # Create the video node directory
-        if not utils.exists_dir(nodepath):
+        if not path_ops.exists(nodepath):
             # We need to copy over the default items
-            dir_util.copy_tree(
-                src=utils.try_decode(
-                    xbmc.translatePath("special://xbmc/system/library/video")),
-                dst=utils.try_decode(
-                    xbmc.translatePath("special://profile/library/video")),
+            path_ops.copy_tree(
+                src=path_ops.translate_path(
+                    'special://xbmc/system/library/video'),
+                dst=path_ops.translate_path('special://profile/library/video'),
                 preserve_mode=0)  # do not copy permission bits!
 
         labels = {
@@ -440,7 +432,7 @@ class VideoNodes(object):
         utils.window('%s.content' % embynode, value=path)
         utils.window('%s.type' % embynode, value=itemtype)
 
-        if exists(utils.try_encode(nodeXML)):
+        if path_ops.exists(nodeXML):
             # Don't recreate xml if already exists
             return
 

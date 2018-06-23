@@ -1,8 +1,5 @@
 # -*- coding: utf-8 -*-
 from logging import getLogger
-import os
-import sys
-from xbmcvfs import exists
 
 from .watchdog.events import FileSystemEventHandler
 from .watchdog.observers import Observer
@@ -11,6 +8,7 @@ from .plex_api import API
 from . import kodidb_functions as kodidb
 from . import plexdb_functions as plexdb
 from . import utils
+from . import path_ops
 from . import variables as v
 from . import state
 
@@ -31,12 +29,6 @@ EVENT_TYPE_MOVED = 'moved'
 EVENT_TYPE_DELETED = 'deleted'
 EVENT_TYPE_CREATED = 'created'
 EVENT_TYPE_MODIFIED = 'modified'
-
-# m3u files do not have encoding specified
-if v.PLATFORM == 'Windows':
-    ENCODING = 'mbcs'
-else:
-    ENCODING = sys.getdefaultencoding()
 
 
 def create_plex_playlist(playlist):
@@ -99,20 +91,21 @@ def create_kodi_playlist(plex_id=None, updated_at=None):
     playlist.plex_updatedat = updated_at
     LOG.debug('Creating new Kodi playlist from Plex playlist: %s', playlist)
     name = utils.valid_filename(playlist.plex_name)
-    path = os.path.join(v.PLAYLIST_PATH, playlist.type, '%s.m3u' % name)
-    while exists(path) or playlist_object_from_db(path=path):
+    path = path_ops.path.join(v.PLAYLIST_PATH, playlist.type, '%s.m3u' % name)
+    while path_ops.exists(path) or playlist_object_from_db(path=path):
         # In case the Plex playlist names are not unique
         occurance = utils.REGEX_FILE_NUMBERING.search(path)
         if not occurance:
-            path = os.path.join(v.PLAYLIST_PATH,
-                                playlist.type,
-                                '%s_01.m3u' % name[:min(len(name), 248)])
+            path = path_ops.path.join(v.PLAYLIST_PATH,
+                                      playlist.type,
+                                      '%s_01.m3u' % name[:min(len(name), 248)])
         else:
             occurance = int(occurance.group(1)) + 1
-            path = os.path.join(v.PLAYLIST_PATH,
-                                playlist.type,
-                                '%s_%02d.m3u' % (name[:min(len(name), 248)],
-                                                 occurance))
+            path = path_ops.path.join(v.PLAYLIST_PATH,
+                                      playlist.type,
+                                      '%s_%02d.m3u' % (name[:min(len(name),
+                                                                 248)],
+                                                       occurance))
     LOG.debug('Kodi playlist path: %s', path)
     playlist.kodi_path = path
     # Derive filename close to Plex playlist name
@@ -130,7 +123,7 @@ def delete_kodi_playlist(playlist):
     Returns None or raises PL.PlaylistError
     """
     try:
-        os.remove(playlist.kodi_path)
+        path_ops.remove(playlist.kodi_path)
     except (OSError, IOError) as err:
         LOG.error('Could not delete Kodi playlist file %s. Error:\n %s: %s',
                   playlist, err.errno, err.strerror)
@@ -180,10 +173,10 @@ def m3u_to_plex_ids(playlist):
     Adapter to process *.m3u playlist files. Encoding is not uniform!
     """
     plex_ids = list()
-    with open(utils.encode_path(playlist.kodi_path), 'rb') as f:
+    with open(path_ops.encode_path(playlist.kodi_path), 'rb') as f:
         text = f.read()
     try:
-        text = text.decode(ENCODING)
+        text = text.decode(v.M3U_ENCODING)
     except UnicodeDecodeError:
         LOG.warning('Fallback to ISO-8859-1 decoding for %s', playlist)
         text = text.decode('ISO-8859-1')
@@ -210,15 +203,15 @@ def _write_playlist_to_file(playlist, xml):
     Feed with playlist [Playlist_Object]. Will write the playlist to a m3u file
     Returns None or raises PL.PlaylistError
     """
-    text = u'#EXTCPlayListM3U::M3U\n'
+    text = '#EXTCPlayListM3U::M3U\n'
     for element in xml:
         api = API(element)
-        text += (u'#EXTINF:%s,%s\n%s\n'
+        text += ('#EXTINF:%s,%s\n%s\n'
                  % (api.runtime(), api.title(), api.path()))
     text += '\n'
-    text = text.encode(ENCODING, 'ignore')
+    text = text.encode(v.M3U_ENCODING, 'strict')
     try:
-        with open(utils.encode_path(playlist.kodi_path), 'wb') as f:
+        with open(path_ops.encode_path(playlist.kodi_path), 'wb') as f:
             f.write(text)
     except (OSError, IOError) as err:
         LOG.error('Could not write Kodi playlist file: %s', playlist)
@@ -267,15 +260,15 @@ def _kodi_playlist_identical(xml_element):
     pass
 
 
-def process_websocket(plex_id, updated_at, state):
+def process_websocket(plex_id, updated_at, status):
     """
     Hit by librarysync to process websocket messages concerning playlists
     """
     create = False
-    playlist = playlist_object_from_db(plex_id=plex_id)
     with state.LOCK_PLAYLISTS:
+        playlist = playlist_object_from_db(plex_id=plex_id)
         try:
-            if playlist and state == 9:
+            if playlist and status == 9:
                 LOG.debug('Plex deletion of playlist detected: %s', playlist)
                 delete_kodi_playlist(playlist)
             elif playlist and playlist.plex_updatedat == updated_at:
@@ -285,7 +278,7 @@ def process_websocket(plex_id, updated_at, state):
                 LOG.debug('Change of Plex playlist detected: %s', playlist)
                 delete_kodi_playlist(playlist)
                 create = True
-            elif not playlist and not state == 9:
+            elif not playlist and not status == 9:
                 LOG.debug('Creation of new Plex playlist detected: %s',
                           plex_id)
                 create = True
@@ -333,7 +326,7 @@ def _full_sync():
             elif playlist.plex_updatedat != api.updated_at():
                 LOG.debug('Detected changed Plex playlist %s: %s',
                           api.plex_id(), api.title())
-                if exists(playlist.kodi_path):
+                if path_ops.exists(playlist.kodi_path):
                     delete_kodi_playlist(playlist)
                 else:
                     update_plex_table(playlist, delete=True)
@@ -361,17 +354,19 @@ def _full_sync():
     if state.ENABLE_MUSIC:
         master_paths.append(v.PLAYLIST_PATH_MUSIC)
     for master_path in master_paths:
-        for root, _, files in os.walk(utils.encode_path(master_path)):
-            root = utils.decode_path(root)
+        for root, _, files in path_ops.walk(master_path):
             for file in files:
-                file = utils.decode_path(file)
                 try:
                     extension = file.rsplit('.', 1)[1]
                 except IndexError:
                     continue
                 if extension not in SUPPORTED_FILETYPES:
                     continue
-                path = os.path.join(root, file)
+                LOG.debug('root: %s', root)
+                LOG.debug('type: %s', type(root))
+                LOG.debug('file: %s', file)
+                LOG.debug('type: %s', type(file))
+                path = path_ops.path.join(root, file)
                 kodi_hash = utils.generate_file_md5(path)
                 playlist = playlist_object_from_db(kodi_hash=kodi_hash)
                 playlist_2 = playlist_object_from_db(path=path)

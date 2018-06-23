@@ -1,16 +1,15 @@
 # -*- coding: utf-8 -*-
 ###############################################################################
 from logging import getLogger
-from os.path import join
 import xbmcgui
-from xbmcaddon import Addon
 
 from . import utils
+from . import path_ops
+from . import variables as v
 
 ###############################################################################
 
 LOG = getLogger('PLEX.context')
-ADDON = Addon('plugin.video.plexkodiconnect')
 
 ACTION_PARENT_DIR = 9
 ACTION_PREVIOUS_MENU = 10
@@ -65,10 +64,11 @@ class ContextMenu(xbmcgui.WindowXMLDialog):
                 self.close()
 
     def _add_editcontrol(self, x, y, height, width, password=None):
-        media = join(ADDON.getAddonInfo('path'),
-                     'resources', 'skins', 'default', 'media')
+        media = path_ops.path.join(
+            v.ADDON_PATH, 'resources', 'skins', 'default', 'media')
+        filename = utils.try_encode(path_ops.path.join(media, 'white.png'))
         control = xbmcgui.ControlImage(0, 0, 0, 0,
-                                       filename=join(media, "white.png"),
+                                       filename=filename,
                                        aspectRatio=0,
                                        colorDiffuse="ff111111")
         control.setPosition(x, y)
