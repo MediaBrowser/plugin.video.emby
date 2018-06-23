@@ -1,3 +1,13 @@
+version 2.2.2 (beta only):
+- Fixes to locking mechanisms which resulted in weird behavior in some cases
+- Switch to Python __future__ unicode_literals and absolute paths
+- Fix UnboundLocalError for playlists
+- Check all Kodi database versions before starting PKC
+- Fix KeyError on non-PKC playback startup
+- Speed up subtitle download to Kodi
+- Update translations
+- PEP-8 stuff
+
 version 2.2.1 (beta only):
 - Fix library sync crash due to PMS sending string, not unicode
 - Fix playback from playlists for add-on paths
