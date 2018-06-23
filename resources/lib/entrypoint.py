@@ -24,7 +24,7 @@ LOG = getLogger('PLEX.entrypoint')
 
 try:
     HANDLE = int(argv[1])
-    ARGV_0 = argv[0]
+    ARGV_0 = path_ops.decode_path(argv[0])
 except IndexError:
     pass
 ###############################################################################

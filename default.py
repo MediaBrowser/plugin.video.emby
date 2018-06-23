@@ -11,6 +11,7 @@ from xbmcplugin import setResolvedUrl
 
 from resources.lib import entrypoint, utils, pickler, pkc_listitem, \
     variables as v, loghandler
+from resources.lib.watchdog.utils import unicode_paths
 
 ###############################################################################
 
@@ -26,9 +27,11 @@ class Main():
     # MAIN ENTRY POINT
     # @utils.profiling()
     def __init__(self):
-        log.debug('Full sys.argv received: %s' % argv)
+        log.debug('Full sys.argv received: %s', argv)
         # Parse parameters
-        params = dict(parse_qsl(argv[2][1:]))
+        path = unicode_paths.decode(argv[0])
+        arguments = unicode_paths.decode(argv[2])
+        params = dict(parse_qsl(arguments[1:]))
         mode = params.get('mode', '')
         itemid = params.get('id', '')
 
@@ -121,15 +124,15 @@ class Main():
             log.info('User requested fanarttv refresh')
             utils.plex_command('RUN_LIB_SCAN', 'fanart')
 
-        elif '/extrafanart' in argv[0]:
-            plexpath = argv[2][1:]
+        elif '/extrafanart' in path:
+            plexpath = arguments[1:]
             plexid = itemid
             entrypoint.extra_fanart(plexid, plexpath)
             entrypoint.get_video_files(plexid, plexpath)
 
         # Called by e.g. 3rd party plugin video extras
-        elif ('/Extras' in argv[0] or '/VideoFiles' in argv[0] or
-                '/Extras' in argv[2]):
+        elif ('/Extras' in path or '/VideoFiles' in path or
+                '/Extras' in arguments):
             plexId = itemid or None
             entrypoint.get_video_files(plexId, params)
 
