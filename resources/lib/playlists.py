@@ -362,10 +362,6 @@ def _full_sync():
                     continue
                 if extension not in SUPPORTED_FILETYPES:
                     continue
-                LOG.debug('root: %s', root)
-                LOG.debug('type: %s', type(root))
-                LOG.debug('file: %s', file)
-                LOG.debug('type: %s', type(file))
                 path = path_ops.path.join(root, file)
                 kodi_hash = utils.generate_file_md5(path)
                 playlist = playlist_object_from_db(kodi_hash=kodi_hash)
