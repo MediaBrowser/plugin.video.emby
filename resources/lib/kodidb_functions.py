@@ -7,14 +7,14 @@ from logging import getLogger
 from ntpath import dirname
 from sqlite3 import IntegrityError
 
-import artwork
-from utils import kodi_sql, try_decode, unix_timestamp, unix_date_to_kodi
-import variables as v
-import state
+from . import artwork
+from . import utils
+from . import variables as v
+from . import state
 
 ###############################################################################
 
-LOG = getLogger("PLEX." + __name__)
+LOG = getLogger('PLEX.kodidb_functions')
 
 ###############################################################################
 
@@ -35,7 +35,7 @@ class GetKodiDB(object):
         self.db_type = db_type
 
     def __enter__(self):
-        self.kodiconn = kodi_sql(self.db_type)
+        self.kodiconn = utils.kodi_sql(self.db_type)
         kodi_db = KodiDBMethods(self.kodiconn.cursor())
         return kodi_db
 
@@ -118,7 +118,7 @@ class KodiDBMethods(object):
         if pathid is None:
             self.cursor.execute("SELECT COALESCE(MAX(idPath),0) FROM path")
             pathid = self.cursor.fetchone()[0] + 1
-            datetime = unix_date_to_kodi(unix_timestamp())
+            datetime = utils.unix_date_to_kodi(utils.unix_timestamp())
             query = '''
                 INSERT INTO path(idPath, strPath, dateAdded)
                 VALUES (?, ?, ?)
@@ -209,13 +209,14 @@ class KodiDBMethods(object):
                 INSERT INTO files(idFile, idPath, strFilename, dateAdded)
                 VALUES (?, ?, ?, ?)
             '''
-            self.cursor.execute(query, (file_id, path_id, filename, date_added))
+            self.cursor.execute(query,
+                                (file_id, path_id, filename, date_added))
         return file_id
 
     def obsolete_file_ids(self):
         """
         Returns a list of (idFile,) tuples (ints) of all Kodi file ids that do
-        not have a dateAdded set (dateAdded is NULL) and the filename start with
+        not have a dateAdded set (dateAdded NULL) and the filename start with
         'plugin://plugin.video.plexkodiconnect'
         These entries should be deleted as they're created falsely by Kodi.
         """
@@ -653,7 +654,7 @@ class KodiDBMethods(object):
                 movie_id = self.cursor.fetchone()[0]
                 typus = v.KODI_TYPE_EPISODE
             except TypeError:
-                LOG.warn('Unexpectantly did not find a match!')
+                LOG.debug('Did not find a video DB match')
                 return
         return movie_id, typus
 
@@ -1236,7 +1237,7 @@ def kodiid_from_filename(path, kodi_type=None, db_type=None):
     Returns None, <kodi_type> if not possible
     """
     kodi_id = None
-    path = try_decode(path)
+    path = utils.try_decode(path)
     try:
         filename = path.rsplit('/', 1)[1]
         path = path.rsplit('/', 1)[0] + '/'

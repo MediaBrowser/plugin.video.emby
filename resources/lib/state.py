@@ -1,5 +1,17 @@
 # -*- coding: utf-8 -*-
 # THREAD SAFE
+from threading import Lock, RLock
+
+
+# LOCKS
+####################
+# Need to lock all methods and functions messing with Plex Companion subscribers
+LOCK_SUBSCRIBER = RLock()
+# Need to lock everything messing with Kodi/PKC playqueues
+LOCK_PLAYQUEUES = RLock()
+# Necessary to temporarily hold back librarysync/websocket listener when doing
+# a full sync
+LOCK_PLAYLISTS = Lock()
 
 # Quit PKC
 STOP_PKC = False

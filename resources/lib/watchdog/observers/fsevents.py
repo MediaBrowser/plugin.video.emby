@@ -30,7 +30,7 @@ import threading
 import unicodedata
 import _watchdog_fsevents as _fsevents
 
-from watchdog.events import (
+from ..events import (
     FileDeletedEvent,
     FileModifiedEvent,
     FileCreatedEvent,
@@ -41,8 +41,8 @@ from watchdog.events import (
     DirMovedEvent
 )
 
-from watchdog.utils.dirsnapshot import DirectorySnapshot
-from watchdog.observers.api import (
+from ..utils.dirsnapshot import DirectorySnapshot
+from ..observers.api import (
     BaseObserver,
     EventEmitter,
     DEFAULT_EMITTER_TIMEOUT,

@@ -3,22 +3,17 @@ Manages getting playstate from Kodi and sending it to the PMS as well as
 subscribed Plex Companion clients.
 """
 from logging import getLogger
-from threading import Thread, RLock
+from threading import Thread
 
-from downloadutils import DownloadUtils as DU
-from utils import window, kodi_time_to_millis, LockFunction
-import state
-import variables as v
-import json_rpc as js
-import playqueue as PQ
+from ..downloadutils import DownloadUtils as DU
+from .. import utils
+from .. import state
+from .. import variables as v
+from .. import json_rpc as js
+from .. import playqueue as PQ
 
 ###############################################################################
-
-LOG = getLogger("PLEX." + __name__)
-# Need to lock all methods and functions messing with subscribers or state
-LOCK = RLock()
-LOCKER = LockFunction(LOCK)
-
+LOG = getLogger('PLEX.subscribers')
 ###############################################################################
 
 # What is Companion controllable?
@@ -150,7 +145,6 @@ class SubscriptionMgr(object):
             position = info['position']
         return position
 
-    @LOCKER.lockthis
     def msg(self, players):
         """
         Returns a timeline xml as str
@@ -190,94 +184,98 @@ class SubscriptionMgr(object):
         return answ
 
     def _timeline_dict(self, player, ptype):
-        playerid = player['playerid']
-        info = state.PLAYER_STATES[playerid]
-        playqueue = PQ.PLAYQUEUES[playerid]
-        position = self._get_correct_position(info, playqueue)
-        try:
-            item = playqueue.items[position]
-        except IndexError:
-            # E.g. for direct path playback for single item
-            return {
+        with state.LOCK_PLAYQUEUES:
+            playerid = player['playerid']
+            info = state.PLAYER_STATES[playerid]
+            playqueue = PQ.PLAYQUEUES[playerid]
+            position = self._get_correct_position(info, playqueue)
+            try:
+                item = playqueue.items[position]
+            except IndexError:
+                # E.g. for direct path playback for single item
+                return {
+                    'controllable': CONTROLLABLE[ptype],
+                    'type': ptype,
+                    'state': 'stopped'
+                }
+            if ptype in (v.PLEX_PLAYLIST_TYPE_VIDEO,
+                         v.PLEX_PLAYLIST_TYPE_PHOTO):
+                self.location = 'fullScreenVideo'
+            self.stop_sent_to_web = False
+            pbmc_server = utils.window('pms_server')
+            if pbmc_server:
+                (self.protocol, self.server, self.port) = pbmc_server.split(':')
+                self.server = self.server.replace('/', '')
+            status = 'paused' if int(info['speed']) == 0 else 'playing'
+            duration = utils.kodi_time_to_millis(info['totaltime'])
+            shuffle = '1' if info['shuffled'] else '0'
+            mute = '1' if info['muted'] is True else '0'
+            answ = {
                 'controllable': CONTROLLABLE[ptype],
+                'protocol': self.protocol,
+                'address': self.server,
+                'port': self.port,
+                'machineIdentifier': utils.window('plex_machineIdentifier'),
+                'state': status,
                 'type': ptype,
-                'state': 'stopped'
+                'itemType': ptype,
+                'time': utils.kodi_time_to_millis(info['time']),
+                'duration': duration,
+                'seekRange': '0-%s' % duration,
+                'shuffle': shuffle,
+                'repeat': v.PLEX_REPEAT_FROM_KODI_REPEAT[info['repeat']],
+                'volume': info['volume'],
+                'mute': mute,
+                'mediaIndex': 0,  # Still to implement from here
+                'partIndex': 0,
+                'partCount': 1,
+                'providerIdentifier': 'com.plexapp.plugins.library',
             }
-        if ptype in (v.PLEX_PLAYLIST_TYPE_VIDEO, v.PLEX_PLAYLIST_TYPE_PHOTO):
-            self.location = 'fullScreenVideo'
-        self.stop_sent_to_web = False
-        pbmc_server = window('pms_server')
-        if pbmc_server:
-            (self.protocol, self.server, self.port) = pbmc_server.split(':')
-            self.server = self.server.replace('/', '')
-        status = 'paused' if int(info['speed']) == 0 else 'playing'
-        duration = kodi_time_to_millis(info['totaltime'])
-        shuffle = '1' if info['shuffled'] else '0'
-        mute = '1' if info['muted'] is True else '0'
-        answ = {
-            'controllable': CONTROLLABLE[ptype],
-            'protocol': self.protocol,
-            'address': self.server,
-            'port': self.port,
-            'machineIdentifier': window('plex_machineIdentifier'),
-            'state': status,
-            'type': ptype,
-            'itemType': ptype,
-            'time': kodi_time_to_millis(info['time']),
-            'duration': duration,
-            'seekRange': '0-%s' % duration,
-            'shuffle': shuffle,
-            'repeat': v.PLEX_REPEAT_FROM_KODI_REPEAT[info['repeat']],
-            'volume': info['volume'],
-            'mute': mute,
-            'mediaIndex': 0,  # Still to implement from here
-            'partIndex':0,
-            'partCount': 1,
-            'providerIdentifier': 'com.plexapp.plugins.library',
-        }
-        # Get the plex id from the PKC playqueue not info, as Kodi jumps to next
-        # playqueue element way BEFORE kodi monitor onplayback is called
-        if item.plex_id:
-            answ['key'] = '/library/metadata/%s' % item.plex_id
-            answ['ratingKey'] = item.plex_id
-        # PlayQueue stuff
-        if info['container_key']:
-            answ['containerKey'] = info['container_key']
-        if (info['container_key'] is not None and
-                info['container_key'].startswith('/playQueues')):
-            answ['playQueueID'] = playqueue.id
-            answ['playQueueVersion'] = playqueue.version
-            answ['playQueueItemID'] = item.id
-        if playqueue.items[position].guid:
-            answ['guid'] = item.guid
-        # Temp. token set?
-        if state.PLEX_TRANSIENT_TOKEN:
-            answ['token'] = state.PLEX_TRANSIENT_TOKEN
-        elif playqueue.plex_transient_token:
-            answ['token'] = playqueue.plex_transient_token
-        # Process audio and subtitle streams
-        if ptype == v.PLEX_PLAYLIST_TYPE_VIDEO:
-            strm_id = self._plex_stream_index(playerid, 'audio')
-            if strm_id:
-                answ['audioStreamID'] = strm_id
-            else:
-                LOG.error('We could not select a Plex audiostream')
-            strm_id = self._plex_stream_index(playerid, 'video')
-            if strm_id:
-                answ['videoStreamID'] = strm_id
-            else:
-                LOG.error('We could not select a Plex videostream')
-            if info['subtitleenabled']:
-                try:
-                    strm_id = self._plex_stream_index(playerid, 'subtitle')
-                except KeyError:
-                    # subtitleenabled can be True while currentsubtitle can
-                    # still be {}
-                    strm_id = None
-                if strm_id is not None:
-                    # If None, then the subtitle is only present on Kodi side
-                    answ['subtitleStreamID'] = strm_id
-        return answ
+            # Get the plex id from the PKC playqueue not info, as Kodi jumps to
+            # next playqueue element way BEFORE kodi monitor onplayback is
+            # called
+            if item.plex_id:
+                answ['key'] = '/library/metadata/%s' % item.plex_id
+                answ['ratingKey'] = item.plex_id
+            # PlayQueue stuff
+            if info['container_key']:
+                answ['containerKey'] = info['container_key']
+            if (info['container_key'] is not None and
+                    info['container_key'].startswith('/playQueues')):
+                answ['playQueueID'] = playqueue.id
+                answ['playQueueVersion'] = playqueue.version
+                answ['playQueueItemID'] = item.id
+            if playqueue.items[position].guid:
+                answ['guid'] = item.guid
+            # Temp. token set?
+            if state.PLEX_TRANSIENT_TOKEN:
+                answ['token'] = state.PLEX_TRANSIENT_TOKEN
+            elif playqueue.plex_transient_token:
+                answ['token'] = playqueue.plex_transient_token
+            # Process audio and subtitle streams
+            if ptype == v.PLEX_PLAYLIST_TYPE_VIDEO:
+                strm_id = self._plex_stream_index(playerid, 'audio')
+                if strm_id:
+                    answ['audioStreamID'] = strm_id
+                else:
+                    LOG.error('We could not select a Plex audiostream')
+                strm_id = self._plex_stream_index(playerid, 'video')
+                if strm_id:
+                    answ['videoStreamID'] = strm_id
+                else:
+                    LOG.error('We could not select a Plex videostream')
+                if info['subtitleenabled']:
+                    try:
+                        strm_id = self._plex_stream_index(playerid, 'subtitle')
+                    except KeyError:
+                        # subtitleenabled can be True while currentsubtitle can
+                        # still be {}
+                        strm_id = None
+                    if strm_id is not None:
+                        # If None, then the subtitle is only present on Kodi
+                        # side
+                        answ['subtitleStreamID'] = strm_id
+            return answ
 
     def signal_stop(self):
         """
@@ -302,14 +300,14 @@ class SubscriptionMgr(object):
         return playqueue.items[position].plex_stream_index(
             info[STREAM_DETAILS[stream_type]]['index'], stream_type)
 
-    @LOCKER.lockthis
     def update_command_id(self, uuid, command_id):
         """
         Updates the Plex Companien client with the machine identifier uuid with
         command_id
         """
-        if command_id and self.subscribers.get(uuid):
-            self.subscribers[uuid].command_id = int(command_id)
+        with state.LOCK_SUBSCRIBER:
+            if command_id and self.subscribers.get(uuid):
+                self.subscribers[uuid].command_id = int(command_id)
 
     def _playqueue_init_done(self, players):
         """
@@ -320,8 +318,6 @@ class SubscriptionMgr(object):
         for player in players.values():
             info = state.PLAYER_STATES[player['playerid']]
             playqueue = PQ.PLAYQUEUES[player['playerid']]
-            LOG.debug('playqueue is: %s', playqueue)
-            LOG.debug('info is: %s', info)
             position = self._get_correct_position(info, playqueue)
             try:
                 item = playqueue.items[position]
@@ -334,34 +330,32 @@ class SubscriptionMgr(object):
                 return False
         return True
 
-    @LOCKER.lockthis
     def notify(self):
         """
         Causes PKC to tell the PMS and Plex Companion players to receive a
         notification what's being played.
         """
-        self._cleanup()
-        # Get all the active/playing Kodi players (video, audio, pictures)
-        players = js.get_players()
-        # Update the PKC info with what's playing on the Kodi side
-        for player in players.values():
-            update_player_info(player['playerid'])
-        # Check whether we can use the CURRENT info or whether PKC is still
-        # initializing
-        if self._playqueue_init_done(players) is False:
-            LOG.debug('PKC playqueue is still initializing - skipping update')
-            return
-        self._notify_server(players)
-        if self.subscribers:
-            msg = self.msg(players)
-            for subscriber in self.subscribers.values():
-                subscriber.send_update(msg)
-        self.lastplayers = players
+        with state.LOCK_SUBSCRIBER:
+            self._cleanup()
+            # Get all the active/playing Kodi players (video, audio, pictures)
+            players = js.get_players()
+            # Update the PKC info with what's playing on the Kodi side
+            for player in players.values():
+                update_player_info(player['playerid'])
+            # Check whether we can use the CURRENT info or whether PKC is still
+            # initializing
+            if self._playqueue_init_done(players) is False:
+                LOG.debug('PKC playqueue is still initializing - skip update')
+                return
+            self._notify_server(players)
+            if self.subscribers:
+                msg = self.msg(players)
+                for subscriber in self.subscribers.values():
+                    subscriber.send_update(msg)
+            self.lastplayers = players
 
     def _notify_server(self, players):
         for typus, player in players.iteritems():
-            LOG.debug('player is %s', player)
-            LOG.debug('typus is %s', typus)
             self._send_pms_notification(
                 player['playerid'], self._get_pms_params(player['playerid']))
             try:
@@ -386,8 +380,8 @@ class SubscriptionMgr(object):
             'state': status,
             'ratingKey': item.plex_id,
             'key': '/library/metadata/%s' % item.plex_id,
-            'time': kodi_time_to_millis(info['time']),
-            'duration': kodi_time_to_millis(info['totaltime'])
+            'time': utils.kodi_time_to_millis(info['time']),
+            'duration': utils.kodi_time_to_millis(info['totaltime'])
         }
         if info['container_key'] is not None:
             # params['containerKey'] = info['container_key']
@@ -419,7 +413,6 @@ class SubscriptionMgr(object):
         LOG.debug("Sent server notification with parameters: %s to %s",
                   xargs, url)
 
-    @LOCKER.lockthis
     def add_subscriber(self, protocol, host, port, uuid, command_id):
         """
         Adds a new Plex Companion subscriber to PKC.
@@ -431,20 +424,21 @@ class SubscriptionMgr(object):
                                 command_id,
                                 self,
                                 self.request_mgr)
-        self.subscribers[subscriber.uuid] = subscriber
+        with state.LOCK_SUBSCRIBER:
+            self.subscribers[subscriber.uuid] = subscriber
         return subscriber
 
-    @LOCKER.lockthis
     def remove_subscriber(self, uuid):
         """
         Removes a connected Plex Companion subscriber with machine identifier
         uuid from PKC notifications.
         (Calls the cleanup() method of the subscriber)
         """
-        for subscriber in self.subscribers.values():
-            if subscriber.uuid == uuid or subscriber.host == uuid:
-                subscriber.cleanup()
-                del self.subscribers[subscriber.uuid]
+        with state.LOCK_SUBSCRIBER:
+            for subscriber in self.subscribers.values():
+                if subscriber.uuid == uuid or subscriber.host == uuid:
+                    subscriber.cleanup()
+                    del self.subscribers[subscriber.uuid]
 
     def _cleanup(self):
         for subscriber in self.subscribers.values():

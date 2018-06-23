@@ -48,11 +48,11 @@ import logging
 import traceback
 import sys
 
-import utils
+from . import utils
 
 ###############################################################################
 
-LOG = logging.getLogger("PLEX." + __name__)
+LOG = logging.getLogger('PLEX.websocket')
 
 ###############################################################################
 

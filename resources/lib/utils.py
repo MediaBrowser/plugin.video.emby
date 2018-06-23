@@ -4,7 +4,6 @@ Various functions and decorators for PKC
 """
 ###############################################################################
 from logging import getLogger
-import os
 from cProfile import Profile
 from pstats import Stats
 from sqlite3 import connect, OperationalError
@@ -14,31 +13,38 @@ from time import localtime, strftime
 from unicodedata import normalize
 import xml.etree.ElementTree as etree
 from functools import wraps, partial
-from shutil import rmtree
 from urllib import quote_plus
 import hashlib
 import re
-import unicodedata
-
 import xbmc
 import xbmcaddon
 import xbmcgui
-from xbmcvfs import exists, delete
 
-import variables as v
-import state
+from . import path_ops
+from . import variables as v
+from . import state
 
 ###############################################################################
 
-LOG = getLogger("PLEX." + __name__)
+LOG = getLogger('PLEX.utils')
 
 WINDOW = xbmcgui.Window(10000)
 ADDON = xbmcaddon.Addon(id='plugin.video.plexkodiconnect')
 EPOCH = datetime.utcfromtimestamp(0)
 
+# Grab Plex id from '...plex_id=XXXX....'
 REGEX_PLEX_ID = re.compile(r'''plex_id=(\d+)''')
+# Return the numbers at the end of an url like '.../.../XXXX'
+REGEX_END_DIGITS = re.compile(r'''/(.+)/(\d+)$''')
+REGEX_PLEX_DIRECT = re.compile(r'''\.plex\.direct:\d+$''')
 REGEX_FILE_NUMBERING = re.compile(r'''_(\d+)\.\w+$''')
-
+# Plex API
+REGEX_IMDB = re.compile(r'''/(tt\d+)''')
+REGEX_TVDB = re.compile(r'''thetvdb:\/\/(.+?)\?''')
+# Plex music
+REGEX_MUSICPATH = re.compile(r'''^\^(.+)\$$''')
+# Grab Plex id from an URL-encoded string
+REGEX_PLEX_ID_FROM_URL = re.compile(r'''metadata%2F(\d+)''')
 
 ###############################################################################
 # Main methods
@@ -51,7 +57,7 @@ def reboot_kodi(message=None):
 
     Set optional custom message
     """
-    message = message or language(33033)
+    message = message or lang(33033)
     dialog('ok', heading='{plex}', line1=message)
     xbmc.executebuiltin('RestartApp')
 
@@ -106,31 +112,7 @@ def settings(setting, value=None):
         return try_decode(addon.getSetting(setting))
 
 
-def exists_dir(path):
-    """
-    Safe way to check whether the directory path exists already (broken in Kodi
-    <17)
-
-    Feed with encoded string or unicode
-    """
-    if v.KODIVERSION >= 17:
-        answ = exists(try_encode(path))
-    else:
-        dummyfile = os.path.join(try_decode(path), 'dummyfile.txt')
-        try:
-            with open(dummyfile, 'w') as filer:
-                filer.write('text')
-        except IOError:
-            # folder does not exist yet
-            answ = 0
-        else:
-            # Folder exists. Delete file again.
-            delete(try_encode(dummyfile))
-            answ = 1
-    return answ
-
-
-def language(stringid):
+def lang(stringid):
     """
     Central string retrieval from strings.po
     """
@@ -194,7 +176,7 @@ def dialog(typus, *args, **kwargs):
         kwargs['option'] = types[kwargs['option']]
     if 'heading' in kwargs:
         kwargs['heading'] = kwargs['heading'].replace("{plex}",
-                                                      language(29999))
+                                                      lang(29999))
     dia = xbmcgui.Dialog()
     types = {
         'yesno': dia.yesno,
@@ -313,10 +295,6 @@ def valid_filename(text):
     else:
         # Linux
         text = re.sub(r'/', '', text)
-    if not os.path.supports_unicode_filenames:
-        text = unicodedata.normalize('NFKD', text)
-        text = text.encode('ascii', 'ignore')
-        text = text.decode('ascii')
     # Ensure that filename length is at most 255 chars (including 3 chars for
     # filename extension and 1 dot to separate the extension)
     text = text[:min(len(text), 251)]
@@ -465,15 +443,15 @@ def wipe_database():
     # Delete all synced playlists
     for path in playlist_paths:
         try:
-            os.remove(path)
+            path_ops.remove(path)
         except (OSError, IOError):
             pass
 
     LOG.info("Resetting all cached artwork.")
     # Remove all existing textures first
-    path = xbmc.translatePath("special://thumbnails/")
-    if exists(path):
-        rmtree(try_decode(path), ignore_errors=True)
+    path = path_ops.translate_path("special://thumbnails/")
+    if path_ops.exists(path):
+        path_ops.rmtree(path, ignore_errors=True)
     # remove all existing data from texture DB
     connection = kodi_sql('texture')
     cursor = connection.cursor()
@@ -487,8 +465,8 @@ def wipe_database():
     connection.commit()
     cursor.close()
     # Reset the artwork sync status in the PKC settings
-    settings('caching_artwork_count', value=language(39310))
-    settings('fanarttv_lookups', value=language(39310))
+    settings('caching_artwork_count', value=lang(39310))
+    settings('fanarttv_lookups', value=lang(39310))
     # reset the install run flag
     settings('SyncInstallRunDone', value="false")
 
@@ -500,8 +478,8 @@ def reset(ask_user=True):
     """
     # Are you sure you want to reset your local Kodi database?
     if ask_user and not dialog('yesno',
-                               heading='{plex} %s ' % language(30132),
-                               line1=language(39600)):
+                               heading='{plex} %s ' % lang(30132),
+                               line1=lang(39600)):
         return
 
     # first stop any db sync
@@ -513,8 +491,8 @@ def reset(ask_user=True):
         if count == 0:
             # Could not stop the database from running. Please try again later.
             dialog('ok',
-                   heading='{plex} %s' % language(30132),
-                   line1=language(39601))
+                   heading='{plex} %s' % lang(30132),
+                   line1=lang(39601))
             return
         xbmc.sleep(1000)
 
@@ -524,13 +502,11 @@ def reset(ask_user=True):
     # Reset all PlexKodiConnect Addon settings? (this is usually NOT
     # recommended and unnecessary!)
     if ask_user and dialog('yesno',
-                           heading='{plex} %s ' % language(30132),
-                           line1=language(39603)):
+                           heading='{plex} %s ' % lang(30132),
+                           line1=lang(39603)):
         # Delete the settings
-        addon = xbmcaddon.Addon()
-        addondir = try_decode(xbmc.translatePath(addon.getAddonInfo('profile')))
         LOG.info("Deleting: settings.xml")
-        os.remove("%ssettings.xml" % addondir)
+        path_ops.remove("%ssettings.xml" % v.ADDON_PROFILE)
     reboot_kodi()
 
 
@@ -592,29 +568,6 @@ def compare_version(current, minimum):
     return curr_patch >= min_patch
 
 
-def normalize_nodes(text):
-    """
-    For video nodes
-    """
-    text = text.replace(":", "")
-    text = text.replace("/", "-")
-    text = text.replace("\\", "-")
-    text = text.replace("<", "")
-    text = text.replace(">", "")
-    text = text.replace("*", "")
-    text = text.replace("?", "")
-    text = text.replace('|', "")
-    text = text.replace('(', "")
-    text = text.replace(')', "")
-    text = text.strip()
-    # Remove dots from the last character as windows can not have directories
-    # with dots at the end
-    text = text.rstrip('.')
-    text = try_encode(normalize('NFKD', unicode(text, 'utf-8')))
-
-    return text
-
-
 def normalize_string(text):
     """
     For theme media, do not modify unless modified in TV Tunes
@@ -633,6 +586,28 @@ def normalize_string(text):
     text = text.rstrip('.')
     text = try_encode(normalize('NFKD', unicode(text, 'utf-8')))
 
+    return text
+
+
+def normalize_nodes(text):
+    """
+    For video nodes. Returns unicode
+    """
+    text = text.replace(":", "")
+    text = text.replace("/", "-")
+    text = text.replace("\\", "-")
+    text = text.replace("<", "")
+    text = text.replace(">", "")
+    text = text.replace("*", "")
+    text = text.replace("?", "")
+    text = text.replace('|', "")
+    text = text.replace('(', "")
+    text = text.replace(')', "")
+    text = text.strip()
+    # Remove dots from the last character as windows can not have directories
+    # with dots at the end
+    text = text.rstrip('.')
+    text = normalize('NFKD', unicode(text, 'utf-8'))
     return text
 
 
@@ -682,9 +657,9 @@ class XmlKodiSetting(object):
                  top_element=None):
         self.filename = filename
         if path is None:
-            self.path = os.path.join(v.KODI_PROFILE, filename)
+            self.path = path_ops.path.join(v.KODI_PROFILE, filename)
         else:
-            self.path = os.path.join(path, filename)
+            self.path = path_ops.path.join(path, filename)
         self.force_create = force_create
         self.top_element = top_element
         self.tree = None
@@ -708,7 +683,7 @@ class XmlKodiSetting(object):
             LOG.error('Error parsing %s', self.path)
             # "Kodi cannot parse {0}. PKC will not function correctly. Please
             # visit {1} and correct your file!"
-            dialog('ok', language(29999), language(39716).format(
+            dialog('ok', lang(29999), lang(39716).format(
                 self.filename,
                 'http://kodi.wiki'))
             self.__exit__(etree.ParseError, None, None)
@@ -849,7 +824,7 @@ def passwords_xml():
     """
     To add network credentials to Kodi's password xml
     """
-    path = try_decode(xbmc.translatePath("special://userdata/"))
+    path = path_ops.translate_path('special://userdata/')
     xmlpath = "%spasswords.xml" % path
     try:
         xmlparse = etree.parse(xmlpath)
@@ -861,7 +836,7 @@ def passwords_xml():
         LOG.error('Error parsing %s', xmlpath)
         # "Kodi cannot parse {0}. PKC will not function correctly. Please visit
         # {1} and correct your file!"
-        dialog('ok', language(29999), language(39716).format(
+        dialog('ok', lang(29999), lang(39716).format(
             'passwords.xml', 'http://forum.kodi.tv/'))
         return
     else:
@@ -970,7 +945,7 @@ def playlist_xsp(mediatype, tagname, viewid, viewtype="", delete=False):
     """
     Feed with tagname as unicode
     """
-    path = try_decode(xbmc.translatePath("special://profile/playlists/video/"))
+    path = path_ops.translate_path("special://profile/playlists/video/")
     if viewtype == "mixed":
         plname = "%s - %s" % (tagname, mediatype)
         xsppath = "%sPlex %s - %s.xsp" % (path, viewid, mediatype)
@@ -979,15 +954,15 @@ def playlist_xsp(mediatype, tagname, viewid, viewtype="", delete=False):
         xsppath = "%sPlex %s.xsp" % (path, viewid)
 
     # Create the playlist directory
-    if not exists(try_encode(path)):
+    if not path_ops.exists(path):
         LOG.info("Creating directory: %s", path)
-        os.makedirs(path)
+        path_ops.makedirs(path)
 
     # Only add the playlist if it doesn't already exists
-    if exists(try_encode(xsppath)):
+    if path_ops.exists(xsppath):
         LOG.info('Path %s does exist', xsppath)
         if delete:
-            os.remove(xsppath)
+            path_ops.remove(xsppath)
             LOG.info("Successfully removed playlist: %s.", tagname)
         return
 
@@ -999,7 +974,7 @@ def playlist_xsp(mediatype, tagname, viewid, viewtype="", delete=False):
         'show': 'tvshows'
     }
     LOG.info("Writing playlist file to: %s", xsppath)
-    with open(xsppath, 'wb') as filer:
+    with open(path_ops.encode_path(xsppath), 'wb') as filer:
         filer.write(try_encode(
             '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n'
             '<smartplaylist type="%s">\n\t'
@@ -1017,21 +992,22 @@ def delete_playlists():
     """
     Clean up the playlists
     """
-    path = try_decode(xbmc.translatePath("special://profile/playlists/video/"))
-    for root, _, files in os.walk(path):
+    path = path_ops.translate_path('special://profile/playlists/video/')
+    for root, _, files in path_ops.walk(path):
         for file in files:
             if file.startswith('Plex'):
-                os.remove(os.path.join(root, file))
+                path_ops.remove(path_ops.path.join(root, file))
+
 
 def delete_nodes():
     """
     Clean up video nodes
     """
-    path = try_decode(xbmc.translatePath("special://profile/library/video/"))
-    for root, dirs, _ in os.walk(path):
+    path = path_ops.translate_path("special://profile/library/video/")
+    for root, dirs, _ in path_ops.walk(path):
         for directory in dirs:
             if directory.startswith('Plex-'):
-                rmtree(os.path.join(root, directory))
+                path_ops.rmtree(path_ops.path.join(root, directory))
         break
 
 
@@ -1044,7 +1020,7 @@ def generate_file_md5(path):
     """
     m = hashlib.md5()
     m.update(path.encode('utf-8'))
-    with open(path, 'rb') as f:
+    with open(path_ops.encode_path(path), 'rb') as f:
         while True:
             piece = f.read(32768)
             if not piece:
@@ -1192,33 +1168,3 @@ def thread_methods(cls=None, add_stops=None, add_suspends=None):
 
     # Return class to render this a decorator
     return cls
-
-
-class LockFunction(object):
-    """
-    Decorator for class methods and functions to lock them with lock.
-
-    Initialize this class first
-    lockfunction = LockFunction(lock), where lock is a threading.Lock() object
-
-    To then lock a function or method:
-
-    @lockfunction.lockthis
-    def some_function(args, kwargs)
-    """
-    def __init__(self, lock):
-        self.lock = lock
-
-    def lockthis(self, func):
-        """
-        Use this method to actually lock a function or method
-        """
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-            """
-            Wrapper construct
-            """
-            with self.lock:
-                result = func(*args, **kwargs)
-            return result
-        return wrapper

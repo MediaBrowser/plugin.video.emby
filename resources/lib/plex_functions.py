@@ -3,24 +3,20 @@ from logging import getLogger
 from urllib import urlencode, quote_plus
 from ast import literal_eval
 from urlparse import urlparse, parse_qsl
-from re import compile as re_compile
 from copy import deepcopy
 from time import time
 from threading import Thread
-
 from xbmc import sleep
 
-from downloadutils import DownloadUtils as DU
-from utils import settings, try_encode, try_decode
-from variables import PLEX_TO_KODI_TIMEFACTOR
-import plex_tv
+from .downloadutils import DownloadUtils as DU
+from . import utils
+from . import plex_tv
+from . import variables as v
 
 ###############################################################################
-LOG = getLogger("PLEX." + __name__)
+LOG = getLogger('PLEX.plex_functions')
 
-CONTAINERSIZE = int(settings('limitindex'))
-REGEX_PLEX_KEY = re_compile(r'''/(.+)/(\d+)$''')
-REGEX_PLEX_DIRECT = re_compile(r'''\.plex\.direct:\d+$''')
+CONTAINERSIZE = int(utils.settings('limitindex'))
 
 # For discovery of PMS in the local LAN
 PLEX_GDM_IP = '239.0.0.250'  # multicast to PMS
@@ -36,7 +32,7 @@ def ConvertPlexToKodiTime(plexTime):
     """
     if plexTime is None:
         return None
-    return int(float(plexTime) * PLEX_TO_KODI_TIMEFACTOR)
+    return int(float(plexTime) * v.PLEX_TO_KODI_TIMEFACTOR)
 
 
 def GetPlexKeyNumber(plexKey):
@@ -48,7 +44,7 @@ def GetPlexKeyNumber(plexKey):
     Returns ('','') if nothing is found
     """
     try:
-        result = REGEX_PLEX_KEY.findall(plexKey)[0]
+        result = utils.REGEX_END_DIGITS.findall(plexKey)[0]
     except IndexError:
         result = ('', '')
     return result
@@ -90,13 +86,13 @@ def GetMethodFromPlexType(plexType):
 def GetPlexLoginFromSettings():
     """
     Returns a dict:
-        'plexLogin': settings('plexLogin'),
-        'plexToken': settings('plexToken'),
-        'plexhome': settings('plexhome'),
-        'plexid': settings('plexid'),
-        'myplexlogin': settings('myplexlogin'),
-        'plexAvatar': settings('plexAvatar'),
-        'plexHomeSize': settings('plexHomeSize')
+        'plexLogin': utils.settings('plexLogin'),
+        'plexToken': utils.settings('plexToken'),
+        'plexhome': utils.settings('plexhome'),
+        'plexid': utils.settings('plexid'),
+        'myplexlogin': utils.settings('myplexlogin'),
+        'plexAvatar': utils.settings('plexAvatar'),
+        'plexHomeSize': utils.settings('plexHomeSize')
 
     Returns strings or unicode
 
@@ -106,13 +102,13 @@ def GetPlexLoginFromSettings():
     plexhome is 'true' if plex home is used (the default)
     """
     return {
-        'plexLogin': settings('plexLogin'),
-        'plexToken': settings('plexToken'),
-        'plexhome': settings('plexhome'),
-        'plexid': settings('plexid'),
-        'myplexlogin': settings('myplexlogin'),
-        'plexAvatar': settings('plexAvatar'),
-        'plexHomeSize': settings('plexHomeSize')
+        'plexLogin': utils.settings('plexLogin'),
+        'plexToken': utils.settings('plexToken'),
+        'plexhome': utils.settings('plexhome'),
+        'plexid': utils.settings('plexid'),
+        'myplexlogin': utils.settings('myplexlogin'),
+        'plexAvatar': utils.settings('plexAvatar'),
+        'plexHomeSize': utils.settings('plexHomeSize')
     }
 
 
@@ -140,7 +136,7 @@ def check_connection(url, token=None, verifySSL=None):
     if token is not None:
         header_options = {'X-Plex-Token': token}
     if verifySSL is True:
-        verifySSL = None if settings('sslverify') == 'true' else False
+        verifySSL = None if utils.settings('sslverify') == 'true' else False
     if 'plex.tv' in url:
         url = 'https://plex.tv/api/home/users'
     LOG.debug("Checking connection to server %s with verifySSL=%s",
@@ -303,11 +299,11 @@ def _plex_gdm():
         }
         for line in response['data'].split('\n'):
             if 'Content-Type:' in line:
-                pms['product'] = try_decode(line.split(':')[1].strip())
+                pms['product'] = utils.try_decode(line.split(':')[1].strip())
             elif 'Host:' in line:
                 pms['baseURL'] = line.split(':')[1].strip()
             elif 'Name:' in line:
-                pms['name'] = try_decode(line.split(':')[1].strip())
+                pms['name'] = utils.try_decode(line.split(':')[1].strip())
             elif 'Port:' in line:
                 pms['port'] = line.split(':')[1].strip()
             elif 'Resource-Identifier:' in line:
@@ -336,7 +332,7 @@ def _pms_list_from_plex_tv(token):
     queue = Queue()
     thread_queue = []
 
-    max_age_in_seconds = 2*60*60*24
+    max_age_in_seconds = 2 * 60 * 60 * 24
     for device in xml.findall('Device'):
         if 'server' not in device.get('provides'):
             # No PMS - skip
@@ -355,7 +351,7 @@ def _pms_list_from_plex_tv(token):
             'token': device.get('accessToken'),
             'ownername': device.get('sourceTitle'),
             'product': device.get('product'),  # e.g. 'Plex Media Server'
-            'version': device.get('productVersion'),  # e.g. '1.11.2.4772-3e...'
+            'version': device.get('productVersion'),  # e.g. '1.11.2.4772-3e..'
             'device': device.get('device'),  # e.g. 'PC' or 'Windows'
             'platform': device.get('platform'),  # e.g. 'Windows', 'Android'
             'local': device.get('publicAddressMatches') == '1',
@@ -412,7 +408,7 @@ def _pms_list_from_plex_tv(token):
 def _poke_pms(pms, queue):
     data = pms['connections'][0].attrib
     url = data['uri']
-    if data['local'] == '1' and REGEX_PLEX_DIRECT.findall(url):
+    if data['local'] == '1' and utils.REGEX_PLEX_DIRECT.findall(url):
         # In case DNS resolve of plex.direct does not work, append a new
         # connection that will directly access the local IP (e.g. internet down)
         conn = deepcopy(pms['connections'][0])
@@ -634,7 +630,7 @@ def init_plex_playqueue(itemid, librarySectionUUID, mediatype='movie',
         'repeat': '0'
     }
     if trailers is True:
-        args['extrasPrefixCount'] = settings('trailerNumber')
+        args['extrasPrefixCount'] = utils.settings('trailerNumber')
     xml = DU().downloadUrl(url + '?' + urlencode(args), action_type="POST")
     try:
         xml[0].tag
@@ -791,7 +787,7 @@ def GetUserArtworkURL(username):
     Returns the URL for the user's Avatar. Or False if something went
     wrong.
     """
-    users = plex_tv.list_home_users(settings('plexToken'))
+    users = plex_tv.list_home_users(utils.settings('plexToken'))
     url = ''
     # If an error is encountered, set to False
     if not users:
@@ -818,13 +814,13 @@ def transcode_image_path(key, AuthToken, path, width, height):
         final path to image file
     """
     # external address - can we get a transcoding request for external images?
-    if key.startswith('http://') or key.startswith('https://'):  
+    if key.startswith('http://') or key.startswith('https://'):
         path = key
     elif key.startswith('/'):  # internal full path.
         path = 'http://127.0.0.1:32400' + key
     else:  # internal path, add-on
         path = 'http://127.0.0.1:32400' + path + '/' + key
-    path = try_encode(path)
+    path = utils.try_encode(path)
     # This is bogus (note the extra path component) but ATV is stupid when it
     # comes to caching images, it doesn't use querystrings. Fortunately PMS is
     # lenient...

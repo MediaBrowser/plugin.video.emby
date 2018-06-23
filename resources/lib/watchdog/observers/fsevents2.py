@@ -24,9 +24,9 @@ import os
 import logging
 import unicodedata
 from threading import Thread
-from watchdog.utils.compat import queue
+from ..utils.compat import queue
 
-from watchdog.events import (
+from ..events import (
     FileDeletedEvent,
     FileModifiedEvent,
     FileCreatedEvent,
@@ -36,7 +36,7 @@ from watchdog.events import (
     DirCreatedEvent,
     DirMovedEvent
 )
-from watchdog.observers.api import (
+from ..observers.api import (
     BaseObserver,
     EventEmitter,
     DEFAULT_EMITTER_TIMEOUT,

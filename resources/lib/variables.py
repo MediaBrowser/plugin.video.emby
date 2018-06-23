@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
-
+import sys
 import xbmc
 from xbmcaddon import Addon
 
@@ -35,7 +35,9 @@ _ADDON = Addon()
 ADDON_NAME = 'PlexKodiConnect'
 ADDON_ID = 'plugin.video.plexkodiconnect'
 ADDON_VERSION = _ADDON.getAddonInfo('version')
+ADDON_PATH = try_decode(_ADDON.getAddonInfo('path'))
 ADDON_FOLDER = try_decode(xbmc.translatePath('special://home'))
+ADDON_PROFILE = try_decode(_ADDON.getAddonInfo('profile'))
 
 KODILANGUAGE = xbmc.getLanguage(xbmc.ISO_639_1)
 KODIVERSION = int(xbmc.getInfoLabel("System.BuildVersion")[:2])
@@ -82,10 +84,6 @@ MIN_DB_VERSION = '2.0.27'
 
 # Database paths
 _DB_VIDEO_VERSION = {
-    13: 78,   # Gotham
-    14: 90,   # Helix
-    15: 93,   # Isengard
-    16: 99,   # Jarvis
     17: 107,  # Krypton
     18: 109   # Leia
 }
@@ -93,10 +91,6 @@ DB_VIDEO_PATH = try_decode(xbmc.translatePath(
     "special://database/MyVideos%s.db" % _DB_VIDEO_VERSION[KODIVERSION]))
 
 _DB_MUSIC_VERSION = {
-    13: 46,   # Gotham
-    14: 48,   # Helix
-    15: 52,   # Isengard
-    16: 56,   # Jarvis
     17: 60,   # Krypton
     18: 70    # Leia
 }
@@ -104,10 +98,6 @@ DB_MUSIC_PATH = try_decode(xbmc.translatePath(
     "special://database/MyMusic%s.db" % _DB_MUSIC_VERSION[KODIVERSION]))
 
 _DB_TEXTURE_VERSION = {
-    13: 13,   # Gotham
-    14: 13,   # Helix
-    15: 13,   # Isengard
-    16: 13,   # Jarvis
     17: 13,   # Krypton
     18: 13    # Leia
 }
@@ -122,6 +112,12 @@ EXTERNAL_SUBTITLE_TEMP_PATH = try_decode(xbmc.translatePath(
 
 # Multiply Plex time by this factor to receive Kodi time
 PLEX_TO_KODI_TIMEFACTOR = 1.0 / 1000.0
+
+# We're "failing" playback with a video of 0 length
+NULL_VIDEO = os.path.join(ADDON_FOLDER,
+                          'addons',
+                          ADDON_ID,
+                          'empty_video.mp4')
 
 # Playlist stuff
 PLAYLIST_PATH = os.path.join(KODI_PROFILE, 'playlists')
@@ -513,3 +509,14 @@ PLEX_STREAM_TYPE_FROM_STREAM_TYPE = {
     'audio': '2',
     'subtitle': '3'
 }
+
+# Encoding to be used for our m3u playlist files
+# m3u files do not have encoding specified by definition, unfortunately.
+if PLATFORM == 'Windows':
+    M3U_ENCODING = 'mbcs'
+else:
+    M3U_ENCODING = sys.getfilesystemencoding()
+    if (not M3U_ENCODING or
+            M3U_ENCODING == 'ascii' or
+            M3U_ENCODING == 'ANSI_X3.4-1968'):
+        M3U_ENCODING = 'utf-8'
