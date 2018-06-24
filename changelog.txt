@@ -1,3 +1,7 @@
+version 2.2.3 (beta only):
+- Compatibility with Kodi Krypton Alpha 2
+- Append tv show and SxxExx to episode playlist entries
+
 version 2.2.2 (beta only):
 - Fixes to locking mechanisms which resulted in weird behavior in some cases
 - Switch to Python __future__ unicode_literals and absolute paths
