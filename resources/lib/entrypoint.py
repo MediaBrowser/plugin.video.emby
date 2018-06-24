@@ -28,11 +28,6 @@ import variables as v
 ###############################################################################
 LOG = getLogger("PLEX." + __name__)
 
-try:
-    HANDLE = int(argv[1])
-    ARGV_0 = argv[0]
-except IndexError:
-    pass
 ###############################################################################
 
 
@@ -125,7 +120,7 @@ def directory_item(label, path, folder=True):
         {"fanart": "special://home/addons/plugin.video.plexkodiconnect/fanart.jpg"})
     listitem.setArt(
         {"landscape":"special://home/addons/plugin.video.plexkodiconnect/fanart.jpg"})
-    xbmcplugin.addDirectoryItem(handle=HANDLE,
+    xbmcplugin.addDirectoryItem(handle=int(argv[1]),
                                 url=path,
                                 listitem=listitem,
                                 isFolder=folder)
@@ -136,7 +131,7 @@ def show_main_menu(content_type=None):
     Shows the main PKC menu listing with all libraries, Channel, settings, etc.
     """
     LOG.debug('Do main listing with content_type: %s', content_type)
-    xbmcplugin.setContent(HANDLE, 'files')
+    xbmcplugin.setContent(int(argv[1]), 'files')
     # Get emby nodes from the window props
     plexprops = window('Plex.nodes.total')
     if plexprops:
@@ -177,7 +172,7 @@ def show_main_menu(content_type=None):
                    "plugin://%s?mode=refreshplaylist" % v.ADDON_ID)
     directory_item(lang(39204),
                    "plugin://%s?mode=manualsync" % v.ADDON_ID)
-    xbmcplugin.endOfDirectory(HANDLE)
+    xbmcplugin.endOfDirectory(int(argv[1]))
 
 
 def switch_plex_user():
@@ -275,7 +270,7 @@ def next_up_episodes(tagname, limit):
     count = 0
     # if the addon is called with nextup parameter,
     # we return the nextepisodes list of the given tagname
-    xbmcplugin.setContent(HANDLE, 'episodes')
+    xbmcplugin.setContent(int(argv[1]), 'episodes')
     # First we get a list of all the TV shows - filtered by tag
     params = {
         'sort': {'order': "descending", 'method': "lastplayed"},
@@ -324,13 +319,13 @@ def next_up_episodes(tagname, limit):
                 'limits': {"end": 1}
             }
         for episode in js.get_episodes(params):
-            xbmcplugin.addDirectoryItem(handle=HANDLE,
+            xbmcplugin.addDirectoryItem(handle=int(argv[1]),
                                         url=episode['file'],
                                         listitem=create_listitem(episode))
             count += 1
         if count == limit:
             break
-    xbmcplugin.endOfDirectory(handle=HANDLE)
+    xbmcplugin.endOfDirectory(handle=int(argv[1]))
 
 
 def in_progress_episodes(tagname, limit):
@@ -340,7 +335,7 @@ def in_progress_episodes(tagname, limit):
     count = 0
     # if the addon is called with inprogressepisodes parameter,
     # we return the inprogressepisodes list of the given tagname
-    xbmcplugin.setContent(HANDLE, 'episodes')
+    xbmcplugin.setContent(int(argv[1]), 'episodes')
     # First we get a list of all the in-progress TV shows - filtered by tag
     params = {
         'sort': {'order': "descending", 'method': "lastplayed"},
@@ -366,13 +361,13 @@ def in_progress_episodes(tagname, limit):
                            "lastplayed"]
         }
         for episode in js.get_episodes(params):
-            xbmcplugin.addDirectoryItem(handle=HANDLE,
+            xbmcplugin.addDirectoryItem(handle=int(argv[1]),
                                         url=episode['file'],
                                         listitem=create_listitem(episode))
             count += 1
         if count == limit:
             break
-    xbmcplugin.endOfDirectory(handle=HANDLE)
+    xbmcplugin.endOfDirectory(handle=int(argv[1]))
 
 
 def recent_episodes(mediatype, tagname, limit):
@@ -382,7 +377,7 @@ def recent_episodes(mediatype, tagname, limit):
     count = 0
     # if the addon is called with recentepisodes parameter,
     # we return the recentepisodes list of the given tagname
-    xbmcplugin.setContent(HANDLE, 'episodes')
+    xbmcplugin.setContent(int(argv[1]), 'episodes')
     append_show_title = settings('RecentTvAppendShow') == 'true'
     append_sxxexx = settings('RecentTvAppendSeason') == 'true'
     # First we get a list of all the TV shows - filtered by tag
@@ -412,13 +407,13 @@ def recent_episodes(mediatype, tagname, limit):
             listitem = create_listitem(episode,
                                        append_show_title=append_show_title,
                                        append_sxxexx=append_sxxexx)
-            xbmcplugin.addDirectoryItem(handle=HANDLE,
+            xbmcplugin.addDirectoryItem(handle=int(argv[1]),
                                         url=episode['file'],
                                         listitem=listitem)
             count += 1
         if count == limit:
             break
-    xbmcplugin.endOfDirectory(handle=HANDLE)
+    xbmcplugin.endOfDirectory(handle=int(argv[1]))
 
 
 def get_video_files(plex_id, params):
@@ -442,14 +437,14 @@ def get_video_files(plex_id, params):
 
     if plex_id is None:
         LOG.info('No Plex ID found, abort getting Extras')
-        return xbmcplugin.endOfDirectory(HANDLE)
+        return xbmcplugin.endOfDirectory(int(argv[1]))
 
     item = GetPlexMetadata(plex_id)
     try:
         path = item[0][0][0].attrib['file']
     except (TypeError, IndexError, AttributeError, KeyError):
         LOG.error('Could not get file path for item %s', plex_id)
-        return xbmcplugin.endOfDirectory(HANDLE)
+        return xbmcplugin.endOfDirectory(int(argv[1]))
     # Assign network protocol
     if path.startswith('\\\\'):
         path = path.replace('\\\\', 'smb://')
@@ -464,20 +459,20 @@ def get_video_files(plex_id, params):
             for directory in dirs:
                 item_path = try_encode(join(root, directory))
                 listitem = ListItem(item_path, path=item_path)
-                xbmcplugin.addDirectoryItem(handle=HANDLE,
+                xbmcplugin.addDirectoryItem(handle=int(argv[1]),
                                             url=item_path,
                                             listitem=listitem,
                                             isFolder=True)
             for file in files:
                 item_path = try_encode(join(root, file))
                 listitem = ListItem(item_path, path=item_path)
-                xbmcplugin.addDirectoryItem(handle=HANDLE,
+                xbmcplugin.addDirectoryItem(handle=int(argv[1]),
                                             url=file,
                                             listitem=listitem)
             break
     else:
         LOG.error('Kodi cannot access folder %s', path)
-    xbmcplugin.endOfDirectory(HANDLE)
+    xbmcplugin.endOfDirectory(int(argv[1]))
 
 
 @catch_exceptions(warnuser=False)
@@ -493,7 +488,7 @@ def extra_fanart(plex_id, plex_path):
             plex_id = plex_path.split("/")[-2]
     if not plex_id:
         LOG.error('Could not get a plex_id, aborting')
-        return xbmcplugin.endOfDirectory(HANDLE)
+        return xbmcplugin.endOfDirectory(int(argv[1]))
 
     # We need to store the images locally for this to work
     # because of the caching system in xbmc
@@ -505,7 +500,7 @@ def extra_fanart(plex_id, plex_path):
         xml = GetPlexMetadata(plex_id)
         if xml is None:
             LOG.error('Could not download metadata for %s', plex_id)
-            return xbmcplugin.endOfDirectory(HANDLE)
+            return xbmcplugin.endOfDirectory(int(argv[1]))
 
         api = API(xml[0])
         backdrops = api.artwork()['Backdrop']
@@ -514,7 +509,7 @@ def extra_fanart(plex_id, plex_path):
             art_file = try_encode(join(fanart_dir, "fanart%.3d.jpg" % count))
             listitem = ListItem("%.3d" % count, path=art_file)
             xbmcplugin.addDirectoryItem(
-                handle=HANDLE,
+                handle=int(argv[1]),
                 url=art_file,
                 listitem=listitem)
             copyfile(backdrop, try_decode(art_file))
@@ -525,10 +520,10 @@ def extra_fanart(plex_id, plex_path):
             for file in files:
                 art_file = try_encode(join(root, file))
                 listitem = ListItem(file, path=art_file)
-                xbmcplugin.addDirectoryItem(handle=HANDLE,
+                xbmcplugin.addDirectoryItem(handle=int(argv[1]),
                                             url=art_file,
                                             listitem=listitem)
-    xbmcplugin.endOfDirectory(HANDLE)
+    xbmcplugin.endOfDirectory(int(argv[1]))
 
 
 def on_deck_episodes(viewid, tagname, limit):
@@ -540,7 +535,7 @@ def on_deck_episodes(viewid, tagname, limit):
         tagname:            Name of the Plex library, e.g. "My Movies"
         limit:              Max. number of items to retrieve, e.g. 50
     """
-    xbmcplugin.setContent(HANDLE, 'episodes')
+    xbmcplugin.setContent(int(argv[1]), 'episodes')
     append_show_title = settings('OnDeckTvAppendShow') == 'true'
     append_sxxexx = settings('OnDeckTvAppendSeason') == 'true'
     if settings('OnDeckTVextended') == 'false':
@@ -552,14 +547,14 @@ def on_deck_episodes(viewid, tagname, limit):
             if counter == 300:
                 LOG.error('Aborting On Deck view, we were not authenticated '
                           'for the PMS')
-                xbmcplugin.endOfDirectory(HANDLE, False)
+                xbmcplugin.endOfDirectory(int(argv[1]), False)
                 return
             sleep(100)
         xml = downloadutils.DownloadUtils().downloadUrl(
             '{server}/library/sections/%s/onDeck' % viewid)
         if xml in (None, 401):
             LOG.error('Could not download PMS xml for view %s', viewid)
-            xbmcplugin.endOfDirectory(HANDLE, False)
+            xbmcplugin.endOfDirectory(int(argv[1]), False)
             return
         direct_paths = settings('useDirectPaths') == '1'
         counter = 0
@@ -572,14 +567,14 @@ def on_deck_episodes(viewid, tagname, limit):
                 listitem.setProperty('resumetime', str(api.resume_point()))
             path = api.path(force_first_media=False, direct_paths=direct_paths)
             xbmcplugin.addDirectoryItem(
-                handle=HANDLE,
+                handle=int(argv[1]),
                 url=path,
                 listitem=listitem)
             counter += 1
             if counter == limit:
                 break
         xbmcplugin.endOfDirectory(
-            handle=HANDLE,
+            handle=int(argv[1]),
             cacheToDisc=settings('enableTextureCache') == 'true')
         return
 
@@ -597,7 +592,7 @@ def on_deck_episodes(viewid, tagname, limit):
     items = js.get_tv_shows(params)
     if not items:
         # Now items retrieved - empty directory
-        xbmcplugin.endOfDirectory(handle=HANDLE)
+        xbmcplugin.endOfDirectory(handle=int(argv[1]))
         return
 
     params = {
@@ -649,14 +644,14 @@ def on_deck_episodes(viewid, tagname, limit):
             listitem = create_listitem(episode,
                                        append_show_title=append_show_title,
                                        append_sxxexx=append_sxxexx)
-            xbmcplugin.addDirectoryItem(handle=HANDLE,
+            xbmcplugin.addDirectoryItem(handle=int(argv[1]),
                                         url=episode['file'],
                                         listitem=listitem,
                                         isFolder=False)
         count += 1
         if count >= limit:
             break
-    xbmcplugin.endOfDirectory(handle=HANDLE)
+    xbmcplugin.endOfDirectory(handle=int(argv[1]))
 
 
 def watchlater():
@@ -665,10 +660,10 @@ def watchlater():
     """
     if window('plex_token') == '':
         LOG.error('No watch later - not signed in to plex.tv')
-        return xbmcplugin.endOfDirectory(HANDLE, False)
+        return xbmcplugin.endOfDirectory(int(argv[1]), False)
     if window('plex_restricteduser') == 'true':
         LOG.error('No watch later - restricted user')
-        return xbmcplugin.endOfDirectory(HANDLE, False)
+        return xbmcplugin.endOfDirectory(int(argv[1]), False)
 
     xml = downloadutils.DownloadUtils().downloadUrl(
         'https://plex.tv/pms/playlists/queue/all',
@@ -676,16 +671,16 @@ def watchlater():
         headerOptions={'X-Plex-Token': window('plex_token')})
     if xml in (None, 401):
         LOG.error('Could not download watch later list from plex.tv')
-        return xbmcplugin.endOfDirectory(HANDLE, False)
+        return xbmcplugin.endOfDirectory(int(argv[1]), False)
 
     LOG.info('Displaying watch later plex.tv items')
-    xbmcplugin.setContent(HANDLE, 'movies')
+    xbmcplugin.setContent(int(argv[1]), 'movies')
     direct_paths = settings('useDirectPaths') == '1'
     for item in xml:
         __build_item(item, direct_paths)
 
     xbmcplugin.endOfDirectory(
-        handle=HANDLE,
+        handle=int(argv[1]),
         cacheToDisc=settings('enableTextureCache') == 'true')
 
 
@@ -698,16 +693,16 @@ def channels():
         xml[0].attrib
     except (ValueError, AttributeError, IndexError, TypeError):
         LOG.error('Could not download Plex Channels')
-        return xbmcplugin.endOfDirectory(HANDLE, False)
+        return xbmcplugin.endOfDirectory(int(argv[1]), False)
 
     LOG.info('Displaying Plex Channels')
-    xbmcplugin.setContent(HANDLE, 'files')
+    xbmcplugin.setContent(int(argv[1]), 'files')
     for method in v.SORT_METHODS_DIRECTORY:
-        xbmcplugin.addSortMethod(HANDLE, getattr(xbmcplugin, method))
+        xbmcplugin.addSortMethod(int(argv[1]), getattr(xbmcplugin, method))
     for item in xml:
         __build_folder(item)
     xbmcplugin.endOfDirectory(
-        handle=HANDLE,
+        handle=int(argv[1]),
         cacheToDisc=settings('enableTextureCache') == 'true')
 
 
@@ -724,7 +719,7 @@ def browse_plex(key=None, plex_section_id=None):
         xml[0].attrib
     except (ValueError, AttributeError, IndexError, TypeError):
         LOG.error('Could not browse to %s', key)
-        return xbmcplugin.endOfDirectory(HANDLE, False)
+        return xbmcplugin.endOfDirectory(int(argv[1]), False)
 
     photos = False
     movies = False
@@ -763,45 +758,45 @@ def browse_plex(key=None, plex_section_id=None):
 
     # Set the correct content type
     if movies is True:
-        xbmcplugin.setContent(HANDLE, 'movies')
+        xbmcplugin.setContent(int(argv[1]), 'movies')
         sort_methods = v.SORT_METHODS_MOVIES
     elif clips is True:
-        xbmcplugin.setContent(HANDLE, 'movies')
+        xbmcplugin.setContent(int(argv[1]), 'movies')
         sort_methods = v.SORT_METHODS_CLIPS
     elif photos is True:
-        xbmcplugin.setContent(HANDLE, 'images')
+        xbmcplugin.setContent(int(argv[1]), 'images')
         sort_methods = v.SORT_METHODS_PHOTOS
     elif tvshows is True:
-        xbmcplugin.setContent(HANDLE, 'tvshows')
+        xbmcplugin.setContent(int(argv[1]), 'tvshows')
         sort_methods = v.SORT_METHOD_TVSHOWS
     elif episodes is True:
-        xbmcplugin.setContent(HANDLE, 'episodes')
+        xbmcplugin.setContent(int(argv[1]), 'episodes')
         sort_methods = v.SORT_METHODS_EPISODES
     elif songs is True:
-        xbmcplugin.setContent(HANDLE, 'songs')
+        xbmcplugin.setContent(int(argv[1]), 'songs')
         sort_methods = v.SORT_METHODS_SONGS
     elif artists is True:
-        xbmcplugin.setContent(HANDLE, 'artists')
+        xbmcplugin.setContent(int(argv[1]), 'artists')
         sort_methods = v.SORT_METHODS_ARTISTS
     elif albums is True:
-        xbmcplugin.setContent(HANDLE, 'albums')
+        xbmcplugin.setContent(int(argv[1]), 'albums')
         sort_methods = v.SORT_METHODS_ALBUMS
     elif musicvideos is True:
-        xbmcplugin.setContent(HANDLE, 'musicvideos')
+        xbmcplugin.setContent(int(argv[1]), 'musicvideos')
         sort_methods = v.SORT_METHODS_MOVIES
     else:
-        xbmcplugin.setContent(HANDLE, 'files')
+        xbmcplugin.setContent(int(argv[1]), 'files')
         sort_methods = v.SORT_METHODS_DIRECTORY
 
     for method in sort_methods:
-        xbmcplugin.addSortMethod(HANDLE, getattr(xbmcplugin, method))
+        xbmcplugin.addSortMethod(int(argv[1]), getattr(xbmcplugin, method))
 
     # Set the Kodi title for this view
     title = xml.attrib.get('librarySectionTitle', xml.attrib.get('title1'))
-    xbmcplugin.setPluginCategory(HANDLE, title)
+    xbmcplugin.setPluginCategory(int(argv[1]), title)
 
     xbmcplugin.endOfDirectory(
-        handle=HANDLE,
+        handle=int(argv[1]),
         cacheToDisc=settings('enableTextureCache') == 'true')
 
 
@@ -818,7 +813,7 @@ def __build_folder(xml_element, plex_section_id=None):
     listitem = ListItem(xml_element.attrib.get('title'))
     listitem.setArt({'thumb': xml_element.attrib.get('thumb'),
                      'poster': xml_element.attrib.get('art')})
-    xbmcplugin.addDirectoryItem(handle=HANDLE,
+    xbmcplugin.addDirectoryItem(handle=int(argv[1]),
                                 url="%s?%s" % (url, urlencode(params)),
                                 isFolder=True,
                                 listitem=listitem)
@@ -844,7 +839,7 @@ def __build_item(xml_element, direct_paths):
         url = api.path(direct_paths=direct_paths)
     if api.resume_point():
         listitem.setProperty('resumetime', str(api.resume_point()))
-    xbmcplugin.addDirectoryItem(handle=HANDLE,
+    xbmcplugin.addDirectoryItem(handle=int(argv[1]),
                                 url=url,
                                 listitem=listitem)
 
@@ -853,20 +848,20 @@ def extras(plex_id):
     """
     Lists all extras for plex_id
     """
-    xbmcplugin.setContent(HANDLE, 'movies')
+    xbmcplugin.setContent(int(argv[1]), 'movies')
     xml = GetPlexMetadata(plex_id)
     try:
         xml[0].attrib
     except (TypeError, IndexError, KeyError):
-        xbmcplugin.endOfDirectory(HANDLE)
+        xbmcplugin.endOfDirectory(int(argv[1]))
         return
     for item in API(xml[0]).extras():
         api = API(item)
         listitem = api.create_listitem()
-        xbmcplugin.addDirectoryItem(handle=HANDLE,
+        xbmcplugin.addDirectoryItem(handle=int(argv[1]),
                                     url=api.path(),
                                     listitem=listitem)
-    xbmcplugin.endOfDirectory(HANDLE)
+    xbmcplugin.endOfDirectory(int(argv[1]))
 
 
 def create_new_pms():
