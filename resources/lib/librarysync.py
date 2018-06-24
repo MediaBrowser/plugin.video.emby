@@ -1024,12 +1024,18 @@ class LibrarySync(Thread):
         processes json.loads() messages from websocket. Triage what we need to
         do with "process_" methods
         """
-        if message['type'] == 'playing':
-            self.process_playing(message['PlaySessionStateNotification'])
-        elif message['type'] == 'timeline':
-            self.process_timeline(message['TimelineEntry'])
-        elif message['type'] == 'activity':
-            self.process_activity(message['ActivityNotification'])
+        try:
+            if message['type'] == 'playing':
+                self.process_playing(message['PlaySessionStateNotification'])
+            elif message['type'] == 'timeline':
+                self.process_timeline(message['TimelineEntry'])
+            elif message['type'] == 'activity':
+                self.process_activity(message['ActivityNotification'])
+        except:
+            LOG.error('Processing of Plex Companion message has crashed')
+            LOG.error('Message was: %s', message)
+            import traceback
+            LOG.error("Traceback:\n%s", traceback.format_exc())
 
     def multi_delete(self, liste, delete_list):
         """

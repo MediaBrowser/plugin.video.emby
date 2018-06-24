@@ -1,3 +1,6 @@
+version 2.2.4 (beta only):
+- Fix LibrarySync crashing due to Plex Companion messages
+
 version 2.2.3 (beta only):
 - Compatibility with Kodi Krypton Alpha 2
 - Append tv show and SxxExx to episode playlist entries
