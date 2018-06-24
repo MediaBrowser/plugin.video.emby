@@ -33,7 +33,6 @@ from logging import getLogger
 from re import sub
 from urllib import urlencode, unquote
 from xbmcgui import ListItem
-from xbmcvfs import exists
 
 from .downloadutils import DownloadUtils as DU
 from . import clientinfo
@@ -1594,22 +1593,20 @@ class API(object):
         # exist() needs a / or \ at the end to work for directories
         if folder is False:
             # files
-            check = exists(utils.try_encode(path))
+            check = path_ops.exists(path)
         else:
             # directories
-            checkpath = utils.try_encode(path)
-            if b"\\" in checkpath:
-                if not checkpath.endswith('\\'):
+            if "\\" in path:
+                if not path.endswith('\\'):
                     # Add the missing backslash
-                    check = utils.exists_dir(checkpath + "\\")
+                    check = path_ops.exists(path + "\\")
                 else:
-                    check = utils.exists_dir(checkpath)
+                    check = path_ops.exists(path)
             else:
-                if not checkpath.endswith('/'):
-                    check = utils.exists_dir(checkpath + "/")
+                if not path.endswith('/'):
+                    check = path_ops.exists(path + "/")
                 else:
-                    check = utils.exists_dir(checkpath)
-
+                    check = path_ops.exists(path)
         if not check:
             if force_check is False:
                 # Validate the path is correct with user intervention
