@@ -206,8 +206,27 @@ def _write_playlist_to_file(playlist, xml):
     text = '#EXTCPlayListM3U::M3U\n'
     for element in xml:
         api = API(element)
-        text += ('#EXTINF:%s,%s\n%s\n'
-                 % (api.runtime(), api.title(), api.path()))
+        append_season_episode = False
+        if api.plex_type() == v.PLEX_TYPE_EPISODE:
+            _, show, season_id, episode_id = api.episode_data()
+            try:
+                season_id = int(season_id)
+                episode_id = int(episode_id)
+            except ValueError:
+                pass
+            else:
+                append_season_episode = True
+            if append_season_episode:
+                text += ('#EXTINF:%s,%s S%.2dE%.2d - %s\n%s\n'
+                         % (api.runtime(), show, season_id, episode_id,
+                            api.title(), api.path()))
+            else:
+                # Only append the TV show name
+                text += ('#EXTINF:%s,%s - %s\n%s\n'
+                         % (api.runtime(), show, api.title(), api.path()))
+        else:
+            text += ('#EXTINF:%s,%s\n%s\n'
+                     % (api.runtime(), api.title(), api.path()))
     text += '\n'
     text = text.encode(v.M3U_ENCODING, 'strict')
     try:
