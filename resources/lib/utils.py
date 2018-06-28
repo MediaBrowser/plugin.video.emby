@@ -465,8 +465,8 @@ def wipe_database():
     connection.commit()
     cursor.close()
     # Reset the artwork sync status in the PKC settings
-    settings('caching_artwork_count', value=lang(39310))
-    settings('fanarttv_lookups', value=lang(39310))
+    settings('caching_artwork_count', value='unknown')
+    settings('fanarttv_lookups', value='unknown')
     # reset the install run flag
     settings('SyncInstallRunDone', value="false")
 

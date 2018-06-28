@@ -1,3 +1,6 @@
+version 2.2.6 (beta only):
+- Fix default settings string, only show in English, hopefully fixes PKC loosing its settings
+
 version 2.2.5 (beta only):
 - Fix AttributeError and add_update has crashed
 
