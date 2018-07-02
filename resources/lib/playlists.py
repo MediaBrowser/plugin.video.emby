@@ -63,8 +63,16 @@ def delete_plex_playlist(playlist):
     entry in the Plex playlist table.
     Returns None or raises PL.PlaylistError
     """
-    LOG.debug('Deleting playlist from PMS: %s', playlist)
-    PL.delete_playlist_from_pms(playlist)
+    if (state.SYNC_SPECIFIC_KODI_PLAYLISTS and
+            not sync_kodi_playlist(playlist.kodi_path)):
+        # We might have already synced this playlist BEFORE user chose to only
+        # sync specific playlists. Let's NOT delete all those playlists.
+        # However, delete it from our database of synced playlists.
+        LOG.debug('Not deleting playlist since user chose not to sync: %s',
+                  playlist)
+    else:
+        LOG.debug('Deleting playlist from PMS: %s', playlist)
+        PL.delete_playlist_from_pms(playlist)
     update_plex_table(playlist, delete=True)
 
 
@@ -76,12 +84,20 @@ def create_kodi_playlist(plex_id=None, updated_at=None):
     created in any case (not replaced). Thus make sure that the "same" playlist
     is deleted from both disk and the Plex database.
     Returns the playlist or raises PL.PlaylistError
+
+    Be aware that user settings will be checked whether this Plex playlist
+    should actually indeed be synced
     """
     xml = PL.get_PMS_playlist(PL.Playlist_Object(), playlist_id=plex_id)
     if xml is None:
         LOG.error('Could not get Plex playlist %s', plex_id)
         raise PL.PlaylistError('Could not get Plex playlist %s' % plex_id)
     api = API(xml)
+    if state.SYNC_SPECIFIC_PLEX_PLAYLISTS:
+        prefix = utils.settings('syncSpecificPlexPlaylistsPrefix')
+        if api.title() and not api.title().startswith(prefix):
+            LOG.debug('User chose to not sync playlist %s', api.title())
+            return
     playlist = PL.Playlist_Object()
     playlist.id = api.plex_id()
     playlist.type = v.KODI_PLAYLIST_TYPE_FROM_PLEX[api.playlist_type()]
@@ -122,14 +138,17 @@ def delete_kodi_playlist(playlist):
     the Plex playlist table.
     Returns None or raises PL.PlaylistError
     """
-    try:
-        path_ops.remove(playlist.kodi_path)
-    except (OSError, IOError) as err:
-        LOG.error('Could not delete Kodi playlist file %s. Error:\n %s: %s',
-                  playlist, err.errno, err.strerror)
-        raise PL.PlaylistError('Could not delete %s' % playlist.kodi_path)
+    if not sync_kodi_playlist(playlist.kodi_path):
+        LOG.debug('Do not delete since we should not sync playlist %s',
+                  playlist)
     else:
-        update_plex_table(playlist, delete=True)
+        try:
+            path_ops.remove(playlist.kodi_path)
+        except (OSError, IOError) as err:
+            LOG.error('Could not delete Kodi playlist file %s. Error:\n%s: %s',
+                      playlist, err.errno, err.strerror)
+            raise PL.PlaylistError('Could not delete %s' % playlist.kodi_path)
+    update_plex_table(playlist, delete=True)
 
 
 def update_plex_table(playlist, delete=False):
@@ -382,6 +401,8 @@ def _full_sync():
                 if extension not in SUPPORTED_FILETYPES:
                     continue
                 path = path_ops.path.join(root, file)
+                if not sync_kodi_playlist(path):
+                    continue
                 kodi_hash = utils.generate_file_md5(path)
                 playlist = playlist_object_from_db(kodi_hash=kodi_hash)
                 playlist_2 = playlist_object_from_db(path=path)
@@ -417,6 +438,25 @@ def _full_sync():
     return True
 
 
+def sync_kodi_playlist(path):
+    """
+    Returns True if we should sync this Kodi playlist with path [unicode] to
+    Plex based on the playlist file name and the user settings, False otherwise
+    """
+    if not state.SYNC_SPECIFIC_KODI_PLAYLISTS:
+        return True
+    playlist = PL.Playlist_Object()
+    try:
+        playlist.kodi_path = path
+    except PL.PlaylistError:
+        pass
+    else:
+        prefix = utils.settings('syncSpecificKodiPlaylistsPrefix')
+        if playlist.kodi_filename.startswith(prefix):
+            return True
+    return False
+
+
 class PlaylistEventhandler(FileSystemEventHandler):
     """
     PKC eventhandler to monitor Kodi playlists safed to disk
@@ -443,6 +483,10 @@ class PlaylistEventhandler(FileSystemEventHandler):
             return
         if (not state.ENABLE_MUSIC and
                 event.src_path.startswith(v.PLAYLIST_PATH_MUSIC)):
+            return
+        path = event.dest_path if event.event_type == EVENT_TYPE_MOVED \
+            else event.src_path
+        if not sync_kodi_playlist(path):
             return
         _method_map = {
             EVENT_TYPE_MODIFIED: self.on_modified,
