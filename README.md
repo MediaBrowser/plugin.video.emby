@@ -79,7 +79,8 @@ Some people argue that PKC is 'hacky' because of the way it directly accesses th
     + Portuguese, thanks @goncalo532 
     + Russian, thanks @UncleStark
     + Hungarian, thanks @savage93
-    + [You can easily help to translate PKC!](https://www.transifex.com/croneter/pkc)
+    + Ukrainian, thanks @uniss
+    + [Please help and easily translate PKC!](https://www.transifex.com/croneter/pkc)
 
 ### Additional Artwork
 PKC uses additional artwork for free from [TheMovieDB](https://www.themoviedb.org). Many thanks for lettings us use the API, guys!
