@@ -1228,46 +1228,49 @@ class API(object):
         for entry in self.item.iterfind('./Media'):
             count += 1
         if (count > 1 and (
-                (self.plex_type() != 'clip' and
+                (self.plex_type() != v.PLEX_TYPE_CLIP and
                  utils.settings('bestQuality') == 'false')
             or
-                (self.plex_type() == 'clip' and
+                (self.plex_type() == v.PLEX_TYPE_CLIP and
                  utils.settings('bestTrailer') == 'false'))):
             # Several streams/files available.
             dialoglist = []
             for entry in self.item.iterfind('./Media'):
                 # Get additional info (filename / languages)
-                filename = None
                 if 'file' in entry[0].attrib:
-                    filename = path_ops.path.basename(entry[0].attrib['file'])
+                    option = utils.try_decode(entry[0].attrib['file'])
+                    option = path_ops.path.basename(option)
+                else:
+                    option = self.title() or ''
                 # Languages of audio streams
                 languages = []
                 for stream in entry[0]:
                     if (stream.attrib['streamType'] == '1' and
                             'language' in stream.attrib):
-                        languages.append(stream.attrib['language'])
+                        language = utils.try_decode(stream.attrib['language'])
+                        languages.append(language)
                 languages = ', '.join(languages)
-                if filename:
-                    option = utils.try_encode(filename)
                 if languages:
                     if option:
-                        option = '%s (%s): ' % (option,
-                                                utils.try_encode(languages))
+                        option = '%s (%s): ' % (option, languages)
                     else:
-                        option = '%s: ' % utils.try_encode(languages)
+                        option = '%s: ' % languages
+                else:
+                    option = '%s ' % option
                 if 'videoResolution' in entry.attrib:
-                    option = '%s%sp ' % (option,
-                                         entry.get('videoResolution'))
+                    res = utils.try_decode(entry['videoResolution'])
+                    option = '%s%sp ' % (option, res)
                 if 'videoCodec' in entry.attrib:
-                    option = '%s%s' % (option,
-                                       entry.get('videoCodec'))
+                    codec = utils.try_decode(entry['videoCodec'])
+                    option = '%s%s' % (option, codec)
                 option = option.strip() + ' - '
                 if 'audioProfile' in entry.attrib:
-                    option = '%s%s ' % (option,
-                                        entry.get('audioProfile'))
+                    profile = utils.try_decode(entry['audioProfile'])
+                    option = '%s%s ' % (option, profile)
                 if 'audioCodec' in entry.attrib:
-                    option = '%s%s ' % (option,
-                                        entry.get('audioCodec'))
+                    codec = utils.try_decode(entry['audioCodec'])
+                    option = '%s%s ' % (option, codec)
+                option = utils.try_encode(option.strip())
                 dialoglist.append(option)
             media = utils.dialog('select', 'Select stream', dialoglist)
         else:
