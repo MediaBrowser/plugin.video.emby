@@ -31,7 +31,7 @@ def choose_pms_server():
     """
     LOG.info("Choosing PMS server requested, starting")
 
-    import initialsetup
+    from . import initialsetup
     setup = initialsetup.InitialSetup()
     server = setup.pick_pms(showDialog=True)
     if server is None:
@@ -46,9 +46,8 @@ def choose_pms_server():
     if not _log_out():
         return
 
-    from utils import wipe_database
     # Wipe Kodi and Plex database as well as playlists and video nodes
-    wipe_database()
+    utils.wipe_database()
 
     # Log in again
     _log_in()
@@ -81,7 +80,7 @@ def toggle_plex_tv_sign_in():
         utils.plex_command('PLEX_USERNAME', '')
     else:
         LOG.info('Login to plex.tv')
-        import initialsetup
+        from . import initialsetup
         initialsetup.InitialSetup().plex_tv_sign_in()
     utils.dialog('notification',
                  utils.lang(29999),
@@ -180,10 +179,9 @@ def switch_plex_user():
     if not _log_out():
         return
     # First remove playlists of old user
-    from utils import delete_playlists, delete_nodes
-    delete_playlists()
+    utils.delete_playlists()
     # Remove video nodes
-    delete_nodes()
+    utils.delete_nodes()
     _log_in()
 
 
