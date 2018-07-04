@@ -57,6 +57,14 @@ class Service():
                  utils.settings('syncThreadNumber'))
         LOG.info('Playlist m3u encoding: %s', v.M3U_ENCODING)
         LOG.info("Full sys.argv received: %s", sys.argv)
+        LOG.info('Synching only specific Kodi playlists: %s',
+                 utils.settings('syncSpecificKodiPlaylists') == 'true')
+        LOG.info('Kodi playlist prefix: %s',
+                 utils.settings('syncSpecificKodiPlaylistsPrefix'))
+        LOG.info('Synching only specific Plex playlists: %s',
+                 utils.settings('syncSpecificPlexPlaylistsPrefix') == 'true')
+        LOG.info('Play playlist prefix: %s',
+                 utils.settings('syncSpecificPlexPlaylistsPrefix'))
         self.monitor = xbmc.Monitor()
         # Load/Reset PKC entirely - important for user/Kodi profile switch
         initialsetup.reload_pkc()

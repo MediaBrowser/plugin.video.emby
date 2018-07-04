@@ -1,3 +1,10 @@
+version 2.2.7 (beta only):
+- Allow to only sync specific Plex or Kodi playlists
+- Don't show artwork sync progress, reduce setting-writes
+- Fix playback sometimes not starting up
+- Use __future__ for contextmenu.py
+- Fix imports
+
 version 2.2.6 (beta only):
 - Fix default settings string, only show in English, hopefully fixes PKC loosing its settings
 

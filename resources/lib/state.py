@@ -55,6 +55,10 @@ SYNC_DIALOG = True
 IMAGE_SYNC_NOTIFICATIONS = True
 # Sync playlists from Plex to Kodi and vice-versa?
 SYNC_PLAYLISTS = True
+# Only sync specific Plex playlists to Kodi?
+SYNC_SPECIFIC_PLEX_PLAYLISTS = False
+# Only sync specific Kodi playlists to Plex?
+SYNC_SPECIFIC_KODI_PLAYLISTS = False
 # Is synching of Plex music enabled?
 ENABLE_MUSIC = True
 # How often shall we sync?

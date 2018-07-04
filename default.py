@@ -169,9 +169,9 @@ class Main():
     @staticmethod
     def deviceid():
         deviceId_old = pickler.pickl_window('plex_client_Id')
-        from clientinfo import getDeviceId
+        from resources.lib import clientinfo
         try:
-            deviceId = getDeviceId(reset=True)
+            deviceId = clientinfo.getDeviceId(reset=True)
         except Exception as e:
             log.error('Failed to generate a new device Id: %s' % e)
             utils.dialog('ok', utils.lang(29999), utils.lang(33032))
