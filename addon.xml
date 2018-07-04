@@ -19,6 +19,9 @@
       </item>
   </extension>
   <extension point="xbmc.addon.metadata">
+    <summary lang="en">Native Integration of Plex into Kodi/summary>
+    <description lang="en">Connect Kodi to your Plex Media Server. This plugin assumes that you manage all your videos with Plex (and none with Kodi). You might lose data already stored in the Kodi video and music databases (as this plugin directly changes them). Use at your own risk!</description>
+    <disclaimer lang="en">Use at your own risk</disclaimer>
     <platform>all</platform>
     <license>GNU GENERAL PUBLIC LICENSE. Version 2, June 1991</license>
     <forum>https://forums.plex.tv</forum>
@@ -67,6 +70,9 @@
     <summary lang="ru_RU">Нативная интеграция сервера Plex в Kodi</summary>
     <description lang="ru_RU">Подключите Kodi к своему серверу Plex. Плагин предполагает что вы управляете своими видео с помощью Plex (а не в Kodi). Вы можете потерять текущие базы данных музыки и видео в Kodi (так как плагин напрямую их изменяет). Используйте на свой страх и риск</description>
     <disclaimer lang="ru_RU">Используйте на свой страх и риск</disclaimer>
+    <summary lang="uk_UA">Нативна інтеграція Plex в Kodi</summary>
+    <description lang="uk_UA">Підключає Kodi до серверу Plex. Цей плагін передбачає, що ви керуєте всіма своїми відео за допомогою Plex (і ніяк не Kodi). Ви можете втратити дані, які вже зберігаються у відео та музичних БД Kodi (оскільки цей плагін безпосередньо їх змінює). Використовуйте на свій страх і ризик!</description>
+    <disclaimer lang="uk_UA">Використовуйте на свій ризик</disclaimer>
     <news>version 2.2.7 (beta only):
 - Allow to only sync specific Plex or Kodi playlists
 - Don't show artwork sync progress, reduce setting-writes
