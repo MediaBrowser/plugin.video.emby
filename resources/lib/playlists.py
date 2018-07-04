@@ -94,8 +94,8 @@ def create_kodi_playlist(plex_id=None, updated_at=None):
         raise PL.PlaylistError('Could not get Plex playlist %s' % plex_id)
     api = API(xml)
     if state.SYNC_SPECIFIC_PLEX_PLAYLISTS:
-        prefix = utils.settings('syncSpecificPlexPlaylistsPrefix')
-        if api.title() and not api.title().startswith(prefix):
+        prefix = utils.settings('syncSpecificPlexPlaylistsPrefix').lower()
+        if api.title() and not api.title().lower().startswith(prefix):
             LOG.debug('User chose to not sync playlist %s', api.title())
             return
     playlist = PL.Playlist_Object()
@@ -451,8 +451,8 @@ def sync_kodi_playlist(path):
     except PL.PlaylistError:
         pass
     else:
-        prefix = utils.settings('syncSpecificKodiPlaylistsPrefix')
-        if playlist.kodi_filename.startswith(prefix):
+        prefix = utils.settings('syncSpecificKodiPlaylistsPrefix').lower()
+        if playlist.kodi_filename.lower().startswith(prefix):
             return True
     return False
 
