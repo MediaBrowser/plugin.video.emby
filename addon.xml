@@ -19,7 +19,7 @@
       </item>
   </extension>
   <extension point="xbmc.addon.metadata">
-    <summary lang="en">Native Integration of Plex into Kodi/summary>
+    <summary lang="en">Native Integration of Plex into Kodi</summary>
     <description lang="en">Connect Kodi to your Plex Media Server. This plugin assumes that you manage all your videos with Plex (and none with Kodi). You might lose data already stored in the Kodi video and music databases (as this plugin directly changes them). Use at your own risk!</description>
     <disclaimer lang="en">Use at your own risk</disclaimer>
     <platform>all</platform>
