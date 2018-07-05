@@ -1265,8 +1265,8 @@ class LibrarySync(Thread):
         """
         for item in data:
             status = item['state']
-            if status == 'buffering':
-                # Drop buffering messages immediately
+            if status == 'buffering' or status == 'stopped':
+                # Drop buffering and stop messages immediately - no value
                 continue
             plex_id = item['ratingKey']
             skip = False
