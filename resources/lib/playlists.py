@@ -481,7 +481,7 @@ class PlaylistEventhandler(events.FileSystemEventHandler):
         if (not state.ENABLE_MUSIC and
                 event.src_path.startswith(v.PLAYLIST_PATH_MUSIC)):
             return
-        path = event.dest_path if event.event_type == EVENT_TYPE_MOVED \
+        path = event.dest_path if event.event_type == events.EVENT_TYPE_MOVED \
             else event.src_path
         if not sync_kodi_playlist(path):
             return
