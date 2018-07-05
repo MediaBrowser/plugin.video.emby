@@ -574,6 +574,11 @@ msgctxt "#30542"
 msgid "Always pick best quality for trailers"
 msgstr ""
 
+# PKC Settings - Artwork
+msgctxt "#30543"
+msgid "Prefer Kodi artwork for collections/sets"
+msgstr ""
+
 msgctxt "#30544"
 msgid "Artwork"
 msgstr ""

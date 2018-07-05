@@ -37,7 +37,7 @@ ADDON_ID = 'plugin.video.plexkodiconnect'
 ADDON_VERSION = _ADDON.getAddonInfo('version')
 ADDON_PATH = try_decode(_ADDON.getAddonInfo('path'))
 ADDON_FOLDER = try_decode(xbmc.translatePath('special://home'))
-ADDON_PROFILE = try_decode(_ADDON.getAddonInfo('profile'))
+ADDON_PROFILE = try_decode(xbmc.translatePath(_ADDON.getAddonInfo('profile')))
 
 KODILANGUAGE = xbmc.getLanguage(xbmc.ISO_639_1)
 KODIVERSION = int(xbmc.getInfoLabel("System.BuildVersion")[:2])
@@ -143,6 +143,7 @@ PLEX_PLAYLIST_TYPE_FROM_KODI = {
 PLEX_TYPE_VIDEO = 'video'
 PLEX_TYPE_MOVIE = 'movie'
 PLEX_TYPE_CLIP = 'clip'  # e.g. trailers
+PLEX_TYPE_SET = 'collection'  # sets/collections
 
 PLEX_TYPE_EPISODE = 'episode'
 PLEX_TYPE_SEASON = 'season'
@@ -257,6 +258,7 @@ KODITYPE_FROM_PLEXTYPE = {
 PLEX_TYPE_FROM_KODI_TYPE = {
     KODI_TYPE_VIDEO: PLEX_TYPE_VIDEO,
     KODI_TYPE_MOVIE: PLEX_TYPE_MOVIE,
+    KODI_TYPE_SET: PLEX_TYPE_SET,
     KODI_TYPE_EPISODE: PLEX_TYPE_EPISODE,
     KODI_TYPE_SEASON: PLEX_TYPE_SEASON,
     KODI_TYPE_SHOW: PLEX_TYPE_SHOW,

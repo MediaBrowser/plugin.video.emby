@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from logging import getLogger
 
-from .watchdog.events import FileSystemEventHandler
+from .watchdog import events
 from .watchdog.observers import Observer
 from . import playlist_func as PL
 from .plex_api import API
@@ -23,12 +23,6 @@ SUPPORTED_FILETYPES = (
     # 'pls',
     # 'cue',
 )
-
-# Watchdog copy-paste
-EVENT_TYPE_MOVED = 'moved'
-EVENT_TYPE_DELETED = 'deleted'
-EVENT_TYPE_CREATED = 'created'
-EVENT_TYPE_MODIFIED = 'modified'
 
 
 def create_plex_playlist(playlist):
@@ -174,6 +168,9 @@ def _playlist_file_to_plex_ids(playlist):
     """
     if playlist.kodi_extension == 'm3u':
         plex_ids = m3u_to_plex_ids(playlist)
+    else:
+        LOG.error('Unknown playlist extension: %s', playlist.kodi_extension)
+        raise PL.PlaylistError
     return plex_ids
 
 
@@ -457,7 +454,7 @@ def sync_kodi_playlist(path):
     return False
 
 
-class PlaylistEventhandler(FileSystemEventHandler):
+class PlaylistEventhandler(events.FileSystemEventHandler):
     """
     PKC eventhandler to monitor Kodi playlists safed to disk
     """
@@ -484,15 +481,15 @@ class PlaylistEventhandler(FileSystemEventHandler):
         if (not state.ENABLE_MUSIC and
                 event.src_path.startswith(v.PLAYLIST_PATH_MUSIC)):
             return
-        path = event.dest_path if event.event_type == EVENT_TYPE_MOVED \
+        path = event.dest_path if event.event_type == events.EVENT_TYPE_MOVED \
             else event.src_path
         if not sync_kodi_playlist(path):
             return
         _method_map = {
-            EVENT_TYPE_MODIFIED: self.on_modified,
-            EVENT_TYPE_MOVED: self.on_moved,
-            EVENT_TYPE_CREATED: self.on_created,
-            EVENT_TYPE_DELETED: self.on_deleted,
+            events.EVENT_TYPE_MODIFIED: self.on_modified,
+            events.EVENT_TYPE_MOVED: self.on_moved,
+            events.EVENT_TYPE_CREATED: self.on_created,
+            events.EVENT_TYPE_DELETED: self.on_deleted,
         }
         event_type = event.event_type
         with state.LOCK_PLAYLISTS:
