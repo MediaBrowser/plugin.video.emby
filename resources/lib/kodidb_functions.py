@@ -813,14 +813,6 @@ class KodiDBMethods(object):
             '''
             self.cursor.execute(query, (kodiid, mediatype, oldtag,))
 
-    def add_sets(self, movieid, collections):
-        """
-        Will add the movie to all collections (a list of unicodes)
-        """
-        for setname in collections:
-            setid = self.create_collection(setname)
-            self.assign_collection(setid, movieid)
-
     def create_collection(self, set_name):
         """
         Returns the collection/set id for set_name [unicode]

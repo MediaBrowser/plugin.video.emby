@@ -735,6 +735,24 @@ def GetPMSStatus(token):
     return answer
 
 
+def collections(section_id):
+    """
+    Returns an etree with list of collections or None.
+    """
+    url = '{server}/library/sections/%s/all' % section_id
+    params = {
+        'type': 18,  # Collections
+        'includeCollections': 1,
+    }
+    xml = DU().downloadUrl(url, parameters=params)
+    try:
+        xml.attrib
+    except AttributeError:
+        LOG.error("Error retrieving collections for %s", url)
+        xml = None
+    return xml
+
+
 def scrobble(ratingKey, state):
     """
     Tells the PMS to set an item's watched state to state="watched" or

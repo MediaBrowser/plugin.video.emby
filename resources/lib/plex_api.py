@@ -31,7 +31,8 @@ http://stackoverflow.com/questions/111945/is-there-any-way-to-do-http-put-in-pyt
 """
 from logging import getLogger
 from re import sub
-from urllib import urlencode, unquote
+from urllib import urlencode, unquote, quote
+from urlparse import parse_qsl
 from xbmcgui import ListItem
 
 from .downloadutils import DownloadUtils as DU
@@ -326,13 +327,13 @@ class API(object):
 
     def collection_list(self):
         """
-        Returns a list of PMS collection tags or an empty list
+        Returns a list of tuples of the collection id and tags or an empty list
+            [(<collection id 1>, <collection name 1>), ...]
         """
         collections = []
         for child in self.item:
             if child.tag == 'Collection':
-                if child.attrib['tag']:
-                    collections.append(child.attrib['tag'])
+                collections.append((child.get('id'), child.get('tag')))
         return collections
 
     def people(self):
@@ -816,9 +817,22 @@ class API(object):
     def _one_artwork(self, art_kind):
         artwork = self.item.get(art_kind)
         if artwork and not artwork.startswith('http'):
-            artwork = self.attach_plex_token_to_url(
-                '%s/photo/:/transcode?width=4000&height=4000&'
-                'minSize=1&upscale=0&url=%s' % (self.server, artwork))
+            if '/composite/' in artwork:
+                # e.g. Plex collections where artwork already contains width
+                # and height. Need to upscale for better resolution
+                artwork, args = artwork.split('?')
+                args = dict(parse_qsl(args))
+                width = int(args.get('width', 400))
+                height = int(args.get('height', 400))
+                # Adjust to 4k resolution 3,840x2,160
+                scaling = 3840.0 / float(max(width, height))
+                width = int(scaling * width)
+                height = int(scaling * height)
+                artwork = '%s?width=%s&height=%s' % (artwork, width, height)
+            artwork = ('%s/photo/:/transcode?width=3840&height=3840&'
+                       'minSize=1&upscale=0&url=%s'
+                       % (self.server, quote(artwork)))
+            artwork = self.attach_plex_token_to_url(artwork)
         return artwork
 
     def artwork(self, kodi_id=None, kodi_type=None, full_artwork=False):
@@ -1188,6 +1202,25 @@ class API(object):
                 if fanartcount >= v.MAX_BACKGROUND_COUNT:
                     break
         return artworks
+
+    def library_section_id(self):
+        """
+        Returns the id of the Plex library section (for e.g. a movies section)
+        or None
+        """
+        return self.item.get('librarySectionID')
+
+    def collections_match(self):
+        """
+        Downloads one additional xml from the PMS in order to return a list of
+        tuples [(collection_id, plex_id), ...] for all collections of the
+        current item's Plex library sectin
+        Pass in the collection id of e.g. the movie's metadata
+        """
+        xml = PF.collections(self.library_section_id())
+        if not xml:
+            return []
+        return [(i.get('index'), i.get('ratingKey')) for i in xml]
 
     def set_artwork(self):
         """

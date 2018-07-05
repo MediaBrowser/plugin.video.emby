@@ -114,14 +114,23 @@ class Items(object):
                                     self.kodicursor)
         # Also get artwork for collections/movie sets
         if kodi_type == v.KODI_TYPE_MOVIE:
-            for setname in api.collection_list():
+            for _, setname in api.collection_list():
                 LOG.debug('Getting artwork for movie set %s', setname)
                 setid = self.kodi_db.create_collection(setname)
-                self.artwork.modify_artwork(api.set_artwork(),
+                external_set_artwork = api.set_artwork()
+                if (external_set_artwork and
+                        utils.settings('PreferKodiCollectionArt') == 'false'):
+                    # Need to make sure we are not overwriting existing Plex
+                    # collection artwork
+                    plex_artwork = api.artwork(kodi_id=setid,
+                                               kodi_type=v.KODI_TYPE_SET)
+                    for art in plex_artwork:
+                        if art in external_set_artwork:
+                            del external_set_artwork[art]
+                self.artwork.modify_artwork(external_set_artwork,
                                             setid,
                                             v.KODI_TYPE_SET,
                                             self.kodicursor)
-                self.kodi_db.assign_collection(setid, kodi_id)
         return True
 
     def updateUserdata(self, xml):
@@ -440,14 +449,32 @@ class Movies(Items):
         self.kodi_db.modify_streams(fileid, api.mediastreams(), runtime)
         # Process studios
         self.kodi_db.modify_studios(movieid, v.KODI_TYPE_MOVIE, studios)
-        # Process tags: view, Plex collection tags
         tags = [viewtag]
-        tags.extend(collections)
         if userdata['Favorite']:
             tags.append("Favorite movies")
+        if collections:
+            collections_match = api.collections_match()
+            for plex_set_id, set_name in collections:
+                tags.append(set_name)
+                # Add any sets from Plex collection tags
+                kodi_set_id = self.kodi_db.create_collection(set_name)
+                self.kodi_db.assign_collection(kodi_set_id, movieid)
+                for index, plex_id in collections_match:
+                    # Get Plex artwork for collections - a pain
+                    if index == plex_set_id:
+                        set_xml = PF.GetPlexMetadata(plex_id)
+                        try:
+                            set_xml.attrib
+                        except AttributeError:
+                            LOG.error('Could not get set metadata %s', plex_id)
+                            continue
+                        set_api = API(set_xml[0])
+                        artwork.modify_artwork(set_api.artwork(),
+                                               kodi_set_id,
+                                               v.KODI_TYPE_SET,
+                                               kodicursor)
+                        break
         self.kodi_db.modify_tags(movieid, v.KODI_TYPE_MOVIE, tags)
-        # Add any sets from Plex collection tags
-        self.kodi_db.add_sets(movieid, collections)
         # Process playstates
         self.kodi_db.set_resume(fileid,
                                 resume,
@@ -718,7 +745,7 @@ class TVShows(Items):
         self.kodi_db.modify_studios(showid, v.KODI_TYPE_SHOW, studios)
         # Process tags: view, PMS collection tags
         tags = [viewtag]
-        tags.extend(collections)
+        tags.extend([i for _, i in collections])
         self.kodi_db.modify_tags(showid, v.KODI_TYPE_SHOW, tags)
 
     @utils.catch_exceptions(warnuser=True)
