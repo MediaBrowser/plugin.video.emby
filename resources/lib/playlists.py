@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from logging import getLogger
 
-from .watchdog.events import FileSystemEventHandler
+from .watchdog import events
 from .watchdog.observers import Observer
 from . import playlist_func as PL
 from .plex_api import API
@@ -23,12 +23,6 @@ SUPPORTED_FILETYPES = (
     # 'pls',
     # 'cue',
 )
-
-# Watchdog copy-paste
-EVENT_TYPE_MOVED = 'moved'
-EVENT_TYPE_DELETED = 'deleted'
-EVENT_TYPE_CREATED = 'created'
-EVENT_TYPE_MODIFIED = 'modified'
 
 
 def create_plex_playlist(playlist):
@@ -457,7 +451,7 @@ def sync_kodi_playlist(path):
     return False
 
 
-class PlaylistEventhandler(FileSystemEventHandler):
+class PlaylistEventhandler(events.FileSystemEventHandler):
     """
     PKC eventhandler to monitor Kodi playlists safed to disk
     """
@@ -489,10 +483,10 @@ class PlaylistEventhandler(FileSystemEventHandler):
         if not sync_kodi_playlist(path):
             return
         _method_map = {
-            EVENT_TYPE_MODIFIED: self.on_modified,
-            EVENT_TYPE_MOVED: self.on_moved,
-            EVENT_TYPE_CREATED: self.on_created,
-            EVENT_TYPE_DELETED: self.on_deleted,
+            events.EVENT_TYPE_MODIFIED: self.on_modified,
+            events.EVENT_TYPE_MOVED: self.on_moved,
+            events.EVENT_TYPE_CREATED: self.on_created,
+            events.EVENT_TYPE_DELETED: self.on_deleted,
         }
         event_type = event.event_type
         with state.LOCK_PLAYLISTS:
