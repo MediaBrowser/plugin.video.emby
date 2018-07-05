@@ -37,7 +37,7 @@ ADDON_ID = 'plugin.video.plexkodiconnect'
 ADDON_VERSION = _ADDON.getAddonInfo('version')
 ADDON_PATH = try_decode(_ADDON.getAddonInfo('path'))
 ADDON_FOLDER = try_decode(xbmc.translatePath('special://home'))
-ADDON_PROFILE = try_decode(_ADDON.getAddonInfo('profile'))
+ADDON_PROFILE = try_decode(xbmc.translatePath(_ADDON.getAddonInfo('profile')))
 
 KODILANGUAGE = xbmc.getLanguage(xbmc.ISO_639_1)
 KODIVERSION = int(xbmc.getInfoLabel("System.BuildVersion")[:2])
