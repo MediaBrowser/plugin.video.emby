@@ -551,7 +551,7 @@ class PlaylistEventhandler(events.FileSystemEventHandler):
         LOG.debug('on_moved: %s to %s', event.src_path, event.dest_path)
         old_playlist = playlist_object_from_db(path=event.src_path)
         if not old_playlist:
-            LOG.error('Did not have source path in the DB', event.src_path)
+            LOG.error('Did not have source path in the DB %s', event.src_path)
         else:
             delete_plex_playlist(old_playlist)
         new_playlist = PL.Playlist_Object()
