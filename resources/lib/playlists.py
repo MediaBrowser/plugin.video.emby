@@ -168,6 +168,9 @@ def _playlist_file_to_plex_ids(playlist):
     """
     if playlist.kodi_extension == 'm3u':
         plex_ids = m3u_to_plex_ids(playlist)
+    else:
+        LOG.error('Unknown playlist extension: %s', playlist.kodi_extension)
+        raise PL.PlaylistError
     return plex_ids
 
 
