@@ -20,7 +20,7 @@ from . import state
 LOG = getLogger('PLEX.playlists')
 
 # Safety margin for playlist filesystem operations
-FILESYSTEM_TIMEOUT = 3
+FILESYSTEM_TIMEOUT = 1
 # These filesystem events are considered similar
 SIMILAR_EVENTS = (events.EVENT_TYPE_CREATED, events.EVENT_TYPE_MODIFIED)
 
