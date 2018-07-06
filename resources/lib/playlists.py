@@ -571,6 +571,22 @@ class PlaylistEventhandler(events.FileSystemEventHandler):
             pass
 
 
+class PlaylistQueue(OrderedSetQueue):
+    """
+    OrderedSetQueue that drops all directory events immediately
+    """
+    def _put(self, item):
+        if item[0].is_directory:
+            self.unfinished_tasks -= 1
+        elif item not in self._set_of_items:
+            Queue.Queue._put(self, item)
+            self._set_of_items.add(item)
+        else:
+            # `put` increments `unfinished_tasks` even if we did not put
+            # anything into the queue here
+            self.unfinished_tasks -= 1
+
+
 class PlaylistObserver(Observer):
     """
     PKC implementation, overriding the dispatcher. PKC will wait for the
@@ -582,7 +598,7 @@ class PlaylistObserver(Observer):
         super(PlaylistObserver, self).__init__(*args, **kwargs)
         # Drop the same events that get into the queue even if there are other
         # events in between these similar events
-        self._event_queue = OrderedSetQueue()
+        self._event_queue = PlaylistQueue()
 
     @staticmethod
     def _pkc_similar_events(event1, event2):
