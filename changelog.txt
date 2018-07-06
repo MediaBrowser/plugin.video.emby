@@ -1,3 +1,9 @@
+version 2.2.9 (beta only):
+- Hopefully fix Kodi and Plex playlists getting out of sync
+- Fix and optimize startup of playlist sync
+- Hide certain playlist settings under certain conditions
+- Fix errors in Kodi log
+
 version 2.2.8 (beta only):
 - Support for Plex collection artwork (PKC settings toggle under Artwork)
 - Fix hard PKC reset not working (OSError: no such file)
