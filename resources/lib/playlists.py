@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
 from logging import getLogger
+import Queue
+import xbmc
 
 from .watchdog import events
 from .watchdog.observers import Observer
+from .watchdog.utils.bricks import OrderedSetQueue
 from . import playlist_func as PL
 from .plex_api import API
 from . import kodidb_functions as kodidb
@@ -15,6 +18,11 @@ from . import state
 ###############################################################################
 
 LOG = getLogger('PLEX.playlists')
+
+# Safety margin for playlist filesystem operations
+FILESYSTEM_TIMEOUT = 3
+# These filesystem events are considered similar
+SIMILAR_EVENTS = (events.EVENT_TYPE_CREATED, events.EVENT_TYPE_MODIFIED)
 
 # Which playlist formates are supported by PKC?
 SUPPORTED_FILETYPES = (
@@ -329,6 +337,9 @@ def full_sync():
     Full sync of playlists between Kodi and Plex. Returns True is successful,
     False otherwise
     """
+    if not state.SYNC_PLAYLISTS:
+        LOG.debug('Not syncing playlists')
+        return True
     LOG.info('Starting playlist full sync')
     with state.LOCK_PLAYLISTS:
         return _full_sync()
@@ -467,6 +478,9 @@ class PlaylistEventhandler(events.FileSystemEventHandler):
         :type event:
             :class:`FileSystemEvent`
         """
+        if not state.SYNC_PLAYLISTS:
+            # Sync is deactivated
+            return
         if event.is_directory:
             # todo: take care of folder renames
             return
@@ -545,7 +559,7 @@ class PlaylistEventhandler(events.FileSystemEventHandler):
         LOG.debug('on_moved: %s to %s', event.src_path, event.dest_path)
         old_playlist = playlist_object_from_db(path=event.src_path)
         if not old_playlist:
-            LOG.error('Did not have source path in the DB', event.src_path)
+            LOG.error('Did not have source path in the DB %s', event.src_path)
         else:
             delete_plex_playlist(old_playlist)
         new_playlist = PL.Playlist_Object()
@@ -557,6 +571,68 @@ class PlaylistEventhandler(events.FileSystemEventHandler):
             pass
 
 
+class PlaylistObserver(Observer):
+    """
+    PKC implementation, overriding the dispatcher. PKC will wait for the
+    duration timeout (in seconds) before dispatching. A new event will reset
+    the timer.
+    Creating and modifying will be regarded as equal.
+    """
+    def __init__(self, *args, **kwargs):
+        super(PlaylistObserver, self).__init__(*args, **kwargs)
+        # Drop the same events that get into the queue even if there are other
+        # events in between these similar events
+        self._event_queue = OrderedSetQueue()
+
+    @staticmethod
+    def _pkc_similar_events(event1, event2):
+        if event1 == event2:
+            return True
+        elif (event1.src_path == event2.src_path and
+              event1.event_type in SIMILAR_EVENTS and
+              event2.event_type in SIMILAR_EVENTS):
+            # Ignore a consecutive firing of created and modified events
+            return True
+        return False
+
+    def _dispatch_iterator(self, event_queue, timeout):
+        """
+        This iterator will block for timeout (seconds) until an event is
+        received or raise Queue.Empty.
+        """
+        event, watch = event_queue.get(block=True, timeout=timeout)
+        event_queue.task_done()
+        start = utils.unix_timestamp()
+        while utils.unix_timestamp() - start < timeout:
+            if state.STOP_PKC:
+                raise Queue.Empty
+            try:
+                new_event, new_watch = event_queue.get(block=False)
+            except Queue.Empty:
+                xbmc.sleep(200)
+            else:
+                event_queue.task_done()
+                start = utils.unix_timestamp()
+                if self._pkc_similar_events(new_event, event):
+                    continue
+                else:
+                    # At least on Windows, a dir modified event will be
+                    # triggered once the writing process is done. Fine though
+                    yield event, watch
+                    event, watch = new_event, new_watch
+        yield event, watch
+
+    def dispatch_events(self, event_queue, timeout):
+        for event, watch in self._dispatch_iterator(event_queue, timeout):
+            with self._lock:
+                # To allow unschedule/stop and safe removal of event handlers
+                # within event handlers itself, check if the handler is still
+                # registered after every dispatch.
+                for handler in list(self._handlers.get(watch, [])):
+                    if handler in self._handlers.get(watch, []):
+                        handler.dispatch(event)
+
+
 def kodi_playlist_monitor():
     """
     Monitors the Kodi playlist folder special://profile/playlist for the user.
@@ -566,7 +642,7 @@ def kodi_playlist_monitor():
     observer.stop() (and maybe observer.join()) to shut down properly
     """
     event_handler = PlaylistEventhandler()
-    observer = Observer()
+    observer = PlaylistObserver(timeout=FILESYSTEM_TIMEOUT)
     observer.schedule(event_handler, v.PLAYLIST_PATH, recursive=True)
     observer.start()
     return observer

@@ -262,9 +262,10 @@ class LibrarySync(Thread):
         # This will NOT update playstates and userratings!
         LOG.info('Running fullsync for CHANGED PMS items with repair=%s',
                  repair)
-        if self._full_sync() is False:
+        if not self._full_sync():
             return False
-        playlists.full_sync()
+        if not playlists.full_sync():
+            return False
         return True
 
     def _full_sync(self):
@@ -1265,8 +1266,8 @@ class LibrarySync(Thread):
         """
         for item in data:
             status = item['state']
-            if status == 'buffering':
-                # Drop buffering messages immediately
+            if status == 'buffering' or status == 'stopped':
+                # Drop buffering and stop messages immediately - no value
                 continue
             plex_id = item['ratingKey']
             skip = False
@@ -1561,10 +1562,9 @@ class LibrarySync(Thread):
                     initial_sync_done = True
                     kodi_db_version_checked = True
                     last_sync = utils.unix_timestamp()
+                    playlist_monitor = playlists.kodi_playlist_monitor()
                     self.sync_fanart()
                     self.fanartthread.start()
-                    if state.SYNC_PLAYLISTS and playlists.full_sync():
-                        playlist_monitor = playlists.kodi_playlist_monitor()
                 else:
                     LOG.error('Initial start-up full sync unsuccessful')
                 xbmc.executebuiltin('InhibitIdleShutdown(false)')
@@ -1614,11 +1614,10 @@ class LibrarySync(Thread):
                     initial_sync_done = True
                     last_sync = utils.unix_timestamp()
                     LOG.info('Done initial sync on Kodi startup')
+                    playlist_monitor = playlists.kodi_playlist_monitor()
                     artwork.Artwork().cache_major_artwork()
                     self.sync_fanart()
                     self.fanartthread.start()
-                    if state.SYNC_PLAYLISTS and playlists.full_sync():
-                        playlist_monitor = playlists.kodi_playlist_monitor()
                 else:
                     LOG.info('Startup sync has not yet been successful')
                 utils.window('plex_dbScan', clear=True)
