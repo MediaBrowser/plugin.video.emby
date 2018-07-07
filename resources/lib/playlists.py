@@ -514,9 +514,8 @@ class PlaylistEventhandler(events.FileSystemEventHandler):
             events.EVENT_TYPE_CREATED: self.on_created,
             events.EVENT_TYPE_DELETED: self.on_deleted,
         }
-        event_type = event.event_type
         with state.LOCK_PLAYLISTS:
-            _method_map[event_type](event)
+            _method_map[event.event_type](event)
 
     def on_created(self, event):
         LOG.debug('on_created: %s', event.src_path)
