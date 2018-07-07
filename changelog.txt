@@ -1,3 +1,10 @@
+version 2.2.10 (beta only):
+- Fix playlists getting recreated and deleted in an endless loop
+- Add some safety nets for playlist sync
+- Fix FutureWarning
+- Fix playlist sync settings not disappearing
+- Optimize code
+
 version 2.2.9 (beta only):
 - Hopefully fix Kodi and Plex playlists getting out of sync
 - Fix and optimize startup of playlist sync
