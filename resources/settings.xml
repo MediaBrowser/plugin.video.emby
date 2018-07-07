@@ -66,9 +66,9 @@
         <setting type="sep" />
         <setting id="enablePlaylistSync" type="bool" label="30020" default="true" visible="true"/><!-- Sync Plex playlists -->
         <setting id="syncSpecificKodiPlaylists" type="bool" label="30023" default="false" visible="eq(-1,true)" /><!-- Only sync specific Kodi playlists to Plex -->
-        <setting id="syncSpecificKodiPlaylistsPrefix" type="text" label="30027" default="sync_" visible="eq(-1,true)"/><!-- Prefix in Kodi playlist name to trigger sync -->
+        <setting id="syncSpecificKodiPlaylistsPrefix" type="text" label="30027" default="sync_" visible="eq(-1,true) + eq(-2,true)"/><!-- Prefix in Kodi playlist name to trigger sync -->
         <setting id="syncSpecificPlexPlaylists" type="bool" label="30021" default="false" visible="eq(-3,true)"/><!-- Only sync specific Plex playlists to Kodi -->
-        <setting id="syncSpecificPlexPlaylistsPrefix" type="text" label="30026" default="sync_" visible="eq(-1,true)" /><!-- Prefix in Plex playlist name to trigger sync -->
+        <setting id="syncSpecificPlexPlaylistsPrefix" type="text" label="30026" default="sync_" visible="eq(-1,true) + eq(-4,true)" /><!-- Prefix in Plex playlist name to trigger sync -->
         <setting type="sep" />
         <setting type="lsep" label="39052" /><!-- Background Sync -->
         <setting id="enableBackgroundSync" type="bool" label="39026" default="true" visible="true"/>
