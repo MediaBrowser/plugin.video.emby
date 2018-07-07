@@ -520,8 +520,13 @@ class PlaylistEventhandler(events.FileSystemEventHandler):
     def on_created(self, event):
         LOG.debug('on_created: %s', event.src_path)
         old_playlist = playlist_object_from_db(path=event.src_path)
-        if old_playlist:
+        if (old_playlist and old_playlist.kodi_hash ==
+                utils.generate_file_md5(event.src_path)):
             LOG.debug('Playlist already in DB - skipping')
+            return
+        elif old_playlist:
+            LOG.debug('Playlist already in DB but it has been changed')
+            self.on_modified(event)
             return
         playlist = PL.Playlist_Object()
         playlist.kodi_path = event.src_path
@@ -531,20 +536,13 @@ class PlaylistEventhandler(events.FileSystemEventHandler):
         except PL.PlaylistError:
             pass
 
-    def on_deleted(self, event):
-        LOG.debug('on_deleted: %s', event.src_path)
-        playlist = playlist_object_from_db(path=event.src_path)
-        if not playlist:
-            LOG.error('Playlist not found in DB for path %s', event.src_path)
-        else:
-            delete_plex_playlist(playlist)
-
     def on_modified(self, event):
         LOG.debug('on_modified: %s', event.src_path)
         old_playlist = playlist_object_from_db(path=event.src_path)
         new_playlist = PL.Playlist_Object()
         if old_playlist:
-            # Retain the name! Might've vom from Plex
+            # Retain the name! Might've come from Plex
+            # (rename should fire on_moved)
             new_playlist.plex_name = old_playlist.plex_name
         new_playlist.kodi_path = event.src_path
         new_playlist.kodi_hash = utils.generate_file_md5(event.src_path)
@@ -577,6 +575,14 @@ class PlaylistEventhandler(events.FileSystemEventHandler):
             create_plex_playlist(new_playlist)
         except PL.PlaylistError:
             pass
+
+    def on_deleted(self, event):
+        LOG.debug('on_deleted: %s', event.src_path)
+        playlist = playlist_object_from_db(path=event.src_path)
+        if not playlist:
+            LOG.error('Playlist not found in DB for path %s', event.src_path)
+        else:
+            delete_plex_playlist(playlist)
 
 
 class PlaylistQueue(OrderedSetQueue):
