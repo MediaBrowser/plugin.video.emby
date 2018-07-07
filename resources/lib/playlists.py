@@ -321,7 +321,7 @@ def process_websocket(plex_id, status):
                 delete_kodi_playlist(playlist)
             elif playlist:
                 xml = PL.get_pms_playlist_metadata(plex_id)
-                if not xml:
+                if xml is None:
                     LOG.error('Could not download playlist %s', plex_id)
                     return
                 api = API(xml[0])

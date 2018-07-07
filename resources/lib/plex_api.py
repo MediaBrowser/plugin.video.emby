@@ -1218,7 +1218,7 @@ class API(object):
         Pass in the collection id of e.g. the movie's metadata
         """
         xml = PF.collections(self.library_section_id())
-        if not xml:
+        if xml is None:
             return []
         return [(i.get('index'), i.get('ratingKey')) for i in xml]
 
