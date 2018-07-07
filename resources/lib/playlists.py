@@ -20,7 +20,7 @@ from . import state
 LOG = getLogger('PLEX.playlists')
 
 # Safety margin for playlist filesystem operations
-FILESYSTEM_TIMEOUT = 3
+FILESYSTEM_TIMEOUT = 1
 # These filesystem events are considered similar
 SIMILAR_EVENTS = (events.EVENT_TYPE_CREATED, events.EVENT_TYPE_MODIFIED)
 
@@ -78,10 +78,10 @@ def delete_plex_playlist(playlist):
     update_plex_table(playlist, delete=True)
 
 
-def create_kodi_playlist(plex_id=None, updated_at=None):
+def create_kodi_playlist(plex_id):
     """
-    Creates a new Kodi playlist file. Will also add (or modify an existing) Plex
-    playlist table entry.
+    Creates a new Kodi playlist file. Will also add (or modify an existing)
+    Plex playlist table entry.
     Assumes that the Plex playlist is indeed new. A NEW Kodi playlist will be
     created in any case (not replaced). Thus make sure that the "same" playlist
     is deleted from both disk and the Plex database.
@@ -90,15 +90,15 @@ def create_kodi_playlist(plex_id=None, updated_at=None):
     Be aware that user settings will be checked whether this Plex playlist
     should actually indeed be synced
     """
-    xml = PL.get_PMS_playlist(PL.Playlist_Object(), playlist_id=plex_id)
-    if xml is None:
-        LOG.error('Could not get Plex playlist %s', plex_id)
+    xml_metadata = PL.get_pms_playlist_metadata(plex_id)
+    if xml_metadata is None:
+        LOG.error('Could not get Plex playlist metadata %s', plex_id)
         raise PL.PlaylistError('Could not get Plex playlist %s' % plex_id)
-    api = API(xml)
+    api = API(xml_metadata[0])
     if state.SYNC_SPECIFIC_PLEX_PLAYLISTS:
         prefix = utils.settings('syncSpecificPlexPlaylistsPrefix').lower()
         if api.title() and not api.title().lower().startswith(prefix):
-            LOG.debug('User chose to not sync playlist %s', api.title())
+            LOG.debug('User chose to not sync Plex playlist %s', api.title())
             return
     playlist = PL.Playlist_Object()
     playlist.id = api.plex_id()
@@ -106,8 +106,9 @@ def create_kodi_playlist(plex_id=None, updated_at=None):
     if not state.ENABLE_MUSIC and playlist.type == v.KODI_PLAYLIST_TYPE_AUDIO:
         return
     playlist.plex_name = api.title()
-    playlist.plex_updatedat = updated_at
+    playlist.plex_updatedat = api.updated_at()
     LOG.debug('Creating new Kodi playlist from Plex playlist: %s', playlist)
+    # Derive filename close to Plex playlist name
     name = utils.valid_filename(playlist.plex_name)
     path = path_ops.path.join(v.PLAYLIST_PATH, playlist.type, '%s.m3u' % name)
     while path_ops.exists(path) or playlist_object_from_db(path=path):
@@ -126,8 +127,11 @@ def create_kodi_playlist(plex_id=None, updated_at=None):
                                                        occurance))
     LOG.debug('Kodi playlist path: %s', path)
     playlist.kodi_path = path
-    # Derive filename close to Plex playlist name
-    _write_playlist_to_file(playlist, xml)
+    xml_playlist = PL.get_PMS_playlist(playlist, playlist_id=plex_id)
+    if xml_playlist is None:
+        LOG.error('Could not get Plex playlist %s', plex_id)
+        raise PL.PlaylistError('Could not get Plex playlist %s' % plex_id)
+    _write_playlist_to_file(playlist, xml_playlist)
     playlist.kodi_hash = utils.generate_file_md5(path)
     update_plex_table(playlist)
     LOG.debug('Created Kodi playlist based on Plex playlist: %s', playlist)
@@ -303,10 +307,11 @@ def _kodi_playlist_identical(xml_element):
     pass
 
 
-def process_websocket(plex_id, updated_at, status):
+def process_websocket(plex_id, status):
     """
     Hit by librarysync to process websocket messages concerning playlists
     """
+
     create = False
     with state.LOCK_PLAYLISTS:
         playlist = playlist_object_from_db(plex_id=plex_id)
@@ -314,20 +319,27 @@ def process_websocket(plex_id, updated_at, status):
             if playlist and status == 9:
                 LOG.debug('Plex deletion of playlist detected: %s', playlist)
                 delete_kodi_playlist(playlist)
-            elif playlist and playlist.plex_updatedat == updated_at:
-                LOG.debug('Playlist with id %s already synced: %s',
-                          plex_id, playlist)
             elif playlist:
-                LOG.debug('Change of Plex playlist detected: %s', playlist)
-                delete_kodi_playlist(playlist)
-                create = True
+                xml = PL.get_pms_playlist_metadata(plex_id)
+                if xml is None:
+                    LOG.error('Could not download playlist %s', plex_id)
+                    return
+                api = API(xml[0])
+                if api.updated_at() == playlist.plex_updatedat:
+                    LOG.debug('Playlist with id %s already synced: %s',
+                              plex_id, playlist)
+                else:
+                    LOG.debug('Change of Plex playlist detected: %s',
+                              playlist)
+                    delete_kodi_playlist(playlist)
+                    create = True
             elif not playlist and not status == 9:
                 LOG.debug('Creation of new Plex playlist detected: %s',
                           plex_id)
                 create = True
             # To the actual work
             if create:
-                create_kodi_playlist(plex_id=plex_id, updated_at=updated_at)
+                create_kodi_playlist(plex_id)
         except PL.PlaylistError:
             pass
 
@@ -367,7 +379,7 @@ def _full_sync():
             if not playlist:
                 LOG.debug('New Plex playlist %s discovered: %s',
                           api.plex_id(), api.title())
-                create_kodi_playlist(api.plex_id(), api.updated_at())
+                create_kodi_playlist(api.plex_id())
                 continue
             elif playlist.plex_updatedat != api.updated_at():
                 LOG.debug('Detected changed Plex playlist %s: %s',
@@ -376,7 +388,7 @@ def _full_sync():
                     delete_kodi_playlist(playlist)
                 else:
                     update_plex_table(playlist, delete=True)
-                create_kodi_playlist(api.plex_id(), api.updated_at())
+                create_kodi_playlist(api.plex_id())
         except PL.PlaylistError:
             LOG.info('Skipping playlist %s: %s', api.plex_id(), api.title())
         try:
@@ -481,9 +493,6 @@ class PlaylistEventhandler(events.FileSystemEventHandler):
         if not state.SYNC_PLAYLISTS:
             # Sync is deactivated
             return
-        if event.is_directory:
-            # todo: take care of folder renames
-            return
         try:
             _, extension = event.src_path.rsplit('.', 1)
         except ValueError:
@@ -505,15 +514,19 @@ class PlaylistEventhandler(events.FileSystemEventHandler):
             events.EVENT_TYPE_CREATED: self.on_created,
             events.EVENT_TYPE_DELETED: self.on_deleted,
         }
-        event_type = event.event_type
         with state.LOCK_PLAYLISTS:
-            _method_map[event_type](event)
+            _method_map[event.event_type](event)
 
     def on_created(self, event):
         LOG.debug('on_created: %s', event.src_path)
         old_playlist = playlist_object_from_db(path=event.src_path)
-        if old_playlist:
+        if (old_playlist and old_playlist.kodi_hash ==
+                utils.generate_file_md5(event.src_path)):
             LOG.debug('Playlist already in DB - skipping')
+            return
+        elif old_playlist:
+            LOG.debug('Playlist already in DB but it has been changed')
+            self.on_modified(event)
             return
         playlist = PL.Playlist_Object()
         playlist.kodi_path = event.src_path
@@ -523,20 +536,13 @@ class PlaylistEventhandler(events.FileSystemEventHandler):
         except PL.PlaylistError:
             pass
 
-    def on_deleted(self, event):
-        LOG.debug('on_deleted: %s', event.src_path)
-        playlist = playlist_object_from_db(path=event.src_path)
-        if not playlist:
-            LOG.error('Playlist not found in DB for path %s', event.src_path)
-        else:
-            delete_plex_playlist(playlist)
-
     def on_modified(self, event):
         LOG.debug('on_modified: %s', event.src_path)
         old_playlist = playlist_object_from_db(path=event.src_path)
         new_playlist = PL.Playlist_Object()
         if old_playlist:
-            # Retain the name! Might've vom from Plex
+            # Retain the name! Might've come from Plex
+            # (rename should fire on_moved)
             new_playlist.plex_name = old_playlist.plex_name
         new_playlist.kodi_path = event.src_path
         new_playlist.kodi_hash = utils.generate_file_md5(event.src_path)
@@ -570,19 +576,40 @@ class PlaylistEventhandler(events.FileSystemEventHandler):
         except PL.PlaylistError:
             pass
 
+    def on_deleted(self, event):
+        LOG.debug('on_deleted: %s', event.src_path)
+        playlist = playlist_object_from_db(path=event.src_path)
+        if not playlist:
+            LOG.error('Playlist not found in DB for path %s', event.src_path)
+        else:
+            delete_plex_playlist(playlist)
+
+
+class PlaylistQueue(OrderedSetQueue):
+    """
+    OrderedSetQueue that drops all directory events immediately
+    """
+    def _put(self, item):
+        if item[0].is_directory:
+            self.unfinished_tasks -= 1
+        else:
+            # Can't use super as OrderedSetQueue is old style class
+            OrderedSetQueue._put(self, item)
+
 
 class PlaylistObserver(Observer):
     """
     PKC implementation, overriding the dispatcher. PKC will wait for the
-    duration timeout (in seconds) before dispatching. A new event will reset
-    the timer.
+    duration timeout (in seconds) AFTER receiving a filesystem event. A new 
+    ("non-similar") event will reset the timer.
     Creating and modifying will be regarded as equal.
     """
     def __init__(self, *args, **kwargs):
         super(PlaylistObserver, self).__init__(*args, **kwargs)
         # Drop the same events that get into the queue even if there are other
-        # events in between these similar events
-        self._event_queue = OrderedSetQueue()
+        # events in between these similar events. Ignore directory events
+        # completely
+        self._event_queue = PlaylistQueue()
 
     @staticmethod
     def _pkc_similar_events(event1, event2):
@@ -591,7 +618,7 @@ class PlaylistObserver(Observer):
         elif (event1.src_path == event2.src_path and
               event1.event_type in SIMILAR_EVENTS and
               event2.event_type in SIMILAR_EVENTS):
-            # Ignore a consecutive firing of created and modified events
+            # Set created and modified events to equal
             return True
         return False
 
@@ -616,14 +643,13 @@ class PlaylistObserver(Observer):
                 if self._pkc_similar_events(new_event, event):
                     continue
                 else:
-                    # At least on Windows, a dir modified event will be
-                    # triggered once the writing process is done. Fine though
                     yield event, watch
                     event, watch = new_event, new_watch
         yield event, watch
 
     def dispatch_events(self, event_queue, timeout):
         for event, watch in self._dispatch_iterator(event_queue, timeout):
+            # This is copy-paste of original code
             with self._lock:
                 # To allow unschedule/stop and safe removal of event handlers
                 # within event handlers itself, check if the handler is still

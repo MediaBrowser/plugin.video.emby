@@ -1189,8 +1189,7 @@ class LibrarySync(Thread):
             if typus == 'playlist':
                 if not state.SYNC_PLAYLISTS:
                     continue
-                playlists.process_websocket(plex_id=str(item['itemID']),
-                                            updated_at=str(item['updatedAt']),
+                playlists.process_websocket(plex_id=unicode(item['itemID']),
                                             status=status)
             elif status == 9:
                 # Immediately and always process deletions (as the PMS will

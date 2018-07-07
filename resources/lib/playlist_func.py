@@ -736,6 +736,18 @@ def get_all_playlists():
     return xml
 
 
+def get_pms_playlist_metadata(plex_id):
+    """
+    Returns an xml with the entire metadata like updatedAt.
+    """
+    xml = DU().downloadUrl('{server}/playlists/%s' % plex_id)
+    try:
+        xml.attrib
+    except AttributeError:
+        xml = None
+    return xml
+
+
 def get_PMS_playlist(playlist, playlist_id=None):
     """
     Fetches the PMS playlist/playqueue as an XML. Pass in playlist_id if we
