@@ -595,14 +595,15 @@ class PlaylistQueue(OrderedSetQueue):
 class PlaylistObserver(Observer):
     """
     PKC implementation, overriding the dispatcher. PKC will wait for the
-    duration timeout (in seconds) before dispatching. A new event will reset
-    the timer.
+    duration timeout (in seconds) AFTER receiving a filesystem event. A new 
+    ("non-similar") event will reset the timer.
     Creating and modifying will be regarded as equal.
     """
     def __init__(self, *args, **kwargs):
         super(PlaylistObserver, self).__init__(*args, **kwargs)
         # Drop the same events that get into the queue even if there are other
-        # events in between these similar events
+        # events in between these similar events. Ignore directory events
+        # completely
         self._event_queue = PlaylistQueue()
 
     @staticmethod
@@ -612,7 +613,7 @@ class PlaylistObserver(Observer):
         elif (event1.src_path == event2.src_path and
               event1.event_type in SIMILAR_EVENTS and
               event2.event_type in SIMILAR_EVENTS):
-            # Ignore a consecutive firing of created and modified events
+            # Set created and modified events to equal
             return True
         return False
 
@@ -637,14 +638,13 @@ class PlaylistObserver(Observer):
                 if self._pkc_similar_events(new_event, event):
                     continue
                 else:
-                    # At least on Windows, a dir modified event will be
-                    # triggered once the writing process is done. Fine though
                     yield event, watch
                     event, watch = new_event, new_watch
         yield event, watch
 
     def dispatch_events(self, event_queue, timeout):
         for event, watch in self._dispatch_iterator(event_queue, timeout):
+            # This is copy-paste of original code
             with self._lock:
                 # To allow unschedule/stop and safe removal of event handlers
                 # within event handlers itself, check if the handler is still
