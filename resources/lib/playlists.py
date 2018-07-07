@@ -493,9 +493,6 @@ class PlaylistEventhandler(events.FileSystemEventHandler):
         if not state.SYNC_PLAYLISTS:
             # Sync is deactivated
             return
-        if event.is_directory:
-            # todo: take care of folder renames
-            return
         try:
             _, extension = event.src_path.rsplit('.', 1)
         except ValueError:
@@ -590,13 +587,9 @@ class PlaylistQueue(OrderedSetQueue):
     def _put(self, item):
         if item[0].is_directory:
             self.unfinished_tasks -= 1
-        elif item not in self._set_of_items:
-            Queue.Queue._put(self, item)
-            self._set_of_items.add(item)
         else:
-            # `put` increments `unfinished_tasks` even if we did not put
-            # anything into the queue here
-            self.unfinished_tasks -= 1
+            # Can't use super as OrderedSetQueue is old style class
+            OrderedSetQueue._put(self, item)
 
 
 class PlaylistObserver(Observer):
