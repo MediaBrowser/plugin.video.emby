@@ -425,6 +425,7 @@ class KodiMonitor(xbmc.Monitor):
                 state.PLAYER_STATES[playerid] = copy.deepcopy(state.PLAYSTATE)
                 return
             item = PL.init_plex_playqueue(playqueue, plex_id=plex_id)
+            item.file = path
             # Set the Plex container key (e.g. using the Plex playqueue)
             container_key = None
             if info['playlistid'] != -1:
