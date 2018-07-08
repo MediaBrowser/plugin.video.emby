@@ -114,6 +114,7 @@ class SubscriptionMgr(object):
         self.server = ""
         self.protocol = "http"
         self.port = ""
+        self.isplaying = False
         self.location = 'navigation'
         # In order to be able to signal a stop at the end
         self.last_params = {}
@@ -142,7 +143,7 @@ class SubscriptionMgr(object):
         if playqueue.kodi_playlist_playback:
             position = 0
         else:
-            position = info['position']
+            position = info['position'] or 0
         return position
 
     def msg(self, players):
@@ -150,6 +151,7 @@ class SubscriptionMgr(object):
         Returns a timeline xml as str
         (xml containing video, audio, photo player state)
         """
+        self.isplaying = False
         self.location = 'navigation'
         answ = str(XML)
         timelines = {
@@ -198,10 +200,11 @@ class SubscriptionMgr(object):
                     'type': ptype,
                     'state': 'stopped'
                 }
+            self.isplaying = True
+            self.stop_sent_to_web = False
             if ptype in (v.PLEX_PLAYLIST_TYPE_VIDEO,
                          v.PLEX_PLAYLIST_TYPE_PHOTO):
                 self.location = 'fullScreenVideo'
-            self.stop_sent_to_web = False
             pbmc_server = utils.window('pms_server')
             if pbmc_server:
                 (self.protocol, self.server, self.port) = pbmc_server.split(':')
