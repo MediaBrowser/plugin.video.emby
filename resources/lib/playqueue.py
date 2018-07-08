@@ -141,9 +141,14 @@ class PlayqueueMonitor(Thread):
                     del old[j], index[j]
                     break
                 elif identical:
-                    LOG.debug('Detected playqueue item %s moved to position %s',
+                    LOG.debug('Playqueue item %s moved to position %s',
                               i + j, i)
-                    PL.move_playlist_item(playqueue, i + j, i)
+                    try:
+                        PL.move_playlist_item(playqueue, i + j, i)
+                    except PL.PlaylistError:
+                        LOG.error('Could not modify playqueue positions')
+                        LOG.error('This is likely caused by mixing audio and '
+                                  'video tracks in the Kodi playqueue')
                     del old[j], index[j]
                     break
             else:
@@ -175,7 +180,12 @@ class PlayqueueMonitor(Thread):
                 # Kodi exit
                 return
             LOG.debug('Detected deletion of playqueue element at pos %s', i)
-            PL.delete_playlist_item_from_PMS(playqueue, i)
+            try:
+                PL.delete_playlist_item_from_PMS(playqueue, i)
+            except PL.PlaylistError:
+                LOG.error('Could not delete PMS element from position %s', i)
+                LOG.error('This is likely caused by mixing audio and '
+                          'video tracks in the Kodi playqueue')
         LOG.debug('Done comparing playqueues')
 
     def run(self):
