@@ -142,7 +142,7 @@ class SubscriptionMgr(object):
         if playqueue.kodi_playlist_playback:
             position = 0
         else:
-            position = info['position']
+            position = info['position'] or 0
         return position
 
     def msg(self, players):
