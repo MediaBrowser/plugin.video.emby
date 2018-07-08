@@ -345,7 +345,7 @@ def verify_kodi_item(plex_id, kodi_item):
     # Need more info since we don't have kodi_id nor type. Use file path.
     if (kodi_item['file'].startswith('plugin') or
             kodi_item['file'].startswith('http')):
-        LOG.error('kodi_item %s cannot be used for Plex playback', kodi_item)
+        LOG.info('kodi_item %s cannot be used for Plex playback', kodi_item)
         raise PlaylistError
     LOG.debug('Starting research for Kodi id since we didnt get one: %s',
               kodi_item)
