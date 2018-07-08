@@ -145,7 +145,7 @@ class MyHandler(BaseHTTPRequestHandler):
             tracker.pop(0)
             msg = sub_mgr.msg(js.get_players()).format(
                 command_id=params.get('commandID', 0))
-            if sub_mgr.location == 'fullScreenVideo':
+            if sub_mgr.isplaying:
                 self.response(
                     msg,
                     {
