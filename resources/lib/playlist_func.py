@@ -15,6 +15,7 @@ from . import utils
 from . import path_ops
 from . import json_rpc as js
 from . import variables as v
+from . import state
 
 ###############################################################################
 
@@ -341,6 +342,14 @@ def verify_kodi_item(plex_id, kodi_item):
     """
     if plex_id is not None or kodi_item.get('id') is not None:
         # Got all the info we need
+        return kodi_item
+    # Special case playlist startup - got type but no id
+    if (not state.DIRECT_PATHS and state.ENABLE_MUSIC and
+            kodi_item.get('type') == v.KODI_TYPE_SONG and
+            kodi_item['file'].startswith('http')):
+        kodi_item['id'], _ = kodidb.kodiid_from_filename(kodi_item['file'],
+                                                         v.KODI_TYPE_SONG)
+        LOG.debug('Detected song. Research results: %s', kodi_item)
         return kodi_item
     # Need more info since we don't have kodi_id nor type. Use file path.
     if (kodi_item['file'].startswith('plugin') or
