@@ -86,25 +86,15 @@ def create_kodi_playlist(plex_id):
     created in any case (not replaced). Thus make sure that the "same" playlist
     is deleted from both disk and the Plex database.
     Returns the playlist or raises PL.PlaylistError
-
-    Be aware that user settings will be checked whether this Plex playlist
-    should actually indeed be synced
     """
     xml_metadata = PL.get_pms_playlist_metadata(plex_id)
     if xml_metadata is None:
         LOG.error('Could not get Plex playlist metadata %s', plex_id)
         raise PL.PlaylistError('Could not get Plex playlist %s' % plex_id)
     api = API(xml_metadata[0])
-    if state.SYNC_SPECIFIC_PLEX_PLAYLISTS:
-        prefix = utils.settings('syncSpecificPlexPlaylistsPrefix').lower()
-        if api.title() and not api.title().lower().startswith(prefix):
-            LOG.debug('User chose to not sync Plex playlist %s', api.title())
-            return
     playlist = PL.Playlist_Object()
     playlist.id = api.plex_id()
     playlist.type = v.KODI_PLAYLIST_TYPE_FROM_PLEX[api.playlist_type()]
-    if not state.ENABLE_MUSIC and playlist.type == v.KODI_PLAYLIST_TYPE_AUDIO:
-        return
     playlist.plex_name = api.title()
     playlist.plex_updatedat = api.updated_at()
     LOG.debug('Creating new Kodi playlist from Plex playlist: %s', playlist)
@@ -144,10 +134,7 @@ def delete_kodi_playlist(playlist):
     the Plex playlist table.
     Returns None or raises PL.PlaylistError
     """
-    if not sync_kodi_playlist(playlist.kodi_path):
-        LOG.debug('Do not delete since we should not sync playlist %s',
-                  playlist)
-    else:
+    if path_ops.exists(playlist.kodi_path):
         try:
             path_ops.remove(playlist.kodi_path)
         except (OSError, IOError) as err:
@@ -336,7 +323,7 @@ def process_websocket(plex_id, status):
             elif not playlist and not status == 9:
                 LOG.debug('Creation of new Plex playlist detected: %s',
                           plex_id)
-                create = True
+                create = sync_plex_playlist(xml=xml[0])
             # To the actual work
             if create:
                 create_kodi_playlist(plex_id)
@@ -371,30 +358,28 @@ def _full_sync():
         old_plex_ids = plex_db.plex_ids_all_playlists()
     for xml_playlist in xml:
         api = API(xml_playlist)
-        if (not state.ENABLE_MUSIC and
-                api.playlist_type() == v.PLEX_TYPE_AUDIO_PLAYLIST):
-            continue
+        try:
+            old_plex_ids.remove(api.plex_id())
+        except ValueError:
+            pass
         playlist = playlist_object_from_db(plex_id=api.plex_id())
         try:
             if not playlist:
+                if not sync_plex_playlist(xml=xml_playlist):
+                    continue
                 LOG.debug('New Plex playlist %s discovered: %s',
                           api.plex_id(), api.title())
                 create_kodi_playlist(api.plex_id())
                 continue
             elif playlist.plex_updatedat != api.updated_at():
+                if not sync_plex_playlist(xml=xml_playlist):
+                    continue
                 LOG.debug('Detected changed Plex playlist %s: %s',
                           api.plex_id(), api.title())
-                if path_ops.exists(playlist.kodi_path):
-                    delete_kodi_playlist(playlist)
-                else:
-                    update_plex_table(playlist, delete=True)
+                delete_kodi_playlist(playlist)
                 create_kodi_playlist(api.plex_id())
         except PL.PlaylistError:
             LOG.info('Skipping playlist %s: %s', api.plex_id(), api.title())
-        try:
-            old_plex_ids.remove(api.plex_id())
-        except ValueError:
-            pass
     # Get rid of old Plex playlists that were deleted on the Plex side
     for plex_id in old_plex_ids:
         playlist = playlist_object_from_db(plex_id=plex_id)
@@ -413,22 +398,22 @@ def _full_sync():
         master_paths.append(v.PLAYLIST_PATH_MUSIC)
     for master_path in master_paths:
         for root, _, files in path_ops.walk(master_path):
-            for file in files:
+            for f in files:
                 try:
-                    extension = file.rsplit('.', 1)[1]
+                    extension = f.rsplit('.', 1)[1].lower()
                 except IndexError:
                     continue
                 if extension not in SUPPORTED_FILETYPES:
                     continue
-                path = path_ops.path.join(root, file)
-                if not sync_kodi_playlist(path):
-                    continue
+                path = path_ops.path.join(root, f)
                 kodi_hash = utils.generate_file_md5(path)
                 playlist = playlist_object_from_db(kodi_hash=kodi_hash)
                 playlist_2 = playlist_object_from_db(path=path)
                 if playlist:
                     # Nothing changed at all - neither path nor content
                     old_kodi_hashes.remove(kodi_hash)
+                    continue
+                if not sync_kodi_playlist(path):
                     continue
                 try:
                     playlist = PL.Playlist_Object()
@@ -474,6 +459,35 @@ def sync_kodi_playlist(path):
         prefix = utils.settings('syncSpecificKodiPlaylistsPrefix').lower()
         if playlist.kodi_filename.lower().startswith(prefix):
             return True
+    LOG.debug('User chose to not sync Kodi playlist %s', path)
+    return False
+
+
+def sync_plex_playlist(plex_id=None, xml=None):
+    """
+    Returns True if we should sync this specific Plex playlist due to the
+    user settings (including a disabled music library), False if not.
+
+    Pass in either the plex_id or an xml (where API(xml) will be used)
+    """
+    if not state.SYNC_SPECIFIC_PLEX_PLAYLISTS:
+        return True
+    if xml is None:
+        xml = PL.get_pms_playlist_metadata(plex_id)
+        if xml is None:
+            LOG.error('Could not get Plex metadata for playlist %s', plex_id)
+            return False
+        api = API(xml[0])
+    else:
+        api = API(xml)
+    if (not state.ENABLE_MUSIC and
+            api.playlist_type() == v.PLEX_PLAYLIST_TYPE_AUDIO):
+        LOG.debug('Not synching Plex audio playlist')
+        return False
+    prefix = utils.settings('syncSpecificPlexPlaylistsPrefix').lower()
+    if api.title() and api.title().lower().startswith(prefix):
+        return True
+    LOG.debug('User chose to not sync Plex playlist')
     return False
 
 
