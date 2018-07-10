@@ -69,7 +69,7 @@ class ThreadedProcessMetadata(Thread):
                     continue
                 # Do the work
                 item_method = getattr(item_class, item['method'])
-                if item.get('children'):
+                if item.get('children') is not None:
                     item_method(item['xml'][0],
                                 viewtag=item['view_name'],
                                 viewid=item['view_id'],
