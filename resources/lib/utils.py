@@ -1011,19 +1011,18 @@ def delete_nodes():
 def generate_file_md5(path):
     """
     Generates the md5 hash value for the file located at path [unicode].
-    The hash includes the path and is thus different for the same file for
-    different filenames.
-    Returns a unique string containing only hexadecimal digits
+    The hash does not include the path and filename and is thus identical for
+    a file that was moved/changed name.
+    Returns a unique unicode containing only hexadecimal digits
     """
     m = hashlib.md5()
-    m.update(path.encode('utf-8'))
     with open(path_ops.encode_path(path), 'rb') as f:
         while True:
             piece = f.read(32768)
             if not piece:
                 break
             m.update(piece)
-    return m.hexdigest()
+    return m.hexdigest().decode('utf-8')
 
 
 ###############################################################################

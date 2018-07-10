@@ -414,12 +414,12 @@ class Plex_DB_Functions():
             answ.append(entry[0])
         return answ
 
-    def kodi_hashes_all_playlists(self):
+    def all_kodi_playlist_paths(self):
         """
-        Returns a list of all Kodi hashes of playlists.
+        Returns a list of all Kodi playlist paths.
         """
         answ = []
-        self.plexcursor.execute('SELECT kodi_hash FROM playlists')
+        self.plexcursor.execute('SELECT kodi_path FROM playlists')
         for entry in self.plexcursor.fetchall():
             answ.append(entry[0])
         return answ
