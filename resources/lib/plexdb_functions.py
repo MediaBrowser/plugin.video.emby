@@ -427,8 +427,9 @@ class Plex_DB_Functions():
     def retrieve_playlist(self, playlist, plex_id=None, path=None,
                           kodi_hash=None):
         """
-        Returns a complete Playlist_Object (empty one passed in via playlist)
-        for the entry with plex_id. Or None if not found
+        Returns a complete Playlist (empty one passed in via playlist)
+        for the entry with plex_id OR kodi_hash OR kodi_path.
+        Returns None if not found
         """
         query = '''
             SELECT plex_id, plex_name, plex_updatedat, kodi_path, kodi_type,
@@ -450,11 +451,11 @@ class Plex_DB_Functions():
         answ = self.plexcursor.fetchone()
         if not answ:
             return
-        playlist.id = answ[0]
+        playlist.plex_id = answ[0]
         playlist.plex_name = answ[1]
         playlist.plex_updatedat = answ[2]
         playlist.kodi_path = answ[3]
-        playlist.type = answ[4]
+        playlist.kodi_type = answ[4]
         playlist.kodi_hash = answ[5]
         return playlist
 
@@ -469,9 +470,9 @@ class Plex_DB_Functions():
             VALUES (?, ?, ?, ?, ?, ?)
             '''
         self.plexcursor.execute(query,
-                                (playlist.id, playlist.plex_name,
+                                (playlist.plex_id, playlist.plex_name,
                                  playlist.plex_updatedat, playlist.kodi_path,
-                                 playlist.type, playlist.kodi_hash))
+                                 playlist.kodi_type, playlist.kodi_hash))
 
     def delete_playlist_entry(self, playlist):
         """
@@ -479,12 +480,12 @@ class Plex_DB_Functions():
         playlists table.
         Be sure to either set playlist.id or playlist.kodi_path
         """
-        if playlist.id:
+        if playlist.plex_id:
             query = 'DELETE FROM playlists WHERE plex_id = ?'
-            var = playlist.id
+            var = playlist.plex_id
         elif playlist.kodi_path:
             query = 'DELETE FROM playlists WHERE kodi_path = ?'
             var = playlist.kodi_path
         else:
-            raise RuntimeError('Cannot delete playlist: %s', playlist)
+            raise RuntimeError('Cannot delete playlist: %s' % playlist)
         self.plexcursor.execute(query, (var, ))
