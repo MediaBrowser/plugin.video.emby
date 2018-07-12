@@ -73,7 +73,7 @@ def init_playqueue_from_plex_children(plex_id, transient_token=None):
     """
     Init a new playqueue e.g. from an album. Alexa does this
 
-    Returns the Playlist_Object
+    Returns the playqueue
     """
     xml = PF.GetAllPlexChildren(plex_id)
     try:

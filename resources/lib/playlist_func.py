@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
 Collection of functions associated with Kodi and Plex playlists and playqueues
@@ -58,47 +59,6 @@ class PlaylistObjectBaseclase(object):
                 # e.g. int
                 answ += '\'%s\': %s, ' % (key, unicode(getattr(self, key)))
         return answ + '}}'
-
-
-class Playlist_Object(PlaylistObjectBaseclase):
-    """
-    To be done for synching Plex playlists to Kodi
-    """
-    kind = 'playList'
-
-    def __init__(self):
-        self.plex_name = None
-        self.plex_updatedat = None
-        self._kodi_path = None
-        self.kodi_filename = None
-        self.kodi_extension = None
-        self.kodi_hash = None
-        PlaylistObjectBaseclase.__init__(self)
-
-    @property
-    def kodi_path(self):
-        return self._kodi_path
-
-    @kodi_path.setter
-    def kodi_path(self, path):
-        if not isinstance(path, unicode):
-            raise RuntimeError('Path is %s, not unicode!' % type(path))
-        file = path_ops.path.basename(path)
-        try:
-            self.kodi_filename, self.kodi_extension = file.split('.', 1)
-        except ValueError:
-            LOG.error('Trying to set invalid path: %s', path)
-            raise PlaylistError('Invalid path: %s' % path)
-        if path.startswith(v.PLAYLIST_PATH_VIDEO):
-            self.type = v.KODI_TYPE_VIDEO_PLAYLIST
-        elif path.startswith(v.PLAYLIST_PATH_MUSIC):
-            self.type = v.KODI_TYPE_AUDIO_PLAYLIST
-        else:
-            LOG.error('Playlist type not supported for %s', path)
-            raise PlaylistError('Playlist type not supported: %s' % path)
-        if not self.plex_name:
-            self.plex_name = self.kodi_filename
-        self._kodi_path = path
 
 
 class Playqueue_Object(PlaylistObjectBaseclase):
@@ -478,34 +438,6 @@ def update_playlist_from_PMS(playlist, playlist_id=None, xml=None):
             playlist.items.append(playlist_item)
 
 
-def init_plex_playlist(playlist, plex_id):
-    """
-    Initializes a new playlist on the PMS side. Will set playlist.id and
-    playlist.plex_updatedat. Will raise PlaylistError if something went wrong.
-    """
-    LOG.debug('Initializing the playlist with Plex id %s on the Plex side: %s',
-              plex_id, playlist)
-    params = {
-        'type': v.PLEX_PLAYLIST_TYPE_FROM_KODI[playlist.type],
-        'title': playlist.plex_name,
-        'smart': 0,
-        'uri': ('library://None/item/%s' % (urllib.quote('/library/metadata/%s'
-                                                         % plex_id, safe='')))
-    }
-    xml = DU().downloadUrl(url='{server}/playlists',
-                           action_type='POST',
-                           parameters=params)
-    try:
-        xml[0].attrib
-    except (TypeError, IndexError, AttributeError):
-        LOG.error('Could not initialize playlist on Plex side with plex id %s',
-                  plex_id)
-        raise PlaylistError('Could not initialize Plex playlist %s', plex_id)
-    api = API(xml[0])
-    playlist.id = api.plex_id()
-    playlist.plex_updatedat = api.updated_at()
-
-
 def init_plex_playqueue(playlist, plex_id=None, kodi_item=None):
     """
     Initializes the Plex side without changing the Kodi playlists
@@ -599,30 +531,6 @@ def add_item_to_playlist(playlist, pos, kodi_id=None, kodi_type=None,
         raise PlaylistError('Could not add item to playlist. Kodi reply. %s'
                             % reply)
     return item
-
-
-def add_item_to_plex_playlist(playlist, plex_id):
-    """
-    Adds the item with plex_id to the existing Plex playlist (at the end).
-    Will set playlist.plex_updatedat
-    Raises PlaylistError if that did not work out.
-    """
-    params = {
-        'uri': ('library://None/item/%s' % (urllib.quote('/library/metadata/%s'
-                                                         % plex_id, safe='')))
-    }
-    xml = DU().downloadUrl(url='{server}/playlists/%s/items' % playlist.id,
-                           action_type='PUT',
-                           parameters=params)
-    try:
-        xml[0].attrib
-    except (TypeError, IndexError, AttributeError):
-        LOG.error('Could not initialize playlist on Plex side with plex id %s',
-                  plex_id)
-        raise PlaylistError('Could not item %s to Plex playlist %s',
-                            plex_id, playlist)
-    api = API(xml[0])
-    playlist.plex_updatedat = api.updated_at()
 
 
 def add_item_to_plex_playqueue(playlist, pos, plex_id=None, kodi_item=None):
@@ -729,32 +637,6 @@ def move_playlist_item(playlist, before_pos, after_pos):
     # Move our item's position in our internal playlist
     playlist.items.insert(after_pos, playlist.items.pop(before_pos))
     LOG.debug('Done moving for %s', playlist)
-
-
-def get_all_playlists():
-    """
-    Returns an XML with all Plex playlists or None
-    """
-    xml = DU().downloadUrl("{server}/playlists",
-                           headerOptions={'Accept': 'application/xml'})
-    try:
-        xml.attrib
-    except (AttributeError, TypeError):
-        LOG.error('Could not download a list of all playlists')
-        xml = None
-    return xml
-
-
-def get_pms_playlist_metadata(plex_id):
-    """
-    Returns an xml with the entire metadata like updatedAt.
-    """
-    xml = DU().downloadUrl('{server}/playlists/%s' % plex_id)
-    try:
-        xml.attrib
-    except AttributeError:
-        xml = None
-    return xml
 
 
 def get_PMS_playlist(playlist, playlist_id=None):
@@ -898,11 +780,3 @@ def get_plextype_from_xml(xml):
         LOG.error('Could not get plex metadata for plex id %s', plex_id)
         return
     return new_xml[0].attrib.get('type')
-
-
-def delete_playlist_from_pms(playlist):
-    """
-    Deletes the playlist from the PMS
-    """
-    DU().downloadUrl("{server}/%ss/%s" % (playlist.kind.lower(), playlist.id),
-                     action_type="DELETE")
