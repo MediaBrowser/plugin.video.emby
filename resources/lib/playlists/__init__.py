@@ -172,18 +172,18 @@ def _full_sync():
                 continue
             try:
                 if not playlist:
-                    LOG.debug('New Kodi playlist detected: %s', playlist)
+                    LOG.debug('New Kodi playlist detected: %s', path)
                     playlist = Playlist()
                     playlist.kodi_path = path
                     playlist.kodi_hash = kodi_hash
                     plex_pl.create(playlist)
                 else:
-                    LOG.debug('Changed Kodi playlist detected: %s', playlist)
+                    LOG.debug('Changed Kodi playlist detected: %s', path)
                     plex_pl.delete(playlist)
                     playlist.kodi_hash = kodi_hash
                     plex_pl.create(playlist)
             except PlaylistError:
-                LOG.info('Skipping Kodi playlist %s', playlist)
+                LOG.info('Skipping Kodi playlist %s', path)
     for kodi_path in old_kodi_paths:
         playlist = db.get_playlist(path=kodi_path)
         try:
