@@ -250,7 +250,7 @@ def sync_plex_playlist(plex_id=None, xml=None, playlist=None):
     prefix = utils.settings('syncSpecificPlexPlaylistsPrefix').lower()
     if name and name.lower().startswith(prefix):
         return True
-    LOG.debug('User chose to not sync Plex playlist')
+    LOG.debug('User chose to not sync Plex playlist %s', name)
     return False
 
 
