@@ -188,7 +188,7 @@ def _full_sync():
             except PlaylistError:
                 LOG.info('Skipping Kodi playlist %s', path)
     for kodi_path in old_kodi_paths:
-        playlist = db.get_playlist(kodi_path=kodi_path)
+        playlist = db.get_playlist(path=kodi_path)
         try:
             plex_pl.delete(playlist)
         except PlaylistError:
