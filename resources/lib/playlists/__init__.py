@@ -150,14 +150,11 @@ def _full_sync():
     # Get rid of old Plex playlists that were deleted on the Plex side
     for plex_id in old_plex_ids:
         playlist = db.get_playlist(plex_id=plex_id)
-        if playlist:
-            LOG.debug('Removing outdated Plex playlist %s from %s',
-                      playlist.plex_name, playlist.kodi_path)
-            try:
-                kodi_pl.delete(playlist)
-            except PlaylistError:
-                LOG.debug('Skipping deletion of playlist %s: %s',
-                          api.plex_id(), api.title())
+        LOG.debug('Removing outdated Plex playlist: %s', playlist)
+        try:
+            kodi_pl.delete(playlist)
+        except PlaylistError:
+            LOG.debug('Skipping deletion of playlist: %s', playlist)
     # Look at all supported Kodi playlists. Check whether they are in the DB.
     old_kodi_paths = db.kodi_playlist_paths()
     for root, _, files in path_ops.walk(v.PLAYLIST_PATH):
@@ -175,7 +172,7 @@ def _full_sync():
                 continue
             try:
                 if not playlist:
-                    LOG.debug('New Kodi playlist detected: %s', path)
+                    LOG.debug('New Kodi playlist detected: %s', playlist)
                     playlist = Playlist()
                     playlist.kodi_path = path
                     playlist.kodi_hash = kodi_hash
@@ -186,14 +183,13 @@ def _full_sync():
                     playlist.kodi_hash = kodi_hash
                     plex_pl.create(playlist)
             except PlaylistError:
-                LOG.info('Skipping Kodi playlist %s', path)
+                LOG.info('Skipping Kodi playlist %s', playlist)
     for kodi_path in old_kodi_paths:
         playlist = db.get_playlist(path=kodi_path)
         try:
             plex_pl.delete(playlist)
         except PlaylistError:
-            LOG.debug('Skipping deletion of playlist %s: %s',
-                      playlist.plex_id, playlist.plex_name)
+            LOG.debug('Skipping deletion of playlist: %s', playlist)
     LOG.info('Playlist full sync done')
     return True
 
