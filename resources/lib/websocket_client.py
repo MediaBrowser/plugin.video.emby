@@ -1,18 +1,13 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-###############################################################################
 from logging import getLogger
-import websocket
 from json import loads
 import xml.etree.ElementTree as etree
 from threading import Thread
 from ssl import CERT_NONE
 from xbmc import sleep
 
-from . import utils
-from . import companion
-from . import state
-from . import variables as v
+from . import websocket, utils, companion, state, variables as v
 
 ###############################################################################
 

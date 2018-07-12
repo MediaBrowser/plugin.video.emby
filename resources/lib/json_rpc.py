@@ -1,7 +1,10 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 """
 Collection of functions using the Kodi JSON RPC interface.
 See http://kodi.wiki/view/JSON-RPC_API
 """
+from __future__ import absolute_import, division, unicode_literals
 from json import loads, dumps
 from xbmc import executeJSONRPC
 

@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
 Taken from iBaa, https://github.com/iBaa/PlexConnect
@@ -29,6 +30,7 @@ http://stackoverflow.com/questions/2407126/python-urllib2-basic-auth-problem
 http://stackoverflow.com/questions/111945/is-there-any-way-to-do-http-put-in-python
 (and others...)
 """
+from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
 from re import sub
 from urllib import urlencode, unquote, quote

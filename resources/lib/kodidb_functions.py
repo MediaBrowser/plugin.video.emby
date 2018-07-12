@@ -1,8 +1,9 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-#
-# Connect to the Kodi databases (video and music) and operate on them
-#
-###############################################################################
+"""
+Connect to the Kodi databases (video and music) and operate on them
+"""
+from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
 from ntpath import dirname
 from sqlite3 import IntegrityError

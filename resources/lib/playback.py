@@ -1,6 +1,9 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 """
 Used to kick off Kodi playback
 """
+from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
 from threading import Thread
 from xbmc import Player, sleep

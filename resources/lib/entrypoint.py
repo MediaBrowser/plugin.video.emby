@@ -1,9 +1,10 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-#
-# Loads of different functions called in SEPARATE Python instances through
-# e.g. plugin://... calls. Hence be careful to only rely on window variables.
-#
-###############################################################################
+"""
+Loads of different functions called in SEPARATE Python instances through
+e.g. plugin://... calls. Hence be careful to only rely on window variables.
+"""
+from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
 from sys import argv
 from urllib import urlencode

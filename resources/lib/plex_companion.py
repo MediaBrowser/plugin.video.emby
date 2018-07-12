@@ -1,6 +1,9 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 """
 The Plex Companion master python file
 """
+from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
 from threading import Thread
 from Queue import Empty
