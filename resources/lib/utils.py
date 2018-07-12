@@ -1,8 +1,9 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
 Various functions and decorators for PKC
 """
-###############################################################################
+from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
 from cProfile import Profile
 from pstats import Stats

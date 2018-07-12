@@ -1,12 +1,16 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# File and Path operations
-#
-# Kodi xbmc*.*() functions usually take utf-8 encoded commands, thus try_encode
-# works.
-# Unfortunatly, working with filenames and paths seems to require an encoding in
-# the OS' getfilesystemencoding - it will NOT always work with unicode paths.
-# However, sys.getfilesystemencoding might return None.
-# Feed unicode to all the functions below and you're fine.
+"""
+File and Path operations
+
+Kodi xbmc*.*() functions usually take utf-8 encoded commands, thus try_encode
+works.
+Unfortunatly, working with filenames and paths seems to require an encoding in
+the OS' getfilesystemencoding - it will NOT always work with unicode paths.
+However, sys.getfilesystemencoding might return None.
+Feed unicode to all the functions below and you're fine.
+"""
+from __future__ import absolute_import, division, unicode_literals
 import shutil
 import os
 from os import path  # allows to use path_ops.path.join, for example

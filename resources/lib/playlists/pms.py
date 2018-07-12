@@ -4,6 +4,7 @@
 Functions to communicate with the currently connected PMS in order to
 manipulate playlists
 """
+from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
 import urllib
 

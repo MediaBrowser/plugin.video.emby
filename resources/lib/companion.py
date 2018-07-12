@@ -1,6 +1,9 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 """
 Processes Plex companion inputs from the plexbmchelper to Kodi commands
 """
+from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
 from xbmc import Player
 

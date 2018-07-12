@@ -14,6 +14,7 @@ Triggers a full re-sync of playlists
 
 PlaylistError is thrown if anything wierd happens
 """
+from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
 
 from .common import Playlist, PlaylistError, PlaylistObserver

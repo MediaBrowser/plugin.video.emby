@@ -1,7 +1,10 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 """
 Manages getting playstate from Kodi and sending it to the PMS as well as
 subscribed Plex Companion clients.
 """
+from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
 from threading import Thread
 

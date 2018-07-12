@@ -1,5 +1,6 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-###############################################################################
+from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
 from ntpath import dirname
 from datetime import datetime
@@ -119,7 +120,7 @@ class Items(object):
                 setid = self.kodi_db.create_collection(setname)
                 external_set_artwork = api.set_artwork()
                 if (external_set_artwork and
-                        utils.settings('PreferKodiCollectionArt') == 'false'):
+                        utils.settings('PreferKodiCollectionArt') == 'true'):
                     # Need to make sure we are not overwriting existing Plex
                     # collection artwork
                     plex_artwork = api.artwork(kodi_id=setid,
