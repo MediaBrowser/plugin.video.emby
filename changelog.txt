@@ -1,3 +1,6 @@
+version 2.2.14 (beta only):
+- Hopefully fix playlist sync loops
+
 version 2.2.13 (beta only):
 - Fix library sync crash
 - Fix switching to __future__ module
