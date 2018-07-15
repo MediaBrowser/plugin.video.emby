@@ -65,8 +65,6 @@ class Playlist(object):
         self.kodi_hash = None
 
     def __repr__(self):
-        for attr in self.__dict__:
-            LOG.debug('attr %s: %s', attr, type(attr))
         return ("{{"
                 "'plex_id': {self.plex_id}, "
                 "'plex_name': '{self.plex_name}', "

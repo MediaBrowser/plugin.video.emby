@@ -77,6 +77,7 @@ def delete(playlist):
     if path_ops.exists(playlist.kodi_path):
         try:
             path_ops.remove(playlist.kodi_path)
+            LOG.debug('Deleted Kodi playlist: %s', playlist)
         except (OSError, IOError) as err:
             LOG.error('Could not delete Kodi playlist file %s. Error:\n%s: %s',
                       playlist, err.errno, err.strerror)
