@@ -624,8 +624,7 @@ class InitialSetup(object):
                             line1=utils.lang(39029),
                             line2=utils.lang(39030)):
                 LOG.debug("Presenting network credentials dialog.")
-                from utils import passwords_xml
-                passwords_xml()
+                utils.passwords_xml()
         # Disable Plex music?
         if utils.dialog('yesno',
                         heading=utils.lang(29999),
