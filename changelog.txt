@@ -1,3 +1,6 @@
+version 2.2.15 (beta only):
+- Fix ImportError on first PKC run
+
 version 2.2.14 (beta only):
 - Hopefully fix playlist sync loops
 
