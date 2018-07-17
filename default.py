@@ -136,6 +136,9 @@ class Main():
             plexId = itemid or None
             entrypoint.get_video_files(plexId, params)
 
+        elif mode == 'playlists':
+            entrypoint.playlists(params.get('type'))
+
         else:
             entrypoint.show_main_menu(content_type=params.get('content_type'))
 

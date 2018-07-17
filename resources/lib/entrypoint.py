@@ -524,6 +524,24 @@ def extra_fanart(plex_id, plex_path):
     xbmcplugin.endOfDirectory(int(argv[1]))
 
 
+def _wait_for_auth():
+    """
+    Call to be sure that PKC is authenticated, e.g. for widgets on Kodi
+    startup. Will wait for at most 30s, then fail if not authenticated.
+
+    Will set xbmcplugin.endOfDirectory(int(argv[1]), False) if failed
+    """
+    counter = 0
+    while utils.window('plex_authenticated') != 'true':
+        counter += 1
+        if counter == 300:
+            LOG.error('Aborting view, we were not authenticated for PMS')
+            xbmcplugin.endOfDirectory(int(argv[1]), False)
+            return False
+        sleep(100)
+    return True
+
+
 def on_deck_episodes(viewid, tagname, limit):
     """
     Retrieves Plex On Deck items, currently only for TV shows
@@ -539,15 +557,8 @@ def on_deck_episodes(viewid, tagname, limit):
     if utils.settings('OnDeckTVextended') == 'false':
         # Chances are that this view is used on Kodi startup
         # Wait till we've connected to a PMS. At most 30s
-        counter = 0
-        while utils.window('plex_authenticated') != 'true':
-            counter += 1
-            if counter == 300:
-                LOG.error('Aborting On Deck view, we were not authenticated '
-                          'for the PMS')
-                xbmcplugin.endOfDirectory(int(argv[1]), False)
-                return
-            sleep(100)
+        if not _wait_for_auth():
+            return
         xml = DU().downloadUrl('{server}/library/sections/%s/onDeck' % viewid)
         if xml in (None, 401):
             LOG.error('Could not download PMS xml for view %s', viewid)
@@ -657,6 +668,41 @@ def on_deck_episodes(viewid, tagname, limit):
         if count >= limit:
             break
     xbmcplugin.endOfDirectory(handle=int(argv[1]))
+
+
+def playlists(kodi_playlist_type):
+    """
+    Lists all Plex playlists of the media type kodi_playlist_type
+    """
+    LOG.debug('Listing Plex %s playlists', kodi_playlist_type)
+    if not _wait_for_auth():
+        return
+    xbmcplugin.setContent(int(argv[1]), 'files')
+    from .playlists.pms import all_playlists
+    xml = all_playlists()
+    if xml is None:
+        return
+    for item in xml:
+        api = API(item)
+        if not v.KODI_PLAYLIST_TYPE_FROM_PLEX[api.playlist_type()] \
+                == kodi_playlist_type:
+            continue
+        listitem = ListItem(api.title())
+        listitem.setArt({'thumb': api._one_artwork('composite')})
+        url = "plugin://%s/" % v.ADDON_ID
+        key = api.path_and_plex_id()
+        params = {
+            'mode': "browseplex",
+            'key': key,
+        }
+        LOG.debug('adding item: %s', params)
+        xbmcplugin.addDirectoryItem(handle=int(argv[1]),
+                                    url="%s?%s" % (url, urlencode(params)),
+                                    isFolder=True,
+                                    listitem=listitem)
+    xbmcplugin.endOfDirectory(
+        handle=int(argv[1]),
+        cacheToDisc=utils.settings('enableTextureCache') == 'true')
 
 
 def watchlater():

@@ -135,7 +135,8 @@ class VideoNodes(object):
             '10': "random",
             '11': "recommended",
             '12': "ondeck",
-            '13': 'browsefiles'
+            '13': 'browsefiles',
+            '14': 'playlists'
         }
         mediatypes = {
             # label according to nodetype per mediatype
@@ -150,7 +151,8 @@ class VideoNodes(object):
                     '10': 30227,
                     '11': 30230,
                     '12': 39500,
-                    '13': 39702
+                    '13': 39702,
+                    '14': 136
                 },
 
             'tvshows':
@@ -165,7 +167,8 @@ class VideoNodes(object):
                     '10': 30227,
                     # '11': 30230,
                     '12': 39500,
-                    '13': 39702
+                    '13': 39702,
+                    '14': 136
                 },
 
             'homevideos':
@@ -173,7 +176,8 @@ class VideoNodes(object):
                     '1': tagname,
                     '2': 30251,
                     '11': 30253,
-                    '13': 39702
+                    '13': 39702,
+                    '14': 136
                 },
 
             'photos':
@@ -209,7 +213,8 @@ class VideoNodes(object):
             '10': '8',  # "random",
             '11': '5',  # "recommended",
             '12': '1',  # "ondeck"
-            '13': '9'  # browse by folder
+            '13': '9',  # browse by folder
+            '14': '10' # Playlists
         }
 
         nodes = mediatypes[mediatype]
@@ -257,6 +262,12 @@ class VideoNodes(object):
                     nodetype = 'inprogress'
             elif nodetype == 'browsefiles':
                 path = 'plugin://plugin.video.plexkodiconnect?mode=browseplex&key=/library/sections/%s/folder' % viewid
+            elif nodetype == 'playlists':
+                path =  'plugin://plugin.video.plexkodiconnect?mode=playlists'
+                if mediatype in ('movies', 'tvshows', 'homevideos'):
+                    path += '&type=%s' % v.KODI_PLAYLIST_TYPE_VIDEO
+                else:
+                    path += '&type=%s' % v.KODI_PLAYLIST_TYPE_AUDIO
             else:
                 path = "library://video/Plex-%s/%s_%s.xml" % (dirname, viewid, nodetype)
 
@@ -298,7 +309,11 @@ class VideoNodes(object):
                 continue
 
             # Create the root
-            if (nodetype in ("nextepisodes", "ondeck", 'recentepisodes', 'browsefiles') or mediatype == "homevideos"):
+            if (nodetype in ("nextepisodes",
+                             "ondeck",
+                             'recentepisodes',
+                             'browsefiles',
+                             'playlists') or mediatype == "homevideos"):
                 # Folder type with plugin path
                 root = self.commonRoot(order=sortorder[node],
                                        label=label,

@@ -820,16 +820,21 @@ class API(object):
         artwork = self.item.get(art_kind)
         if artwork and not artwork.startswith('http'):
             if '/composite/' in artwork:
-                # e.g. Plex collections where artwork already contains width
-                # and height. Need to upscale for better resolution
-                artwork, args = artwork.split('?')
-                args = dict(parse_qsl(args))
-                width = int(args.get('width', 400))
-                height = int(args.get('height', 400))
-                # Adjust to 4k resolution 3,840x2,160
-                scaling = 3840.0 / float(max(width, height))
-                width = int(scaling * width)
-                height = int(scaling * height)
+                try:
+                    # e.g. Plex collections where artwork already contains
+                    # width and height. Need to upscale for better resolution
+                    artwork, args = artwork.split('?')
+                    args = dict(parse_qsl(args))
+                    width = int(args.get('width', 400))
+                    height = int(args.get('height', 400))
+                    # Adjust to 4k resolution 3,840x2,160
+                    scaling = 3840.0 / float(max(width, height))
+                    width = int(scaling * width)
+                    height = int(scaling * height)
+                except ValueError:
+                    # e.g. playlists
+                    width = 3840
+                    height = 3840
                 artwork = '%s?width=%s&height=%s' % (artwork, width, height)
             artwork = ('%s/photo/:/transcode?width=3840&height=3840&'
                        'minSize=1&upscale=0&url=%s'
