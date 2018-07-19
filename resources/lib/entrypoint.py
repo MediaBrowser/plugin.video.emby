@@ -695,7 +695,6 @@ def playlists(kodi_playlist_type):
             'mode': "browseplex",
             'key': key,
         }
-        LOG.debug('adding item: %s', params)
         xbmcplugin.addDirectoryItem(handle=int(argv[1]),
                                     url="%s?%s" % (url, urlencode(params)),
                                     isFolder=True,
