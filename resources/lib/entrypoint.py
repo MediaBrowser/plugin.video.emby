@@ -687,7 +687,7 @@ def playlists(plex_playlist_type):
         if not api.playlist_type() == plex_playlist_type:
             continue
         listitem = ListItem(api.title())
-        listitem.setArt({'thumb': api._one_artwork('composite')})
+        listitem.setArt({'thumb': api.one_artwork('composite')})
         url = "plugin://%s/" % v.ADDON_ID
         key = api.path_and_plex_id()
         params = {

@@ -816,7 +816,7 @@ class API(object):
             'subtitle': subtitlelanguages
         }
 
-    def _one_artwork(self, art_kind):
+    def one_artwork(self, art_kind):
         artwork = self.item.get(art_kind)
         if artwork and not artwork.startswith('http'):
             if '/composite/' in artwork:
@@ -869,13 +869,13 @@ class API(object):
             # the other artwork will be saved under season and show
             # EXCEPT if you're constructing a listitem
             if not full_artwork:
-                art = self._one_artwork('thumb')
+                art = self.one_artwork('thumb')
                 if art:
                     artworks['thumb'] = art
                 return artworks
             for kodi_artwork, plex_artwork in \
                     v.KODI_TO_PLEX_ARTWORK_EPISODE.iteritems():
-                art = self._one_artwork(plex_artwork)
+                art = self.one_artwork(plex_artwork)
                 if art:
                     artworks[kodi_artwork] = art
             if not full_artwork:
@@ -917,24 +917,24 @@ class API(object):
         # if self.plex_type() == v.PLEX_TYPE_EPISODE:
 
         for kodi_artwork, plex_artwork in v.KODI_TO_PLEX_ARTWORK.iteritems():
-            art = self._one_artwork(plex_artwork)
+            art = self.one_artwork(plex_artwork)
             if art:
                 artworks[kodi_artwork] = art
         if self.plex_type() in (v.PLEX_TYPE_SONG, v.PLEX_TYPE_ALBUM):
             # Get parent item artwork if the main item is missing artwork
             if 'fanart' not in artworks:
-                art = self._one_artwork('parentArt')
+                art = self.one_artwork('parentArt')
                 if art:
                     artworks['fanart1'] = art
             if 'poster' not in artworks:
-                art = self._one_artwork('parentThumb')
+                art = self.one_artwork('parentThumb')
                 if art:
                     artworks['poster'] = art
         if self.plex_type() in (v.PLEX_TYPE_SONG,
                                 v.PLEX_TYPE_ALBUM,
                                 v.PLEX_TYPE_ARTIST):
             # need to set poster also as thumb
-            art = self._one_artwork('thumb')
+            art = self.one_artwork('thumb')
             if art:
                 artworks['thumb'] = art
         return artworks
@@ -1473,7 +1473,7 @@ class API(object):
             listitem = self._create_photo_listitem(listitem)
             # Only set the bare minimum of artwork
             listitem.setArt({'icon': 'DefaultPicture.png',
-                             'fanart': self._one_artwork('thumb')})
+                             'fanart': self.one_artwork('thumb')})
         else:
             listitem = self._create_video_listitem(listitem,
                                                    append_show_title,
