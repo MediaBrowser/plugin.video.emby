@@ -762,6 +762,7 @@ def browse_plex(key=None, plex_section_id=None):
     Lists the content of a Plex folder, e.g. channels. Either pass in key (to
     be used directly for PMS url {server}<key>) or the plex_section_id
     """
+    LOG.debug('Browsing to key %s, section %s', key, plex_section_id)
     if key:
         xml = DU().downloadUrl('{server}%s' % key)
     else:
@@ -769,7 +770,8 @@ def browse_plex(key=None, plex_section_id=None):
     try:
         xml[0].attrib
     except (ValueError, AttributeError, IndexError, TypeError):
-        LOG.error('Could not browse to %s', key)
+        LOG.error('Could not browse to key %s, section %s',
+                  key, plex_section_id)
         return xbmcplugin.endOfDirectory(int(argv[1]), False)
 
     photos = False
@@ -809,37 +811,48 @@ def browse_plex(key=None, plex_section_id=None):
 
     # Set the correct content type
     if movies is True:
+        LOG.debug('Setting view to movies')
         xbmcplugin.setContent(int(argv[1]), 'movies')
         sort_methods = v.SORT_METHODS_MOVIES
     elif clips is True:
+        LOG.debug('Clips -> Setting view to movies')
         xbmcplugin.setContent(int(argv[1]), 'movies')
         sort_methods = v.SORT_METHODS_CLIPS
     elif photos is True:
+        LOG.debug('Setting view to images')
         xbmcplugin.setContent(int(argv[1]), 'images')
         sort_methods = v.SORT_METHODS_PHOTOS
     elif tvshows is True:
+        LOG.debug('Setting view to tvshows')
         xbmcplugin.setContent(int(argv[1]), 'tvshows')
         sort_methods = v.SORT_METHOD_TVSHOWS
     elif episodes is True:
+        LOG.debug('Setting view to episodes')
         xbmcplugin.setContent(int(argv[1]), 'episodes')
         sort_methods = v.SORT_METHODS_EPISODES
     elif songs is True:
+        LOG.debug('Setting view to songs')
         xbmcplugin.setContent(int(argv[1]), 'songs')
         sort_methods = v.SORT_METHODS_SONGS
     elif artists is True:
+        LOG.debug('Setting view to artists')
         xbmcplugin.setContent(int(argv[1]), 'artists')
         sort_methods = v.SORT_METHODS_ARTISTS
     elif albums is True:
+        LOG.debug('Setting view to albums')
         xbmcplugin.setContent(int(argv[1]), 'albums')
         sort_methods = v.SORT_METHODS_ALBUMS
     elif musicvideos is True:
+        LOG.debug('Setting view to musicvideos')
         xbmcplugin.setContent(int(argv[1]), 'musicvideos')
         sort_methods = v.SORT_METHODS_MOVIES
     else:
+        LOG.debug('Setting view to files')
         xbmcplugin.setContent(int(argv[1]), 'files')
         sort_methods = v.SORT_METHODS_DIRECTORY
 
     for method in sort_methods:
+        LOG.debug('Adding Kodi sort method %s', method)
         xbmcplugin.addSortMethod(int(argv[1]), getattr(xbmcplugin, method))
 
     # Set the Kodi title for this view
