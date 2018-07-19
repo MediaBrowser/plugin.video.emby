@@ -145,8 +145,12 @@ def show_main_menu(content_type=None):
             # nodes in the video library and all nodes in any other window
             if node_type == 'photos' and content_type == 'image':
                 directory_item(label, path)
-            elif (node_type != 'photos' and
-                    content_type not in ('image', 'audio')):
+            elif node_type == 'albums' and content_type == 'audio':
+                directory_item(label, path)
+            elif node_type in ('movies',
+                               'tvshows',
+                               'homevideos',
+                               'musicvideos') and content_type == 'video':
                 directory_item(label, path)
 
     # Plex Watch later
