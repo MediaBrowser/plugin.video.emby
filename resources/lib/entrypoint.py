@@ -670,11 +670,11 @@ def on_deck_episodes(viewid, tagname, limit):
     xbmcplugin.endOfDirectory(handle=int(argv[1]))
 
 
-def playlists(kodi_playlist_type):
+def playlists(plex_playlist_type):
     """
-    Lists all Plex playlists of the media type kodi_playlist_type
+    Lists all Plex playlists of the media type plex_playlist_type
     """
-    LOG.debug('Listing Plex %s playlists', kodi_playlist_type)
+    LOG.debug('Listing Plex %s playlists', plex_playlist_type)
     if not _wait_for_auth():
         return
     xbmcplugin.setContent(int(argv[1]), 'files')
@@ -684,8 +684,7 @@ def playlists(kodi_playlist_type):
         return
     for item in xml:
         api = API(item)
-        if not v.KODI_PLAYLIST_TYPE_FROM_PLEX[api.playlist_type()] \
-                == kodi_playlist_type:
+        if not api.playlist_type() == plex_playlist_type:
             continue
         listitem = ListItem(api.title())
         listitem.setArt({'thumb': api._one_artwork('composite')})

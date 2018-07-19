@@ -263,9 +263,9 @@ class VideoNodes(object):
             elif nodetype == 'playlists':
                 path =  'plugin://plugin.video.plexkodiconnect?mode=playlists'
                 if mediatype in ('movies', 'tvshows', 'homevideos'):
-                    path += '&type=%s' % v.KODI_PLAYLIST_TYPE_VIDEO
+                    path += '&type=%s' % v.PLEX_TYPE_VIDEO_PLAYLIST
                 else:
-                    path += '&type=%s' % v.KODI_PLAYLIST_TYPE_AUDIO
+                    path += '&type=%s' % v.PLEX_TYPE_AUDIO_PLAYLIST
             else:
                 path = "library://video/Plex-%s/%s_%s.xml" % (dirname, viewid, nodetype)
 
