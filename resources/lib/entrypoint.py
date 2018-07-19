@@ -901,8 +901,6 @@ def __build_item(xml_element, direct_paths):
         url = api.get_picture_path()
     else:
         url = api.path(direct_paths=direct_paths)
-    if api.resume_point():
-        listitem.setProperty('resumetime', str(api.resume_point()))
     xbmcplugin.addDirectoryItem(handle=int(argv[1]),
                                 url=url,
                                 listitem=listitem)
