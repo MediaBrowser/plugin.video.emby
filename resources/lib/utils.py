@@ -115,9 +115,12 @@ def settings(setting, value=None):
 
 def lang(stringid):
     """
-    Central string retrieval from strings.po
+    Central string retrieval from strings.po. If not found within PKC,
+    standard XBMC/Kodi strings are retrieved.
+    Will return unicode
     """
-    return ADDON.getLocalizedString(stringid)
+    return (ADDON.getLocalizedString(stringid) or
+            xbmc.getLocalizedString(stringid))
 
 
 def dialog(typus, *args, **kwargs):

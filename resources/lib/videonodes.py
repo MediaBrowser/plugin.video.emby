@@ -226,8 +226,6 @@ class VideoNodes(object):
             stringid = nodes[node]
             if node != "1":
                 label = utils.lang(stringid)
-                if not label:
-                    label = xbmc.getLocalizedString(stringid)
             else:
                 label = stringid
 
