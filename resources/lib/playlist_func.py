@@ -313,7 +313,8 @@ def verify_kodi_item(plex_id, kodi_item):
         LOG.debug('Detected song. Research results: %s', kodi_item)
         return kodi_item
     # Need more info since we don't have kodi_id nor type. Use file path.
-    if (kodi_item['file'].startswith('plugin') or
+    if ((kodi_item['file'].startswith('plugin') and
+         not kodi_item['file'].startswith('plugin://%s' % v.ADDON_ID)) or
             kodi_item['file'].startswith('http')):
         LOG.info('kodi_item %s cannot be used for Plex playback', kodi_item)
         raise PlaylistError

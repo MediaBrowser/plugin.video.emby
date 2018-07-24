@@ -54,7 +54,8 @@ class VideoNodes(object):
             'show': 'tvshows',
             'photo': 'photos',
             'homevideo': 'homevideos',
-            'musicvideos': 'musicvideos'
+            'musicvideos': 'musicvideos',
+            'artist': 'albums'
         }
         mediatype = mediatypes[mediatype]
 
@@ -196,6 +197,15 @@ class VideoNodes(object):
                     '4': 30257,
                     '6': 30258,
                     '13': 39702
+                },
+
+            'albums':
+                {
+                    '1': tagname,
+                    '2': 517,  # Recently played albums
+                    '2': 359,  # Recently added albums
+                    '13': 39702,  # browse by folder
+                    '14': 136  # Playlists
                 }
         }
 
@@ -317,17 +327,23 @@ class VideoNodes(object):
                                        label=label,
                                        tagname=tagname,
                                        roottype=2)
-                etree.SubElement(root, 'path').text = path
-                etree.SubElement(root, 'content').text = "episodes"
             else:
                 root = self.commonRoot(order=sortorder[node],
                                        label=label,
                                        tagname=tagname)
-                if nodetype in ('recentepisodes', 'inprogressepisodes'):
-                    etree.SubElement(root, 'content').text = "episodes"
-                else:
-                    etree.SubElement(root, 'content').text = mediatype
-
+            # Set the content type
+            if mediatype == 'tvshows':
+                etree.SubElement(root, 'content').text = 'episodes'
+            else:
+                etree.SubElement(root, 'content').text = mediatype
+            # Now fill the view
+            if (nodetype in ("nextepisodes",
+                             "ondeck",
+                             'recentepisodes',
+                             'browsefiles',
+                             'playlists') or mediatype == "homevideos"):
+                etree.SubElement(root, 'path').text = path
+            else:
                 # Elements per nodetype
                 if nodetype == "all":
                     etree.SubElement(root,
