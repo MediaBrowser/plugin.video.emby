@@ -152,7 +152,9 @@ def show_main_menu(content_type=None):
                                'homevideos',
                                'musicvideos') and content_type == 'video':
                 directory_item(label, path)
-
+    # Plex Hub
+    directory_item('Plex Hub',
+                   'plugin://%s?mode=hub&type=%s' % (v.ADDON_ID, content_type))
     # Plex Watch later
     if content_type not in ('image', 'audio'):
         directory_item(utils.lang(39211),
@@ -707,6 +709,31 @@ def playlists(plex_playlist_type):
         cacheToDisc=utils.settings('enableTextureCache') == 'true')
 
 
+def hub(content_type):
+    """
+    Plus hub endpoint pms:port/hubs. Need to separate Kodi types with
+    content_type:
+        audio, video, image
+    """
+    xml = PF.get_plex_hub()
+    try:
+        xml.attrib
+    except AttributeError:
+        LOG.error('Could not get Plex hub listing')
+        return xbmcplugin.endOfDirectory(int(argv[1]), False)
+    for entry in xml:
+        api = API(entry)
+        if content_type == 'video' and api.plex_type() in v.PLEX_VIDEOTYPES:
+            __build_folder(entry)
+        elif content_type == 'audio' and api.plex_type() in v.PLEX_AUDIOTYPES:
+            __build_folder(entry)
+        elif content_type == 'image' and api.plex_type() == v.PLEX_TYPE_PHOTO:
+            __build_folder(entry)
+    xbmcplugin.endOfDirectory(
+        handle=int(argv[1]),
+        cacheToDisc=utils.settings('enableTextureCache') == 'true')
+
+
 def watchlater():
     """
     Listing for plex.tv Watch Later section (if signed in to plex.tv)
@@ -768,8 +795,8 @@ def browse_plex(key=None, plex_section_id=None):
     else:
         xml = PF.GetPlexSectionResults(plex_section_id)
     try:
-        xml[0].attrib
-    except (ValueError, AttributeError, IndexError, TypeError):
+        xml.attrib
+    except AttributeError:
         LOG.error('Could not browse to key %s, section %s',
                   key, plex_section_id)
         return xbmcplugin.endOfDirectory(int(argv[1]), False)
@@ -866,17 +893,22 @@ def browse_plex(key=None, plex_section_id=None):
 
 def __build_folder(xml_element, plex_section_id=None):
     url = "plugin://%s/" % v.ADDON_ID
-    key = xml_element.attrib.get('fastKey', xml_element.attrib.get('key'))
+    key = xml_element.get('fastKey', xml_element.get('key'))
     if not key.startswith('/'):
         key = '/library/sections/%s/%s' % (plex_section_id, key)
     params = {
         'mode': "browseplex",
         'key': key,
-        'id': plex_section_id
     }
-    listitem = ListItem(xml_element.attrib.get('title'))
-    listitem.setArt({'thumb': xml_element.attrib.get('thumb'),
-                     'poster': xml_element.attrib.get('art')})
+    if plex_section_id:
+        params['id'] = plex_section_id
+    listitem = ListItem(xml_element.get('title'))
+    thumb = xml_element.get('thumb') or \
+        'special://home/addons/%s/icon.png' % v.ADDON_ID
+    art = xml_element.get('art') or \
+        'special://home/addons/%s/fanart.jpg' % v.ADDON_ID
+    listitem.setThumbnailImage(thumb)
+    listitem.setArt({'fanart': art, 'landscape': art})
     xbmcplugin.addDirectoryItem(handle=int(argv[1]),
                                 url="%s?%s" % (url, urlencode(params)),
                                 isFolder=True,

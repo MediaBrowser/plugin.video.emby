@@ -139,6 +139,9 @@ class Main():
         elif mode == 'playlists':
             entrypoint.playlists(params.get('type'))
 
+        elif mode == 'hub':
+            entrypoint.hub(params.get('type'))
+
         else:
             entrypoint.show_main_menu(content_type=params.get('content_type'))
 
