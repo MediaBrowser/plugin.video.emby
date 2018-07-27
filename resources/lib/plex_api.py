@@ -1298,17 +1298,17 @@ class API(object):
                 else:
                     option = '%s ' % option
                 if 'videoResolution' in entry.attrib:
-                    res = utils.try_decode(entry['videoResolution'])
+                    res = utils.try_decode(entry.attrib['videoResolution'])
                     option = '%s%sp ' % (option, res)
                 if 'videoCodec' in entry.attrib:
-                    codec = utils.try_decode(entry['videoCodec'])
+                    codec = utils.try_decode(entry.attrib['videoCodec'])
                     option = '%s%s' % (option, codec)
                 option = option.strip() + ' - '
                 if 'audioProfile' in entry.attrib:
-                    profile = utils.try_decode(entry['audioProfile'])
+                    profile = utils.try_decode(entry.attrib['audioProfile'])
                     option = '%s%s ' % (option, profile)
                 if 'audioCodec' in entry.attrib:
-                    codec = utils.try_decode(entry['audioCodec'])
+                    codec = utils.try_decode(entry.attrib['audioCodec'])
                     option = '%s%s ' % (option, codec)
                 option = utils.try_encode(option.strip())
                 dialoglist.append(option)
