@@ -611,6 +611,10 @@ def GetPlexOnDeck(viewId):
     return DownloadChunks("{server}/library/sections/%s/onDeck?" % viewId)
 
 
+def get_plex_hub():
+    return DU().downloadUrl('{server}/hubs')
+
+
 def get_plex_sections():
     """
     Returns all Plex sections (libraries) of the PMS as an etree xml
