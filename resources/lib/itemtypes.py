@@ -63,76 +63,14 @@ class Items(object):
         self.kodiconn.close()
         return self
 
-    @utils.catch_exceptions(warnuser=True)
-    def getfanart(self, plex_id, refresh=False):
+    def set_fanart(self, artworks, kodi_id, kodi_type):
         """
-        Tries to get additional fanart for movies (+sets) and TV shows.
-
-        Returns True if successful, False otherwise
+        Writes artworks [dict containing only set artworks] to the Kodi art DB
         """
-        with plexdb.Get_Plex_DB() as plex_db:
-            db_item = plex_db.getItem_byId(plex_id)
-        try:
-            kodi_id = db_item[0]
-            kodi_type = db_item[4]
-        except TypeError:
-            LOG.error('Could not get Kodi id for plex id %s, abort getfanart',
-                      plex_id)
-            return False
-        if refresh is True:
-            # Leave the Plex art untouched
-            allartworks = None
-        else:
-            with kodidb.GetKodiDB('video') as kodi_db:
-                allartworks = kodi_db.get_art(kodi_id, kodi_type)
-            # Check if we even need to get additional art
-            needsupdate = False
-            for key in v.ALL_KODI_ARTWORK:
-                if key not in allartworks:
-                    needsupdate = True
-                    break
-            if needsupdate is False:
-                LOG.debug('Already got all fanart for Plex id %s', plex_id)
-                return True
-
-        xml = PF.GetPlexMetadata(plex_id)
-        if xml is None:
-            # Did not receive a valid XML - skip that item for now
-            LOG.error("Could not get metadata for %s. Skipping that item "
-                      "for now", plex_id)
-            return False
-        elif xml == 401:
-            LOG.error('HTTP 401 returned by PMS. Too much strain? '
-                      'Cancelling sync for now')
-            # Kill remaining items in queue (for main thread to cont.)
-            return False
-        api = API(xml[0])
-        if allartworks is None:
-            allartworks = api.artwork()
-        self.artwork.modify_artwork(api.fanart_artwork(allartworks),
+        self.artwork.modify_artwork(artworks,
                                     kodi_id,
                                     kodi_type,
                                     self.kodicursor)
-        # Also get artwork for collections/movie sets
-        if kodi_type == v.KODI_TYPE_MOVIE:
-            for _, setname in api.collection_list():
-                LOG.debug('Getting artwork for movie set %s', setname)
-                setid = self.kodi_db.create_collection(setname)
-                external_set_artwork = api.set_artwork()
-                if (external_set_artwork and
-                        utils.settings('PreferKodiCollectionArt') == 'true'):
-                    # Need to make sure we are not overwriting existing Plex
-                    # collection artwork
-                    plex_artwork = api.artwork(kodi_id=setid,
-                                               kodi_type=v.KODI_TYPE_SET)
-                    for art in plex_artwork:
-                        if art in external_set_artwork:
-                            del external_set_artwork[art]
-                self.artwork.modify_artwork(external_set_artwork,
-                                            setid,
-                                            v.KODI_TYPE_SET,
-                                            self.kodicursor)
-        return True
 
     def updateUserdata(self, xml):
         """
