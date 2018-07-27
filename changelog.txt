@@ -1,3 +1,9 @@
+version 2.2.16 (beta only):
+- Enable Kodi libraries for Plex Music libraries
+- New Playlists menu item for video libraries
+- Only show Plex libraries in the applicable Kodi media category
+- Optimize code
+
 version 2.2.15 (beta only):
 - Fix ImportError on first PKC run
 
