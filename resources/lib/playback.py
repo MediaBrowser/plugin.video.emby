@@ -69,14 +69,19 @@ def playback_triage(plex_id=None, plex_type=None, path=None, resolve=True):
         try:
             pos = js.get_position(playqueue.playlistid)
         except KeyError:
-            LOG.error('Still no position - abort')
-            # "Play error"
-            utils.dialog('notification',
-                         utils.lang(29999),
-                         utils.lang(30128),
-                         icon='{error}')
-            _ensure_resolve(abort=True)
-            return
+            LOG.info('Assuming video instead of audio playlist playback')
+            playqueue = PQ.get_playqueue_from_type(v.KODI_PLAYLIST_TYPE_VIDEO)
+            try:
+                pos = js.get_position(playqueue.playlistid)
+            except KeyError:
+                LOG.error('Still no position - abort')
+                # "Play error"
+                utils.dialog('notification',
+                             utils.lang(29999),
+                             utils.lang(30128),
+                             icon='{error}')
+                _ensure_resolve(abort=True)
+                return
     # HACK to detect playback of playlists for add-on paths
     items = js.playlist_get_items(playqueue.playlistid)
     try:

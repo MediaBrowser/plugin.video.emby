@@ -145,8 +145,12 @@ def show_main_menu(content_type=None):
             # nodes in the video library and all nodes in any other window
             if node_type == 'photos' and content_type == 'image':
                 directory_item(label, path)
-            elif (node_type != 'photos' and
-                    content_type not in ('image', 'audio')):
+            elif node_type == 'albums' and content_type == 'audio':
+                directory_item(label, path)
+            elif node_type in ('movies',
+                               'tvshows',
+                               'homevideos',
+                               'musicvideos') and content_type == 'video':
                 directory_item(label, path)
 
     # Plex Watch later
@@ -524,6 +528,24 @@ def extra_fanart(plex_id, plex_path):
     xbmcplugin.endOfDirectory(int(argv[1]))
 
 
+def _wait_for_auth():
+    """
+    Call to be sure that PKC is authenticated, e.g. for widgets on Kodi
+    startup. Will wait for at most 30s, then fail if not authenticated.
+
+    Will set xbmcplugin.endOfDirectory(int(argv[1]), False) if failed
+    """
+    counter = 0
+    while utils.window('plex_authenticated') != 'true':
+        counter += 1
+        if counter == 300:
+            LOG.error('Aborting view, we were not authenticated for PMS')
+            xbmcplugin.endOfDirectory(int(argv[1]), False)
+            return False
+        sleep(100)
+    return True
+
+
 def on_deck_episodes(viewid, tagname, limit):
     """
     Retrieves Plex On Deck items, currently only for TV shows
@@ -539,15 +561,8 @@ def on_deck_episodes(viewid, tagname, limit):
     if utils.settings('OnDeckTVextended') == 'false':
         # Chances are that this view is used on Kodi startup
         # Wait till we've connected to a PMS. At most 30s
-        counter = 0
-        while utils.window('plex_authenticated') != 'true':
-            counter += 1
-            if counter == 300:
-                LOG.error('Aborting On Deck view, we were not authenticated '
-                          'for the PMS')
-                xbmcplugin.endOfDirectory(int(argv[1]), False)
-                return
-            sleep(100)
+        if not _wait_for_auth():
+            return
         xml = DU().downloadUrl('{server}/library/sections/%s/onDeck' % viewid)
         if xml in (None, 401):
             LOG.error('Could not download PMS xml for view %s', viewid)
@@ -659,6 +674,39 @@ def on_deck_episodes(viewid, tagname, limit):
     xbmcplugin.endOfDirectory(handle=int(argv[1]))
 
 
+def playlists(plex_playlist_type):
+    """
+    Lists all Plex playlists of the media type plex_playlist_type
+    """
+    LOG.debug('Listing Plex %s playlists', plex_playlist_type)
+    if not _wait_for_auth():
+        return
+    xbmcplugin.setContent(int(argv[1]), 'files')
+    from .playlists.pms import all_playlists
+    xml = all_playlists()
+    if xml is None:
+        return
+    for item in xml:
+        api = API(item)
+        if not api.playlist_type() == plex_playlist_type:
+            continue
+        listitem = ListItem(api.title())
+        listitem.setArt({'thumb': api.one_artwork('composite')})
+        url = "plugin://%s/" % v.ADDON_ID
+        key = api.path_and_plex_id()
+        params = {
+            'mode': "browseplex",
+            'key': key,
+        }
+        xbmcplugin.addDirectoryItem(handle=int(argv[1]),
+                                    url="%s?%s" % (url, urlencode(params)),
+                                    isFolder=True,
+                                    listitem=listitem)
+    xbmcplugin.endOfDirectory(
+        handle=int(argv[1]),
+        cacheToDisc=utils.settings('enableTextureCache') == 'true')
+
+
 def watchlater():
     """
     Listing for plex.tv Watch Later section (if signed in to plex.tv)
@@ -714,6 +762,7 @@ def browse_plex(key=None, plex_section_id=None):
     Lists the content of a Plex folder, e.g. channels. Either pass in key (to
     be used directly for PMS url {server}<key>) or the plex_section_id
     """
+    LOG.debug('Browsing to key %s, section %s', key, plex_section_id)
     if key:
         xml = DU().downloadUrl('{server}%s' % key)
     else:
@@ -721,7 +770,8 @@ def browse_plex(key=None, plex_section_id=None):
     try:
         xml[0].attrib
     except (ValueError, AttributeError, IndexError, TypeError):
-        LOG.error('Could not browse to %s', key)
+        LOG.error('Could not browse to key %s, section %s',
+                  key, plex_section_id)
         return xbmcplugin.endOfDirectory(int(argv[1]), False)
 
     photos = False
@@ -761,37 +811,48 @@ def browse_plex(key=None, plex_section_id=None):
 
     # Set the correct content type
     if movies is True:
+        LOG.debug('Setting view to movies')
         xbmcplugin.setContent(int(argv[1]), 'movies')
         sort_methods = v.SORT_METHODS_MOVIES
     elif clips is True:
+        LOG.debug('Clips -> Setting view to movies')
         xbmcplugin.setContent(int(argv[1]), 'movies')
         sort_methods = v.SORT_METHODS_CLIPS
     elif photos is True:
+        LOG.debug('Setting view to images')
         xbmcplugin.setContent(int(argv[1]), 'images')
         sort_methods = v.SORT_METHODS_PHOTOS
     elif tvshows is True:
+        LOG.debug('Setting view to tvshows')
         xbmcplugin.setContent(int(argv[1]), 'tvshows')
         sort_methods = v.SORT_METHOD_TVSHOWS
     elif episodes is True:
+        LOG.debug('Setting view to episodes')
         xbmcplugin.setContent(int(argv[1]), 'episodes')
         sort_methods = v.SORT_METHODS_EPISODES
     elif songs is True:
+        LOG.debug('Setting view to songs')
         xbmcplugin.setContent(int(argv[1]), 'songs')
         sort_methods = v.SORT_METHODS_SONGS
     elif artists is True:
+        LOG.debug('Setting view to artists')
         xbmcplugin.setContent(int(argv[1]), 'artists')
         sort_methods = v.SORT_METHODS_ARTISTS
     elif albums is True:
+        LOG.debug('Setting view to albums')
         xbmcplugin.setContent(int(argv[1]), 'albums')
         sort_methods = v.SORT_METHODS_ALBUMS
     elif musicvideos is True:
+        LOG.debug('Setting view to musicvideos')
         xbmcplugin.setContent(int(argv[1]), 'musicvideos')
         sort_methods = v.SORT_METHODS_MOVIES
     else:
+        LOG.debug('Setting view to files')
         xbmcplugin.setContent(int(argv[1]), 'files')
         sort_methods = v.SORT_METHODS_DIRECTORY
 
     for method in sort_methods:
+        LOG.debug('Adding Kodi sort method %s', method)
         xbmcplugin.addSortMethod(int(argv[1]), getattr(xbmcplugin, method))
 
     # Set the Kodi title for this view
@@ -840,8 +901,6 @@ def __build_item(xml_element, direct_paths):
         url = api.get_picture_path()
     else:
         url = api.path(direct_paths=direct_paths)
-    if api.resume_point():
-        listitem.setProperty('resumetime', str(api.resume_point()))
     xbmcplugin.addDirectoryItem(handle=int(argv[1]),
                                 url=url,
                                 listitem=listitem)

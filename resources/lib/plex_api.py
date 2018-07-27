@@ -816,20 +816,25 @@ class API(object):
             'subtitle': subtitlelanguages
         }
 
-    def _one_artwork(self, art_kind):
+    def one_artwork(self, art_kind):
         artwork = self.item.get(art_kind)
         if artwork and not artwork.startswith('http'):
             if '/composite/' in artwork:
-                # e.g. Plex collections where artwork already contains width
-                # and height. Need to upscale for better resolution
-                artwork, args = artwork.split('?')
-                args = dict(parse_qsl(args))
-                width = int(args.get('width', 400))
-                height = int(args.get('height', 400))
-                # Adjust to 4k resolution 3,840x2,160
-                scaling = 3840.0 / float(max(width, height))
-                width = int(scaling * width)
-                height = int(scaling * height)
+                try:
+                    # e.g. Plex collections where artwork already contains
+                    # width and height. Need to upscale for better resolution
+                    artwork, args = artwork.split('?')
+                    args = dict(parse_qsl(args))
+                    width = int(args.get('width', 400))
+                    height = int(args.get('height', 400))
+                    # Adjust to 4k resolution 3,840x2,160
+                    scaling = 3840.0 / float(max(width, height))
+                    width = int(scaling * width)
+                    height = int(scaling * height)
+                except ValueError:
+                    # e.g. playlists
+                    width = 3840
+                    height = 3840
                 artwork = '%s?width=%s&height=%s' % (artwork, width, height)
             artwork = ('%s/photo/:/transcode?width=3840&height=3840&'
                        'minSize=1&upscale=0&url=%s'
@@ -864,13 +869,13 @@ class API(object):
             # the other artwork will be saved under season and show
             # EXCEPT if you're constructing a listitem
             if not full_artwork:
-                art = self._one_artwork('thumb')
+                art = self.one_artwork('thumb')
                 if art:
                     artworks['thumb'] = art
                 return artworks
             for kodi_artwork, plex_artwork in \
                     v.KODI_TO_PLEX_ARTWORK_EPISODE.iteritems():
-                art = self._one_artwork(plex_artwork)
+                art = self.one_artwork(plex_artwork)
                 if art:
                     artworks[kodi_artwork] = art
             if not full_artwork:
@@ -912,24 +917,24 @@ class API(object):
         # if self.plex_type() == v.PLEX_TYPE_EPISODE:
 
         for kodi_artwork, plex_artwork in v.KODI_TO_PLEX_ARTWORK.iteritems():
-            art = self._one_artwork(plex_artwork)
+            art = self.one_artwork(plex_artwork)
             if art:
                 artworks[kodi_artwork] = art
         if self.plex_type() in (v.PLEX_TYPE_SONG, v.PLEX_TYPE_ALBUM):
             # Get parent item artwork if the main item is missing artwork
             if 'fanart' not in artworks:
-                art = self._one_artwork('parentArt')
+                art = self.one_artwork('parentArt')
                 if art:
                     artworks['fanart1'] = art
             if 'poster' not in artworks:
-                art = self._one_artwork('parentThumb')
+                art = self.one_artwork('parentThumb')
                 if art:
                     artworks['poster'] = art
         if self.plex_type() in (v.PLEX_TYPE_SONG,
                                 v.PLEX_TYPE_ALBUM,
                                 v.PLEX_TYPE_ARTIST):
             # need to set poster also as thumb
-            art = self._one_artwork('thumb')
+            art = self.one_artwork('thumb')
             if art:
                 artworks['thumb'] = art
         return artworks
@@ -1468,7 +1473,10 @@ class API(object):
             listitem = self._create_photo_listitem(listitem)
             # Only set the bare minimum of artwork
             listitem.setArt({'icon': 'DefaultPicture.png',
-                             'fanart': self._one_artwork('thumb')})
+                             'fanart': self.one_artwork('thumb')})
+        elif self.plex_type() == v.PLEX_TYPE_SONG:
+            listitem = self._create_audio_listitem(listitem)
+            listitem.setArt(self.artwork())
         else:
             listitem = self._create_video_listitem(listitem,
                                                    append_show_title,
@@ -1589,6 +1597,74 @@ class API(object):
         except TypeError:
             # Kodi fuck-up
             pass
+        return listitem
+
+    def track_number(self):
+        """
+        Returns the song's track number as an int or None if not found
+        """
+        try:
+            return int(self.item.get('index'))
+        except TypeError:
+            pass
+
+    def disc_number(self):
+        """
+        Returns the song's disc number as an int or None if not found
+        """
+        try:
+            return int(self.item.get('parentIndex'))
+        except TypeError:
+            pass
+
+    def _create_audio_listitem(self, listitem=None):
+        """
+        Use for songs only
+        Call on a child level of PMS xml response (e.g. in a for loop)
+
+        listitem        : existing xbmcgui.ListItem to work with
+                          otherwise, a new one is created
+
+        Returns XBMC listitem for this PMS library item
+        """
+        if listitem is None:
+            listitem = ListItem(self.title())
+        else:
+            listitem.setLabel(self.title())
+        listitem.setProperty('IsPlayable', 'true')
+        userdata = self.userdata()
+        metadata = {
+            'mediatype': 'song',
+            'tracknumber': self.track_number(),
+            'discnumber': self.track_number(),
+            'duration': userdata['Runtime'],
+            'year': self.year(),
+            # Kodi does not support list of str
+            'genre': ','.join(self.genre_list()) or None,
+            'album': self.item.get('parentTitle'),
+            'artist': self.item.get('originalTitle') or self.grandparent_title(),
+            'title': self.title(),
+            'rating': self.audience_rating(),
+            'playcount': userdata['PlayCount'],
+            'lastplayed': userdata['LastPlayedDate'],
+            # lyrics  string (On a dark desert highway...)
+            # userrating  integer - range is 1..10
+            # comment string (This is a great song)
+            # listeners   integer (25614)
+            # musicbrainztrackid  string (cd1de9af-0b71-4503-9f96-9f5efe27923c)
+            # musicbrainzartistid string (d87e52c5-bb8d-4da8-b941-9f4928627dc8)
+            # musicbrainzalbumid  string (24944755-2f68-3778-974e-f572a9e30108)
+            # musicbrainzalbumartistid string (d87e52c5-bb8d-4da8-b941-9f4928627dc8)
+        }
+        plex_id = self.plex_id()
+        listitem.setProperty('plexid', plex_id)
+        if v.KODIVERSION >= 18:
+            with plexdb.Get_Plex_DB() as plex_db:
+                kodi_id = plex_db.getItem_byId(plex_id)
+                if kodi_id:
+                    kodi_id = kodi_id[0]
+                    metadata['dbid'] = kodi_id
+        listitem.setInfo('music', infoLabels=metadata)
         return listitem
 
     def add_video_streams(self, listitem):

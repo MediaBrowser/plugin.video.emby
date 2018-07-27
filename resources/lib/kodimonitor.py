@@ -472,8 +472,8 @@ class SpecialMonitor(Thread):
     def run(self):
         LOG.info("----====# Starting Special Monitor #====----")
         # "Start from beginning", "Play from beginning"
-        strings = (utils.try_encode(xbmc.getLocalizedString(12021)),
-                   utils.try_encode(xbmc.getLocalizedString(12023)))
+        strings = (utils.try_encode(utils.lang(12021)),
+                   utils.try_encode(utils.lang(12023)))
         while not self.stopped():
             if xbmc.getCondVisibility('Window.IsVisible(DialogContextMenu.xml)'):
                 if xbmc.getInfoLabel('Control.GetLabel(1002)') in strings:

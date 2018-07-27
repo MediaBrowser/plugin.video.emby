@@ -329,8 +329,7 @@ class LibrarySync(Thread):
                 utils.playlist_xsp(mediatype, foldername, folderid, viewtype)
                 lists.append(foldername)
             # Create the video node
-            if (foldername not in nodes and
-                    mediatype != v.PLEX_TYPE_ARTIST):
+            if foldername not in nodes:
                 vnodes.viewNode(sorted_views.index(foldername),
                                 foldername,
                                 mediatype,
@@ -362,42 +361,41 @@ class LibrarySync(Thread):
                 # Update view with new info
                 plex_db.updateView(foldername, tagid, folderid)
 
-                if mediatype != "artist":
-                    if plex_db.getView_byName(current_viewname) is None:
-                        # The tag could be a combined view. Ensure there's
-                        # no other tags with the same name before deleting
-                        # playlist.
-                        utils.playlist_xsp(mediatype,
-                                           current_viewname,
-                                           folderid,
-                                           current_viewtype,
-                                           True)
-                        # Delete video node
-                        if mediatype != "musicvideos":
-                            vnodes.viewNode(
-                                indexnumber=sorted_views.index(foldername),
-                                tagname=current_viewname,
-                                mediatype=mediatype,
-                                viewtype=current_viewtype,
-                                viewid=folderid,
-                                delete=True)
-                    # Added new playlist
-                    if (foldername not in lists and mediatype in
-                            (v.PLEX_TYPE_MOVIE, v.PLEX_TYPE_SHOW)):
-                        utils.playlist_xsp(mediatype,
-                                           foldername,
-                                           folderid,
-                                           viewtype)
-                        lists.append(foldername)
-                    # Add new video node
-                    if foldername not in nodes and mediatype != "musicvideos":
-                        vnodes.viewNode(sorted_views.index(foldername),
-                                        foldername,
-                                        mediatype,
-                                        viewtype,
-                                        folderid)
-                        nodes.append(foldername)
-                        totalnodes += 1
+                if plex_db.getView_byName(current_viewname) is None:
+                    # The tag could be a combined view. Ensure there's
+                    # no other tags with the same name before deleting
+                    # playlist.
+                    utils.playlist_xsp(mediatype,
+                                       current_viewname,
+                                       folderid,
+                                       current_viewtype,
+                                       True)
+                    # Delete video node
+                    if mediatype != "musicvideos":
+                        vnodes.viewNode(
+                            indexnumber=sorted_views.index(foldername),
+                            tagname=current_viewname,
+                            mediatype=mediatype,
+                            viewtype=current_viewtype,
+                            viewid=folderid,
+                            delete=True)
+                # Added new playlist
+                if (foldername not in lists and mediatype in
+                        (v.PLEX_TYPE_MOVIE, v.PLEX_TYPE_SHOW)):
+                    utils.playlist_xsp(mediatype,
+                                       foldername,
+                                       folderid,
+                                       viewtype)
+                    lists.append(foldername)
+                # Add new video node
+                if foldername not in nodes and mediatype != "musicvideos":
+                    vnodes.viewNode(sorted_views.index(foldername),
+                                    foldername,
+                                    mediatype,
+                                    viewtype,
+                                    folderid)
+                    nodes.append(foldername)
+                    totalnodes += 1
 
                 # Update items with new tag
                 items = plex_db.getItem_byView(folderid)
@@ -407,23 +405,22 @@ class LibrarySync(Thread):
                         current_tagid, tagid, item[0], current_viewtype[:-1])
             else:
                 # Validate the playlist exists or recreate it
-                if mediatype != v.PLEX_TYPE_ARTIST:
-                    if (foldername not in lists and mediatype in
-                            (v.PLEX_TYPE_MOVIE, v.PLEX_TYPE_SHOW)):
-                        utils.playlist_xsp(mediatype,
-                                           foldername,
-                                           folderid,
-                                           viewtype)
-                        lists.append(foldername)
-                    # Create the video node if not already exists
-                    if foldername not in nodes and mediatype != "musicvideos":
-                        vnodes.viewNode(sorted_views.index(foldername),
-                                        foldername,
-                                        mediatype,
-                                        viewtype,
-                                        folderid)
-                        nodes.append(foldername)
-                        totalnodes += 1
+                if (foldername not in lists and mediatype in
+                        (v.PLEX_TYPE_MOVIE, v.PLEX_TYPE_SHOW)):
+                    utils.playlist_xsp(mediatype,
+                                       foldername,
+                                       folderid,
+                                       viewtype)
+                    lists.append(foldername)
+                # Create the video node if not already exists
+                if foldername not in nodes and mediatype != "musicvideos":
+                    vnodes.viewNode(sorted_views.index(foldername),
+                                    foldername,
+                                    mediatype,
+                                    viewtype,
+                                    folderid)
+                    nodes.append(foldername)
+                    totalnodes += 1
         return totalnodes
 
     def maintain_views(self):
@@ -454,7 +451,8 @@ class LibrarySync(Thread):
 
         for view in sections:
             if (view.attrib['type'] in
-                    (v.PLEX_TYPE_MOVIE, v.PLEX_TYPE_SHOW, v.PLEX_TYPE_PHOTO)):
+                    (v.PLEX_TYPE_MOVIE, v.PLEX_TYPE_SHOW, v.PLEX_TYPE_PHOTO,
+                     v.PLEX_TYPE_ARTIST)):
                 self.sorted_views.append(view.attrib['title'])
         LOG.debug('Sorted views: %s', self.sorted_views)
 
