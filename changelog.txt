@@ -1,3 +1,9 @@
+version 2.2.17 (beta only):
+- Access Plex Hubs. Listing will be different depending on Kodi section!
+- Fix year for songs missing
+- Fix Plex extras not playing
+- Fix rare library sync crash
+
 version 2.2.16 (beta only):
 - Enable Kodi libraries for Plex Music libraries
 - New Playlists menu item for video libraries
