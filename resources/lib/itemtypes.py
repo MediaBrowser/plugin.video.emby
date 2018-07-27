@@ -1365,10 +1365,10 @@ class Music(Items):
         # Add all children - all tracks
         if scan_children:
             for child in children:
-                self.add_updateSong(child, viewtag, viewid)
+                self.add_updateSong(child, viewtag, viewid, item)
 
     @utils.catch_exceptions(warnuser=True)
-    def add_updateSong(self, item, viewtag=None, viewid=None):
+    def add_updateSong(self, item, viewtag=None, viewid=None, album_xml=None):
         """
         Process single song
         """
@@ -1429,6 +1429,10 @@ class Music(Items):
         else:
             track = disc * 2 ** 16 + tracknumber
         year = api.year()
+        if not year and album_xml:
+            # Plex did not pass year info - get it from the parent album
+            album_api = API(album_xml)
+            year = album_api.year()
         _, duration = api.resume_runtime()
         rating = userdata['UserRating']
         comment = None
