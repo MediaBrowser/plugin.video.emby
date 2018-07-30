@@ -332,7 +332,7 @@ class VideoNodes(object):
                                        label=label,
                                        tagname=tagname)
             # Set the content type
-            if mediatype == 'tvshows':
+            if mediatype == 'tvshows' and nodetype != 'all':
                 etree.SubElement(root, 'content').text = 'episodes'
             else:
                 etree.SubElement(root, 'content').text = mediatype
