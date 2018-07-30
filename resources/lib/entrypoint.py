@@ -152,6 +152,11 @@ def show_main_menu(content_type=None):
                                'homevideos',
                                'musicvideos') and content_type == 'video':
                 directory_item(label, path)
+    # Playlists
+    if content_type != 'image':
+        directory_item(utils.lang(136),
+                       ('plugin://%s?mode=playlists&content_type=%s'
+                        % (v.ADDON_ID, content_type)))
     # Plex Hub
     directory_item('Plex Hub',
                    'plugin://%s?mode=hub&type=%s' % (v.ADDON_ID, content_type))
@@ -676,11 +681,12 @@ def on_deck_episodes(viewid, tagname, limit):
     xbmcplugin.endOfDirectory(handle=int(argv[1]))
 
 
-def playlists(plex_playlist_type):
+def playlists(content_type):
     """
     Lists all Plex playlists of the media type plex_playlist_type
+    content_type: 'audio', 'video'
     """
-    LOG.debug('Listing Plex %s playlists', plex_playlist_type)
+    LOG.debug('Listing Plex %s playlists', content_type)
     if not _wait_for_auth():
         return
     xbmcplugin.setContent(int(argv[1]), 'files')
@@ -690,7 +696,7 @@ def playlists(plex_playlist_type):
         return
     for item in xml:
         api = API(item)
-        if not api.playlist_type() == plex_playlist_type:
+        if not api.playlist_type() == content_type:
             continue
         listitem = ListItem(api.title())
         listitem.setArt({'thumb': api.one_artwork('composite')})

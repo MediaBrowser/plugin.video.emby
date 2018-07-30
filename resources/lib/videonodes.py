@@ -137,7 +137,6 @@ class VideoNodes(object):
             '11': "recommended",
             '12': "ondeck",
             '13': 'browsefiles',
-            '14': 'playlists'
         }
         mediatypes = {
             # label according to nodetype per mediatype
@@ -153,7 +152,6 @@ class VideoNodes(object):
                     '11': 30230,
                     '12': 39500,
                     '13': 39702,
-                    '14': 136
                 },
 
             'tvshows':
@@ -169,7 +167,6 @@ class VideoNodes(object):
                     # '11': 30230,
                     '12': 39500,
                     '13': 39702,
-                    '14': 136
                 },
 
             'homevideos':
@@ -205,7 +202,6 @@ class VideoNodes(object):
                     '2': 517,  # Recently played albums
                     '2': 359,  # Recently added albums
                     '13': 39702,  # browse by folder
-                    '14': 136  # Playlists
                 }
         }
 
@@ -224,7 +220,6 @@ class VideoNodes(object):
             '11': '5',  # "recommended",
             '12': '1',  # "ondeck"
             '13': '9',  # browse by folder
-            '14': '10' # Playlists
         }
 
         nodes = mediatypes[mediatype]
@@ -270,12 +265,6 @@ class VideoNodes(object):
                     nodetype = 'inprogress'
             elif nodetype == 'browsefiles':
                 path = 'plugin://plugin.video.plexkodiconnect?mode=browseplex&key=/library/sections/%s/folder' % viewid
-            elif nodetype == 'playlists':
-                path =  'plugin://plugin.video.plexkodiconnect?mode=playlists'
-                if mediatype in ('movies', 'tvshows', 'homevideos'):
-                    path += '&type=%s' % v.PLEX_TYPE_VIDEO_PLAYLIST
-                else:
-                    path += '&type=%s' % v.PLEX_TYPE_AUDIO_PLAYLIST
             else:
                 path = "library://video/Plex-%s/%s_%s.xml" % (dirname, viewid, nodetype)
 
@@ -320,8 +309,7 @@ class VideoNodes(object):
             if (nodetype in ("nextepisodes",
                              "ondeck",
                              'recentepisodes',
-                             'browsefiles',
-                             'playlists') or mediatype == "homevideos"):
+                             'browsefiles') or mediatype == "homevideos"):
                 # Folder type with plugin path
                 root = self.commonRoot(order=sortorder[node],
                                        label=label,
@@ -340,8 +328,7 @@ class VideoNodes(object):
             if (nodetype in ("nextepisodes",
                              "ondeck",
                              'recentepisodes',
-                             'browsefiles',
-                             'playlists') or mediatype == "homevideos"):
+                             'browsefiles') or mediatype == "homevideos"):
                 etree.SubElement(root, 'path').text = path
             else:
                 # Elements per nodetype
