@@ -137,7 +137,7 @@ class Main():
             entrypoint.get_video_files(plexId, params)
 
         elif mode == 'playlists':
-            entrypoint.playlists(params.get('type'))
+            entrypoint.playlists(params.get('content_type'))
 
         elif mode == 'hub':
             entrypoint.hub(params.get('type'))
