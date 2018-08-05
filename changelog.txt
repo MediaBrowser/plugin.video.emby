@@ -1,3 +1,6 @@
+version 2.3.4 (beta only):
+- Fix playback sometimes not starting and UnicodeEncodeError for logging
+
 version 2.3.3:
 - Choose trailer if several are present (DB reset required)
 
