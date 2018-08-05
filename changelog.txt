@@ -1,3 +1,6 @@
+version 2.3.5 (beta only):
+- Fix PKC not starting by importing playlist module only when sync enabled
+
 version 2.3.4 (beta only):
 - Fix playback sometimes not starting and UnicodeEncodeError for logging
 
