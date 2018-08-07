@@ -1,3 +1,7 @@
+version 2.3.7 (beta only):
+- Fix library sync crash due to exotic playlist characters
+- Force-deactivate playlist sync for Microsoft UWP for Kodi 18
+
 version 2.3.6 (beta only):
 - Fix PKC not starting by decoupling watchdog/subprocess modules
 
