@@ -23,7 +23,8 @@ from . import music
 from . import variables as v
 from . import state
 
-if v.PLATFORM != 'UWP' and utils.settings('enablePlaylistSync') == 'true':
+if (v.PLATFORM != 'Microsoft UWP' and
+        utils.settings('enablePlaylistSync') == 'true'):
     # Xbox cannot use watchdog, a dependency for PKC playlist features
     from . import playlists
     PLAYLIST_SYNC_ENABLED = True

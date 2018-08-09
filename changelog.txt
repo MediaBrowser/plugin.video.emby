@@ -1,3 +1,7 @@
+version 2.3.8:
+- Fix typo
+- Make version 2.3.4-2.3.7 available for everyone
+
 version 2.3.7 (beta only):
 - Fix library sync crash due to exotic playlist characters
 - Force-deactivate playlist sync for Microsoft UWP for Kodi 18
