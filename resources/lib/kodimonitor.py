@@ -52,7 +52,8 @@ STATE_SETTINGS = {
     'fetch_pms_item_number': 'FETCH_PMS_ITEM_NUMBER',
     'imageSyncNotifications': 'IMAGE_SYNC_NOTIFICATIONS',
     'syncSpecificPlexPlaylists': 'SYNC_SPECIFIC_PLEX_PLAYLISTS',
-    'syncSpecificKodiPlaylists': 'SYNC_SPECIFIC_KODI_PLAYLISTS'
+    'syncSpecificKodiPlaylists': 'SYNC_SPECIFIC_KODI_PLAYLISTS',
+    'showExtrasInsteadOfTrailer': 'SHOW_EXTRAS_INSTEAD_OF_PLAYING_TRAILER'
 }
 
 ###############################################################################
