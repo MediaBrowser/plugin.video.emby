@@ -411,6 +411,7 @@ def _conclude_playback(playqueue, pos):
         playutils = PlayUtils(api, item)
         playurl = playutils.getPlayUrl()
     else:
+        api = None
         playurl = item.file
     listitem.setPath(utils.try_encode(playurl))
     if item.playmethod == 'DirectStream':
@@ -428,8 +429,14 @@ def _conclude_playback(playqueue, pos):
             with kodidb.GetKodiDB('video') as kodi_db:
                 item.offset = kodi_db.get_resume(file_id)
         LOG.info('Resuming playback at %s', item.offset)
-        listitem.setProperty('StartOffset', str(item.offset))
-        listitem.setProperty('resumetime', str(item.offset))
+        if v.KODIVERSION >= 18 and api:
+            # Kodi 18 Alpha 3 broke StartOffset
+            percent = float(item.offset) / api.runtime() * 100.0
+            LOG.debug('Resuming at %s percent', percent)
+            listitem.setProperty('StartPercent', str(percent))
+        else:
+            listitem.setProperty('StartOffset', str(item.offset))
+            listitem.setProperty('resumetime', str(item.offset))
     # Reset the resumable flag
     result.listitem = listitem
     pickler.pickle_me(result)
