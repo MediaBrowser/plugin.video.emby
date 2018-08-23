@@ -391,7 +391,6 @@ class KodiMonitor(xbmc.Monitor):
                     LOG.error('Unexpected type %s, data %s', kodi_type, data)
                     return
                 playerid = js.get_playlist_id(playlist_type)
-                LOG.error('playerid found: %s', playerid)
                 if not playerid:
                     LOG.error('Coud not get playerid for data', data)
                     return
