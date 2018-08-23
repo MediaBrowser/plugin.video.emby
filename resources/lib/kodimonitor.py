@@ -391,9 +391,9 @@ class KodiMonitor(xbmc.Monitor):
             pos = info['position'] if info['position'] != -1 else 0
             LOG.debug('Detected position %s for %s', pos, playqueue)
         status = state.PLAYER_STATES[playerid]
-        kodi_id = data.get('id')
-        kodi_type = data.get('type')
-        path = data.get('file')
+        kodi_id = data['item'].get('id') if 'item' in data else None
+        kodi_type = data['item'].get('type') if 'item' in data else None
+        path = data['item'].get('file') if 'item' in data else None
         try:
             item = playqueue.items[pos]
         except IndexError:
