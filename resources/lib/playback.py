@@ -431,7 +431,7 @@ def _conclude_playback(playqueue, pos):
         LOG.info('Resuming playback at %s', item.offset)
         if v.KODIVERSION >= 18 and api:
             # Kodi 18 Alpha 3 broke StartOffset
-            percent = float(item.offset) / api.runtime() * 100.0
+            percent = item.offset / api.runtime() * 100.0
             LOG.debug('Resuming at %s percent', percent)
             listitem.setProperty('StartPercent', str(percent))
         else:

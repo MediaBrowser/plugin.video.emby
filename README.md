@@ -5,7 +5,7 @@
 [![FAQ](https://img.shields.io/badge/wiki-FAQ-brightgreen.svg?maxAge=60&style=flat)](https://github.com/croneter/PlexKodiConnect/wiki/faq)
 [![Forum](https://img.shields.io/badge/forum-plex-orange.svg?maxAge=60&style=flat)](https://forums.plex.tv/discussion/210023/plexkodiconnect-let-kodi-talk-to-your-plex)
 
-[![GitHub issues](https://img.shields.io/github/issues/croneter/PlexKodiConnect.svg?maxAge=60&style=flat)](https://github.com/croneter/PlexKodiConnect/issues) [![GitHub pull requests](https://img.shields.io/github/issues-pr/croneter/PlexKodiConnect.svg?maxAge=60&style=flat)](https://github.com/croneter/PlexKodiConnect/pulls) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/a66870f19ced4fb98f94d9fd56e34e87)](https://www.codacy.com/app/croneter/PlexKodiConnect?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=croneter/PlexKodiConnect&amp;utm_campaign=Badge_Grade)
+[![GitHub issues](https://img.shields.io/github/issues/croneter/PlexKodiConnect.svg?maxAge=60&style=flat)](https://github.com/croneter/PlexKodiConnect/issues) [![GitHub pull requests](https://img.shields.io/github/issues-pr/croneter/PlexKodiConnect.svg?maxAge=60&style=flat)](https://github.com/croneter/PlexKodiConnect/pulls) [![HitCount](http://hits.dwyl.io/croneter/PlexKodiConnect.svg)](http://hits.dwyl.io/croneter/PlexKodiConnect) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/a66870f19ced4fb98f94d9fd56e34e87)](https://www.codacy.com/app/croneter/PlexKodiConnect?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=croneter/PlexKodiConnect&amp;utm_campaign=Badge_Grade)
 
 
 # PlexKodiConnect (PKC)
