@@ -373,13 +373,28 @@ class KodiMonitor(xbmc.Monitor):
             LOG.info('Aborting playback report - item invalid for updates %s',
                      data)
             return
+        kodi_id = data['item'].get('id') if 'item' in data else None
+        kodi_type = data['item'].get('type') if 'item' in data else None
+        path = data['item'].get('file') if 'item' in data else None
         if playerid == -1:
             # Kodi might return -1 for "last player"
+            # Getting the playerid is really a PITA
             try:
                 playerid = js.get_player_ids()[0]
             except IndexError:
-                LOG.error('Could not retreive active player - aborting')
-                return
+                # E.g. Kodi 18 doesn't tell us anything useful
+                if kodi_type in v.KODI_VIDEOTYPES:
+                    playlist_type = v.KODI_TYPE_VIDEO_PLAYLIST
+                elif kodi_type in v.KODI_AUDIOTYPES:
+                    playlist_type = v.KODI_TYPE_AUDIO_PLAYLIST
+                else:
+                    LOG.error('Unexpected type %s, data %s', kodi_type, data)
+                    return
+                playerid = js.get_playlist_id(playlist_type)
+                LOG.error('playerid found: %s', playerid)
+                if not playerid:
+                    LOG.error('Coud not get playerid for data', data)
+                    return
         playqueue = PQ.PLAYQUEUES[playerid]
         info = js.get_player_props(playerid)
         if playqueue.kodi_playlist_playback:
@@ -391,9 +406,6 @@ class KodiMonitor(xbmc.Monitor):
             pos = info['position'] if info['position'] != -1 else 0
             LOG.debug('Detected position %s for %s', pos, playqueue)
         status = state.PLAYER_STATES[playerid]
-        kodi_id = data['item'].get('id') if 'item' in data else None
-        kodi_type = data['item'].get('type') if 'item' in data else None
-        path = data['item'].get('file') if 'item' in data else None
         try:
             item = playqueue.items[pos]
         except IndexError:
