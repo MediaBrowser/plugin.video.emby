@@ -1,3 +1,8 @@
+version 2.3.9 (beta only):
+- Fix playback not resuming (Kodi 18 ignores listitem "StartOffset")
+- Fix playerid not being retrieved for Kodi 18
+- Prefer local trailers; new setting to list extras instead of playing trailer
+
 version 2.3.8:
 - Fix typo
 - Make version 2.3.4-2.3.7 available for everyone

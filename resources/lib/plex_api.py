@@ -743,26 +743,33 @@ class API(object):
 
     def trailers(self):
         """
-        Returns the URL for a single trailer, an addon path for extras
-        (route_to_extras) if several trailers are present. Or None
+        Returns the URL for a single trailer (local trailer preferred; first
+        trailer found returned) or an add-on path to list all Plex extras
+        if the user setting showExtrasInsteadOfTrailer is set.
+        Returns None if nothing is found.
         """
         url = None
-        number = 0
         for extras in self.item.iterfind('Extras'):
+            # There will always be only 1 extras element
+            if (len(extras) > 0 and
+                    state.SHOW_EXTRAS_INSTEAD_OF_PLAYING_TRAILER):
+                return ('plugin://%s?mode=route_to_extras&plex_id=%s'
+                        % (v.ADDON_ID, self.plex_id()))
             for extra in extras:
                 try:
                     typus = int(extra.attrib['extraType'])
                 except (KeyError, TypeError):
                     typus = None
                 if typus != 1:
+                    # Skip non-trailers
                     continue
-                number += 1
-                url = extra.get('ratingKey')
-        if number > 1:
-            # Several trailers present. Hence let the user choose
-            url = ('plugin://%s?mode=route_to_extras&plex_id=%s'
-                   % (v.ADDON_ID, self.plex_id()))
-        elif url:
+                if extra.get('guid', '').startswith('file:'):
+                    url = extra.get('ratingKey')
+                    # Always prefer local trailers (first one listed)
+                    break
+                elif not url:
+                    url = extra.get('ratingKey')
+        if url:
             url = ('plugin://%s.movies/?plex_id=%s&plex_type=%s&mode=play'
                    % (v.ADDON_ID, url, v.PLEX_TYPE_CLIP))
         return url
