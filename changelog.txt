@@ -1,3 +1,8 @@
+version 2.3.10:
+- Compatibility with Kodi 18 Leia Beta 1
+- Update translations
+- Make version 2.3.9 available for everyone
+
 version 2.3.9 (beta only):
 - Fix playback not resuming (Kodi 18 ignores listitem "StartOffset")
 - Fix playerid not being retrieved for Kodi 18
