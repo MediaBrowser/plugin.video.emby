@@ -89,7 +89,7 @@ MIN_DB_VERSION = '2.0.27'
 # Database paths
 _DB_VIDEO_VERSION = {
     17: 107,  # Krypton
-    18: 110   # Leia
+    18: 112   # Leia
 }
 DB_VIDEO_PATH = try_decode(xbmc.translatePath(
     "special://database/MyVideos%s.db" % _DB_VIDEO_VERSION[KODIVERSION]))
