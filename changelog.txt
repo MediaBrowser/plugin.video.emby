@@ -1,3 +1,6 @@
+version 2.3.11 (beta only):
+- Fix Kodi crash by committing to DB frequently
+
 version 2.3.10:
 - Compatibility with Kodi 18 Leia Beta 1
 - Update translations
