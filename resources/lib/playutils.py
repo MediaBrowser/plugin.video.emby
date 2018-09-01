@@ -629,6 +629,6 @@ class PlayUtils():
         }
 
     def get_resolution(self):
-
-        window = xbmcgui.Window()
-        return window.getWidth(), window.getHeight()
+        screenWidth = int(xbmc.getInfoLabel('System.ScreenWidth'))
+        screenHeight = int(xbmc.getInfoLabel('System.ScreenHeight'))
+        return screenWidth, screenHeight
