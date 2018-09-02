@@ -804,20 +804,24 @@ class TVShows(Items):
         seasonid = self.kodi_db.add_season(showid, season)
 
         # GET THE FILE AND PATH #####
+        do_indirect = not state.DIRECT_PATHS
         if state.DIRECT_PATHS:
             playurl = api.file_path(force_first_media=True)
-            playurl = api.validate_playurl(playurl, v.PLEX_TYPE_EPISODE)
-            if "\\" in playurl:
-                # Local path
-                filename = playurl.rsplit("\\", 1)[1]
+            if playurl is None:
+                do_indirect = True
             else:
-                # Network share
-                filename = playurl.rsplit("/", 1)[1]
-            path = playurl.replace(filename, "")
-            parent_path_id = self.kodi_db.parent_path_id(path)
-            pathid = self.kodi_db.add_video_path(path,
-                                                 id_parent_path=parent_path_id)
-        else:
+                playurl = api.validate_playurl(playurl, v.PLEX_TYPE_EPISODE)
+                if "\\" in playurl:
+                    # Local path
+                    filename = playurl.rsplit("\\", 1)[1]
+                else:
+                    # Network share
+                    filename = playurl.rsplit("/", 1)[1]
+                path = playurl.replace(filename, "")
+                parent_path_id = self.kodi_db.parent_path_id(path)
+                pathid = self.kodi_db.add_video_path(path,
+                                                     id_parent_path=parent_path_id)
+        if do_indirect:
             # Set plugin path - do NOT use "intermediate" paths for the show
             # as with direct paths!
             filename = api.file_name(force_first_media=True)

@@ -12,11 +12,6 @@ from . import sync_info
 ###############################################################################
 LOG = getLogger("PLEX." + __name__)
 
-# Commit to DB happens only after leaving respective itemtypes context manager
-#    with item_fct() as item_class:
-# After how many items shall we additionally commit? Otherwise, Kodi
-# crashes if we sync thousands of items without a single commit.
-COMMIT_AFTER_N_ITEMS = 1000
 ###############################################################################
 
 
@@ -62,12 +57,14 @@ class ThreadedProcessMetadata(Thread):
         LOG.debug('Processing thread started')
         # Constructs the method name, e.g. itemtypes.Movies
         item_fct = getattr(itemtypes, self.item_class)
-        n = 0
+        # cache local variables because it's faster
+        queue = self.queue
+        stopped = self.stopped
         with item_fct() as item_class:
-            while self.stopped() is False:
+            while stopped() is False:
                 # grabs item from queue
                 try:
-                    item = self.queue.get(block=False)
+                    item = queue.get(block=False)
                 except Empty:
                     sleep(20)
                     continue
@@ -86,11 +83,6 @@ class ThreadedProcessMetadata(Thread):
                 with sync_info.LOCK:
                     sync_info.PROCESS_METADATA_COUNT += 1
                     sync_info.PROCESSING_VIEW_NAME = item['title']
-                n += 1
-                if n == COMMIT_AFTER_N_ITEMS:
-                    n = 0
-                    item_class.plexconn.commit()
-                    item_class.kodiconn.commit()
-                self.queue.task_done()
+                queue.task_done()
         self.terminate_now()
         LOG.debug('Processing thread terminated')

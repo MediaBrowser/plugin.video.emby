@@ -24,12 +24,11 @@ class PlayUtils():
 
     def getPlayUrl(self):
         """
-        Returns the playurl for the part
+        Returns the playurl [unicode] for the part or returns None.
         (movie might consist of several files)
-
-        playurl is in unicode!
         """
-        self.api.mediastream_number()
+        if self.api.mediastream_number() is None:
+            return
         playurl = self.isDirectPlay()
         if playurl is not None:
             LOG.info("File is direct playing.")
@@ -232,8 +231,9 @@ class PlayUtils():
         stream by a PUT request to the PMS
         """
         # Set media and part where we're at
-        if self.api.mediastream is None:
-            self.api.mediastream_number()
+        if (self.api.mediastream is None and
+                self.api.mediastream_number() is None):
+            return
         try:
             mediastreams = self.api.plex_media_streams()
         except (TypeError, IndexError):
