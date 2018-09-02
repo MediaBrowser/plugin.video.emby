@@ -413,6 +413,11 @@ def _conclude_playback(playqueue, pos):
     else:
         api = None
         playurl = item.file
+    if not playurl:
+        LOG.info('Did not get a playurl, aborting playback silently')
+        state.RESUME_PLAYBACK = False
+        pickler.pickle_me(result)
+        return
     listitem.setPath(utils.try_encode(playurl))
     if item.playmethod == 'DirectStream':
         listitem.setSubtitles(api.cache_external_subs())

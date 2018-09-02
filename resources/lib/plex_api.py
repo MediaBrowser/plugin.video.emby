@@ -203,7 +203,8 @@ class API(object):
             files are present for the same PMS item
         """
         if self.mediastream is None and force_first_media is False:
-            self.mediastream_number()
+            if self.mediastream_number() is None:
+                return
         try:
             if force_first_media is False:
                 ans = self.item[self.mediastream][self.part].attrib['file']
@@ -1294,6 +1295,9 @@ class API(object):
         Returns the Media stream as an int (mostly 0). Will let the user choose
         if several media streams are present for a PMS item (if settings are
         set accordingly)
+
+        Returns None if the user aborted selection (leaving self.mediastream at
+        its default of None)
         """
         # How many streams do we have?
         count = 0
@@ -1345,6 +1349,9 @@ class API(object):
                 option = utils.try_encode(option.strip())
                 dialoglist.append(option)
             media = utils.dialog('select', 'Select stream', dialoglist)
+            if media == -1:
+                LOG.info('User cancelled media stream selection')
+                return
         else:
             media = 0
         self.mediastream = media
@@ -1371,8 +1378,8 @@ class API(object):
 
         TODO: mediaIndex
         """
-        if self.mediastream is None:
-            self.mediastream_number()
+        if self.mediastream is None and self.mediastream_number() is None:
+            return
         if quality is None:
             quality = {}
         xargs = clientinfo.getXArgsDeviceInfo()
