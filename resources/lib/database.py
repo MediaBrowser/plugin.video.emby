@@ -21,11 +21,11 @@ log = logging.getLogger("EMBY."+__name__)
 KODI = xbmc.getInfoLabel('System.BuildVersion')[:2]
 VIDEODB = {
     '17': 107, # Krypton
-    '18': 109  # Leia
+    '18': 112  # Leia
 }
 MUSICDB = {
     '17': 60, # Krypton
-    '18': 70  # Leia
+    '18': 72  # Leia
 }
 
 
