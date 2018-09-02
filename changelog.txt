@@ -1,3 +1,8 @@
+version 2.3.12:
+- Fix Kodi hanging if media stream selection is aborted
+- Fix potential sync crash
+- Revert "Fix Kodi crash by committing to DB frequently"
+
 version 2.3.11 (beta only):
 - Fix Kodi crash by committing to DB frequently
 
