@@ -76,7 +76,8 @@ class ClientInfo(object):
         if client_id:
             return client_id
 
-        emby_guid = xbmc.translatePath("special://temp/emby_guid").decode('utf-8')
+        emby_guid = xbmc.translatePath(
+                        "special://profile/addon_data/plugin.video.emby/emby_guid").decode('utf-8')
 
         if reset and xbmcvfs.exists(emby_guid):
             xbmcvfs.delete(emby_guid)
