@@ -1406,7 +1406,7 @@ class LibrarySync(Thread):
         # Checking FanartTV for %s items
         self.fanartqueue.put(artwork.ArtworkSyncMessage(
             utils.lang(30018) % len(items)))
-        for i, item in enumerate(items):
+        for item in items:
             self.fanartqueue.put({
                 'plex_id': item['plex_id'],
                 'plex_type': item['plex_type'],

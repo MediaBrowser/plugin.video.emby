@@ -163,7 +163,7 @@ class Artwork():
                  length)
         # Caching %s Plex images
         self.queue.put(ArtworkSyncMessage(utils.lang(30006) % length))
-        for i, url in enumerate(artworks_to_cache):
+        for url in artworks_to_cache:
             self.queue.put(url[0])
         # Plex image caching done
         self.queue.put(ArtworkSyncMessage(utils.lang(30007)))

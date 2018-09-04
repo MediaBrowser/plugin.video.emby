@@ -3,7 +3,6 @@
 from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
 import xml.etree.ElementTree as etree
-import xbmc
 
 from . import utils
 from . import path_ops
