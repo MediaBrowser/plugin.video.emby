@@ -1,18 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-Syncs Plex playlists <=> Kodi playlists with 3 main components:
+:module: plexkodiconnect.playlists
+:synopsis: This module syncs Plex playlists to Kodi playlists and vice-versa
+:author: Croneter
 
-kodi_playlist_monitor()
-watchdog Observer checking whether Kodi playlists are changed
+.. autoclass:: kodi_playlist_monitor
 
-websocket(plex_id, status)
-Hit with websocket answers from our background sync
+.. autoclass:: full_sync
 
-full_sync()
-Triggers a full re-sync of playlists
-
-PlaylistError is thrown if anything wierd happens
+.. autoclass:: websocket
 """
 from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
@@ -22,10 +19,7 @@ from . import pms, db, kodi_pl, plex_pl
 
 from ..watchdog import events
 from ..plex_api import API
-from .. import utils
-from .. import path_ops
-from .. import variables as v
-from .. import state
+from .. import utils, path_ops, variables as v, state
 
 ###############################################################################
 LOG = getLogger('PLEX.playlists')
@@ -47,11 +41,22 @@ IGNORE_KODI_PLAYLIST_CHANGE = list()
 
 def kodi_playlist_monitor():
     """
-    Monitors the Kodi playlist folder special://profile/playlist for the user.
-    Will thus catch all changes on the Kodi side of things.
+    Monitor for the Kodi playlist folder special://profile/playlist
 
-    Returns an watchdog Observer instance. Be sure to use
-    observer.stop() (and maybe observer.join()) to shut down properly
+    Monitors for all file changes and will thus catch all changes on the Kodi
+    side of things (as soon as the user saves a new or modified playlist). This
+    is accomplished by starting a PlaylistObserver with the
+    PlaylistEventhandler
+
+    Returns
+    -------
+    PlaylistObserver
+        Returns an already started PlaylistObserver instance
+
+    Notes
+    -----
+    Be sure to stop the returned PlaylistObserver with observer.stop()
+    (and maybe observer.join()) to shut down properly
     """
     event_handler = PlaylistEventhandler()
     observer = PlaylistObserver(timeout=FILESYSTEM_TIMEOUT)
@@ -62,7 +67,26 @@ def kodi_playlist_monitor():
 
 def websocket(plex_id, status):
     """
-    Hit by librarysync to process websocket messages concerning playlists
+    Call this function to process websocket messages from the PMS
+
+    Will use the playlist lock to process one single websocket message from
+    the PMS, and e.g. create or delete the corresponding Kodi playlist (if
+    applicable settings are set)
+
+    Parameters
+    ----------
+    plex_id : unicode
+        The unqiue Plex id 'ratingKey' as received from the PMS
+    status : int
+        'state' as communicated by the PMS in the websocket message. This
+        function will then take the correct actions to process the message
+        * 0: 'created'
+        * 2: 'matching'
+        * 3: 'downloading'
+        * 4: 'loading'
+        * 5: 'finished'
+        * 6: 'analyzing'
+        * 9: 'deleted'
     """
     create = False
     with state.LOCK_PLAYLISTS:
@@ -110,18 +134,25 @@ def websocket(plex_id, status):
 
 def full_sync():
     """
-    Full sync of playlists between Kodi and Plex. Returns True is successful,
-    False otherwise
+    Full sync of playlists between Kodi and Plex
+
+    Call to trigger a full sync both ways, e.g. on Kodi start-up. If issues
+    with a single playlist are encountered on either the Plex or Kodi side,
+    this particular playlist is omitted. Will use the playlist lock.
+
+    Returns
+    -------
+    bool
+        True if successful, False otherwise (actually only if we failed to
+        fetch the PMS playlists)
     """
     LOG.info('Starting playlist full sync')
     with state.LOCK_PLAYLISTS:
+        # Need to lock because we're messing with playlists
         return _full_sync()
 
 
 def _full_sync():
-    """
-    Need to lock because we're messing with playlists
-    """
     # Get all Plex playlists
     xml = pms.all_playlists()
     if xml is None:
@@ -205,8 +236,22 @@ def _full_sync():
 
 def sync_kodi_playlist(path):
     """
-    Returns True if we should sync this Kodi playlist with path [unicode] to
-    Plex based on the playlist file name and the user settings, False otherwise
+    Checks whether we should sync a specific Kodi playlist to Plex
+
+    Will check the following conditions for one single Kodi playlist:
+    * Kodi mixed playlists return False
+    * Support of the file type of the playlist, e.g. m3u
+    * Whether filename matches user settings to sync, if enabled
+
+    Parameters
+    ----------
+    path : unicode
+        Absolute file path to the Kodi playlist in question
+
+    Returns
+    -------
+    bool
+        True if we should sync this Kodi playlist to Plex, False otherwise
     """
     if path.startswith(v.PLAYLIST_PATH_MIXED):
         return False
@@ -227,12 +272,32 @@ def sync_kodi_playlist(path):
     return False
 
 
-def sync_plex_playlist(plex_id=None, xml=None, playlist=None):
+def sync_plex_playlist(playlist=None, xml=None, plex_id=None):
     """
-    Returns True if we should sync this specific Plex playlist due to the
-    user settings (including a disabled music library), False if not.
+    Checks whether we should sync a specific Plex playlist to Kodi
 
-    Pass in either the plex_id or an xml (where API(xml) will be used)
+    Will check the following conditions for one single Plex playlist:
+    * Plex music playlists return False if PKC audio sync is disabled
+    * Whether filename matches user settings to sync, if enabled
+    * False is returned if we could not retrieve more information about the
+      playlist if only the plex_id was given
+
+    Parameters
+    ----------
+    Pass in either playlist, xml or plex_id (preferably in this order)
+
+    plex_id : unicode
+        Absolute file path to the Kodi playlist in question
+    xml : etree xml
+        PMS metadata for the Plex element in question. API(xml) instead of
+        the usual API(xml[0]) will be used!
+    playlist: PlayList
+        A PlayList instance with Playlist.plex_name and PlayList.kodi_type set
+
+    Returns
+    -------
+    bool
+        True if we should sync this Plex playlist to Kodi, False otherwise
     """
     if playlist:
         # Mainly once we DELETED a Plex playlist that we're NOT supposed
@@ -274,10 +339,11 @@ class PlaylistEventhandler(events.FileSystemEventHandler):
         """
         Dispatches events to the appropriate methods.
 
-        :param event:
-            The event object representing the file system event.
+        Parameters
+        ----------
         :type event:
             :class:`FileSystemEvent`
+            The event object representing the file system event.
         """
         path = event.dest_path if event.event_type == events.EVENT_TYPE_MOVED \
             else event.src_path
