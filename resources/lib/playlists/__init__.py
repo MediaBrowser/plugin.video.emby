@@ -254,11 +254,11 @@ def sync_plex_playlist(plex_id=None, xml=None, playlist=None):
             return False
         name = api.title()
         typus = v.KODI_PLAYLIST_TYPE_FROM_PLEX[api.playlist_type()]
-    if not state.SYNC_SPECIFIC_PLEX_PLAYLISTS:
-        return True
     if (not state.ENABLE_MUSIC and typus == v.PLEX_PLAYLIST_TYPE_AUDIO):
         LOG.debug('Not synching Plex audio playlist')
         return False
+    if not state.SYNC_SPECIFIC_PLEX_PLAYLISTS:
+        return True
     prefix = utils.settings('syncSpecificPlexPlaylistsPrefix').lower()
     if name and name.lower().startswith(prefix):
         return True
