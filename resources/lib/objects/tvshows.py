@@ -354,7 +354,7 @@ class TVShows(Items):
             self.kodi_db.update_uniqueid(showid, "tvshow", tvdb, "tvdb", uniqueid)
 
             # Update the tvshow entry
-            self.kodi_db.update_tvshow(title, plot, uniqueid, premieredate, genre, title,
+            self.kodi_db.update_tvshow(title, plot, ratingid, premieredate, genre, title,
                                        uniqueid, mpaa, studio, sorttitle, showid)
 
             # Update the checksum in emby table
@@ -380,7 +380,7 @@ class TVShows(Items):
             pathid = self.kodi_db.add_path(path)
 
             # Create the tvshow entry
-            self.kodi_db.add_tvshow(showid, title, plot, uniqueid, premieredate, genre,
+            self.kodi_db.add_tvshow(showid, title, plot, ratingid, premieredate, genre,
                                     title, uniqueid, mpaa, studio, sorttitle)
 
             # Create the reference in emby table
@@ -606,9 +606,9 @@ class TVShows(Items):
             self.kodi_db.update_uniqueid(episodeid, "episode", tvdb, "tvdb", uniqueid)
 
             # Update the episode entry
-            self.kodi_db.update_episode(title, plot, uniqueid, writer, premieredate, runtime,
+            self.kodi_db.update_episode(title, plot, ratingid, writer, premieredate, runtime,
                                         director, season, episode, title, airsBeforeSeason,
-                                        airsBeforeEpisode, seasonid, showid, episodeid)
+                                        airsBeforeEpisode, seasonid, showid, uniqueid, episodeid)
 
             # Update the checksum in emby table
             emby_db.updateReference(itemid, checksum)
@@ -633,9 +633,9 @@ class TVShows(Items):
             fileid = self.kodi_db.add_file(filename, pathid)
 
             # Create the episode entry
-            self.kodi_db.add_episode(episodeid, fileid, title, plot, uniqueid, writer,
+            self.kodi_db.add_episode(episodeid, fileid, title, plot, ratingid, writer,
                                      premieredate, runtime, director, season, episode, title,
-                                     showid, airsBeforeSeason, airsBeforeEpisode, seasonid)
+                                     showid, airsBeforeSeason, airsBeforeEpisode, seasonid, uniqueid)
 
             # Create the reference in emby table
             emby_db.addReference(itemid, episodeid, "Episode", "episode", fileid, pathid,
