@@ -194,9 +194,9 @@ class KodiTVShows(KodiItems):
             '''
             INSERT INTO episode(
                 idEpisode, idFile, c00, c01, c03, c04, c05, c09, c10, c12, c13, c14,
-                idShow, c15, c16, idSeason)
+                idShow, c15, c16, idSeason, c20)
 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             '''
         )
         self.cursor.execute(query, (args))
@@ -206,7 +206,8 @@ class KodiTVShows(KodiItems):
 
             "UPDATE episode",
             "SET c00 = ?, c01 = ?, c03 = ?, c04 = ?, c05 = ?, c09 = ?, c10 = ?,",
-                "c12 = ?, c13 = ?, c14 = ?, c15 = ?, c16 = ?, idSeason = ?, idShow = ?",
+                "c12 = ?, c13 = ?, c14 = ?, c15 = ?, c16 = ?, idSeason = ?, idShow = ?,",
+                "c20 = ?",
             "WHERE idEpisode = ?"
         ))
         self.cursor.execute(query, (args))

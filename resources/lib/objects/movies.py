@@ -259,7 +259,7 @@ class Movies(Items):
             self.kodi_db.update_uniqueid(movieid, "movie", imdb, "imdb", uniqueid)
 
             # Update the movie entry
-            self.kodi_db.update_movie(title, plot, shortplot, tagline, votecount, uniqueid,
+            self.kodi_db.update_movie(title, plot, shortplot, tagline, votecount, ratingid,
                                       writer, year, uniqueid, sorttitle, runtime, mpaa, genre,
                                       director, title, studio, trailer, country, year, movieid)
 
@@ -285,7 +285,7 @@ class Movies(Items):
 
             # Create the movie entry
             self.kodi_db.add_movie(movieid, fileid, title, plot, shortplot, tagline,
-                                   votecount, uniqueid, writer, year, uniqueid, sorttitle,
+                                   votecount, ratingid, writer, year, uniqueid, sorttitle,
                                    runtime, mpaa, genre, director, title, studio, trailer,
                                    country, year)
 
