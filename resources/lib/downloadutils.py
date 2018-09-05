@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
-import xml.etree.ElementTree as etree
+import defusedxml.ElementTree as etree  # etree parse unsafe
 import requests
 
 from . import utils

@@ -13,6 +13,7 @@ from StringIO import StringIO
 from time import localtime, strftime
 from unicodedata import normalize
 import xml.etree.ElementTree as etree
+import defusedxml.ElementTree as defused_etree  # etree parse unsafe
 from functools import wraps, partial
 from urllib import quote_plus
 import hashlib
@@ -669,7 +670,7 @@ class XmlKodiSetting(object):
 
     def __enter__(self):
         try:
-            self.tree = etree.parse(self.path)
+            self.tree = defused_etree.parse(self.path)
         except IOError:
             # Document is blank or missing
             if self.force_create is False:
@@ -828,7 +829,7 @@ def passwords_xml():
     path = path_ops.translate_path('special://userdata/')
     xmlpath = "%spasswords.xml" % path
     try:
-        xmlparse = etree.parse(xmlpath)
+        xmlparse = defused_etree.parse(xmlpath)
     except IOError:
         # Document is blank or missing
         root = etree.Element('passwords')

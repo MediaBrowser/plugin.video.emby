@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from logging import getLogger
 from json import loads
-import xml.etree.ElementTree as etree
+import defusedxml.ElementTree as etree  # etree parse unsafe
 from threading import Thread
 from ssl import CERT_NONE
 from xbmc import sleep
