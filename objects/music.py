@@ -161,7 +161,6 @@ class Music(KodiDb):
         self.artist_link(obj)
         self.artist_discography(obj)
         self.update_album(*values(obj, QU.update_album_obj))
-        self.add_genres(*values(obj, QU.add_genres_obj))
         self.artwork.add(obj['Artwork'], obj['AlbumId'], "album")
 
     def album_add(self, obj):
@@ -286,7 +285,6 @@ class Music(KodiDb):
             self.song_add(obj)
 
 
-        self.link_song_album(*values(obj, QU.update_song_album_obj))
         self.add_role(*values(obj, QU.update_role_obj)) # defaultt role
         self.song_artist_link(obj)
         self.song_artist_discography(obj)

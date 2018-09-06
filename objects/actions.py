@@ -63,11 +63,6 @@ class Actions(object):
 
         self.stack[0][1].setPath(self.stack[0][0])
         try:
-            if self.detect_widgets(item):
-                LOG.info(" [ play/widget ]")
-
-                raise IndexError
-
             xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, self.stack[0][1])
             self.stack.pop(0)
         except IndexError:
@@ -234,6 +229,9 @@ class Actions(object):
             obj['Artwork'] = API.get_all_artwork(objects.map(item, 'ArtworkParent'), True)
             self.listitem_video(obj, listitem, item, seektime)
 
+            if 'PlaybackInfo' in item:
+                item['PlaybackInfo']['CurrentPosition'] = obj['Resume']
+
         listitem.setContentLookup(False)
 
     def listitem_video(self, obj, listitem, item, seektime=None):
@@ -312,7 +310,6 @@ class Actions(object):
             listitem.setArt({'fanart': obj['Artwork']['Primary']})
 
         if obj['Premiere']:
-            metadata['premieredate'] = obj['Premiere']
             metadata['date'] = obj['Premiere']
 
 
@@ -387,7 +384,7 @@ class Actions(object):
 
             if obj['Resume'] and seektime != False:
                 listitem.setProperty('resumetime', str(obj['Resume']))
-                listitem.setProperty('StartPercent', str(((obj['Resume']/obj['Runtime']) * 100) - 0.40))
+                listitem.setProperty('StartPercent', str(((obj['Resume']/obj['Runtime']) * 100)))
             else:
                 listitem.setProperty('resumetime', '0')
 
@@ -582,23 +579,6 @@ class Actions(object):
 
         return True
 
-    def detect_widgets(self, item):
-
-        kodi_version = xbmc.getInfoLabel('System.BuildVersion')
-
-        if kodi_version and "Git:" in kodi_version and kodi_version.split('Git:')[1].split("-")[0] in ('20171119', 'a9a7a20'):
-            LOG.info("Build does not require workaround for widgets?")
-
-            return False
-
-        if (not xbmc.getCondVisibility('Window.IsMedia') and
-            ((item['Type'] == 'Audio' and not xbmc.getCondVisibility('Integer.IsGreater(Playlist.Length(music),1)')) or
-            not xbmc.getCondVisibility('Integer.IsGreater(Playlist.Length(video),1)'))):
-
-            return True
-
-        return False
-
 
 class PlaylistWorker(threading.Thread):
 
@@ -707,18 +687,6 @@ def special_listener():
             window('emby.resume.bool', True)
 
     elif isPlaying and not window('emby.external_check'):
-        time = player.getTime()
 
-        if time > 1: # Not external player.
-
-            window('emby.external_check', value="true")
-            window('emby.external_count', value="0")
-        elif count == 120:
-
-            LOG.info("External player detected.")
-            window('emby.external.bool', True)
-            window('emby.external_check.bool', True)
-            window('emby.external_count', value="0")
-
-        elif time == 0:
-            window('emby.external_count', value=str(count + 1))
+        window('emby.external.bool', player.isExternalPlayer())
+        window('emby.external_check.bool', True)
