@@ -272,7 +272,9 @@ class Music(KodiDb):
         if obj['DateAdded']:
             obj['DateAdded'] = obj['DateAdded'].split('.')[0].replace('T', " ")
 
-        if obj['DateAdded'] or obj['DatePlayed']:
+        if not obj['Played']:
+            obj['DatePlayed'] = None
+        elif obj['DateAdded'] or obj['DatePlayed']:
             obj['DatePlayed'] = (obj['DatePlayed'] or obj['DateAdded']).split('.')[0].replace('T', " ")
 
         if obj['Disc'] != 1:
@@ -432,7 +434,9 @@ class Music(KodiDb):
 
         if obj['Media'] == 'song':
 
-            if obj['DatePlayed']:
+            if not obj['Played']:
+                obj['DatePlayed'] = None
+            elif obj['DatePlayed']:
                 obj['DatePlayed'] = obj['DatePlayed'].split('.')[0].replace('T', " ")
 
             self.rate_song(*values(obj, QU.update_song_rating_obj))

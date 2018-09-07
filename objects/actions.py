@@ -139,6 +139,7 @@ class Actions(object):
                     play = playutils.PlayUtils(intro, False, self.server_id, self.server)
                     source = play.select_source(play.get_sources())
                     self.set_listitem(intro, listitem)
+                    listitem.setProperty('embyintro', "true")
                     listitem.setPath(intro['PlaybackInfo']['Path'])
                     playutils.set_properties(intro, intro['PlaybackInfo']['Method'], self.server_id)
 
@@ -271,7 +272,9 @@ class Actions(object):
         if obj['Premiere']:
             obj['Premiere'] = obj['Premiere'].split('T')[0]
 
-        if obj['DatePlayed']:
+        if not obj['Played']:
+            obj['DatePlayed'] = None
+        elif obj['DatePlayed']:
             obj['DatePlayed'] = obj['DatePlayed'].split('.')[0].replace('T', " ")
 
         metadata = {
