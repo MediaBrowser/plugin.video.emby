@@ -144,6 +144,7 @@ class Actions(object):
                     play = playutils.PlayUtils(intro, False, self.server_id, self.server)
                     source = play.select_source(play.get_sources())
                     self.set_listitem(intro, listitem)
+                    listitem.setProperty('embyintro', "true")
                     listitem.setPath(intro['PlaybackInfo']['Path'])
                     playutils.set_properties(intro, intro['PlaybackInfo']['Method'], self.server_id)
 
@@ -234,6 +235,9 @@ class Actions(object):
             obj['Artwork'] = API.get_all_artwork(objects.map(item, 'ArtworkParent'), True)
             self.listitem_video(obj, listitem, item, seektime)
 
+            if 'PlaybackInfo' in item:
+                item['PlaybackInfo']['CurrentPosition'] = obj['Resume']
+
         listitem.setContentLookup(False)
 
     def listitem_video(self, obj, listitem, item, seektime=None):
@@ -246,6 +250,7 @@ class Actions(object):
         obj['Genres'] = " / ".join(obj['Genres'] or [])
         obj['Studios'] = [API.validate_studio(studio) for studio in (obj['Studios'] or [])]
         obj['Studios'] = " / ".join(obj['Studios'])
+        obj['Mpaa'] = API.get_mpaa(obj['Mpaa'])
         obj['People'] = obj['People'] or []
         obj['Countries'] = " / ".join(obj['Countries'] or [])
         obj['Directors'] = " / ".join(obj['Directors'] or [])
@@ -272,7 +277,9 @@ class Actions(object):
         if obj['Premiere']:
             obj['Premiere'] = obj['Premiere'].split('T')[0]
 
-        if obj['DatePlayed']:
+        if not obj['Played']:
+            obj['DatePlayed'] = None
+        elif obj['DatePlayed']:
             obj['DatePlayed'] = obj['DatePlayed'].split('.')[0].replace('T', " ")
 
         metadata = {
@@ -416,7 +423,9 @@ class Actions(object):
         obj['PlayCount'] = API.get_playcount(obj['Played'], obj['PlayCount']) or 0
         obj['Rating'] = obj['Rating'] or 0
 
-        if obj['FileDate'] or obj['DatePlayed']:
+        if not obj['Played']:
+            obj['DatePlayed'] = None
+        elif obj['FileDate'] or obj['DatePlayed']:
             obj['DatePlayed'] = (obj['DatePlayed'] or obj['FileDate']).split('.')[0].replace('T', " ")
 
         obj['FileDate'] = "%s.%s.%s" % tuple(reversed(obj['FileDate'].split('T')[0].split('-')))
