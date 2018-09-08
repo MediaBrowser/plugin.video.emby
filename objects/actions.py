@@ -63,6 +63,11 @@ class Actions(object):
 
         self.stack[0][1].setPath(self.stack[0][0])
         try:
+            if self.detect_widgets(item):
+                LOG.info(" [ play/widget ]")
+
+                raise IndexError
+
             xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, self.stack[0][1])
             self.stack.pop(0)
         except IndexError:
@@ -86,15 +91,14 @@ class Actions(object):
         seektime = window('emby.resume.bool')
         window('emby.resume', clear=True)
 
-        if item['Type'] != 'Audio':
+        if item['MediaType'] in ('Video', 'Audio'):
+            resume = item['UserData'].get('PlaybackPositionTicks')
 
-            if get_play_action() == "Resume":
-                seektime = True
+            if resume:
+                if get_play_action() == "Resume":
+                    seektime = True
 
-            if transcode and not seektime:
-                resume = item['UserData'].get('PlaybackPositionTicks')
-
-                if resume:
+                if transcode and not seektime and resume:
                     choice = self.resume_dialog(api.API(item, self.server).adjust_resume((resume or 0) / 10000000.0))
                     
                     if choice is None:
@@ -138,8 +142,7 @@ class Actions(object):
 
                     play = playutils.PlayUtils(intro, False, self.server_id, self.server)
                     source = play.select_source(play.get_sources())
-                    self.set_listitem(intro, listitem)
-                    listitem.setProperty('embyintro', "true")
+                    self.set_listitem(intro, listitem, intro=True)
                     listitem.setPath(intro['PlaybackInfo']['Path'])
                     playutils.set_properties(intro, intro['PlaybackInfo']['Method'], self.server_id)
 
@@ -171,7 +174,7 @@ class Actions(object):
 
         ''' Play a list of items. Creates a new playlist.
         '''
-        playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
+        playlist = self.get_playlist(items[0])
         started = False
 
         if clear:
@@ -206,7 +209,7 @@ class Actions(object):
                 started = True
                 xbmc.Player().play(playlist)
 
-    def set_listitem(self, item, listitem, db_id=None, seektime=None):
+    def set_listitem(self, item, listitem, db_id=None, seektime=None, intro=False):
 
         objects = Objects()
         API = api.API(item, self.server)
@@ -228,9 +231,11 @@ class Actions(object):
             obj = objects.map(item, 'BrowseVideo')
             obj['DbId'] = db_id
             obj['Artwork'] = API.get_all_artwork(objects.map(item, 'ArtworkParent'), True)
+            if intro:
+                obj['Artwork']['Primary'] += "&KodiCinemaMode=true"
             self.listitem_video(obj, listitem, item, seektime)
 
-            if 'PlaybackInfo' in item:
+            if 'PlaybackInfo' in item and seektime:
                 item['PlaybackInfo']['CurrentPosition'] = obj['Resume']
 
         listitem.setContentLookup(False)
@@ -582,6 +587,23 @@ class Actions(object):
 
         return True
 
+    def detect_widgets(self, item):
+
+        kodi_version = xbmc.getInfoLabel('System.BuildVersion')
+
+        if not kodi_version.startswith('18') and kodi_version and "Git:" in kodi_version and kodi_version.split('Git:')[1].split("-")[0] in ('20171119', 'a9a7a20'):
+            LOG.info("Build does not require workaround for widgets?")
+
+            return False
+
+        if (not xbmc.getCondVisibility('Window.IsMedia') and
+            ((item['Type'] == 'Audio' and not xbmc.getCondVisibility('Integer.IsGreater(Playlist.Length(music),1)')) or
+            not xbmc.getCondVisibility('Integer.IsGreater(Playlist.Length(video),1)'))):
+
+            return True
+
+        return False
+
 
 class PlaylistWorker(threading.Thread):
 
@@ -603,12 +625,18 @@ def on_update(data, server):
     try:
         kodi_id = data['item']['id']
         media = data['item']['type']
-        playcount = int(data['playcount'])
+        playcount = int(data.get('playcount', 0))
         LOG.info(" [ update/%s ] kodi_id: %s media: %s", playcount, kodi_id, media)   
     except (KeyError, TypeError):
-        LOG.debug("Invalid playstate update")
 
-        return
+        if 'id' in data and 'type' in data and window('emby.context.resetresume.bool'):
+            kodi_id = data['id']
+            media = data['type']
+            playcount = 0
+        else:
+            LOG.debug("Invalid playstate update")
+
+            return
 
     item = database.get_item(kodi_id, media)
 
@@ -684,10 +712,18 @@ def special_listener():
         if control == 1002: # Start from beginning
 
             LOG.info("Resume dialog: Start from beginning selected.")
-            window('emby.resume', clear=True)
-        else:
+            window('emby.resume.bool', False)
+        elif control == 1001:
+
             LOG.info("Resume dialog: Resume selected.")
             window('emby.resume.bool', True)
+        elif control == 1005:
+
+            LOG.info("Reset resume point selected.")
+            window('emby.context.resetresume.bool', True)
+        else:
+            window('emby.resume', clear=True)
+            window('emby.context.resetresume', clear=True)
 
     elif isPlaying and not window('emby.external_check'):
 
