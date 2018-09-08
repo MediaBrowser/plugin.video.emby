@@ -22,9 +22,15 @@ class Music(Kodi):
         self.cursor = cursor
         Kodi.__init__(self)
 
+    def disable_rescan(self, *args):
+
+        ''' Make sure rescan and kodi db set.
+        '''
+        self.cursor.execute(QU.disable_rescan, args)
+
     def create_entry(self):
 
-        ''' Krypton has a dummy first entry
+        ''' Leia has a dummy first entry
             idArtist: 1  strArtist: [Missing Tag]  strMusicBrainzArtistID: Artist Tag Missing
         '''
         self.cursor.execute(QU.create_artist)

@@ -97,7 +97,9 @@ add_genre =     		"""	INSERT INTO	genre(idGenre, strGenre)
 add_genres_obj =             [   "{AlbumId}","{Genres}","album"
                             ]
 
-
+disable_rescan =        """ INSERT OR REPLACE INTO  versiontagscan(idVersion, iNeedsScan) 
+                            VALUES                  (?, ?)
+                        """
 
 update_path =   		"""	UPDATE 	path 
 							SET 	strPath = ? 

@@ -10,7 +10,7 @@ import urllib
 from obj import Objects
 from kodi import Music as KodiDb, queries_music as QU
 from database import emby_db, queries as QUEM
-from helper import api, catch, stop, validate, emby_item, values, library_check
+from helper import api, catch, stop, validate, emby_item, values, library_check, settings
 
 ##################################################################################################
 
@@ -32,6 +32,11 @@ class Music(KodiDb):
         self.objects = Objects()
 
         KodiDb.__init__(self, musicdb.cursor)
+
+        if not settings('MusicRescan.bool'):
+
+            self.disable_rescan(72, 0)
+            settings('MusicRescan.bool', True)
 
     def __getitem__(self, key):
 
