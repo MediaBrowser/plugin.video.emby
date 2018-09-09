@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<skin>
+    <defaultresolution>1080i</defaultresolution>
+    <defaultresolutionwide>1080i</defaultresolutionwide>
+    <version>1.0</version>
+
+    <!-- amount to zoom skin to remove overscan compensation -->
+    <zoom>0</zoom>
+
+    <credits>
+        <skinname>Main</skinname>
+        <name>Plex</name>
+    </credits>
+</skin>
