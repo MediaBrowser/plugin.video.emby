@@ -74,7 +74,6 @@ def toggle_plex_tv_sign_in():
         utils.settings('plexLogin', value="")
         utils.settings('plexToken', value="")
         utils.settings('plexid', value="")
-        utils.settings('plexHomeSize', value="1")
         utils.settings('plexAvatar', value="")
         utils.settings('plex_status', value=utils.lang(39226))
 

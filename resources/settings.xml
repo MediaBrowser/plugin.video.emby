@@ -26,9 +26,7 @@
 		<setting id="plexLogin" label="39228" type="text" default="" enable="false" />
 		<setting id="myplexlogin" label="39025" type="bool" default="true" /> <!-- Log into plex.tv on startup -->
 		<setting label="39209" type="action" action="RunPlugin(plugin://plugin.video.plexkodiconnect?mode=togglePlexTV)" option="close" />
-		<setting id="plexhome" label="Plex home in use" type="bool" default="" visible="false" />
 		<setting id="plexToken" label="plexToken" type="text" default="" visible="false" />
-		<setting id="plexHomeSize" type="number" default="1" visible="false" />
         <setting type="sep" text=""/>
 		<setting type="lsep" label="39008" />
 		<setting id="plexCompanion" label="39004" type="bool" default="true" />

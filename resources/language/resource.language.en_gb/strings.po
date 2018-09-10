@@ -1119,6 +1119,11 @@ msgctxt "#39228"
 msgid "Plex user:"
 msgstr ""
 
+# Error message if user could not log in; the actual user name will be appended at the end of the string
+msgctxt "#39229"
+msgid "Login failed with plex.tv for user"
+msgstr ""
+
 msgctxt "#39250"
 msgid "Running the image cache process can take some time. It will happen in the background. Are you sure you want continue?"
 msgstr ""

@@ -164,11 +164,14 @@ class InitialSetup(object):
 
         Returns True if successful, or False if not
         """
-        result = plex_tv.sign_in_with_pin()
-        if result:
-            self.plex_login = result['username']
-            self.plex_token = result['token']
-            self.plexid = result['plexid']
+        try:
+            user = plex_tv.sign_in_with_pin()
+        except:
+            utils.ERROR()
+        if user:
+            self.plex_login = user.username
+            self.plex_token = user.authToken
+            self.plexid = user.id
             return True
         return False
 
@@ -209,10 +212,7 @@ class InitialSetup(object):
             else:
                 utils.settings('plexLogin', value=self.plex_login)
                 home = 'true' if xml.attrib.get('home') == '1' else 'false'
-                utils.settings('plexhome', value=home)
                 utils.settings('plexAvatar', value=xml.attrib.get('thumb'))
-                utils.settings('plexHomeSize',
-                               value=xml.attrib.get('homeSize', '1'))
                 LOG.info('Updated Plex info from plex.tv')
         return answer
 

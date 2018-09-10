@@ -18,13 +18,12 @@ from functools import wraps, partial
 from urllib import quote_plus
 import hashlib
 import re
+import gc
 import xbmc
 import xbmcaddon
 import xbmcgui
 
-from . import path_ops
-from . import variables as v
-from . import state
+from . import path_ops, variables as v, state
 
 ###############################################################################
 
@@ -50,6 +49,14 @@ REGEX_PLEX_ID_FROM_URL = re.compile(r'''metadata%2F(\d+)''')
 
 ###############################################################################
 # Main methods
+
+
+def garbageCollect():
+    gc.collect(2)
+
+
+def setGlobalProperty(key, val):
+    xbmcgui.Window(10000).setProperty('script.plex.{0}'.format(key), val)
 
 
 def reboot_kodi(message=None):
@@ -124,6 +131,14 @@ def lang(stringid):
             xbmc.getLocalizedString(stringid))
 
 
+def messageDialog(heading, msg):
+    """
+    Shows a dialog using the Plex layout
+    """
+    from .windows import optionsdialog
+    optionsdialog.show(heading, msg, 'OK')
+
+
 def dialog(typus, *args, **kwargs):
     """
     Displays xbmcgui Dialog. Pass a string as typus:
@@ -192,6 +207,46 @@ def dialog(typus, *args, **kwargs):
         'numeric': dia.numeric
     }
     return types[typus](*args, **kwargs)
+
+
+def ERROR(txt='', hide_tb=False, notify=False):
+    import sys
+    short = str(sys.exc_info()[1])
+    LOG.error('Error encountered: %s - %s', txt, short)
+    if hide_tb:
+        return short
+
+    import traceback
+    trace = traceback.format_exc()
+    LOG.error("_____________________________________________________________")
+    for line in trace.splitlines():
+        LOG.error('    ' + line)
+    LOG.error("_____________________________________________________________")
+    if notify:
+        dialog('notification',
+               heading='{plex}',
+               message=short,
+               icon='{error}')
+    return short
+
+
+class AttributeDict(dict):
+    """
+    Turns an etree xml response's xml.attrib into an object with attributes
+    """
+    def __getattr__(self, attr):
+        return self.get(attr)
+
+    def __setattr__(self, attr, value):
+        self[attr] = value
+
+    def __unicode__(self):
+        return '<{0}:{1}:{2}>'.format(self.__class__.__name__,
+                                      self.id,
+                                      self.get('title', 'None'))
+
+    def __repr__(self):
+        return self.__unicode__().encode('utf8')
 
 
 def millis_to_kodi_time(milliseconds):

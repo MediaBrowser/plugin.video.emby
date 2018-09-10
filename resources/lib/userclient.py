@@ -6,10 +6,10 @@ from threading import Thread
 
 from xbmc import sleep, executebuiltin
 
+from .windows import userselect
 from .downloadutils import DownloadUtils as DU
 from . import utils
 from . import path_ops
-from . import plex_tv
 from . import plex_functions as PF
 from . import variables as v
 from . import state
@@ -237,22 +237,22 @@ class UserClient(Thread):
         plextoken = utils.settings('plexToken')
         if plextoken:
             LOG.info("Trying to connect to plex.tv to get a user list")
-            userInfo = plex_tv.choose_home_user(plextoken)
-            if userInfo is False:
+            user = userselect.start()
+            if not user:
                 # FAILURE: Something went wrong, try again
                 self.auth = True
                 self.retry += 1
                 return False
-            username = userInfo['username']
-            userId = userInfo['userid']
-            usertoken = userInfo['token']
+            username = user.title
+            user_id = user.id
+            usertoken = user.authToken
         else:
             LOG.info("Trying to authenticate without a token")
             username = ''
-            userId = ''
+            user_id = ''
             usertoken = ''
 
-        if self.load_user(username, userId, usertoken, authenticated=False):
+        if self.load_user(username, user_id, usertoken, authenticated=False):
             # SUCCESS: loaded a user from the settings
             return True
         # Something went wrong, try again
