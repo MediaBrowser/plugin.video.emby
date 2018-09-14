@@ -642,11 +642,11 @@ def on_update(data, server):
     except (KeyError, TypeError):
 
         if 'id' in data and 'type' in data and window('emby.context.resetresume.bool'):
-
             window('emby.context.resetresume', clear=True)
             kodi_id = data['id']
             media = data['type']
             playcount = 0
+            LOG.info("reset position detected [ %s/%s ]", kodi_id, media)
         else:
             LOG.debug("Invalid playstate update")
 
