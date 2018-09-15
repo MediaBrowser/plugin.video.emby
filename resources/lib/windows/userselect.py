@@ -40,11 +40,12 @@ class UserSelectWindow(kodigui.BaseWindow):
 
     USER_LIST_ID = 101
     PIN_ENTRY_GROUP_ID = 400
-    SHUTDOWN_BUTTON_ID = 500  # Todo: DELETE
+    HOME_BUTTON_ID = 500
 
     def __init__(self, *args, **kwargs):
         self.task = None
         self.user = None
+        self.aborted = False
         kodigui.BaseWindow.__init__(self, *args, **kwargs)
 
     def onFirstInit(self):
@@ -89,6 +90,8 @@ class UserSelectWindow(kodigui.BaseWindow):
                 self.userSelected(item)
         elif 200 < controlID < 212:
             self.pinEntryClicked(controlID)
+        elif controlID == self.HOME_BUTTON_ID:
+            self.home_button_clicked()
 
     def onFocus(self, controlID):
         if controlID == self.USER_LIST_ID:
@@ -125,6 +128,14 @@ class UserSelectWindow(kodigui.BaseWindow):
             self.setProperty('initialized', '1')
         finally:
             self.setProperty('busy', '')
+
+    def home_button_clicked(self):
+        """
+        Action taken if user clicked the home button
+        """
+        self.user = None
+        self.aborted = True
+        self.doClose()
 
     def pinEntryClicked(self, controlID):
         item = self.userList.getSelectedItem()
@@ -182,10 +193,13 @@ def start():
 
     Returns
     =======
+    tuple (user, aborted)
     user : HomeUser
         Or None if user switch failed or aborted by the user)
+    aborted : bool
+        True if the user cancelled the dialog
     """
     w = UserSelectWindow.open()
-    user = w.user
+    user, aborted = w.user, w.aborted
     del w
-    return user
+    return user, aborted

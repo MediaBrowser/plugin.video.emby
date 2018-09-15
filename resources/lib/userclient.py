@@ -237,7 +237,7 @@ class UserClient(Thread):
         plextoken = utils.settings('plexToken')
         if plextoken:
             LOG.info("Trying to connect to plex.tv to get a user list")
-            user = userselect.start()
+            user, aborted = userselect.start()
             if not user:
                 # FAILURE: Something went wrong, try again
                 self.auth = True
