@@ -34,6 +34,7 @@ class UserClient(Thread):
 
         self.auth = True
         self.retry = 0
+        self.aborted = False
 
         self.user = None
         self.has_access = True
@@ -190,11 +191,13 @@ class UserClient(Thread):
 
         # Give attempts at entering password / selecting user
         if self.retry > 0:
-            LOG.error("Too many retries to login.")
-            state.PMS_STATUS = 'Stop'
-            utils.dialog('ok', utils.lang(33001), utils.lang(39023))
-            executebuiltin(
-                'Addon.Openutils.settings(plugin.video.plexkodiconnect)')
+            if not self.aborted:
+                LOG.error("Too many retries to login.")
+                state.PMS_STATUS = 'Stop'
+                # Failed to authenticate. Did you login to plex.tv?
+                utils.dialog('ok', utils.lang(33001), utils.lang(39023))
+                executebuiltin(
+                    'Addon.OpenSettings(plugin.video.plexkodiconnect)')
             return False
 
         # If there's no settings.xml
@@ -237,7 +240,7 @@ class UserClient(Thread):
         plextoken = utils.settings('plexToken')
         if plextoken:
             LOG.info("Trying to connect to plex.tv to get a user list")
-            user, aborted = userselect.start()
+            user, self.aborted = userselect.start()
             if not user:
                 # FAILURE: Something went wrong, try again
                 self.auth = True
