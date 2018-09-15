@@ -136,7 +136,7 @@ def messageDialog(heading, msg):
     Shows a dialog using the Plex layout
     """
     from .windows import optionsdialog
-    optionsdialog.show(heading, msg, 'OK')
+    optionsdialog.show(heading, msg, lang(186))
 
 
 def dialog(typus, *args, **kwargs):
