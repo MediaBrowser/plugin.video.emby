@@ -195,7 +195,7 @@ class UserClient(Thread):
                 LOG.error("Too many retries to login.")
                 state.PMS_STATUS = 'Stop'
                 # Failed to authenticate. Did you login to plex.tv?
-                utils.dialog('ok', utils.lang(33001), utils.lang(39023))
+                utils.messageDialog(utils.lang(29999),utils.lang(39023))
                 executebuiltin(
                     'Addon.OpenSettings(plugin.video.plexkodiconnect)')
             return False
