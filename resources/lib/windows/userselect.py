@@ -59,7 +59,7 @@ class UserSelectWindow(kodigui.BaseWindow):
             if 57 < ID < 68:
                 if not xbmc.getCondVisibility('ControlGroup({0}).HasFocus(0)'.format(self.PIN_ENTRY_GROUP_ID)):
                     item = self.userList.getSelectedItem()
-                    if not item.dataSource.protected:
+                    if not item.dataSource.isProtected:
                         return
                     self.setFocusId(self.PIN_ENTRY_GROUP_ID)
                 self.pinEntryClicked(ID + 142)
@@ -67,7 +67,7 @@ class UserSelectWindow(kodigui.BaseWindow):
             elif 142 <= ID <= 149:  # JumpSMS action
                 if not xbmc.getCondVisibility('ControlGroup({0}).HasFocus(0)'.format(self.PIN_ENTRY_GROUP_ID)):
                     item = self.userList.getSelectedItem()
-                    if not item.dataSource.protected:
+                    if not item.dataSource.isProtected:
                         return
                     self.setFocusId(self.PIN_ENTRY_GROUP_ID)
                 self.pinEntryClicked(ID + 60)
@@ -84,7 +84,7 @@ class UserSelectWindow(kodigui.BaseWindow):
     def onClick(self, controlID):
         if controlID == self.USER_LIST_ID:
             item = self.userList.getSelectedItem()
-            if item.dataSource.protected:
+            if item.dataSource.isProtected:
                 self.setFocusId(self.PIN_ENTRY_GROUP_ID)
             else:
                 self.userSelected(item)
@@ -116,8 +116,8 @@ class UserSelectWindow(kodigui.BaseWindow):
                 mli = kodigui.ManagedListItem(user.title, user.title[0].upper(), data_source=user)
                 mli.setProperty('pin', user.title)
                 # mli.setProperty('back.image', back)
-                mli.setProperty('protected', user.protected == '1' and '1' or '')
-                mli.setProperty('admin', user.admin == '1' and '1' or '')
+                mli.setProperty('protected', user.isProtected and '1' or '')
+                mli.setProperty('admin', user.isAdmin and '1' or '')
                 items.append(mli)
 
             self.userList.addItems(items)

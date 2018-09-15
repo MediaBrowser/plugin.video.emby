@@ -18,8 +18,22 @@ LOG = getLogger('PLEX.plex_tv')
 class HomeUser(utils.AttributeDict):
     """
     Turns an etree xml answer into an object with attributes
+    Adds the additional properties:
+        isProtected
+        isAdmin
+        isManaged
     """
-    pass
+    @property
+    def isProtected(self):
+        return self.protected == '1'
+
+    @property
+    def isAdmin(self):
+        return self.admin == '1'
+
+    @property
+    def isManaged(self):
+        return self.restricted == '1'
 
 
 def homeuser_to_settings(user):
