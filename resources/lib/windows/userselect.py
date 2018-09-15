@@ -139,10 +139,7 @@ class UserSelectWindow(kodigui.BaseWindow):
 
     def pinEntryClicked(self, controlID):
         item = self.userList.getSelectedItem()
-        if item.getProperty('editing.pin'):
-            pin = item.getProperty('editing.pin')
-        else:
-            pin = ''
+        pin = item.getProperty('editing.pin') or ''
 
         if len(pin) > 3:
             return
