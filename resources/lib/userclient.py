@@ -189,7 +189,7 @@ class UserClient(Thread):
         LOG.debug('Authenticating user')
 
         # Give attempts at entering password / selecting user
-        if self.retry >= 2:
+        if self.retry > 0:
             LOG.error("Too many retries to login.")
             state.PMS_STATUS = 'Stop'
             utils.dialog('ok', utils.lang(33001), utils.lang(39023))
