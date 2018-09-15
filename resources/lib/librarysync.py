@@ -530,15 +530,15 @@ class LibrarySync(Thread):
                      message=utils.lang(30052),
                      icon='{plex}',
                      sound=False)
-        for item in delete_movies:
-            with itemtypes.Movies() as movie_db:
+        with itemtypes.Movies() as movie_db:
+            for item in delete_movies:
                 movie_db.remove(item['plex_id'])
-        for item in delete_tv:
-            with itemtypes.TVShows() as tv_db:
+        with itemtypes.TVShows() as tv_db:
+            for item in delete_tv:
                 tv_db.remove(item['plex_id'])
         # And for the music DB:
-        for item in delete_music:
-            with itemtypes.Music() as music_db:
+        with itemtypes.Music() as music_db:
+            for item in delete_music:
                 music_db.remove(item['plex_id'])
 
     def get_updatelist(self, xml, item_class, method, view_name, view_id,
