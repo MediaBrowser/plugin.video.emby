@@ -139,6 +139,15 @@ def messageDialog(heading, msg):
     optionsdialog.show(heading, msg, lang(186))
 
 
+def yesno_dialog(heading, msg):
+    """
+    Shows a dialog with a yes and a no button using the Plex layout.
+    Returns True if the user selected yes, False otherwise
+    """
+    from .windows import optionsdialog
+    return optionsdialog.show(heading, msg, lang(107), lang(106)) == 0
+
+
 def dialog(typus, *args, **kwargs):
     """
     Displays xbmcgui Dialog. Pass a string as typus:
