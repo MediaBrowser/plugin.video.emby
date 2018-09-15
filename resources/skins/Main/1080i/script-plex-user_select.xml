@@ -798,7 +798,7 @@
                         <onright>101</onright>
                         <align>right</align>
                         <aligny>center</aligny>
-                        <texturefocus colordiffuse="FFE5A00D" border="10">script.plex/white-square-rounded.png</texturefocus>
+                        <texturefocus>-</texturefocus>
                         <texturenofocus>-</texturenofocus>
                         <label> </label>
                     </control>
@@ -813,43 +813,21 @@
                     <control type="group">
                         <posx>27</posx>
                         <posy>13</posy>
-                        <control type="group">
+                        <control type="image">
                             <visible>!Control.HasFocus(500) + String.IsEmpty(Window.Property(dropdown))</visible>
                             <posx>0</posx>
                             <posy>0</posy>
-                            <control type="image">
-                                <posx>0</posx>
-                                <posy>0</posy>
-                                <width>40</width>
-                                <height>40</height>
-                                <texture colordiffuse="99FFFFFF">script.plex/buttons/power.png</texture>
-                            </control>
-                            <control type="image">
-                                <posx>55</posx>
-                                <posy>13.5</posy>
-                                <width>15</width>
-                                <height>13</height>
-                                <texture colordiffuse="99FFFFFF">script.plex/indicators/dropdown-triangle.png</texture>
-                            </control>
+                            <width>40</width>
+                            <height>40</height>
+                            <texture>script.plex/home/type/home.png</texture>
                         </control>
-                        <control type="group">
-                            <visible>Control.HasFocus(500) | !String.IsEmpty(Window.Property(dropdown))</visible>
-                            <posx>0</posx>
-                            <posy>0</posy>
-                            <control type="image">
-                                <posx>0</posx>
-                                <posy>0</posy>
-                                <width>40</width>
-                                <height>40</height>
-                                <texture colordiffuse="FF000000">script.plex/buttons/power.png</texture>
-                            </control>
-                            <control type="image">
-                                <posx>55</posx>
-                                <posy>13.5</posy>
-                                <width>15</width>
-                                <height>13</height>
-                                <texture colordiffuse="FF000000">script.plex/indicators/dropdown-triangle.png</texture>
-                            </control>
+                        <control type="image">
+                        <visible>Control.HasFocus(500) | !String.IsEmpty(Window.Property(dropdown))</visible>
+                            <posx>-18</posx>
+                            <posy>-18</posy>
+                            <width>76</width>
+                            <height>76</height>
+                            <texture>script.plex/home/type/home-selected.png</texture>
                         </control>
                     </control>
                 </control>
@@ -862,7 +840,7 @@
                     <align>left</align>
                     <aligny>center</aligny>
                     <textcolor>FFFFFFFF</textcolor>
-                    <label>[UPPERCASE]$ADDON[script.plex 32437][/UPPERCASE]</label>
+                    <label>[UPPERCASE]$ADDON[plugin.video.plexkodiconnect 33000][/UPPERCASE]</label>
                 </control>
             </control>
 
