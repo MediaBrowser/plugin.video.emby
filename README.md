@@ -49,7 +49,7 @@ Some people argue that PKC is 'hacky' because of the way it directly accesses th
 
 ### PKC Features
 
-- Support for Kodi 18 Beta 1 (nightly versions are NOT supported!)
+- Support for Kodi 18 Beta 2
 - Support for Kodi 17 Krypton
 - [Amazon Alexa voice recognition](https://www.plex.tv/apps/streaming-devices/amazon-alexa)
 - [Cinema Trailers & Extras](https://support.plex.tv/articles/202934883-cinema-trailers-extras/)
