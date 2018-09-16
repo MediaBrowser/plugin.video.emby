@@ -363,7 +363,7 @@ class TVShows(KodiDb):
 
         self.add_episode(*values(obj, QU.add_episode_obj))
         self.emby_db.add_reference(*values(obj, QUEM.add_reference_episode_obj))
-        LOG.debug("ADD episode [%s/%s] %s: %s", obj['PathId'], obj['FileId'], obj['Id'], obj['Title'])
+        LOG.info("ADD episode [%s/%s] %s: %s", obj['PathId'], obj['FileId'], obj['Id'], obj['Title'])
 
     def episode_update(self, obj):
         
@@ -379,7 +379,7 @@ class TVShows(KodiDb):
 
         self.emby_db.update_reference(*values(obj, QUEM.update_reference_obj))
         self.emby_db.update_parent_id(*values(obj, QUEM.update_parent_episode_obj))
-        LOG.debug("UPDATE episode [%s/%s] %s: %s", obj['PathId'], obj['FileId'], obj['Id'], obj['Title'])
+        LOG.info("UPDATE episode [%s/%s] %s: %s", obj['PathId'], obj['FileId'], obj['Id'], obj['Title'])
 
     def get_episode_path_filename(self, obj):
 
@@ -569,7 +569,7 @@ class TVShows(KodiDb):
         
         self.artwork.delete(kodi_id, "tvshow")
         self.delete_tvshow(kodi_id)
-        LOG.debug("DELETE tvshow [%s] %s", kodi_id, item_id)
+        LOG.info("DELETE tvshow [%s] %s", kodi_id, item_id)
 
     def remove_season(self, kodi_id, item_id):
 

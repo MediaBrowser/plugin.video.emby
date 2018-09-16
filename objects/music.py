@@ -35,7 +35,7 @@ class Music(KodiDb):
 
         if not settings('MusicRescan.bool'):
 
-            self.disable_rescan(72, 0)
+            self.disable_rescan(self.objects.objects['music'].split('MyMusic')[1].split('.db')[0], 0)
             settings('MusicRescan.bool', True)
 
     def __getitem__(self, key):

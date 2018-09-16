@@ -634,6 +634,8 @@ def on_update(data, server):
     
     ''' Only for manually marking as watched/unwatched
     '''
+    reset_resume = False
+
     try:
         kodi_id = data['item']['id']
         media = data['item']['type']
@@ -642,10 +644,12 @@ def on_update(data, server):
     except (KeyError, TypeError):
 
         if 'id' in data and 'type' in data and window('emby.context.resetresume.bool'):
+
             window('emby.context.resetresume', clear=True)
             kodi_id = data['id']
             media = data['type']
             playcount = 0
+            reset_resume = True
             LOG.info("reset position detected [ %s/%s ]", kodi_id, media)
         else:
             LOG.debug("Invalid playstate update")
@@ -656,10 +660,19 @@ def on_update(data, server):
 
     if item:
 
-        if not window('emby.skip.%s.bool' % item[0]):
-            server['api'].item_played(item[0], playcount)
+        if reset_resume:
+            checksum = item[4]
+            server['api'].item_played(item[0], False)
 
-        window('emby.skip.%s' % item[0], clear=True)
+            if checksum:
+                checksum = json.loads(checksum)
+                if checksum['Played']:
+                    server['api'].item_played(item[0], True)
+        else:
+            if not window('emby.skip.%s.bool' % item[0]):
+                server['api'].item_played(item[0], playcount)
+
+            window('emby.skip.%s' % item[0], clear=True)
 
 def on_play(data, server):
 

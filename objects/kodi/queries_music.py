@@ -197,3 +197,5 @@ delete_album =			""" DELETE FROM album
 delete_song =			"""	DELETE FROM song 
    							WHERE 		idSong = ? 
    						"""
+delete_rescan =         """ DELETE FROM versiontagscan
+                        """

@@ -26,6 +26,7 @@ class Music(Kodi):
 
         ''' Make sure rescan and kodi db set.
         '''
+        self.cursor.execute(QU.delete_rescan)
         self.cursor.execute(QU.disable_rescan, args)
 
     def create_entry(self):
