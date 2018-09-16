@@ -237,15 +237,8 @@ def _sign_in_with_pin():
 
     background.setSplash(False)
     back = signin.Background.create()
-    pre = signin.PreSignInWindow.open()
 
     try:
-        try:
-            if not pre.doSignin:
-                return
-        finally:
-            del pre
-
         while True:
             pin_login_window = signin.PinLoginWindow.create()
             try:
