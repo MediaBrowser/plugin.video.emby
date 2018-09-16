@@ -231,7 +231,8 @@ def _sign_in_with_pin():
     from .windows import signin, background
 
     background.setSplash(False)
-    back = background.Background.create()
+    back = signin.Background.create()
+    pre = signin.PreSignInWindow.open()
 
     try:
         pre = signin.PreSignInWindow.open()
