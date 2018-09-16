@@ -645,6 +645,6 @@ class InitialSetup(object):
         if goto_settings:
             state.PMS_STATUS = 'Stop'
             executebuiltin(
-                'Addon.Openutils.settings(plugin.video.plexkodiconnect)')
+                'Addon.OpenSettings(plugin.video.plexkodiconnect)')
         elif reboot is True:
             utils.reboot_kodi()
