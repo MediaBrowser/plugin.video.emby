@@ -261,7 +261,8 @@ def _plex_gdm():
         while True:
             try:
                 data, server = gdm.recvfrom(1024)
-                return_data.append({'from': server, 'data': data})
+                return_data.append({'from': server,
+                                    'data': data.decode('utf-8')})
             except socket.timeout:
                 break
     except Exception as e:
