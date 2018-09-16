@@ -11,7 +11,7 @@
             <posy>0</posy>
             <width>1920</width>
             <height>1080</height>
-            <texture colordiffuse="99606060" border="10">script.plex/white-square.png</texture>
+            <texture colordiffuse="99606060" border="10">plugin.video.plexkodiconnect/white-square.png</texture>
         </control>
         <control type="group">
             <visible>!String.IsEmpty(Window.Property(initialized))</visible>
@@ -22,21 +22,21 @@
                 <posy>-40</posy>
                 <width>830</width>
                 <height>440</height>
-                <texture border="42">script.plex/drop-shadow.png</texture>
+                <texture border="42">plugin.video.plexkodiconnect/drop-shadow.png</texture>
             </control>
             <control type="image">
                 <posx>0</posx>
                 <posy>0</posy>
                 <width>750</width>
                 <height>360</height>
-                <texture colordiffuse="EE323232" border="10">script.plex/white-square-rounded.png</texture>
+                <texture colordiffuse="EE323232" border="10">plugin.video.plexkodiconnect/white-square-rounded.png</texture>
             </control>
             <control type="image">
                 <posx>0</posx>
                 <posy>0</posy>
                 <width>750</width>
                 <height>80</height>
-                <texture colordiffuse="99000000" border="10">script.plex/white-square-top-rounded.png</texture>
+                <texture colordiffuse="99000000" border="10">plugin.video.plexkodiconnect/white-square-top-rounded.png</texture>
             </control>
 
             <control type="image">
@@ -44,7 +44,7 @@
                 <posy>31</posy>
                 <width>19</width>
                 <height>19</height>
-                <texture colordiffuse="FFE5A00D">script.plex/indicators/circle-19.png</texture>
+                <texture colordiffuse="FFE5A00D">plugin.video.plexkodiconnect/indicators/circle-19.png</texture>
             </control>
 
             <control type="label">
@@ -90,8 +90,8 @@
                     <width min="120">auto</width>
                     <height>143</height>
                     <font>font10</font>
-                    <texturefocus colordiffuse="FFE5A00D" border="50">script.plex/buttons/blank-focus.png</texturefocus>
-                    <texturenofocus colordiffuse="99FFFFFF" border="50">script.plex/buttons/blank.png</texturenofocus>
+                    <texturefocus colordiffuse="FFE5A00D" border="50">plugin.video.plexkodiconnect/buttons/blank-focus.png</texturefocus>
+                    <texturenofocus colordiffuse="99FFFFFF" border="50">plugin.video.plexkodiconnect/buttons/blank.png</texturenofocus>
                     <textoffsetx>70</textoffsetx>
                     <textcolor>FF000000</textcolor>
                     <focusedcolor>FF000000</focusedcolor>
@@ -106,8 +106,8 @@
                     <width min="120">auto</width>
                     <height>143</height>
                     <font>font10</font>
-                    <texturefocus colordiffuse="FFE5A00D" border="50">script.plex/buttons/blank-focus.png</texturefocus>
-                    <texturenofocus colordiffuse="99FFFFFF" border="50">script.plex/buttons/blank.png</texturenofocus>
+                    <texturefocus colordiffuse="FFE5A00D" border="50">plugin.video.plexkodiconnect/buttons/blank-focus.png</texturefocus>
+                    <texturenofocus colordiffuse="99FFFFFF" border="50">plugin.video.plexkodiconnect/buttons/blank.png</texturenofocus>
                     <textoffsetx>70</textoffsetx>
                     <textcolor>FF000000</textcolor>
                     <focusedcolor>FF000000</focusedcolor>
@@ -122,8 +122,8 @@
                     <width min="120">auto</width>
                     <height>143</height>
                     <font>font10</font>
-                    <texturefocus colordiffuse="FFE5A00D" border="50">script.plex/buttons/blank-focus.png</texturefocus>
-                    <texturenofocus colordiffuse="99FFFFFF" border="50">script.plex/buttons/blank.png</texturenofocus>
+                    <texturefocus colordiffuse="FFE5A00D" border="50">plugin.video.plexkodiconnect/buttons/blank-focus.png</texturefocus>
+                    <texturenofocus colordiffuse="99FFFFFF" border="50">plugin.video.plexkodiconnect/buttons/blank.png</texturenofocus>
                     <textoffsetx>70</textoffsetx>
                     <textcolor>FF000000</textcolor>
                     <focusedcolor>FF000000</focusedcolor>

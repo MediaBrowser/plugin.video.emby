@@ -13,7 +13,7 @@
                 <posy>0</posy>
                 <width>1920</width>
                 <height>1080</height>
-                <texture>script.plex/home/background-fallback.png</texture>
+                <texture>plugin.video.plexkodiconnect/home/background-fallback.png</texture>
             </control>
             <control type="group">
                 <visible>false</visible>
@@ -31,7 +31,7 @@
                     <posy>0</posy>
                     <width>1920</width>
                     <height>1080</height>
-                    <texture>script.plex/white-square.png</texture>
+                    <texture>plugin.video.plexkodiconnect/white-square.png</texture>
                     <colordiffuse>D0404040</colordiffuse>
                 </control>
             </control>
@@ -50,7 +50,7 @@
             <posy>75</posy>
             <width>786</width>
             <height>786</height>
-            <texture>script.plex/white-square.png</texture>
+            <texture>plugin.video.plexkodiconnect/white-square.png</texture>
             <colordiffuse>20FFFFFF</colordiffuse>
         </control>
         <control type="image">
@@ -142,7 +142,7 @@
             <posy>0</posy>
             <width>1920</width>
             <height>140</height>
-            <texture>script.plex/white-square.png</texture>
+            <texture>plugin.video.plexkodiconnect/white-square.png</texture>
             <colordiffuse>A0000000</colordiffuse>
         </control>
 
@@ -154,7 +154,7 @@
                 <posy>0</posy>
                 <width>1920</width>
                 <height>140</height>
-                <texture>script.plex/white-square.png</texture>
+                <texture>plugin.video.plexkodiconnect/white-square.png</texture>
                 <colordiffuse>A0000000</colordiffuse>
             </control>
         </control>
@@ -238,7 +238,7 @@
                         <posy>0</posy>
                         <width>125</width>
                         <height>101</height>
-                        <texture colordiffuse="99FFFFFF">script.plex/buttons/repeat.png</texture>
+                        <texture colordiffuse="99FFFFFF">plugin.video.plexkodiconnect/buttons/repeat.png</texture>
                     </control>
                     <control type="image">
                         <visible>Playlist.IsRepeat | !String.IsEmpty(Window.Property(pq.repeat))</visible>
@@ -246,7 +246,7 @@
                         <posy>0</posy>
                         <width>125</width>
                         <height>101</height>
-                        <texture colordiffuse="FFCC7B19">script.plex/buttons/repeat.png</texture>
+                        <texture colordiffuse="FFCC7B19">plugin.video.plexkodiconnect/buttons/repeat.png</texture>
                     </control>
                     <control type="image">
                         <visible>Playlist.IsRepeatOne</visible>
@@ -254,7 +254,7 @@
                         <posy>0</posy>
                         <width>125</width>
                         <height>101</height>
-                        <texture colordiffuse="FFCC7B19">script.plex/buttons/repeat-one.png</texture>
+                        <texture colordiffuse="FFCC7B19">plugin.video.plexkodiconnect/buttons/repeat-one.png</texture>
                     </control>
                 </control>
                 <control type="group">
@@ -265,7 +265,7 @@
                         <posy>0</posy>
                         <width>125</width>
                         <height>101</height>
-                        <texture colordiffuse="FFE5A00D">script.plex/buttons/repeat-focus.png</texture>
+                        <texture colordiffuse="FFE5A00D">plugin.video.plexkodiconnect/buttons/repeat-focus.png</texture>
                     </control>
                     <control type="image">
                         <visible>Playlist.IsRepeat | !String.IsEmpty(Window.Property(pq.repeat))</visible>
@@ -273,7 +273,7 @@
                         <posy>0</posy>
                         <width>125</width>
                         <height>101</height>
-                        <texture colordiffuse="FFCC7B19">script.plex/buttons/repeat-focus.png</texture>
+                        <texture colordiffuse="FFCC7B19">plugin.video.plexkodiconnect/buttons/repeat-focus.png</texture>
                     </control>
                     <control type="image">
                         <visible>Playlist.IsRepeatOne</visible>
@@ -281,7 +281,7 @@
                         <posy>0</posy>
                         <width>125</width>
                         <height>101</height>
-                        <texture colordiffuse="FFCC7B19">script.plex/buttons/repeat-one-focus.png</texture>
+                        <texture colordiffuse="FFCC7B19">plugin.video.plexkodiconnect/buttons/repeat-one-focus.png</texture>
                     </control>
                 </control>
             </control>
@@ -296,11 +296,11 @@
                 <width>125</width>
                 <height>101</height>
                 <font>font12</font>
-                <texturefocus colordiffuse="FFE5A00D">script.plex/buttons/shuffle-focus.png</texturefocus>
-                <texturenofocus colordiffuse="99FFFFFF">script.plex/buttons/shuffle.png</texturenofocus>
+                <texturefocus colordiffuse="FFE5A00D">plugin.video.plexkodiconnect/buttons/shuffle-focus.png</texturefocus>
+                <texturenofocus colordiffuse="99FFFFFF">plugin.video.plexkodiconnect/buttons/shuffle.png</texturenofocus>
                 <usealttexture>Playlist.IsRandom</usealttexture>
-                <alttexturefocus colordiffuse="FFCC7B19">script.plex/buttons/shuffle-focus.png</alttexturefocus>
-                <alttexturenofocus colordiffuse="FFCC7B19">script.plex/buttons/shuffle.png</alttexturenofocus>
+                <alttexturefocus colordiffuse="FFCC7B19">plugin.video.plexkodiconnect/buttons/shuffle-focus.png</alttexturefocus>
+                <alttexturenofocus colordiffuse="FFCC7B19">plugin.video.plexkodiconnect/buttons/shuffle.png</alttexturenofocus>
                 <onclick>PlayerControl(RandomOn)</onclick>
                 <altclick>PlayerControl(RandomOff)</altclick>
                 <label> </label>
@@ -334,7 +334,7 @@
                         <posy>0</posy>
                         <width>125</width>
                         <height>101</height>
-                        <texture colordiffuse="99FFFFFF">script.plex/buttons/shuffle.png</texture>
+                        <texture colordiffuse="99FFFFFF">plugin.video.plexkodiconnect/buttons/shuffle.png</texture>
                     </control>
                     <control type="image">
                         <visible>Control.HasFocus(422)</visible>
@@ -342,7 +342,7 @@
                         <posy>0</posy>
                         <width>125</width>
                         <height>101</height>
-                        <texture colordiffuse="FFE5A00D">script.plex/buttons/shuffle-focus.png</texture>
+                        <texture colordiffuse="FFE5A00D">plugin.video.plexkodiconnect/buttons/shuffle-focus.png</texture>
                     </control>
                 </control>
                 <control type="group">
@@ -353,7 +353,7 @@
                         <posy>0</posy>
                         <width>125</width>
                         <height>101</height>
-                        <texture colordiffuse="FFCC7B19">script.plex/buttons/shuffle.png</texture>
+                        <texture colordiffuse="FFCC7B19">plugin.video.plexkodiconnect/buttons/shuffle.png</texture>
                     </control>
                     <control type="image">
                         <visible>Control.HasFocus(422)</visible>
@@ -361,7 +361,7 @@
                         <posy>0</posy>
                         <width>125</width>
                         <height>101</height>
-                        <texture colordiffuse="FFCC7B19">script.plex/buttons/shuffle-focus.png</texture>
+                        <texture colordiffuse="FFCC7B19">plugin.video.plexkodiconnect/buttons/shuffle-focus.png</texture>
                     </control>
                 </control>
             </control>
@@ -376,8 +376,8 @@
                 <width>125</width>
                 <height>101</height>
                 <font>font12</font>
-                <texturefocus flipx="true" colordiffuse="FFE5A00D">script.plex/buttons/next-focus.png</texturefocus>
-                <texturenofocus flipx="true" colordiffuse="99FFFFFF">script.plex/buttons/next.png</texturenofocus>
+                <texturefocus flipx="true" colordiffuse="FFE5A00D">plugin.video.plexkodiconnect/buttons/next-focus.png</texturefocus>
+                <texturenofocus flipx="true" colordiffuse="99FFFFFF">plugin.video.plexkodiconnect/buttons/next.png</texturenofocus>
                 <label> </label>
             </control>
             <control type="togglebutton" id="406">
@@ -389,11 +389,11 @@
                 <width>125</width>
                 <height>101</height>
                 <font>font12</font>
-                <texturefocus colordiffuse="FFE5A00D">script.plex/buttons/pause-focus.png</texturefocus>
-                <texturenofocus colordiffuse="99FFFFFF">script.plex/buttons/pause.png</texturenofocus>
+                <texturefocus colordiffuse="FFE5A00D">plugin.video.plexkodiconnect/buttons/pause-focus.png</texturefocus>
+                <texturenofocus colordiffuse="99FFFFFF">plugin.video.plexkodiconnect/buttons/pause.png</texturenofocus>
                 <usealttexture>Player.Paused | Player.Forwarding | Player.Rewinding</usealttexture>
-                <alttexturefocus colordiffuse="FFE5A00D">script.plex/buttons/play-focus.png</alttexturefocus>
-                <alttexturenofocus colordiffuse="99FFFFFF">script.plex/buttons/play.png</alttexturenofocus>
+                <alttexturefocus colordiffuse="FFE5A00D">plugin.video.plexkodiconnect/buttons/play-focus.png</alttexturefocus>
+                <alttexturenofocus colordiffuse="99FFFFFF">plugin.video.plexkodiconnect/buttons/play.png</alttexturenofocus>
                 <!-- <enable>Player.PauseEnabled</enable> -->
                 <onclick>PlayerControl(Play)</onclick>
                 <label> </label>
@@ -407,8 +407,8 @@
                 <width>125</width>
                 <height>101</height>
                 <font>font12</font>
-                <texturefocus colordiffuse="FFE5A00D">script.plex/buttons/stop-focus.png</texturefocus>
-                <texturenofocus colordiffuse="99FFFFFF">script.plex/buttons/stop.png</texturenofocus>
+                <texturefocus colordiffuse="FFE5A00D">plugin.video.plexkodiconnect/buttons/stop-focus.png</texturefocus>
+                <texturenofocus colordiffuse="99FFFFFF">plugin.video.plexkodiconnect/buttons/stop.png</texturenofocus>
                 <onclick>PlayerControl(Stop)</onclick>
                 <label> </label>
             </control>
@@ -422,8 +422,8 @@
                 <width>125</width>
                 <height>101</height>
                 <font>font12</font>
-                <texturefocus colordiffuse="FFE5A00D">script.plex/buttons/next-focus.png</texturefocus>
-                <texturenofocus colordiffuse="99FFFFFF">script.plex/buttons/next.png</texturenofocus>
+                <texturefocus colordiffuse="FFE5A00D">plugin.video.plexkodiconnect/buttons/next-focus.png</texturefocus>
+                <texturenofocus colordiffuse="99FFFFFF">plugin.video.plexkodiconnect/buttons/next.png</texturenofocus>
                 <label> </label>
             </control>
 
@@ -437,8 +437,8 @@
                 <width>125</width>
                 <height>101</height>
                 <font>font12</font>
-                <texturefocus colordiffuse="FFE5A00D">script.plex/buttons/pqueue-focus.png</texturefocus>
-                <texturenofocus colordiffuse="99FFFFFF">script.plex/buttons/pqueue.png</texturenofocus>
+                <texturefocus colordiffuse="FFE5A00D">plugin.video.plexkodiconnect/buttons/pqueue-focus.png</texturefocus>
+                <texturenofocus colordiffuse="99FFFFFF">plugin.video.plexkodiconnect/buttons/pqueue.png</texturenofocus>
                 <label> </label>
             </control>
             <control type="button" id="411">
@@ -450,8 +450,8 @@
                 <width>125</width>
                 <height>101</height>
                 <font>font12</font>
-                <texturefocus colordiffuse="FFE5A00D">script.plex/buttons/more-focus.png</texturefocus>
-                <texturenofocus colordiffuse="99FFFFFF">script.plex/buttons/more.png</texturenofocus>
+                <texturefocus colordiffuse="FFE5A00D">plugin.video.plexkodiconnect/buttons/more-focus.png</texturefocus>
+                <texturenofocus colordiffuse="99FFFFFF">plugin.video.plexkodiconnect/buttons/more.png</texturenofocus>
                 <label> </label>
             </control>
         </control>
@@ -467,8 +467,8 @@
                 <width>1920</width>
                 <height>10</height>
                 <ondown>400</ondown>
-                <texturefocus>script.plex/white-square.png</texturefocus>
-                <texturenofocus>script.plex/white-square.png</texturenofocus>
+                <texturefocus>plugin.video.plexkodiconnect/white-square.png</texturefocus>
+                <texturenofocus>plugin.video.plexkodiconnect/white-square.png</texturenofocus>
                 <colordiffuse>A0000000</colordiffuse>
             </control>
             <control type="image" id="200">
@@ -478,7 +478,7 @@
                 <posy>1</posy>
                 <width>1</width>
                 <height>8</height>
-                <texture>script.plex/white-square.png</texture>
+                <texture>plugin.video.plexkodiconnect/white-square.png</texture>
                 <colordiffuse>FFE5A00D</colordiffuse>
             </control>
             <control type="progress">
@@ -488,9 +488,9 @@
                 <posy>2</posy>
                 <width>1920</width>
                 <height>6</height>
-                <texturebg>script.plex/transparent-6px.png</texturebg>
+                <texturebg>plugin.video.plexkodiconnect/transparent-6px.png</texturebg>
                 <lefttexture>-</lefttexture>
-                <midtexture colordiffuse="FFCC7B19">script.plex/white-square-6px.png</midtexture>
+                <midtexture colordiffuse="FFCC7B19">plugin.video.plexkodiconnect/white-square-6px.png</midtexture>
                 <righttexture>-</righttexture>
                 <overlaytexture>-</overlaytexture>
                 <info>Player.Progress</info>
@@ -502,9 +502,9 @@
                 <posy>2</posy>
                 <width>1920</width>
                 <height>6</height>
-                <texturebg>script.plex/transparent-6px.png</texturebg>
+                <texturebg>plugin.video.plexkodiconnect/transparent-6px.png</texturebg>
                 <lefttexture>-</lefttexture>
-                <midtexture colordiffuse="FFAC5B00">script.plex/white-square-6px.png</midtexture>
+                <midtexture colordiffuse="FFAC5B00">plugin.video.plexkodiconnect/white-square-6px.png</midtexture>
                 <righttexture>-</righttexture>
                 <overlaytexture>-</overlaytexture>
                 <info>Player.Progress</info>
@@ -518,7 +518,7 @@
             <height>6</height>
             <visible>true</visible>
             <texturesliderbar>-</texturesliderbar>
-            <textureslidernib colordiffuse="FFE5A00D">script.plex/white-square-6px.png</textureslidernib>
+            <textureslidernib colordiffuse="FFE5A00D">plugin.video.plexkodiconnect/white-square-6px.png</textureslidernib>
             <textureslidernibfocus>-</textureslidernibfocus>
             <action>seek</action>
         </control> -->
@@ -530,7 +530,7 @@
             <posy>942</posy>
             <width>1</width>
             <height>6</height>
-            <texture>script.plex/white-square.png</texture>
+            <texture>plugin.video.plexkodiconnect/white-square.png</texture>
             <colordiffuse>FFCC7B19</colordiffuse>
         </control> -->
 
@@ -547,7 +547,7 @@
                     <posy>0</posy>
                     <width>101</width>
                     <height>39</height>
-                    <texture>script.plex/indicators/player-selection-time_box.png</texture>
+                    <texture>plugin.video.plexkodiconnect/indicators/player-selection-time_box.png</texture>
                     <colordiffuse>D0000000</colordiffuse>
                 </control>
                 <control type="label">
@@ -568,7 +568,7 @@
                 <posy>39</posy>
                 <width>15</width>
                 <height>7</height>
-                <texture>script.plex/indicators/player-selection-time_arrow.png</texture>
+                <texture>plugin.video.plexkodiconnect/indicators/player-selection-time_arrow.png</texture>
                 <colordiffuse>D0000000</colordiffuse>
             </control>
         </control>

@@ -21,7 +21,7 @@
                     <posy>0</posy>
                     <width>1170</width>
                     <height>800</height>
-                    <texture>script.plex/white-square.png</texture>
+                    <texture>plugin.video.plexkodiconnect/white-square.png</texture>
                     <colordiffuse>B3111111</colordiffuse>
                 </control>
                 <control type="list" id="101">
@@ -59,7 +59,7 @@
                                 <posy>32.5</posy>
                                 <width>35</width>
                                 <height>35</height>
-                                <texture>script.plex/indicators/playing-circle.png</texture>
+                                <texture>plugin.video.plexkodiconnect/indicators/playing-circle.png</texture>
                                 <colordiffuse>FFE5A00D</colordiffuse>
                             </control>
                             <control type="group">
@@ -115,7 +115,7 @@
                                     <posy>-1</posy>
                                     <width>35</width>
                                     <height>35</height>
-                                    <texture>script.plex/indicators/unwatched.png</texture>
+                                    <texture>plugin.video.plexkodiconnect/indicators/unwatched.png</texture>
                                 </control>
                                 <control type="group">
                                     <posx>226</posx>
@@ -161,7 +161,7 @@
                                 <posy>98</posy>
                                 <width>930</width>
                                 <height>2</height>
-                                <texture>script.plex/white-square.png</texture>
+                                <texture>plugin.video.plexkodiconnect/white-square.png</texture>
                                 <colordiffuse>40000000</colordiffuse>
                             </control>
                         </control>
@@ -192,7 +192,7 @@
                                     <posy>32.5</posy>
                                     <width>35</width>
                                     <height>35</height>
-                                    <texture>script.plex/indicators/playing-circle.png</texture>
+                                    <texture>plugin.video.plexkodiconnect/indicators/playing-circle.png</texture>
                                     <colordiffuse>FFE5A00D</colordiffuse>
                                 </control>
                                 <control type="group">
@@ -248,7 +248,7 @@
                                         <posy>-1</posy>
                                         <width>35</width>
                                         <height>35</height>
-                                        <texture>script.plex/indicators/unwatched.png</texture>
+                                        <texture>plugin.video.plexkodiconnect/indicators/unwatched.png</texture>
                                     </control>
                                     <control type="group">
                                         <posx>226</posx>
@@ -294,7 +294,7 @@
                                     <posy>97</posy>
                                     <width>930</width>
                                     <height>2</height>
-                                    <texture>script.plex/white-square.png</texture>
+                                    <texture>plugin.video.plexkodiconnect/white-square.png</texture>
                                     <colordiffuse>40000000</colordiffuse>
                                 </control>
                             </control>
@@ -308,14 +308,14 @@
                                     <posy>-40</posy>
                                     <width>1124</width>
                                     <height>180</height>
-                                    <texture border="40">script.plex/square-rounded-shadow.png</texture>
+                                    <texture border="40">plugin.video.plexkodiconnect/square-rounded-shadow.png</texture>
                                 </control>
                                 <control type="image">
                                     <posx>0</posx>
                                     <posy>0</posy>
                                     <width>999</width>
                                     <height>100</height>
-                                    <texture border="12">script.plex/white-square-left-rounded.png</texture>
+                                    <texture border="12">plugin.video.plexkodiconnect/white-square-left-rounded.png</texture>
                                     <colordiffuse>FFE5A00D</colordiffuse>
                                 </control>
                                 <control type="image">
@@ -323,7 +323,7 @@
                                     <posy>0</posy>
                                     <width>45</width>
                                     <height>100</height>
-                                    <texture>script.plex/buttons/more-vertical.png</texture>
+                                    <texture>plugin.video.plexkodiconnect/buttons/more-vertical.png</texture>
                                     <colordiffuse>99FFFFFF</colordiffuse>
                                 </control>
                                 <control type="label">
@@ -344,7 +344,7 @@
                                     <posy>32.5</posy>
                                     <width>35</width>
                                     <height>35</height>
-                                    <texture>script.plex/indicators/playing-circle.png</texture>
+                                    <texture>plugin.video.plexkodiconnect/indicators/playing-circle.png</texture>
                                     <colordiffuse>FF000000</colordiffuse>
                                 </control>
                                 <control type="group">
@@ -401,7 +401,7 @@
                                         <posy>0</posy>
                                         <width>48</width>
                                         <height>48</height>
-                                        <texture>script.plex/indicators/unwatched.png</texture>
+                                        <texture>plugin.video.plexkodiconnect/indicators/unwatched.png</texture>
                                     </control>
                                     <control type="group">
                                         <posx>313</posx>
@@ -455,9 +455,9 @@
                     <height>734</height>
                     <onleft>101</onleft>
                     <visible>true</visible>
-                    <texturesliderbackground colordiffuse="40000000" border="5">script.plex/white-square-rounded.png</texturesliderbackground>
-                    <texturesliderbar colordiffuse="77FFFFFF" border="5">script.plex/white-square-rounded.png</texturesliderbar>
-                    <texturesliderbarfocus colordiffuse="FFE5A00D" border="5">script.plex/white-square-rounded.png</texturesliderbarfocus>
+                    <texturesliderbackground colordiffuse="40000000" border="5">plugin.video.plexkodiconnect/white-square-rounded.png</texturesliderbackground>
+                    <texturesliderbar colordiffuse="77FFFFFF" border="5">plugin.video.plexkodiconnect/white-square-rounded.png</texturesliderbar>
+                    <texturesliderbarfocus colordiffuse="FFE5A00D" border="5">plugin.video.plexkodiconnect/white-square-rounded.png</texturesliderbarfocus>
                     <textureslidernib>-</textureslidernib>
                     <textureslidernibfocus>-</textureslidernibfocus>
                     <pulseonselect>false</pulseonselect>

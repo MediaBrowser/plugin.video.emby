@@ -14,21 +14,21 @@
                 <posy>0</posy>
                 <width>564</width>
                 <height>1080</height>
-                <texture colordiffuse="4C000000">script.plex/white-square.png</texture>
+                <texture colordiffuse="4C000000">plugin.video.plexkodiconnect/white-square.png</texture>
             </control>
             <control type="image">
                 <posx>0</posx>
                 <posy>135</posy>
                 <width>564</width>
                 <height>810</height>
-                <texture colordiffuse="FF2D2D2D">script.plex/white-square.png</texture>
+                <texture colordiffuse="FF2D2D2D">plugin.video.plexkodiconnect/white-square.png</texture>
             </control>
             <control type="image">
                 <posx>0</posx>
                 <posy>945</posy>
                 <width>564</width>
                 <height>135</height>
-                <texture colordiffuse="66000000">script.plex/white-square.png</texture>
+                <texture colordiffuse="66000000">plugin.video.plexkodiconnect/white-square.png</texture>
             </control>
         </control>
 
@@ -42,8 +42,8 @@
             <ondown>900</ondown>
             <font>font12</font>
             <focusedcolor>FF000000</focusedcolor>
-            <texturefocus colordiffuse="FFE5A00D">script.plex/buttons/search-focus.png</texturefocus>
-            <texturenofocus colordiffuse="FFCC7B19">script.plex/buttons/search.png</texturenofocus>
+            <texturefocus colordiffuse="FFE5A00D">plugin.video.plexkodiconnect/buttons/search-focus.png</texturefocus>
+            <texturenofocus colordiffuse="FFCC7B19">plugin.video.plexkodiconnect/buttons/search.png</texturenofocus>
             <onclick>Close</onclick>
             <label> </label>
         </control>
@@ -57,7 +57,7 @@
             <align>left</align>
             <aligny>center</aligny>
             <textcolor>FFFFFFFF</textcolor>
-            <label>[UPPERCASE]$ADDON[script.plex 32431][/UPPERCASE]</label>
+            <label>[UPPERCASE]$ADDON[plugin.video.plexkodiconnect 32431][/UPPERCASE]</label>
         </control>
 
         <control type="group" id="899">
@@ -76,7 +76,7 @@
                         <posy>0</posy>
                         <width>151</width>
                         <height>60</height>
-                        <texture colordiffuse="FF1F1F1F">script.plex/white-square.png</texture>
+                        <texture colordiffuse="FF1F1F1F">plugin.video.plexkodiconnect/white-square.png</texture>
                     </control>
                     <control type="group">
                         <visible>StringCompare(Window.Property(search.section),all)</visible>
@@ -85,7 +85,7 @@
                             <posy>0</posy>
                             <width>151</width>
                             <height>60</height>
-                            <texture colordiffuse="FFCC7B19">script.plex/white-square.png</texture>
+                            <texture colordiffuse="FFCC7B19">plugin.video.plexkodiconnect/white-square.png</texture>
                         </control>
                         <control type="label">
                             <scroll>false</scroll>
@@ -111,7 +111,7 @@
                         <align>center</align>
                         <aligny>center</aligny>
                         <textcolor>FFFFFFFF</textcolor>
-                        <label>$ADDON[script.plex 32345]</label>
+                        <label>$ADDON[plugin.video.plexkodiconnect 32345]</label>
                     </control>
                 </control>
                 <control type="group">
@@ -122,7 +122,7 @@
                         <posy>0</posy>
                         <width>74</width>
                         <height>60</height>
-                        <texture colordiffuse="FF1F1F1F">script.plex/white-square.png</texture>
+                        <texture colordiffuse="FF1F1F1F">plugin.video.plexkodiconnect/white-square.png</texture>
                     </control>
                     <control type="image">
                         <visible>StringCompare(Window.Property(search.section),movie)</visible>
@@ -130,7 +130,7 @@
                         <posy>0</posy>
                         <width>74</width>
                         <height>60</height>
-                        <texture colordiffuse="FFCC7B19">script.plex/white-square.png</texture>
+                        <texture colordiffuse="FFCC7B19">plugin.video.plexkodiconnect/white-square.png</texture>
                     </control>
                 </control>
                 <control type="group">
@@ -141,7 +141,7 @@
                         <posy>0</posy>
                         <width>74</width>
                         <height>60</height>
-                        <texture colordiffuse="FF1F1F1F">script.plex/white-square.png</texture>
+                        <texture colordiffuse="FF1F1F1F">plugin.video.plexkodiconnect/white-square.png</texture>
                     </control>
                     <control type="image">
                         <visible>StringCompare(Window.Property(search.section),show)</visible>
@@ -149,7 +149,7 @@
                         <posy>0</posy>
                         <width>74</width>
                         <height>60</height>
-                        <texture colordiffuse="FFCC7B19">script.plex/white-square.png</texture>
+                        <texture colordiffuse="FFCC7B19">plugin.video.plexkodiconnect/white-square.png</texture>
                     </control>
                 </control>
                 <control type="group">
@@ -160,7 +160,7 @@
                         <posy>0</posy>
                         <width>74</width>
                         <height>60</height>
-                        <texture colordiffuse="FF1F1F1F">script.plex/white-square.png</texture>
+                        <texture colordiffuse="FF1F1F1F">plugin.video.plexkodiconnect/white-square.png</texture>
                     </control>
                     <control type="image">
                         <visible>StringCompare(Window.Property(search.section),artist)</visible>
@@ -168,7 +168,7 @@
                         <posy>0</posy>
                         <width>74</width>
                         <height>60</height>
-                        <texture colordiffuse="FFCC7B19">script.plex/white-square.png</texture>
+                        <texture colordiffuse="FFCC7B19">plugin.video.plexkodiconnect/white-square.png</texture>
                     </control>
                 </control>
                 <control type="group">
@@ -179,7 +179,7 @@
                         <posy>0</posy>
                         <width>74</width>
                         <height>60</height>
-                        <texture colordiffuse="FF1F1F1F">script.plex/white-square.png</texture>
+                        <texture colordiffuse="FF1F1F1F">plugin.video.plexkodiconnect/white-square.png</texture>
                     </control>
                     <control type="image">
                         <visible>StringCompare(Window.Property(search.section),photo)</visible>
@@ -187,7 +187,7 @@
                         <posy>0</posy>
                         <width>74</width>
                         <height>60</height>
-                        <texture colordiffuse="FFCC7B19">script.plex/white-square.png</texture>
+                        <texture colordiffuse="FFCC7B19">plugin.video.plexkodiconnect/white-square.png</texture>
                     </control>
                 </control>
 
@@ -212,9 +212,9 @@
                             <aligny>center</aligny>
                             <focusedcolor>FF000000</focusedcolor>
                             <textcolor>00000000</textcolor>
-                            <texturefocus colordiffuse="FFE5A00D" border="50">script.plex/white-square-rounded-with-shadow.png</texturefocus>
+                            <texturefocus colordiffuse="FFE5A00D" border="50">plugin.video.plexkodiconnect/white-square-rounded-with-shadow.png</texturefocus>
                             <texturenofocus>-</texturenofocus>
-                            <label>$ADDON[script.plex 32345]</label>
+                            <label>$ADDON[plugin.video.plexkodiconnect 32345]</label>
                         </control>
                     </control>
                     <control type="group">
@@ -236,7 +236,7 @@
                             <align>center</align>
                             <aligny>center</aligny>
                             <focusedcolor>FF000000</focusedcolor>
-                            <texturefocus colordiffuse="FFE5A00D" border="50">script.plex/white-square-rounded-with-shadow.png</texturefocus>
+                            <texturefocus colordiffuse="FFE5A00D" border="50">plugin.video.plexkodiconnect/white-square-rounded-with-shadow.png</texturefocus>
                             <texturenofocus>-</texturenofocus>
                             <label> </label>
                         </control>
@@ -260,7 +260,7 @@
                             <align>center</align>
                             <aligny>center</aligny>
                             <focusedcolor>FF000000</focusedcolor>
-                            <texturefocus colordiffuse="FFE5A00D" border="50">script.plex/white-square-rounded-with-shadow.png</texturefocus>
+                            <texturefocus colordiffuse="FFE5A00D" border="50">plugin.video.plexkodiconnect/white-square-rounded-with-shadow.png</texturefocus>
                             <texturenofocus>-</texturenofocus>
                             <label> </label>
                         </control>
@@ -284,7 +284,7 @@
                             <align>center</align>
                             <aligny>center</aligny>
                             <focusedcolor>FF000000</focusedcolor>
-                            <texturefocus colordiffuse="FFE5A00D" border="50">script.plex/white-square-rounded-with-shadow.png</texturefocus>
+                            <texturefocus colordiffuse="FFE5A00D" border="50">plugin.video.plexkodiconnect/white-square-rounded-with-shadow.png</texturefocus>
                             <texturenofocus>-</texturenofocus>
                             <label> </label>
                         </control>
@@ -308,7 +308,7 @@
                             <align>center</align>
                             <aligny>center</aligny>
                             <focusedcolor>FF000000</focusedcolor>
-                            <texturefocus colordiffuse="FFE5A00D" border="50">script.plex/white-square-rounded-with-shadow.png</texturefocus>
+                            <texturefocus colordiffuse="FFE5A00D" border="50">plugin.video.plexkodiconnect/white-square-rounded-with-shadow.png</texturefocus>
                             <texturenofocus>-</texturenofocus>
                             <label> </label>
                         </control>
@@ -329,7 +329,7 @@
                             <posy>20</posy>
                             <width>22</width>
                             <height>20</height>
-                            <texture colordiffuse="FFFFFFFF">script.plex/home/type/movie.png</texture>
+                            <texture colordiffuse="FFFFFFFF">plugin.video.plexkodiconnect/home/type/movie.png</texture>
                         </control>
                     </control>
                 </control>
@@ -347,7 +347,7 @@
                             <posy>20</posy>
                             <width>24</width>
                             <height>20</height>
-                            <texture colordiffuse="FFFFFFFF">script.plex/home/type/show.png</texture>
+                            <texture colordiffuse="FFFFFFFF">plugin.video.plexkodiconnect/home/type/show.png</texture>
                         </control>
                     </control>
                 </control>
@@ -365,7 +365,7 @@
                             <posy>20</posy>
                             <width>18</width>
                             <height>20</height>
-                            <texture colordiffuse="FFFFFFFF">script.plex/home/type/artist.png</texture>
+                            <texture colordiffuse="FFFFFFFF">plugin.video.plexkodiconnect/home/type/artist.png</texture>
                         </control>
                     </control>
                 </control>
@@ -383,7 +383,7 @@
                             <posy>20</posy>
                             <width>22</width>
                             <height>20</height>
-                            <texture colordiffuse="FFFFFFFF">script.plex/home/type/photo.png</texture>
+                            <texture colordiffuse="FFFFFFFF">plugin.video.plexkodiconnect/home/type/photo.png</texture>
                         </control>
                     </control>
                 </control>
@@ -400,7 +400,7 @@
                     <posy>0</posy>
                     <width>459</width>
                     <height>60</height>
-                    <texture colordiffuse="FF000000">script.plex/white-square.png</texture>
+                    <texture colordiffuse="FF000000">plugin.video.plexkodiconnect/white-square.png</texture>
                 </control>
                 <control type="edit" id="650">
                     <posx>0</posx>
@@ -417,7 +417,7 @@
                     <hinttext> </hinttext>
                     <font>font13</font>
                     <textoffsetx>30</textoffsetx>
-                    <texturefocus border="10">script.plex/home/selected.png</texturefocus>
+                    <texturefocus border="10">plugin.video.plexkodiconnect/home/selected.png</texturefocus>
                     <texturenofocus>-</texturenofocus>
                     <pulseonselect>no</pulseonselect>
                 </control>
@@ -452,42 +452,42 @@
                         <posy>0</posy>
                         <width>74</width>
                         <height>74</height>
-                        <texture colordiffuse="FF1F1F1F">script.plex/white-square.png</texture>
+                        <texture colordiffuse="FF1F1F1F">plugin.video.plexkodiconnect/white-square.png</texture>
                     </control>
                     <control type="image">
                         <posx>77</posx>
                         <posy>0</posy>
                         <width>74</width>
                         <height>74</height>
-                        <texture colordiffuse="FF1F1F1F">script.plex/white-square.png</texture>
+                        <texture colordiffuse="FF1F1F1F">plugin.video.plexkodiconnect/white-square.png</texture>
                     </control>
                     <control type="image">
                         <posx>154</posx>
                         <posy>0</posy>
                         <width>74</width>
                         <height>74</height>
-                        <texture colordiffuse="FF1F1F1F">script.plex/white-square.png</texture>
+                        <texture colordiffuse="FF1F1F1F">plugin.video.plexkodiconnect/white-square.png</texture>
                     </control>
                     <control type="image">
                         <posx>231</posx>
                         <posy>0</posy>
                         <width>74</width>
                         <height>74</height>
-                        <texture colordiffuse="FF1F1F1F">script.plex/white-square.png</texture>
+                        <texture colordiffuse="FF1F1F1F">plugin.video.plexkodiconnect/white-square.png</texture>
                     </control>
                     <control type="image">
                         <posx>308</posx>
                         <posy>0</posy>
                         <width>74</width>
                         <height>74</height>
-                        <texture colordiffuse="FF1F1F1F">script.plex/white-square.png</texture>
+                        <texture colordiffuse="FF1F1F1F">plugin.video.plexkodiconnect/white-square.png</texture>
                     </control>
                     <control type="image">
                         <posx>385</posx>
                         <posy>0</posy>
                         <width>74</width>
                         <height>74</height>
-                        <texture colordiffuse="FF1F1F1F">script.plex/white-square.png</texture>
+                        <texture colordiffuse="FF1F1F1F">plugin.video.plexkodiconnect/white-square.png</texture>
                     </control>
                 </control>
                 <!-- IMAGES ROW 2 -->
@@ -499,42 +499,42 @@
                         <posy>0</posy>
                         <width>74</width>
                         <height>74</height>
-                        <texture colordiffuse="FF1F1F1F">script.plex/white-square.png</texture>
+                        <texture colordiffuse="FF1F1F1F">plugin.video.plexkodiconnect/white-square.png</texture>
                     </control>
                     <control type="image">
                         <posx>77</posx>
                         <posy>0</posy>
                         <width>74</width>
                         <height>74</height>
-                        <texture colordiffuse="FF1F1F1F">script.plex/white-square.png</texture>
+                        <texture colordiffuse="FF1F1F1F">plugin.video.plexkodiconnect/white-square.png</texture>
                     </control>
                     <control type="image">
                         <posx>154</posx>
                         <posy>0</posy>
                         <width>74</width>
                         <height>74</height>
-                        <texture colordiffuse="FF1F1F1F">script.plex/white-square.png</texture>
+                        <texture colordiffuse="FF1F1F1F">plugin.video.plexkodiconnect/white-square.png</texture>
                     </control>
                     <control type="image">
                         <posx>231</posx>
                         <posy>0</posy>
                         <width>74</width>
                         <height>74</height>
-                        <texture colordiffuse="FF1F1F1F">script.plex/white-square.png</texture>
+                        <texture colordiffuse="FF1F1F1F">plugin.video.plexkodiconnect/white-square.png</texture>
                     </control>
                     <control type="image">
                         <posx>308</posx>
                         <posy>0</posy>
                         <width>74</width>
                         <height>74</height>
-                        <texture colordiffuse="FF1F1F1F">script.plex/white-square.png</texture>
+                        <texture colordiffuse="FF1F1F1F">plugin.video.plexkodiconnect/white-square.png</texture>
                     </control>
                     <control type="image">
                         <posx>385</posx>
                         <posy>0</posy>
                         <width>74</width>
                         <height>74</height>
-                        <texture colordiffuse="FF1F1F1F">script.plex/white-square.png</texture>
+                        <texture colordiffuse="FF1F1F1F">plugin.video.plexkodiconnect/white-square.png</texture>
                     </control>
                 </control>
                 <!-- IMAGES ROW 3 -->
@@ -546,42 +546,42 @@
                         <posy>0</posy>
                         <width>74</width>
                         <height>74</height>
-                        <texture colordiffuse="FF1F1F1F">script.plex/white-square.png</texture>
+                        <texture colordiffuse="FF1F1F1F">plugin.video.plexkodiconnect/white-square.png</texture>
                     </control>
                     <control type="image">
                         <posx>77</posx>
                         <posy>0</posy>
                         <width>74</width>
                         <height>74</height>
-                        <texture colordiffuse="FF1F1F1F">script.plex/white-square.png</texture>
+                        <texture colordiffuse="FF1F1F1F">plugin.video.plexkodiconnect/white-square.png</texture>
                     </control>
                     <control type="image">
                         <posx>154</posx>
                         <posy>0</posy>
                         <width>74</width>
                         <height>74</height>
-                        <texture colordiffuse="FF1F1F1F">script.plex/white-square.png</texture>
+                        <texture colordiffuse="FF1F1F1F">plugin.video.plexkodiconnect/white-square.png</texture>
                     </control>
                     <control type="image">
                         <posx>231</posx>
                         <posy>0</posy>
                         <width>74</width>
                         <height>74</height>
-                        <texture colordiffuse="FF1F1F1F">script.plex/white-square.png</texture>
+                        <texture colordiffuse="FF1F1F1F">plugin.video.plexkodiconnect/white-square.png</texture>
                     </control>
                     <control type="image">
                         <posx>308</posx>
                         <posy>0</posy>
                         <width>74</width>
                         <height>74</height>
-                        <texture colordiffuse="FF1F1F1F">script.plex/white-square.png</texture>
+                        <texture colordiffuse="FF1F1F1F">plugin.video.plexkodiconnect/white-square.png</texture>
                     </control>
                     <control type="image">
                         <posx>385</posx>
                         <posy>0</posy>
                         <width>74</width>
                         <height>74</height>
-                        <texture colordiffuse="FF1F1F1F">script.plex/white-square.png</texture>
+                        <texture colordiffuse="FF1F1F1F">plugin.video.plexkodiconnect/white-square.png</texture>
                     </control>
                 </control>
                 <!-- IMAGES ROW 4 -->
@@ -593,42 +593,42 @@
                         <posy>0</posy>
                         <width>74</width>
                         <height>74</height>
-                        <texture colordiffuse="FF1F1F1F">script.plex/white-square.png</texture>
+                        <texture colordiffuse="FF1F1F1F">plugin.video.plexkodiconnect/white-square.png</texture>
                     </control>
                     <control type="image">
                         <posx>77</posx>
                         <posy>0</posy>
                         <width>74</width>
                         <height>74</height>
-                        <texture colordiffuse="FF1F1F1F">script.plex/white-square.png</texture>
+                        <texture colordiffuse="FF1F1F1F">plugin.video.plexkodiconnect/white-square.png</texture>
                     </control>
                     <control type="image">
                         <posx>154</posx>
                         <posy>0</posy>
                         <width>74</width>
                         <height>74</height>
-                        <texture colordiffuse="FF1F1F1F">script.plex/white-square.png</texture>
+                        <texture colordiffuse="FF1F1F1F">plugin.video.plexkodiconnect/white-square.png</texture>
                     </control>
                     <control type="image">
                         <posx>231</posx>
                         <posy>0</posy>
                         <width>74</width>
                         <height>74</height>
-                        <texture colordiffuse="FF1F1F1F">script.plex/white-square.png</texture>
+                        <texture colordiffuse="FF1F1F1F">plugin.video.plexkodiconnect/white-square.png</texture>
                     </control>
                     <control type="image">
                         <posx>308</posx>
                         <posy>0</posy>
                         <width>74</width>
                         <height>74</height>
-                        <texture colordiffuse="FF1F1F1F">script.plex/white-square.png</texture>
+                        <texture colordiffuse="FF1F1F1F">plugin.video.plexkodiconnect/white-square.png</texture>
                     </control>
                     <control type="image">
                         <posx>385</posx>
                         <posy>0</posy>
                         <width>74</width>
                         <height>74</height>
-                        <texture colordiffuse="FF1F1F1F">script.plex/white-square.png</texture>
+                        <texture colordiffuse="FF1F1F1F">plugin.video.plexkodiconnect/white-square.png</texture>
                     </control>
                 </control>
                 <!-- IMAGES ROW 5 -->
@@ -640,42 +640,42 @@
                         <posy>0</posy>
                         <width>74</width>
                         <height>74</height>
-                        <texture colordiffuse="FF1F1F1F">script.plex/white-square.png</texture>
+                        <texture colordiffuse="FF1F1F1F">plugin.video.plexkodiconnect/white-square.png</texture>
                     </control>
                     <control type="image">
                         <posx>77</posx>
                         <posy>0</posy>
                         <width>74</width>
                         <height>74</height>
-                        <texture colordiffuse="FF1F1F1F">script.plex/white-square.png</texture>
+                        <texture colordiffuse="FF1F1F1F">plugin.video.plexkodiconnect/white-square.png</texture>
                     </control>
                     <control type="image">
                         <posx>154</posx>
                         <posy>0</posy>
                         <width>74</width>
                         <height>74</height>
-                        <texture colordiffuse="FF000000">script.plex/white-square.png</texture>
+                        <texture colordiffuse="FF000000">plugin.video.plexkodiconnect/white-square.png</texture>
                     </control>
                     <control type="image">
                         <posx>231</posx>
                         <posy>0</posy>
                         <width>74</width>
                         <height>74</height>
-                        <texture colordiffuse="FF000000">script.plex/white-square.png</texture>
+                        <texture colordiffuse="FF000000">plugin.video.plexkodiconnect/white-square.png</texture>
                     </control>
                     <control type="image">
                         <posx>308</posx>
                         <posy>0</posy>
                         <width>74</width>
                         <height>74</height>
-                        <texture colordiffuse="FF000000">script.plex/white-square.png</texture>
+                        <texture colordiffuse="FF000000">plugin.video.plexkodiconnect/white-square.png</texture>
                     </control>
                     <control type="image">
                         <posx>385</posx>
                         <posy>0</posy>
                         <width>74</width>
                         <height>74</height>
-                        <texture colordiffuse="FF000000">script.plex/white-square.png</texture>
+                        <texture colordiffuse="FF000000">plugin.video.plexkodiconnect/white-square.png</texture>
                     </control>
                 </control>
                 <!-- IMAGES ROW 6 -->
@@ -687,42 +687,42 @@
                         <posy>0</posy>
                         <width>74</width>
                         <height>74</height>
-                        <texture colordiffuse="FF000000">script.plex/white-square.png</texture>
+                        <texture colordiffuse="FF000000">plugin.video.plexkodiconnect/white-square.png</texture>
                     </control>
                     <control type="image">
                         <posx>77</posx>
                         <posy>0</posy>
                         <width>74</width>
                         <height>74</height>
-                        <texture colordiffuse="FF000000">script.plex/white-square.png</texture>
+                        <texture colordiffuse="FF000000">plugin.video.plexkodiconnect/white-square.png</texture>
                     </control>
                     <control type="image">
                         <posx>154</posx>
                         <posy>0</posy>
                         <width>74</width>
                         <height>74</height>
-                        <texture colordiffuse="FF000000">script.plex/white-square.png</texture>
+                        <texture colordiffuse="FF000000">plugin.video.plexkodiconnect/white-square.png</texture>
                     </control>
                     <control type="image">
                         <posx>231</posx>
                         <posy>0</posy>
                         <width>74</width>
                         <height>74</height>
-                        <texture colordiffuse="FF000000">script.plex/white-square.png</texture>
+                        <texture colordiffuse="FF000000">plugin.video.plexkodiconnect/white-square.png</texture>
                     </control>
                     <control type="image">
                         <posx>308</posx>
                         <posy>0</posy>
                         <width>74</width>
                         <height>74</height>
-                        <texture colordiffuse="FF000000">script.plex/white-square.png</texture>
+                        <texture colordiffuse="FF000000">plugin.video.plexkodiconnect/white-square.png</texture>
                     </control>
                     <control type="image">
                         <posx>385</posx>
                         <posy>0</posy>
                         <width>74</width>
                         <height>74</height>
-                        <texture colordiffuse="FF000000">script.plex/white-square.png</texture>
+                        <texture colordiffuse="FF000000">plugin.video.plexkodiconnect/white-square.png</texture>
                     </control>
                 </control>
 
@@ -749,7 +749,7 @@
                             <align>center</align>
                             <aligny>center</aligny>
                             <focusedcolor>FF000000</focusedcolor>
-                            <texturefocus colordiffuse="FFE5A00D" border="50">script.plex/white-square-rounded-with-shadow.png</texturefocus>
+                            <texturefocus colordiffuse="FFE5A00D" border="50">plugin.video.plexkodiconnect/white-square-rounded-with-shadow.png</texturefocus>
                             <texturenofocus>-</texturenofocus>
                             <label>A</label>
                         </control>
@@ -773,7 +773,7 @@
                             <align>center</align>
                             <aligny>center</aligny>
                             <focusedcolor>FF000000</focusedcolor>
-                            <texturefocus colordiffuse="FFE5A00D" border="50">script.plex/white-square-rounded-with-shadow.png</texturefocus>
+                            <texturefocus colordiffuse="FFE5A00D" border="50">plugin.video.plexkodiconnect/white-square-rounded-with-shadow.png</texturefocus>
                             <texturenofocus>-</texturenofocus>
                             <label>B</label>
                         </control>
@@ -797,7 +797,7 @@
                             <align>center</align>
                             <aligny>center</aligny>
                             <focusedcolor>FF000000</focusedcolor>
-                            <texturefocus colordiffuse="FFE5A00D" border="50">script.plex/white-square-rounded-with-shadow.png</texturefocus>
+                            <texturefocus colordiffuse="FFE5A00D" border="50">plugin.video.plexkodiconnect/white-square-rounded-with-shadow.png</texturefocus>
                             <texturenofocus>-</texturenofocus>
                             <label>C</label>
                         </control>
@@ -821,7 +821,7 @@
                             <align>center</align>
                             <aligny>center</aligny>
                             <focusedcolor>FF000000</focusedcolor>
-                            <texturefocus colordiffuse="FFE5A00D" border="50">script.plex/white-square-rounded-with-shadow.png</texturefocus>
+                            <texturefocus colordiffuse="FFE5A00D" border="50">plugin.video.plexkodiconnect/white-square-rounded-with-shadow.png</texturefocus>
                             <texturenofocus>-</texturenofocus>
                             <label>D</label>
                         </control>
@@ -845,7 +845,7 @@
                             <align>center</align>
                             <aligny>center</aligny>
                             <focusedcolor>FF000000</focusedcolor>
-                            <texturefocus colordiffuse="FFE5A00D" border="50">script.plex/white-square-rounded-with-shadow.png</texturefocus>
+                            <texturefocus colordiffuse="FFE5A00D" border="50">plugin.video.plexkodiconnect/white-square-rounded-with-shadow.png</texturefocus>
                             <texturenofocus>-</texturenofocus>
                             <label>E</label>
                         </control>
@@ -869,7 +869,7 @@
                             <align>center</align>
                             <aligny>center</aligny>
                             <focusedcolor>FF000000</focusedcolor>
-                            <texturefocus colordiffuse="FFE5A00D" border="50">script.plex/white-square-rounded-with-shadow.png</texturefocus>
+                            <texturefocus colordiffuse="FFE5A00D" border="50">plugin.video.plexkodiconnect/white-square-rounded-with-shadow.png</texturefocus>
                             <texturenofocus>-</texturenofocus>
                             <label>F</label>
                         </control>
@@ -898,7 +898,7 @@
                             <align>center</align>
                             <aligny>center</aligny>
                             <focusedcolor>FF000000</focusedcolor>
-                            <texturefocus colordiffuse="FFE5A00D" border="50">script.plex/white-square-rounded-with-shadow.png</texturefocus>
+                            <texturefocus colordiffuse="FFE5A00D" border="50">plugin.video.plexkodiconnect/white-square-rounded-with-shadow.png</texturefocus>
                             <texturenofocus>-</texturenofocus>
                             <label>G</label>
                         </control>
@@ -922,7 +922,7 @@
                             <align>center</align>
                             <aligny>center</aligny>
                             <focusedcolor>FF000000</focusedcolor>
-                            <texturefocus colordiffuse="FFE5A00D" border="50">script.plex/white-square-rounded-with-shadow.png</texturefocus>
+                            <texturefocus colordiffuse="FFE5A00D" border="50">plugin.video.plexkodiconnect/white-square-rounded-with-shadow.png</texturefocus>
                             <texturenofocus>-</texturenofocus>
                             <label>H</label>
                         </control>
@@ -946,7 +946,7 @@
                             <align>center</align>
                             <aligny>center</aligny>
                             <focusedcolor>FF000000</focusedcolor>
-                            <texturefocus colordiffuse="FFE5A00D" border="50">script.plex/white-square-rounded-with-shadow.png</texturefocus>
+                            <texturefocus colordiffuse="FFE5A00D" border="50">plugin.video.plexkodiconnect/white-square-rounded-with-shadow.png</texturefocus>
                             <texturenofocus>-</texturenofocus>
                             <label>I</label>
                         </control>
@@ -970,7 +970,7 @@
                             <align>center</align>
                             <aligny>center</aligny>
                             <focusedcolor>FF000000</focusedcolor>
-                            <texturefocus colordiffuse="FFE5A00D" border="50">script.plex/white-square-rounded-with-shadow.png</texturefocus>
+                            <texturefocus colordiffuse="FFE5A00D" border="50">plugin.video.plexkodiconnect/white-square-rounded-with-shadow.png</texturefocus>
                             <texturenofocus>-</texturenofocus>
                             <label>J</label>
                         </control>
@@ -994,7 +994,7 @@
                             <align>center</align>
                             <aligny>center</aligny>
                             <focusedcolor>FF000000</focusedcolor>
-                            <texturefocus colordiffuse="FFE5A00D" border="50">script.plex/white-square-rounded-with-shadow.png</texturefocus>
+                            <texturefocus colordiffuse="FFE5A00D" border="50">plugin.video.plexkodiconnect/white-square-rounded-with-shadow.png</texturefocus>
                             <texturenofocus>-</texturenofocus>
                             <label>K</label>
                         </control>
@@ -1018,7 +1018,7 @@
                             <align>center</align>
                             <aligny>center</aligny>
                             <focusedcolor>FF000000</focusedcolor>
-                            <texturefocus colordiffuse="FFE5A00D" border="50">script.plex/white-square-rounded-with-shadow.png</texturefocus>
+                            <texturefocus colordiffuse="FFE5A00D" border="50">plugin.video.plexkodiconnect/white-square-rounded-with-shadow.png</texturefocus>
                             <texturenofocus>-</texturenofocus>
                             <label>L</label>
                         </control>
@@ -1047,7 +1047,7 @@
                             <align>center</align>
                             <aligny>center</aligny>
                             <focusedcolor>FF000000</focusedcolor>
-                            <texturefocus colordiffuse="FFE5A00D" border="50">script.plex/white-square-rounded-with-shadow.png</texturefocus>
+                            <texturefocus colordiffuse="FFE5A00D" border="50">plugin.video.plexkodiconnect/white-square-rounded-with-shadow.png</texturefocus>
                             <texturenofocus>-</texturenofocus>
                             <label>M</label>
                         </control>
@@ -1071,7 +1071,7 @@
                             <align>center</align>
                             <aligny>center</aligny>
                             <focusedcolor>FF000000</focusedcolor>
-                            <texturefocus colordiffuse="FFE5A00D" border="50">script.plex/white-square-rounded-with-shadow.png</texturefocus>
+                            <texturefocus colordiffuse="FFE5A00D" border="50">plugin.video.plexkodiconnect/white-square-rounded-with-shadow.png</texturefocus>
                             <texturenofocus>-</texturenofocus>
                             <label>N</label>
                         </control>
@@ -1095,7 +1095,7 @@
                             <align>center</align>
                             <aligny>center</aligny>
                             <focusedcolor>FF000000</focusedcolor>
-                            <texturefocus colordiffuse="FFE5A00D" border="50">script.plex/white-square-rounded-with-shadow.png</texturefocus>
+                            <texturefocus colordiffuse="FFE5A00D" border="50">plugin.video.plexkodiconnect/white-square-rounded-with-shadow.png</texturefocus>
                             <texturenofocus>-</texturenofocus>
                             <label>O</label>
                         </control>
@@ -1119,7 +1119,7 @@
                             <align>center</align>
                             <aligny>center</aligny>
                             <focusedcolor>FF000000</focusedcolor>
-                            <texturefocus colordiffuse="FFE5A00D" border="50">script.plex/white-square-rounded-with-shadow.png</texturefocus>
+                            <texturefocus colordiffuse="FFE5A00D" border="50">plugin.video.plexkodiconnect/white-square-rounded-with-shadow.png</texturefocus>
                             <texturenofocus>-</texturenofocus>
                             <label>P</label>
                         </control>
@@ -1143,7 +1143,7 @@
                             <align>center</align>
                             <aligny>center</aligny>
                             <focusedcolor>FF000000</focusedcolor>
-                            <texturefocus colordiffuse="FFE5A00D" border="50">script.plex/white-square-rounded-with-shadow.png</texturefocus>
+                            <texturefocus colordiffuse="FFE5A00D" border="50">plugin.video.plexkodiconnect/white-square-rounded-with-shadow.png</texturefocus>
                             <texturenofocus>-</texturenofocus>
                             <label>Q</label>
                         </control>
@@ -1167,7 +1167,7 @@
                             <align>center</align>
                             <aligny>center</aligny>
                             <focusedcolor>FF000000</focusedcolor>
-                            <texturefocus colordiffuse="FFE5A00D" border="50">script.plex/white-square-rounded-with-shadow.png</texturefocus>
+                            <texturefocus colordiffuse="FFE5A00D" border="50">plugin.video.plexkodiconnect/white-square-rounded-with-shadow.png</texturefocus>
                             <texturenofocus>-</texturenofocus>
                             <label>R</label>
                         </control>
@@ -1196,7 +1196,7 @@
                             <align>center</align>
                             <aligny>center</aligny>
                             <focusedcolor>FF000000</focusedcolor>
-                            <texturefocus colordiffuse="FFE5A00D" border="50">script.plex/white-square-rounded-with-shadow.png</texturefocus>
+                            <texturefocus colordiffuse="FFE5A00D" border="50">plugin.video.plexkodiconnect/white-square-rounded-with-shadow.png</texturefocus>
                             <texturenofocus>-</texturenofocus>
                             <label>S</label>
                         </control>
@@ -1220,7 +1220,7 @@
                             <align>center</align>
                             <aligny>center</aligny>
                             <focusedcolor>FF000000</focusedcolor>
-                            <texturefocus colordiffuse="FFE5A00D" border="50">script.plex/white-square-rounded-with-shadow.png</texturefocus>
+                            <texturefocus colordiffuse="FFE5A00D" border="50">plugin.video.plexkodiconnect/white-square-rounded-with-shadow.png</texturefocus>
                             <texturenofocus>-</texturenofocus>
                             <label>T</label>
                         </control>
@@ -1244,7 +1244,7 @@
                             <align>center</align>
                             <aligny>center</aligny>
                             <focusedcolor>FF000000</focusedcolor>
-                            <texturefocus colordiffuse="FFE5A00D" border="50">script.plex/white-square-rounded-with-shadow.png</texturefocus>
+                            <texturefocus colordiffuse="FFE5A00D" border="50">plugin.video.plexkodiconnect/white-square-rounded-with-shadow.png</texturefocus>
                             <texturenofocus>-</texturenofocus>
                             <label>U</label>
                         </control>
@@ -1268,7 +1268,7 @@
                             <align>center</align>
                             <aligny>center</aligny>
                             <focusedcolor>FF000000</focusedcolor>
-                            <texturefocus colordiffuse="FFE5A00D" border="50">script.plex/white-square-rounded-with-shadow.png</texturefocus>
+                            <texturefocus colordiffuse="FFE5A00D" border="50">plugin.video.plexkodiconnect/white-square-rounded-with-shadow.png</texturefocus>
                             <texturenofocus>-</texturenofocus>
                             <label>V</label>
                         </control>
@@ -1292,7 +1292,7 @@
                             <align>center</align>
                             <aligny>center</aligny>
                             <focusedcolor>FF000000</focusedcolor>
-                            <texturefocus colordiffuse="FFE5A00D" border="50">script.plex/white-square-rounded-with-shadow.png</texturefocus>
+                            <texturefocus colordiffuse="FFE5A00D" border="50">plugin.video.plexkodiconnect/white-square-rounded-with-shadow.png</texturefocus>
                             <texturenofocus>-</texturenofocus>
                             <label>W</label>
                         </control>
@@ -1316,7 +1316,7 @@
                             <align>center</align>
                             <aligny>center</aligny>
                             <focusedcolor>FF000000</focusedcolor>
-                            <texturefocus colordiffuse="FFE5A00D" border="50">script.plex/white-square-rounded-with-shadow.png</texturefocus>
+                            <texturefocus colordiffuse="FFE5A00D" border="50">plugin.video.plexkodiconnect/white-square-rounded-with-shadow.png</texturefocus>
                             <texturenofocus>-</texturenofocus>
                             <label>X</label>
                         </control>
@@ -1345,7 +1345,7 @@
                             <align>center</align>
                             <aligny>center</aligny>
                             <focusedcolor>FF000000</focusedcolor>
-                            <texturefocus colordiffuse="FFE5A00D" border="50">script.plex/white-square-rounded-with-shadow.png</texturefocus>
+                            <texturefocus colordiffuse="FFE5A00D" border="50">plugin.video.plexkodiconnect/white-square-rounded-with-shadow.png</texturefocus>
                             <texturenofocus>-</texturenofocus>
                             <label>Y</label>
                         </control>
@@ -1369,7 +1369,7 @@
                             <align>center</align>
                             <aligny>center</aligny>
                             <focusedcolor>FF000000</focusedcolor>
-                            <texturefocus colordiffuse="FFE5A00D" border="50">script.plex/white-square-rounded-with-shadow.png</texturefocus>
+                            <texturefocus colordiffuse="FFE5A00D" border="50">plugin.video.plexkodiconnect/white-square-rounded-with-shadow.png</texturefocus>
                             <texturenofocus>-</texturenofocus>
                             <label>Z</label>
                         </control>
@@ -1393,7 +1393,7 @@
                             <align>center</align>
                             <aligny>center</aligny>
                             <focusedcolor>FF000000</focusedcolor>
-                            <texturefocus colordiffuse="FFE5A00D" border="50">script.plex/white-square-rounded-with-shadow.png</texturefocus>
+                            <texturefocus colordiffuse="FFE5A00D" border="50">plugin.video.plexkodiconnect/white-square-rounded-with-shadow.png</texturefocus>
                             <texturenofocus>-</texturenofocus>
                             <label>0[B][/B]</label>
                         </control>
@@ -1417,7 +1417,7 @@
                             <align>center</align>
                             <aligny>center</aligny>
                             <focusedcolor>FF000000</focusedcolor>
-                            <texturefocus colordiffuse="FFE5A00D" border="50">script.plex/white-square-rounded-with-shadow.png</texturefocus>
+                            <texturefocus colordiffuse="FFE5A00D" border="50">plugin.video.plexkodiconnect/white-square-rounded-with-shadow.png</texturefocus>
                             <texturenofocus>-</texturenofocus>
                             <label>1[B][/B]</label>
                         </control>
@@ -1441,7 +1441,7 @@
                             <align>center</align>
                             <aligny>center</aligny>
                             <focusedcolor>FF000000</focusedcolor>
-                            <texturefocus colordiffuse="FFE5A00D" border="50">script.plex/white-square-rounded-with-shadow.png</texturefocus>
+                            <texturefocus colordiffuse="FFE5A00D" border="50">plugin.video.plexkodiconnect/white-square-rounded-with-shadow.png</texturefocus>
                             <texturenofocus>-</texturenofocus>
                             <label>2[B][/B]</label>
                         </control>
@@ -1465,7 +1465,7 @@
                             <align>center</align>
                             <aligny>center</aligny>
                             <focusedcolor>FF000000</focusedcolor>
-                            <texturefocus colordiffuse="FFE5A00D" border="50">script.plex/white-square-rounded-with-shadow.png</texturefocus>
+                            <texturefocus colordiffuse="FFE5A00D" border="50">plugin.video.plexkodiconnect/white-square-rounded-with-shadow.png</texturefocus>
                             <texturenofocus>-</texturenofocus>
                             <label>3[B][/B]</label>
                         </control>
@@ -1494,7 +1494,7 @@
                             <align>center</align>
                             <aligny>center</aligny>
                             <focusedcolor>FF000000</focusedcolor>
-                            <texturefocus colordiffuse="FFE5A00D" border="50">script.plex/white-square-rounded-with-shadow.png</texturefocus>
+                            <texturefocus colordiffuse="FFE5A00D" border="50">plugin.video.plexkodiconnect/white-square-rounded-with-shadow.png</texturefocus>
                             <texturenofocus>-</texturenofocus>
                             <label>4[B][/B]</label>
                         </control>
@@ -1518,7 +1518,7 @@
                             <align>center</align>
                             <aligny>center</aligny>
                             <focusedcolor>FF000000</focusedcolor>
-                            <texturefocus colordiffuse="FFE5A00D" border="50">script.plex/white-square-rounded-with-shadow.png</texturefocus>
+                            <texturefocus colordiffuse="FFE5A00D" border="50">plugin.video.plexkodiconnect/white-square-rounded-with-shadow.png</texturefocus>
                             <texturenofocus>-</texturenofocus>
                             <label>5[B][/B]</label>
                         </control>
@@ -1542,7 +1542,7 @@
                             <align>center</align>
                             <aligny>center</aligny>
                             <focusedcolor>FF000000</focusedcolor>
-                            <texturefocus colordiffuse="FFE5A00D" border="50">script.plex/white-square-rounded-with-shadow.png</texturefocus>
+                            <texturefocus colordiffuse="FFE5A00D" border="50">plugin.video.plexkodiconnect/white-square-rounded-with-shadow.png</texturefocus>
                             <texturenofocus>-</texturenofocus>
                             <label>6[B][/B]</label>
                         </control>
@@ -1566,7 +1566,7 @@
                             <align>center</align>
                             <aligny>center</aligny>
                             <focusedcolor>FF000000</focusedcolor>
-                            <texturefocus colordiffuse="FFE5A00D" border="50">script.plex/white-square-rounded-with-shadow.png</texturefocus>
+                            <texturefocus colordiffuse="FFE5A00D" border="50">plugin.video.plexkodiconnect/white-square-rounded-with-shadow.png</texturefocus>
                             <texturenofocus>-</texturenofocus>
                             <label>7[B][/B]</label>
                         </control>
@@ -1590,7 +1590,7 @@
                             <align>center</align>
                             <aligny>center</aligny>
                             <focusedcolor>FF000000</focusedcolor>
-                            <texturefocus colordiffuse="FFE5A00D" border="50">script.plex/white-square-rounded-with-shadow.png</texturefocus>
+                            <texturefocus colordiffuse="FFE5A00D" border="50">plugin.video.plexkodiconnect/white-square-rounded-with-shadow.png</texturefocus>
                             <texturenofocus>-</texturenofocus>
                             <label>8[B][/B]</label>
                         </control>
@@ -1614,7 +1614,7 @@
                             <align>center</align>
                             <aligny>center</aligny>
                             <focusedcolor>FF000000</focusedcolor>
-                            <texturefocus colordiffuse="FFE5A00D" border="50">script.plex/white-square-rounded-with-shadow.png</texturefocus>
+                            <texturefocus colordiffuse="FFE5A00D" border="50">plugin.video.plexkodiconnect/white-square-rounded-with-shadow.png</texturefocus>
                             <texturenofocus>-</texturenofocus>
                             <label>9[B][/B]</label>
                         </control>
@@ -1633,21 +1633,21 @@
                     <posy>0</posy>
                     <width>151</width>
                     <height>60</height>
-                    <texture colordiffuse="FF000000">script.plex/white-square.png</texture>
+                    <texture colordiffuse="FF000000">plugin.video.plexkodiconnect/white-square.png</texture>
                 </control>
                 <control type="image">
                     <posx>154</posx>
                     <posy>0</posy>
                     <width>151</width>
                     <height>60</height>
-                    <texture colordiffuse="FF000000">script.plex/white-square.png</texture>
+                    <texture colordiffuse="FF000000">plugin.video.plexkodiconnect/white-square.png</texture>
                 </control>
                 <control type="image">
                     <posx>308</posx>
                     <posy>0</posy>
                     <width>151</width>
                     <height>60</height>
-                    <texture colordiffuse="FF000000">script.plex/white-square.png</texture>
+                    <texture colordiffuse="FF000000">plugin.video.plexkodiconnect/white-square.png</texture>
                 </control>
 
                 <control type="group">
@@ -1668,9 +1668,9 @@
                         <align>center</align>
                         <aligny>center</aligny>
                         <focusedcolor>FF000000</focusedcolor>
-                        <texturefocus colordiffuse="FFE5A00D" border="50">script.plex/white-square-rounded-with-shadow.png</texturefocus>
+                        <texturefocus colordiffuse="FFE5A00D" border="50">plugin.video.plexkodiconnect/white-square-rounded-with-shadow.png</texturefocus>
                         <texturenofocus>-</texturenofocus>
-                        <label>$ADDON[script.plex 32322]</label>
+                        <label>$ADDON[plugin.video.plexkodiconnect 32322]</label>
                     </control>
                 </control>
                 <control type="group">
@@ -1691,9 +1691,9 @@
                         <align>center</align>
                         <aligny>center</aligny>
                         <focusedcolor>FF000000</focusedcolor>
-                        <texturefocus colordiffuse="FFE5A00D" border="50">script.plex/white-square-rounded-with-shadow.png</texturefocus>
+                        <texturefocus colordiffuse="FFE5A00D" border="50">plugin.video.plexkodiconnect/white-square-rounded-with-shadow.png</texturefocus>
                         <texturenofocus>-</texturenofocus>
-                        <label>$ADDON[script.plex 32432]</label>
+                        <label>$ADDON[plugin.video.plexkodiconnect 32432]</label>
                     </control>
                 </control>
                 <control type="group">
@@ -1714,9 +1714,9 @@
                         <align>center</align>
                         <aligny>center</aligny>
                         <focusedcolor>FF000000</focusedcolor>
-                        <texturefocus colordiffuse="FFE5A00D" border="50">script.plex/white-square-rounded-with-shadow.png</texturefocus>
+                        <texturefocus colordiffuse="FFE5A00D" border="50">plugin.video.plexkodiconnect/white-square-rounded-with-shadow.png</texturefocus>
                         <texturenofocus>-</texturenofocus>
-                        <label>$ADDON[script.plex 32433]</label>
+                        <label>$ADDON[plugin.video.plexkodiconnect 32433]</label>
                     </control>
                 </control>
             </control>
@@ -1736,7 +1736,7 @@
                     <align>right</align>
                     <aligny>center</aligny>
                     <textcolor>FFFFFFFF</textcolor>
-                    <label>[UPPERCASE]$ADDON[script.plex 32434][/UPPERCASE]</label>
+                    <label>[UPPERCASE]$ADDON[plugin.video.plexkodiconnect 32434][/UPPERCASE]</label>
                 </control>
                 <control type="group">
                     <posx>480</posx>
@@ -1748,7 +1748,7 @@
                         <posy>0</posy>
                         <width>39</width>
                         <height>39</height>
-                        <texture colordiffuse="FFE5A00D">script.plex/indicators/spinner.png</texture>
+                        <texture colordiffuse="FFE5A00D">plugin.video.plexkodiconnect/indicators/spinner.png</texture>
                     </control>
                 </control>
             </control>
@@ -1766,7 +1766,7 @@
                     <align>center</align>
                     <aligny>center</aligny>
                     <textcolor>FFFFFFFF</textcolor>
-                    <label>[UPPERCASE]$ADDON[script.plex 32435][/UPPERCASE]</label>
+                    <label>[UPPERCASE]$ADDON[plugin.video.plexkodiconnect 32435][/UPPERCASE]</label>
                 </control>
             </control>
         </control>
@@ -2066,7 +2066,7 @@
                                     <posy>-40</posy>
                                     <width>270</width>
                                     <height>360</height>
-                                    <texture border="42">script.plex/drop-shadow.png</texture>
+                                    <texture border="42">plugin.video.plexkodiconnect/drop-shadow.png</texture>
                                 </control>
                                 <control type="group">
                                     <posx>5</posx>
@@ -2107,7 +2107,7 @@
                                     <posy>0</posy>
                                     <width>190</width>
                                     <height>280</height>
-                                    <texture border="10">script.plex/home/selected.png</texture>
+                                    <texture border="10">plugin.video.plexkodiconnect/home/selected.png</texture>
                                 </control>
                             </control>
                         </control>
@@ -2198,7 +2198,7 @@
                                     <posy>-40</posy>
                                     <width>360</width>
                                     <height>360</height>
-                                    <texture border="42">script.plex/drop-shadow.png</texture>
+                                    <texture border="42">plugin.video.plexkodiconnect/drop-shadow.png</texture>
                                 </control>
                                 <control type="group">
                                     <posx>5</posx>
@@ -2238,7 +2238,7 @@
                                     <posy>0</posy>
                                     <width>280</width>
                                     <height>280</height>
-                                    <texture border="10">script.plex/home/selected.png</texture>
+                                    <texture border="10">plugin.video.plexkodiconnect/home/selected.png</texture>
                                 </control>
                             </control>
                         </control>
@@ -2329,7 +2329,7 @@
                                     <posy>-40</posy>
                                     <width>390</width>
                                     <height>259</height>
-                                    <texture border="42">script.plex/drop-shadow.png</texture>
+                                    <texture border="42">plugin.video.plexkodiconnect/drop-shadow.png</texture>
                                 </control>
                                 <control type="group">
                                     <posx>5</posx>
@@ -2369,7 +2369,7 @@
                                     <posy>0</posy>
                                     <width>310</width>
                                     <height>179</height>
-                                    <texture border="10">script.plex/home/selected.png</texture>
+                                    <texture border="10">plugin.video.plexkodiconnect/home/selected.png</texture>
                                 </control>
                             </control>
                         </control>
@@ -2417,14 +2417,14 @@
                                     <posy>0</posy>
                                     <width>244</width>
                                     <height>244</height>
-                                    <texture diffuse="script.plex/masks/role.png">$INFO[ListItem.Property(thumb.fallback)]</texture>
+                                    <texture diffuse="plugin.video.plexkodiconnect/masks/role.png">$INFO[ListItem.Property(thumb.fallback)]</texture>
                                 </control>
                                 <control type="image">
                                     <posx>0</posx>
                                     <posy>0</posy>
                                     <width>244</width>
                                     <height>244</height>
-                                    <texture background="true" diffuse="script.plex/masks/role.png">$INFO[ListItem.Thumb]</texture>
+                                    <texture background="true" diffuse="plugin.video.plexkodiconnect/masks/role.png">$INFO[ListItem.Thumb]</texture>
                                     <aspectratio scalediffuse="false" aligny="top">scale</aspectratio>
                                 </control>
                                 <control type="label">
@@ -2468,7 +2468,7 @@
                                     <posy>-40</posy>
                                     <width>334</width>
                                     <height>334</height>
-                                    <texture border="42">script.plex/buttons/role-shadow.png</texture>
+                                    <texture border="42">plugin.video.plexkodiconnect/buttons/role-shadow.png</texture>
                                 </control>
                                 <control type="group">
                                     <posx>5</posx>
@@ -2478,14 +2478,14 @@
                                         <posy>0</posy>
                                         <width>244</width>
                                         <height>244</height>
-                                        <texture diffuse="script.plex/masks/role.png">$INFO[ListItem.Property(thumb.fallback)]</texture>
+                                        <texture diffuse="plugin.video.plexkodiconnect/masks/role.png">$INFO[ListItem.Property(thumb.fallback)]</texture>
                                     </control>
                                     <control type="image">
                                         <posx>0</posx>
                                         <posy>0</posy>
                                         <width>244</width>
                                         <height>244</height>
-                                        <texture background="true" diffuse="script.plex/masks/role.png">$INFO[ListItem.Thumb]</texture>
+                                        <texture background="true" diffuse="plugin.video.plexkodiconnect/masks/role.png">$INFO[ListItem.Thumb]</texture>
                                         <aspectratio scalediffuse="false" aligny="top">scale</aspectratio>
                                     </control>
                                     <control type="label">
@@ -2516,7 +2516,7 @@
                                     <posy>0</posy>
                                     <width>254</width>
                                     <height>254</height>
-                                    <texture>script.plex/buttons/role-selected.png</texture>
+                                    <texture>plugin.video.plexkodiconnect/buttons/role-selected.png</texture>
                                 </control>
                             </control>
                         </control>
@@ -2533,7 +2533,7 @@
                     <posy>0</posy>
                     <width>1236</width>
                     <height>2</height>
-                    <texture>script.plex/white-square.png</texture>
+                    <texture>plugin.video.plexkodiconnect/white-square.png</texture>
                     <colordiffuse>FF282828</colordiffuse>
                 </control>
                 <control type="label">
@@ -2615,7 +2615,7 @@
                                     <posy>-40</posy>
                                     <width>270</width>
                                     <height>360</height>
-                                    <texture border="42">script.plex/drop-shadow.png</texture>
+                                    <texture border="42">plugin.video.plexkodiconnect/drop-shadow.png</texture>
                                 </control>
                                 <control type="group">
                                     <posx>5</posx>
@@ -2655,7 +2655,7 @@
                                     <posy>0</posy>
                                     <width>190</width>
                                     <height>280</height>
-                                    <texture border="10">script.plex/home/selected.png</texture>
+                                    <texture border="10">plugin.video.plexkodiconnect/home/selected.png</texture>
                                 </control>
                             </control>
                         </control>
@@ -2672,7 +2672,7 @@
                     <posy>0</posy>
                     <width>1236</width>
                     <height>2</height>
-                    <texture>script.plex/white-square.png</texture>
+                    <texture>plugin.video.plexkodiconnect/white-square.png</texture>
                     <colordiffuse>FF282828</colordiffuse>
                 </control>
                 <control type="label">
@@ -2754,7 +2754,7 @@
                                     <posy>-40</posy>
                                     <width>360</width>
                                     <height>360</height>
-                                    <texture border="42">script.plex/drop-shadow.png</texture>
+                                    <texture border="42">plugin.video.plexkodiconnect/drop-shadow.png</texture>
                                 </control>
                                 <control type="group">
                                     <posx>5</posx>
@@ -2794,7 +2794,7 @@
                                     <posy>0</posy>
                                     <width>280</width>
                                     <height>280</height>
-                                    <texture border="10">script.plex/home/selected.png</texture>
+                                    <texture border="10">plugin.video.plexkodiconnect/home/selected.png</texture>
                                 </control>
                             </control>
                         </control>
@@ -2811,7 +2811,7 @@
                     <posy>0</posy>
                     <width>1236</width>
                     <height>2</height>
-                    <texture>script.plex/white-square.png</texture>
+                    <texture>plugin.video.plexkodiconnect/white-square.png</texture>
                     <colordiffuse>FF282828</colordiffuse>
                 </control>
                 <control type="label">
@@ -2893,7 +2893,7 @@
                                     <posy>-40</posy>
                                     <width>390</width>
                                     <height>259</height>
-                                    <texture border="42">script.plex/drop-shadow.png</texture>
+                                    <texture border="42">plugin.video.plexkodiconnect/drop-shadow.png</texture>
                                 </control>
                                 <control type="group">
                                     <posx>5</posx>
@@ -2933,7 +2933,7 @@
                                     <posy>0</posy>
                                     <width>310</width>
                                     <height>179</height>
-                                    <texture border="10">script.plex/home/selected.png</texture>
+                                    <texture border="10">plugin.video.plexkodiconnect/home/selected.png</texture>
                                 </control>
                             </control>
                         </control>
@@ -2950,7 +2950,7 @@
                     <posy>0</posy>
                     <width>1236</width>
                     <height>2</height>
-                    <texture>script.plex/white-square.png</texture>
+                    <texture>plugin.video.plexkodiconnect/white-square.png</texture>
                     <colordiffuse>FF282828</colordiffuse>
                 </control>
                 <control type="label">
@@ -2989,14 +2989,14 @@
                                     <posy>0</posy>
                                     <width>244</width>
                                     <height>244</height>
-                                    <texture diffuse="script.plex/masks/role.png">$INFO[ListItem.Property(thumb.fallback)]</texture>
+                                    <texture diffuse="plugin.video.plexkodiconnect/masks/role.png">$INFO[ListItem.Property(thumb.fallback)]</texture>
                                 </control>
                                 <control type="image">
                                     <posx>0</posx>
                                     <posy>0</posy>
                                     <width>244</width>
                                     <height>244</height>
-                                    <texture background="true" diffuse="script.plex/masks/role.png">$INFO[ListItem.Thumb]</texture>
+                                    <texture background="true" diffuse="plugin.video.plexkodiconnect/masks/role.png">$INFO[ListItem.Thumb]</texture>
                                     <aspectratio scalediffuse="false" aligny="top">scale</aspectratio>
                                 </control>
                                 <control type="label">
@@ -3040,7 +3040,7 @@
                                     <posy>-40</posy>
                                     <width>334</width>
                                     <height>334</height>
-                                    <texture border="42">script.plex/buttons/role-shadow.png</texture>
+                                    <texture border="42">plugin.video.plexkodiconnect/buttons/role-shadow.png</texture>
                                 </control>
                                 <control type="group">
                                     <posx>5</posx>
@@ -3050,14 +3050,14 @@
                                         <posy>0</posy>
                                         <width>244</width>
                                         <height>244</height>
-                                        <texture diffuse="script.plex/masks/role.png">$INFO[ListItem.Property(thumb.fallback)]</texture>
+                                        <texture diffuse="plugin.video.plexkodiconnect/masks/role.png">$INFO[ListItem.Property(thumb.fallback)]</texture>
                                     </control>
                                     <control type="image">
                                         <posx>0</posx>
                                         <posy>0</posy>
                                         <width>244</width>
                                         <height>244</height>
-                                        <texture background="true" diffuse="script.plex/masks/role.png">$INFO[ListItem.Thumb]</texture>
+                                        <texture background="true" diffuse="plugin.video.plexkodiconnect/masks/role.png">$INFO[ListItem.Thumb]</texture>
                                         <aspectratio scalediffuse="false" aligny="top">scale</aspectratio>
                                     </control>
                                     <control type="label">
@@ -3088,7 +3088,7 @@
                                     <posy>0</posy>
                                     <width>254</width>
                                     <height>254</height>
-                                    <texture>script.plex/buttons/role-selected.png</texture>
+                                    <texture>plugin.video.plexkodiconnect/buttons/role-selected.png</texture>
                                 </control>
                             </control>
                         </control>
@@ -3105,7 +3105,7 @@
                     <posy>0</posy>
                     <width>1236</width>
                     <height>2</height>
-                    <texture>script.plex/white-square.png</texture>
+                    <texture>plugin.video.plexkodiconnect/white-square.png</texture>
                     <colordiffuse>FF282828</colordiffuse>
                 </control>
                 <control type="label">
@@ -3187,7 +3187,7 @@
                                     <posy>-40</posy>
                                     <width>270</width>
                                     <height>360</height>
-                                    <texture border="42">script.plex/drop-shadow.png</texture>
+                                    <texture border="42">plugin.video.plexkodiconnect/drop-shadow.png</texture>
                                 </control>
                                 <control type="group">
                                     <posx>5</posx>
@@ -3227,7 +3227,7 @@
                                     <posy>0</posy>
                                     <width>190</width>
                                     <height>280</height>
-                                    <texture border="10">script.plex/home/selected.png</texture>
+                                    <texture border="10">plugin.video.plexkodiconnect/home/selected.png</texture>
                                 </control>
                             </control>
                         </control>
@@ -3244,7 +3244,7 @@
                     <posy>0</posy>
                     <width>1236</width>
                     <height>2</height>
-                    <texture>script.plex/white-square.png</texture>
+                    <texture>plugin.video.plexkodiconnect/white-square.png</texture>
                     <colordiffuse>FF282828</colordiffuse>
                 </control>
                 <control type="label">
@@ -3326,7 +3326,7 @@
                                     <posy>-40</posy>
                                     <width>360</width>
                                     <height>360</height>
-                                    <texture border="42">script.plex/drop-shadow.png</texture>
+                                    <texture border="42">plugin.video.plexkodiconnect/drop-shadow.png</texture>
                                 </control>
                                 <control type="group">
                                     <posx>5</posx>
@@ -3366,7 +3366,7 @@
                                     <posy>0</posy>
                                     <width>280</width>
                                     <height>280</height>
-                                    <texture border="10">script.plex/home/selected.png</texture>
+                                    <texture border="10">plugin.video.plexkodiconnect/home/selected.png</texture>
                                 </control>
                             </control>
                         </control>
@@ -3383,7 +3383,7 @@
                     <posy>0</posy>
                     <width>1236</width>
                     <height>2</height>
-                    <texture>script.plex/white-square.png</texture>
+                    <texture>plugin.video.plexkodiconnect/white-square.png</texture>
                     <colordiffuse>FF282828</colordiffuse>
                 </control>
                 <control type="label">
@@ -3465,7 +3465,7 @@
                                     <posy>-40</posy>
                                     <width>390</width>
                                     <height>259</height>
-                                    <texture border="42">script.plex/drop-shadow.png</texture>
+                                    <texture border="42">plugin.video.plexkodiconnect/drop-shadow.png</texture>
                                 </control>
                                 <control type="group">
                                     <posx>5</posx>
@@ -3505,7 +3505,7 @@
                                     <posy>0</posy>
                                     <width>310</width>
                                     <height>179</height>
-                                    <texture border="10">script.plex/home/selected.png</texture>
+                                    <texture border="10">plugin.video.plexkodiconnect/home/selected.png</texture>
                                 </control>
                             </control>
                         </control>
@@ -3522,7 +3522,7 @@
                     <posy>0</posy>
                     <width>1236</width>
                     <height>2</height>
-                    <texture>script.plex/white-square.png</texture>
+                    <texture>plugin.video.plexkodiconnect/white-square.png</texture>
                     <colordiffuse>FF282828</colordiffuse>
                 </control>
                 <control type="label">
@@ -3561,14 +3561,14 @@
                                     <posy>0</posy>
                                     <width>244</width>
                                     <height>244</height>
-                                    <texture diffuse="script.plex/masks/role.png">$INFO[ListItem.Property(thumb.fallback)]</texture>
+                                    <texture diffuse="plugin.video.plexkodiconnect/masks/role.png">$INFO[ListItem.Property(thumb.fallback)]</texture>
                                 </control>
                                 <control type="image">
                                     <posx>0</posx>
                                     <posy>0</posy>
                                     <width>244</width>
                                     <height>244</height>
-                                    <texture background="true" diffuse="script.plex/masks/role.png">$INFO[ListItem.Thumb]</texture>
+                                    <texture background="true" diffuse="plugin.video.plexkodiconnect/masks/role.png">$INFO[ListItem.Thumb]</texture>
                                     <aspectratio scalediffuse="false" aligny="top">scale</aspectratio>
                                 </control>
                                 <control type="label">
@@ -3612,7 +3612,7 @@
                                     <posy>-40</posy>
                                     <width>334</width>
                                     <height>334</height>
-                                    <texture border="42">script.plex/buttons/role-shadow.png</texture>
+                                    <texture border="42">plugin.video.plexkodiconnect/buttons/role-shadow.png</texture>
                                 </control>
                                 <control type="group">
                                     <posx>5</posx>
@@ -3622,14 +3622,14 @@
                                         <posy>0</posy>
                                         <width>244</width>
                                         <height>244</height>
-                                        <texture diffuse="script.plex/masks/role.png">$INFO[ListItem.Property(thumb.fallback)]</texture>
+                                        <texture diffuse="plugin.video.plexkodiconnect/masks/role.png">$INFO[ListItem.Property(thumb.fallback)]</texture>
                                     </control>
                                     <control type="image">
                                         <posx>0</posx>
                                         <posy>0</posy>
                                         <width>244</width>
                                         <height>244</height>
-                                        <texture background="true" diffuse="script.plex/masks/role.png">$INFO[ListItem.Thumb]</texture>
+                                        <texture background="true" diffuse="plugin.video.plexkodiconnect/masks/role.png">$INFO[ListItem.Thumb]</texture>
                                         <aspectratio scalediffuse="false" aligny="top">scale</aspectratio>
                                     </control>
                                     <control type="label">
@@ -3660,7 +3660,7 @@
                                     <posy>0</posy>
                                     <width>254</width>
                                     <height>254</height>
-                                    <texture>script.plex/buttons/role-selected.png</texture>
+                                    <texture>plugin.video.plexkodiconnect/buttons/role-selected.png</texture>
                                 </control>
                             </control>
                         </control>
@@ -3677,7 +3677,7 @@
                     <posy>0</posy>
                     <width>1236</width>
                     <height>2</height>
-                    <texture>script.plex/white-square.png</texture>
+                    <texture>plugin.video.plexkodiconnect/white-square.png</texture>
                     <colordiffuse>FF282828</colordiffuse>
                 </control>
                 <control type="label">
@@ -3759,7 +3759,7 @@
                                     <posy>-40</posy>
                                     <width>270</width>
                                     <height>360</height>
-                                    <texture border="42">script.plex/drop-shadow.png</texture>
+                                    <texture border="42">plugin.video.plexkodiconnect/drop-shadow.png</texture>
                                 </control>
                                 <control type="group">
                                     <posx>5</posx>
@@ -3799,7 +3799,7 @@
                                     <posy>0</posy>
                                     <width>190</width>
                                     <height>280</height>
-                                    <texture border="10">script.plex/home/selected.png</texture>
+                                    <texture border="10">plugin.video.plexkodiconnect/home/selected.png</texture>
                                 </control>
                             </control>
                         </control>
@@ -3816,7 +3816,7 @@
                     <posy>0</posy>
                     <width>1236</width>
                     <height>2</height>
-                    <texture>script.plex/white-square.png</texture>
+                    <texture>plugin.video.plexkodiconnect/white-square.png</texture>
                     <colordiffuse>FF282828</colordiffuse>
                 </control>
                 <control type="label">
@@ -3898,7 +3898,7 @@
                                     <posy>-40</posy>
                                     <width>360</width>
                                     <height>360</height>
-                                    <texture border="42">script.plex/drop-shadow.png</texture>
+                                    <texture border="42">plugin.video.plexkodiconnect/drop-shadow.png</texture>
                                 </control>
                                 <control type="group">
                                     <posx>5</posx>
@@ -3938,7 +3938,7 @@
                                     <posy>0</posy>
                                     <width>280</width>
                                     <height>280</height>
-                                    <texture border="10">script.plex/home/selected.png</texture>
+                                    <texture border="10">plugin.video.plexkodiconnect/home/selected.png</texture>
                                 </control>
                             </control>
                         </control>
@@ -3955,7 +3955,7 @@
                     <posy>0</posy>
                     <width>1236</width>
                     <height>2</height>
-                    <texture>script.plex/white-square.png</texture>
+                    <texture>plugin.video.plexkodiconnect/white-square.png</texture>
                     <colordiffuse>FF282828</colordiffuse>
                 </control>
                 <control type="label">
@@ -4037,7 +4037,7 @@
                                     <posy>-40</posy>
                                     <width>390</width>
                                     <height>259</height>
-                                    <texture border="42">script.plex/drop-shadow.png</texture>
+                                    <texture border="42">plugin.video.plexkodiconnect/drop-shadow.png</texture>
                                 </control>
                                 <control type="group">
                                     <posx>5</posx>
@@ -4077,7 +4077,7 @@
                                     <posy>0</posy>
                                     <width>310</width>
                                     <height>179</height>
-                                    <texture border="10">script.plex/home/selected.png</texture>
+                                    <texture border="10">plugin.video.plexkodiconnect/home/selected.png</texture>
                                 </control>
                             </control>
                         </control>
@@ -4094,7 +4094,7 @@
                     <posy>0</posy>
                     <width>1236</width>
                     <height>2</height>
-                    <texture>script.plex/white-square.png</texture>
+                    <texture>plugin.video.plexkodiconnect/white-square.png</texture>
                     <colordiffuse>FF282828</colordiffuse>
                 </control>
                 <control type="label">
@@ -4133,14 +4133,14 @@
                                     <posy>0</posy>
                                     <width>244</width>
                                     <height>244</height>
-                                    <texture diffuse="script.plex/masks/role.png">$INFO[ListItem.Property(thumb.fallback)]</texture>
+                                    <texture diffuse="plugin.video.plexkodiconnect/masks/role.png">$INFO[ListItem.Property(thumb.fallback)]</texture>
                                 </control>
                                 <control type="image">
                                     <posx>0</posx>
                                     <posy>0</posy>
                                     <width>244</width>
                                     <height>244</height>
-                                    <texture background="true" diffuse="script.plex/masks/role.png">$INFO[ListItem.Thumb]</texture>
+                                    <texture background="true" diffuse="plugin.video.plexkodiconnect/masks/role.png">$INFO[ListItem.Thumb]</texture>
                                     <aspectratio scalediffuse="false" aligny="top">scale</aspectratio>
                                 </control>
                                 <control type="label">
@@ -4184,7 +4184,7 @@
                                     <posy>-40</posy>
                                     <width>334</width>
                                     <height>334</height>
-                                    <texture border="42">script.plex/buttons/role-shadow.png</texture>
+                                    <texture border="42">plugin.video.plexkodiconnect/buttons/role-shadow.png</texture>
                                 </control>
                                 <control type="group">
                                     <posx>5</posx>
@@ -4194,14 +4194,14 @@
                                         <posy>0</posy>
                                         <width>244</width>
                                         <height>244</height>
-                                        <texture diffuse="script.plex/masks/role.png">$INFO[ListItem.Property(thumb.fallback)]</texture>
+                                        <texture diffuse="plugin.video.plexkodiconnect/masks/role.png">$INFO[ListItem.Property(thumb.fallback)]</texture>
                                     </control>
                                     <control type="image">
                                         <posx>0</posx>
                                         <posy>0</posy>
                                         <width>244</width>
                                         <height>244</height>
-                                        <texture background="true" diffuse="script.plex/masks/role.png">$INFO[ListItem.Thumb]</texture>
+                                        <texture background="true" diffuse="plugin.video.plexkodiconnect/masks/role.png">$INFO[ListItem.Thumb]</texture>
                                         <aspectratio scalediffuse="false" aligny="top">scale</aspectratio>
                                     </control>
                                     <control type="label">
@@ -4232,7 +4232,7 @@
                                     <posy>0</posy>
                                     <width>254</width>
                                     <height>254</height>
-                                    <texture>script.plex/buttons/role-selected.png</texture>
+                                    <texture>plugin.video.plexkodiconnect/buttons/role-selected.png</texture>
                                 </control>
                             </control>
                         </control>
@@ -4249,7 +4249,7 @@
                     <posy>0</posy>
                     <width>1236</width>
                     <height>2</height>
-                    <texture>script.plex/white-square.png</texture>
+                    <texture>plugin.video.plexkodiconnect/white-square.png</texture>
                     <colordiffuse>FF282828</colordiffuse>
                 </control>
                 <control type="label">
@@ -4331,7 +4331,7 @@
                                     <posy>-40</posy>
                                     <width>270</width>
                                     <height>360</height>
-                                    <texture border="42">script.plex/drop-shadow.png</texture>
+                                    <texture border="42">plugin.video.plexkodiconnect/drop-shadow.png</texture>
                                 </control>
                                 <control type="group">
                                     <posx>5</posx>
@@ -4371,7 +4371,7 @@
                                     <posy>0</posy>
                                     <width>190</width>
                                     <height>280</height>
-                                    <texture border="10">script.plex/home/selected.png</texture>
+                                    <texture border="10">plugin.video.plexkodiconnect/home/selected.png</texture>
                                 </control>
                             </control>
                         </control>
@@ -4388,7 +4388,7 @@
                     <posy>0</posy>
                     <width>1236</width>
                     <height>2</height>
-                    <texture>script.plex/white-square.png</texture>
+                    <texture>plugin.video.plexkodiconnect/white-square.png</texture>
                     <colordiffuse>FF282828</colordiffuse>
                 </control>
                 <control type="label">
@@ -4470,7 +4470,7 @@
                                     <posy>-40</posy>
                                     <width>360</width>
                                     <height>360</height>
-                                    <texture border="42">script.plex/drop-shadow.png</texture>
+                                    <texture border="42">plugin.video.plexkodiconnect/drop-shadow.png</texture>
                                 </control>
                                 <control type="group">
                                     <posx>5</posx>
@@ -4510,7 +4510,7 @@
                                     <posy>0</posy>
                                     <width>280</width>
                                     <height>280</height>
-                                    <texture border="10">script.plex/home/selected.png</texture>
+                                    <texture border="10">plugin.video.plexkodiconnect/home/selected.png</texture>
                                 </control>
                             </control>
                         </control>
@@ -4527,7 +4527,7 @@
                     <posy>0</posy>
                     <width>1236</width>
                     <height>2</height>
-                    <texture>script.plex/white-square.png</texture>
+                    <texture>plugin.video.plexkodiconnect/white-square.png</texture>
                     <colordiffuse>FF282828</colordiffuse>
                 </control>
                 <control type="label">
@@ -4609,7 +4609,7 @@
                                     <posy>-40</posy>
                                     <width>390</width>
                                     <height>259</height>
-                                    <texture border="42">script.plex/drop-shadow.png</texture>
+                                    <texture border="42">plugin.video.plexkodiconnect/drop-shadow.png</texture>
                                 </control>
                                 <control type="group">
                                     <posx>5</posx>
@@ -4649,7 +4649,7 @@
                                     <posy>0</posy>
                                     <width>310</width>
                                     <height>179</height>
-                                    <texture border="10">script.plex/home/selected.png</texture>
+                                    <texture border="10">plugin.video.plexkodiconnect/home/selected.png</texture>
                                 </control>
                             </control>
                         </control>
@@ -4666,7 +4666,7 @@
                     <posy>0</posy>
                     <width>1236</width>
                     <height>2</height>
-                    <texture>script.plex/white-square.png</texture>
+                    <texture>plugin.video.plexkodiconnect/white-square.png</texture>
                     <colordiffuse>FF282828</colordiffuse>
                 </control>
                 <control type="label">
@@ -4705,14 +4705,14 @@
                                     <posy>0</posy>
                                     <width>244</width>
                                     <height>244</height>
-                                    <texture diffuse="script.plex/masks/role.png">$INFO[ListItem.Property(thumb.fallback)]</texture>
+                                    <texture diffuse="plugin.video.plexkodiconnect/masks/role.png">$INFO[ListItem.Property(thumb.fallback)]</texture>
                                 </control>
                                 <control type="image">
                                     <posx>0</posx>
                                     <posy>0</posy>
                                     <width>244</width>
                                     <height>244</height>
-                                    <texture background="true" diffuse="script.plex/masks/role.png">$INFO[ListItem.Thumb]</texture>
+                                    <texture background="true" diffuse="plugin.video.plexkodiconnect/masks/role.png">$INFO[ListItem.Thumb]</texture>
                                     <aspectratio scalediffuse="false" aligny="top">scale</aspectratio>
                                 </control>
                                 <control type="label">
@@ -4756,7 +4756,7 @@
                                     <posy>-40</posy>
                                     <width>334</width>
                                     <height>334</height>
-                                    <texture border="42">script.plex/buttons/role-shadow.png</texture>
+                                    <texture border="42">plugin.video.plexkodiconnect/buttons/role-shadow.png</texture>
                                 </control>
                                 <control type="group">
                                     <posx>5</posx>
@@ -4766,14 +4766,14 @@
                                         <posy>0</posy>
                                         <width>244</width>
                                         <height>244</height>
-                                        <texture diffuse="script.plex/masks/role.png">$INFO[ListItem.Property(thumb.fallback)]</texture>
+                                        <texture diffuse="plugin.video.plexkodiconnect/masks/role.png">$INFO[ListItem.Property(thumb.fallback)]</texture>
                                     </control>
                                     <control type="image">
                                         <posx>0</posx>
                                         <posy>0</posy>
                                         <width>244</width>
                                         <height>244</height>
-                                        <texture background="true" diffuse="script.plex/masks/role.png">$INFO[ListItem.Thumb]</texture>
+                                        <texture background="true" diffuse="plugin.video.plexkodiconnect/masks/role.png">$INFO[ListItem.Thumb]</texture>
                                         <aspectratio scalediffuse="false" aligny="top">scale</aspectratio>
                                     </control>
                                     <control type="label">
@@ -4804,7 +4804,7 @@
                                     <posy>0</posy>
                                     <width>254</width>
                                     <height>254</height>
-                                    <texture>script.plex/buttons/role-selected.png</texture>
+                                    <texture>plugin.video.plexkodiconnect/buttons/role-selected.png</texture>
                                 </control>
                             </control>
                         </control>
@@ -4821,7 +4821,7 @@
                     <posy>0</posy>
                     <width>1236</width>
                     <height>2</height>
-                    <texture>script.plex/white-square.png</texture>
+                    <texture>plugin.video.plexkodiconnect/white-square.png</texture>
                     <colordiffuse>FF282828</colordiffuse>
                 </control>
                 <control type="label">
@@ -4903,7 +4903,7 @@
                                     <posy>-40</posy>
                                     <width>270</width>
                                     <height>360</height>
-                                    <texture border="42">script.plex/drop-shadow.png</texture>
+                                    <texture border="42">plugin.video.plexkodiconnect/drop-shadow.png</texture>
                                 </control>
                                 <control type="group">
                                     <posx>5</posx>
@@ -4943,7 +4943,7 @@
                                     <posy>0</posy>
                                     <width>190</width>
                                     <height>280</height>
-                                    <texture border="10">script.plex/home/selected.png</texture>
+                                    <texture border="10">plugin.video.plexkodiconnect/home/selected.png</texture>
                                 </control>
                             </control>
                         </control>
@@ -4960,7 +4960,7 @@
                     <posy>0</posy>
                     <width>1236</width>
                     <height>2</height>
-                    <texture>script.plex/white-square.png</texture>
+                    <texture>plugin.video.plexkodiconnect/white-square.png</texture>
                     <colordiffuse>FF282828</colordiffuse>
                 </control>
                 <control type="label">
@@ -5042,7 +5042,7 @@
                                     <posy>-40</posy>
                                     <width>360</width>
                                     <height>360</height>
-                                    <texture border="42">script.plex/drop-shadow.png</texture>
+                                    <texture border="42">plugin.video.plexkodiconnect/drop-shadow.png</texture>
                                 </control>
                                 <control type="group">
                                     <posx>5</posx>
@@ -5082,7 +5082,7 @@
                                     <posy>0</posy>
                                     <width>280</width>
                                     <height>280</height>
-                                    <texture border="10">script.plex/home/selected.png</texture>
+                                    <texture border="10">plugin.video.plexkodiconnect/home/selected.png</texture>
                                 </control>
                             </control>
                         </control>
@@ -5099,7 +5099,7 @@
                     <posy>0</posy>
                     <width>1236</width>
                     <height>2</height>
-                    <texture>script.plex/white-square.png</texture>
+                    <texture>plugin.video.plexkodiconnect/white-square.png</texture>
                     <colordiffuse>FF282828</colordiffuse>
                 </control>
                 <control type="label">
@@ -5181,7 +5181,7 @@
                                     <posy>-40</posy>
                                     <width>390</width>
                                     <height>259</height>
-                                    <texture border="42">script.plex/drop-shadow.png</texture>
+                                    <texture border="42">plugin.video.plexkodiconnect/drop-shadow.png</texture>
                                 </control>
                                 <control type="group">
                                     <posx>5</posx>
@@ -5221,7 +5221,7 @@
                                     <posy>0</posy>
                                     <width>310</width>
                                     <height>179</height>
-                                    <texture border="10">script.plex/home/selected.png</texture>
+                                    <texture border="10">plugin.video.plexkodiconnect/home/selected.png</texture>
                                 </control>
                             </control>
                         </control>
@@ -5238,7 +5238,7 @@
                     <posy>0</posy>
                     <width>1236</width>
                     <height>2</height>
-                    <texture>script.plex/white-square.png</texture>
+                    <texture>plugin.video.plexkodiconnect/white-square.png</texture>
                     <colordiffuse>FF282828</colordiffuse>
                 </control>
                 <control type="label">
@@ -5277,14 +5277,14 @@
                                     <posy>0</posy>
                                     <width>244</width>
                                     <height>244</height>
-                                    <texture diffuse="script.plex/masks/role.png">$INFO[ListItem.Property(thumb.fallback)]</texture>
+                                    <texture diffuse="plugin.video.plexkodiconnect/masks/role.png">$INFO[ListItem.Property(thumb.fallback)]</texture>
                                 </control>
                                 <control type="image">
                                     <posx>0</posx>
                                     <posy>0</posy>
                                     <width>244</width>
                                     <height>244</height>
-                                    <texture background="true" diffuse="script.plex/masks/role.png">$INFO[ListItem.Thumb]</texture>
+                                    <texture background="true" diffuse="plugin.video.plexkodiconnect/masks/role.png">$INFO[ListItem.Thumb]</texture>
                                     <aspectratio scalediffuse="false" aligny="top">scale</aspectratio>
                                 </control>
                                 <control type="label">
@@ -5328,7 +5328,7 @@
                                     <posy>-40</posy>
                                     <width>334</width>
                                     <height>334</height>
-                                    <texture border="42">script.plex/buttons/role-shadow.png</texture>
+                                    <texture border="42">plugin.video.plexkodiconnect/buttons/role-shadow.png</texture>
                                 </control>
                                 <control type="group">
                                     <posx>5</posx>
@@ -5338,14 +5338,14 @@
                                         <posy>0</posy>
                                         <width>244</width>
                                         <height>244</height>
-                                        <texture diffuse="script.plex/masks/role.png">$INFO[ListItem.Property(thumb.fallback)]</texture>
+                                        <texture diffuse="plugin.video.plexkodiconnect/masks/role.png">$INFO[ListItem.Property(thumb.fallback)]</texture>
                                     </control>
                                     <control type="image">
                                         <posx>0</posx>
                                         <posy>0</posy>
                                         <width>244</width>
                                         <height>244</height>
-                                        <texture background="true" diffuse="script.plex/masks/role.png">$INFO[ListItem.Thumb]</texture>
+                                        <texture background="true" diffuse="plugin.video.plexkodiconnect/masks/role.png">$INFO[ListItem.Thumb]</texture>
                                         <aspectratio scalediffuse="false" aligny="top">scale</aspectratio>
                                     </control>
                                     <control type="label">
@@ -5376,7 +5376,7 @@
                                     <posy>0</posy>
                                     <width>254</width>
                                     <height>254</height>
-                                    <texture>script.plex/buttons/role-selected.png</texture>
+                                    <texture>plugin.video.plexkodiconnect/buttons/role-selected.png</texture>
                                 </control>
                             </control>
                         </control>
@@ -5393,7 +5393,7 @@
                     <posy>0</posy>
                     <width>1236</width>
                     <height>2</height>
-                    <texture>script.plex/white-square.png</texture>
+                    <texture>plugin.video.plexkodiconnect/white-square.png</texture>
                     <colordiffuse>FF282828</colordiffuse>
                 </control>
                 <control type="label">
@@ -5475,7 +5475,7 @@
                                     <posy>-40</posy>
                                     <width>270</width>
                                     <height>360</height>
-                                    <texture border="42">script.plex/drop-shadow.png</texture>
+                                    <texture border="42">plugin.video.plexkodiconnect/drop-shadow.png</texture>
                                 </control>
                                 <control type="group">
                                     <posx>5</posx>
@@ -5515,7 +5515,7 @@
                                     <posy>0</posy>
                                     <width>190</width>
                                     <height>280</height>
-                                    <texture border="10">script.plex/home/selected.png</texture>
+                                    <texture border="10">plugin.video.plexkodiconnect/home/selected.png</texture>
                                 </control>
                             </control>
                         </control>
@@ -5532,7 +5532,7 @@
                     <posy>0</posy>
                     <width>1236</width>
                     <height>2</height>
-                    <texture>script.plex/white-square.png</texture>
+                    <texture>plugin.video.plexkodiconnect/white-square.png</texture>
                     <colordiffuse>FF282828</colordiffuse>
                 </control>
                 <control type="label">
@@ -5614,7 +5614,7 @@
                                     <posy>-40</posy>
                                     <width>360</width>
                                     <height>360</height>
-                                    <texture border="42">script.plex/drop-shadow.png</texture>
+                                    <texture border="42">plugin.video.plexkodiconnect/drop-shadow.png</texture>
                                 </control>
                                 <control type="group">
                                     <posx>5</posx>
@@ -5654,7 +5654,7 @@
                                     <posy>0</posy>
                                     <width>280</width>
                                     <height>280</height>
-                                    <texture border="10">script.plex/home/selected.png</texture>
+                                    <texture border="10">plugin.video.plexkodiconnect/home/selected.png</texture>
                                 </control>
                             </control>
                         </control>
@@ -5671,7 +5671,7 @@
                     <posy>0</posy>
                     <width>1236</width>
                     <height>2</height>
-                    <texture>script.plex/white-square.png</texture>
+                    <texture>plugin.video.plexkodiconnect/white-square.png</texture>
                     <colordiffuse>FF282828</colordiffuse>
                 </control>
                 <control type="label">
@@ -5753,7 +5753,7 @@
                                     <posy>-40</posy>
                                     <width>390</width>
                                     <height>259</height>
-                                    <texture border="42">script.plex/drop-shadow.png</texture>
+                                    <texture border="42">plugin.video.plexkodiconnect/drop-shadow.png</texture>
                                 </control>
                                 <control type="group">
                                     <posx>5</posx>
@@ -5793,7 +5793,7 @@
                                     <posy>0</posy>
                                     <width>310</width>
                                     <height>179</height>
-                                    <texture border="10">script.plex/home/selected.png</texture>
+                                    <texture border="10">plugin.video.plexkodiconnect/home/selected.png</texture>
                                 </control>
                             </control>
                         </control>
@@ -5810,7 +5810,7 @@
                     <posy>0</posy>
                     <width>1236</width>
                     <height>2</height>
-                    <texture>script.plex/white-square.png</texture>
+                    <texture>plugin.video.plexkodiconnect/white-square.png</texture>
                     <colordiffuse>FF282828</colordiffuse>
                 </control>
                 <control type="label">
@@ -5849,14 +5849,14 @@
                                     <posy>0</posy>
                                     <width>244</width>
                                     <height>244</height>
-                                    <texture diffuse="script.plex/masks/role.png">$INFO[ListItem.Property(thumb.fallback)]</texture>
+                                    <texture diffuse="plugin.video.plexkodiconnect/masks/role.png">$INFO[ListItem.Property(thumb.fallback)]</texture>
                                 </control>
                                 <control type="image">
                                     <posx>0</posx>
                                     <posy>0</posy>
                                     <width>244</width>
                                     <height>244</height>
-                                    <texture background="true" diffuse="script.plex/masks/role.png">$INFO[ListItem.Thumb]</texture>
+                                    <texture background="true" diffuse="plugin.video.plexkodiconnect/masks/role.png">$INFO[ListItem.Thumb]</texture>
                                     <aspectratio scalediffuse="false" aligny="top">scale</aspectratio>
                                 </control>
                                 <control type="label">
@@ -5900,7 +5900,7 @@
                                     <posy>-40</posy>
                                     <width>334</width>
                                     <height>334</height>
-                                    <texture border="42">script.plex/buttons/role-shadow.png</texture>
+                                    <texture border="42">plugin.video.plexkodiconnect/buttons/role-shadow.png</texture>
                                 </control>
                                 <control type="group">
                                     <posx>5</posx>
@@ -5910,14 +5910,14 @@
                                         <posy>0</posy>
                                         <width>244</width>
                                         <height>244</height>
-                                        <texture diffuse="script.plex/masks/role.png">$INFO[ListItem.Property(thumb.fallback)]</texture>
+                                        <texture diffuse="plugin.video.plexkodiconnect/masks/role.png">$INFO[ListItem.Property(thumb.fallback)]</texture>
                                     </control>
                                     <control type="image">
                                         <posx>0</posx>
                                         <posy>0</posy>
                                         <width>244</width>
                                         <height>244</height>
-                                        <texture background="true" diffuse="script.plex/masks/role.png">$INFO[ListItem.Thumb]</texture>
+                                        <texture background="true" diffuse="plugin.video.plexkodiconnect/masks/role.png">$INFO[ListItem.Thumb]</texture>
                                         <aspectratio scalediffuse="false" aligny="top">scale</aspectratio>
                                     </control>
                                     <control type="label">
@@ -5948,7 +5948,7 @@
                                     <posy>0</posy>
                                     <width>254</width>
                                     <height>254</height>
-                                    <texture>script.plex/buttons/role-selected.png</texture>
+                                    <texture>plugin.video.plexkodiconnect/buttons/role-selected.png</texture>
                                 </control>
                             </control>
                         </control>
@@ -5965,7 +5965,7 @@
                     <posy>0</posy>
                     <width>1236</width>
                     <height>2</height>
-                    <texture>script.plex/white-square.png</texture>
+                    <texture>plugin.video.plexkodiconnect/white-square.png</texture>
                     <colordiffuse>FF282828</colordiffuse>
                 </control>
                 <control type="label">
@@ -6047,7 +6047,7 @@
                                     <posy>-40</posy>
                                     <width>270</width>
                                     <height>360</height>
-                                    <texture border="42">script.plex/drop-shadow.png</texture>
+                                    <texture border="42">plugin.video.plexkodiconnect/drop-shadow.png</texture>
                                 </control>
                                 <control type="group">
                                     <posx>5</posx>
@@ -6087,7 +6087,7 @@
                                     <posy>0</posy>
                                     <width>190</width>
                                     <height>280</height>
-                                    <texture border="10">script.plex/home/selected.png</texture>
+                                    <texture border="10">plugin.video.plexkodiconnect/home/selected.png</texture>
                                 </control>
                             </control>
                         </control>
@@ -6104,7 +6104,7 @@
                     <posy>0</posy>
                     <width>1236</width>
                     <height>2</height>
-                    <texture>script.plex/white-square.png</texture>
+                    <texture>plugin.video.plexkodiconnect/white-square.png</texture>
                     <colordiffuse>FF282828</colordiffuse>
                 </control>
                 <control type="label">
@@ -6186,7 +6186,7 @@
                                     <posy>-40</posy>
                                     <width>360</width>
                                     <height>360</height>
-                                    <texture border="42">script.plex/drop-shadow.png</texture>
+                                    <texture border="42">plugin.video.plexkodiconnect/drop-shadow.png</texture>
                                 </control>
                                 <control type="group">
                                     <posx>5</posx>
@@ -6226,7 +6226,7 @@
                                     <posy>0</posy>
                                     <width>280</width>
                                     <height>280</height>
-                                    <texture border="10">script.plex/home/selected.png</texture>
+                                    <texture border="10">plugin.video.plexkodiconnect/home/selected.png</texture>
                                 </control>
                             </control>
                         </control>
@@ -6243,7 +6243,7 @@
                     <posy>0</posy>
                     <width>1236</width>
                     <height>2</height>
-                    <texture>script.plex/white-square.png</texture>
+                    <texture>plugin.video.plexkodiconnect/white-square.png</texture>
                     <colordiffuse>FF282828</colordiffuse>
                 </control>
                 <control type="label">
@@ -6325,7 +6325,7 @@
                                     <posy>-40</posy>
                                     <width>390</width>
                                     <height>259</height>
-                                    <texture border="42">script.plex/drop-shadow.png</texture>
+                                    <texture border="42">plugin.video.plexkodiconnect/drop-shadow.png</texture>
                                 </control>
                                 <control type="group">
                                     <posx>5</posx>
@@ -6365,7 +6365,7 @@
                                     <posy>0</posy>
                                     <width>310</width>
                                     <height>179</height>
-                                    <texture border="10">script.plex/home/selected.png</texture>
+                                    <texture border="10">plugin.video.plexkodiconnect/home/selected.png</texture>
                                 </control>
                             </control>
                         </control>
@@ -6382,7 +6382,7 @@
                     <posy>0</posy>
                     <width>1236</width>
                     <height>2</height>
-                    <texture>script.plex/white-square.png</texture>
+                    <texture>plugin.video.plexkodiconnect/white-square.png</texture>
                     <colordiffuse>FF282828</colordiffuse>
                 </control>
                 <control type="label">
@@ -6421,14 +6421,14 @@
                                     <posy>0</posy>
                                     <width>244</width>
                                     <height>244</height>
-                                    <texture diffuse="script.plex/masks/role.png">$INFO[ListItem.Property(thumb.fallback)]</texture>
+                                    <texture diffuse="plugin.video.plexkodiconnect/masks/role.png">$INFO[ListItem.Property(thumb.fallback)]</texture>
                                 </control>
                                 <control type="image">
                                     <posx>0</posx>
                                     <posy>0</posy>
                                     <width>244</width>
                                     <height>244</height>
-                                    <texture background="true" diffuse="script.plex/masks/role.png">$INFO[ListItem.Thumb]</texture>
+                                    <texture background="true" diffuse="plugin.video.plexkodiconnect/masks/role.png">$INFO[ListItem.Thumb]</texture>
                                     <aspectratio scalediffuse="false" aligny="top">scale</aspectratio>
                                 </control>
                                 <control type="label">
@@ -6472,7 +6472,7 @@
                                     <posy>-40</posy>
                                     <width>334</width>
                                     <height>334</height>
-                                    <texture border="42">script.plex/buttons/role-shadow.png</texture>
+                                    <texture border="42">plugin.video.plexkodiconnect/buttons/role-shadow.png</texture>
                                 </control>
                                 <control type="group">
                                     <posx>5</posx>
@@ -6482,14 +6482,14 @@
                                         <posy>0</posy>
                                         <width>244</width>
                                         <height>244</height>
-                                        <texture diffuse="script.plex/masks/role.png">$INFO[ListItem.Property(thumb.fallback)]</texture>
+                                        <texture diffuse="plugin.video.plexkodiconnect/masks/role.png">$INFO[ListItem.Property(thumb.fallback)]</texture>
                                     </control>
                                     <control type="image">
                                         <posx>0</posx>
                                         <posy>0</posy>
                                         <width>244</width>
                                         <height>244</height>
-                                        <texture background="true" diffuse="script.plex/masks/role.png">$INFO[ListItem.Thumb]</texture>
+                                        <texture background="true" diffuse="plugin.video.plexkodiconnect/masks/role.png">$INFO[ListItem.Thumb]</texture>
                                         <aspectratio scalediffuse="false" aligny="top">scale</aspectratio>
                                     </control>
                                     <control type="label">
@@ -6520,7 +6520,7 @@
                                     <posy>0</posy>
                                     <width>254</width>
                                     <height>254</height>
-                                    <texture>script.plex/buttons/role-selected.png</texture>
+                                    <texture>plugin.video.plexkodiconnect/buttons/role-selected.png</texture>
                                 </control>
                             </control>
                         </control>
@@ -6537,7 +6537,7 @@
                     <posy>0</posy>
                     <width>1236</width>
                     <height>2</height>
-                    <texture>script.plex/white-square.png</texture>
+                    <texture>plugin.video.plexkodiconnect/white-square.png</texture>
                     <colordiffuse>FF282828</colordiffuse>
                 </control>
                 <control type="label">
@@ -6619,7 +6619,7 @@
                                     <posy>-40</posy>
                                     <width>270</width>
                                     <height>360</height>
-                                    <texture border="42">script.plex/drop-shadow.png</texture>
+                                    <texture border="42">plugin.video.plexkodiconnect/drop-shadow.png</texture>
                                 </control>
                                 <control type="group">
                                     <posx>5</posx>
@@ -6659,7 +6659,7 @@
                                     <posy>0</posy>
                                     <width>190</width>
                                     <height>280</height>
-                                    <texture border="10">script.plex/home/selected.png</texture>
+                                    <texture border="10">plugin.video.plexkodiconnect/home/selected.png</texture>
                                 </control>
                             </control>
                         </control>
@@ -6676,7 +6676,7 @@
                     <posy>0</posy>
                     <width>1236</width>
                     <height>2</height>
-                    <texture>script.plex/white-square.png</texture>
+                    <texture>plugin.video.plexkodiconnect/white-square.png</texture>
                     <colordiffuse>FF282828</colordiffuse>
                 </control>
                 <control type="label">
@@ -6758,7 +6758,7 @@
                                     <posy>-40</posy>
                                     <width>360</width>
                                     <height>360</height>
-                                    <texture border="42">script.plex/drop-shadow.png</texture>
+                                    <texture border="42">plugin.video.plexkodiconnect/drop-shadow.png</texture>
                                 </control>
                                 <control type="group">
                                     <posx>5</posx>
@@ -6798,7 +6798,7 @@
                                     <posy>0</posy>
                                     <width>280</width>
                                     <height>280</height>
-                                    <texture border="10">script.plex/home/selected.png</texture>
+                                    <texture border="10">plugin.video.plexkodiconnect/home/selected.png</texture>
                                 </control>
                             </control>
                         </control>
@@ -6815,7 +6815,7 @@
                     <posy>0</posy>
                     <width>1236</width>
                     <height>2</height>
-                    <texture>script.plex/white-square.png</texture>
+                    <texture>plugin.video.plexkodiconnect/white-square.png</texture>
                     <colordiffuse>FF282828</colordiffuse>
                 </control>
                 <control type="label">
@@ -6897,7 +6897,7 @@
                                     <posy>-40</posy>
                                     <width>390</width>
                                     <height>259</height>
-                                    <texture border="42">script.plex/drop-shadow.png</texture>
+                                    <texture border="42">plugin.video.plexkodiconnect/drop-shadow.png</texture>
                                 </control>
                                 <control type="group">
                                     <posx>5</posx>
@@ -6937,7 +6937,7 @@
                                     <posy>0</posy>
                                     <width>310</width>
                                     <height>179</height>
-                                    <texture border="10">script.plex/home/selected.png</texture>
+                                    <texture border="10">plugin.video.plexkodiconnect/home/selected.png</texture>
                                 </control>
                             </control>
                         </control>
@@ -6954,7 +6954,7 @@
                     <posy>0</posy>
                     <width>1236</width>
                     <height>2</height>
-                    <texture>script.plex/white-square.png</texture>
+                    <texture>plugin.video.plexkodiconnect/white-square.png</texture>
                     <colordiffuse>FF282828</colordiffuse>
                 </control>
                 <control type="label">
@@ -6993,14 +6993,14 @@
                                     <posy>0</posy>
                                     <width>244</width>
                                     <height>244</height>
-                                    <texture diffuse="script.plex/masks/role.png">$INFO[ListItem.Property(thumb.fallback)]</texture>
+                                    <texture diffuse="plugin.video.plexkodiconnect/masks/role.png">$INFO[ListItem.Property(thumb.fallback)]</texture>
                                 </control>
                                 <control type="image">
                                     <posx>0</posx>
                                     <posy>0</posy>
                                     <width>244</width>
                                     <height>244</height>
-                                    <texture background="true" diffuse="script.plex/masks/role.png">$INFO[ListItem.Thumb]</texture>
+                                    <texture background="true" diffuse="plugin.video.plexkodiconnect/masks/role.png">$INFO[ListItem.Thumb]</texture>
                                     <aspectratio scalediffuse="false" aligny="top">scale</aspectratio>
                                 </control>
                                 <control type="label">
@@ -7044,7 +7044,7 @@
                                     <posy>-40</posy>
                                     <width>334</width>
                                     <height>334</height>
-                                    <texture border="42">script.plex/buttons/role-shadow.png</texture>
+                                    <texture border="42">plugin.video.plexkodiconnect/buttons/role-shadow.png</texture>
                                 </control>
                                 <control type="group">
                                     <posx>5</posx>
@@ -7054,14 +7054,14 @@
                                         <posy>0</posy>
                                         <width>244</width>
                                         <height>244</height>
-                                        <texture diffuse="script.plex/masks/role.png">$INFO[ListItem.Property(thumb.fallback)]</texture>
+                                        <texture diffuse="plugin.video.plexkodiconnect/masks/role.png">$INFO[ListItem.Property(thumb.fallback)]</texture>
                                     </control>
                                     <control type="image">
                                         <posx>0</posx>
                                         <posy>0</posy>
                                         <width>244</width>
                                         <height>244</height>
-                                        <texture background="true" diffuse="script.plex/masks/role.png">$INFO[ListItem.Thumb]</texture>
+                                        <texture background="true" diffuse="plugin.video.plexkodiconnect/masks/role.png">$INFO[ListItem.Thumb]</texture>
                                         <aspectratio scalediffuse="false" aligny="top">scale</aspectratio>
                                     </control>
                                     <control type="label">
@@ -7092,7 +7092,7 @@
                                     <posy>0</posy>
                                     <width>254</width>
                                     <height>254</height>
-                                    <texture>script.plex/buttons/role-selected.png</texture>
+                                    <texture>plugin.video.plexkodiconnect/buttons/role-selected.png</texture>
                                 </control>
                             </control>
                         </control>
@@ -7109,7 +7109,7 @@
                     <posy>0</posy>
                     <width>1236</width>
                     <height>2</height>
-                    <texture>script.plex/white-square.png</texture>
+                    <texture>plugin.video.plexkodiconnect/white-square.png</texture>
                     <colordiffuse>FF282828</colordiffuse>
                 </control>
                 <control type="label">
@@ -7191,7 +7191,7 @@
                                     <posy>-40</posy>
                                     <width>270</width>
                                     <height>360</height>
-                                    <texture border="42">script.plex/drop-shadow.png</texture>
+                                    <texture border="42">plugin.video.plexkodiconnect/drop-shadow.png</texture>
                                 </control>
                                 <control type="group">
                                     <posx>5</posx>
@@ -7231,7 +7231,7 @@
                                     <posy>0</posy>
                                     <width>190</width>
                                     <height>280</height>
-                                    <texture border="10">script.plex/home/selected.png</texture>
+                                    <texture border="10">plugin.video.plexkodiconnect/home/selected.png</texture>
                                 </control>
                             </control>
                         </control>
@@ -7248,7 +7248,7 @@
                     <posy>0</posy>
                     <width>1236</width>
                     <height>2</height>
-                    <texture>script.plex/white-square.png</texture>
+                    <texture>plugin.video.plexkodiconnect/white-square.png</texture>
                     <colordiffuse>FF282828</colordiffuse>
                 </control>
                 <control type="label">
@@ -7330,7 +7330,7 @@
                                     <posy>-40</posy>
                                     <width>360</width>
                                     <height>360</height>
-                                    <texture border="42">script.plex/drop-shadow.png</texture>
+                                    <texture border="42">plugin.video.plexkodiconnect/drop-shadow.png</texture>
                                 </control>
                                 <control type="group">
                                     <posx>5</posx>
@@ -7370,7 +7370,7 @@
                                     <posy>0</posy>
                                     <width>280</width>
                                     <height>280</height>
-                                    <texture border="10">script.plex/home/selected.png</texture>
+                                    <texture border="10">plugin.video.plexkodiconnect/home/selected.png</texture>
                                 </control>
                             </control>
                         </control>
@@ -7387,7 +7387,7 @@
                     <posy>0</posy>
                     <width>1236</width>
                     <height>2</height>
-                    <texture>script.plex/white-square.png</texture>
+                    <texture>plugin.video.plexkodiconnect/white-square.png</texture>
                     <colordiffuse>FF282828</colordiffuse>
                 </control>
                 <control type="label">
@@ -7469,7 +7469,7 @@
                                     <posy>-40</posy>
                                     <width>390</width>
                                     <height>259</height>
-                                    <texture border="42">script.plex/drop-shadow.png</texture>
+                                    <texture border="42">plugin.video.plexkodiconnect/drop-shadow.png</texture>
                                 </control>
                                 <control type="group">
                                     <posx>5</posx>
@@ -7509,7 +7509,7 @@
                                     <posy>0</posy>
                                     <width>310</width>
                                     <height>179</height>
-                                    <texture border="10">script.plex/home/selected.png</texture>
+                                    <texture border="10">plugin.video.plexkodiconnect/home/selected.png</texture>
                                 </control>
                             </control>
                         </control>
@@ -7526,7 +7526,7 @@
                     <posy>0</posy>
                     <width>1236</width>
                     <height>2</height>
-                    <texture>script.plex/white-square.png</texture>
+                    <texture>plugin.video.plexkodiconnect/white-square.png</texture>
                     <colordiffuse>FF282828</colordiffuse>
                 </control>
                 <control type="label">
@@ -7565,14 +7565,14 @@
                                     <posy>0</posy>
                                     <width>244</width>
                                     <height>244</height>
-                                    <texture diffuse="script.plex/masks/role.png">$INFO[ListItem.Property(thumb.fallback)]</texture>
+                                    <texture diffuse="plugin.video.plexkodiconnect/masks/role.png">$INFO[ListItem.Property(thumb.fallback)]</texture>
                                 </control>
                                 <control type="image">
                                     <posx>0</posx>
                                     <posy>0</posy>
                                     <width>244</width>
                                     <height>244</height>
-                                    <texture background="true" diffuse="script.plex/masks/role.png">$INFO[ListItem.Thumb]</texture>
+                                    <texture background="true" diffuse="plugin.video.plexkodiconnect/masks/role.png">$INFO[ListItem.Thumb]</texture>
                                     <aspectratio scalediffuse="false" aligny="top">scale</aspectratio>
                                 </control>
                                 <control type="label">
@@ -7616,7 +7616,7 @@
                                     <posy>-40</posy>
                                     <width>334</width>
                                     <height>334</height>
-                                    <texture border="42">script.plex/buttons/role-shadow.png</texture>
+                                    <texture border="42">plugin.video.plexkodiconnect/buttons/role-shadow.png</texture>
                                 </control>
                                 <control type="group">
                                     <posx>5</posx>
@@ -7626,14 +7626,14 @@
                                         <posy>0</posy>
                                         <width>244</width>
                                         <height>244</height>
-                                        <texture diffuse="script.plex/masks/role.png">$INFO[ListItem.Property(thumb.fallback)]</texture>
+                                        <texture diffuse="plugin.video.plexkodiconnect/masks/role.png">$INFO[ListItem.Property(thumb.fallback)]</texture>
                                     </control>
                                     <control type="image">
                                         <posx>0</posx>
                                         <posy>0</posy>
                                         <width>244</width>
                                         <height>244</height>
-                                        <texture background="true" diffuse="script.plex/masks/role.png">$INFO[ListItem.Thumb]</texture>
+                                        <texture background="true" diffuse="plugin.video.plexkodiconnect/masks/role.png">$INFO[ListItem.Thumb]</texture>
                                         <aspectratio scalediffuse="false" aligny="top">scale</aspectratio>
                                     </control>
                                     <control type="label">
@@ -7664,7 +7664,7 @@
                                     <posy>0</posy>
                                     <width>254</width>
                                     <height>254</height>
-                                    <texture>script.plex/buttons/role-selected.png</texture>
+                                    <texture>plugin.video.plexkodiconnect/buttons/role-selected.png</texture>
                                 </control>
                             </control>
                         </control>
@@ -7681,7 +7681,7 @@
                     <posy>0</posy>
                     <width>1236</width>
                     <height>2</height>
-                    <texture>script.plex/white-square.png</texture>
+                    <texture>plugin.video.plexkodiconnect/white-square.png</texture>
                     <colordiffuse>FF282828</colordiffuse>
                 </control>
                 <control type="label">
@@ -7763,7 +7763,7 @@
                                     <posy>-40</posy>
                                     <width>270</width>
                                     <height>360</height>
-                                    <texture border="42">script.plex/drop-shadow.png</texture>
+                                    <texture border="42">plugin.video.plexkodiconnect/drop-shadow.png</texture>
                                 </control>
                                 <control type="group">
                                     <posx>5</posx>
@@ -7803,7 +7803,7 @@
                                     <posy>0</posy>
                                     <width>190</width>
                                     <height>280</height>
-                                    <texture border="10">script.plex/home/selected.png</texture>
+                                    <texture border="10">plugin.video.plexkodiconnect/home/selected.png</texture>
                                 </control>
                             </control>
                         </control>
@@ -7820,7 +7820,7 @@
                     <posy>0</posy>
                     <width>1236</width>
                     <height>2</height>
-                    <texture>script.plex/white-square.png</texture>
+                    <texture>plugin.video.plexkodiconnect/white-square.png</texture>
                     <colordiffuse>FF282828</colordiffuse>
                 </control>
                 <control type="label">
@@ -7902,7 +7902,7 @@
                                     <posy>-40</posy>
                                     <width>360</width>
                                     <height>360</height>
-                                    <texture border="42">script.plex/drop-shadow.png</texture>
+                                    <texture border="42">plugin.video.plexkodiconnect/drop-shadow.png</texture>
                                 </control>
                                 <control type="group">
                                     <posx>5</posx>
@@ -7942,7 +7942,7 @@
                                     <posy>0</posy>
                                     <width>280</width>
                                     <height>280</height>
-                                    <texture border="10">script.plex/home/selected.png</texture>
+                                    <texture border="10">plugin.video.plexkodiconnect/home/selected.png</texture>
                                 </control>
                             </control>
                         </control>
@@ -7959,7 +7959,7 @@
                     <posy>0</posy>
                     <width>1236</width>
                     <height>2</height>
-                    <texture>script.plex/white-square.png</texture>
+                    <texture>plugin.video.plexkodiconnect/white-square.png</texture>
                     <colordiffuse>FF282828</colordiffuse>
                 </control>
                 <control type="label">
@@ -8041,7 +8041,7 @@
                                     <posy>-40</posy>
                                     <width>390</width>
                                     <height>259</height>
-                                    <texture border="42">script.plex/drop-shadow.png</texture>
+                                    <texture border="42">plugin.video.plexkodiconnect/drop-shadow.png</texture>
                                 </control>
                                 <control type="group">
                                     <posx>5</posx>
@@ -8081,7 +8081,7 @@
                                     <posy>0</posy>
                                     <width>310</width>
                                     <height>179</height>
-                                    <texture border="10">script.plex/home/selected.png</texture>
+                                    <texture border="10">plugin.video.plexkodiconnect/home/selected.png</texture>
                                 </control>
                             </control>
                         </control>
@@ -8098,7 +8098,7 @@
                     <posy>0</posy>
                     <width>1236</width>
                     <height>2</height>
-                    <texture>script.plex/white-square.png</texture>
+                    <texture>plugin.video.plexkodiconnect/white-square.png</texture>
                     <colordiffuse>FF282828</colordiffuse>
                 </control>
                 <control type="label">
@@ -8137,14 +8137,14 @@
                                     <posy>0</posy>
                                     <width>244</width>
                                     <height>244</height>
-                                    <texture diffuse="script.plex/masks/role.png">$INFO[ListItem.Property(thumb.fallback)]</texture>
+                                    <texture diffuse="plugin.video.plexkodiconnect/masks/role.png">$INFO[ListItem.Property(thumb.fallback)]</texture>
                                 </control>
                                 <control type="image">
                                     <posx>0</posx>
                                     <posy>0</posy>
                                     <width>244</width>
                                     <height>244</height>
-                                    <texture background="true" diffuse="script.plex/masks/role.png">$INFO[ListItem.Thumb]</texture>
+                                    <texture background="true" diffuse="plugin.video.plexkodiconnect/masks/role.png">$INFO[ListItem.Thumb]</texture>
                                     <aspectratio scalediffuse="false" aligny="top">scale</aspectratio>
                                 </control>
                                 <control type="label">
@@ -8188,7 +8188,7 @@
                                     <posy>-40</posy>
                                     <width>334</width>
                                     <height>334</height>
-                                    <texture border="42">script.plex/buttons/role-shadow.png</texture>
+                                    <texture border="42">plugin.video.plexkodiconnect/buttons/role-shadow.png</texture>
                                 </control>
                                 <control type="group">
                                     <posx>5</posx>
@@ -8198,14 +8198,14 @@
                                         <posy>0</posy>
                                         <width>244</width>
                                         <height>244</height>
-                                        <texture diffuse="script.plex/masks/role.png">$INFO[ListItem.Property(thumb.fallback)]</texture>
+                                        <texture diffuse="plugin.video.plexkodiconnect/masks/role.png">$INFO[ListItem.Property(thumb.fallback)]</texture>
                                     </control>
                                     <control type="image">
                                         <posx>0</posx>
                                         <posy>0</posy>
                                         <width>244</width>
                                         <height>244</height>
-                                        <texture background="true" diffuse="script.plex/masks/role.png">$INFO[ListItem.Thumb]</texture>
+                                        <texture background="true" diffuse="plugin.video.plexkodiconnect/masks/role.png">$INFO[ListItem.Thumb]</texture>
                                         <aspectratio scalediffuse="false" aligny="top">scale</aspectratio>
                                     </control>
                                     <control type="label">
@@ -8236,7 +8236,7 @@
                                     <posy>0</posy>
                                     <width>254</width>
                                     <height>254</height>
-                                    <texture>script.plex/buttons/role-selected.png</texture>
+                                    <texture>plugin.video.plexkodiconnect/buttons/role-selected.png</texture>
                                 </control>
                             </control>
                         </control>
@@ -8253,7 +8253,7 @@
                     <posy>0</posy>
                     <width>1236</width>
                     <height>2</height>
-                    <texture>script.plex/white-square.png</texture>
+                    <texture>plugin.video.plexkodiconnect/white-square.png</texture>
                     <colordiffuse>FF282828</colordiffuse>
                 </control>
                 <control type="label">
@@ -8335,7 +8335,7 @@
                                     <posy>-40</posy>
                                     <width>270</width>
                                     <height>360</height>
-                                    <texture border="42">script.plex/drop-shadow.png</texture>
+                                    <texture border="42">plugin.video.plexkodiconnect/drop-shadow.png</texture>
                                 </control>
                                 <control type="group">
                                     <posx>5</posx>
@@ -8375,7 +8375,7 @@
                                     <posy>0</posy>
                                     <width>190</width>
                                     <height>280</height>
-                                    <texture border="10">script.plex/home/selected.png</texture>
+                                    <texture border="10">plugin.video.plexkodiconnect/home/selected.png</texture>
                                 </control>
                             </control>
                         </control>
@@ -8392,7 +8392,7 @@
                     <posy>0</posy>
                     <width>1236</width>
                     <height>2</height>
-                    <texture>script.plex/white-square.png</texture>
+                    <texture>plugin.video.plexkodiconnect/white-square.png</texture>
                     <colordiffuse>FF282828</colordiffuse>
                 </control>
                 <control type="label">
@@ -8474,7 +8474,7 @@
                                     <posy>-40</posy>
                                     <width>360</width>
                                     <height>360</height>
-                                    <texture border="42">script.plex/drop-shadow.png</texture>
+                                    <texture border="42">plugin.video.plexkodiconnect/drop-shadow.png</texture>
                                 </control>
                                 <control type="group">
                                     <posx>5</posx>
@@ -8514,7 +8514,7 @@
                                     <posy>0</posy>
                                     <width>280</width>
                                     <height>280</height>
-                                    <texture border="10">script.plex/home/selected.png</texture>
+                                    <texture border="10">plugin.video.plexkodiconnect/home/selected.png</texture>
                                 </control>
                             </control>
                         </control>
@@ -8531,7 +8531,7 @@
                     <posy>0</posy>
                     <width>1236</width>
                     <height>2</height>
-                    <texture>script.plex/white-square.png</texture>
+                    <texture>plugin.video.plexkodiconnect/white-square.png</texture>
                     <colordiffuse>FF282828</colordiffuse>
                 </control>
                 <control type="label">
@@ -8613,7 +8613,7 @@
                                     <posy>-40</posy>
                                     <width>390</width>
                                     <height>259</height>
-                                    <texture border="42">script.plex/drop-shadow.png</texture>
+                                    <texture border="42">plugin.video.plexkodiconnect/drop-shadow.png</texture>
                                 </control>
                                 <control type="group">
                                     <posx>5</posx>
@@ -8653,7 +8653,7 @@
                                     <posy>0</posy>
                                     <width>310</width>
                                     <height>179</height>
-                                    <texture border="10">script.plex/home/selected.png</texture>
+                                    <texture border="10">plugin.video.plexkodiconnect/home/selected.png</texture>
                                 </control>
                             </control>
                         </control>
@@ -8670,7 +8670,7 @@
                     <posy>0</posy>
                     <width>1236</width>
                     <height>2</height>
-                    <texture>script.plex/white-square.png</texture>
+                    <texture>plugin.video.plexkodiconnect/white-square.png</texture>
                     <colordiffuse>FF282828</colordiffuse>
                 </control>
                 <control type="label">
@@ -8708,14 +8708,14 @@
                                     <posy>0</posy>
                                     <width>244</width>
                                     <height>244</height>
-                                    <texture diffuse="script.plex/masks/role.png">$INFO[ListItem.Property(thumb.fallback)]</texture>
+                                    <texture diffuse="plugin.video.plexkodiconnect/masks/role.png">$INFO[ListItem.Property(thumb.fallback)]</texture>
                                 </control>
                                 <control type="image">
                                     <posx>0</posx>
                                     <posy>0</posy>
                                     <width>244</width>
                                     <height>244</height>
-                                    <texture background="true" diffuse="script.plex/masks/role.png">$INFO[ListItem.Thumb]</texture>
+                                    <texture background="true" diffuse="plugin.video.plexkodiconnect/masks/role.png">$INFO[ListItem.Thumb]</texture>
                                     <aspectratio scalediffuse="false" aligny="top">scale</aspectratio>
                                 </control>
                                 <control type="label">
@@ -8759,7 +8759,7 @@
                                     <posy>-40</posy>
                                     <width>334</width>
                                     <height>334</height>
-                                    <texture border="42">script.plex/buttons/role-shadow.png</texture>
+                                    <texture border="42">plugin.video.plexkodiconnect/buttons/role-shadow.png</texture>
                                 </control>
                                 <control type="group">
                                     <posx>5</posx>
@@ -8769,14 +8769,14 @@
                                         <posy>0</posy>
                                         <width>244</width>
                                         <height>244</height>
-                                        <texture diffuse="script.plex/masks/role.png">$INFO[ListItem.Property(thumb.fallback)]</texture>
+                                        <texture diffuse="plugin.video.plexkodiconnect/masks/role.png">$INFO[ListItem.Property(thumb.fallback)]</texture>
                                     </control>
                                     <control type="image">
                                         <posx>0</posx>
                                         <posy>0</posy>
                                         <width>244</width>
                                         <height>244</height>
-                                        <texture background="true" diffuse="script.plex/masks/role.png">$INFO[ListItem.Thumb]</texture>
+                                        <texture background="true" diffuse="plugin.video.plexkodiconnect/masks/role.png">$INFO[ListItem.Thumb]</texture>
                                         <aspectratio scalediffuse="false" aligny="top">scale</aspectratio>
                                     </control>
                                     <control type="label">
@@ -8807,7 +8807,7 @@
                                     <posy>0</posy>
                                     <width>254</width>
                                     <height>254</height>
-                                    <texture>script.plex/buttons/role-selected.png</texture>
+                                    <texture>plugin.video.plexkodiconnect/buttons/role-selected.png</texture>
                                 </control>
                             </control>
                         </control>

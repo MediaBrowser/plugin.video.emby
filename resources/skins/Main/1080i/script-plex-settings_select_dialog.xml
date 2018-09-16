@@ -15,14 +15,14 @@
                 <posy>-40</posy>
                 <width>680</width>
                 <height>870</height>
-                <texture border="42">script.plex/drop-shadow.png</texture>
+                <texture border="42">plugin.video.plexkodiconnect/drop-shadow.png</texture>
             </control>
             <control type="image">
                 <posx>0</posx>
                 <posy>0</posy>
                 <width>600</width>
                 <height>80</height>
-                <texture border="10">script.plex/white-square-top-rounded.png</texture>
+                <texture border="10">plugin.video.plexkodiconnect/white-square-top-rounded.png</texture>
                 <colordiffuse>F21F1F1F</colordiffuse>
             </control>
             <control type="image">
@@ -30,7 +30,7 @@
                 <posy>80</posy>
                 <width>600</width>
                 <height>710</height>
-                <texture flipy="true" border="10">script.plex/white-square-top-rounded.png</texture>
+                <texture flipy="true" border="10">plugin.video.plexkodiconnect/white-square-top-rounded.png</texture>
                 <colordiffuse>F2606060</colordiffuse>
             </control>
             <control type="label">
@@ -73,7 +73,7 @@
                         <posy>0</posy>
                         <width>600</width>
                         <height>100</height>
-                        <texture colordiffuse="FFE5A00D">script.plex/white-square.png</texture>
+                        <texture colordiffuse="FFE5A00D">plugin.video.plexkodiconnect/white-square.png</texture>
                     </control>
                     <control type="label">
                         <posx>20</posx>

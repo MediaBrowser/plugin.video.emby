@@ -13,7 +13,7 @@
                 <posy>465</posy>
                 <width>240</width>
                 <height>150</height>
-                <texture>script.plex/busy-back.png</texture>
+                <texture>plugin.video.plexkodiconnect/busy-back.png</texture>
                 <colordiffuse>A0FFFFFF</colordiffuse>
             </control>
             <control type="image">
@@ -21,7 +21,7 @@
                 <posy>521</posy>
                 <width>90</width>
                 <height>38</height>
-                <texture diffuse="script.plex/busy-diffuse.png">script.plex/busy.gif</texture>
+                <texture diffuse="plugin.video.plexkodiconnect/busy-diffuse.png">plugin.video.plexkodiconnect/busy.gif</texture>
             </control>
         </control>
     </controls>

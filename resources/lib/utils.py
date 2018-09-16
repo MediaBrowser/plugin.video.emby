@@ -56,7 +56,18 @@ def garbageCollect():
 
 
 def setGlobalProperty(key, val):
-    xbmcgui.Window(10000).setProperty('script.plex.{0}'.format(key), val)
+    xbmcgui.Window(10000).setProperty(
+        'plugin.video.plexkodiconnect.{0}'.format(key), val)
+
+
+def setGlobalBoolProperty(key, boolean):
+    xbmcgui.Window(10000).setProperty(
+        'plugin.video.plexkodiconnect.{0}'.format(key), boolean and '1' or '')
+
+
+def getGlobalProperty(key):
+    return xbmc.getInfoLabel(
+        'Window(10000).Property(plugin.video.plexkodiconnect.{0})'.format(key))
 
 
 def reboot_kodi(message=None):

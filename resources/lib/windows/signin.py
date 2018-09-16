@@ -104,10 +104,10 @@ class PinLoginWindow(kodigui.BaseWindow):
         kodigui.BaseWindow.__init__(self, *args, **kwargs)
 
     def setPin(self, pin):
-        self.setProperty('pin.image.0', 'script.plex/sign_in/digits/{0}.png'.format(pin[0].upper()))
-        self.setProperty('pin.image.1', 'script.plex/sign_in/digits/{0}.png'.format(pin[1].upper()))
-        self.setProperty('pin.image.2', 'script.plex/sign_in/digits/{0}.png'.format(pin[2].upper()))
-        self.setProperty('pin.image.3', 'script.plex/sign_in/digits/{0}.png'.format(pin[3].upper()))
+        self.setProperty('pin.image.0', 'plugin.video.plexkodiconnect/sign_in/digits/{0}.png'.format(pin[0].upper()))
+        self.setProperty('pin.image.1', 'plugin.video.plexkodiconnect/sign_in/digits/{0}.png'.format(pin[1].upper()))
+        self.setProperty('pin.image.2', 'plugin.video.plexkodiconnect/sign_in/digits/{0}.png'.format(pin[2].upper()))
+        self.setProperty('pin.image.3', 'plugin.video.plexkodiconnect/sign_in/digits/{0}.png'.format(pin[3].upper()))
 
     def setLinking(self):
         self.setProperty('linking', '1')

@@ -228,8 +228,11 @@ def _sign_in_with_pin():
     """
     Returns the user xml answer from plex.tv or None if unsuccessful
     """
-    from .windows import signin
-    back = signin.Background.create()
+    from .windows import signin, background
+
+    background.setSplash(False)
+    back = background.Background.create()
+
     try:
         pre = signin.PreSignInWindow.open()
         try:
