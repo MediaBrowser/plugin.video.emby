@@ -266,8 +266,7 @@ def _sign_in_with_pin():
                 if not pinlogin.expired:
                     if pinlogin.xml:
                         pin_login_window.setLinking()
-                        return pinlogin.xml
-                    return
+                    return pinlogin.xml
             finally:
                 pin_login_window.doClose()
                 del pin_login_window
