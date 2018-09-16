@@ -216,7 +216,12 @@ def sign_in_with_pin():
 
     Writes to Kodi settings file and returns the HomeUser or None
     """
-    xml = _sign_in_with_pin()
+    from .windows import background
+    bkgrd = background.BackgroundWindow.create(function=_sign_in_with_pin)
+    bkgrd.modal()
+    xml = bkgrd.result
+    del bkgrd
+
     if not xml:
         return
     user = HomeUser(xml.attrib)
@@ -235,7 +240,6 @@ def _sign_in_with_pin():
     pre = signin.PreSignInWindow.open()
 
     try:
-        pre = signin.PreSignInWindow.open()
         try:
             if not pre.doSignin:
                 return

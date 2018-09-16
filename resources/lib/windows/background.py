@@ -19,10 +19,16 @@ class BackgroundWindow(kodigui.BaseWindow):
 
     def __init__(self, *args, **kwargs):
         kodigui.BaseWindow.__init__(self, *args, **kwargs)
+        self.result = None
         self.function = kwargs.get('function')
 
+
+    def onAction(self, action):
+        kodigui.BaseWindow.onAction(self, action)
+
+
     def onFirstInit(self):
-        self.function()
+        self.result = self.function()
         self.doClose()
 
 
