@@ -262,7 +262,7 @@ def _sign_in_with_pin():
                         LOG.debug('Pin login aborted')
                         pinlogin.abort()
                         return
-                    time.sleep(0.1)
+                    xbmc.sleep(100)
                 if not pinlogin.expired:
                     if pinlogin.xml:
                         pin_login_window.setLinking()
