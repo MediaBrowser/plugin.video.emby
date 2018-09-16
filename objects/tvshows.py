@@ -138,16 +138,15 @@ class TVShows(KodiDb):
                     self.emby_db.get_item_by_id(*values(obj, QUEM.get_item_series_obj))[0]
                 except TypeError:
 
-                    obj['RealSeriesId'] = obj['Id']
                     self.emby_db.add_reference(*values(obj, QUEM.add_reference_pool_obj))
                     LOG.info("POOL %s [%s/%s]", obj['Title'], obj['Id'], obj['SeriesId'])
                 
-                try:
-                    self.emby_db.get_item_by_id(season['Id'])[0]
-                except TypeError:
+            try:
+                self.emby_db.get_item_by_id(season['Id'])[0]
+            except TypeError:
 
-                    self.season(season, obj['ShowId'])
-                    season_episodes.append(season['Id'])
+                self.season(season, obj['ShowId'])
+                season_episodes.append(season['Id'])
         else:
             season_id = self.get_season(*values(obj, QU.get_season_special_obj))
             self.artwork.add(obj['Artwork'], season_id, "season")
