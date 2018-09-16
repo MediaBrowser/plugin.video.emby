@@ -253,9 +253,7 @@ def _sign_in_with_pin():
                     pinlogin = PinLogin()
                 except RuntimeError:
                     # Could not sign in to plex.tv Try again later
-                    utils.dialog('ok',
-                                 heading='{plex}',
-                                 line1=utils.lang(39305))
+                    utils.messageDialog(utils.lang(29999), utils.lang(39305))
                     return
                 pin_login_window.setPin(pinlogin.pin)
                 pinlogin.start_token_poll()
