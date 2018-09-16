@@ -224,17 +224,11 @@ def sign_in_with_pin():
     return user
 
 
-class TestWindow(xbmcgui.Window):
-    def onAction(self, action):
-        LOG.debug('onAction: %s', action)
-
 def _sign_in_with_pin():
     """
     Returns the user xml answer from plex.tv or None if unsuccessful
     """
-    from .dialogs import signin
-    return
-
+    from .windows import signin
     back = signin.Background.create()
     try:
         pre = signin.PreSignInWindow.open()
