@@ -318,7 +318,7 @@ class Artwork():
                  "Video", "plex")
         for path in paths:
             new_path = path_ops.translate_path("special://thumbnails/%s" % path)
-            path_ops.makedirs(utils.encode_path(new_path))
+            path_ops.makedirs(path_ops.encode_path(new_path))
 
 
 class ArtworkSyncMessage(object):
