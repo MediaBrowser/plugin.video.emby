@@ -840,7 +840,7 @@
                     <align>left</align>
                     <aligny>center</aligny>
                     <textcolor>FFFFFFFF</textcolor>
-                    <label>[UPPERCASE]$ADDON[plugin.video.plexkodiconnect 33000][/UPPERCASE]</label>
+                    <label>[UPPERCASE]$ADDON[plugin.video.plexkodiconnect 29999][/UPPERCASE] - [UPPERCASE]$ADDON[plugin.video.plexkodiconnect 33000][/UPPERCASE]</label>
                 </control>
             </control>
 
