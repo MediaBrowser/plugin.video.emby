@@ -78,7 +78,7 @@ def reboot_kodi(message=None):
     Set optional custom message
     """
     message = message or lang(33033)
-    dialog('ok', heading='{plex}', line1=message)
+    messageDialog(lang(29999), message)
     xbmc.executebuiltin('RestartApp')
 
 
@@ -554,9 +554,7 @@ def reset(ask_user=True):
     database and possibly PKC entirely
     """
     # Are you sure you want to reset your local Kodi database?
-    if ask_user and not dialog('yesno',
-                               heading='{plex} %s ' % lang(30132),
-                               line1=lang(39600)):
+    if ask_user and not yesno_dialog(lang(29999), lang(39600)):
         return
 
     # first stop any db sync
@@ -567,9 +565,7 @@ def reset(ask_user=True):
         count -= 1
         if count == 0:
             # Could not stop the database from running. Please try again later.
-            dialog('ok',
-                   heading='{plex} %s' % lang(30132),
-                   line1=lang(39601))
+            messageDialog(lang(29999), lang(39601))
             return
         xbmc.sleep(1000)
 
@@ -578,9 +574,7 @@ def reset(ask_user=True):
 
     # Reset all PlexKodiConnect Addon settings? (this is usually NOT
     # recommended and unnecessary!)
-    if ask_user and dialog('yesno',
-                           heading='{plex} %s ' % lang(30132),
-                           line1=lang(39603)):
+    if ask_user and yesno_dialog(lang(29999), lang(39603)):
         # Delete the settings
         LOG.info("Deleting: settings.xml")
         path_ops.remove("%ssettings.xml" % v.ADDON_PROFILE)
@@ -760,7 +754,7 @@ class XmlKodiSetting(object):
             LOG.error('Error parsing %s', self.path)
             # "Kodi cannot parse {0}. PKC will not function correctly. Please
             # visit {1} and correct your file!"
-            dialog('ok', lang(29999), lang(39716).format(
+            messageDialog(lang(29999), lang(39716).format(
                 self.filename,
                 'http://kodi.wiki'))
             self.__exit__(etree.ParseError, None, None)
@@ -913,7 +907,7 @@ def passwords_xml():
         LOG.error('Error parsing %s', xmlpath)
         # "Kodi cannot parse {0}. PKC will not function correctly. Please visit
         # {1} and correct your file!"
-        dialog('ok', lang(29999), lang(39716).format(
+        messageDialog(lang(29999), lang(39716).format(
             'passwords.xml', 'http://forum.kodi.tv/'))
         return
     else:
@@ -969,8 +963,7 @@ def passwords_xml():
                 return
     else:
         # No credentials added
-        dialog('ok',
-               "Network credentials",
+        messageDialog("Network credentials",
                'Input the server name or IP address as indicated in your plex '
                'library paths. For example, the server name: '
                '\\\\SERVER-PC\\path\\ or smb://SERVER-PC/path is SERVER-PC')

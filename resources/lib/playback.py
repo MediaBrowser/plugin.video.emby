@@ -200,10 +200,7 @@ def _playback_init(plex_id, plex_type, playqueue, pos):
             utils.settings('enableCinema') == "true"):
         if utils.settings('askCinema') == "true":
             # "Play trailers?"
-            trailers = utils.dialog('yesno',
-                                    utils.lang(29999),
-                                    utils.lang(33016))
-            trailers = True if trailers else False
+            trailers = utils.yesno_dialog(utils.lang(29999), utils.lang(33016))
         else:
             trailers = True
     LOG.debug('Playing trailers: %s', trailers)

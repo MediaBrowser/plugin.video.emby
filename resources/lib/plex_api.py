@@ -1787,10 +1787,7 @@ class API(object):
         LOG.warn('Cannot access file: %s', url)
         # Kodi cannot locate the file #s. Please verify your PKC settings. Stop
         # syncing?
-        resp = utils.dialog('yesno',
-                            heading='{plex}',
-                            line1=utils.lang(39031) % url)
-        return resp
+        return utils.yesno_dialog(utils.lang(29999), utils.lang(39031) % url)
 
     @staticmethod
     def _set_listitem_artprop(listitem, arttype, path):

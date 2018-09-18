@@ -173,13 +173,13 @@ class Artwork():
         This method will sync all Kodi artwork to textures13.db
         and cache them locally. This takes diskspace!
         """
-        if not utils.dialog('yesno', "Image Texture Cache", utils.lang(39250)):
+        if not utils.yesno_dialog("Image Texture Cache", utils.lang(39250)):
             return
 
         LOG.info("Doing Image Cache Sync")
 
         # ask to rest all existing or not
-        if utils.dialog('yesno', "Image Texture Cache", utils.lang(39251)):
+        if utils.yesno_dialog("Image Texture Cache", utils.lang(39251)):
             LOG.info("Resetting all cache data first")
             # Remove all existing textures first
             path = path_ops.translate_path('special://thumbnails/')

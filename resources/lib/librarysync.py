@@ -293,13 +293,13 @@ class LibrarySync(Thread):
 
         if utils.window('plex_scancrashed') == 'true':
             # Show warning if itemtypes.py crashed at some point
-            utils.dialog('ok', heading='{plex}', line1=utils.lang(39408))
+            utils.messageDialog(utils.lang(29999), utils.lang(39408))
             utils.window('plex_scancrashed', clear=True)
         elif utils.window('plex_scancrashed') == '401':
             utils.window('plex_scancrashed', clear=True)
             if state.PMS_STATUS not in ('401', 'Auth'):
                 # Plex server had too much and returned ERROR
-                utils.dialog('ok', heading='{plex}', line1=utils.lang(39409))
+                utils.messageDialog(utils.lang(29999), utils.lang(39409))
         return True
 
     def _process_view(self, folder_item, kodi_db, plex_db, totalnodes):
@@ -1464,11 +1464,11 @@ class LibrarySync(Thread):
         elif state.RUN_LIB_SCAN == 'fanart':
             # Only look for missing fanart (No)
             # or refresh all fanart (Yes)
-            refresh = utils.dialog('yesno',
-                                   heading='{plex}',
-                                   line1=utils.lang(39223),
-                                   nolabel=utils.lang(39224),
-                                   yeslabel=utils.lang(39225))
+            from .windows import optionsdialog
+            refresh = optionsdialog.show(utils.lang(29999),
+                                         utils.lang(39223),
+                                         utils.lang(39224),  # refresh all
+                                         utils.lang(39225)) == 0
             self.sync_fanart(missing_only=not refresh, refresh=refresh)
         elif state.RUN_LIB_SCAN == 'textures':
             state.DB_SCAN = True
@@ -1492,7 +1492,7 @@ class LibrarySync(Thread):
             import traceback
             LOG.error("Traceback:\n%s", traceback.format_exc())
             # Library sync thread has crashed
-            utils.dialog('ok', heading='{plex}', line1=utils.lang(39400))
+            utils.messageDialog(utils.lang(29999), utils.lang(39400))
             raise
 
     def _run_internal(self):
@@ -1516,7 +1516,7 @@ class LibrarySync(Thread):
             LOG.error('Current Kodi version: %s', utils.try_decode(
                 xbmc.getInfoLabel('System.BuildVersion')))
             # "Current Kodi version is unsupported, cancel lib sync"
-            utils.dialog('ok', heading='{plex}', line1=utils.lang(39403))
+            utils.messageDialog(utils.lang(29999), utils.lang(39403))
             return
 
         # Do some initializing
@@ -1587,16 +1587,13 @@ class LibrarySync(Thread):
                     LOG.warn("Db version out of date: %s minimum version "
                              "required: %s", current_version, v.MIN_DB_VERSION)
                     # DB out of date. Proceed to recreate?
-                    resp = utils.dialog('yesno',
-                                        heading=utils.lang(29999),
-                                        line1=utils.lang(39401))
-                    if not resp:
+                    if not utils.yesno_dialog(utils.lang(29999),
+                                              utils.lang(39401)):
                         LOG.warn("Db version out of date! USER IGNORED!")
                         # PKC may not work correctly until reset
-                        utils.dialog('ok',
-                                     heading='{plex}',
-                                     line1='%s%s' % (utils.lang(29999),
-                                                     utils.lang(39402)))
+                        utils.messageDialog(utils.lang(29999),
+                                            '%s%s' % (utils.lang(29999),
+                                                      utils.lang(39402)))
                     else:
                         utils.reset(ask_user=False)
                     break
