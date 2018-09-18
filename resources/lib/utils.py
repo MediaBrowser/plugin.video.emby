@@ -23,7 +23,7 @@ import xbmc
 import xbmcaddon
 import xbmcgui
 
-from . import path_ops, variables as v, state, optionsdialog
+from . import path_ops, variables as v, state
 
 ###############################################################################
 
@@ -146,6 +146,7 @@ def messageDialog(heading, msg):
     """
     Shows a dialog using the Plex layout
     """
+    from .windows import optionsdialog
     optionsdialog.show(heading, msg, lang(186))
 
 
@@ -154,6 +155,7 @@ def yesno_dialog(heading, msg):
     Shows a dialog with a yes and a no button using the Plex layout.
     Returns True if the user selected yes, False otherwise
     """
+    from .windows import optionsdialog
     return optionsdialog.show(heading, msg, lang(107), lang(106)) == 0
 
 
