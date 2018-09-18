@@ -840,7 +840,7 @@
                     <align>left</align>
                     <aligny>center</aligny>
                     <textcolor>FFFFFFFF</textcolor>
-                    <label>[UPPERCASE]$ADDON[plugin.video.plexkodiconnect 29999][/UPPERCASE] - [UPPERCASE]$ADDON[plugin.video.plexkodiconnect 33000][/UPPERCASE]</label>
+                    <label>[UPPERCASE]$ADDON[plugin.video.plexkodiconnect 33000][/UPPERCASE]</label>
                 </control>
             </control>
 
@@ -881,6 +881,17 @@
                 <height>38</height>
                 <texture diffuse="plugin.video.plexkodiconnect/busy-diffuse.png">plugin.video.plexkodiconnect/busy.gif</texture>
             </control>
+        </control>
+        <control type="label">
+            <posx>1820</posx>
+            <posy>940</posy>
+            <width max="500">auto</width>
+            <height>120</height>
+            <font>font20</font>
+            <align>right</align>
+            <aligny>center</aligny>
+            <textcolor>FFFFFFFF</textcolor>
+            <label>[UPPERCASE]$ADDON[plugin.video.plexkodiconnect 29999][/UPPERCASE]</label>
         </control>
     </controls>
 </window>
