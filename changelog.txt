@@ -1,3 +1,9 @@
+version 2.3.14 (beta only):
+- Fix AttributeError on forcing texture caching
+- Switch to Plex style dialogs
+- Include PKC info in plex.tv dialogs
+- Include PKC info in user selection dialog
+
 version 2.3.13 (beta only):
 - Pretty Plex dialogs for plex.tv sign-in and user selection
 - Fix UnicodeDecodeError for PMS with non ASCII chars on local LAN discovery
