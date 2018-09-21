@@ -140,7 +140,7 @@ class TVShows(KodiDb):
 
                     self.emby_db.add_reference(*values(obj, QUEM.add_reference_pool_obj))
                     LOG.info("POOL %s [%s/%s]", obj['Title'], obj['Id'], obj['SeriesId'])
-                
+
             try:
                 self.emby_db.get_item_by_id(season['Id'])[0]
             except TypeError:
