@@ -97,7 +97,7 @@ class PlayUtils():
             LOG.info('Plex clip or music track, not transcoding')
             return False
         videoCodec = self.api.video_codec()
-        LOG.info("videoCodec: %s" % videoCodec)
+        LOG.info("videoCodec: %s", videoCodec)
         if self.item.force_transcode is True:
             LOG.info('User chose to force-transcode')
             return True
@@ -118,8 +118,8 @@ class PlayUtils():
             return False
         if bitrate > self.get_max_bitrate():
             LOG.info('Video bitrate of %s is higher than the maximal video'
-                     'bitrate of %s that the user chose. Transcoding'
-                     % (bitrate, self.get_max_bitrate()))
+                     'bitrate of %s that the user chose. Transcoding',
+                     bitrate, self.get_max_bitrate())
             return True
         try:
             resolution = int(videoCodec['resolution'])
@@ -128,9 +128,9 @@ class PlayUtils():
             return False
         if 'h265' in codec or 'hevc' in codec:
             if resolution >= self.getH265():
-                LOG.info("Option to transcode h265/HEVC enabled. Resolution "
-                         "of the media: %s, transcoding limit resolution: %s"
-                         % (str(resolution), str(self.getH265())))
+                LOG.info('Option to transcode h265/HEVC enabled. Resolution '
+                         'of the media: %s, transcoding limit resolution: %s',
+                         resolution, self.getH265())
                 return True
         return False
 
