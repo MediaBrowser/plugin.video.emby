@@ -107,7 +107,7 @@ class PlayUtils():
             LOG.info('No codec from PMS, not transcoding.')
             return False
         if ((utils.settings('transcodeHi10P') == 'true' and
-                videoCodec['bitDepth'] == '10') and 
+                videoCodec['bitDepth'] == '10') and
                 ('h264' in codec)):
             LOG.info('Option to transcode 10bit h264 video content enabled.')
             return True
