@@ -1,3 +1,10 @@
+version 2.4.1 (beta only):
+- Hopefully fix endless playlist sync loops
+- Ensure shows are deleted before seasons before episodes
+- Fix library sync crash on deleting episode with missing season
+- Fix numbering of already existing playlist files
+- Optimize logging
+
 version 2.4.0:
 - Use pretty Plex dialogs for everyone!
 
