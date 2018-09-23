@@ -558,7 +558,7 @@ class TVShows(KodiDb):
 
             if not self.emby_db.get_item_by_parent_id(*values(obj, QUEM.delete_item_by_parent_season_obj)):
 
-                self.remove_show(obj['ParentId'], obj['Id'])
+                self.remove_tvshow(obj['ParentId'], obj['Id'])
                 self.emby_db.remove_item_by_kodi_id(*values(obj, QUEM.delete_item_by_parent_tvshow_obj))
 
         # Remove any series pooling episodes
