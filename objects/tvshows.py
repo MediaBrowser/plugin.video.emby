@@ -127,7 +127,7 @@ class TVShows(KodiDb):
         self.add_studios(*values(obj, QU.add_studios_tvshow_obj))
         self.artwork.add(obj['Artwork'], obj['ShowId'], "tvshow")
 
-        season_episodes = []
+        season_episodes = {}
 
         for season in self.server['api'].get_seasons(obj['Id'])['Items']:
 
@@ -140,19 +140,18 @@ class TVShows(KodiDb):
 
                     self.emby_db.add_reference(*values(obj, QUEM.add_reference_pool_obj))
                     LOG.info("POOL %s [%s/%s]", obj['Title'], obj['Id'], obj['SeriesId'])
+                    season_episodes[season['Id']] = season['SeriesId']
                 
             try:
                 self.emby_db.get_item_by_id(season['Id'])[0]
             except TypeError:
-
                 self.season(season, obj['ShowId'])
-                season_episodes.append(season['Id'])
         else:
             season_id = self.get_season(*values(obj, QU.get_season_special_obj))
             self.artwork.add(obj['Artwork'], season_id, "season")
 
         for season in season_episodes:
-            for episodes in server.get_items(season, "Episode"):
+            for episodes in server.get_episode_by_season(season_episodes[season], season):
 
                 for episode in episodes['Items']:
                     self.episode(episode)
@@ -320,6 +319,8 @@ class TVShows(KodiDb):
             obj['MultiEpisode'] = "| %02d | %s" % (obj['MultiEpisode'], obj['Title'])
 
         if not self.get_show_id(obj):
+            LOG.info("No series id associated")
+
             return False
 
         obj['SeasonId'] = self.get_season(*values(obj, QU.get_season_episode_obj))
@@ -528,6 +529,8 @@ class TVShows(KodiDb):
                 else:
                     self.emby_db.remove_items_by_parent_id(*values(temp_obj, QUEM.delete_item_by_parent_season_obj))
 
+                LOG.info("boom")
+                #self.remove(temp_obj['Id'])
                 self.remove_tvshow(temp_obj['ParentId'], obj['Id'])
                 self.emby_db.remove_item(*values(temp_obj, QUEM.delete_item_obj))
 
@@ -546,6 +549,7 @@ class TVShows(KodiDb):
             else:
                 self.emby_db.remove_items_by_parent_id(*values(obj, QUEM.delete_item_by_parent_season_obj))
 
+            LOG.info("boom2")
             self.remove_tvshow(obj['KodiId'], obj['Id'])
 
         elif obj['Media'] == 'season':
@@ -559,8 +563,15 @@ class TVShows(KodiDb):
 
             if not self.emby_db.get_item_by_parent_id(*values(obj, QUEM.delete_item_by_parent_season_obj)):
 
-                self.remove_show(obj['ParentId'], obj['Id'])
+                LOG.info("boom1")
+                self.remove_tvshow(obj['ParentId'], obj['Id'])
                 self.emby_db.remove_item_by_kodi_id(*values(obj, QUEM.delete_item_by_parent_tvshow_obj))
+
+        # Remove any series pooling episodes
+        for episode in self.emby_db.get_media_by_parent_id(obj['Id']):
+            self.remove_episode(episode[2], episode[3], obj['Id'])
+        else:
+            self.emby_db.remove_media_by_parent_id(obj['Id'])
 
         self.emby_db.remove_item(*values(obj, QUEM.delete_item_obj))
 
