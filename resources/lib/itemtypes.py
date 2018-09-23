@@ -1008,18 +1008,24 @@ class TVShows(Items):
             # Season verification
             season = self.plex_db.getItem_byKodiId(parent_id,
                                                    v.KODI_TYPE_SEASON)
-            if not self.plex_db.getItem_byParentId(parent_id,
-                                                   v.KODI_TYPE_EPISODE):
-                # No episode left for season - so delete the season
-                self.remove_season(parent_id)
-                self.plex_db.removeItem(season[0])
-            show = self.plex_db.getItem_byKodiId(season[1],
-                                                 v.KODI_TYPE_SHOW)
-            if not self.plex_db.getItem_byParentId(season[1],
-                                                   v.KODI_TYPE_SEASON):
-                # No seasons for show left - so delete entire show
-                self.remove_show(season[1])
-                self.plex_db.removeItem(show[0])
+            if season is not None:
+                if not self.plex_db.getItem_byParentId(parent_id,
+                                                       v.KODI_TYPE_EPISODE):
+                    # No episode left for season - so delete the season
+                    self.remove_season(parent_id)
+                    self.plex_db.removeItem(season[0])
+                show = self.plex_db.getItem_byKodiId(season[1],
+                                                     v.KODI_TYPE_SHOW)
+                if show is not None:
+                    if not self.plex_db.getItem_byParentId(season[1],
+                                                           v.KODI_TYPE_SEASON):
+                        # No seasons for show left - so delete entire show
+                        self.remove_show(season[1])
+                        self.plex_db.removeItem(show[0])
+                else:
+                    LOG.error('No show found in Plex DB for season %s', season)
+            else:
+                LOG.error('No season found in Plex DB!')
         ##### SEASON #####
         elif kodi_type == v.KODI_TYPE_SEASON:
             # Remove episodes, season, verify tvshow
