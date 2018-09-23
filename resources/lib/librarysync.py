@@ -6,6 +6,7 @@ from threading import Thread
 import Queue
 from random import shuffle
 import copy
+from collections import OrderedDict
 import xbmc
 from xbmcvfs import exists
 
@@ -65,7 +66,7 @@ class LibrarySync(Thread):
         self.old_views = []
         self.updatelist = []
         self.all_plex_ids = {}
-        self.all_kodi_ids = {}
+        self.all_kodi_ids = OrderedDict()
         Thread.__init__(self)
 
     def suspend_item_sync(self):
@@ -726,16 +727,16 @@ class LibrarySync(Thread):
         views = [x for x in self.views if x['itemtype'] == v.KODI_TYPE_MOVIE]
         LOG.info("Processing Plex %s. Libraries: %s", item_class, views)
 
-        self.all_kodi_ids = {}
+        self.all_kodi_ids = OrderedDict()
         if self.compare:
             with plexdb.Get_Plex_DB() as plex_db:
                 # Get movies from Plex server
                 # Pull the list of movies and boxsets in Kodi
                 try:
-                    self.all_kodi_ids = dict(
+                    self.all_kodi_ids = OrderedDict(
                         plex_db.checksum(v.PLEX_TYPE_MOVIE))
                 except ValueError:
-                    self.all_kodi_ids = {}
+                    self.all_kodi_ids = OrderedDict()
 
         # PROCESS MOVIES #####
         self.updatelist = []
@@ -813,7 +814,7 @@ class LibrarySync(Thread):
         views = [x for x in self.views if x['itemtype'] == 'show']
         LOG.info("Media folders for %s: %s", item_class, views)
 
-        self.all_kodi_ids = {}
+        self.all_kodi_ids = OrderedDict()
         if self.compare:
             with plexdb.Get_Plex_DB() as plex:
                 # Pull the list of TV shows already in Kodi
@@ -961,7 +962,7 @@ class LibrarySync(Thread):
             if self.suspend_item_sync():
                 return False
             LOG.debug("Start processing music %s", kind)
-            self.all_kodi_ids = {}
+            self.all_kodi_ids = OrderedDict()
             self.all_plex_ids = {}
             self.updatelist = []
             if not self.process_music(views,
@@ -980,7 +981,7 @@ class LibrarySync(Thread):
             self.plex_update_watched(view['id'], item_class)
 
         # reset stuff
-        self.all_kodi_ids = {}
+        self.all_kodi_ids = OrderedDict()
         self.all_plex_ids = {}
         self.updatelist = []
         LOG.info("%s sync is finished.", item_class)
