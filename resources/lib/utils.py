@@ -38,7 +38,6 @@ REGEX_PLEX_ID = re.compile(r'''plex_id=(\d+)''')
 # Return the numbers at the end of an url like '.../.../XXXX'
 REGEX_END_DIGITS = re.compile(r'''/(.+)/(\d+)$''')
 REGEX_PLEX_DIRECT = re.compile(r'''\.plex\.direct:\d+$''')
-REGEX_FILE_NUMBERING = re.compile(r'''_(\d+)\.\w+$''')
 # Plex API
 REGEX_IMDB = re.compile(r'''/(tt\d+)''')
 REGEX_TVDB = re.compile(r'''thetvdb:\/\/(.+?)\?''')
