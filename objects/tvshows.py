@@ -529,8 +529,6 @@ class TVShows(KodiDb):
                 else:
                     self.emby_db.remove_items_by_parent_id(*values(temp_obj, QUEM.delete_item_by_parent_season_obj))
 
-                LOG.info("boom")
-                #self.remove(temp_obj['Id'])
                 self.remove_tvshow(temp_obj['ParentId'], obj['Id'])
                 self.emby_db.remove_item(*values(temp_obj, QUEM.delete_item_obj))
 
@@ -549,7 +547,6 @@ class TVShows(KodiDb):
             else:
                 self.emby_db.remove_items_by_parent_id(*values(obj, QUEM.delete_item_by_parent_season_obj))
 
-            LOG.info("boom2")
             self.remove_tvshow(obj['KodiId'], obj['Id'])
 
         elif obj['Media'] == 'season':
@@ -563,7 +560,6 @@ class TVShows(KodiDb):
 
             if not self.emby_db.get_item_by_parent_id(*values(obj, QUEM.delete_item_by_parent_season_obj)):
 
-                LOG.info("boom1")
                 self.remove_tvshow(obj['ParentId'], obj['Id'])
                 self.emby_db.remove_item_by_kodi_id(*values(obj, QUEM.delete_item_by_parent_tvshow_obj))
 
