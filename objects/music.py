@@ -439,9 +439,7 @@ class Music(KodiDb):
 
         if obj['Media'] == 'song':
 
-            if not obj['Played']:
-                obj['DatePlayed'] = None
-            elif obj['DatePlayed']:
+            if obj['DatePlayed']:
                 obj['DatePlayed'] = obj['DatePlayed'].split('.')[0].replace('T', " ")
 
             self.rate_song(*values(obj, QU.update_song_rating_obj))
