@@ -455,9 +455,7 @@ class TVShows(KodiDb):
             obj['Runtime'] = round(float((obj['Runtime'] or 0) / 10000000.0), 6)
             obj['PlayCount'] = API.get_playcount(obj['Played'], obj['PlayCount'])
 
-            if not obj['Played']:
-                obj['DatePlayed'] = None
-            elif obj['DatePlayed']:
+            if obj['DatePlayed']:
                 obj['DatePlayed'] = obj['DatePlayed'].split('.')[0].replace('T', " ")
 
             if obj['DateAdded']:
