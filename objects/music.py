@@ -270,10 +270,8 @@ class Music(KodiDb):
         if obj['DateAdded']:
             obj['DateAdded'] = obj['DateAdded'].split('.')[0].replace('T', " ")
 
-        if not obj['Played']:
-            obj['DatePlayed'] = None
-        elif obj['DateAdded'] or obj['DatePlayed']:
-            obj['DatePlayed'] = (obj['DatePlayed'] or obj['DateAdded']).split('.')[0].replace('T', " ")
+        if obj['DatePlayed']:
+            obj['DatePlayed'] = obj['DatePlayed'].split('.')[0].replace('T', " ")
 
         if obj['Disc'] != 1:
             obj['Index'] = obj['Disc'] * 2 ** 16 + obj['Index']
