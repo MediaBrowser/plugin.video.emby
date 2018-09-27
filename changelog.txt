@@ -1,3 +1,6 @@
+version 2.4.2:
+- Make version 2.4.1 available for everyone
+
 version 2.4.1 (beta only):
 - Hopefully fix endless playlist sync loops
 - Ensure shows are deleted before seasons before episodes
