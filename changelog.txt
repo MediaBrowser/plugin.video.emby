@@ -1,3 +1,6 @@
+version 2.4.3:
+- Fix Kodi addons throwing jsonrpc errors (database reset needed)
+
 version 2.4.2:
 - Make version 2.4.1 available for everyone
 

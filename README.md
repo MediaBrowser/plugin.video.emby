@@ -1,5 +1,5 @@
-[![stable version](https://img.shields.io/badge/stable_version-2.4.2-blue.svg?maxAge=60&style=flat) ](https://github.com/croneter/binary_repo/raw/master/stable/repository.plexkodiconnect/repository.plexkodiconnect-1.0.2.zip) 
-[![beta version](https://img.shields.io/badge/beta_version-2.4.2-red.svg?maxAge=60&style=flat) ](https://github.com/croneter/binary_repo/raw/master/beta/repository.plexkodiconnectbeta/repository.plexkodiconnectbeta-1.0.2.zip)
+[![stable version](https://img.shields.io/badge/stable_version-2.4.3-blue.svg?maxAge=60&style=flat) ](https://github.com/croneter/binary_repo/raw/master/stable/repository.plexkodiconnect/repository.plexkodiconnect-1.0.2.zip) 
+[![beta version](https://img.shields.io/badge/beta_version-2.4.3-red.svg?maxAge=60&style=flat) ](https://github.com/croneter/binary_repo/raw/master/beta/repository.plexkodiconnectbeta/repository.plexkodiconnectbeta-1.0.2.zip)
 
 [![Installation](https://img.shields.io/badge/wiki-installation-brightgreen.svg?maxAge=60&style=flat)](https://github.com/croneter/PlexKodiConnect/wiki/Installation)
 [![FAQ](https://img.shields.io/badge/wiki-FAQ-brightgreen.svg?maxAge=60&style=flat)](https://github.com/croneter/PlexKodiConnect/wiki/faq)
@@ -61,7 +61,7 @@ Some people argue that PKC is 'hacky' because of the way it directly accesses th
 - Automatically group movies into [movie sets](http://kodi.wiki/view/movie_sets)
 - [Direct play](https://github.com/croneter/PlexKodiConnect/wiki/Direct-Play) from network paths (e.g. "\\\\server\\Plex\\movie.mkv"), something unique to PKC
 - Delete PMS items from the Kodi context menu
-- PKC is available in the following languages:
+- PKC is available in the following languages. [Please help and easily translate PKC!](https://www.transifex.com/croneter/pkc)
     + English
     + German
     + Czech, thanks @Pavuucek
@@ -77,7 +77,6 @@ Some people argue that PKC is 'hacky' because of the way it directly accesses th
     + Russian, thanks @UncleStark
     + Hungarian, thanks @savage93
     + Ukrainian, thanks @uniss
-    + [Please help and easily translate PKC!](https://www.transifex.com/croneter/pkc)
 
 ### Additional Artwork
 PKC uses additional artwork for free from [TheMovieDB](https://www.themoviedb.org). Many thanks for lettings us use the API, guys!
