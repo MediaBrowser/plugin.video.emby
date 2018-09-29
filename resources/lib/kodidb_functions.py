@@ -301,7 +301,7 @@ class KodiDBMethods(object):
         query = '''
             SELECT %s FROM %s WHERE name = ? COLLATE NOCASE LIMIT 1
         ''' % (key, table)
-        query_id = 'SELECT COALESCE(MAX(%s), -1) FROM %s' % (key, table)
+        query_id = 'SELECT COALESCE(MAX(%s), 0) FROM %s' % (key, table)
         query_new = ('INSERT INTO %s(%s, name) values(?, ?)'
                      % (table, key))
         entry_ids = []
@@ -508,7 +508,7 @@ class KodiDBMethods(object):
             actor_id = self.cursor.fetchone()[0]
         except TypeError:
             # Not yet in actor DB, add person
-            self.cursor.execute('SELECT COALESCE(MAX(actor_id),-1) FROM actor')
+            self.cursor.execute('SELECT COALESCE(MAX(actor_id),0) FROM actor')
             actor_id = self.cursor.fetchone()[0] + 1
             self.cursor.execute('INSERT INTO actor(actor_id, name) '
                                 'VALUES (?, ?)',
