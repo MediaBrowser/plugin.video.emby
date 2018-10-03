@@ -54,7 +54,7 @@ class Music(KodiDb):
     @stop()
     @emby_item()
     @library_check()
-    def artist(self, item, e_item, library, artist_type=None):
+    def artist(self, item, e_item, library):
 
         ''' If item does not exist, entry will be added.
             If item exists, entry will be updated.
@@ -79,7 +79,7 @@ class Music(KodiDb):
         obj['LibraryId'] = library['Id']
         obj['LibraryName'] = library['Name']
         obj['LastScraped'] = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        obj['ArtistType'] = artist_type or "MusicArtist"
+        obj['ArtistType'] = "MusicArtist"
         obj['Genre'] = " / ".join(obj['Genres'] or [])
         obj['Bio'] = API.get_overview(obj['Bio'])
         obj['Artwork'] = API.get_all_artwork(self.objects.map(item, 'ArtworkMusic'), True)
@@ -197,9 +197,8 @@ class Music(KodiDb):
                 temp_obj['ArtistId'] = self.emby_db.get_item_by_id(*values(temp_obj, QUEM.get_item_obj))[0]
             except TypeError:
                 continue
-            else:
-                self.add_discography(*values(temp_obj, QU.update_discography_obj))
 
+            self.add_discography(*values(temp_obj, QU.update_discography_obj))
             self.emby_db.update_parent_id(*values(temp_obj, QUEM.update_parent_album_obj))
 
     def artist_link(self, obj):
@@ -216,15 +215,13 @@ class Music(KodiDb):
             try:
                 temp_obj['ArtistId'] = self.emby_db.get_item_by_id(*values(temp_obj, QUEM.get_item_obj))[0]
             except TypeError:
-                continue
-                """
-                self.artist(self.server['api'].get_item(temp_obj['Id']), artist_type="AlbumArtist")
 
                 try:
+                    self.artist(self.server['api'].get_item(temp_obj['Id']), library=None)
                     temp_obj['ArtistId'] = self.emby_db.get_item_by_id(*values(temp_obj, QUEM.get_item_obj))[0]
-                except TypeError:
+                except Exception as error:
+                    LOG.error(error)
                     continue
-                """
             else:
                 self.update_artist_name(*values(temp_obj, QU.update_artist_name_obj))
 
@@ -370,11 +367,12 @@ class Music(KodiDb):
             try:
                 temp_obj['ArtistId'] = self.emby_db.get_item_by_id(*values(temp_obj, QUEM.get_item_obj))[0]
             except TypeError:
-                self.artist(self.server['api'].get_item(temp_obj['Id']))
 
                 try:
+                    self.artist(self.server['api'].get_item(temp_obj['Id']), library=None)
                     temp_obj['ArtistId'] = self.emby_db.get_item_by_id(*values(temp_obj, QUEM.get_item_obj))[0]
-                except TypeError:
+                except Exception as error:
+                    LOG.error(error)
                     continue
 
             self.link(*values(temp_obj, QU.update_link_obj))
@@ -402,11 +400,12 @@ class Music(KodiDb):
             try:
                 temp_obj['ArtistId'] = self.emby_db.get_item_by_id(*values(temp_obj, QUEM.get_item_obj))[0]
             except TypeError:
-                self.artist(self.server['api'].get_item(temp_obj['Id']))
 
                 try:
+                    self.artist(self.server['api'].get_item(temp_obj['Id']), library=None)
                     temp_obj['ArtistId'] = self.emby_db.get_item_by_id(*values(temp_obj, QUEM.get_item_obj))[0]
-                except TypeError:
+                except Exception as error:
+                    LOG.error(error)
                     continue
 
             self.link_song_artist(*values(temp_obj, QU.update_song_artist_obj))
