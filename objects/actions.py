@@ -243,7 +243,7 @@ class Actions(object):
             
             if intro:
                 obj['Artwork']['Primary'] += "&KodiCinemaMode=true"
-            
+
             self.listitem_video(obj, listitem, item, seektime)
 
             if 'PlaybackInfo' in item:
@@ -407,10 +407,15 @@ class Actions(object):
             listitem.setProperty('IsFolder', 'false')
 
             if obj['Resume'] and seektime != False:
+
                 listitem.setProperty('resumetime', str(obj['Resume']))
                 listitem.setProperty('StartPercent', str(((obj['Resume']/obj['Runtime']) * 100)))
             else:
+                ''' StartPercent to trick Kodi Leia into seeking to the beginning for library content.
+                    If value set to 0, it seems to ignore and resume anyway. StartOffset is broken.
+                '''
                 listitem.setProperty('resumetime', '0')
+                listitem.setProperty('StartPercent', '0.1')
 
             for track in obj['Streams']['video']:
                 listitem.addStreamInfo('video', {
