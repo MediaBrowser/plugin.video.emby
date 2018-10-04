@@ -126,6 +126,8 @@ class Movies(KodiDb):
         self.add_streams(*values(obj, QU.add_streams_obj))
         self.artwork.add(obj['Artwork'], obj['MovieId'], "movie")
 
+        return not update
+
     def movie_add(self, obj):
 
         ''' Add object to kodi.
