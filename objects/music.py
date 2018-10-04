@@ -30,6 +30,7 @@ class Music(KodiDb):
 
         self.emby_db = emby_db.EmbyDatabase(embydb.cursor)
         self.objects = Objects()
+        self.item_ids = []
 
         KodiDb.__init__(self, musicdb.cursor)
 
@@ -101,6 +102,7 @@ class Music(KodiDb):
 
         self.update(obj['Genre'], obj['Bio'], obj['Thumb'], obj['Backdrops'], obj['LastScraped'], obj['ArtistId'])
         self.artwork.add(obj['Artwork'], obj['ArtistId'], "artist")
+        self.item_ids.append(obj['Id'])
 
     def artist_add(self, obj):
         
@@ -167,6 +169,7 @@ class Music(KodiDb):
         self.artist_discography(obj)
         self.update_album(*values(obj, QU.update_album_obj))
         self.artwork.add(obj['Artwork'], obj['AlbumId'], "album")
+        self.item_ids.append(obj['Id'])
 
     def album_add(self, obj):
         
@@ -222,10 +225,10 @@ class Music(KodiDb):
                 except Exception as error:
                     LOG.error(error)
                     continue
-            else:
-                self.update_artist_name(*values(temp_obj, QU.update_artist_name_obj))
 
+            self.update_artist_name(*values(temp_obj, QU.update_artist_name_obj))
             self.link(*values(temp_obj, QU.update_link_obj))
+            self.item_ids.append(temp_obj['Id'])
 
 
     @stop()
@@ -293,6 +296,7 @@ class Music(KodiDb):
 
         self.add_genres(*values(obj, QU.update_genre_song_obj))
         self.artwork.add(obj['Artwork'], obj['SongId'], "song")
+        self.item_ids.append(obj['Id'])
 
         if obj['SongAlbumId'] is None:
             self.artwork.add(obj['Artwork'], obj['AlbumId'], "album")
@@ -378,6 +382,7 @@ class Music(KodiDb):
                     continue
 
             self.link(*values(temp_obj, QU.update_link_obj))
+            self.item_ids.append(temp_obj['Id'])
 
             if obj['Album']:
 
@@ -411,6 +416,7 @@ class Music(KodiDb):
                     continue
 
             self.link_song_artist(*values(temp_obj, QU.update_song_artist_obj))
+            self.item_ids.append(temp_obj['Id'])
 
     def single(self, obj):
 
@@ -526,3 +532,32 @@ class Music(KodiDb):
         self.artwork.delete(kodi_id, "song")
         self.delete_song(kodi_id)
         LOG.info("DELETE song [%s] %s", kodi_id, item_id)
+
+    @emby_item()
+    def get_child(self, item_id, e_item):
+
+        ''' Get all child elements from tv show emby id.
+        '''
+        obj = {'Id': item_id}
+        child = []
+
+        try:
+            obj['KodiId'] = e_item[0]
+            obj['FileId'] = e_item[1]
+            obj['ParentId'] = e_item[3]
+            obj['Media'] = e_item[4]
+        except TypeError:
+            return child
+
+        obj['ParentId'] = obj['KodiId']
+
+        for album in self.emby_db.get_item_by_parent_id(*values(obj, QUEM.get_item_by_parent_album_obj)):
+
+            temp_obj = dict(obj)
+            temp_obj['ParentId'] = album[1]
+            child.append((album[0],))
+
+            for song in self.emby_db.get_item_by_parent_id(*values(temp_obj, QUEM.get_item_by_parent_song_obj)):
+                child.append((song[0],))
+
+        return child
