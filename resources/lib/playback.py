@@ -112,11 +112,11 @@ def playback_triage(plex_id=None, plex_type=None, path=None, resolve=True):
                 initiate = True
             else:
                 initiate = False
-            if initiate:
-                _playback_init(plex_id, plex_type, playqueue, pos)
-            else:
-                # kick off playback on second pass
-                _conclude_playback(playqueue, pos)
+        if initiate:
+            _playback_init(plex_id, plex_type, playqueue, pos)
+        else:
+            # kick off playback on second pass
+            _conclude_playback(playqueue, pos)
 
 
 def _playlist_playback(plex_id, plex_type):
