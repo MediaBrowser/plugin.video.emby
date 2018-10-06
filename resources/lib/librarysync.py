@@ -1392,10 +1392,6 @@ class LibrarySync(Thread):
                                     utils.unix_date_to_kodi(
                                         utils.unix_timestamp()),
                                     plex_type)
-                if plex_type in (v.PLEX_TYPE_MOVIE, v.PLEX_TYPE_EPISODE):
-                    update_library(video=True, music=False)
-                elif plex_type == v.PLEX_TYPE_SONG:
-                    update_library(video=False, music=True)
 
     def sync_fanart(self, missing_only=True, refresh=False):
         """
