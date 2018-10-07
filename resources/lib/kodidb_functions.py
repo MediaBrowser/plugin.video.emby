@@ -5,13 +5,9 @@ Connect to the Kodi databases (video and music) and operate on them
 """
 from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
-from ntpath import dirname
 from sqlite3 import IntegrityError
 
-from . import artwork
-from . import utils
-from . import variables as v
-from . import state
+from . import artwork, utils, variables as v, state, path_ops
 
 ###############################################################################
 
@@ -109,12 +105,9 @@ class KodiDBMethods(object):
         Video DB: Adds all subdirectories to path table while setting a "trail"
         of parent path ids
         """
-        if "\\" in path:
-            # Local path
-            parentpath = "%s\\" % dirname(dirname(path))
-        else:
-            # Network path
-            parentpath = "%s/" % dirname(dirname(path))
+        parentpath = path_ops.path.abspath(
+            path_ops.path.join(path,
+                               path_ops.decode_path(path_ops.path.pardir)))
         pathid = self.get_path(parentpath)
         if pathid is None:
             self.cursor.execute("SELECT COALESCE(MAX(idPath),0) FROM path")
@@ -125,9 +118,11 @@ class KodiDBMethods(object):
                 VALUES (?, ?, ?)
             '''
             self.cursor.execute(query, (pathid, parentpath, datetime))
-            parent_id = self.parent_path_id(parentpath)
-            query = 'UPDATE path SET idParentPath = ? WHERE idPath = ?'
-            self.cursor.execute(query, (parent_id, pathid))
+            if parentpath != path:
+                # In case we end up having media in the filesystem root, C:\
+                parent_id = self.parent_path_id(parentpath)
+                query = 'UPDATE path SET idParentPath = ? WHERE idPath = ?'
+                self.cursor.execute(query, (parent_id, pathid))
         return pathid
 
     def add_video_path(self, path, date_added=None, id_parent_path=None,
