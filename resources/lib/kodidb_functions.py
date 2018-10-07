@@ -100,6 +100,22 @@ class KodiDBMethods(object):
                                         1,
                                         0))
 
+    def setup_music_db_dummy_entries(self):
+        """
+        Kodi Krypton Krypton has some dummy first entries that we might've
+        deleted
+            idArtist: 1  strArtist: [Missing Tag]
+            strMusicBrainzArtistID: Artist Tag Missing
+        """
+        query = '''
+            INSERT OR REPLACE INTO artist(
+                idArtist, strArtist, strMusicBrainzArtistID)
+            VALUES (?, ?, ?)
+        '''
+        self.cursor.execute(query, (1,
+                                    '[Missing Tag]',
+                                    'Artist Tag Missing'))
+
     def parent_path_id(self, path):
         """
         Video DB: Adds all subdirectories to path table while setting a "trail"
@@ -292,11 +308,13 @@ class KodiDBMethods(object):
                                     (path_id,))
 
     def _modify_link_and_table(self, kodi_id, kodi_type, entries, link_table,
-                               table, key):
+                               table, key, first_id=None):
+        first_id = first_id if first_id is not None else 1
         query = '''
             SELECT %s FROM %s WHERE name = ? COLLATE NOCASE LIMIT 1
         ''' % (key, table)
-        query_id = 'SELECT COALESCE(MAX(%s), 0) FROM %s' % (key, table)
+        query_id = ('SELECT COALESCE(MAX(%s), %s) FROM %s'
+                    % (key, first_id - 1, table))
         query_new = ('INSERT INTO %s(%s, name) values(?, ?)'
                      % (table, key))
         entry_ids = []
@@ -906,12 +924,8 @@ class KodiDBMethods(object):
             except TypeError:
                 # Krypton has a dummy first entry idArtist: 1  strArtist:
                 # [Missing Tag] strMusicBrainzArtistID: Artist Tag Missing
-                if v.KODIVERSION >= 17:
-                    self.cursor.execute(
-                        "SELECT COALESCE(MAX(idArtist),1) FROM artist")
-                else:
-                    self.cursor.execute(
-                        "SELECT COALESCE(MAX(idArtist),0) FROM artist")
+                self.cursor.execute(
+                    "SELECT COALESCE(MAX(idArtist),1) FROM artist")
                 artistid = self.cursor.fetchone()[0] + 1
                 query = '''
                     INSERT INTO artist(idArtist, strArtist,
