@@ -1,6 +1,6 @@
 version 2.4.7 (beta only):
 - Try to fix PKC for Enigma 2
-- Fix Kodi 18 wanting to scan tags for songs all the time
+- Fix Kodi 18 wanting to scan tags for songs all the time (you will need to reset the database in the PKC settings)
 - Optimize resetting of Kodi and Plex databases
 
 version 2.4.6 (beta only):
