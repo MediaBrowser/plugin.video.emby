@@ -5,10 +5,8 @@ Various functions and decorators for PKC
 """
 from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
-from pstats import Stats
 from sqlite3 import connect, OperationalError
 from datetime import datetime, timedelta
-from StringIO import StringIO
 from time import localtime, strftime
 from unicodedata import normalize
 import xml.etree.ElementTree as etree
