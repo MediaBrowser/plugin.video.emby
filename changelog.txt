@@ -1,3 +1,8 @@
+version 2.4.7 (beta only):
+- Try to fix PKC for Enigma 2
+- Fix Kodi 18 wanting to scan tags for songs all the time
+- Optimize resetting of Kodi and Plex databases
+
 version 2.4.6 (beta only):
 - Fix PKC not starting up on Enigma
 - Fix sync issues if video lies in root of file system
