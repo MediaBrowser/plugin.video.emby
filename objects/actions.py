@@ -64,10 +64,12 @@ class Actions(object):
 
         self.stack[0][1].setPath(self.stack[0][0])
         try:
+            """
             if not playlist and self.detect_widgets(item):
                 LOG.info(" [ play/widget ]")
 
                 raise IndexError
+            """
 
             xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, self.stack[0][1])
             self.stack.pop(0)
@@ -652,7 +654,9 @@ class Actions(object):
 
         kodi_version = xbmc.getInfoLabel('System.BuildVersion')
 
-        if ('18.0b3-Leia') in kodi_version:
+        if not kodi_version.startswith('18') and kodi_version and "Git:" in kodi_version and kodi_version.split('Git:')[1].split("-")[0] in ('20171119', 'a9a7a20'):
+            LOG.info("Build does not require workaround for widgets?")
+
             return False
 
         if (not xbmc.getCondVisibility('Window.IsMedia') and
