@@ -469,81 +469,37 @@ def wipe_database():
     as Plex databases completely.
     Will also delete all cached artwork.
     """
+    LOG.warn('Start wiping')
     # Clean up the playlists
     delete_playlists()
     # Clean up the video nodes
     delete_nodes()
-
-    # Wipe the kodi databases
-    LOG.info("Resetting the Kodi video database.")
-    connection = kodi_sql('video')
-    cursor = connection.cursor()
-    cursor.execute('SELECT tbl_name FROM sqlite_master WHERE type="table"')
-    rows = cursor.fetchall()
-    for row in rows:
-        tablename = row[0]
-        if tablename != "version":
-            cursor.execute("DELETE FROM %s" % tablename)
-    connection.commit()
-    cursor.close()
-
-    if settings('enableMusic') == "true":
-        LOG.info("Resetting the Kodi music database.")
-        connection = kodi_sql('music')
-        cursor = connection.cursor()
-        cursor.execute('SELECT tbl_name FROM sqlite_master WHERE type="table"')
-        rows = cursor.fetchall()
-        for row in rows:
-            tablename = row[0]
-            if tablename != "version":
-                cursor.execute("DELETE FROM %s" % tablename)
-        connection.commit()
-        cursor.close()
-
-    # Wipe the Plex database
-    LOG.info("Resetting the Plex database.")
-    connection = kodi_sql('plex')
-    cursor = connection.cursor()
+    from . import kodidb_functions
+    kodidb_functions.wipe_dbs()
+    from . import plexdb_functions
     # First get the paths to all synced playlists
     playlist_paths = []
-    cursor.execute('SELECT kodi_path FROM playlists')
-    for entry in cursor.fetchall():
-        playlist_paths.append(entry[0])
-    cursor.execute('SELECT tbl_name FROM sqlite_master WHERE type="table"')
-    rows = cursor.fetchall()
-    for row in rows:
-        tablename = row[0]
-        if tablename != "version":
-            cursor.execute("DELETE FROM %s" % tablename)
-    connection.commit()
-    cursor.close()
-
+    with plexdb_functions.Get_Plex_DB() as plex_db:
+        plex_db.plexcursor.execute('SELECT kodi_path FROM playlists')
+        for entry in plex_db.plexcursor.fetchall():
+            playlist_paths.append(entry[0])
+    plexdb_functions.wipe_dbs()
     # Delete all synced playlists
     for path in playlist_paths:
         try:
             path_ops.remove(path)
+            LOG.info('Removed playlist %s', path)
         except (OSError, IOError):
-            pass
+            LOG.warn('Could not remove playlist %s', path)
 
     LOG.info("Resetting all cached artwork.")
-    # Remove all existing textures first
+    # Remove all cached artwork
     path = path_ops.translate_path("special://thumbnails/")
     if path_ops.exists(path):
         path_ops.rmtree(path, ignore_errors=True)
-    # remove all existing data from texture DB
-    connection = kodi_sql('texture')
-    cursor = connection.cursor()
-    query = 'SELECT tbl_name FROM sqlite_master WHERE type=?'
-    cursor.execute(query, ("table", ))
-    rows = cursor.fetchall()
-    for row in rows:
-        table_name = row[0]
-        if table_name != "version":
-            cursor.execute("DELETE FROM %s" % table_name)
-    connection.commit()
-    cursor.close()
     # reset the install run flag
     settings('SyncInstallRunDone', value="false")
+    LOG.info('Wiping done')
 
 
 def reset(ask_user=True):

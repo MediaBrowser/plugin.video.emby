@@ -100,22 +100,6 @@ class KodiDBMethods(object):
                                         1,
                                         0))
 
-    def setup_music_db_dummy_entries(self):
-        """
-        Kodi Krypton Krypton has some dummy first entries that we might've
-        deleted
-            idArtist: 1  strArtist: [Missing Tag]
-            strMusicBrainzArtistID: Artist Tag Missing
-        """
-        query = '''
-            INSERT OR REPLACE INTO artist(
-                idArtist, strArtist, strMusicBrainzArtistID)
-            VALUES (?, ?, ?)
-        '''
-        self.cursor.execute(query, (1,
-                                    '[Missing Tag]',
-                                    'Artist Tag Missing'))
-
     def parent_path_id(self, path):
         """
         Video DB: Adds all subdirectories to path table while setting a "trail"
@@ -1264,7 +1248,34 @@ def kodiid_from_filename(path, kodi_type=None, db_type=None):
     return kodi_id, kodi_type
 
 
-def wipe_kodi_dbs():
+def setup_kodi_default_entries():
+    """
+    Makes sure that we retain the Kodi standard databases. E.g. that there
+    is a dummy artist with ID 1
+    """
+    if utils.settings('enableMusic') == 'true':
+        with GetKodiDB('music') as kodi_db:
+            query = '''
+                INSERT OR REPLACE INTO artist(
+                    idArtist, strArtist, strMusicBrainzArtistID)
+                VALUES (?, ?, ?)
+            '''
+            kodi_db.cursor.execute(query, (1,
+                                           '[Missing Tag]',
+                                           'Artist Tag Missing'))
+            if v.KODIVERSION >= 18:
+                query = '''
+                    INSERT OR REPLACE INTO versiontagscan(
+                        idVersion, iNeedsScan, lastscanned)
+                    VALUES (?, ?, ?)
+                '''
+                kodi_db.cursor.execute(query, (v.DB_MUSIC_VERSION[v.KODIVERSION],
+                                               0,
+                                               utils.unix_date_to_kodi(
+                                                   utils.unix_timestamp())))
+
+
+def wipe_dbs():
     """
     Completely resets the Kodi databases 'video', 'texture' and 'music' (if
     music sync is enabled)
@@ -1272,7 +1283,7 @@ def wipe_kodi_dbs():
     LOG.warn('Wiping Kodi databases!')
     query = "SELECT name FROM sqlite_master WHERE type = 'table'"
     kinds = ['video', 'texture']
-    if state.ENABLE_MUSIC:
+    if utils.settings('enableMusic') == 'true':
         LOG.info('Also deleting music database')
         kinds.append('music')
     for db in kinds:
@@ -1282,10 +1293,14 @@ def wipe_kodi_dbs():
             tables = [i[0] for i in tables]
             if 'version' in tables:
                 tables.remove('version')
+            if 'versiontagscan' in tables:
+                tables.remove('versiontagscan')
             for table in tables:
                 delete_query = 'DELETE FROM %s' % table
                 kodi_db.cursor.execute(delete_query)
+    setup_kodi_default_entries()
+    # Make sure Kodi knows we wiped the databases
     import xbmc
     xbmc.executebuiltin('UpdateLibrary(video)')
-    if state.ENABLE_MUSIC:
+    if utils.settings('enableMusic') == 'true':
         xbmc.executebuiltin('UpdateLibrary(music)')

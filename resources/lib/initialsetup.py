@@ -640,7 +640,7 @@ class InitialSetup(object):
         
         # New installation - make sure we start with a clean slate
         from . import kodidb_functions
-        kodidb_functions.wipe_kodi_dbs()
+        kodidb_functions.wipe_dbs()
 
         if goto_settings is False:
             # Open Settings page now? You will need to restart!
