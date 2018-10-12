@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="plugin.video.emby.tvshows" name="Emby" version="0.12" provider-name="Emby.media">
+<addon id="plugin.video.emby.tvshows" name="Emby" version="0.13" provider-name="Emby.media">
     <requires>
         <import addon="xbmc.python" version="2.19.0"/>
         <import addon="script.module.requests" version="2.3.0"/>
