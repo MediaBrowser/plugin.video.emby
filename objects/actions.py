@@ -653,6 +653,10 @@ class Actions(object):
         skip_widget = window('emby.context.widget.bool')
         show_dialog = window('emby.playinfo.bool')
 
+        window('emby.context.widget', clear=True)
+        window('emby.playinfo.bool', clear=True)
+        window('emby.context.count', clear=True)
+
         if (not xbmc.getCondVisibility('Window.IsMedia') and not skip_widget and not show_dialog and
             ((item['Type'] == 'Audio' and not xbmc.getCondVisibility('Integer.IsGreater(Playlist.Length(music),1)')) or
             not xbmc.getCondVisibility('Integer.IsGreater(Playlist.Length(video),1)'))):
@@ -774,7 +778,7 @@ def special_listener():
     '''
     player = xbmc.Player()
     isPlaying = player.isPlaying()
-    count = int(window('emby.external_count') or 0)
+    count = int(window('emby.context.count') or 0)
 
     if not isPlaying and xbmc.getCondVisibility('Window.IsVisible(DialogContextMenu.xml)'):
         control = int(xbmcgui.Window(10106).getFocusId())
@@ -820,3 +824,19 @@ def special_listener():
 
         window('emby.external.bool', player.isExternalPlayer())
         window('emby.external_check.bool', True)
+
+    elif not isPlaying and window('emby.playinfo.bool') and not xbmc.getCondVisibility('Window.IsVisible(DialogContextMenu.xml)'):
+        window('emby.context.count', value=str(count + 1))
+
+        if count == 2:
+
+            window('emby.playinfo', clear=True)
+            window('emby.context.count', clear=True)
+
+    elif not isPlaying and window('emby.context.widget.bool') and not xbmc.getCondVisibility('Window.IsVisible(DialogVideoInfo.xml)'):
+        window('emby.context.count', value=str(count + 1))
+
+        if count == 2:
+
+            window('emby.context.widget', clear=True)
+            window('emby.context.count', clear=True)
