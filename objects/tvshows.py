@@ -375,10 +375,11 @@ class TVShows(KodiDb):
         try:
             self.add_episode(*values(obj, QU.add_episode_obj))
         except sqlite3.IntegrityError as error:
-            LOG.error("IntegrityError for %s", obj)
 
+            LOG.error("IntegrityError for %s", obj)
             obj['EpisodeId'] = self.create_entry_episode()
-            self.add_episode(*values(obj, QU.add_episode_obj))
+
+            return self.episode_add(obj)
 
         self.emby_db.add_reference(*values(obj, QUEM.add_reference_episode_obj))
         LOG.debug("ADD episode [%s/%s] %s: %s", obj['PathId'], obj['FileId'], obj['Id'], obj['Title'])
