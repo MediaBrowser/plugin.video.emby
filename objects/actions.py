@@ -99,14 +99,13 @@ class Actions(object):
                 if get_play_action() == "Resume":
                     seektime = True
 
-                if transcode and not seektime and resume:
+                if transcode and not seektime and not window('emby.context.widget.bool'):
                     choice = self.resume_dialog(api.API(item, self.server).adjust_resume((resume or 0) / 10000000.0))
                     
                     if choice is None:
-                        return
+                        raise Exception("User backed out of resume dialog.")
 
-                    elif not choice:
-                        seektime = False
+                    seektime = False if not choice else True
 
         if settings('enableCinema.bool') and not seektime:
             self._set_intros(item)
@@ -651,8 +650,10 @@ class Actions(object):
     def detect_widgets(self, item):
 
         kodi_version = xbmc.getInfoLabel('System.BuildVersion')
+        skip_widget = window('emby.context.widget.bool')
+        show_dialog = window('emby.playinfo.bool')
 
-        if (not xbmc.getCondVisibility('Window.IsMedia') and
+        if (not xbmc.getCondVisibility('Window.IsMedia') and not skip_widget and not show_dialog and
             ((item['Type'] == 'Audio' and not xbmc.getCondVisibility('Integer.IsGreater(Playlist.Length(music),1)')) or
             not xbmc.getCondVisibility('Integer.IsGreater(Playlist.Length(video),1)'))):
 
@@ -775,26 +776,45 @@ def special_listener():
     isPlaying = player.isPlaying()
     count = int(window('emby.external_count') or 0)
 
-    if (not isPlaying and xbmc.getCondVisibility('Window.IsVisible(DialogContextMenu.xml)') and
-        xbmc.getInfoLabel('Control.GetLabel(1002)') == xbmc.getLocalizedString(12021)):
-
+    if not isPlaying and xbmc.getCondVisibility('Window.IsVisible(DialogContextMenu.xml)'):
         control = int(xbmcgui.Window(10106).getFocusId())
 
-        if control == 1002: # Start from beginning
+        if xbmc.getInfoLabel('Control.GetLabel(1002)') == xbmc.getLocalizedString(12021):
+            if control == 1002: # Start from beginning
 
-            LOG.info("Resume dialog: Start from beginning selected.")
-            window('emby.resume.bool', False)
-        elif control == 1001:
+                LOG.info("Resume dialog: Start from beginning selected.")
+                window('emby.resume.bool', False)
+                window('emby.context.widget.bool', True)
+            elif control == 1001:
 
-            LOG.info("Resume dialog: Resume selected.")
-            window('emby.resume.bool', True)
-        elif control == 1005:
+                LOG.info("Resume dialog: Resume selected.")
+                window('emby.resume.bool', True)
+                window('emby.context.widget.bool', True)
+            elif control == 1005:
 
-            LOG.info("Reset resume point selected.")
-            window('emby.context.resetresume.bool', True)
+                LOG.info("Reset resume point selected.")
+                window('emby.context.resetresume.bool', True)
+            else:
+                window('emby.resume', clear=True)
+                window('emby.context.resetresume', clear=True)
+                window('emby.context.widget', clear=True)
+        else: # Item without a resume point
+            if control == 1001:
+
+                LOG.info("Play dialog selected.")
+                window('emby.context.widget.bool', True)
+            else:
+                window('emby.context.widget', clear=True)
+
+    elif not isPlaying and xbmc.getCondVisibility('Window.IsVisible(DialogVideoInfo.xml)'):
+
+        control = int(xbmcgui.Window(12003).getFocusId())
+
+        if control == 8: # Play from show information
+            LOG.info("Show Info dialog: Play selected.")
+            window('emby.playinfo.bool', True)
         else:
-            window('emby.resume', clear=True)
-            window('emby.context.resetresume', clear=True)
+            window('emby.playinfo', clear=True)
 
     elif isPlaying and not window('emby.external_check'):
 
