@@ -4,8 +4,9 @@
 
 import json
 import logging
-from ntpath import dirname
+import sqlite3
 import urllib
+from ntpath import dirname
 
 from obj import Objects
 from kodi import TVShows as KodiDb, queries as QU
@@ -373,7 +374,15 @@ class TVShows(KodiDb):
         obj['PathId'] = self.add_path(*values(obj, QU.add_path_obj))
         obj['FileId'] = self.add_file(*values(obj, QU.add_file_obj))
 
-        self.add_episode(*values(obj, QU.add_episode_obj))
+        try:
+            self.add_episode(*values(obj, QU.add_episode_obj))
+        except sqlite3.IntegrityError as error:
+
+            LOG.error("IntegrityError for %s", obj)
+            obj['EpisodeId'] = self.create_entry_episode()
+
+            return self.episode_add(obj)
+
         self.emby_db.add_reference(*values(obj, QUEM.add_reference_episode_obj))
         LOG.info("ADD episode [%s/%s] %s: %s", obj['PathId'], obj['FileId'], obj['Id'], obj['Title'])
 
