@@ -825,18 +825,18 @@ def special_listener():
         window('emby.external.bool', player.isExternalPlayer())
         window('emby.external_check.bool', True)
 
-    elif not isPlaying and window('emby.playinfo.bool') and not xbmc.getCondVisibility('Window.IsVisible(DialogContextMenu.xml)'):
+    elif not isPlaying and window('emby.playinfo.bool') and xbmc.getCondVisibility('!Window.IsVisible(DialogVideoInfo.xml) + !Window.IsVisible(busydialog)'):
         window('emby.context.count', value=str(count + 1))
 
-        if count == 2:
+        if count == 1:
 
             window('emby.playinfo', clear=True)
             window('emby.context.count', clear=True)
 
-    elif not isPlaying and window('emby.context.widget.bool') and not xbmc.getCondVisibility('Window.IsVisible(DialogVideoInfo.xml)'):
+    elif not isPlaying and window('emby.context.widget.bool') and xbmc.getCondVisibility('!Window.IsVisible(DialogContextMenu.xml) + !Window.IsVisible(busydialog)'):
         window('emby.context.count', value=str(count + 1))
 
-        if count == 2:
+        if count == 1:
 
             window('emby.context.widget', clear=True)
             window('emby.context.count', clear=True)
