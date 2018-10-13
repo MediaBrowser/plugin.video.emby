@@ -1,4 +1,7 @@
-version 2.4.8 (beta only):
+version 2.4.9:
+- Fix Kodi crashing due to PKC memory leak 
+
+version 2.4.8:
 - Make 2.4.4-2.4.7 available for everyone
 
 version 2.4.7 (beta only):
