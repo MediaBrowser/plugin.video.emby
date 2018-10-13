@@ -7,6 +7,7 @@ from Queue import Queue
 from xbmc import executebuiltin, translatePath
 
 from . import utils
+from .utils import etree
 from . import path_ops
 from . import migration
 from .downloadutils import DownloadUtils as DU
@@ -493,7 +494,7 @@ class InitialSetup(object):
                 xml.set_setting(['video', 'ignoresecondsatstart'],
                                 value='60')
                 reboot = xml.write_xml
-        except utils.etree.ParseError:
+        except etree.ParseError:
             cache = None
             reboot = False
         # Kodi default cache if no setting is set
