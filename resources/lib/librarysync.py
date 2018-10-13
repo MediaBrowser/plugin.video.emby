@@ -668,7 +668,15 @@ class LibrarySync(Thread):
         item_number = len(self.updatelist)
         if item_number == 0:
             return
-
+        if (utils.settings('FanartTV') == 'true' and
+                item_class in ('Movies', 'TVShows')):
+            for item in self.updatelist:
+                if item['plex_type'] in (v.PLEX_TYPE_MOVIE, v.PLEX_TYPE_SHOW):
+                    self.fanartqueue.put({
+                        'plex_id': item['plex_id'],
+                        'plex_type': item['plex_type'],
+                        'refresh': False
+                    })
         # Run through self.updatelist, get XML metadata per item
         # Initiate threads
         LOG.debug("Starting sync threads")
@@ -679,8 +687,8 @@ class LibrarySync(Thread):
         sync_info.PROCESS_METADATA_COUNT = 0
         sync_info.PROCESSING_VIEW_NAME = ''
         # Populate queue: GetMetadata
-        for item in self.updatelist:
-            download_queue.put(item)
+        for _ in range(0, len(self.updatelist)):
+            download_queue.put(self.updatelist.pop(0))
         # Spawn GetMetadata threads for downloading
         threads = []
         for _ in range(min(state.SYNC_THREAD_NUMBER, item_number)):
@@ -723,16 +731,6 @@ class LibrarySync(Thread):
             except:
                 pass
         LOG.debug("Sync threads finished")
-        if (utils.settings('FanartTV') == 'true' and
-                item_class in ('Movies', 'TVShows')):
-            for item in self.updatelist:
-                if item['plex_type'] in (v.PLEX_TYPE_MOVIE, v.PLEX_TYPE_SHOW):
-                    self.fanartqueue.put({
-                        'plex_id': item['plex_id'],
-                        'plex_type': item['plex_type'],
-                        'refresh': False
-                    })
-        self.updatelist = []
 
     @utils.log_time
     def plex_movies(self):
