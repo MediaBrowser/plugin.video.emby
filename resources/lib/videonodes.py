@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
-import xml.etree.ElementTree as etree
 
 from . import utils
+from .utils import etree
 from . import path_ops
 from . import variables as v
 from . import state

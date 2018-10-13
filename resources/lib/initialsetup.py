@@ -3,7 +3,6 @@
 from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
 from Queue import Queue
-import xml.etree.ElementTree as etree
 
 from xbmc import executebuiltin, translatePath
 
@@ -494,7 +493,7 @@ class InitialSetup(object):
                 xml.set_setting(['video', 'ignoresecondsatstart'],
                                 value='60')
                 reboot = xml.write_xml
-        except etree.ParseError:
+        except utils.etree.ParseError:
             cache = None
             reboot = False
         # Kodi default cache if no setting is set

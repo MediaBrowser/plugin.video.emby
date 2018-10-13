@@ -9,8 +9,14 @@ from sqlite3 import connect, OperationalError
 from datetime import datetime, timedelta
 from time import localtime, strftime
 from unicodedata import normalize
-import xml.etree.ElementTree as etree
-import defusedxml.ElementTree as defused_etree  # etree parse unsafe
+try:
+    import xml.etree.cElementTree as etree
+    import defusedxml.cElementTree as defused_etree  # etree parse unsafe
+    ETREE = 'cElementTree'
+except ImportError:
+    import xml.etree.ElementTree as etree
+    import defusedxml.ElementTree as defused_etree  # etree parse unsafe
+    ETREE = 'ElementTree'
 from functools import wraps, partial
 from urllib import quote_plus
 import hashlib
