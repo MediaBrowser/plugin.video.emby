@@ -654,7 +654,7 @@ class Actions(object):
         show_dialog = window('emby.playinfo.bool')
 
         window('emby.context.widget', clear=True)
-        window('emby.playinfo.bool', clear=True)
+        window('emby.playinfo', clear=True)
         window('emby.context.count', clear=True)
 
         if (not xbmc.getCondVisibility('Window.IsMedia') and not skip_widget and not show_dialog and
