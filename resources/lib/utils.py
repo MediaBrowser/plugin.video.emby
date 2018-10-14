@@ -678,7 +678,7 @@ class XmlKodiSetting(object):
             if self.force_create is False:
                 LOG.debug('%s does not seem to exist; not creating', self.path)
                 # This will abort __enter__
-                raise IOError
+                self.__exit__(IOError, None, None)
             # Create topmost xml entry
             self.tree = etree.ElementTree(
                 element=etree.Element(self.top_element))
@@ -690,7 +690,7 @@ class XmlKodiSetting(object):
             messageDialog(lang(29999), lang(39716).format(
                 self.filename,
                 'http://kodi.wiki'))
-            raise etree.ParseError
+            self.__exit__(etree.ParseError, None, None)
         self.root = self.tree.getroot()
         return self
 
