@@ -65,7 +65,7 @@ def excludefromscan_music_folders(xml):
                              element.text)
                     parent.remove(element)
                     xml_file.write_xml = True
-    except (utils.etree.ParseError, IOError):
+    except (utils.ParseError, IOError):
         LOG.error('Could not adjust advancedsettings.xml')
     if reboot is True:
         #  'New Plex music library detected. Sorry, but we need to

@@ -494,7 +494,7 @@ class InitialSetup(object):
                 xml.set_setting(['video', 'ignoresecondsatstart'],
                                 value='60')
                 reboot = xml.write_xml
-        except etree.ParseError:
+        except utils.ParseError:
             cache = None
             reboot = False
         # Kodi default cache if no setting is set
@@ -529,7 +529,7 @@ class InitialSetup(object):
                         etree.SubElement(source, 'allowsharing').text = "true"
                 if reboot is False:
                     reboot = xml.write_xml
-        except etree.ParseError:
+        except utils.ParseError:
             pass
 
         # Do we need to migrate stuff?

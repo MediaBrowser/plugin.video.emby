@@ -12,10 +12,12 @@ from unicodedata import normalize
 try:
     import xml.etree.cElementTree as etree
     import defusedxml.cElementTree as defused_etree  # etree parse unsafe
+    from xml.etree.ElementTree import ParseError
     ETREE = 'cElementTree'
 except ImportError:
     import xml.etree.ElementTree as etree
     import defusedxml.ElementTree as defused_etree  # etree parse unsafe
+    from xml.etree.ElementTree import ParseError
     ETREE = 'ElementTree'
 from functools import wraps, partial
 from urllib import quote_plus
@@ -653,7 +655,7 @@ class XmlKodiSetting(object):
 
     Raises IOError if the file does not exist or is empty and force_create
     has been set to False.
-    Raises etree.ParseError if the file could not be parsed by etree
+    Raises utils.ParseError if the file could not be parsed by etree
 
     xml.write_xml        Set to True if we need to write the XML to disk
     """
@@ -678,19 +680,18 @@ class XmlKodiSetting(object):
             if self.force_create is False:
                 LOG.debug('%s does not seem to exist; not creating', self.path)
                 # This will abort __enter__
-                self.__exit__(IOError, None, None)
+                self.__exit__(IOError('File not found'), None, None)
             # Create topmost xml entry
-            self.tree = etree.ElementTree(
-                element=etree.Element(self.top_element))
+            self.tree = etree.ElementTree(etree.Element(self.top_element))
             self.write_xml = True
-        except etree.ParseError:
+        except ParseError:
             LOG.error('Error parsing %s', self.path)
             # "Kodi cannot parse {0}. PKC will not function correctly. Please
             # visit {1} and correct your file!"
             messageDialog(lang(29999), lang(39716).format(
                 self.filename,
                 'http://kodi.wiki'))
-            self.__exit__(etree.ParseError, None, None)
+            self.__exit__(ParseError('Error parsing XML'), None, None)
         self.root = self.tree.getroot()
         return self
 
@@ -703,7 +704,7 @@ class XmlKodiSetting(object):
             # Indent and make readable
             indent(self.root)
             # Safe the changed xml
-            self.tree.write(self.path, encoding="UTF-8")
+            self.tree.write(self.path, encoding='utf-8')
 
     def _is_empty(self, element, empty_elements):
         empty = True
@@ -836,7 +837,7 @@ def passwords_xml():
         # Document is blank or missing
         root = etree.Element('passwords')
         skip_find = True
-    except etree.ParseError:
+    except ParseError:
         LOG.error('Error parsing %s', xmlpath)
         # "Kodi cannot parse {0}. PKC will not function correctly. Please visit
         # {1} and correct your file!"
