@@ -525,7 +525,7 @@ class InitialSetup(object):
                         etree.SubElement(
                             source,
                             'path',
-                            attrib={'pathversion': "1"}).text = "smb://"
+                            {'pathversion': "1"}).text = "smb://"
                         etree.SubElement(source, 'allowsharing').text = "true"
                 if reboot is False:
                     reboot = xml.write_xml
