@@ -931,10 +931,10 @@ def passwords_xml():
     if skip_find:
         # Server not found, add it.
         path = etree.SubElement(root, 'path')
-        etree.SubElement(path, 'from', attrib={'pathversion': "1"}).text = \
+        etree.SubElement(path, 'from', {'pathversion': "1"}).text = \
             "smb://%s/" % server
         topath = "smb://%s:%s@%s/" % (user, password, server)
-        etree.SubElement(path, 'to', attrib={'pathversion': "1"}).text = topath
+        etree.SubElement(path, 'to', {'pathversion': "1"}).text = topath
 
     # Add credentials
     settings('networkCreds', value="%s" % server)
