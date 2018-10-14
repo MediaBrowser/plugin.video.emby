@@ -1,3 +1,6 @@
+version 2.4.10 (beta only):
+- Use xml.etree.cElementTree whenever possible to avoid memory leaks
+
 version 2.4.9:
 - Fix Kodi crashing due to PKC memory leak 
 
