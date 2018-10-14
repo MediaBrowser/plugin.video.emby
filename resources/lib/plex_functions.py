@@ -493,6 +493,12 @@ def GetPlexMetadata(key):
     return xml
 
 
+def plex_children_generator(key):
+    """
+    """
+    yield download_generator('{server}/library/metadata/%s/children' % key)
+
+
 def GetAllPlexChildren(key):
     """
     Returns a list (raw xml API dump) of all Plex children for the key.
@@ -518,6 +524,40 @@ def GetPlexSectionResults(viewId, args=None):
     if args:
         url += urlencode(args) + '&'
     return DownloadChunks(url)
+
+
+def download_generator(url):
+    """
+    Generator to yield XML children piece-wise.
+    PMS XML is downloaded chunks of CONTAINERSIZE.
+
+    Yields XML etree children or raises RuntimeError
+    """
+    pos = 0
+    error_counter = 0
+    while error_counter < 3:
+        args = {
+            'X-Plex-Container-Size': CONTAINERSIZE,
+            'X-Plex-Container-Start': pos
+        }
+        xmlpart = DU().downloadUrl(url, parameters=args)
+        # If something went wrong - skip in the hope that it works next time
+        try:
+            xmlpart.attrib
+        except AttributeError:
+            LOG.error('Error while downloading chunks: %s, args: %s',
+                      url, args)
+            error_counter += 1
+            continue
+        for child in xmlpart:
+            yield child
+        # Done as soon as we don't receive a full complement of items
+        if len(xmlpart) < CONTAINERSIZE:
+            break
+        pos += CONTAINERSIZE
+    else:
+        LOG.error('Fatal error while downloading chunks for %s', url)
+        raise RuntimeError('Error while downloading chunks for %s' % url)
 
 
 def DownloadChunks(url):
