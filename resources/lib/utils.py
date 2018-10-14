@@ -268,7 +268,7 @@ class AttributeDict(dict):
                                       self.get('title', 'None'))
 
     def __repr__(self):
-        return self.__unicode__().encode('utf8')
+        return self.__unicode__().encode('utf-8')
 
 
 def millis_to_kodi_time(milliseconds):
