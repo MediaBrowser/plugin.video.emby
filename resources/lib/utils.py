@@ -314,6 +314,30 @@ def kodi_time_to_millis(time):
     return ret
 
 
+def cast(func, value):
+    """
+    Cast the specified value to the specified type (returned by func). Currently this
+    only support int, float, bool. Should be extended if needed.
+    Parameters:
+        func (func): Calback function to used cast to type (int, bool, float).
+        value (any): value to be cast and returned.
+    """
+    if value is not None:
+        if func == bool:
+            return bool(int(value))
+        elif func == unicode:
+            return value.decode('utf-8')
+        elif func == str:
+            return value.encode('utf-8')
+        elif func in (int, float):
+            try:
+                return func(value)
+            except ValueError:
+                return float('nan')
+        return func(value)
+    return value
+
+
 def try_encode(input_str, encoding='utf-8'):
     """
     Will try to encode input_str (in unicode) to encoding. This possibly

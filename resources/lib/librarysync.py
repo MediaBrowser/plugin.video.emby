@@ -16,7 +16,6 @@ from . import itemtypes
 from . import plexdb_functions as plexdb
 from . import kodidb_functions as kodidb
 from . import artwork
-from . import videonodes
 from . import plex_functions as PF
 from .plex_api import API
 from .library_sync import get_metadata, process_metadata, fanart, sync_info
@@ -37,25 +36,6 @@ else:
 LOG = getLogger('PLEX.librarysync')
 
 ###############################################################################
-
-
-def update_library(video=True, music=True):
-    """
-    Updates the Kodi library and thus refreshes the Kodi views and widgets
-    """
-    if xbmc.getCondVisibility('Container.Content(musicvideos)') or \
-            xbmc.getCondVisibility('Window.IsMedia'):
-        # Prevent cursor from moving
-        LOG.debug("Refreshing container")
-        xbmc.executebuiltin('Container.Refresh')
-    else:
-        # Update widgets
-        if video:
-            LOG.debug("Doing Kodi Video Lib update")
-            xbmc.executebuiltin('UpdateLibrary(video)')
-        if music:
-            LOG.debug("Doing Kodi Music Lib update")
-            xbmc.executebuiltin('UpdateLibrary(music)')
 
 
 @utils.thread_methods(add_suspends=['SUSPEND_LIBRARY_THREAD', 'STOP_SYNC'])
@@ -236,8 +216,8 @@ class LibrarySync(Thread):
             # Create the tables for the plex database
             plex_db.plexcursor.execute('''
                 CREATE TABLE IF NOT EXISTS plex(
-                    plex_id TEXT UNIQUE,
-                    view_id TEXT,
+                    plex_id INTEGER PRIMARY KEY ASC,
+                    section_id INTEGER,
                     plex_type TEXT,
                     kodi_type TEXT,
                     kodi_id INTEGER,
@@ -245,13 +225,14 @@ class LibrarySync(Thread):
                     kodi_pathid INTEGER,
                     parent_id INTEGER,
                     checksum INTEGER,
-                    fanart_synced INTEGER)
+                    fanart_synced INTEGER,
+                    last_sync INTEGER)
             ''')
             plex_db.plexcursor.execute('''
-                CREATE TABLE IF NOT EXISTS view(
-                    view_id TEXT UNIQUE,
-                    view_name TEXT,
-                    kodi_type TEXT,
+                CREATE TABLE IF NOT EXISTS sections(
+                    section_id INTEGER PRIMARY KEY,
+                    section_name TEXT,
+                    plex_type TEXT,
                     kodi_tagid INTEGER,
                     sync_to_kodi INTEGER)
             ''')
@@ -260,7 +241,7 @@ class LibrarySync(Thread):
             ''')
             plex_db.plexcursor.execute('''
                 CREATE TABLE IF NOT EXISTS playlists(
-                    plex_id TEXT UNIQUE,
+                    plex_id  PRIMARY KEY,
                     plex_name TEXT,
                     plex_updatedat TEXT,
                     kodi_path TEXT,

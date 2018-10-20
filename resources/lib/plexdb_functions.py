@@ -29,163 +29,96 @@ class Plex_DB_Functions():
     def __init__(self, plexcursor):
         self.plexcursor = plexcursor
 
-    def getViews(self):
+    def sections(self):
         """
-        Returns a list of view_id
+        Returns a list of section Plex ids for all sections
         """
-        views = []
-        query = '''
-            SELECT view_id
-            FROM view
-        '''
-        self.plexcursor.execute(query)
-        rows = self.plexcursor.fetchall()
-        for row in rows:
-            views.append(row[0])
-        return views
+        self.plexcursor.execute('SELECT section_id FROM sections')
+        return [x[0] for x in self.plexcursor]
 
-    def getAllViewInfo(self):
+    def list_section_info(self):
         """
         Returns a list of dicts for all Plex libraries:
         {
-            'id': view_id,
-            'name': view_name,
-            'itemtype': kodi_type
+            'section_id'
+            'section_name'
+            'plex_type'
             'kodi_tagid'
             'sync_to_kodi'
         }
         """
-        plexcursor = self.plexcursor
-        views = []
-        query = '''SELECT * FROM view'''
-        plexcursor.execute(query)
-        rows = plexcursor.fetchall()
-        for row in rows:
-            views.append({'id': row[0],
-                          'name': row[1],
-                          'itemtype': row[2],
-                          'kodi_tagid': row[3],
-                          'sync_to_kodi': row[4]})
-        return views
+        self.plexcursor.execute('SELECT * FROM sections')
+        return [{'section_id': x[0],
+                 'section_name': x[1],
+                 'plex_type': x[2],
+                 'kodi_tagid': x[3],
+                 'sync_to_kodi': x[4]} for x in self.plexcursor]
 
-    def getView_byId(self, view_id):
+    def section_by_id(self, section_id):
         """
-        Returns tuple (view_name, kodi_type, kodi_tagid) for view_id
+        Returns tuple (section_id, section_name, plex_type, kodi_tagid,
+        sync_to_kodi) for section_id
+        """
+        self.plexcursor.execute('SELECT * FROM sections WHERE section_id = ? LIMIT 1',
+                                (section_id, ))
+        return self.plexcursor.fetchone()
+
+    def section_id_by_name(self, section_name):
+        """
+        Returns the section_id for section_name (or None)
         """
         query = '''
-            SELECT view_name, kodi_type, kodi_tagid
-            FROM view
-            WHERE view_id = ?
+            SELECT section_id FROM sections
+            WHERE section_name = ?
+            LIMIT 1
         '''
-        self.plexcursor.execute(query, (view_id,))
-        view = self.plexcursor.fetchone()
-        return view
-
-    def getView_byType(self, kodi_type):
-        """
-        Returns a list of dicts for kodi_type:
-            {'id': view_id, 'name': view_name, 'itemtype': kodi_type}
-        """
-        views = []
-        query = '''
-            SELECT view_id, view_name, kodi_type
-            FROM view
-            WHERE kodi_type = ?
-        '''
-        self.plexcursor.execute(query, (kodi_type,))
-        rows = self.plexcursor.fetchall()
-        for row in rows:
-            views.append({
-                'id': row[0],
-                'name': row[1],
-                'itemtype': row[2]
-            })
-        return views
-
-    def getView_byName(self, view_name):
-        """
-        Returns the view_id for view_name (or None)
-        """
-        query = '''
-            SELECT view_id
-            FROM view
-            WHERE view_name = ?
-        '''
-        self.plexcursor.execute(query, (view_name,))
+        self.plexcursor.execute(query, (section_name,))
         try:
-            view = self.plexcursor.fetchone()[0]
+            section = self.plexcursor.fetchone()[0]
         except TypeError:
-            view = None
-        return view
+            section = None
+        return section
 
-    def addView(self, view_id, view_name, kodi_type, kodi_tagid, sync=True):
+    def add_section(self, section_id, section_name, plex_type, kodi_tagid,
+                    sync_to_kodi=True):
         """
-        Appends an entry to the view table
-
+        Appends a Plex section to the Plex sections table
         sync=False: Plex library won't be synced to Kodi
         """
         query = '''
-            INSERT INTO view(
-                view_id, view_name, kodi_type, kodi_tagid, sync_to_kodi)
+            INSERT INTO sections(
+                section_id, section_name, plex_type, kodi_tagid, sync_to_kodi)
             VALUES (?, ?, ?, ?, ?)
             '''
         self.plexcursor.execute(query,
-                                (view_id,
-                                 view_name,
-                                 kodi_type,
+                                (section_id,
+                                 section_name,
+                                 plex_type,
                                  kodi_tagid,
-                                 1 if sync is True else 0))
+                                 sync_to_kodi))
 
-    def updateView(self, view_name, kodi_tagid, view_id):
+    def update_section(self, section_name, kodi_tagid, section_id):
         """
-        Updates the view_id with view_name and kodi_tagid
+        Updates the section_id with section_name and kodi_tagid
         """
         query = '''
-            UPDATE view
-            SET view_name = ?, kodi_tagid = ?
-            WHERE view_id = ?
+            UPDATE sections
+            SET section_name = ?, kodi_tagid = ?
+            WHERE section_id = ?
         '''
-        self.plexcursor.execute(query, (view_name, kodi_tagid, view_id))
+        self.plexcursor.execute(query, (section_name, kodi_tagid, section_id))
 
-    def removeView(self, view_id):
-        query = '''
-            DELETE FROM view
-            WHERE view_id = ?
-        '''
-        self.plexcursor.execute(query, (view_id,))
+    def remove_section(self, section_id):
+        self.plexcursor.execute('DELETE FROM sections WHERE section_id = ?',
+                                (section_id, ))
 
-    def get_items_by_viewid(self, view_id):
+    def plexid_by_section(self, section_id):
         """
-        Returns a list for view_id with one item like this:
-        {
-            'plex_id': xxx
-            'kodi_type': xxx
-        }
+        Returns an iterator for the plex_id for section_id
         """
-        query = '''SELECT plex_id, kodi_type FROM plex WHERE view_id = ?'''
-        self.plexcursor.execute(query, (view_id, ))
-        rows = self.plexcursor.fetchall()
-        res = []
-        for row in rows:
-            res.append({'plex_id': row[0], 'kodi_type': row[1]})
-        return res
-
-    def getItem_byFileId(self, kodi_fileid, kodi_type):
-        """
-        Returns plex_id for kodi_fileid and kodi_type
-
-        None if not found
-        """
-        query = '''
-            SELECT plex_id FROM plex WHERE kodi_fileid = ? AND kodi_type = ?
-            LIMIT 1
-        '''
-        self.plexcursor.execute(query, (kodi_fileid, kodi_type))
-        try:
-            item = self.plexcursor.fetchone()[0]
-        except TypeError:
-            item = None
-        return item
+        self.plexcursor.execute('SELECT plex_id FROM plex WHERE section_id = ?',
+                                (section_id, ))
+        return (x[0] for x in self.plexcursor)
 
     def getItem_byId(self, plex_id):
         """
@@ -215,17 +148,13 @@ class Plex_DB_Functions():
         self.plexcursor.execute(query, (plex_id + "%",))
         return self.plexcursor.fetchall()
 
-    def getItem_byView(self, view_id):
+    def kodi_id_by_section(self, section_id):
         """
-        Returns kodi_id for view_id
+        Returns an iterator! Returns kodi_id for section_id
         """
-        query = '''
-            SELECT kodi_id
-            FROM plex
-            WHERE view_id = ?
-        '''
-        self.plexcursor.execute(query, (view_id,))
-        return self.plexcursor.fetchall()
+        self.plexcursor.execute('SELECT kodi_id FROM plex WHERE section_id = ?',
+                                (section_id, ))
+        return self.plexcursor
 
     def getItem_byKodiId(self, kodi_id, kodi_type):
         """
@@ -266,6 +195,24 @@ class Plex_DB_Functions():
         '''
         self.plexcursor.execute(query, (parent_id, kodi_type,))
         return self.plexcursor.fetchall()
+
+    def check_plexid(self, plex_id):
+        """
+        FAST method to check whether plex_id has already been safed in db.
+        Returns None if not yet in plex DB
+        """
+        self.plexcursor.execute('SELECT plex_id FROM plex WHERE plex_id = ? LIMIT 1',
+                                (plex_id, ))
+        return self.plexcursor.fetchone()
+
+    def check_checksum(self, checksum):
+        """
+        FAST method to check whether checksum has already been safed in db.
+        Returns None if not yet in plex DB
+        """
+        self.plexcursor.execute('SELECT checksum FROM plex WHERE checksum = ? LIMIT 1',
+                                (checksum, ))
+        return self.plexcursor.fetchone()
 
     def checksum(self, plex_type):
         """

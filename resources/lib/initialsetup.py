@@ -11,7 +11,6 @@ from .utils import etree
 from . import path_ops
 from . import migration
 from .downloadutils import DownloadUtils as DU
-from . import videonodes
 from . import userclient
 from . import clientinfo
 from . import plex_functions as PF
@@ -54,6 +53,7 @@ def reload_pkc():
     for prop in WINDOW_PROPERTIES:
         utils.window(prop, clear=True)
     # Clear video nodes properties
+    from .librarysync import videonodes
     videonodes.VideoNodes().clearProperties()
 
     # Initializing

@@ -496,7 +496,8 @@ def GetPlexMetadata(key):
 def plex_children_generator(key):
     """
     """
-    yield download_generator('{server}/library/metadata/%s/children' % key)
+    for entry in download_generator('{server}/library/metadata/%s/children' % key):
+        yield entry
 
 
 def GetAllPlexChildren(key):
@@ -526,38 +527,67 @@ def GetPlexSectionResults(viewId, args=None):
     return DownloadChunks(url)
 
 
-def download_generator(url):
+class DownloadGen(object):
     """
-    Generator to yield XML children piece-wise.
-    PMS XML is downloaded chunks of CONTAINERSIZE.
+    Special iterator object that will yield all child xmls piece-wise. It also
+    saves the original xml.attrib.
 
     Yields XML etree children or raises RuntimeError
     """
-    pos = 0
-    error_counter = 0
-    while error_counter < 3:
+    def __init__(self, url):
+        self._url = url
+        self._pos = 0
+        self._exhausted = False
+        self._download_chunk()
+        self.attrib = deepcopy(self.xml.attrib)
+
+    def _download_chunk(self):
         args = {
             'X-Plex-Container-Size': CONTAINERSIZE,
-            'X-Plex-Container-Start': pos
+            'X-Plex-Container-Start': self._pos
         }
-        xmlpart = DU().downloadUrl(url, parameters=args)
-        # If something went wrong - skip in the hope that it works next time
+        self.xml = DU().downloadUrl(self._url, parameters=args)
         try:
-            xmlpart.attrib
+            self.xml.attrib
         except AttributeError:
             LOG.error('Error while downloading chunks: %s, args: %s',
-                      url, args)
-            error_counter += 1
-            continue
-        for child in xmlpart:
-            yield child
-        # Done as soon as we don't receive a full complement of items
-        if len(xmlpart) < CONTAINERSIZE:
-            break
-        pos += CONTAINERSIZE
-    else:
-        LOG.error('Fatal error while downloading chunks for %s', url)
-        raise RuntimeError('Error while downloading chunks for %s' % url)
+                      self._url, args)
+            raise RuntimeError('Error while downloading chunks for %s'
+                               % self._url)
+
+    def __iter__(self):
+        return self
+
+    def next(self):
+        return self.__next__()
+
+    def __next__(self):
+        if len(self.xml):
+            child = self.xml[0]
+            self.xml.remove(child)
+            return child
+        elif self._exhausted:
+            raise StopIteration
+        else:
+            self._pos += CONTAINERSIZE
+            self._download_chunk()
+            if not len(self.xml):
+                raise StopIteration
+            if len(self.xml) < CONTAINERSIZE:
+                self._exhausted = True
+            return self.__next__()
+
+    def get(self, key, default=None):
+        return self.attrib.get(key, default)
+
+
+class PlexSectionItems(DownloadGen):
+    """
+    Iterator object to get all items of a Plex library section
+    """
+    def __init__(self, section_id):
+        super(PlexSectionItems, self).__init__(
+            '{server}/library/sections/%s/all' % section_id)
 
 
 def DownloadChunks(url):

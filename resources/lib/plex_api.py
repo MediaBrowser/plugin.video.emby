@@ -118,9 +118,12 @@ class API(object):
 
     def plex_id(self):
         """
-        Returns the Plex ratingKey such as '246922' as Unicode or None
+        Returns the Plex ratingKey such as 246922 as an integer or None
         """
-        return _unicode_or_none(self.item.get('ratingKey'))
+        try:
+            return int(self.item.get('ratingKey'))
+        except TypeError, ValueError:
+            pass
 
     def path(self, force_first_media=True, force_addon=False,
              direct_paths=None):
@@ -463,23 +466,31 @@ class API(object):
             provider = None
         return provider
 
+    def votecount(self):
+        """
+        Not implemented by Plex yet
+        """
+        pass
+
     def title(self):
         """
         Returns the title of the element as unicode or 'Missing Title Name'
         """
         return utils.try_decode(self.item.get('title', 'Missing Title Name'))
 
-    def titles(self):
+    def title(self):
         """
-        Returns an item's name/title or "Missing Title Name".
-        Output is the tuple
-            title, sorttitle
+        Returns an item's name/title or "Missing Title".
+        """
+        return self.item.get('title', 'Missing Title')
 
-        sorttitle = title, if no sorttitle is found
+    def sorttitle(self):
+                """
+        Returns an item's sorting name/title or the title itself if not found
+        "Missing Title" if both are not present
         """
-        title = self.item.get('title', 'Missing Title Name')
-        sorttitle = self.item.get('titleSort', title)
-        return title, sorttitle
+        return self.item.get('titleSort',
+                             self.item.get('title','Missing Title'))
 
     def plot(self):
         """
