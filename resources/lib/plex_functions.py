@@ -534,7 +534,8 @@ class DownloadGen(object):
 
     Yields XML etree children or raises RuntimeError
     """
-    def __init__(self, url):
+    def __init__(self, url, args=None):
+        self._args = args or {}
         self._url = url
         self._pos = 0
         self._exhausted = False
@@ -542,17 +543,18 @@ class DownloadGen(object):
         self.attrib = deepcopy(self.xml.attrib)
 
     def _download_chunk(self):
-        args = {
+        self._args.update({
             'X-Plex-Container-Size': CONTAINERSIZE,
             'X-Plex-Container-Start': self._pos,
-            'sort': 'id'
-        }
-        self.xml = DU().downloadUrl(self._url, parameters=args)
+            'sort': 'id',  # Entries are sorted by plex_id
+            'excludeAllLeaves': 1  # PMS wont attach a first summary child
+        })
+        self.xml = DU().downloadUrl(self._url, parameters=self._args)
         try:
             self.xml.attrib
         except AttributeError:
             LOG.error('Error while downloading chunks: %s, args: %s',
-                      self._url, args)
+                      self._url, self._args)
             raise RuntimeError('Error while downloading chunks for %s'
                                % self._url)
 
@@ -582,13 +584,31 @@ class DownloadGen(object):
         return self.attrib.get(key, default)
 
 
-class PlexSectionItems(DownloadGen):
+class SectionItems(DownloadGen):
+    """
+    Iterator object to get all items of a Plex library section
+    """
+    def __init__(self, section_id, args):
+        super(SectionItems, self).__init__(
+            '{server}/library/sections/%s/all' % section_id, args)
+
+
+class Children(DownloadGen):
+    """
+    Iterator object to get all items of a Plex library section
+    """
+    def __init__(self, plex_id):
+        super(Children, self).__init__(
+            '{server}/library/metadata/%s/children' % plex_id)
+
+
+class Leaves(DownloadGen):
     """
     Iterator object to get all items of a Plex library section
     """
     def __init__(self, section_id):
-        super(PlexSectionItems, self).__init__(
-            '{server}/library/sections/%s/all' % section_id)
+        super(Leaves, self).__init__(
+            '{server}/library/sections/%s/allLeaves' % section_id)
 
 
 def DownloadChunks(url):

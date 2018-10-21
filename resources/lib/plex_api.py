@@ -260,9 +260,9 @@ class API(object):
 
     def season_number(self):
         """
-        Returns the 'index' of an PMS XML reply. Depicts e.g. season number.
+        Returns the 'index' of an XML reply as int. Depicts e.g. season number.
         """
-        return self.item.get('index')
+        return cast(int, self.item.get('index'))
 
     def date_created(self):
         """
@@ -639,14 +639,14 @@ class API(object):
         """
         Returns the 'parentRatingKey' as a string or None
         """
-        return self.item.get('parentRatingKey')
+        return cast(int, self.item.get('parentRatingKey'))
 
     def grandparent_id(self):
         """
         Returns the ratingKey for the corresponding grandparent, e.g. a TV show
         for episodes, or None
         """
-        return self.item.get('grandparentRatingKey')
+        return cast(int, self.item.get('grandparentRatingKey'))
 
     def grandparent_title(self):
         """
@@ -661,16 +661,18 @@ class API(object):
 
         Output: for the corresponding the TV show and season:
             [
-                TV show key,        Plex: 'grandparentRatingKey'
+                TV show ID,        Plex: 'grandparentRatingKey'
+                TV season ID,        Plex: 'grandparentRatingKey'
                 TV show title,      Plex: 'grandparentTitle'
                 TV show season,     Plex: 'parentIndex'
                 Episode number,     Plex: 'index'
             ]
         """
-        return (self.item.get('grandparentRatingKey'),
-                self.item.get('grandparentTitle'),
-                self.item.get('parentIndex'),
-                self.item.get('index'))
+        return (cast(int, self.item.get('grandparentRatingKey')),
+                cast(int, self.item.get('parentRatingKey')),
+                cast(unicode, self.item.get('grandparentTitle')),
+                cast(int, self.item.get('parentIndex')),
+                cast(int, self.item.get('index')))
 
     @staticmethod
     def attach_plex_token_to_url(url):
@@ -1609,7 +1611,7 @@ class API(object):
 
         if typus == v.PLEX_TYPE_EPISODE:
             metadata['mediatype'] = 'episode'
-            _, show, season, episode = self.episode_data()
+            _, _, show, season, episode = self.episode_data()
             season = -1 if season is None else int(season)
             episode = -1 if episode is None else int(episode)
             metadata['episode'] = episode

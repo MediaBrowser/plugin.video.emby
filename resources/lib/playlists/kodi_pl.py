@@ -95,17 +95,17 @@ def _write_playlist_to_file(playlist, xml):
         api = API(element)
         append_season_episode = False
         if api.plex_type() == v.PLEX_TYPE_EPISODE:
-            _, show, season_id, episode_id = api.episode_data()
+            _, _, show, season_no, episode_no = api.episode_data()
             try:
-                season_id = int(season_id)
-                episode_id = int(episode_id)
+                season_no = int(season_no)
+                episode_no = int(episode_no)
             except ValueError:
                 pass
             else:
                 append_season_episode = True
             if append_season_episode:
                 text += ('#EXTINF:%s,%s S%.2dE%.2d - %s\n%s\n'
-                         % (api.runtime(), show, season_id, episode_id,
+                         % (api.runtime(), show, season_no, episode_no,
                             api.title(), api.path()))
             else:
                 # Only append the TV show name

@@ -11,13 +11,23 @@ LOG = getLogger('PLEX.tvshows')
 
 
 class TvShowMixin(object):
-    def remove(self, plex_id):
+    def remove(self, plex_id, plex_type=None):
         """
         Remove the entire TV shows object (show, season or episode) including
         all associated entries from the Kodi DB.
         """
-        entry = self.plex_db.getItem_byId(plex_id)
-        if entry is None:
+        if plex_type is None:
+            entry = self.plex_db.episode(plex_id)
+            kodi_type = v.KODI_TYPE_EPISODE
+            if not entry:
+                entry = self.plex_db.season(plex_id)
+                kodi_type = v.KODI_TYPE_SEASON
+                if not entry:
+                    entry = self.plex_db.show(plex_id)
+                    kodi_type = v.KODI_TYPE_SHOW
+        else:
+            pass
+        if not entry:
             LOG.debug('Cannot delete plex_id %s - not found in DB', plex_id)
             return
         kodi_id = entry[0]
@@ -144,13 +154,12 @@ class Show(ItemBase, TvShowMixin):
         plex_id = api.plex_id()
         LOG.debug('Adding show with plex_id %s', plex_id)
         if not plex_id:
-            LOG.error("Cannot parse XML data for TV show")
+            LOG.error("Cannot parse XML data for TV show: %s", xml.attrib)
             return
-        update_item = True
-        entry = self.plex_db.getItem_byId(plex_id)
+        show = self.plex_db.show(plex_id)
         try:
-            kodi_id = entry[0]
-            path_id = entry[2]
+            kodi_id = show[3]
+            kodi_pathid = show[4]
         except TypeError:
             update_item = False
             query = 'SELECT COALESCE(MAX(idShow), 0) FROM tvshow'
@@ -158,8 +167,8 @@ class Show(ItemBase, TvShowMixin):
             kodi_id = self.kodicursor.fetchone()[0] + 1
         else:
             # Verification the item is still in Kodi
-            query = 'SELECT * FROM tvshow WHERE idShow = ?'
-            self.kodicursor.execute(query, (kodi_id,))
+            self.kodicursor.execute('SELECT * FROM tvshow WHERE idShow = ?',
+                                    (kodi_id,))
             try:
                 self.kodicursor.fetchone()[0]
             except TypeError:
@@ -193,7 +202,7 @@ class Show(ItemBase, TvShowMixin):
             # Do NOT set a parent id because addon-path cannot be "stacked"
             toppathid = None
 
-        path_id = self.kodi_db.add_video_path(path,
+        kodi_pathid = self.kodi_db.add_video_path(path,
                                               date_added=api.date_created(),
                                               id_parent_path=toppathid)
         # UPDATE THE TVSHOW #####
@@ -238,7 +247,7 @@ class Show(ItemBase, TvShowMixin):
                      plex_id, api.title())
             # Link the path
             query = "INSERT INTO tvshowlinkpath(idShow, idPath) values (?, ?)"
-            self.kodicursor.execute(query, (kodi_id, path_id))
+            self.kodicursor.execute(query, (kodi_id, kodi_pathid))
             # Create the reference in plex table
 
             rating_id = self.kodi_db.get_ratingid(kodi_id, v.KODI_TYPE_SHOW)
@@ -284,14 +293,13 @@ class Show(ItemBase, TvShowMixin):
         tags = [section_name]
         tags.extend([i for _, i in api.collection_list()])
         self.kodi_db.modify_tags(kodi_id, v.KODI_TYPE_SHOW, tags)
-        self.plex_db.addReference(plex_id,
-                                  v.PLEX_TYPE_SHOW,
-                                  kodi_id,
-                                  v.KODI_TYPE_SHOW,
-                                  kodi_pathid=path_id,
-                                  checksum=api.checksum(),
-                                  view_id=section_id,
-                                  last_sync=self.last_sync)
+        self.plex_db.add_reference(plex_type=v.PLEX_TYPE_SHOW,
+                                   plex_id=plex_id,
+                                   checksum=api.checksum(),
+                                   section_id=section_id,
+                                   kodi_id=kodi_id,
+                                   kodi_pathid=kodi_pathid,
+                                   last_sync=self.last_sync)
 
 
 class Season(ItemBase, TvShowMixin):
@@ -304,34 +312,30 @@ class Season(ItemBase, TvShowMixin):
         plex_id = api.plex_id()
         LOG.debug('Adding season with plex_id %s', plex_id)
         if not plex_id:
-            LOG.error('Error getting plex_id for season, skipping')
+            LOG.error('Error getting plex_id for season, skipping: %s',
+                      xml.attrib)
             return
-        entry = self.plex_db.getItem_byId(api.parent_plex_id())
+        show_id = api.parent_plex_id()
+        show = self.plex_db.show(show_id)
         try:
-            show_id = entry[0]
+            parent_id = show[3]
         except TypeError:
             LOG.error('Could not find parent tv show for season %s. '
                       'Skipping season for now.', plex_id)
             return
-        kodi_id = self.kodi_db.add_season(show_id, api.season_number())
-        # Check whether Season already exists
-        entry = self.plex_db.getItem_byId(plex_id)
-        update_item = False if entry is None else True
+        kodi_id = self.kodi_db.add_season(parent_id, api.season_number())
         self.artwork.modify_artwork(api.artwork(),
                                     kodi_id,
                                     v.KODI_TYPE_SEASON,
                                     self.kodicursor)
-        if update_item:
-            self.plex_db.updateReference(plex_id, api.checksum())
-        else:
-            self.plex_db.addReference(plex_id,
-                                      v.PLEX_TYPE_SEASON,
-                                      kodi_id,
-                                      v.KODI_TYPE_SEASON,
-                                      parent_id=show_id,
-                                      view_id=section_id,
-                                      checksum=api.checksum(),
-                                      last_sync=self.last_sync)
+        self.plex_db.add_reference(plex_type=v.PLEX_TYPE_SEASON,
+                                   plex_id=plex_id,
+                                   checksum=api.checksum(),
+                                   section_id=section_id,
+                                   show_id=show_id,
+                                   parent_id=parent_id,
+                                   kodi_id=kodi_id,
+                                   last_sync=self.last_sync)
 
 
 class Episode(ItemBase, TvShowMixin):
@@ -345,13 +349,14 @@ class Episode(ItemBase, TvShowMixin):
         plex_id = api.plex_id()
         LOG.debug('Adding episode with plex_id %s', plex_id)
         if not plex_id:
-            LOG.error('Error getting plex_id for episode, skipping')
+            LOG.error('Error getting plex_id for episode, skipping: %s',
+                      xml.attrib)
             return
-        entry = self.plex_db.getItem_byId(plex_id)
+        entry = self.plex_db.item_by_id(plex_id)
         try:
             kodi_id = entry[0]
-            old_file_id = entry[1]
-            path_id = entry[2]
+            old_kodi_fileid = entry[1]
+            kodi_pathid = entry[2]
         except TypeError:
             update_item = False
             query = 'SELECT COALESCE(MAX(idEpisode), 0) FROM episode'
@@ -359,7 +364,7 @@ class Episode(ItemBase, TvShowMixin):
             kodi_id = self.kodicursor.fetchone()[0] + 1
         else:
             # Verification the item is still in Kodi
-            query = 'SELECT * FROM episode WHERE idEpisode = ?'
+            query = 'SELECT * FROM episode WHERE idEpisode = ? LIMIT 1'
             self.kodicursor.execute(query, (kodi_id, ))
             try:
                 self.kodicursor.fetchone()[0]
@@ -373,23 +378,22 @@ class Episode(ItemBase, TvShowMixin):
         director = api.list_to_string(peoples['Director'])
         writer = api.list_to_string(peoples['Writer'])
         userdata = api.userdata()
-        series_id, _, season, episode = api.episode_data()
+        show_id, season_id, _, season_no, episode_no = api.episode_data()
 
-        if season is None:
-            season = -1
-        if episode is None:
-            episode = -1
+        if season_no is None:
+            season_no = -1
+        if episode_no is None:
+            episode_no = -1
         airs_before_season = "-1"
         airs_before_episode = "-1"
 
-        # Get season id
-        show = self.plex_db.getItem_byId(series_id)
+        show = self.plex_db.show(show_id)
         try:
-            show_id = show[0]
+            grandparent_id = show[3]
         except TypeError:
             LOG.error("Parent tvshow now found, skip item")
             return False
-        season_id = self.kodi_db.add_season(show_id, season)
+        parent_id = self.kodi_db.add_season(grandparent_id, season_no)
 
         # GET THE FILE AND PATH #####
         do_indirect = not state.DIRECT_PATHS
@@ -407,29 +411,31 @@ class Episode(ItemBase, TvShowMixin):
                     filename = playurl.rsplit("/", 1)[1]
                 path = playurl.replace(filename, "")
                 parent_path_id = self.kodi_db.parent_path_id(path)
-                path_id = self.kodi_db.add_video_path(
+                kodi_pathid = self.kodi_db.add_video_path(
                     path, id_parent_path=parent_path_id)
         if do_indirect:
             # Set plugin path - do NOT use "intermediate" paths for the show
             # as with direct paths!
             filename = api.file_name(force_first_media=True)
-            path = 'plugin://%s.tvshows/%s/' % (v.ADDON_ID, series_id)
+            path = 'plugin://%s.tvshows/%s/' % (v.ADDON_ID, show_id)
             filename = ('%s?plex_id=%s&plex_type=%s&mode=play&filename=%s'
                         % (path, plex_id, v.PLEX_TYPE_EPISODE, filename))
             playurl = filename
             # Root path tvshows/ already saved in Kodi DB
-            path_id = self.kodi_db.add_video_path(path)
+            kodi_pathid = self.kodi_db.add_video_path(path)
 
-        # add/retrieve path_id and fileid
+        # add/retrieve kodi_pathid and fileid
         # if the path or file already exists, the calls return current value
-        file_id = self.kodi_db.add_file(filename, path_id, api.date_created())
+        kodi_fileid = self.kodi_db.add_file(filename,
+                                            kodi_pathid,
+                                            api.date_created())
 
         # UPDATE THE EPISODE #####
         if update_item:
             LOG.info("UPDATE episode plex_id: %s, Title: %s",
                      plex_id, api.title())
-            if file_id != old_file_id:
-                self.kodi_db.remove_file(old_file_id)
+            if kodi_fileid != old_kodi_fileid:
+                self.kodi_db.remove_file(old_kodi_fileid)
             ratingid = self.kodi_db.get_ratingid(kodi_id,
                                                  v.KODI_TYPE_EPISODE)
             self.kodi_db.update_ratings(kodi_id,
@@ -456,12 +462,10 @@ class Episode(ItemBase, TvShowMixin):
             '''
             self.kodicursor.execute(
                 query, (api.title(), api.plot(), ratingid, writer,
-                        api.premiere_date(), api.runtime(), director, season,
-                        episode, api.title(), airs_before_season,
-                        airs_before_episode, playurl, path_id, file_id,
-                        season_id, userdata['UserRating'], kodi_id))
-            # Update parentid reference
-            self.plex_db.updateParentId(plex_id, season_id)
+                        api.premiere_date(), api.runtime(), director, season_no,
+                        episode_no, api.title(), airs_before_season,
+                        airs_before_episode, playurl, kodi_pathid, kodi_fileid,
+                        parent_id, userdata['UserRating'], kodi_id))
 
         # OR ADD THE EPISODE #####
         else:
@@ -492,11 +496,11 @@ class Episode(ItemBase, TvShowMixin):
                 ?, ?)
             '''
             self.kodicursor.execute(
-                query, (kodi_id, file_id, api.title(), api.plot(), rating_id,
+                query, (kodi_id, kodi_fileid, api.title(), api.plot(), rating_id,
                         writer, api.premiere_date(), api.runtime(), director,
-                        season, episode, api.title(), show_id,
+                        season_no, episode_no, api.title(), grandparent_id,
                         airs_before_season, airs_before_episode, playurl,
-                        path_id, season_id, userdata['UserRating']))
+                        kodi_pathid, parent_id, userdata['UserRating']))
 
         self.kodi_db.modify_people(kodi_id,
                                    v.KODI_TYPE_EPISODE,
@@ -506,8 +510,8 @@ class Episode(ItemBase, TvShowMixin):
                                     v.KODI_TYPE_EPISODE,
                                     self.kodicursor)
         streams = api.mediastreams()
-        self.kodi_db.modify_streams(file_id, streams, api.runtime())
-        self.kodi_db.set_resume(file_id,
+        self.kodi_db.modify_streams(kodi_fileid, streams, api.runtime())
+        self.kodi_db.set_resume(kodi_fileid,
                                 api.resume_point(),
                                 api.runtime(),
                                 userdata['PlayCount'],
@@ -519,25 +523,27 @@ class Episode(ItemBase, TvShowMixin):
             path = 'plugin://%s.tvshows/' % v.ADDON_ID
             # Filename is exactly the same, WITH plex show id!
             filename = ('%s%s/?plex_id=%s&plex_type=%s&mode=play&filename=%s'
-                        % (path, series_id, plex_id, v.PLEX_TYPE_EPISODE,
+                        % (path, show_id, plex_id, v.PLEX_TYPE_EPISODE,
                            filename))
-            path_id = self.kodi_db.add_video_path(path)
-            file_id = self.kodi_db.add_file(filename,
-                                            path_id,
-                                            api.date_created())
-            self.kodi_db.set_resume(file_id,
+            kodi_pathid = self.kodi_db.add_video_path(path)
+            kodi_fileid = self.kodi_db.add_file(filename,
+                                                kodi_pathid,
+                                                api.date_created())
+            self.kodi_db.set_resume(kodi_fileid,
                                     api.resume_point(),
                                     api.runtime(),
                                     userdata['PlayCount'],
                                     userdata['LastPlayedDate'],
                                     None)  # Do send None - 2nd entry
-        self.plex_db.addReference(plex_id,
-                                  v.PLEX_TYPE_EPISODE,
-                                  kodi_id,
-                                  v.KODI_TYPE_EPISODE,
-                                  kodi_file_id=file_id,
-                                  kodi_pathid=path_id,
-                                  parent_id=season_id,
-                                  checksum=api.checksum(),
-                                  view_id=section_id,
-                                  last_sync=self.last_sync)
+        self.plex_db.add_reference(plex_type=v.PLEX_TYPE_EPISODE,
+                                   plex_id=plex_id,
+                                   checksum=api.checksum(),
+                                   section_id=section_id,
+                                   show_id=show_id,
+                                   grandparent_id=grandparent_id,
+                                   season_id=season_id,
+                                   parent_id=parent_id,
+                                   kodi_id=kodi_id,
+                                   kodi_fileid=kodi_fileid,
+                                   kodi_pathid=kodi_pathid,
+                                   last_sync=self.last_sync)

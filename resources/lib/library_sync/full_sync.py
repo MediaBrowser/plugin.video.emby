@@ -30,9 +30,10 @@ class FullSync(backgroundthread.KillableThread, common.libsync_mixin):
         self.process_thread = None
         self.last_sync = None
         self.plex_db = None
+        self.plex_type = None
         super(FullSync, self).__init__()
 
-    def process_item(self, xml_item, get_children):
+    def process_item(self, xml_item):
         """
         Processes a single library item
         """
@@ -42,7 +43,7 @@ class FullSync(backgroundthread.KillableThread, common.libsync_mixin):
                 backgroundthread.BGThreader.addTask(
                     GetMetadataTask().setup(self.queue,
                                             plex_id,
-                                            get_children))
+                                            self.get_children))
         else:
             if self.plex_db.check_checksum(
                     int('%s%s' % (xml_item['ratingKey'],
@@ -50,20 +51,29 @@ class FullSync(backgroundthread.KillableThread, common.libsync_mixin):
                 backgroundthread.BGThreader.addTask(
                     GetMetadataTask().setup(self.queue,
                                             plex_id,
-                                            get_children))
+                                            self.get_children))
             else:
                 self.plex_db.update_last_sync(plex_id, self.last_sync)
 
+    def process_delete(self):
+        """
+        Removes all the items that have NOT been updated (last_sync timestamp)
+        is different
+        """
+        with self.context() as c:
+            for plex_id in self.plex_db.plex_id_by_last_sync(self.plex_type,
+                                                             self.last_sync):
+                if self.isCanceled():
+                    return
+                c.remove(plex_id, plex_type=self.plex_type)
+
     @utils.log_time
-    def process_kind(self, kind):
+    def process_kind(self):
         """
-        kind is a tuple: (<name as unicode>,
-                          kodi_type,
-                          <itemtype class>,
-                          get_children)
         """
-        LOG.debug('Start processing %s', kind[0])
-        sections = (x for x in sections.SECTIONS if x['kodi_type'] == kind[1])
+        LOG.debug('Start processing %ss', self.plex_type)
+        sections = (x for x in sections.SECTIONS
+                    if x['plex_type'] == self.plex_type)
         for section in sections:
             LOG.debug('Processing library section %s', section)
             if self.isCanceled():
@@ -71,10 +81,12 @@ class FullSync(backgroundthread.KillableThread, common.libsync_mixin):
             if not self.install_sync_done:
                 state.PATH_VERIFIED = False
             try:
-                iterator = PF.PlexSectionItems(section['id'])
+                iterator = PF.SectionItems(
+                    section['id'],
+                    {'type': v.PLEX_TYPE_NUMBER_FROM_PLEX_TYPE[self.plex_type]})
                 # Tell the processing thread about this new section
                 queue_info = process_metadata.InitNewSection(
-                    kind[2],
+                    self.context,
                     utils.cast(int, iterator.get('totalSize', 0)),
                     utils.cast(unicode, iterator.get('librarySectionTitle')),
                     section['id'])
@@ -82,32 +94,42 @@ class FullSync(backgroundthread.KillableThread, common.libsync_mixin):
                 for xml_item in iterator:
                     if self.isCanceled():
                         return False
-                    self.process_item(xml_item, kind[3])
+                    self.process_item(xml_item)
             except RuntimeError:
                 LOG.error('Could not entirely process section %s', section)
                 continue
-        LOG.debug('Finished processing %s', kind[0])
+
+        LOG.debug('Finished processing %ss', self.plex_type)
         return True
 
-    def full_library_sync(self, new_items_only=False):
+    def full_library_sync(self):
         """
         """
-        process = [self.plex_movies, self.plex_tv_show]
-        if state.ENABLE_MUSIC:
-            process.append(self.plex_music)
         self.queue = backgroundthread.Queue.Queue(maxsize=200)
         t = process_metadata.ProcessMetadata(self.queue, self.last_sync)
         t.start()
+
         kinds = [
-            ('movies', v.KODI_TYPE_MOVIE, itemtypes.Movie, False),
-            ('tv shows', v.KODI_TYPE_SHOW, itemtypes.Show, False),
-            ('tv seasons', v.KODI_TYPE_SEASON, itemtypes.Season, False),
-            ('tv shows', v.KODI_TYPE_SHOW, itemtypes.Show, False),
+            (v.PLEX_TYPE_MOVIE, itemtypes.Movie, False),
+            (v.PLEX_TYPE_SHOW, itemtypes.Show, False),
+            (v.PLEX_TYPE_SEASON, itemtypes.Season, False),
+            (v.PLEX_TYPE_EPISODE, itemtypes.Episode, False),
+            (v.PLEX_TYPE_ARTIST, itemtypes.Artist, False),
+            (v.PLEX_TYPE_ALBUM, itemtypes.Album, True),
+            (v.PLEX_TYPE_SONG, itemtypes.Song, False),
         ]
-        try:
-            for kind in kinds:
-                if self.isCanceled() or not self.process_kind(kind):
-                    return False
+        for kind in kinds:
+            # Setup our variables
+            self.plex_type = kind[0]
+            self.context = kind[1]
+            self.get_children = kind[2]
+            # Now do the heavy lifting
+            if self.isCanceled() or not self.process_kind():
+                return False
+            if not self.new_items_only:
+                # Delete movies that are not on Plex anymore - do this only once
+                self.process_delete()
+
 
             # Let kodi update the views in any case, since we're doing a full sync
             common.update_kodi_library(video=True, music=state.ENABLE_MUSIC)

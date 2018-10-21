@@ -48,7 +48,7 @@ class ItemBase(object):
         self.last_sync = last_sync
         self.artwork = artwork.Artwork()
         self.plexconn = None
-        self.plexcursor = plex_db.plexcursor if plex_db else None
+        self.plexcursor = plex_db.cursor if plex_db else None
         self.kodiconn = None
         self.kodicursor = kodi_db.cursor if kodi_db else None
         self.plex_db = plex_db

@@ -54,10 +54,10 @@ def sync_from_pms():
 
     VNODES.clearProperties()
 
-    with plexdb.Get_Plex_DB() as plex_db:
+    with plexdb.PlexDB() as plex_db:
         # Backup old sections to delete them later, if needed (at the end
         # of this method, only unused sections will be left in old_sections)
-        old_sections = plex_db.sections()
+        old_sections = [plex_db.section_ids()]
         with kodidb.GetKodiDB('video') as kodi_db:
             for section in sections:
                 _process_section(section,
@@ -71,8 +71,8 @@ def sync_from_pms():
         # Section has been deleted on the PMS
         delete_sections(old_sections)
     # update sections for all:
-    with plexdb.Get_Plex_DB() as plex_db:
-        SECTIONS = plex_db.list_section_info()
+    with plexdb.PlexDB() as plex_db:
+        SECTIONS = [plex_db.section_infos()]
     utils.window('Plex.nodes.total', str(totalnodes))
     LOG.info("Finished processing library sections: %s", SECTIONS)
     return True
@@ -209,7 +209,7 @@ def delete_sections(old_sections):
                  sound=False)
     video_library_update = False
     music_library_update = False
-    with plexdb.Get_Plex_DB() as plex_db:
+    with plexdb.PlexDB() as plex_db:
         old_sections = [plex_db.section_by_id(x) for x in old_sections]
         LOG.info("Removing entire Plex library sections: %s", old_sections)
         with kodidb.GetKodiDB() as kodi_db:

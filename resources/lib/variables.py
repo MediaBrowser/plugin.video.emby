@@ -355,6 +355,18 @@ PLEX_TYPE_FROM_WEBSOCKET = {
     15: 'playlist'
 }
 
+PLEX_TYPE_NUMBER_FROM_PLEX_TYPE = {
+    PLEX_TYPE_MOVIE: 1,
+    PLEX_TYPE_SHOW: 2,
+    PLEX_TYPE_SEASON: 3,
+    PLEX_TYPE_EPISODE: 4,
+    PLEX_TYPE_ARTIST: 8,
+    PLEX_TYPE_ALBUM: 9,
+    PLEX_TYPE_SONG: 10,
+    PLEX_TYPE_CLIP: 12,
+    'playlist': 15
+}
+
 
 KODI_TO_PLEX_ARTWORK = {
     'poster': 'thumb',

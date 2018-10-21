@@ -215,26 +215,94 @@ class LibrarySync(Thread):
         with plexdb.Get_Plex_DB() as plex_db:
             # Create the tables for the plex database
             plex_db.plexcursor.execute('''
-                CREATE TABLE IF NOT EXISTS plex(
-                    plex_id INTEGER PRIMARY KEY ASC,
-                    section_id INTEGER,
-                    plex_type TEXT,
-                    kodi_type TEXT,
-                    kodi_id INTEGER,
-                    kodi_fileid INTEGER,
-                    kodi_pathid INTEGER,
-                    parent_id INTEGER,
-                    checksum INTEGER UNIQUE,
-                    fanart_synced INTEGER,
-                    last_sync INTEGER)
-            ''')
-            plex_db.plexcursor.execute('''
                 CREATE TABLE IF NOT EXISTS sections(
                     section_id INTEGER PRIMARY KEY,
                     section_name TEXT,
                     plex_type TEXT,
                     kodi_tagid INTEGER,
                     sync_to_kodi INTEGER)
+            ''')
+            plex_db.plexcursor.execute('''
+                CREATE TABLE IF NOT EXISTS movie(
+                    plex_id INTEGER PRIMARY KEY ASC,
+                    checksum INTEGER UNIQUE,
+                    section_id INTEGER,
+                    kodi_id INTEGER,
+                    kodi_fileid INTEGER,
+                    kodi_pathid INTEGER,
+                    fanart_synced INTEGER,
+                    last_sync INTEGER)
+            ''')
+            plex_db.plexcursor.execute('''
+                CREATE TABLE IF NOT EXISTS show(
+                    plex_id INTEGER PRIMARY KEY ASC,
+                    checksum INTEGER UNIQUE,
+                    section_id INTEGER,
+                    kodi_id INTEGER,
+                    kodi_pathid INTEGER,
+                    fanart_synced INTEGER,
+                    last_sync INTEGER)
+            ''')
+            plex_db.plexcursor.execute('''
+                CREATE TABLE IF NOT EXISTS season(
+                    plex_id INTEGER PRIMARY KEY,
+                    checksum INTEGER UNIQUE,
+                    section_id INTEGER,
+                    show_id INTEGER,  # plex_id of the parent show
+                    parent_id INTEGER,  # kodi_id of the parent show
+                    kodi_id INTEGER,
+                    fanart_synced INTEGER,
+                    last_sync INTEGER)
+            ''')
+            plex_db.plexcursor.execute('''
+                CREATE TABLE IF NOT EXISTS episode(
+                    plex_id INTEGER PRIMARY KEY,
+                    checksum INTEGER UNIQUE,
+                    section_id INTEGER,
+                    show_id INTEGER,  # plex_id of the parent show
+                    grandparent_id INTEGER,  # kodi_id of the parent show
+                    season_id INTEGER,  # plex_id of the parent season
+                    parent_id INTEGER,  # kodi_id of the parent season
+                    kodi_id INTEGER,
+                    kodi_fileid INTEGER,
+                    kodi_pathid INTEGER,
+                    fanart_synced INTEGER,
+                    last_sync INTEGER)
+            ''')
+            plex_db.plexcursor.execute('''
+                CREATE TABLE IF NOT EXISTS artist(
+                    plex_id INTEGER PRIMARY KEY ASC,
+                    checksum INTEGER UNIQUE,
+                    section_id INTEGER,
+                    kodi_id INTEGER,
+                    fanart_synced INTEGER,
+                    last_sync INTEGER)
+            ''')
+            plex_db.plexcursor.execute('''
+                CREATE TABLE IF NOT EXISTS album(
+                    plex_id INTEGER PRIMARY KEY,
+                    checksum INTEGER UNIQUE,
+                    section_id INTEGER,
+                    artist_id INTEGER,  # plex_id of the parent artist
+                    parent_id INTEGER,  # kodi_id of the parent artist
+                    kodi_id INTEGER,
+                    fanart_synced INTEGER,
+                    last_sync INTEGER)
+            ''')
+            plex_db.plexcursor.execute('''
+                CREATE TABLE IF NOT EXISTS track(
+                    plex_id INTEGER PRIMARY KEY,
+                    checksum INTEGER UNIQUE,
+                    section_id INTEGER,
+                    artist_id INTEGER,  # plex_id of the parent artist
+                    grandparent_id INTEGER,  # kodi_id of the parent artist
+                    album_id INTEGER,  # plex_id of the parent album
+                    parent_id INTEGER,  # kodi_id of the parent album
+                    kodi_id INTEGER,
+                    kodi_fileid INTEGER,
+                    kodi_pathid INTEGER,
+                    fanart_synced INTEGER,
+                    last_sync INTEGER)
             ''')
             plex_db.plexcursor.execute('''
                 CREATE TABLE IF NOT EXISTS playlists(
