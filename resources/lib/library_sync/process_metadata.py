@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
-import xbmc
 import xbmcgui
 
 from . import common
@@ -74,16 +73,13 @@ class ProcessMetadata(backgroundthread.KillableThread, common.libsync_mixin):
             while self.isCanceled() is False:
                 if section is None:
                     break
+                self.current = 0
                 self.total = section.total
                 self.section_name = section.name
                 with section.context(self.last_sync) as context:
                     while self.isCanceled() is False:
-                        # grabs item from queue
-                        try:
-                            xml = self.queue.get(block=False)
-                        except backgroundthread.Queue.Empty:
-                            xbmc.sleep(20)
-                            continue
+                        # grabs item from queue. This will block!
+                        xml = self.queue.get()
                         self.queue.task_done()
                         if xml is InitNewSection or xml is None:
                             section = xml
@@ -96,11 +92,11 @@ class ProcessMetadata(backgroundthread.KillableThread, common.libsync_mixin):
                         except:
                             utils.ERROR(txt='process_metadata crashed',
                                         notify=True)
-                        self.current += 1
                         if self.current % 20 == 0:
                             self.title = utils.cast(unicode,
                                                     xml[0].get('title'))
                             self.update_dialog()
+                        self.current += 1
         finally:
             self.dialog.close()
             LOG.debug('Processing thread terminated')

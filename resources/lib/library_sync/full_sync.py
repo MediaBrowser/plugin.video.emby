@@ -31,6 +31,7 @@ class FullSync(backgroundthread.KillableThread, common.libsync_mixin):
         self.last_sync = None
         self.plex_db = None
         self.plex_type = None
+        self.processing_thread = None
         super(FullSync, self).__init__()
 
     def process_item(self, xml_item):
@@ -105,10 +106,6 @@ class FullSync(backgroundthread.KillableThread, common.libsync_mixin):
     def full_library_sync(self):
         """
         """
-        self.queue = backgroundthread.Queue.Queue(maxsize=200)
-        t = process_metadata.ProcessMetadata(self.queue, self.last_sync)
-        t.start()
-
         kinds = [
             (v.PLEX_TYPE_MOVIE, itemtypes.Movie, False),
             (v.PLEX_TYPE_SHOW, itemtypes.Show, False),
@@ -126,41 +123,29 @@ class FullSync(backgroundthread.KillableThread, common.libsync_mixin):
             # Now do the heavy lifting
             if self.isCanceled() or not self.process_kind():
                 return False
-            if not self.new_items_only:
+            if self.new_items_only:
                 # Delete movies that are not on Plex anymore - do this only once
                 self.process_delete()
-
-
-            # Let kodi update the views in any case, since we're doing a full sync
-            common.update_kodi_library(video=True, music=state.ENABLE_MUSIC)
-
-            if utils.window('plex_scancrashed') == 'true':
-                # Show warning if itemtypes.py crashed at some point
-                utils.messageDialog(utils.lang(29999), utils.lang(39408))
-                utils.window('plex_scancrashed', clear=True)
-            elif utils.window('plex_scancrashed') == '401':
-                utils.window('plex_scancrashed', clear=True)
-                if state.PMS_STATUS not in ('401', 'Auth'):
-                    # Plex server had too much and returned ERROR
-                    utils.messageDialog(utils.lang(29999), utils.lang(39409))
-        finally:
-            # Last element will kill the processing thread
-            self.queue.put(None)
         return True
 
     @utils.log_time
     def run(self):
         successful = False
         self.last_sync = time.time()
+        if self.isCanceled():
+            return
+        LOG.info('Running fullsync for NEW PMS items with repair=%s',
+                 self.repair)
+        if not sections.sync_from_pms():
+            return
+        if self.isCanceled():
+            return
         try:
-            if self.isCanceled():
-                return
-            LOG.info('Running fullsync for NEW PMS items with repair=%s',
-                     self.repair)
-            if not sections.sync_from_pms():
-                return
-            if self.isCanceled():
-                return
+            # Fire up our single processing thread
+            self.queue = backgroundthread.Queue.Queue(maxsize=200)
+            self.processing_thread = process_metadata.ProcessMetadata(
+                self.queue, self.last_sync)
+            self.processing_thread.start()
             # This will also update playstates and userratings!
             if self.full_library_sync(new_items_only=True) is False:
                 return
@@ -179,7 +164,14 @@ class FullSync(backgroundthread.KillableThread, common.libsync_mixin):
         except:
             utils.ERROR(txt='full_sync.py crashed', notify=True)
         finally:
+            # Last element will kill the processing thread (if not already
+            # done so, e.g. quitting Kodi)
+            self.queue.put(None)
+            # This will block until the processing thread exits
+            LOG.debug('Waiting for processing thread to exit')
+            self.processing_thread.join()
             self.callback(successful)
+            LOG.info('Done full_sync')
 
 
 def process_updatelist(item_class, show_sync_info=True):
