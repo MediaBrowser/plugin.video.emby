@@ -10,6 +10,21 @@ from .. import utils, backgroundthread
 LOG = getLogger('PLEX.library_sync.process_metadata')
 
 
+class InitNewSection(object):
+    """
+    Throw this into the queue used for ProcessMetadata to tell it which
+    Plex library section we're looking at
+
+    context: itemtypes.Movie, itemtypes.Episode, etc.
+    """
+    def __init__(self, context, total_number_of_items, section_name,
+                 section_id):
+        self.context = context
+        self.total = total_number_of_items
+        self.name = section_name
+        self.id = section_id
+
+
 class ProcessMetadata(backgroundthread.KillableThread, common.libsync_mixin):
     """
     Not yet implemented for more than 1 thread - if ever. Only to be called by
@@ -22,12 +37,13 @@ class ProcessMetadata(backgroundthread.KillableThread, common.libsync_mixin):
         item_class: as used to call functions in itemtypes.py e.g. 'Movies' =>
                     itemtypes.Movies()
     """
-    def __init__(self, queue, context, total_number_of_items):
+    def __init__(self, queue, last_sync):
         self.queue = queue
-        self.context = context
-        self.total = total_number_of_items
+        self.last_sync = last_sync
+        self.total = 0
         self.current = 0
         self.title = None
+        self.section_name = None
         super(ProcessMetadata, self).__init__()
 
     def update_dialog(self):
@@ -38,7 +54,7 @@ class ProcessMetadata(backgroundthread.KillableThread, common.libsync_mixin):
         except ZeroDivisionError:
             progress = 0
         self.dialog.update(progress,
-                           utils.lang(29999),
+                           self.section_name,
                            '%s/%s: %s'
                            % (self.current, self.total, self.title))
 
@@ -49,32 +65,42 @@ class ProcessMetadata(backgroundthread.KillableThread, common.libsync_mixin):
         LOG.debug('Processing thread started')
         self.dialog = xbmcgui.DialogProgressBG()
         self.dialog.create(utils.lang(39714))
-        with self.context() as context:
+        try:
+            # Init with the very first library section. This will block!
+            section = self.queue.get()
+            self.queue.task_done()
+            if section is None:
+                return
             while self.isCanceled() is False:
-                # grabs item from queue
-                try:
-                    xml = self.queue.get(block=False)
-                except backgroundthread.Queue.Empty:
-                    xbmc.sleep(10)
-                    continue
-                self.queue.task_done()
-                if xml is None:
+                if section is None:
                     break
-                try:
-                    if xml.children is not None:
-                        context.add_update(xml[0],
-                                           viewtag=xml['view_name'],
-                                           viewid=xml['view_id'],
-                                           children=xml['children'])
-                    else:
-                        context.add_update(xml[0],
-                                           viewtag=xml['view_name'],
-                                           viewid=xml['view_id'])
-                except:
-                    utils.ERROR(txt='process_metadata crashed', notify=True)
-                self.current += 1
-                if self.current % 20 == 0:
-                    self.title = utils.cast(unicode, xml[0].get('title'))
-                    self.update_dialog()
-        self.dialog.close()
-        LOG.debug('Processing thread terminated')
+                self.total = section.total
+                self.section_name = section.name
+                with section.context(self.last_sync) as context:
+                    while self.isCanceled() is False:
+                        # grabs item from queue
+                        try:
+                            xml = self.queue.get(block=False)
+                        except backgroundthread.Queue.Empty:
+                            xbmc.sleep(20)
+                            continue
+                        self.queue.task_done()
+                        if xml is InitNewSection or xml is None:
+                            section = xml
+                            break
+                        try:
+                            context.add_update(xml[0],
+                                               viewtag=section.name,
+                                               viewid=section.id,
+                                               children=xml.children)
+                        except:
+                            utils.ERROR(txt='process_metadata crashed',
+                                        notify=True)
+                        self.current += 1
+                        if self.current % 20 == 0:
+                            self.title = utils.cast(unicode,
+                                                    xml[0].get('title'))
+                            self.update_dialog()
+        finally:
+            self.dialog.close()
+            LOG.debug('Processing thread terminated')

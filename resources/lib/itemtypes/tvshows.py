@@ -134,7 +134,8 @@ class Show(ItemBase, TvShowMixin):
     """
     For Plex library-type TV shows
     """
-    def add_update(self, xml, viewtag=None, viewid=None):
+    def add_update(self, xml, section_name=None, section_id=None,
+                   children=None):
         """
         Process a single show
         """
@@ -199,15 +200,6 @@ class Show(ItemBase, TvShowMixin):
         if update_item:
             LOG.info("UPDATE tvshow plex_id: %s - Title: %s",
                      plex_id, api.title())
-            # Add reference is idempotent; the call here updates also fileid
-            # and path_id when item is moved or renamed
-            self.plex_db.addReference(plex_id,
-                                      v.PLEX_TYPE_SHOW,
-                                      kodi_id,
-                                      v.KODI_TYPE_SHOW,
-                                      kodi_pathid=path_id,
-                                      checksum=api.checksum(),
-                                      view_id=viewid)
             # update new ratings Kodi 17
             rating_id = self.kodi_db.get_ratingid(kodi_id, v.KODI_TYPE_SHOW)
             self.kodi_db.update_ratings(kodi_id,
@@ -248,13 +240,7 @@ class Show(ItemBase, TvShowMixin):
             query = "INSERT INTO tvshowlinkpath(idShow, idPath) values (?, ?)"
             self.kodicursor.execute(query, (kodi_id, path_id))
             # Create the reference in plex table
-            self.plex_db.addReference(plex_id,
-                                      v.PLEX_TYPE_SHOW,
-                                      kodi_id,
-                                      v.KODI_TYPE_SHOW,
-                                      kodi_pathid=path_id,
-                                      checksum=api.checksum(),
-                                      view_id=viewid)
+
             rating_id = self.kodi_db.get_ratingid(kodi_id, v.KODI_TYPE_SHOW)
             self.kodi_db.add_ratings(rating_id,
                                      kodi_id,
@@ -295,13 +281,22 @@ class Show(ItemBase, TvShowMixin):
         # Process studios
         self.kodi_db.modify_studios(kodi_id, v.KODI_TYPE_SHOW, studios)
         # Process tags: view, PMS collection tags
-        tags = [viewtag]
+        tags = [section_name]
         tags.extend([i for _, i in api.collection_list()])
         self.kodi_db.modify_tags(kodi_id, v.KODI_TYPE_SHOW, tags)
+        self.plex_db.addReference(plex_id,
+                                  v.PLEX_TYPE_SHOW,
+                                  kodi_id,
+                                  v.KODI_TYPE_SHOW,
+                                  kodi_pathid=path_id,
+                                  checksum=api.checksum(),
+                                  view_id=section_id,
+                                  last_sync=self.last_sync)
 
 
 class Season(ItemBase, TvShowMixin):
-    def add_update(self, xml, viewtag=None, viewid=None):
+    def add_update(self, xml, section_name=None, section_id=None,
+                   children=None):
         """
         Process a single season of a certain tv show
         """
@@ -334,12 +329,14 @@ class Season(ItemBase, TvShowMixin):
                                       kodi_id,
                                       v.KODI_TYPE_SEASON,
                                       parent_id=show_id,
-                                      view_id=viewid,
-                                      checksum=api.checksum())
+                                      view_id=section_id,
+                                      checksum=api.checksum(),
+                                      last_sync=self.last_sync)
 
 
 class Episode(ItemBase, TvShowMixin):
-    def add_update(self, xml, viewtag=None, viewid=None):
+    def add_update(self, xml, section_name=None, section_id=None,
+                   children=None):
         """
         Process single episode
         """
@@ -501,18 +498,6 @@ class Episode(ItemBase, TvShowMixin):
                         airs_before_season, airs_before_episode, playurl,
                         path_id, season_id, userdata['UserRating']))
 
-        # Create or update the reference in plex table Add reference is
-        # idempotent; the call here updates also file_id and path_id when item
-        # is moved or renamed
-        self.plex_db.addReference(plex_id,
-                                  v.PLEX_TYPE_EPISODE,
-                                  kodi_id,
-                                  v.KODI_TYPE_EPISODE,
-                                  kodi_file_id=file_id,
-                                  kodi_pathid=path_id,
-                                  parent_id=season_id,
-                                  checksum=api.checksum(),
-                                  view_id=viewid)
         self.kodi_db.modify_people(kodi_id,
                                    v.KODI_TYPE_EPISODE,
                                    api.people_list())
@@ -546,3 +531,13 @@ class Episode(ItemBase, TvShowMixin):
                                     userdata['PlayCount'],
                                     userdata['LastPlayedDate'],
                                     None)  # Do send None - 2nd entry
+        self.plex_db.addReference(plex_id,
+                                  v.PLEX_TYPE_EPISODE,
+                                  kodi_id,
+                                  v.KODI_TYPE_EPISODE,
+                                  kodi_file_id=file_id,
+                                  kodi_pathid=path_id,
+                                  parent_id=season_id,
+                                  checksum=api.checksum(),
+                                  view_id=section_id,
+                                  last_sync=self.last_sync)

@@ -214,6 +214,13 @@ class Plex_DB_Functions():
                                 (checksum, ))
         return self.plexcursor.fetchone()
 
+    def update_last_sync(self, plex_id, last_sync):
+        """
+        Fast method that updates Plex table with last_sync (an int) for plex_id
+        """
+        self.plexcursor.execute('UPDATE plex SET last_sync = ? WHERE plex_id = ?',
+                                (last_sync, plex_id, ))
+
     def checksum(self, plex_type):
         """
         Returns a list of tuples (plex_id, checksum) for plex_type
@@ -228,19 +235,21 @@ class Plex_DB_Functions():
 
     def addReference(self, plex_id, plex_type, kodi_id, kodi_type,
                      kodi_fileid=None, kodi_pathid=None, parent_id=None,
-                     checksum=None, view_id=None):
+                     checksum=None, section_id=None, last_sync=None):
         """
         Appends or replaces an entry into the plex table
         """
         query = '''
             INSERT OR REPLACE INTO plex(
                 plex_id, kodi_id, kodi_fileid, kodi_pathid, plex_type,
-                kodi_type, parent_id, checksum, view_id, fanart_synced)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                kodi_type, parent_id, checksum, section_id, fanart_synced,
+                last_sync)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             '''
         self.plexcursor.execute(query, (plex_id, kodi_id, kodi_fileid,
                                         kodi_pathid, plex_type, kodi_type,
-                                        parent_id, checksum, view_id, 0))
+                                        parent_id, checksum, section_id, 0,
+                                        last_sync))
 
     def updateReference(self, plex_id, checksum):
         """

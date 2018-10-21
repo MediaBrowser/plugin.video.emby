@@ -224,7 +224,7 @@ class LibrarySync(Thread):
                     kodi_fileid INTEGER,
                     kodi_pathid INTEGER,
                     parent_id INTEGER,
-                    checksum INTEGER,
+                    checksum INTEGER UNIQUE,
                     fanart_synced INTEGER,
                     last_sync INTEGER)
             ''')
@@ -237,13 +237,10 @@ class LibrarySync(Thread):
                     sync_to_kodi INTEGER)
             ''')
             plex_db.plexcursor.execute('''
-                CREATE TABLE IF NOT EXISTS version(idVersion TEXT)
-            ''')
-            plex_db.plexcursor.execute('''
                 CREATE TABLE IF NOT EXISTS playlists(
-                    plex_id  PRIMARY KEY,
+                    plex_id INTEGER PRIMARY KEY ASC,
                     plex_name TEXT,
-                    plex_updatedat TEXT,
+                    plex_updatedat INTEGER,
                     kodi_path TEXT,
                     kodi_type TEXT,
                     kodi_hash TEXT)

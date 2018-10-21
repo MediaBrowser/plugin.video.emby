@@ -544,7 +544,8 @@ class DownloadGen(object):
     def _download_chunk(self):
         args = {
             'X-Plex-Container-Size': CONTAINERSIZE,
-            'X-Plex-Container-Start': self._pos
+            'X-Plex-Container-Start': self._pos,
+            'sort': 'id'
         }
         self.xml = DU().downloadUrl(self._url, parameters=args)
         try:
@@ -604,7 +605,8 @@ def DownloadChunks(url):
     while error_counter < 10:
         args = {
             'X-Plex-Container-Size': CONTAINERSIZE,
-            'X-Plex-Container-Start': pos
+            'X-Plex-Container-Start': pos,
+            'sort': 'id'
         }
         xmlpart = DU().downloadUrl(url + urlencode(args))
         # If something went wrong - skip in the hope that it works next time

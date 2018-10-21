@@ -44,7 +44,8 @@ class ItemBase(object):
     Input:
         kodiType:       optional argument; e.g. 'video' or 'music'
     """
-    def __init__(self, plex_db=None, kodi_db=None):
+    def __init__(self, last_sync, plex_db=None, kodi_db=None):
+        self.last_sync = last_sync
         self.artwork = artwork.Artwork()
         self.plexconn = None
         self.plexcursor = plex_db.plexcursor if plex_db else None

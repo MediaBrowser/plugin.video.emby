@@ -37,6 +37,7 @@ from urllib import urlencode, unquote, quote
 from urlparse import parse_qsl
 from xbmcgui import ListItem
 
+from .utils import cast
 from .downloadutils import DownloadUtils as DU
 from . import clientinfo
 from . import utils
@@ -103,27 +104,26 @@ class API(object):
 
     def updated_at(self):
         """
-        Returns the last time this item was updated as unicode, e.g.
-        '1524739868', or None
+        Returns the last time this item was updated as an int, e.g.
+        1524739868 or None
         """
-        return self.item.get('updatedAt')
+        return cast(int, self.item.get('updatedAt'))
 
     def checksum(self):
         """
-        Returns a string, not int.
-        WATCH OUT - time in Plex, not Kodi ;-)
+        Returns the unique int <ratingKey><updatedAt> or None if this failes
         """
-        # Include a letter to prohibit saving as an int!
-        return "K%s%s" % (self.plex_id(), self.item.get('updatedAt', ''))
+        try:
+            return cast(int, '%s%s' % (self.item.get('ratingKey'),
+                                       self.item.get('updatedAt')))
+        except ValueError:
+            pass
 
     def plex_id(self):
         """
         Returns the Plex ratingKey such as 246922 as an integer or None
         """
-        try:
-            return int(self.item.get('ratingKey'))
-        except TypeError, ValueError:
-            pass
+        return cast(int, self.item.get('ratingKey'))
 
     def path(self, force_first_media=True, force_addon=False,
              direct_paths=None):
