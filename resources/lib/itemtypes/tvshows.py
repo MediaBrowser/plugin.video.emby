@@ -203,8 +203,8 @@ class Show(ItemBase, TvShowMixin):
             toppathid = None
 
         kodi_pathid = self.kodi_db.add_video_path(path,
-                                              date_added=api.date_created(),
-                                              id_parent_path=toppathid)
+                                                  date_added=api.date_created(),
+                                                  id_parent_path=toppathid)
         # UPDATE THE TVSHOW #####
         if update_item:
             LOG.info("UPDATE tvshow plex_id: %s - Title: %s",
@@ -248,8 +248,6 @@ class Show(ItemBase, TvShowMixin):
             # Link the path
             query = "INSERT INTO tvshowlinkpath(idShow, idPath) values (?, ?)"
             self.kodicursor.execute(query, (kodi_id, kodi_pathid))
-            # Create the reference in plex table
-
             rating_id = self.kodi_db.get_ratingid(kodi_id, v.KODI_TYPE_SHOW)
             self.kodi_db.add_ratings(rating_id,
                                      kodi_id,
@@ -293,13 +291,12 @@ class Show(ItemBase, TvShowMixin):
         tags = [section_name]
         tags.extend([i for _, i in api.collection_list()])
         self.kodi_db.modify_tags(kodi_id, v.KODI_TYPE_SHOW, tags)
-        self.plex_db.add_reference(plex_type=v.PLEX_TYPE_SHOW,
-                                   plex_id=plex_id,
-                                   checksum=api.checksum(),
-                                   section_id=section_id,
-                                   kodi_id=kodi_id,
-                                   kodi_pathid=kodi_pathid,
-                                   last_sync=self.last_sync)
+        self.plex_db.add_show(plex_id=plex_id,
+                              checksum=api.checksum(),
+                              section_id=section_id,
+                              kodi_id=kodi_id,
+                              kodi_pathid=kodi_pathid,
+                              last_sync=self.last_sync)
 
 
 class Season(ItemBase, TvShowMixin):
@@ -328,14 +325,13 @@ class Season(ItemBase, TvShowMixin):
                                     kodi_id,
                                     v.KODI_TYPE_SEASON,
                                     self.kodicursor)
-        self.plex_db.add_reference(plex_type=v.PLEX_TYPE_SEASON,
-                                   plex_id=plex_id,
-                                   checksum=api.checksum(),
-                                   section_id=section_id,
-                                   show_id=show_id,
-                                   parent_id=parent_id,
-                                   kodi_id=kodi_id,
-                                   last_sync=self.last_sync)
+        self.plex_db.add_season(plex_id=plex_id,
+                                checksum=api.checksum(),
+                                section_id=section_id,
+                                show_id=show_id,
+                                parent_id=parent_id,
+                                kodi_id=kodi_id,
+                                last_sync=self.last_sync)
 
 
 class Episode(ItemBase, TvShowMixin):
@@ -535,15 +531,14 @@ class Episode(ItemBase, TvShowMixin):
                                     userdata['PlayCount'],
                                     userdata['LastPlayedDate'],
                                     None)  # Do send None - 2nd entry
-        self.plex_db.add_reference(plex_type=v.PLEX_TYPE_EPISODE,
-                                   plex_id=plex_id,
-                                   checksum=api.checksum(),
-                                   section_id=section_id,
-                                   show_id=show_id,
-                                   grandparent_id=grandparent_id,
-                                   season_id=season_id,
-                                   parent_id=parent_id,
-                                   kodi_id=kodi_id,
-                                   kodi_fileid=kodi_fileid,
-                                   kodi_pathid=kodi_pathid,
-                                   last_sync=self.last_sync)
+            self.plex_db.add_episode(plex_id=plex_id,
+                                     checksum=api.checksum(),
+                                     section_id=section_id,
+                                     show_id=show_id,
+                                     grandparent_id=grandparent_id,
+                                     season_id=season_id,
+                                     parent_id=parent_id,
+                                     kodi_id=kodi_id,
+                                     kodi_fileid=kodi_fileid,
+                                     kodi_pathid=kodi_pathid,
+                                     last_sync=self.last_sync)

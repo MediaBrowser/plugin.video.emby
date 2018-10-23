@@ -2,13 +2,25 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, unicode_literals
 
+from . import utils
 
-class PlexDB(object):
+
+class PlexDBBase(object):
     """
     Methods used for all types of items
     """
-    def __init__(self, cursor):
+    def __init__(self, cursor=None):
+        # Allows us to use this class with a cursor instead of context mgr
         self.cursor = cursor
+
+    def __enter__(self):
+        self.plexconn = utils.kodi_sql('plex')
+        self.cursor = self.plexconn.cursor()
+        return self
+
+    def __exit__(self, e_typ, e_val, trcbak):
+        self.plexconn.commit()
+        self.plexconn.close()
 
     def section_ids(self):
         """
@@ -35,14 +47,14 @@ class PlexDB(object):
                  'kodi_tagid': x[3],
                  'sync_to_kodi': x[4]} for x in self.cursor)
 
-    def section_by_id(self, section_id):
+    def section(self, section_id):
         """
-        For section_id, returns tuple (or None)
-            (section_id,
-             section_name,
-             plex_type,
-             kodi_tagid,
-             sync_to_kodi)
+        For section_id, returns the tuple (or None)
+            section_id INTEGER PRIMARY KEY,
+            section_name TEXT,
+            plex_type TEXT,
+            kodi_tagid INTEGER,
+            sync_to_kodi INTEGER
         """
         self.cursor.execute('SELECT * FROM sections WHERE section_id = ? LIMIT 1',
                             (section_id, ))
@@ -66,7 +78,7 @@ class PlexDB(object):
         sync=False: Plex library won't be synced to Kodi
         """
         query = '''
-            INSERT INTO sections(
+            INSERT OR REPLACE INTO sections(
                 section_id, section_name, plex_type, kodi_tagid, sync_to_kodi)
             VALUES (?, ?, ?, ?, ?)
             '''
@@ -77,17 +89,6 @@ class PlexDB(object):
                              kodi_tagid,
                              sync_to_kodi))
 
-    def update_section(self, section_name, kodi_tagid, section_id):
-        """
-        Updates the section_id with section_name and kodi_tagid
-        """
-        query = '''
-            UPDATE sections
-            SET section_name = ?, kodi_tagid = ?
-            WHERE section_id = ?
-        '''
-        self.cursor.execute(query, (section_name, kodi_tagid, section_id))
-
     def remove_section(self, section_id):
         """
         Removes the Plex db entry for the section with section_id
@@ -95,18 +96,147 @@ class PlexDB(object):
         self.cursor.execute('DELETE FROM sections WHERE section_id = ?',
                             (section_id, ))
 
-    def item_by_id(self, plex_id):
+    def plex_id_by_last_sync(self, plex_type, last_sync):
         """
-        For plex_id, returns the tuple
-          (kodi_id, kodi_fileid, kodi_pathid, parent_id, kodi_type, plex_type)
+        Returns an iterator for all items where the last_sync is NOT identical
+        """
+        query = 'SELECT plex_id FROM %s WHERE last_sync <> ?' % plex_type
+        self.cursor.execute(query, (last_sync, ))
+        return (x[0] for x in self.cursor)
 
-        None if not found
+    def update_last_sync(self, plex_type, plex_id, last_sync):
         """
-        query = '''
-            SELECT kodi_id, kodi_fileid, kodi_pathid, parent_id, kodi_type,
-                   plex_type
-            FROM plex WHERE plex_id = ?
-            LIMIT 1
-        '''
-        self.cursor.execute(query, (plex_id,))
-        return self.cursor.fetchone()
+        Sets a new timestamp for plex_id
+        """
+        query = 'UPDATE %s SET last_sync = ? WHERE plex_id = ?' % plex_type
+        self.cursor.execute(query, (last_sync, plex_id))
+
+    def remove(self, plex_id, plex_type):
+        """
+        Removes the item from our Plex db
+        """
+        query = 'DELETE FROM ? WHERE plex_id = ?' % plex_type
+        self.cursor.execute(query, (plex_id, ))
+
+
+def initialize():
+        """
+        Run once during startup to verify that plex db exists.
+        """
+        with PlexDBBase() as plex_db:
+            # Create the tables for the plex database
+            plex_db.cursor.execute('''
+                CREATE TABLE IF NOT EXISTS sections(
+                    section_id INTEGER PRIMARY KEY,
+                    section_name TEXT,
+                    plex_type TEXT,
+                    kodi_tagid INTEGER,
+                    sync_to_kodi INTEGER)
+            ''')
+            plex_db.cursor.execute('''
+                CREATE TABLE IF NOT EXISTS movie(
+                    plex_id INTEGER PRIMARY KEY ASC,
+                    checksum INTEGER UNIQUE,
+                    section_id INTEGER,
+                    kodi_id INTEGER,
+                    kodi_fileid INTEGER,
+                    kodi_pathid INTEGER,
+                    fanart_synced INTEGER,
+                    last_sync INTEGER)
+            ''')
+            plex_db.cursor.execute('''
+                CREATE TABLE IF NOT EXISTS show(
+                    plex_id INTEGER PRIMARY KEY ASC,
+                    checksum INTEGER UNIQUE,
+                    section_id INTEGER,
+                    kodi_id INTEGER,
+                    kodi_pathid INTEGER,
+                    fanart_synced INTEGER,
+                    last_sync INTEGER)
+            ''')
+            plex_db.cursor.execute('''
+                CREATE TABLE IF NOT EXISTS season(
+                    plex_id INTEGER PRIMARY KEY,
+                    checksum INTEGER UNIQUE,
+                    section_id INTEGER,
+                    show_id INTEGER,  # plex_id of the parent show
+                    parent_id INTEGER,  # kodi_id of the parent show
+                    kodi_id INTEGER,
+                    fanart_synced INTEGER,
+                    last_sync INTEGER)
+            ''')
+            plex_db.cursor.execute('''
+                CREATE TABLE IF NOT EXISTS episode(
+                    plex_id INTEGER PRIMARY KEY,
+                    checksum INTEGER UNIQUE,
+                    section_id INTEGER,
+                    show_id INTEGER,  # plex_id of the parent show
+                    grandparent_id INTEGER,  # kodi_id of the parent show
+                    season_id INTEGER,  # plex_id of the parent season
+                    parent_id INTEGER,  # kodi_id of the parent season
+                    kodi_id INTEGER,
+                    kodi_fileid INTEGER,
+                    kodi_pathid INTEGER,
+                    fanart_synced INTEGER,
+                    last_sync INTEGER)
+            ''')
+            plex_db.cursor.execute('''
+                CREATE TABLE IF NOT EXISTS artist(
+                    plex_id INTEGER PRIMARY KEY ASC,
+                    checksum INTEGER UNIQUE,
+                    section_id INTEGER,
+                    kodi_id INTEGER,
+                    fanart_synced INTEGER,
+                    last_sync INTEGER)
+            ''')
+            plex_db.cursor.execute('''
+                CREATE TABLE IF NOT EXISTS album(
+                    plex_id INTEGER PRIMARY KEY,
+                    checksum INTEGER UNIQUE,
+                    section_id INTEGER,
+                    artist_id INTEGER,  # plex_id of the parent artist
+                    parent_id INTEGER,  # kodi_id of the parent artist
+                    kodi_id INTEGER,
+                    fanart_synced INTEGER,
+                    last_sync INTEGER)
+            ''')
+            plex_db.cursor.execute('''
+                CREATE TABLE IF NOT EXISTS track(
+                    plex_id INTEGER PRIMARY KEY,
+                    checksum INTEGER UNIQUE,
+                    section_id INTEGER,
+                    artist_id INTEGER,  # plex_id of the parent artist
+                    grandparent_id INTEGER,  # kodi_id of the parent artist
+                    album_id INTEGER,  # plex_id of the parent album
+                    parent_id INTEGER,  # kodi_id of the parent album
+                    kodi_id INTEGER,
+                    kodi_fileid INTEGER,
+                    kodi_pathid INTEGER,
+                    fanart_synced INTEGER,
+                    last_sync INTEGER)
+            ''')
+            plex_db.cursor.execute('''
+                CREATE TABLE IF NOT EXISTS playlists(
+                    plex_id INTEGER PRIMARY KEY ASC,
+                    plex_name TEXT,
+                    plex_updatedat INTEGER,
+                    kodi_path TEXT,
+                    kodi_type TEXT,
+                    kodi_hash TEXT)
+            ''')
+        # Create an index for actors to speed up sync
+        utils.create_actor_db_index()
+
+
+def wipe():
+    """
+    Completely resets the Plex database
+    """
+    query = "SELECT name FROM sqlite_master WHERE type = 'table'"
+    with PlexDBBase() as plex_db:
+        plex_db.cursor.execute(query)
+        tables = plex_db.cursor.fetchall()
+        tables = [i[0] for i in tables]
+        for table in tables:
+            delete_query = 'DELETE FROM %s' % table
+            plex_db.cursor.execute(delete_query)

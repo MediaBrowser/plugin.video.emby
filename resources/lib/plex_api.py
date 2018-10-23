@@ -476,33 +476,39 @@ class API(object):
         """
         Returns the title of the element as unicode or 'Missing Title Name'
         """
-        return utils.try_decode(self.item.get('title', 'Missing Title Name'))
-
-    def title(self):
-        """
-        Returns an item's name/title or "Missing Title".
-        """
-        return self.item.get('title', 'Missing Title')
+        return cast(unicode, self.item.get('title', 'Missing Title Name'))
 
     def sorttitle(self):
                 """
         Returns an item's sorting name/title or the title itself if not found
         "Missing Title" if both are not present
         """
-        return self.item.get('titleSort',
-                             self.item.get('title','Missing Title'))
+        return cast(unicode, self.item.get('titleSort',
+                                           self.item.get('title','Missing Title')))
 
     def plot(self):
         """
         Returns the plot or None.
         """
-        return self.item.get('summary')
+        return cast(unicode, self.item.get('summary'))
+
+    def shortplot(self):
+        """
+        Not yet implemented
+        """
+        pass
+
+    def votecount(self):
+        """
+        Not yet implemented
+        """
+        pass
 
     def tagline(self):
         """
         Returns a shorter tagline or None
         """
-        return self.item.get('tagline')
+        return cast(unicode, self.item.get('tagline'))
 
     def audience_rating(self):
         """
@@ -755,7 +761,7 @@ class API(object):
                 answ.append(extra)
         return answ
 
-    def trailers(self):
+    def trailer(self):
         """
         Returns the URL for a single trailer (local trailer preferred; first
         trailer found returned) or an add-on path to list all Plex extras

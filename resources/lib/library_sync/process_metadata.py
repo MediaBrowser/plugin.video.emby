@@ -80,9 +80,9 @@ class ProcessMetadata(backgroundthread.KillableThread, common.libsync_mixin):
                     while self.isCanceled() is False:
                         # grabs item from queue. This will block!
                         xml = self.queue.get()
-                        self.queue.task_done()
                         if xml is InitNewSection or xml is None:
                             section = xml
+                            self.queue.task_done()
                             break
                         try:
                             context.add_update(xml[0],
@@ -97,6 +97,7 @@ class ProcessMetadata(backgroundthread.KillableThread, common.libsync_mixin):
                                                     xml[0].get('title'))
                             self.update_dialog()
                         self.current += 1
+                        self.queue.task_done()
         finally:
             self.dialog.close()
             LOG.debug('Processing thread terminated')

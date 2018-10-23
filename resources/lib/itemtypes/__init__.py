@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, unicode_literals
+from .movies import Movie
 from .tvshows import Show, Season, Episode
 
 # Note: always use same order of URL arguments, NOT urlencode:

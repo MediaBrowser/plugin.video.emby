@@ -95,7 +95,7 @@ def _process_section(section_xml, kodi_db, plex_db, sorted_sections,
     # Prevent duplicate for playlists of the same type
     playlists = PLAYLISTS[plex_type]
     # Get current media folders from plex database
-    section = plex_db.section_by_id(section_id)
+    section = plex_db.section(section_id)
     try:
         current_sectionname = section[1]
         current_sectiontype = section[2]
@@ -137,7 +137,10 @@ def _process_section(section_xml, kodi_db, plex_db, sorted_sections,
             tagid = kodi_db.create_tag(section_name)
 
             # Update view with new info
-            plex_db.update_section(section_name, tagid, section_id)
+            plex_db.add_section(section_id,
+                                section_name,
+                                plex_type,
+                                tagid)
 
             if plex_db.section_id_by_name(current_sectionname) is None:
                 # The tag could be a combined view. Ensure there's
@@ -210,7 +213,7 @@ def delete_sections(old_sections):
     video_library_update = False
     music_library_update = False
     with plexdb.PlexDB() as plex_db:
-        old_sections = [plex_db.section_by_id(x) for x in old_sections]
+        old_sections = [plex_db.section(x) for x in old_sections]
         LOG.info("Removing entire Plex library sections: %s", old_sections)
         with kodidb.GetKodiDB() as kodi_db:
             for section in old_sections:
