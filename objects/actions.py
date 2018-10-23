@@ -389,7 +389,8 @@ class Actions(object):
                 'mediatype': "movie",
                 'imdbnumber': obj['UniqueId'],
                 'lastplayed': obj['DatePlayed'],
-                'duration': obj['Runtime']
+                'duration': obj['Runtime'],
+                'userrating': obj['CriticRating']
             })
 
         elif obj['Type'] == 'MusicVideo':
