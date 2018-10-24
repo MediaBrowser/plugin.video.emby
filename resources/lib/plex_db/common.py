@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, unicode_literals
 
-from . import utils, variables as v
+from .. import utils, variables as v
 
 SUPPORTED_KODI_TYPES = (
     v.KODI_TYPE_MOVIE,
