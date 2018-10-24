@@ -9,7 +9,7 @@ from ..utils import cast
 from ..plex_db import PlexDB
 from .. import kodidb_functions as kodidb
 from .. import itemtypes
-from .. import PlexFunctions as PF, music, utils, state, variables as v
+from .. import plex_functions as PF, music, utils, state, variables as v
 
 LOG = getLogger('PLEX.library_sync.sections')
 
