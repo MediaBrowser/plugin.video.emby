@@ -926,7 +926,6 @@ class KodiDBMethods(object):
     def delete_song_from_song_artist(self, song_id):
         """
         Deletes son from song_artist table and possibly orphaned roles
-        Will returned an orphaned idArtist or None if not orphaned
         """
         query = '''
             SELECT idArtist, idRole FROM song_artist WHERE idSong = ? LIMIT 1
@@ -946,13 +945,6 @@ class KodiDBMethods(object):
             # Delete orphaned role
             self.cursor.execute('DELETE FROM role WHERE idRole = ?',
                                 (artist[1], ))
-        # Check whether we need to delete orphaned artists
-        query = 'SELECT idArtist FROM song_artist WHERE idArtist = ? LIMIT 1'
-        self.cursor.execute(query, (artist[0], ))
-        if self.cursor.fetchone():
-            return
-        else:
-            return artist[0]
 
     def delete_album_from_discography(self, album_id):
         """

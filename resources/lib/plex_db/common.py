@@ -64,69 +64,6 @@ class PlexDBBase(object):
                     break
         return answ
 
-    @staticmethod
-    def entry_to_movie(entry):
-        return {
-            'plex_type': v.PLEX_TYPE_MOVIE,
-            'kodi_type': v.KODI_TYPE_MOVIE,
-            'plex_id': entry[0],
-            'checksum': entry[1],
-            'section_id': entry[2],
-            'kodi_id': entry[3],
-            'kodi_fileid': entry[4],
-            'kodi_pathid': entry[5],
-            'fanart_synced': entry[6],
-            'last_sync': entry[7]
-        }
-
-    @staticmethod
-    def entry_to_episode(entry):
-        return {
-            'plex_type': v.PLEX_TYPE_EPISODE,
-            'kodi_type': v.KODI_TYPE_EPISODE,
-            'plex_id': entry[0],
-            'checksum': entry[1],
-            'section_id': entry[2],
-            'show_id': entry[3],
-            'grandparent_id': entry[4],
-            'season_id': entry[5],
-            'parent_id': entry[6],
-            'kodi_id': entry[7],
-            'kodi_fileid': entry[8],
-            'kodi_pathid': entry[9],
-            'fanart_synced': entry[10],
-            'last_sync': entry[11]
-        }
-
-    @staticmethod
-    def entry_to_show(entry):
-        return {
-            'plex_type': v.PLEX_TYPE_SHOW,
-            'kodi_type': v.KODI_TYPE_SHOW,
-            'plex_id': entry[0],
-            'checksum': entry[1],
-            'section_id': entry[2],
-            'kodi_id': entry[3],
-            'kodi_pathid': entry[4],
-            'fanart_synced': entry[5],
-            'last_sync': entry[6]
-        }
-
-    @staticmethod
-    def entry_to_season(entry):
-        return {
-            'plex_type': v.PLEX_TYPE_SEASON,
-            'kodi_type': v.KODI_TYPE_SEASON,
-            'plex_id': entry[0],
-            'checksum': entry[1],
-            'section_id': entry[2],
-            'show_id': entry[3],
-            'parent_id': entry[4],
-            'kodi_id': entry[5],
-            'fanart_synced': entry[6],
-            'last_sync': entry[7]
-        }
-
     def section_ids(self):
         """
         Returns an iterator for section Plex ids for all sections
@@ -307,7 +244,6 @@ def initialize():
                     checksum INTEGER UNIQUE,
                     section_id INTEGER,
                     kodi_id INTEGER,
-                    fanart_synced INTEGER,
                     last_sync INTEGER)
             ''')
             plexdb.cursor.execute('''
@@ -318,7 +254,6 @@ def initialize():
                     artist_id INTEGER,  # plex_id of the parent artist
                     parent_id INTEGER,  # kodi_id of the parent artist
                     kodi_id INTEGER,
-                    fanart_synced INTEGER,
                     last_sync INTEGER)
             ''')
             plexdb.cursor.execute('''
@@ -331,9 +266,7 @@ def initialize():
                     album_id INTEGER,  # plex_id of the parent album
                     parent_id INTEGER,  # kodi_id of the parent album
                     kodi_id INTEGER,
-                    kodi_fileid INTEGER,
                     kodi_pathid INTEGER,
-                    fanart_synced INTEGER,
                     last_sync INTEGER)
             ''')
             plexdb.cursor.execute('''

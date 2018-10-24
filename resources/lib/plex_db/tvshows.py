@@ -1,80 +1,100 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, unicode_literals
+from .. import variables as v
 
 
 class TVShows(object):
-    def add_show(self, plex_id=None, checksum=None, section_id=None,
-                 kodi_id=None, kodi_pathid=None, last_sync=None):
+    def add_show(self, plex_id, checksum, section_id, kodi_id, kodi_pathid,
+                 last_sync):
         """
         Appends or replaces tv show entry into the plex table
         """
         query = '''
             INSERT OR REPLACE INTO show(
-                plex_id
-                checksum
-                section_id
-                kodi_id
-                kodi_pathid
-                fanart_synced
+                plex_id,
+                checksum,
+                section_id,
+                kodi_id,
+                kodi_pathid,
+                fanart_synced,
                 last_sync)
             VALUES (?, ?, ?, ?, ?, ?, ?)
         '''
-        self.plexcursor.execute(
+        self.cursor.execute(
             query,
-            (plex_id, checksum, section_id, kodi_id, kodi_pathid, 0,
+            (plex_id,
+             checksum,
+             section_id,
+             kodi_id,
+             kodi_pathid,
+             0,
              last_sync))
 
-    def add_season(self, plex_id=None, checksum=None, section_id=None,
-                   show_id=None, parent_id=None, kodi_id=None, last_sync=None):
+    def add_season(self, plex_id, checksum, section_id, show_id, parent_id,
+                   kodi_id, last_sync):
         """
         Appends or replaces an entry into the plex table
         """
         query = '''
             INSERT OR REPLACE INTO season(
-                plex_id
-                checksum
-                section_id
-                show_id
-                parent_id
-                kodi_id
-                fanart_synced
+                plex_id,
+                checksum,
+                section_id,
+                show_id,
+                parent_id,
+                kodi_id,
+                fanart_synced,
                 last_sync)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         '''
-        self.plexcursor.execute(
+        self.cursor.execute(
             query,
-            (plex_id, checksum, section_id, show_id, parent_id,
-             kodi_id, 0, last_sync))
+            (plex_id,
+             checksum,
+             section_id,
+             show_id,
+             parent_id,
+             kodi_id,
+             0,
+             last_sync))
 
-    def add_episode(self, plex_id=None, checksum=None, section_id=None,
-                    show_id=None, grandparent_id=None, season_id=None,
-                    parent_id=None, kodi_id=None, kodi_fileid=None,
-                    kodi_pathid=None, last_sync=None):
+    def add_episode(self, plex_id, checksum, section_id, show_id,
+                    grandparent_id, season_id, parent_id, kodi_id, kodi_fileid,
+                    kodi_pathid, last_sync):
         """
         Appends or replaces an entry into the plex table
         """
         query = '''
             INSERT OR REPLACE INTO episode(
-                plex_id
-                checksum
-                section_id
-                show_id
-                grandparent_id
-                season_id
-                parent_id
-                kodi_id
-                kodi_fileid
-                kodi_pathid
-                fanart_synced
+                plex_id,
+                checksum,
+                section_id,
+                show_id,
+                grandparent_id,
+                season_id,
+                parent_id,
+                kodi_id,
+                kodi_fileid,
+                kodi_pathid,
+                fanart_synced,
                 last_sync)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             '''
-        self.plexcursor.execute(
+        self.cursor.execute(
             query,
-            (plex_id, checksum, section_id, show_id, grandparent_id,
-             season_id, parent_id, kodi_id, kodi_fileid, kodi_pathid,
-             0, last_sync))
+            (plex_id,
+             checksum,
+             section_id,
+             show_id,
+             grandparent_id,
+             season_id,
+             parent_id,
+             kodi_id,
+             kodi_fileid,
+             kodi_pathid,
+             0,
+             last_sync))
 
     def show(self, plex_id):
         """
@@ -87,9 +107,11 @@ class TVShows(object):
             fanart_synced INTEGER,
             last_sync INTEGER
         """
+        if plex_id is None:
+            return
         self.cursor.execute('SELECT * FROM show WHERE plex_id = ? LIMIT 1',
                             (plex_id, ))
-        return self.cursor.fetchone()
+        return self.entry_to_show(self.cursor.fetchone())
 
     def season(self, plex_id):
         """
@@ -103,9 +125,11 @@ class TVShows(object):
             fanart_synced INTEGER,
             last_sync INTEGER
         """
+        if plex_id is None:
+            return
         self.cursor.execute('SELECT * FROM season WHERE plex_id = ? LIMIT 1',
                             (plex_id, ))
-        return self.cursor.fetchone()
+        return self.entry_to_season(self.cursor.fetchone())
 
     def episode(self, plex_id):
         """
@@ -123,9 +147,65 @@ class TVShows(object):
             fanart_synced INTEGER,
             last_sync INTEGER
         """
+        if plex_id is None:
+            return
         self.cursor.execute('SELECT * FROM episode WHERE plex_id = ? LIMIT 1',
                             (plex_id, ))
-        return self.cursor.fetchone()
+        return self.entry_to_episode(self.cursor.fetchone())
+
+    @staticmethod
+    def entry_to_episode(entry):
+        if not entry:
+            return
+        return {
+            'plex_type': v.PLEX_TYPE_EPISODE,
+            'kodi_type': v.KODI_TYPE_EPISODE,
+            'plex_id': entry[0],
+            'checksum': entry[1],
+            'section_id': entry[2],
+            'show_id': entry[3],
+            'grandparent_id': entry[4],
+            'season_id': entry[5],
+            'parent_id': entry[6],
+            'kodi_id': entry[7],
+            'kodi_fileid': entry[8],
+            'kodi_pathid': entry[9],
+            'fanart_synced': entry[10],
+            'last_sync': entry[11]
+        }
+
+    @staticmethod
+    def entry_to_show(entry):
+        if not entry:
+            return
+        return {
+            'plex_type': v.PLEX_TYPE_SHOW,
+            'kodi_type': v.KODI_TYPE_SHOW,
+            'plex_id': entry[0],
+            'checksum': entry[1],
+            'section_id': entry[2],
+            'kodi_id': entry[3],
+            'kodi_pathid': entry[4],
+            'fanart_synced': entry[5],
+            'last_sync': entry[6]
+        }
+
+    @staticmethod
+    def entry_to_season(entry):
+        if not entry:
+            return
+        return {
+            'plex_type': v.PLEX_TYPE_SEASON,
+            'kodi_type': v.KODI_TYPE_SEASON,
+            'plex_id': entry[0],
+            'checksum': entry[1],
+            'section_id': entry[2],
+            'show_id': entry[3],
+            'parent_id': entry[4],
+            'kodi_id': entry[5],
+            'fanart_synced': entry[6],
+            'last_sync': entry[7]
+        }
 
     def season_has_episodes(self, plex_id):
         """

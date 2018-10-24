@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, unicode_literals
+from .. import variables as v
 
 
 class Movies(object):
-    def add_movie(self, plex_id=None, checksum=None, section_id=None,
-                  kodi_id=None, kodi_fileid=None, kodi_pathid=None,
-                  last_sync=None):
+    def add_movie(self, plex_id, checksum, section_id, kodi_id, kodi_fileid,
+                  kodi_pathid, last_sync):
         """
         Appends or replaces an entry into the plex table for movies
         """
@@ -22,7 +22,7 @@ class Movies(object):
                 last_sync)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             '''
-        self.plexcursor.execute(
+        self.cursor.execute(
             query,
             (plex_id,
              checksum,
@@ -45,6 +45,25 @@ class Movies(object):
             fanart_synced INTEGER,
             last_sync INTEGER
         """
-        self.cursor.execute('SELECT * FROM movie WHERE plex_id = ?',
+        if plex_id is None:
+            return
+        self.cursor.execute('SELECT * FROM movie WHERE plex_id = ? LIMIT 1',
                             (plex_id, ))
-        return self.cursor.fetchone()
+        return self.entry_to_movie(self.cursor.fetchone())
+
+    @staticmethod
+    def entry_to_movie(entry):
+        if not entry:
+            return
+        return {
+            'plex_type': v.PLEX_TYPE_MOVIE,
+            'kodi_type': v.KODI_TYPE_MOVIE,
+            'plex_id': entry[0],
+            'checksum': entry[1],
+            'section_id': entry[2],
+            'kodi_id': entry[3],
+            'kodi_fileid': entry[4],
+            'kodi_pathid': entry[5],
+            'fanart_synced': entry[6],
+            'last_sync': entry[7]
+        }

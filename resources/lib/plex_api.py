@@ -264,6 +264,12 @@ class API(object):
         """
         return cast(int, self.item.get('index'))
 
+    def track_number(self):
+        """
+        Returns the 'index' of an XML reply as int. Depicts track number.
+        """
+        return cast(int, self.item.get('index'))
+
     def date_created(self):
         """
         Returns the date when this library item was created.
@@ -486,6 +492,13 @@ class API(object):
         return cast(unicode, self.item.get('titleSort',
                                            self.item.get('title','Missing Title')))
 
+    def artist_name(self):
+        """
+        Returns the artist name for an album: first it attempts to return
+        'parentTitle', if that failes 'originalTitle'
+        """
+        return self.item.get('parentTitle', self.item.get('originalTitle'))
+
     def plot(self):
         """
         Returns the plot or None.
@@ -605,18 +618,16 @@ class API(object):
         """
         Returns the 'studio' or None
         """
-        return self.item.get('studio')
+        return self.replace_studio(cast(unicode, self.item.get('studio')))
 
     def music_studio_list(self):
         """
         Returns a list with a single entry for the studio, or an empty list
         """
-        studio = []
-        try:
-            studio.append(self.replace_studio(self.item.attrib['studio']))
-        except KeyError:
-            pass
-        return studio
+        studio = self.music_studio()
+        if studio:
+            return [studio]
+        return []
 
     @staticmethod
     def replace_studio(studio_name):
@@ -1657,23 +1668,11 @@ class API(object):
             pass
         return listitem
 
-    def track_number(self):
-        """
-        Returns the song's track number as an int or None if not found
-        """
-        try:
-            return int(self.item.get('index'))
-        except TypeError:
-            pass
-
     def disc_number(self):
         """
         Returns the song's disc number as an int or None if not found
         """
-        try:
-            return int(self.item.get('parentIndex'))
-        except TypeError:
-            pass
+        return cast(int, self.item.get('parentIndex'))
 
     def _create_audio_listitem(self, listitem=None):
         """
