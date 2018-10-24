@@ -53,7 +53,7 @@ def reload_pkc():
     for prop in WINDOW_PROPERTIES:
         utils.window(prop, clear=True)
     # Clear video nodes properties
-    from .librarysync import videonodes
+    from .library_sync import videonodes
     videonodes.VideoNodes().clearProperties()
 
     # Initializing

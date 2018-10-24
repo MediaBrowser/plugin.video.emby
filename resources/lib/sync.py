@@ -15,7 +15,7 @@ from . import itemtypes, plex_db, kodidb_functions as kodidb
 from . import artwork, plex_functions as PF
 from . import variables as v, state
 
-LOG = getLogger('PLEX.librarysync')
+LOG = getLogger('PLEX.sync')
 
 
 def set_library_scan_toggle(boolean=True):
@@ -31,7 +31,7 @@ def set_library_scan_toggle(boolean=True):
         utils.window('plex_dbScan', value="true")
 
 
-class LibrarySync(backgroundthread.KillableThread):
+class Sync(backgroundthread.KillableThread):
     """
     The one and only library sync thread. Spawn only 1!
     """
@@ -54,7 +54,7 @@ class LibrarySync(backgroundthread.KillableThread):
         self.update_kodi_music_library = False
         # Lock used to wait on a full sync, e.g. on initial sync
         self.lock = backgroundthread.threading.Lock()
-        super(LibrarySync, self).__init__()
+        super(Sync, self).__init__()
 
     def isCanceled(self):
         return xbmc.abortRequested or state.STOP_PKC
@@ -540,11 +540,11 @@ class LibrarySync(backgroundthread.KillableThread):
         except:
             state.DB_SCAN = False
             utils.window('plex_dbScan', clear=True)
-            utils.ERROR(txt='librarysync.py crashed', notify=True)
+            utils.ERROR(txt='Sync.py crashed', notify=True)
             raise
 
     def _run_internal(self):
-        LOG.info("---===### Starting LibrarySync ###===---")
+        LOG.info("---===### Starting Sync ###===---")
         install_sync_done = utils.settings('SyncInstallRunDone') == 'true'
 
         playlist_monitor = None
@@ -584,7 +584,7 @@ class LibrarySync(backgroundthread.KillableThread):
             while self.isSuspended():
                 if self.isCanceled():
                     # Abort was requested while waiting. We should exit
-                    LOG.info("###===--- LibrarySync Stopped ---===###")
+                    LOG.info("###===--- Sync Stopped ---===###")
                     return
                 xbmc.sleep(1000)
 
@@ -722,4 +722,4 @@ class LibrarySync(backgroundthread.KillableThread):
             DU().stopSession()
         except AttributeError:
             pass
-        LOG.info("###===--- LibrarySync Stopped ---===###")
+        LOG.info("###===--- Sync Stopped ---===###")

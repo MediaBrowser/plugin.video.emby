@@ -9,7 +9,7 @@ from . import utils
 from . import userclient
 from . import initialsetup
 from . import kodimonitor
-from . import librarysync
+from . import sync
 from . import websocket_client
 from . import plex_companion
 from . import plex_functions as PF
@@ -34,13 +34,13 @@ class Service():
 
     user = None
     ws = None
-    library = None
+    sync = None
     plexcompanion = None
 
     user_running = False
     ws_running = False
     alexa_running = False
-    library_running = False
+    sync_running = False
     plexcompanion_running = False
     kodimonitor_running = False
     playback_starter_running = False
@@ -95,7 +95,7 @@ class Service():
         self.user = userclient.UserClient()
         self.ws = websocket_client.PMS_Websocket()
         self.alexa = websocket_client.Alexa_Websocket()
-        self.library = librarysync.LibrarySync()
+        self.sync = sync.Sync()
         self.plexcompanion = plex_companion.PlexCompanion()
         self.specialmonitor = kodimonitor.SpecialMonitor()
         self.playback_starter = playback_starter.PlaybackStarter()
@@ -149,9 +149,9 @@ class Service():
                             self.alexa_running = True
                             self.alexa.start()
                         # Start the syncing thread
-                        if not self.library_running:
-                            self.library_running = True
-                            self.library.start()
+                        if not self.sync_running:
+                            self.sync_running = True
+                            self.sync.start()
                         # Start the Plex Companion thread
                         if not self.plexcompanion_running:
                             self.plexcompanion_running = True
