@@ -170,8 +170,6 @@ def show_main_menu(content_type=None):
 
     # some extra entries for settings and stuff
     directory_item(utils.lang(39201), "plugin://%s?mode=settings" % v.ADDON_ID)
-    directory_item(utils.lang(39203),
-                   "plugin://%s?mode=refreshplaylist" % v.ADDON_ID)
     directory_item(utils.lang(39204),
                    "plugin://%s?mode=manualsync" % v.ADDON_ID)
     xbmcplugin.endOfDirectory(int(argv[1]))

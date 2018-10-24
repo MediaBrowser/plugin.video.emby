@@ -588,7 +588,7 @@ class SectionItems(DownloadGen):
     """
     Iterator object to get all items of a Plex library section
     """
-    def __init__(self, section_id, args):
+    def __init__(self, section_id, args=None):
         super(SectionItems, self).__init__(
             '{server}/library/sections/%s/all' % section_id, args)
 

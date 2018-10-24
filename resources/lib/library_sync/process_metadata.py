@@ -36,34 +36,38 @@ class ProcessMetadata(backgroundthread.KillableThread, common.libsync_mixin):
         item_class: as used to call functions in itemtypes.py e.g. 'Movies' =>
                     itemtypes.Movies()
     """
-    def __init__(self, queue, last_sync):
+    def __init__(self, queue, last_sync, show_dialog):
         self.queue = queue
         self.last_sync = last_sync
+        self.show_dialog = show_dialog
         self.total = 0
         self.current = 0
         self.title = None
         self.section_name = None
+        self.dialog = None
         super(ProcessMetadata, self).__init__()
 
-    def update_dialog(self):
+    def update(self):
         """
         """
-        try:
-            progress = int(float(self.current) / float(self.total) * 100.0)
-        except ZeroDivisionError:
-            progress = 0
-        self.dialog.update(progress,
-                           self.section_name,
-                           '%s/%s: %s'
-                           % (self.current, self.total, self.title))
+        if self.show_dialog:
+            try:
+                progress = int(float(self.current) / float(self.total) * 100.0)
+            except ZeroDivisionError:
+                progress = 0
+            self.dialog.update(progress,
+                               self.section_name,
+                               '%s/%s: %s'
+                               % (self.current, self.total, self.title))
 
     def run(self):
         """
         Do the work
         """
         LOG.debug('Processing thread started')
-        self.dialog = xbmcgui.DialogProgressBG()
-        self.dialog.create(utils.lang(39714))
+        if self.show_dialog:
+            self.dialog = xbmcgui.DialogProgressBG()
+            self.dialog.create(utils.lang(39714))
         try:
             # Init with the very first library section. This will block!
             section = self.queue.get()
@@ -91,13 +95,15 @@ class ProcessMetadata(backgroundthread.KillableThread, common.libsync_mixin):
                                                children=xml.children)
                         except:
                             utils.ERROR(txt='process_metadata crashed',
-                                        notify=True)
+                                        notify=True,
+                                        cancel_sync=True)
                         if self.current % 20 == 0:
                             self.title = utils.cast(unicode,
                                                     xml[0].get('title'))
-                            self.update_dialog()
+                            self.update()
                         self.current += 1
                         self.queue.task_done()
         finally:
-            self.dialog.close()
+            if self.dialog:
+                self.dialog.close()
             LOG.debug('Processing thread terminated')

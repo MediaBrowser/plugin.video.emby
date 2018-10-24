@@ -1036,10 +1036,6 @@ msgctxt "#39201"
 msgid "Settings"
 msgstr ""
 
-msgctxt "#39203"
-msgid "Refresh Plex playlists/nodes"
-msgstr ""
-
 msgctxt "#39204"
 msgid "Perform manual library sync"
 msgstr ""

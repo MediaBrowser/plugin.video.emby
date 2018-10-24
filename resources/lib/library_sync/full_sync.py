@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
-import time
 
 from .get_metadata import GetMetadataTask
 from . import common, process_metadata, sections
@@ -24,12 +23,13 @@ LOG = getLogger('PLEX.library_sync.full_sync')
 
 
 class FullSync(backgroundthread.KillableThread, common.libsync_mixin):
-    def __init__(self, repair, callback):
+    def __init__(self, repair, callback, show_dialog):
         """
         repair=True: force sync EVERY item
         """
         self.repair = repair
         self.callback = callback
+        self.show_dialog = show_dialog
         self.queue = None
         self.process_thread = None
         self.last_sync = None
@@ -141,14 +141,18 @@ class FullSync(backgroundthread.KillableThread, common.libsync_mixin):
         if self.isCanceled():
             return
         successful = False
-        self.last_sync = time.time()
+        self.last_sync = utils.unix_timestamp()
+        # Delete playlist and video node files from Kodi
+        utils.delete_playlists()
+        utils.delete_nodes()
+        # Get latest Plex libraries and build playlist and video node files
         if not sections.sync_from_pms():
             return
         try:
             # Fire up our single processing thread
             self.queue = backgroundthread.Queue.Queue(maxsize=200)
             self.processing_thread = process_metadata.ProcessMetadata(
-                self.queue, self.last_sync)
+                self.queue, self.last_sync, self.show_dialog)
             self.processing_thread.start()
 
             # Actual syncing - do only new items first
@@ -180,12 +184,13 @@ class FullSync(backgroundthread.KillableThread, common.libsync_mixin):
             # This will block until the processing thread exits
             LOG.debug('Waiting for processing thread to exit')
             self.processing_thread.join()
-            self.callback(successful)
+            if self.callback:
+                self.callback(successful)
             LOG.info('Done full_sync')
 
 
-def start(repair, callback):
+def start(show_dialog, repair=False, callback=None):
     """
     """
     # backgroundthread.BGThreader.addTask(FullSync().setup(repair, callback))
-    FullSync(repair, callback).start()
+    FullSync(repair, callback, show_dialog).start()

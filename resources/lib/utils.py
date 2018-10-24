@@ -233,10 +233,12 @@ def dialog(typus, *args, **kwargs):
     return types[typus](*args, **kwargs)
 
 
-def ERROR(txt='', hide_tb=False, notify=False):
+def ERROR(txt='', hide_tb=False, notify=False, cancel_sync=False):
     import sys
     short = str(sys.exc_info()[1])
     LOG.error('Error encountered: %s - %s', txt, short)
+    if cancel_sync:
+        state.STOP_SYNC = True
     if hide_tb:
         return short
 

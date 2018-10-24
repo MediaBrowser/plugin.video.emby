@@ -123,10 +123,6 @@ class Main():
         elif mode == 'chooseServer':
             entrypoint.choose_pms_server()
 
-        elif mode == 'refreshplaylist':
-            log.info('Requesting playlist/nodes refresh')
-            utils.plex_command('RUN_LIB_SCAN', 'views')
-
         elif mode == 'deviceid':
             self.deviceid()
 
