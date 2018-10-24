@@ -8,6 +8,7 @@ import heapq
 import xbmc
 
 from . import utils
+from Queue import Empty
 
 LOG = getLogger('PLEX.' + __name__)
 

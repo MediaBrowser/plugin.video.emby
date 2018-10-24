@@ -6,7 +6,6 @@ import xbmc
 from ..plex_api import API
 from ..plex_db import PlexDB
 from .. import backgroundthread
-from ..backgroundthread.Queue import Empty
 from .. import utils, kodidb_functions as kodidb
 from .. import itemtypes, artwork, plex_functions as PF, variables as v, state
 
@@ -82,7 +81,7 @@ class ThreadedProcessFanart(backgroundthread.KillableThread):
             # grabs Plex item from queue
             try:
                 item = self.queue.get(block=False)
-            except Empty:
+            except backgroundthread.Empty:
                 xbmc.sleep(1000)
                 continue
             self.queue.task_done()
