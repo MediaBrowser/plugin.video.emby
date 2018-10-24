@@ -485,12 +485,11 @@ class API(object):
         return cast(unicode, self.item.get('title', 'Missing Title Name'))
 
     def sorttitle(self):
-                """
+        """
         Returns an item's sorting name/title or the title itself if not found
         "Missing Title" if both are not present
         """
-        return cast(unicode, self.item.get('titleSort',
-                                           self.item.get('title','Missing Title')))
+        return cast(unicode, self.item.get('titleSort', self.item.get('title', 'Missing Title')))
 
     def artist_name(self):
         """
