@@ -231,8 +231,8 @@ def initialize():
                     plex_id INTEGER PRIMARY KEY,
                     checksum INTEGER UNIQUE,
                     section_id INTEGER,
-                    show_id INTEGER,  # plex_id of the parent show
-                    parent_id INTEGER,  # kodi_id of the parent show
+                    show_id INTEGER,
+                    parent_id INTEGER,
                     kodi_id INTEGER,
                     fanart_synced INTEGER,
                     last_sync INTEGER)
@@ -242,10 +242,10 @@ def initialize():
                     plex_id INTEGER PRIMARY KEY,
                     checksum INTEGER UNIQUE,
                     section_id INTEGER,
-                    show_id INTEGER,  # plex_id of the parent show
-                    grandparent_id INTEGER,  # kodi_id of the parent show
-                    season_id INTEGER,  # plex_id of the parent season
-                    parent_id INTEGER,  # kodi_id of the parent season
+                    show_id INTEGER,
+                    grandparent_id INTEGER,
+                    season_id INTEGER,
+                    parent_id INTEGER,
                     kodi_id INTEGER,
                     kodi_fileid INTEGER,
                     kodi_pathid INTEGER,
@@ -265,8 +265,8 @@ def initialize():
                     plex_id INTEGER PRIMARY KEY,
                     checksum INTEGER UNIQUE,
                     section_id INTEGER,
-                    artist_id INTEGER,  # plex_id of the parent artist
-                    parent_id INTEGER,  # kodi_id of the parent artist
+                    artist_id INTEGER,
+                    parent_id INTEGER,
                     kodi_id INTEGER,
                     last_sync INTEGER)
             ''')
@@ -275,10 +275,10 @@ def initialize():
                     plex_id INTEGER PRIMARY KEY,
                     checksum INTEGER UNIQUE,
                     section_id INTEGER,
-                    artist_id INTEGER,  # plex_id of the parent artist
-                    grandparent_id INTEGER,  # kodi_id of the parent artist
-                    album_id INTEGER,  # plex_id of the parent album
-                    parent_id INTEGER,  # kodi_id of the parent album
+                    artist_id INTEGER,
+                    grandparent_id INTEGER,
+                    album_id INTEGER,
+                    parent_id INTEGER,
                     kodi_id INTEGER,
                     kodi_pathid INTEGER,
                     last_sync INTEGER)
