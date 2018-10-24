@@ -998,7 +998,7 @@ def playlist_xsp(mediatype, tagname, viewid, viewtype="", delete=False):
 
     # Using write process since there's no guarantee the xml declaration works
     # with etree
-    itemtypes = {
+    kinds = {
         'homevideos': 'movies',
         'movie': 'movies',
         'show': 'tvshows'
@@ -1014,7 +1014,7 @@ def playlist_xsp(mediatype, tagname, viewid, viewtype="", delete=False):
                     '<value>%s</value>\n\t'
                 '</rule>\n'
             '</smartplaylist>\n'
-            % (itemtypes.get(mediatype, mediatype), plname, tagname)))
+            % (kinds.get(mediatype, mediatype), plname, tagname)))
     LOG.info("Successfully added playlist: %s", tagname)
 
 

@@ -10,14 +10,11 @@ from . import plexdb_functions as plexdb
 from . import kodidb_functions as kodidb
 from .plex_api import API
 from . import variables as v
-###############################################################################
 
 LOG = getLogger('PLEX.itemtypes.common')
 
 # Note: always use same order of URL arguments, NOT urlencode:
 #   plex_id=<plex_id>&plex_type=<plex_type>&mode=play
-
-###############################################################################
 
 
 def process_path(playurl):
