@@ -9,8 +9,8 @@ import urllib
 from urlparse import parse_qsl, urlsplit
 
 from .plex_api import API
+from .plex_db import PlexDB
 from . import plex_functions as PF
-from . import plexdb_functions as plexdb
 from . import kodidb_functions as kodidb
 from .downloadutils import DownloadUtils as DU
 from . import utils
@@ -254,15 +254,12 @@ def playlist_item_from_kodi(kodi_item):
     item.kodi_id = kodi_item.get('id')
     item.kodi_type = kodi_item.get('type')
     if item.kodi_id:
-        with plexdb.Get_Plex_DB() as plex_db:
-            plex_dbitem = plex_db.getItem_byKodiId(kodi_item['id'],
-                                                   kodi_item['type'])
-        try:
-            item.plex_id = plex_dbitem[0]
-            item.plex_type = plex_dbitem[2]
-            item.plex_uuid = plex_dbitem[0]     # we dont need the uuid yet :-)
-        except TypeError:
-            pass
+        with PlexDB() as plexdb:
+            db_item = plexdb.item_by_kodi_id(kodi_item['id'], kodi_item['type'])
+        if db_item:
+            item.plex_id = db_item['plex_id']
+            item.plex_type = db_item['plex_type']
+            item.plex_uuid = db_item['plex_id']  # we dont need the uuid yet :-)
     item.file = kodi_item.get('file')
     if item.plex_id is None and item.file is not None:
         query = dict(parse_qsl(urlsplit(item.file).query))
@@ -334,13 +331,13 @@ def playlist_item_from_plex(plex_id):
     """
     item = Playlist_Item()
     item.plex_id = plex_id
-    with plexdb.Get_Plex_DB() as plex_db:
-        plex_dbitem = plex_db.getItem_byId(plex_id)
-    try:
-        item.plex_type = plex_dbitem[5]
-        item.kodi_id = plex_dbitem[0]
-        item.kodi_type = plex_dbitem[4]
-    except (TypeError, IndexError):
+    with PlexDB() as plexdb:
+        db_item = plexdb.item_by_id(plex_id)
+    if db_item:
+        item.plex_type = db_item['plex_type']
+        item.kodi_id = db_item['kodi_id']
+        item.kodi_type = db_item['kodi_type']
+    else:
         raise KeyError('Could not find plex_id %s in database' % plex_id)
     item.plex_uuid = plex_id
     item.uri = ('library://%s/item/library%%2Fmetadata%%2F%s' %
@@ -366,12 +363,11 @@ def playlist_item_from_xml(xml_video_element, kodi_id=None, kodi_type=None):
         item.kodi_id = kodi_id
         item.kodi_type = kodi_type
     elif item.plex_id is not None and item.plex_type != v.PLEX_TYPE_CLIP:
-        with plexdb.Get_Plex_DB() as plex_db:
-            db_element = plex_db.getItem_byId(item.plex_id)
-        try:
-            item.kodi_id, item.kodi_type = db_element[0], db_element[4]
-        except TypeError:
-            pass
+        with PlexDB() as plexdb:
+            db_element = plexdb.item_by_id(item.plex_id)
+        if db_element:
+            item.kodi_id = db_element['kodi_id']
+            item.kodi_type = db_element['kodi_type']
     item.guid = api.guid_html_escaped()
     item.playcount = api.viewcount()
     item.offset = api.resume_point()

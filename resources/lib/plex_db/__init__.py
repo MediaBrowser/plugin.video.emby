@@ -6,7 +6,8 @@ from .common import PlexDBBase, initialize, wipe
 from .tvshows import TVShows
 from .movies import Movies
 from .music import Music
+from .playlists import Playlists
 
 
-class PlexDB(PlexDBBase, TVShows, Movies, Music):
+class PlexDB(PlexDBBase, TVShows, Movies, Music, Playlists):
     pass

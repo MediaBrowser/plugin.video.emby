@@ -27,7 +27,7 @@ class Movie(ItemBase):
         if not plex_id:
             LOG.error('Cannot parse XML data for movie: %s', xml.attrib)
             return
-        movie = self.plex_db.getItem_byId(plex_id)
+        movie = self.plexdb.getItem_byId(plex_id)
         try:
             kodi_id = movie[0]
             old_kodi_fileid = movie[1]
@@ -204,20 +204,20 @@ class Movie(ItemBase):
                                 playcount,
                                 dateplayed,
                                 v.PLEX_TYPE_MOVIE)
-        self.plex_db.add_movie(plex_id=plex_id,
-                               checksum=api.checksum(),
-                               section_id=section_id,
-                               kodi_id=kodi_id,
-                               kodi_fileid=file_id,
-                               kodi_pathid=kodi_pathid,
-                               last_sync=self.last_sync)
+        self.plexdb.add_movie(plex_id=plex_id,
+                              checksum=api.checksum(),
+                              section_id=section_id,
+                              kodi_id=kodi_id,
+                              kodi_fileid=file_id,
+                              kodi_pathid=kodi_pathid,
+                              last_sync=self.last_sync)
 
         def remove(self, plex_id):
             """
             Remove a movie with all references and all orphaned associated entries
             from the Kodi DB
             """
-            movie = self.plex_db.movie(plex_id)
+            movie = self.plexdb.movie(plex_id)
             try:
                 kodi_id = movie[3]
                 file_id = movie[4]
@@ -229,7 +229,7 @@ class Movie(ItemBase):
                           plex_id)
                 return
             # Remove the plex reference
-            self.plex_db.remove(plex_id, v.PLEX_TYPE_MOVIE)
+            self.plexdb.remove(plex_id, v.PLEX_TYPE_MOVIE)
             # Remove artwork
             self.artwork.delete_artwork(kodi_id, kodi_type, self.self.kodicursor)
             set_id = self.kodi_db.get_set_id(kodi_id)

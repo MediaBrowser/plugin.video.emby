@@ -5,14 +5,10 @@ from logging import getLogger
 import xbmc
 import xbmcgui
 
-from . import context
-from . import plexdb_functions as plexdb
-from . import utils
-from . import plex_functions as PF
 from .plex_api import API
-from . import playqueue as PQ
-from . import variables as v
-from . import state
+from .plex_db import PlexDB
+from . import context, plex_functions as PF, playqueue as PQ
+from . import utils, variables as v, state
 
 ###############################################################################
 
@@ -74,12 +70,10 @@ class ContextMenu(object):
     def _get_plex_id(kodi_id, kodi_type):
         plex_id = xbmc.getInfoLabel('ListItem.Property(plexid)') or None
         if not plex_id and kodi_id and kodi_type:
-            with plexdb.Get_Plex_DB() as plexcursor:
-                item = plexcursor.getItem_byKodiId(kodi_id, kodi_type)
-            try:
-                plex_id = item[0]
-            except TypeError:
-                LOG.info('Could not get the Plex id for context menu')
+            with PlexDB() as plexdb:
+                item = plexdb.item_by_kodi_id(kodi_id, kodi_type)
+            if item:
+                plex_id = item['plex_id']
         return plex_id
 
     def _select_menu(self):

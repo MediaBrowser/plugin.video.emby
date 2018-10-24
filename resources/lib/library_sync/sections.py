@@ -6,7 +6,8 @@ import copy
 
 from . import common, videonodes
 from ..utils import cast
-from .. import plexdb_functions as plexdb, kodidb_functions as kodidb
+from ..plex_db import PlexDB
+from .. import kodidb_functions as kodidb
 from .. import itemtypes
 from .. import PlexFunctions as PF, music, utils, state, variables as v
 
@@ -54,15 +55,15 @@ def sync_from_pms():
 
     VNODES.clearProperties()
 
-    with plexdb.PlexDB() as plex_db:
+    with PlexDB() as plexdb:
         # Backup old sections to delete them later, if needed (at the end
         # of this method, only unused sections will be left in old_sections)
-        old_sections = [plex_db.section_ids()]
+        old_sections = [plexdb.section_ids()]
         with kodidb.GetKodiDB('video') as kodi_db:
             for section in sections:
                 _process_section(section,
                                  kodi_db,
-                                 plex_db,
+                                 plexdb,
                                  sorted_sections,
                                  old_sections,
                                  totalnodes)
@@ -71,14 +72,14 @@ def sync_from_pms():
         # Section has been deleted on the PMS
         delete_sections(old_sections)
     # update sections for all:
-    with plexdb.PlexDB() as plex_db:
-        SECTIONS = [plex_db.section_infos()]
+    with plexdb.PlexDB() as plexdb:
+        SECTIONS = [plexdb.section_infos()]
     utils.window('Plex.nodes.total', str(totalnodes))
     LOG.info("Finished processing library sections: %s", SECTIONS)
     return True
 
 
-def _process_section(section_xml, kodi_db, plex_db, sorted_sections,
+def _process_section(section_xml, kodi_db, plexdb, sorted_sections,
                      old_sections, totalnodes):
     folder = section_xml.attrib
     plex_type = cast(unicode, folder['type'])
@@ -95,7 +96,7 @@ def _process_section(section_xml, kodi_db, plex_db, sorted_sections,
     # Prevent duplicate for playlists of the same type
     playlists = PLAYLISTS[plex_type]
     # Get current media folders from plex database
-    section = plex_db.section(section_id)
+    section = plexdb.section(section_id)
     try:
         current_sectionname = section[1]
         current_sectiontype = section[2]
@@ -118,7 +119,7 @@ def _process_section(section_xml, kodi_db, plex_db, sorted_sections,
             nodes.append(section_name)
             totalnodes += 1
         # Add view to plex database
-        plex_db.add_section(section_id, section_name, plex_type, tagid)
+        plexdb.add_section(section_id, section_name, plex_type, tagid)
     else:
         LOG.info('Found library section id %s, name %s, type %s, tagid %s',
                  section_id, current_sectionname, current_sectiontype,
@@ -137,12 +138,12 @@ def _process_section(section_xml, kodi_db, plex_db, sorted_sections,
             tagid = kodi_db.create_tag(section_name)
 
             # Update view with new info
-            plex_db.add_section(section_id,
+            plexdb.add_section(section_id,
                                 section_name,
                                 plex_type,
                                 tagid)
 
-            if plex_db.section_id_by_name(current_sectionname) is None:
+            if plexdb.section_id_by_name(current_sectionname) is None:
                 # The tag could be a combined view. Ensure there's
                 # no other tags with the same name before deleting
                 # playlist.
@@ -176,7 +177,7 @@ def _process_section(section_xml, kodi_db, plex_db, sorted_sections,
                 nodes.append(section_name)
                 totalnodes += 1
             # Update items with new tag
-            for item in plex_db.kodi_id_by_section(section_id):
+            for item in plexdb.kodi_id_by_section(section_id):
                 # Remove the "s" from viewtype for tags
                 kodi_db.update_tag(
                     current_tagid, tagid, item[0], current_sectiontype[:-1])
@@ -212,30 +213,30 @@ def delete_sections(old_sections):
                  sound=False)
     video_library_update = False
     music_library_update = False
-    with plexdb.PlexDB() as plex_db:
-        old_sections = [plex_db.section(x) for x in old_sections]
+    with PlexDB() as plexdb:
+        old_sections = [plexdb.section(x) for x in old_sections]
         LOG.info("Removing entire Plex library sections: %s", old_sections)
         with kodidb.GetKodiDB() as kodi_db:
             for section in old_sections:
                 if section[2] == v.KODI_TYPE_MOVIE:
                     video_library_update = True
-                    context = itemtypes.Movie(plex_db=plex_db,
+                    context = itemtypes.Movie(plexdb=plexdb,
                                               kodi_db=kodi_db)
                 elif section[2] == v.KODI_TYPE_SHOW:
                     video_library_update = True
-                    context = itemtypes.Show(plex_db=plex_db,
+                    context = itemtypes.Show(plexdb=plexdb,
                                              kodi_db=kodi_db)
                 elif section[2] == v.KODI_TYPE_ARTIST:
                     music_library_update = True
-                    context = itemtypes.Artist(plex_db=plex_db,
+                    context = itemtypes.Artist(plexdb=plexdb,
                                                kodi_db=kodi_db)
                 elif section[2] == v.KODI_TYPE_PHOTO:
                     # not synced
-                    plex_db.remove_section(section[0])
+                    plexdb.remove_section(section[0])
                     continue
-                for plex_id in plex_db.plexid_by_section(section[0]):
+                for plex_id in plexdb.plexid_by_section(section[0]):
                     context.remove(plex_id)
                 # Only remove Plex entry if we've removed all items first
-                plex_db.remove_section(section[0])
+                plexdb.remove_section(section[0])
     common.update_kodi_library(video=video_library_update,
                                music=music_library_update)

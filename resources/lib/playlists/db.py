@@ -8,9 +8,8 @@ from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
 
 from .common import Playlist, PlaylistError
-
+from ..plex_db import PlexDB
 from .. import kodidb_functions as kodidb
-from .. import plexdb_functions as plexdb
 from .. import path_ops, utils, variables as v
 ###############################################################################
 LOG = getLogger('PLEX.playlists.db')
@@ -22,16 +21,16 @@ def plex_playlist_ids():
     """
     Returns a list of all Plex ids of the playlists already in our DB
     """
-    with plexdb.Get_Plex_DB() as plex_db:
-        return plex_db.plex_ids_all_playlists()
+    with PlexDB() as plexdb:
+        return [plexdb.playlist_ids()]
 
 
 def kodi_playlist_paths():
     """
     Returns a list of all Kodi playlist paths of the playlists already synced
     """
-    with plexdb.Get_Plex_DB() as plex_db:
-        return plex_db.all_kodi_playlist_paths()
+    with PlexDB() as plexdb:
+        return [plexdb.kodi_playlist_paths()]
 
 
 def update_playlist(playlist, delete=False):
@@ -41,11 +40,11 @@ def update_playlist(playlist, delete=False):
 
     Pass delete=True to delete the playlist entry
     """
-    with plexdb.Get_Plex_DB() as plex_db:
+    with PlexDB() as plexdb:
         if delete:
-            plex_db.delete_playlist_entry(playlist)
+            plexdb.delete_playlist(playlist)
         else:
-            plex_db.insert_playlist_entry(playlist)
+            plexdb.add_playlist(playlist)
 
 
 def get_playlist(path=None, kodi_hash=None, plex_id=None):
@@ -55,10 +54,8 @@ def get_playlist(path=None, kodi_hash=None, plex_id=None):
     content.
     """
     playlist = Playlist()
-    with plexdb.Get_Plex_DB() as plex_db:
-        playlist = plex_db.retrieve_playlist(playlist,
-                                             plex_id,
-                                             path, kodi_hash)
+    with PlexDB() as plexdb:
+        playlist = plexdb.playlist(playlist, plex_id, path, kodi_hash)
     return playlist
 
 
@@ -95,8 +92,8 @@ def m3u_to_plex_ids(playlist):
                 entry, db_type=playlist.kodi_type)
             if not kodi_id:
                 continue
-            with plexdb.Get_Plex_DB() as plex_db:
-                plex_id = plex_db.getItem_byKodiId(kodi_id, kodi_type)
+            with PlexDB() as plexdb:
+                plex_id = plexdb.item_by_kodi_id(kodi_id, kodi_type)
             if plex_id:
                 plex_ids.append(plex_id[0])
     return plex_ids

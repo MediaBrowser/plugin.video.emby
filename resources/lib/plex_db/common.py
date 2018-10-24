@@ -4,6 +4,15 @@ from __future__ import absolute_import, division, unicode_literals
 
 from . import utils, variables as v
 
+SUPPORTED_KODI_TYPES = (
+    v.KODI_TYPE_MOVIE,
+    v.KODI_TYPE_SHOW,
+    v.KODI_TYPE_SEASON,
+    v.KODI_TYPE_EPISODE,
+    v.KODI_TYPE_ARTIST,
+    v.KODI_TYPE_ALBUM,
+    v.KODI_TYPE_SONG)
+
 
 class PlexDBBase(object):
     """
@@ -24,14 +33,8 @@ class PlexDBBase(object):
 
     def item_by_id(self, plex_id, plex_type=None):
         """
-        Returns the following dict or None if not found
-        {
-            plex_id
-            plex_type
-            kodi_id
-            kodi_type
-        }
-        for plex_id. Supply with the correct plex_type to speed up lookup
+        Returns the item for plex_id or None.
+        Supply with the correct plex_type to speed up lookup
         """
         answ = None
         if plex_type == v.PLEX_TYPE_MOVIE:
@@ -63,6 +66,17 @@ class PlexDBBase(object):
                     answ = method(entry)
                     break
         return answ
+
+    def item_by_kodi_id(self, kodi_id, kodi_type):
+        """
+        """
+        if kodi_type not in SUPPORTED_KODI_TYPES:
+            return
+        query = ('SELECT * from %s WHERE kodi_id = ? LIMIT 1'
+                 % v.PLEX_TYPE_FROM_KODI_TYPE[kodi_type])
+        self.cursor.execute(query, (kodi_id, ))
+        method = getattr(self, 'entry_to_%s' % v.PLEX_TYPE_FROM_KODI_TYPE[kodi_type])
+        return method(self.cursor.fetchone())
 
     def section_ids(self):
         """

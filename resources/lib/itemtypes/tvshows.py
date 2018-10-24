@@ -16,7 +16,7 @@ class TvShowMixin(object):
         Remove the entire TV shows object (show, season or episode) including
         all associated entries from the Kodi DB.
         """
-        db_item = self.plex_db.item_by_id(plex_id, plex_type)
+        db_item = self.plexdb.item_by_id(plex_id, plex_type)
         if not db_item:
             LOG.debug('Cannot delete plex_id %s - not found in DB', plex_id)
             return
@@ -24,47 +24,47 @@ class TvShowMixin(object):
                   db_item['plex_type'], plex_id, db_item['kodi_id'])
 
         # Remove the plex reference
-        self.plex_db.remove(plex_id, db_item['plex_type'])
+        self.plexdb.remove(plex_id, db_item['plex_type'])
 
         # EPISODE #####
         if db_item['plex_type'] == v.PLEX_TYPE_EPISODE:
             # Delete episode, verify season and tvshow
             self.remove_episode(db_item['kodi_id'], db_item['kodi_fileid'])
             # Season verification
-            if not self.plex_db.season_has_episodes(db_item['season_id']):
+            if not self.plexdb.season_has_episodes(db_item['season_id']):
                 # No episode left for this season - so delete the season
                 self.remove_season(db_item['parent_id'])
-                self.plex_db.remove(db_item['season_id'], v.PLEX_TYPE_SEASON)
+                self.plexdb.remove(db_item['season_id'], v.PLEX_TYPE_SEASON)
             # Show verification
-            if (not self.plex_db.show_has_seasons(db_item['show_id']) and
-                    not self.plex_db.show_has_episodes(db_item['show_id'])):
+            if (not self.plexdb.show_has_seasons(db_item['show_id']) and
+                    not self.plexdb.show_has_episodes(db_item['show_id'])):
                 # No seasons for show left - so delete entire show
                 self.remove_show(db_item['grandparent_id'])
-                self.plex_db.remove(db_item['show_id'], v.PLEX_TYPE_SHOW)
+                self.plexdb.remove(db_item['show_id'], v.PLEX_TYPE_SHOW)
         # SEASON #####
         elif db_item['plex_type'] == v.PLEX_TYPE_SEASON:
             # Remove episodes, season, verify tvshow
-            for episode in self.plex_db.episode_by_season(db_item['plex_id']):
+            for episode in self.plexdb.episode_by_season(db_item['plex_id']):
                 self.remove_episode(episode['kodi_id'], episode['kodi_fileid'])
-                self.plex_db.remove(episode['plex_id'], v.PLEX_TYPE_EPISODE)
+                self.plexdb.remove(episode['plex_id'], v.PLEX_TYPE_EPISODE)
             # Remove season
             self.remove_season(db_item['kodi_id'])
             # Show verification
-            if (not self.plex_db.show_has_seasons(db_item['show_id']) and
-                    not self.plex_db.show_has_episodes(db_item['show_id'])):
+            if (not self.plexdb.show_has_seasons(db_item['show_id']) and
+                    not self.plexdb.show_has_episodes(db_item['show_id'])):
                 # There's no other season or episode left, delete the show
                 self.remove_show(db_item['parent_id'])
-                self.plex_db.remove(db_item['show_id'], v.KODI_TYPE_SHOW)
+                self.plexdb.remove(db_item['show_id'], v.KODI_TYPE_SHOW)
         # TVSHOW #####
         elif db_item['plex_type'] == v.PLEX_TYPE_SHOW:
             # Remove episodes, seasons and the tvshow itself
-            for episode in self.plex_db.episode_by_show(db_item['plex_id']):
+            for episode in self.plexdb.episode_by_show(db_item['plex_id']):
                 self.remove_episode(episode['kodi_id'],
                                     episode['kodi_fileid'])
-                self.plex_db.remove(episode['plex_id'], v.PLEX_TYPE_EPISODE)
-            for season in self.plex_db.season_by_show(db_item['plex_id']):
+                self.plexdb.remove(episode['plex_id'], v.PLEX_TYPE_EPISODE)
+            for season in self.plexdb.season_by_show(db_item['plex_id']):
                 self.remove_season(season['kodi_id'])
-                self.plex_db.remove(season['plex_id'], v.PLEX_TYPE_SEASON)
+                self.plexdb.remove(season['plex_id'], v.PLEX_TYPE_SEASON)
             self.remove_show(db_item['kodi_id'])
 
         LOG.debug('Deleted %s %s from all databases',
@@ -131,7 +131,7 @@ class Show(ItemBase, TvShowMixin):
         if not plex_id:
             LOG.error("Cannot parse XML data for TV show: %s", xml.attrib)
             return
-        show = self.plex_db.show(plex_id)
+        show = self.plexdb.show(plex_id)
         try:
             kodi_id = show[3]
             kodi_pathid = show[4]
@@ -266,12 +266,12 @@ class Show(ItemBase, TvShowMixin):
         tags = [section_name]
         tags.extend([i for _, i in api.collection_list()])
         self.kodi_db.modify_tags(kodi_id, v.KODI_TYPE_SHOW, tags)
-        self.plex_db.add_show(plex_id=plex_id,
-                              checksum=api.checksum(),
-                              section_id=section_id,
-                              kodi_id=kodi_id,
-                              kodi_pathid=kodi_pathid,
-                              last_sync=self.last_sync)
+        self.plexdb.add_show(plex_id=plex_id,
+                             checksum=api.checksum(),
+                             section_id=section_id,
+                             kodi_id=kodi_id,
+                             kodi_pathid=kodi_pathid,
+                             last_sync=self.last_sync)
 
 
 class Season(ItemBase, TvShowMixin):
@@ -288,7 +288,7 @@ class Season(ItemBase, TvShowMixin):
                       xml.attrib)
             return
         show_id = api.parent_plex_id()
-        show = self.plex_db.show(show_id)
+        show = self.plexdb.show(show_id)
         try:
             parent_id = show[3]
         except TypeError:
@@ -300,13 +300,13 @@ class Season(ItemBase, TvShowMixin):
                                     kodi_id,
                                     v.KODI_TYPE_SEASON,
                                     self.kodicursor)
-        self.plex_db.add_season(plex_id=plex_id,
-                                checksum=api.checksum(),
-                                section_id=section_id,
-                                show_id=show_id,
-                                parent_id=parent_id,
-                                kodi_id=kodi_id,
-                                last_sync=self.last_sync)
+        self.plexdb.add_season(plex_id=plex_id,
+                               checksum=api.checksum(),
+                               section_id=section_id,
+                               show_id=show_id,
+                               parent_id=parent_id,
+                               kodi_id=kodi_id,
+                               last_sync=self.last_sync)
 
 
 class Episode(ItemBase, TvShowMixin):
@@ -323,7 +323,7 @@ class Episode(ItemBase, TvShowMixin):
             LOG.error('Error getting plex_id for episode, skipping: %s',
                       xml.attrib)
             return
-        entry = self.plex_db.item_by_id(plex_id)
+        entry = self.plexdb.item_by_id(plex_id)
         try:
             kodi_id = entry[0]
             old_kodi_fileid = entry[1]
@@ -358,7 +358,7 @@ class Episode(ItemBase, TvShowMixin):
         airs_before_season = "-1"
         airs_before_episode = "-1"
 
-        show = self.plex_db.show(show_id)
+        show = self.plexdb.show(show_id)
         try:
             grandparent_id = show[3]
         except TypeError:
@@ -506,14 +506,14 @@ class Episode(ItemBase, TvShowMixin):
                                     userdata['PlayCount'],
                                     userdata['LastPlayedDate'],
                                     None)  # Do send None - 2nd entry
-            self.plex_db.add_episode(plex_id=plex_id,
-                                     checksum=api.checksum(),
-                                     section_id=section_id,
-                                     show_id=show_id,
-                                     grandparent_id=grandparent_id,
-                                     season_id=season_id,
-                                     parent_id=parent_id,
-                                     kodi_id=kodi_id,
-                                     kodi_fileid=kodi_fileid,
-                                     kodi_pathid=kodi_pathid,
-                                     last_sync=self.last_sync)
+            self.plexdb.add_episode(plex_id=plex_id,
+                                    checksum=api.checksum(),
+                                    section_id=section_id,
+                                    show_id=show_id,
+                                    grandparent_id=grandparent_id,
+                                    season_id=season_id,
+                                    parent_id=parent_id,
+                                    kodi_id=kodi_id,
+                                    kodi_fileid=kodi_fileid,
+                                    kodi_pathid=kodi_pathid,
+                                    last_sync=self.last_sync)

@@ -37,13 +37,13 @@ from urllib import urlencode, unquote, quote
 from urlparse import parse_qsl
 from xbmcgui import ListItem
 
+from .plex_db import PlexDB
 from .utils import cast
 from .downloadutils import DownloadUtils as DU
 from . import clientinfo
 from . import utils
 from . import path_ops
 from . import plex_functions as PF
-from . import plexdb_functions as plexdb
 from . import kodidb_functions as kodidb
 from . import variables as v
 from . import state
@@ -943,23 +943,19 @@ class API(object):
                     artworks[kodi_artwork] = art
             if not full_artwork:
                 return artworks
-            with plexdb.Get_Plex_DB() as plex_db:
-                try:
-                    season_id = plex_db.getItem_byId(self.plex_id())[3]
-                except TypeError:
+            with PlexDB() as plexdb:
+                db_item = plexdb.item_by_id(self.plex_id(),
+                                            v.PLEX_TYPE_EPISODE)
+                if db_item:
+                    season_id = db_item['parent_id']
+                    show_id = db_item['grandparent_id']
+                else:
                     return artworks
             # Grab artwork from the season
             with kodidb.GetKodiDB('video') as kodi_db:
                 season_art = kodi_db.get_art(season_id, v.KODI_TYPE_SEASON)
             for kodi_art in season_art:
                 artworks['season.%s' % kodi_art] = season_art[kodi_art]
-            # Get the show id
-            with plexdb.Get_Plex_DB() as plex_db:
-                try:
-                    show_id = plex_db.getItem_byKodiId(season_id,
-                                                       v.KODI_TYPE_SEASON)[1]
-                except TypeError:
-                    return artworks
             # Grab more artwork from the show
             with kodidb.GetKodiDB('video') as kodi_db:
                 show_art = kodi_db.get_art(show_id, v.KODI_TYPE_SHOW)
@@ -1651,11 +1647,10 @@ class API(object):
 
         plex_id = self.plex_id()
         listitem.setProperty('plexid', plex_id)
-        with plexdb.Get_Plex_DB() as plex_db:
-            kodi_id = plex_db.getItem_byId(plex_id)
-            if kodi_id:
-                kodi_id = kodi_id[0]
-                metadata['dbid'] = kodi_id
+        with PlexDB() as plexdb:
+            db_item = plexdb.item_by_id(plex_id, self.plex_type())
+        if db_item:
+            metadata['dbid'] = db_item['kodi_id']
         metadata['title'] = title
         # Expensive operation
         listitem.setInfo('video', infoLabels=metadata)
@@ -1716,11 +1711,10 @@ class API(object):
         plex_id = self.plex_id()
         listitem.setProperty('plexid', plex_id)
         if v.KODIVERSION >= 18:
-            with plexdb.Get_Plex_DB() as plex_db:
-                kodi_id = plex_db.getItem_byId(plex_id)
-                if kodi_id:
-                    kodi_id = kodi_id[0]
-                    metadata['dbid'] = kodi_id
+            with PlexDB() as plexdb:
+                db_item = plexdb.item_by_id(plex_id, self.plex_type())
+                if db_item:
+                    metadata['dbid'] = db_item['kodi_id']
         listitem.setInfo('music', infoLabels=metadata)
         return listitem
 

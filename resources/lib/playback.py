@@ -9,10 +9,10 @@ from threading import Thread
 from xbmc import Player, sleep
 
 from .plex_api import API
+from .plex_db import PlexDB
 from . import plex_functions as PF
 from . import utils
 from .downloadutils import DownloadUtils as DU
-from . import plexdb_functions as plexdb
 from . import kodidb_functions as kodidb
 from . import playlist_func as PL
 from . import playqueue as PQ
@@ -313,10 +313,10 @@ def _prep_playlist_stack(xml):
                 api.plex_type() not in (v.PLEX_TYPE_CLIP, v.PLEX_TYPE_EPISODE)):
             # If user chose to play via PMS or force transcode, do not
             # use the item path stored in the Kodi DB
-            with plexdb.Get_Plex_DB() as plex_db:
-                plex_dbitem = plex_db.getItem_byId(api.plex_id())
-            kodi_id = plex_dbitem[0] if plex_dbitem else None
-            kodi_type = plex_dbitem[4] if plex_dbitem else None
+            with PlexDB() as plexdb:
+                db_item = plexdb.item_by_id(api.plex_id(), api.plex_type())
+            kodi_id = db_item['kodi_id'] if db_item else None
+            kodi_type = db_item['kodi_type'] if db_item else None
         else:
             # We will never store clips (trailers) in the Kodi DB.
             # Also set kodi_id to None for playback via PMS, so that we're
@@ -425,9 +425,9 @@ def _conclude_playback(playqueue, pos):
         state.RESUME_PLAYBACK = False
         if (item.offset is None and
                 item.plex_type not in (v.PLEX_TYPE_SONG, v.PLEX_TYPE_CLIP)):
-            with plexdb.Get_Plex_DB() as plex_db:
-                plex_dbitem = plex_db.getItem_byId(item.plex_id)
-                file_id = plex_dbitem[1] if plex_dbitem else None
+            with PlexDB() as plexdb:
+                db_item = plexdb.item_by_id(item.plex_id, item.plex_type)
+            file_id = db_item['kodi_fileid'] if db_item else None
             with kodidb.GetKodiDB('video') as kodi_db:
                 item.offset = kodi_db.get_resume(file_id)
         LOG.info('Resuming playback at %s', item.offset)

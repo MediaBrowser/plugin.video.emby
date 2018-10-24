@@ -16,7 +16,7 @@ class MusicMixin(object):
         Remove the entire music object, including all associated entries from
         both Plex and Kodi DBs
         """
-        db_item = self.plex_db.item_by_id(plex_id, plex_type)
+        db_item = self.plexdb.item_by_id(plex_id, plex_type)
         if not db_item:
             LOG.debug('Cannot delete plex_id %s - not found in DB', plex_id)
             return
@@ -24,45 +24,45 @@ class MusicMixin(object):
                   db_item['plex_type'], plex_id, db_item['kodi_id'])
 
         # Remove the plex reference
-        self.plex_db.remove(plex_id, db_item['plex_type'])
+        self.plexdb.remove(plex_id, db_item['plex_type'])
 
         # SONG #####
         if db_item['plex_type'] == v.PLEX_TYPE_SONG:
             # Delete episode, verify season and tvshow
             self.remove_song(db_item['kodi_id'], db_item['kodi_pathid'])
             # Album verification
-            if not self.plex_db.album_has_songs(db_item['album_id']):
+            if not self.plexdb.album_has_songs(db_item['album_id']):
                 # No episode left for this season - so delete the season
                 self.remove_album(db_item['parent_id'])
-                self.plex_db.remove(db_item['album_id'], v.PLEX_TYPE_ALBUM)
+                self.plexdb.remove(db_item['album_id'], v.PLEX_TYPE_ALBUM)
             # Artist verification
-            if (not self.plex_db.artist_has_albums(db_item['artist_id']) and
-                    not self.plex_db.artist_has_songs(db_item['artist_id'])):
+            if (not self.plexdb.artist_has_albums(db_item['artist_id']) and
+                    not self.plexdb.artist_has_songs(db_item['artist_id'])):
                 self.remove_artist(db_item['grandparent_id'])
-                self.plex_db.remove(db_item['artist_id'], v.PLEX_TYPE_ARTIST)
+                self.plexdb.remove(db_item['artist_id'], v.PLEX_TYPE_ARTIST)
         # ALBUM #####
         elif db_item['plex_type'] == v.PLEX_TYPE_ALBUM:
             # Remove episodes, season, verify tvshow
-            for song in self.plex_db.song_by_album(db_item['plex_id']):
+            for song in self.plexdb.song_by_album(db_item['plex_id']):
                 self.remove_song(song['kodi_id'], song['kodi_pathid'])
-                self.plex_db.remove(song['plex_id'], v.PLEX_TYPE_SONG)
+                self.plexdb.remove(song['plex_id'], v.PLEX_TYPE_SONG)
             # Remove the album
             self.remove_album(db_item['kodi_id'])
             # Show verification
-            if (not self.plex_db.artist_has_albums(db_item['album_id']) and
-                    not self.plex_db.artist_has_songs(db_item['album_id'])):
+            if (not self.plexdb.artist_has_albums(db_item['album_id']) and
+                    not self.plexdb.artist_has_songs(db_item['album_id'])):
                 # There's no other season or episode left, delete the show
                 self.remove_artist(db_item['parent_id'])
-                self.plex_db.remove(db_item['artist_id'], v.KODI_TYPE_ARTIST)
+                self.plexdb.remove(db_item['artist_id'], v.KODI_TYPE_ARTIST)
         # ARTIST #####
         elif db_item['plex_type'] == v.PLEX_TYPE_ARTIST:
             # Remove songs, albums and the artist himself
-            for song in self.plex_db.song_by_artist(db_item['plex_id']):
+            for song in self.plexdb.song_by_artist(db_item['plex_id']):
                 self.remove_song(song['kodi_id'], song['kodi_pathid'])
-                self.plex_db.remove(song['plex_id'], v.PLEX_TYPE_SONG)
-            for album in self.plex_db.album_by_artist(db_item['plex_id']):
+                self.plexdb.remove(song['plex_id'], v.PLEX_TYPE_SONG)
+            for album in self.plexdb.album_by_artist(db_item['plex_id']):
                 self.remove_album(album['kodi_id'])
-                self.plex_db.remove(album['plex_id'], v.PLEX_TYPE_ALBUM)
+                self.plexdb.remove(album['plex_id'], v.PLEX_TYPE_ALBUM)
             self.remove_artist(db_item['kodi_id'])
 
         LOG.debug('Deleted %s %s from all databases',
@@ -141,7 +141,7 @@ class Artist(ItemBase, MusicMixin):
             LOG.error('Cannot process artist %s', xml.attrib)
             return
         LOG.debug('Adding artist with plex_id %s', plex_id)
-        db_item = self.plex_db.artist(plex_id)
+        db_item = self.plexdb.artist(plex_id)
         if not db_item:
             update_item = False
         else:
@@ -196,11 +196,11 @@ class Artist(ItemBase, MusicMixin):
                                     kodi_id,
                                     v.KODI_TYPE_ARTIST,
                                     self.kodicursor)
-        self.plex_db.add_artist(plex_id,
-                                api.checksum(),
-                                section_id,
-                                kodi_id,
-                                self.last_sync)
+        self.plexdb.add_artist(plex_id,
+                               api.checksum(),
+                               section_id,
+                               kodi_id,
+                               self.last_sync)
 
 
 class Album(ItemBase, MusicMixin):
@@ -218,7 +218,7 @@ class Album(ItemBase, MusicMixin):
             LOG.error('Error processing album: %s', xml.attrib)
             return
         LOG.debug('Adding album with plex_id %s', plex_id)
-        db_item = self.plex_db.album(plex_id)
+        db_item = self.plexdb.album(plex_id)
         if db_item:
             update_item = True
             kodi_id = db_item['kodi_id']
@@ -324,7 +324,7 @@ class Album(ItemBase, MusicMixin):
         artist_id = None
         if parent_id is not None:
             try:
-                artist_id = self.plex_db.getItem_byId(parent_id)[0]
+                artist_id = self.plexdb.getItem_byId(parent_id)[0]
             except TypeError:
                 LOG.info('Artist %s does not yet exist in Plex DB', parent_id)
                 artist = PF.GetPlexMetadata(parent_id)
@@ -334,13 +334,13 @@ class Album(ItemBase, MusicMixin):
                     LOG.error('Could not get artist xml for %s', parent_id)
                 else:
                     self.add_updateArtist(artist[0])
-                    plex_dbartist = self.plex_db.getItem_byId(parent_id)
+                    plexdbartist = self.plexdb.getItem_byId(parent_id)
                     try:
-                        artist_id = plex_dbartist[0]
+                        artist_id = plexdbartist[0]
                     except TypeError:
                         LOG.error('Adding artist failed for %s', parent_id)
         # Update plex reference with the artist_id
-        self.plex_db.updateParentId(plex_id, artist_id)
+        self.plexdb.updateParentId(plex_id, artist_id)
         # Add artist to album
         query = '''
             INSERT OR REPLACE INTO album_artist(
@@ -373,7 +373,7 @@ class Album(ItemBase, MusicMixin):
         # Add all children - all tracks
         if scan_children:
             context = Song(self.last_sync,
-                           plex_db=self.plex_db,
+                           plexdb=self.plexdb,
                            kodi_db=self.kodi_db)
             for song in children:
                 context.add_update(song,
@@ -383,13 +383,13 @@ class Album(ItemBase, MusicMixin):
                                    genres=genres,
                                    genre=genre,
                                    compilation=compilation)
-        self.plex_db.add_album(plex_id,
-                               api.checksum(),
-                               section_id,
-                               artist_id,
-                               parent_id,
-                               kodi_id,
-                               self.last_sync)
+        self.plexdb.add_album(plex_id,
+                              api.checksum(),
+                              section_id,
+                              artist_id,
+                              parent_id,
+                              kodi_id,
+                              self.last_sync)
 
 
 class Song(ItemBase, MusicMixin):
@@ -405,7 +405,7 @@ class Song(ItemBase, MusicMixin):
             LOG.error('Error processing song: %s', xml.attrib)
             return
         LOG.debug('Adding song with plex_id %s', plex_id)
-        db_item = self.plex_db.song(plex_id)
+        db_item = self.plexdb.song(plex_id)
         if db_item:
             update_item = True
             kodi_id = db_item['kodi_id']
@@ -564,7 +564,7 @@ class Song(ItemBase, MusicMixin):
             # Add path
             kodi_pathid = self.kodi_db.add_music_path(path, hash_string="123")
             # Get the album
-            album = self.plex_db.album(api.parent_plex_id())
+            album = self.plexdb.album(api.parent_plex_id())
             if album:
                 parent_id = album['kodi_id']
             else:
@@ -579,14 +579,14 @@ class Song(ItemBase, MusicMixin):
                         LOG.error('Could not download album %s,', album_id)
                         return
                     context = Album(self.last_sync,
-                                    plex_db=self.plex_db,
+                                    plexdb=self.plexdb,
                                     kodi_db=self.kodi_db)
                     context.add_update(album_xml[0],
                                        section_name=section_name,
                                        section_id=section_id,
                                        children=[xml],
                                        scan_children=False)
-                    album = self.plex_db.album(album_id)
+                    album = self.plexdb.album(album_id)
                 if album:
                     parent_id = album['kodi_id']
                     LOG.debug("Found parent_id for album: %s", parent_id)
@@ -708,7 +708,7 @@ class Song(ItemBase, MusicMixin):
         # Link song to artists
         artist_name = api.grandparent_title()
         artist_id = api.grandparent_id()
-        artist = self.plex_db.artist(artist_id)
+        artist = self.plexdb.artist(artist_id)
         if artist:
             grandparent_id = artist['kodi_id']
         else:
@@ -718,13 +718,13 @@ class Song(ItemBase, MusicMixin):
                 LOG.error('Error getting artist, abort')
                 return
             context = Artist(self.last_sync,
-                             plex_db=self.plex_db,
+                             plexdb=self.plexdb,
                              kodi_db=self.kodi_db)
             context.add_update(artist_xml[0],
                                section_name=section_name,
                                section_id=section_id,
                                children=None)
-            artist = self.plex_db.artist(artist_id)
+            artist = self.plexdb.artist(artist_id)
             if not artist:
                 LOG.error('Could not add artist %s for song %s',
                           artist_name, plex_id)
@@ -758,13 +758,13 @@ class Song(ItemBase, MusicMixin):
                                         v.KODI_TYPE_ALBUM,
                                         self.kodicursor)
         # Create the reference in plex table
-        self.plex_db.add_song(plex_id,
-                              api.checksum(),
-                              section_id,
-                              artist_id,
-                              grandparent_id,
-                              album_id,
-                              parent_id,
-                              kodi_id,
-                              kodi_pathid,
-                              self.last_sync)
+        self.plexdb.add_song(plex_id,
+                             api.checksum(),
+                             section_id,
+                             artist_id,
+                             grandparent_id,
+                             album_id,
+                             parent_id,
+                             kodi_id,
+                             kodi_pathid,
+                             self.last_sync)

@@ -11,7 +11,7 @@ import copy
 import xbmc
 from xbmcgui import Window
 
-from . import plexdb_functions as plexdb
+from .plex_db import PlexDB
 from . import kodidb_functions as kodidb
 from . import utils
 from . import plex_functions as PF
@@ -181,25 +181,23 @@ class KodiMonitor(xbmc.Monitor):
             if playcount is None or item is None:
                 return
             try:
-                kodiid = item['id']
-                item_type = item['type']
+                kodi_id = item['id']
+                kodi_type = item['type']
             except (KeyError, TypeError):
                 LOG.info("Item is invalid for playstate update.")
                 return
             # Send notification to the server.
-            with plexdb.Get_Plex_DB() as plexcur:
-                plex_dbitem = plexcur.getItem_byKodiId(kodiid, item_type)
-            try:
-                itemid = plex_dbitem[0]
-            except TypeError:
-                LOG.error("Could not find itemid in plex database for a "
+            with PlexDB() as plexdb:
+                db_item = plexdb.item_by_kodi_id(kodi_id, kodi_type)
+            if not db_item:
+                LOG.error("Could not find plex_id in plex database for a "
                           "video library update")
             else:
                 # notify the server
                 if playcount > 0:
-                    PF.scrobble(itemid, 'watched')
+                    PF.scrobble(db_item['plex_id'], 'watched')
                 else:
-                    PF.scrobble(itemid, 'unwatched')
+                    PF.scrobble(db_item['plex_id'], 'unwatched')
         elif method == "VideoLibrary.OnRemove":
             pass
         elif method == "System.OnSleep":
@@ -306,14 +304,11 @@ class KodiMonitor(xbmc.Monitor):
         if not kodi_id and kodi_type and path:
             kodi_id, _ = kodidb.kodiid_from_filename(path, kodi_type)
         if kodi_id:
-            with plexdb.Get_Plex_DB() as plex_db:
-                plex_dbitem = plex_db.getItem_byKodiId(kodi_id, kodi_type)
-            try:
-                plex_id = plex_dbitem[0]
-                plex_type = plex_dbitem[2]
-            except TypeError:
-                # No plex id, hence item not in the library. E.g. clips
-                pass
+            with PlexDB() as plexdb:
+                db_item = plexdb.item_by_kodi_id(kodi_id, kodi_type)
+            if db_item:
+                plex_id = db_item['plex_id']
+                plex_type = db_item['plex_type']
         return plex_id, plex_type
 
     @staticmethod
@@ -542,8 +537,8 @@ def _record_playstate(status, ended):
     if not status['plex_id']:
         LOG.debug('No Plex id found to record playstate for status %s', status)
         return
-    with plexdb.Get_Plex_DB() as plex_db:
-        kodi_db_item = plex_db.getItem_byId(status['plex_id'])
+    with PlexDB() as plexdb:
+        kodi_db_item = plexdb.item_by_id(status['plex_id'], status['plex_type'])
     if kodi_db_item is None:
         # Item not (yet) in Kodi library
         LOG.debug('No playstate update due to Plex id not found: %s', status)

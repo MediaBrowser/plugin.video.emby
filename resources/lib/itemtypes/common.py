@@ -4,12 +4,10 @@ from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
 from ntpath import dirname
 
-from . import artwork
-from . import utils
-from . import plexdb_functions as plexdb
-from . import kodidb_functions as kodidb
-from .plex_api import API
-from . import variables as v
+from ..plex_api import API
+from ..plex_db import PlexDB
+from .. import kodidb_functions as kodidb
+from .. import artwork, utils, variables as v
 
 LOG = getLogger('PLEX.itemtypes.common')
 
@@ -41,14 +39,14 @@ class ItemBase(object):
     Input:
         kodiType:       optional argument; e.g. 'video' or 'music'
     """
-    def __init__(self, last_sync, plex_db=None, kodi_db=None):
+    def __init__(self, last_sync, plexdb=None, kodi_db=None):
         self.last_sync = last_sync
         self.artwork = artwork.Artwork()
         self.plexconn = None
-        self.plexcursor = plex_db.cursor if plex_db else None
+        self.plexcursor = plexdb.cursor if plexdb else None
         self.kodiconn = None
         self.kodicursor = kodi_db.cursor if kodi_db else None
-        self.plex_db = plex_db
+        self.plexdb = plexdb
         self.kodi_db = kodi_db
 
     def __enter__(self):
@@ -59,7 +57,7 @@ class ItemBase(object):
         self.plexcursor = self.plexconn.cursor()
         self.kodiconn = utils.kodi_sql('video')
         self.kodicursor = self.kodiconn.cursor()
-        self.plex_db = plexdb.Plex_DB_Functions(self.plexcursor)
+        self.plexdb = PlexDB(self.plexcursor)
         self.kodi_db = kodidb.KodiDBMethods(self.kodicursor)
         return self
 
@@ -92,7 +90,7 @@ class ItemBase(object):
         for mediaitem in xml:
             api = API(mediaitem)
             # Get key and db entry on the Kodi db side
-            db_item = self.plex_db.getItem_byId(api.plex_id())
+            db_item = self.plexdb.getItem_byId(api.plex_id())
             try:
                 fileid = db_item[1]
             except TypeError:
