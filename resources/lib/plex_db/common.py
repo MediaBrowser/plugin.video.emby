@@ -196,7 +196,37 @@ def initialize():
         Run once upon PKC startup to verify that plex db exists.
         """
         with PlexDBBase() as plexdb:
+            init = False
             # Create the tables for the plex database
+            try:
+                plexdb.cursor.execute('SELECT * FROM version')
+                version = plexdb.cursor.fetchone()[0]
+            except (utils.OperationalError, TypeError):
+                init = True
+            else:
+                init = utils.compare_version(version, v.MIN_DB_VERSION)
+            if not init:
+                return
+            # Delete all tables
+            from logging import getLogger
+            LOG = getLogger('PLEX.plex_db')
+            LOG.warn('Need to reset the Plex database')
+            plexdb.cursor.execute('''
+                SELECT name FROM sqlite_master WHERE type = 'table'
+            ''')
+            tables = [x[0] for x in plexdb.cursor]
+            for table in tables:
+                query = 'DROP table IF EXISTS %s' % table
+                plexdb.cursor.execute(query)
+            # Set them up again
+            plexdb.cursor.execute('''
+                CREATE TABLE IF NOT EXISTS version(
+                    idVersion TEXT)
+            ''')
+            plexdb.cursor.execute('''
+                INSERT OR REPLACE INTO version(idVersion)
+                VALUES (?)
+            ''', (v.ADDON_VERSION, ))
             plexdb.cursor.execute('''
                 CREATE TABLE IF NOT EXISTS sections(
                     section_id INTEGER PRIMARY KEY,
