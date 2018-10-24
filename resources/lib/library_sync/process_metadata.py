@@ -38,6 +38,7 @@ class ProcessMetadata(backgroundthread.KillableThread, common.libsync_mixin):
                     itemtypes.Movies()
     """
     def __init__(self, queue, last_sync, show_dialog):
+        self._canceled = False
         self.queue = queue
         self.last_sync = last_sync
         self.show_dialog = show_dialog

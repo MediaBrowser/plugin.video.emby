@@ -27,6 +27,7 @@ class FullSync(backgroundthread.KillableThread, common.libsync_mixin):
         """
         repair=True: force sync EVERY item
         """
+        self._canceled = False
         self.repair = repair
         self.callback = callback
         self.show_dialog = show_dialog
