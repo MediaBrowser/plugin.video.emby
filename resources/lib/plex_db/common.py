@@ -2,12 +2,12 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, unicode_literals
 
-from . import utils
+from . import utils, variables as v
 
 
 class PlexDBBase(object):
     """
-    Methods used for all types of items
+    Plex database methods used for all types of items
     """
     def __init__(self, cursor=None):
         # Allows us to use this class with a cursor instead of context mgr
@@ -21,6 +21,111 @@ class PlexDBBase(object):
     def __exit__(self, e_typ, e_val, trcbak):
         self.plexconn.commit()
         self.plexconn.close()
+
+    def item_by_id(self, plex_id, plex_type=None):
+        """
+        Returns the following dict or None if not found
+        {
+            plex_id
+            plex_type
+            kodi_id
+            kodi_type
+        }
+        for plex_id. Supply with the correct plex_type to speed up lookup
+        """
+        answ = None
+        if plex_type == v.PLEX_TYPE_MOVIE:
+            entry = self.movie(plex_id)
+            if entry:
+                answ = self.entry_to_movie(entry)
+        elif plex_type == v.PLEX_TYPE_EPISODE:
+            entry = self.episode(plex_id)
+            if entry:
+                answ = self.entry_to_episode(entry)
+        elif plex_type == v.PLEX_TYPE_SHOW:
+            entry = self.show(plex_id)
+            if entry:
+                answ = self.entry_to_show(entry)
+        elif plex_type == v.PLEX_TYPE_SEASON:
+            entry = self.season(plex_id)
+            if entry:
+                answ = self.entry_to_season(entry)
+        else:
+            # SLOW - lookup plex_id in all our tables
+            for kind in (v.PLEX_TYPE_MOVIE,
+                         v.PLEX_TYPE_SHOW,
+                         v.PLEX_TYPE_EPISODE,
+                         v.PLEX_TYPE_SEASON):
+                method = getattr(self, kind)
+                entry = method(plex_id)
+                if entry:
+                    method = getattr(self, 'entry_to_%s' % kind)
+                    answ = method(entry)
+                    break
+        return answ
+
+    @staticmethod
+    def entry_to_movie(entry):
+        return {
+            'plex_type': v.PLEX_TYPE_MOVIE,
+            'kodi_type': v.KODI_TYPE_MOVIE,
+            'plex_id': entry[0],
+            'checksum': entry[1],
+            'section_id': entry[2],
+            'kodi_id': entry[3],
+            'kodi_fileid': entry[4],
+            'kodi_pathid': entry[5],
+            'fanart_synced': entry[6],
+            'last_sync': entry[7]
+        }
+
+    @staticmethod
+    def entry_to_episode(entry):
+        return {
+            'plex_type': v.PLEX_TYPE_EPISODE,
+            'kodi_type': v.KODI_TYPE_EPISODE,
+            'plex_id': entry[0],
+            'checksum': entry[1],
+            'section_id': entry[2],
+            'show_id': entry[3],
+            'grandparent_id': entry[4],
+            'season_id': entry[5],
+            'parent_id': entry[6],
+            'kodi_id': entry[7],
+            'kodi_fileid': entry[8],
+            'kodi_pathid': entry[9],
+            'fanart_synced': entry[10],
+            'last_sync': entry[11]
+        }
+
+    @staticmethod
+    def entry_to_show(entry):
+        return {
+            'plex_type': v.PLEX_TYPE_SHOW,
+            'kodi_type': v.KODI_TYPE_SHOW,
+            'plex_id': entry[0],
+            'checksum': entry[1],
+            'section_id': entry[2],
+            'kodi_id': entry[3],
+            'kodi_pathid': entry[4],
+            'fanart_synced': entry[5],
+            'last_sync': entry[6]
+        }
+
+    @staticmethod
+    def entry_to_season(entry):
+        return {
+            'plex_type': v.PLEX_TYPE_SEASON,
+            'kodi_type': v.KODI_TYPE_SEASON,
+            'plex_id': entry[0],
+            'checksum': entry[1],
+            'section_id': entry[2],
+            'show_id': entry[3],
+            'parent_id': entry[4],
+            'kodi_id': entry[5],
+            'fanart_synced': entry[6],
+            'last_sync': entry[7]
+        }
 
     def section_ids(self):
         """
@@ -118,14 +223,30 @@ class PlexDBBase(object):
         query = 'DELETE FROM ? WHERE plex_id = ?' % plex_type
         self.cursor.execute(query, (plex_id, ))
 
+    def fanart(self, plex_type):
+        """
+        Returns an iterator for plex_type for all plex_id, where fanart_synced
+        has not yet been set to 1
+        """
+        query = 'SELECT plex_id from %s WHERE fanart_synced = 0' % plex_type
+        self.cursor.execute(query)
+        return (x[0] for x in self.cursor)
+
+    def set_fanart_synced(self, plex_id, plex_type):
+        """
+        Toggles fanart_synced to 1 for plex_id
+        """
+        query = 'UPDATE %s SET fanart_synced = 1 WHERE plex_id = ?' % plex_type
+        self.cursor.execute(query, (plex_id, ))
+
 
 def initialize():
         """
-        Run once during startup to verify that plex db exists.
+        Run once upon PKC startup to verify that plex db exists.
         """
-        with PlexDBBase() as plex_db:
+        with PlexDBBase() as plexdb:
             # Create the tables for the plex database
-            plex_db.cursor.execute('''
+            plexdb.cursor.execute('''
                 CREATE TABLE IF NOT EXISTS sections(
                     section_id INTEGER PRIMARY KEY,
                     section_name TEXT,
@@ -133,9 +254,9 @@ def initialize():
                     kodi_tagid INTEGER,
                     sync_to_kodi INTEGER)
             ''')
-            plex_db.cursor.execute('''
+            plexdb.cursor.execute('''
                 CREATE TABLE IF NOT EXISTS movie(
-                    plex_id INTEGER PRIMARY KEY ASC,
+                    plex_id INTEGER PRIMARY KEY,
                     checksum INTEGER UNIQUE,
                     section_id INTEGER,
                     kodi_id INTEGER,
@@ -144,9 +265,9 @@ def initialize():
                     fanart_synced INTEGER,
                     last_sync INTEGER)
             ''')
-            plex_db.cursor.execute('''
+            plexdb.cursor.execute('''
                 CREATE TABLE IF NOT EXISTS show(
-                    plex_id INTEGER PRIMARY KEY ASC,
+                    plex_id INTEGER PRIMARY KEY,
                     checksum INTEGER UNIQUE,
                     section_id INTEGER,
                     kodi_id INTEGER,
@@ -154,7 +275,7 @@ def initialize():
                     fanart_synced INTEGER,
                     last_sync INTEGER)
             ''')
-            plex_db.cursor.execute('''
+            plexdb.cursor.execute('''
                 CREATE TABLE IF NOT EXISTS season(
                     plex_id INTEGER PRIMARY KEY,
                     checksum INTEGER UNIQUE,
@@ -165,7 +286,7 @@ def initialize():
                     fanart_synced INTEGER,
                     last_sync INTEGER)
             ''')
-            plex_db.cursor.execute('''
+            plexdb.cursor.execute('''
                 CREATE TABLE IF NOT EXISTS episode(
                     plex_id INTEGER PRIMARY KEY,
                     checksum INTEGER UNIQUE,
@@ -180,16 +301,16 @@ def initialize():
                     fanart_synced INTEGER,
                     last_sync INTEGER)
             ''')
-            plex_db.cursor.execute('''
+            plexdb.cursor.execute('''
                 CREATE TABLE IF NOT EXISTS artist(
-                    plex_id INTEGER PRIMARY KEY ASC,
+                    plex_id INTEGER PRIMARY KEY,
                     checksum INTEGER UNIQUE,
                     section_id INTEGER,
                     kodi_id INTEGER,
                     fanart_synced INTEGER,
                     last_sync INTEGER)
             ''')
-            plex_db.cursor.execute('''
+            plexdb.cursor.execute('''
                 CREATE TABLE IF NOT EXISTS album(
                     plex_id INTEGER PRIMARY KEY,
                     checksum INTEGER UNIQUE,
@@ -200,7 +321,7 @@ def initialize():
                     fanart_synced INTEGER,
                     last_sync INTEGER)
             ''')
-            plex_db.cursor.execute('''
+            plexdb.cursor.execute('''
                 CREATE TABLE IF NOT EXISTS track(
                     plex_id INTEGER PRIMARY KEY,
                     checksum INTEGER UNIQUE,
@@ -215,17 +336,15 @@ def initialize():
                     fanart_synced INTEGER,
                     last_sync INTEGER)
             ''')
-            plex_db.cursor.execute('''
+            plexdb.cursor.execute('''
                 CREATE TABLE IF NOT EXISTS playlists(
-                    plex_id INTEGER PRIMARY KEY ASC,
+                    plex_id INTEGER PRIMARY KEY,
                     plex_name TEXT,
                     plex_updatedat INTEGER,
                     kodi_path TEXT,
                     kodi_type TEXT,
                     kodi_hash TEXT)
             ''')
-        # Create an index for actors to speed up sync
-        utils.create_actor_db_index()
 
 
 def wipe():
@@ -233,10 +352,10 @@ def wipe():
     Completely resets the Plex database
     """
     query = "SELECT name FROM sqlite_master WHERE type = 'table'"
-    with PlexDBBase() as plex_db:
-        plex_db.cursor.execute(query)
-        tables = plex_db.cursor.fetchall()
+    with PlexDBBase() as plexdb:
+        plexdb.cursor.execute(query)
+        tables = plexdb.cursor.fetchall()
         tables = [i[0] for i in tables]
         for table in tables:
             delete_query = 'DELETE FROM %s' % table
-            plex_db.cursor.execute(delete_query)
+            plexdb.cursor.execute(delete_query)

@@ -38,6 +38,38 @@ class FullSync(backgroundthread.KillableThread, common.libsync_mixin):
         self.processing_thread = None
         super(FullSync, self).__init__()
 
+    def plex_update_watched(self, viewId, item_class, lastViewedAt=None,
+                            updatedAt=None):
+        """
+        YET to implement
+
+        Updates plex elements' view status ('watched' or 'unwatched') and
+        also updates resume times.
+        This is done by downloading one XML for ALL elements with viewId
+        """
+        if self.new_items_only is False:
+            # Only do this once for fullsync: the first run where new items are
+            # added to Kodi
+            return
+        xml = PF.GetAllPlexLeaves(viewId,
+                                  lastViewedAt=lastViewedAt,
+                                  updatedAt=updatedAt)
+        # Return if there are no items in PMS reply - it's faster
+        try:
+            xml[0].attrib
+        except (TypeError, AttributeError, IndexError):
+            LOG.error('Error updating watch status. Could not get viewId: '
+                      '%s of item_class %s with lastViewedAt: %s, updatedAt: '
+                      '%s', viewId, item_class, lastViewedAt, updatedAt)
+            return
+
+        if item_class in ('Movies', 'TVShows'):
+            self.update_kodi_video_library = True
+        elif item_class == 'Music':
+            self.update_kodi_music_library = True
+        with getattr(itemtypes, item_class)() as itemtype:
+            itemtype.updateUserdata(xml)
+
     def process_item(self, xml_item):
         """
         Processes a single library item
@@ -94,7 +126,8 @@ class FullSync(backgroundthread.KillableThread, common.libsync_mixin):
                     self.context,
                     utils.cast(int, iterator.get('totalSize', 0)),
                     utils.cast(unicode, iterator.get('librarySectionTitle')),
-                    section['id'])
+                    section['id'],
+                    utils.cast(unicode, section['viewGroup']))
                 self.queue.put(queue_info)
                 for xml_item in iterator:
                     if self.isCanceled():

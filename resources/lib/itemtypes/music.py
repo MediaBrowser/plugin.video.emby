@@ -7,68 +7,93 @@ from .common import ItemBase, process_path
 from ..plex_api import API
 from .. import state, variables as v
 
-LOG = getLogger('PLEX.tvshows')
+LOG = getLogger('PLEX.music')
 
 
-class TvShowMixin(object):
+class MusicMixin(object):
     def remove(self, plex_id, plex_type=None):
         """
         Remove the entire TV shows object (show, season or episode) including
         all associated entries from the Kodi DB.
         """
-        db_item = self.plex_db.item_by_id(plex_id, plex_type)
-        if not db_item:
+        if plex_type is None:
+            entry = self.plex_db.episode(plex_id)
+            kodi_type = v.KODI_TYPE_EPISODE
+            if not entry:
+                entry = self.plex_db.season(plex_id)
+                kodi_type = v.KODI_TYPE_SEASON
+                if not entry:
+                    entry = self.plex_db.show(plex_id)
+                    kodi_type = v.KODI_TYPE_SHOW
+        else:
+            pass
+        if not entry:
             LOG.debug('Cannot delete plex_id %s - not found in DB', plex_id)
             return
-        LOG.debug('Removing %s %s with kodi_id: %s',
-                  db_item['plex_type'], plex_id, db_item['kodi_id'])
+        kodi_id = entry[0]
+        file_id = entry[1]
+        parent_id = entry[3]
+        kodi_type = entry[4]
+        LOG.debug("Removing %s with kodi_id: %s file_id: %s parent_id: %s",
+                  kodi_type, kodi_id, file_id, parent_id)
 
         # Remove the plex reference
-        self.plex_db.remove(plex_id, db_item['plex_type'])
+        self.plex_db.removeItem(plex_id)
 
         # EPISODE #####
-        if db_item['plex_type'] == v.PLEX_TYPE_EPISODE:
+        if kodi_type == v.KODI_TYPE_EPISODE:
             # Delete episode, verify season and tvshow
-            self.remove_episode(db_item['kodi_id'], db_item['kodi_fileid'])
+            self.remove_episode(kodi_id, file_id)
             # Season verification
-            if not self.plex_db.season_has_episodes(db_item['season_id']):
-                # No episode left for this season - so delete the season
-                self.remove_season(db_item['parent_id'])
-                self.plex_db.remove(db_item['season_id'], v.PLEX_TYPE_SEASON)
-            # Show verification
-            if (not self.plex_db.show_has_seasons(db_item['show_id']) and
-                    not self.plex_db.show_has_episodes(db_item['show_id'])):
-                # No seasons for show left - so delete entire show
-                self.remove_show(db_item['grandparent_id'])
-                self.plex_db.remove(db_item['show_id'], v.PLEX_TYPE_SHOW)
+            season = self.plex_db.getItem_byKodiId(parent_id,
+                                                   v.KODI_TYPE_SEASON)
+            if season is not None:
+                if not self.plex_db.getItem_byParentId(parent_id,
+                                                       v.KODI_TYPE_EPISODE):
+                    # No episode left for season - so delete the season
+                    self.remove_season(parent_id)
+                    self.plex_db.removeItem(season[0])
+                show = self.plex_db.getItem_byKodiId(season[1],
+                                                     v.KODI_TYPE_SHOW)
+                if show is not None:
+                    if not self.plex_db.getItem_byParentId(season[1],
+                                                           v.KODI_TYPE_SEASON):
+                        # No seasons for show left - so delete entire show
+                        self.remove_show(season[1])
+                        self.plex_db.removeItem(show[0])
+                else:
+                    LOG.error('No show found in Plex DB for season %s', season)
+            else:
+                LOG.error('No season found in Plex DB!')
         # SEASON #####
-        elif db_item['plex_type'] == v.PLEX_TYPE_SEASON:
+        elif kodi_type == v.KODI_TYPE_SEASON:
             # Remove episodes, season, verify tvshow
-            for episode in self.plex_db.episode_by_season(db_item['plex_id']):
-                self.remove_episode(episode['kodi_id'], episode['kodi_fileid'])
-                self.plex_db.remove(episode['plex_id'], v.PLEX_TYPE_EPISODE)
+            for episode in self.plex_db.getItem_byParentId(
+                    kodi_id, v.KODI_TYPE_EPISODE):
+                self.remove_episode(episode[1], episode[2])
+                self.plex_db.removeItem(episode[0])
             # Remove season
-            self.remove_season(db_item['kodi_id'])
+            self.remove_season(kodi_id)
             # Show verification
-            if (not self.plex_db.show_has_seasons(db_item['show_id']) and
-                    not self.plex_db.show_has_episodes(db_item['show_id'])):
-                # There's no other season or episode left, delete the show
-                self.remove_show(db_item['parent_id'])
-                self.plex_db.remove(db_item['show_id'], v.KODI_TYPE_SHOW)
+            if not self.plex_db.getItem_byParentId(parent_id,
+                                                   v.KODI_TYPE_SEASON):
+                # There's no other season left, delete the show
+                self.remove_show(parent_id)
+                self.plex_db.removeItem_byKodiId(parent_id, v.KODI_TYPE_SHOW)
         # TVSHOW #####
-        elif db_item['plex_type'] == v.PLEX_TYPE_SHOW:
+        elif kodi_type == v.KODI_TYPE_SHOW:
             # Remove episodes, seasons and the tvshow itself
-            for episode in self.plex_db.episode_by_show(db_item['plex_id']):
-                self.remove_episode(episode['kodi_id'],
-                                    episode['kodi_fileid'])
-                self.plex_db.remove(episode['plex_id'], v.PLEX_TYPE_EPISODE)
-            for season in self.plex_db.season_by_show(db_item['plex_id']):
-                self.remove_season(season['kodi_id'])
-                self.plex_db.remove(season['plex_id'], v.PLEX_TYPE_SEASON)
-            self.remove_show(db_item['kodi_id'])
+            for season in self.plex_db.getItem_byParentId(kodi_id,
+                                                          v.KODI_TYPE_SEASON):
+                for episode in self.plex_db.getItem_byParentId(
+                        season[1], v.KODI_TYPE_EPISODE):
+                    self.remove_episode(episode[1], episode[2])
+                    self.plex_db.removeItem(episode[0])
+                self.remove_season(season[1])
+                self.plex_db.removeItem(season[0])
+            self.remove_show(kodi_id)
 
-        LOG.debug('Deleted %s %s from all databases',
-                  db_item['plex_type'], db_item['plex_id'])
+        LOG.debug("Deleted %s %s from Kodi database", kodi_type, plex_id)
 
     def remove_show(self, kodi_id):
         """
@@ -115,14 +140,14 @@ class TvShowMixin(object):
         LOG.debug("Removed episode: %s", kodi_id)
 
 
-class Show(ItemBase, TvShowMixin):
+class Artist(ItemBase, MusicMixin):
     """
-    For Plex library-type TV shows
+    For Plex library-type artists
     """
     def add_update(self, xml, section_name=None, section_id=None,
                    children=None):
         """
-        Process a single show
+        Process a single artist
         """
         api = API(xml)
         update_item = True
@@ -274,11 +299,11 @@ class Show(ItemBase, TvShowMixin):
                               last_sync=self.last_sync)
 
 
-class Season(ItemBase, TvShowMixin):
+class Album(ItemBase, MusicMixin):
     def add_update(self, xml, section_name=None, section_id=None,
                    children=None):
         """
-        Process a single season of a certain tv show
+        Process a single album
         """
         api = API(xml)
         plex_id = api.plex_id()
@@ -309,11 +334,11 @@ class Season(ItemBase, TvShowMixin):
                                 last_sync=self.last_sync)
 
 
-class Episode(ItemBase, TvShowMixin):
+class Song(ItemBase, MusicMixin):
     def add_update(self, xml, section_name=None, section_id=None,
                    children=None):
         """
-        Process single episode
+        Process single song/track
         """
         api = API(xml)
         update_item = True

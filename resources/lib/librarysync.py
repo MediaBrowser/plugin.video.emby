@@ -3,6 +3,7 @@
 from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
 from random import shuffle
+import Queue
 import xbmc
 
 from . import library_sync
@@ -39,8 +40,12 @@ class LibrarySync(backgroundthread.KillableThread):
         self.session_keys = {}
         self.sync_successful = False
         self.last_full_sync = 0
-        self.fanartqueue = Queue.Queue()
-        self.fanartthread = fanart.ThreadedProcessFanart(self.fanartqueue)
+        if utils.settings('FanartTV') == 'true':
+            self.fanartqueue = Queue.Queue()
+            self.fanartthread = library_sync.fanart.ThreadedProcessFanart(self.fanartqueue)
+        else:
+            self.fanartqueue = None
+            self.fanartthread = None
         # How long should we wait at least to process new/changed PMS items?
         # Show sync dialog even if user deactivated?
         self.force_dialog = False
@@ -91,36 +96,6 @@ class LibrarySync(backgroundthread.KillableThread):
                          heading='{plex}',
                          message=message,
                          icon='{error}')
-
-    def plex_update_watched(self, viewId, item_class, lastViewedAt=None,
-                            updatedAt=None):
-        """
-        Updates plex elements' view status ('watched' or 'unwatched') and
-        also updates resume times.
-        This is done by downloading one XML for ALL elements with viewId
-        """
-        if self.new_items_only is False:
-            # Only do this once for fullsync: the first run where new items are
-            # added to Kodi
-            return
-        xml = PF.GetAllPlexLeaves(viewId,
-                                  lastViewedAt=lastViewedAt,
-                                  updatedAt=updatedAt)
-        # Return if there are no items in PMS reply - it's faster
-        try:
-            xml[0].attrib
-        except (TypeError, AttributeError, IndexError):
-            LOG.error('Error updating watch status. Could not get viewId: '
-                      '%s of item_class %s with lastViewedAt: %s, updatedAt: '
-                      '%s', viewId, item_class, lastViewedAt, updatedAt)
-            return
-
-        if item_class in ('Movies', 'TVShows'):
-            self.update_kodi_video_library = True
-        elif item_class == 'Music':
-            self.update_kodi_music_library = True
-        with getattr(itemtypes, item_class)() as itemtype:
-            itemtype.updateUserdata(xml)
 
     def process_message(self, message):
         """
@@ -207,8 +182,8 @@ class LibrarySync(backgroundthread.KillableThread):
                                                       delete_list)
         # Let Kodi know of the change
         if self.update_kodi_video_library or self.update_kodi_music_library:
-            update_library(video=self.update_kodi_video_library,
-                           music=self.update_kodi_music_library)
+            library_sync.update_library(video=self.update_kodi_video_library,
+                                        music=self.update_kodi_music_library)
             self.update_kodi_video_library = False
             self.update_kodi_music_library = False
 

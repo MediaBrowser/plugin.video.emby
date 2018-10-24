@@ -11,8 +11,13 @@ class TVShows(object):
         """
         query = '''
             INSERT OR REPLACE INTO show(
-                plex_id, checksum, section_id, kodi_id, kodi_pathid,
-                fanart_synced, last_sync)
+                plex_id
+                checksum
+                section_id
+                kodi_id
+                kodi_pathid
+                fanart_synced
+                last_sync)
             VALUES (?, ?, ?, ?, ?, ?, ?)
         '''
         self.plexcursor.execute(
@@ -27,8 +32,14 @@ class TVShows(object):
         """
         query = '''
             INSERT OR REPLACE INTO season(
-                plex_id, checksum, section_id, show_id, parent_id,
-                kodi_id, fanart_synced, last_sync)
+                plex_id
+                checksum
+                section_id
+                show_id
+                parent_id
+                kodi_id
+                fanart_synced
+                last_sync)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         '''
         self.plexcursor.execute(
@@ -45,9 +56,18 @@ class TVShows(object):
         """
         query = '''
             INSERT OR REPLACE INTO episode(
-                plex_id, checksum, section_id, show_id, grandparent_id,
-                season_id, parent_id, kodi_id, kodi_fileid, kodi_pathid,
-                fanart_synced, last_sync)
+                plex_id
+                checksum
+                section_id
+                show_id
+                grandparent_id
+                season_id
+                parent_id
+                kodi_id
+                kodi_fileid
+                kodi_pathid
+                fanart_synced
+                last_sync)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             '''
         self.plexcursor.execute(
@@ -106,3 +126,54 @@ class TVShows(object):
         self.cursor.execute('SELECT * FROM episode WHERE plex_id = ? LIMIT 1',
                             (plex_id, ))
         return self.cursor.fetchone()
+
+    def season_has_episodes(self, plex_id):
+        """
+        Returns True if there are episodes left for the season with plex_id
+        """
+        self.cursor.execute('SELECT plex_id FROM episode WHERE season_id = ? LIMIT 1',
+                            (plex_id, ))
+        return self.cursor.fetchone() is not None
+
+    def show_has_seasons(self, plex_id):
+        """
+        Returns True if there are seasons left for the show with plex_id
+        """
+        self.cursor.execute('SELECT plex_id FROM season WHERE show_id = ? LIMIT 1',
+                            (plex_id, ))
+        return self.cursor.fetchone() is not None
+
+    def show_has_episodes(self, plex_id):
+        """
+        Returns True if there are episodes left for the show with plex_id
+        """
+        self.cursor.execute('SELECT plex_id FROM episode WHERE show_id = ? LIMIT 1',
+                            (plex_id, ))
+        return self.cursor.fetchone() is not None
+
+    def episode_by_season(self, plex_id):
+        """
+        Returns an iterator for all episodes that have a parent season_id with
+        a value of plex_id
+        """
+        self.cursor.execute('SELECT * FROM episode WHERE season_id = ?',
+                            (plex_id, ))
+        return (self.entry_to_episode(x) for x in self.cursor)
+
+    def episode_by_show(self, plex_id):
+        """
+        Returns an iterator for all episodes that have a grandparent show_id
+        with a value of plex_id
+        """
+        self.cursor.execute('SELECT * FROM episode WHERE show_id = ?',
+                            (plex_id, ))
+        return (self.entry_to_episode(x) for x in self.cursor)
+
+    def season_by_show(self, plex_id):
+        """
+        Returns an iterator for all seasons that have a parent show_id
+        with a value of plex_id
+        """
+        self.cursor.execute('SELECT * FROM season WHERE show_id = ?',
+                            (plex_id, ))
+        return (self.entry_to_season(x) for x in self.cursor)
