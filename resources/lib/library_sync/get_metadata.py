@@ -38,7 +38,7 @@ class GetMetadataTask(backgroundthread.Task, common.libsync_mixin):
             # Did not receive a valid XML - skip that item for now
             LOG.error("Could not get metadata for %s. Skipping that item "
                       "for now", self.plex_id)
-            continue
+            return
         elif xml == 401:
             LOG.error('HTTP 401 returned by PMS. Too much strain? '
                       'Cancelling sync for now')
