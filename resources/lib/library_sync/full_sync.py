@@ -151,10 +151,10 @@ class FullSync(backgroundthread.KillableThread, common.libsync_mixin):
             (v.PLEX_TYPE_EPISODE, itemtypes.Episode, False)
         ]
         if state.ENABLE_MUSIC:
-            kinds.extend(
+            kinds.extend([
                 (v.PLEX_TYPE_ARTIST, itemtypes.Artist, False),
                 (v.PLEX_TYPE_ALBUM, itemtypes.Album, True),
-                (v.PLEX_TYPE_SONG, itemtypes.Song, False))
+                (v.PLEX_TYPE_SONG, itemtypes.Song, False)])
         for kind in kinds:
             # Setup our variables
             self.plex_type = kind[0]
