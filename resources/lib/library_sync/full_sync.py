@@ -78,21 +78,17 @@ class FullSync(backgroundthread.KillableThread, common.libsync_mixin):
         """
         plex_id = int(xml_item.get('ratingKey'))
         if self.new_items_only:
-            if not self.plex_db.is_recorded(plex_id, self.plex_type):
-                backgroundthread.BGThreader.addTask(
-                    GetMetadataTask().setup(self.queue,
-                                            plex_id,
-                                            self.get_children))
+            if self.plex_db.is_recorded(plex_id, self.plex_type):
+                return
         else:
             if self.plex_db.check_checksum(
                     int('%s%s' % (plex_id,
-                                  xml_item.get('updatedAt')))) is None:
-                backgroundthread.BGThreader.addTask(
-                    GetMetadataTask().setup(self.queue,
-                                            plex_id,
-                                            self.get_children))
-            else:
+                                  xml_item.get('updatedAt')))):
                 self.plex_db.update_last_sync(plex_id, self.last_sync)
+                return
+        task = GetMetadataTask()
+        task.setup(self.queue, plex_id, self.get_children)
+        backgroundthread.BGThreader.addTask(task)
 
     def process_delete(self):
         """
