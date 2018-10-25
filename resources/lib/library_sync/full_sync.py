@@ -122,9 +122,9 @@ class FullSync(backgroundthread.KillableThread, common.libsync_mixin):
                 queue_info = process_metadata.InitNewSection(
                     self.context,
                     utils.cast(int, iterator.get('totalSize', 0)),
-                    utils.cast(unicode, iterator.get('librarySectionTitle')),
+                    iterator.get('librarySectionTitle'),
                     section['section_id'],
-                    utils.cast(unicode, section['plex_type']))
+                    section['plex_type'])
                 self.queue.put(queue_info)
                 for xml_item in iterator:
                     if self.isCanceled():

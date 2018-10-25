@@ -103,8 +103,7 @@ class ProcessMetadata(backgroundthread.KillableThread, common.libsync_mixin):
                                         notify=True,
                                         cancel_sync=True)
                         if self.current % 20 == 0:
-                            self.title = utils.cast(unicode,
-                                                    item['xml'][0].get('title'))
+                            self.title = item['xml'][0].get('title')
                             self.update()
                         self.current += 1
                         self.queue.task_done()

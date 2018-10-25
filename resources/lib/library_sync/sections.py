@@ -48,8 +48,7 @@ def sync_from_pms():
         if (section.attrib['type'] in
                 (v.PLEX_TYPE_MOVIE, v.PLEX_TYPE_SHOW, v.PLEX_TYPE_PHOTO,
                  v.PLEX_TYPE_ARTIST)):
-            sorted_sections.append(cast(unicode,
-                                        section.attrib['title']))
+            sorted_sections.append(section.attrib['title'])
     LOG.debug('Sorted sections: %s', sorted_sections)
     totalnodes = len(sorted_sections)
 
@@ -81,14 +80,14 @@ def sync_from_pms():
 def _process_section(section_xml, kodi_db, plexdb, sorted_sections,
                      old_sections, totalnodes):
     folder = section_xml.attrib
-    plex_type = cast(unicode, folder['type'])
+    plex_type = folder['type']
     # Only process supported formats
     if plex_type not in (v.PLEX_TYPE_MOVIE, v.PLEX_TYPE_SHOW,
                          v.PLEX_TYPE_ARTIST, v.PLEX_TYPE_PHOTO):
         LOG.error('Unsupported Plex section type: %s', folder)
         return totalnodes
     section_id = cast(int, folder['key'])
-    section_name = cast(unicode, folder['title'])
+    section_name = folder['title']
     global PLAYLISTS, NODES
     # Prevent duplicate for nodes of the same type
     nodes = NODES[plex_type]

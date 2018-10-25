@@ -482,14 +482,14 @@ class API(object):
         """
         Returns the title of the element as unicode or 'Missing Title Name'
         """
-        return cast(unicode, self.item.get('title', 'Missing Title Name'))
+        return self.item.get('title', 'Missing Title Name')
 
     def sorttitle(self):
         """
         Returns an item's sorting name/title or the title itself if not found
         "Missing Title" if both are not present
         """
-        return cast(unicode, self.item.get('titleSort', self.item.get('title', 'Missing Title')))
+        return self.item.get('titleSort', self.item.get('title', 'Missing Title'))
 
     def artist_name(self):
         """
@@ -502,7 +502,7 @@ class API(object):
         """
         Returns the plot or None.
         """
-        return cast(unicode, self.item.get('summary'))
+        return self.item.get('summary')
 
     def shortplot(self):
         """
@@ -520,7 +520,7 @@ class API(object):
         """
         Returns a shorter tagline or None
         """
-        return cast(unicode, self.item.get('tagline'))
+        return self.item.get('tagline')
 
     def audience_rating(self):
         """
@@ -617,7 +617,7 @@ class API(object):
         """
         Returns the 'studio' or None
         """
-        return self.replace_studio(cast(unicode, self.item.get('studio')))
+        return self.replace_studio(self.item.get('studio'))
 
     def music_studio_list(self):
         """
@@ -686,7 +686,7 @@ class API(object):
         """
         return (cast(int, self.item.get('grandparentRatingKey')),
                 cast(int, self.item.get('parentRatingKey')),
-                cast(unicode, self.item.get('grandparentTitle')),
+                self.item.get('grandparentTitle'),
                 cast(int, self.item.get('parentIndex')),
                 cast(int, self.item.get('index')))
 
