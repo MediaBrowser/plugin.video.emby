@@ -110,9 +110,9 @@ class FullSync(backgroundthread.KillableThread, common.libsync_mixin):
         """
         """
         LOG.debug('Start processing %ss', self.plex_type)
-        sections = (x for x in sections.SECTIONS
-                    if x['plex_type'] == self.plex_type)
-        for section in sections:
+        sects = (x for x in sections.SECTIONS
+                 if x['plex_type'] == self.plex_type)
+        for section in sects:
             LOG.debug('Processing library section %s', section)
             if self.isCanceled():
                 return False
