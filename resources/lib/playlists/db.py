@@ -22,7 +22,7 @@ def plex_playlist_ids():
     Returns a list of all Plex ids of the playlists already in our DB
     """
     with PlexDB() as plexdb:
-        return [plexdb.playlist_ids()]
+        return list(plexdb.playlist_ids())
 
 
 def kodi_playlist_paths():
@@ -30,7 +30,7 @@ def kodi_playlist_paths():
     Returns a list of all Kodi playlist paths of the playlists already synced
     """
     with PlexDB() as plexdb:
-        return [plexdb.kodi_playlist_paths()]
+        return list(plexdb.kodi_playlist_paths())
 
 
 def update_playlist(playlist, delete=False):

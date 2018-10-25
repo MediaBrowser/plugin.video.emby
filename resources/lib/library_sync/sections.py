@@ -58,7 +58,7 @@ def sync_from_pms():
     with PlexDB() as plexdb:
         # Backup old sections to delete them later, if needed (at the end
         # of this method, only unused sections will be left in old_sections)
-        old_sections = [plexdb.section_ids()]
+        old_sections = list(plexdb.section_ids())
         with kodidb.GetKodiDB('video') as kodi_db:
             for section in sections:
                 _process_section(section,
@@ -67,13 +67,13 @@ def sync_from_pms():
                                  sorted_sections,
                                  old_sections,
                                  totalnodes)
-
+    LOG.info('old_sections: %s', old_sections)
     if old_sections:
         # Section has been deleted on the PMS
         delete_sections(old_sections)
     # update sections for all:
     with plexdb.PlexDB() as plexdb:
-        SECTIONS = [plexdb.section_infos()]
+        SECTIONS = list(plexdb.section_infos())
     utils.window('Plex.nodes.total', str(totalnodes))
     LOG.info("Finished processing library sections: %s", SECTIONS)
     return True
