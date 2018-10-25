@@ -84,7 +84,7 @@ class ProcessMetadata(backgroundthread.KillableThread, common.libsync_mixin):
                 self.current = 0
                 self.total = section.total
                 self.section_name = section.name
-                self.is_video = section.plex_type in v.PLEX_VIDEO_TYPES
+                self.is_video = section.plex_type in v.PLEX_VIDEOTYPES
                 with section.context(self.last_sync) as context:
                     while self.isCanceled() is False:
                         # grabs item from queue. This will block!
