@@ -545,17 +545,17 @@ class Sync(backgroundthread.KillableThread):
 
     def _run_internal(self):
         LOG.info("---===### Starting Sync ###===---")
+        self.force_dialog = False
         install_sync_done = utils.settings('SyncInstallRunDone') == 'true'
-
         playlist_monitor = None
         initial_sync_done = False
-        kodi_db_version_checked = False
         last_processing = 0
         last_time_sync = 0
         one_day_in_seconds = 60 * 60 * 24
         # Link to Websocket queue
         queue = state.WEBSOCKET_QUEUE
 
+        # Kodi Version supported by PKC?
         if (not path_ops.exists(v.DB_VIDEO_PATH) or
                 not path_ops.exists(v.DB_TEXTURE_PATH) or
                 (state.ENABLE_MUSIC and not path_ops.exists(v.DB_MUSIC_PATH))):
@@ -566,8 +566,24 @@ class Sync(backgroundthread.KillableThread):
             # "Current Kodi version is unsupported, cancel lib sync"
             utils.messageDialog(utils.lang(29999), utils.lang(39403))
             return
-
-        # Do some initializing
+        # Check whether we need to reset the Kodi DB
+        if install_sync_done:
+            current_version = utils.settings('dbCreatedWithVersion')
+            if not utils.compare_version(current_version,
+                                         v.MIN_DB_VERSION):
+                LOG.warn("Db version out of date: %s minimum version "
+                         "required: %s", current_version, v.MIN_DB_VERSION)
+                # DB out of date. Proceed to recreate?
+                if not utils.yesno_dialog(utils.lang(29999),
+                                          utils.lang(39401)):
+                    LOG.warn("Db version out of date! USER IGNORED!")
+                    # PKC may not work correctly until reset
+                    utils.messageDialog(utils.lang(29999),
+                                        '%s%s' % (utils.lang(29999),
+                                                  utils.lang(39402)))
+                else:
+                    utils.reset(ask_user=False)
+                return
         # Ensure that Plex DB is set-up
         plex_db.initialize()
         # Hack to speed up look-ups for actors (giant table!)
@@ -590,6 +606,7 @@ class Sync(backgroundthread.KillableThread):
 
             if not install_sync_done:
                 # Very FIRST sync ever upon installation or reset of Kodi DB
+                self.force_dialog = True
                 set_library_scan_toggle()
                 # Initialize time offset Kodi - PMS
                 library_sync.sync_pms_time()
@@ -602,9 +619,9 @@ class Sync(backgroundthread.KillableThread):
                     LOG.info('Initial start-up full sync successful')
                     utils.settings('SyncInstallRunDone', value='true')
                     install_sync_done = True
+                    initial_sync_done = True
                     utils.settings('dbCreatedWithVersion', v.ADDON_VERSION)
                     self.force_dialog = False
-                    kodi_db_version_checked = True
                     if library_sync.PLAYLIST_SYNC_ENABLED:
                         from . import playlists
                         playlist_monitor = playlists.kodi_playlist_monitor()
@@ -612,29 +629,8 @@ class Sync(backgroundthread.KillableThread):
                     self.fanartthread.start()
                 else:
                     LOG.error('Initial start-up full sync unsuccessful')
-                xbmc.executebuiltin('InhibitIdleShutdown(false)')
-
-            elif not kodi_db_version_checked:
-                # Install sync was already done, don't force-show dialogs
                 self.force_dialog = False
-                # Verify the validity of the database
-                current_version = utils.settings('dbCreatedWithVersion')
-                if not utils.compare_version(current_version,
-                                             v.MIN_DB_VERSION):
-                    LOG.warn("Db version out of date: %s minimum version "
-                             "required: %s", current_version, v.MIN_DB_VERSION)
-                    # DB out of date. Proceed to recreate?
-                    if not utils.yesno_dialog(utils.lang(29999),
-                                              utils.lang(39401)):
-                        LOG.warn("Db version out of date! USER IGNORED!")
-                        # PKC may not work correctly until reset
-                        utils.messageDialog(utils.lang(29999),
-                                            '%s%s' % (utils.lang(29999),
-                                                      utils.lang(39402)))
-                    else:
-                        utils.reset(ask_user=False)
-                    break
-                kodi_db_version_checked = True
+                xbmc.executebuiltin('InhibitIdleShutdown(false)')
 
             elif not initial_sync_done:
                 # First sync upon PKC restart. Skipped if very first sync upon
