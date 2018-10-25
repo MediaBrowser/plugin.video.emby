@@ -88,23 +88,23 @@ class ProcessMetadata(backgroundthread.KillableThread, common.libsync_mixin):
                 with section.context(self.last_sync) as context:
                     while self.isCanceled() is False:
                         # grabs item from queue. This will block!
-                        xml = self.queue.get()
-                        if xml is InitNewSection or xml is None:
-                            section = xml
+                        item = self.queue.get()
+                        if item is InitNewSection or item is None:
+                            section = item
                             self.queue.task_done()
                             break
                         try:
-                            context.add_update(xml[0],
-                                               viewtag=section.name,
-                                               viewid=section.id,
-                                               children=xml.children)
+                            context.add_update(item['xml'][0],
+                                               section_name=section.name,
+                                               section_id=section.id,
+                                               children=item['children'])
                         except:
                             utils.ERROR(txt='process_metadata crashed',
                                         notify=True,
                                         cancel_sync=True)
                         if self.current % 20 == 0:
                             self.title = utils.cast(unicode,
-                                                    xml[0].get('title'))
+                                                    item['xml'][0].get('title'))
                             self.update()
                         self.current += 1
                         self.queue.task_done()

@@ -33,18 +33,20 @@ class GetMetadataTask(backgroundthread.Task, common.libsync_mixin):
         if self.isCanceled():
             return
         # Download Metadata
-        xml = PF.GetPlexMetadata(self.plex_id)
-        if xml is None:
+        item = {
+            'xml': PF.GetPlexMetadata(self.plex_id),
+            'children': None
+        }
+        if item['xml'] is None:
             # Did not receive a valid XML - skip that item for now
             LOG.error("Could not get metadata for %s. Skipping that item "
                       "for now", self.plex_id)
             return
-        elif xml == 401:
+        elif item['xml'] == 401:
             LOG.error('HTTP 401 returned by PMS. Too much strain? '
                       'Cancelling sync for now')
             utils.window('plex_scancrashed', value='401')
             return
-        xml.children = None
         if not self.isCanceled() and self.get_children:
             children_xml = PF.GetAllPlexChildren(self.plex_id)
             try:
@@ -53,5 +55,5 @@ class GetMetadataTask(backgroundthread.Task, common.libsync_mixin):
                 LOG.error('Could not get children for Plex id %s',
                           self.plex_id)
             else:
-                xml.children = children_xml
-        self.queue.put(xml)
+                item['children'] = children_xml
+        self.queue.put(item)
