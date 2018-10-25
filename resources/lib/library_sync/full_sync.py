@@ -76,7 +76,7 @@ class FullSync(backgroundthread.KillableThread, common.libsync_mixin):
         """
         Processes a single library item
         """
-        plex_id = int(xml_item['ratingKey'])
+        plex_id = int(xml_item.get('ratingKey'))
         if self.new_items_only:
             if self.plex_db.check_plexid(plex_id) is None:
                 backgroundthread.BGThreader.addTask(
@@ -85,8 +85,8 @@ class FullSync(backgroundthread.KillableThread, common.libsync_mixin):
                                             self.get_children))
         else:
             if self.plex_db.check_checksum(
-                    int('%s%s' % (xml_item['ratingKey'],
-                                  xml_item['updatedAt']))) is None:
+                    int('%s%s' % (plex_id,
+                                  xml_item.get('updatedAt')))) is None:
                 backgroundthread.BGThreader.addTask(
                     GetMetadataTask().setup(self.queue,
                                             plex_id,
