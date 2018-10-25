@@ -120,15 +120,15 @@ class FullSync(backgroundthread.KillableThread, common.libsync_mixin):
             if not self.install_sync_done:
                 state.PATH_VERIFIED = False
             try:
-                iterator = PF.SectionItems(section['id'],
+                iterator = PF.SectionItems(section['section_id'],
                                            {'type': self.plex_type})
                 # Tell the processing thread about this new section
                 queue_info = process_metadata.InitNewSection(
                     self.context,
                     utils.cast(int, iterator.get('totalSize', 0)),
                     utils.cast(unicode, iterator.get('librarySectionTitle')),
-                    section['id'],
-                    utils.cast(unicode, section['viewGroup']))
+                    section['section_id'],
+                    utils.cast(unicode, section['plex_type']))
                 self.queue.put(queue_info)
                 for xml_item in iterator:
                     if self.isCanceled():
