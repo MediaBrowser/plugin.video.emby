@@ -204,7 +204,7 @@ def initialize():
             except (utils.OperationalError, TypeError):
                 init = True
             else:
-                init = utils.compare_version(version, v.MIN_DB_VERSION)
+                init = not utils.compare_version(version, v.MIN_PLEX_DB_VERSION)
             if not init:
                 return
             # Delete all tables

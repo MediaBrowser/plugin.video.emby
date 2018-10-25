@@ -85,6 +85,8 @@ PKC_MACHINE_IDENTIFIER = None
 
 # Minimal PKC version needed for the Kodi database - otherwise need to recreate
 MIN_DB_VERSION = '2.5.0'
+# Minimal PKC version needed for the Plex database
+MIN_PLEX_DB_VERSION = '2.5.0'
 
 # Database paths
 DB_VIDEO_VERSION = {
