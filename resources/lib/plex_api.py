@@ -633,6 +633,8 @@ class API(object):
         """
         Convert studio for Kodi to properly detect them
         """
+        if not studio_name:
+            return
         studios = {
             'abc (us)': "ABC",
             'fox (us)': "FOX",
