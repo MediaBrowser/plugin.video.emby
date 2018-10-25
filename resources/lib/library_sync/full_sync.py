@@ -95,7 +95,7 @@ class FullSync(backgroundthread.KillableThread, common.libsync_mixin):
         Removes all the items that have NOT been updated (last_sync timestamp)
         is different
         """
-        with self.context() as c:
+        with self.context(self.last_sync) as c:
             for plex_id in self.plex_db.plex_id_by_last_sync(self.plex_type,
                                                              self.last_sync):
                 if self.isCanceled():
