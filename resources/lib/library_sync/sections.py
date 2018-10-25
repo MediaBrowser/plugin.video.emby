@@ -72,7 +72,7 @@ def sync_from_pms():
         # Section has been deleted on the PMS
         delete_sections(old_sections)
     # update sections for all:
-    with plexdb.PlexDB() as plexdb:
+    with PlexDB() as plexdb:
         SECTIONS = list(plexdb.section_infos())
     utils.window('Plex.nodes.total', str(totalnodes))
     LOG.info("Finished processing library sections: %s", SECTIONS)
