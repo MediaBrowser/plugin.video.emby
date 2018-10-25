@@ -7,7 +7,8 @@ from .tvshows import TVShows
 from .movies import Movies
 from .music import Music
 from .playlists import Playlists
+from .sections import Sections
 
 
-class PlexDB(PlexDBBase, TVShows, Movies, Music, Playlists):
+class PlexDB(PlexDBBase, TVShows, Movies, Music, Playlists, Sections):
     pass

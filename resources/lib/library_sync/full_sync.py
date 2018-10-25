@@ -78,7 +78,7 @@ class FullSync(backgroundthread.KillableThread, common.libsync_mixin):
         """
         plex_id = int(xml_item.get('ratingKey'))
         if self.new_items_only:
-            if self.plex_db.check_plexid(plex_id) is None:
+            if not self.plex_db.is_recorded(plex_id, self.plex_type):
                 backgroundthread.BGThreader.addTask(
                     GetMetadataTask().setup(self.queue,
                                             plex_id,

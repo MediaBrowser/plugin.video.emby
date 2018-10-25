@@ -31,6 +31,14 @@ class PlexDBBase(object):
         self.plexconn.commit()
         self.plexconn.close()
 
+    def is_recorded(self, plex_id, plex_type):
+        """
+        FAST method to check whether a plex_id has already been recorded
+        """
+        query = 'SELECT plex_id FROM %s WHERE plex_id = ?' % plex_type
+        self.cursor.execute(query, (plex_id, ))
+        return self.cursor.fetchone() is not None
+
     def item_by_id(self, plex_id, plex_type=None):
         """
         Returns the item for plex_id or None.
