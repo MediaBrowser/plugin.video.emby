@@ -67,7 +67,6 @@ def sync_from_pms():
                                  sorted_sections,
                                  old_sections,
                                  totalnodes)
-    LOG.info('old_sections: %s', old_sections)
     if old_sections:
         # Section has been deleted on the PMS
         delete_sections(old_sections)
