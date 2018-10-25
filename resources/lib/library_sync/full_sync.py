@@ -37,6 +37,7 @@ class FullSync(backgroundthread.KillableThread, common.libsync_mixin):
         self.plex_db = None
         self.plex_type = None
         self.processing_thread = None
+        self.install_sync_done = utils.settings('SyncInstallRunDone') == 'true'
         super(FullSync, self).__init__()
 
     def plex_update_watched(self, viewId, item_class, lastViewedAt=None,
