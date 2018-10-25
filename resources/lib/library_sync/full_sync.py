@@ -119,9 +119,8 @@ class FullSync(backgroundthread.KillableThread, common.libsync_mixin):
             if not self.install_sync_done:
                 state.PATH_VERIFIED = False
             try:
-                iterator = PF.SectionItems(
-                    section['id'],
-                    {'type': v.PLEX_TYPE_NUMBER_FROM_PLEX_TYPE[self.plex_type]})
+                iterator = PF.SectionItems(section['id'],
+                                           {'type': self.plex_type})
                 # Tell the processing thread about this new section
                 queue_info = process_metadata.InitNewSection(
                     self.context,

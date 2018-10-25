@@ -589,6 +589,8 @@ class SectionItems(DownloadGen):
     Iterator object to get all items of a Plex library section
     """
     def __init__(self, section_id, args=None):
+        if args and 'type' in args:
+            args['type'] = v.PLEX_TYPE_NUMBER_FROM_PLEX_TYPE[args['type']]
         super(SectionItems, self).__init__(
             '{server}/library/sections/%s/all' % section_id, args)
 
