@@ -27,11 +27,11 @@ class Movie(ItemBase):
         if not plex_id:
             LOG.error('Cannot parse XML data for movie: %s', xml.attrib)
             return
-        movie = self.plexdb.getItem_byId(plex_id)
+        movie = self.plexdb.movie(plex_id)
         try:
-            kodi_id = movie[0]
-            old_kodi_fileid = movie[1]
-            kodi_pathid = movie[2]
+            kodi_id = movie['kodi_id']
+            old_kodi_fileid = movie['kodi_fileid']
+            kodi_pathid = movie['kodi_pathid']
         except TypeError:
             update_item = False
             self.kodicursor.execute('SELECT COALESCE(MAX(idMovie), 0) FROM movie')
