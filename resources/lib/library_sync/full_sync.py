@@ -34,7 +34,7 @@ class FullSync(backgroundthread.KillableThread, common.libsync_mixin):
         self.queue = None
         self.process_thread = None
         self.last_sync = None
-        self.plex_db = None
+        self.plexdb = None
         self.plex_type = None
         self.processing_thread = None
         self.install_sync_done = utils.settings('SyncInstallRunDone') == 'true'
@@ -78,13 +78,13 @@ class FullSync(backgroundthread.KillableThread, common.libsync_mixin):
         """
         plex_id = int(xml_item.get('ratingKey'))
         if self.new_items_only:
-            if self.plex_db.is_recorded(plex_id, self.plex_type):
+            if self.plexdb.is_recorded(plex_id, self.plex_type):
                 return
         else:
-            if self.plex_db.check_checksum(
+            if self.plexdb.check_checksum(
                     int('%s%s' % (plex_id,
                                   xml_item.get('updatedAt')))):
-                self.plex_db.update_last_sync(plex_id, self.last_sync)
+                self.plexdb.update_last_sync(plex_id, self.last_sync)
                 return
         task = GetMetadataTask()
         task.setup(self.queue, plex_id, self.get_children)
@@ -96,7 +96,7 @@ class FullSync(backgroundthread.KillableThread, common.libsync_mixin):
         is different
         """
         with self.context(self.last_sync) as c:
-            for plex_id in self.plex_db.plex_id_by_last_sync(self.plex_type,
+            for plex_id in self.plexdb.plex_id_by_last_sync(self.plex_type,
                                                              self.last_sync):
                 if self.isCanceled():
                     return
@@ -126,10 +126,11 @@ class FullSync(backgroundthread.KillableThread, common.libsync_mixin):
                     section['section_id'],
                     section['plex_type'])
                 self.queue.put(queue_info)
-                for xml_item in iterator:
-                    if self.isCanceled():
-                        return False
-                    self.process_item(xml_item)
+                with PlexDB() as self.plexdb:
+                    for xml_item in iterator:
+                        if self.isCanceled():
+                            return False
+                        self.process_item(xml_item)
             except RuntimeError:
                 LOG.error('Could not entirely process section %s', section)
                 continue
@@ -152,13 +153,13 @@ class FullSync(backgroundthread.KillableThread, common.libsync_mixin):
                 (v.PLEX_TYPE_ARTIST, itemtypes.Artist, False),
                 (v.PLEX_TYPE_ALBUM, itemtypes.Album, True),
                 (v.PLEX_TYPE_SONG, itemtypes.Song, False)])
-        for kind in kinds:
-            # Setup our variables
-            self.plex_type = kind[0]
-            self.context = kind[1]
-            self.get_children = kind[2]
-            # Now do the heavy lifting
-            with PlexDB() as self.plex_db:
+        with PlexDB() as self.plexdb:
+            for kind in kinds:
+                # Setup our variables
+                self.plex_type = kind[0]
+                self.context = kind[1]
+                self.get_children = kind[2]
+                # Now do the heavy lifting
                 if self.isCanceled() or not self.process_kind():
                     return False
                 if self.new_items_only:
