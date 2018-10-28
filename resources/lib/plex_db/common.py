@@ -94,6 +94,17 @@ class PlexDBBase(object):
         self.cursor.execute(query, (last_sync, ))
         return (x[0] for x in self.cursor)
 
+    def plex_id_by_checksum(self, checksum, plex_type):
+        """
+        Returns the plex_id for the (unique) checksum or None
+        """
+        query = 'SELECT plex_id FROM %s WHERE checksum = ?' % plex_type
+        self.cursor.execute(query, (checksum, ))
+        try:
+            return self.cursor.fetchone()[0]
+        except TypeError:
+            pass
+
     def update_last_sync(self, plex_type, plex_id, last_sync):
         """
         Sets a new timestamp for plex_id
