@@ -89,7 +89,7 @@ class ProcessMetadata(backgroundthread.KillableThread, common.libsync_mixin):
                     while self.isCanceled() is False:
                         # grabs item from queue. This will block!
                         item = self.queue.get()
-                        if item is InitNewSection or item is None:
+                        if isinstance(item, InitNewSection) or item is None:
                             section = item
                             self.queue.task_done()
                             break
