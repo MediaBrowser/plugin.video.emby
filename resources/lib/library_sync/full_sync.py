@@ -81,9 +81,9 @@ class FullSync(backgroundthread.KillableThread, common.libsync_mixin):
             if self.plexdb.is_recorded(plex_id, self.plex_type):
                 return
         else:
-            if self.plexdb.plex_id_by_checksum(
+            if self.plexdb.checksum(plex_id, self.plex_type) == \
                     int('%s%s' % (plex_id,
-                                  xml_item.get('updatedAt')))):
+                                  xml_item.get('updatedAt'))):
                 self.plexdb.update_last_sync(plex_id, self.last_sync)
                 return
         task = GetMetadataTask()

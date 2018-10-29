@@ -94,12 +94,12 @@ class PlexDBBase(object):
         self.cursor.execute(query, (last_sync, ))
         return (x[0] for x in self.cursor)
 
-    def plex_id_by_checksum(self, checksum, plex_type):
+    def checksum(self, plex_id, plex_type):
         """
-        Returns the plex_id for the (unique) checksum or None
+        Returns the checksum for plex_id
         """
-        query = 'SELECT plex_id FROM %s WHERE checksum = ?' % plex_type
-        self.cursor.execute(query, (checksum, ))
+        query = 'SELECT checksum FROM %s WHERE plex_id = ?' % plex_type
+        self.cursor.execute(query, (plex_id, ))
         try:
             return self.cursor.fetchone()[0]
         except TypeError:
