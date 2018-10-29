@@ -105,7 +105,7 @@ class PlexDBBase(object):
         except TypeError:
             pass
 
-    def update_last_sync(self, plex_type, plex_id, last_sync):
+    def update_last_sync(self, plex_id, plex_type, last_sync):
         """
         Sets a new timestamp for plex_id
         """
