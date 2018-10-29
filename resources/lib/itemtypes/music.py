@@ -5,6 +5,8 @@ from logging import getLogger
 
 from .common import ItemBase
 from ..plex_api import API
+from ..plex_db import PlexDB
+from .. import kodidb_functions as kodidb
 from .. import plex_functions as PF, utils, state, variables as v
 
 LOG = getLogger('PLEX.music')
@@ -130,6 +132,18 @@ class Artist(ItemBase, MusicMixin):
     """
     For Plex library-type artists
     """
+    def __enter__(self):
+        """
+        Open DB connections and cursors
+        """
+        self.plexconn = utils.kodi_sql('plex')
+        self.plexcursor = self.plexconn.cursor()
+        self.kodiconn = utils.kodi_sql('music')
+        self.kodicursor = self.kodiconn.cursor()
+        self.plexdb = PlexDB(self.plexcursor)
+        self.kodi_db = kodidb.KodiDBMethods(self.kodicursor)
+        return self
+
     def add_update(self, xml, section_name=None, section_id=None,
                    children=None):
         """
