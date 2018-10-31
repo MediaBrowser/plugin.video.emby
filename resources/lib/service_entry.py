@@ -73,10 +73,7 @@ class Service():
         initialsetup.reload_pkc()
 
     def _stop_pkc(self):
-        """
-        Kodi's abortRequested is really unreliable :-(
-        """
-        return self.monitor.abortRequested() or state.STOP_PKC
+        return xbmc.abortRequested or state.STOP_PKC
 
     def ServiceEntryPoint(self):
         # Important: Threads depending on abortRequest will not trigger
