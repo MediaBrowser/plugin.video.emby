@@ -109,26 +109,24 @@ class ItemBase(object):
                                                db_item[4],
                                                userdata['UserRating'])
 
-    def updatePlaystate(self, mark_played, view_count, resume, duration,
-                        file_id, lastViewedAt, plex_type):
+    def update_playstate(self, mark_played, view_count, resume, duration,
+                         kodi_fileid, lastViewedAt, plex_type):
         """
         Use with websockets, not xml
         """
         # If the playback was stopped, check whether we need to increment the
         # playcount. PMS won't tell us the playcount via websockets
-        LOG.debug('Playstate file_id %s: viewcount: %s, resume: %s, type: %s',
-                  file_id, view_count, resume, plex_type)
         if mark_played:
-            LOG.info('Marking as completely watched in Kodi')
+            LOG.info('Marking item as completely watched in Kodi')
             try:
                 view_count += 1
             except TypeError:
                 view_count = 1
             resume = 0
         # Do the actual update
-        self.kodi_db.set_resume(file_id,
+        self.kodi_db.set_resume(kodi_fileid,
                                 resume,
                                 duration,
                                 view_count,
-                                lastViewedAt,
+                                utils.unix_date_to_kodi(lastViewedAt),
                                 plex_type)

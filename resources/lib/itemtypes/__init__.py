@@ -18,3 +18,13 @@ ITEMTYPE_FROM_PLEXTYPE = {
     v.PLEX_TYPE_ALBUM: Album,
     v.PLEX_TYPE_SONG: Song
 }
+
+ITEMTYPE_FROM_KODITYPE = {
+    v.KODI_TYPE_MOVIE: Movie,
+    v.KODI_TYPE_SHOW: Show,
+    v.KODI_TYPE_SEASON: Season,
+    v.KODI_TYPE_EPISODE: Episode,
+    v.KODI_TYPE_ARTIST: Artist,
+    v.KODI_TYPE_ALBUM: Album,
+    v.KODI_TYPE_SONG: Song
+}

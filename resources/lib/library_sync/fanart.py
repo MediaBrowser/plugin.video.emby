@@ -9,11 +9,11 @@ from .. import backgroundthread
 from .. import utils, kodidb_functions as kodidb
 from .. import itemtypes, artwork, plex_functions as PF, variables as v, state
 
-###############################################################################
 
-LOG = getLogger('PLEX.library_sync.fanart')
+LOG = getLogger('PLEX.sync.fanart')
 
-###############################################################################
+SYNC_FANART = utils.settings('FanartTV') == 'true'
+FANART_QUEUE = backgroundthread.Queue.Queue()
 
 
 class ThreadedProcessFanart(backgroundthread.KillableThread):
@@ -30,10 +30,6 @@ class ThreadedProcessFanart(backgroundthread.KillableThread):
                                         fanart. If False, will only get missing
             }
     """
-    def __init__(self, queue):
-        self.queue = queue
-        super(ThreadedProcessFanart, self).__init__()
-
     def isCanceled(self):
         return xbmc.abortRequested or state.STOP_PKC
 
@@ -80,11 +76,11 @@ class ThreadedProcessFanart(backgroundthread.KillableThread):
                 xbmc.sleep(1000)
             # grabs Plex item from queue
             try:
-                item = self.queue.get(block=False)
+                item = FANART_QUEUE.get(block=False)
             except backgroundthread.Empty:
                 xbmc.sleep(1000)
                 continue
-            self.queue.task_done()
+            FANART_QUEUE.task_done()
             if isinstance(item, artwork.ArtworkSyncMessage):
                 if state.IMAGE_SYNC_NOTIFICATIONS:
                     utils.dialog('notification',
