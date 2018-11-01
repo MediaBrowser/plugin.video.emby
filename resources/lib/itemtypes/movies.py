@@ -212,7 +212,7 @@ class Movie(ItemBase):
                               kodi_pathid=kodi_pathid,
                               last_sync=self.last_sync)
 
-        def remove(self, plex_id):
+        def remove(self, plex_id, plex_type=None):
             """
             Remove a movie with all references and all orphaned associated entries
             from the Kodi DB
