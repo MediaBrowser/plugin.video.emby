@@ -11,7 +11,7 @@ from .. import kodidb_functions as kodidb
 from .. import itemtypes
 from .. import plex_functions as PF, music, utils, state, variables as v
 
-LOG = getLogger('PLEX.library_sync.sections')
+LOG = getLogger('PLEX.sync.sections')
 
 VNODES = videonodes.VideoNodes()
 PLAYLISTS = {}

@@ -19,7 +19,7 @@ else:
     PLAYLIST_SYNC_ENABLED = False
 
 
-LOG = getLogger('PLEX.library_sync.full_sync')
+LOG = getLogger('PLEX.sync.full_sync')
 
 
 class FullSync(backgroundthread.KillableThread, common.libsync_mixin):

@@ -6,7 +6,7 @@ import xbmcgui
 from . import common
 from .. import backgroundthread, utils, variables as v
 
-LOG = getLogger('PLEX.library_sync.process_metadata')
+LOG = getLogger('PLEX.sync.process_metadata')
 
 
 class InitNewSection(object):

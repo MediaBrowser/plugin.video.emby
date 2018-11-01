@@ -7,7 +7,7 @@ import xbmc
 
 from .. import plex_functions as PF, utils, variables as v, state
 
-LOG = getLogger('PLEX.library_sync.time')
+LOG = getLogger('PLEX.sync.time')
 
 
 def sync_pms_time():
