@@ -46,17 +46,13 @@ class PlexDBBase(object):
         """
         answ = None
         if plex_type == v.PLEX_TYPE_MOVIE:
-            entry = self.movie(plex_id)
-            answ = self.entry_to_movie(entry)
+            answ = self.movie(plex_id)
         elif plex_type == v.PLEX_TYPE_EPISODE:
-            entry = self.episode(plex_id)
-            answ = self.entry_to_episode(entry)
+            answ = self.episode(plex_id)
         elif plex_type == v.PLEX_TYPE_SHOW:
-            entry = self.show(plex_id)
-            answ = self.entry_to_show(entry)
+            answ = self.show(plex_id)
         elif plex_type == v.PLEX_TYPE_SEASON:
-            entry = self.season(plex_id)
-            answ = self.entry_to_season(entry)
+            answ = self.season(plex_id)
         else:
             # SLOW - lookup plex_id in all our tables
             for kind in (v.PLEX_TYPE_MOVIE,
@@ -64,10 +60,8 @@ class PlexDBBase(object):
                          v.PLEX_TYPE_EPISODE,
                          v.PLEX_TYPE_SEASON):
                 method = getattr(self, kind)
-                entry = method(plex_id)
-                if entry:
-                    method = getattr(self, 'entry_to_%s' % kind)
-                    answ = method(entry)
+                answ = method(plex_id)
+                if answ:
                     break
         return answ
 
