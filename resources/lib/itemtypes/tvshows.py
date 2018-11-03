@@ -133,8 +133,8 @@ class Show(ItemBase, TvShowMixin):
             return
         show = self.plexdb.show(plex_id)
         try:
-            kodi_id = show[3]
-            kodi_pathid = show[4]
+            kodi_id = show['kodi_id']
+            kodi_pathid = show['kodi_pathid']
         except TypeError:
             update_item = False
             query = 'SELECT COALESCE(MAX(idShow), 0) FROM tvshow'
