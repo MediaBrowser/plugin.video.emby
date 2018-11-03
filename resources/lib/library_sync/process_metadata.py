@@ -4,7 +4,7 @@ from logging import getLogger
 import xbmcgui
 
 from . import common
-from .. import backgroundthread, utils, variables as v
+from .. import backgroundthread, utils
 
 LOG = getLogger('PLEX.sync.process_metadata')
 
@@ -49,9 +49,7 @@ class ProcessMetadata(backgroundthread.KillableThread, common.libsync_mixin):
         self.dialog = None
         super(ProcessMetadata, self).__init__()
 
-    def update(self):
-        """
-        """
+    def update_progressbar(self):
         if self.show_dialog:
             try:
                 progress = int(float(self.current) / float(self.total) * 100.0)
@@ -61,8 +59,6 @@ class ProcessMetadata(backgroundthread.KillableThread, common.libsync_mixin):
                                self.section_name,
                                '%s/%s: %s'
                                % (self.current, self.total, self.title))
-        common.update_kodi_library(video=self.is_video,
-                                   music=not self.is_video)
 
     def run(self):
         """
@@ -78,15 +74,14 @@ class ProcessMetadata(backgroundthread.KillableThread, common.libsync_mixin):
             self.queue.task_done()
             if section is None:
                 return
-            while self.isCanceled() is False:
+            while not self.isCanceled():
                 if section is None:
                     break
                 self.current = 0
                 self.total = section.total
                 self.section_name = section.name
-                self.is_video = section.plex_type in v.PLEX_VIDEOTYPES
                 with section.context(self.last_sync) as context:
-                    while self.isCanceled() is False:
+                    while not self.isCanceled():
                         # grabs item from queue. This will block!
                         item = self.queue.get()
                         if isinstance(item, InitNewSection) or item is None:
@@ -102,9 +97,8 @@ class ProcessMetadata(backgroundthread.KillableThread, common.libsync_mixin):
                             utils.ERROR(txt='process_metadata crashed',
                                         notify=True,
                                         cancel_sync=True)
-                        if self.current % 20 == 0:
-                            self.title = item['xml'][0].get('title')
-                            self.update()
+                        self.title = item['xml'][0].get('title')
+                        self.update_progressbar()
                         self.current += 1
                         self.queue.task_done()
         finally:
