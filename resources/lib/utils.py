@@ -474,7 +474,9 @@ def kodi_sql(media_type=None):
         db_path = v.DB_TEXTURE_PATH
     else:
         db_path = v.DB_VIDEO_PATH
-    return connect(db_path, timeout=60.0)
+    conn = connect(db_path, timeout=5.0)
+    conn.execute('PRAGMA journal_mode=WAL')
+    return conn
 
 
 def create_actor_db_index():
