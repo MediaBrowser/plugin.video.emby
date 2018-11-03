@@ -459,7 +459,6 @@ class KodiDBMethods(object):
             else:
                 # person entry in actor table is now orphaned
                 # Delete the person from actor table
-                LOG.debug('Removing person from Kodi DB: %s', person)
                 self.cursor.execute(query_actor_delete, (person[0],))
                 if kind == 'actor':
                     # Delete any associated artwork
@@ -468,7 +467,6 @@ class KodiDBMethods(object):
         if kind == 'actor':
             query = 'INSERT INTO actor_link VALUES (?, ?, ?, ?, ?)'
             for person in people_list:
-                LOG.debug('Adding actor to Kodi DB: %s', person)
                 # Make sure the person entry in table actor exists
                 actor_id = self._get_actor_id(person[0], art_url=person[1])
                 # Link the person with the media element
@@ -481,7 +479,6 @@ class KodiDBMethods(object):
         else:
             query = 'INSERT INTO %s_link VALUES (?, ?, ?)' % kind
             for person in people_list:
-                LOG.debug('Adding %s to Kodi DB: %s', kind, person[0])
                 # Make sure the person entry in table actor exists:
                 actor_id = self._get_actor_id(person[0])
                 # Link the person with the media element
