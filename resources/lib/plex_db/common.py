@@ -11,7 +11,8 @@ SUPPORTED_KODI_TYPES = (
     v.KODI_TYPE_EPISODE,
     v.KODI_TYPE_ARTIST,
     v.KODI_TYPE_ALBUM,
-    v.KODI_TYPE_SONG)
+    v.KODI_TYPE_SONG
+)
 
 
 class PlexDBBase(object):
