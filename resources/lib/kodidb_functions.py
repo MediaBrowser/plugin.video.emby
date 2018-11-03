@@ -812,7 +812,7 @@ class KodiDBMethods(object):
         """
         Returns the collection/set id for set_name [unicode]
         """
-        LOG.debug("Adding boxset: %s", set_name)
+        LOG.debug("Adding movie set/collection: %s", set_name)
         query = 'SELECT idSet FROM sets WHERE strSet = ? COLLATE NOCASE'
         self.cursor.execute(query, (set_name,))
         try:
