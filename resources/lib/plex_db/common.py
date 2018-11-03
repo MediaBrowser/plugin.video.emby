@@ -53,12 +53,21 @@ class PlexDBBase(object):
             answ = self.show(plex_id)
         elif plex_type == v.PLEX_TYPE_SEASON:
             answ = self.season(plex_id)
+        elif plex_type == v.PLEX_TYPE_SONG:
+            answ = self.song(plex_id)
+        elif plex_type == v.PLEX_TYPE_ALBUM:
+            answ = self.album(plex_id)
+        elif plex_type == v.PLEX_TYPE_ARTIST:
+            answ = self.artist(plex_id)
         else:
             # SLOW - lookup plex_id in all our tables
             for kind in (v.PLEX_TYPE_MOVIE,
-                         v.PLEX_TYPE_SHOW,
                          v.PLEX_TYPE_EPISODE,
-                         v.PLEX_TYPE_SEASON):
+                         v.PLEX_TYPE_SHOW,
+                         v.PLEX_TYPE_SEASON,
+                         v.PLEX_TYPE_SONG,
+                         v.PLEX_TYPE_ALBUM,
+                         v.PLEX_TYPE_ARTIST):
                 method = getattr(self, kind)
                 answ = method(plex_id)
                 if answ:
