@@ -107,7 +107,7 @@ def process_fanart(plex_id, plex_type, refresh=False):
             artworks = api.artwork()
         # Get additional missing artwork from fanart artwork sites
         artworks = api.fanart_artwork(artworks)
-        with itemtypes.ITEMTYPE_FROM_PLEXTYPE[plex_type] as context:
+        with itemtypes.ITEMTYPE_FROM_PLEXTYPE[plex_type](None) as context:
             context.set_fanart(artworks,
                                db_item['kodi_id'],
                                db_item['kodi_type'])
