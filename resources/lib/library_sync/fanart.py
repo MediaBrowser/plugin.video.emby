@@ -3,107 +3,88 @@ from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
 import xbmc
 
+from . import common
 from ..plex_api import API
 from ..plex_db import PlexDB
-from .. import backgroundthread
-from .. import utils, kodidb_functions as kodidb
-from .. import itemtypes, artwork, plex_functions as PF, variables as v, state
+from .. import backgroundthread, utils, kodidb_functions as kodidb
+from .. import itemtypes, plex_functions as PF, variables as v, state
 
 
 LOG = getLogger('PLEX.sync.fanart')
 
+SUPPORTED_TYPES = (v.PLEX_TYPE_MOVIE, v.PLEX_TYPE_SHOW)
 SYNC_FANART = utils.settings('FanartTV') == 'true'
-FANART_QUEUE = backgroundthread.Queue.Queue()
+PREFER_KODI_COLLECTION_ART = utils.settings('PreferKodiCollectionArt') == 'false'
 
 
-class ThreadedProcessFanart(backgroundthread.KillableThread):
+class FanartThread(backgroundthread.KillableThread):
     """
-    Threaded download of additional fanart in the background
-
-    Input:
-        queue           Queue.Queue() object that you will need to fill with
-                        dicts of the following form:
-            {
-              'plex_id':                the Plex id as a string
-              'plex_type':              the Plex media type, e.g. 'movie'
-              'refresh': True/False     if True, will overwrite any 3rd party
-                                        fanart. If False, will only get missing
-            }
+    This will potentially take hours!
     """
+    def __init__(self, callback, refresh=False):
+        self.callback = callback
+        self.refresh = refresh
+        super(FanartThread, self).__init__()
+
     def isCanceled(self):
-        return xbmc.abortRequested or state.STOP_PKC
+        return state.STOP_PKC
 
     def isSuspended(self):
-        return (state.SUSPEND_LIBRARY_THREAD or
-                state.DB_SCAN or
-                state.STOP_SYNC or
-                state.SUSPEND_SYNC)
+        return state.SUSPEND_LIBRARY_THREAD or state.STOP_SYNC
 
     def run(self):
-        LOG.info('---===### Starting FanartSync ###===---')
         try:
-            self._run()
+            self._run_internal()
         except:
-            utils.ERROR(txt='FanartSync crashed', notify=True)
-            raise
-        LOG.info('---===### Stopping FanartSync ###===---')
+            utils.ERROR()
 
-    def _run(self):
-        """
-        Do the work
-        """
-        # First run through our already synced items in the Plex DB
-        for plex_type in (v.PLEX_TYPE_MOVIE, v.PLEX_TYPE_SHOW):
-            with PlexDB() as plexdb:
-                for plex_id in plexdb.fanart(plex_type):
+    def _run_internal(self):
+        LOG.info('Starting FanartThread')
+        with PlexDB() as plexdb:
+            func = plexdb.every_plex_id if self.refresh else plexdb.missing_fanart
+            for typus in SUPPORTED_TYPES:
+                for plex_id in func(typus):
                     if self.isCanceled():
-                        break
-                    while self.isSuspended():
+                        return
+                    if self.isSuspended():
                         if self.isCanceled():
-                            break
+                            return
                         xbmc.sleep(1000)
-                    process_item(plexdb, {'plex_id': plex_id,
-                                          'plex_type': plex_type,
-                                          'refresh': False})
-
-        # Then keep checking the queue for new items
-        while not self.isCanceled():
-            # In the event the server goes offline
-            while self.isSuspended():
-                # Set in service.py
-                if self.isCanceled():
-                    return
-                xbmc.sleep(1000)
-            # grabs Plex item from queue
-            try:
-                item = FANART_QUEUE.get(block=False)
-            except backgroundthread.Empty:
-                xbmc.sleep(1000)
-                continue
-            FANART_QUEUE.task_done()
-            if isinstance(item, artwork.ArtworkSyncMessage):
-                if state.IMAGE_SYNC_NOTIFICATIONS:
-                    utils.dialog('notification',
-                                 heading=utils.lang(29999),
-                                 message=item.message,
-                                 icon='{plex}',
-                                 sound=False)
-                continue
-            LOG.debug('Get additional fanart for Plex id %s', item['plex_id'])
-            with PlexDB() as plexdb:
-                process_item(plexdb, item)
+                    process_fanart(plex_id, typus, self.refresh)
+        LOG.info('FanartThread finished')
+        self.callback()
 
 
-def process_item(plexdb, item):
+class FanartTask(backgroundthread.Task, common.libsync_mixin):
+    """
+    This task will also be executed while library sync is suspended!
+    """
+    def setup(self, plex_id, plex_type, refresh=False):
+        self.plex_id = plex_id
+        self.plex_type = plex_type
+        self.refresh = refresh
+
+    def run(self):
+        process_fanart(self.plex_id, self.plex_type, self.refresh)
+
+
+def process_fanart(plex_id, plex_type, refresh=False):
+    """
+    Will look for additional fanart for the plex_type item with plex_id.
+    Will check if we already got all artwork and only look if some are indeed
+    missing.
+    Will set the fanart_synced flag in the Plex DB if successful.
+    """
     done = False
     try:
         artworks = None
-        db_item = plexdb.item_by_id(item['plex_id'], item['plex_type'])
+        with PlexDB() as plexdb:
+            db_item = plexdb.item_by_id(plex_id,
+                                        plex_type)
         if not db_item:
-            LOG.error('Could not get Kodi id for plex id %s, abort getfanart',
-                      item['plex_id'])
+            LOG.error('Could not get Kodi id for plex id %s', plex_id)
             return
-        if item['refresh'] is False:
+        if not refresh:
             with kodidb.GetKodiDB('video') as kodi_db:
                 artworks = kodi_db.get_art(db_item['kodi_id'],
                                            db_item['kodi_type'])
@@ -112,37 +93,32 @@ def process_item(plexdb, item):
                 if key not in artworks:
                     break
             else:
-                LOG.debug('Already got all fanart for Plex id %s',
-                          item['plex_id'])
                 done = True
                 return
-        xml = PF.GetPlexMetadata(item['plex_id'])
-        if xml is None:
-            LOG.error('Could not get metadata for %s. Skipping that item '
-                      'for now', item['plex_id'])
-            return
-        elif xml == 401:
-            LOG.error('HTTP 401 returned by PMS. Too much strain? '
-                      'Cancelling sync for now')
+        xml = PF.GetPlexMetadata(plex_id)
+        try:
+            xml[0].attrib
+        except (TypeError, IndexError, AttributeError):
+            LOG.warn('Could not get metadata for %s. Skipping that item '
+                     'for now', plex_id)
             return
         api = API(xml[0])
         if artworks is None:
             artworks = api.artwork()
         # Get additional missing artwork from fanart artwork sites
         artworks = api.fanart_artwork(artworks)
-        with itemtypes.ITEMTYPE_FROM_PLEXTYPE[item['plex_type']] as context:
+        with itemtypes.ITEMTYPE_FROM_PLEXTYPE[plex_type] as context:
             context.set_fanart(artworks,
                                db_item['kodi_id'],
                                db_item['kodi_type'])
         # Additional fanart for sets/collections
-        if api.plex_type() == v.PLEX_TYPE_MOVIE:
+        if plex_type == v.PLEX_TYPE_MOVIE:
             for _, setname in api.collection_list():
                 LOG.debug('Getting artwork for movie set %s', setname)
                 with kodidb.GetKodiDB('video') as kodi_db:
                     setid = kodi_db.create_collection(setname)
                 external_set_artwork = api.set_artwork()
-                if (external_set_artwork and
-                        utils.settings('PreferKodiCollectionArt') == 'false'):
+                if external_set_artwork and PREFER_KODI_COLLECTION_ART:
                     kodi_artwork = api.artwork(kodi_id=setid,
                                                kodi_type=v.KODI_TYPE_SET)
                     for art in kodi_artwork:
@@ -156,5 +132,6 @@ def process_item(plexdb, item):
         done = True
     finally:
         if done is True:
-            LOG.debug('Done getting fanart for Plex id %s', item['plex_id'])
-            plexdb.set_fanart_synced(item['plex_id'], item['plex_type'])
+            with PlexDB() as plexdb:
+                plexdb.set_fanart_synced(plex_id,
+                                         plex_type)

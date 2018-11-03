@@ -8,7 +8,7 @@ from .. import state
 
 class libsync_mixin(object):
     def isCanceled(self):
-        return (self._canceled or xbmc.abortRequested or
+        return (self._canceled or state.STOP_PKC or
                 state.SUSPEND_LIBRARY_THREAD or state.SUSPEND_SYNC)
 
 

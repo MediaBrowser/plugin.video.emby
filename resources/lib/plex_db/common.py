@@ -119,7 +119,15 @@ class PlexDBBase(object):
         query = 'DELETE FROM ? WHERE plex_id = ?' % plex_type
         self.cursor.execute(query, (plex_id, ))
 
-    def fanart(self, plex_type):
+    def every_plex_id(self, plex_type):
+        """
+        Returns an iterator for plex_type for every single plex_id
+        """
+        query = 'SELECT plex_id from %s' % plex_type
+        self.cursor.execute(query)
+        return (x[0] for x in self.cursor)
+
+    def missing_fanart(self, plex_type):
         """
         Returns an iterator for plex_type for all plex_id, where fanart_synced
         has not yet been set to 1

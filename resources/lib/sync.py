@@ -2,8 +2,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
-from random import shuffle
-import Queue
 import xbmc
 
 from . import library_sync
@@ -37,12 +35,7 @@ class Sync(backgroundthread.KillableThread):
     def __init__(self):
         self.sync_successful = False
         self.last_full_sync = 0
-        if utils.settings('FanartTV') == 'true':
-            self.fanartqueue = Queue.Queue()
-            self.fanartthread = library_sync.fanart.ThreadedProcessFanart(self.fanartqueue)
-        else:
-            self.fanartqueue = None
-            self.fanartthread = None
+        self.fanart = None
         # How long should we wait at least to process new/changed PMS items?
         # Show sync dialog even if user deactivated?
         self.force_dialog = False
@@ -69,7 +62,7 @@ class Sync(backgroundthread.KillableThread):
             return True
         return False
 
-    def show_kodi_note(self, message, icon="plex"):
+    def show_kodi_note(self, message, icon="plex", force=False):
         """
         Shows a Kodi popup, if user selected to do so. Pass message in unicode
         or string
@@ -77,7 +70,7 @@ class Sync(backgroundthread.KillableThread):
         icon:   "plex": shows Plex icon
                 "error": shows Kodi error icon
         """
-        if state.SYNC_DIALOG is not True and self.force_dialog is not True:
+        if not force and state.SYNC_DIALOG is not True and self.force_dialog is not True:
             return
         if icon == "plex":
             utils.dialog('notification',
@@ -90,43 +83,6 @@ class Sync(backgroundthread.KillableThread):
                          heading='{plex}',
                          message=message,
                          icon='{error}')
-
-    def sync_fanart(self, missing_only=True, refresh=False):
-        """
-        Throw items to the fanart queue in order to download missing (or all)
-        additional fanart.
-
-        missing_only=True    False will start look-up for EVERY item
-        refresh=False        True will force refresh all external fanart
-        """
-        if utils.settings('FanartTV') == 'false':
-            return
-        with plexdb.Get_Plex_DB() as plex_db:
-            if missing_only:
-                with plexdb.Get_Plex_DB() as plex_db:
-                    items = plex_db.get_missing_fanart()
-                LOG.info('Trying to get %s additional fanart', len(items))
-            else:
-                items = []
-                for plex_type in (v.PLEX_TYPE_MOVIE, v.PLEX_TYPE_SHOW):
-                    items.extend(plex_db.itemsByType(plex_type))
-                LOG.info('Trying to get ALL additional fanart for %s items',
-                         len(items))
-        if not items:
-            return
-        # Shuffle the list to not always start out identically
-        shuffle(items)
-        # Checking FanartTV for %s items
-        self.fanartqueue.put(artwork.ArtworkSyncMessage(
-            utils.lang(30018) % len(items)))
-        for item in items:
-            self.fanartqueue.put({
-                'plex_id': item['plex_id'],
-                'plex_type': item['plex_type'],
-                'refresh': refresh
-            })
-        # FanartTV lookup completed
-        self.fanartqueue.put(artwork.ArtworkSyncMessage(utils.lang(30019)))
 
     def triage_lib_scans(self):
         """
@@ -148,21 +104,22 @@ class Sync(backgroundthread.KillableThread):
                 self.show_kodi_note(utils.lang(39410), icon='error')
                 self.force_dialog = False
         elif state.RUN_LIB_SCAN == 'fanart':
-            # Only look for missing fanart (No)
-            # or refresh all fanart (Yes)
+            # Only look for missing fanart (No) or refresh all fanart (Yes)
             from .windows import optionsdialog
             refresh = optionsdialog.show(utils.lang(29999),
                                          utils.lang(39223),
                                          utils.lang(39224),  # refresh all
                                          utils.lang(39225)) == 0
-            self.sync_fanart(missing_only=not refresh, refresh=refresh)
+            if not self.start_fanart_download(refresh=refresh):
+                utils.dialog('notification',
+                             heading='{plex}',
+                             message=message,
+                             icon='{plex}',
+                             sound=False)
         elif state.RUN_LIB_SCAN == 'textures':
             artwork.Artwork().fullTextureCacheSync()
-        else:
-            raise NotImplementedError('Library scan not defined: %s'
-                                      % state.RUN_LIB_SCAN)
 
-    def onLibrary_scan_finished(self, successful):
+    def on_library_scan_finished(self, successful):
         """
         Hit this after the full sync has finished
         """
@@ -178,12 +135,35 @@ class Sync(backgroundthread.KillableThread):
         show_dialog = show_dialog if show_dialog is not None else state.SYNC_DIALOG
         if block:
             self.lock.acquire()
-            library_sync.start(show_dialog, repair, self.onLibrary_scan_finished)
+            library_sync.start(show_dialog, repair, self.on_library_scan_finished)
             # Will block until scan is finished
             self.lock.acquire()
             self.lock.release()
         else:
-            library_sync.start(show_dialog, repair, self.onLibrary_scan_finished)
+            library_sync.start(show_dialog, repair, self.on_library_scan_finished)
+
+    def start_fanart_download(self, refresh):
+        if not utils.settings('FanartTV') == 'true':
+            LOG.info('Additional fanart download is deactivated')
+            return False
+        elif self.fanart is None or not self.fanart.is_alive():
+            LOG.info('Start downloading additional fanart with refresh %s',
+                     refresh)
+            self.fanart = library_sync.FanartThread(self.on_fanart_download_finished, refresh)
+            self.fanart.start()
+            return True
+        else:
+            LOG.info('Still downloading fanart')
+            return False
+
+    def on_fanart_download_finished(self):
+        # FanartTV lookup completed
+        if state.SYNC_DIALOG:
+            utils.dialog('notification',
+                         heading='{plex}',
+                         message=utils.lang(30019),
+                         icon='{plex}',
+                         sound=False)
 
     def run(self):
         try:
@@ -191,12 +171,11 @@ class Sync(backgroundthread.KillableThread):
         except:
             state.DB_SCAN = False
             utils.window('plex_dbScan', clear=True)
-            utils.ERROR(txt='Sync.py crashed', notify=True)
+            utils.ERROR(txt='sync.py crashed', notify=True)
             raise
 
     def _run_internal(self):
         LOG.info("---===### Starting Sync ###===---")
-        self.force_dialog = False
         install_sync_done = utils.settings('SyncInstallRunDone') == 'true'
         playlist_monitor = None
         initial_sync_done = False
@@ -239,9 +218,6 @@ class Sync(backgroundthread.KillableThread):
         plex_db.initialize()
         # Hack to speed up look-ups for actors (giant table!)
         utils.create_actor_db_index()
-        # Run start up sync
-        LOG.info("Db version: %s", utils.settings('dbCreatedWithVersion'))
-        LOG.info('Refreshing video nodes and playlists now')
         with kodidb.GetKodiDB('video') as kodi_db:
             # Setup the paths for addon-paths (even when using direct paths)
             kodi_db.setup_path_table()
@@ -276,8 +252,7 @@ class Sync(backgroundthread.KillableThread):
                     if library_sync.PLAYLIST_SYNC_ENABLED:
                         from . import playlists
                         playlist_monitor = playlists.kodi_playlist_monitor()
-                    self.sync_fanart()
-                    self.fanartthread.start()
+                    self.start_fanart_download(refresh=False)
                 else:
                     LOG.error('Initial start-up full sync unsuccessful')
                 self.force_dialog = False
@@ -299,8 +274,7 @@ class Sync(backgroundthread.KillableThread):
                         from . import playlists
                         playlist_monitor = playlists.kodi_playlist_monitor()
                     artwork.Artwork().cache_major_artwork()
-                    self.sync_fanart()
-                    self.fanartthread.start()
+                    self.start_fanart_download(refresh=False)
                 else:
                     LOG.info('Startup sync has not yet been successful')
 

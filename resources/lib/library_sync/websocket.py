@@ -5,10 +5,10 @@ from logging import getLogger
 
 from .common import update_kodi_library
 from .full_sync import PLAYLIST_SYNC_ENABLED
-from .fanart import FANART_QUEUE, SYNC_FANART
+from .fanart import SYNC_FANART, FanartTask
 from ..plex_api import API
 from ..plex_db import PlexDB
-from .. import playlists, plex_functions as PF, itemtypes
+from .. import backgroundthread, playlists, plex_functions as PF, itemtypes
 from .. import utils, variables as v, state
 
 LOG = getLogger('PLEX.sync.websocket')
@@ -89,11 +89,11 @@ def process_websocket_messages():
             successful, video, music = process_new_item_message(message)
             if (successful and SYNC_FANART and
                     message['type'] in (v.PLEX_TYPE_MOVIE, v.PLEX_TYPE_SHOW)):
-                FANART_QUEUE.put({
-                    'plex_id': utils.cast(int, message['ratingKey']),
-                    'plex_type': message['type'],
-                    'refresh': False
-                })
+                task = FanartTask()
+                task.setup(utils.cast(int, message['ratingKey']),
+                           message['type'],
+                           refresh=False)
+                backgroundthread.BGThreader.addTask(task)
         if successful is True:
             delete_list.append(i)
             update_kodi_video_library = True if video else update_kodi_video_library
