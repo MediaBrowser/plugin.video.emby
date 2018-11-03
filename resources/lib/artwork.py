@@ -255,8 +255,6 @@ class Artwork():
             old_url = cursor.fetchone()[0]
         except TypeError:
             # Add the artwork
-            LOG.debug('Adding Art Link for %s kodi_id %s, kodi_type %s: %s',
-                      kodi_art, kodi_id, kodi_type, url)
             query = '''
                 INSERT INTO art(media_id, media_type, type, url)
                 VALUES (?, ?, ?, ?)
