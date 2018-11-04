@@ -322,7 +322,7 @@ class Episode(ItemBase, TvShowMixin):
             LOG.error('Error getting plex_id for episode, skipping: %s',
                       xml.attrib)
             return
-        entry = self.plexdb.item_by_id(plex_id)
+        entry = self.plexdb.item_by_id(plex_id, v.PLEX_TYPE_EPISODE)
         try:
             kodi_id = entry[0]
             old_kodi_fileid = entry[1]
