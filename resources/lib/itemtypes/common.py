@@ -80,34 +80,29 @@ class ItemBase(object):
                                     kodi_type,
                                     self.kodicursor)
 
-    def updateUserdata(self, xml):
+    def update_userdata(self, xml_element, plex_type):
         """
         Updates the Kodi watched state of the item from PMS. Also retrieves
         Plex resume points for movies in progress.
-
-        viewtag and viewid only serve as dummies
         """
-        for mediaitem in xml:
-            api = API(mediaitem)
-            # Get key and db entry on the Kodi db side
-            db_item = self.plexdb.getItem_byId(api.plex_id())
-            try:
-                fileid = db_item[1]
-            except TypeError:
-                continue
-            # Grab the user's viewcount, resume points etc. from PMS' answer
-            userdata = api.userdata()
-            # Write to Kodi DB
-            self.kodi_db.set_resume(fileid,
-                                    userdata['Resume'],
-                                    userdata['Runtime'],
-                                    userdata['PlayCount'],
-                                    userdata['LastPlayedDate'],
-                                    api.plex_type())
-            if v.KODIVERSION >= 17:
-                self.kodi_db.update_userrating(db_item[0],
-                                               db_item[4],
-                                               userdata['UserRating'])
+        api = API(xml_element)
+        # Get key and db entry on the Kodi db side
+        db_item = self.plexdb.item_by_id(api.plex_id(), plex_type)
+        if not db_item:
+            LOG.error('Item not yet synced: %s', xml_element.attrib)
+            return
+        # Grab the user's viewcount, resume points etc. from PMS' answer
+        userdata = api.userdata()
+        # Write to Kodi DB
+        self.kodi_db.set_resume(db_item['kodi_fileid'],
+                                userdata['Resume'],
+                                userdata['Runtime'],
+                                userdata['PlayCount'],
+                                userdata['LastPlayedDate'],
+                                plex_type)
+        self.kodi_db.update_userrating(db_item['kodi_id'],
+                                       db_item['kodi_type'],
+                                       userdata['UserRating'])
 
     def update_playstate(self, mark_played, view_count, resume, duration,
                          kodi_fileid, lastViewedAt, plex_type):

@@ -534,8 +534,18 @@ class DownloadGen(object):
 
     Yields XML etree children or raises RuntimeError
     """
-    def __init__(self, url, args=None):
+    def __init__(self, url, plex_type=None, last_viewed_at=None,
+                 updated_at=None, args=None):
         self._args = args or {}
+        url += '?'
+        if plex_type:
+            url = '%stype=%s&' % (url, v.PLEX_TYPE_NUMBER_FROM_PLEX_TYPE[plex_type])
+        if last_viewed_at:
+            url = '%slastViewedAt>=%s&' % (url, last_viewed_at)
+        if updated_at:
+            url = '%supdatedAt>=%s&' % (url, updated_at)
+        if url.endswith('?') or url.endswith('&'):
+            url = url[:-1]
         self._url = url
         self._pos = 0
         self._exhausted = False
@@ -549,6 +559,7 @@ class DownloadGen(object):
             'sort': 'id',  # Entries are sorted by plex_id
             'excludeAllLeaves': 1  # PMS wont attach a first summary child
         })
+        LOG.debug('DownloadGen url: %s, args: %s', self._url, self._args)
         self.xml = DU().downloadUrl(self._url, parameters=self._args)
         try:
             self.xml.attrib
@@ -588,11 +599,11 @@ class SectionItems(DownloadGen):
     """
     Iterator object to get all items of a Plex library section
     """
-    def __init__(self, section_id, args=None):
-        if args and 'type' in args:
-            args['type'] = v.PLEX_TYPE_NUMBER_FROM_PLEX_TYPE[args['type']]
-        super(SectionItems, self).__init__(
-            '{server}/library/sections/%s/all' % section_id, args)
+    def __init__(self, section_id, plex_type=None, last_viewed_at=None,
+                 updated_at=None, args=None):
+        url = '{server}/library/sections/%s/all' % section_id
+        super(SectionItems, self).__init__(url, plex_type, last_viewed_at,
+                                           updated_at, args)
 
 
 class Children(DownloadGen):

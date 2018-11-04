@@ -47,7 +47,7 @@ def sync_pms_time():
                 continue
             library_id = section.attrib['key']
             try:
-                iterator = PF.SectionItems(library_id, {'type': plex_type})
+                iterator = PF.SectionItems(library_id, plex_type=plex_type)
                 for item in iterator:
                     if item.get('viewCount'):
                         # Don't want to mess with items that have playcount>0

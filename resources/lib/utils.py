@@ -446,6 +446,14 @@ def unix_date_to_kodi(stamp):
     return localdate
 
 
+def kodi_time_to_plex(stamp):
+    """
+    Returns a Kodi timestamp (int/float) in Plex time (subtracting the
+    KODI_PLEX_TIME_OFFSET)
+    """
+    return stamp - state.KODI_PLEX_TIME_OFFSET
+
+
 def unix_timestamp(seconds_into_the_future=None):
     """
     Returns a Unix time stamp (seconds passed since January 1 1970) for NOW as
