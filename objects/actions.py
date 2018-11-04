@@ -664,7 +664,7 @@ class Actions(object):
 
     def detect_widgets(self, item):
 
-        kodi_version = xbmc.getInfoLabel('System.BuildVersion')
+        kodi_version = settings('platformDetected') == 'CoreElec'
         skip_widget = window('emby.context.widget.bool')
         show_dialog = window('emby.playinfo.bool')
 
@@ -672,8 +672,8 @@ class Actions(object):
         window('emby.playinfo', clear=True)
         window('emby.context.count', clear=True)
 
-        if (not xbmc.getCondVisibility('Window.IsMedia') and not skip_widget and not show_dialog and
-            ((item['Type'] == 'Audio' and not xbmc.getCondVisibility('Integer.IsGreater(Playlist.Length(music),1)')) or
+        if (not kodi_version and not xbmc.getCondVisibility('Window.IsMedia') and not skip_widget and not show_dialog and 
+            ((item['Type'] == 'Audio' and not xbmc.getCondVisibility('Integer.IsGreater(Playlist.Length(music),1)')) or 
             not xbmc.getCondVisibility('Integer.IsGreater(Playlist.Length(video),1)'))):
 
             return True
