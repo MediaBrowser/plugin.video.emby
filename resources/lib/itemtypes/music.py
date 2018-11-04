@@ -13,6 +13,18 @@ LOG = getLogger('PLEX.music')
 
 
 class MusicMixin(object):
+    def __enter__(self):
+        """
+        Open DB connections and cursors
+        """
+        self.plexconn = utils.kodi_sql('plex')
+        self.plexcursor = self.plexconn.cursor()
+        self.kodiconn = utils.kodi_sql('music')
+        self.kodicursor = self.kodiconn.cursor()
+        self.plexdb = PlexDB(self.plexcursor)
+        self.kodi_db = kodidb.KodiDBMethods(self.kodicursor)
+        return self
+
     def remove(self, plex_id, plex_type=None):
         """
         Remove the entire music object, including all associated entries from
@@ -128,22 +140,10 @@ class MusicMixin(object):
                                     self.kodicursor)
 
 
-class Artist(ItemBase, MusicMixin):
+class Artist(MusicMixin, ItemBase):
     """
     For Plex library-type artists
     """
-    def __enter__(self):
-        """
-        Open DB connections and cursors
-        """
-        self.plexconn = utils.kodi_sql('plex')
-        self.plexcursor = self.plexconn.cursor()
-        self.kodiconn = utils.kodi_sql('music')
-        self.kodicursor = self.kodiconn.cursor()
-        self.plexdb = PlexDB(self.plexcursor)
-        self.kodi_db = kodidb.KodiDBMethods(self.kodicursor)
-        return self
-
     def add_update(self, xml, section_name=None, section_id=None,
                    children=None):
         """
@@ -217,7 +217,7 @@ class Artist(ItemBase, MusicMixin):
                                self.last_sync)
 
 
-class Album(ItemBase, MusicMixin):
+class Album(MusicMixin, ItemBase):
     def add_update(self, xml, section_name=None, section_id=None,
                    children=None, scan_children=True):
         """
@@ -406,7 +406,7 @@ class Album(ItemBase, MusicMixin):
                               self.last_sync)
 
 
-class Song(ItemBase, MusicMixin):
+class Song(MusicMixin, ItemBase):
     def add_update(self, xml, section_name=None, section_id=None,
                    children=None, album_xml=None, genres=None, genre=None,
                    compilation=None):
