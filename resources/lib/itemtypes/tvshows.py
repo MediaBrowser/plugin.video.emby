@@ -290,9 +290,19 @@ class Season(ItemBase, TvShowMixin):
         show_id = api.parent_plex_id()
         show = self.plexdb.show(show_id)
         if not show:
-            LOG.error('Could not find parent tv show for season %s. '
-                      'Skipping season for now.', plex_id)
-            return
+            LOG.warn('Parent TV show %s not found in DB, adding it', show_id)
+            show_xml = PF.GetPlexMetadata(show_id)
+            try:
+                show_xml[0].attrib
+            except (TypeError, IndexError, AttributeError):
+                LOG.error("Parent tvshow %s xml download failed", show_id)
+                return False
+            Show(self.last_sync, plexdb=self.plexdb, kodi_db=self.kodi_db).add_update(
+                show_xml[0], section_name, section_id)
+            show = self.plexdb.show(show_id)
+            if not show:
+                LOG.error('Still could not find parent tv show %s', show_id)
+                return
         parent_id = show['kodi_id']
         kodi_id = self.kodi_db.add_season(parent_id, api.season_number())
         self.artwork.modify_artwork(api.artwork(),
