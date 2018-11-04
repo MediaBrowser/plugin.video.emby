@@ -66,7 +66,7 @@ class PlexDBBase(object):
                          v.PLEX_TYPE_EPISODE,
                          v.PLEX_TYPE_SHOW,
                          v.PLEX_TYPE_SEASON,
-                         v.PLEX_TYPE_SONG,
+                         'song',  # darn
                          v.PLEX_TYPE_ALBUM,
                          v.PLEX_TYPE_ARTIST):
                 method = getattr(self, kind)
