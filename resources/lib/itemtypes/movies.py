@@ -98,8 +98,7 @@ class Movie(ItemBase):
                                         api.date_created())
 
         if update_item:
-            LOG.info('UPDATE movie plex_id: %s - Title: %s',
-                     plex_id, api.title())
+            LOG.info('UPDATE movie plex_id: %s - %s', plex_id, api.title())
             if file_id != old_kodi_fileid:
                 self.kodi_db.remove_file(old_kodi_fileid)
             rating_id = self.kodi_db.get_ratingid(kodi_id,
@@ -123,7 +122,7 @@ class Movie(ItemBase):
                 self.kodi_db.remove_uniqueid(kodi_id, v.KODI_TYPE_MOVIE)
                 uniqueid = -1
         else:
-            LOG.info("ADD movie plex_id: %s - Title: %s", plex_id, title)
+            LOG.info("ADD movie plex_id: %s - %s", plex_id, title)
             rating_id = self.kodi_db.get_ratingid(kodi_id,
                                                   v.KODI_TYPE_MOVIE)
             self.kodi_db.add_ratings(rating_id,

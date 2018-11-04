@@ -497,7 +497,7 @@ class Song(ItemBase, MusicMixin):
 
         # UPDATE THE SONG #####
         if update_item:
-            LOG.info("UPDATE song plex_id: %s - Title: %s", plex_id, title)
+            LOG.info("UPDATE song plex_id: %s - %s", plex_id, title)
             # Use dummy strHash '123' for Kodi
             query = "UPDATE path SET strPath = ?, strHash = ? WHERE idPath = ?"
             self.kodicursor.execute(query, (path, '123', kodi_pathid))
@@ -574,7 +574,7 @@ class Song(ItemBase, MusicMixin):
 
         # OR ADD THE SONG #####
         else:
-            LOG.info("ADD song plex_id: %s - Title: %s", plex_id, title)
+            LOG.info("ADD song plex_id: %s - %s", plex_id, title)
             # Add path
             kodi_pathid = self.kodi_db.add_music_path(path, hash_string="123")
             # Get the album

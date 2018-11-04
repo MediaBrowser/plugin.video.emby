@@ -181,8 +181,7 @@ class Show(ItemBase, TvShowMixin):
                                                   id_parent_path=toppathid)
         # UPDATE THE TVSHOW #####
         if update_item:
-            LOG.info("UPDATE tvshow plex_id: %s - Title: %s",
-                     plex_id, api.title())
+            LOG.info("UPDATE tvshow plex_id: %s - %s", plex_id, api.title())
             # update new ratings Kodi 17
             rating_id = self.kodi_db.get_ratingid(kodi_id, v.KODI_TYPE_SHOW)
             self.kodi_db.update_ratings(kodi_id,
@@ -217,8 +216,7 @@ class Show(ItemBase, TvShowMixin):
                         kodi_id))
         # OR ADD THE TVSHOW #####
         else:
-            LOG.info("ADD tvshow plex_id: %s - Title: %s",
-                     plex_id, api.title())
+            LOG.info("ADD tvshow plex_id: %s - %s", plex_id, api.title())
             # Link the path
             query = "INSERT INTO tvshowlinkpath(idShow, idPath) values (?, ?)"
             self.kodicursor.execute(query, (kodi_id, kodi_pathid))
@@ -438,8 +436,7 @@ class Episode(ItemBase, TvShowMixin):
 
         # UPDATE THE EPISODE #####
         if update_item:
-            LOG.info("UPDATE episode plex_id: %s, Title: %s",
-                     plex_id, api.title())
+            LOG.info("UPDATE episode plex_id: %s - %s", plex_id, api.title())
             if kodi_fileid != old_kodi_fileid:
                 self.kodi_db.remove_file(old_kodi_fileid)
             ratingid = self.kodi_db.get_ratingid(kodi_id,
@@ -475,8 +472,7 @@ class Episode(ItemBase, TvShowMixin):
 
         # OR ADD THE EPISODE #####
         else:
-            LOG.info("ADD episode plex_id: %s - Title: %s",
-                     plex_id, api.title())
+            LOG.info("ADD episode plex_id: %s - %s", plex_id, api.title())
             # Create the episode entry
             rating_id = self.kodi_db.get_ratingid(kodi_id,
                                                   v.KODI_TYPE_EPISODE)
