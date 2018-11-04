@@ -312,7 +312,7 @@ class Album(MusicMixin, ItemBase):
                     strGenres = ?,
                     strReview = ?,
                     strImage = ?,
-                    Userrating = ?,
+                    iUserrating = ?,
                     lastScraped = ?,
                     strReleaseType = ?,
                     strLabel = ?,
