@@ -125,22 +125,21 @@ class Show(ItemBase, TvShowMixin):
         Process a single show
         """
         api = API(xml)
-        update_item = True
         plex_id = api.plex_id()
         LOG.debug('Adding show with plex_id %s', plex_id)
         if not plex_id:
             LOG.error("Cannot parse XML data for TV show: %s", xml.attrib)
             return
         show = self.plexdb.show(plex_id)
-        try:
-            kodi_id = show['kodi_id']
-            kodi_pathid = show['kodi_pathid']
-        except TypeError:
+        if not show:
             update_item = False
             query = 'SELECT COALESCE(MAX(idShow), 0) FROM tvshow'
             self.kodicursor.execute(query)
             kodi_id = self.kodicursor.fetchone()[0] + 1
         else:
+            update_item = True
+            kodi_id = show['kodi_id']
+            kodi_pathid = show['kodi_pathid']
             # Verification the item is still in Kodi
             self.kodicursor.execute('SELECT * FROM tvshow WHERE idShow = ?',
                                     (kodi_id,))
