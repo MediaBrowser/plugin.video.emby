@@ -5,7 +5,7 @@ from logging import getLogger
 
 from .common import ItemBase, process_path
 from ..plex_api import API
-from .. import state, variables as v
+from .. import plex_functions as PF, state, variables as v
 
 LOG = getLogger('PLEX.tvshows')
 
@@ -315,24 +315,23 @@ class Episode(ItemBase, TvShowMixin):
         Process single episode
         """
         api = API(xml)
-        update_item = True
         plex_id = api.plex_id()
         LOG.debug('Adding episode with plex_id %s', plex_id)
         if not plex_id:
             LOG.error('Error getting plex_id for episode, skipping: %s',
                       xml.attrib)
             return
-        entry = self.plexdb.item_by_id(plex_id, v.PLEX_TYPE_EPISODE)
-        try:
-            kodi_id = entry[0]
-            old_kodi_fileid = entry[1]
-            kodi_pathid = entry[2]
-        except TypeError:
+        episode = self.plexdb.episode(plex_id)
+        if not episode:
             update_item = False
             query = 'SELECT COALESCE(MAX(idEpisode), 0) FROM episode'
             self.kodicursor.execute(query)
             kodi_id = self.kodicursor.fetchone()[0] + 1
         else:
+            update_item = True
+            kodi_id = episode['kodi_id']
+            old_kodi_fileid = episode['kodi_fileid']
+            kodi_pathid = episode['kodi_pathid']
             # Verification the item is still in Kodi
             query = 'SELECT * FROM episode WHERE idEpisode = ? LIMIT 1'
             self.kodicursor.execute(query, (kodi_id, ))
@@ -357,13 +356,41 @@ class Episode(ItemBase, TvShowMixin):
         airs_before_season = "-1"
         airs_before_episode = "-1"
 
+        # The grandparent TV show
         show = self.plexdb.show(show_id)
-        try:
-            grandparent_id = show[3]
-        except TypeError:
-            LOG.error("Parent tvshow now found, skip item")
-            return False
-        parent_id = self.kodi_db.add_season(grandparent_id, season_no)
+        if not show:
+            LOG.warn('Grandparent TV show %s not found in DB, adding it', show_id)
+            show_xml = PF.GetPlexMetadata(show_id)
+            try:
+                show_xml[0].attrib
+            except (TypeError, IndexError, AttributeError):
+                LOG.error("Grandparent tvshow %s xml download failed", show_id)
+                return False
+            Show(self.last_sync, plexdb=self.plexdb, kodi_db=self.kodi_db).add_update(
+                show_xml[0], section_name, section_id)
+            show = self.plexdb.show(show_id)
+            if not show:
+                LOG.error('Still could not find grandparent tv show %s', show_id)
+                return
+        grandparent_id = show['kodi_id']
+
+        # The parent Season
+        season = self.plexdb.season(season_id)
+        if not season:
+            LOG.warn('Parent season %s not found in DB, adding it', season_id)
+            season_xml = PF.GetPlexMetadata(season_id)
+            try:
+                season_xml[0].attrib
+            except (TypeError, IndexError, AttributeError):
+                LOG.error("Parent season %s xml download failed", season_id)
+                return False
+            Season(self.last_sync, plexdb=self.plexdb, kodi_db=self.kodi_db).add_update(
+                season_xml[0], section_name, section_id)
+            season = self.plexdb.season(season_id)
+            if not season:
+                LOG.error('Still could not find parent season %s', season_id)
+                return
+        parent_id = season['kodi_id']
 
         # GET THE FILE AND PATH #####
         do_indirect = not state.DIRECT_PATHS
