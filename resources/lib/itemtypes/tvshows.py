@@ -293,7 +293,7 @@ class Season(ItemBase, TvShowMixin):
             LOG.error('Could not find parent tv show for season %s. '
                       'Skipping season for now.', plex_id)
             return
-        parent_id = show['parent_id']
+        parent_id = show['kodi_id']
         kodi_id = self.kodi_db.add_season(parent_id, api.season_number())
         self.artwork.modify_artwork(api.artwork(),
                                     kodi_id,
