@@ -265,8 +265,6 @@ class Artwork():
                 # Only cache artwork if it changed
                 return
             self.delete_cached_artwork(old_url)
-            LOG.debug("Updating Art url for %s kodi_id %s, kodi_type %s to %s",
-                      kodi_art, kodi_id, kodi_type, url)
             query = '''
                 UPDATE art SET url = ?
                 WHERE media_id = ? AND media_type = ? AND type = ?
