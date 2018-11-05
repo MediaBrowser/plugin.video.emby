@@ -150,7 +150,6 @@ class FullSync(backgroundthread.KillableThread, common.libsync_mixin):
             kinds.extend([
                 (v.PLEX_TYPE_ARTIST, v.PLEX_TYPE_ARTIST, itemtypes.Artist, False),
                 (v.PLEX_TYPE_ALBUM, v.PLEX_TYPE_ARTIST, itemtypes.Album, True),
-                (v.PLEX_TYPE_SONG, v.PLEX_TYPE_ARTIST, itemtypes.Song, False)
             ])
         with PlexDB() as self.plexdb:
             for kind in kinds:

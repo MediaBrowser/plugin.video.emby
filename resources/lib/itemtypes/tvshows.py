@@ -284,7 +284,7 @@ class Season(ItemBase, TvShowMixin):
             LOG.error('Error getting plex_id for season, skipping: %s',
                       xml.attrib)
             return
-        show_id = api.parent_plex_id()
+        show_id = api.parent_id()
         show = self.plexdb.show(show_id)
         if not show:
             LOG.warn('Parent TV show %s not found in DB, adding it', show_id)

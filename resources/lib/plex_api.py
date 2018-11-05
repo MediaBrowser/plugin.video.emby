@@ -653,7 +653,7 @@ class API(object):
         string = " / ".join(listobject)
         return string
 
-    def parent_plex_id(self):
+    def parent_id(self):
         """
         Returns the 'parentRatingKey' as a string or None
         """

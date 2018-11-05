@@ -334,7 +334,7 @@ class Album(MusicMixin, ItemBase):
                  kodi_id))
 
         # Associate the parentid for plex reference
-        parent_id = api.parent_plex_id()
+        parent_id = api.parent_id()
         artist_id = None
         if parent_id is not None:
             try:
@@ -418,20 +418,75 @@ class Song(MusicMixin, ItemBase):
         if not plex_id:
             LOG.error('Error processing song: %s', xml.attrib)
             return
-        LOG.debug('Adding song with plex_id %s', plex_id)
-        db_item = self.plexdb.song(plex_id)
-        if db_item:
+        song = self.plexdb.song(plex_id)
+        if song:
             update_item = True
-            kodi_id = db_item['kodi_id']
-            kodi_pathid = db_item['kodi_pathid']
-            album_id = db_item['album_id']
-            parent_id = db_item['parent_id']
-            grandparent_id = db_item['grandparent_id']
-            artist_id = db_item['artist_id']
+            kodi_id = song['kodi_id']
+            kodi_pathid = song['kodi_pathid']
         else:
             update_item = False
             self.kodicursor.execute('SELECT COALESCE(MAX(idSong),0) FROM song')
             kodi_id = self.kodicursor.fetchone()[0] + 1
+        artist_id = api.grandparent_id()
+        album_id = api.parent_id()
+
+        # The grandparent Artist - should always be present for every song!
+        artist = self.plexdb.artist(artist_id)
+        if not artist:
+            LOG.warn('Grandparent artist %s not found in DB, adding it',
+                     artist_id)
+            artist_xml = PF.GetPlexMetadata(artist_id)
+            try:
+                artist_xml[0].attrib
+            except (TypeError, IndexError, AttributeError):
+                LOG.error('Grandparent tvartist %s xml download failed for %s',
+                          artist_id, xml.attrib)
+                return
+            Artist(self.last_sync, plexdb=self.plexdb, kodi_db=self.kodi_db).add_update(
+                artist_xml[0], section_name, section_id)
+            artist = self.plexdb.artist(artist_id)
+            if not artist:
+                LOG.error('Still could not find grandparent artist %s for %s',
+                          artist_id, xml.attrib)
+                return
+        grandparent_id = artist['kodi_id']
+
+        # The parent Album
+        if not album_id:
+            # No album found, create a single's album
+            LOG.info('Creating singles album')
+            self.kodicursor.execute(
+                'SELECT COALESCE(MAX(idAlbum),0) FROM album')
+            parent_id = self.kodicursor.fetchone()[0] + 1
+            query = '''
+                INSERT INTO album(
+                    idAlbum,
+                    strGenres,
+                    iYear,
+                    strReleaseType)
+                VALUES (?, ?, ?, ?)
+            '''
+            self.kodicursor.execute(query,
+                                    (parent_id, genre, api.year(), 'single'))
+        else:
+            album = self.plexdb.album(album_id)
+            if not album:
+                LOG.warn('Parent album %s not found in DB, adding it', album_id)
+                album_xml = PF.GetPlexMetadata(album_id)
+                try:
+                    album_xml[0].attrib
+                except (TypeError, IndexError, AttributeError):
+                    LOG.error('Parent album %s xml download failed for %s',
+                              album_id, xml.attrib)
+                    return
+                Album(self.last_sync, plexdb=self.plexdb, kodi_db=self.kodi_db).add_update(
+                    album_xml[0], section_name, section_id)
+                album = self.plexdb.album(album_id)
+                if not album:
+                    LOG.error('Still could not find parent album %s for %s',
+                              album_id, xml.attrib)
+                    return
+            parent_id = album['kodi_id']
 
         title = api.title()
         # Not yet implemented by Plex
@@ -577,50 +632,6 @@ class Song(MusicMixin, ItemBase):
             LOG.info("ADD song plex_id: %s - %s", plex_id, title)
             # Add path
             kodi_pathid = self.kodi_db.add_music_path(path, hash_string="123")
-            # Get the album
-            album = self.plexdb.album(api.parent_plex_id())
-            if album:
-                parent_id = album['kodi_id']
-            else:
-                # No album found. Let's create it
-                LOG.info('Album database entry missing and album_xml=%s',
-                         album_xml)
-                album_id = api.parent_plex_id()
-                album = None
-                if album_id:
-                    album_xml = PF.GetPlexMetadata(album_id)
-                    if album_xml is None or album_xml == 401:
-                        LOG.error('Could not download album %s,', album_id)
-                        return
-                    context = Album(self.last_sync,
-                                    plexdb=self.plexdb,
-                                    kodi_db=self.kodi_db)
-                    context.add_update(album_xml[0],
-                                       section_name=section_name,
-                                       section_id=section_id,
-                                       children=[xml],
-                                       scan_children=False)
-                    album = self.plexdb.album(album_id)
-                if album:
-                    parent_id = album['kodi_id']
-                    LOG.debug("Found parent_id for album: %s", parent_id)
-                else:
-                    # No album found, create a single's album
-                    LOG.info("Failed to add album. Creating singles.")
-                    self.kodicursor.execute(
-                        'SELECT COALESCE(MAX(idAlbum),0) FROM album')
-                    parent_id = self.kodicursor.fetchone()[0] + 1
-                    query = '''
-                        INSERT INTO album(
-                            idAlbum,
-                            strGenres,
-                            iYear,
-                            strReleaseType)
-                        VALUES (?, ?, ?, ?)
-                    '''
-                    self.kodicursor.execute(query,
-                                            (parent_id, genre, year, "single"))
-
             # Create the song entry
             if v.KODIVERSION >= 18:
                 # Kodi Leia
@@ -721,29 +732,6 @@ class Song(MusicMixin, ItemBase):
                 (kodi_id, parent_id, track, title, userdata['Runtime']))
         # Link song to artists
         artist_name = api.grandparent_title()
-        artist_id = api.grandparent_id()
-        artist = self.plexdb.artist(artist_id)
-        if artist:
-            grandparent_id = artist['kodi_id']
-        else:
-            LOG.info('Missing artist for song %s. Adding...', plex_id)
-            artist_xml = PF.GetPlexMetadata(artist_id)
-            if artist_xml is None or artist_xml == 401:
-                LOG.error('Error getting artist, abort')
-                return
-            context = Artist(self.last_sync,
-                             plexdb=self.plexdb,
-                             kodi_db=self.kodi_db)
-            context.add_update(artist_xml[0],
-                               section_name=section_name,
-                               section_id=section_id,
-                               children=None)
-            artist = self.plexdb.artist(artist_id)
-            if not artist:
-                LOG.error('Could not add artist %s for song %s',
-                          artist_name, plex_id)
-                return
-            grandparent_id = artist['kodi_id']
         # Do the actual linking
         query = '''
             INSERT OR REPLACE INTO song_artist(
@@ -754,9 +742,8 @@ class Song(MusicMixin, ItemBase):
                 strArtist)
             VALUES (?, ?, ?, ?, ?)
         '''
-        self.kodicursor.execute(
-            query,
-            (grandparent_id, kodi_id, 1, 0, artist_name))
+        self.kodicursor.execute(query,
+                                (grandparent_id, kodi_id, 1, 0, artist_name))
         # Add genres
         if genres:
             self.kodi_db.add_music_genres(kodi_id, genres, v.KODI_TYPE_SONG)
