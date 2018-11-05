@@ -128,12 +128,20 @@ class Sync(backgroundthread.KillableThread):
         self.sync_successful = successful
         self.last_full_sync = utils.unix_timestamp()
         set_library_scan_toggle(boolean=False)
+        if successful:
+            self.show_kodi_note(utils.lang(39407))
+        else:
+            LOG.error('Could not finish scheduled full sync')
+            self.force_dialog = True
+            self.show_kodi_note(utils.lang(39410), icon='error')
+            self.force_dialog = False
         # try:
         #     self.lock.release()
         # except backgroundthread.threading.ThreadError:
         #     pass
 
     def start_library_sync(self, show_dialog=None, repair=False, block=False):
+        set_library_scan_toggle(boolean=True)
         show_dialog = show_dialog if show_dialog is not None else state.SYNC_DIALOG
         library_sync.start(show_dialog, repair, self.on_library_scan_finished)
         # if block:
@@ -243,8 +251,8 @@ class Sync(backgroundthread.KillableThread):
 
             if not install_sync_done:
                 # Very FIRST sync ever upon installation or reset of Kodi DB
-                self.force_dialog = True
                 set_library_scan_toggle()
+                self.force_dialog = True
                 # Initialize time offset Kodi - PMS
                 library_sync.sync_pms_time()
                 last_time_sync = utils.unix_timestamp()
@@ -258,7 +266,6 @@ class Sync(backgroundthread.KillableThread):
                     install_sync_done = True
                     initial_sync_done = True
                     utils.settings('dbCreatedWithVersion', v.ADDON_VERSION)
-                    self.force_dialog = False
                     if library_sync.PLAYLIST_SYNC_ENABLED:
                         from . import playlists
                         playlist_monitor = playlists.kodi_playlist_monitor()
@@ -266,13 +273,13 @@ class Sync(backgroundthread.KillableThread):
                     self.start_image_cache_thread()
                 else:
                     LOG.error('Initial start-up full sync unsuccessful')
+                    xbmc.sleep(1000)
                 self.force_dialog = False
                 xbmc.executebuiltin('InhibitIdleShutdown(false)')
 
             elif not initial_sync_done:
                 # First sync upon PKC restart. Skipped if very first sync upon
                 # PKC installation has been completed
-                set_library_scan_toggle()
                 LOG.info('Doing initial sync on Kodi startup')
                 if state.SUSPEND_SYNC:
                     LOG.warning('Forcing startup sync even if Kodi is playing')
@@ -288,6 +295,7 @@ class Sync(backgroundthread.KillableThread):
                     self.start_image_cache_thread()
                 else:
                     LOG.info('Startup sync has not yet been successful')
+                    xbmc.sleep(1000)
 
             # Currently no db scan, so we could start a new scan
             elif state.DB_SCAN is False:
@@ -303,25 +311,9 @@ class Sync(backgroundthread.KillableThread):
 
                 # Standard syncs - don't force-show dialogs
                 now = utils.unix_timestamp()
-                self.force_dialog = False
                 if (now - self.last_full_sync > state.FULL_SYNC_INTERVALL):
                     LOG.info('Doing scheduled full library scan')
-                    set_library_scan_toggle()
-                    success = self.maintain_views()
-                    if success:
-                        success = library_sync.start()
-                    if not success and not self.suspend_item_sync():
-                        LOG.error('Could not finish scheduled full sync')
-                        self.force_dialog = True
-                        self.show_kodi_note(utils.lang(39410),
-                                            icon='error')
-                        self.force_dialog = False
-                    elif success:
-                        self.last_full_sync = now
-                        # Full library sync finished successfully
-                        self.show_kodi_note(utils.lang(39407))
-                    else:
-                        LOG.info('Full sync interrupted')
+                    self.start_library_sync()
                 elif now - last_time_sync > one_day_in_seconds:
                     LOG.info('Starting daily time sync')
                     library_sync.sync_pms_time()
