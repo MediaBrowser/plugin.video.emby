@@ -36,7 +36,7 @@ class Sync(backgroundthread.KillableThread):
         # Show sync dialog even if user deactivated?
         self.force_dialog = False
         if utils.settings('enableTextureCache') == "true":
-            self.image_cache_thread = artwork.Image_Cache_Thread()
+            self.image_cache_thread = artwork.ImageCachingThread()
         # Lock used to wait on a full sync, e.g. on initial sync
         # self.lock = backgroundthread.threading.Lock()
         super(Sync, self).__init__()

@@ -35,7 +35,7 @@ def double_urldecode(text):
 
 
 @utils.thread_methods(add_suspends=IMAGE_CACHING_SUSPENDS)
-class Image_Cache_Thread(Thread):
+class ImageCachingThread(Thread):
     sleep_between = 50
     # Potentially issues with limited number of threads
     # Hence let Kodi wait till download is successful
@@ -46,7 +46,7 @@ class Image_Cache_Thread(Thread):
         Thread.__init__(self)
 
     def run(self):
-        LOG.info("---===### Starting Image_Cache_Thread ###===---")
+        LOG.info("---===### Starting ImageCachingThread ###===---")
         stopped = self.stopped
         suspended = self.suspended
         queue = self.queue
@@ -57,7 +57,7 @@ class Image_Cache_Thread(Thread):
                 # Set in service.py
                 if stopped():
                     # Abort was requested while waiting. We should exit
-                    LOG.info("---===### Stopped Image_Cache_Thread ###===---")
+                    LOG.info("---===### Stopped ImageCachingThread ###===---")
                     return
                 xbmc.sleep(1000)
 
@@ -119,7 +119,7 @@ class Image_Cache_Thread(Thread):
             queue.task_done()
             # Sleep for a bit to reduce CPU strain
             xbmc.sleep(sleep_between)
-        LOG.info("---===### Stopped Image_Cache_Thread ###===---")
+        LOG.info("---===### Stopped ImageCachingThread ###===---")
 
 
 class Artwork():
