@@ -4,13 +4,10 @@ from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
 import xbmc
 
-from . import library_sync
-
 from .downloadutils import DownloadUtils as DU
-from . import backgroundthread, utils, path_ops
+from . import library_sync
+from . import backgroundthread, utils, path_ops, artwork, variables as v, state
 from . import plex_db, kodidb_functions as kodidb
-from . import artwork
-from . import variables as v, state
 
 LOG = getLogger('PLEX.sync')
 
@@ -36,7 +33,6 @@ class Sync(backgroundthread.KillableThread):
         self.sync_successful = False
         self.last_full_sync = 0
         self.fanart = None
-        # How long should we wait at least to process new/changed PMS items?
         # Show sync dialog even if user deactivated?
         self.force_dialog = False
         # Lock used to wait on a full sync, e.g. on initial sync
@@ -44,7 +40,7 @@ class Sync(backgroundthread.KillableThread):
         super(Sync, self).__init__()
 
     def isCanceled(self):
-        return xbmc.abortRequested or state.STOP_PKC
+        return state.STOP_PKC
 
     def isSuspended(self):
         return state.SUSPEND_LIBRARY_THREAD or state.STOP_SYNC
@@ -173,7 +169,7 @@ class Sync(backgroundthread.KillableThread):
             raise
 
     def _run_internal(self):
-        LOG.info("---===### Starting Sync ###===---")
+        LOG.info("---===### Starting Sync Thread ###===---")
         install_sync_done = utils.settings('SyncInstallRunDone') == 'true'
         playlist_monitor = None
         initial_sync_done = False
@@ -225,7 +221,7 @@ class Sync(backgroundthread.KillableThread):
             while self.isSuspended():
                 if self.isCanceled():
                     # Abort was requested while waiting. We should exit
-                    LOG.info("###===--- Sync Stopped ---===###")
+                    LOG.info("###===--- Sync Thread Stopped ---===###")
                     return
                 xbmc.sleep(1000)
 
@@ -342,4 +338,4 @@ class Sync(backgroundthread.KillableThread):
             DU().stopSession()
         except AttributeError:
             pass
-        LOG.info("###===--- Sync Stopped ---===###")
+        LOG.info("###===--- Sync Thread Stopped ---===###")
