@@ -16,7 +16,6 @@ from . import plex_functions as PF
 from . import command_pipeline
 from . import playback_starter
 from . import playqueue
-from . import artwork
 from . import variables as v
 from . import state
 from . import loghandler
@@ -44,7 +43,6 @@ class Service():
     plexcompanion_running = False
     kodimonitor_running = False
     playback_starter_running = False
-    image_cache_thread_running = False
 
     def __init__(self):
         # Initial logging
@@ -98,8 +96,6 @@ class Service():
         self.specialmonitor = kodimonitor.SpecialMonitor()
         self.playback_starter = playback_starter.PlaybackStarter()
         self.playqueue = playqueue.PlayqueueMonitor()
-        if utils.settings('enableTextureCache') == "true":
-            self.image_cache_thread = artwork.Image_Cache_Thread()
 
         welcome_msg = True
         counter = 0
@@ -158,10 +154,6 @@ class Service():
                             self.playback_starter_running = True
                             self.playback_starter.start()
                         self.playqueue.start()
-                        if (not self.image_cache_thread_running and
-                                utils.settings('enableTextureCache') == "true"):
-                            self.image_cache_thread_running = True
-                            self.image_cache_thread.start()
                 else:
                     if (self.user.user is None) and self.warn_auth:
                         # Alert user is not authenticated and suppress future
