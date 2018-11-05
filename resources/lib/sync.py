@@ -107,9 +107,10 @@ class Sync(backgroundthread.KillableThread):
                                          utils.lang(39224),  # refresh all
                                          utils.lang(39225)) == 0
             if not self.start_fanart_download(refresh=refresh):
+                # Fanart download already running
                 utils.dialog('notification',
                              heading='{plex}',
-                             message=message,
+                             message=utils.lang(30015),
                              icon='{plex}',
                              sound=False)
         elif state.RUN_LIB_SCAN == 'textures':

@@ -84,9 +84,9 @@ msgctxt "#30014"
 msgid "Connection"
 msgstr ""
 
-# PKC settings - Artwork
+# Pop-up notification if user tried to manually initiate fanart download
 msgctxt "#30015"
-msgid "Movie and show FanartTV lookups left to do:"
+msgid "Fanart download already running"
 msgstr ""
 
 msgctxt "#30016"
