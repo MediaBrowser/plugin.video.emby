@@ -298,7 +298,6 @@ class Artwork():
             # Delete thumbnail as well as the entry
             path = path_ops.translate_path("special://thumbnails/%s"
                                            % cachedurl)
-            LOG.debug("Deleting cached thumbnail: %s", path)
             if path_ops.exists(path):
                 path_ops.rmtree(path, ignore_errors=True)
             cursor.execute("DELETE FROM texture WHERE url = ?", (url,))
