@@ -154,13 +154,12 @@ class Artist(MusicMixin, ItemBase):
         if not plex_id:
             LOG.error('Cannot process artist %s', xml.attrib)
             return
-        LOG.debug('Adding artist with plex_id %s', plex_id)
-        db_item = self.plexdb.artist(plex_id)
-        if not db_item:
+        artist = self.plexdb.artist(plex_id)
+        if not artist:
             update_item = False
         else:
             update_item = True
-            kodi_id = db_item['kodi_id']
+            kodi_id = artist['kodi_id']
 
         # Not yet implemented by Plex
         musicBrainzId = None
@@ -226,19 +225,36 @@ class Album(MusicMixin, ItemBase):
         avoid infinite loops
         """
         api = API(xml)
-        update_item = True
         plex_id = api.plex_id()
         if not plex_id:
             LOG.error('Error processing album: %s', xml.attrib)
             return
-        LOG.debug('Adding album with plex_id %s', plex_id)
-        db_item = self.plexdb.album(plex_id)
-        if db_item:
+        album = self.plexdb.album(plex_id)
+        if album:
             update_item = True
-            kodi_id = db_item['kodi_id']
+            kodi_id = album['kodi_id']
         else:
             update_item = False
 
+        # Parent artist - should always be present
+        parent_id = api.parent_id()
+        artist = self.plexdb.artist(parent_id)
+        if not artist:
+            LOG.info('Artist %s does not yet exist in DB', parent_id)
+            artist_xml = PF.GetPlexMetadata(parent_id)
+            try:
+                artist_xml[0].attrib
+            except (TypeError, IndexError, AttributeError):
+                LOG.error('Could not get artist %s xml for %s',
+                          parent_id, xml.attrib)
+                return
+            Artist(artist_xml[0], section_name, section_id)
+            artist = self.plexdb.artist(parent_id)
+            if not artist:
+                LOG.error('Adding artist %s failed for %s',
+                          parent_id, xml.attrib)
+                return
+        artist_id = artist['kodi_id']
         # See if we have a compilation - Plex does NOT feature a compilation
         # flag for albums
         compilation = 0
@@ -262,17 +278,10 @@ class Album(MusicMixin, ItemBase):
         # UPDATE THE ALBUM #####
         if update_item:
             LOG.info("UPDATE album plex_id: %s - Name: %s", plex_id, name)
-            # Update the checksum in plex table
         # OR ADD THE ALBUM #####
         else:
             LOG.info("ADD album plex_id: %s - Name: %s", plex_id, name)
-            # safety checks: It looks like plex supports the same artist
-            # multiple times.
-            # Kodi doesn't allow that. In case that happens we just merge the
-            # artist entries.
             kodi_id = self.kodi_db.add_album(name, musicBrainzId)
-            # Create the reference in plex table
-
         # Process the album info
         if v.KODIVERSION >= 18:
             # Kodi Leia
@@ -332,29 +341,6 @@ class Album(MusicMixin, ItemBase):
                  api.music_studio(),
                  compilation,
                  kodi_id))
-
-        # Associate the parentid for plex reference
-        parent_id = api.parent_id()
-        artist_id = None
-        if parent_id is not None:
-            try:
-                artist_id = self.plexdb.getItem_byId(parent_id)[0]
-            except TypeError:
-                LOG.info('Artist %s does not yet exist in Plex DB', parent_id)
-                artist = PF.GetPlexMetadata(parent_id)
-                try:
-                    artist[0].attrib
-                except (TypeError, IndexError, AttributeError):
-                    LOG.error('Could not get artist xml for %s', parent_id)
-                else:
-                    self.add_updateArtist(artist[0])
-                    plexdbartist = self.plexdb.getItem_byId(parent_id)
-                    try:
-                        artist_id = plexdbartist[0]
-                    except TypeError:
-                        LOG.error('Adding artist failed for %s', parent_id)
-        # Update plex reference with the artist_id
-        self.plexdb.updateParentId(plex_id, artist_id)
         # Add artist to album
         query = '''
             INSERT OR REPLACE INTO album_artist(
