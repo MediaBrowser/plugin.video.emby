@@ -518,14 +518,14 @@ def wipe_database():
     delete_nodes()
     from . import kodidb_functions
     kodidb_functions.wipe_dbs()
-    from .plex_db import PlexDB
+    from . import plex_db
     # First get the paths to all synced playlists
     playlist_paths = []
-    with PlexDB() as plex_db:
-        plex_db.cursor.execute('SELECT kodi_path FROM playlists')
-        for entry in plex_db.cursor:
+    with plex_db.PlexDB() as plexdb:
+        plexdb.cursor.execute('SELECT kodi_path FROM playlists')
+        for entry in plexdb.cursor:
             playlist_paths.append(entry[0])
-    PlexDB.wipe()
+    plex_db.wipe()
     # Delete all synced playlists
     for path in playlist_paths:
         try:
