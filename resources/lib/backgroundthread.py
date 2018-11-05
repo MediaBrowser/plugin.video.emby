@@ -201,7 +201,8 @@ class BackgroundWorker:
 
 
 class BackgroundThreader:
-    def __init__(self, name=None, worker_count=8):
+    def __init__(self, name=None,
+                 worker_count=int(utils.settings('syncThreadNumber'))):
         self.name = name
         self._queue = MutablePriorityQueue()
         self._abort = False
