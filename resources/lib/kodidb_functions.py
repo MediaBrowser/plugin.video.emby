@@ -309,7 +309,6 @@ class KodiDBMethods(object):
             except TypeError:
                 self.cursor.execute(query_id)
                 entry_id = self.cursor.fetchone()[0] + 1
-                LOG.debug('Adding %s: %s with id %s', table, entry, entry_id)
                 self.cursor.execute(query_new, (entry_id, entry))
             finally:
                 entry_ids.append(entry_id)
@@ -345,7 +344,6 @@ class KodiDBMethods(object):
             self.cursor.execute(query_rem, (entry_id,))
             if self.cursor.fetchone() is None:
                 # Delete in the original table because entry is now orphaned
-                LOG.debug('Removing %s from Kodi DB: %s', table, entry_id)
                 self.cursor.execute(query_delete, (entry_id,))
 
     def modify_countries(self, kodi_id, kodi_type, countries=None):
@@ -786,7 +784,6 @@ class KodiDBMethods(object):
             tag_id = self.cursor.fetchone()[0] + 1
             query = "INSERT INTO tag(tag_id, name) values(?, ?)"
             self.cursor.execute(query, (tag_id, name))
-            LOG.debug("Create tag_id: %s name: %s", tag_id, name)
         return tag_id
 
     def update_tag(self, oldtag, newtag, kodiid, mediatype):
@@ -812,7 +809,6 @@ class KodiDBMethods(object):
         """
         Returns the collection/set id for set_name [unicode]
         """
-        LOG.debug("Adding movie set/collection: %s", set_name)
         query = 'SELECT idSet FROM sets WHERE strSet = ? COLLATE NOCASE'
         self.cursor.execute(query, (set_name,))
         try:
