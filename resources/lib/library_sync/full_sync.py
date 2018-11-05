@@ -205,6 +205,7 @@ class FullSync(common.libsync_mixin):
             # This will block until the processing thread really exits
             LOG.debug('Waiting for processing thread to exit')
             self.processing_thread.join()
+            common.update_kodi_library(video=True, music=True)
             if self.callback:
                 self.callback(successful)
             LOG.info('Done full_sync')
