@@ -30,7 +30,7 @@ class FanartThread(backgroundthread.KillableThread):
         return state.STOP_PKC
 
     def isSuspended(self):
-        return state.SUSPEND_LIBRARY_THREAD
+        return state.SUSPEND_LIBRARY_THREAD or state.STOP_SYNC
 
     def run(self):
         try:
@@ -65,6 +65,8 @@ class FanartTask(backgroundthread.Task, common.libsync_mixin):
         self.refresh = refresh
 
     def run(self):
+        if self.isCanceled():
+            return
         process_fanart(self.plex_id, self.plex_type, self.refresh)
 
 

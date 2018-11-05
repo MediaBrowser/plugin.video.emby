@@ -526,6 +526,7 @@ def wipe_database():
         for entry in plexdb.cursor:
             playlist_paths.append(entry[0])
     plex_db.wipe()
+    plex_db.initialize()
     # Delete all synced playlists
     for path in playlist_paths:
         try:
