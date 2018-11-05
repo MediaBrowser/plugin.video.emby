@@ -126,7 +126,6 @@ class Show(ItemBase, TvShowMixin):
         """
         api = API(xml)
         plex_id = api.plex_id()
-        LOG.debug('Adding show with plex_id %s', plex_id)
         if not plex_id:
             LOG.error("Cannot parse XML data for TV show: %s", xml.attrib)
             return
@@ -279,7 +278,7 @@ class Season(ItemBase, TvShowMixin):
         """
         api = API(xml)
         plex_id = api.plex_id()
-        LOG.debug('Adding season with plex_id %s', plex_id)
+        LOG.info('Adding season with plex_id %s', plex_id)
         if not plex_id:
             LOG.error('Error getting plex_id for season, skipping: %s',
                       xml.attrib)
@@ -323,7 +322,6 @@ class Episode(ItemBase, TvShowMixin):
         """
         api = API(xml)
         plex_id = api.plex_id()
-        LOG.debug('Adding episode with plex_id %s', plex_id)
         if not plex_id:
             LOG.error('Error getting plex_id for episode, skipping: %s',
                       xml.attrib)

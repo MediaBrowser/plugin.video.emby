@@ -22,7 +22,6 @@ class Movie(ItemBase):
         api = API(xml)
         update_item = True
         plex_id = api.plex_id()
-        LOG.debug('Adding movie with plex_id %s', plex_id)
         # Cannot parse XML, abort
         if not plex_id:
             LOG.error('Cannot parse XML data for movie: %s', xml.attrib)
