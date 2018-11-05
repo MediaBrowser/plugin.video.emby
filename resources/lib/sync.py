@@ -40,7 +40,7 @@ class Sync(backgroundthread.KillableThread):
         # Show sync dialog even if user deactivated?
         self.force_dialog = False
         # Lock used to wait on a full sync, e.g. on initial sync
-        self.lock = backgroundthread.threading.Lock()
+        # self.lock = backgroundthread.threading.Lock()
         super(Sync, self).__init__()
 
     def isCanceled(self):
@@ -126,21 +126,19 @@ class Sync(backgroundthread.KillableThread):
         self.sync_successful = successful
         self.last_full_sync = utils.unix_timestamp()
         set_library_scan_toggle(boolean=False)
-        try:
-            self.lock.release()
-        except backgroundthread.threading.ThreadError:
-            pass
+        # try:
+        #     self.lock.release()
+        # except backgroundthread.threading.ThreadError:
+        #     pass
 
     def start_library_sync(self, show_dialog=None, repair=False, block=False):
         show_dialog = show_dialog if show_dialog is not None else state.SYNC_DIALOG
-        if block:
-            self.lock.acquire()
-            library_sync.start(show_dialog, repair, self.on_library_scan_finished)
-            # Will block until scan is finished
-            self.lock.acquire()
-            self.lock.release()
-        else:
-            library_sync.start(show_dialog, repair, self.on_library_scan_finished)
+        library_sync.start(show_dialog, repair, self.on_library_scan_finished)
+        # if block:
+        # self.lock.acquire()
+        # Will block until scan is finished
+        # self.lock.acquire()
+        # self.lock.release()
 
     def start_fanart_download(self, refresh):
         if not utils.settings('FanartTV') == 'true':

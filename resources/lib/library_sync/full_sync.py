@@ -20,7 +20,7 @@ else:
 LOG = getLogger('PLEX.sync.full_sync')
 
 
-class FullSync(backgroundthread.KillableThread, common.libsync_mixin):
+class FullSync(common.libsync_mixin):
     def __init__(self, repair, callback, show_dialog):
         """
         repair=True: force sync EVERY item
@@ -213,5 +213,5 @@ class FullSync(backgroundthread.KillableThread, common.libsync_mixin):
 def start(show_dialog, repair=False, callback=None):
     """
     """
-    # backgroundthread.BGThreader.addTask(FullSync().setup(repair, callback))
-    FullSync(repair, callback, show_dialog).start()
+    # FullSync(repair, callback, show_dialog).start()
+    FullSync(repair, callback, show_dialog).run()
