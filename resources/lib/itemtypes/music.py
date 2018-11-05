@@ -370,6 +370,13 @@ class Album(MusicMixin, ItemBase):
                                     kodi_id,
                                     v.KODI_TYPE_ALBUM,
                                     self.kodicursor)
+        self.plexdb.add_album(plex_id,
+                              api.checksum(),
+                              section_id,
+                              artist_id,
+                              parent_id,
+                              kodi_id,
+                              self.last_sync)
         # Add all children - all tracks
         if scan_children:
             context = Song(self.last_sync,
@@ -383,13 +390,6 @@ class Album(MusicMixin, ItemBase):
                                    genres=genres,
                                    genre=genre,
                                    compilation=compilation)
-        self.plexdb.add_album(plex_id,
-                              api.checksum(),
-                              section_id,
-                              artist_id,
-                              parent_id,
-                              kodi_id,
-                              self.last_sync)
 
 
 class Song(MusicMixin, ItemBase):
