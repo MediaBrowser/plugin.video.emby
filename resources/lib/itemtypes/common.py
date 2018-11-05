@@ -7,7 +7,7 @@ from ntpath import dirname
 from ..plex_api import API
 from ..plex_db import PlexDB
 from .. import kodidb_functions as kodidb
-from .. import artwork, utils, variables as v
+from .. import artwork, utils
 
 LOG = getLogger('PLEX.itemtypes.common')
 
@@ -41,7 +41,6 @@ class ItemBase(object):
     """
     def __init__(self, last_sync, plexdb=None, kodi_db=None):
         self.last_sync = last_sync
-        self.artwork = artwork.Artwork()
         self.plexconn = None
         self.plexcursor = plexdb.cursor if plexdb else None
         self.kodiconn = None
@@ -75,10 +74,10 @@ class ItemBase(object):
         """
         Writes artworks [dict containing only set artworks] to the Kodi art DB
         """
-        self.artwork.modify_artwork(artworks,
-                                    kodi_id,
-                                    kodi_type,
-                                    self.kodicursor)
+        artwork.modify_artwork(artworks,
+                               kodi_id,
+                               kodi_type,
+                               self.kodicursor)
 
     def update_userdata(self, xml_element, plex_type):
         """

@@ -5,7 +5,7 @@ from logging import getLogger
 
 from .common import ItemBase, process_path
 from ..plex_api import API
-from .. import plex_functions as PF, state, variables as v
+from .. import artwork, plex_functions as PF, state, variables as v
 
 LOG = getLogger('PLEX.tvshows')
 
@@ -77,9 +77,7 @@ class TvShowMixin(object):
         self.kodi_db.modify_genres(kodi_id, v.KODI_TYPE_SHOW)
         self.kodi_db.modify_studios(kodi_id, v.KODI_TYPE_SHOW)
         self.kodi_db.modify_tags(kodi_id, v.KODI_TYPE_SHOW)
-        self.artwork.delete_artwork(kodi_id,
-                                    v.KODI_TYPE_SHOW,
-                                    self.kodicursor)
+        artwork.delete_artwork(kodi_id, v.KODI_TYPE_SHOW, self.kodicursor)
         self.kodicursor.execute("DELETE FROM tvshow WHERE idShow = ?",
                                 (kodi_id,))
         if v.KODIVERSION >= 17:
@@ -91,9 +89,7 @@ class TvShowMixin(object):
         """
         Remove a season, and only a season, not the show or episodes
         """
-        self.artwork.delete_artwork(kodi_id,
-                                    v.KODI_TYPE_SEASON,
-                                    self.kodicursor)
+        artwork.delete_artwork(kodi_id, v.KODI_TYPE_SEASON, self.kodicursor)
         self.kodicursor.execute("DELETE FROM seasons WHERE idSeason = ?",
                                 (kodi_id,))
         LOG.debug("Removed season: %s", kodi_id)
@@ -104,9 +100,7 @@ class TvShowMixin(object):
         """
         self.kodi_db.modify_people(kodi_id, v.KODI_TYPE_EPISODE)
         self.kodi_db.remove_file(file_id, plex_type=v.PLEX_TYPE_EPISODE)
-        self.artwork.delete_artwork(kodi_id,
-                                    v.KODI_TYPE_EPISODE,
-                                    self.kodicursor)
+        artwork.delete_artwork(kodi_id, v.KODI_TYPE_EPISODE, self.kodicursor)
         self.kodicursor.execute("DELETE FROM episode WHERE idEpisode = ?",
                                 (kodi_id,))
         if v.KODIVERSION >= 17:
@@ -252,10 +246,10 @@ class Show(ItemBase, TvShowMixin):
                                    v.KODI_TYPE_SHOW,
                                    api.people_list())
         self.kodi_db.modify_genres(kodi_id, v.KODI_TYPE_SHOW, genres)
-        self.artwork.modify_artwork(api.artwork(),
-                                    kodi_id,
-                                    v.KODI_TYPE_SHOW,
-                                    self.kodicursor)
+        artwork.modify_artwork(api.artwork(),
+                               kodi_id,
+                               v.KODI_TYPE_SHOW,
+                               self.kodicursor)
         # Process studios
         self.kodi_db.modify_studios(kodi_id, v.KODI_TYPE_SHOW, studios)
         # Process tags: view, PMS collection tags
@@ -301,10 +295,10 @@ class Season(ItemBase, TvShowMixin):
                 return
         parent_id = show['kodi_id']
         kodi_id = self.kodi_db.add_season(parent_id, api.season_number())
-        self.artwork.modify_artwork(api.artwork(),
-                                    kodi_id,
-                                    v.KODI_TYPE_SEASON,
-                                    self.kodicursor)
+        artwork.modify_artwork(api.artwork(),
+                               kodi_id,
+                               v.KODI_TYPE_SEASON,
+                               self.kodicursor)
         self.plexdb.add_season(plex_id=plex_id,
                                checksum=api.checksum(),
                                section_id=section_id,
@@ -505,10 +499,10 @@ class Episode(ItemBase, TvShowMixin):
         self.kodi_db.modify_people(kodi_id,
                                    v.KODI_TYPE_EPISODE,
                                    api.people_list())
-        self.artwork.modify_artwork(api.artwork(),
-                                    kodi_id,
-                                    v.KODI_TYPE_EPISODE,
-                                    self.kodicursor)
+        artwork.modify_artwork(api.artwork(),
+                               kodi_id,
+                               v.KODI_TYPE_EPISODE,
+                               self.kodicursor)
         streams = api.mediastreams()
         self.kodi_db.modify_streams(kodi_fileid, streams, api.runtime())
         self.kodi_db.set_resume(kodi_fileid,

@@ -5,7 +5,7 @@ from logging import getLogger
 
 from .common import ItemBase
 from ..plex_api import API
-from .. import state, variables as v, plex_functions as PF
+from .. import artwork, state, variables as v, plex_functions as PF
 
 LOG = getLogger('PLEX.movies')
 
@@ -165,10 +165,10 @@ class Movie(ItemBase):
                                    v.KODI_TYPE_MOVIE,
                                    api.people_list())
         self.kodi_db.modify_genres(kodi_id, v.KODI_TYPE_MOVIE, genres)
-        self.artwork.modify_artwork(api.artwork(),
-                                    kodi_id,
-                                    v.KODI_TYPE_MOVIE,
-                                    self.kodicursor)
+        artwork.modify_artwork(api.artwork(),
+                               kodi_id,
+                               v.KODI_TYPE_MOVIE,
+                               self.kodicursor)
         self.kodi_db.modify_streams(file_id, api.mediastreams(), runtime)
         self.kodi_db.modify_studios(kodi_id, v.KODI_TYPE_MOVIE, studios)
         tags = [section_name]
@@ -190,10 +190,10 @@ class Movie(ItemBase):
                                       coll_plex_id)
                             continue
                         set_api = API(set_xml[0])
-                        self.artwork.modify_artwork(set_api.artwork(),
-                                                    kodi_set_id,
-                                                    v.KODI_TYPE_SET,
-                                                    self.kodicursor)
+                        artwork.modify_artwork(set_api.artwork(),
+                                               kodi_set_id,
+                                               v.KODI_TYPE_SET,
+                                               self.kodicursor)
                         break
         self.kodi_db.modify_tags(kodi_id, v.KODI_TYPE_MOVIE, tags)
         # Process playstate
@@ -230,7 +230,7 @@ class Movie(ItemBase):
             # Remove the plex reference
             self.plexdb.remove(plex_id, v.PLEX_TYPE_MOVIE)
             # Remove artwork
-            self.artwork.delete_artwork(kodi_id, kodi_type, self.self.kodicursor)
+            artwork.delete_artwork(kodi_id, kodi_type, self.self.kodicursor)
             set_id = self.kodi_db.get_set_id(kodi_id)
             self.kodi_db.modify_countries(kodi_id, kodi_type)
             self.kodi_db.modify_people(kodi_id, kodi_type)

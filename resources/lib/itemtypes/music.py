@@ -6,7 +6,7 @@ from logging import getLogger
 from .common import ItemBase
 from ..plex_api import API
 from ..plex_db import PlexDB
-from .. import kodidb_functions as kodidb
+from .. import artwork, kodidb_functions as kodidb
 from .. import plex_functions as PF, utils, state, variables as v
 
 LOG = getLogger('PLEX.music')
@@ -106,7 +106,7 @@ class MusicMixin(object):
             self.kodi_db.delete_song_from_song_genre(kodi_id)
             query = 'DELETE FROM albuminfosong WHERE idAlbumInfoSong = ?'
             self.kodicursor.execute(query, (kodi_id, ))
-        self.artwork.delete_artwork(kodi_id, v.KODI_TYPE_SONG, self.kodicursor)
+        artwork.delete_artwork(kodi_id, v.KODI_TYPE_SONG, self.kodicursor)
 
     def remove_album(self, kodi_id):
         '''
@@ -121,7 +121,7 @@ class MusicMixin(object):
                                 (kodi_id, ))
         self.kodicursor.execute('DELETE FROM album WHERE idAlbum = ?',
                                 (kodi_id, ))
-        self.artwork.delete_artwork(kodi_id, v.KODI_TYPE_ALBUM, self.kodicursor)
+        artwork.delete_artwork(kodi_id, v.KODI_TYPE_ALBUM, self.kodicursor)
 
     def remove_artist(self, kodi_id):
         '''
@@ -135,9 +135,7 @@ class MusicMixin(object):
                                 (kodi_id, ))
         self.kodicursor.execute('DELETE FROM discography WHERE idArtist = ?',
                                 (kodi_id, ))
-        self.artwork.delete_artwork(kodi_id,
-                                    v.KODI_TYPE_ARTIST,
-                                    self.kodicursor)
+        artwork.delete_artwork(kodi_id, v.KODI_TYPE_ARTIST, self.kodicursor)
 
 
 class Artist(MusicMixin, ItemBase):
@@ -205,10 +203,10 @@ class Artist(MusicMixin, ItemBase):
              utils.unix_date_to_kodi(self.last_sync),
              kodi_id))
         # Update artwork
-        self.artwork.modify_artwork(artworks,
-                                    kodi_id,
-                                    v.KODI_TYPE_ARTIST,
-                                    self.kodicursor)
+        artwork.modify_artwork(artworks,
+                               kodi_id,
+                               v.KODI_TYPE_ARTIST,
+                               self.kodicursor)
         self.plexdb.add_artist(plex_id,
                                api.checksum(),
                                section_id,
@@ -366,10 +364,10 @@ class Album(MusicMixin, ItemBase):
                                           genres,
                                           v.KODI_TYPE_ALBUM)
         # Update artwork
-        self.artwork.modify_artwork(artworks,
-                                    kodi_id,
-                                    v.KODI_TYPE_ALBUM,
-                                    self.kodicursor)
+        artwork.modify_artwork(artworks,
+                               kodi_id,
+                               v.KODI_TYPE_ALBUM,
+                               self.kodicursor)
         self.plexdb.add_album(plex_id,
                               api.checksum(),
                               section_id,
@@ -734,16 +732,16 @@ class Song(MusicMixin, ItemBase):
         if genres:
             self.kodi_db.add_music_genres(kodi_id, genres, v.KODI_TYPE_SONG)
         artworks = api.artwork()
-        self.artwork.modify_artwork(artworks,
-                                    kodi_id,
-                                    v.KODI_TYPE_SONG,
-                                    self.kodicursor)
+        artwork.modify_artwork(artworks,
+                               kodi_id,
+                               v.KODI_TYPE_SONG,
+                               self.kodicursor)
         if xml.get('parentKey') is None:
             # Update album artwork
-            self.artwork.modify_artwork(artworks,
-                                        parent_id,
-                                        v.KODI_TYPE_ALBUM,
-                                        self.kodicursor)
+            artwork.modify_artwork(artworks,
+                                   parent_id,
+                                   v.KODI_TYPE_ALBUM,
+                                   self.kodicursor)
         # Create the reference in plex table
         self.plexdb.add_song(plex_id,
                              api.checksum(),

@@ -13,8 +13,6 @@ from . import artwork, utils, variables as v, state, path_ops
 
 LOG = getLogger('PLEX.kodidb_functions')
 
-###############################################################################
-
 
 class GetKodiDB(object):
     """
@@ -49,7 +47,6 @@ class KodiDBMethods(object):
     """
     def __init__(self, cursor):
         self.cursor = cursor
-        self.artwork = artwork.Artwork()
 
     def setup_path_table(self):
         """
@@ -460,7 +457,7 @@ class KodiDBMethods(object):
                 self.cursor.execute(query_actor_delete, (person[0],))
                 if kind == 'actor':
                     # Delete any associated artwork
-                    self.artwork.delete_artwork(person[0], 'actor', self.cursor)
+                    artwork.delete_artwork(person[0], 'actor', self.cursor)
         # Save new people to Kodi DB by iterating over the remaining entries
         if kind == 'actor':
             query = 'INSERT INTO actor_link VALUES (?, ?, ?, ?, ?)'
@@ -506,11 +503,11 @@ class KodiDBMethods(object):
                                 'VALUES (?, ?)',
                                 (actor_id, name))
             if art_url:
-                self.artwork.modify_art(art_url,
-                                        actor_id,
-                                        'actor',
-                                        'thumb',
-                                        self.cursor)
+                artwork.modify_art(art_url,
+                                   actor_id,
+                                   'actor',
+                                   'thumb',
+                                   self.cursor)
         return actor_id
 
     def get_art(self, kodi_id, kodi_type):
@@ -1199,6 +1196,11 @@ class KodiDBMethods(object):
         '''
         self.cursor.execute(query, (kodi_id, kodi_type))
 
+    def art_urls(self, kodi_id, kodi_type):
+        self.cursor.execute('SELECT url FROM art WHERE media_id = ? AND media_type = ?',
+                            (kodi_id, kodi_type))
+        return (x[0] for x in self.cursor)
+
     def artwork_generator(self, kodi_type):
         """
         """
@@ -1275,6 +1277,27 @@ def setup_kodi_default_entries():
                                                    utils.unix_timestamp())))
 
 
+def reset_cached_images():
+    LOG.info('Resetting cached artwork')
+    # Remove all existing textures first
+    path = path_ops.translate_path('special://thumbnails/')
+    if path_ops.exists(path):
+        path_ops.rmtree(path, ignore_errors=True)
+        paths = ('', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+                 'a', 'b', 'c', 'd', 'e', 'f',
+                 'Video', 'plex')
+        for path in paths:
+            new_path = path_ops.translate_path('special://thumbnails/%s' % path)
+            path_ops.makedirs(path_ops.encode_path(new_path))
+    with GetKodiDB('texture') as kodi_db:
+        query = 'SELECT tbl_name FROM sqlite_master WHERE type=?'
+        kodi_db.cursor.execute(query, ('table', ))
+        rows = kodi_db.cursor.fetchall()
+        for row in rows:
+            if row[0] != 'version':
+                kodi_db.cursor.execute("DELETE FROM %s" % row[0])
+
+
 def wipe_dbs():
     """
     Completely resets the Kodi databases 'video', 'texture' and 'music' (if
@@ -1304,3 +1327,14 @@ def wipe_dbs():
     xbmc.executebuiltin('UpdateLibrary(video)')
     if utils.settings('enableMusic') == 'true':
         xbmc.executebuiltin('UpdateLibrary(music)')
+
+
+KODIDB_FROM_PLEXTYPE = {
+    v.PLEX_TYPE_MOVIE: GetKodiDB('video'),
+    v.PLEX_TYPE_SHOW: GetKodiDB('video'),
+    v.PLEX_TYPE_SEASON: GetKodiDB('video'),
+    v.PLEX_TYPE_EPISODE: GetKodiDB('video'),
+    v.PLEX_TYPE_ARTIST: GetKodiDB('music'),
+    v.PLEX_TYPE_ALBUM: GetKodiDB('music'),
+    v.PLEX_TYPE_SONG: GetKodiDB('music')
+}

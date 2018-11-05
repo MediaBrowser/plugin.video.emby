@@ -115,7 +115,13 @@ class Sync(backgroundthread.KillableThread):
                              icon='{plex}',
                              sound=False)
         elif state.RUN_LIB_SCAN == 'textures':
-            artwork.Artwork().fullTextureCacheSync()
+            LOG.info("Caching of images requested")
+            if not utils.yesno_dialog("Image Texture Cache", utils.lang(39250)):
+                return
+            # ask to reset all existing or not
+            if utils.yesno_dialog('Image Texture Cache', utils.lang(39251)):
+                kodidb.reset_cached_images()
+            self.start_image_cache_thread()
 
     def on_library_scan_finished(self, successful):
         """
@@ -162,11 +168,14 @@ class Sync(backgroundthread.KillableThread):
                          sound=False)
 
     def start_image_cache_thread(self):
-        if utils.settings('enableTextureCache') == "true":
-            self.image_cache_thread = artwork.ImageCachingThread()
-            self.image_cache_thread.start()
-        else:
+        if not utils.settings('enableTextureCache') == "true":
             LOG.info('Image caching has been deactivated')
+            return
+        if self.image_cache_thread and self.image_cache_thread.is_alive():
+            self.image_cache_thread.cancel()
+            self.image_cache_thread.join()
+        self.image_cache_thread = artwork.ImageCachingThread()
+        self.image_cache_thread.start()
 
     def run(self):
         try:

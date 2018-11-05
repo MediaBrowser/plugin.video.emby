@@ -8,10 +8,13 @@ from .full_sync import PLAYLIST_SYNC_ENABLED
 from .fanart import SYNC_FANART, FanartTask
 from ..plex_api import API
 from ..plex_db import PlexDB
+from .. import kodidb_functions as kodidb
 from .. import backgroundthread, playlists, plex_functions as PF, itemtypes
-from .. import utils, variables as v, state
+from .. import artwork, utils, variables as v, state
 
 LOG = getLogger('PLEX.sync.websocket')
+
+CACHING_ENALBED = utils.settings('enableTextureCache') == "true"
 
 WEBSOCKET_MESSAGES = []
 # Dict to save info for Plex items currently being played somewhere
@@ -116,24 +119,26 @@ def process_websocket_messages():
 
 
 def process_new_item_message(message):
-    xml = PF.GetPlexMetadata(message['ratingKey'])
+    plex_id = message['ratingKey']
+    xml = PF.GetPlexMetadata(plex_id)
     try:
         plex_type = xml[0].attrib['type']
     except (IndexError, KeyError, TypeError):
-        LOG.error('Could not download metadata for %s', message['ratingKey'])
+        LOG.error('Could not download metadata for %s', plex_id)
         return False, False, False
-    LOG.debug("Processing new/updated PMS item: %s", message['ratingKey'])
-    typus = itemtypes.ITEMTYPE_FROM_PLEXTYPE[plex_type](utils.unix_timestamp())
-    typus.add_update(xml[0],
-                     section_name=xml.get('librarySectionTitle'),
-                     section_id=xml.get('librarySectionID'))
+    LOG.debug("Processing new/updated PMS item: %s", plex_id)
+    with itemtypes.ITEMTYPE_FROM_PLEXTYPE[plex_type](utils.unix_timestamp()) as typus:
+        typus.add_update(xml[0],
+                         section_name=xml.get('librarySectionTitle'),
+                         section_id=xml.get('librarySectionID'))
+    cache_artwork(plex_id, plex_type)
     return True, plex_type in v.PLEX_VIDEOTYPES, plex_type in v.PLEX_AUDIOTYPES
 
 
 def process_delete_message(message):
     plex_type = message['type']
-    typus = itemtypes.ITEMTYPE_FROM_PLEXTYPE[plex_type](None)
-    typus.remove(message['ratingKey'], plex_type=plex_type)
+    with itemtypes.ITEMTYPE_FROM_PLEXTYPE[plex_type](None) as typus:
+        typus.remove(message['ratingKey'], plex_type=plex_type)
     return True, plex_type in v.PLEX_VIDEOTYPES, plex_type in v.PLEX_AUDIOTYPES
 
 
@@ -340,3 +345,21 @@ def process_playing(data):
                                  session['file_id'],
                                  utils.unix_timestamp(),
                                  v.PLEX_TYPE_FROM_KODI_TYPE[session['kodi_type']])
+
+
+def cache_artwork(plex_id, plex_type, kodi_id=None, kodi_type=None):
+    """
+    Triggers caching of artwork (if so enabled in the PKC settings)
+    """
+    if not CACHING_ENALBED:
+        return
+    if not kodi_id:
+        with PlexDB() as plexdb:
+            item = plexdb.item_by_id(plex_id, plex_type)
+        if not item:
+            LOG.error('Could not retrieve Plex db info for %s', plex_id)
+            return
+        kodi_id, kodi_type = item['kodi_id'], item['kodi_type']
+    with kodidb.KODIDB_FROM_PLEXTYPE[plex_type]() as kodi_db:
+        for url in kodi_db.art_urls(kodi_id, kodi_type):
+            artwork.cache_url(url)

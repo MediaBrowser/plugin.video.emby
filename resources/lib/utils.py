@@ -536,9 +536,7 @@ def wipe_database():
 
     LOG.info("Resetting all cached artwork.")
     # Remove all cached artwork
-    path = path_ops.translate_path("special://thumbnails/")
-    if path_ops.exists(path):
-        path_ops.rmtree(path, ignore_errors=True)
+    kodidb_functions.reset_cached_images()
     # reset the install run flag
     settings('SyncInstallRunDone', value="false")
     LOG.info('Wiping done')
