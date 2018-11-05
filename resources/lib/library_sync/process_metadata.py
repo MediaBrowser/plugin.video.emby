@@ -57,7 +57,7 @@ class ProcessMetadata(backgroundthread.KillableThread, common.libsync_mixin):
             self.dialog.update(progress,
                                self.section_name,
                                '%s/%s: %s'
-                               % (self.current, self.total, self.title))
+                               % (self.current + 1, self.total, self.title))
 
     def run(self):
         """
