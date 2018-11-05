@@ -9,8 +9,7 @@ import requests
 
 import xbmc
 
-from . import path_ops
-from . import utils
+from . import backgroundthread, path_ops, utils
 from . import state
 
 ###############################################################################
@@ -19,9 +18,12 @@ LOG = getLogger('PLEX.artwork')
 # Disable annoying requests warnings
 requests.packages.urllib3.disable_warnings()
 ARTWORK_QUEUE = Queue()
-IMAGE_CACHING_SUSPENDS = ['SUSPEND_LIBRARY_THREAD', 'DB_SCAN', 'STOP_SYNC']
+IMAGE_CACHING_SUSPENDS = [
+    state.SUSPEND_LIBRARY_THREAD,
+    state.DB_SCAN
+]
 if not utils.settings('imageSyncDuringPlayback') == 'true':
-    IMAGE_CACHING_SUSPENDS.append('SUSPEND_SYNC')
+    IMAGE_CACHING_SUSPENDS.append(state.SUSPEND_SYNC)
 
 ###############################################################################
 
@@ -34,9 +36,7 @@ def double_urldecode(text):
     return unquote(unquote(text))
 
 
-@utils.thread_methods(add_suspends=IMAGE_CACHING_SUSPENDS)
-class ImageCachingThread(Thread):
-    sleep_between = 50
+class ImageCachingThread(backgroundthread.KillableThread):
     # Potentially issues with limited number of threads
     # Hence let Kodi wait till download is successful
     timeout = (35.1, 35.1)
@@ -45,24 +45,98 @@ class ImageCachingThread(Thread):
         self.queue = ARTWORK_QUEUE
         Thread.__init__(self)
 
+    def isCanceled(self):
+        return state.STOP_PKC
+
+    def isSuspended(self):
+        return any(IMAGE_CACHING_SUSPENDS)
+
+    @staticmethod
+    def _art_url_generator():
+        from . import kodidb_functions as kodidb
+        for kind in ('video', 'music'):
+            with kodidb.GetKodiDB(kind) as kodi_db:
+                for kodi_type in ('poster', 'fanart'):
+                    for url in kodi_db.artwork_generator(kodi_type):
+                        yield url
+
+    def missing_art_cache_generator(self):
+        from . import kodidb_functions as kodidb
+        with kodidb.GetKodiDB('texture') as kodi_db:
+            for url in self._art_url_generator():
+                if kodi_db.url_not_yet_cached(url):
+                    yield url
+
+    def _cache_url(self, url):
+        url = double_urlencode(utils.try_encode(url))
+        sleeptime = 0
+        while True:
+            try:
+                requests.head(
+                    url="http://%s:%s/image/image://%s"
+                        % (state.WEBSERVER_HOST,
+                           state.WEBSERVER_PORT,
+                           url),
+                    auth=(state.WEBSERVER_USERNAME,
+                          state.WEBSERVER_PASSWORD),
+                    timeout=self.timeout)
+            except requests.Timeout:
+                # We don't need the result, only trigger Kodi to start the
+                # download. All is well
+                break
+            except requests.ConnectionError:
+                if self.isCanceled():
+                    # Kodi terminated
+                    break
+                # Server thinks its a DOS attack, ('error 10053')
+                # Wait before trying again
+                if sleeptime > 5:
+                    LOG.error('Repeatedly got ConnectionError for url %s',
+                              double_urldecode(url))
+                    break
+                LOG.debug('Were trying too hard to download art, server '
+                          'over-loaded. Sleep %s seconds before trying '
+                          'again to download %s',
+                          2**sleeptime, double_urldecode(url))
+                xbmc.sleep((2**sleeptime) * 1000)
+                sleeptime += 1
+                continue
+            except Exception as err:
+                LOG.error('Unknown exception for url %s: %s'.
+                          double_urldecode(url), err)
+                import traceback
+                LOG.error("Traceback:\n%s", traceback.format_exc())
+                break
+            # We did not even get a timeout
+            break
+
     def run(self):
         LOG.info("---===### Starting ImageCachingThread ###===---")
-        stopped = self.stopped
-        suspended = self.suspended
-        queue = self.queue
-        sleep_between = self.sleep_between
-        while not stopped():
-            # In the event the server goes offline
-            while suspended():
+        # Cache already synced artwork first
+        for url in self.missing_art_cache_generator():
+            if self.isCanceled():
+                return
+            while self.isSuspended():
                 # Set in service.py
-                if stopped():
+                if self.isCanceled():
                     # Abort was requested while waiting. We should exit
                     LOG.info("---===### Stopped ImageCachingThread ###===---")
                     return
                 xbmc.sleep(1000)
+            self._cache_url(url)
 
+        # Now wait for more stuff to cache - via the queue
+        while not self.isCanceled():
+            # In the event the server goes offline
+            while self.isSuspended():
+                # Set in service.py
+                if self.isCanceled():
+                    # Abort was requested while waiting. We should exit
+                    LOG.info("---===### Stopped ImageCachingThread ###===---")
+                    return
+                xbmc.sleep(1000)
             try:
-                url = queue.get(block=False)
+                url = self.queue.get(block=False)
             except Empty:
                 xbmc.sleep(1000)
                 continue
@@ -73,52 +147,12 @@ class ImageCachingThread(Thread):
                                  message=url.message,
                                  icon='{plex}',
                                  sound=False)
-                queue.task_done()
+                self.queue.task_done()
                 continue
-            url = double_urlencode(utils.try_encode(url))
-            sleeptime = 0
-            while True:
-                try:
-                    requests.head(
-                        url="http://%s:%s/image/image://%s"
-                            % (state.WEBSERVER_HOST,
-                               state.WEBSERVER_PORT,
-                               url),
-                        auth=(state.WEBSERVER_USERNAME,
-                              state.WEBSERVER_PASSWORD),
-                        timeout=self.timeout)
-                except requests.Timeout:
-                    # We don't need the result, only trigger Kodi to start the
-                    # download. All is well
-                    break
-                except requests.ConnectionError:
-                    if stopped():
-                        # Kodi terminated
-                        break
-                    # Server thinks its a DOS attack, ('error 10053')
-                    # Wait before trying again
-                    if sleeptime > 5:
-                        LOG.error('Repeatedly got ConnectionError for url %s',
-                                  double_urldecode(url))
-                        break
-                    LOG.debug('Were trying too hard to download art, server '
-                              'over-loaded. Sleep %s seconds before trying '
-                              'again to download %s',
-                              2**sleeptime, double_urldecode(url))
-                    xbmc.sleep((2**sleeptime) * 1000)
-                    sleeptime += 1
-                    continue
-                except Exception as err:
-                    LOG.error('Unknown exception for url %s: %s'.
-                              double_urldecode(url), err)
-                    import traceback
-                    LOG.error("Traceback:\n%s", traceback.format_exc())
-                    break
-                # We did not even get a timeout
-                break
-            queue.task_done()
+            self._cache_url(url)
+            self.queue.task_done()
             # Sleep for a bit to reduce CPU strain
-            xbmc.sleep(sleep_between)
+            xbmc.sleep(100)
         LOG.info("---===### Stopped ImageCachingThread ###===---")
 
 
@@ -126,47 +160,6 @@ class Artwork():
     enableTextureCache = utils.settings('enableTextureCache') == "true"
     if enableTextureCache:
         queue = ARTWORK_QUEUE
-
-    def cache_major_artwork(self):
-        """
-        Takes the existing Kodi library and caches posters and fanart.
-        Necessary because otherwise PKC caches artwork e.g. from fanart.tv
-        which basically blocks Kodi from getting needed artwork fast (e.g.
-        while browsing the library)
-        """
-        if not self.enableTextureCache:
-            return
-        artworks = list()
-        # Get all posters and fanart/background for video and music
-        for kind in ('video', 'music'):
-            connection = utils.kodi_sql(kind)
-            cursor = connection.cursor()
-            for typus in ('poster', 'fanart'):
-                cursor.execute('SELECT url FROM art WHERE type == ?',
-                               (typus, ))
-                artworks.extend(cursor.fetchall())
-            connection.close()
-        artworks_to_cache = list()
-        connection = utils.kodi_sql('texture')
-        cursor = connection.cursor()
-        for url in artworks:
-            query = 'SELECT url FROM texture WHERE url == ? LIMIT 1'
-            cursor.execute(query, (url[0], ))
-            if not cursor.fetchone():
-                artworks_to_cache.append(url)
-        connection.close()
-        if not artworks_to_cache:
-            LOG.info('Caching of major images to Kodi texture cache done')
-            return
-        length = len(artworks_to_cache)
-        LOG.info('Caching has not been completed - caching %s major images',
-                 length)
-        # Caching %s Plex images
-        self.queue.put(ArtworkSyncMessage(utils.lang(30006) % length))
-        for url in artworks_to_cache:
-            self.queue.put(url[0])
-        # Plex image caching done
-        self.queue.put(ArtworkSyncMessage(utils.lang(30007)))
 
     def fullTextureCacheSync(self):
         """

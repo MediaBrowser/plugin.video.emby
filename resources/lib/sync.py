@@ -35,8 +35,7 @@ class Sync(backgroundthread.KillableThread):
         self.fanart = None
         # Show sync dialog even if user deactivated?
         self.force_dialog = False
-        if utils.settings('enableTextureCache') == "true":
-            self.image_cache_thread = artwork.ImageCachingThread()
+        self.image_cache_thread = None
         # Lock used to wait on a full sync, e.g. on initial sync
         # self.lock = backgroundthread.threading.Lock()
         super(Sync, self).__init__()
@@ -162,6 +161,13 @@ class Sync(backgroundthread.KillableThread):
                          icon='{plex}',
                          sound=False)
 
+    def start_image_cache_thread(self):
+        if utils.settings('enableTextureCache') == "true":
+            self.image_cache_thread = artwork.ImageCachingThread()
+            self.image_cache_thread.start()
+        else:
+            LOG.info('Image caching has been deactivated')
+
     def run(self):
         try:
             self._run_internal()
@@ -250,7 +256,7 @@ class Sync(backgroundthread.KillableThread):
                         from . import playlists
                         playlist_monitor = playlists.kodi_playlist_monitor()
                     self.start_fanart_download(refresh=False)
-                    self.image_cache_thread.start()
+                    self.start_image_cache_thread()
                 else:
                     LOG.error('Initial start-up full sync unsuccessful')
                 self.force_dialog = False
@@ -271,9 +277,8 @@ class Sync(backgroundthread.KillableThread):
                     if library_sync.PLAYLIST_SYNC_ENABLED:
                         from . import playlists
                         playlist_monitor = playlists.kodi_playlist_monitor()
-                    artwork.Artwork().cache_major_artwork()
                     self.start_fanart_download(refresh=False)
-                    self.image_cache_thread.start()
+                    self.start_image_cache_thread()
                 else:
                     LOG.info('Startup sync has not yet been successful')
 

@@ -1199,6 +1199,21 @@ class KodiDBMethods(object):
         '''
         self.cursor.execute(query, (kodi_id, kodi_type))
 
+    def artwork_generator(self, kodi_type):
+        """
+        """
+        self.cursor.execute('SELECT url FROM art WHERE type == ?',
+                            (kodi_type, ))
+        return (x[0] for x in self.cursor)
+
+    def url_not_yet_cached(self, url):
+        """
+        Returns True if url has not yet been cached to the Kodi texture cache
+        """
+        self.cursor.execute('SELECT url FROM texture WHERE url == ? LIMIT 1',
+                            (url, ))
+        return self.cursor.fetchone() is None
+
 
 def kodiid_from_filename(path, kodi_type=None, db_type=None):
     """
