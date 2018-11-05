@@ -179,14 +179,15 @@ class Movie(ItemBase):
                 # Add any sets from Plex collection tags
                 kodi_set_id = self.kodi_db.create_collection(set_name)
                 self.kodi_db.assign_collection(kodi_set_id, kodi_id)
-                for index, plex_id in collections_match:
+                for index, coll_plex_id in collections_match:
                     # Get Plex artwork for collections - a pain
                     if index == plex_set_id:
-                        set_xml = PF.GetPlexMetadata(plex_id)
+                        set_xml = PF.GetPlexMetadata(coll_plex_id)
                         try:
                             set_xml.attrib
                         except AttributeError:
-                            LOG.error('Could not get set metadata %s', plex_id)
+                            LOG.error('Could not get set metadata %s',
+                                      coll_plex_id)
                             continue
                         set_api = API(set_xml[0])
                         self.artwork.modify_artwork(set_api.artwork(),
