@@ -127,6 +127,9 @@ class FullSync(backgroundthread.KillableThread, common.libsync_mixin):
                     iterator.get('librarySectionTitle'),
                     section['section_id'])
                 self.queue.put(queue_info)
+                # Ensure that the DB connection is closed to commit the
+                # changes above - avoids "Item not yet synced" error
+                self.queue.join()
                 self.process_playstate(iterator)
             except RuntimeError:
                 LOG.error('Could not process playstate for section %s', section)
