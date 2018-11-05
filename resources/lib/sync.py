@@ -96,10 +96,8 @@ class Sync(backgroundthread.KillableThread):
                 # Full library sync finished
                 self.show_kodi_note(utils.lang(39407))
             elif not self.suspend_item_sync():
-                self.force_dialog = True
                 # ERROR in library sync
                 self.show_kodi_note(utils.lang(39410), icon='error')
-                self.force_dialog = False
         elif state.RUN_LIB_SCAN == 'fanart':
             # Only look for missing fanart (No) or refresh all fanart (Yes)
             from .windows import optionsdialog
