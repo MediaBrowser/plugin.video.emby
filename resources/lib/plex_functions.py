@@ -559,6 +559,7 @@ class DownloadGen(object):
             'sort': 'id',  # Entries are sorted by plex_id
             'excludeAllLeaves': 1  # PMS wont attach a first summary child
         })
+        LOG.debug('DownloadGen url: %s, args: %s', self._url, self._args)
         self.xml = DU().downloadUrl(self._url, parameters=self._args)
         try:
             self.xml.attrib
