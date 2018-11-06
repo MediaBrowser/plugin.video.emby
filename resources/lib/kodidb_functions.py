@@ -1298,7 +1298,7 @@ def reset_cached_images():
                 kodi_db.cursor.execute("DELETE FROM %s" % row[0])
 
 
-def wipe_dbs():
+def wipe_dbs(music=True):
     """
     Completely resets the Kodi databases 'video', 'texture' and 'music' (if
     music sync is enabled)
@@ -1306,8 +1306,7 @@ def wipe_dbs():
     LOG.warn('Wiping Kodi databases!')
     query = "SELECT name FROM sqlite_master WHERE type = 'table'"
     kinds = ['video', 'texture']
-    if utils.settings('enableMusic') == 'true':
-        LOG.info('Also deleting music database')
+    if music:
         kinds.append('music')
     for db in kinds:
         with GetKodiDB(db) as kodi_db:

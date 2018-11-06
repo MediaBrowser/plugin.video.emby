@@ -523,21 +523,27 @@ def wipe_database():
     # Clean up the video nodes
     delete_nodes()
     from . import kodidb_functions
-    kodidb_functions.wipe_dbs()
     from . import plex_db
     # First get the paths to all synced playlists
     playlist_paths = []
     with plex_db.PlexDB() as plexdb:
+        if plexdb.songs_have_been_synced():
+            LOG.info('Detected that music has also been synced - wiping music')
+            music = True
+        else:
+            LOG.info('No music has been synced in the past - not wiping')
+            music = False
         plexdb.cursor.execute('SELECT kodi_path FROM playlists')
         for entry in plexdb.cursor:
             playlist_paths.append(entry[0])
+    kodidb_functions.wipe_dbs(music)
     plex_db.wipe()
     plex_db.initialize()
     # Delete all synced playlists
     for path in playlist_paths:
         try:
             path_ops.remove(path)
-            LOG.info('Removed playlist %s', path)
+            LOG.debug('Removed playlist %s', path)
         except (OSError, IOError):
             LOG.warn('Could not remove playlist %s', path)
 

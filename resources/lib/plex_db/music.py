@@ -235,3 +235,11 @@ class Music(object):
         self.cursor.execute('SELECT * FROM album WHERE artist_id = ?',
                             (plex_id, ))
         return (self.entry_to_album(x) for x in self.cursor)
+
+    def songs_have_been_synced(self):
+        """
+        Returns True if at least one song has been synced - indicating that
+        Plex Music sync has been active at some point
+        """
+        self.cursor.execute('SELECT plex_id FROM track LIMIT 1')
+        return self.cursor.fetchone() is not None
