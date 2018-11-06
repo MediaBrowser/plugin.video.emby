@@ -639,8 +639,7 @@ class InitialSetup(object):
         utils.settings('InstallQuestionsAnswered', value='true')
 
         # New installation - make sure we start with a clean slate
-        from . import kodidb_functions
-        kodidb_functions.wipe_dbs()
+        utils.wipe_database()
 
         if goto_settings is False:
             # Open Settings page now? You will need to restart!
