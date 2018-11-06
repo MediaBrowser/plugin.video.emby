@@ -286,10 +286,10 @@ def millis_to_kodi_time(milliseconds):
     }
     Pass in the time in milliseconds as an int
     """
-    seconds = milliseconds / 1000
-    minutes = seconds / 60
-    hours = minutes / 60
+    seconds = int(milliseconds / 1000)
+    minutes = int(seconds / 60)
     seconds = seconds % 60
+    hours = int(minutes / 60)
     minutes = minutes % 60
     milliseconds = milliseconds % 1000
     return {'hours': hours,
