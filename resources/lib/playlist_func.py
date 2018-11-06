@@ -216,7 +216,7 @@ class Playlist_Item(object):
 
     @offset.setter
     def offset(self, value):
-        if not isinstance(value, int) and value is not None:
+        if not isinstance(value, (int, float)) and value is not None:
             raise TypeError('Passed %s instead of int!' % type(value))
         self._offset = value
 
