@@ -328,9 +328,15 @@ def cast(func, value):
         if func == bool:
             return bool(int(value))
         elif func == unicode:
-            return value.decode('utf-8')
+            if isinstance(value, (int, long, float)):
+                return unicode(value)
+            else:
+                return value.decode('utf-8')
         elif func == str:
-            return value.encode('utf-8')
+            if isinstance(value, (int, long, float)):
+                return str(value)
+            else:
+                return value.encode('utf-8')
         elif func in (int, float):
             try:
                 return func(value)
