@@ -54,19 +54,6 @@ LOG = getLogger('PLEX.plex_api')
 ###############################################################################
 
 
-def _unicode_or_none(value):
-    """
-    Tries to decode value to unicode. Returns None if this fails
-    """
-    try:
-        return value.decode('utf-8')
-    except TypeError:
-        # e.g. Android TV's Python
-        return value.decode()
-    except AttributeError:
-        pass
-
-
 class API(object):
     """
     API(item)
@@ -94,7 +81,7 @@ class API(object):
         Returns the type of media, e.g. 'movie' or 'clip' for trailers as
         Unicode or None.
         """
-        return _unicode_or_none(self.item.get('type'))
+        return self.item.get('type')
 
     def playlist_type(self):
         """
@@ -713,8 +700,8 @@ class API(object):
         as Unicode.
         If not found, None is returned
         """
-        return _unicode_or_none(self.item.get('playQueueItemID') or
-                                self.item.get('playListItemID'))
+        return (cast(int, self.item.get('playQueueItemID')) or
+                cast(int, self.item.get('playListItemID')))
 
     def _data_from_part_or_media(self, key):
         """

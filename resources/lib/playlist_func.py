@@ -329,7 +329,7 @@ def playlist_item_from_kodi(kodi_item):
     item.file = kodi_item.get('file')
     if item.plex_id is None and item.file is not None:
         query = dict(parse_qsl(urlsplit(item.file).query))
-        item.plex_id = query.get('plex_id')
+        item.plex_id = utils.cast(int, query.get('plex_id'))
         item.plex_type = query.get('itemType')
     if item.plex_id is None and item.file is not None:
         item.uri = ('library://whatever/item/%s'
