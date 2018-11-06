@@ -204,14 +204,20 @@ class Playlist_Item(object):
         """
         stream_type = v.PLEX_STREAM_TYPE_FROM_STREAM_TYPE[stream_type]
         count = 0
+        if kodi_stream_index == -1:
+            # Kodi telling us "it's the last one"
+            iterator = list(reversed(self.xml[0][self.part]))
+            kodi_stream_index = 0
+        else:
+            iterator = self.xml[0][self.part]
         # Kodi indexes differently than Plex
-        for stream in self.xml[0][self.part]:
+        for stream in iterator:
             if (stream.attrib['streamType'] == stream_type and
                     'key' in stream.attrib):
                 if count == kodi_stream_index:
                     return stream.attrib['id']
                 count += 1
-        for stream in self.xml[0][self.part]:
+        for stream in iterator:
             if (stream.attrib['streamType'] == stream_type and
                     'key' not in stream.attrib):
                 if count == kodi_stream_index:

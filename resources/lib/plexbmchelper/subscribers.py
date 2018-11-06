@@ -303,8 +303,12 @@ class SubscriptionMgr(object):
         playqueue = PQ.PLAYQUEUES[playerid]
         info = state.PLAYER_STATES[playerid]
         position = self._get_correct_position(info, playqueue)
-        return playqueue.items[position].plex_stream_index(
-            info[STREAM_DETAILS[stream_type]]['index'], stream_type)
+        if info[STREAM_DETAILS[stream_type]] == -1:
+            kodi_stream_index = -1
+        else:
+            kodi_stream_index = info[STREAM_DETAILS[stream_type]]['index']
+        return playqueue.items[position].plex_stream_index(kodi_stream_index,
+                                                           stream_type)
 
     def update_command_id(self, uuid, command_id):
         """
