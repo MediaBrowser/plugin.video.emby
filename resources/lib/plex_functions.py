@@ -722,7 +722,7 @@ def get_plex_sections():
     return DU().downloadUrl('{server}/library/sections')
 
 
-def init_plex_playqueue(itemid, librarySectionUUID, mediatype='movie',
+def init_plex_playqueue(plex_id, librarySectionUUID, mediatype='movie',
                         trailers=False):
     """
     Returns raw API metadata XML dump for a playlist with e.g. trailers.
@@ -730,8 +730,8 @@ def init_plex_playqueue(itemid, librarySectionUUID, mediatype='movie',
     url = "{server}/playQueues"
     args = {
         'type': mediatype,
-        'uri': ('library://' + librarySectionUUID +
-                '/item/%2Flibrary%2Fmetadata%2F' + itemid),
+        'uri': ('library://{0}/item/%2Flibrary%2Fmetadata%2F{1}'.format(
+                librarySectionUUID, plex_id)),
         'includeChapters': '1',
         'shuffle': '0',
         'repeat': '0'

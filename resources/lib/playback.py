@@ -46,6 +46,7 @@ def playback_triage(plex_id=None, plex_type=None, path=None, resolve=True):
     the first pass - e.g. if you're calling this function from the original
     service.py Python instance
     """
+    plex_id = utils.cast(int, plex_id)
     LOG.info('playback_triage called with plex_id %s, plex_type %s, path %s, '
              'resolve %s', plex_id, plex_type, path, resolve)
     global RESOLVE
