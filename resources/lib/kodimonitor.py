@@ -538,8 +538,8 @@ def _record_playstate(status, ended):
         LOG.debug('No Plex id found to record playstate for status %s', status)
         return
     with PlexDB() as plexdb:
-        kodi_db_item = plexdb.item_by_id(status['plex_id'], status['plex_type'])
-    if kodi_db_item is None:
+        db_item = plexdb.item_by_id(status['plex_id'], status['plex_type'])
+    if not db_item:
         # Item not (yet) in Kodi library
         LOG.debug('No playstate update due to Plex id not found: %s', status)
         return
@@ -560,7 +560,7 @@ def _record_playstate(status, ended):
     if playcount is None:
         LOG.debug('playcount not found, looking it up in the Kodi DB')
         with kodidb.GetKodiDB('video') as kodi_db:
-            playcount = kodi_db.get_playcount(kodi_db_item[1])
+            playcount = kodi_db.get_playcount(db_item['kodi_fileid'])
         playcount = 0 if playcount is None else playcount
     if time < v.IGNORE_SECONDS_AT_START:
         LOG.debug('Ignoring playback less than %s seconds',
@@ -575,7 +575,7 @@ def _record_playstate(status, ended):
         playcount += 1
         time = 0
     with kodidb.GetKodiDB('video') as kodi_db:
-        kodi_db.set_resume(kodi_db_item[1],
+        kodi_db.set_resume(db_item['kodi_fileid'],
                            time,
                            totaltime,
                            playcount,
