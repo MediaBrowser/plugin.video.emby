@@ -91,10 +91,10 @@ def process_websocket_messages():
         else:
             successful, video, music = process_new_item_message(message)
             if (successful and SYNC_FANART and
-                    message['type'] in (v.PLEX_TYPE_MOVIE, v.PLEX_TYPE_SHOW)):
+                    message['plex_type'] in (v.PLEX_TYPE_MOVIE, v.PLEX_TYPE_SHOW)):
                 task = FanartTask()
-                task.setup(utils.cast(int, message['ratingKey']),
-                           message['type'],
+                task.setup(message['plex_id'],
+                           message['plex_type'],
                            refresh=False)
                 backgroundthread.BGThreader.addTask(task)
         if successful is True:
@@ -119,26 +119,26 @@ def process_websocket_messages():
 
 
 def process_new_item_message(message):
-    plex_id = message['ratingKey']
-    xml = PF.GetPlexMetadata(plex_id)
+    LOG.debug('Message: %s', message)
+    xml = PF.GetPlexMetadata(message['plex_id'])
     try:
         plex_type = xml[0].attrib['type']
     except (IndexError, KeyError, TypeError):
-        LOG.error('Could not download metadata for %s', plex_id)
+        LOG.error('Could not download metadata for %s', message['plex_id'])
         return False, False, False
-    LOG.debug("Processing new/updated PMS item: %s", plex_id)
+    LOG.debug("Processing new/updated PMS item: %s", message['plex_id'])
     with itemtypes.ITEMTYPE_FROM_PLEXTYPE[plex_type](utils.unix_timestamp()) as typus:
         typus.add_update(xml[0],
                          section_name=xml.get('librarySectionTitle'),
                          section_id=xml.get('librarySectionID'))
-    cache_artwork(plex_id, plex_type)
+    cache_artwork(message['plex_id'], plex_type)
     return True, plex_type in v.PLEX_VIDEOTYPES, plex_type in v.PLEX_AUDIOTYPES
 
 
 def process_delete_message(message):
-    plex_type = message['type']
+    plex_type = message['plex_type']
     with itemtypes.ITEMTYPE_FROM_PLEXTYPE[plex_type](None) as typus:
-        typus.remove(message['ratingKey'], plex_type=plex_type)
+        typus.remove(message['plex_id'], plex_type=plex_type)
     return True, plex_type in v.PLEX_VIDEOTYPES, plex_type in v.PLEX_AUDIOTYPES
 
 
@@ -243,7 +243,7 @@ def process_playing(data):
         if status == 'buffering' or status == 'stopped':
             # Drop buffering and stop messages immediately - no value
             continue
-        plex_id = int(message['ratingKey'])
+        plex_id = utils.cast(int, message['ratingKey'])
         skip = False
         for pid in (0, 1, 2):
             if plex_id == state.PLAYER_STATES[pid]['plex_id']:

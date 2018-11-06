@@ -39,25 +39,27 @@ def ConvertPlexToKodiTime(plexTime):
 
 def GetPlexKeyNumber(plexKey):
     """
-    Deconstructs e.g. '/library/metadata/xxxx' to the tuple
+    Deconstructs e.g. '/library/metadata/xxxx' to the tuple (unicode, int)
 
-        ('library/metadata', 'xxxx')
+        ('library/metadata', xxxx)
 
-    Returns ('','') if nothing is found
+    Returns (None, None) if nothing is found
     """
     try:
         result = utils.REGEX_END_DIGITS.findall(plexKey)[0]
     except IndexError:
-        result = ('', '')
+        result = (None, None)
+    else:
+        result[1] = utils.cast(int, result[1])
     return result
 
 
 def ParseContainerKey(containerKey):
     """
     Parses e.g. /playQueues/3045?own=1&repeat=0&window=200 to:
-    'playQueues', '3045', {'window': '200', 'own': '1', 'repeat': '0'}
+    'playQueues', 3045, {'window': '200', 'own': '1', 'repeat': '0'}
 
-    Output hence: library, key, query       (str, str, dict)
+    Output hence: library, key, query       (str, int, dict)
     """
     result = urlparse(containerKey)
     library, key = GetPlexKeyNumber(result.path)
