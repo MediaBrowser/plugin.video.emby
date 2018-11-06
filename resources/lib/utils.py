@@ -526,16 +526,21 @@ def wipe_database():
     from . import plex_db
     # First get the paths to all synced playlists
     playlist_paths = []
-    with plex_db.PlexDB() as plexdb:
-        if plexdb.songs_have_been_synced():
-            LOG.info('Detected that music has also been synced - wiping music')
-            music = True
-        else:
-            LOG.info('No music has been synced in the past - not wiping')
-            music = False
-        plexdb.cursor.execute('SELECT kodi_path FROM playlists')
-        for entry in plexdb.cursor:
-            playlist_paths.append(entry[0])
+    try:
+        with plex_db.PlexDB() as plexdb:
+            if plexdb.songs_have_been_synced():
+                LOG.info('Detected that music has also been synced - wiping music')
+                music = True
+            else:
+                LOG.info('No music has been synced in the past - not wiping')
+                music = False
+            plexdb.cursor.execute('SELECT kodi_path FROM playlists')
+            for entry in plexdb.cursor:
+                playlist_paths.append(entry[0])
+    except OperationalError:
+        # Plex DB completely empty yet. Wipe existing Kodi music only if we
+        # expect to sync Plex music
+        music = settings('enableMusic') == 'true'
     kodidb_functions.wipe_dbs(music)
     plex_db.wipe()
     plex_db.initialize()
