@@ -1307,7 +1307,7 @@ class API(object):
             artworks = self.lookup_fanart_tv(external_id, artworks)
         else:
             LOG.info('Did not find a set/collection ID on TheMovieDB using %s.'
-                     ' Artwork will be missing.', self.titles()[0])
+                     ' Artwork will be missing.', self.title())
         return artworks
 
     def should_stream(self):
@@ -1555,7 +1555,7 @@ class API(object):
         """
         Use for photo items only
         """
-        title, _ = self.titles()
+        title = self.title()
         if listitem is None:
             listitem = ListItem(title)
         else:
@@ -1586,7 +1586,7 @@ class API(object):
 
         Returns XBMC listitem for this PMS library item
         """
-        title, sorttitle = self.titles()
+        title = self.title()
         typus = self.plex_type()
 
         if listitem is None:
@@ -1607,7 +1607,7 @@ class API(object):
             'cast': people['Cast'],
             'director': people['Director'],
             'plot': self.plot(),
-            'sorttitle': sorttitle,
+            'sorttitle': self.sorttitle(),
             'duration': userdata['Runtime'],
             'studio': self.music_studio_list(),
             'tagline': self.tagline(),
