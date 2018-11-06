@@ -217,7 +217,7 @@ class NonstoppingBackgroundWorker(BackgroundWorker):
 
 
 class BackgroundThreader:
-    def __init__(self, name=None, worker,
+    def __init__(self, name=None, worker=BackgroundWorker,
                  worker_count=int(utils.settings('syncThreadNumber'))):
         self.name = name
         self._queue = MutablePriorityQueue()
@@ -298,8 +298,8 @@ class ThreaderManager:
     def __init__(self, worker=BackgroundWorker):
         self.index = 0
         self.abandoned = []
-        self.threader = BackgroundThreader(name=str(self.index),
-                                           worker=worker)
+        self._workerhandler = worker
+        self.threader = BackgroundThreader(name=str(self.index), worker=worker)
 
     def __getattr__(self, name):
         return getattr(self.threader, name)
@@ -310,7 +310,8 @@ class ThreaderManager:
 
         self.index += 1
         self.abandoned.append(self.threader.abort())
-        self.threader = BackgroundThreader(str(self.index))
+        self.threader = BackgroundThreader(name=str(self.index),
+                                           worker=self._workerhandler)
 
     def shutdown(self):
         self.threader.shutdown()
