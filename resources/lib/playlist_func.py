@@ -136,11 +136,11 @@ class Playlist_Item(object):
     """
     Object to fill our playqueues and playlists with.
 
-    id = None          [str] Plex playlist/playqueue id, e.g. playQueueItemID
-    plex_id = None     [str] Plex unique item id, "ratingKey"
+    id = None          [int] Plex playlist/playqueue id, e.g. playQueueItemID
+    plex_id = None     [int] Plex unique item id, "ratingKey"
     plex_type = None   [str] Plex type, e.g. 'movie', 'clip'
     plex_uuid = None   [str] Plex librarySectionUUID
-    kodi_id = None     Kodi unique kodi id (unique only within type!)
+    kodi_id = None     [int] Kodi unique kodi id (unique only within type!)
     kodi_type = None   [str] Kodi type: 'movie'
     file = None        [str] Path to the item's file. STRING!!
     uri = None         [str] Weird Plex uri path involving plex_uuid. STRING!
@@ -153,22 +153,82 @@ class Playlist_Item(object):
     force_transcode    [bool] defaults to False
     """
     def __init__(self):
-        self.id = None
-        self.plex_id = None
+        self._id = None
+        self._plex_id = None
         self.plex_type = None
         self.plex_uuid = None
-        self.kodi_id = None
+        self._kodi_id = None
         self.kodi_type = None
         self.file = None
         self.uri = None
         self.guid = None
         self.xml = None
         self.playmethod = None
-        self.playcount = None
-        self.offset = None
+        self._playcount = None
+        self._offset = None
         # If Plex video consists of several parts; part number
-        self.part = 0
+        self._part = 0
         self.force_transcode = False
+
+    @property
+    def plex_id(self):
+        return self._plex_id
+
+    @plex_id.setter
+    def plex_id(self, value):
+        if not isinstance(value, int) and value is not None:
+            raise TypeError('Passed %s instead of int!' % type(value))
+        self._plex_id = value
+
+    @property
+    def id(self):
+        return self._id
+
+    @id.setter
+    def id(self, value):
+        if not isinstance(value, int) and value is not None:
+            raise TypeError('Passed %s instead of int!' % type(value))
+        self._id = value
+
+    @property
+    def kodi_id(self):
+        return self._kodi_id
+
+    @kodi_id.setter
+    def kodi_id(self, value):
+        if not isinstance(value, int) and value is not None:
+            raise TypeError('Passed %s instead of int!' % type(value))
+        self._kodi_id = value
+
+    @property
+    def playcount(self):
+        return self._playcount
+
+    @playcount.setter
+    def playcount(self, value):
+        if not isinstance(value, int) and value is not None:
+            raise TypeError('Passed %s instead of int!' % type(value))
+        self._playcount = value
+
+    @property
+    def offset(self):
+        return self._offset
+
+    @offset.setter
+    def offset(self, value):
+        if not isinstance(value, int) and value is not None:
+            raise TypeError('Passed %s instead of int!' % type(value))
+        self._offset = value
+
+    @property
+    def part(self):
+        return self._part
+
+    @part.setter
+    def part(self, value):
+        if not isinstance(value, int) and value is not None:
+            raise TypeError('Passed %s instead of int!' % type(value))
+        self._part = value
 
     def __repr__(self):
         answ = ("{{"
