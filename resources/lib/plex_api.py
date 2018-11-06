@@ -1568,7 +1568,7 @@ class API(object):
         }
         listitem.setInfo(type='image', infoLabels=metadata)
         listitem.setProperty('plot', self.plot())
-        listitem.setProperty('plexid', self.plex_id())
+        listitem.setProperty('plexid', str(self.plex_id()))
         return listitem
 
     def _create_video_listitem(self,
@@ -1647,7 +1647,7 @@ class API(object):
             pass
 
         plex_id = self.plex_id()
-        listitem.setProperty('plexid', plex_id)
+        listitem.setProperty('plexid', str(plex_id))
         with PlexDB() as plexdb:
             db_item = plexdb.item_by_id(plex_id, self.plex_type())
         if db_item:
@@ -1710,7 +1710,7 @@ class API(object):
             # musicbrainzalbumartistid string (d87e52c5-bb8d-4da8-b941-9f4928627dc8)
         }
         plex_id = self.plex_id()
-        listitem.setProperty('plexid', plex_id)
+        listitem.setProperty('plexid', str(plex_id))
         if v.KODIVERSION >= 18:
             with PlexDB() as plexdb:
                 db_item = plexdb.item_by_id(plex_id, self.plex_type())
