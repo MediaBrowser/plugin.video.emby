@@ -94,7 +94,7 @@ class Tasks(list):
             self.pop().cancel()
 
 
-class Task:
+class Task(object):
     def __init__(self, priority=None):
         self._priority = priority
         self._canceled = False
@@ -141,7 +141,7 @@ class MutablePriorityQueue(Queue.PriorityQueue):
         return lowest
 
 
-class BackgroundWorker:
+class BackgroundWorker(object):
     def __init__(self, queue, name=None):
         self._queue = queue
         self.name = name
@@ -200,14 +200,30 @@ class BackgroundWorker:
         return self._thread and self._thread.isAlive()
 
 
+class NonstoppingBackgroundWorker(BackgroundWorker):
+    def _queueLoop(self):
+        if self._queue.empty():
+            return
+
+        LOG.debug('(%s): Active', self.name)
+        while not self.aborted():
+            try:
+                self._task = self._queue.get_nowait()
+                self._runTask(self._task)
+                self._queue.task_done()
+                self._task = None
+            except Queue.Empty:
+                xbmc.sleep(50)
+
+
 class BackgroundThreader:
-    def __init__(self, name=None,
+    def __init__(self, name=None, worker,
                  worker_count=int(utils.settings('syncThreadNumber'))):
         self.name = name
         self._queue = MutablePriorityQueue()
         self._abort = False
         self._priority = -1
-        self.workers = [BackgroundWorker(self._queue, 'queue.{0}:worker.{1}'.format(self.name, x)) for x in range(worker_count)]
+        self.workers = [worker(self._queue, 'queue.{0}:worker.{1}'.format(self.name, x)) for x in range(worker_count)]
 
     def _nextPriority(self):
         self._priority += 1
@@ -279,10 +295,11 @@ class BackgroundThreader:
 
 
 class ThreaderManager:
-    def __init__(self):
+    def __init__(self, worker=BackgroundWorker):
         self.index = 0
         self.abandoned = []
-        self.threader = BackgroundThreader(str(self.index))
+        self.threader = BackgroundThreader(name=str(self.index),
+                                           worker=worker)
 
     def __getattr__(self, name):
         return getattr(self.threader, name)

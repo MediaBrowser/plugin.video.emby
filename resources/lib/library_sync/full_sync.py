@@ -37,6 +37,8 @@ class FullSync(common.libsync_mixin):
         self.section_type = None
         self.processing_thread = None
         self.install_sync_done = utils.settings('SyncInstallRunDone') == 'true'
+        self.threader = backgroundthread.ThreaderManager(
+            worker=backgroundthread.NonstoppingBackgroundWorker)
         super(FullSync, self).__init__()
 
     def process_item(self, xml_item):
@@ -54,7 +56,7 @@ class FullSync(common.libsync_mixin):
             return
         task = GetMetadataTask()
         task.setup(self.queue, plex_id, self.get_children)
-        backgroundthread.BGThreader.addTask(task)
+        self.threader.addTask(task)
 
     def process_delete(self):
         """
@@ -206,6 +208,7 @@ class FullSync(common.libsync_mixin):
             LOG.debug('Waiting for processing thread to exit')
             self.processing_thread.join()
             common.update_kodi_library(video=True, music=True)
+            self.threader.shutdown()
             if self.callback:
                 self.callback(successful)
             LOG.info('Done full_sync')
