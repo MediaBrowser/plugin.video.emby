@@ -48,10 +48,9 @@ def GetPlexKeyNumber(plexKey):
     try:
         result = utils.REGEX_END_DIGITS.findall(plexKey)[0]
     except IndexError:
-        result = (None, None)
+        return (None, None)
     else:
-        result[1] = utils.cast(int, result[1])
-    return result
+        return (result[0], utils.cast(int, result[1]))
 
 
 def ParseContainerKey(containerKey):
