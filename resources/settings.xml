@@ -30,7 +30,7 @@
         <setting type="sep" text=""/>
 		<setting type="lsep" label="39008" />
 		<setting id="plexCompanion" label="39004" type="bool" default="true" />
-		<setting id="deviceName" label="30016" type="text" visible="eq(-1,true)" default="PlexKodiConnect" subsetting="true" />
+		<setting id="deviceName" label="30016" type="text" visible="eq(-1,true)" default="" subsetting="true" />
 		<setting id="companionPort" label="39005" type="number" default="3005" option="int" visible="eq(-2,true)" subsetting="true" />
 		<setting id="companionUpdatePort" label="39078" type="number" default="32412" option="int" visible="eq(-3,true)" subsetting="true" />
 		<setting type="sep" text=""/>

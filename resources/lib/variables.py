@@ -66,6 +66,9 @@ else:
     PLATFORM = "Unknown"
 
 DEVICENAME = try_decode(_ADDON.getSetting('deviceName'))
+if not DEVICENAME:
+    DEVICENAME = try_decode(xbmc.getInfoLabel('System.FriendlyName'))
+    _ADDON.setSetting('deviceName', DEVICENAME)
 DEVICENAME = DEVICENAME.replace(":", "")
 DEVICENAME = DEVICENAME.replace("/", "-")
 DEVICENAME = DEVICENAME.replace("\\", "-")
