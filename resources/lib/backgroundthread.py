@@ -202,9 +202,6 @@ class BackgroundWorker(object):
 
 class NonstoppingBackgroundWorker(BackgroundWorker):
     def _queueLoop(self):
-        if self._queue.empty():
-            return
-
         LOG.debug('(%s): Active', self.name)
         while not self.aborted():
             try:
