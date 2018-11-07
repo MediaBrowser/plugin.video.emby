@@ -134,7 +134,7 @@ class KodiDBMethods(object):
         """
         if path is None:
             path = ''
-        query = 'SELECT idPath FROM path WHERE strPath = ?'
+        query = 'SELECT idPath FROM path WHERE strPath = ? LIMIT 1'
         self.cursor.execute(query, (path,))
         try:
             pathid = self.cursor.fetchone()[0]
