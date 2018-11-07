@@ -48,7 +48,8 @@ class FullSync(common.libsync_mixin):
         plex_id = int(xml_item.get('ratingKey'))
         if not self.repair and self.plexdb.checksum(plex_id, self.plex_type) == \
                 int('%s%s' % (plex_id,
-                              xml_item.get('updatedAt'))):
+                              xml_item.get('updatedAt',
+                                           xml_item.get('addedAt', 1541572987)))):
             # Already got EXACTLY this item in our DB
             self.plexdb.update_last_sync(plex_id,
                                          self.plex_type,

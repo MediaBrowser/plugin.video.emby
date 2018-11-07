@@ -101,8 +101,10 @@ class API(object):
         Returns the unique int <ratingKey><updatedAt> or None if this failes
         """
         try:
-            return cast(int, '%s%s' % (self.item.get('ratingKey'),
-                                       self.item.get('updatedAt')))
+            return int('%s%s' % (self.item.get('ratingKey'),
+                                 self.item.get('updatedAt',
+                                               self.item.get('addedAt',
+                                                             1541572987))))
         except ValueError:
             pass
 
