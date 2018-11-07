@@ -98,15 +98,12 @@ class API(object):
 
     def checksum(self):
         """
-        Returns the unique int <ratingKey><updatedAt> or None if this failes
+        Returns the unique int <ratingKey><updatedAt>
         """
-        try:
-            return int('%s%s' % (self.item.get('ratingKey'),
-                                 self.item.get('updatedAt',
-                                               self.item.get('addedAt',
-                                                             1541572987))))
-        except ValueError:
-            pass
+        return int('%s%s' % (self.item.get('ratingKey'),
+                             self.item.get('updatedAt',
+                                           self.item.get('addedAt',
+                                                         1541572987))))
 
     def plex_id(self):
         """
