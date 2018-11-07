@@ -191,8 +191,8 @@ class KodiDBMethods(object):
         Adds the filename [unicode] to the table files if not already added
         and returns the idFile.
         """
-        query = 'SELECT idFile FROM files WHERE strFilename = ? AND idPath = ?'
-        self.cursor.execute(query, (filename, path_id))
+        query = 'SELECT idFile FROM files WHERE idPath = ? AND strFilename = ?'
+        self.cursor.execute(query, (path_id, filename))
         try:
             file_id = self.cursor.fetchone()[0]
         except TypeError:
