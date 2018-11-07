@@ -154,6 +154,7 @@ class UserClient(Thread):
         state.RESTRICTED_USER = True \
             if utils.settings('plex_restricteduser') == 'true' else False
         utils.window('pms_server', value=self.server)
+        state.PMS_SERVER = self.server
         utils.window('plex_machineIdentifier', value=self.machine_identifier)
         utils.window('plex_servername', value=self.server_name)
         utils.window('plex_authenticated', value='true')
@@ -280,6 +281,7 @@ class UserClient(Thread):
         state.PMS_TOKEN = None
         utils.window('plex_token', clear=True)
         utils.window('pms_server', clear=True)
+        state.PMS_SERVER = None
         utils.window('plex_machineIdentifier', clear=True)
         utils.window('plex_servername', clear=True)
         state.PLEX_USER_ID = None

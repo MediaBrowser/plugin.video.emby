@@ -68,7 +68,6 @@ class API(object):
         self.part = 0
         self.mediastream = None
         self.collections = None
-        self.server = utils.window('pms_server')
 
     def set_part_number(self, number=None):
         """
@@ -220,16 +219,15 @@ class API(object):
                 extension not in v.KODI_SUPPORTED_IMAGES):
             # Let Plex transcode
             # max width/height supported by plex image transcoder is 1920x1080
-            path = self.server + PF.transcode_image_path(
+            path = state.PMS_SERVER + PF.transcode_image_path(
                 self.item[0][0].get('key'),
-                utils.window('pms_token'),
-                "%s%s" % (self.server, self.item[0][0].get('key')),
+                state.PMS_TOKEN,
+                "%s%s" % (state.PMS_SERVER, self.item[0][0].get('key')),
                 1920,
                 1080)
         else:
             path = self.attach_plex_token_to_url(
-                '%s%s' % (utils.window('pms_server'),
-                          self.item[0][0].attrib['key']))
+                '%s%s' % (state.PMS_SERVER, self.item[0][0].attrib['key']))
         # Attach Plex id to url to let it be picked up by our playqueue agent
         # later
         return utils.try_encode('%s&plex_id=%s' % (path, self.plex_id()))
@@ -687,12 +685,12 @@ class API(object):
 
         url may or may not already contain a '?'
         """
-        if utils.window('pms_token') == '':
+        if not state.PMS_TOKEN:
             return url
         if '?' not in url:
-            url = "%s?X-Plex-Token=%s" % (url, utils.window('pms_token'))
+            url = "%s?X-Plex-Token=%s" % (url, state.PMS_TOKEN)
         else:
-            url = "%s&X-Plex-Token=%s" % (url, utils.window('pms_token'))
+            url = "%s&X-Plex-Token=%s" % (url, state.PMS_TOKEN)
         return url
 
     def item_id(self):
@@ -890,7 +888,7 @@ class API(object):
                 artwork = '%s?width=%s&height=%s' % (artwork, width, height)
             artwork = ('%s/photo/:/transcode?width=3840&height=3840&'
                        'minSize=1&upscale=0&url=%s'
-                       % (self.server, quote(artwork)))
+                       % (state.PMS_SERVER, quote(artwork)))
             artwork = self.attach_plex_token_to_url(artwork)
         return artwork
 
@@ -1408,7 +1406,7 @@ class API(object):
         # trailers are 'clip' with PMS xmls
         if action == "DirectStream":
             path = self.item[self.mediastream][self.part].attrib['key']
-            url = self.server + path
+            url = state.PMS_SERVER + path
             # e.g. Trailers already feature an '?'!
             if '?' in url:
                 url += '&' + urlencode(xargs)
@@ -1425,7 +1423,7 @@ class API(object):
         }
         # Path/key to VIDEO item of xml PMS response is needed, not part
         path = self.item.attrib['key']
-        transcode_path = self.server + \
+        transcode_path = state.PMS_SERVER + \
             '/video/:/transcode/universal/start.m3u8?'
         args = {
             'audioBoost': utils.settings('audioBoost'),
@@ -1483,7 +1481,7 @@ class API(object):
                 # We don't know the language - no need to download
                 else:
                     path = self.attach_plex_token_to_url(
-                        "%s%s" % (self.server, key))
+                        "%s%s" % (state.PMS_SERVER, key))
                 externalsubs.append(path)
                 kodiindex += 1
         LOG.info('Found external subs: %s', externalsubs)

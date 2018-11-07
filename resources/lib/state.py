@@ -20,7 +20,8 @@ LOCK_PLAYLISTS = Lock()
 # Quit PKC
 STOP_PKC = False
 
-
+# URL of our current PMS
+PMS_SERVER = None
 # Usually triggered by another Python instance - will have to be set (by
 # polling window) through e.g. librarysync thread
 SUSPEND_LIBRARY_THREAD = False
