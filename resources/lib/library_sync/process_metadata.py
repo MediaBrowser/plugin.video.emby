@@ -98,6 +98,9 @@ class ProcessMetadata(backgroundthread.KillableThread, common.libsync_mixin):
                         self.title = item['xml'][0].get('title')
                         self.update_progressbar()
                         self.current += 1
+                        if self.current % 200 == 0:
+                            context.plexconn.commit()
+                            context.kodiconn.commit()
                         self.queue.task_done()
                 self.queue.task_done()
         finally:
