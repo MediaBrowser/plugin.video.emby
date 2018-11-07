@@ -191,18 +191,18 @@ class KodiDBMethods(object):
         Adds the filename [unicode] to the table files if not already added
         and returns the idFile.
         """
-        query = 'SELECT idFile FROM files WHERE idPath = ? AND strFilename = ?'
-        self.cursor.execute(query, (path_id, filename))
+        self.cursor.execute('SELECT idFile FROM files WHERE idPath = ? AND strFilename = ?',
+                            (path_id, filename))
         try:
             file_id = self.cursor.fetchone()[0]
         except TypeError:
             self.cursor.execute('SELECT COALESCE(MAX(idFile), 0) FROM files')
             file_id = self.cursor.fetchone()[0] + 1
-            query = '''
-                INSERT INTO files(idFile, idPath, strFilename, dateAdded)
-                VALUES (?, ?, ?, ?)
-            '''
-            self.cursor.execute(query,
+            self.cursor.execute('''
+                                INSERT INTO files(
+                                    idFile, idPath, strFilename, dateAdded)
+                                VALUES (?, ?, ?, ?)
+                                ''',
                                 (file_id, path_id, filename, date_added))
         return file_id
 
