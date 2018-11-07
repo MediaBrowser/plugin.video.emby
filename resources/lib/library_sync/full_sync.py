@@ -3,7 +3,7 @@
 from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
 
-from .get_metadata import GetMetadataTask
+from .get_metadata import GetMetadataTask, reset_collections
 from . import common, process_metadata, sections
 from .. import utils, backgroundthread, variables as v, state
 from .. import plex_functions as PF, itemtypes
@@ -56,7 +56,7 @@ class FullSync(common.libsync_mixin):
                                          self.current_sync)
             return
         task = GetMetadataTask()
-        task.setup(self.queue, plex_id, self.get_children)
+        task.setup(self.queue, plex_id, self.plex_type, self.get_children)
         self.threader.addTask(task)
 
     def process_delete(self):
@@ -119,6 +119,7 @@ class FullSync(common.libsync_mixin):
                 continue
             LOG.debug('Waiting for processing thread to finish section')
             self.queue.join()
+            reset_collections()
             try:
                 # Sync playstate of every item
                 iterator = PF.SectionItems(section['section_id'],

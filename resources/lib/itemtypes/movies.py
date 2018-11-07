@@ -173,28 +173,36 @@ class Movie(ItemBase):
         self.kodi_db.modify_studios(kodi_id, v.KODI_TYPE_MOVIE, studios)
         tags = [section_name]
         if collections:
-            collections_match = api.collections_match()
             for plex_set_id, set_name in collections:
                 tags.append(set_name)
                 # Add any sets from Plex collection tags
                 kodi_set_id = self.kodi_db.create_collection(set_name)
                 self.kodi_db.assign_collection(kodi_set_id, kodi_id)
-                for index, coll_plex_id in collections_match:
-                    # Get Plex artwork for collections - a pain
-                    if index == plex_set_id:
-                        set_xml = PF.GetPlexMetadata(coll_plex_id)
-                        try:
-                            set_xml.attrib
-                        except AttributeError:
-                            LOG.error('Could not get set metadata %s',
-                                      coll_plex_id)
-                            continue
-                        set_api = API(set_xml[0])
-                        artwork.modify_artwork(set_api.artwork(),
-                                               kodi_set_id,
-                                               v.KODI_TYPE_SET,
-                                               self.kodicursor)
-                        break
+                if children is None:
+                    # e.g. when added via websocket
+                    LOG.debug('Costly looking up Plex collection %s: %s',
+                              plex_set_id, set_name)
+                    for index, coll_plex_id in api.collections_match():
+                        # Get Plex artwork for collections - a pain
+                        if index == plex_set_id:
+                            set_xml = PF.GetPlexMetadata(coll_plex_id)
+                            try:
+                                set_xml.attrib
+                            except AttributeError:
+                                LOG.error('Could not get set metadata %s',
+                                          coll_plex_id)
+                                continue
+                            set_api = API(set_xml[0])
+                            break
+                elif plex_set_id in children:
+                    # Provided by get_metadata thread
+                    set_api = API(children[plex_set_id][0])
+                else:
+                    continue
+                artwork.modify_artwork(set_api.artwork(),
+                                       kodi_set_id,
+                                       v.KODI_TYPE_SET,
+                                       self.kodicursor)
         self.kodi_db.modify_tags(kodi_id, v.KODI_TYPE_MOVIE, tags)
         # Process playstate
         self.kodi_db.set_resume(file_id,

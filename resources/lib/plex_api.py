@@ -67,6 +67,7 @@ class API(object):
         # which media part in the XML response shall we look at?
         self.part = 0
         self.mediastream = None
+        self.collections = None
         self.server = utils.window('pms_server')
 
     def set_part_number(self, number=None):
@@ -345,7 +346,8 @@ class API(object):
         collections = []
         for child in self.item:
             if child.tag == 'Collection':
-                collections.append((child.get('id'), child.get('tag')))
+                collections.append((cast(int, child.get('id')),
+                                    child.get('tag')))
         return collections
 
     def people(self):
@@ -1270,10 +1272,16 @@ class API(object):
         current item's Plex library sectin
         Pass in the collection id of e.g. the movie's metadata
         """
-        xml = PF.collections(self.library_section_id())
-        if xml is None:
-            return []
-        return [(i.get('index'), i.get('ratingKey')) for i in xml]
+        if self.collections is None:
+            self.collections = PF.collections(self.library_section_id())
+            if self.collections is None:
+                LOG.error('Could not download collections for %s',
+                          self.library_section_id())
+                return []
+            self.collections = \
+                [(utils.cast(int, x.get('index')),
+                  utils.cast(int, x.get('ratingKey'))) for x in self.collections]
+        return self.collections
 
     def set_artwork(self):
         """
