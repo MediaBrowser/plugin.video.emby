@@ -6,7 +6,8 @@ import xbmc
 from . import common
 from ..plex_api import API
 from ..plex_db import PlexDB
-from .. import backgroundthread, utils, kodidb_functions as kodidb
+from ..kodi_db import KodiVideoDB
+from .. import backgroundthread, utils
 from .. import itemtypes, plex_functions as PF, variables as v, state
 
 
@@ -87,9 +88,9 @@ def process_fanart(plex_id, plex_type, refresh=False):
             LOG.error('Could not get Kodi id for plex id %s', plex_id)
             return
         if not refresh:
-            with kodidb.GetKodiDB('video') as kodi_db:
-                artworks = kodi_db.get_art(db_item['kodi_id'],
-                                           db_item['kodi_type'])
+            with KodiVideoDB() as kodidb:
+                artworks = kodidb.get_art(db_item['kodi_id'],
+                                          db_item['kodi_type'])
             # Check if we even need to get additional art
             for key in v.ALL_KODI_ARTWORK:
                 if key not in artworks:
@@ -117,8 +118,8 @@ def process_fanart(plex_id, plex_type, refresh=False):
         if plex_type == v.PLEX_TYPE_MOVIE:
             for _, setname in api.collection_list():
                 LOG.debug('Getting artwork for movie set %s', setname)
-                with kodidb.GetKodiDB('video') as kodi_db:
-                    setid = kodi_db.create_collection(setname)
+                with KodiVideoDB() as kodidb:
+                    setid = kodidb.create_collection(setname)
                 external_set_artwork = api.set_artwork()
                 if external_set_artwork and PREFER_KODI_COLLECTION_ART:
                     kodi_artwork = api.artwork(kodi_id=setid,

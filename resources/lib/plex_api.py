@@ -38,13 +38,13 @@ from urlparse import parse_qsl
 from xbmcgui import ListItem
 
 from .plex_db import PlexDB
+from .kodi_db import KodiVideoDB, KodiMusicDB
 from .utils import cast
 from .downloadutils import DownloadUtils as DU
 from . import clientinfo
 from . import utils
 from . import path_ops
 from . import plex_functions as PF
-from . import kodidb_functions as kodidb
 from . import variables as v
 from . import state
 
@@ -939,13 +939,13 @@ class API(object):
                 else:
                     return artworks
             # Grab artwork from the season
-            with kodidb.GetKodiDB('video') as kodi_db:
-                season_art = kodi_db.get_art(season_id, v.KODI_TYPE_SEASON)
+            with KodiVideoDB() as kodidb:
+                season_art = kodidb.get_art(season_id, v.KODI_TYPE_SEASON)
             for kodi_art in season_art:
                 artworks['season.%s' % kodi_art] = season_art[kodi_art]
             # Grab more artwork from the show
-            with kodidb.GetKodiDB('video') as kodi_db:
-                show_art = kodi_db.get_art(show_id, v.KODI_TYPE_SHOW)
+            with KodiVideoDB() as kodidb:
+                show_art = kodidb.get_art(show_id, v.KODI_TYPE_SHOW)
             for kodi_art in show_art:
                 artworks['tvshow.%s' % kodi_art] = show_art[kodi_art]
             return artworks
@@ -953,11 +953,11 @@ class API(object):
         if kodi_id:
             # in Kodi database, potentially with additional e.g. clearart
             if self.plex_type() in v.PLEX_VIDEOTYPES:
-                with kodidb.GetKodiDB('video') as kodi_db:
-                    return kodi_db.get_art(kodi_id, kodi_type)
+                with KodiVideoDB() as kodidb:
+                    return kodidb.get_art(kodi_id, kodi_type)
             else:
-                with kodidb.GetKodiDB('music') as kodi_db:
-                    return kodi_db.get_art(kodi_id, kodi_type)
+                with KodiMusicDB() as kodidb:
+                    return kodidb.get_art(kodi_id, kodi_type)
 
         # Grab artwork from Plex
         # if self.plex_type() == v.PLEX_TYPE_EPISODE:

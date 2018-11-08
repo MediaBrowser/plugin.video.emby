@@ -5,11 +5,11 @@ from logging import getLogger
 from threading import Thread
 from urlparse import parse_qsl
 
+from .kodi_db import KodiVideoDB
 from . import playback
 from . import context_entry
 from . import json_rpc as js
 from . import pickler
-from . import kodidb_functions as kodidb
 from . import state
 
 ###############################################################################
@@ -47,8 +47,8 @@ class PlaybackStarter(Thread):
                                       resolve=resolve)
         elif mode == 'navigation':
             # e.g. when plugin://...tvshows is called for entire season
-            with kodidb.GetKodiDB('video') as kodi_db:
-                show_id = kodi_db.show_id_from_path(params.get('path'))
+            with KodiVideoDB() as kodidb:
+                show_id = kodidb.show_id_from_path(params.get('path'))
             if show_id:
                 js.activate_window('videos',
                                    'videodb://tvshows/titles/%s' % show_id)

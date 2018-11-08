@@ -1,52 +1,17 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-Connect to the Kodi databases (video and music) and operate on them
-"""
 from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
 from sqlite3 import IntegrityError
 
-from . import artwork, utils, variables as v, state, path_ops
+from . import common
+from .. import path_ops, utils, variables as v, state
 
-###############################################################################
-
-LOG = getLogger('PLEX.kodidb_functions')
-
-
-class GetKodiDB(object):
-    """
-    Usage: with GetKodiDB(db_type) as kodi_db:
-               do stuff with kodi_db
-
-    Parameters:
-        db_type:       DB to open: 'video', 'music', 'plex', 'texture'
-
-    On exiting "with" (no matter what), commits get automatically committed
-    and the db gets closed
-    """
-    def __init__(self, db_type):
-        self.kodiconn = None
-        self.db_type = db_type
-
-    def __enter__(self):
-        self.kodiconn = utils.kodi_sql(self.db_type)
-        kodi_db = KodiDBMethods(self.kodiconn.cursor())
-        return kodi_db
-
-    def __exit__(self, typus, value, traceback):
-        self.kodiconn.commit()
-        self.kodiconn.close()
+LOG = getLogger('PLEX.kodi_db.video')
 
 
-class KodiDBMethods(object):
-    """
-    Best used indirectly with another Class GetKodiDB:
-        with GetKodiDB(db_type) as kodi_db:
-            kodi_db.method()
-    """
-    def __init__(self, cursor):
-        self.cursor = cursor
+class KodiVideoDB(common.KodiDBBase):
+    db_kind = 'video'
 
     def setup_path_table(self):
         """
@@ -153,28 +118,6 @@ class KodiDBMethods(object):
                                 ''',
                                 (pathid, path, date_added, id_parent_path,
                                  content, scraper, 1))
-        return pathid
-
-    def add_music_path(self, path, hash_string=None):
-        """
-        Add the path (unicode) to the music DB, if it does not exist already.
-        Returns the path id
-        Set hash_string to something unicode to set the strHash attribute
-        """
-        # SQL won't return existing paths otherwise
-        path = '' if path is None else path
-        self.cursor.execute('SELECT idPath FROM path WHERE strPath = ?',
-                            (path,))
-        try:
-            pathid = self.cursor.fetchone()[0]
-        except TypeError:
-            self.cursor.execute("SELECT COALESCE(MAX(idPath),0) FROM path")
-            pathid = self.cursor.fetchone()[0] + 1
-            self.cursor.execute('''
-                                INSERT INTO path(idPath, strPath, strHash)
-                                VALUES (?, ?, ?)
-                                ''',
-                                (pathid, path, hash_string))
         return pathid
 
     def get_path(self, path):
@@ -443,7 +386,7 @@ class KodiDBMethods(object):
                 self.cursor.execute(query_actor_delete, (person[0],))
                 if kind == 'actor':
                     # Delete any associated artwork
-                    artwork.delete_artwork(person[0], 'actor', self.cursor)
+                    self.delete_artwork(person[0], 'actor')
         # Save new people to Kodi DB by iterating over the remaining entries
         if kind == 'actor':
             query = 'INSERT INTO actor_link VALUES (?, ?, ?, ?, ?)'
@@ -489,11 +432,10 @@ class KodiDBMethods(object):
                                 'VALUES (?, ?)',
                                 (actor_id, name))
             if art_url:
-                artwork.modify_art(art_url,
-                                   actor_id,
-                                   'actor',
-                                   'thumb',
-                                   self.cursor)
+                self.modify_art(art_url,
+                                actor_id,
+                                'actor',
+                                'thumb')
             return actor_id
 
     def get_art(self, kodi_id, kodi_type):
@@ -609,26 +551,6 @@ class KodiDBMethods(object):
                 LOG.debug('Did not find a video DB match')
                 return
         return movie_id, typus
-
-    def music_id_from_filename(self, filename, path):
-        """
-        Returns the Kodi song_id from the Kodi music database or None if not
-        found OR something went wrong.
-        """
-        self.cursor.execute('SELECT idPath FROM path WHERE strPath = ?',
-                            (path,))
-        path_ids = self.cursor.fetchall()
-        if len(path_ids) != 1:
-            LOG.debug('Found wrong number of path ids: %s for path %s, abort',
-                      path_ids, path)
-            return
-        self.cursor.execute('SELECT idSong FROM song WHERE strFileName = ? AND idPath = ?',
-                            (filename, path_ids[0][0]))
-        song_ids = self.cursor.fetchall()
-        if len(song_ids) != 1:
-            LOG.info('Found wrong number of songs %s, abort', song_ids)
-            return
-        return song_ids[0][0]
 
     def get_resume(self, file_id):
         """
@@ -803,208 +725,6 @@ class KodiDBMethods(object):
             ''', (seasonid, showid, seasonnumber))
         return seasonid
 
-    def add_artist(self, name, musicbrainz):
-        """
-        Adds a single artist's name to the db
-        """
-        self.cursor.execute('''
-            SELECT idArtist, strArtist
-            FROM artist
-            WHERE strMusicBrainzArtistID = ?
-        ''', (musicbrainz, ))
-        try:
-            result = self.cursor.fetchone()
-            artistid = result[0]
-            artistname = result[1]
-        except TypeError:
-            self.cursor.execute('SELECT idArtist FROM artist WHERE strArtist = ? COLLATE NOCASE',
-                                (name, ))
-            try:
-                artistid = self.cursor.fetchone()[0]
-            except TypeError:
-                # Krypton has a dummy first entry idArtist: 1  strArtist:
-                # [Missing Tag] strMusicBrainzArtistID: Artist Tag Missing
-                self.cursor.execute('SELECT COALESCE(MAX(idArtist),1) FROM artist')
-                artistid = self.cursor.fetchone()[0] + 1
-                self.cursor.execute('''
-                    INSERT INTO artist(
-                        idArtist,
-                        strArtist,
-                        strMusicBrainzArtistID)
-                    VALUES (?, ?, ?)
-                ''', (artistid, name, musicbrainz))
-        else:
-            if artistname != name:
-                self.cursor.execute('UPDATE artist SET strArtist = ? WHERE idArtist = ?',
-                                    (name, artistid,))
-        return artistid
-
-    def delete_song_from_song_artist(self, song_id):
-        """
-        Deletes son from song_artist table and possibly orphaned roles
-        """
-        self.cursor.execute('SELECT idArtist, idRole FROM song_artist WHERE idSong = ? LIMIT 1',
-                            (song_id, ))
-        artist = self.cursor.fetchone()
-        if artist is None:
-            # No entry to begin with
-            return
-        # Delete the entry
-        self.cursor.execute('DELETE FROM song_artist WHERE idSong = ?',
-                            (song_id, ))
-        # Check whether we need to delete orphaned roles
-        self.cursor.execute('SELECT idRole FROM song_artist WHERE idRole = ? LIMIT 1',
-                            (artist[1], ))
-        if not self.cursor.fetchone():
-            # Delete orphaned role
-            self.cursor.execute('DELETE FROM role WHERE idRole = ?',
-                                (artist[1], ))
-
-    def delete_album_from_discography(self, album_id):
-        """
-        Removes the album with id album_id from the table discography
-        """
-        # Need to get the album name as a string first!
-        self.cursor.execute('SELECT strAlbum, iYear FROM album WHERE idAlbum = ? LIMIT 1',
-                            (album_id, ))
-        try:
-            name, year = self.cursor.fetchone()
-        except TypeError:
-            return
-        self.cursor.execute('SELECT idArtist FROM album_artist WHERE idAlbum = ? LIMIT 1',
-                            (album_id, ))
-        artist = self.cursor.fetchone()
-        if not artist:
-            return
-        self.cursor.execute('DELETE FROM discography WHERE idArtist = ? AND strAlbum = ? AND strYear = ?',
-                            (artist[0], name, year))
-
-    def delete_song_from_song_genre(self, song_id):
-        """
-        Deletes the one entry with id song_id from the song_genre table.
-        Will also delete orphaned genres from genre table
-        """
-        self.cursor.execute('SELECT idGenre FROM song_genre WHERE idSong = ?',
-                            (song_id, ))
-        genres = self.cursor.fetchall()
-        self.cursor.execute('DELETE FROM song_genre WHERE idSong = ?',
-                            (song_id, ))
-        # Check for orphaned genres in both song_genre and album_genre tables
-        for genre in genres:
-            self.cursor.execute('SELECT idGenre FROM song_genre WHERE idGenre = ? LIMIT 1',
-                                (genre[0], ))
-            if not self.cursor.fetchone():
-                self.cursor.execute('SELECT idGenre FROM album_genre WHERE idGenre = ? LIMIT 1',
-                                    (genre[0], ))
-                if not self.cursor.fetchone():
-                    self.cursor.execute('DELETE FROM genre WHERE idGenre = ?',
-                                        (genre[0], ))
-
-    def delete_album_from_album_genre(self, album_id):
-        """
-        Deletes the one entry with id album_id from the album_genre table.
-        Will also delete orphaned genres from genre table
-        """
-        self.cursor.execute('SELECT idGenre FROM album_genre WHERE idAlbum = ?',
-                            (album_id, ))
-        genres = self.cursor.fetchall()
-        self.cursor.execute('DELETE FROM album_genre WHERE idAlbum = ?',
-                            (album_id, ))
-        # Check for orphaned genres in both album_genre and song_genre tables
-        for genre in genres:
-            self.cursor.execute('SELECT idGenre FROM album_genre WHERE idGenre = ? LIMIT 1',
-                                (genre[0], ))
-            if not self.cursor.fetchone():
-                self.cursor.execute('SELECT idGenre FROM song_genre WHERE idGenre = ? LIMIT 1',
-                                    (genre[0], ))
-                if not self.cursor.fetchone():
-                    self.cursor.execute('DELETE FROM genre WHERE idGenre = ?',
-                                        (genre[0], ))
-
-    def add_album(self, name, musicbrainz):
-        """
-        Adds a single album to the DB
-        """
-        self.cursor.execute('SELECT idAlbum FROM album WHERE strMusicBrainzAlbumID = ?',
-                            (musicbrainz, ))
-        try:
-            albumid = self.cursor.fetchone()[0]
-        except TypeError:
-            # Create the album
-            self.cursor.execute('SELECT COALESCE(MAX(idAlbum),0) FROM album')
-            albumid = self.cursor.fetchone()[0] + 1
-            self.cursor.execute('''
-                INSERT INTO album(
-                    idAlbum,
-                    strAlbum,
-                    strMusicBrainzAlbumID,
-                    strReleaseType)
-                VALUES (?, ?, ?, ?)
-            ''', (albumid, name, musicbrainz, 'album'))
-        return albumid
-
-    def add_music_genres(self, kodiid, genres, mediatype):
-        """
-        Adds a list of genres (list of unicode) for a certain Kodi item
-        """
-        if mediatype == "album":
-            # Delete current genres for clean slate
-            self.cursor.execute('DELETE FROM album_genre WHERE idAlbum = ?',
-                                (kodiid, ))
-            for genre in genres:
-                self.cursor.execute('SELECT idGenre FROM genre WHERE strGenre = ?',
-                                    (genre, ))
-                try:
-                    genreid = self.cursor.fetchone()[0]
-                except TypeError:
-                    # Create the genre
-                    self.cursor.execute('SELECT COALESCE(MAX(idGenre),0) FROM genre')
-                    genreid = self.cursor.fetchone()[0] + 1
-                    self.cursor.execute('INSERT INTO genre(idGenre, strGenre) VALUES(?, ?)',
-                                        (genreid, genre))
-                self.cursor.execute('''
-                    INSERT OR REPLACE INTO album_genre(
-                        idGenre,
-                        idAlbum)
-                    VALUES (?, ?)
-                ''', (genreid, kodiid))
-        elif mediatype == "song":
-            # Delete current genres for clean slate
-            self.cursor.execute('DELETE FROM song_genre WHERE idSong = ?',
-                                (kodiid, ))
-            for genre in genres:
-                self.cursor.execute('SELECT idGenre FROM genre WHERE strGenre = ?',
-                                    (genre, ))
-                try:
-                    genreid = self.cursor.fetchone()[0]
-                except TypeError:
-                    # Create the genre
-                    self.cursor.execute('SELECT COALESCE(MAX(idGenre),0) FROM genre')
-                    genreid = self.cursor.fetchone()[0] + 1
-                    self.cursor.execute('INSERT INTO genre(idGenre, strGenre) values(?, ?)',
-                                        (genreid, genre))
-                self.cursor.execute('''
-                    INSERT OR REPLACE INTO song_genre(
-                        idGenre,
-                        idSong)
-                    VALUES (?, ?)
-                ''', (genreid, kodiid))
-
-# Krypton only stuff ##############################
-
-    def update_userrating(self, kodi_id, kodi_type, userrating):
-        """
-        Updates userrating for >=Krypton
-        """
-        if kodi_type == v.KODI_TYPE_MOVIE:
-            identifier = 'idMovie'
-        elif kodi_type == v.KODI_TYPE_EPISODE:
-            identifier = 'idEpisode'
-        elif kodi_type == v.KODI_TYPE_SONG:
-            identifier = 'idSong'
-        self.cursor.execute('UPDATE %s SET userrating = ? WHERE ? = ?' % kodi_type,
-                            (userrating, identifier, kodi_id))
-
     def add_uniqueid(self, *args):
         """
         Feed with:
@@ -1103,141 +823,151 @@ class KodiDBMethods(object):
         self.cursor.execute('DELETE FROM rating WHERE media_id = ? AND media_type = ?',
                             (kodi_id, kodi_type))
 
-    def art_urls(self, kodi_id, kodi_type):
-        return (x[0] for x in
-                self.cursor.execute('SELECT url FROM art WHERE media_id = ? AND media_type = ?',
-                                    (kodi_id, kodi_type)))
+    def new_show_id(self):
+        self.cursor.execute('SELECT COALESCE(MAX(idShow), 0) FROM tvshow')
+        return self.cursor.fetchone()[0] + 1
 
-    def artwork_generator(self, kodi_type):
-        """
-        """
-        return (x[0] for x in
-                self.cursor.execute('SELECT url FROM art WHERE type == ?',
-                                    (kodi_type, )))
+    def new_episode_id(self):
+        self.cursor.execute('SELECT COALESCE(MAX(idEpisode), 0) FROM episode')
+        return self.cursor.fetchone()[0] + 1
 
-    def url_not_yet_cached(self, url):
-        """
-        Returns True if url has not yet been cached to the Kodi texture cache
-        """
-        self.cursor.execute('SELECT url FROM texture WHERE url == ? LIMIT 1',
-                            (url, ))
-        return self.cursor.fetchone() is None
+    def add_episode(self, *args):
+        self.cursor.execute(
+            '''
+                INSERT INTO episode(
+                    idEpisode,
+                    idFile,
+                    c00,
+                    c01,
+                    c03,
+                    c04,
+                    c05,
+                    c09,
+                    c10,
+                    c12,
+                    c13,
+                    c14,
+                    idShow,
+                    c15,
+                    c16,
+                    c18,
+                    c19,
+                    idSeason,
+                    userrating)
+                VALUES
+                    (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (args))
 
+    def update_episode(self, *args):
+        self.cursor.execute(
+            '''
+                UPDATE episode
+                SET c00 = ?,
+                    c01 = ?,
+                    c03 = ?,
+                    c04 = ?,
+                    c05 = ?,
+                    c09 = ?,
+                    c10 = ?,
+                    c12 = ?,
+                    c13 = ?,
+                    c14 = ?,
+                    c15 = ?,
+                    c16 = ?,
+                    c18 = ?,
+                    c19 = ?,
+                    idFile=?,
+                    idSeason = ?,
+                    userrating = ?
+                WHERE idEpisode = ?
+            ''', (args))
 
-def kodiid_from_filename(path, kodi_type=None, db_type=None):
-    """
-    Returns kodi_id if we have an item in the Kodi video or audio database with
-    said path. Feed with either koditype, e.v. 'movie', 'song' or the DB
-    you want to poll ('video' or 'music')
-    Returns None, <kodi_type> if not possible
-    """
-    kodi_id = None
-    path = utils.try_decode(path)
-    try:
-        filename = path.rsplit('/', 1)[1]
-        path = path.rsplit('/', 1)[0] + '/'
-    except IndexError:
-        filename = path.rsplit('\\', 1)[1]
-        path = path.rsplit('\\', 1)[0] + '\\'
-    if kodi_type == v.KODI_TYPE_SONG or db_type == 'music':
-        with GetKodiDB('music') as kodi_db:
-            try:
-                kodi_id = kodi_db.music_id_from_filename(filename, path)
-            except TypeError:
-                LOG.debug('No Kodi audio db element found for path %s', path)
-            else:
-                kodi_type = v.KODI_TYPE_SONG
-    else:
-        with GetKodiDB('video') as kodi_db:
-            try:
-                kodi_id, kodi_type = kodi_db.video_id_from_filename(filename,
-                                                                    path)
-            except TypeError:
-                LOG.debug('No kodi video db element found for path %s', path)
-    return kodi_id, kodi_type
+    def add_show(self, *args):
+        self.cursor.execute(
+            '''
+                INSERT INTO tvshow(
+                    idShow,
+                    c00,
+                    c01,
+                    c04,
+                    c05,
+                    c08,
+                    c09,
+                    c12,
+                    c13,
+                    c14,
+                    c15)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (args))
 
+    def update_show(self, *args):
+        self.cursor.execute(
+            '''
+                UPDATE tvshow
+                SET c00 = ?,
+                    c01 = ?,
+                    c04 = ?,
+                    c05 = ?,
+                    c08 = ?,
+                    c09 = ?,
+                    c12 = ?,
+                    c13 = ?,
+                    c14 = ?,
+                    c15 = ?
+                WHERE idShow = ?
+            ''', (args))
 
-def setup_kodi_default_entries():
-    """
-    Makes sure that we retain the Kodi standard databases. E.g. that there
-    is a dummy artist with ID 1
-    """
-    if utils.settings('enableMusic') == 'true':
-        with GetKodiDB('music') as kodi_db:
-            kodi_db.cursor.execute('''
-                INSERT OR REPLACE INTO artist(
-                    idArtist,
-                    strArtist,
-                    strMusicBrainzArtistID)
-                VALUES (?, ?, ?)
-            ''', (1, '[Missing Tag]', 'Artist Tag Missing'))
-            if v.KODIVERSION >= 18:
-                kodi_db.cursor.execute('''
-                    INSERT OR REPLACE INTO versiontagscan(
-                        idVersion,
-                        iNeedsScan,
-                        lastscanned)
-                    VALUES (?, ?, ?)
-                ''', (v.DB_MUSIC_VERSION[v.KODIVERSION],
-                      0,
-                      utils.unix_date_to_kodi(utils.unix_timestamp())))
+    def add_showlinkpath(self, kodi_id, kodi_pathid):
+        self.cursor.execute('INSERT INTO tvshowlinkpath(idShow, idPath) VALUES (?, ?)',
+                            (kodi_id, kodi_pathid))
 
+    def remove_show(self, kodi_id):
+        self.cursor.execute('DELETE FROM tvshow WHERE idShow = ?', (kodi_id,))
 
-def reset_cached_images():
-    LOG.info('Resetting cached artwork')
-    # Remove all existing textures first
-    path = path_ops.translate_path('special://thumbnails/')
-    if path_ops.exists(path):
-        path_ops.rmtree(path, ignore_errors=True)
-        paths = ('', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
-                 'a', 'b', 'c', 'd', 'e', 'f',
-                 'Video', 'plex')
-        for path in paths:
-            new_path = path_ops.translate_path('special://thumbnails/%s' % path)
-            path_ops.makedirs(path_ops.encode_path(new_path))
-    with GetKodiDB('texture') as kodi_db:
-        kodi_db.cursor.execute('SELECT tbl_name FROM sqlite_master WHERE type=?',
-                               ('table', ))
-        rows = kodi_db.cursor.fetchall()
-        for row in rows:
-            if row[0] != 'version':
-                kodi_db.cursor.execute("DELETE FROM %s" % row[0])
+    def remove_season(self, kodi_id):
+        self.cursor.execute('DELETE FROM seasons WHERE idSeason = ?',
+                            (kodi_id,))
 
+    def remove_episode(self, kodi_id):
+        self.cursor.execute('DELETE FROM episode WHERE idEpisode = ?',
+                            (kodi_id,))
 
-def wipe_dbs(music=True):
-    """
-    Completely resets the Kodi databases 'video', 'texture' and 'music' (if
-    music sync is enabled)
-    """
-    LOG.warn('Wiping Kodi databases!')
-    kinds = ['video', 'texture']
-    if music:
-        kinds.append('music')
-    for db in kinds:
-        with GetKodiDB(db) as kodi_db:
-            kodi_db.cursor.execute("SELECT name FROM sqlite_master WHERE type = 'table'")
-            tables = kodi_db.cursor.fetchall()
-            tables = [i[0] for i in tables]
-            if 'version' in tables:
-                tables.remove('version')
-            if 'versiontagscan' in tables:
-                tables.remove('versiontagscan')
-            for table in tables:
-                kodi_db.cursor.execute('DELETE FROM %s' % table)
-    setup_kodi_default_entries()
-    # Make sure Kodi knows we wiped the databases
-    import xbmc
-    xbmc.executebuiltin('UpdateLibrary(video)')
-    if utils.settings('enableMusic') == 'true':
-        xbmc.executebuiltin('UpdateLibrary(music)')
+    def new_movie_id(self):
+        self.cursor.execute('SELECT COALESCE(MAX(idMovie), 0) FROM movie')
+        return self.cursor.fetchone()[0] + 1
 
+    def add_movie(self, *args):
+        self.cursor.execute(
+            '''
+            INSERT OR REPLACE INTO movie(
+                idMovie,
+                idFile,
+                c00,
+                c01,
+                c02,
+                c03,
+                c04,
+                c05,
+                c06,
+                c07,
+                c09,
+                c10,
+                c11,
+                c12,
+                c14,
+                c15,
+                c16,
+                c18,
+                c19,
+                c21,
+                c22,
+                c23,
+                premiered,
+                userrating)
+            VALUES
+                (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+                 ?, ?, ?, ?)
+        ''', (args))
 
-KODIDB_FROM_PLEXTYPE = {
-    v.PLEX_TYPE_MOVIE: GetKodiDB('video'),
-    v.PLEX_TYPE_SHOW: GetKodiDB('video'),
-    v.PLEX_TYPE_SEASON: GetKodiDB('video'),
-    v.PLEX_TYPE_EPISODE: GetKodiDB('video'),
-    v.PLEX_TYPE_ARTIST: GetKodiDB('music'),
-    v.PLEX_TYPE_ALBUM: GetKodiDB('music'),
-    v.PLEX_TYPE_SONG: GetKodiDB('music')
-}
+    def remove_movie(self, kodi_id):
+        self.cursor.execute('DELETE FROM movie WHERE idMovie = ?', (kodi_id,))

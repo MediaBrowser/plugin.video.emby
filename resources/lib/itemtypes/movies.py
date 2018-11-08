@@ -5,7 +5,7 @@ from logging import getLogger
 
 from .common import ItemBase
 from ..plex_api import API
-from .. import artwork, state, variables as v, plex_functions as PF
+from .. import state, variables as v, plex_functions as PF
 
 LOG = getLogger('PLEX.movies')
 
@@ -20,32 +20,20 @@ class Movie(ItemBase):
         Process single movie
         """
         api = API(xml)
-        update_item = True
         plex_id = api.plex_id()
         # Cannot parse XML, abort
         if not plex_id:
             LOG.error('Cannot parse XML data for movie: %s', xml.attrib)
             return
         movie = self.plexdb.movie(plex_id)
-        try:
+        if movie:
+            update_item = True
             kodi_id = movie['kodi_id']
             old_kodi_fileid = movie['kodi_fileid']
             kodi_pathid = movie['kodi_pathid']
-        except TypeError:
-            update_item = False
-            self.kodicursor.execute('SELECT COALESCE(MAX(idMovie), 0) FROM movie')
-            kodi_id = self.kodicursor.fetchone()[0] + 1
         else:
-            # Verification the item is still in Kodi
-            self.kodicursor.execute('SELECT idMovie FROM movie WHERE idMovie = ? LIMIT 1',
-                                    (kodi_id, ))
-            try:
-                self.kodicursor.fetchone()[0]
-            except TypeError:
-                # item is not found, let's recreate it.
-                update_item = False
-                LOG.info("kodi_id: %s missing from Kodi, repairing the entry.",
-                         kodi_id)
+            update_item = False
+            kodi_id = self.kodidb.new_movie_id()
 
         userdata = api.userdata()
         playcount = userdata['PlayCount']
@@ -80,9 +68,9 @@ class Movie(ItemBase):
                     # Network share
                     filename = playurl.rsplit("/", 1)[1]
                 path = playurl.replace(filename, "")
-                kodi_pathid = self.kodi_db.add_video_path(path,
-                                                          content='movies',
-                                                          scraper='metadata.local')
+                kodi_pathid = self.kodidb.add_video_path(path,
+                                                         content='movies',
+                                                         scraper='metadata.local')
         if do_indirect:
             # Set plugin path and media flags using real filename
             filename = api.file_name(force_first_media=True)
@@ -90,94 +78,100 @@ class Movie(ItemBase):
             filename = ('%s?plex_id=%s&plex_type=%s&mode=play&filename=%s'
                         % (path, plex_id, v.PLEX_TYPE_MOVIE, filename))
             playurl = filename
-            kodi_pathid = self.kodi_db.get_path(path)
+            kodi_pathid = self.kodidb.get_path(path)
 
-        file_id = self.kodi_db.add_file(filename,
-                                        kodi_pathid,
-                                        api.date_created())
+        file_id = self.kodidb.add_file(filename,
+                                       kodi_pathid,
+                                       api.date_created())
 
         if update_item:
             LOG.info('UPDATE movie plex_id: %s - %s', plex_id, api.title())
             if file_id != old_kodi_fileid:
-                self.kodi_db.remove_file(old_kodi_fileid)
-            rating_id = self.kodi_db.get_ratingid(kodi_id,
-                                                  v.KODI_TYPE_MOVIE)
-            self.kodi_db.update_ratings(kodi_id,
-                                        v.KODI_TYPE_MOVIE,
-                                        "default",
-                                        rating,
-                                        api.votecount(),
-                                        rating_id)
+                self.kodidb.remove_file(old_kodi_fileid)
+            rating_id = self.kodidb.get_ratingid(kodi_id,
+                                                 v.KODI_TYPE_MOVIE)
+            self.kodidb.update_ratings(kodi_id,
+                                       v.KODI_TYPE_MOVIE,
+                                       "default",
+                                       rating,
+                                       api.votecount(),
+                                       rating_id)
             # update new uniqueid Kodi 17
             if api.provider('imdb') is not None:
-                uniqueid = self.kodi_db.get_uniqueid(kodi_id,
-                                                     v.KODI_TYPE_MOVIE)
-                self.kodi_db.update_uniqueid(kodi_id,
-                                             v.KODI_TYPE_MOVIE,
-                                             api.provider('imdb'),
-                                             "imdb",
-                                             uniqueid)
+                uniqueid = self.kodidb.get_uniqueid(kodi_id,
+                                                    v.KODI_TYPE_MOVIE)
+                self.kodidb.update_uniqueid(kodi_id,
+                                            v.KODI_TYPE_MOVIE,
+                                            api.provider('imdb'),
+                                            "imdb",
+                                            uniqueid)
             else:
-                self.kodi_db.remove_uniqueid(kodi_id, v.KODI_TYPE_MOVIE)
+                self.kodidb.remove_uniqueid(kodi_id, v.KODI_TYPE_MOVIE)
                 uniqueid = -1
         else:
             LOG.info("ADD movie plex_id: %s - %s", plex_id, title)
-            rating_id = self.kodi_db.get_ratingid(kodi_id,
-                                                  v.KODI_TYPE_MOVIE)
-            self.kodi_db.add_ratings(rating_id,
-                                     kodi_id,
-                                     v.KODI_TYPE_MOVIE,
-                                     "default",
-                                     rating,
-                                     api.votecount())
+            rating_id = self.kodidb.get_ratingid(kodi_id,
+                                                 v.KODI_TYPE_MOVIE)
+            self.kodidb.add_ratings(rating_id,
+                                    kodi_id,
+                                    v.KODI_TYPE_MOVIE,
+                                    "default",
+                                    rating,
+                                    api.votecount())
             if api.provider('imdb') is not None:
-                uniqueid = self.kodi_db.get_uniqueid(kodi_id,
-                                                     v.KODI_TYPE_MOVIE)
-                self.kodi_db.add_uniqueid(uniqueid,
-                                          kodi_id,
-                                          v.KODI_TYPE_MOVIE,
-                                          api.provider('imdb'),
-                                          "imdb")
+                uniqueid = self.kodidb.get_uniqueid(kodi_id,
+                                                    v.KODI_TYPE_MOVIE)
+                self.kodidb.add_uniqueid(uniqueid,
+                                         kodi_id,
+                                         v.KODI_TYPE_MOVIE,
+                                         api.provider('imdb'),
+                                         "imdb")
             else:
                 uniqueid = -1
 
         # Update Kodi's main entry
-        query = '''
-            INSERT OR REPLACE INTO movie(idMovie, idFile, c00, c01, c02, c03,
-                c04, c05, c06, c07, c09, c10, c11, c12, c14, c15, c16,
-                c18, c19, c21, c22, c23, premiered, userrating)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
-                    ?, ?, ?, ?, ?, ?, ?)
-        '''
-        self.kodicursor.execute(
-            query,
-            (kodi_id, file_id, title, api.plot(), api.shortplot(),
-             api.tagline(), api.votecount(), rating_id,
-             api.list_to_string(people['Writer']), api.year(),
-             uniqueid, api.sorttitle(), runtime, api.content_rating(),
-             api.list_to_string(genres), api.list_to_string(people['Director']),
-             title, api.list_to_string(studios), api.trailer(),
-             api.list_to_string(countries), playurl, kodi_pathid,
-             api.premiere_date(), userdata['UserRating']))
+        self.kodidb.add_movie(kodi_id,
+                              file_id,
+                              title,
+                              api.plot(),
+                              api.shortplot(),
+                              api.tagline(),
+                              api.votecount(),
+                              rating_id,
+                              api.list_to_string(people['Writer']),
+                              api.year(),
+                              uniqueid,
+                              api.sorttitle(),
+                              runtime,
+                              api.content_rating(),
+                              api.list_to_string(genres),
+                              api.list_to_string(people['Director']),
+                              title,
+                              api.list_to_string(studios),
+                              api.trailer(),
+                              api.list_to_string(countries),
+                              playurl,
+                              kodi_pathid,
+                              api.premiere_date(),
+                              userdata['UserRating'])
 
-        self.kodi_db.modify_countries(kodi_id, v.KODI_TYPE_MOVIE, countries)
-        self.kodi_db.modify_people(kodi_id,
-                                   v.KODI_TYPE_MOVIE,
-                                   api.people_list())
-        self.kodi_db.modify_genres(kodi_id, v.KODI_TYPE_MOVIE, genres)
-        artwork.modify_artwork(api.artwork(),
-                               kodi_id,
-                               v.KODI_TYPE_MOVIE,
-                               self.kodicursor)
-        self.kodi_db.modify_streams(file_id, api.mediastreams(), runtime)
-        self.kodi_db.modify_studios(kodi_id, v.KODI_TYPE_MOVIE, studios)
+        self.kodidb.modify_countries(kodi_id, v.KODI_TYPE_MOVIE, countries)
+        self.kodidb.modify_people(kodi_id,
+                                  v.KODI_TYPE_MOVIE,
+                                  api.people_list())
+        self.kodidb.modify_genres(kodi_id, v.KODI_TYPE_MOVIE, genres)
+        self.kodidb.modify_artwork(api.artwork(),
+                                   kodi_id,
+                                   v.KODI_TYPE_MOVIE)
+        self.kodidb.modify_streams(file_id, api.mediastreams(), runtime)
+        self.kodidb.modify_studios(kodi_id, v.KODI_TYPE_MOVIE, studios)
         tags = [section_name]
         if collections:
             for plex_set_id, set_name in collections:
                 tags.append(set_name)
                 # Add any sets from Plex collection tags
-                kodi_set_id = self.kodi_db.create_collection(set_name)
-                self.kodi_db.assign_collection(kodi_set_id, kodi_id)
+                kodi_set_id = self.kodidb.create_collection(set_name)
+                self.kodidb.assign_collection(kodi_set_id, kodi_id)
                 if children is None:
                     # e.g. when added via websocket
                     LOG.debug('Costly looking up Plex collection %s: %s',
@@ -199,18 +193,17 @@ class Movie(ItemBase):
                     set_api = API(children[plex_set_id][0])
                 else:
                     continue
-                artwork.modify_artwork(set_api.artwork(),
-                                       kodi_set_id,
-                                       v.KODI_TYPE_SET,
-                                       self.kodicursor)
-        self.kodi_db.modify_tags(kodi_id, v.KODI_TYPE_MOVIE, tags)
+                self.kodidb.modify_artwork(set_api.artwork(),
+                                           kodi_set_id,
+                                           v.KODI_TYPE_SET)
+        self.kodidb.modify_tags(kodi_id, v.KODI_TYPE_MOVIE, tags)
         # Process playstate
-        self.kodi_db.set_resume(file_id,
-                                resume,
-                                runtime,
-                                playcount,
-                                dateplayed,
-                                v.PLEX_TYPE_MOVIE)
+        self.kodidb.set_resume(file_id,
+                               resume,
+                               runtime,
+                               playcount,
+                               dateplayed,
+                               v.PLEX_TYPE_MOVIE)
         self.plexdb.add_movie(plex_id=plex_id,
                               checksum=api.checksum(),
                               section_id=section_id,
@@ -238,19 +231,18 @@ class Movie(ItemBase):
             # Remove the plex reference
             self.plexdb.remove(plex_id, v.PLEX_TYPE_MOVIE)
             # Remove artwork
-            artwork.delete_artwork(kodi_id, kodi_type, self.self.kodicursor)
-            set_id = self.kodi_db.get_set_id(kodi_id)
-            self.kodi_db.modify_countries(kodi_id, kodi_type)
-            self.kodi_db.modify_people(kodi_id, kodi_type)
-            self.kodi_db.modify_genres(kodi_id, kodi_type)
-            self.kodi_db.modify_studios(kodi_id, kodi_type)
-            self.kodi_db.modify_tags(kodi_id, kodi_type)
+            self.kodidb.delete_artwork(kodi_id, kodi_type)
+            set_id = self.kodidb.get_set_id(kodi_id)
+            self.kodidb.modify_countries(kodi_id, kodi_type)
+            self.kodidb.modify_people(kodi_id, kodi_type)
+            self.kodidb.modify_genres(kodi_id, kodi_type)
+            self.kodidb.modify_studios(kodi_id, kodi_type)
+            self.kodidb.modify_tags(kodi_id, kodi_type)
             # Delete kodi movie and file
-            self.kodi_db.remove_file(file_id)
-            self.self.kodicursor.execute('DELETE FROM movie WHERE idMovie = ?',
-                                         (kodi_id,))
+            self.kodidb.remove_file(file_id)
+            self.kodidb.remove_movie(kodi_id)
             if set_id:
-                self.kodi_db.delete_possibly_empty_set(set_id)
-            self.kodi_db.remove_uniqueid(kodi_id, kodi_type)
-            self.kodi_db.remove_ratings(kodi_id, kodi_type)
+                self.kodidb.delete_possibly_empty_set(set_id)
+            self.kodidb.remove_uniqueid(kodi_id, kodi_type)
+            self.kodidb.remove_ratings(kodi_id, kodi_type)
             LOG.debug('Deleted movie %s from kodi database', plex_id)

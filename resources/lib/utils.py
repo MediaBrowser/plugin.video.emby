@@ -526,8 +526,7 @@ def wipe_database():
     delete_playlists()
     # Clean up the video nodes
     delete_nodes()
-    from . import kodidb_functions
-    from . import plex_db
+    from . import kodi_db, plex_db
     # First get the paths to all synced playlists
     playlist_paths = []
     try:
@@ -545,7 +544,7 @@ def wipe_database():
         # Plex DB completely empty yet. Wipe existing Kodi music only if we
         # expect to sync Plex music
         music = settings('enableMusic') == 'true'
-    kodidb_functions.wipe_dbs(music)
+    kodi_db.wipe_dbs(music)
     plex_db.wipe()
     plex_db.initialize()
     # Delete all synced playlists
@@ -558,7 +557,7 @@ def wipe_database():
 
     LOG.info("Resetting all cached artwork.")
     # Remove all cached artwork
-    kodidb_functions.reset_cached_images()
+    kodi_db.reset_cached_images()
     # reset the install run flag
     settings('SyncInstallRunDone', value="false")
     LOG.info('Wiping done')

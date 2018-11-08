@@ -9,7 +9,7 @@ from logging import getLogger
 
 from .common import Playlist, PlaylistError
 from ..plex_db import PlexDB
-from .. import kodidb_functions as kodidb
+from ..kodi_db import kodiid_from_filename
 from .. import path_ops, utils, variables as v
 ###############################################################################
 LOG = getLogger('PLEX.playlists.db')
@@ -88,8 +88,8 @@ def m3u_to_plex_ids(playlist):
             plex_ids.append(plex_id)
         else:
             # Add-on paths not working, try direct
-            kodi_id, kodi_type = kodidb.kodiid_from_filename(
-                entry, db_type=playlist.kodi_type)
+            kodi_id, kodi_type = kodiid_from_filename(entry,
+                                                      db_type=playlist.kodi_type)
             if not kodi_id:
                 continue
             with PlexDB() as plexdb:

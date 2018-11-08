@@ -13,7 +13,7 @@ from .plex_db import PlexDB
 from . import plex_functions as PF
 from . import utils
 from .downloadutils import DownloadUtils as DU
-from . import kodidb_functions as kodidb
+from .kodi_db import KodiVideoDB
 from . import playlist_func as PL
 from . import playqueue as PQ
 from . import json_rpc as js
@@ -429,8 +429,8 @@ def _conclude_playback(playqueue, pos):
             with PlexDB() as plexdb:
                 db_item = plexdb.item_by_id(item.plex_id, item.plex_type)
             file_id = db_item['kodi_fileid'] if db_item else None
-            with kodidb.GetKodiDB('video') as kodi_db:
-                item.offset = kodi_db.get_resume(file_id)
+            with KodiVideoDB() as kodidb:
+                item.offset = kodidb.get_resume(file_id)
         LOG.info('Resuming playback at %s', item.offset)
         if v.KODIVERSION >= 18 and api:
             # Kodi 18 Alpha 3 broke StartOffset

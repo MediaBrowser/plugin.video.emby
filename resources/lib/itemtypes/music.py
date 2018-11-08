@@ -6,8 +6,8 @@ from logging import getLogger
 from .common import ItemBase
 from ..plex_api import API
 from ..plex_db import PlexDB
-from .. import artwork, kodidb_functions as kodidb
-from .. import plex_functions as PF, utils, state, variables as v
+from ..kodi_db import KodiMusicDB
+from .. import artwork, plex_functions as PF, utils, state, variables as v
 
 LOG = getLogger('PLEX.music')
 
@@ -21,8 +21,12 @@ class MusicMixin(object):
         self.plexcursor = self.plexconn.cursor()
         self.kodiconn = utils.kodi_sql('music')
         self.kodicursor = self.kodiconn.cursor()
+        self.artconn = utils.kodi_sql('texture')
+        self.artcursor = self.artconn.cursor()
         self.plexdb = PlexDB(self.plexcursor)
-        self.kodi_db = kodidb.KodiDBMethods(self.kodicursor)
+        self.kodidb = KodiMusicDB(texture_db=True,
+                                  cursor=self.kodicursor,
+                                  artcursor=self.artcursor)
         return self
 
     def remove(self, plex_id, plex_type=None):
@@ -93,7 +97,7 @@ class MusicMixin(object):
                 path_id = self.kodicursor.fetchone()[0]
             except TypeError:
                 pass
-        self.kodi_db.delete_song_from_song_artist(kodi_id)
+        self.kodidb.delete_song_from_song_artist(kodi_id)
         self.kodicursor.execute('DELETE FROM song WHERE idSong = ?',
                                 (kodi_id, ))
         # Check whether we have orphaned path entries
@@ -103,7 +107,7 @@ class MusicMixin(object):
             self.kodicursor.execute('DELETE FROM path WHERE idPath = ?',
                                     (path_id, ))
         if v.KODIVERSION < 18:
-            self.kodi_db.delete_song_from_song_genre(kodi_id)
+            self.kodidb.delete_song_from_song_genre(kodi_id)
             query = 'DELETE FROM albuminfosong WHERE idAlbumInfoSong = ?'
             self.kodicursor.execute(query, (kodi_id, ))
         artwork.delete_artwork(kodi_id, v.KODI_TYPE_SONG, self.kodicursor)
@@ -112,9 +116,9 @@ class MusicMixin(object):
         '''
         Remove an album
         '''
-        self.kodi_db.delete_album_from_discography(kodi_id)
+        self.kodidb.delete_album_from_discography(kodi_id)
         if v.KODIVERSION < 18:
-            self.kodi_db.delete_album_from_album_genre(kodi_id)
+            self.kodidb.delete_album_from_album_genre(kodi_id)
             query = 'DELETE FROM albuminfosong WHERE idAlbumInfo = ?'
             self.kodicursor.execute(query, (kodi_id, ))
         self.kodicursor.execute('DELETE FROM album_artist WHERE idAlbum = ?',
@@ -183,7 +187,7 @@ class Artist(MusicMixin, ItemBase):
             # multiple times.
             # Kodi doesn't allow that. In case that happens we just merge the
             # artist entries.
-            kodi_id = self.kodi_db.add_artist(api.title(), musicBrainzId)
+            kodi_id = self.kodidb.add_artist(api.title(), musicBrainzId)
             # Create the reference in plex table
         query = '''
             UPDATE artist
@@ -279,7 +283,7 @@ class Album(MusicMixin, ItemBase):
         # OR ADD THE ALBUM #####
         else:
             LOG.info("ADD album plex_id: %s - Name: %s", plex_id, name)
-            kodi_id = self.kodi_db.add_album(name, musicBrainzId)
+            kodi_id = self.kodidb.add_album(name, musicBrainzId)
         # Process the album info
         if v.KODIVERSION >= 18:
             # Kodi Leia
@@ -360,7 +364,7 @@ class Album(MusicMixin, ItemBase):
         self.kodicursor.execute(query,
                                 (artist_id, name, api.year()))
         if v.KODIVERSION < 18:
-            self.kodi_db.add_music_genres(kodi_id,
+            self.kodidb.add_music_genres(kodi_id,
                                           genres,
                                           v.KODI_TYPE_ALBUM)
         # Update artwork
@@ -379,7 +383,7 @@ class Album(MusicMixin, ItemBase):
         if scan_children:
             context = Song(self.last_sync,
                            plexdb=self.plexdb,
-                           kodi_db=self.kodi_db)
+                           kodidb=self.kodidb)
             for song in children:
                 context.add_update(song,
                                    section_name=section_name,
@@ -426,7 +430,7 @@ class Song(MusicMixin, ItemBase):
                 LOG.error('Grandparent tvartist %s xml download failed for %s',
                           artist_id, xml.attrib)
                 return
-            Artist(self.last_sync, plexdb=self.plexdb, kodi_db=self.kodi_db).add_update(
+            Artist(self.last_sync, plexdb=self.plexdb, kodidb=self.kodidb).add_update(
                 artist_xml[0], section_name, section_id)
             artist = self.plexdb.artist(artist_id)
             if not artist:
@@ -463,7 +467,7 @@ class Song(MusicMixin, ItemBase):
                     LOG.error('Parent album %s xml download failed for %s',
                               album_id, xml.attrib)
                     return
-                Album(self.last_sync, plexdb=self.plexdb, kodi_db=self.kodi_db).add_update(
+                Album(self.last_sync, plexdb=self.plexdb, kodidb=self.kodidb).add_update(
                     album_xml[0], section_name, section_id)
                 album = self.plexdb.album(album_id)
                 if not album:
@@ -615,7 +619,7 @@ class Song(MusicMixin, ItemBase):
         else:
             LOG.info("ADD song plex_id: %s - %s", plex_id, title)
             # Add path
-            kodi_pathid = self.kodi_db.add_music_path(path, hash_string="123")
+            kodi_pathid = self.kodidb.add_music_path(path, hash_string="123")
             # Create the song entry
             if v.KODIVERSION >= 18:
                 # Kodi Leia
@@ -730,7 +734,7 @@ class Song(MusicMixin, ItemBase):
                                 (grandparent_id, kodi_id, 1, 0, artist_name))
         # Add genres
         if genres:
-            self.kodi_db.add_music_genres(kodi_id, genres, v.KODI_TYPE_SONG)
+            self.kodidb.add_music_genres(kodi_id, genres, v.KODI_TYPE_SONG)
         artworks = api.artwork()
         artwork.modify_artwork(artworks,
                                kodi_id,

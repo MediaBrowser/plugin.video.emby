@@ -6,10 +6,10 @@ from urllib import quote_plus, unquote
 import requests
 import xbmc
 
-from . import backgroundthread, path_ops, utils
+from .kodi_db import KodiVideoDB, KodiMusicDB, KodiTextureDB
+from . import backgroundthread, utils
 from . import state
 
-###############################################################################
 LOG = getLogger('PLEX.artwork')
 
 # Disable annoying requests warnings
@@ -25,8 +25,6 @@ IMAGE_CACHING_SUSPENDS = [
 ]
 if not utils.settings('imageSyncDuringPlayback') == 'true':
     IMAGE_CACHING_SUSPENDS.append(state.SUSPEND_SYNC)
-
-###############################################################################
 
 
 def double_urlencode(text):
@@ -53,18 +51,16 @@ class ImageCachingThread(backgroundthread.KillableThread):
 
     @staticmethod
     def _art_url_generator():
-        from . import kodidb_functions as kodidb
-        for kind in ('video', 'music'):
-            with kodidb.GetKodiDB(kind) as kodi_db:
+        for kind in (KodiVideoDB, KodiMusicDB):
+            with kind() as kodidb:
                 for kodi_type in ('poster', 'fanart'):
-                    for url in kodi_db.artwork_generator(kodi_type):
+                    for url in kodidb.artwork_generator(kodi_type):
                         yield url
 
     def missing_art_cache_generator(self):
-        from . import kodidb_functions as kodidb
-        with kodidb.GetKodiDB('texture') as kodi_db:
+        with KodiTextureDB() as kodidb:
             for url in self._art_url_generator():
-                if kodi_db.url_not_yet_cached(url):
+                if kodidb.url_not_yet_cached(url):
                     yield url
 
     def run(self):
@@ -126,74 +122,3 @@ def cache_url(url):
             break
         # We did not even get a timeout
         break
-
-
-def modify_artwork(artworks, kodi_id, kodi_type, cursor):
-    """
-    Pass in an artworks dict (see PlexAPI) to set an items artwork.
-    """
-    for kodi_art, url in artworks.iteritems():
-        modify_art(url, kodi_id, kodi_type, kodi_art, cursor)
-
-
-def modify_art(url, kodi_id, kodi_type, kodi_art, cursor):
-    """
-    Adds or modifies the artwork of kind kodi_art (e.g. 'poster') in the
-    Kodi art table for item kodi_id/kodi_type. Will also cache everything
-    except actor portraits.
-    """
-    query = '''
-        SELECT url FROM art
-        WHERE media_id = ? AND media_type = ? AND type = ?
-        LIMIT 1
-    '''
-    cursor.execute(query, (kodi_id, kodi_type, kodi_art,))
-    try:
-        # Update the artwork
-        old_url = cursor.fetchone()[0]
-    except TypeError:
-        # Add the artwork
-        query = '''
-            INSERT INTO art(media_id, media_type, type, url)
-            VALUES (?, ?, ?, ?)
-        '''
-        cursor.execute(query, (kodi_id, kodi_type, kodi_art, url))
-    else:
-        if url == old_url:
-            # Only cache artwork if it changed
-            return
-        delete_cached_artwork(old_url)
-        query = '''
-            UPDATE art SET url = ?
-            WHERE media_id = ? AND media_type = ? AND type = ?
-        '''
-        cursor.execute(query, (url, kodi_id, kodi_type, kodi_art))
-
-
-def delete_artwork(kodiId, mediaType, cursor):
-    cursor.execute('SELECT url FROM art WHERE media_id = ? AND media_type = ?',
-                   (kodiId, mediaType, ))
-    for row in cursor.fetchall():
-        delete_cached_artwork(row[0])
-
-
-def delete_cached_artwork(url):
-    """
-    Deleted the cached artwork with path url (if it exists)
-    """
-    from . import kodidb_functions as kodidb
-    with kodidb.GetKodiDB('texture') as kodi_db:
-        try:
-            kodi_db.cursor.execute("SELECT cachedurl FROM texture WHERE url=? LIMIT 1",
-                                   (url, ))
-            cachedurl = kodi_db.cursor.fetchone()[0]
-        except TypeError:
-            # Could not find cached url
-            pass
-        else:
-            # Delete thumbnail as well as the entry
-            path = path_ops.translate_path("special://thumbnails/%s"
-                                           % cachedurl)
-            if path_ops.exists(path):
-                path_ops.rmtree(path, ignore_errors=True)
-            kodi_db.cursor.execute("DELETE FROM texture WHERE url = ?", (url,))

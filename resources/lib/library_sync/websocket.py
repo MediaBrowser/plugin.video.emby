@@ -8,7 +8,7 @@ from .full_sync import PLAYLIST_SYNC_ENABLED
 from .fanart import SYNC_FANART, FanartTask
 from ..plex_api import API
 from ..plex_db import PlexDB
-from .. import kodidb_functions as kodidb
+from .. import kodi_db
 from .. import backgroundthread, playlists, plex_functions as PF, itemtypes
 from .. import artwork, utils, variables as v, state
 
@@ -360,6 +360,6 @@ def cache_artwork(plex_id, plex_type, kodi_id=None, kodi_type=None):
             LOG.error('Could not retrieve Plex db info for %s', plex_id)
             return
         kodi_id, kodi_type = item['kodi_id'], item['kodi_type']
-    with kodidb.KODIDB_FROM_PLEXTYPE[plex_type] as kodi_db:
-        for url in kodi_db.art_urls(kodi_id, kodi_type):
+    with kodi_db.KODIDB_FROM_PLEXTYPE[plex_type] as kodidb:
+        for url in kodidb.art_urls(kodi_id, kodi_type):
             artwork.cache_url(url)

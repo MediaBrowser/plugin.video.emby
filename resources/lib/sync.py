@@ -7,7 +7,7 @@ import xbmc
 from .downloadutils import DownloadUtils as DU
 from . import library_sync
 from . import backgroundthread, utils, path_ops, artwork, variables as v, state
-from . import plex_db, kodidb_functions as kodidb
+from . import plex_db, kodi_db
 
 LOG = getLogger('PLEX.sync')
 
@@ -118,7 +118,7 @@ class Sync(backgroundthread.KillableThread):
                 return
             # ask to reset all existing or not
             if utils.yesno_dialog('Image Texture Cache', utils.lang(39251)):
-                kodidb.reset_cached_images()
+                kodi_db.reset_cached_images()
             self.start_image_cache_thread()
 
     def on_library_scan_finished(self, successful):
@@ -236,9 +236,9 @@ class Sync(backgroundthread.KillableThread):
         plex_db.initialize()
         # Hack to speed up look-ups for actors (giant table!)
         utils.create_kodi_db_indicees()
-        with kodidb.GetKodiDB('video') as kodi_db:
+        with kodi_db.KodiVideoDB() as kodidb:
             # Setup the paths for addon-paths (even when using direct paths)
-            kodi_db.setup_path_table()
+            kodidb.setup_path_table()
 
         while not self.isCanceled():
             # In the event the server goes offline

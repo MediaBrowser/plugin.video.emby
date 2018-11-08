@@ -11,7 +11,7 @@ from urlparse import parse_qsl, urlsplit
 from .plex_api import API
 from .plex_db import PlexDB
 from . import plex_functions as PF
-from . import kodidb_functions as kodidb
+from .kodi_db import kodiid_from_filename
 from .downloadutils import DownloadUtils as DU
 from . import utils
 from . import json_rpc as js
@@ -360,8 +360,8 @@ def verify_kodi_item(plex_id, kodi_item):
     if (not state.DIRECT_PATHS and state.ENABLE_MUSIC and
             kodi_item.get('type') == v.KODI_TYPE_SONG and
             kodi_item['file'].startswith('http')):
-        kodi_item['id'], _ = kodidb.kodiid_from_filename(kodi_item['file'],
-                                                         v.KODI_TYPE_SONG)
+        kodi_item['id'], _ = kodiid_from_filename(kodi_item['file'],
+                                                  v.KODI_TYPE_SONG)
         LOG.debug('Detected song. Research results: %s', kodi_item)
         return kodi_item
     # Need more info since we don't have kodi_id nor type. Use file path.
@@ -372,16 +372,16 @@ def verify_kodi_item(plex_id, kodi_item):
         raise PlaylistError
     LOG.debug('Starting research for Kodi id since we didnt get one: %s',
               kodi_item)
-    kodi_id, _ = kodidb.kodiid_from_filename(kodi_item['file'],
-                                             v.KODI_TYPE_MOVIE)
+    kodi_id, _ = kodiid_from_filename(kodi_item['file'],
+                                      v.KODI_TYPE_MOVIE)
     kodi_item['type'] = v.KODI_TYPE_MOVIE
     if kodi_id is None:
-        kodi_id, _ = kodidb.kodiid_from_filename(kodi_item['file'],
-                                                 v.KODI_TYPE_EPISODE)
+        kodi_id, _ = kodiid_from_filename(kodi_item['file'],
+                                          v.KODI_TYPE_EPISODE)
         kodi_item['type'] = v.KODI_TYPE_EPISODE
     if kodi_id is None:
-        kodi_id, _ = kodidb.kodiid_from_filename(kodi_item['file'],
-                                                 v.KODI_TYPE_SONG)
+        kodi_id, _ = kodiid_from_filename(kodi_item['file'],
+                                          v.KODI_TYPE_SONG)
         kodi_item['type'] = v.KODI_TYPE_SONG
     kodi_item['id'] = kodi_id
     kodi_item['type'] = None if kodi_id is None else kodi_item['type']

@@ -6,8 +6,8 @@ from ntpath import dirname
 
 from ..plex_api import API
 from ..plex_db import PlexDB
-from .. import kodidb_functions as kodidb
-from .. import artwork, utils
+from ..kodi_db import KodiVideoDB
+from .. import utils
 
 LOG = getLogger('PLEX.itemtypes.common')
 
@@ -39,14 +39,16 @@ class ItemBase(object):
     Input:
         kodiType:       optional argument; e.g. 'video' or 'music'
     """
-    def __init__(self, last_sync, plexdb=None, kodi_db=None):
+    def __init__(self, last_sync, plexdb=None, kodidb=None):
         self.last_sync = last_sync
         self.plexconn = None
         self.plexcursor = plexdb.cursor if plexdb else None
         self.kodiconn = None
-        self.kodicursor = kodi_db.cursor if kodi_db else None
+        self.kodicursor = kodidb.cursor if kodidb else None
+        self.artconn = kodidb.artconn if kodidb else None
+        self.artcursor = kodidb.artcursor if kodidb else None
         self.plexdb = plexdb
-        self.kodi_db = kodi_db
+        self.kodidb = kodidb
 
     def __enter__(self):
         """
@@ -56,8 +58,12 @@ class ItemBase(object):
         self.plexcursor = self.plexconn.cursor()
         self.kodiconn = utils.kodi_sql('video')
         self.kodicursor = self.kodiconn.cursor()
+        self.artconn = utils.kodi_sql('texture')
+        self.artcursor = self.artconn.cursor()
         self.plexdb = PlexDB(self.plexcursor)
-        self.kodi_db = kodidb.KodiDBMethods(self.kodicursor)
+        self.kodidb = KodiVideoDB(texture_db=True,
+                                  cursor=self.kodicursor,
+                                  artcursor=self.artcursor)
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -66,18 +72,19 @@ class ItemBase(object):
         """
         self.plexconn.commit()
         self.kodiconn.commit()
+        self.artconn.commit()
         self.plexconn.close()
         self.kodiconn.close()
+        self.artconn.close()
         return self
 
     def set_fanart(self, artworks, kodi_id, kodi_type):
         """
         Writes artworks [dict containing only set artworks] to the Kodi art DB
         """
-        artwork.modify_artwork(artworks,
-                               kodi_id,
-                               kodi_type,
-                               self.kodicursor)
+        self.kodidb.modify_artwork(artworks,
+                                   kodi_id,
+                                   kodi_type)
 
     def update_userdata(self, xml_element, plex_type):
         """
@@ -93,15 +100,15 @@ class ItemBase(object):
         # Grab the user's viewcount, resume points etc. from PMS' answer
         userdata = api.userdata()
         # Write to Kodi DB
-        self.kodi_db.set_resume(db_item['kodi_fileid'],
-                                userdata['Resume'],
-                                userdata['Runtime'],
-                                userdata['PlayCount'],
-                                userdata['LastPlayedDate'],
-                                plex_type)
-        self.kodi_db.update_userrating(db_item['kodi_id'],
-                                       db_item['kodi_type'],
-                                       userdata['UserRating'])
+        self.kodidb.set_resume(db_item['kodi_fileid'],
+                               userdata['Resume'],
+                               userdata['Runtime'],
+                               userdata['PlayCount'],
+                               userdata['LastPlayedDate'],
+                               plex_type)
+        self.kodidb.update_userrating(db_item['kodi_id'],
+                                      db_item['kodi_type'],
+                                      userdata['UserRating'])
 
     def update_playstate(self, mark_played, view_count, resume, duration,
                          kodi_fileid, lastViewedAt, plex_type):
@@ -118,9 +125,9 @@ class ItemBase(object):
                 view_count = 1
             resume = 0
         # Do the actual update
-        self.kodi_db.set_resume(kodi_fileid,
-                                resume,
-                                duration,
-                                view_count,
-                                utils.unix_date_to_kodi(lastViewedAt),
-                                plex_type)
+        self.kodidb.set_resume(kodi_fileid,
+                               resume,
+                               duration,
+                               view_count,
+                               utils.unix_date_to_kodi(lastViewedAt),
+                               plex_type)

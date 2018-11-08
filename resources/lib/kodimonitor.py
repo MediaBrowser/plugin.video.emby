@@ -12,7 +12,7 @@ import xbmc
 from xbmcgui import Window
 
 from .plex_db import PlexDB
-from . import kodidb_functions as kodidb
+from . import kodi_db
 from . import utils
 from . import plex_functions as PF
 from .downloadutils import DownloadUtils as DU
@@ -302,7 +302,7 @@ class KodiMonitor(xbmc.Monitor):
         plex_type = None
         # If using direct paths and starting playback from a widget
         if not kodi_id and kodi_type and path:
-            kodi_id, _ = kodidb.kodiid_from_filename(path, kodi_type)
+            kodi_id, _ = kodi_db.kodiid_from_filename(path, kodi_type)
         if kodi_id:
             with PlexDB() as plexdb:
                 db_item = plexdb.item_by_kodi_id(kodi_id, kodi_type)
@@ -559,8 +559,8 @@ def _record_playstate(status, ended):
     last_played = utils.unix_date_to_kodi(utils.unix_timestamp())
     if playcount is None:
         LOG.debug('playcount not found, looking it up in the Kodi DB')
-        with kodidb.GetKodiDB('video') as kodi_db:
-            playcount = kodi_db.get_playcount(db_item['kodi_fileid'])
+        with kodi_db.KodiVideoDB() as kodidb:
+            playcount = kodidb.get_playcount(db_item['kodi_fileid'])
         playcount = 0 if playcount is None else playcount
     if time < v.IGNORE_SECONDS_AT_START:
         LOG.debug('Ignoring playback less than %s seconds',
@@ -574,13 +574,13 @@ def _record_playstate(status, ended):
                   v.MARK_PLAYED_AT)
         playcount += 1
         time = 0
-    with kodidb.GetKodiDB('video') as kodi_db:
-        kodi_db.set_resume(db_item['kodi_fileid'],
-                           time,
-                           totaltime,
-                           playcount,
-                           last_played,
-                           status['plex_type'])
+    with kodi_db.KodiVideoDB() as kodidb:
+        kodidb.set_resume(db_item['kodi_fileid'],
+                          time,
+                          totaltime,
+                          playcount,
+                          last_played,
+                          status['plex_type'])
     # Hack to force "in progress" widget to appear if it wasn't visible before
     if (state.FORCE_RELOAD_SKIN and
             xbmc.getCondVisibility('Window.IsVisible(Home.xml)')):
@@ -600,9 +600,9 @@ def _clean_file_table():
     """
     LOG.debug('Start cleaning Kodi files table')
     xbmc.sleep(2000)
-    with kodidb.GetKodiDB('video') as kodi_db_1:
-        with kodidb.GetKodiDB('video') as kodi_db_2:
-            for file_id in kodi_db_1.obsolete_file_ids():
+    with kodi_db.KodiVideoDB() as kodidb_1:
+        with kodi_db.KodiVideoDB() as kodidb_2:
+            for file_id in kodidb_1.obsolete_file_ids():
                 LOG.debug('Removing obsolete Kodi file_id %s', file_id)
-                kodi_db_2.remove_file(file_id, remove_orphans=False)
+                kodidb_2.remove_file(file_id, remove_orphans=False)
     LOG.debug('Done cleaning up Kodi file table')
