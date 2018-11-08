@@ -36,8 +36,8 @@ class PlexDBBase(object):
         """
         FAST method to check whether a plex_id has already been recorded
         """
-        query = 'SELECT plex_id FROM %s WHERE plex_id = ?' % plex_type
-        self.cursor.execute(query, (plex_id, ))
+        self.cursor.execute('SELECT plex_id FROM %s WHERE plex_id = ?' % plex_type,
+                            (plex_id, ))
         return self.cursor.fetchone() is not None
 
     def item_by_id(self, plex_id, plex_type=None):
@@ -80,9 +80,9 @@ class PlexDBBase(object):
         """
         if kodi_type not in SUPPORTED_KODI_TYPES:
             return
-        query = ('SELECT * from %s WHERE kodi_id = ? LIMIT 1'
-                 % v.PLEX_TYPE_FROM_KODI_TYPE[kodi_type])
-        self.cursor.execute(query, (kodi_id, ))
+        self.cursor.execute('SELECT * from %s WHERE kodi_id = ? LIMIT 1'
+                            % v.PLEX_TYPE_FROM_KODI_TYPE[kodi_type],
+                            (kodi_id, ))
         method = getattr(self, 'entry_to_%s' % v.PLEX_TYPE_FROM_KODI_TYPE[kodi_type])
         return method(self.cursor.fetchone())
 
@@ -90,16 +90,16 @@ class PlexDBBase(object):
         """
         Returns an iterator for all items where the last_sync is NOT identical
         """
-        query = 'SELECT plex_id FROM %s WHERE last_sync <> ?' % plex_type
-        self.cursor.execute(query, (last_sync, ))
-        return (x[0] for x in self.cursor)
+        return (x[0] for x in
+                self.cursor.execute('SELECT plex_id FROM %s WHERE last_sync <> ?' % plex_type,
+                                    (last_sync, )))
 
     def checksum(self, plex_id, plex_type):
         """
         Returns the checksum for plex_id
         """
-        query = 'SELECT checksum FROM %s WHERE plex_id = ?' % plex_type
-        self.cursor.execute(query, (plex_id, ))
+        self.cursor.execute('SELECT checksum FROM %s WHERE plex_id = ? LIMIT 1' % plex_type,
+                            (plex_id, ))
         try:
             return self.cursor.fetchone()[0]
         except TypeError:
@@ -109,39 +109,36 @@ class PlexDBBase(object):
         """
         Sets a new timestamp for plex_id
         """
-        query = 'UPDATE %s SET last_sync = ? WHERE plex_id = ?' % plex_type
-        self.cursor.execute(query, (last_sync, plex_id))
+        self.cursor.execute('UPDATE %s SET last_sync = ? WHERE plex_id = ?' % plex_type,
+                            (last_sync, plex_id))
 
     def remove(self, plex_id, plex_type):
         """
         Removes the item from our Plex db
         """
-        query = 'DELETE FROM ? WHERE plex_id = ?' % plex_type
-        self.cursor.execute(query, (plex_id, ))
+        self.cursor.execute('DELETE FROM ? WHERE plex_id = ?' % plex_type, (plex_id, ))
 
     def every_plex_id(self, plex_type):
         """
         Returns an iterator for plex_type for every single plex_id
         """
-        query = 'SELECT plex_id from %s' % plex_type
-        self.cursor.execute(query)
-        return (x[0] for x in self.cursor)
+        return (x[0] for x in
+                self.cursor.execute('SELECT plex_id from %s' % plex_type))
 
     def missing_fanart(self, plex_type):
         """
         Returns an iterator for plex_type for all plex_id, where fanart_synced
         has not yet been set to 1
         """
-        query = 'SELECT plex_id from %s WHERE fanart_synced = 0' % plex_type
-        self.cursor.execute(query)
-        return (x[0] for x in self.cursor)
+        return (x[0] for x in
+                self.cursor.execute('SELECT plex_id from %s WHERE fanart_synced = 0' % plex_type))
 
     def set_fanart_synced(self, plex_id, plex_type):
         """
         Toggles fanart_synced to 1 for plex_id
         """
-        query = 'UPDATE %s SET fanart_synced = 1 WHERE plex_id = ?' % plex_type
-        self.cursor.execute(query, (plex_id, ))
+        self.cursor.execute('UPDATE %s SET fanart_synced = 1 WHERE plex_id = ?' % plex_type,
+                            (plex_id, ))
 
 
 def initialize():
@@ -258,11 +255,8 @@ def wipe():
     """
     Completely resets the Plex database
     """
-    query = "SELECT name FROM sqlite_master WHERE type = 'table'"
     with PlexDBBase() as plexdb:
-        plexdb.cursor.execute(query)
-        tables = plexdb.cursor.fetchall()
-        tables = [i[0] for i in tables]
+        plexdb.cursor.execute("SELECT name FROM sqlite_master WHERE type = 'table'")
+        tables = [i[0] for i in plexdb.cursor.fetchall()]
         for table in tables:
-            delete_query = 'DROP table IF EXISTS %s' % table
-            plexdb.cursor.execute(delete_query)
+            plexdb.cursor.execute('DROP table IF EXISTS %s' % table)

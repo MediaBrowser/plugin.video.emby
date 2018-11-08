@@ -10,7 +10,8 @@ class TVShows(object):
         """
         Appends or replaces tv show entry into the plex table
         """
-        query = '''
+        self.cursor.execute(
+            '''
             INSERT OR REPLACE INTO show(
                 plex_id,
                 checksum,
@@ -20,9 +21,7 @@ class TVShows(object):
                 fanart_synced,
                 last_sync)
             VALUES (?, ?, ?, ?, ?, ?, ?)
-        '''
-        self.cursor.execute(
-            query,
+            ''',
             (plex_id,
              checksum,
              section_id,
@@ -36,7 +35,8 @@ class TVShows(object):
         """
         Appends or replaces an entry into the plex table
         """
-        query = '''
+        self.cursor.execute(
+            '''
             INSERT OR REPLACE INTO season(
                 plex_id,
                 checksum,
@@ -47,9 +47,7 @@ class TVShows(object):
                 fanart_synced,
                 last_sync)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        '''
-        self.cursor.execute(
-            query,
+            ''',
             (plex_id,
              checksum,
              section_id,
@@ -65,7 +63,8 @@ class TVShows(object):
         """
         Appends or replaces an entry into the plex table
         """
-        query = '''
+        self.cursor.execute(
+            '''
             INSERT OR REPLACE INTO episode(
                 plex_id,
                 checksum,
@@ -80,9 +79,7 @@ class TVShows(object):
                 fanart_synced,
                 last_sync)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            '''
-        self.cursor.execute(
-            query,
+            ''',
             (plex_id,
              checksum,
              section_id,
@@ -236,24 +233,24 @@ class TVShows(object):
         Returns an iterator for all episodes that have a parent season_id with
         a value of plex_id
         """
-        self.cursor.execute('SELECT * FROM episode WHERE season_id = ?',
-                            (plex_id, ))
-        return (self.entry_to_episode(x) for x in self.cursor)
+        return (self.entry_to_episode(x) for x in
+                self.cursor.execute('SELECT * FROM episode WHERE season_id = ?',
+                                    (plex_id, )))
 
     def episode_by_show(self, plex_id):
         """
         Returns an iterator for all episodes that have a grandparent show_id
         with a value of plex_id
         """
-        self.cursor.execute('SELECT * FROM episode WHERE show_id = ?',
-                            (plex_id, ))
-        return (self.entry_to_episode(x) for x in self.cursor)
+        return (self.entry_to_episode(x) for x in
+                self.cursor.execute('SELECT * FROM episode WHERE show_id = ?',
+                                    (plex_id, )))
 
     def season_by_show(self, plex_id):
         """
         Returns an iterator for all seasons that have a parent show_id
         with a value of plex_id
         """
-        self.cursor.execute('SELECT * FROM season WHERE show_id = ?',
-                            (plex_id, ))
-        return (self.entry_to_season(x) for x in self.cursor)
+        return (self.entry_to_season(x) for x in
+                self.cursor.execute('SELECT * FROM season WHERE show_id = ?',
+                                    (plex_id, )))

@@ -235,7 +235,7 @@ class Sync(backgroundthread.KillableThread):
         # Ensure that Plex DB is set-up
         plex_db.initialize()
         # Hack to speed up look-ups for actors (giant table!)
-        utils.create_actor_db_index()
+        utils.create_kodi_db_indicees()
         with kodidb.GetKodiDB('video') as kodi_db:
             # Setup the paths for addon-paths (even when using direct paths)
             kodi_db.setup_path_table()

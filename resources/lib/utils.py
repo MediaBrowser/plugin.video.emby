@@ -493,20 +493,24 @@ def kodi_sql(media_type=None):
     return conn
 
 
-def create_actor_db_index():
+def create_kodi_db_indicees():
     """
     Index the "actors" because we got a TON - speed up SELECT and WHEN
     """
+    return
     conn = kodi_sql('video')
     cursor = conn.cursor()
     try:
-        cursor.execute("""
-            CREATE UNIQUE INDEX index_name
-            ON actor (name);
-        """)
+        cursor.execute('CREATE UNIQUE INDEX ix_files_2 ON files (idFile);')
     except OperationalError:
         # Index already exists
         pass
+    # Already used in Kodi >=17: CREATE UNIQUE INDEX ix_actor_1 ON actor (name)
+    # try:
+    #     cursor.execute('CREATE UNIQUE INDEX ix_pkc_actor_index ON actor (name);')
+    # except OperationalError:
+    #     # Index already exists
+    #     pass
     conn.commit()
     conn.close()
 

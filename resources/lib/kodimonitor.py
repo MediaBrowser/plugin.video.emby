@@ -599,16 +599,10 @@ def _clean_file_table():
     This function tries for at most 5 seconds to clean the file table.
     """
     LOG.debug('Start cleaning Kodi files table')
-    i = 0
-    while i < 100 and not state.STOP_PKC:
-        with kodidb.GetKodiDB('video') as kodi_db:
-            files = kodi_db.obsolete_file_ids()
-        if files:
-            break
-        i += 1
-        xbmc.sleep(50)
-    with kodidb.GetKodiDB('video') as kodi_db:
-        for file_id in files:
-            LOG.debug('Removing obsolete Kodi file_id %s', file_id)
-            kodi_db.remove_file(file_id[0], remove_orphans=False)
+    xbmc.sleep(2000)
+    with kodidb.GetKodiDB('video') as kodi_db_1:
+        with kodidb.GetKodiDB('video') as kodi_db_2:
+            for file_id in kodi_db_1.obsolete_file_ids():
+                LOG.debug('Removing obsolete Kodi file_id %s', file_id)
+                kodi_db_2.remove_file(file_id, remove_orphans=False)
     LOG.debug('Done cleaning up Kodi file table')
