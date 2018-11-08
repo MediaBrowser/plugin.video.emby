@@ -324,6 +324,41 @@ class KodiVideoDB(common.KodiDBBase):
                                     'tag',
                                     'tag_id')
 
+    def add_people(self, kodi_id, kodi_type, people):
+        """
+        Makes sure that actors, directors and writers are recorded correctly
+        for the elmement kodi_id, kodi_type.
+        Will also delete a freshly orphaned actor entry.
+        """
+        for kind, people_list in people.iteritems():
+            self._add_people_kind(kodi_id, kodi_type, kind, people_list)
+
+    def _add_people_kind(self, kodi_id, kodi_type, kind, people_list):
+        # Save new people to Kodi DB by iterating over the remaining entries
+        if kind == 'actor':
+            for person in people_list:
+                # Make sure the person entry in table actor exists
+                actor_id = self._get_actor_id(person[0], art_url=person[1])
+                # Link the person with the media element
+                try:
+                    self.cursor.execute('INSERT INTO actor_link VALUES (?, ?, ?, ?, ?)',
+                                        (actor_id, kodi_id, kodi_type,
+                                         person[2], person[3]))
+                except IntegrityError:
+                    # With Kodi, an actor may have only one role, unlike Plex
+                    pass
+        else:
+            for person in people_list:
+                # Make sure the person entry in table actor exists:
+                actor_id = self._get_actor_id(person[0])
+                # Link the person with the media element
+                try:
+                    self.cursor.execute('INSERT INTO %s_link VALUES (?, ?, ?)' % kind,
+                                        (actor_id, kodi_id, kodi_type))
+                except IntegrityError:
+                    # Again, Kodi may have only one person assigned to a role
+                    pass
+
     def modify_people(self, kodi_id, kodi_type, people=None):
         """
         Makes sure that actors, directors and writers are recorded correctly

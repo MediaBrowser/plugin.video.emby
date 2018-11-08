@@ -180,6 +180,9 @@ class Show(ItemBase, TvShowMixin):
             else:
                 self.kodidb.remove_uniqueid(kodi_id, v.KODI_TYPE_SHOW)
                 uniqueid = -1
+            self.kodidb.modify_people(kodi_id,
+                                      v.KODI_TYPE_SHOW,
+                                      api.people_list())
             # Update the tvshow entry
             self.kodidb.update_show(api.title(),
                                     api.plot(),
@@ -214,6 +217,9 @@ class Show(ItemBase, TvShowMixin):
                                          "unknown")
             else:
                 uniqueid = -1
+            self.kodidb.add_people(kodi_id,
+                                   v.KODI_TYPE_SHOW,
+                                   api.people_list())
             # Create the tvshow entry
             self.kodidb.add_show(kodi_id,
                                  api.title(),
@@ -226,9 +232,6 @@ class Show(ItemBase, TvShowMixin):
                                  api.content_rating(),
                                  studio,
                                  api.sorttitle())
-        self.kodidb.modify_people(kodi_id,
-                                  v.KODI_TYPE_SHOW,
-                                  api.people_list())
         self.kodidb.modify_genres(kodi_id, v.KODI_TYPE_SHOW, genres)
         self.kodidb.modify_artwork(api.artwork(),
                                    kodi_id,
@@ -417,6 +420,9 @@ class Episode(ItemBase, TvShowMixin):
                                         api.provider('tvdb'),
                                         "tvdb",
                                         uniqueid)
+            self.kodidb.modify_people(kodi_id,
+                                      v.KODI_TYPE_EPISODE,
+                                      api.people_list())
             self.kodidb.update_episode(api.title(),
                                        api.plot(),
                                        ratingid,
@@ -456,6 +462,9 @@ class Episode(ItemBase, TvShowMixin):
                                      v.KODI_TYPE_EPISODE,
                                      api.provider('tvdb'),
                                      "tvdb")
+            self.kodidb.add_people(kodi_id,
+                                   v.KODI_TYPE_EPISODE,
+                                   api.people_list())
             self.kodidb.add_episode(kodi_id,
                                     kodi_fileid,
                                     api.title(),
@@ -476,9 +485,6 @@ class Episode(ItemBase, TvShowMixin):
                                     parent_id,
                                     userdata['UserRating'])
 
-        self.kodidb.modify_people(kodi_id,
-                                  v.KODI_TYPE_EPISODE,
-                                  api.people_list())
         self.kodidb.modify_artwork(api.artwork(),
                                    kodi_id,
                                    v.KODI_TYPE_EPISODE)

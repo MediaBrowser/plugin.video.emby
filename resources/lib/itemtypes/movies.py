@@ -108,6 +108,9 @@ class Movie(ItemBase):
             else:
                 self.kodidb.remove_uniqueid(kodi_id, v.KODI_TYPE_MOVIE)
                 uniqueid = -1
+            self.kodidb.modify_people(kodi_id,
+                                      v.KODI_TYPE_MOVIE,
+                                      api.people_list())
         else:
             LOG.info("ADD movie plex_id: %s - %s", plex_id, title)
             rating_id = self.kodidb.get_ratingid(kodi_id,
@@ -128,6 +131,9 @@ class Movie(ItemBase):
                                          "imdb")
             else:
                 uniqueid = -1
+            self.kodidb.add_people(kodi_id,
+                                   v.KODI_TYPE_MOVIE,
+                                   api.people_list())
 
         # Update Kodi's main entry
         self.kodidb.add_movie(kodi_id,
@@ -156,9 +162,6 @@ class Movie(ItemBase):
                               userdata['UserRating'])
 
         self.kodidb.modify_countries(kodi_id, v.KODI_TYPE_MOVIE, countries)
-        self.kodidb.modify_people(kodi_id,
-                                  v.KODI_TYPE_MOVIE,
-                                  api.people_list())
         self.kodidb.modify_genres(kodi_id, v.KODI_TYPE_MOVIE, genres)
         self.kodidb.modify_artwork(api.artwork(),
                                    kodi_id,
