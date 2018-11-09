@@ -8,7 +8,7 @@ from pstats import Stats
 from StringIO import StringIO
 
 from . import common
-from .. import backgroundthread, utils
+from .. import backgroundthread, utils, variables as v
 
 LOG = getLogger('PLEX.sync.process_metadata')
 
@@ -66,7 +66,7 @@ class ProcessMetadata(backgroundthread.KillableThread, common.libsync_mixin):
             except ZeroDivisionError:
                 progress = 0
             self.dialog.update(progress,
-                               self.section_name,
+                               '%s: %s' % (self.section_type_text, self.section_name),
                                '%s/%s: %s'
                                % (self.current, self.total, self.title))
 
@@ -93,6 +93,8 @@ class ProcessMetadata(backgroundthread.KillableThread, common.libsync_mixin):
                 self.processed = 0
                 self.total = section.total
                 self.section_name = section.name
+                self.section_type_text = utils.lang(
+                    v.TRANSLATION_FROM_PLEXTYPE[section.plex_type])
                 profile = Profile()
                 profile.enable()
                 with section.context(self.last_sync) as context:
