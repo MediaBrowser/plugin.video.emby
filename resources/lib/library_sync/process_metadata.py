@@ -86,6 +86,7 @@ class ProcessMetadata(backgroundthread.KillableThread, common.libsync_mixin):
                         item = self.queue.get()
                         if isinstance(item, InitNewSection) or item is None:
                             section = item
+                            self.queue.task_done()
                             break
                         try:
                             context.add_update(item['xml'][0],
@@ -103,7 +104,6 @@ class ProcessMetadata(backgroundthread.KillableThread, common.libsync_mixin):
                             context.plexconn.commit()
                             context.kodiconn.commit()
                         self.queue.task_done()
-                self.queue.task_done()
         finally:
             if self.dialog:
                 self.dialog.close()
