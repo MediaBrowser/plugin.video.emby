@@ -68,9 +68,9 @@ class Movie(ItemBase):
                     # Network share
                     filename = playurl.rsplit("/", 1)[1]
                 path = playurl.replace(filename, "")
-                kodi_pathid = self.kodidb.add_video_path(path,
-                                                         content='movies',
-                                                         scraper='metadata.local')
+                kodi_pathid = self.kodidb.add_path(path,
+                                                   content='movies',
+                                                   scraper='metadata.local')
         if do_indirect:
             # Set plugin path and media flags using real filename
             filename = api.file_name(force_first_media=True)

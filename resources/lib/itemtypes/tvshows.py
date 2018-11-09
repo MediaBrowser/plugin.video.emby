@@ -143,10 +143,9 @@ class Show(ItemBase, TvShowMixin):
             if playurl is None:
                 return
             path, toplevelpath = process_path(playurl)
-            toppathid = self.kodidb.add_video_path(
-                toplevelpath,
-                content='tvshows',
-                scraper='metadata.local')
+            toppathid = self.kodidb.add_path(toplevelpath,
+                                             content='tvshows',
+                                             scraper='metadata.local')
         else:
             # Set plugin path
             toplevelpath = "plugin://%s.tvshows/" % v.ADDON_ID
@@ -154,9 +153,9 @@ class Show(ItemBase, TvShowMixin):
             # Do NOT set a parent id because addon-path cannot be "stacked"
             toppathid = None
 
-        kodi_pathid = self.kodidb.add_video_path(path,
-                                                 date_added=api.date_created(),
-                                                 id_parent_path=toppathid)
+        kodi_pathid = self.kodidb.add_path(path,
+                                           date_added=api.date_created(),
+                                           id_parent_path=toppathid)
         # UPDATE THE TVSHOW #####
         if update_item:
             LOG.info("UPDATE tvshow plex_id: %s - %s", plex_id, api.title())
@@ -394,8 +393,8 @@ class Episode(ItemBase, TvShowMixin):
                     filename = playurl.rsplit("/", 1)[1]
                 path = playurl.replace(filename, "")
                 parent_path_id = self.kodidb.parent_path_id(path)
-                kodi_pathid = self.kodidb.add_video_path(
-                    path, id_parent_path=parent_path_id)
+                kodi_pathid = self.kodidb.add_path(path,
+                                                   id_parent_path=parent_path_id)
         if do_indirect:
             # Set plugin path - do NOT use "intermediate" paths for the show
             # as with direct paths!
@@ -405,7 +404,7 @@ class Episode(ItemBase, TvShowMixin):
                         % (path, plex_id, v.PLEX_TYPE_EPISODE, filename))
             playurl = filename
             # Root path tvshows/ already saved in Kodi DB
-            kodi_pathid = self.kodidb.add_video_path(path)
+            kodi_pathid = self.kodidb.add_path(path)
 
         # UPDATE THE EPISODE #####
         if update_item:
@@ -522,7 +521,7 @@ class Episode(ItemBase, TvShowMixin):
             filename = ('%s%s/?plex_id=%s&plex_type=%s&mode=play&filename=%s'
                         % (path, show_id, plex_id, v.PLEX_TYPE_EPISODE,
                            filename))
-            kodi_pathid = self.kodidb.add_video_path(path)
+            kodi_pathid = self.kodidb.add_path(path)
             kodi_fileid = self.kodidb.add_file(filename,
                                                kodi_pathid,
                                                api.date_created())

@@ -87,8 +87,8 @@ class KodiVideoDB(common.KodiDBBase):
                                     (parent_id, pathid))
         return pathid
 
-    def add_video_path(self, path, date_added=None, id_parent_path=None,
-                       content=None, scraper=None):
+    def add_path(self, path, date_added=None, id_parent_path=None,
+                 content=None, scraper=None):
         """
         Returns the idPath from the path table. Creates a new entry if path
         [unicode] does not yet exist (using date_added [kodi date type],
