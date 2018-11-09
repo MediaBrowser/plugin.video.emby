@@ -3,6 +3,10 @@ from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
 import xbmcgui
 
+from cProfile import Profile
+from pstats import Stats
+from StringIO import StringIO
+
 from . import common
 from .. import backgroundthread, utils
 
@@ -80,6 +84,8 @@ class ProcessMetadata(backgroundthread.KillableThread, common.libsync_mixin):
                 self.current = 1
                 self.total = section.total
                 self.section_name = section.name
+                profile = Profile()
+                profile.enable()
                 with section.context(self.last_sync) as context:
                     while not self.isCanceled():
                         # grabs item from queue. This will block!
@@ -104,6 +110,12 @@ class ProcessMetadata(backgroundthread.KillableThread, common.libsync_mixin):
                             context.plexconn.commit()
                             context.kodiconn.commit()
                         self.queue.task_done()
+                profile.disable()
+                string_io = StringIO()
+                stats = Stats(profile, stream=string_io).sort_stats('cumulative')
+                stats.print_stats()
+                LOG.info('cProfile result: ')
+                LOG.info(string_io.getvalue())
         finally:
             if self.dialog:
                 self.dialog.close()
