@@ -5,7 +5,8 @@ from logging import getLogger
 import xbmc
 
 from .get_metadata import GetMetadataTask, reset_collections
-from . import common, process_metadata, sections
+from .process_metadata import InitNewSection, UpdateLastSync, ProcessMetadata
+from . import common, sections
 from .. import utils, backgroundthread, variables as v, state
 from .. import plex_functions as PF, itemtypes
 from ..plex_db import PlexDB
@@ -51,10 +52,9 @@ class FullSync(common.libsync_mixin):
                 int('%s%s' % (plex_id,
                               xml_item.get('updatedAt',
                                            xml_item.get('addedAt', 1541572987)))):
-            # Already got EXACTLY this item in our DB
-            self.plexdb.update_last_sync(plex_id,
-                                         self.plex_type,
-                                         self.current_sync)
+            # Already got EXACTLY this item in our DB. BUT need to collect all
+            # DB updates within the same thread
+            self.queue.put(UpdateLastSync(plex_id))
             return
         task = GetMetadataTask()
         task.setup(self.queue, plex_id, self.plex_type, self.get_children)
@@ -103,12 +103,12 @@ class FullSync(common.libsync_mixin):
                 iterator = PF.SectionItems(section['section_id'],
                                            plex_type=self.plex_type)
                 # Tell the processing thread about this new section
-                queue_info = process_metadata.InitNewSection(
-                    self.context,
-                    utils.cast(int, iterator.get('totalSize', 0)),
-                    iterator.get('librarySectionTitle'),
-                    section['section_id'],
-                    self.plex_type)
+                queue_info = InitNewSection(self.context,
+                                            utils.cast(int,
+                                                       iterator.get('totalSize', 0)),
+                                            iterator.get('librarySectionTitle'),
+                                            section['section_id'],
+                                            self.plex_type)
                 self.queue.put(queue_info)
                 with PlexDB() as self.plexdb:
                     for xml_item in iterator:
@@ -130,12 +130,12 @@ class FullSync(common.libsync_mixin):
                 iterator = PF.SectionItems(section['section_id'],
                                            plex_type=self.plex_type)
                 # Tell the processing thread that we're syncing playstate
-                queue_info = process_metadata.InitNewSection(
-                    self.context,
-                    utils.cast(int, iterator.get('totalSize', 0)),
-                    iterator.get('librarySectionTitle'),
-                    section['section_id'],
-                    self.plex_type)
+                queue_info = InitNewSection(self.context,
+                                            utils.cast(int,
+                                                       iterator.get('totalSize', 0)),
+                                            iterator.get('librarySectionTitle'),
+                                            section['section_id'],
+                                            self.plex_type)
                 self.queue.put(queue_info)
                 # Ensure that the DB connection is closed to commit the
                 # changes above - avoids "Item not yet synced" error
@@ -192,9 +192,10 @@ class FullSync(common.libsync_mixin):
             return
         try:
             # Fire up our single processing thread
-            self.queue = backgroundthread.Queue.Queue(maxsize=400)
-            self.processing_thread = process_metadata.ProcessMetadata(
-                self.queue, self.current_sync, self.show_dialog)
+            self.queue = backgroundthread.Queue.Queue(maxsize=600)
+            self.processing_thread = ProcessMetadata(self.queue,
+                                                     self.current_sync,
+                                                     self.show_dialog)
             self.processing_thread.start()
 
             # Actual syncing - do only new items first

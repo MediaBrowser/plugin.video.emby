@@ -29,6 +29,11 @@ class InitNewSection(object):
         self.plex_type = plex_type
 
 
+class UpdateLastSync(object):
+    def __init__(self, plex_id):
+        self.plex_id = plex_id
+
+
 class ProcessMetadata(backgroundthread.KillableThread, common.libsync_mixin):
     """
     Not yet implemented for more than 1 thread - if ever. Only to be called by
@@ -48,7 +53,8 @@ class ProcessMetadata(backgroundthread.KillableThread, common.libsync_mixin):
         self.show_dialog = show_dialog
         self.total = 0
         self.current = 1
-        self.title = None
+        self.processed = 0
+        self.title = ''
         self.section_name = None
         self.dialog = None
         super(ProcessMetadata, self).__init__()
@@ -81,8 +87,10 @@ class ProcessMetadata(backgroundthread.KillableThread, common.libsync_mixin):
             while not self.isCanceled():
                 if section is None:
                     break
-                LOG.debug('Start processing section %s', section)
+                LOG.debug('Start processing section %s: %s',
+                          section.plex_type, section.name)
                 self.current = 1
+                self.processed = 0
                 self.total = section.total
                 self.section_name = section.name
                 profile = Profile()
@@ -95,21 +103,29 @@ class ProcessMetadata(backgroundthread.KillableThread, common.libsync_mixin):
                             section = item
                             self.queue.task_done()
                             break
-                        try:
-                            context.add_update(item['xml'][0],
-                                               section_name=section.name,
-                                               section_id=section.id,
-                                               children=item['children'])
-                        except:
-                            utils.ERROR(txt='process_metadata crashed',
-                                        notify=True,
-                                        cancel_sync=True)
-                        self.title = item['xml'][0].get('title')
+                        elif isinstance(item, UpdateLastSync):
+                            context.plexdb.update_last_sync(item.plex_id,
+                                                            section.plex_type,
+                                                            self.last_sync)
+                        else:
+                            try:
+                                context.add_update(item['xml'][0],
+                                                   section_name=section.name,
+                                                   section_id=section.id,
+                                                   children=item['children'])
+                            except:
+                                utils.ERROR(txt='process_metadata crashed',
+                                            notify=True,
+                                            cancel_sync=True)
+                            self.title = item['xml'][0].get('title')
+                            self.processed += 1
                         self.update_progressbar()
                         self.current += 1
-                        if self.current % 200 == 0:
-                            context.plexconn.commit()
+                        if self.processed == 500:
+                            self.processed = 0
                             context.kodiconn.commit()
+                            context.artconn.commit()
+                            context.plexconn.commit()
                         self.queue.task_done()
                 profile.disable()
                 string_io = StringIO()
