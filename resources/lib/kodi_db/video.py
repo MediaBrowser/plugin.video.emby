@@ -445,10 +445,7 @@ class KodiVideoDB(common.KodiDBBase):
                                 'VALUES (?, ?)',
                                 (actor_id, name))
             if art_url:
-                self.modify_art(art_url,
-                                actor_id,
-                                'actor',
-                                'thumb')
+                self.add_art(art_url, actor_id, 'actor', 'thumb')
             return actor_id
 
     def get_art(self, kodi_id, kodi_type):
