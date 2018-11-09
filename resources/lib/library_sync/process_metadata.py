@@ -21,11 +21,12 @@ class InitNewSection(object):
     context: itemtypes.Movie, itemtypes.Episode, etc.
     """
     def __init__(self, context, total_number_of_items, section_name,
-                 section_id):
+                 section_id, plex_type):
         self.context = context
         self.total = total_number_of_items
         self.name = section_name
         self.id = section_id
+        self.plex_type = plex_type
 
 
 class ProcessMetadata(backgroundthread.KillableThread, common.libsync_mixin):

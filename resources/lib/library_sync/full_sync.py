@@ -107,7 +107,8 @@ class FullSync(common.libsync_mixin):
                     self.context,
                     utils.cast(int, iterator.get('totalSize', 0)),
                     iterator.get('librarySectionTitle'),
-                    section['section_id'])
+                    section['section_id'],
+                    self.plex_type)
                 self.queue.put(queue_info)
                 with PlexDB() as self.plexdb:
                     for xml_item in iterator:
@@ -133,7 +134,8 @@ class FullSync(common.libsync_mixin):
                     self.context,
                     utils.cast(int, iterator.get('totalSize', 0)),
                     iterator.get('librarySectionTitle'),
-                    section['section_id'])
+                    section['section_id'],
+                    self.plex_type)
                 self.queue.put(queue_info)
                 # Ensure that the DB connection is closed to commit the
                 # changes above - avoids "Item not yet synced" error
