@@ -206,7 +206,6 @@ class NonstoppingBackgroundWorker(BackgroundWorker):
         super(NonstoppingBackgroundWorker, self).__init__(queue, name)
 
     def _queueLoop(self):
-        LOG.debug('(%s): Active', self.name)
         while not self.aborted():
             try:
                 self._task = self._queue.get_nowait()
