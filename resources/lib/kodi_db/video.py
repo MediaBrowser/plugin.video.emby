@@ -423,29 +423,7 @@ class KodiVideoDB(common.KodiDBBase):
                     # Delete any associated artwork
                     self.delete_artwork(person[0], 'actor')
         # Save new people to Kodi DB by iterating over the remaining entries
-        if kind == 'actor':
-            query = 'INSERT INTO actor_link VALUES (?, ?, ?, ?, ?)'
-            for person in people_list:
-                # Make sure the person entry in table actor exists
-                actor_id = self._get_actor_id(person[0], art_url=person[1])
-                # Link the person with the media element
-                try:
-                    self.cursor.execute(query, (actor_id, kodi_id, kodi_type,
-                                                person[2], person[3]))
-                except IntegrityError:
-                    # With Kodi, an actor may have only one role, unlike Plex
-                    pass
-        else:
-            query = 'INSERT INTO %s_link VALUES (?, ?, ?)' % kind
-            for person in people_list:
-                # Make sure the person entry in table actor exists:
-                actor_id = self._get_actor_id(person[0])
-                # Link the person with the media element
-                try:
-                    self.cursor.execute(query, (actor_id, kodi_id, kodi_type))
-                except IntegrityError:
-                    # Again, Kodi may have only one person assigned to a role
-                    pass
+        self._add_people_kind(kodi_id, kodi_type, kind, people_list)
 
     def _get_actor_id(self, name, art_url=None):
         """
