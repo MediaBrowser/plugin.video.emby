@@ -42,7 +42,7 @@ class ProcessMetadata(backgroundthread.KillableThread, common.libsync_mixin):
         self.last_sync = last_sync
         self.show_dialog = show_dialog
         self.total = 0
-        self.current = 0
+        self.current = 1
         self.title = None
         self.section_name = None
         self.dialog = None
@@ -57,7 +57,7 @@ class ProcessMetadata(backgroundthread.KillableThread, common.libsync_mixin):
             self.dialog.update(progress,
                                self.section_name,
                                '%s/%s: %s'
-                               % (self.current + 1, self.total, self.title))
+                               % (self.current, self.total, self.title))
 
     def run(self):
         """
@@ -76,7 +76,8 @@ class ProcessMetadata(backgroundthread.KillableThread, common.libsync_mixin):
             while not self.isCanceled():
                 if section is None:
                     break
-                self.current = 0
+                LOG.debug('Start processing section %s', section)
+                self.current = 1
                 self.total = section.total
                 self.section_name = section.name
                 with section.context(self.last_sync) as context:
