@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
+import xbmc
 
 from .get_metadata import GetMetadataTask, reset_collections
 from . import common, process_metadata, sections
@@ -117,6 +118,9 @@ class FullSync(common.libsync_mixin):
                 LOG.error('Could not entirely process section %s', section)
                 successful = False
                 continue
+            LOG.debug('Waiting for download threads to finish')
+            while self.threader.threader.working():
+                xbmc.sleep(100)
             LOG.debug('Waiting for processing thread to finish section')
             self.queue.join()
             reset_collections()

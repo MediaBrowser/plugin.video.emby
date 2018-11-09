@@ -201,16 +201,25 @@ class BackgroundWorker(object):
 
 
 class NonstoppingBackgroundWorker(BackgroundWorker):
+    def __init__(self, queue, name=None):
+        self._working = False
+        super(NonstoppingBackgroundWorker, self).__init__(queue, name)
+
     def _queueLoop(self):
         LOG.debug('(%s): Active', self.name)
         while not self.aborted():
             try:
                 self._task = self._queue.get_nowait()
+                self._working = True
                 self._runTask(self._task)
+                self._working = False
                 self._queue.task_done()
                 self._task = None
             except Queue.Empty:
                 xbmc.sleep(50)
+
+    def working(self):
+        return self._working
 
 
 class BackgroundThreader:
