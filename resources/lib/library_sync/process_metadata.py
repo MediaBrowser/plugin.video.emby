@@ -106,4 +106,8 @@ class ProcessMetadata(backgroundthread.KillableThread, common.libsync_mixin):
         finally:
             if self.dialog:
                 self.dialog.close()
+            while not self.queue.empty():
+                # We need to empty the queue to let full_sync finish join()
+                self.queue.get()
+                self.queue.task_done()
             LOG.debug('Processing thread terminated')

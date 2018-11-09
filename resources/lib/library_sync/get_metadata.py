@@ -118,4 +118,5 @@ class GetMetadataTask(backgroundthread.Task, common.libsync_mixin):
                           self.plex_id)
             else:
                 item['children'] = children_xml
-        self.queue.put(item)
+        if not self.isCanceled():
+            self.queue.put(item)
