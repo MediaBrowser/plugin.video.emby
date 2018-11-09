@@ -80,12 +80,11 @@ class Movie(ItemBase):
             playurl = filename
             kodi_pathid = self.kodidb.get_path(path)
 
-        file_id = self.kodidb.add_file(filename,
-                                       kodi_pathid,
-                                       api.date_created())
-
         if update_item:
             LOG.info('UPDATE movie plex_id: %s - %s', plex_id, api.title())
+            file_id = self.kodidb.modify_file(filename,
+                                              kodi_pathid,
+                                              api.date_created())
             if file_id != old_kodi_fileid:
                 self.kodidb.remove_file(old_kodi_fileid)
             rating_id = self.kodidb.get_ratingid(kodi_id,
@@ -116,6 +115,9 @@ class Movie(ItemBase):
                                        v.KODI_TYPE_MOVIE)
         else:
             LOG.info("ADD movie plex_id: %s - %s", plex_id, title)
+            file_id = self.kodidb.add_file(filename,
+                                           kodi_pathid,
+                                           api.date_created())
             rating_id = self.kodidb.get_ratingid(kodi_id,
                                                  v.KODI_TYPE_MOVIE)
             self.kodidb.add_ratings(rating_id,

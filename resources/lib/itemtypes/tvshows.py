@@ -407,15 +407,13 @@ class Episode(ItemBase, TvShowMixin):
             # Root path tvshows/ already saved in Kodi DB
             kodi_pathid = self.kodidb.add_video_path(path)
 
-        # add/retrieve kodi_pathid and fileid
-        # if the path or file already exists, the calls return current value
-        kodi_fileid = self.kodidb.add_file(filename,
-                                           kodi_pathid,
-                                           api.date_created())
-
         # UPDATE THE EPISODE #####
         if update_item:
             LOG.info("UPDATE episode plex_id: %s - %s", plex_id, api.title())
+            kodi_fileid = self.kodidb.modify_file(filename,
+                                                  kodi_pathid,
+                                                  api.date_created())
+
             if kodi_fileid != old_kodi_fileid:
                 self.kodidb.remove_file(old_kodi_fileid)
             ratingid = self.kodidb.get_ratingid(kodi_id,
@@ -462,7 +460,10 @@ class Episode(ItemBase, TvShowMixin):
         # OR ADD THE EPISODE #####
         else:
             LOG.info("ADD episode plex_id: %s - %s", plex_id, api.title())
-            # Create the episode entry
+            kodi_fileid = self.kodidb.add_file(filename,
+                                               kodi_pathid,
+                                               api.date_created())
+
             rating_id = self.kodidb.get_ratingid(kodi_id,
                                                  v.KODI_TYPE_EPISODE)
             self.kodidb.add_ratings(rating_id,

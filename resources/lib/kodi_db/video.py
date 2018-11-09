@@ -136,19 +136,26 @@ class KodiVideoDB(common.KodiDBBase):
         Adds the filename [unicode] to the table files if not already added
         and returns the idFile.
         """
+        self.cursor.execute('SELECT COALESCE(MAX(idFile), 0) FROM files')
+        file_id = self.cursor.fetchone()[0] + 1
+        self.cursor.execute('''
+                            INSERT INTO files(
+                                idFile,
+                                idPath,
+                                strFilename,
+                                dateAdded)
+                            VALUES (?, ?, ?, ?)
+                            ''',
+                            (file_id, path_id, filename, date_added))
+        return file_id
+
+    def modify_file(self, filename, path_id, date_added):
         self.cursor.execute('SELECT idFile FROM files WHERE idPath = ? AND strFilename = ?',
                             (path_id, filename))
         try:
             file_id = self.cursor.fetchone()[0]
         except TypeError:
-            self.cursor.execute('SELECT COALESCE(MAX(idFile), 0) FROM files')
-            file_id = self.cursor.fetchone()[0] + 1
-            self.cursor.execute('''
-                                INSERT INTO files(
-                                    idFile, idPath, strFilename, dateAdded)
-                                VALUES (?, ?, ?, ?)
-                                ''',
-                                (file_id, path_id, filename, date_added))
+            file_id = self.add_file(filename, path_id, date_added)
         return file_id
 
     def obsolete_file_ids(self):
