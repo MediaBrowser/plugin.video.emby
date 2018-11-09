@@ -183,6 +183,9 @@ class Show(ItemBase, TvShowMixin):
             self.kodidb.modify_people(kodi_id,
                                       v.KODI_TYPE_SHOW,
                                       api.people_list())
+            self.kodidb.modify_artwork(api.artwork(),
+                                       kodi_id,
+                                       v.KODI_TYPE_SHOW)
             # Update the tvshow entry
             self.kodidb.update_show(api.title(),
                                     api.plot(),
@@ -220,6 +223,9 @@ class Show(ItemBase, TvShowMixin):
             self.kodidb.add_people(kodi_id,
                                    v.KODI_TYPE_SHOW,
                                    api.people_list())
+            self.kodidb.add_artwork(api.artwork(),
+                                    kodi_id,
+                                    v.KODI_TYPE_SHOW)
             # Create the tvshow entry
             self.kodidb.add_show(kodi_id,
                                  api.title(),
@@ -233,9 +239,6 @@ class Show(ItemBase, TvShowMixin):
                                  studio,
                                  api.sorttitle())
         self.kodidb.modify_genres(kodi_id, v.KODI_TYPE_SHOW, genres)
-        self.kodidb.modify_artwork(api.artwork(),
-                                   kodi_id,
-                                   v.KODI_TYPE_SHOW)
         # Process studios
         self.kodidb.modify_studios(kodi_id, v.KODI_TYPE_SHOW, studios)
         # Process tags: view, PMS collection tags
@@ -263,6 +266,11 @@ class Season(ItemBase, TvShowMixin):
             LOG.error('Error getting plex_id for season, skipping: %s',
                       xml.attrib)
             return
+        season = self.plexdb.season(plex_id)
+        if not season:
+            update_item = False
+        else:
+            update_item = True
         show_id = api.parent_id()
         show = self.plexdb.show(show_id)
         if not show:
@@ -280,10 +288,16 @@ class Season(ItemBase, TvShowMixin):
                 LOG.error('Still could not find parent tv show %s', show_id)
                 return
         parent_id = show['kodi_id']
-        kodi_id = self.kodidb.add_season(parent_id, api.season_number())
-        self.kodidb.modify_artwork(api.artwork(),
-                                   kodi_id,
-                                   v.KODI_TYPE_SEASON)
+        if update_item:
+            kodi_id = season['kodi_id']
+            self.kodidb.modify_artwork(api.artwork(),
+                                       kodi_id,
+                                       v.KODI_TYPE_SEASON)
+        else:
+            kodi_id = self.kodidb.add_season(parent_id, api.season_number())
+            self.kodidb.add_artwork(api.artwork(),
+                                    kodi_id,
+                                    v.KODI_TYPE_SEASON)
         self.plexdb.add_season(plex_id=plex_id,
                                checksum=api.checksum(),
                                section_id=section_id,
@@ -423,6 +437,9 @@ class Episode(ItemBase, TvShowMixin):
             self.kodidb.modify_people(kodi_id,
                                       v.KODI_TYPE_EPISODE,
                                       api.people_list())
+            self.kodidb.modify_artwork(api.artwork(),
+                                       kodi_id,
+                                       v.KODI_TYPE_EPISODE)
             self.kodidb.update_episode(api.title(),
                                        api.plot(),
                                        ratingid,
@@ -465,6 +482,9 @@ class Episode(ItemBase, TvShowMixin):
             self.kodidb.add_people(kodi_id,
                                    v.KODI_TYPE_EPISODE,
                                    api.people_list())
+            self.kodidb.add_artwork(api.artwork(),
+                                    kodi_id,
+                                    v.KODI_TYPE_EPISODE)
             self.kodidb.add_episode(kodi_id,
                                     kodi_fileid,
                                     api.title(),
@@ -485,9 +505,6 @@ class Episode(ItemBase, TvShowMixin):
                                     parent_id,
                                     userdata['UserRating'])
 
-        self.kodidb.modify_artwork(api.artwork(),
-                                   kodi_id,
-                                   v.KODI_TYPE_EPISODE)
         streams = api.mediastreams()
         self.kodidb.modify_streams(kodi_fileid, streams, api.runtime())
         self.kodidb.set_resume(kodi_fileid,

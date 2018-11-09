@@ -43,6 +43,24 @@ class KodiDBBase(object):
                 self.cursor.execute('SELECT url FROM art WHERE type == ?',
                                     (kodi_type, )))
 
+    def add_artwork(self, artworks, kodi_id, kodi_type):
+        """
+        Pass in an artworks dict (see PlexAPI) to set an items artwork.
+        """
+        for kodi_art, url in artworks.iteritems():
+            self.add_art(url, kodi_id, kodi_type, kodi_art)
+
+    def add_art(self, url, kodi_id, kodi_type, kodi_art):
+        """
+        Adds or modifies the artwork of kind kodi_art (e.g. 'poster') in the
+        Kodi art table for item kodi_id/kodi_type. Will also cache everything
+        except actor portraits.
+        """
+        self.cursor.execute('''
+            INSERT INTO art(media_id, media_type, type, url)
+            VALUES (?, ?, ?, ?)
+        ''', (kodi_id, kodi_type, kodi_art, url))
+
     def modify_artwork(self, artworks, kodi_id, kodi_type):
         """
         Pass in an artworks dict (see PlexAPI) to set an items artwork.

@@ -111,6 +111,9 @@ class Movie(ItemBase):
             self.kodidb.modify_people(kodi_id,
                                       v.KODI_TYPE_MOVIE,
                                       api.people_list())
+            self.kodidb.modify_artwork(api.artwork(),
+                                       kodi_id,
+                                       v.KODI_TYPE_MOVIE)
         else:
             LOG.info("ADD movie plex_id: %s - %s", plex_id, title)
             rating_id = self.kodidb.get_ratingid(kodi_id,
@@ -134,6 +137,9 @@ class Movie(ItemBase):
             self.kodidb.add_people(kodi_id,
                                    v.KODI_TYPE_MOVIE,
                                    api.people_list())
+            self.kodidb.add_artwork(api.artwork(),
+                                    kodi_id,
+                                    v.KODI_TYPE_MOVIE)
 
         # Update Kodi's main entry
         self.kodidb.add_movie(kodi_id,
@@ -163,9 +169,7 @@ class Movie(ItemBase):
 
         self.kodidb.modify_countries(kodi_id, v.KODI_TYPE_MOVIE, countries)
         self.kodidb.modify_genres(kodi_id, v.KODI_TYPE_MOVIE, genres)
-        self.kodidb.modify_artwork(api.artwork(),
-                                   kodi_id,
-                                   v.KODI_TYPE_MOVIE)
+
         self.kodidb.modify_streams(file_id, api.mediastreams(), runtime)
         self.kodidb.modify_studios(kodi_id, v.KODI_TYPE_MOVIE, studios)
         tags = [section_name]

@@ -725,17 +725,12 @@ class KodiVideoDB(common.KodiDBBase):
         Adds a TV show season to the Kodi video DB or simply returns the ID,
         if there already is an entry in the DB
         """
-        self.cursor.execute('SELECT idSeason FROM seasons WHERE idShow = ? AND season = ?',
-                            (showid, seasonnumber,))
-        try:
-            seasonid = self.cursor.fetchone()[0]
-        except TypeError:
-            self.cursor.execute("SELECT COALESCE(MAX(idSeason),0) FROM seasons")
-            seasonid = self.cursor.fetchone()[0] + 1
-            self.cursor.execute('''
-                INSERT INTO seasons(idSeason, idShow, season)
-                VALUES (?, ?, ?)
-            ''', (seasonid, showid, seasonnumber))
+        self.cursor.execute("SELECT COALESCE(MAX(idSeason),0) FROM seasons")
+        seasonid = self.cursor.fetchone()[0] + 1
+        self.cursor.execute('''
+            INSERT INTO seasons(idSeason, idShow, season)
+            VALUES (?, ?, ?)
+        ''', (seasonid, showid, seasonnumber))
         return seasonid
 
     def add_uniqueid(self, *args):
