@@ -475,7 +475,7 @@ def unix_timestamp(seconds_into_the_future=None):
     return int((future - EPOCH).total_seconds())
 
 
-def kodi_sql(media_type=None, writer=False):
+def kodi_sql(media_type=None):
     """
     Open a connection to the Kodi database.
         media_type: 'video' (standard if not passed), 'plex', 'music', 'texture'
@@ -488,13 +488,8 @@ def kodi_sql(media_type=None, writer=False):
         db_path = v.DB_TEXTURE_PATH
     else:
         db_path = v.DB_VIDEO_PATH
-    if writer:
-        conn = connect(db_path, timeout=5.0, isolation_level=None)
-        conn.execute('PRAGMA journal_mode=WAL')
-        # conn.execute('BEGIN TRANSACTION')
-    else:
-        conn = connect(db_path, timeout=5.0)
-        conn.execute('PRAGMA journal_mode=WAL')
+    conn = connect(db_path, timeout=5.0)
+    conn.execute('PRAGMA journal_mode=WAL')
     return conn
 
 

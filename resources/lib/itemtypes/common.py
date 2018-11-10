@@ -56,11 +56,10 @@ class ItemBase(object):
         """
         self.plexconn = utils.kodi_sql('plex')
         self.plexcursor = self.plexconn.cursor()
+        self.kodiconn = utils.kodi_sql('video')
+        self.kodicursor = self.kodiconn.cursor()
         self.artconn = utils.kodi_sql('texture')
         self.artcursor = self.artconn.cursor()
-        self.kodiconn = utils.kodi_sql('video', writer=True)
-        self.kodicursor = self.kodiconn.cursor()
-        self.kodicursor.execute('BEGIN')
         self.plexdb = PlexDB(self.plexcursor)
         self.kodidb = KodiVideoDB(texture_db=True,
                                   cursor=self.kodicursor,
@@ -72,19 +71,12 @@ class ItemBase(object):
         Make sure DB changes are committed and connection to DB is closed.
         """
         self.plexconn.commit()
+        self.kodiconn.commit()
+        self.artconn.commit()
         self.plexconn.close()
-        self.artconn.commit()
-        self.artconn.close()
-        self.kodicursor.execute('END TRANSACTION')
         self.kodiconn.close()
+        self.artconn.close()
         return self
-
-    def commit(self):
-        self.plexconn.commit()
-        self.artconn.commit()
-        self.kodicursor.execute('END TRANSACTION')
-        self.kodicursor.execute('PRAGMA wal_checkpoint(FULL);')
-        self.kodicursor.execute('BEGIN TRANSACTION')
 
     def set_fanart(self, artworks, kodi_id, kodi_type):
         """

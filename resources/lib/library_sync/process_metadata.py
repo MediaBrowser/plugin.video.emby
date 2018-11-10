@@ -123,12 +123,12 @@ class ProcessMetadata(backgroundthread.KillableThread, common.libsync_mixin):
                             self.processed += 1
                         self.update_progressbar()
                         self.current += 1
-                        if self.processed == 200:
+                        if self.processed == 500:
                             self.processed = 0
-                            context.commit()
+                            context.kodiconn.commit()
+                            context.artconn.commit()
+                            context.plexconn.commit()
                         self.queue.task_done()
-                        if section.plex_type == 'episode' and self.current == 1000:
-                            break
                 profile.disable()
                 string_io = StringIO()
                 stats = Stats(profile, stream=string_io).sort_stats('cumulative')
