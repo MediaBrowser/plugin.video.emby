@@ -4,7 +4,7 @@ from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
 
 from . import common
-from .. import utils, variables as v
+from .. import utils
 
 LOG = getLogger('PLEX.kodi_db.music')
 
@@ -17,7 +17,7 @@ class KodiMusicDB(common.KodiDBBase):
         self.cursor = self.kodiconn.cursor()
         return self
 
-    def add_music_path(self, path, hash_string=None):
+    def add_path(self, path, hash_string=None):
         """
         Add the path (unicode) to the music DB, if it does not exist already.
         Returns the path id
