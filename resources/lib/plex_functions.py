@@ -555,7 +555,6 @@ class DownloadGen(object):
     """
     def __init__(self, url, plex_type=None, last_viewed_at=None,
                  updated_at=None, args=None):
-        self.lock = backgroundthread.threading.Lock()
         self.args = args or {}
         url += '?'
         if plex_type:
@@ -567,13 +566,15 @@ class DownloadGen(object):
         self.url = url[:-1]
         self._download_chunk(start=0)
         self.attrib = deepcopy(self.xml.attrib)
+        self.current = 0
         self.total = int(self.attrib['totalSize'])
+        self.cache_factor = 10
         # Will keep track whether we still have results incoming
         self.pending_counter = []
-        for i in range(CONTAINERSIZE,
-                       self.total + (CONTAINERSIZE - self.total % CONTAINERSIZE),
-                       CONTAINERSIZE):
-            self._download_chunk(start=i)
+        end = min(self.cache_factor * CONTAINERSIZE,
+                  self.total + (CONTAINERSIZE - self.total % CONTAINERSIZE))
+        for self.position in range(CONTAINERSIZE, end, CONTAINERSIZE):
+            self._download_chunk(start=self.position)
             self.pending_counter.append(None)
 
     def _download_chunk(self, start):
@@ -600,9 +601,8 @@ class DownloadGen(object):
 
     def on_chunk_downloaded(self, xml):
         if xml:
-            with self.lock:
-                for child in xml:
-                    self.xml.append(child)
+            for child in xml:
+                self.xml.append(child)
         self.pending_counter.pop()
 
     def __iter__(self):
@@ -614,11 +614,15 @@ class DownloadGen(object):
     def __next__(self):
         while True:
             if len(self.xml):
+                self.current += 1
                 child = self.xml[0]
-                with self.lock:
-                    self.xml.remove(child)
+                self.xml.remove(child)
+                if self.current % CONTAINERSIZE == 0:
+                    self._download_chunk(
+                        start=self.current + (self.cache_factor - 1) * CONTAINERSIZE)
+                    self.pending_counter.append(None)
                 return child
-            sleep(20)
+            sleep(100)
             if not len(self.pending_counter) and not len(self.xml):
                 raise StopIteration
 
