@@ -59,7 +59,7 @@
         <setting id="dbSyncScreensaver" type="bool" label="39062" default="false" /><!--Sync when screensaver is deactivated-->
         <setting id="dbSyncIndicator" label="30507" type="bool" default="true" /><!-- show syncing progress -->
         <setting id="syncThreadNumber" type="slider" label="39003" default="10" option="int" range="1,1,30"/><!-- Number of simultaneous download threads -->
-        <setting id="limitindex" type="slider" label="30515" default="400" option="int" range="50,50,1000"/><!-- Maximum items to request from the server at once -->
+        <setting id="limitindex" type="slider" label="30515" default="200" option="int" range="50,50,1000"/><!-- Maximum items to request from the server at once -->
         <setting type="lsep" label="$LOCALIZE[136]" /><!-- Playlists -->
         <setting type="sep" />
         <setting id="enablePlaylistSync" type="bool" label="30020" default="true" visible="true"/><!-- Sync Plex playlists -->
