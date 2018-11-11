@@ -249,6 +249,10 @@ def initialize():
                     kodi_type TEXT,
                     kodi_hash TEXT)
             ''')
+            # DB indicees for faster lookups
+            plexdb.cursor.execute('CREATE UNIQUE INDEX IF NOT EXISTS ix_show_1 ON show (plex_id)')
+            plexdb.cursor.execute('CREATE UNIQUE INDEX IF NOT EXISTS ix_season_1 ON season (plex_id)')
+            plexdb.cursor.execute('CREATE UNIQUE INDEX IF NOT EXISTS ix_episode_1 ON episode (plex_id)')
 
 
 def wipe():
