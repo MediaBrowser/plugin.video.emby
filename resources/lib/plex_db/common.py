@@ -250,16 +250,20 @@ def initialize():
                     kodi_hash TEXT)
             ''')
             # DB indicees for faster lookups
-            plexdb.cursor.execute('CREATE UNIQUE INDEX IF NOT EXISTS ix_movie_1 ON movie (plex_id)')
-            plexdb.cursor.execute('CREATE UNIQUE INDEX IF NOT EXISTS ix_show_1 ON show (plex_id)')
-            plexdb.cursor.execute('CREATE UNIQUE INDEX IF NOT EXISTS ix_season_1 ON season (plex_id)')
-            plexdb.cursor.execute('CREATE UNIQUE INDEX IF NOT EXISTS ix_episode_1 ON episode (plex_id)')
-            plexdb.cursor.execute('CREATE UNIQUE INDEX IF NOT EXISTS ix_artist_1 ON artist (plex_id)')
-            plexdb.cursor.execute('CREATE UNIQUE INDEX IF NOT EXISTS ix_album_1 ON album (plex_id)')
-            plexdb.cursor.execute('CREATE UNIQUE INDEX IF NOT EXISTS ix_track_1 ON track (plex_id)')
-            plexdb.cursor.execute('CREATE UNIQUE INDEX IF NOT EXISTS ix_playlists_1 ON playlists (plex_id)')
-            plexdb.cursor.execute('CREATE UNIQUE INDEX IF NOT EXISTS ix_playlists_2 ON playlists (kodi_path)')
-            plexdb.cursor.execute('CREATE UNIQUE INDEX IF NOT EXISTS ix_playlists_3 ON playlists (kodi_hash)')
+            commands = (
+                'CREATE UNIQUE INDEX IF NOT EXISTS ix_movie_1 ON movie (plex_id)',
+                'CREATE UNIQUE INDEX IF NOT EXISTS ix_show_1 ON show (plex_id)',
+                'CREATE UNIQUE INDEX IF NOT EXISTS ix_season_1 ON season (plex_id)',
+                'CREATE UNIQUE INDEX IF NOT EXISTS ix_episode_1 ON episode (plex_id)',
+                'CREATE UNIQUE INDEX IF NOT EXISTS ix_artist_1 ON artist (plex_id)',
+                'CREATE UNIQUE INDEX IF NOT EXISTS ix_album_1 ON album (plex_id)',
+                'CREATE UNIQUE INDEX IF NOT EXISTS ix_track_1 ON track (plex_id)',
+                'CREATE UNIQUE INDEX IF NOT EXISTS ix_playlists_1 ON playlists (plex_id)',
+                'CREATE UNIQUE INDEX IF NOT EXISTS ix_playlists_2 ON playlists (kodi_path)',
+                'CREATE UNIQUE INDEX IF NOT EXISTS ix_playlists_3 ON playlists (kodi_hash)',
+            )
+            for cmd in commands:
+                plexdb.cursor.execute(cmd)
 
 
 def wipe():
