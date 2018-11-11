@@ -626,6 +626,7 @@ class DownloadGen(object):
             sleep(100)
             if not len(self.pending_counter) and not len(self.xml):
                 raise StopIteration
+            LOG.debug('Waiting for download to finish')
 
     def get(self, key, default=None):
         return self.attrib.get(key, default)
