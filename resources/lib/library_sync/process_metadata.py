@@ -66,7 +66,7 @@ class ProcessMetadata(backgroundthread.KillableThread, common.libsync_mixin):
             except ZeroDivisionError:
                 progress = 0
             self.dialog.update(progress,
-                               '%s: %s' % (self.section_type_text, self.section_name),
+                               '%s (%s)' % (self.section_name, self.section_type_text),
                                '%s/%s: %s'
                                % (self.current, self.total, self.title))
 

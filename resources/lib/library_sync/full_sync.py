@@ -104,8 +104,7 @@ class FullSync(common.libsync_mixin):
                                            plex_type=self.plex_type)
                 # Tell the processing thread about this new section
                 queue_info = InitNewSection(self.context,
-                                            utils.cast(int,
-                                                       iterator.get('totalSize', 0)),
+                                            iterator.total,
                                             iterator.get('librarySectionTitle'),
                                             section['section_id'],
                                             self.plex_type)
@@ -131,8 +130,7 @@ class FullSync(common.libsync_mixin):
                                            plex_type=self.plex_type)
                 # Tell the processing thread that we're syncing playstate
                 queue_info = InitNewSection(self.context,
-                                            utils.cast(int,
-                                                       iterator.get('totalSize', 0)),
+                                            iterator.total,
                                             iterator.get('librarySectionTitle'),
                                             section['section_id'],
                                             self.plex_type)

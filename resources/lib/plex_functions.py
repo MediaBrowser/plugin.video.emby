@@ -617,10 +617,11 @@ class DownloadGen(object):
                 self.current += 1
                 child = self.xml[0]
                 self.xml.remove(child)
-                if self.current % CONTAINERSIZE == 0:
+                if (self.current % CONTAINERSIZE == 0 and
+                        self.current < self.total - self.cache_factor * CONTAINERSIZE):
+                    self.pending_counter.append(None)
                     self._download_chunk(
                         start=self.current + (self.cache_factor - 1) * CONTAINERSIZE)
-                    self.pending_counter.append(None)
                 return child
             sleep(100)
             if not len(self.pending_counter) and not len(self.xml):
