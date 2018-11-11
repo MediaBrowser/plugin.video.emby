@@ -70,13 +70,16 @@ class ItemBase(object):
         """
         Make sure DB changes are committed and connection to DB is closed.
         """
-        self.plexconn.commit()
-        self.kodiconn.commit()
-        self.artconn.commit()
+        self.commit()
         self.plexconn.close()
         self.kodiconn.close()
         self.artconn.close()
         return self
+
+    def commit(self):
+        self.plexconn.commit()
+        self.artconn.commit()
+        self.kodiconn.commit()
 
     def set_fanart(self, artworks, kodi_id, kodi_type):
         """

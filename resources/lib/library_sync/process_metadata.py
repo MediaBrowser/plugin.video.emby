@@ -125,9 +125,7 @@ class ProcessMetadata(backgroundthread.KillableThread, common.libsync_mixin):
                         self.current += 1
                         if self.processed == 500:
                             self.processed = 0
-                            context.kodiconn.commit()
-                            context.artconn.commit()
-                            context.plexconn.commit()
+                            context.commit()
                         self.queue.task_done()
                 profile.disable()
                 string_io = StringIO()
