@@ -556,6 +556,11 @@ class DownloadGen(object):
     def __init__(self, url, plex_type=None, last_viewed_at=None,
                  updated_at=None, args=None):
         self.args = args or {}
+        self.args.update({
+            'X-Plex-Container-Size': CONTAINERSIZE,
+            'sort': 'id',  # Entries are sorted by plex_id
+            'excludeAllLeaves': 1  # PMS wont attach a first summary child
+        })
         url += '?'
         if plex_type:
             url = '%stype=%s&' % (url, v.PLEX_TYPE_NUMBER_FROM_PLEX_TYPE[plex_type])
@@ -572,18 +577,13 @@ class DownloadGen(object):
         # Will keep track whether we still have results incoming
         self.pending_counter = []
         end = min(self.cache_factor * CONTAINERSIZE,
-                  self.total + (CONTAINERSIZE - self.total % CONTAINERSIZE))
-        for self.position in range(CONTAINERSIZE, end, CONTAINERSIZE):
-            self._download_chunk(start=self.position)
+                  self.total + CONTAINERSIZE - self.total % CONTAINERSIZE)
+        for pos in range(CONTAINERSIZE, end, CONTAINERSIZE):
             self.pending_counter.append(None)
+            self._download_chunk(start=pos)
 
     def _download_chunk(self, start):
-        self.args.update({
-            'X-Plex-Container-Size': CONTAINERSIZE,
-            'X-Plex-Container-Start': start,
-            'sort': 'id',  # Entries are sorted by plex_id
-            'excludeAllLeaves': 1  # PMS wont attach a first summary child
-        })
+        self.args['X-Plex-Container-Start'] = start
         if start == 0:
             # We need the result NOW
             self.xml = DU().downloadUrl(self.url, parameters=self.args)
@@ -618,7 +618,7 @@ class DownloadGen(object):
                 child = self.xml[0]
                 self.xml.remove(child)
                 if (self.current % CONTAINERSIZE == 0 and
-                        self.current < self.total - (self.cache_factor - 1) * CONTAINERSIZE):
+                        self.current <= self.total - (self.cache_factor - 1) * CONTAINERSIZE):
                     self.pending_counter.append(None)
                     self._download_chunk(
                         start=self.current + (self.cache_factor - 1) * CONTAINERSIZE)
