@@ -111,8 +111,17 @@ def wipe_dbs(music=True):
             for table in tables:
                 kodidb.cursor.execute('DELETE FROM %s' % table)
     setup_kodi_default_entries()
-    # Make sure Kodi knows we wiped the databases
+    # Delete SQLITE wal files
     import xbmc
+    db_dir = xbmc.translatePath('special://database').decode('utf-8')
+    for root, _, files in path_ops.walk(db_dir):
+        for file in files:
+            if path_ops.path.splitext(file)[1].lower() in ('.db-shm', '.db-wal'):
+                try:
+                    path_ops.remove(path_ops.path.join(root, file))
+                except OSError:
+                    LOG.info('Could not delete temp DB file %s', file)
+    # Make sure Kodi knows we wiped the databases
     xbmc.executebuiltin('UpdateLibrary(video)')
     if utils.settings('enableMusic') == 'true':
         xbmc.executebuiltin('UpdateLibrary(music)')
