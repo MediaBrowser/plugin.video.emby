@@ -30,7 +30,7 @@ def kodiid_from_filename(path, kodi_type=None, db_type=None):
     if kodi_type == v.KODI_TYPE_SONG or db_type == 'music':
         with KodiMusicDB() as kodidb:
             try:
-                kodi_id = kodidb.music_id_from_filename(filename, path)
+                kodi_id = kodidb.song_id_from_filename(filename, path)
             except TypeError:
                 LOG.debug('No Kodi audio db element found for path %s', path)
             else:

@@ -15,7 +15,7 @@ LOG = getLogger('PLEX.music')
 class MusicMixin(object):
     def __enter__(self):
         """
-        Open DB connections and cursors
+        Overwrite to use the Kodi music DB instead of the video DB
         """
         self.plexconn = utils.kodi_sql('plex')
         self.plexcursor = self.plexconn.cursor()
@@ -91,25 +91,14 @@ class MusicMixin(object):
         Remove song, orphaned artists and orphaned paths
         """
         if not path_id:
-            query = 'SELECT idPath FROM song WHERE idSong = ? LIMIT 1'
-            self.kodicursor.execute(query, (kodi_id, ))
-            try:
-                path_id = self.kodicursor.fetchone()[0]
-            except TypeError:
-                pass
+            path_id = self.kodidb.path_id_from_song(kodi_id)
         self.kodidb.delete_song_from_song_artist(kodi_id)
-        self.kodicursor.execute('DELETE FROM song WHERE idSong = ?',
-                                (kodi_id, ))
+        self.kodidb.remove_song(kodi_id)
         # Check whether we have orphaned path entries
-        query = 'SELECT idPath FROM song WHERE idPath = ? LIMIT 1'
-        self.kodicursor.execute(query, (path_id, ))
-        if not self.kodicursor.fetchone():
-            self.kodicursor.execute('DELETE FROM path WHERE idPath = ?',
-                                    (path_id, ))
+        if not self.kodidb.path_id_from_song(kodi_id):
+            self.kodidb.remove_path(path_id)
         if v.KODIVERSION < 18:
-            self.kodidb.delete_song_from_song_genre(kodi_id)
-            query = 'DELETE FROM albuminfosong WHERE idAlbumInfoSong = ?'
-            self.kodicursor.execute(query, (kodi_id, ))
+            self.kodidb.remove_albuminfosong(kodi_id)
         self.kodidb.delete_artwork(kodi_id, v.KODI_TYPE_SONG)
 
     def remove_album(self, kodi_id):
@@ -119,26 +108,14 @@ class MusicMixin(object):
         self.kodidb.delete_album_from_discography(kodi_id)
         if v.KODIVERSION < 18:
             self.kodidb.delete_album_from_album_genre(kodi_id)
-            query = 'DELETE FROM albuminfosong WHERE idAlbumInfo = ?'
-            self.kodicursor.execute(query, (kodi_id, ))
-        self.kodicursor.execute('DELETE FROM album_artist WHERE idAlbum = ?',
-                                (kodi_id, ))
-        self.kodicursor.execute('DELETE FROM album WHERE idAlbum = ?',
-                                (kodi_id, ))
+        self.kodidb.remove_album(kodi_id)
         self.kodidb.delete_artwork(kodi_id, v.KODI_TYPE_ALBUM)
 
     def remove_artist(self, kodi_id):
         '''
         Remove an artist and associated songs and albums
         '''
-        self.kodicursor.execute('DELETE FROM album_artist WHERE idArtist = ?',
-                                (kodi_id, ))
-        self.kodicursor.execute('DELETE FROM artist WHERE idArtist = ?',
-                                (kodi_id, ))
-        self.kodicursor.execute('DELETE FROM song_artist WHERE idArtist = ?',
-                                (kodi_id, ))
-        self.kodicursor.execute('DELETE FROM discography WHERE idArtist = ?',
-                                (kodi_id, ))
+        self.remove_artist(kodi_id)
         self.kodidb.delete_artwork(kodi_id, v.KODI_TYPE_ARTIST)
 
 
@@ -189,23 +166,12 @@ class Artist(MusicMixin, ItemBase):
             # artist entries.
             kodi_id = self.kodidb.add_artist(api.title(), musicBrainzId)
             # Create the reference in plex table
-        query = '''
-            UPDATE artist
-            SET strGenres = ?,
-                strBiography = ?,
-                strImage = ?,
-                strFanart = ?,
-                lastScraped = ?
-            WHERE idArtist = ?
-        '''
-        self.kodicursor.execute(
-            query,
-            (api.list_to_string(api.genre_list()),
-             api.plot(),
-             thumb,
-             fanart,
-             utils.unix_date_to_kodi(self.last_sync),
-             kodi_id))
+        self.kodidb.update_artist(api.list_to_string(api.genre_list()),
+                                  api.plot(),
+                                  thumb,
+                                  fanart,
+                                  utils.unix_date_to_kodi(self.last_sync),
+                                  kodi_id)
         # Update artwork
         self.kodidb.modify_artwork(artworks,
                                    kodi_id,
@@ -265,8 +231,8 @@ class Album(MusicMixin, ItemBase):
                 break
         name = api.title()
         userdata = api.userdata()
-        # Not yet implemented by Plex
-        musicBrainzId = None
+        # Not yet implemented by Plex, let's use unique last.fm or gracenote
+        musicBrainzId = api.guid_html_escaped()
         genres = api.genre_list()
         genre = api.list_to_string(genres)
         # Associate artwork
@@ -279,89 +245,68 @@ class Album(MusicMixin, ItemBase):
         # UPDATE THE ALBUM #####
         if update_item:
             LOG.info("UPDATE album plex_id: %s - Name: %s", plex_id, name)
+            if v.KODIVERSION >= 18:
+                self.kodidb.update_album(name,
+                                         musicBrainzId,
+                                         api.artist_name(),
+                                         genre,
+                                         api.year(),
+                                         compilation,
+                                         api.plot(),
+                                         thumb,
+                                         api.music_studio(),
+                                         userdata['UserRating'],
+                                         utils.unix_date_to_kodi(self.last_sync),
+                                         'album',
+                                         kodi_id)
+            else:
+                self.kodidb.update_album_17(name,
+                                            musicBrainzId,
+                                            api.artist_name(),
+                                            genre,
+                                            api.year(),
+                                            compilation,
+                                            api.plot(),
+                                            thumb,
+                                            api.music_studio(),
+                                            userdata['UserRating'],
+                                            utils.unix_date_to_kodi(self.last_sync),
+                                            'album',
+                                            kodi_id)
         # OR ADD THE ALBUM #####
         else:
             LOG.info("ADD album plex_id: %s - Name: %s", plex_id, name)
-            kodi_id = self.kodidb.add_album(name, musicBrainzId)
-        # Process the album info
-        if v.KODIVERSION >= 18:
-            # Kodi Leia
-            query = '''
-                UPDATE album
-                SET strArtistDisp = ?,
-                    iYear = ?,
-                    strGenres = ?,
-                    strReview = ?,
-                    strImage = ?,
-                    iUserrating = ?,
-                    lastScraped = ?,
-                    strReleaseType = ?,
-                    strLabel = ?,
-                    bCompilation = ?
-                WHERE idAlbum = ?
-            '''
-            self.kodicursor.execute(
-                query,
-                (api.artist_name(),
-                 api.year(),
-                 genre,
-                 api.plot(),
-                 thumb,
-                 userdata['UserRating'],
-                 utils.unix_date_to_kodi(self.last_sync),
-                 v.KODI_TYPE_ALBUM,
-                 api.music_studio(),
-                 compilation,
-                 kodi_id))
-        else:
-            # Kodi Krypton
-            query = '''
-                UPDATE album
-                SET strArtists = ?,
-                    iYear = ?,
-                    strGenres = ?,
-                    strReview = ?,
-                    strImage = ?,
-                    iUserrating = ?,
-                    lastScraped = ?,
-                    strReleaseType = ?,
-                    strLabel = ?,
-                    bCompilation = ?
-                WHERE idAlbum = ?
-            '''
-            self.kodicursor.execute(
-                query,
-                (api.artist_name(),
-                 api.year(),
-                 genre,
-                 api.plot(),
-                 thumb,
-                 userdata['UserRating'],
-                 utils.unix_date_to_kodi(self.last_sync),
-                 v.KODI_TYPE_ALBUM,
-                 api.music_studio(),
-                 compilation,
-                 kodi_id))
-        # Add artist to album
-        query = '''
-            INSERT OR REPLACE INTO album_artist(
-                idArtist,
-                idAlbum,
-                strArtist)
-            VALUES (?, ?, ?)
-        '''
-        self.kodicursor.execute(query,
-                                (artist_id, kodi_id, api.artist_name()))
-        # Update discography
-        query = '''
-            INSERT OR REPLACE INTO discography(
-                idArtist,
-                strAlbum,
-                strYear)
-            VALUES (?, ?, ?)
-        '''
-        self.kodicursor.execute(query,
-                                (artist_id, name, api.year()))
+            kodi_id = self.kodidb.new_album_id()
+            if v.KODIVERSION >= 18:
+                self.kodidb.add_album(kodi_id,
+                                      name,
+                                      musicBrainzId,
+                                      api.artist_name(),
+                                      genre,
+                                      api.year(),
+                                      compilation,
+                                      api.plot(),
+                                      thumb,
+                                      api.music_studio(),
+                                      userdata['UserRating'],
+                                      utils.unix_date_to_kodi(self.last_sync),
+                                      'album')
+            else:
+                self.kodidb.add_album_17(kodi_id,
+                                         name,
+                                         musicBrainzId,
+                                         api.artist_name(),
+                                         genre,
+                                         api.year(),
+                                         compilation,
+                                         api.plot(),
+                                         thumb,
+                                         api.music_studio(),
+                                         userdata['UserRating'],
+                                         utils.unix_date_to_kodi(self.last_sync),
+                                         'album')
+        self.kodidb.add_albumartist(artist_id, kodi_id, api.artist_name())
+        self.kodidb.add_discography(artist_id, name, api.year())
         if v.KODIVERSION < 18:
             self.kodidb.add_music_genres(kodi_id,
                                          genres,
@@ -410,8 +355,7 @@ class Song(MusicMixin, ItemBase):
             kodi_pathid = song['kodi_pathid']
         else:
             update_item = False
-            self.kodicursor.execute('SELECT COALESCE(MAX(idSong),0) FROM song')
-            kodi_id = self.kodicursor.fetchone()[0] + 1
+            kodi_id = self.kodidb.add_song_id()
         artist_id = api.grandparent_id()
         album_id = api.parent_id()
 
@@ -440,19 +384,35 @@ class Song(MusicMixin, ItemBase):
         if not album_id:
             # No album found, create a single's album
             LOG.info('Creating singles album')
-            self.kodicursor.execute(
-                'SELECT COALESCE(MAX(idAlbum),0) FROM album')
-            parent_id = self.kodicursor.fetchone()[0] + 1
-            query = '''
-                INSERT INTO album(
-                    idAlbum,
-                    strGenres,
-                    iYear,
-                    strReleaseType)
-                VALUES (?, ?, ?, ?)
-            '''
-            self.kodicursor.execute(query,
-                                    (parent_id, genre, api.year(), 'single'))
+            parent_id = self.kodidb.new_album_id()
+            if v.KODIVERSION >= 18:
+                self.kodidb.add_album(kodi_id,
+                                      None,
+                                      None,
+                                      None,
+                                      genre,
+                                      api.year(),
+                                      None,
+                                      None,
+                                      None,
+                                      None,
+                                      None,
+                                      utils.unix_date_to_kodi(self.last_sync),
+                                      'single')
+            else:
+                self.kodidb.add_album_17(kodi_id,
+                                         None,
+                                         None,
+                                         None,
+                                         genre,
+                                         api.year(),
+                                         None,
+                                         None,
+                                         None,
+                                         None,
+                                         None,
+                                         utils.unix_date_to_kodi(self.last_sync),
+                                         'single')
         else:
             album = self.plexdb.album(album_id)
             if not album:
@@ -539,196 +499,93 @@ class Song(MusicMixin, ItemBase):
         if update_item:
             LOG.info("UPDATE song plex_id: %s - %s", plex_id, title)
             # Use dummy strHash '123' for Kodi
-            query = "UPDATE path SET strPath = ?, strHash = ? WHERE idPath = ?"
-            self.kodicursor.execute(query, (path, '123', kodi_pathid))
+            self.kodidb.update_path(path, kodi_pathid)
             # Update the song entry
             if v.KODIVERSION >= 18:
                 # Kodi Leia
-                query = '''
-                    UPDATE song
-                    SET idAlbum = ?,
-                        strArtistDisp = ?,
-                        strGenres = ?,
-                        strTitle = ?,
-                        iTrack = ?,
-                        iDuration = ?,
-                        iYear = ?,
-                        strFilename = ?,
-                        iTimesPlayed = ?,
-                        lastplayed = ?,
-                        rating = ?,
-                        comment = ?,
-                        mood = ?
-                    WHERE idSong = ?
-                '''
-                self.kodicursor.execute(
-                    query,
-                    (parent_id,
-                     artists,
-                     genre,
-                     title,
-                     track,
-                     userdata['Runtime'],
-                     year,
-                     filename,
-                     playcount,
-                     userdata['LastPlayedDate'],
-                     userdata['UserRating'],
-                     comment,
-                     mood,
-                     kodi_id))
+                self.kodidb.update_song(parent_id,
+                                        artists,
+                                        genre,
+                                        title,
+                                        track,
+                                        userdata['Runtime'],
+                                        year,
+                                        filename,
+                                        playcount,
+                                        userdata['LastPlayedDate'],
+                                        userdata['UserRating'],
+                                        comment,
+                                        mood,
+                                        kodi_id)
             else:
-                query = '''
-                    UPDATE song
-                    SET idAlbum = ?,
-                        strArtists = ?,
-                        strGenres = ?,
-                        strTitle = ?,
-                        iTrack = ?,
-                        iDuration = ?,
-                        iYear = ?,
-                        strFilename = ?,
-                        iTimesPlayed = ?,
-                        lastplayed = ?,
-                        rating = ?,
-                        comment = ?,
-                        mood = ?
-                    WHERE idSong = ?
-                '''
-                self.kodicursor.execute(
-                    query,
-                    (parent_id,
-                     artists,
-                     genre,
-                     title,
-                     track,
-                     userdata['Runtime'],
-                     year,
-                     filename,
-                     playcount,
-                     userdata['LastPlayedDate'],
-                     userdata['UserRating'],
-                     comment,
-                     mood,
-                     kodi_id))
-
+                self.kodidb.update_song_17(parent_id,
+                                           artists,
+                                           genre,
+                                           title,
+                                           track,
+                                           userdata['Runtime'],
+                                           year,
+                                           filename,
+                                           playcount,
+                                           userdata['LastPlayedDate'],
+                                           userdata['UserRating'],
+                                           comment,
+                                           mood,
+                                           kodi_id)
         # OR ADD THE SONG #####
         else:
             LOG.info("ADD song plex_id: %s - %s", plex_id, title)
             # Add path
-            kodi_pathid = self.kodidb.add_path(path, hash_string="123")
+            kodi_pathid = self.kodidb.add_path(path)
             # Create the song entry
             if v.KODIVERSION >= 18:
                 # Kodi Leia
-                query = '''
-                    INSERT INTO song(
-                        idSong,
-                        idAlbum,
-                        idPath,
-                        strArtistDisp,
-                        strGenres,
-                        strTitle,
-                        iTrack,
-                        iDuration,
-                        iYear,
-                        strFileName,
-                        strMusicBrainzTrackID,
-                        iTimesPlayed,
-                        lastplayed,
-                        rating,
-                        iStartOffset,
-                        iEndOffset,
-                        mood)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    '''
-                self.kodicursor.execute(
-                    query,
-                    (kodi_id,
-                     parent_id,
-                     kodi_pathid,
-                     artists,
-                     genre,
-                     title,
-                     track,
-                     userdata['Runtime'],
-                     year,
-                     filename,
-                     musicBrainzId,
-                     playcount,
-                     userdata['LastPlayedDate'],
-                     userdata['UserRating'],
-                     0,
-                     0,
-                     mood))
+                self.kodidb.add_song(kodi_id,
+                                     parent_id,
+                                     kodi_pathid,
+                                     artists,
+                                     genre,
+                                     title,
+                                     track,
+                                     userdata['Runtime'],
+                                     year,
+                                     filename,
+                                     musicBrainzId,
+                                     playcount,
+                                     userdata['LastPlayedDate'],
+                                     userdata['UserRating'],
+                                     0,
+                                     0,
+                                     mood)
             else:
-                query = '''
-                    INSERT INTO song(
-                        idSong,
-                        idAlbum,
-                        idPath,
-                        strArtists,
-                        strGenres,
-                        strTitle,
-                        iTrack,
-                        iDuration,
-                        iYear,
-                        strFileName,
-                        strMusicBrainzTrackID,
-                        iTimesPlayed,
-                        lastplayed,
-                        rating,
-                        iStartOffset,
-                        iEndOffset,
-                        mood)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    '''
-                self.kodicursor.execute(
-                    query,
-                    (kodi_id,
-                     parent_id,
-                     kodi_pathid,
-                     artists,
-                     genre,
-                     title,
-                     track,
-                     userdata['Runtime'],
-                     year,
-                     filename,
-                     musicBrainzId,
-                     playcount,
-                     userdata['LastPlayedDate'],
-                     userdata['UserRating'],
-                     0,
-                     0,
-                     mood))
+                self.kodidb.add_song_17(kodi_id,
+                                        parent_id,
+                                        kodi_pathid,
+                                        artists,
+                                        genre,
+                                        title,
+                                        track,
+                                        userdata['Runtime'],
+                                        year,
+                                        filename,
+                                        musicBrainzId,
+                                        playcount,
+                                        userdata['LastPlayedDate'],
+                                        userdata['UserRating'],
+                                        0,
+                                        0,
+                                        mood)
         if v.KODIVERSION < 18:
             # Link song to album
-            query = '''
-                INSERT OR REPLACE INTO albuminfosong(
-                    idAlbumInfoSong,
-                    idAlbumInfo,
-                    iTrack,
-                    strTitle,
-                    iDuration)
-                VALUES (?, ?, ?, ?, ?)
-            '''
-            self.kodicursor.execute(
-                query,
-                (kodi_id, parent_id, track, title, userdata['Runtime']))
+            self.kodidb.add_albuminfosong(kodi_id,
+                                          parent_id,
+                                          track,
+                                          title,
+                                          userdata['Runtime'])
         # Link song to artists
         artist_name = api.grandparent_title()
         # Do the actual linking
-        query = '''
-            INSERT OR REPLACE INTO song_artist(
-                idArtist,
-                idSong,
-                idRole,
-                iOrder,
-                strArtist)
-            VALUES (?, ?, ?, ?, ?)
-        '''
-        self.kodicursor.execute(query,
-                                (grandparent_id, kodi_id, 1, 0, artist_name))
+        self.kodidb.add_song_artist(grandparent_id, kodi_id, artist_name)
         # Add genres
         if genres:
             self.kodidb.add_music_genres(kodi_id, genres, v.KODI_TYPE_SONG)

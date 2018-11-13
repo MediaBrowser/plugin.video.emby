@@ -4,7 +4,7 @@ from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
 
 from . import common
-from .. import utils
+from .. import variables as v
 
 LOG = getLogger('PLEX.kodi_db.music')
 
@@ -12,16 +12,10 @@ LOG = getLogger('PLEX.kodi_db.music')
 class KodiMusicDB(common.KodiDBBase):
     db_kind = 'music'
 
-    def __enter__(self):
-        self.kodiconn = utils.kodi_sql('music')
-        self.cursor = self.kodiconn.cursor()
-        return self
-
-    def add_path(self, path, hash_string=None):
+    def add_path(self, path):
         """
         Add the path (unicode) to the music DB, if it does not exist already.
         Returns the path id
-        Set hash_string to something unicode to set the strHash attribute
         """
         # SQL won't return existing paths otherwise
         path = '' if path is None else path
@@ -36,16 +30,23 @@ class KodiMusicDB(common.KodiDBBase):
                                 INSERT INTO path(idPath, strPath, strHash)
                                 VALUES (?, ?, ?)
                                 ''',
-                                (pathid, path, hash_string))
+                                (pathid, path, '123'))
         return pathid
 
-    def music_id_from_filename(self, filename, path):
+    def update_path(self, path, kodi_pathid):
+        self.cursor.execute('''
+            UPDATE path
+            SET strPath = ?, strHash = ?
+            WHERE idPath = ?
+        ''', (path, '123', kodi_pathid))
+
+    def song_id_from_filename(self, filename, path):
         """
         Returns the Kodi song_id from the Kodi music database or None if not
         found OR something went wrong.
         """
         self.cursor.execute('SELECT idPath FROM path WHERE strPath = ?',
-                            (path,))
+                            (path, ))
         path_ids = self.cursor.fetchall()
         if len(path_ids) != 1:
             LOG.debug('Found wrong number of path ids: %s for path %s, abort',
@@ -63,10 +64,12 @@ class KodiMusicDB(common.KodiDBBase):
         """
         Deletes son from song_artist table and possibly orphaned roles
         """
-        self.cursor.execute('SELECT idArtist, idRole FROM song_artist WHERE idSong = ? LIMIT 1',
-                            (song_id, ))
+        self.cursor.execute('''
+            SELECT idArtist, idRole FROM song_artist
+            WHERE idSong = ? LIMIT 1
+        ''', (song_id, ))
         artist = self.cursor.fetchone()
-        if artist is None:
+        if not artist:
             # No entry to begin with
             return
         # Delete the entry
@@ -141,27 +144,107 @@ class KodiMusicDB(common.KodiDBBase):
                     self.cursor.execute('DELETE FROM genre WHERE idGenre = ?',
                                         (genre[0], ))
 
-    def add_album(self, name, musicbrainz):
+    def new_album_id(self):
+        self.cursor.execute('SELECT COALESCE(MAX(idAlbum), 0) FROM album')
+        return self.cursor.fetchone()[0] + 1
+
+    def add_album_17(self, *args):
         """
-        Adds a single album to the DB
+        strReleaseType: 'album' or 'single'
         """
-        self.cursor.execute('SELECT idAlbum FROM album WHERE strMusicBrainzAlbumID = ?',
-                            (musicbrainz, ))
-        try:
-            albumid = self.cursor.fetchone()[0]
-        except TypeError:
-            # Create the album
-            self.cursor.execute('SELECT COALESCE(MAX(idAlbum),0) FROM album')
-            albumid = self.cursor.fetchone()[0] + 1
-            self.cursor.execute('''
-                INSERT INTO album(
-                    idAlbum,
-                    strAlbum,
-                    strMusicBrainzAlbumID,
-                    strReleaseType)
-                VALUES (?, ?, ?, ?)
-            ''', (albumid, name, musicbrainz, 'album'))
-        return albumid
+        self.cursor.execute('''
+            INSERT INTO album(
+                idAlbum,
+                strAlbum,
+                strMusicBrainzAlbumID,
+                strArtists,
+                strGenres,
+                iYear,
+                bCompilation,
+                strReview,
+                strImage,
+                strLabel,
+                iUserrating,
+                lastScraped,
+                strReleaseType)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (args))
+
+    def update_album_17(self, *args):
+        self.cursor.execute('''
+            UPDATE album
+            SET strAlbum = ?,
+                strMusicBrainzAlbumID = ?,
+                strArtists = ?,
+                strGenres = ?,
+                iYear = ?,
+                bCompilation = ?
+                strReview = ?,
+                strImage = ?,
+                strLabel = ?,
+                iUserrating = ?,
+                lastScraped = ?,
+                strReleaseType = ?,
+            WHERE idAlbum = ?
+        ''', (args))
+
+    def add_album(self, *args):
+        """
+        strReleaseType: 'album' or 'single'
+        """
+        self.cursor.execute('''
+            INSERT INTO album(
+                idAlbum,
+                strAlbum,
+                strMusicBrainzAlbumID,
+                strArtistDisp,
+                strGenres,
+                iYear,
+                bCompilation,
+                strReview,
+                strImage,
+                strLabel,
+                iUserrating,
+                lastScraped,
+                strReleaseType)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (args))
+
+    def update_album(self, *args):
+        self.cursor.execute('''
+            UPDATE album
+            SET strAlbum = ?,
+                strMusicBrainzAlbumID = ?,
+                strArtistDisp = ?,
+                strGenres = ?,
+                iYear = ?,
+                bCompilation = ?
+                strReview = ?,
+                strImage = ?,
+                strLabel = ?,
+                iUserrating = ?,
+                lastScraped = ?,
+                strReleaseType = ?,
+            WHERE idAlbum = ?
+        ''', (args))
+
+    def add_albumartist(self, artist_id, kodi_id, artistname):
+        self.cursor.execute('''
+            INSERT OR REPLACE INTO album_artist(
+                idArtist,
+                idAlbum,
+                strArtist)
+            VALUES (?, ?, ?)
+        ''', (artist_id, kodi_id, artistname))
+
+    def add_discography(self, artist_id, albumname, year):
+        self.cursor.execute('''
+            INSERT OR REPLACE INTO discography(
+                idArtist,
+                strAlbum,
+                strYear)
+            VALUES (?, ?, ?)
+        ''', (artist_id, albumname, year))
 
     def add_music_genres(self, kodiid, genres, mediatype):
         """
@@ -210,6 +293,102 @@ class KodiMusicDB(common.KodiDBBase):
                     VALUES (?, ?)
                 ''', (genreid, kodiid))
 
+    def add_song_id(self):
+        self.cursor.execute('SELECT COALESCE(MAX(idSong),0) FROM song')
+        return self.cursor.fetchone()[0] + 1
+
+    def add_song(self, *args):
+        self.cursor.execute('''
+            INSERT INTO song(
+                idSong,
+                idAlbum,
+                idPath,
+                strArtistDisp,
+                strGenres,
+                strTitle,
+                iTrack,
+                iDuration,
+                iYear,
+                strFileName,
+                strMusicBrainzTrackID,
+                iTimesPlayed,
+                lastplayed,
+                rating,
+                iStartOffset,
+                iEndOffset,
+                mood)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (args))
+
+    def add_song_17(self, *args):
+        self.cursor.execute('''
+            INSERT INTO song(
+                idSong,
+                idAlbum,
+                idPath,
+                strArtists,
+                strGenres,
+                strTitle,
+                iTrack,
+                iDuration,
+                iYear,
+                strFileName,
+                strMusicBrainzTrackID,
+                iTimesPlayed,
+                lastplayed,
+                rating,
+                iStartOffset,
+                iEndOffset,
+                mood)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (args))
+
+    def update_song(self, *args):
+        self.cursor.execute('''
+            UPDATE song
+            SET idAlbum = ?,
+                strArtistDisp = ?,
+                strGenres = ?,
+                strTitle = ?,
+                iTrack = ?,
+                iDuration = ?,
+                iYear = ?,
+                strFilename = ?,
+                iTimesPlayed = ?,
+                lastplayed = ?,
+                rating = ?,
+                comment = ?,
+                mood = ?
+            WHERE idSong = ?
+        ''', (args))
+
+    def update_song_17(self, *args):
+        self.cursor.execute('''
+            UPDATE song
+            SET idAlbum = ?,
+                strArtists = ?,
+                strGenres = ?,
+                strTitle = ?,
+                iTrack = ?,
+                iDuration = ?,
+                iYear = ?,
+                strFilename = ?,
+                iTimesPlayed = ?,
+                lastplayed = ?,
+                rating = ?,
+                comment = ?,
+                mood = ?
+            WHERE idSong = ?
+        ''', (args))
+
+    def path_id_from_song(self, kodi_id):
+        self.cursor.execute('SELECT idPath FROM song WHERE idSong = ? LIMIT 1',
+                            (kodi_id, ))
+        try:
+            return self.cursor.fetchone()[0]
+        except TypeError:
+            pass
+
     def add_artist(self, name, musicbrainz):
         """
         Adds a single artist's name to the db
@@ -245,3 +424,71 @@ class KodiMusicDB(common.KodiDBBase):
                 self.cursor.execute('UPDATE artist SET strArtist = ? WHERE idArtist = ?',
                                     (name, artistid,))
         return artistid
+
+    def update_artist(self, *args):
+        self.cursor.execute('''
+            UPDATE artist
+            SET strGenres = ?,
+                strBiography = ?,
+                strImage = ?,
+                strFanart = ?,
+                lastScraped = ?
+            WHERE idArtist = ?
+        ''', (args))
+
+    def remove_song(self, kodi_id):
+        self.cursor.execute('DELETE FROM song WHERE idSong = ?', (kodi_id, ))
+
+    def remove_path(self, path_id):
+        self.cursor.execute('DELETE FROM path WHERE idPath = ?', (path_id, ))
+
+    def add_song_artist(self, artist_id, song_id, artist_name):
+        self.cursor.execute('''
+            INSERT OR REPLACE INTO song_artist(
+                idArtist,
+                idSong,
+                idRole,
+                iOrder,
+                strArtist)
+            VALUES (?, ?, ?, ?, ?)
+        ''', (artist_id, song_id, 1, 0, artist_name))
+
+    def add_albuminfosong(self, song_id, album_id, track_no, track_title,
+                          runtime):
+        """
+        Kodi 17 only
+        """
+        self.cursor.execute('''
+            INSERT OR REPLACE INTO albuminfosong(
+                idAlbumInfoSong,
+                idAlbumInfo,
+                iTrack,
+                strTitle,
+                iDuration)
+            VALUES (?, ?, ?, ?, ?)
+        ''', (song_id, album_id, track_no, track_title, runtime))
+
+    def remove_albuminfosong(self, kodi_id):
+        """
+        Kodi 17 only
+        """
+        self.cursor.execute('DELETE FROM albuminfosong WHERE idAlbumInfoSong = ?',
+                            (kodi_id, ))
+
+    def remove_album(self, kodi_id):
+        if v.KODIVERSION < 18:
+            self.cursor.execute('DELETE FROM albuminfosong WHERE idAlbumInfo = ?',
+                                (kodi_id, ))
+        self.cursor.execute('DELETE FROM album_artist WHERE idAlbum = ?',
+                            (kodi_id, ))
+        self.cursor.execute('DELETE FROM album WHERE idAlbum = ?', (kodi_id, ))
+
+    def remove_artist(self, kodi_id):
+        self.cursor.execute('DELETE FROM album_artist WHERE idArtist = ?',
+                            (kodi_id, ))
+        self.cursor.execute('DELETE FROM artist WHERE idArtist = ?',
+                            (kodi_id, ))
+        self.cursor.execute('DELETE FROM song_artist WHERE idArtist = ?',
+                            (kodi_id, ))
+        self.cursor.execute('DELETE FROM discography WHERE idArtist = ?',
+                            (kodi_id, ))
