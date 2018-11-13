@@ -46,19 +46,6 @@ class Sync(backgroundthread.KillableThread):
     def isSuspended(self):
         return state.SUSPEND_LIBRARY_THREAD
 
-    def suspend_item_sync(self):
-        """
-        Returns True if we should not sync new items or artwork to Kodi or even
-        abort a sync currently running.
-
-        Returns False otherwise.
-        """
-        if self.isSuspended() or self.isCanceled():
-            return True
-        elif state.SUSPEND_SYNC:
-            return True
-        return False
-
     def show_kodi_note(self, message, icon="plex", force=False):
         """
         Shows a Kodi popup, if user selected to do so. Pass message in unicode
@@ -95,7 +82,7 @@ class Sync(backgroundthread.KillableThread):
             if self.sync_successful:
                 # Full library sync finished
                 self.show_kodi_note(utils.lang(39407))
-            elif not self.suspend_item_sync():
+            elif not self.isSuspended() and not self.isCanceled():
                 # ERROR in library sync
                 self.show_kodi_note(utils.lang(39410), icon='error')
         elif state.RUN_LIB_SCAN == 'fanart':
