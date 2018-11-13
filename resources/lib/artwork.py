@@ -21,6 +21,7 @@ TIMEOUT = (35.1, 35.1)
 
 IMAGE_CACHING_SUSPENDS = [
     state.SUSPEND_LIBRARY_THREAD,
+    state.STOP_SYNC,
     state.DB_SCAN
 ]
 if not utils.settings('imageSyncDuringPlayback') == 'true':
