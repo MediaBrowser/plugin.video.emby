@@ -151,9 +151,9 @@ class Sync(backgroundthread.KillableThread):
             LOG.info('Still downloading fanart')
             return False
 
-    def on_fanart_download_finished(self):
+    def on_fanart_download_finished(self, successful):
         # FanartTV lookup completed
-        if state.SYNC_DIALOG:
+        if successful and state.SYNC_DIALOG:
             utils.dialog('notification',
                          heading='{plex}',
                          message=utils.lang(30019),
