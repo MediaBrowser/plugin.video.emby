@@ -31,7 +31,7 @@ class FanartThread(backgroundthread.KillableThread):
         return state.STOP_PKC
 
     def isSuspended(self):
-        return state.SUSPEND_LIBRARY_THREAD or state.STOP_SYNC
+        return state.SUSPEND_LIBRARY_THREAD or state.STOP_SYNC or state.DB_SCAN
 
     def run(self):
         try:
