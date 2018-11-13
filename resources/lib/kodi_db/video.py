@@ -24,7 +24,7 @@ class KodiVideoDB(common.KodiDBBase):
         """
         path_id = self.get_path('plugin://%s.movies/' % v.ADDON_ID)
         if path_id is None:
-            self.cursor.execute("select coalesce(max(idPath),0) from path")
+            self.cursor.execute("SELECT COALESCE(MAX(idPath),0) FROM path")
             path_id = self.cursor.fetchone()[0] + 1
             query = '''
                 INSERT INTO path(idPath,
@@ -44,7 +44,7 @@ class KodiVideoDB(common.KodiDBBase):
         # And TV shows
         path_id = self.get_path('plugin://%s.tvshows/' % v.ADDON_ID)
         if path_id is None:
-            self.cursor.execute("select coalesce(max(idPath),0) from path")
+            self.cursor.execute("SELECT COALESCE(MAX(idPath),0) FROM path")
             path_id = self.cursor.fetchone()[0] + 1
             query = '''
                 INSERT INTO path(idPath,
@@ -618,7 +618,7 @@ class KodiVideoDB(common.KodiDBBase):
         # Set the resume bookmark
         if resume_seconds:
             self.cursor.execute(
-                'select coalesce(max(idBookmark),0) from bookmark')
+                'SELECT COALESCE(MAX(idBookmark), 0) FROM bookmark')
             bookmark_id = self.cursor.fetchone()[0] + 1
             self.cursor.execute('''
             INSERT INTO bookmark(
@@ -649,7 +649,7 @@ class KodiVideoDB(common.KodiDBBase):
         try:
             tag_id = self.cursor.fetchone()[0]
         except TypeError:
-            self.cursor.execute("select coalesce(max(tag_id),0) from tag")
+            self.cursor.execute("SELECT COALESCE(MAX(tag_id), 0) FROM tag")
             tag_id = self.cursor.fetchone()[0] + 1
             self.cursor.execute('INSERT INTO tag(tag_id, name) VALUES(?, ?)',
                                 (tag_id, name))
@@ -682,7 +682,7 @@ class KodiVideoDB(common.KodiDBBase):
         try:
             setid = self.cursor.fetchone()[0]
         except TypeError:
-            self.cursor.execute("select coalesce(max(idSet),0) from sets")
+            self.cursor.execute("SELECT COALESCE(MAX(idSet), 0) FROM sets")
             setid = self.cursor.fetchone()[0] + 1
             self.cursor.execute('INSERT INTO sets(idSet, strSet) VALUES(?, ?)',
                                 (setid, set_name))
