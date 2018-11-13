@@ -134,10 +134,10 @@ class Music(object):
             return
         self.cursor.execute('SELECT * FROM track WHERE plex_id = ? LIMIT 1',
                             (plex_id, ))
-        return self.entry_to_song(self.cursor.fetchone())
+        return self.entry_to_track(self.cursor.fetchone())
 
     @staticmethod
-    def entry_to_song(entry):
+    def entry_to_track(entry):
         if not entry:
             return
         return {
@@ -216,7 +216,7 @@ class Music(object):
         """
         self.cursor.execute('SELECT * FROM track WHERE album_id = ?',
                             (plex_id, ))
-        return (self.entry_to_song(x) for x in self.cursor)
+        return (self.entry_to_track(x) for x in self.cursor)
 
     def song_by_artist(self, plex_id):
         """
@@ -225,7 +225,7 @@ class Music(object):
         """
         self.cursor.execute('SELECT * FROM track WHERE artist_id = ?',
                             (plex_id, ))
-        return (self.entry_to_song(x) for x in self.cursor)
+        return (self.entry_to_track(x) for x in self.cursor)
 
     def album_by_artist(self, plex_id):
         """
