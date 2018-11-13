@@ -27,7 +27,7 @@ PMS_SERVER = None
 SUSPEND_LIBRARY_THREAD = False
 # Set if user decided to cancel sync
 STOP_SYNC = False
-# Set e.g. during media playback if PKC should not do any syncs. Will NOT
+# Set during media playback if PKC should not do any syncs. Will NOT
 # suspend synching of playstate progress
 SUSPEND_SYNC = False
 # Could we access the paths?
