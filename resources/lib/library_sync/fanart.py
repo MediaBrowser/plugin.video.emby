@@ -44,17 +44,24 @@ class FanartThread(backgroundthread.KillableThread):
 
     def _run_internal(self):
         LOG.info('Starting FanartThread')
-        with PlexDB() as plexdb:
-            func = plexdb.every_plex_id if self.refresh else plexdb.missing_fanart
-            for typus in SUPPORTED_TYPES:
-                for plex_id in func(typus):
-                    if self.isCanceled():
-                        return
-                    if self.isSuspended():
-                        if self.isCanceled():
-                            return
-                        xbmc.sleep(1000)
-                    process_fanart(plex_id, typus, self.refresh)
+        while True:
+            with PlexDB() as plexdb:
+                func = plexdb.every_plex_id if self.refresh else plexdb.missing_fanart
+                for typus in SUPPORTED_TYPES:
+                    for plex_id in func(typus):
+                        if self.isCanceled() or self.isSuspended():
+                            break
+                        process_fanart(plex_id, typus, self.refresh)
+                else:
+                    # Done processing!
+                    break
+            # Need to have these outside our DB context to close the connection
+            if self.isCanceled():
+                return
+            if self.isSuspended():
+                if self.isCanceled():
+                    return
+                xbmc.sleep(1000)
         LOG.info('FanartThread finished')
         self.callback()
 
