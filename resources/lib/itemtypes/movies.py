@@ -5,7 +5,7 @@ from logging import getLogger
 
 from .common import ItemBase
 from ..plex_api import API
-from .. import state, variables as v, plex_functions as PF
+from .. import app, variables as v, plex_functions as PF
 
 LOG = getLogger('PLEX.movies')
 
@@ -50,8 +50,8 @@ class Movie(ItemBase):
         studios = api.music_studio_list()
 
         # GET THE FILE AND PATH #####
-        do_indirect = not state.DIRECT_PATHS
-        if state.DIRECT_PATHS:
+        do_indirect = not app.SYNC.direct_paths
+        if app.SYNC.direct_paths:
             # Direct paths is set the Kodi way
             playurl = api.file_path(force_first_media=True)
             if playurl is None:

@@ -2,22 +2,18 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
-from Queue import Queue
 
-from xbmc import executebuiltin, translatePath
+from xbmc import executebuiltin
 
 from . import utils
 from .utils import etree
 from . import path_ops
 from . import migration
 from .downloadutils import DownloadUtils as DU
-from . import userclient
-from . import clientinfo
 from . import plex_functions as PF
 from . import plex_tv
 from . import json_rpc as js
-from . import playqueue as PQ
-from . import state
+from . import app
 from . import variables as v
 
 ###############################################################################
@@ -28,96 +24,6 @@ LOG = getLogger('PLEX.initialsetup')
 
 if not path_ops.exists(v.EXTERNAL_SUBTITLE_TEMP_PATH):
     path_ops.makedirs(v.EXTERNAL_SUBTITLE_TEMP_PATH)
-
-
-WINDOW_PROPERTIES = (
-    "plex_online", "plex_serverStatus", "plex_shouldStop", "plex_dbScan",
-    "plex_customplayqueue", "plex_playbackProps",
-    "pms_token", "plex_token", "pms_server", "plex_machineIdentifier",
-    "plex_servername", "plex_authenticated", "PlexUserImage", "useDirectPaths",
-    "countError", "countUnauthorized", "plex_restricteduser",
-    "plex_allows_mediaDeletion", "plex_command", "plex_result",
-    "plex_force_transcode_pix"
-)
-
-
-def reload_pkc():
-    """
-    Will reload state.py entirely and then initiate some values from the Kodi
-    settings file
-    """
-    LOG.info('Start (re-)loading PKC settings')
-    # Reset state.py
-    reload(state)
-    # Reset window props
-    for prop in WINDOW_PROPERTIES:
-        utils.window(prop, clear=True)
-    # Clear video nodes properties
-    from .library_sync import videonodes
-    videonodes.VideoNodes().clearProperties()
-
-    # Initializing
-    state.VERIFY_SSL_CERT = utils.settings('sslverify') == 'true'
-    state.SSL_CERT_PATH = utils.settings('sslcert') \
-        if utils.settings('sslcert') != 'None' else None
-    state.FULL_SYNC_INTERVALL = int(utils.settings('fullSyncInterval')) * 60
-    state.SYNC_THREAD_NUMBER = int(utils.settings('syncThreadNumber'))
-    state.SYNC_DIALOG = utils.settings('dbSyncIndicator') == 'true'
-    state.ENABLE_MUSIC = utils.settings('enableMusic') == 'true'
-    state.BACKGROUND_SYNC_DISABLED = utils.settings(
-        'enableBackgroundSync') == 'false'
-    state.BACKGROUNDSYNC_SAFTYMARGIN = int(
-        utils.settings('backgroundsync_saftyMargin'))
-    state.REPLACE_SMB_PATH = utils.settings('replaceSMB') == 'true'
-    state.REMAP_PATH = utils.settings('remapSMB') == 'true'
-    state.KODI_PLEX_TIME_OFFSET = float(utils.settings('kodiplextimeoffset'))
-    state.FETCH_PMS_ITEM_NUMBER = utils.settings('fetch_pms_item_number')
-    state.FORCE_RELOAD_SKIN = \
-        utils.settings('forceReloadSkinOnPlaybackStop') == 'true'
-    # Init some Queues()
-    state.COMMAND_PIPELINE_QUEUE = Queue()
-    state.COMPANION_QUEUE = Queue(maxsize=100)
-    state.WEBSOCKET_QUEUE = Queue()
-    set_replace_paths()
-    set_webserver()
-    # To detect Kodi profile switches
-    utils.window('plex_kodiProfile',
-                 value=utils.try_decode(translatePath("special://profile")))
-    clientinfo.getDeviceId()
-    # Initialize the PKC playqueues
-    PQ.init_playqueues()
-    LOG.info('Done (re-)loading PKC settings')
-
-
-def set_replace_paths():
-    """
-    Sets our values for direct paths correctly (including using lower-case
-    protocols like smb:// and NOT SMB://)
-    """
-    for typus in v.REMAP_TYPE_FROM_PLEXTYPE.values():
-        for arg in ('Org', 'New'):
-            key = 'remapSMB%s%s' % (typus, arg)
-            value = utils.settings(key)
-            if '://' in value:
-                protocol = value.split('://', 1)[0]
-                value = value.replace(protocol, protocol.lower())
-            setattr(state, key, value)
-
-
-def set_webserver():
-    """
-    Set the Kodi webserver details - used to set the texture cache
-    """
-    if js.get_setting('services.webserver') in (None, False):
-        # Enable the webserver, it is disabled
-        js.set_setting('services.webserver', True)
-        # Set standard port and username
-        # set_setting('services.webserverport', 8080)
-        # set_setting('services.webserverusername', 'kodi')
-    # Webserver already enabled
-    state.WEBSERVER_PORT = js.get_setting('services.webserverport')
-    state.WEBSERVER_USERNAME = js.get_setting('services.webserverusername')
-    state.WEBSERVER_PASSWORD = js.get_setting('services.webserverpassword')
 
 
 def _write_pms_settings(url, token):
@@ -145,11 +51,8 @@ class InitialSetup(object):
     """
     def __init__(self):
         LOG.debug('Entering initialsetup class')
-        self.server = userclient.UserClient().get_server()
-        self.serverid = utils.settings('plex_machineIdentifier')
         # Get Plex credentials from settings file, if they exist
         plexdict = PF.GetPlexLoginFromSettings()
-        self.myplexlogin = plexdict['myplexlogin'] == 'true'
         self.plex_login = plexdict['plexLogin']
         self.plex_token = plexdict['plexToken']
         self.plexid = plexdict['plexid']
@@ -157,6 +60,48 @@ class InitialSetup(object):
         self.pms_token = utils.settings('accessToken')
         if self.plex_token:
             LOG.debug('Found a plex.tv token in the settings')
+
+    def enter_new_pms_address(self):
+        # "Enter your Plex Media Server's IP or URL. Examples are:"
+        utils.messageDialog(utils.lang(29999),
+                            '%s\n%s\n%s' % (utils.lang(39215),
+                                            '192.168.1.2',
+                                            'plex.myServer.org'))
+        address = utils.dialog('input', "Enter PMS IP or URL")
+        if address == '':
+            return False
+        port = utils.dialog('input', "Enter PMS port", '32400', type='{numeric}')
+        if port == '':
+            return False
+        url = '%s:%s' % (address, port)
+        # "Does your Plex Media Server support SSL connections?
+        # (https instead of http)"
+        https = utils.yesno_dialog(utils.lang(29999), utils.lang(39217))
+        if https:
+            url = 'https://%s' % url
+        else:
+            url = 'http://%s' % url
+        https = 'true' if https else 'false'
+        machine_identifier = PF.GetMachineIdentifier(url)
+        if machine_identifier is None:
+            # "Error contacting url
+            # Abort (Yes) or save address anyway (No)"
+            if utils.yesno_dialog(utils.lang(29999),
+                                  '%s %s. %s' % (utils.lang(39218),
+                                                 url,
+                                                 utils.lang(39219))):
+                return False
+            else:
+                utils.settings('plex_machineIdentifier', '')
+        else:
+            utils.settings('plex_machineIdentifier', machine_identifier)
+        LOG.info('Set new PMS to https %s, address %s, port %s, machineId %s',
+                 https, address, port, machine_identifier)
+        utils.settings('https', value=https)
+        utils.settings('ipaddress', value=address)
+        utils.settings('port', value=port)
+        # Chances are this is a local PMS, so disable SSL certificate check
+        utils.settings('sslverify', value='false')
 
     def plex_tv_sign_in(self):
         """
@@ -227,26 +172,26 @@ class InitialSetup(object):
         not set before
         """
         answer = True
-        chk = PF.check_connection(self.server, verifySSL=False)
+        chk = PF.check_connection(app.CONN.server, verifySSL=False)
         if chk is False:
-            LOG.warn('Could not reach PMS %s', self.server)
+            LOG.warn('Could not reach PMS %s', app.CONN.server)
             answer = False
-        if answer is True and not self.serverid:
+        if answer is True and not app.CONN.machine_identifier:
             LOG.info('No PMS machineIdentifier found for %s. Trying to '
-                     'get the PMS unique ID', self.server)
-            self.serverid = PF.GetMachineIdentifier(self.server)
-            if self.serverid is None:
+                     'get the PMS unique ID', app.CONN.server)
+            app.CONN.machine_identifier = PF.GetMachineIdentifier(app.CONN.server)
+            if app.CONN.machine_identifier is None:
                 LOG.warn('Could not retrieve machineIdentifier')
                 answer = False
             else:
-                utils.settings('plex_machineIdentifier', value=self.serverid)
+                utils.settings('plex_machineIdentifier', value=app.CONN.machine_identifier)
         elif answer is True:
-            temp_server_id = PF.GetMachineIdentifier(self.server)
-            if temp_server_id != self.serverid:
+            temp_server_id = PF.GetMachineIdentifier(app.CONN.server)
+            if temp_server_id != app.CONN.machine_identifier:
                 LOG.warn('The current PMS %s was expected to have a '
                          'unique machineIdentifier of %s. But we got '
                          '%s. Pick a new server to be sure',
-                         self.server, self.serverid, temp_server_id)
+                         app.CONN.server, app.CONN.machine_identifier, temp_server_id)
                 answer = False
         return answer
 
@@ -305,7 +250,7 @@ class InitialSetup(object):
         """
         server = None
         # If no server is set, let user choose one
-        if not self.server or not self.serverid:
+        if not app.CONN.server or not app.CONN.machine_identifier:
             showDialog = True
         if showDialog is True:
             server = self._user_pick_pms()
@@ -328,13 +273,13 @@ class InitialSetup(object):
             if https_updated is False:
                 serverlist = PF.discover_pms(self.plex_token)
                 for item in serverlist:
-                    if item.get('machineIdentifier') == self.serverid:
+                    if item.get('machineIdentifier') == app.CONN.machine_identifier:
                         server = item
                 if server is None:
                     name = utils.settings('plex_servername')
                     LOG.warn('The PMS you have used before with a unique '
                              'machineIdentifier of %s and name %s is '
-                             'offline', self.serverid, name)
+                             'offline', app.CONN.machine_identifier, name)
                     return
             chk = self._check_pms_connectivity(server)
             if chk == 504 and https_updated is False:
@@ -535,7 +480,8 @@ class InitialSetup(object):
         # Do we need to migrate stuff?
         migration.check_migration()
         # Reload the server IP cause we might've deleted it during migration
-        self.server = userclient.UserClient().get_server()
+        app.CONN.load()
+        app.CONN.server = app.CONN.server
 
         # Display a warning if Kodi puts ALL movies into the queue, basically
         # breaking playback reporting for PKC
@@ -556,19 +502,19 @@ class InitialSetup(object):
 
         # If a Plex server IP has already been set
         # return only if the right machine identifier is found
-        if self.server:
-            LOG.info("PMS is already set: %s. Checking now...", self.server)
+        if app.CONN.server:
+            LOG.info("PMS is already set: %s. Checking now...", app.CONN.server)
             if self.check_existing_pms():
                 LOG.info("Using PMS %s with machineIdentifier %s",
-                         self.server, self.serverid)
-                _write_pms_settings(self.server, self.pms_token)
+                         app.CONN.server, app.CONN.machine_identifier)
+                _write_pms_settings(app.CONN.server, self.pms_token)
                 if reboot is True:
                     utils.reboot_kodi()
                 return
 
         # If not already retrieved myplex info, optionally let user sign in
         # to plex.tv. This DOES get called on very first install run
-        if not self.plex_token and self.myplexlogin:
+        if not self.plex_token and app.ACCOUNT.myplexlogin:
             self.plex_tv_sign_in()
 
         server = self.pick_pms()

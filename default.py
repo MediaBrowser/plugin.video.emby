@@ -94,9 +94,6 @@ class Main():
         elif mode == 'togglePlexTV':
             entrypoint.toggle_plex_tv_sign_in()
 
-        elif mode == 'resetauth':
-            entrypoint.reset_authorization()
-
         elif mode == 'passwords':
             utils.passwords_xml()
 
@@ -111,14 +108,14 @@ class Main():
             else:
                 if mode == 'repair':
                     log.info('Requesting repair lib sync')
-                    utils.plex_command('RUN_LIB_SCAN', 'repair')
+                    utils.plex_command('repair-scan')
                 elif mode == 'manualsync':
                     log.info('Requesting full library scan')
-                    utils.plex_command('RUN_LIB_SCAN', 'full')
+                    utils.plex_command('full-scan')
 
         elif mode == 'texturecache':
             log.info('Requesting texture caching of all textures')
-            utils.plex_command('RUN_LIB_SCAN', 'textures')
+            utils.plex_command('textures-scan')
 
         elif mode == 'chooseServer':
             entrypoint.choose_pms_server()
@@ -128,7 +125,7 @@ class Main():
 
         elif mode == 'fanart':
             log.info('User requested fanarttv refresh')
-            utils.plex_command('RUN_LIB_SCAN', 'fanart')
+            utils.plex_command('fanart-scan')
 
         elif '/extrafanart' in path:
             plexpath = arguments[1:]
@@ -158,7 +155,7 @@ class Main():
         """
         request = '%s&handle=%s' % (argv[2], HANDLE)
         # Put the request into the 'queue'
-        utils.plex_command('PLAY', request)
+        utils.plex_command('PLAY-%s' % request)
         if HANDLE == -1:
             # Handle -1 received, not waiting for main thread
             return

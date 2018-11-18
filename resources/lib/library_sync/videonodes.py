@@ -4,7 +4,7 @@ from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
 
 from ..utils import etree
-from .. import utils, path_ops, variables as v, state
+from .. import utils, path_ops, variables as v, app
 
 ###############################################################################
 
@@ -44,7 +44,7 @@ class VideoNodes(object):
                  delete=False):
         # Plex: reassign mediatype due to Kodi inner workings
         # How many items do we get at most?
-        limit = state.FETCH_PMS_ITEM_NUMBER
+        limit = unicode(app.APP.fetch_pms_item_number)
         mediatypes = {
             'movie': 'movies',
             'show': 'tvshows',

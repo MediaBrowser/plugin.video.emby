@@ -7,7 +7,7 @@ from .video import KodiVideoDB
 from .music import KodiMusicDB
 from .texture import KodiTextureDB
 
-from .. import path_ops, utils, variables as v
+from .. import path_ops, utils, timing, variables as v
 
 LOG = getLogger('PLEX.kodi_db')
 
@@ -68,7 +68,7 @@ def setup_kodi_default_entries():
                     VALUES (?, ?, ?)
                 ''', (v.DB_MUSIC_VERSION[v.KODIVERSION],
                       0,
-                      utils.unix_date_to_kodi(utils.unix_timestamp())))
+                      timing.kodi_now()))
 
 
 def reset_cached_images():

@@ -16,7 +16,6 @@
 
 		<setting id="enforceUserLogin" label="30536" type="bool" default="false" />
 		<setting label="30517" type="action" action="RunPlugin(plugin://plugin.video.plexkodiconnect?mode=passwords)" option="close" /><!-- Network credentials -->
-		<setting label="30505" type="action" action="RunPlugin(plugin://plugin.video.plexkodiconnect?mode=resetauth)" option="close" /><!-- reset connection attempts -->
 		<setting id="accessToken" type="text" visible="false" default="" />
 	</category>
 

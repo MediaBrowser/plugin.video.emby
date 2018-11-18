@@ -5,8 +5,8 @@ from logging import getLogger
 import xbmc
 
 from .downloadutils import DownloadUtils as DU
-from . import library_sync
-from . import backgroundthread, utils, path_ops, artwork, variables as v, state
+from . import library_sync, timing
+from . import backgroundthread, utils, path_ops, artwork, variables as v, app
 from . import plex_db, kodi_db
 
 LOG = getLogger('PLEX.sync')
@@ -18,10 +18,10 @@ def set_library_scan_toggle(boolean=True):
     """
     if not boolean:
         # Deactivate
-        state.DB_SCAN = False
+        app.SYNC.db_scan = False
         utils.window('plex_dbScan', clear=True)
     else:
-        state.DB_SCAN = True
+        app.SYNC.db_scan = True
         utils.window('plex_dbScan', value="true")
 
 
@@ -40,11 +40,8 @@ class Sync(backgroundthread.KillableThread):
         # self.lock = backgroundthread.threading.Lock()
         super(Sync, self).__init__()
 
-    def isCanceled(self):
-        return state.STOP_PKC
-
     def isSuspended(self):
-        return state.SUSPEND_LIBRARY_THREAD
+        return self._suspended or app.SYNC.suspend_library_thread
 
     def show_kodi_note(self, message, icon="plex", force=False):
         """
@@ -54,7 +51,7 @@ class Sync(backgroundthread.KillableThread):
         icon:   "plex": shows Plex icon
                 "error": shows Kodi error icon
         """
-        if not force and state.SYNC_DIALOG is not True and self.force_dialog is not True:
+        if not force and app.SYNC.sync_dialog is not True and self.force_dialog is not True:
             return
         if icon == "plex":
             utils.dialog('notification',
@@ -70,14 +67,14 @@ class Sync(backgroundthread.KillableThread):
 
     def triage_lib_scans(self):
         """
-        Decides what to do if state.RUN_LIB_SCAN has been set. E.g. manually
+        Decides what to do if app.SYNC.run_lib_scan has been set. E.g. manually
         triggered full or repair syncs
         """
-        if state.RUN_LIB_SCAN in ("full", "repair"):
+        if app.SYNC.run_lib_scan in ("full", "repair"):
             set_library_scan_toggle()
             LOG.info('Full library scan requested, starting')
             self.start_library_sync(show_dialog=True,
-                                    repair=state.RUN_LIB_SCAN == 'repair',
+                                    repair=app.SYNC.run_lib_scan == 'repair',
                                     block=True)
             if self.sync_successful:
                 # Full library sync finished
@@ -85,7 +82,7 @@ class Sync(backgroundthread.KillableThread):
             elif not self.isSuspended() and not self.isCanceled():
                 # ERROR in library sync
                 self.show_kodi_note(utils.lang(39410), icon='error')
-        elif state.RUN_LIB_SCAN == 'fanart':
+        elif app.SYNC.run_lib_scan == 'fanart':
             # Only look for missing fanart (No) or refresh all fanart (Yes)
             from .windows import optionsdialog
             refresh = optionsdialog.show(utils.lang(29999),
@@ -99,7 +96,7 @@ class Sync(backgroundthread.KillableThread):
                              message=utils.lang(30015),
                              icon='{plex}',
                              sound=False)
-        elif state.RUN_LIB_SCAN == 'textures':
+        elif app.SYNC.run_lib_scan == 'textures':
             LOG.info("Caching of images requested")
             if not utils.yesno_dialog("Image Texture Cache", utils.lang(39250)):
                 return
@@ -113,7 +110,7 @@ class Sync(backgroundthread.KillableThread):
         Hit this after the full sync has finished
         """
         self.sync_successful = successful
-        self.last_full_sync = utils.unix_timestamp()
+        self.last_full_sync = timing.unix_timestamp()
         set_library_scan_toggle(boolean=False)
         if successful:
             self.show_kodi_note(utils.lang(39407))
@@ -129,7 +126,7 @@ class Sync(backgroundthread.KillableThread):
 
     def start_library_sync(self, show_dialog=None, repair=False, block=False):
         set_library_scan_toggle(boolean=True)
-        show_dialog = show_dialog if show_dialog is not None else state.SYNC_DIALOG
+        show_dialog = show_dialog if show_dialog is not None else app.SYNC.sync_dialog
         library_sync.start(show_dialog, repair, self.on_library_scan_finished)
         # if block:
         # self.lock.acquire()
@@ -153,7 +150,7 @@ class Sync(backgroundthread.KillableThread):
 
     def on_fanart_download_finished(self, successful):
         # FanartTV lookup completed
-        if successful and state.SYNC_DIALOG:
+        if successful and app.SYNC.sync_dialog:
             utils.dialog('notification',
                          heading='{plex}',
                          message=utils.lang(30019),
@@ -174,7 +171,7 @@ class Sync(backgroundthread.KillableThread):
         try:
             self._run_internal()
         except:
-            state.DB_SCAN = False
+            app.SYNC.db_scan = False
             utils.window('plex_dbScan', clear=True)
             utils.ERROR(txt='sync.py crashed', notify=True)
             raise
@@ -188,12 +185,12 @@ class Sync(backgroundthread.KillableThread):
         last_time_sync = 0
         one_day_in_seconds = 60 * 60 * 24
         # Link to Websocket queue
-        queue = state.WEBSOCKET_QUEUE
+        queue = app.APP.websocket_queue
 
         # Kodi Version supported by PKC?
         if (not path_ops.exists(v.DB_VIDEO_PATH) or
                 not path_ops.exists(v.DB_TEXTURE_PATH) or
-                (state.ENABLE_MUSIC and not path_ops.exists(v.DB_MUSIC_PATH))):
+                (app.SYNC.enable_music and not path_ops.exists(v.DB_MUSIC_PATH))):
             # Database does not exists
             LOG.error('The current Kodi version is incompatible')
             LOG.error('Current Kodi version: %s', utils.try_decode(
@@ -242,7 +239,7 @@ class Sync(backgroundthread.KillableThread):
                 self.force_dialog = True
                 # Initialize time offset Kodi - PMS
                 library_sync.sync_pms_time()
-                last_time_sync = utils.unix_timestamp()
+                last_time_sync = timing.unix_timestamp()
                 LOG.info('Initial start-up full sync starting')
                 xbmc.executebuiltin('InhibitIdleShutdown(true)')
                 # This call will block until scan is completed
@@ -268,9 +265,9 @@ class Sync(backgroundthread.KillableThread):
                 # First sync upon PKC restart. Skipped if very first sync upon
                 # PKC installation has been completed
                 LOG.info('Doing initial sync on Kodi startup')
-                if state.SUSPEND_SYNC:
+                if app.SYNC.suspend_sync:
                     LOG.warning('Forcing startup sync even if Kodi is playing')
-                    state.SUSPEND_SYNC = False
+                    app.SYNC.suspend_sync = False
                 self.start_library_sync(block=True)
                 if self.sync_successful:
                     initial_sync_done = True
@@ -285,27 +282,27 @@ class Sync(backgroundthread.KillableThread):
                     xbmc.sleep(1000)
 
             # Currently no db scan, so we could start a new scan
-            elif state.DB_SCAN is False:
-                # Full scan was requested from somewhere else, e.g. userclient
-                if state.RUN_LIB_SCAN is not None:
+            elif app.SYNC.db_scan is False:
+                # Full scan was requested from somewhere else
+                if app.SYNC.run_lib_scan is not None:
                     # Force-show dialogs since they are user-initiated
                     self.force_dialog = True
                     self.triage_lib_scans()
                     self.force_dialog = False
                     # Reset the flag
-                    state.RUN_LIB_SCAN = None
+                    app.SYNC.run_lib_scan = None
                     continue
 
                 # Standard syncs - don't force-show dialogs
-                now = utils.unix_timestamp()
-                if (now - self.last_full_sync > state.FULL_SYNC_INTERVALL):
+                now = timing.unix_timestamp()
+                if (now - self.last_full_sync > app.SYNC.full_sync_intervall):
                     LOG.info('Doing scheduled full library scan')
                     self.start_library_sync()
                 elif now - last_time_sync > one_day_in_seconds:
                     LOG.info('Starting daily time sync')
                     library_sync.sync_pms_time()
                     last_time_sync = now
-                elif not state.BACKGROUND_SYNC_DISABLED:
+                elif not app.SYNC.background_sync_disabled:
                     # Check back whether we should process something Only do
                     # this once a while (otherwise, potentially many screen
                     # refreshes lead to flickering)

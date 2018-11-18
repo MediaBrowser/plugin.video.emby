@@ -8,7 +8,7 @@ from __future__ import absolute_import, division, unicode_literals
 from json import loads, dumps
 from xbmc import executeJSONRPC
 
-from . import utils
+from . import timing
 
 
 class JsonRPC(object):
@@ -156,7 +156,7 @@ def seek_to(offset):
     for playerid in get_player_ids():
         JsonRPC("Player.Seek").execute(
             {"playerid": playerid,
-             "value": utils.millis_to_kodi_time(offset)})
+             "value": timing.millis_to_kodi_time(offset)})
 
 
 def smallforward():

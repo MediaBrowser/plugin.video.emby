@@ -20,8 +20,8 @@ from .plex_api import API
 from . import plex_functions as PF
 from . import json_rpc as js
 from . import variables as v
-# Be careful - your using state in another Python instance!
-from . import state
+# Be careful - your using app in another Python instance!
+from . import app
 
 ###############################################################################
 LOG = getLogger('PLEX.entrypoint')
@@ -34,34 +34,7 @@ def choose_pms_server():
     Lets user choose from list of PMS
     """
     LOG.info("Choosing PMS server requested, starting")
-
-    setup = initialsetup.InitialSetup()
-    server = setup.pick_pms(showDialog=True)
-    if server is None:
-        LOG.error('We did not connect to a new PMS, aborting')
-        utils.plex_command('SUSPEND_USER_CLIENT', 'False')
-        utils.plex_command('SUSPEND_LIBRARY_THREAD', 'False')
-        return
-
-    LOG.info("User chose server %s", server['name'])
-    setup.write_pms_to_settings(server)
-
-    if not _log_out():
-        return
-
-    # Wipe Kodi and Plex database as well as playlists and video nodes
-    utils.wipe_database()
-
-    # Log in again
-    _log_in()
-    LOG.info("Choosing new PMS complete")
-    # '<PMS> connected'
-    utils.dialog('notification',
-                 utils.lang(29999),
-                 '%s %s' % (server['name'], utils.lang(39220)),
-                 icon='{plex}',
-                 time=3000,
-                 sound=False)
+    utils.plex_command('choose_pms_server')
 
 
 def toggle_plex_tv_sign_in():
@@ -69,37 +42,8 @@ def toggle_plex_tv_sign_in():
     Signs out of Plex.tv if there was a token saved and thus deletes the token.
     Or signs in to plex.tv if the user was not logged in before.
     """
-    if utils.settings('plexToken'):
-        LOG.info('Reseting plex.tv credentials in settings')
-        utils.settings('plexLogin', value="")
-        utils.settings('plexToken', value="")
-        utils.settings('plexid', value="")
-        utils.settings('plexAvatar', value="")
-        utils.settings('plex_status', value=utils.lang(39226))
-
-        utils.window('plex_token', clear=True)
-        utils.plex_command('PLEX_TOKEN', '')
-        utils.plex_command('PLEX_USERNAME', '')
-    else:
-        LOG.info('Login to plex.tv')
-        initialsetup.InitialSetup().plex_tv_sign_in()
-    utils.dialog('notification',
-                 utils.lang(29999),
-                 utils.lang(39221),
-                 icon='{plex}',
-                 time=3000,
-                 sound=False)
-
-
-def reset_authorization():
-    """
-    User tried login and failed too many times. Reset # of logins
-    """
-    if utils.yesno_dialog(utils.lang(29999), utils.lang(39206)):
-        LOG.info("Reset login attempts.")
-        utils.plex_command('PMS_STATUS', 'Auth')
-    else:
-        executebuiltin('Addon.OpenSettings(plugin.video.plexkodiconnect)')
+    LOG.info('Toggle of Plex.tv sign-in requested')
+    utils.plex_command('toggle_plex_tv_sign_in')
 
 
 def directory_item(label, path, folder=True):
@@ -185,13 +129,7 @@ def switch_plex_user():
     # position = 0
     # utils.window('EmbyAdditionalUserImage.%s' % position, clear=True)
     LOG.info("Plex home user switch requested")
-    if not _log_out():
-        return
-    # First remove playlists of old user
-    utils.delete_playlists()
-    # Remove video nodes
-    utils.delete_nodes()
-    _log_in()
+    utils.plex_command('switch_plex_user')
 
 
 def create_listitem(item, append_show_title=False, append_sxxexx=False):
@@ -573,13 +511,13 @@ def on_deck_episodes(viewid, tagname, limit):
             return
         # We're using another python instance - need to load some vars
         if utils.settings('useDirectPaths') == '1':
-            state.DIRECT_PATHS = True
-            state.REPLACE_SMB_PATH = utils.settings('replaceSMB') == 'true'
-            state.REMAP_PATH = utils.settings('remapSMB') == 'true'
-            if state.REMAP_PATH:
+            app.SYNC.direct_paths = True
+            app.SYNC.replace_smb_path = utils.settings('replaceSMB') == 'true'
+            app.SYNC.remap_path = utils.settings('remapSMB') == 'true'
+            if app.SYNC.remap_path:
                 initialsetup.set_replace_paths()
             # Let's NOT check paths for widgets!
-            state.PATH_VERIFIED = True
+            app.SYNC.path_verified = True
         counter = 0
         for item in xml:
             api = API(item)
@@ -964,107 +902,5 @@ def create_new_pms():
     """
     Opens dialogs for the user the plug in the PMS details
     """
-    # "Enter your Plex Media Server's IP or URL. Examples are:"
-    utils.messageDialog(utils.lang(29999),
-                        '%s\n%s\n%s' % (utils.lang(39215),
-                                        '192.168.1.2',
-                                        'plex.myServer.org'))
-    address = utils.dialog('input', "Enter PMS IP or URL")
-    if address == '':
-        return
-    port = utils.dialog('input', "Enter PMS port", '32400', type='{numeric}')
-    if port == '':
-        return
-    url = '%s:%s' % (address, port)
-    # "Does your Plex Media Server support SSL connections?
-    # (https instead of http)"
-    https = utils.yesno_dialog(utils.lang(29999), utils.lang(39217))
-    if https:
-        url = 'https://%s' % url
-    else:
-        url = 'http://%s' % url
-    https = 'true' if https else 'false'
-    machine_identifier = PF.GetMachineIdentifier(url)
-    if machine_identifier is None:
-        # "Error contacting url
-        # Abort (Yes) or save address anyway (No)"
-        if utils.yesno_dialog(utils.lang(29999),
-                              '%s %s. %s' % (utils.lang(39218),
-                                             url,
-                                             utils.lang(39219))):
-            return
-        else:
-            utils.settings('plex_machineIdentifier', '')
-    else:
-        utils.settings('plex_machineIdentifier', machine_identifier)
-    LOG.info('Set new PMS to https %s, address %s, port %s, machineId %s',
-             https, address, port, machine_identifier)
-    utils.settings('https', value=https)
-    utils.settings('ipaddress', value=address)
-    utils.settings('port', value=port)
-    # Chances are this is a local PMS, so disable SSL certificate check
-    utils.settings('sslverify', value='false')
-
-    # Sign out to trigger new login
-    if _log_out():
-        # Only login again if logout was successful
-        _log_in()
-
-
-def _log_in():
-    """
-    Resets (clears) window properties to enable (re-)login
-
-    SUSPEND_LIBRARY_THREAD is set to False in service.py if user was signed
-    out!
-    """
-    utils.plex_command('RUN_LIB_SCAN', 'full')
-    # Restart user client
-    utils.plex_command('SUSPEND_USER_CLIENT', 'False')
-
-
-def _log_out():
-    """
-    Finishes lib scans, logs out user.
-
-    Returns True if successfully signed out, False otherwise
-    """
-    # Resetting, please wait
-    utils.dialog('notification',
-                 utils.lang(29999),
-                 utils.lang(39207),
-                 icon='{plex}',
-                 time=3000,
-                 sound=False)
-    # Pause library sync thread
-    utils.plex_command('SUSPEND_LIBRARY_THREAD', 'True')
-    # Wait max for 10 seconds for all lib scans to shutdown
-    counter = 0
-    while utils.window('plex_dbScan') == 'true':
-        if counter > 200:
-            # Failed to reset PMS and plex.tv connects. Try to restart Kodi.
-            utils.messageDialog(utils.lang(29999), utils.lang(39208))
-            # Resuming threads, just in case
-            utils.plex_command('SUSPEND_LIBRARY_THREAD', 'False')
-            LOG.error("Could not stop library sync, aborting")
-            return False
-        counter += 1
-        sleep(50)
-    LOG.debug("Successfully stopped library sync")
-
-    counter = 0
-    # Log out currently signed in user:
-    utils.window('plex_serverStatus', value='401')
-    utils.plex_command('PMS_STATUS', '401')
-    # Above method needs to have run its course! Hence wait
-    while utils.window('plex_serverStatus') == "401":
-        if counter > 100:
-            # 'Failed to reset PKC. Try to restart Kodi.'
-            utils.messageDialog(utils.lang(29999), utils.lang(39208))
-            LOG.error("Could not sign out user, aborting")
-            return False
-        counter += 1
-        sleep(50)
-    # Suspend the user client during procedure
-    utils.plex_command('SUSPEND_USER_CLIENT', 'True')
-    return True
+    LOG.info('Request to manually enter new PMS address')
+    utils.plex_command('enter_new_pms_address')

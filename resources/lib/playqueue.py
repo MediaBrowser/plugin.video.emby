@@ -5,16 +5,11 @@ Monitors the Kodi playqueue and adjusts the Plex playqueue accordingly
 """
 from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
-from threading import Thread
 import xbmc
 
-from . import utils
-from . import playlist_func as PL
-from . import plex_functions as PF
 from .plex_api import API
-from . import json_rpc as js
-from . import variables as v
-from . import state
+from . import playlist_func as PL, plex_functions as PF
+from . import backgroundthread, utils, json_rpc as js, app, variables as v
 
 ###############################################################################
 LOG = getLogger('PLEX.playqueue')
@@ -35,7 +30,7 @@ def init_playqueues():
         LOG.debug('Playqueues have already been initialized')
         return
     # Initialize Kodi playqueues
-    with state.LOCK_PLAYQUEUES:
+    with app.APP.lock_playqueues:
         for i in (0, 1, 2):
             # Just in case the Kodi response is not sorted correctly
             for queue in js.get_playlists():
@@ -96,13 +91,18 @@ def init_playqueue_from_plex_children(plex_id, transient_token=None):
     return playqueue
 
 
-@utils.thread_methods(add_suspends=['PMS_STATUS'])
-class PlayqueueMonitor(Thread):
+class PlayqueueMonitor(backgroundthread.KillableThread):
     """
     Unfortunately, Kodi does not tell if items within a Kodi playqueue
     (playlist) are swapped. This is what this monitor is for. Don't replace
     this mechanism till Kodi's implementation of playlists has improved
     """
+    def isSuspended(self):
+        """
+        Returns True if the thread is suspended
+        """
+        return self._suspended or app.CONN.pms_status
+
     def _compare_playqueues(self, playqueue, new):
         """
         Used to poll the Kodi playqueue and update the Plex playqueue if needed
@@ -117,7 +117,7 @@ class PlayqueueMonitor(Thread):
                 # Ignore new media added by other addons
                 continue
             for j, old_item in enumerate(old):
-                if self.stopped():
+                if self.isCanceled():
                     # Chances are that we got an empty Kodi playlist due to
                     # Kodi exit
                     return
@@ -178,7 +178,7 @@ class PlayqueueMonitor(Thread):
                     for j in range(i, len(index)):
                         index[j] += 1
         for i in reversed(index):
-            if self.stopped():
+            if self.isCanceled():
                 # Chances are that we got an empty Kodi playlist due to
                 # Kodi exit
                 return
@@ -192,20 +192,18 @@ class PlayqueueMonitor(Thread):
         LOG.debug('Done comparing playqueues')
 
     def run(self):
-        stopped = self.stopped
-        suspended = self.suspended
         LOG.info("----===## Starting PlayqueueMonitor ##===----")
-        while not stopped():
-            while suspended():
-                if stopped():
+        while not self.isCanceled():
+            while self.isSuspended():
+                if self.isCanceled():
                     break
                 xbmc.sleep(1000)
-            with state.LOCK_PLAYQUEUES:
+            with app.APP.lock_playqueues:
                 for playqueue in PLAYQUEUES:
                     kodi_pl = js.playlist_get_items(playqueue.playlistid)
                     if playqueue.old_kodi_pl != kodi_pl:
-                        if playqueue.id is None and (not state.DIRECT_PATHS or
-                                                     state.CONTEXT_MENU_PLAY):
+                        if playqueue.id is None and (not app.PLAYSTATE.direct_paths or
+                                                     app.PLAYSTATE.context_menu_play):
                             # Only initialize if directly fired up using direct
                             # paths. Otherwise let default.py do its magic
                             LOG.debug('Not yet initiating playback')

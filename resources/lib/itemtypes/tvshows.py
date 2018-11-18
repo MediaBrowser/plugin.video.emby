@@ -5,7 +5,7 @@ from logging import getLogger
 
 from .common import ItemBase, process_path
 from ..plex_api import API
-from .. import plex_functions as PF, state, variables as v
+from .. import plex_functions as PF, app, variables as v
 
 LOG = getLogger('PLEX.tvshows')
 
@@ -135,7 +135,7 @@ class Show(ItemBase, TvShowMixin):
         studio = api.list_to_string(studios)
 
         # GET THE FILE AND PATH #####
-        if state.DIRECT_PATHS:
+        if app.SYNC.direct_paths:
             # Direct paths is set the Kodi way
             playurl = api.validate_playurl(api.tv_show_path(),
                                            api.plex_type(),
@@ -378,8 +378,8 @@ class Episode(ItemBase, TvShowMixin):
         parent_id = season['kodi_id']
 
         # GET THE FILE AND PATH #####
-        do_indirect = not state.DIRECT_PATHS
-        if state.DIRECT_PATHS:
+        do_indirect = not app.SYNC.direct_paths
+        if app.SYNC.direct_paths:
             playurl = api.file_path(force_first_media=True)
             if playurl is None:
                 do_indirect = True
@@ -513,7 +513,7 @@ class Episode(ItemBase, TvShowMixin):
                                userdata['PlayCount'],
                                userdata['LastPlayedDate'],
                                None)  # Do send None, we check here
-        if not state.DIRECT_PATHS:
+        if not app.SYNC.direct_paths:
             # need to set a SECOND file entry for a path without plex show id
             filename = api.file_name(force_first_media=True)
             path = 'plugin://%s.tvshows/' % v.ADDON_ID

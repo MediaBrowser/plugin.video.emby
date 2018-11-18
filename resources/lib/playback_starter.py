@@ -10,7 +10,7 @@ from . import playback
 from . import context_entry
 from . import json_rpc as js
 from . import pickler
-from . import state
+from . import app
 
 ###############################################################################
 
@@ -61,7 +61,7 @@ class PlaybackStarter(Thread):
                                       kodi_type=params.get('kodi_type'))
 
     def run(self):
-        queue = state.COMMAND_PIPELINE_QUEUE
+        queue = app.APP.command_pipeline_queue
         LOG.info("----===## Starting PlaybackStarter ##===----")
         while True:
             item = queue.get()

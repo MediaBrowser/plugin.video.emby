@@ -8,7 +8,7 @@ import xbmcgui
 from .plex_api import API
 from .plex_db import PlexDB
 from . import context, plex_functions as PF, playqueue as PQ
-from . import utils, variables as v, state
+from . import utils, variables as v, app
 
 ###############################################################################
 
@@ -84,7 +84,7 @@ class ContextMenu(object):
         # if user uses direct paths, give option to initiate playback via PMS
         if self.api and self.api.extras():
             options.append(OPTIONS['Extras'])
-        if state.DIRECT_PATHS and self.kodi_type in v.KODI_VIDEOTYPES:
+        if app.PLAYSTATE.direct_paths and self.kodi_type in v.KODI_VIDEOTYPES:
             options.append(OPTIONS['PMS_Play'])
         if self.kodi_type in v.KODI_VIDEOTYPES:
             options.append(OPTIONS['Transcode'])
@@ -112,7 +112,7 @@ class ContextMenu(object):
         """
         selected = self._selected_option
         if selected == OPTIONS['Transcode']:
-            state.FORCE_TRANSCODE = True
+            app.PLAYSTATE.force_transcode = True
             self._PMS_play()
         elif selected == OPTIONS['PMS_Play']:
             self._PMS_play()
@@ -146,7 +146,7 @@ class ContextMenu(object):
         playqueue = PQ.get_playqueue_from_type(
             v.KODI_PLAYLIST_TYPE_FROM_KODI_TYPE[self.kodi_type])
         playqueue.clear()
-        state.CONTEXT_MENU_PLAY = True
+        app.PLAYSTATE.context_menu_play = True
         handle = self.api.path(force_first_media=False, force_addon=True)
         xbmc.executebuiltin('RunPlugin(%s)' % handle)
 

@@ -7,7 +7,7 @@ import xbmc
 from .get_metadata import GetMetadataTask, reset_collections
 from .process_metadata import InitNewSection, UpdateLastSync, ProcessMetadata
 from . import common, sections
-from .. import utils, backgroundthread, variables as v, state
+from .. import utils, timing, backgroundthread, variables as v, app
 from .. import plex_functions as PF, itemtypes
 from ..plex_db import PlexDB
 
@@ -97,7 +97,7 @@ class FullSync(common.libsync_mixin):
             if self.isCanceled():
                 return False
             if not self.install_sync_done:
-                state.PATH_VERIFIED = False
+                app.SYNC.path_verified = False
             try:
                 # Sync new, updated and deleted items
                 iterator = PF.SectionItems(section['section_id'],
@@ -157,7 +157,7 @@ class FullSync(common.libsync_mixin):
             (v.PLEX_TYPE_SEASON, v.PLEX_TYPE_SHOW, itemtypes.Season, False),
             (v.PLEX_TYPE_EPISODE, v.PLEX_TYPE_SHOW, itemtypes.Episode, False)
         ]
-        if state.ENABLE_MUSIC:
+        if app.SYNC.enable_music:
             kinds.extend([
                 (v.PLEX_TYPE_ARTIST, v.PLEX_TYPE_ARTIST, itemtypes.Artist, False),
                 (v.PLEX_TYPE_ALBUM, v.PLEX_TYPE_ARTIST, itemtypes.Album, True),
@@ -181,7 +181,7 @@ class FullSync(common.libsync_mixin):
         if self.isCanceled():
             return
         successful = False
-        self.current_sync = utils.unix_timestamp()
+        self.current_sync = timing.unix_timestamp()
         # Delete playlist and video node files from Kodi
         utils.delete_playlists()
         utils.delete_nodes()

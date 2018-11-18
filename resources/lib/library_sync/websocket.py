@@ -10,7 +10,7 @@ from ..plex_api import API
 from ..plex_db import PlexDB
 from .. import kodi_db
 from .. import backgroundthread, playlists, plex_functions as PF, itemtypes
-from .. import artwork, utils, variables as v, state
+from .. import artwork, utils, timing, variables as v, app
 
 LOG = getLogger('PLEX.sync.websocket')
 
@@ -22,7 +22,7 @@ PLAYSTATE_SESSIONS = {}
 
 
 def interrupt_processing():
-    return state.STOP_PKC or state.SUSPEND_LIBRARY_THREAD or state.STOP_SYNC
+    return app.APP.stop_pkc or app.SYNC.suspend_library_thread or app.SYNC.stop_sync
 
 
 def multi_delete(input_list, delete_list):
@@ -75,7 +75,7 @@ def process_websocket_messages():
         9: 'deleted'
     """
     global WEBSOCKET_MESSAGES
-    now = utils.unix_timestamp()
+    now = timing.unix_timestamp()
     update_kodi_video_library, update_kodi_music_library = False, False
     delete_list = []
     for i, message in enumerate(WEBSOCKET_MESSAGES):
@@ -84,7 +84,7 @@ def process_websocket_messages():
             break
         if message['state'] == 9:
             successful, video, music = process_delete_message(message)
-        elif now - message['timestamp'] < state.BACKGROUNDSYNC_SAFTYMARGIN:
+        elif now - message['timestamp'] < app.SYNC.backgroundsync_saftymargin:
             # We haven't waited long enough for the PMS to finish processing the
             # item. Do it later (excepting deletions)
             continue
@@ -127,7 +127,7 @@ def process_new_item_message(message):
         LOG.error('Could not download metadata for %s', message['plex_id'])
         return False, False, False
     LOG.debug("Processing new/updated PMS item: %s", message['plex_id'])
-    with itemtypes.ITEMTYPE_FROM_PLEXTYPE[plex_type](utils.unix_timestamp()) as typus:
+    with itemtypes.ITEMTYPE_FROM_PLEXTYPE[plex_type](timing.unix_timestamp()) as typus:
         typus.add_update(xml[0],
                          section_name=xml.get('librarySectionTitle'),
                          section_id=xml.get('librarySectionID'))
@@ -169,7 +169,7 @@ def store_timeline_message(data):
                 'state': status,
                 'plex_type': typus,
                 'plex_id': utils.cast(int, message['itemID']),
-                'timestamp': utils.unix_timestamp(),
+                'timestamp': timing.unix_timestamp(),
                 'attempt': 0
             })
         elif typus in (v.PLEX_TYPE_MOVIE,
@@ -186,7 +186,7 @@ def store_timeline_message(data):
                     'state': status,
                     'plex_type': typus,
                     'plex_id': plex_id,
-                    'timestamp': utils.unix_timestamp(),
+                    'timestamp': timing.unix_timestamp(),
                     'attempt': 0
                 })
 
@@ -227,7 +227,7 @@ def store_activity_message(data):
                 'state': None,  # Don't need a state here
                 'plex_type': typus['plex_type'],
                 'plex_id': plex_id,
-                'timestamp': utils.unix_timestamp(),
+                'timestamp': timing.unix_timestamp(),
                 'attempt': 0
             })
 
@@ -246,7 +246,7 @@ def process_playing(data):
         plex_id = utils.cast(int, message['ratingKey'])
         skip = False
         for pid in (0, 1, 2):
-            if plex_id == state.PLAYER_STATES[pid]['plex_id']:
+            if plex_id == app.PLAYSTATE.player_states[pid]['plex_id']:
                 # Kodi is playing this message - no need to set the playstate
                 skip = True
         if skip:
@@ -265,7 +265,7 @@ def process_playing(data):
                 PLAYSTATE_SESSIONS[session_key] = {}
             else:
                 # PMS is ours - get all current sessions
-                PLAYSTATE_SESSIONS.update(PF.GetPMSStatus(state.PLEX_TOKEN))
+                PLAYSTATE_SESSIONS.update(PF.GetPMSStatus(app.CONN.plex_token))
                 LOG.debug('Updated current sessions. They are: %s',
                           PLAYSTATE_SESSIONS)
                 if session_key not in PLAYSTATE_SESSIONS:
@@ -281,18 +281,18 @@ def process_playing(data):
             # Identify the user - same one as signed on with PKC? Skip
             # update if neither session's username nor userid match
             # (Owner sometime's returns id '1', not always)
-            if not state.PLEX_TOKEN and session['userId'] == '1':
+            if not app.CONN.plex_token and session['userId'] == '1':
                 # PKC not signed in to plex.tv. Plus owner of PMS is
                 # playing (the '1').
                 # Hence must be us (since several users require plex.tv
                 # token for PKC)
                 pass
-            elif not (session['userId'] == state.PLEX_USER_ID or
-                      session['username'] == state.PLEX_USERNAME):
+            elif not (session['userId'] == app.CONN.plex_user_id or
+                      session['username'] == app.CONN.plex_username):
                 LOG.debug('Our username %s, userid %s did not match '
                           'the session username %s with userid %s',
-                          state.PLEX_USERNAME,
-                          state.PLEX_USER_ID,
+                          app.CONN.plex_username,
+                          app.CONN.plex_user_id,
                           session['username'],
                           session['userId'])
                 continue
@@ -334,7 +334,7 @@ def process_playing(data):
             mark_played = False
         LOG.debug('Update playstate for user %s for %s with plex id %s to '
                   'viewCount %s, resume %s, mark_played %s',
-                  state.PLEX_USERNAME, session['kodi_type'], plex_id,
+                  app.CONN.plex_username, session['kodi_type'], plex_id,
                   session['viewCount'], resume, mark_played)
         func = itemtypes.ITEMTYPE_FROM_KODITYPE[session['kodi_type']]
         with func(None) as fkt:
@@ -343,7 +343,7 @@ def process_playing(data):
                                  resume,
                                  session['duration'],
                                  session['file_id'],
-                                 utils.unix_timestamp(),
+                                 timing.unix_timestamp(),
                                  v.PLEX_TYPE_FROM_KODI_TYPE[session['kodi_type']])
 
 

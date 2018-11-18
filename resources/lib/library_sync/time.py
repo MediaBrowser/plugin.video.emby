@@ -5,7 +5,7 @@ from logging import getLogger
 
 import xbmc
 
-from .. import plex_functions as PF, utils, variables as v, state
+from .. import plex_functions as PF, utils, timing, variables as v
 
 LOG = getLogger('PLEX.sync.time')
 
@@ -84,7 +84,7 @@ def sync_pms_time():
                 LOG.debug('No timestamp; using 0')
     timestamp = utils.cast(int, timestamp)
     # Set the timer
-    koditime = utils.unix_timestamp()
+    koditime = timing.unix_timestamp()
     # Toggle watched state
     PF.scrobble(plex_id, 'watched')
     # Let the PMS process this first!
@@ -100,9 +100,9 @@ def sync_pms_time():
         return False
 
     # Calculate time offset Kodi-PMS
-    state.KODI_PLEX_TIME_OFFSET = float(koditime) - float(plextime)
+    timing.KODI_PLEX_TIME_OFFSET = float(koditime) - float(plextime)
     utils.settings('kodiplextimeoffset',
-                   value=str(state.KODI_PLEX_TIME_OFFSET))
+                   value=str(timing.KODI_PLEX_TIME_OFFSET))
     LOG.info("Time offset Koditime - Plextime in seconds: %s",
-             state.KODI_PLEX_TIME_OFFSET)
+             timing.KODI_PLEX_TIME_OFFSET)
     return True

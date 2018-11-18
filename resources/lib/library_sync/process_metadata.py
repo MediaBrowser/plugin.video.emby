@@ -102,8 +102,8 @@ class ProcessMetadata(backgroundthread.KillableThread, common.libsync_mixin):
         while not self.isCanceled():
             if section is None:
                 break
-            LOG.debug('Start processing section %s: %s',
-                      section.plex_type, section.name)
+            LOG.debug('Start processing section %s (%ss)',
+                      section.name, section.plex_type)
             self.current = 1
             self.processed = 0
             self.total = section.total

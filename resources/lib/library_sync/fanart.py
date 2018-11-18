@@ -8,7 +8,7 @@ from ..plex_api import API
 from ..plex_db import PlexDB
 from ..kodi_db import KodiVideoDB
 from .. import backgroundthread, utils
-from .. import itemtypes, plex_functions as PF, variables as v, state
+from .. import itemtypes, plex_functions as PF, variables as v, app
 
 
 LOG = getLogger('PLEX.sync.fanart')
@@ -27,14 +27,11 @@ class FanartThread(backgroundthread.KillableThread):
         self.refresh = refresh
         super(FanartThread, self).__init__()
 
-    def isCanceled(self):
-        return state.STOP_PKC
-
     def isSuspended(self):
-        return (state.SUSPEND_LIBRARY_THREAD or
-                state.STOP_SYNC or
-                state.DB_SCAN or
-                state.SUSPEND_SYNC)
+        return (app.SYNC.suspend_library_thread or
+                app.SYNC.stop_sync or
+                app.SYNC.db_scan or
+                app.SYNC.suspend_sync)
 
     def run(self):
         try:
@@ -80,8 +77,6 @@ class FanartTask(backgroundthread.Task, common.libsync_mixin):
         self.refresh = refresh
 
     def run(self):
-        if self.isCanceled():
-            return
         process_fanart(self.plex_id, self.plex_type, self.refresh)
 
 

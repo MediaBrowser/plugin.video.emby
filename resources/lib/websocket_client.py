@@ -2,11 +2,10 @@
 # -*- coding: utf-8 -*-
 from logging import getLogger
 from json import loads
-from threading import Thread
 from ssl import CERT_NONE
 from xbmc import sleep
 
-from . import websocket, utils, companion, state, variables as v
+from . import backgroundthread, websocket, utils, companion, app, variables as v
 
 ###############################################################################
 
@@ -15,7 +14,7 @@ LOG = getLogger('PLEX.websocket_client')
 ###############################################################################
 
 
-class WebSocket(Thread):
+class WebSocket(backgroundthread.KillableThread):
     opcode_data = (websocket.ABNF.OPCODE_TEXT, websocket.ABNF.OPCODE_BINARY)
 
     def __init__(self):
@@ -48,18 +47,15 @@ class WebSocket(Thread):
 
     def run(self):
         LOG.info("----===## Starting %s ##===----", self.__class__.__name__)
-
         counter = 0
-        stopped = self.stopped
-        suspended = self.suspended
-        while not stopped():
+        while not self.isCanceled():
             # In the event the server goes offline
-            while suspended():
+            while self.isSuspended():
                 # Set in service.py
                 if self.ws is not None:
                     self.ws.close()
                     self.ws = None
-                if stopped():
+                if self.isCanceled():
                     # Abort was requested while waiting. We should exit
                     LOG.info("##===---- %s Stopped ----===##",
                              self.__class__.__name__)
@@ -133,14 +129,20 @@ class WebSocket(Thread):
         LOG.info("##===---- %s Stopped ----===##", self.__class__.__name__)
 
 
-@utils.thread_methods(add_suspends=['SUSPEND_LIBRARY_THREAD',
-                                    'BACKGROUND_SYNC_DISABLED'])
 class PMS_Websocket(WebSocket):
     """
     Websocket connection with the PMS for Plex Companion
     """
+    def isSuspended(self):
+        """
+        Returns True if the thread is suspended
+        """
+        return (self._suspended or
+                app.SYNC.suspend_library_thread or
+                app.SYNC.background_sync_disabled)
+
     def getUri(self):
-        server = utils.window('pms_server')
+        server = app.CONN.server
         # Get the appropriate prefix for the websocket
         if server.startswith('https'):
             server = "wss%s" % server[5:]
@@ -148,8 +150,8 @@ class PMS_Websocket(WebSocket):
             server = "ws%s" % server[4:]
         uri = "%s/:/websockets/notifications" % server
         # Need to use plex.tv token, if any. NOT user token
-        if state.PLEX_TOKEN:
-            uri += '?X-Plex-Token=%s' % state.PLEX_TOKEN
+        if app.ACCOUNT.plex_token:
+            uri += '?X-Plex-Token=%s' % app.ACCOUNT.plex_token
         sslopt = {}
         if utils.settings('sslverify') == "false":
             sslopt["cert_reqs"] = CERT_NONE
@@ -185,30 +187,33 @@ class PMS_Websocket(WebSocket):
         # Drop everything we're not interested in
         if typus not in ('playing', 'timeline', 'activity'):
             return
-        elif typus == 'activity' and state.DB_SCAN is True:
+        elif typus == 'activity' and app.SYNC.db_scan is True:
             # Only add to processing if PKC is NOT doing a lib scan (and thus
             # possibly causing these reprocessing messages en mass)
             LOG.debug('%s: Dropping message as PKC is currently synching',
                       self.__class__.__name__)
         else:
             # Put PMS message on queue and let libsync take care of it
-            state.WEBSOCKET_QUEUE.put(message)
+            app.APP.websocket_queue.put(message)
 
 
 class Alexa_Websocket(WebSocket):
     """
     Websocket connection to talk to Amazon Alexa.
-
-    Can't use utils.thread_methods!
     """
-    thread_stopped = False
-    thread_suspended = False
+    def isSuspended(self):
+        """
+        Overwrite method since we need to check for plex token
+        """
+        return (self._suspended or
+                not app.ACCOUNT.plex_token or
+                app.ACCOUNT.restricted_user)
 
     def getUri(self):
         uri = ('wss://pubsub.plex.tv/sub/websockets/%s/%s?X-Plex-Token=%s'
-               % (state.PLEX_USER_ID,
+               % (app.ACCOUNT.plex_user_id,
                   v.PKC_MACHINE_IDENTIFIER,
-                  state.PLEX_TOKEN))
+                  app.ACCOUNT.plex_token))
         sslopt = {}
         LOG.debug("%s: Uri: %s, sslopt: %s",
                   self.__class__.__name__, uri, sslopt)
@@ -238,33 +243,3 @@ class Alexa_Websocket(WebSocket):
                       self.__class__.__name__)
             return
         companion.process_command(message.attrib['path'][1:], message.attrib)
-
-    # Path in utils.thread_methods
-    def stop(self):
-        self.thread_stopped = True
-
-    def suspend(self):
-        self.thread_suspended = True
-
-    def resume(self):
-        self.thread_suspended = False
-
-    def stopped(self):
-        if self.thread_stopped is True:
-            return True
-        if state.STOP_PKC:
-            return True
-        return False
-
-    # The culprit
-    def suspended(self):
-        """
-        Overwrite method since we need to check for plex token
-        """
-        if self.thread_suspended is True:
-            return True
-        if not state.PLEX_TOKEN:
-            return True
-        if state.RESTRICTED_USER:
-            return True
-        return False

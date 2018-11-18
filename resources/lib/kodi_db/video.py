@@ -5,7 +5,7 @@ from logging import getLogger
 from sqlite3 import IntegrityError
 
 from . import common
-from .. import path_ops, utils, variables as v, state
+from .. import path_ops, timing, variables as v, app
 
 LOG = getLogger('PLEX.kodi_db.video')
 
@@ -74,12 +74,11 @@ class KodiVideoDB(common.KodiDBBase):
         if pathid is None:
             self.cursor.execute("SELECT COALESCE(MAX(idPath),0) FROM path")
             pathid = self.cursor.fetchone()[0] + 1
-            datetime = utils.unix_date_to_kodi(utils.unix_timestamp())
             self.cursor.execute('''
                                 INSERT INTO path(idPath, strPath, dateAdded)
                                 VALUES (?, ?, ?)
                                 ''',
-                                (pathid, parentpath, datetime))
+                                (pathid, parentpath, timing.kodi_now()))
             if parentpath != path:
                 # In case we end up having media in the filesystem root, C:\
                 parent_id = self.parent_path_id(parentpath)
@@ -198,7 +197,7 @@ class KodiVideoDB(common.KodiDBBase):
         Passing plex_type = v.PLEX_TYPE_EPISODE deletes any secondary files for
         add-on paths
         """
-        if not state.DIRECT_PATHS and plex_type == v.PLEX_TYPE_EPISODE:
+        if not app.SYNC.direct_paths and plex_type == v.PLEX_TYPE_EPISODE:
             # Hack for the 2 entries for episodes for addon paths
             self.cursor.execute('SELECT strFilename FROM files WHERE idFile = ? LIMIT 1',
                                 (file_id, ))
@@ -598,7 +597,7 @@ class KodiVideoDB(common.KodiDBBase):
         Adds a resume marker for a video library item. Will even set 2,
         considering add-on path widget hacks.
         """
-        if not state.DIRECT_PATHS and plex_type == v.PLEX_TYPE_EPISODE:
+        if not app.SYNC.direct_paths and plex_type == v.PLEX_TYPE_EPISODE:
             # Need to make sure to set a SECOND bookmark entry for another,
             # second file_id that points to the path .tvshows instead of
             # .tvshows/<plex show id/!

@@ -7,7 +7,7 @@ from .common import ItemBase
 from ..plex_api import API
 from ..plex_db import PlexDB
 from ..kodi_db import KodiMusicDB
-from .. import plex_functions as PF, utils, state, variables as v
+from .. import plex_functions as PF, utils, timing, app, variables as v
 
 LOG = getLogger('PLEX.music')
 
@@ -165,12 +165,11 @@ class Artist(MusicMixin, ItemBase):
             # Kodi doesn't allow that. In case that happens we just merge the
             # artist entries.
             kodi_id = self.kodidb.add_artist(api.title(), musicBrainzId)
-            # Create the reference in plex table
         self.kodidb.update_artist(api.list_to_string(api.genre_list()),
                                   api.plot(),
                                   thumb,
                                   fanart,
-                                  utils.unix_date_to_kodi(self.last_sync),
+                                  timing.unix_date_to_kodi(self.last_sync),
                                   kodi_id)
         # Update artwork
         self.kodidb.modify_artwork(artworks,
@@ -256,7 +255,7 @@ class Album(MusicMixin, ItemBase):
                                          thumb,
                                          api.music_studio(),
                                          userdata['UserRating'],
-                                         utils.unix_date_to_kodi(self.last_sync),
+                                         timing.unix_date_to_kodi(self.last_sync),
                                          'album',
                                          kodi_id)
             else:
@@ -270,7 +269,7 @@ class Album(MusicMixin, ItemBase):
                                             thumb,
                                             api.music_studio(),
                                             userdata['UserRating'],
-                                            utils.unix_date_to_kodi(self.last_sync),
+                                            timing.unix_date_to_kodi(self.last_sync),
                                             'album',
                                             kodi_id)
         # OR ADD THE ALBUM #####
@@ -289,7 +288,7 @@ class Album(MusicMixin, ItemBase):
                                       thumb,
                                       api.music_studio(),
                                       userdata['UserRating'],
-                                      utils.unix_date_to_kodi(self.last_sync),
+                                      timing.unix_date_to_kodi(self.last_sync),
                                       'album')
             else:
                 self.kodidb.add_album_17(kodi_id,
@@ -303,7 +302,7 @@ class Album(MusicMixin, ItemBase):
                                          thumb,
                                          api.music_studio(),
                                          userdata['UserRating'],
-                                         utils.unix_date_to_kodi(self.last_sync),
+                                         timing.unix_date_to_kodi(self.last_sync),
                                          'album')
         self.kodidb.add_albumartist(artist_id, kodi_id, api.artist_name())
         self.kodidb.add_discography(artist_id, name, api.year())
@@ -397,7 +396,7 @@ class Song(MusicMixin, ItemBase):
                                       None,
                                       None,
                                       None,
-                                      utils.unix_date_to_kodi(self.last_sync),
+                                      timing.unix_date_to_kodi(self.last_sync),
                                       'single')
             else:
                 self.kodidb.add_album_17(kodi_id,
@@ -411,7 +410,7 @@ class Song(MusicMixin, ItemBase):
                                          None,
                                          None,
                                          None,
-                                         utils.unix_date_to_kodi(self.last_sync),
+                                         timing.unix_date_to_kodi(self.last_sync),
                                          'single')
         else:
             album = self.plexdb.album(album_id)
@@ -469,8 +468,8 @@ class Song(MusicMixin, ItemBase):
         mood = api.list_to_string(moods)
 
         # GET THE FILE AND PATH #####
-        do_indirect = not state.DIRECT_PATHS
-        if state.DIRECT_PATHS:
+        do_indirect = not app.SYNC.direct_paths
+        if app.SYNC.direct_paths:
             # Direct paths is set the Kodi way
             playurl = api.file_path(force_first_media=True)
             if playurl is None:
@@ -489,8 +488,7 @@ class Song(MusicMixin, ItemBase):
                 path = playurl.replace(filename, "")
         if do_indirect:
             # Plex works a bit differently
-            path = "%s%s" % (utils.window('pms_server'),
-                             xml[0][0].get('key'))
+            path = "%s%s" % (app.CONN.server, xml[0][0].get('key'))
             path = api.attach_plex_token_to_url(path)
             filename = path.rsplit('/', 1)[1]
             path = path.replace(filename, '')

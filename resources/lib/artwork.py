@@ -7,8 +7,7 @@ import requests
 import xbmc
 
 from .kodi_db import KodiVideoDB, KodiMusicDB, KodiTextureDB
-from . import backgroundthread, utils
-from . import state
+from . import app, backgroundthread, utils
 
 LOG = getLogger('PLEX.artwork')
 
@@ -19,13 +18,7 @@ requests.packages.urllib3.disable_warnings()
 # download is successful
 TIMEOUT = (35.1, 35.1)
 
-IMAGE_CACHING_SUSPENDS = [
-    state.SUSPEND_LIBRARY_THREAD,
-    state.STOP_SYNC,
-    state.DB_SCAN
-]
-if not utils.settings('imageSyncDuringPlayback') == 'true':
-    IMAGE_CACHING_SUSPENDS.append(state.SUSPEND_SYNC)
+IMAGE_CACHING_SUSPENDS = []
 
 
 def double_urlencode(text):
@@ -37,18 +30,8 @@ def double_urldecode(text):
 
 
 class ImageCachingThread(backgroundthread.KillableThread):
-    def __init__(self):
-        self._canceled = False
-        super(ImageCachingThread, self).__init__()
-
-    def isCanceled(self):
-        return self._canceled or state.STOP_PKC
-
     def isSuspended(self):
         return any(IMAGE_CACHING_SUSPENDS)
-
-    def cancel(self):
-        self._canceled = True
 
     @staticmethod
     def _art_url_generator():
@@ -88,18 +71,18 @@ def cache_url(url):
         try:
             requests.head(
                 url="http://%s:%s/image/image://%s"
-                    % (state.WEBSERVER_HOST,
-                       state.WEBSERVER_PORT,
+                    % (app.CONN.webserver_host,
+                       app.CONN.webserver_port,
                        url),
-                auth=(state.WEBSERVER_USERNAME,
-                      state.WEBSERVER_PASSWORD),
+                auth=(app.CONN.webserver_username,
+                      app.CONN.webserver_password),
                 timeout=TIMEOUT)
         except requests.Timeout:
             # We don't need the result, only trigger Kodi to start the
             # download. All is well
             break
         except requests.ConnectionError:
-            if state.STOP_PKC:
+            if app.APP.stop_pkc:
                 # Kodi terminated
                 break
             # Server thinks its a DOS attack, ('error 10053')

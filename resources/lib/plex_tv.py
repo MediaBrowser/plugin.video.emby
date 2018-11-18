@@ -5,10 +5,9 @@ from logging import getLogger
 import time
 import threading
 import xbmc
-import xbmcgui
 
 from .downloadutils import DownloadUtils as DU
-from . import utils, variables as v, state
+from . import utils, app
 
 ###############################################################################
 LOG = getLogger('PLEX.plex_tv')
@@ -87,7 +86,7 @@ def switch_home_user(userid, pin, token, machine_identifier):
     utils.settings('plex_restricteduser',
                    'true' if xml.get('restricted', '0') == '1'
                    else 'false')
-    state.RESTRICTED_USER = True if \
+    app.CONN.restricted_user = True if \
         xml.get('restricted', '0') == '1' else False
 
     # Get final token to the PMS we've chosen
@@ -174,7 +173,7 @@ class PinLogin(object):
         start = time.time()
         while (not self._abort and
                time.time() - start < 300 and
-               not state.STOP_PKC):
+               not app.APP.stop_pkc):
             xml = DU().downloadUrl(self.POLL.format(self.id),
                                    authenticate=False)
             try:

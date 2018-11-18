@@ -42,11 +42,11 @@ from .kodi_db import KodiVideoDB, KodiMusicDB
 from .utils import cast
 from .downloadutils import DownloadUtils as DU
 from . import clientinfo
-from . import utils
+from . import utils, timing
 from . import path_ops
 from . import plex_functions as PF
 from . import variables as v
-from . import state
+from . import app
 
 ###############################################################################
 LOG = getLogger('PLEX.plex_api')
@@ -121,7 +121,7 @@ class API(object):
         Pass direct_path=True if you're calling from another Plex python
         instance - because otherwise direct paths will evaluate to False!
         """
-        direct_paths = direct_paths or state.DIRECT_PATHS
+        direct_paths = direct_paths or app.SYNC.direct_paths
         filename = self.file_path(force_first_media=force_first_media)
         if (not direct_paths or force_addon or
                 self.plex_type() == v.PLEX_TYPE_CLIP):
@@ -219,15 +219,15 @@ class API(object):
                 extension not in v.KODI_SUPPORTED_IMAGES):
             # Let Plex transcode
             # max width/height supported by plex image transcoder is 1920x1080
-            path = state.PMS_SERVER + PF.transcode_image_path(
+            path = app.CONN.server + PF.transcode_image_path(
                 self.item[0][0].get('key'),
-                state.PMS_TOKEN,
-                "%s%s" % (state.PMS_SERVER, self.item[0][0].get('key')),
+                app.CONN.pms_token,
+                "%s%s" % (app.CONN.server, self.item[0][0].get('key')),
                 1920,
                 1080)
         else:
             path = self.attach_plex_token_to_url(
-                '%s%s' % (state.PMS_SERVER, self.item[0][0].attrib['key']))
+                '%s%s' % (app.CONN.server, self.item[0][0].attrib['key']))
         # Attach Plex id to url to let it be picked up by our playqueue agent
         # later
         return utils.try_encode('%s&plex_id=%s' % (path, self.plex_id()))
@@ -263,10 +263,9 @@ class API(object):
         """
         res = self.item.get('addedAt')
         if res is not None:
-            res = utils.unix_date_to_kodi(res)
+            return timing.plex_date_to_kodi(res)
         else:
-            res = '2000-01-01 10:00:00'
-        return res
+            return '2000-01-01 10:00:00'
 
     def viewcount(self):
         """
@@ -300,11 +299,11 @@ class API(object):
         played = True if playcount else False
 
         try:
-            last_played = utils.unix_date_to_kodi(int(item['lastViewedAt']))
+            last_played = utils.plex_date_to_kodi(int(item['lastViewedAt']))
         except (KeyError, ValueError):
             last_played = None
 
-        if state.INDICATE_MEDIA_VERSIONS is True:
+        if app.SYNC.indicate_media_versions is True:
             userrating = 0
             for _ in self.item.findall('./Media'):
                 userrating += 1
@@ -685,12 +684,12 @@ class API(object):
 
         url may or may not already contain a '?'
         """
-        if not state.PMS_TOKEN:
+        if not app.CONN.pms_token:
             return url
         if '?' not in url:
-            url = "%s?X-Plex-Token=%s" % (url, state.PMS_TOKEN)
+            url = "%s?X-Plex-Token=%s" % (url, app.CONN.pms_token)
         else:
-            url = "%s&X-Plex-Token=%s" % (url, state.PMS_TOKEN)
+            url = "%s&X-Plex-Token=%s" % (url, app.CONN.pms_token)
         return url
 
     def item_id(self):
@@ -770,7 +769,7 @@ class API(object):
         for extras in self.item.iterfind('Extras'):
             # There will always be only 1 extras element
             if (len(extras) > 0 and
-                    state.SHOW_EXTRAS_INSTEAD_OF_PLAYING_TRAILER):
+                    app.SYNC.show_extras_instead_of_playing_trailer):
                 return ('plugin://%s?mode=route_to_extras&plex_id=%s'
                         % (v.ADDON_ID, self.plex_id()))
             for extra in extras:
@@ -888,7 +887,7 @@ class API(object):
                 artwork = '%s?width=%s&height=%s' % (artwork, width, height)
             artwork = ('%s/photo/:/transcode?width=3840&height=3840&'
                        'minSize=1&upscale=0&url=%s'
-                       % (state.PMS_SERVER, quote(artwork)))
+                       % (app.CONN.server, quote(artwork)))
             artwork = self.attach_plex_token_to_url(artwork)
         return artwork
 
@@ -1406,7 +1405,7 @@ class API(object):
         # trailers are 'clip' with PMS xmls
         if action == "DirectStream":
             path = self.item[self.mediastream][self.part].attrib['key']
-            url = state.PMS_SERVER + path
+            url = app.CONN.server + path
             # e.g. Trailers already feature an '?'!
             if '?' in url:
                 url += '&' + urlencode(xargs)
@@ -1423,7 +1422,7 @@ class API(object):
         }
         # Path/key to VIDEO item of xml PMS response is needed, not part
         path = self.item.attrib['key']
-        transcode_path = state.PMS_SERVER + \
+        transcode_path = app.CONN.server + \
             '/video/:/transcode/universal/start.m3u8?'
         args = {
             'audioBoost': utils.settings('audioBoost'),
@@ -1481,7 +1480,7 @@ class API(object):
                 # We don't know the language - no need to download
                 else:
                     path = self.attach_plex_token_to_url(
-                        "%s%s" % (state.PMS_SERVER, key))
+                        "%s%s" % (app.CONN.server, key))
                 externalsubs.append(path)
                 kodiindex += 1
         LOG.info('Found external subs: %s', externalsubs)
@@ -1735,16 +1734,16 @@ class API(object):
         if path is None:
             return
         typus = v.REMAP_TYPE_FROM_PLEXTYPE[typus]
-        if state.REMAP_PATH is True:
-            path = path.replace(getattr(state, 'remapSMB%sOrg' % typus),
-                                getattr(state, 'remapSMB%sNew' % typus),
+        if app.SYNC.remap_path is True:
+            path = path.replace(getattr(app.SYNC, 'remapSMB%sOrg' % typus),
+                                getattr(app.SYNC, 'remapSMB%sNew' % typus),
                                 1)
             # There might be backslashes left over:
             path = path.replace('\\', '/')
-        elif state.REPLACE_SMB_PATH is True:
+        elif app.SYNC.replace_smb_path is True:
             if path.startswith('\\\\'):
                 path = 'smb:' + path.replace('\\', '/')
-        if ((state.PATH_VERIFIED and force_check is False) or
+        if ((app.SYNC.path_verified and force_check is False) or
                 omit_check is True):
             return path
 
@@ -1769,14 +1768,14 @@ class API(object):
             if force_check is False:
                 # Validate the path is correct with user intervention
                 if self.ask_to_validate(path):
-                    state.STOP_SYNC = True
+                    app.SYNC.stop_sync = True
                     path = None
-                state.PATH_VERIFIED = True
+                app.SYNC.path_verified = True
             else:
                 path = None
         elif force_check is False:
             # Only set the flag if we were not force-checking the path
-            state.PATH_VERIFIED = True
+            app.SYNC.path_verified = True
         return path
 
     @staticmethod

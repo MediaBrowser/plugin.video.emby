@@ -14,7 +14,6 @@ LOG = getLogger('PLEX.' + __name__)
 
 
 class KillableThread(threading.Thread):
-    pass
     '''A thread class that supports raising exception in the thread from
        another thread.
     '''
@@ -76,6 +75,45 @@ class KillableThread(threading.Thread):
     #         self._Thread__target(*self._Thread__args, **self._Thread__kwargs)
     #     except KillThreadException:
     #         self.onKilled()
+
+    def __init__(self, group=None, target=None, name=None, args=(), kwargs={}):
+        self._canceled = False
+        self._suspended = False
+        super(KillableThread, self).__init__(group, target, name, args, kwargs)
+
+    def isCanceled(self):
+        """
+        Returns True if the thread is stopped
+        """
+        if self._canceled or xbmc.abortRequested:
+            return True
+        return False
+
+    def abort(self):
+        """
+        Call to stop this thread
+        """
+        self._canceled = True
+
+    def suspend(self):
+        """
+        Call to suspend this thread
+        """
+        self._suspended = True
+
+    def resume(self):
+        """
+        Call to revive a suspended thread back to life
+        """
+        self._suspended = False
+
+    def isSuspended(self):
+        """
+        Returns True if the thread is suspended
+        """
+        if self._suspended:
+            return True
+        return False
 
 
 class Tasks(list):

@@ -31,7 +31,7 @@ import time
 from xbmc import sleep
 
 from ..downloadutils import DownloadUtils as DU
-from .. import utils
+from .. import utils, app
 from .. import variables as v
 
 ###############################################################################
@@ -228,7 +228,7 @@ class plexgdm:
         return self.server_list
 
     def discover(self):
-        currServer = utils.window('pms_server')
+        currServer = app.CONN.server
         if not currServer:
             return
         currServerProt, currServerIP, currServerPort = \

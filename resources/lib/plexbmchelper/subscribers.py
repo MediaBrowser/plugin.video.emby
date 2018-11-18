@@ -9,8 +9,8 @@ from logging import getLogger
 from threading import Thread
 
 from ..downloadutils import DownloadUtils as DU
-from .. import utils
-from .. import state
+from .. import utils, timing
+from .. import app
 from .. import variables as v
 from .. import json_rpc as js
 from .. import playqueue as PQ
@@ -101,9 +101,9 @@ def update_player_info(playerid):
     """
     Updates all player info for playerid [int] in state.py.
     """
-    state.PLAYER_STATES[playerid].update(js.get_player_props(playerid))
-    state.PLAYER_STATES[playerid]['volume'] = js.get_volume()
-    state.PLAYER_STATES[playerid]['muted'] = js.get_muted()
+    app.PLAYSTATE.playerstates[playerid].update(js.get_player_props(playerid))
+    app.PLAYSTATE.playerstates[playerid]['volume'] = js.get_volume()
+    app.PLAYSTATE.playerstates[playerid]['muted'] = js.get_muted()
 
 
 class SubscriptionMgr(object):
@@ -189,9 +189,9 @@ class SubscriptionMgr(object):
         return answ
 
     def _timeline_dict(self, player, ptype):
-        with state.LOCK_PLAYQUEUES:
+        with app.APP.lock_playqueues:
             playerid = player['playerid']
-            info = state.PLAYER_STATES[playerid]
+            info = app.PLAYSTATE.player_states[playerid]
             playqueue = PQ.PLAYQUEUES[playerid]
             position = self._get_correct_position(info, playqueue)
             try:
@@ -208,12 +208,12 @@ class SubscriptionMgr(object):
             if ptype in (v.PLEX_PLAYLIST_TYPE_VIDEO,
                          v.PLEX_PLAYLIST_TYPE_PHOTO):
                 self.location = 'fullScreenVideo'
-            pbmc_server = utils.window('pms_server')
+            pbmc_server = app.CONN.server
             if pbmc_server:
                 (self.protocol, self.server, self.port) = pbmc_server.split(':')
                 self.server = self.server.replace('/', '')
             status = 'paused' if int(info['speed']) == 0 else 'playing'
-            duration = utils.kodi_time_to_millis(info['totaltime'])
+            duration = timing.kodi_time_to_millis(info['totaltime'])
             shuffle = '1' if info['shuffled'] else '0'
             mute = '1' if info['muted'] is True else '0'
             answ = {
@@ -225,7 +225,7 @@ class SubscriptionMgr(object):
                 'state': status,
                 'type': ptype,
                 'itemType': ptype,
-                'time': utils.kodi_time_to_millis(info['time']),
+                'time': timing.kodi_time_to_millis(info['time']),
                 'duration': duration,
                 'seekRange': '0-%s' % duration,
                 'shuffle': shuffle,
@@ -254,8 +254,8 @@ class SubscriptionMgr(object):
             if playqueue.items[position].guid:
                 answ['guid'] = item.guid
             # Temp. token set?
-            if state.PLEX_TRANSIENT_TOKEN:
-                answ['token'] = state.PLEX_TRANSIENT_TOKEN
+            if app.CONN.plex_transient_token:
+                answ['token'] = app.CONN.plex_transient_token
             elif playqueue.plex_transient_token:
                 answ['token'] = playqueue.plex_transient_token
             # Process audio and subtitle streams
@@ -301,7 +301,7 @@ class SubscriptionMgr(object):
         stream_type: 'video', 'audio', 'subtitle'
         """
         playqueue = PQ.PLAYQUEUES[playerid]
-        info = state.PLAYER_STATES[playerid]
+        info = app.PLAYSTATE.player_states[playerid]
         position = self._get_correct_position(info, playqueue)
         if info[STREAM_DETAILS[stream_type]] == -1:
             kodi_stream_index = -1
@@ -315,7 +315,7 @@ class SubscriptionMgr(object):
         Updates the Plex Companien client with the machine identifier uuid with
         command_id
         """
-        with state.LOCK_SUBSCRIBER:
+        with app.APP.lock_subscriber:
             if command_id and self.subscribers.get(uuid):
                 self.subscribers[uuid].command_id = int(command_id)
 
@@ -326,7 +326,7 @@ class SubscriptionMgr(object):
         playqueues.
         """
         for player in players.values():
-            info = state.PLAYER_STATES[player['playerid']]
+            info = app.PLAYSTATE.player_states[player['playerid']]
             playqueue = PQ.PLAYQUEUES[player['playerid']]
             position = self._get_correct_position(info, playqueue)
             try:
@@ -345,7 +345,7 @@ class SubscriptionMgr(object):
         Causes PKC to tell the PMS and Plex Companion players to receive a
         notification what's being played.
         """
-        with state.LOCK_SUBSCRIBER:
+        with app.APP.lock_subscriber:
             self._cleanup()
             # Get all the active/playing Kodi players (video, audio, pictures)
             players = js.get_players()
@@ -378,7 +378,7 @@ class SubscriptionMgr(object):
             self._send_pms_notification(player['playerid'], self.last_params)
 
     def _get_pms_params(self, playerid):
-        info = state.PLAYER_STATES[playerid]
+        info = app.PLAYSTATE.player_states[playerid]
         playqueue = PQ.PLAYQUEUES[playerid]
         position = self._get_correct_position(info, playqueue)
         try:
@@ -390,8 +390,8 @@ class SubscriptionMgr(object):
             'state': status,
             'ratingKey': item.plex_id,
             'key': '/library/metadata/%s' % item.plex_id,
-            'time': utils.kodi_time_to_millis(info['time']),
-            'duration': utils.kodi_time_to_millis(info['totaltime'])
+            'time': timing.kodi_time_to_millis(info['time']),
+            'duration': timing.kodi_time_to_millis(info['totaltime'])
         }
         if info['container_key'] is not None:
             # params['containerKey'] = info['container_key']
@@ -407,12 +407,12 @@ class SubscriptionMgr(object):
         playqueue = PQ.PLAYQUEUES[playerid]
         xargs = params_pms()
         xargs.update(params)
-        if state.PLEX_TRANSIENT_TOKEN:
-            xargs['X-Plex-Token'] = state.PLEX_TRANSIENT_TOKEN
+        if app.CONN.plex_transient_token:
+            xargs['X-Plex-Token'] = app.CONN.plex_transient_token
         elif playqueue.plex_transient_token:
             xargs['X-Plex-Token'] = playqueue.plex_transient_token
-        elif state.PMS_TOKEN:
-            xargs['X-Plex-Token'] = state.PMS_TOKEN
+        elif app.ACCOUNT.pms_token:
+            xargs['X-Plex-Token'] = app.ACCOUNT.pms_token
         url = '%s://%s:%s/:/timeline' % (serv.get('protocol', 'http'),
                                          serv.get('server', 'localhost'),
                                          serv.get('port', '32400'))
@@ -434,7 +434,7 @@ class SubscriptionMgr(object):
                                 command_id,
                                 self,
                                 self.request_mgr)
-        with state.LOCK_SUBSCRIBER:
+        with app.APP.lock_subscriber:
             self.subscribers[subscriber.uuid] = subscriber
         return subscriber
 
@@ -444,7 +444,7 @@ class SubscriptionMgr(object):
         uuid from PKC notifications.
         (Calls the cleanup() method of the subscriber)
         """
-        with state.LOCK_SUBSCRIBER:
+        with app.APP.lock_subscriber:
             for subscriber in self.subscribers.values():
                 if subscriber.uuid == uuid or subscriber.host == uuid:
                     subscriber.cleanup()

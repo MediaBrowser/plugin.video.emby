@@ -3,13 +3,13 @@
 from __future__ import absolute_import, division, unicode_literals
 import xbmc
 
-from .. import state
+from .. import app
 
 
 class libsync_mixin(object):
     def isCanceled(self):
-        return (self._canceled or state.STOP_PKC or state.STOP_SYNC or
-                state.SUSPEND_LIBRARY_THREAD or state.SUSPEND_SYNC)
+        return (self._canceled or app.APP.stop_pkc or app.SYNC.stop_sync or
+                app.SYNC.suspend_library_thread or app.SYNC.suspend_sync)
 
 
 def update_kodi_library(video=True, music=True):

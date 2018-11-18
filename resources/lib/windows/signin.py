@@ -4,7 +4,7 @@ from __future__ import absolute_import, division, unicode_literals
 import xbmcgui
 
 from . import kodigui
-from .. import utils, variables as v
+from .. import variables as v
 
 
 class Background(kodigui.BaseWindow):

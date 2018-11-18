@@ -6,23 +6,16 @@ PKC Kodi Monitoring implementation
 from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
 from json import loads
-from threading import Thread
 import copy
 import xbmc
 from xbmcgui import Window
 
 from .plex_db import PlexDB
 from . import kodi_db
-from . import utils
-from . import plex_functions as PF
 from .downloadutils import DownloadUtils as DU
-from . import playback
-from . import initialsetup
-from . import playqueue as PQ
-from . import json_rpc as js
-from . import playlist_func as PL
-from . import state
-from . import variables as v
+from . import utils, timing, plex_functions as PF, playback, initialsetup
+from . import json_rpc as js, playqueue as PQ, playlist_func as PL
+from . import backgroundthread, app, variables as v
 
 ###############################################################################
 
@@ -68,9 +61,9 @@ class KodiMonitor(xbmc.Monitor):
         self._already_slept = False
         self.hack_replay = None
         xbmc.Monitor.__init__(self)
-        for playerid in state.PLAYER_STATES:
-            state.PLAYER_STATES[playerid] = copy.deepcopy(state.PLAYSTATE)
-            state.OLD_PLAYER_STATES[playerid] = copy.deepcopy(state.PLAYSTATE)
+        for playerid in app.PLAYSTATE.player_states:
+            app.PLAYSTATE.player_states[playerid] = copy.deepcopy(app.PLAYSTATE.template)
+            app.PLAYSTATE.old_player_states[playerid] = copy.deepcopy(app.PLAYSTATE.template)
         LOG.info("Kodi monitor started.")
 
     def onScanStarted(self, library):
@@ -142,8 +135,8 @@ class KodiMonitor(xbmc.Monitor):
             self.hack_replay = None
 
         if method == "Player.OnPlay":
-            state.SUSPEND_SYNC = True
-            with state.LOCK_PLAYQUEUES:
+            app.SYNC.suspend_sync = True
+            with app.APP.lock_playqueues:
                 self.PlayBackStart(data)
         elif method == "Player.OnStop":
             # Should refresh our video nodes, e.g. on deck
@@ -152,27 +145,27 @@ class KodiMonitor(xbmc.Monitor):
                     self.hack_replay == data['item']):
                 # Hack for add-on paths
                 self.hack_replay = None
-                with state.LOCK_PLAYQUEUES:
+                with app.APP.lock_playqueues:
                     self._hack_addon_paths_replay_video()
             elif data.get('end'):
-                if state.PKC_CAUSED_STOP is True:
-                    state.PKC_CAUSED_STOP = False
+                if app.PLAYSTATE.pkc_caused_stop is True:
+                    app.PLAYSTATE.pkc_caused_stop = False
                     LOG.debug('PKC caused this playback stop - ignoring')
                 else:
-                    with state.LOCK_PLAYQUEUES:
+                    with app.APP.lock_playqueues:
                         _playback_cleanup(ended=True)
             else:
-                with state.LOCK_PLAYQUEUES:
+                with app.APP.lock_playqueues:
                     _playback_cleanup()
-            state.PKC_CAUSED_STOP_DONE = True
-            state.SUSPEND_SYNC = False
+            app.PLAYSTATE.pkc_caused_stop_done = True
+            app.SYNC.suspend_sync = False
         elif method == 'Playlist.OnAdd':
-            with state.LOCK_PLAYQUEUES:
+            with app.APP.lock_playqueues:
                 self._playlist_onadd(data)
         elif method == 'Playlist.OnRemove':
             self._playlist_onremove(data)
         elif method == 'Playlist.OnClear':
-            with state.LOCK_PLAYQUEUES:
+            with app.APP.lock_playqueues:
                 self._playlist_onclear(data)
         elif method == "VideoLibrary.OnUpdate":
             # Manually marking as watched/unwatched
@@ -214,7 +207,7 @@ class KodiMonitor(xbmc.Monitor):
                 utils.plex_command('RUN_LIB_SCAN', 'full')
         elif method == "System.OnQuit":
             LOG.info('Kodi OnQuit detected - shutting down')
-            state.STOP_PKC = True
+            app.APP.stop_pkc = True
 
     @staticmethod
     def _hack_addon_paths_replay_video():
@@ -237,7 +230,7 @@ class KodiMonitor(xbmc.Monitor):
         (within the same micro-second!)
         """
         LOG.info('Detected re-start of playback of last item')
-        old = state.OLD_PLAYER_STATES[1]
+        old = app.PLAYSTATE.old_player_states[1]
         kwargs = {
             'plex_id': old['plex_id'],
             'plex_type': old['plex_type'],
@@ -261,8 +254,8 @@ class KodiMonitor(xbmc.Monitor):
         """
         if 'id' not in data['item']:
             return
-        old = state.OLD_PLAYER_STATES[data['playlistid']]
-        if (not state.DIRECT_PATHS and
+        old = app.PLAYSTATE.old_player_states[data['playlistid']]
+        if (not app.SYNC.direct_paths and
                 data['position'] == 0 and data['playlistid'] == 1 and
                 not PQ.PLAYQUEUES[data['playlistid']].items and
                 data['item']['type'] == old['kodi_type'] and
@@ -399,7 +392,7 @@ class KodiMonitor(xbmc.Monitor):
         else:
             pos = info['position'] if info['position'] != -1 else 0
             LOG.debug('Detected position %s for %s', pos, playqueue)
-        status = state.PLAYER_STATES[playerid]
+        status = app.PLAYSTATE.player_states[playerid]
         try:
             item = playqueue.items[pos]
         except IndexError:
@@ -431,7 +424,7 @@ class KodiMonitor(xbmc.Monitor):
             plex_id, plex_type = self._get_ids(kodi_id, kodi_type, path)
             if not plex_id:
                 LOG.debug('No Plex id obtained - aborting playback report')
-                state.PLAYER_STATES[playerid] = copy.deepcopy(state.PLAYSTATE)
+                app.PLAYSTATE.player_states[playerid] = copy.deepcopy(app.PLAYSTATE.template)
                 return
             item = PL.init_plex_playqueue(playqueue, plex_id=plex_id)
             item.file = path
@@ -455,7 +448,7 @@ class KodiMonitor(xbmc.Monitor):
             else:
                 container_key = '/library/metadata/%s' % plex_id
         # Remember that this player has been active
-        state.ACTIVE_PLAYERS.add(playerid)
+        app.PLAYSTATE.active_players.add(playerid)
         status.update(info)
         LOG.debug('Set the Plex container_key to: %s', container_key)
         status['container_key'] = container_key
@@ -469,8 +462,7 @@ class KodiMonitor(xbmc.Monitor):
         LOG.debug('Set the player state: %s', status)
 
 
-@utils.thread_methods
-class SpecialMonitor(Thread):
+class SpecialMonitor(backgroundthread.KillableThread):
     """
     Detect the resume dialog for widgets.
     Could also be used to detect external players (see Emby implementation)
@@ -480,15 +472,15 @@ class SpecialMonitor(Thread):
         # "Start from beginning", "Play from beginning"
         strings = (utils.try_encode(utils.lang(12021)),
                    utils.try_encode(utils.lang(12023)))
-        while not self.stopped():
+        while not self.isCanceled():
             if xbmc.getCondVisibility('Window.IsVisible(DialogContextMenu.xml)'):
                 if xbmc.getInfoLabel('Control.GetLabel(1002)') in strings:
                     # Remember that the item IS indeed resumable
                     control = int(Window(10106).getFocusId())
-                    state.RESUME_PLAYBACK = True if control == 1001 else False
+                    app.PLAYSTATE.resume_playback = True if control == 1001 else False
                 else:
                     # Different context menu is displayed
-                    state.RESUME_PLAYBACK = False
+                    app.PLAYSTATE.resume_playback = False
             if xbmc.getCondVisibility('Window.IsVisible(MyVideoNav.xml)'):
                 path = xbmc.getInfoLabel('container.folderpath')
                 if (isinstance(path, str) and
@@ -507,14 +499,14 @@ def _playback_cleanup(ended=False):
     timing data otherwise)
     """
     LOG.debug('playback_cleanup called. Active players: %s',
-              state.ACTIVE_PLAYERS)
+              app.PLAYSTATE.active_players)
     # We might have saved a transient token from a user flinging media via
     # Companion (if we could not use the playqueue to store the token)
-    state.PLEX_TRANSIENT_TOKEN = None
-    for playerid in state.ACTIVE_PLAYERS:
-        status = state.PLAYER_STATES[playerid]
+    app.CONN.plex_transient_token = None
+    for playerid in app.PLAYSTATE.active_players:
+        status = app.PLAYSTATE.player_states[playerid]
         # Remember the last played item later
-        state.OLD_PLAYER_STATES[playerid] = copy.deepcopy(status)
+        app.PLAYSTATE.old_player_states[playerid] = copy.deepcopy(status)
         # Stop transcoding
         if status['playmethod'] == 'Transcode':
             LOG.debug('Tell the PMS to stop transcoding')
@@ -527,9 +519,9 @@ def _playback_cleanup(ended=False):
             # started playback via PMS
             _record_playstate(status, ended)
         # Reset the player's status
-        state.PLAYER_STATES[playerid] = copy.deepcopy(state.PLAYSTATE)
+        app.PLAYSTATE.player_states[playerid] = copy.deepcopy(app.PLAYSTATE.template)
     # As all playback has halted, reset the players that have been active
-    state.ACTIVE_PLAYERS = set()
+    app.PLAYSTATE.active_players = set()
     LOG.info('Finished PKC playback cleanup')
 
 
@@ -543,12 +535,12 @@ def _record_playstate(status, ended):
         # Item not (yet) in Kodi library
         LOG.debug('No playstate update due to Plex id not found: %s', status)
         return
-    totaltime = float(utils.kodi_time_to_millis(status['totaltime'])) / 1000
+    totaltime = float(timing.kodi_time_to_millis(status['totaltime'])) / 1000
     if ended:
         progress = 0.99
         time = v.IGNORE_SECONDS_AT_START + 1
     else:
-        time = float(utils.kodi_time_to_millis(status['time'])) / 1000
+        time = float(timing.kodi_time_to_millis(status['time'])) / 1000
         try:
             progress = time / totaltime
         except ZeroDivisionError:
@@ -556,7 +548,7 @@ def _record_playstate(status, ended):
         LOG.debug('Playback progress %s (%s of %s seconds)',
                   progress, time, totaltime)
     playcount = status['playcount']
-    last_played = utils.unix_date_to_kodi(utils.unix_timestamp())
+    last_played = timing.now()
     if playcount is None:
         LOG.debug('playcount not found, looking it up in the Kodi DB')
         with kodi_db.KodiVideoDB() as kodidb:
@@ -582,7 +574,7 @@ def _record_playstate(status, ended):
                           last_played,
                           status['plex_type'])
     # Hack to force "in progress" widget to appear if it wasn't visible before
-    if (state.FORCE_RELOAD_SKIN and
+    if (app.APP.force_reload_skin and
             xbmc.getCondVisibility('Window.IsVisible(Home.xml)')):
         LOG.debug('Refreshing skin to update widgets')
         xbmc.executebuiltin('ReloadSkin()')

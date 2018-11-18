@@ -16,7 +16,7 @@ from .downloadutils import DownloadUtils as DU
 from . import utils
 from . import json_rpc as js
 from . import variables as v
-from . import state
+from . import app
 
 ###############################################################################
 
@@ -357,7 +357,7 @@ def verify_kodi_item(plex_id, kodi_item):
         # Got all the info we need
         return kodi_item
     # Special case playlist startup - got type but no id
-    if (not state.DIRECT_PATHS and state.ENABLE_MUSIC and
+    if (not app.SYNC.direct_paths and app.SYNC.enable_music and
             kodi_item.get('type') == v.KODI_TYPE_SONG and
             kodi_item['file'].startswith('http')):
         kodi_item['id'], _ = kodiid_from_filename(kodi_item['file'],

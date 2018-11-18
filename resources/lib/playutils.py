@@ -4,7 +4,7 @@ from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
 
 from .downloadutils import DownloadUtils as DU
-from . import utils
+from . import utils, app
 from . import variables as v
 
 ###############################################################################
@@ -304,7 +304,7 @@ class PlayUtils():
                     # We don't know the language - no need to download
                     else:
                         path = self.api.attach_plex_token_to_url(
-                            "%s%s" % (utils.window('pms_server'),
+                            "%s%s" % (app.CONN.server,
                                       stream.attrib['key']))
                     downloadable_streams.append(index)
                     download_subs.append(utils.try_encode(path))

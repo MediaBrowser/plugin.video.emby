@@ -6,8 +6,7 @@ Various functions and decorators for PKC
 from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
 from sqlite3 import connect, OperationalError
-from datetime import datetime, timedelta
-from time import localtime, strftime
+from datetime import datetime
 from unicodedata import normalize
 try:
     import xml.etree.cElementTree as etree
@@ -19,7 +18,7 @@ except ImportError:
     import defusedxml.ElementTree as defused_etree  # etree parse unsafe
     from xml.etree.ElementTree import ParseError
     ETREE = 'ElementTree'
-from functools import wraps, partial
+from functools import wraps
 from urllib import quote_plus
 import hashlib
 import re
@@ -28,7 +27,7 @@ import xbmc
 import xbmcaddon
 import xbmcgui
 
-from . import path_ops, variables as v, state
+from . import path_ops, variables as v
 
 ###############################################################################
 
@@ -36,7 +35,6 @@ LOG = getLogger('PLEX.utils')
 
 WINDOW = xbmcgui.Window(10000)
 ADDON = xbmcaddon.Addon(id='plugin.video.plexkodiconnect')
-EPOCH = datetime.utcfromtimestamp(0)
 
 # Grab Plex id from '...plex_id=XXXX....'
 REGEX_PLEX_ID = re.compile(r'''plex_id=(\d+)''')
@@ -107,17 +105,14 @@ def window(prop, value=None, clear=False, windowid=10000):
         return try_decode(win.getProperty(prop))
 
 
-def plex_command(key, value):
+def plex_command(value):
     """
     Used to funnel states between different Python instances. NOT really thread
     safe - let's hope the Kodi user can't click fast enough
-
-        key:   state.py variable
-        value: either 'True' or 'False'
     """
     while window('plex_command'):
         xbmc.sleep(20)
-    window('plex_command', value='%s-%s' % (key, value))
+    window('plex_command', value=value)
 
 
 def settings(setting, value=None):
@@ -238,7 +233,8 @@ def ERROR(txt='', hide_tb=False, notify=False, cancel_sync=False):
     short = str(sys.exc_info()[1])
     LOG.error('Error encountered: %s - %s', txt, short)
     if cancel_sync:
-        state.STOP_SYNC = True
+        import app
+        app.SYNC.stop_sync = True
     if hide_tb:
         return short
 
@@ -273,47 +269,6 @@ class AttributeDict(dict):
 
     def __repr__(self):
         return self.__unicode__().encode('utf-8')
-
-
-def millis_to_kodi_time(milliseconds):
-    """
-    Converts time in milliseconds to the time dict used by the Kodi JSON RPC:
-    {
-        'hours': [int],
-        'minutes': [int],
-        'seconds'[int],
-        'milliseconds': [int]
-    }
-    Pass in the time in milliseconds as an int
-    """
-    seconds = int(milliseconds / 1000)
-    minutes = int(seconds / 60)
-    seconds = seconds % 60
-    hours = int(minutes / 60)
-    minutes = minutes % 60
-    milliseconds = milliseconds % 1000
-    return {'hours': hours,
-            'minutes': minutes,
-            'seconds': seconds,
-            'milliseconds': milliseconds}
-
-
-def kodi_time_to_millis(time):
-    """
-    Converts the Kodi time dict
-    {
-        'hours': [int],
-        'minutes': [int],
-        'seconds'[int],
-        'milliseconds': [int]
-    }
-    to milliseconds [int]. Will not return negative results but 0!
-    """
-    ret = (time['hours'] * 3600 +
-           time['minutes'] * 60 +
-           time['seconds']) * 1000 + time['milliseconds']
-    ret = 0 if ret < 0 else ret
-    return ret
 
 
 def cast(func, value):
@@ -432,47 +387,6 @@ def escape_html(string):
     for key, value in escapes.iteritems():
         string = string.replace(key, value)
     return string
-
-
-def unix_date_to_kodi(stamp):
-    """
-    converts a Unix time stamp (seconds passed sinceJanuary 1 1970) to a
-    propper, human-readable time stamp used by Kodi
-
-    Output: Y-m-d h:m:s = 2009-04-05 23:16:04
-
-    None if an error was encountered
-    """
-    try:
-        stamp = float(stamp) + state.KODI_PLEX_TIME_OFFSET
-        date_time = localtime(stamp)
-        localdate = strftime('%Y-%m-%d %H:%M:%S', date_time)
-    except:
-        localdate = None
-    return localdate
-
-
-def kodi_time_to_plex(stamp):
-    """
-    Returns a Kodi timestamp (int/float) in Plex time (subtracting the
-    KODI_PLEX_TIME_OFFSET)
-    """
-    return stamp - state.KODI_PLEX_TIME_OFFSET
-
-
-def unix_timestamp(seconds_into_the_future=None):
-    """
-    Returns a Unix time stamp (seconds passed since January 1 1970) for NOW as
-    an integer.
-
-    Optionally, pass seconds_into_the_future: positive int's will result in a
-    future timestamp, negative the past
-    """
-    if seconds_into_the_future:
-        future = datetime.utcnow() + timedelta(seconds=seconds_into_the_future)
-    else:
-        future = datetime.utcnow()
-    return int((future - EPOCH).total_seconds())
 
 
 def kodi_sql(media_type=None):
@@ -1135,95 +1049,3 @@ def log_time(func):
                  elapsedtotal, func.__name__)
         return result
     return wrapper
-
-
-def thread_methods(cls=None, add_stops=None, add_suspends=None):
-    """
-    Decorator to add the following methods to a threading class:
-
-    suspend():          pauses the thread
-    resume():           resumes the thread
-    stop():             stopps/kills the thread
-
-    suspended():        returns True if thread is suspended
-    stopped():          returns True if thread is stopped (or should stop ;-))
-                        ALSO returns True if PKC should exit
-
-    Also adds the following class attributes:
-        thread_stopped
-        thread_suspended
-        stops
-        suspends
-
-    invoke with either
-        @thread_methods
-        class MyClass():
-    or
-        @thread_methods(add_stops=['SUSPEND_LIBRARY_TRHEAD'],
-                        add_suspends=['DB_SCAN', 'WHATEVER'])
-        class MyClass():
-    """
-    # So we don't need to invoke with ()
-    if cls is None:
-        return partial(thread_methods,
-                       add_stops=add_stops,
-                       add_suspends=add_suspends)
-    # Because we need a reference, not a copy of the immutable objects in
-    # state, we need to look up state every time explicitly
-    cls.stops = ['STOP_PKC']
-    if add_stops is not None:
-        cls.stops.extend(add_stops)
-    cls.suspends = add_suspends or []
-
-    # Attach new attributes to class
-    cls.thread_stopped = False
-    cls.thread_suspended = False
-
-    # Define new class methods and attach them to class
-    def stop(self):
-        """
-        Call to stop this thread
-        """
-        self.thread_stopped = True
-    cls.stop = stop
-
-    def suspend(self):
-        """
-        Call to suspend this thread
-        """
-        self.thread_suspended = True
-    cls.suspend = suspend
-
-    def resume(self):
-        """
-        Call to revive a suspended thread back to life
-        """
-        self.thread_suspended = False
-    cls.resume = resume
-
-    def suspended(self):
-        """
-        Returns True if the thread is suspended
-        """
-        if self.thread_suspended is True:
-            return True
-        for suspend in self.suspends:
-            if getattr(state, suspend):
-                return True
-        return False
-    cls.suspended = suspended
-
-    def stopped(self):
-        """
-        Returns True if the thread is stopped
-        """
-        if self.thread_stopped is True:
-            return True
-        for stop in self.stops:
-            if getattr(state, stop):
-                return True
-        return False
-    cls.stopped = stopped
-
-    # Return class to render this a decorator
-    return cls

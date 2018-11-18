@@ -19,7 +19,7 @@ from . import pms, db, kodi_pl, plex_pl
 
 from ..watchdog import events
 from ..plex_api import API
-from .. import utils, path_ops, variables as v, state
+from .. import utils, path_ops, variables as v, app
 
 ###############################################################################
 LOG = getLogger('PLEX.playlists')
@@ -92,7 +92,7 @@ def websocket(plex_id, status):
         * 9: 'deleted'
     """
     create = False
-    with state.LOCK_PLAYLISTS:
+    with app.APP.lock_playlists:
         playlist = db.get_playlist(plex_id=plex_id)
         if plex_id in IGNORE_PLEX_PLAYLIST_CHANGE:
             LOG.debug('Ignoring detected Plex playlist change for %s',
@@ -155,7 +155,7 @@ def full_sync():
         fetch the PMS playlists)
     """
     LOG.info('Starting playlist full sync')
-    with state.LOCK_PLAYLISTS:
+    with app.APP.lock_playlists:
         # Need to lock because we're messing with playlists
         return _full_sync()
 
@@ -283,7 +283,7 @@ def sync_kodi_playlist(path):
         return False
     if extension not in SUPPORTED_FILETYPES:
         return False
-    if not state.SYNC_SPECIFIC_KODI_PLAYLISTS:
+    if not app.SYNC.sync_specific_kodi_playlists:
         return True
     playlist = Playlist()
     playlist.kodi_path = path
@@ -341,10 +341,10 @@ def sync_plex_playlist(playlist=None, xml=None, plex_id=None):
             return False
         name = api.title()
         typus = v.KODI_PLAYLIST_TYPE_FROM_PLEX[api.playlist_type()]
-    if (not state.ENABLE_MUSIC and typus == v.PLEX_PLAYLIST_TYPE_AUDIO):
+    if (not app.SYNC.enable_music and typus == v.PLEX_PLAYLIST_TYPE_AUDIO):
         LOG.debug('Not synching Plex audio playlist')
         return False
-    if not state.SYNC_SPECIFIC_PLEX_PLAYLISTS:
+    if not app.SYNC.sync_specific_plex_playlists:
         return True
     prefix = utils.settings('syncSpecificPlexPlaylistsPrefix').lower()
     if name and name.lower().startswith(prefix):
@@ -387,7 +387,7 @@ class PlaylistEventhandler(events.FileSystemEventHandler):
             events.EVENT_TYPE_CREATED: self.on_created,
             events.EVENT_TYPE_DELETED: self.on_deleted,
         }
-        with state.LOCK_PLAYLISTS:
+        with app.APP.lock_playlists:
             _method_map[event.event_type](event)
 
     def on_created(self, event):

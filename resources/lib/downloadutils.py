@@ -4,9 +4,7 @@ from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
 import requests
 
-from . import utils
-from . import clientinfo
-from . import state
+from . import utils, clientinfo, app
 
 ###############################################################################
 
@@ -14,7 +12,7 @@ from . import state
 import requests.packages.urllib3
 requests.packages.urllib3.disable_warnings()
 
-LOG = getLogger('PLEX.downloadutils')
+LOG = getLogger('PLEX.download')
 
 ###############################################################################
 
@@ -39,25 +37,16 @@ class DownloadUtils():
     def __init__(self):
         self.__dict__ = self._shared_state
 
-    def setServer(self, server):
-        """
-        Reserved for userclient only
-        """
-        self.server = server
-        LOG.debug("Set server: %s", server)
-
     def setSSL(self, verifySSL=None, certificate=None):
         """
-        Reserved for userclient only
-
         verifySSL must be 'true' to enable certificate validation
 
         certificate must be path to certificate or 'None'
         """
         if verifySSL is None:
-            verifySSL = state.VERIFY_SSL_CERT
+            verifySSL = app.CONN.verify_ssl_cert
         if certificate is None:
-            certificate = state.SSL_CERT_PATH
+            certificate = app.CONN.ssl_cert_path
         # Set the session's parameters
         self.s.verify = verifySSL
         if certificate:
@@ -67,8 +56,7 @@ class DownloadUtils():
 
     def startSession(self, reset=False):
         """
-        User should be authenticated when this method is called (via
-        userclient)
+        User should be authenticated when this method is called
         """
         # Start session
         self.s = requests.Session()
@@ -79,9 +67,6 @@ class DownloadUtils():
         self.s.encoding = 'utf-8'
         # Set SSL settings
         self.setSSL()
-
-        # Set other stuff
-        self.setServer(utils.window('pms_server'))
 
         # Counters to declare PMS dead or unauthorized
         # Use window variables because start of movies will be called with a
@@ -94,7 +79,7 @@ class DownloadUtils():
         self.s.mount("http://", requests.adapters.HTTPAdapter(max_retries=1))
         self.s.mount("https://", requests.adapters.HTTPAdapter(max_retries=1))
 
-        LOG.info("Requests session started on: %s", self.server)
+        LOG.info("Requests session started on: %s", app.CONN.server)
 
     def stopSession(self):
         try:
@@ -155,7 +140,7 @@ class DownloadUtils():
                 self.startSession()
                 s = self.s
             # Replace for the real values
-            url = url.replace("{server}", self.server)
+            url = url.replace("{server}", app.CONN.server)
         else:
             # User is not (yet) authenticated. Used to communicate with
             # plex.tv and to check for PMS servers
@@ -164,9 +149,9 @@ class DownloadUtils():
                 headerOptions = self.getHeader(options=headerOptions)
             else:
                 headerOptions = headerOverride
-            kwargs['verify'] = state.VERIFY_SSL_CERT
-            if state.SSL_CERT_PATH:
-                kwargs['cert'] = state.SSL_CERT_PATH
+            kwargs['verify'] = app.CONN.verify_ssl_cert
+            if app.CONN.ssl_cert_path:
+                kwargs['cert'] = app.CONN.ssl_cert_path
 
         # Set the variables we were passed (fallback to request session
         # otherwise - faster)
@@ -252,12 +237,11 @@ class DownloadUtils():
                             self.unauthorizedAttempts):
                         LOG.warn('We seem to be truly unauthorized for PMS'
                                  ' %s ', url)
-                        if state.PMS_STATUS not in ('401', 'Auth'):
-                            # Tell userclient token has been revoked.
+                        if app.CONN.pms_status not in ('401', 'Auth'):
+                            # Tell others token has been revoked.
                             LOG.debug('Setting PMS server status to '
                                       'unauthorized')
-                            state.PMS_STATUS = '401'
-                            utils.window('plex_serverStatus', value="401")
+                            app.CONN.pms_status = '401'
                             utils.dialog('notification',
                                          utils.lang(29999),
                                          utils.lang(30017),

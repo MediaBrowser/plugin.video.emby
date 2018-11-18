@@ -7,7 +7,7 @@ from ntpath import dirname
 from ..plex_api import API
 from ..plex_db import PlexDB
 from ..kodi_db import KodiVideoDB
-from .. import utils
+from .. import utils, timing
 
 LOG = getLogger('PLEX.itemtypes.common')
 
@@ -135,5 +135,5 @@ class ItemBase(object):
                                resume,
                                duration,
                                view_count,
-                               utils.unix_date_to_kodi(lastViewedAt),
+                               timing.plex_date_to_kodi(lastViewedAt),
                                plex_type)

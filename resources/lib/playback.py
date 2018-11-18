@@ -21,7 +21,7 @@ from . import pickler
 from .playutils import PlayUtils
 from .pkc_listitem import PKCListItem
 from . import variables as v
-from . import state
+from . import app
 
 ###############################################################################
 LOG = getLogger('PLEX.playback')
@@ -51,14 +51,14 @@ def playback_triage(plex_id=None, plex_type=None, path=None, resolve=True):
              'resolve %s', plex_id, plex_type, path, resolve)
     global RESOLVE
     # If started via Kodi context menu, we never resolve
-    RESOLVE = resolve if not state.CONTEXT_MENU_PLAY else False
-    if not state.AUTHENTICATED:
+    RESOLVE = resolve if not app.PLAYSTATE.context_menu_play else False
+    if not app.CONN.authenticated:
         LOG.error('Not yet authenticated for PMS, abort starting playback')
         # "Unauthorized for PMS"
         utils.dialog('notification', utils.lang(29999), utils.lang(30017))
         _ensure_resolve(abort=True)
         return
-    with state.LOCK_PLAYQUEUES:
+    with app.APP.lock_playqueues:
         playqueue = PQ.get_playqueue_from_type(
             v.KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[plex_type])
         try:
@@ -208,7 +208,7 @@ def _playback_init(plex_id, plex_type, playqueue, pos):
     if RESOLVE:
         # Sleep a bit to let setResolvedUrl do its thing - bit ugly
         sleep_timer = 0
-        while not state.PKC_CAUSED_STOP_DONE:
+        while not app.PLAYSTATE.pkc_caused_stop_done:
             sleep(50)
             sleep_timer += 1
             if sleep_timer > 100:
@@ -229,19 +229,19 @@ def _playback_init(plex_id, plex_type, playqueue, pos):
                          utils.lang(30128),
                          icon='{error}')
             # Do NOT use _ensure_resolve() because we resolved above already
-            state.CONTEXT_MENU_PLAY = False
-            state.FORCE_TRANSCODE = False
-            state.RESUME_PLAYBACK = False
+            app.PLAYSTATE.context_menu_play = False
+            app.PLAYSTATE.force_transcode = False
+            app.PLAYSTATE.resume_playback = False
             return
         PL.get_playlist_details_from_xml(playqueue, xml)
     stack = _prep_playlist_stack(xml)
     _process_stack(playqueue, stack)
     # Always resume if playback initiated via PMS and there IS a resume
     # point
-    offset = api.resume_point() * 1000 if state.CONTEXT_MENU_PLAY else None
+    offset = api.resume_point() * 1000 if app.PLAYSTATE.context_menu_play else None
     # Reset some playback variables
-    state.CONTEXT_MENU_PLAY = False
-    state.FORCE_TRANSCODE = False
+    app.PLAYSTATE.context_menu_play = False
+    app.PLAYSTATE.force_transcode = False
     # New thread to release this one sooner (e.g. harddisk spinning up)
     thread = Thread(target=threaded_playback,
                     args=(playqueue.kodi_pl, pos, offset))
@@ -272,8 +272,8 @@ def _ensure_resolve(abort=False):
         LOG.debug('Passing dummy path to Kodi')
         # if not state.CONTEXT_MENU_PLAY:
         # Because playback won't start with context menu play
-        state.PKC_CAUSED_STOP = True
-        state.PKC_CAUSED_STOP_DONE = False
+        app.PLAYSTATE.pkc_caused_stop = True
+        app.PLAYSTATE.pkc_caused_stop_done = False
         if not abort:
             result = pickler.Playback_Successful()
             result.listitem = PKCListItem(path=v.NULL_VIDEO)
@@ -283,9 +283,9 @@ def _ensure_resolve(abort=False):
             pickler.pickle_me(None)
     if abort:
         # Reset some playback variables
-        state.CONTEXT_MENU_PLAY = False
-        state.FORCE_TRANSCODE = False
-        state.RESUME_PLAYBACK = False
+        app.PLAYSTATE.context_menu_play = False
+        app.PLAYSTATE.force_transcode = False
+        app.PLAYSTATE.resume_playback = False
 
 
 def _init_existing_kodi_playlist(playqueue, pos):
@@ -299,7 +299,7 @@ def _init_existing_kodi_playlist(playqueue, pos):
         LOG.error('No Kodi items returned')
         raise PL.PlaylistError('No Kodi items returned')
     item = PL.init_plex_playqueue(playqueue, kodi_item=kodi_items[pos])
-    item.force_transcode = state.FORCE_TRANSCODE
+    item.force_transcode = app.PLAYSTATE.force_transcode
     # playqueue.py will add the rest - this will likely put the PMS under
     # a LOT of strain if the following Kodi setting is enabled:
     # Settings -> Player -> Videos -> Play next video automatically
@@ -310,7 +310,7 @@ def _prep_playlist_stack(xml):
     stack = []
     for item in xml:
         api = API(item)
-        if (state.CONTEXT_MENU_PLAY is False and
+        if (app.PLAYSTATE.context_menu_play is False and
                 api.plex_type() not in (v.PLEX_TYPE_CLIP, v.PLEX_TYPE_EPISODE)):
             # If user chose to play via PMS or force transcode, do not
             # use the item path stored in the Kodi DB
@@ -378,7 +378,7 @@ def _process_stack(playqueue, stack):
         playlist_item.offset = item['offset']
         playlist_item.part = item['part']
         playlist_item.id = item['id']
-        playlist_item.force_transcode = state.FORCE_TRANSCODE
+        playlist_item.force_transcode = app.PLAYSTATE.force_transcode
         pos += 1
 
 
@@ -413,7 +413,7 @@ def _conclude_playback(playqueue, pos):
         playurl = item.file
     if not playurl:
         LOG.info('Did not get a playurl, aborting playback silently')
-        state.RESUME_PLAYBACK = False
+        app.PLAYSTATE.resume_playback = False
         pickler.pickle_me(result)
         return
     listitem.setPath(utils.try_encode(playurl))
@@ -422,8 +422,8 @@ def _conclude_playback(playqueue, pos):
     elif item.playmethod == 'Transcode':
         playutils.audio_subtitle_prefs(listitem)
 
-    if state.RESUME_PLAYBACK is True:
-        state.RESUME_PLAYBACK = False
+    if app.PLAYSTATE.resume_playback is True:
+        app.PLAYSTATE.resume_playback = False
         if (item.offset is None and
                 item.plex_type not in (v.PLEX_TYPE_SONG, v.PLEX_TYPE_CLIP)):
             with PlexDB() as plexdb:

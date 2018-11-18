@@ -7,11 +7,8 @@ from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
 from xbmc import Player
 
-from . import playqueue as PQ
-from . import plex_functions as PF
-from . import json_rpc as js
-from . import variables as v
-from . import state
+from . import playqueue as PQ, plex_functions as PF
+from . import json_rpc as js, variables as v, app
 
 ###############################################################################
 
@@ -68,12 +65,12 @@ def process_command(request_path, params):
     if request_path == 'player/playback/playMedia':
         # We need to tell service.py
         action = 'alexa' if params.get('deviceName') == 'Alexa' else 'playlist'
-        state.COMPANION_QUEUE.put({
+        app.APP.companion_queue.put({
             'action': action,
             'data': params
         })
     elif request_path == 'player/playback/refreshPlayQueue':
-        state.COMPANION_QUEUE.put({
+        app.APP.companion_queue.put({
             'action': 'refreshPlayQueue',
             'data': params
         })
@@ -115,7 +112,7 @@ def process_command(request_path, params):
     elif request_path == "player/navigation/back":
         js.input_back()
     elif request_path == "player/playback/setStreams":
-        state.COMPANION_QUEUE.put({
+        app.APP.companion_queue.put({
             'action': 'setStreams',
             'data': params
         })

@@ -20,7 +20,8 @@ from . import playback
 from . import json_rpc as js
 from . import playqueue as PQ
 from . import variables as v
-from . import state
+from . import backgroundthread
+from . import app
 
 ###############################################################################
 
@@ -46,7 +47,7 @@ def update_playqueue_from_PMS(playqueue,
     # Safe transient token from being deleted
     if transient_token is None:
         transient_token = playqueue.plex_transient_token
-    with state.LOCK_PLAYQUEUES:
+    with app.APP.lock_playqueues:
         xml = PL.get_PMS_playlist(playqueue, playqueue_id)
         try:
             xml.attrib
@@ -64,8 +65,7 @@ def update_playqueue_from_PMS(playqueue,
         playback.play_xml(playqueue, xml, offset)
 
 
-@utils.thread_methods(add_suspends=['PMS_STATUS'])
-class PlexCompanion(Thread):
+class PlexCompanion(backgroundthread.KillableThread):
     """
     Plex Companion monitoring class. Invoke only once
     """
@@ -80,7 +80,13 @@ class PlexCompanion(Thread):
         self.player = Player()
         self.httpd = False
         self.subscription_manager = None
-        Thread.__init__(self)
+        super(PlexCompanion, self).__init__()
+
+    def isSuspended(self):
+        """
+        Returns True if the thread is suspended
+        """
+        return self._suspended or app.CONN.pms_status
 
     def _process_alexa(self, data):
         xml = PF.GetPlexMetadata(data['key'])
@@ -116,10 +122,9 @@ class PlexCompanion(Thread):
                 offset = None
             playback.play_xml(playqueue, xml, offset)
         else:
-            state.PLEX_TRANSIENT_TOKEN = data.get('token')
+            app.CONN.plex_transient_token = data.get('token')
             if data.get('offset') != '0':
-                state.RESUMABLE = True
-                state.RESUME_PLAYBACK = True
+                app.PLAYSTATE.resume_playback = True
             playback.playback_triage(api.plex_id(),
                                      api.plex_type(),
                                      resolve=False)
@@ -129,7 +134,7 @@ class PlexCompanion(Thread):
         """
         E.g. watch later initiated by Companion. Basically navigating Plex
         """
-        state.PLEX_TRANSIENT_TOKEN = data.get('key')
+        app.CONN.plex_transient_token = data.get('key')
         params = {
             'mode': 'plex_node',
             'key': '{server}%s' % data.get('key'),
@@ -221,16 +226,16 @@ class PlexCompanion(Thread):
         LOG.debug('Processing: %s', task)
         data = task['data']
         if task['action'] == 'alexa':
-            with state.LOCK_PLAYQUEUES:
+            with app.APP.lock_playqueues:
                 self._process_alexa(data)
         elif (task['action'] == 'playlist' and
                 data.get('address') == 'node.plexapp.com'):
             self._process_node(data)
         elif task['action'] == 'playlist':
-            with state.LOCK_PLAYQUEUES:
+            with app.APP.lock_playqueues:
                 self._process_playlist(data)
         elif task['action'] == 'refreshPlayQueue':
-            with state.LOCK_PLAYQUEUES:
+            with app.APP.lock_playqueues:
                 self._process_refresh(data)
         elif task['action'] == 'setStreams':
             try:
@@ -260,8 +265,6 @@ class PlexCompanion(Thread):
         httpd = self.httpd
         # Cache for quicker while loops
         client = self.client
-        stopped = self.stopped
-        suspended = self.suspended
 
         # Start up instances
         request_mgr = httppersist.RequestMgr()
@@ -298,12 +301,12 @@ class PlexCompanion(Thread):
         if httpd:
             thread = Thread(target=httpd.handle_request)
 
-        while not stopped():
+        while not self.isCanceled():
             # If we are not authorized, sleep
             # Otherwise, we trigger a download which leads to a
             # re-authorizations
-            while suspended():
-                if stopped():
+            while self.isSuspended():
+                if self.isCanceled():
                     break
                 sleep(1000)
             try:
@@ -335,13 +338,13 @@ class PlexCompanion(Thread):
                 LOG.warn(traceback.format_exc())
             # See if there's anything we need to process
             try:
-                task = state.COMPANION_QUEUE.get(block=False)
+                task = app.APP.companion_queue.get(block=False)
             except Empty:
                 pass
             else:
                 # Got instructions, process them
                 self._process_tasks(task)
-                state.COMPANION_QUEUE.task_done()
+                app.APP.companion_queue.task_done()
                 # Don't sleep
                 continue
             sleep(50)

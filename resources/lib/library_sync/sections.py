@@ -9,7 +9,7 @@ from ..utils import cast
 from ..plex_db import PlexDB
 from .. import kodi_db
 from .. import itemtypes
-from .. import plex_functions as PF, music, utils, state, variables as v
+from .. import plex_functions as PF, music, utils, variables as v, app
 
 LOG = getLogger('PLEX.sync.sections')
 
@@ -29,7 +29,7 @@ def sync_from_pms():
     except AttributeError:
         LOG.error("Error download PMS sections, abort")
         return False
-    if state.DIRECT_PATHS is True and state.ENABLE_MUSIC is True:
+    if app.SYNC.direct_paths is True and app.SYNC.enable_music is True:
         # Will reboot Kodi is new library detected
         music.excludefromscan_music_folders(xml=sections)
 

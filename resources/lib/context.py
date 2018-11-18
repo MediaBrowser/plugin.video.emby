@@ -43,8 +43,8 @@ class ContextMenu(xbmcgui.WindowXMLDialog):
         return self.selected_option
 
     def onInit(self):
-        if utils.window('PlexUserImage'):
-            self.getControl(USER_IMAGE).setImage(utils.window('PlexUserImage'))
+        if utils.window('plexAvatar'):
+            self.getControl(USER_IMAGE).setImage(utils.window('plexAvatar'))
         height = 479 + (len(self._options) * 55)
         LOG.debug("options: %s", self._options)
         self.list_ = self.getControl(LIST)
