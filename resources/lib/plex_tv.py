@@ -129,6 +129,8 @@ def plex_home_users(token):
         xml.attrib
     except AttributeError:
         LOG.error('Download of Plex home users failed.')
+        # Plex.tv did not provide us a valid list of Plex users, sorry.
+        utils.messageDialog(utils.lang(29999), utils.lang(33011))
     else:
         for user in xml:
             users.append(HomeUser(user.attrib))

@@ -622,6 +622,10 @@ msgctxt "#33010"
 msgid "Your Plex token is no longer valid. Logging-out of plex.tv"
 msgstr ""
 
+msgctxt "#33011"
+msgid "Plex.tv did not provide us a valid list of Plex users, sorry."
+msgstr ""
+
 # Dialog before playback
 msgctxt "#33013"
 msgid "Choose the audio stream"
