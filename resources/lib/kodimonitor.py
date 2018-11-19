@@ -21,34 +21,6 @@ from . import backgroundthread, app, variables as v
 
 LOG = getLogger('PLEX.kodimonitor')
 
-# settings: window-variable
-WINDOW_SETTINGS = {
-    'plex_restricteduser': 'plex_restricteduser',
-    'force_transcode_pix': 'plex_force_transcode_pix'
-}
-
-# settings: state-variable (state.py)
-# Need to use getattr and setattr!
-STATE_SETTINGS = {
-    'dbSyncIndicator': 'SYNC_DIALOG',
-    'remapSMB': 'REMAP_PATH',
-    'remapSMBmovieOrg': 'remapSMBmovieOrg',
-    'remapSMBmovieNew': 'remapSMBmovieNew',
-    'remapSMBtvOrg': 'remapSMBtvOrg',
-    'remapSMBtvNew': 'remapSMBtvNew',
-    'remapSMBmusicOrg': 'remapSMBmusicOrg',
-    'remapSMBmusicNew': 'remapSMBmusicNew',
-    'remapSMBphotoOrg': 'remapSMBphotoOrg',
-    'remapSMBphotoNew': 'remapSMBphotoNew',
-    'enableMusic': 'ENABLE_MUSIC',
-    'forceReloadSkinOnPlaybackStop': 'FORCE_RELOAD_SKIN',
-    'fetch_pms_item_number': 'FETCH_PMS_ITEM_NUMBER',
-    'imageSyncNotifications': 'IMAGE_SYNC_NOTIFICATIONS',
-    'syncSpecificPlexPlaylists': 'SYNC_SPECIFIC_PLEX_PLAYLISTS',
-    'syncSpecificKodiPlaylists': 'SYNC_SPECIFIC_KODI_PLAYLISTS',
-    'showExtrasInsteadOfTrailer': 'SHOW_EXTRAS_INSTEAD_OF_PLAYING_TRAILER'
-}
-
 ###############################################################################
 
 
@@ -83,44 +55,6 @@ class KodiMonitor(xbmc.Monitor):
         Monitor the PKC settings for changes made by the user
         """
         LOG.debug('PKC settings change detected')
-        changed = False
-        # Reset the window variables from the settings variables
-        for settings_value, window_value in WINDOW_SETTINGS.iteritems():
-            if utils.window(window_value) != utils.settings(settings_value):
-                changed = True
-                LOG.debug('PKC window settings changed: %s is now %s',
-                          settings_value, utils.settings(settings_value))
-                utils.window(window_value, value=utils.settings(settings_value))
-        # Reset the state variables in state.py
-        for settings_value, state_name in STATE_SETTINGS.iteritems():
-            new = utils.settings(settings_value)
-            if new == 'true':
-                new = True
-            elif new == 'false':
-                new = False
-            if getattr(state, state_name) != new:
-                changed = True
-                LOG.debug('PKC state settings %s changed from %s to %s',
-                          settings_value, getattr(state, state_name), new)
-                setattr(state, state_name, new)
-                if state_name == 'FETCH_PMS_ITEM_NUMBER':
-                    LOG.info('Requesting playlist/nodes refresh')
-                    utils.plex_command('RUN_LIB_SCAN', 'views')
-        # Special cases, overwrite all internal settings
-        initialsetup.set_replace_paths()
-        state.BACKGROUND_SYNC_DISABLED = utils.settings(
-            'enableBackgroundSync') == 'false'
-        state.FULL_SYNC_INTERVALL = int(utils.settings('fullSyncInterval')) * 60
-        state.BACKGROUNDSYNC_SAFTYMARGIN = int(
-            utils.settings('backgroundsync_saftyMargin'))
-        state.SYNC_THREAD_NUMBER = int(utils.settings('syncThreadNumber'))
-        state.SSL_CERT_PATH = utils.settings('sslcert') \
-            if utils.settings('sslcert') != 'None' else None
-        if changed is True:
-            # Assume that the user changed the settings so that we can now find
-            # the path to all media files
-            state.STOP_SYNC = False
-            state.PATH_VERIFIED = False
 
     def onNotification(self, sender, method, data):
         """
