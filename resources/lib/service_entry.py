@@ -35,72 +35,6 @@ WINDOW_PROPERTIES = (
 )
 
 
-def authenticate():
-    """
-    Authenticate the current user or prompt to log-in
-
-    Returns True if successful, False if not. 'aborted' if user chose to
-    abort
-    """
-    LOG.info('Authenticating user')
-    if app.ACCOUNT.plex_username and not app.ACCOUNT.force_login:
-        # Found a user in the settings, try to authenticate
-        LOG.info('Trying to authenticate with old settings')
-        res = PF.check_connection(app.CONN.server,
-                                  token=app.ACCOUNT.pms_token,
-                                  verifySSL=app.CONN.verify_ssl_cert)
-        if res is False:
-            LOG.error('Something went wrong while checking connection')
-            return False
-        elif res == 401:
-            LOG.error('User token no longer valid. Sign user out')
-            app.ACCOUNT.clear()
-            return False
-        elif res >= 400:
-            LOG.error('Answer from PMS is not as expected')
-            return False
-        LOG.info('Successfully authenticated using old settings')
-        app.ACCOUNT.set_authenticated()
-        return True
-
-    # Could not use settings - try to get Plex user list from plex.tv
-    if app.ACCOUNT.plex_token:
-        LOG.info("Trying to connect to plex.tv to get a user list")
-        user, _ = userselect.start()
-        if not user:
-            LOG.info('No user received')
-            app.CONN.pms_status = 'Stop'
-            return False
-        username = user.title
-        user_id = user.id
-        token = user.authToken
-    else:
-        LOG.info("Trying to authenticate without a token")
-        username = ''
-        user_id = ''
-        token = ''
-    res = PF.check_connection(app.CONN.server,
-                              token=token,
-                              verifySSL=app.CONN.verify_ssl_cert)
-    if res is False:
-        LOG.error('Something went wrong while checking connection')
-        return False
-    elif res == 401:
-        LOG.error('Token not valid')
-        return False
-    elif res >= 400:
-        LOG.error('Answer from PMS is not as expected')
-        return False
-    LOG.info('Successfully authenticated')
-    # Got new values that need to be saved
-    utils.settings('username', value=username)
-    utils.settings('userid', value=user_id)
-    utils.settings('accessToken', value=token)
-    app.ACCOUNT.load()
-    app.ACCOUNT.set_authenticated()
-    return True
-
-
 class Service():
     ws = None
     sync = None
@@ -220,6 +154,85 @@ class Service():
             LOG.info('Login to plex.tv')
             return self.setup.plex_tv_sign_in()
 
+    def authenticate(self):
+        """
+        Authenticate the current user or prompt to log-in
+
+        Returns True if successful, False if not. 'aborted' if user chose to
+        abort
+        """
+        LOG.info('Authenticating user')
+        if app.ACCOUNT.plex_username and not app.ACCOUNT.force_login:
+            # Found a user in the settings, try to authenticate
+            LOG.info('Trying to authenticate with old settings')
+            res = PF.check_connection(app.CONN.server,
+                                      token=app.ACCOUNT.pms_token,
+                                      verifySSL=app.CONN.verify_ssl_cert)
+            if res is False:
+                LOG.error('Something went wrong while checking connection')
+                return False
+            elif res == 401:
+                LOG.error('User token no longer valid. Sign user out')
+                app.ACCOUNT.clear()
+                return False
+            elif res >= 400:
+                LOG.error('Answer from PMS is not as expected')
+                return False
+            LOG.info('Successfully authenticated using old settings')
+            app.ACCOUNT.set_authenticated()
+            return True
+
+        while True:
+            # Could not use settings - try to get Plex user list from plex.tv
+            if app.ACCOUNT.plex_token:
+                LOG.info("Trying to connect to plex.tv to get a user list")
+                user, _ = userselect.start()
+                if not user:
+                    LOG.info('No user received')
+                    app.CONN.pms_status = 'Stop'
+                    return False
+                username = user.title
+                user_id = user.id
+                token = user.authToken
+            else:
+                LOG.info("Trying to authenticate without a token")
+                username = ''
+                user_id = ''
+                token = ''
+            res = PF.check_connection(app.CONN.server,
+                                      token=token,
+                                      verifySSL=app.CONN.verify_ssl_cert)
+            if res is False:
+                LOG.error('Something went wrong while checking connection')
+                return False
+            elif res == 401:
+                if app.ACCOUNT.plex_token:
+                    LOG.error('Token no longer valid')
+                    # "Your Plex token is no longer valid. Logging-out of plex.tv"
+                    utils.messageDialog(utils.lang(29999), utils.lang(33010))
+                    app.ACCOUNT.clear()
+                    return False
+                else:
+                    # "Failed to authenticate. Did you login to plex.tv?"
+                    utils.messageDialog(utils.lang(29999), utils.lang(39023))
+                    if self.setup.plex_tv_sign_in():
+                        self.setup.write_credentials_to_settings()
+                        app.ACCOUNT.load()
+                        continue
+                    else:
+                        return False
+            elif res >= 400:
+                LOG.error('Answer from PMS is not as expected')
+                return False
+            LOG.info('Successfully authenticated')
+            # Got new values that need to be saved
+            utils.settings('username', value=username)
+            utils.settings('userid', value=user_id)
+            utils.settings('accessToken', value=token)
+            app.ACCOUNT.load()
+            app.ACCOUNT.set_authenticated()
+            return True
+
     def ServiceEntryPoint(self):
         # Important: Threads depending on abortRequest will not trigger
         # if profile switch happens more than once.
@@ -324,7 +337,7 @@ class Service():
                 if not app.ACCOUNT.authenticated:
                     LOG.info('Not yet authenticated')
                     # Do authentication
-                    if not authenticate():
+                    if not self.authenticate():
                         continue
                     # Start up events
                     if welcome_msg is True:

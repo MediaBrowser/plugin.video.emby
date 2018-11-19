@@ -61,6 +61,14 @@ class InitialSetup(object):
         if self.plex_token:
             LOG.debug('Found a plex.tv token in the settings')
 
+    def write_credentials_to_settings(self):
+        """
+        Writes Plex username, token to plex.tv and Plex id to PKC settings
+        """
+        utils.settings('username', value=self.plex_login or '')
+        utils.settings('userid', value=self.plexid or '')
+        utils.settings('plexToken', value=self.plex_token or '')
+
     def enter_new_pms_address(self):
         # "Enter your Plex Media Server's IP or URL. Examples are:"
         utils.messageDialog(utils.lang(29999),

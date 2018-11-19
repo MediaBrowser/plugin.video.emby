@@ -619,7 +619,7 @@ msgid "Invalid username or password"
 msgstr ""
 
 msgctxt "#33010"
-msgid "Failed to authenticate too many times. Reset in the settings."
+msgid "Your Plex token is no longer valid. Logging-out of plex.tv"
 msgstr ""
 
 # Dialog before playback
