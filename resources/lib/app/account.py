@@ -61,6 +61,27 @@ class Account(object):
                   self.pms_token[:5] if self.pms_token else None)
         LOG.debug('User is restricted Home user: %s', self.restricted_user)
 
+    def log_out(self):
+        LOG.debug('Logging-out user')
+        self.plex_username = None
+        self.plex_user_id = None
+        self.pms_token = None
+        self.avatar = None
+        self.restricted_user = None
+        self.authenticated = False
+        self._session = None
+
+        utils.settings('username', value='')
+        utils.settings('userid', value='')
+        utils.settings('plex_restricteduser', value='')
+        utils.settings('accessToken', value='')
+        utils.settings('plexAvatar', value='')
+
+        utils.window('plex_restricteduser', clear=True)
+        utils.window('pms_token', clear=True)
+        utils.window('plexAvatar', clear=True)
+        utils.window('plex_authenticated', clear=True)
+
     def clear(self):
         LOG.debug('Clearing account settings')
         self.plex_username = None

@@ -175,7 +175,7 @@ class Service():
                 app.SYNC.suspend_library_thread = False
                 return False
         LOG.info('Successfully stopped library sync')
-        app.ACCOUNT.clear()
+        app.ACCOUNT.log_out()
         LOG.info('User has been logged out')
         return True
 
