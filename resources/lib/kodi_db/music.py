@@ -178,7 +178,7 @@ class KodiMusicDB(common.KodiDBBase):
                 strArtists = ?,
                 strGenres = ?,
                 iYear = ?,
-                bCompilation = ?
+                bCompilation = ?,
                 strReview = ?,
                 strImage = ?,
                 strLabel = ?,
@@ -218,7 +218,7 @@ class KodiMusicDB(common.KodiDBBase):
                 strArtistDisp = ?,
                 strGenres = ?,
                 iYear = ?,
-                bCompilation = ?
+                bCompilation = ?,
                 strReview = ?,
                 strImage = ?,
                 strLabel = ?,
