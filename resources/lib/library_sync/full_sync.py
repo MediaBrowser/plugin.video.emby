@@ -108,11 +108,10 @@ class FullSync(common.libsync_mixin):
                                             section['section_id'],
                                             self.plex_type)
                 self.queue.put(queue_info)
-                with PlexDB() as self.plexdb:
-                    for xml_item in iterator:
-                        if self.isCanceled():
-                            return False
-                        self.process_item(xml_item)
+                for xml_item in iterator:
+                    if self.isCanceled():
+                        return False
+                    self.process_item(xml_item)
             except RuntimeError:
                 LOG.error('Could not entirely process section %s', section)
                 successful = False
