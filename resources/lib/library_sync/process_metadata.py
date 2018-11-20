@@ -116,7 +116,7 @@ class ProcessMetadata(backgroundthread.KillableThread, common.libsync_mixin):
                                                    section_id=section.id,
                                                    children=item['children'])
                             except:
-                                utils.ERROR()
+                                utils.ERROR(notify=True, cancel_sync=True)
                             self.title = item['xml'][0].get('title')
                             self.processed += 1
                         self.update_progressbar()
