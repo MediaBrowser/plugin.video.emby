@@ -71,13 +71,66 @@ class ProcessMetadata(backgroundthread.KillableThread, common.libsync_mixin):
                                % (self.current, self.total, self.title))
 
     def run(self):
+        """
+        Do the work
+        """
         LOG.debug('Processing thread started')
         try:
-            self._run()
-        except:
-            utils.ERROR(txt='process_metadata crashed',
-                        notify=True,
-                        cancel_sync=True)
+            if self.show_dialog:
+                self.dialog = xbmcgui.DialogProgressBG()
+                self.dialog.create(utils.lang(39714))
+            # Init with the very first library section. This will block!
+            section = self.queue.get()
+            self.queue.task_done()
+            if section is None:
+                return
+            while not self.isCanceled():
+                if section is None:
+                    break
+                LOG.debug('Start processing section %s (%ss)',
+                          section.name, section.plex_type)
+                self.current = 1
+                self.processed = 0
+                self.total = section.total
+                self.section_name = section.name
+                self.section_type_text = utils.lang(
+                    v.TRANSLATION_FROM_PLEXTYPE[section.plex_type])
+                profile = Profile()
+                profile.enable()
+                with section.context(self.last_sync) as context:
+                    while not self.isCanceled():
+                        # grabs item from queue. This will block!
+                        item = self.queue.get()
+                        if isinstance(item, InitNewSection) or item is None:
+                            section = item
+                            self.queue.task_done()
+                            break
+                        elif isinstance(item, UpdateLastSync):
+                            context.plexdb.update_last_sync(item.plex_id,
+                                                            section.plex_type,
+                                                            self.last_sync)
+                        else:
+                            try:
+                                context.add_update(item['xml'][0],
+                                                   section_name=section.name,
+                                                   section_id=section.id,
+                                                   children=item['children'])
+                            except:
+                                utils.ERROR()
+                            self.title = item['xml'][0].get('title')
+                            self.processed += 1
+                        self.update_progressbar()
+                        self.current += 1
+                        if self.processed == 500:
+                            self.processed = 0
+                            context.commit()
+                        self.queue.task_done()
+                profile.disable()
+                string_io = StringIO()
+                stats = Stats(profile, stream=string_io).sort_stats('cumulative')
+                stats.print_stats()
+                LOG.info('cProfile result: ')
+                LOG.info(string_io.getvalue())
         finally:
             if self.dialog:
                 self.dialog.close()
@@ -86,60 +139,3 @@ class ProcessMetadata(backgroundthread.KillableThread, common.libsync_mixin):
                 self.queue.get()
                 self.queue.task_done()
             LOG.debug('Processing thread terminated')
-
-    def _run(self):
-        """
-        Do the work
-        """
-        if self.show_dialog:
-            self.dialog = xbmcgui.DialogProgressBG()
-            self.dialog.create(utils.lang(39714))
-        # Init with the very first library section. This will block!
-        section = self.queue.get()
-        self.queue.task_done()
-        if section is None:
-            return
-        while not self.isCanceled():
-            if section is None:
-                break
-            LOG.debug('Start processing section %s (%ss)',
-                      section.name, section.plex_type)
-            self.current = 1
-            self.processed = 0
-            self.total = section.total
-            self.section_name = section.name
-            self.section_type_text = utils.lang(
-                v.TRANSLATION_FROM_PLEXTYPE[section.plex_type])
-            profile = Profile()
-            profile.enable()
-            with section.context(self.last_sync) as context:
-                while not self.isCanceled():
-                    # grabs item from queue. This will block!
-                    item = self.queue.get()
-                    if isinstance(item, InitNewSection) or item is None:
-                        section = item
-                        self.queue.task_done()
-                        break
-                    elif isinstance(item, UpdateLastSync):
-                        context.plexdb.update_last_sync(item.plex_id,
-                                                        section.plex_type,
-                                                        self.last_sync)
-                    else:
-                        context.add_update(item['xml'][0],
-                                           section_name=section.name,
-                                           section_id=section.id,
-                                           children=item['children'])
-                        self.title = item['xml'][0].get('title')
-                        self.processed += 1
-                    self.update_progressbar()
-                    self.current += 1
-                    if self.processed == 500:
-                        self.processed = 0
-                        context.commit()
-                    self.queue.task_done()
-            profile.disable()
-            string_io = StringIO()
-            stats = Stats(profile, stream=string_io).sort_stats('cumulative')
-            stats.print_stats()
-            LOG.info('cProfile result: ')
-            LOG.info(string_io.getvalue())
