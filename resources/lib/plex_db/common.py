@@ -29,6 +29,9 @@ class PlexDBBase(object):
         return self
 
     def __exit__(self, e_typ, e_val, trcbak):
+        if e_typ:
+            # re-raise any exception
+            return False
         self.plexconn.commit()
         self.plexconn.close()
 

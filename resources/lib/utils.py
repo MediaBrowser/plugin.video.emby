@@ -667,7 +667,8 @@ class XmlKodiSetting(object):
 
     def __exit__(self, e_typ, e_val, trcbak):
         if e_typ:
-            raise
+            # re-raise any exception
+            return False
         # Only safe to file if we did not botch anything
         if self.write_xml is True:
             self._remove_empty_elements()

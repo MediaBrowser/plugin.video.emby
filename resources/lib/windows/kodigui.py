@@ -986,6 +986,9 @@ class WindowProperty():
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
+        if exc_type:
+            # re-raise any exception
+            return False
         self.win.setProperty(self.prop, self.end or self.old)
 
 
@@ -1003,4 +1006,7 @@ class GlobalProperty():
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
+        if exc_type:
+            # re-raise any exception
+            return False
         xbmcgui.Window(10000).setProperty('{0}.{1}'.format(self._addonID, self.prop), self.end or self.old)

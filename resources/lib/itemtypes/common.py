@@ -70,6 +70,9 @@ class ItemBase(object):
         """
         Make sure DB changes are committed and connection to DB is closed.
         """
+        if exc_type:
+            # re-raise any exception
+            return False
         self.commit()
         self.plexconn.close()
         self.kodiconn.close()

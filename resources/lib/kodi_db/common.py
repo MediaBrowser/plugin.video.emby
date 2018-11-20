@@ -27,6 +27,9 @@ class KodiDBBase(object):
         return self
 
     def __exit__(self, e_typ, e_val, trcbak):
+        if e_typ:
+            # re-raise any exception
+            return False
         self.kodiconn.commit()
         self.kodiconn.close()
         if self._texture_db:
