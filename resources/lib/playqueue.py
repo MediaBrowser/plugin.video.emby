@@ -202,7 +202,7 @@ class PlayqueueMonitor(backgroundthread.KillableThread):
                 for playqueue in PLAYQUEUES:
                     kodi_pl = js.playlist_get_items(playqueue.playlistid)
                     if playqueue.old_kodi_pl != kodi_pl:
-                        if playqueue.id is None and (not app.PLAYSTATE.direct_paths or
+                        if playqueue.id is None and (not app.SYNC.direct_paths or
                                                      app.PLAYSTATE.context_menu_play):
                             # Only initialize if directly fired up using direct
                             # paths. Otherwise let default.py do its magic

@@ -84,7 +84,7 @@ class ContextMenu(object):
         # if user uses direct paths, give option to initiate playback via PMS
         if self.api and self.api.extras():
             options.append(OPTIONS['Extras'])
-        if app.PLAYSTATE.direct_paths and self.kodi_type in v.KODI_VIDEOTYPES:
+        if app.SYNC.direct_paths and self.kodi_type in v.KODI_VIDEOTYPES:
             options.append(OPTIONS['PMS_Play'])
         if self.kodi_type in v.KODI_VIDEOTYPES:
             options.append(OPTIONS['Transcode'])
