@@ -492,13 +492,6 @@ def GetPlexMetadata(key):
     return xml
 
 
-def plex_children_generator(key):
-    """
-    """
-    for entry in download_generator('{server}/library/metadata/%s/children' % key):
-        yield entry
-
-
 def GetAllPlexChildren(key):
     """
     Returns a list (raw xml API dump) of all Plex children for the key.
