@@ -79,7 +79,6 @@ class Service():
         utils.window('plex_kodiProfile',
                      value=utils.try_decode(xbmc.translatePath("special://profile")))
 
-        self.monitor = xbmc.Monitor()
         # Load/Reset PKC entirely - important for user/Kodi profile switch
         # Clear video nodes properties
         from .library_sync import videonodes
@@ -100,7 +99,7 @@ class Service():
         i = 0
         while app.SYNC.db_scan:
             i += 1
-            xbmc.sleep(50)
+            app.APP.monitor.waitForAbort(0.05)
             if i > 100:
                 LOG.error('Could not stop library sync, aborting log-out')
                 # Failed to reset PMS and plex.tv connects. Try to restart Kodi
@@ -238,6 +237,7 @@ class Service():
         # if profile switch happens more than once.
         app.init()
         # Some plumbing
+        app.APP.monitor = kodimonitor.KodiMonitor()
         artwork.IMAGE_CACHING_SUSPENDS = [
             app.SYNC.suspend_library_thread,
             app.SYNC.stop_sync,
@@ -325,7 +325,7 @@ class Service():
             if utils.window('plex_online') == "true":
                 # Plex server is online
                 if app.CONN.pms_status == 'Stop':
-                    xbmc.sleep(500)
+                    app.APP.monitor.waitForAbort(0.05)
                     continue
                 elif app.CONN.pms_status == '401':
                     # Unauthorized access, revoke token
@@ -352,7 +352,7 @@ class Service():
                                      sound=False)
                     # Start monitoring kodi events
                     if not self.kodimonitor_running:
-                        self.kodimonitor_running = kodimonitor.KodiMonitor()
+                        self.kodimonitor_running = True
                         self.specialmonitor.start()
                     # Start the Websocket Client
                     if not self.ws_running:
@@ -429,7 +429,7 @@ class Service():
                         # Hence resume threads
                         app.SYNC.suspend_library_thread = False
 
-            if self.monitor.waitForAbort(0.05):
+            if app.APP.monitor.waitForAbort(0.05):
                 # Abort was requested while waiting. We should exit
                 break
         # Tell all threads to terminate (e.g. several lib sync threads)

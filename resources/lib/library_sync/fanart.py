@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
-import xbmc
 
 from . import common
 from ..plex_api import API
@@ -62,7 +61,7 @@ class FanartThread(backgroundthread.KillableThread):
             if self.isSuspended():
                 if self.isCanceled():
                     return
-                xbmc.sleep(1000)
+                app.APP.monitor.waitForAbort(1)
         LOG.info('FanartThread finished')
         self.callback(finished)
 

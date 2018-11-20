@@ -231,7 +231,7 @@ class Sync(backgroundthread.KillableThread):
                     # Abort was requested while waiting. We should exit
                     LOG.info("###===--- Sync Thread Stopped ---===###")
                     return
-                xbmc.sleep(1000)
+                app.APP.monitor.waitForAbort(1)
 
             if not install_sync_done:
                 # Very FIRST sync ever upon installation or reset of Kodi DB
@@ -257,7 +257,7 @@ class Sync(backgroundthread.KillableThread):
                     self.start_image_cache_thread()
                 else:
                     LOG.error('Initial start-up full sync unsuccessful')
-                    xbmc.sleep(1000)
+                    app.APP.monitor.waitForAbort(1)
                 self.force_dialog = False
                 xbmc.executebuiltin('InhibitIdleShutdown(false)')
 
@@ -279,7 +279,7 @@ class Sync(backgroundthread.KillableThread):
                     self.start_image_cache_thread()
                 else:
                     LOG.info('Startup sync has not yet been successful')
-                    xbmc.sleep(1000)
+                    app.APP.monitor.waitForAbort(1)
 
             # Currently no db scan, so we could start a new scan
             elif app.SYNC.db_scan is False:
@@ -320,9 +320,9 @@ class Sync(backgroundthread.KillableThread):
                         library_sync.store_websocket_message(message)
                         queue.task_done()
                         # Sleep just a bit
-                        xbmc.sleep(10)
+                        app.APP.monitor.waitForAbort(0.01)
                         continue
-            xbmc.sleep(100)
+            app.APP.monitor.waitForAbort(0.1)
         # Shut down playlist monitoring
         if playlist_monitor:
             playlist_monitor.stop()

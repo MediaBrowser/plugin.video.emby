@@ -8,10 +8,9 @@ from urlparse import urlparse, parse_qsl
 from copy import deepcopy
 from time import time
 from threading import Thread
-from xbmc import sleep
 
 from .downloadutils import DownloadUtils as DU
-from . import backgroundthread, utils, plex_tv, variables as v
+from . import backgroundthread, utils, plex_tv, variables as v, app
 
 ###############################################################################
 LOG = getLogger('PLEX.plex_functions')
@@ -388,7 +387,7 @@ def _pms_list_from_plex_tv(token):
                 thread.start()
                 threads.append(thread)
         else:
-            sleep(50)
+            app.APP.monitor.waitForAbort(0.05)
     # wait for requests being answered
     for thread in threads:
         thread.join()
@@ -616,7 +615,7 @@ class DownloadGen(object):
                     self._download_chunk(
                         start=self.current + (self.cache_factor - 1) * CONTAINERSIZE)
                 return child
-            sleep(100)
+            app.APP.monitor.waitForAbort(0.1)
             if not len(self.pending_counter) and not len(self.xml):
                 raise StopIteration
             LOG.debug('Waiting for download to finish')

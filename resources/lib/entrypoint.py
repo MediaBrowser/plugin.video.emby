@@ -9,7 +9,7 @@ from logging import getLogger
 from sys import argv
 from urllib import urlencode
 import xbmcplugin
-from xbmc import sleep, executebuiltin
+from xbmc import sleep
 from xbmcgui import ListItem
 
 from . import utils

@@ -9,8 +9,7 @@ from ..watchdog import events
 from ..watchdog.observers import Observer
 from ..watchdog.utils.bricks import OrderedSetQueue
 
-from .. import path_ops
-from .. import variables as v
+from .. import path_ops, variables as v, app
 ###############################################################################
 LOG = getLogger('PLEX.playlists.common')
 
@@ -171,7 +170,7 @@ class PlaylistObserver(Observer):
             try:
                 new_event, new_watch = event_queue.get(block=False)
             except Queue.Empty:
-                time.sleep(0.2)
+                app.APP.monitor.waitForAbort(0.2)
             else:
                 event_queue.task_done()
                 start = time.time()

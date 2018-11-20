@@ -87,7 +87,7 @@ def init_playqueue_from_plex_children(plex_id, transient_token=None):
         PL.add_item_to_playlist(playqueue, i, plex_id=api.plex_id())
     playqueue.plex_transient_token = transient_token
     LOG.debug('Firing up Kodi player')
-    xbmc.Player().play(playqueue.kodi_pl, None, False, 0)
+    app.APP.xbmcplayer.play(playqueue.kodi_pl, None, False, 0)
     return playqueue
 
 
@@ -197,7 +197,7 @@ class PlayqueueMonitor(backgroundthread.KillableThread):
             while self.isSuspended():
                 if self.isCanceled():
                     break
-                xbmc.sleep(1000)
+                app.APP.monitor.waitForAbort(1)
             with app.APP.lock_playqueues:
                 for playqueue in PLAYQUEUES:
                     kodi_pl = js.playlist_get_items(playqueue.playlistid)
@@ -211,5 +211,5 @@ class PlayqueueMonitor(backgroundthread.KillableThread):
                             # compare old and new playqueue
                             self._compare_playqueues(playqueue, kodi_pl)
                         playqueue.old_kodi_pl = list(kodi_pl)
-            xbmc.sleep(200)
+            app.APP.monitor.waitForAbort(0.2)
         LOG.info("----===## PlayqueueMonitor stopped ##===----")

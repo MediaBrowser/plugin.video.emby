@@ -6,7 +6,6 @@ Used to kick off Kodi playback
 from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
 from threading import Thread
-from xbmc import Player, sleep
 
 from .plex_api import API
 from .plex_db import PlexDB
@@ -209,7 +208,7 @@ def _playback_init(plex_id, plex_type, playqueue, pos):
         # Sleep a bit to let setResolvedUrl do its thing - bit ugly
         sleep_timer = 0
         while not app.PLAYSTATE.pkc_caused_stop_done:
-            sleep(50)
+            app.APP.monitor.waitForAbort(0.05)
             sleep_timer += 1
             if sleep_timer > 100:
                 break
@@ -505,7 +504,7 @@ def process_indirect(key, offset, resolve=True):
         result.listitem = listitem
         pickler.pickle_me(result)
     else:
-        thread = Thread(target=Player().play,
+        thread = Thread(target=app.APP.monitor.xmbcplayer.play,
                         args={'item': utils.try_encode(playurl),
                               'listitem': listitem})
         thread.setDaemon(True)
@@ -547,12 +546,11 @@ def threaded_playback(kodi_playlist, startpos, offset):
     """
     Seek immediately after kicking off playback is not reliable.
     """
-    player = Player()
-    player.play(kodi_playlist, None, False, startpos)
+    app.APP.monitor.xmbcplayer.play(kodi_playlist, None, False, startpos)
     if offset and offset != '0':
         i = 0
-        while not player.isPlaying():
-            sleep(100)
+        while not app.APP.monitor.xmbcplayer.isPlaying():
+            app.APP.monitor.waitForAbort(0.1)
             i += 1
             if i > 100:
                 LOG.error('Could not seek to %s', offset)

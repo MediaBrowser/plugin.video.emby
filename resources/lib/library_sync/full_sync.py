@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
-import xbmc
 
 from .get_metadata import GetMetadataTask, reset_collections
 from .process_metadata import InitNewSection, UpdateLastSync, ProcessMetadata
@@ -120,7 +119,7 @@ class FullSync(common.libsync_mixin):
                 continue
             LOG.debug('Waiting for download threads to finish')
             while self.threader.threader.working():
-                xbmc.sleep(100)
+                app.APP.monitor.waitForAbort(0.1)
             LOG.debug('Waiting for processing thread to finish section')
             self.queue.join()
             reset_collections()

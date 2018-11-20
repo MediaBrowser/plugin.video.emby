@@ -3,9 +3,7 @@
 from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
 
-import xbmc
-
-from .. import plex_functions as PF, utils, timing, variables as v
+from .. import plex_functions as PF, utils, timing, variables as v, app
 
 LOG = getLogger('PLEX.sync.time')
 
@@ -88,7 +86,7 @@ def sync_pms_time():
     # Toggle watched state
     PF.scrobble(plex_id, 'watched')
     # Let the PMS process this first!
-    xbmc.sleep(1000)
+    app.APP.monitor.waitForAbort(1)
     # Get updated metadata
     xml = PF.GetPlexMetadata(plex_id)
     # Toggle watched state back

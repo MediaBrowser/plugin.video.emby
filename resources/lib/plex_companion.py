@@ -9,7 +9,7 @@ from threading import Thread
 from Queue import Empty
 from socket import SHUT_RDWR
 from urllib import urlencode
-from xbmc import sleep, executebuiltin, Player
+from xbmc import executebuiltin
 
 from .plexbmchelper import listener, plexgdm, subscribers, httppersist
 from .plex_api import API
@@ -76,8 +76,6 @@ class PlexCompanion(backgroundthread.KillableThread):
         self.client = plexgdm.plexgdm()
         self.client.clientDetails()
         LOG.debug("Registration string is:\n%s", self.client.getClientDetails())
-        # kodi player instance
-        self.player = Player()
         self.httpd = False
         self.subscription_manager = None
         super(PlexCompanion, self).__init__()
@@ -177,14 +175,14 @@ class PlexCompanion(backgroundthread.KillableThread):
         if 'audioStreamID' in data:
             index = playqueue.items[pos].kodi_stream_index(
                 data['audioStreamID'], 'audio')
-            self.player.setAudioStream(index)
+            app.APP.monitor.xbmcplayer.setAudioStream(index)
         elif 'subtitleStreamID' in data:
             if data['subtitleStreamID'] == '0':
-                self.player.showSubtitles(False)
+                app.APP.monitor.xbmcplayer.showSubtitles(False)
             else:
                 index = playqueue.items[pos].kodi_stream_index(
                     data['subtitleStreamID'], 'subtitle')
-                self.player.setSubtitleStream(index)
+                app.APP.monitor.xbmcplayer.setSubtitleStream(index)
         else:
             LOG.error('Unknown setStreams command: %s', data)
 
@@ -269,7 +267,7 @@ class PlexCompanion(backgroundthread.KillableThread):
         # Start up instances
         request_mgr = httppersist.RequestMgr()
         subscription_manager = subscribers.SubscriptionMgr(request_mgr,
-                                                           self.player)
+                                                           app.APP.monitor.xbmcplayer)
         self.subscription_manager = subscription_manager
 
         if utils.settings('plexCompanion') == 'true':
@@ -288,7 +286,7 @@ class PlexCompanion(backgroundthread.KillableThread):
                     LOG.error("Unable to start PlexCompanion. Traceback:")
                     import traceback
                     LOG.error(traceback.print_exc())
-                sleep(3000)
+                app.APP.monitor.waitForAbort(3)
                 if start_count == 3:
                     LOG.error("Error: Unable to start web helper.")
                     httpd = False
@@ -308,7 +306,7 @@ class PlexCompanion(backgroundthread.KillableThread):
             while self.isSuspended():
                 if self.isCanceled():
                     break
-                sleep(1000)
+                app.APP.monitor.waitForAbort(1)
             try:
                 message_count += 1
                 if httpd:
@@ -347,6 +345,6 @@ class PlexCompanion(backgroundthread.KillableThread):
                 app.APP.companion_queue.task_done()
                 # Don't sleep
                 continue
-            sleep(50)
+            app.APP.monitor.waitForAbort(0.05)
         subscription_manager.signal_stop()
         client.stop_all()

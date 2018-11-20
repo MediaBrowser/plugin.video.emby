@@ -3,7 +3,6 @@
 from logging import getLogger
 from json import loads
 from ssl import CERT_NONE
-from xbmc import sleep
 
 from . import backgroundthread, websocket, utils, companion, app, variables as v
 
@@ -60,7 +59,7 @@ class WebSocket(backgroundthread.KillableThread):
                     LOG.info("##===---- %s Stopped ----===##",
                              self.__class__.__name__)
                     return
-                sleep(1000)
+                app.APP.monitor.waitForAbort(1)
             try:
                 self.process(*self.receive(self.ws))
             except websocket.WebSocketTimeoutException:
@@ -86,12 +85,12 @@ class WebSocket(backgroundthread.KillableThread):
                         LOG.info('%s: Repeated IOError detected. Stopping now',
                                  self.__class__.__name__)
                         break
-                    sleep(1000)
+                    app.APP.monitor.waitForAbort(1)
                 except websocket.WebSocketTimeoutException:
                     LOG.info("%s: Timeout while connecting, trying again",
                              self.__class__.__name__)
                     self.ws = None
-                    sleep(1000)
+                    app.APP.monitor.waitForAbort(1)
                 except websocket.WebSocketException as e:
                     LOG.info('%s: WebSocketException: %s',
                              self.__class__.__name__, e)
@@ -103,7 +102,7 @@ class WebSocket(backgroundthread.KillableThread):
                                      'Stopping now', self.__class__.__name__)
                             break
                     self.ws = None
-                    sleep(1000)
+                    app.APP.monitor.waitForAbort(1)
                 except Exception as e:
                     LOG.error('%s: Unknown exception encountered when '
                               'connecting: %s', self.__class__.__name__, e)
@@ -111,7 +110,7 @@ class WebSocket(backgroundthread.KillableThread):
                     LOG.error("%s: Traceback:\n%s",
                               self.__class__.__name__, traceback.format_exc())
                     self.ws = None
-                    sleep(1000)
+                    app.APP.monitor.waitForAbort(1)
                 else:
                     counter = 0
             except Exception as e:

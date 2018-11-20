@@ -63,7 +63,7 @@ class ContextMenu(object):
             if self._selected_option in (OPTIONS['Delete'],
                                          OPTIONS['Refresh']):
                 LOG.info("refreshing container")
-                xbmc.sleep(500)
+                app.APP.monitor.waitForAbort(0.5)
                 xbmc.executebuiltin('Container.Refresh')
 
     @staticmethod

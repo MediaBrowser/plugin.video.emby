@@ -13,7 +13,7 @@ from xbmcgui import Window
 from .plex_db import PlexDB
 from . import kodi_db
 from .downloadutils import DownloadUtils as DU
-from . import utils, timing, plex_functions as PF, playback, initialsetup
+from . import utils, timing, plex_functions as PF, playback
 from . import json_rpc as js, playqueue as PQ, playlist_func as PL
 from . import backgroundthread, app, variables as v
 
@@ -133,11 +133,11 @@ class KodiMonitor(xbmc.Monitor):
             utils.window('plex_online', value="sleep")
         elif method == "System.OnWake":
             # Allow network to wake up
-            xbmc.sleep(10000)
+            self.waitForAbort(10)
             utils.window('plex_online', value="false")
         elif method == "GUI.OnScreensaverDeactivated":
             if utils.settings('dbSyncScreensaver') == "true":
-                xbmc.sleep(5000)
+                self.waitForAbort(5)
                 utils.plex_command('RUN_LIB_SCAN', 'full')
         elif method == "System.OnQuit":
             LOG.info('Kodi OnQuit detected - shutting down')
@@ -267,7 +267,7 @@ class KodiMonitor(xbmc.Monitor):
             # start as Kodi updates this info very late!! Might get previous
             # element otherwise
             self._already_slept = True
-            xbmc.sleep(1000)
+            self.waitForAbort(1)
         try:
             json_item = js.get_item(playerid)
         except KeyError:
@@ -422,7 +422,7 @@ class SpecialMonitor(backgroundthread.KillableThread):
                     pass
                     # TODO: start polling PMS for playlist changes
                     # Optionally: poll PMS continuously with custom intervall
-            xbmc.sleep(200)
+            app.APP.monitor.waitForAbort(0.2)
         LOG.info("#====---- Special Monitor Stopped ----====#")
 
 
@@ -525,7 +525,7 @@ def _clean_file_table():
     This function tries for at most 5 seconds to clean the file table.
     """
     LOG.debug('Start cleaning Kodi files table')
-    xbmc.sleep(2000)
+    app.APP.monitor.waitForAbort(2)
     with kodi_db.KodiVideoDB() as kodidb_1:
         with kodi_db.KodiVideoDB() as kodidb_2:
             for file_id in kodidb_1.obsolete_file_ids():

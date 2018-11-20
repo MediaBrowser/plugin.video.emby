@@ -28,11 +28,9 @@ import logging
 import socket
 import threading
 import time
-from xbmc import sleep
 
 from ..downloadutils import DownloadUtils as DU
-from .. import utils, app
-from .. import variables as v
+from .. import utils, app, variables as v
 
 ###############################################################################
 
@@ -172,7 +170,7 @@ class plexgdm:
 
                     log.debug("Sending registration data HTTP/1.0 200 OK")
                     self.client_registered = True
-            sleep(500)
+            app.APP.monitor.waitForAbort(0.5)
         log.info("Client Update loop stopped")
         # When we are finished, then send a final goodbye message to
         # deregister cleanly.
@@ -286,7 +284,7 @@ class plexgdm:
             if discovery_count > self.discovery_interval:
                 self.discover()
                 discovery_count = 0
-            sleep(500)
+            app.APP.monitor.waitForAbort(0.5)
 
     def start_discovery(self, daemon=False):
         if not self._discovery_is_running:

@@ -43,12 +43,11 @@ import uuid
 import hashlib
 import base64
 import threading
-import time
 import logging
 import traceback
 import sys
 
-from . import utils
+from . import utils, app
 
 ###############################################################################
 
@@ -821,7 +820,7 @@ class WebSocketApp(object):
     def _send_ping(self, interval):
         while True:
             for _ in range(interval):
-                time.sleep(1)
+                app.APP.monitor.waitForAbort(1)
                 if not self.keep_running:
                     return
             self.sock.ping()

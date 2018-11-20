@@ -4,7 +4,6 @@ from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
 from urllib import quote_plus, unquote
 import requests
-import xbmc
 
 from .kodi_db import KodiVideoDB, KodiMusicDB, KodiTextureDB
 from . import app, backgroundthread, utils
@@ -59,7 +58,7 @@ class ImageCachingThread(backgroundthread.KillableThread):
                     # Abort was requested while waiting. We should exit
                     LOG.info("---===### Stopped ImageCachingThread ###===---")
                     return
-                xbmc.sleep(1000)
+                app.APP.monitor.waitForAbort(1)
             cache_url(url)
         LOG.info("---===### Stopped ImageCachingThread ###===---")
 
@@ -95,7 +94,7 @@ def cache_url(url):
                       'over-loaded. Sleep %s seconds before trying '
                       'again to download %s',
                       2**sleeptime, double_urldecode(url))
-            xbmc.sleep((2**sleeptime) * 1000)
+            app.APP.monitor.waitForAbort((2**sleeptime))
             sleeptime += 1
             continue
         except Exception as err:

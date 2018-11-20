@@ -15,12 +15,11 @@ from .. import companion
 from .. import json_rpc as js
 from .. import clientinfo
 from .. import variables as v
+from .. import app
 
 ###############################################################################
 
 LOG = getLogger('PLEX.listener')
-PLAYER = xbmc.Player()
-MONITOR = xbmc.Monitor()
 
 # Hack we need in order to keep track of the open connections from Plex Web
 CLIENT_DICT = {}
@@ -130,20 +129,20 @@ class MyHandler(BaseHTTPRequestHandler):
             # Only reply if there is indeed something playing
             # Otherwise, all clients seem to keep connection open
             if params.get('wait') == '1':
-                MONITOR.waitForAbort(0.95)
+                app.APP.monitor.waitForAbort(0.95)
             if self.client_address[0] not in CLIENT_DICT:
                 CLIENT_DICT[self.client_address[0]] = []
             tracker = CLIENT_DICT[self.client_address[0]]
             tracker.append(self.client_address[1])
-            while (not PLAYER.isPlaying() and
-                   not MONITOR.abortRequested() and
+            while (not app.APP.monitor.xbmcplayer.isPlaying() and
+                   not app.APP.monitor.abortRequested() and
                    sub_mgr.stop_sent_to_web and not
                    (len(tracker) >= 4 and
                     tracker[0] == self.client_address[1])):
                 # Keep at most 3 connections open, then drop the first one
                 # Doesn't need to be thread-save
                 # Silly stuff really
-                MONITOR.waitForAbort(1)
+                app.APP.monitor.waitForAbort(1)
             # Let PKC know that we're releasing this connection
             tracker.pop(0)
             msg = sub_mgr.msg(js.get_players()).format(

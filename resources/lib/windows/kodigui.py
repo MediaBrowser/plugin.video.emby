@@ -7,6 +7,8 @@ import time
 import threading
 import traceback
 
+from .. import app
+
 MONITOR = None
 
 
@@ -918,7 +920,7 @@ class PropertyTimer():
 
     def _wait(self):
         while not xbmc.abortRequested and time.time() < self._endTime:
-            xbmc.sleep(100)
+            app.APP.monitor.waitForAbort(0.1)
         if xbmc.abortRequested:
             return
         if self._endTime == 0:

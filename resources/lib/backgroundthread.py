@@ -7,7 +7,7 @@ import Queue
 import heapq
 import xbmc
 
-from . import utils
+from . import utils, app
 from Queue import Empty
 
 LOG = getLogger('PLEX.' + __name__)
@@ -253,7 +253,7 @@ class NonstoppingBackgroundWorker(BackgroundWorker):
                 self._queue.task_done()
                 self._task = None
             except Queue.Empty:
-                xbmc.sleep(50)
+                app.APP.monitor.waitForAbort(0.05)
 
     def working(self):
         return self._working

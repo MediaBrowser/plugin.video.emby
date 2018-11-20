@@ -4,7 +4,6 @@ from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
 import time
 import threading
-import xbmc
 
 from .downloadutils import DownloadUtils as DU
 from . import utils, app
@@ -181,12 +180,12 @@ class PinLogin(object):
             try:
                 token = xml.find('auth_token').text
             except AttributeError:
-                time.sleep(self.POLL_INTERVAL)
+                app.APP.monitor.waitForAbort(self.POLL_INTERVAL)
                 continue
             if token:
                 self.token = token
                 break
-            time.sleep(self.POLL_INTERVAL)
+            app.APP.monitor.waitForAbort(self.POLL_INTERVAL)
         if self._callback:
             self._callback(self.token, self.xml)
         if self.token:
@@ -256,7 +255,7 @@ def _sign_in_with_pin():
                         LOG.debug('Pin login aborted')
                         pinlogin.abort()
                         return
-                    xbmc.sleep(100)
+                    app.APP.monitor.waitForAbort(0.1)
                 if not pinlogin.expired:
                     if pinlogin.xml:
                         pin_login_window.setLinking()

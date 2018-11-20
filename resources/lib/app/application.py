@@ -32,6 +32,8 @@ class App(object):
         self.command_pipeline_queue = Queue.Queue()
         # Websocket_client queue to communicate with librarysync
         self.websocket_queue = Queue.Queue()
+        # xbmc.Monitor() instance from kodimonitor.py
+        self.monitor = None
 
     def load_settings(self):
         # Number of items to fetch and display in widgets
