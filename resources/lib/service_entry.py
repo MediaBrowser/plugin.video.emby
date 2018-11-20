@@ -85,7 +85,7 @@ class Service():
         videonodes.VideoNodes().clearProperties()
         clientinfo.getDeviceId()
         # Init time-offset between Kodi and Plex
-        timing.KODI_PLEX_TIME_OFFSET = float(utils.settings('kodiplextimeoffset')) or 0.0
+        timing.KODI_PLEX_TIME_OFFSET = float(utils.settings('kodiplextimeoffset') or 0.0)
 
     def isCanceled(self):
         return xbmc.abortRequested or app.APP.stop_pkc
