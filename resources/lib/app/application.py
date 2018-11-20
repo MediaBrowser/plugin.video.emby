@@ -41,5 +41,3 @@ class App(object):
         # Hack to force Kodi widget for "in progress" to show up if it was empty
         # before
         self.force_reload_skin = utils.settings('forceReloadSkinOnPlaybackStop') == 'true'
-        # Stemming from the PKC settings.xml
-        self.kodi_plex_time_offset = float(utils.settings('kodiplextimeoffset'))
