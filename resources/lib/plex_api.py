@@ -299,7 +299,7 @@ class API(object):
         played = True if playcount else False
 
         try:
-            last_played = utils.plex_date_to_kodi(int(item['lastViewedAt']))
+            last_played = timing.plex_date_to_kodi(int(item['lastViewedAt']))
         except (KeyError, ValueError):
             last_played = None
 
