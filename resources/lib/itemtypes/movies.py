@@ -126,8 +126,7 @@ class Movie(ItemBase):
                                     rating,
                                     api.votecount())
             if api.provider('imdb') is not None:
-                uniqueid = self.kodidb.get_uniqueid(kodi_id,
-                                                    v.KODI_TYPE_MOVIE)
+                uniqueid = self.kodidb.add_uniqueid()
                 self.kodidb.add_uniqueid(uniqueid,
                                          kodi_id,
                                          v.KODI_TYPE_MOVIE,

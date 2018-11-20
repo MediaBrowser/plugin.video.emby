@@ -755,6 +755,10 @@ class KodiVideoDB(common.KodiDBBase):
             VALUES (?, ?, ?, ?, ?)
         ''', (args))
 
+    def add_uniqueid(self):
+        self.cursor.execute('SELECT COALESCE(MAX(uniqueid_id), 0) FROM uniqueid')
+        return self.cursor.fetchone()[0] + 1
+
     def get_uniqueid(self, kodi_id, kodi_type):
         """
         Returns the uniqueid_id
@@ -764,8 +768,7 @@ class KodiVideoDB(common.KodiDBBase):
         try:
             return self.cursor.fetchone()[0]
         except TypeError:
-            self.cursor.execute('SELECT COALESCE(MAX(uniqueid_id),0) FROM uniqueid')
-            return self.cursor.fetchone()[0] + 1
+            return self.add_uniqueid()
 
     def update_uniqueid(self, *args):
         """
