@@ -221,7 +221,7 @@ class API(object):
             # max width/height supported by plex image transcoder is 1920x1080
             path = app.CONN.server + PF.transcode_image_path(
                 self.item[0][0].get('key'),
-                app.CONN.pms_token,
+                app.ACCOUNT.pms_token,
                 "%s%s" % (app.CONN.server, self.item[0][0].get('key')),
                 1920,
                 1080)
@@ -684,12 +684,12 @@ class API(object):
 
         url may or may not already contain a '?'
         """
-        if not app.CONN.pms_token:
+        if not app.ACCOUNT.pms_token:
             return url
         if '?' not in url:
-            url = "%s?X-Plex-Token=%s" % (url, app.CONN.pms_token)
+            url = "%s?X-Plex-Token=%s" % (url, app.ACCOUNT.pms_token)
         else:
-            url = "%s&X-Plex-Token=%s" % (url, app.CONN.pms_token)
+            url = "%s&X-Plex-Token=%s" % (url, app.ACCOUNT.pms_token)
         return url
 
     def item_id(self):
