@@ -784,6 +784,10 @@ class KodiVideoDB(common.KodiDBBase):
         self.cursor.execute('DELETE FROM uniqueid WHERE media_id = ? AND media_type = ?',
                             (kodi_id, kodi_type))
 
+    def add_ratingid(self):
+        self.cursor.execute('SELECT COALESCE(MAX(rating_id),0) FROM rating')
+        return self.cursor.fetchone()[0] + 1
+
     def get_ratingid(self, kodi_id, kodi_type):
         """
         Create if needed and return the unique rating_id from rating table
@@ -793,8 +797,7 @@ class KodiVideoDB(common.KodiDBBase):
         try:
             return self.cursor.fetchone()[0]
         except TypeError:
-            self.cursor.execute('SELECT COALESCE(MAX(rating_id),0) FROM rating')
-            return self.cursor.fetchone()[0] + 1
+            return self.add_ratingid()
 
     def update_ratings(self, *args):
         """
