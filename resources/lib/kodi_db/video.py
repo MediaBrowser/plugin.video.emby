@@ -988,3 +988,16 @@ class KodiVideoDB(common.KodiDBBase):
 
     def remove_movie(self, kodi_id):
         self.cursor.execute('DELETE FROM movie WHERE idMovie = ?', (kodi_id,))
+
+    def update_userrating(self, kodi_id, kodi_type, userrating):
+        """
+        Updates userrating
+        """
+        if kodi_type == v.KODI_TYPE_MOVIE:
+            identifier = 'idMovie'
+        elif kodi_type == v.KODI_TYPE_EPISODE:
+            identifier = 'idEpisode'
+        elif kodi_type == v.KODI_TYPE_SONG:
+            identifier = 'idSong'
+        self.cursor.execute('''UPDATE %s SET userrating = ? WHERE ? = ?''' % kodi_type,
+                            (userrating, identifier, kodi_id))
