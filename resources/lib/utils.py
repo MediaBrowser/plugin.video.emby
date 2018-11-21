@@ -233,7 +233,7 @@ def ERROR(txt='', hide_tb=False, notify=False, cancel_sync=False):
     short = str(sys.exc_info()[1])
     LOG.error('Error encountered: %s - %s', txt, short)
     if cancel_sync:
-        import app
+        from . import app
         app.SYNC.stop_sync = True
     if hide_tb:
         return short
