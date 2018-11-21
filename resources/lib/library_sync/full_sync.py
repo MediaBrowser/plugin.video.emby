@@ -136,7 +136,8 @@ class FullSync(common.libsync_mixin):
                 # Ensure that the DB connection is closed to commit the
                 # changes above - avoids "Item not yet synced" error
                 self.queue.join()
-                self.process_playstate(iterator)
+                if self.plex_type != v.PLEX_TYPE_ARTIST:
+                    self.process_playstate(iterator)
             except RuntimeError:
                 LOG.error('Could not process playstate for section %s', section)
                 successful = False

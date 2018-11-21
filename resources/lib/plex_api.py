@@ -303,7 +303,8 @@ class API(object):
         except (KeyError, ValueError):
             last_played = None
 
-        if app.SYNC.indicate_media_versions is True:
+        if (app.SYNC.indicate_media_versions is True and
+                self.plex_type() in (v.PLEX_TYPE_MOVIE, v.PLEX_TYPE_EPISODE)):
             userrating = 0
             for _ in self.item.findall('./Media'):
                 userrating += 1

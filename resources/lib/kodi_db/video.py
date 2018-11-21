@@ -755,7 +755,7 @@ class KodiVideoDB(common.KodiDBBase):
             VALUES (?, ?, ?, ?, ?)
         ''', (args))
 
-    def add_uniqueid(self):
+    def add_uniqueid_id(self):
         self.cursor.execute('SELECT COALESCE(MAX(uniqueid_id), 0) FROM uniqueid')
         return self.cursor.fetchone()[0] + 1
 
@@ -768,7 +768,7 @@ class KodiVideoDB(common.KodiDBBase):
         try:
             return self.cursor.fetchone()[0]
         except TypeError:
-            return self.add_uniqueid()
+            return self.add_uniqueid_id()
 
     def update_uniqueid(self, *args):
         """
@@ -994,10 +994,16 @@ class KodiVideoDB(common.KodiDBBase):
         Updates userrating
         """
         if kodi_type == v.KODI_TYPE_MOVIE:
+            table = kodi_type
             identifier = 'idMovie'
         elif kodi_type == v.KODI_TYPE_EPISODE:
+            table = kodi_type
             identifier = 'idEpisode'
-        elif kodi_type == v.KODI_TYPE_SONG:
-            identifier = 'idSong'
-        self.cursor.execute('''UPDATE %s SET userrating = ? WHERE ? = ?''' % kodi_type,
+        elif kodi_type == v.KODI_TYPE_SEASON:
+            table = 'seasons'
+            identifier = 'idSeason'
+        elif kodi_type == v.KODI_TYPE_SHOW:
+            table = kodi_type
+            identifier = 'idShow'
+        self.cursor.execute('''UPDATE %s SET userrating = ? WHERE ? = ?''' % table,
                             (userrating, identifier, kodi_id))

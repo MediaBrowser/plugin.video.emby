@@ -468,6 +468,17 @@ class KodiMusicDB(common.KodiDBBase):
             VALUES (?, ?, ?, ?, ?)
         ''', (song_id, album_id, track_no, track_title, runtime))
 
+    def update_userrating(self, kodi_id, kodi_type, userrating):
+        """
+        Updates userrating for songs and albums
+        """
+        if kodi_type == v.KODI_TYPE_SONG:
+            identifier = 'idSong'
+        elif kodi_type == v.KODI_TYPE_ALBUM:
+            identifier = 'idAlbum'
+        self.cursor.execute('''UPDATE %s SET userrating = ? WHERE ? = ?''' % kodi_type,
+                            (userrating, identifier, kodi_id))
+
     def remove_albuminfosong(self, kodi_id):
         """
         Kodi 17 only

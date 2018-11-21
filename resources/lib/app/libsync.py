@@ -48,8 +48,7 @@ class Sync(object):
         self.remapSMBphotoOrg = utils.settings('remapSMBphotoOrg')
         self.remapSMBphotoNew = utils.settings('remapSMBphotoNew')
         # Shall we replace custom user ratings with the number of versions available?
-        self.indicate_media_versions = True \
-            if utils.settings('indicate_media_versions') == "true" else False
+        self.indicate_media_versions = utils.settings('indicate_media_versions') == "true"
         # Will sync movie trailer differently: either play trailer directly or show
         # all the Plex extras for the user to choose
         self.show_extras_instead_of_playing_trailer = utils.settings('showExtrasInsteadOfTrailer') == 'true'

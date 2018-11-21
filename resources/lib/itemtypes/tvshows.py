@@ -11,6 +11,30 @@ LOG = getLogger('PLEX.tvshows')
 
 
 class TvShowMixin(object):
+    def update_userdata(self, xml_element, plex_type):
+        """
+        Updates the Kodi watched state of the item from PMS. Also retrieves
+        Plex resume points for movies in progress.
+        """
+        api = API(xml_element)
+        # Get key and db entry on the Kodi db side
+        db_item = self.plexdb.item_by_id(api.plex_id(), plex_type)
+        if not db_item:
+            LOG.error('Item not yet synced: %s', xml_element.attrib)
+            return
+        # Grab the user's viewcount, resume points etc. from PMS' answer
+        userdata = api.userdata()
+        self.kodidb.update_userrating(db_item['kodi_id'],
+                                      db_item['kodi_type'],
+                                      userdata['UserRating'])
+        if plex_type == v.PLEX_TYPE_EPISODE:
+            self.kodidb.set_resume(db_item['kodi_fileid'],
+                                   userdata['Resume'],
+                                   userdata['Runtime'],
+                                   userdata['PlayCount'],
+                                   userdata['LastPlayedDate'],
+                                   plex_type)
+
     def remove(self, plex_id, plex_type=None):
         """
         Remove the entire TV shows object (show, season or episode) including
@@ -167,7 +191,6 @@ class Show(ItemBase, TvShowMixin):
                                        api.audience_rating(),
                                        api.votecount(),
                                        rating_id)
-            # update new uniqueid Kodi 17
             if api.provider('tvdb') is not None:
                 uniqueid = self.kodidb.get_uniqueid(kodi_id,
                                                     v.KODI_TYPE_SHOW)
@@ -209,9 +232,8 @@ class Show(ItemBase, TvShowMixin):
                                     "default",
                                     api.audience_rating(),
                                     api.votecount())
-            if api.provider('tvdb') is not None:
-                uniqueid = self.kodidb.get_uniqueid(kodi_id,
-                                                    v.KODI_TYPE_SHOW)
+            if api.provider('tvdb'):
+                uniqueid = self.kodidb.add_uniqueid_id()
                 self.kodidb.add_uniqueid(uniqueid,
                                          kodi_id,
                                          v.KODI_TYPE_SHOW,
@@ -423,14 +445,17 @@ class Episode(ItemBase, TvShowMixin):
                                        userdata['Rating'],
                                        api.votecount(),
                                        ratingid)
-            # update new uniqueid Kodi 17
-            uniqueid = self.kodidb.get_uniqueid(kodi_id,
-                                                v.KODI_TYPE_EPISODE)
-            self.kodidb.update_uniqueid(kodi_id,
-                                        v.KODI_TYPE_EPISODE,
-                                        api.provider('tvdb'),
-                                        "tvdb",
-                                        uniqueid)
+            if api.provider('tvdb'):
+                uniqueid = self.kodidb.get_uniqueid(kodi_id,
+                                                    v.KODI_TYPE_EPISODE)
+                self.kodidb.update_uniqueid(kodi_id,
+                                            v.KODI_TYPE_EPISODE,
+                                            api.provider('tvdb'),
+                                            "tvdb",
+                                            uniqueid)
+            else:
+                self.kodidb.remove_uniqueid(kodi_id, v.KODI_TYPE_EPISODE)
+                uniqueid = -1
             self.kodidb.modify_people(kodi_id,
                                       v.KODI_TYPE_EPISODE,
                                       api.people_list())
@@ -471,14 +496,13 @@ class Episode(ItemBase, TvShowMixin):
                                     "default",
                                     userdata['Rating'],
                                     api.votecount())
-            # add new uniqueid Kodi 17
-            uniqueid = self.kodidb.get_uniqueid(kodi_id,
-                                                v.KODI_TYPE_EPISODE)
-            self.kodidb.add_uniqueid(uniqueid,
-                                     kodi_id,
-                                     v.KODI_TYPE_EPISODE,
-                                     api.provider('tvdb'),
-                                     "tvdb")
+            if api.provider('tvdb'):
+                uniqueid = self.kodidb.add_uniqueid_id()
+                self.kodidb.add_uniqueid(uniqueid,
+                                         kodi_id,
+                                         v.KODI_TYPE_EPISODE,
+                                         api.provider('tvdb'),
+                                         "tvdb")
             self.kodidb.add_people(kodi_id,
                                    v.KODI_TYPE_EPISODE,
                                    api.people_list())

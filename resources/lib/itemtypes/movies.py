@@ -126,7 +126,7 @@ class Movie(ItemBase):
                                     rating,
                                     api.votecount())
             if api.provider('imdb') is not None:
-                uniqueid = self.kodidb.add_uniqueid()
+                uniqueid = self.kodidb.add_uniqueid_id()
                 self.kodidb.add_uniqueid(uniqueid,
                                          kodi_id,
                                          v.KODI_TYPE_MOVIE,
@@ -253,3 +253,27 @@ class Movie(ItemBase):
             self.kodidb.remove_uniqueid(kodi_id, kodi_type)
             self.kodidb.remove_ratings(kodi_id, kodi_type)
             LOG.debug('Deleted movie %s from kodi database', plex_id)
+
+    def update_userdata(self, xml_element, plex_type):
+        """
+        Updates the Kodi watched state of the item from PMS. Also retrieves
+        Plex resume points for movies in progress.
+        """
+        api = API(xml_element)
+        # Get key and db entry on the Kodi db side
+        db_item = self.plexdb.item_by_id(api.plex_id(), plex_type)
+        if not db_item:
+            LOG.error('Item not yet synced: %s', xml_element.attrib)
+            return
+        # Grab the user's viewcount, resume points etc. from PMS' answer
+        userdata = api.userdata()
+        # Write to Kodi DB
+        self.kodidb.set_resume(db_item['kodi_fileid'],
+                               userdata['Resume'],
+                               userdata['Runtime'],
+                               userdata['PlayCount'],
+                               userdata['LastPlayedDate'],
+                               plex_type)
+        self.kodidb.update_userrating(db_item['kodi_id'],
+                                      db_item['kodi_type'],
+                                      userdata['UserRating'])
