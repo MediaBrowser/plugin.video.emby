@@ -184,7 +184,7 @@ class KodiMusicDB(common.KodiDBBase):
                 strLabel = ?,
                 iUserrating = ?,
                 lastScraped = ?,
-                strReleaseType = ?,
+                strReleaseType = ?
             WHERE idAlbum = ?
         ''', (args))
 
