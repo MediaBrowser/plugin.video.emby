@@ -488,8 +488,7 @@ class Episode(ItemBase, TvShowMixin):
                                                kodi_pathid,
                                                api.date_created())
 
-            rating_id = self.kodidb.get_ratingid(kodi_id,
-                                                 v.KODI_TYPE_EPISODE)
+            rating_id = self.kodidb.add_ratingid()
             self.kodidb.add_ratings(rating_id,
                                     kodi_id,
                                     v.KODI_TYPE_EPISODE,
