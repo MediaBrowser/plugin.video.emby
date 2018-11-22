@@ -473,10 +473,13 @@ class KodiMusicDB(common.KodiDBBase):
         Updates userrating for songs and albums
         """
         if kodi_type == v.KODI_TYPE_SONG:
+            column = 'userrating'
             identifier = 'idSong'
         elif kodi_type == v.KODI_TYPE_ALBUM:
+            column = 'iUserrating'
             identifier = 'idAlbum'
-        self.cursor.execute('''UPDATE %s SET userrating = ? WHERE ? = ?''' % kodi_type,
+        self.cursor.execute('''UPDATE %s SET %s = ? WHERE ? = ?'''
+                            % (kodi_type, column),
                             (userrating, identifier, kodi_id))
 
     def remove_albuminfosong(self, kodi_id):
