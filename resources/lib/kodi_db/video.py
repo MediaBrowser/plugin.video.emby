@@ -829,7 +829,8 @@ class KodiVideoDB(common.KodiDBBase):
                 media_id,
                 media_type,
                 rating_type,
-                rating, votes)
+                rating,
+                votes)
             VALUES (?, ?, ?, ?, ?, ?)
         ''', (args))
 
