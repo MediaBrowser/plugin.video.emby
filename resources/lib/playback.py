@@ -51,7 +51,7 @@ def playback_triage(plex_id=None, plex_type=None, path=None, resolve=True):
     global RESOLVE
     # If started via Kodi context menu, we never resolve
     RESOLVE = resolve if not app.PLAYSTATE.context_menu_play else False
-    if not app.CONN.authenticated:
+    if not app.ACCOUNT.authenticated:
         LOG.error('Not yet authenticated for PMS, abort starting playback')
         # "Unauthorized for PMS"
         utils.dialog('notification', utils.lang(29999), utils.lang(30017))
