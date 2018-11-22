@@ -17,6 +17,13 @@ SYNC_FANART = utils.settings('FanartTV') == 'true'
 PREFER_KODI_COLLECTION_ART = utils.settings('PreferKodiCollectionArt') == 'false'
 
 
+def suspends():
+    return (app.SYNC.suspend_library_thread or
+            app.SYNC.stop_sync or
+            app.SYNC.db_scan or
+            app.SYNC.suspend_sync)
+
+
 class FanartThread(backgroundthread.KillableThread):
     """
     This will potentially take hours!
@@ -27,10 +34,7 @@ class FanartThread(backgroundthread.KillableThread):
         super(FanartThread, self).__init__()
 
     def isSuspended(self):
-        return (app.SYNC.suspend_library_thread or
-                app.SYNC.stop_sync or
-                app.SYNC.db_scan or
-                app.SYNC.suspend_sync)
+        return suspends()
 
     def run(self):
         try:
@@ -140,8 +144,15 @@ def process_fanart(plex_id, plex_type, refresh=False):
                                                 setid,
                                                 v.KODI_TYPE_SET)
         done = True
+    except utils.OperationalError:
+        # We were not fast enough when a sync started
+        pass
     finally:
-        if done is True:
-            with PlexDB() as plexdb:
-                plexdb.set_fanart_synced(plex_id,
-                                         plex_type)
+        if done is True and not suspends():
+            try:
+                with PlexDB() as plexdb:
+                    plexdb.set_fanart_synced(plex_id,
+                                             plex_type)
+            except utils.OperationalError:
+                # We were not fast enough when a sync started
+                pass
