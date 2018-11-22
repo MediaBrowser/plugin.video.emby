@@ -136,10 +136,9 @@ def process_fanart(plex_id, plex_type, refresh=False):
                         if art in external_set_artwork:
                             del external_set_artwork[art]
                 with itemtypes.Movie(None) as movie:
-                    movie.artwork.modify_artwork(external_set_artwork,
-                                                 setid,
-                                                 v.KODI_TYPE_SET,
-                                                 movie.kodicursor)
+                    movie.kodidb.modify_artwork(external_set_artwork,
+                                                setid,
+                                                v.KODI_TYPE_SET)
         done = True
     finally:
         if done is True:
