@@ -124,8 +124,6 @@ class SubscriptionMgr(object):
         self.lastplayers = {}
         # In order to signal a stop to Plex Web ONCE on playback stop
         self.stop_sent_to_web = True
-
-        self.xbmcplayer = player
         self.request_mgr = request_mgr
 
     def _server_by_host(self, host):

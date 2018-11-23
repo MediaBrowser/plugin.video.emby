@@ -504,7 +504,7 @@ def process_indirect(key, offset, resolve=True):
         result.listitem = listitem
         pickler.pickle_me(result)
     else:
-        thread = Thread(target=app.APP.monitor.xmbcplayer.play,
+        thread = Thread(target=app.APP.player.play,
                         args={'item': utils.try_encode(playurl),
                               'listitem': listitem})
         thread.setDaemon(True)
@@ -546,10 +546,10 @@ def threaded_playback(kodi_playlist, startpos, offset):
     """
     Seek immediately after kicking off playback is not reliable.
     """
-    app.APP.monitor.xmbcplayer.play(kodi_playlist, None, False, startpos)
+    app.APP.player.play(kodi_playlist, None, False, startpos)
     if offset and offset != '0':
         i = 0
-        while not app.APP.monitor.xmbcplayer.isPlaying():
+        while not app.APP.player.isPlaying():
             app.APP.monitor.waitForAbort(0.1)
             i += 1
             if i > 100:

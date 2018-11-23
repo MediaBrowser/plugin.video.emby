@@ -175,14 +175,14 @@ class PlexCompanion(backgroundthread.KillableThread):
         if 'audioStreamID' in data:
             index = playqueue.items[pos].kodi_stream_index(
                 data['audioStreamID'], 'audio')
-            app.APP.monitor.xbmcplayer.setAudioStream(index)
+            app.APP.player.setAudioStream(index)
         elif 'subtitleStreamID' in data:
             if data['subtitleStreamID'] == '0':
-                app.APP.monitor.xbmcplayer.showSubtitles(False)
+                app.APP.player.showSubtitles(False)
             else:
                 index = playqueue.items[pos].kodi_stream_index(
                     data['subtitleStreamID'], 'subtitle')
-                app.APP.monitor.xbmcplayer.setSubtitleStream(index)
+                app.APP.player.setSubtitleStream(index)
         else:
             LOG.error('Unknown setStreams command: %s', data)
 
@@ -267,7 +267,7 @@ class PlexCompanion(backgroundthread.KillableThread):
         # Start up instances
         request_mgr = httppersist.RequestMgr()
         subscription_manager = subscribers.SubscriptionMgr(request_mgr,
-                                                           app.APP.monitor.xbmcplayer)
+                                                           app.APP.player)
         self.subscription_manager = subscription_manager
 
         if utils.settings('plexCompanion') == 'true':

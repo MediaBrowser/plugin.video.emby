@@ -29,7 +29,6 @@ class KodiMonitor(xbmc.Monitor):
     PKC implementation of the Kodi Monitor class. Invoke only once.
     """
     def __init__(self):
-        self.xbmcplayer = xbmc.Player()
         self._already_slept = False
         self.hack_replay = None
         xbmc.Monitor.__init__(self)

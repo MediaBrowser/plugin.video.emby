@@ -238,6 +238,7 @@ class Service():
         app.init()
         # Some plumbing
         app.APP.monitor = kodimonitor.KodiMonitor()
+        app.APP.player = xbmc.Player()
         artwork.IMAGE_CACHING_SUSPENDS = [
             app.SYNC.suspend_library_thread,
             app.SYNC.stop_sync,

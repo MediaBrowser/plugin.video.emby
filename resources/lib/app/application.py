@@ -34,6 +34,8 @@ class App(object):
         self.websocket_queue = Queue.Queue()
         # xbmc.Monitor() instance from kodimonitor.py
         self.monitor = None
+        # xbmc.Player() instance
+        self.player = None
 
     def load_settings(self):
         # Number of items to fetch and display in widgets
