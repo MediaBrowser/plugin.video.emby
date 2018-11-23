@@ -521,7 +521,7 @@ class KodiVideoDB(common.KodiDBBase):
                             (filename,))
         files = self.cursor.fetchall()
         if len(files) == 0:
-            LOG.info('Did not find any file, abort')
+            LOG.debug('Did not find any file, abort')
             return
         # result will contain a list of all idFile with matching filename and
         # matching path
