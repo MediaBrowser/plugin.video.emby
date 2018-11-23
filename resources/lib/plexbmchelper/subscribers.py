@@ -101,9 +101,9 @@ def update_player_info(playerid):
     """
     Updates all player info for playerid [int] in state.py.
     """
-    app.PLAYSTATE.playerstates[playerid].update(js.get_player_props(playerid))
-    app.PLAYSTATE.playerstates[playerid]['volume'] = js.get_volume()
-    app.PLAYSTATE.playerstates[playerid]['muted'] = js.get_muted()
+    app.PLAYSTATE.player_states[playerid].update(js.get_player_props(playerid))
+    app.PLAYSTATE.player_states[playerid]['volume'] = js.get_volume()
+    app.PLAYSTATE.player_states[playerid]['muted'] = js.get_muted()
 
 
 class SubscriptionMgr(object):
