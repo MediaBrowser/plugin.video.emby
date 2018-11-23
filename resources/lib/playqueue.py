@@ -134,7 +134,7 @@ class PlayqueueMonitor(backgroundthread.KillableThread):
                                  old_item.kodi_type == new_item['type'])
                 else:
                     try:
-                        plex_id = utils.REGEX_PLEX_ID.findall(new_item['file'])[0]
+                        plex_id = int(utils.REGEX_PLEX_ID.findall(new_item['file'])[0])
                     except IndexError:
                         LOG.debug('Comparing paths directly as a fallback')
                         identical = old_item.file == new_item['file']
