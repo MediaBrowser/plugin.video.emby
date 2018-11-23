@@ -41,7 +41,8 @@ def kodiid_from_filename(path, kodi_type=None, db_type=None):
                 kodi_id, kodi_type = kodidb.video_id_from_filename(filename,
                                                                    path)
             except TypeError:
-                LOG.debug('No kodi video db element found for path %s', path)
+                LOG.debug('No kodi video db element found for path %s file %s',
+                          path, filename)
     return kodi_id, kodi_type
 
 
