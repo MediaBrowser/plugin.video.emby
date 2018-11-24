@@ -148,7 +148,7 @@ class Task(object):
         self.finished = True
 
     def run(self):
-        pass
+        raise NotImplementedError
 
     def cancel(self):
         self._canceled = True
