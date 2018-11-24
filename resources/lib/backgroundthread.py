@@ -259,8 +259,7 @@ class NonstoppingBackgroundWorker(BackgroundWorker):
 
 
 class BackgroundThreader:
-    def __init__(self, name=None, worker=BackgroundWorker,
-                 worker_count=int(utils.settings('syncThreadNumber'))):
+    def __init__(self, name=None, worker=BackgroundWorker, worker_count=6):
         self.name = name
         self._queue = MutablePriorityQueue()
         self._abort = False
