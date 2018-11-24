@@ -160,6 +160,17 @@ class Task(object):
         return not self.finished and not self._canceled
 
 
+def FunctionAsTask(Task):
+    def __init__(self, function, *args, **kwargs):
+        self.function = function
+        self._args = args
+        self._kwargs = kwargs
+        super(FunctionAsTask, self).__init__()
+
+    def run(self):
+        self.function(*self._args, **self._kwargs)
+
+
 class MutablePriorityQueue(Queue.PriorityQueue):
     def _get(self, heappop=heapq.heappop):
             self.queue.sort()
