@@ -119,7 +119,7 @@ class PlexDBBase(object):
         """
         Removes the item from our Plex db
         """
-        self.cursor.execute('DELETE FROM ? WHERE plex_id = ?' % plex_type, (plex_id, ))
+        self.cursor.execute('DELETE FROM %s WHERE plex_id = ?' % plex_type, (plex_id, ))
 
     def every_plex_id(self, plex_type):
         """
