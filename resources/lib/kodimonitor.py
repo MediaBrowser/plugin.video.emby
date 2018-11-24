@@ -511,9 +511,8 @@ def _record_playstate(status, ended):
             xbmc.getCondVisibility('Window.IsVisible(Home.xml)')):
         LOG.debug('Refreshing skin to update widgets')
         xbmc.executebuiltin('ReloadSkin()')
-    thread = Thread(target=_clean_file_table)
-    thread.setDaemon(True)
-    thread.start()
+    task = backgroundthread.FunctionAsTask(_clean_file_table)
+    backgroundthread.BGThreader.addTasksToFront(task)
 
 
 def _clean_file_table():
