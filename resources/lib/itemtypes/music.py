@@ -91,8 +91,8 @@ class MusicMixin(object):
             # Remove the album
             self.remove_album(db_item['kodi_id'])
             # Show verification
-            if (not self.plexdb.artist_has_albums(db_item['album_id']) and
-                    not self.plexdb.artist_has_songs(db_item['album_id'])):
+            if (not self.plexdb.artist_has_albums(db_item['kodi_id']) and
+                    not self.plexdb.artist_has_songs(db_item['kodi_id'])):
                 # There's no other season or episode left, delete the show
                 self.remove_artist(db_item['parent_id'])
                 self.plexdb.remove(db_item['artist_id'], v.KODI_TYPE_ARTIST)
