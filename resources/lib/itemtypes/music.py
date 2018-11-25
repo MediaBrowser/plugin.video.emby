@@ -139,7 +139,7 @@ class MusicMixin(object):
         '''
         Remove an artist and associated songs and albums
         '''
-        self.remove_artist(kodi_id)
+        self.kodidb.remove_artist(kodi_id)
         self.kodidb.delete_artwork(kodi_id, v.KODI_TYPE_ARTIST)
 
 
