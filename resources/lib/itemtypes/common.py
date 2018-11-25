@@ -4,7 +4,6 @@ from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
 from ntpath import dirname
 
-from ..plex_api import API
 from ..plex_db import PlexDB
 from ..kodi_db import KodiVideoDB
 from .. import utils, timing
