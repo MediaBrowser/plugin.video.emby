@@ -265,7 +265,7 @@ def process_playing(data):
                 PLAYSTATE_SESSIONS[session_key] = {}
             else:
                 # PMS is ours - get all current sessions
-                PLAYSTATE_SESSIONS.update(PF.GetPMSStatus(app.CONN.plex_token))
+                PLAYSTATE_SESSIONS.update(PF.GetPMSStatus(app.ACCOUNT.plex_token))
                 LOG.debug('Updated current sessions. They are: %s',
                           PLAYSTATE_SESSIONS)
                 if session_key not in PLAYSTATE_SESSIONS:
@@ -281,7 +281,7 @@ def process_playing(data):
             # Identify the user - same one as signed on with PKC? Skip
             # update if neither session's username nor userid match
             # (Owner sometime's returns id '1', not always)
-            if not app.CONN.plex_token and session['userId'] == '1':
+            if not app.ACCOUNT.plex_token and session['userId'] == '1':
                 # PKC not signed in to plex.tv. Plus owner of PMS is
                 # playing (the '1').
                 # Hence must be us (since several users require plex.tv
