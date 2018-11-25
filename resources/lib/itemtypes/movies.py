@@ -219,40 +219,40 @@ class Movie(ItemBase):
                               kodi_pathid=kodi_pathid,
                               last_sync=self.last_sync)
 
-        def remove(self, plex_id, plex_type=None):
-            """
-            Remove a movie with all references and all orphaned associated entries
-            from the Kodi DB
-            """
-            movie = self.plexdb.movie(plex_id)
-            try:
-                kodi_id = movie[3]
-                file_id = movie[4]
-                kodi_type = v.KODI_TYPE_MOVIE
-                LOG.debug('Removing movie with plex_id %s, kodi_id: %s',
-                          plex_id, kodi_id)
-            except TypeError:
-                LOG.error('Movie with plex_id %s not found - cannot delete',
-                          plex_id)
-                return
-            # Remove the plex reference
-            self.plexdb.remove(plex_id, v.PLEX_TYPE_MOVIE)
-            # Remove artwork
-            self.kodidb.delete_artwork(kodi_id, kodi_type)
-            set_id = self.kodidb.get_set_id(kodi_id)
-            self.kodidb.modify_countries(kodi_id, kodi_type)
-            self.kodidb.modify_people(kodi_id, kodi_type)
-            self.kodidb.modify_genres(kodi_id, kodi_type)
-            self.kodidb.modify_studios(kodi_id, kodi_type)
-            self.kodidb.modify_tags(kodi_id, kodi_type)
-            # Delete kodi movie and file
-            self.kodidb.remove_file(file_id)
-            self.kodidb.remove_movie(kodi_id)
-            if set_id:
-                self.kodidb.delete_possibly_empty_set(set_id)
-            self.kodidb.remove_uniqueid(kodi_id, kodi_type)
-            self.kodidb.remove_ratings(kodi_id, kodi_type)
-            LOG.debug('Deleted movie %s from kodi database', plex_id)
+    def remove(self, plex_id, plex_type=None):
+        """
+        Remove a movie with all references and all orphaned associated entries
+        from the Kodi DB
+        """
+        movie = self.plexdb.movie(plex_id)
+        try:
+            kodi_id = movie['kodi_id']
+            file_id = movie['kodi_fileid']
+            kodi_type = v.KODI_TYPE_MOVIE
+            LOG.debug('Removing movie with plex_id %s, kodi_id: %s',
+                      plex_id, kodi_id)
+        except TypeError:
+            LOG.error('Movie with plex_id %s not found - cannot delete',
+                      plex_id)
+            return
+        # Remove the plex reference
+        self.plexdb.remove(plex_id, v.PLEX_TYPE_MOVIE)
+        # Remove artwork
+        self.kodidb.delete_artwork(kodi_id, kodi_type)
+        set_id = self.kodidb.get_set_id(kodi_id)
+        self.kodidb.modify_countries(kodi_id, kodi_type)
+        self.kodidb.modify_people(kodi_id, kodi_type)
+        self.kodidb.modify_genres(kodi_id, kodi_type)
+        self.kodidb.modify_studios(kodi_id, kodi_type)
+        self.kodidb.modify_tags(kodi_id, kodi_type)
+        # Delete kodi movie and file
+        self.kodidb.remove_file(file_id)
+        self.kodidb.remove_movie(kodi_id)
+        if set_id:
+            self.kodidb.delete_possibly_empty_set(set_id)
+        self.kodidb.remove_uniqueid(kodi_id, kodi_type)
+        self.kodidb.remove_ratings(kodi_id, kodi_type)
+        LOG.debug('Deleted movie %s from kodi database', plex_id)
 
     def update_userdata(self, xml_element, plex_type):
         """
