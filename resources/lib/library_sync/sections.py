@@ -221,17 +221,20 @@ def delete_sections(old_sections):
                     plexdb.remove_section(section[0])
                 elif section[2] == v.KODI_TYPE_MOVIE:
                     video_library_update = True
-                    context = itemtypes.Movie(plexdb=plexdb,
+                    context = itemtypes.Movie(None,
+                                              plexdb=plexdb,
                                               kodidb=kodidb)
                 elif section[2] == v.KODI_TYPE_SHOW:
                     video_library_update = True
-                    context = itemtypes.Show(plexdb=plexdb,
+                    context = itemtypes.Show(None,
+                                             plexdb=plexdb,
                                              kodidb=kodidb)
         with kodi_db.KodiMusicDB() as kodidb:
             for section in old_sections:
                 if section[2] == v.KODI_TYPE_ARTIST:
                     music_library_update = True
-                    context = itemtypes.Artist(plexdb=plexdb,
+                    context = itemtypes.Artist(None,
+                                               plexdb=plexdb,
                                                kodidb=kodidb)
                 for plex_id in plexdb.plexid_by_section(section[0]):
                     context.remove(plex_id)
