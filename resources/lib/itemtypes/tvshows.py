@@ -302,8 +302,11 @@ class Season(ItemBase, TvShowMixin):
             except (TypeError, IndexError, AttributeError):
                 LOG.error("Parent tvshow %s xml download failed", show_id)
                 return False
-            Show(self.last_sync, plexdb=self.plexdb, kodidb=self.kodidb).add_update(
-                show_xml[0], section_name, section_id)
+            Show(self.last_sync,
+                 plexdb=self.plexdb,
+                 kodidb=self.kodidb).add_update(show_xml[0],
+                                                section_name,
+                                                section_id)
             show = self.plexdb.show(show_id)
             if not show:
                 LOG.error('Still could not find parent tv show %s', show_id)
@@ -373,8 +376,11 @@ class Episode(ItemBase, TvShowMixin):
             except (TypeError, IndexError, AttributeError):
                 LOG.error("Grandparent tvshow %s xml download failed", show_id)
                 return False
-            Show(self.last_sync, plexdb=self.plexdb, kodidb=self.kodidb).add_update(
-                show_xml[0], section_name, section_id)
+            Show(self.last_sync,
+                 plexdb=self.plexdb,
+                 kodidb=self.kodidb).add_update(show_xml[0],
+                                                section_name,
+                                                section_id)
             show = self.plexdb.show(show_id)
             if not show:
                 LOG.error('Still could not find grandparent tv show %s', show_id)
@@ -391,8 +397,11 @@ class Episode(ItemBase, TvShowMixin):
             except (TypeError, IndexError, AttributeError):
                 LOG.error("Parent season %s xml download failed", season_id)
                 return False
-            Season(self.last_sync, plexdb=self.plexdb, kodidb=self.kodidb).add_update(
-                season_xml[0], section_name, section_id)
+            Season(self.last_sync,
+                   plexdb=self.plexdb,
+                   kodidb=self.kodidb).add_update(season_xml[0],
+                                                  section_name,
+                                                  section_id)
             season = self.plexdb.season(season_id)
             if not season:
                 LOG.error('Still could not find parent season %s', season_id)

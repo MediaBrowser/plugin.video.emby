@@ -238,7 +238,11 @@ class Album(MusicMixin, ItemBase):
                 LOG.error('Could not get artist %s xml for %s',
                           parent_id, xml.attrib)
                 return
-            Artist(artist_xml[0], section_name, section_id)
+            Artist(self.last_sync,
+                   plexdb=self.plexdb,
+                   kodidb=self.kodidb).add_update(artist_xml[0],
+                                                  section_name,
+                                                  section_id)
             artist = self.plexdb.artist(parent_id)
             if not artist:
                 LOG.error('Adding artist %s failed for %s',
@@ -394,8 +398,11 @@ class Song(MusicMixin, ItemBase):
                 LOG.error('Grandparent tvartist %s xml download failed for %s',
                           artist_id, xml.attrib)
                 return
-            Artist(self.last_sync, plexdb=self.plexdb, kodidb=self.kodidb).add_update(
-                artist_xml[0], section_name, section_id)
+            Artist(self.last_sync,
+                   plexdb=self.plexdb,
+                   kodidb=self.kodidb).add_update(artist_xml[0],
+                                                  section_name,
+                                                  section_id)
             artist = self.plexdb.artist(artist_id)
             if not artist:
                 LOG.error('Still could not find grandparent artist %s for %s',
@@ -447,8 +454,11 @@ class Song(MusicMixin, ItemBase):
                     LOG.error('Parent album %s xml download failed for %s',
                               album_id, xml.attrib)
                     return
-                Album(self.last_sync, plexdb=self.plexdb, kodidb=self.kodidb).add_update(
-                    album_xml[0], section_name, section_id)
+                Album(self.last_sync,
+                      plexdb=self.plexdb,
+                      kodidb=self.kodidb).add_update(album_xml[0],
+                                                     section_name,
+                                                     section_id)
                 album = self.plexdb.album(album_id)
                 if not album:
                     LOG.error('Still could not find parent album %s for %s',
