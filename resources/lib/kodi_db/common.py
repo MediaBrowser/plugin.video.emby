@@ -32,7 +32,7 @@ class KodiDBBase(object):
             return False
         self.kodiconn.commit()
         self.kodiconn.close()
-        if self._texture_db:
+        if self.artconn:
             self.artconn.commit()
             self.artconn.close()
 

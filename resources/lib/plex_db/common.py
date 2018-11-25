@@ -143,6 +143,11 @@ class PlexDBBase(object):
         self.cursor.execute('UPDATE %s SET fanart_synced = 1 WHERE plex_id = ?' % plex_type,
                             (plex_id, ))
 
+    def plexid_by_sectionid(self, section_id, plex_type):
+        return (x[0] for x in
+                self.cursor.execute('SELECT plex_id FROM %s WHERE section_id = ?' % plex_type,
+                                    (section_id, )))
+
 
 def initialize():
         """

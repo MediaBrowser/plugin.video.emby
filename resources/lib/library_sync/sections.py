@@ -214,11 +214,12 @@ def delete_sections(old_sections):
     with PlexDB() as plexdb:
         old_sections = [plexdb.section(x) for x in old_sections]
         LOG.info("Removing entire Plex library sections: %s", old_sections)
-        with kodi_db.KodiVideoDB() as kodidb:
+        with kodi_db.KodiVideoDB(texture_db=True) as kodidb:
             for section in old_sections:
                 if section[2] == v.KODI_TYPE_PHOTO:
                     # not synced
                     plexdb.remove_section(section[0])
+                    continue
                 elif section[2] == v.KODI_TYPE_MOVIE:
                     video_library_update = True
                     context = itemtypes.Movie(None,
@@ -229,14 +230,23 @@ def delete_sections(old_sections):
                     context = itemtypes.Show(None,
                                              plexdb=plexdb,
                                              kodidb=kodidb)
-        with kodi_db.KodiMusicDB() as kodidb:
+                else:
+                    continue
+                for plex_id in plexdb.plexid_by_sectionid(section[0], section[2]):
+                    context.remove(plex_id)
+                # Only remove Plex entry if we've removed all items first
+                plexdb.remove_section(section[0])
+
+        with kodi_db.KodiMusicDB(texture_db=True) as kodidb:
             for section in old_sections:
                 if section[2] == v.KODI_TYPE_ARTIST:
                     music_library_update = True
                     context = itemtypes.Artist(None,
                                                plexdb=plexdb,
                                                kodidb=kodidb)
-                for plex_id in plexdb.plexid_by_section(section[0]):
+                else:
+                    continue
+                for plex_id in plexdb.plexid_by_sectionid(section[0], section[2]):
                     context.remove(plex_id)
                 # Only remove Plex entry if we've removed all items first
                 plexdb.remove_section(section[0])
