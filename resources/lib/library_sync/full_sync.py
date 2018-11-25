@@ -4,7 +4,8 @@ from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
 
 from .get_metadata import GetMetadataTask, reset_collections
-from .process_metadata import InitNewSection, UpdateLastSync, ProcessMetadata
+from .process_metadata import InitNewSection, UpdateLastSync, ProcessMetadata, \
+    DeleteItem
 from . import common, sections
 from .. import utils, timing, backgroundthread, variables as v, app
 from .. import plex_functions as PF, itemtypes
@@ -64,12 +65,11 @@ class FullSync(common.libsync_mixin):
         Removes all the items that have NOT been updated (last_sync timestamp
         is different)
         """
-        with self.context(self.current_sync) as c:
-            for plex_id in self.plexdb.plex_id_by_last_sync(self.plex_type,
-                                                            self.current_sync):
-                if self.isCanceled():
-                    return
-                c.remove(plex_id, plex_type=self.plex_type)
+        for plex_id in self.plexdb.plex_id_by_last_sync(self.plex_type,
+                                                        self.current_sync):
+            if self.isCanceled():
+                return
+            self.queue.put(DeleteItem(plex_id))
 
     @utils.log_time
     def process_playstate(self, iterator):
