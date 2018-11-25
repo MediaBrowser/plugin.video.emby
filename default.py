@@ -89,7 +89,7 @@ class Main():
             entrypoint.create_new_pms()
 
         elif mode == 'reset':
-            utils.reset()
+            utils.plex_command('RESET-PKC')
 
         elif mode == 'togglePlexTV':
             entrypoint.toggle_plex_tv_sign_in()

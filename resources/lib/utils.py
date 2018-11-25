@@ -486,16 +486,17 @@ def reset(ask_user=True):
     # Are you sure you want to reset your local Kodi database?
     if ask_user and not yesno_dialog(lang(29999), lang(39600)):
         return
-
+    from . import app
     # first stop any db sync
-    plex_command('STOP_SYNC', 'True')
+    app.APP.suspend_threads = True
     count = 10
-    while window('plex_dbScan') == "true":
+    while app.SYNC.db_scan:
         LOG.debug("Sync is running, will retry: %s...", count)
         count -= 1
         if count == 0:
             # Could not stop the database from running. Please try again later.
             messageDialog(lang(29999), lang(39601))
+            app.APP.suspend_threads = False
             return
         xbmc.sleep(1000)
 

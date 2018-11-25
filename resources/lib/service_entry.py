@@ -391,6 +391,8 @@ class Service():
                     app.SYNC.run_lib_scan = 'fanart'
                 elif plex_command == 'textures-scan':
                     app.SYNC.run_lib_scan = 'textures'
+                elif plex_command == 'RESET-PKC':
+                    utils.reset()
                 continue
 
             if app.APP.suspend:
