@@ -510,14 +510,9 @@ def on_deck_episodes(viewid, tagname, limit):
             xbmcplugin.endOfDirectory(int(argv[1]), False)
             return
         # We're using another python instance - need to load some vars
-        if utils.settings('useDirectPaths') == '1':
-            app.SYNC.direct_paths = True
-            app.SYNC.replace_smb_path = utils.settings('replaceSMB') == 'true'
-            app.SYNC.remap_path = utils.settings('remapSMB') == 'true'
-            if app.SYNC.remap_path:
-                initialsetup.set_replace_paths()
-            # Let's NOT check paths for widgets!
-            app.SYNC.path_verified = True
+        app.init()
+        # Let's NOT check paths for widgets!
+        app.SYNC.path_verified = True
         counter = 0
         for item in xml:
             api = API(item)

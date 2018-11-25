@@ -219,7 +219,7 @@ class SubscriptionMgr(object):
                 'protocol': self.protocol,
                 'address': self.server,
                 'port': self.port,
-                'machineIdentifier': utils.window('plex_machineIdentifier'),
+                'machineIdentifier': app.CONN.machine_identifier,
                 'state': status,
                 'type': ptype,
                 'itemType': ptype,

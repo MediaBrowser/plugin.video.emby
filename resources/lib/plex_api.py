@@ -215,8 +215,7 @@ class API(object):
         Will always use addon paths, never direct paths
         """
         extension = self.item[0][0].attrib['key'][self.item[0][0].attrib['key'].rfind('.'):].lower()
-        if (utils.window('plex_force_transcode_pix') == 'true' or
-                extension not in v.KODI_SUPPORTED_IMAGES):
+        if app.SYNC.force_transcode_pix or extension not in v.KODI_SUPPORTED_IMAGES:
             # Let Plex transcode
             # max width/height supported by plex image transcoder is 1920x1080
             path = app.CONN.server + PF.transcode_image_path(

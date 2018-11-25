@@ -24,10 +24,8 @@ class Sync(object):
         self.db_scan = False
 
     def load_settings(self):
-        # Direct Paths (True) or Addon Paths (False)? Along with
-        # window('useDirectPaths')
-        self.direct_paths = True if utils.settings('useDirectPaths') == '1' \
-            else False
+        # Direct Paths (True) or Addon Paths (False)?
+        self.direct_paths = utils.settings('useDirectPaths') == '1'
         # Is synching of Plex music enabled?
         self.enable_music = utils.settings('enableMusic') == 'true'
         # Path remapping mechanism (e.g. smb paths)
@@ -35,6 +33,7 @@ class Sync(object):
         self.replace_smb_path = utils.settings('replaceSMB') == 'true'
         # Do we generally remap?
         self.remap_path = utils.settings('remapSMB') == 'true'
+        self.force_transcode_pix = utils.settings('force_transcode_pix') == 'true'
         # Mappings for REMAP_PATH:
         self.remapSMBmovieOrg = utils.settings('remapSMBmovieOrg')
         self.remapSMBmovieNew = utils.settings('remapSMBmovieNew')

@@ -26,14 +26,9 @@ LOG = logging.getLogger("PLEX.service")
 ###############################################################################
 
 WINDOW_PROPERTIES = (
-    "plex_command_processed", "plex_shouldStop", "plex_dbScan",
-    "plex_customplayqueue", "plex_playbackProps",
-    "pms_token", "plex_token", "pms_server", "plex_machineIdentifier",
-    "plex_servername", "plex_authenticated", "PlexUserImage", "useDirectPaths",
-    "plex_restricteduser",
-    "plex_allows_mediaDeletion", "plex_command", "plex_result",
-    "plex_force_transcode_pix"
-)
+    "plex_dbScan", "pms_token", "plex_token", "pms_server",
+    "plex_authenticated", "plex_restricteduser", "plex_allows_mediaDeletion",
+    "plex_command", "plex_result")
 
 
 class Service():

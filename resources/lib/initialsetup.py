@@ -544,7 +544,6 @@ class InitialSetup(object):
                               utils.lang(39081), utils.lang(39082)) == 1:
             LOG.debug("User opted to use direct paths.")
             utils.settings('useDirectPaths', value="1")
-            state.DIRECT_PATHS = True
             # Are you on a system where you would like to replace paths
             # \\NAS\mymovie.mkv with smb://NAS/mymovie.mkv? (e.g. Windows)
             if utils.yesno_dialog(utils.lang(29999), utils.lang(39033)):
@@ -596,12 +595,13 @@ class InitialSetup(object):
             # Open Settings page now? You will need to restart!
             goto_settings = utils.yesno_dialog(utils.lang(29999),
                                                utils.lang(39017))
-        # Reload relevant settings
-        app.CONN.load()
-        app.ACCOUNT.load()
         if goto_settings:
             app.APP.suspend = True
             executebuiltin(
                 'Addon.OpenSettings(plugin.video.plexkodiconnect)')
         elif reboot is True:
             utils.reboot_kodi()
+        # Reload relevant settings
+        app.CONN.load()
+        app.ACCOUNT.load()
+        app.SYNC.load()

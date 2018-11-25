@@ -192,7 +192,7 @@ class plexgdm:
             log.info("Server list is empty. Unable to check")
             return False
         for server in self.server_list:
-            if server['uuid'] == utils.window('plex_machineIdentifier'):
+            if server['uuid'] == app.CONN.machine_identifier:
                 media_server = server['server']
                 media_port = server['port']
                 scheme = server['protocol']
@@ -243,9 +243,9 @@ class plexgdm:
             'owned': '1',
             'role': 'master',
             'server': currServerIP,
-            'serverName': utils.window('plex_servername'),
+            'serverName': app.CONN.server_name,
             'updated': int(time.time()),
-            'uuid': utils.window('plex_machineIdentifier'),
+            'uuid': app.CONN.machine_identifier,
             'version': 'irrelevant'
         }]
 
