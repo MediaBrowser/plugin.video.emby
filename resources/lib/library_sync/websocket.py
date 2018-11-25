@@ -287,12 +287,12 @@ def process_playing(data):
                 # Hence must be us (since several users require plex.tv
                 # token for PKC)
                 pass
-            elif not (session['userId'] == app.CONN.plex_user_id or
-                      session['username'] == app.CONN.plex_username):
+            elif not (session['userId'] == app.ACCOUNT.plex_user_id or
+                      session['username'] == app.ACCOUNT.plex_username):
                 LOG.debug('Our username %s, userid %s did not match '
                           'the session username %s with userid %s',
-                          app.CONN.plex_username,
-                          app.CONN.plex_user_id,
+                          app.ACCOUNT.plex_username,
+                          app.ACCOUNT.plex_user_id,
                           session['username'],
                           session['userId'])
                 continue
@@ -334,7 +334,7 @@ def process_playing(data):
             mark_played = False
         LOG.debug('Update playstate for user %s for %s with plex id %s to '
                   'viewCount %s, resume %s, mark_played %s',
-                  app.CONN.plex_username, session['kodi_type'], plex_id,
+                  app.ACCOUNT.plex_username, session['kodi_type'], plex_id,
                   session['viewCount'], resume, mark_played)
         func = itemtypes.ITEMTYPE_FROM_KODITYPE[session['kodi_type']]
         with func(None) as fkt:
