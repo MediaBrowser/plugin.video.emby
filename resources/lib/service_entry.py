@@ -191,6 +191,8 @@ class Service():
         # Remove video nodes
         utils.delete_nodes()
         app.ACCOUNT.set_unauthenticated()
+        # Force full sync after login
+        app.SYNC.run_lib_scan = 'full'
         return True
 
     def toggle_plex_tv(self):
