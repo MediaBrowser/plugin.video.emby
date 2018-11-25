@@ -137,7 +137,7 @@ class PMS_Websocket(WebSocket):
         Returns True if the thread is suspended
         """
         return (self._suspended or
-                app.SYNC.suspend_library_thread or
+                app.APP.suspend_threads or
                 app.SYNC.background_sync_disabled)
 
     def getUri(self):

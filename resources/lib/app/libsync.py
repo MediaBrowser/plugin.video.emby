@@ -12,9 +12,6 @@ class Sync(object):
             return
         # Do we need to run a special library scan?
         self.run_lib_scan = None
-        # Usually triggered by another Python instance - will have to be set (by
-        # polling window) through e.g. librarysync thread
-        self.suspend_library_thread = False
         # Set if user decided to cancel sync
         self.stop_sync = False
         # Set during media playback if PKC should not do any syncs. Will NOT

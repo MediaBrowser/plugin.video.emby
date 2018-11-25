@@ -18,7 +18,7 @@ PREFER_KODI_COLLECTION_ART = utils.settings('PreferKodiCollectionArt') == 'false
 
 
 def suspends():
-    return (app.SYNC.suspend_library_thread or
+    return (app.APP.suspend_threads or
             app.SYNC.stop_sync or
             app.SYNC.db_scan or
             app.SYNC.suspend_sync)

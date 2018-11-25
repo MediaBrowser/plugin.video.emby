@@ -16,12 +16,6 @@ class Connection(object):
             return
         # TODO: Delete
         self.pms_server = None
-        # Plex Media Server Status - along with window('plex_serverStatus')
-        # Values:
-        #       'Stop': set if e.g.
-        #       '401':  Token has been revoked - PKC yet to delete tokens
-        #       'Auth':
-        self.pms_status = False
         # Token passed along, e.g. if playback initiated by Plex Companion. Might be
         # another user playing something! Token identifies user
         self.plex_transient_token = None
@@ -61,6 +55,7 @@ class Connection(object):
         else:
             self.server = 'http://%s:%s' % (self.host, self.port)
         utils.window('pms_server', value=self.server)
+        self.online = False
         LOG.debug('Set server %s (%s) to %s',
                   self.server_name, self.machine_identifier, self.server)
 

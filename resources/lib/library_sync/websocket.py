@@ -22,7 +22,7 @@ PLAYSTATE_SESSIONS = {}
 
 
 def interrupt_processing():
-    return app.APP.stop_pkc or app.SYNC.suspend_library_thread or app.SYNC.stop_sync
+    return app.APP.stop_pkc or app.APP.suspend_threads or app.SYNC.stop_sync
 
 
 def multi_delete(input_list, delete_list):

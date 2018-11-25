@@ -28,9 +28,11 @@ class DownloadUtils():
     _shared_state = {}
 
     # How many failed attempts before declaring PMS dead?
-    connectionAttempts = 1
+    connection_attempts = 1
+    count_error = 0
     # How many 401 returns before declaring unauthorized?
-    unauthorizedAttempts = 2
+    unauthorized_attempts = 2
+    count_unauthorized = 0
     # How long should we wait for an answer from the
     timeout = 30.0
 
@@ -69,11 +71,9 @@ class DownloadUtils():
         self.setSSL()
 
         # Counters to declare PMS dead or unauthorized
-        # Use window variables because start of movies will be called with a
-        # new plugin instance - it's impossible to share data otherwise
         if reset is True:
-            utils.window('countUnauthorized', value='0')
-            utils.window('countError', value='0')
+            self.count_error = 0
+            self.count_unauthorized = 0
 
         # Retry connections to the server
         self.s.mount("http://", requests.adapters.HTTPAdapter(max_retries=1))
@@ -210,9 +210,9 @@ class DownloadUtils():
         else:
             # We COULD contact the PMS, hence it ain't dead
             if authenticate is True:
-                utils.window('countError', value='0')
+                self.count_error = 0
                 if r.status_code != 401:
-                    utils.window('countUnauthorized', value='0')
+                    self.count_unauthorized = 0
 
             if r.status_code == 204:
                 # No body in the response
@@ -230,22 +230,16 @@ class DownloadUtils():
                 LOG.info(r.text)
                 if '401 Unauthorized' in r.text:
                     # Truly unauthorized
-                    utils.window(
-                        'countUnauthorized',
-                        value=str(int(utils.window('countUnauthorized')) + 1))
-                    if (int(utils.window('countUnauthorized')) >=
-                            self.unauthorizedAttempts):
+                    self.count_unauthorized += 1
+                    if self.count_unauthorized >= self.unauthorized_attempts:
                         LOG.warn('We seem to be truly unauthorized for PMS'
                                  ' %s ', url)
-                        if app.CONN.pms_status not in ('401', 'Auth'):
-                            # Tell others token has been revoked.
-                            LOG.debug('Setting PMS server status to '
-                                      'unauthorized')
-                            app.CONN.pms_status = '401'
-                            utils.dialog('notification',
-                                         utils.lang(29999),
-                                         utils.lang(30017),
-                                         icon='{error}')
+                        # Unauthorized access, user no longer has access
+                        app.ACCOUNT.log_out()
+                        utils.dialog('notification',
+                                     utils.lang(29999),
+                                     utils.lang(30017),
+                                     icon='{error}')
                 else:
                     # there might be other 401 where e.g. PMS under strain
                     LOG.info('PMS might only be under strain')
@@ -284,7 +278,7 @@ class DownloadUtils():
             elif r.status_code == 403:
                 # E.g. deleting a PMS item
                 LOG.warn('PMS sent 403: Forbidden error for url %s', url)
-                return None
+                return
             else:
                 r.encoding = 'utf-8'
                 LOG.warn('Unknown answer from PMS %s with status code %s. ',
@@ -294,14 +288,9 @@ class DownloadUtils():
         # And now deal with the consequences of the exceptions
         if authenticate is True:
             # Make the addon aware of status
-            try:
-                utils.window('countError',
-                             value=str(int(utils.window('countError')) + 1))
-                if int(utils.window('countError')) >= self.connectionAttempts:
-                    LOG.warn('Failed to connect to %s too many times. '
-                             'Declare PMS dead', url)
-                    utils.window('plex_online', value="false")
-            except ValueError:
-                # 'countError' not yet set
-                pass
-        return None
+            self.count_error += 1
+            if self.count_error >= self.connection_attempts:
+                LOG.warn('Failed to connect to %s too many times. '
+                         'Declare PMS dead', url)
+                app.CONN.online = False
+        return

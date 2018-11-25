@@ -101,7 +101,7 @@ class PlayqueueMonitor(backgroundthread.KillableThread):
         """
         Returns True if the thread is suspended
         """
-        return self._suspended or app.CONN.pms_status
+        return self._suspended or app.APP.suspend_threads
 
     def _compare_playqueues(self, playqueue, new):
         """

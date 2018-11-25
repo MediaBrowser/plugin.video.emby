@@ -160,15 +160,18 @@ class Task(object):
         return not self.finished and not self._canceled
 
 
-def FunctionAsTask(Task):
-    def __init__(self, function, *args, **kwargs):
-        self.function = function
+class FunctionAsTask(Task):
+    def __init__(self, function, callback, *args, **kwargs):
+        self._function = function
+        self._callback = callback
         self._args = args
         self._kwargs = kwargs
         super(FunctionAsTask, self).__init__()
 
     def run(self):
-        self.function(*self._args, **self._kwargs)
+        result = self._function(*self._args, **self._kwargs)
+        if self._callback:
+            self._callback(result)
 
 
 class MutablePriorityQueue(Queue.PriorityQueue):

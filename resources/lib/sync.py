@@ -41,7 +41,7 @@ class Sync(backgroundthread.KillableThread):
         super(Sync, self).__init__()
 
     def isSuspended(self):
-        return self._suspended or app.SYNC.suspend_library_thread
+        return self._suspended or app.APP.suspend_threads
 
     def show_kodi_note(self, message, icon="plex", force=False):
         """

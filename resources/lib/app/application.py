@@ -17,7 +17,10 @@ class App(object):
             return
         # Quit PKC?
         self.stop_pkc = False
-
+        # Shall we completely suspend PKC and our threads?
+        self.suspend = False
+        # Shall we only suspend threads?
+        self._suspend_threads = False
         # Need to lock all methods and functions messing with Plex Companion subscribers
         self.lock_subscriber = RLock()
         # Need to lock everything messing with Kodi/PKC playqueues
@@ -43,3 +46,11 @@ class App(object):
         # Hack to force Kodi widget for "in progress" to show up if it was empty
         # before
         self.force_reload_skin = utils.settings('forceReloadSkinOnPlaybackStop') == 'true'
+
+    @property
+    def suspend_threads(self):
+        return self._suspend_threads or self.suspend
+
+    @suspend_threads.setter
+    def suspend_threads(self, value):
+        self._suspend_threads = value

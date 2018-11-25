@@ -101,17 +101,12 @@ class Main():
             entrypoint.switch_plex_user()
 
         elif mode in ('manualsync', 'repair'):
-            if pickler.pickl_window('plex_online') != 'true':
-                # Server is not online, do not run the sync
-                utils.messageDialog(utils.lang(29999), utils.lang(39205))
-                log.error('Not connected to a PMS.')
-            else:
-                if mode == 'repair':
-                    log.info('Requesting repair lib sync')
-                    utils.plex_command('repair-scan')
-                elif mode == 'manualsync':
-                    log.info('Requesting full library scan')
-                    utils.plex_command('full-scan')
+            if mode == 'repair':
+                log.info('Requesting repair lib sync')
+                utils.plex_command('repair-scan')
+            elif mode == 'manualsync':
+                log.info('Requesting full library scan')
+                utils.plex_command('full-scan')
 
         elif mode == 'texturecache':
             log.info('Requesting texture caching of all textures')

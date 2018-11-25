@@ -17,6 +17,7 @@ from . import playqueue
 from . import variables as v
 from . import app
 from . import loghandler
+from . import backgroundthread
 from .windows import userselect
 
 ###############################################################################
@@ -25,11 +26,11 @@ LOG = logging.getLogger("PLEX.service")
 ###############################################################################
 
 WINDOW_PROPERTIES = (
-    "plex_online", "plex_command_processed", "plex_shouldStop", "plex_dbScan",
+    "plex_command_processed", "plex_shouldStop", "plex_dbScan",
     "plex_customplayqueue", "plex_playbackProps",
     "pms_token", "plex_token", "pms_server", "plex_machineIdentifier",
     "plex_servername", "plex_authenticated", "PlexUserImage", "useDirectPaths",
-    "countError", "countUnauthorized", "plex_restricteduser",
+    "plex_restricteduser",
     "plex_allows_mediaDeletion", "plex_command", "plex_result",
     "plex_force_transcode_pix"
 )
@@ -39,13 +40,6 @@ class Service():
     ws = None
     sync = None
     plexcompanion = None
-
-    ws_running = False
-    alexa_running = False
-    sync_running = False
-    plexcompanion_running = False
-    kodimonitor_running = False
-    playback_starter_running = False
 
     def __init__(self):
         # Initial logging
@@ -87,15 +81,71 @@ class Service():
         # Init time-offset between Kodi and Plex
         timing.KODI_PLEX_TIME_OFFSET = float(utils.settings('kodiplextimeoffset') or 0.0)
 
-    def isCanceled(self):
-        return xbmc.abortRequested
+        self.startup_completed = False
+        self.server_has_been_online = True
+        self.welcome_msg = True
+        self.connection_check_counter = 0
+        # Flags for other threads
+        self.connection_check_running = False
+        self.auth_running = False
+
+    def on_connection_check(self, result):
+        """
+        Call this method after PF.check_connection()
+        """
+        try:
+            if result is False:
+                # Server is offline or cannot be reached
+                # Alert the user and suppress future warning
+                if app.CONN.online:
+                    # PMS was online before
+                    app.CONN.online = False
+                    app.APP.suspend_threads = True
+                    LOG.warn("Plex Media Server went offline")
+                    if utils.settings('show_pms_offline') == 'true':
+                        utils.dialog('notification',
+                                     utils.lang(33001),
+                                     "%s %s" % (utils.lang(29999),
+                                                utils.lang(33002)),
+                                     icon='{plex}',
+                                     sound=False)
+                self.connection_check_counter += 1
+                # Periodically check if the IP changed every 15 seconds
+                if self.connection_check_counter > 150:
+                    self.connection_check_counter = 0
+                    server = self.setup.pick_pms()
+                    if server:
+                        self.setup.write_pms_to_settings(server)
+                        app.CONN.load()
+            else:
+                # Server is online
+                self.connection_check_counter = 0
+                if not app.CONN.online:
+                    # Server was offline before
+                    if (self.welcome_msg is False and
+                            utils.settings('show_pms_offline') == 'true'):
+                        # Alert the user that server is online
+                        utils.dialog('notification',
+                                     utils.lang(29999),
+                                     utils.lang(33003),
+                                     icon='{plex}',
+                                     time=5000,
+                                     sound=False)
+                LOG.info("Server is online and ready")
+                if app.ACCOUNT.authenticated:
+                    # Server got offline when we were authenticated.
+                    # Hence resume threads
+                    app.APP.suspend_threads = False
+                app.CONN.online = True
+        finally:
+            self.connection_check_running = False
 
     def log_out(self):
         """
         Ensures that lib sync threads are suspended; signs out user
         """
         LOG.info('Log-out requested')
-        app.SYNC.suspend_library_thread = True
+        app.APP.suspend_threads = True
         i = 0
         while app.SYNC.db_scan:
             i += 1
@@ -105,7 +155,7 @@ class Service():
                 # Failed to reset PMS and plex.tv connects. Try to restart Kodi
                 utils.messageDialog(utils.lang(29999), utils.lang(39208))
                 # Resuming threads, just in case
-                app.SYNC.suspend_library_thread = False
+                app.APP.suspend_threads = False
                 return False
         LOG.info('Successfully stopped library sync')
         app.ACCOUNT.log_out()
@@ -132,6 +182,9 @@ class Service():
         # Wipe Kodi and Plex database as well as playlists and video nodes
         utils.wipe_database()
         app.CONN.load()
+        app.ACCOUNT.set_unauthenticated()
+        self.server_has_been_online = False
+        self.welcome_msg = False
         LOG.info("Choosing new PMS complete")
         return True
 
@@ -142,16 +195,19 @@ class Service():
         utils.delete_playlists()
         # Remove video nodes
         utils.delete_nodes()
+        app.ACCOUNT.set_unauthenticated()
         return True
 
     def toggle_plex_tv(self):
-        if utils.settings('plexToken'):
-            LOG.info('Reseting plex.tv credentials in settings')
+        if app.ACCOUNT.plex_token:
+            LOG.info('Resetting plex.tv credentials in settings')
+            self.log_out()
             app.ACCOUNT.clear()
-            return True
         else:
             LOG.info('Login to plex.tv')
-            return self.setup.plex_tv_sign_in()
+            if self.setup.plex_tv_sign_in():
+                self.setup.write_credentials_to_settings()
+                app.ACCOUNT.load()
 
     def authenticate(self):
         """
@@ -160,9 +216,30 @@ class Service():
         Returns True if successful, False if not. 'aborted' if user chose to
         abort
         """
+        if self._do_auth():
+            if self.welcome_msg is True:
+                # Reset authentication warnings
+                self.welcome_msg = False
+                utils.dialog('notification',
+                             utils.lang(29999),
+                             "%s %s" % (utils.lang(33000),
+                                        app.ACCOUNT.plex_username),
+                             icon='{plex}',
+                             time=2000,
+                             sound=False)
+            app.APP.suspend_threads = False
+        self.auth_running = False
+
+    def enter_new_pms_address(self):
+        if self.setup.enter_new_pms_address():
+            app.CONN.load()
+            app.ACCOUNT.set_unauthenticated()
+            self.server_has_been_online = False
+            self.welcome_msg = False
+
+    def _do_auth(self):
         LOG.info('Authenticating user')
-        if app.ACCOUNT.plex_username and not app.ACCOUNT.force_login:
-            # Found a user in the settings, try to authenticate
+        if app.ACCOUNT.plex_username and not app.ACCOUNT.force_login:            # Found a user in the settings, try to authenticate
             LOG.info('Trying to authenticate with old settings')
             res = PF.check_connection(app.CONN.server,
                                       token=app.ACCOUNT.pms_token,
@@ -171,8 +248,9 @@ class Service():
                 LOG.error('Something went wrong while checking connection')
                 return False
             elif res == 401:
-                LOG.error('User token no longer valid. Sign user out')
-                app.ACCOUNT.clear()
+                LOG.error('User %s no longer has access - signing user out',
+                          app.ACCOUNT.plex_username)
+                self.log_out()
                 return False
             elif res >= 400:
                 LOG.error('Answer from PMS is not as expected')
@@ -188,7 +266,7 @@ class Service():
                 user, _ = userselect.start()
                 if not user:
                     LOG.info('No user received')
-                    app.CONN.pms_status = 'Stop'
+                    app.APP.suspend = True
                     return False
                 username = user.title
                 user_id = user.id
@@ -206,10 +284,12 @@ class Service():
                 return False
             elif res == 401:
                 if app.ACCOUNT.plex_token:
-                    LOG.error('Token no longer valid')
-                    # "Your Plex token is no longer valid. Logging-out of plex.tv"
-                    utils.messageDialog(utils.lang(29999), utils.lang(33010))
-                    app.ACCOUNT.clear()
+                    LOG.error('User %s does not have access to PMS %s on %s',
+                              username, app.CONN.server_name, app.CONN.server)
+                    # "User is unauthorized for server {0}"
+                    utils.messageDialog(utils.lang(29999),
+                                        utils.lang(33010).format(app.CONN.server_name))
+                    self.log_out()
                     return False
                 else:
                     # "Failed to authenticate. Did you login to plex.tv?"
@@ -219,6 +299,7 @@ class Service():
                         app.ACCOUNT.load()
                         continue
                     else:
+                        app.APP.suspend = True
                         return False
             elif res >= 400:
                 LOG.error('Answer from PMS is not as expected')
@@ -235,12 +316,12 @@ class Service():
     def ServiceEntryPoint(self):
         # Important: Threads depending on abortRequest will not trigger
         # if profile switch happens more than once.
-        app.init()
         # Some plumbing
+        app.init()
         app.APP.monitor = kodimonitor.KodiMonitor()
         app.APP.player = xbmc.Player()
         artwork.IMAGE_CACHING_SUSPENDS = [
-            app.SYNC.suspend_library_thread,
+            app.APP.suspend_threads,
             app.SYNC.stop_sync,
             app.SYNC.db_scan
         ]
@@ -262,11 +343,9 @@ class Service():
         self.playback_starter = playback_starter.PlaybackStarter()
         self.playqueue = playqueue.PlayqueueMonitor()
 
-        server_online = True
-        welcome_msg = True
-        counter = 0
-        while not self.isCanceled():
-
+        # Main PKC program loop
+        while not xbmc.abortRequested:
+            # Check for Kodi profile change
             if utils.window('plex_kodiProfile') != v.KODI_PROFILE:
                 # Profile change happened, terminate this thread and others
                 LOG.info("Kodi profile was: %s and changed to: %s. "
@@ -274,6 +353,7 @@ class Service():
                          v.KODI_PROFILE, utils.window('plex_kodiProfile'))
                 break
 
+            # Check for PKC commands from other Python instances
             plex_command = utils.window('plex_command')
             if plex_command:
                 # Commands/user interaction received from other PKC Python
@@ -291,24 +371,21 @@ class Service():
                         'dummy?mode=context_menu&%s'
                         % plex_command.replace('CONTEXT_menu?', ''))
                 elif plex_command == 'choose_pms_server':
-                    if self.choose_pms_server():
-                        utils.window('plex_online', clear=True)
-                        app.ACCOUNT.set_unauthenticated()
-                        server_online = False
-                        welcome_msg = False
+                    task = backgroundthread.FunctionAsTask(
+                        self.choose_pms_server, None)
+                    backgroundthread.BGThreader.addTasksToFront([task])
                 elif plex_command == 'switch_plex_user':
-                    if self.switch_plex_user():
-                        app.ACCOUNT.set_unauthenticated()
+                    task = backgroundthread.FunctionAsTask(
+                        self.switch_plex_user, None)
+                    backgroundthread.BGThreader.addTasksToFront([task])
                 elif plex_command == 'enter_new_pms_address':
-                    if self.setup.enter_new_pms_address():
-                        if self.log_out():
-                            utils.window('plex_online', clear=True)
-                            app.ACCOUNT.set_unauthenticated()
-                            server_online = False
-                            welcome_msg = False
+                    task = backgroundthread.FunctionAsTask(
+                        self.enter_new_pms_address, None)
+                    backgroundthread.BGThreader.addTasksToFront([task])
                 elif plex_command == 'toggle_plex_tv_sign_in':
-                    if self.toggle_plex_tv():
-                        app.ACCOUNT.set_unauthenticated()
+                    task = backgroundthread.FunctionAsTask(
+                        self.toggle_plex_tv, None)
+                    backgroundthread.BGThreader.addTasksToFront([task])
                 elif plex_command == 'repair-scan':
                     app.SYNC.run_lib_scan = 'repair'
                 elif plex_command == 'full-scan':
@@ -319,120 +396,51 @@ class Service():
                     app.SYNC.run_lib_scan = 'textures'
                 continue
 
+            if app.APP.suspend:
+                app.APP.monitor.waitForAbort(0.1)
+                continue
+
             # Before proceeding, need to make sure:
             # 1. Server is online
             # 2. User is set
             # 3. User has access to the server
-            if utils.window('plex_online') == "true":
-                # Plex server is online
-                if app.CONN.pms_status == 'Stop':
-                    app.APP.monitor.waitForAbort(0.05)
-                    continue
-                elif app.CONN.pms_status == '401':
-                    # Unauthorized access, revoke token
-                    LOG.info('401 received - revoking token')
-                    app.ACCOUNT.clear()
-                    app.CONN.pms_status = 'Auth'
-                    utils.window('plex_serverStatus', value='Auth')
-                    continue
-                if not app.ACCOUNT.authenticated:
-                    LOG.info('Not yet authenticated')
-                    # Do authentication
-                    if not self.authenticate():
-                        continue
-                    # Start up events
-                    if welcome_msg is True:
-                        # Reset authentication warnings
-                        welcome_msg = False
-                        utils.dialog('notification',
-                                     utils.lang(29999),
-                                     "%s %s" % (utils.lang(33000),
-                                                app.ACCOUNT.plex_username),
-                                     icon='{plex}',
-                                     time=2000,
-                                     sound=False)
-                    # Start monitoring kodi events
-                    if not self.kodimonitor_running:
-                        self.kodimonitor_running = True
-                        self.specialmonitor.start()
-                    # Start the Websocket Client
-                    if not self.ws_running:
-                        self.ws_running = True
-                        self.ws.start()
-                    # Start the Alexa thread
-                    if (not self.alexa_running and
-                            utils.settings('enable_alexa') == 'true'):
-                        self.alexa_running = True
-                        self.alexa.start()
-                    # Start the syncing thread
-                    if not self.sync_running:
-                        self.sync_running = True
-                        self.sync.start()
-                    # Start the Plex Companion thread
-                    if not self.plexcompanion_running:
-                        self.plexcompanion_running = True
-                        self.plexcompanion.start()
-                    if not self.playback_starter_running:
-                        self.playback_starter_running = True
-                        self.playback_starter.start()
-                        self.playqueue.start()
-            else:
-                # Wait until Plex server is online
-                # or Kodi is shut down.
+            if not app.CONN.online:
+                # Not online
                 server = app.CONN.server
                 if not server:
                     # No server info set in add-on settings
                     pass
-                elif PF.check_connection(server, verifySSL=True) is False:
-                    # Server is offline or cannot be reached
-                    # Alert the user and suppress future warning
-                    if server_online:
-                        server_online = False
-                        utils.window('plex_online', value="false")
-                        # Suspend threads
-                        app.SYNC.suspend_library_thread = True
-                        LOG.warn("Plex Media Server went offline")
-                        if utils.settings('show_pms_offline') == 'true':
-                            utils.dialog('notification',
-                                         utils.lang(33001),
-                                         "%s %s" % (utils.lang(29999),
-                                                    utils.lang(33002)),
-                                         icon='{plex}',
-                                         sound=False)
-                    counter += 1
-                    # Periodically check if the IP changed, e.g. per minute
-                    if counter > 20:
-                        counter = 0
-                        setup = initialsetup.InitialSetup()
-                        tmp = setup.pick_pms()
-                        if tmp:
-                            setup.write_pms_to_settings(tmp)
-                            app.CONN.load()
-                else:
-                    # Server is online
-                    counter = 0
-                    if not server_online:
-                        # Server was offline when Kodi started.
-                        server_online = True
-                        # Alert the user that server is online.
-                        if (welcome_msg is False and
-                                utils.settings('show_pms_offline') == 'true'):
-                            utils.dialog('notification',
-                                         utils.lang(29999),
-                                         utils.lang(33003),
-                                         icon='{plex}',
-                                         time=5000,
-                                         sound=False)
-                    LOG.info("Server %s is online and ready.", server)
-                    utils.window('plex_online', value="true")
-                    if app.ACCOUNT.authenticated:
-                        # Server got offline when we were authenticated.
-                        # Hence resume threads
-                        app.SYNC.suspend_library_thread = False
+                elif not self.connection_check_running:
+                    self.connection_check_running = True
+                    task = backgroundthread.FunctionAsTask(
+                        PF.check_connection,
+                        self.on_connection_check,
+                        server,
+                        verifySSL=True)
+                    backgroundthread.BGThreader.addTasksToFront([task])
+                    continue
+            elif not app.ACCOUNT.authenticated:
+                # Plex server is online, but we're not yet authenticated
+                if not self.auth_running:
+                    self.auth_running = True
+                    task = backgroundthread.FunctionAsTask(
+                        self.authenticate, None)
+                    backgroundthread.BGThreader.addTasksToFront([task])
+                    continue
+            elif not self.startup_completed:
+                self.startup_completed = True
+                self.specialmonitor.start()
+                self.ws.start()
+                self.sync.start()
+                self.plexcompanion.start()
+                self.playback_starter.start()
+                self.playqueue.start()
+                if utils.settings('enable_alexa') == 'true':
+                    self.alexa.start()
 
-            if app.APP.monitor.waitForAbort(0.05):
-                # Abort was requested while waiting. We should exit
-                break
+            app.APP.monitor.waitForAbort(0.1)
+
+        # EXITING PKC
         # Tell all threads to terminate (e.g. several lib sync threads)
         app.APP.stop_pkc = True
         utils.window('plex_service_started', clear=True)

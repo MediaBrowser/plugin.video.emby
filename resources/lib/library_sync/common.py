@@ -9,7 +9,7 @@ from .. import app
 class libsync_mixin(object):
     def isCanceled(self):
         return (self._canceled or app.APP.stop_pkc or app.SYNC.stop_sync or
-                app.SYNC.suspend_library_thread or app.SYNC.suspend_sync)
+                app.APP.suspend_threads or app.SYNC.suspend_sync)
 
 
 def update_kodi_library(video=True, music=True):

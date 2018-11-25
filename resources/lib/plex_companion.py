@@ -84,7 +84,7 @@ class PlexCompanion(backgroundthread.KillableThread):
         """
         Returns True if the thread is suspended
         """
-        return self._suspended or app.CONN.pms_status
+        return self._suspended or app.APP.suspend
 
     def _process_alexa(self, data):
         xml = PF.GetPlexMetadata(data['key'])

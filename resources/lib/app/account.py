@@ -30,6 +30,9 @@ class Account(object):
 
     def load(self):
         LOG.debug('Loading account settings')
+        # User name we used to sign in to plex.tv
+        self.plex_login = utils.settings('plexLogin') or None
+        self.plex_login_id = utils.settings('plexid') or None
         # plex.tv username
         self.plex_username = utils.settings('username') or None
         # Plex ID of that user (e.g. for plex.tv) as a STRING
@@ -62,13 +65,17 @@ class Account(object):
         LOG.debug('User is restricted Home user: %s', self.restricted_user)
 
     def log_out(self):
-        LOG.debug('Logging-out user')
+        LOG.debug('Logging-out user %s', self.plex_username)
         self.plex_username = None
         self.plex_user_id = None
         self.pms_token = None
         self.avatar = None
         self.restricted_user = None
         self.authenticated = False
+        try:
+            self._session.close()
+        except AttributeError:
+            pass
         self._session = None
 
         utils.settings('username', value='')
@@ -91,6 +98,12 @@ class Account(object):
         self.avatar = None
         self.restricted_user = None
         self.authenticated = False
+        self.plex_login = None
+        self.plex_login_id = None
+        try:
+            self._session.close()
+        except AttributeError:
+            pass
         self._session = None
 
         utils.settings('username', value='')
@@ -99,6 +112,8 @@ class Account(object):
         utils.settings('plexToken', value='')
         utils.settings('accessToken', value='')
         utils.settings('plexAvatar', value='')
+        utils.settings('plexLogin', value='')
+        utils.settings('plexid', value='')
 
         utils.window('plex_restricteduser', clear=True)
         utils.window('plex_token', clear=True)

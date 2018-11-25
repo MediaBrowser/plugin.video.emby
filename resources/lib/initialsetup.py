@@ -54,8 +54,8 @@ class InitialSetup(object):
         # Get Plex credentials from settings file, if they exist
         plexdict = PF.GetPlexLoginFromSettings()
         self.plex_login = plexdict['plexLogin']
+        self.plex_login_id = plexdict['plexid']
         self.plex_token = plexdict['plexToken']
-        self.plexid = plexdict['plexid']
         # Token for the PMS, not plex.tv
         self.pms_token = utils.settings('accessToken')
         if self.plex_token:
@@ -66,7 +66,7 @@ class InitialSetup(object):
         Writes Plex username, token to plex.tv and Plex id to PKC settings
         """
         utils.settings('username', value=self.plex_login or '')
-        utils.settings('userid', value=self.plexid or '')
+        utils.settings('userid', value=self.plex_login_id or '')
         utils.settings('plexToken', value=self.plex_token or '')
 
     def enter_new_pms_address(self):
@@ -117,14 +117,11 @@ class InitialSetup(object):
 
         Returns True if successful, or False if not
         """
-        try:
-            user = plex_tv.sign_in_with_pin()
-        except:
-            utils.ERROR()
+        user = plex_tv.sign_in_with_pin()
         if user:
             self.plex_login = user.username
             self.plex_token = user.authToken
-            self.plexid = user.id
+            self.plex_login_id = user.id
             return True
         return False
 
@@ -600,7 +597,7 @@ class InitialSetup(object):
             goto_settings = utils.yesno_dialog(utils.lang(29999),
                                                utils.lang(39017))
         if goto_settings:
-            state.PMS_STATUS = 'Stop'
+            app.APP.suspend = True
             executebuiltin(
                 'Addon.OpenSettings(plugin.video.plexkodiconnect)')
         elif reboot is True:

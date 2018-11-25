@@ -619,7 +619,7 @@ msgid "Invalid username or password"
 msgstr ""
 
 msgctxt "#33010"
-msgid "Your Plex token is no longer valid. Logging-out of plex.tv"
+msgid "User is unauthorized for server {0}"
 msgstr ""
 
 msgctxt "#33011"

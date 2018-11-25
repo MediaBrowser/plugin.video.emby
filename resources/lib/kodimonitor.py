@@ -54,6 +54,8 @@ class KodiMonitor(xbmc.Monitor):
         Monitor the PKC settings for changes made by the user
         """
         LOG.debug('PKC settings change detected')
+        # Assume that the user changed something so we can try to reconnect
+        app.APP.suspend = False
 
     def onNotification(self, sender, method, data):
         """
@@ -129,11 +131,10 @@ class KodiMonitor(xbmc.Monitor):
         elif method == "System.OnSleep":
             # Connection is going to sleep
             LOG.info("Marking the server as offline. SystemOnSleep activated.")
-            utils.window('plex_online', value="sleep")
         elif method == "System.OnWake":
             # Allow network to wake up
             self.waitForAbort(10)
-            utils.window('plex_online', value="false")
+            app.CONN.online = False
         elif method == "GUI.OnScreensaverDeactivated":
             if utils.settings('dbSyncScreensaver') == "true":
                 self.waitForAbort(5)
@@ -511,7 +512,7 @@ def _record_playstate(status, ended):
             xbmc.getCondVisibility('Window.IsVisible(Home.xml)')):
         LOG.debug('Refreshing skin to update widgets')
         xbmc.executebuiltin('ReloadSkin()')
-    task = backgroundthread.FunctionAsTask(_clean_file_table)
+    task = backgroundthread.FunctionAsTask(function=_clean_file_table)
     backgroundthread.BGThreader.addTasksToFront(task)
 
 
