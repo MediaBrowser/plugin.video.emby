@@ -596,6 +596,9 @@ class InitialSetup(object):
             # Open Settings page now? You will need to restart!
             goto_settings = utils.yesno_dialog(utils.lang(29999),
                                                utils.lang(39017))
+        # Reload relevant settings
+        app.CONN.load()
+        app.ACCOUNT.load()
         if goto_settings:
             app.APP.suspend = True
             executebuiltin(
