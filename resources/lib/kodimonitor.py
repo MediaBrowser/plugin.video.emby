@@ -451,7 +451,7 @@ def _record_playstate(status, ended):
         LOG.debug('Playback progress %s (%s of %s seconds)',
                   progress, time, totaltime)
     playcount = status['playcount']
-    last_played = timing.now()
+    last_played = timing.kodi_now()
     if playcount is None:
         LOG.debug('playcount not found, looking it up in the Kodi DB')
         with kodi_db.KodiVideoDB() as kodidb:
