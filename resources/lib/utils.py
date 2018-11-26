@@ -8,6 +8,7 @@ from logging import getLogger
 from sqlite3 import connect, OperationalError
 from datetime import datetime
 from unicodedata import normalize
+from threading import Lock
 try:
     import xml.etree.cElementTree as etree
     import defusedxml.cElementTree as defused_etree  # etree parse unsafe
@@ -35,6 +36,10 @@ LOG = getLogger('PLEX.utils')
 
 WINDOW = xbmcgui.Window(10000)
 ADDON = xbmcaddon.Addon(id='plugin.video.plexkodiconnect')
+
+# If several threads access  the settings.xml file concurrently, it gets
+# corrupted
+SETTINGS_LOCK = Lock()
 
 # Grab Plex id from '...plex_id=XXXX....'
 REGEX_PLEX_ID = re.compile(r'''plex_id=(\d+)''')
@@ -122,13 +127,14 @@ def settings(setting, value=None):
     setting and value can either be unicode or string
     """
     # We need to instantiate every single time to read changed variables!
-    addon = xbmcaddon.Addon(id='plugin.video.plexkodiconnect')
-    if value is not None:
-        # Takes string or unicode by default!
-        addon.setSetting(try_encode(setting), try_encode(value))
-    else:
-        # Should return unicode by default, but just in case
-        return try_decode(addon.getSetting(setting))
+    with SETTINGS_LOCK:
+        addon = xbmcaddon.Addon(id='plugin.video.plexkodiconnect')
+        if value is not None:
+                # Takes string or unicode by default!
+                addon.setSetting(try_encode(setting), try_encode(value))
+        else:
+            # Should return unicode by default, but just in case
+            return try_decode(addon.getSetting(setting))
 
 
 def lang(stringid):
