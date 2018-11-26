@@ -175,10 +175,9 @@ def _process_section(section_xml, kodidb, plexdb, sorted_sections,
                 nodes.append(section_name)
                 totalnodes += 1
             # Update items with new tag
-            for item in plexdb.kodi_id_by_section(section_id):
-                # Remove the "s" from viewtype for tags
+            for kodi_id in plexdb.kodiid_by_sectionid(section_id, plex_type):
                 kodidb.update_tag(
-                    current_tagid, tagid, item[0], current_sectiontype[:-1])
+                    current_tagid, tagid, kodi_id, current_sectiontype)
         else:
             # Validate the playlist exists or recreate it
             if (section_name not in playlists and plex_type in
