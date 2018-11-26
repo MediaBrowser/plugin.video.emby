@@ -138,7 +138,7 @@ class KodiMonitor(xbmc.Monitor):
         elif method == "GUI.OnScreensaverDeactivated":
             if utils.settings('dbSyncScreensaver') == "true":
                 self.waitForAbort(5)
-                utils.plex_command('RUN_LIB_SCAN', 'full')
+                app.SYNC.run_lib_scan = 'full'
         elif method == "System.OnQuit":
             LOG.info('Kodi OnQuit detected - shutting down')
             app.APP.stop_pkc = True
