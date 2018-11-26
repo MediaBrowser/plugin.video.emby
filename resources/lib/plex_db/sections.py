@@ -46,7 +46,7 @@ class Sections(object):
         """
         Returns the section_id for section_name (or None)
         """
-        self.cursor.execute('SELECT section_id FROM sections WHERE section_name = ? LIMIT 1,'
+        self.cursor.execute('SELECT section_id FROM sections WHERE section_name = ? LIMIT 1',
                             (section_name, ))
         try:
             return self.cursor.fetchone()[0]
