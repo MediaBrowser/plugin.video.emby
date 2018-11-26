@@ -682,7 +682,18 @@ class XmlKodiSetting(object):
             # Indent and make readable
             indent(self.root)
             # Safe the changed xml
-            self.tree.write(self.path, encoding='utf-8')
+            try:
+                self.tree.write(self.path, encoding='utf-8')
+            except IOError as err:
+                LOG.error('Could not save xml %s. Error: %s',
+                          self.filename, err)
+                # Could not change the Kodi settings file {0}. PKC might not
+                # work correctly. Error: {1}
+                if not settings('%s_ioerror' % self.filename):
+                    messageDialog(lang(29999),
+                                  lang(30417).format(self.filename, err))
+                    settings('%s_ioerror' % self.filename,
+                             value='warning_shown')
 
     def _is_empty(self, element, empty_elements):
         empty = True
