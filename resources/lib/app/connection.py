@@ -9,16 +9,17 @@ LOG = getLogger('PLEX.connection')
 
 
 class Connection(object):
-    def __init__(self, only_reload_settings=False):
-        self.load_webserver()
-        self.load()
-        if only_reload_settings:
-            return
-        # TODO: Delete
-        self.pms_server = None
-        # Token passed along, e.g. if playback initiated by Plex Companion. Might be
-        # another user playing something! Token identifies user
-        self.plex_transient_token = None
+    def __init__(self, entrypoint=False):
+        if entrypoint:
+            self.load_entrypoint()
+        else:
+            self.load_webserver()
+            self.load()
+            # TODO: Delete
+            self.pms_server = None
+            # Token passed along, e.g. if playback initiated by Plex Companion. Might be
+            # another user playing something! Token identifies user
+            self.plex_transient_token = None
 
     def load_webserver(self):
         """
@@ -58,6 +59,21 @@ class Connection(object):
         self.online = False
         LOG.debug('Set server %s (%s) to %s',
                   self.server_name, self.machine_identifier, self.server)
+
+    def load_entrypoint(self):
+        self.verify_ssl_cert = None if utils.settings('sslverify') == 'true' \
+            else False
+        self.ssl_cert_path = utils.settings('sslcert') \
+            if utils.settings('sslcert') != 'None' else None
+        self.https = utils.settings('https') == 'true'
+        self.host = utils.settings('ipaddress') or None
+        self.port = int(utils.settings('port')) if utils.settings('port') else None
+        if not self.host:
+            self.server = None
+        elif self.https:
+            self.server = 'https://%s:%s' % (self.host, self.port)
+        else:
+            self.server = 'http://%s:%s' % (self.host, self.port)
 
     def clear(self):
         LOG.debug('Clearing connection settings')

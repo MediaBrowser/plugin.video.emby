@@ -6,24 +6,25 @@ from .. import utils
 
 
 class Sync(object):
-    def __init__(self, only_reload_settings=False):
-        self.load_settings()
-        if only_reload_settings:
-            return
-        # Do we need to run a special library scan?
-        self.run_lib_scan = None
-        # Set if user decided to cancel sync
-        self.stop_sync = False
-        # Set during media playback if PKC should not do any syncs. Will NOT
-        # suspend synching of playstate progress
-        self.suspend_sync = False
-        # Could we access the paths?
-        self.path_verified = False
-        # Set if a Plex-Kodi DB sync is being done - along with
-        # window('plex_dbScan') set to 'true'
-        self.db_scan = False
+    def __init__(self, entrypoint=False):
+        if entrypoint:
+            self.load_entrypoint()
+        else:
+            self.load()
+            # Do we need to run a special library scan?
+            self.run_lib_scan = None
+            # Set if user decided to cancel sync
+            self.stop_sync = False
+            # Set during media playback if PKC should not do any syncs. Will NOT
+            # suspend synching of playstate progress
+            self.suspend_sync = False
+            # Could we access the paths?
+            self.path_verified = False
+            # Set if a Plex-Kodi DB sync is being done - along with
+            # window('plex_dbScan') set to 'true'
+            self.db_scan = False
 
-    def load_settings(self):
+    def load(self):
         # Direct Paths (True) or Addon Paths (False)?
         self.direct_paths = utils.settings('useDirectPaths') == '1'
         # Is synching of Plex music enabled?
@@ -68,3 +69,8 @@ class Sync(object):
         # Shall Kodi show dialogs for syncing/caching images? (e.g. images left
         # to sync)
         self.image_sync_notifications = utils.settings('imageSyncNotifications') == 'true'
+
+    def load_entrypoint(self):
+        self.direct_paths = utils.settings('useDirectPaths') == '1'
+        self.indicate_media_versions = utils.settings('indicate_media_versions') == "true"
+        self.path_verified = True

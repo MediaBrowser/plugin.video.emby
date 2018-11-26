@@ -18,10 +18,15 @@ SYNC = None
 PLAYSTATE = None
 
 
-def init():
+def init(entrypoint=False):
+    """
+    entrypoint=True initiates only the bare minimum - for other PKC python
+    instances
+    """
     global ACCOUNT, APP, CONN, SYNC, PLAYSTATE
-    ACCOUNT = Account()
-    APP = App()
-    CONN = Connection()
-    SYNC = Sync()
-    PLAYSTATE = PlayState()
+    ACCOUNT = Account(entrypoint)
+    APP = App(entrypoint)
+    CONN = Connection(entrypoint)
+    SYNC = Sync(entrypoint)
+    if not entrypoint:
+        PLAYSTATE = PlayState()

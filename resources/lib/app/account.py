@@ -9,12 +9,14 @@ LOG = getLogger('PLEX.account')
 
 
 class Account(object):
-    def __init__(self):
-        # Along with window('plex_authenticated')
-        self.authenticated = False
-        self._session = None
-        utils.window('plex_authenticated', clear=True)
-        self.load()
+    def __init__(self, entrypoint=False):
+        if entrypoint:
+            self.load_entrypoint()
+        else:
+            self.authenticated = False
+            utils.window('plex_authenticated', clear=True)
+            self._session = None
+            self.load()
 
     def set_authenticated(self):
         self.authenticated = True
@@ -46,8 +48,7 @@ class Account(object):
         self.myplexlogin = utils.settings('myplexlogin') == 'true'
 
         # Plex home user? Then "False"
-        self.restricted_user = True \
-            if utils.settings('plex_restricteduser') == 'true' else False
+        self.restricted_user = utils.settings('plex_restricteduser') == 'true'
         # Force user to enter Pin if set?
         self.force_login = utils.settings('enforceUserLogin') == 'true'
 
@@ -63,6 +64,9 @@ class Account(object):
                   self.plex_token[:5] if self.plex_token else None,
                   self.pms_token[:5] if self.pms_token else None)
         LOG.debug('User is restricted Home user: %s', self.restricted_user)
+
+    def load_entrypoint(self):
+        self.pms_token = utils.settings('accessToken') or None
 
     def log_out(self):
         LOG.debug('Logging-out user %s', self.plex_username)

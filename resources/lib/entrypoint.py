@@ -14,7 +14,6 @@ from xbmcgui import ListItem
 
 from . import utils
 from . import path_ops
-from . import initialsetup
 from .downloadutils import DownloadUtils as DU
 from .plex_api import API
 from . import plex_functions as PF
@@ -376,7 +375,7 @@ def get_video_files(plex_id, params):
     if plex_id is None:
         LOG.info('No Plex ID found, abort getting Extras')
         return xbmcplugin.endOfDirectory(int(argv[1]))
-
+    app.init(entrypoint=True)
     item = PF.GetPlexMetadata(plex_id)
     try:
         path = utils.try_decode(item[0][0][0].attrib['file'])
@@ -436,6 +435,7 @@ def extra_fanart(plex_id, plex_path):
     if not path_ops.exists(fanart_dir):
         # Download the images to the cache directory
         path_ops.makedirs(fanart_dir)
+        app.init(entrypoint=True)
         xml = PF.GetPlexMetadata(plex_id)
         if xml is None:
             LOG.error('Could not download metadata for %s', plex_id)
@@ -504,15 +504,13 @@ def on_deck_episodes(viewid, tagname, limit):
         # Wait till we've connected to a PMS. At most 30s
         if not _wait_for_auth():
             return
+        # We're using another python instance - need to load some vars
+        app.init(entrypoint=True)
         xml = DU().downloadUrl('{server}/library/sections/%s/onDeck' % viewid)
         if xml in (None, 401):
             LOG.error('Could not download PMS xml for view %s', viewid)
             xbmcplugin.endOfDirectory(int(argv[1]), False)
             return
-        # We're using another python instance - need to load some vars
-        app.init()
-        # Let's NOT check paths for widgets!
-        app.SYNC.path_verified = True
         counter = 0
         for item in xml:
             api = API(item)
@@ -619,6 +617,7 @@ def playlists(content_type):
     if not _wait_for_auth():
         return
     xbmcplugin.setContent(int(argv[1]), 'files')
+    app.init(entrypoint=True)
     from .playlists.pms import all_playlists
     xml = all_playlists()
     if xml is None:
@@ -650,6 +649,7 @@ def hub(content_type):
     content_type:
         audio, video, image
     """
+    app.init(entrypoint=True)
     xml = PF.get_plex_hub()
     try:
         xml.attrib
@@ -725,6 +725,7 @@ def browse_plex(key=None, plex_section_id=None):
     be used directly for PMS url {server}<key>) or the plex_section_id
     """
     LOG.debug('Browsing to key %s, section %s', key, plex_section_id)
+    app.init(entrypoint=True)
     if key:
         xml = DU().downloadUrl('{server}%s' % key)
     else:
@@ -878,6 +879,7 @@ def extras(plex_id):
     Lists all extras for plex_id
     """
     xbmcplugin.setContent(int(argv[1]), 'movies')
+    app.init(entrypoint=True)
     xml = PF.GetPlexMetadata(plex_id)
     try:
         xml[0].attrib

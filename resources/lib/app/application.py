@@ -11,41 +11,45 @@ class App(object):
     """
     This class is used to store variables across PKC modules
     """
-    def __init__(self, only_reload_settings=False):
-        self.load_settings()
-        if only_reload_settings:
-            return
-        # Quit PKC?
-        self.stop_pkc = False
-        # Shall we completely suspend PKC and our threads?
-        self.suspend = False
-        # Shall we only suspend threads?
-        self._suspend_threads = False
-        # Need to lock all methods and functions messing with Plex Companion subscribers
-        self.lock_subscriber = RLock()
-        # Need to lock everything messing with Kodi/PKC playqueues
-        self.lock_playqueues = RLock()
-        # Necessary to temporarily hold back librarysync/websocket listener when doing
-        # a full sync
-        self.lock_playlists = Lock()
+    def __init__(self, entrypoint=False):
+        if entrypoint:
+            self.load_entrypoint()
+        else:
+            self.load()
+            # Quit PKC?
+            self.stop_pkc = False
+            # Shall we completely suspend PKC and our threads?
+            self.suspend = False
+            # Shall we only suspend threads?
+            self._suspend_threads = False
+            # Need to lock all methods and functions messing with Plex Companion subscribers
+            self.lock_subscriber = RLock()
+            # Need to lock everything messing with Kodi/PKC playqueues
+            self.lock_playqueues = RLock()
+            # Necessary to temporarily hold back librarysync/websocket listener when doing
+            # a full sync
+            self.lock_playlists = Lock()
 
-        # Plex Companion Queue()
-        self.companion_queue = Queue.Queue(maxsize=100)
-        # Command Pipeline Queue()
-        self.command_pipeline_queue = Queue.Queue()
-        # Websocket_client queue to communicate with librarysync
-        self.websocket_queue = Queue.Queue()
-        # xbmc.Monitor() instance from kodimonitor.py
-        self.monitor = None
-        # xbmc.Player() instance
-        self.player = None
+            # Plex Companion Queue()
+            self.companion_queue = Queue.Queue(maxsize=100)
+            # Command Pipeline Queue()
+            self.command_pipeline_queue = Queue.Queue()
+            # Websocket_client queue to communicate with librarysync
+            self.websocket_queue = Queue.Queue()
+            # xbmc.Monitor() instance from kodimonitor.py
+            self.monitor = None
+            # xbmc.Player() instance
+            self.player = None
 
-    def load_settings(self):
+    def load(self):
         # Number of items to fetch and display in widgets
         self.fetch_pms_item_number = int(utils.settings('fetch_pms_item_number'))
         # Hack to force Kodi widget for "in progress" to show up if it was empty
         # before
         self.force_reload_skin = utils.settings('forceReloadSkinOnPlaybackStop') == 'true'
+
+    def load_entrypoint(self):
+        self.fetch_pms_item_number = int(utils.settings('fetch_pms_item_number'))
 
     @property
     def suspend_threads(self):
