@@ -130,7 +130,7 @@ class TvShowMixin(object):
         LOG.debug("Removed episode: %s", kodi_id)
 
 
-class Show(ItemBase, TvShowMixin):
+class Show(TvShowMixin, ItemBase):
     """
     For Plex library-type TV shows
     """
@@ -274,7 +274,7 @@ class Show(ItemBase, TvShowMixin):
                              last_sync=self.last_sync)
 
 
-class Season(ItemBase, TvShowMixin):
+class Season(TvShowMixin, ItemBase):
     def add_update(self, xml, section_name=None, section_id=None,
                    children=None):
         """
@@ -331,7 +331,7 @@ class Season(ItemBase, TvShowMixin):
                                last_sync=self.last_sync)
 
 
-class Episode(ItemBase, TvShowMixin):
+class Episode(TvShowMixin, ItemBase):
     def add_update(self, xml, section_name=None, section_id=None,
                    children=None):
         """
