@@ -171,6 +171,7 @@ class KodiMonitor(xbmc.Monitor):
             'resolve': False
         }
         task = backgroundthread.FunctionAsTask(playback.playback_triage,
+                                               None,
                                                **kwargs)
         backgroundthread.BGThreader.addTasksToFront([task])
 
@@ -482,7 +483,7 @@ def _record_playstate(status, ended):
             xbmc.getCondVisibility('Window.IsVisible(Home.xml)')):
         LOG.debug('Refreshing skin to update widgets')
         xbmc.executebuiltin('ReloadSkin()')
-    task = backgroundthread.FunctionAsTask(function=_clean_file_table)
+    task = backgroundthread.FunctionAsTask(_clean_file_table, None)
     backgroundthread.BGThreader.addTasksToFront(task)
 
 
