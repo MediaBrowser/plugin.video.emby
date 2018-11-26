@@ -484,7 +484,7 @@ def _record_playstate(status, ended):
         LOG.debug('Refreshing skin to update widgets')
         xbmc.executebuiltin('ReloadSkin()')
     task = backgroundthread.FunctionAsTask(_clean_file_table, None)
-    backgroundthread.BGThreader.addTasksToFront(task)
+    backgroundthread.BGThreader.addTasksToFront([task])
 
 
 def _clean_file_table():
