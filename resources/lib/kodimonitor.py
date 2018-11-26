@@ -170,8 +170,9 @@ class KodiMonitor(xbmc.Monitor):
             'path': old['file'],
             'resolve': False
         }
-        thread = Thread(target=playback.playback_triage, kwargs=kwargs)
-        thread.start()
+        task = backgroundthread.FunctionAsTask(playback.playback_triage,
+                                               **kwargs)
+        backgroundthread.BGThreader.addTasksToFront([task])
 
     def _playlist_onadd(self, data):
         """
