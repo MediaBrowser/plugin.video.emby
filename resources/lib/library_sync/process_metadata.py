@@ -29,6 +29,11 @@ class InitNewSection(object):
         self.plex_type = plex_type
 
 
+class UpdateUserdata(object):
+    def __init__(self, xml_item):
+        self.xml_item = xml_item
+
+
 class UpdateLastSync(object):
     def __init__(self, plex_id):
         self.plex_id = plex_id
@@ -130,6 +135,8 @@ class ProcessMetadata(common.libsync_mixin, backgroundthread.KillableThread):
                         context.plexdb.update_last_sync(item.plex_id,
                                                         section.plex_type,
                                                         self.last_sync)
+                    elif isinstance(item, UpdateUserdata):
+                        context.update_userdata(item.xml_item, section.plex_type)
                     elif isinstance(item, InitNewSection) or item is None:
                         section = item
                         self.queue.task_done()

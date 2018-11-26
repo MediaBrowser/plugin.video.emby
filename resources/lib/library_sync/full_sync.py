@@ -5,7 +5,7 @@ from logging import getLogger
 
 from .get_metadata import GetMetadataTask, reset_collections
 from .process_metadata import InitNewSection, UpdateLastSync, ProcessMetadata, \
-    DeleteItem
+    DeleteItem, UpdateUserdata
 from . import common, sections
 from .. import utils, timing, backgroundthread, variables as v, app
 from .. import plex_functions as PF, itemtypes
@@ -78,11 +78,10 @@ class FullSync(common.libsync_mixin):
         Updates the playstate (resume point, number of views, userrating, last
         played date, etc.) for all elements in the (xml-)iterator
         """
-        with self.context(self.current_sync) as c:
-            for xml_item in iterator:
-                if self.isCanceled():
-                    return False
-                c.update_userdata(xml_item, self.plex_type)
+        for xml_item in iterator:
+            if self.isCanceled():
+                return False
+            self.queue.put(UpdateUserdata(xml_item))
 
     @utils.log_time
     def process_kind(self):
