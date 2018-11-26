@@ -191,6 +191,8 @@ class Service():
         app.ACCOUNT.set_unauthenticated()
         self.server_has_been_online = False
         self.welcome_msg = False
+        # Force a full sync
+        app.SYNC.run_lib_scan = 'full'
         LOG.info("Choosing new PMS complete")
         return True
 
