@@ -79,7 +79,7 @@ class DownloadUtils():
         self.s.mount("http://", requests.adapters.HTTPAdapter(max_retries=1))
         self.s.mount("https://", requests.adapters.HTTPAdapter(max_retries=1))
 
-        LOG.info("Requests session started on: %s", app.CONN.server)
+        LOG.debug("Requests session started on: %s", app.CONN.server)
 
     def stopSession(self):
         try:
