@@ -199,7 +199,7 @@ class FullSync(common.libsync_mixin):
             return
         try:
             # Fire up our single processing thread
-            self.queue = backgroundthread.Queue.Queue(maxsize=600)
+            self.queue = backgroundthread.Queue.Queue(maxsize=1000)
             self.processing_thread = ProcessMetadata(self.queue,
                                                      self.current_sync,
                                                      self.show_dialog)
