@@ -4,6 +4,7 @@ from __future__ import absolute_import, division, unicode_literals
 import logging
 import sys
 import xbmc
+import xbmcgui
 
 from . import utils, clientinfo, timing
 from . import initialsetup, artwork
@@ -29,6 +30,10 @@ WINDOW_PROPERTIES = (
     "plex_dbScan", "pms_token", "plex_token", "pms_server",
     "plex_authenticated", "plex_restricteduser", "plex_allows_mediaDeletion",
     "plex_command", "plex_result")
+
+# "Start from beginning", "Play from beginning"
+STRINGS = (utils.try_encode(utils.lang(12021)),
+           utils.try_encode(utils.lang(12023)))
 
 
 class Service():
@@ -336,7 +341,6 @@ class Service():
         self.alexa = websocket_client.Alexa_Websocket()
         self.sync = sync.Sync()
         self.plexcompanion = plex_companion.PlexCompanion()
-        self.specialmonitor = kodimonitor.SpecialMonitor()
         self.playback_starter = playback_starter.PlaybackStarter()
         self.playqueue = playqueue.PlayqueueMonitor()
 
@@ -399,6 +403,17 @@ class Service():
                 app.APP.monitor.waitForAbort(0.1)
                 continue
 
+            # Detect the resume dialog for widgets. Could also be used to detect
+            # external players (see Emby implementation)
+            if xbmc.getCondVisibility('Window.IsVisible(DialogContextMenu.xml)'):
+                if xbmc.getInfoLabel('Control.GetLabel(1002)') in STRINGS:
+                    # Remember that the item IS indeed resumable
+                    control = int(xbmcgui.Window(10106).getFocusId())
+                    app.PLAYSTATE.resume_playback = True if control == 1001 else False
+                else:
+                    # Different context menu is displayed
+                    app.PLAYSTATE.resume_playback = False
+
             # Before proceeding, need to make sure:
             # 1. Server is online
             # 2. User is set
@@ -428,7 +443,6 @@ class Service():
                     continue
             elif not self.startup_completed:
                 self.startup_completed = True
-                self.specialmonitor.start()
                 self.ws.start()
                 self.sync.start()
                 self.plexcompanion.start()

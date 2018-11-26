@@ -8,7 +8,6 @@ from logging import getLogger
 from json import loads
 import copy
 import xbmc
-from xbmcgui import Window
 
 from .plex_db import PlexDB
 from . import kodi_db
@@ -394,36 +393,6 @@ class KodiMonitor(xbmc.Monitor):
         status['playmethod'] = item.playmethod
         status['playcount'] = item.playcount
         LOG.debug('Set the player state: %s', status)
-
-
-class SpecialMonitor(backgroundthread.KillableThread):
-    """
-    Detect the resume dialog for widgets.
-    Could also be used to detect external players (see Emby implementation)
-    """
-    def run(self):
-        LOG.info("----====# Starting Special Monitor #====----")
-        # "Start from beginning", "Play from beginning"
-        strings = (utils.try_encode(utils.lang(12021)),
-                   utils.try_encode(utils.lang(12023)))
-        while not self.isCanceled():
-            if xbmc.getCondVisibility('Window.IsVisible(DialogContextMenu.xml)'):
-                if xbmc.getInfoLabel('Control.GetLabel(1002)') in strings:
-                    # Remember that the item IS indeed resumable
-                    control = int(Window(10106).getFocusId())
-                    app.PLAYSTATE.resume_playback = True if control == 1001 else False
-                else:
-                    # Different context menu is displayed
-                    app.PLAYSTATE.resume_playback = False
-            if xbmc.getCondVisibility('Window.IsVisible(MyVideoNav.xml)'):
-                path = xbmc.getInfoLabel('container.folderpath')
-                if (isinstance(path, str) and
-                        path.startswith('special://profile/playlists')):
-                    pass
-                    # TODO: start polling PMS for playlist changes
-                    # Optionally: poll PMS continuously with custom intervall
-            app.APP.monitor.waitForAbort(0.2)
-        LOG.info("#====---- Special Monitor Stopped ----====#")
 
 
 def _playback_cleanup(ended=False):
