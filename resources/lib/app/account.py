@@ -21,14 +21,19 @@ class Account(object):
     def set_authenticated(self):
         self.authenticated = True
         utils.window('plex_authenticated', value='true')
-        # Start download session
-        from .. import downloadutils
-        self._session = downloadutils.DownloadUtils()
-        self._session.startSession(reset=True)
 
     def set_unauthenticated(self):
         self.authenticated = False
         utils.window('plex_authenticated', clear=True)
+
+    def reset_session(self):
+        try:
+            self._session.stopSession()
+        except AttributeError:
+            pass
+        from .. import downloadutils
+        self._session = downloadutils.DownloadUtils()
+        self._session.startSession(reset=True)
 
     def load(self):
         LOG.debug('Loading account settings')
@@ -59,6 +64,10 @@ class Account(object):
         utils.window('plex_token', value=self.plex_token or '')
         utils.window('pms_token', value=self.pms_token or '')
         utils.window('plexAvatar', value=self.avatar or '')
+
+        # Start download session
+        self.reset_session()
+
         LOG.debug('Loaded user %s, %s with plex token %s... and pms token %s...',
                   self.plex_username, self.plex_user_id,
                   self.plex_token[:5] if self.plex_token else None,
@@ -77,7 +86,7 @@ class Account(object):
         self.restricted_user = None
         self.authenticated = False
         try:
-            self._session.close()
+            self._session.stopSession()
         except AttributeError:
             pass
         self._session = None
@@ -105,7 +114,7 @@ class Account(object):
         self.plex_login = None
         self.plex_login_id = None
         try:
-            self._session.close()
+            self._session.stopSession()
         except AttributeError:
             pass
         self._session = None

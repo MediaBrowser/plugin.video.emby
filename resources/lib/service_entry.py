@@ -115,8 +115,11 @@ class Service():
                     self.connection_check_counter = 0
                     server = self.setup.pick_pms()
                     if server:
+                        LOG.debug('Found server: %s', server)
+                        self.setup.save_pms_settings(server['baseURL'], server['token'])
                         self.setup.write_pms_to_settings(server)
                         app.CONN.load()
+                        app.ACCOUNT.reset_session()
             else:
                 # Server is online
                 self.connection_check_counter = 0
@@ -169,19 +172,22 @@ class Service():
                 return False
         else:
             server = self.setup.pick_pms(showDialog=True)
-            if server is None:
+            if not server:
                 LOG.info('We did not connect to a new PMS, aborting')
                 return False
             LOG.info("User chose server %s", server['name'])
             if server['baseURL'] == app.CONN.server:
                 LOG.info('User chose old PMS to connect to')
                 return False
+            # Save changes to to file
+            self.setup.save_pms_settings(server['baseURL'], server['token'])
             self.setup.write_pms_to_settings(server)
         if not self.log_out():
             return False
         # Wipe Kodi and Plex database as well as playlists and video nodes
         utils.wipe_database()
         app.CONN.load()
+        app.ACCOUNT.reset_session()
         app.ACCOUNT.set_unauthenticated()
         self.server_has_been_online = False
         self.welcome_msg = False
@@ -235,6 +241,7 @@ class Service():
     def enter_new_pms_address(self):
         if self.setup.enter_new_pms_address():
             app.CONN.load()
+            app.ACCOUNT.reset_session()
             app.ACCOUNT.set_unauthenticated()
             self.server_has_been_online = False
             self.welcome_msg = False

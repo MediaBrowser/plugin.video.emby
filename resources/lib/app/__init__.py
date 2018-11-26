@@ -24,9 +24,9 @@ def init(entrypoint=False):
     instances
     """
     global ACCOUNT, APP, CONN, SYNC, PLAYSTATE
-    ACCOUNT = Account(entrypoint)
     APP = App(entrypoint)
     CONN = Connection(entrypoint)
+    ACCOUNT = Account(entrypoint)
     SYNC = Sync(entrypoint)
     if not entrypoint:
         PLAYSTATE = PlayState()

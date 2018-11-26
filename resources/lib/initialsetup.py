@@ -26,24 +26,6 @@ if not path_ops.exists(v.EXTERNAL_SUBTITLE_TEMP_PATH):
     path_ops.makedirs(v.EXTERNAL_SUBTITLE_TEMP_PATH)
 
 
-def _write_pms_settings(url, token):
-    """
-    Sets certain settings for server by asking for the PMS' settings
-    Call with url: scheme://ip:port
-    """
-    xml = PF.get_PMS_settings(url, token)
-    try:
-        xml.attrib
-    except AttributeError:
-        LOG.error('Could not get PMS settings for %s', url)
-        return
-    for entry in xml:
-        if entry.attrib.get('id', '') == 'allowMediaDeletion':
-            value = 'true' if entry.get('value', '1') == '1' else 'false'
-            utils.settings('plex_allows_mediaDeletion', value=value)
-            utils.window('plex_allows_mediaDeletion', value=value)
-
-
 class InitialSetup(object):
     """
     Will load Plex PMS settings (e.g. address) and token
@@ -68,6 +50,24 @@ class InitialSetup(object):
         utils.settings('username', value=self.plex_login or '')
         utils.settings('userid', value=self.plex_login_id or '')
         utils.settings('plexToken', value=self.plex_token or '')
+
+    @staticmethod
+    def save_pms_settings(url, token):
+        """
+        Sets certain settings for server by asking for the PMS' settings
+        Call with url: scheme://ip:port
+        """
+        xml = PF.get_PMS_settings(url, token)
+        try:
+            xml.attrib
+        except AttributeError:
+            LOG.error('Could not get PMS settings for %s', url)
+            return
+        for entry in xml:
+            if entry.attrib.get('id', '') == 'allowMediaDeletion':
+                value = 'true' if entry.get('value', '1') == '1' else 'false'
+                utils.settings('plex_allows_mediaDeletion', value=value)
+                utils.window('plex_allows_mediaDeletion', value=value)
 
     def enter_new_pms_address(self):
         # "Enter your Plex Media Server's IP or URL. Examples are:"
@@ -261,8 +261,6 @@ class InitialSetup(object):
             server = self._user_pick_pms()
         else:
             server = self._auto_pick_pms()
-        if server is not None:
-            _write_pms_settings(server['baseURL'], server['token'])
         return server
 
     def _auto_pick_pms(self):
@@ -389,6 +387,7 @@ class InitialSetup(object):
         utils.settings('plex_servername', server['name'])
         utils.settings('plex_serverowned',
                        'true' if server['owned'] else 'false')
+        utils.settings('accessToken', server['token'])
         # Careful to distinguish local from remote PMS
         if server['local']:
             scheme = server['scheme']
@@ -486,7 +485,6 @@ class InitialSetup(object):
         migration.check_migration()
         # Reload the server IP cause we might've deleted it during migration
         app.CONN.load()
-        app.CONN.server = app.CONN.server
 
         # Display a warning if Kodi puts ALL movies into the queue, basically
         # breaking playback reporting for PKC
@@ -512,7 +510,7 @@ class InitialSetup(object):
             if self.check_existing_pms():
                 LOG.info("Using PMS %s with machineIdentifier %s",
                          app.CONN.server, app.CONN.machine_identifier)
-                _write_pms_settings(app.CONN.server, self.pms_token)
+                self.save_pms_settings(app.CONN.server, self.pms_token)
                 if reboot is True:
                     utils.reboot_kodi()
                 return
@@ -525,6 +523,7 @@ class InitialSetup(object):
         server = self.pick_pms()
         if server is not None:
             # Write our chosen server to Kodi settings file
+            self.save_pms_settings(server['baseURL'], server['token'])
             self.write_pms_to_settings(server)
 
         # User already answered the installation questions
