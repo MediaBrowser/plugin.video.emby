@@ -341,7 +341,6 @@ class Service():
         self.alexa = websocket_client.Alexa_Websocket()
         self.sync = sync.Sync()
         self.plexcompanion = plex_companion.PlexCompanion()
-        self.playback_starter = playback_starter.PlaybackStarter()
         self.playqueue = playqueue.PlayqueueMonitor()
 
         # Main PKC program loop
@@ -360,33 +359,30 @@ class Service():
                 # Commands/user interaction received from other PKC Python
                 # instances (default.py and context.py instead of service.py)
                 utils.window('plex_command', clear=True)
+                task = None
                 if plex_command.startswith('PLAY-'):
                     # Add-on path playback!
-                    app.APP.command_pipeline_queue.put(
+                    task = playback_starter.PlaybackTask(
                         plex_command.replace('PLAY-', ''))
                 elif plex_command.startswith('NAVIGATE-'):
-                    app.APP.command_pipeline_queue.put(
+                    task = playback_starter.PlaybackTask(
                         plex_command.replace('NAVIGATE-', ''))
                 elif plex_command.startswith('CONTEXT_menu?'):
-                    app.APP.command_pipeline_queue.put(
+                    task = playback_starter.PlaybackTask(
                         'dummy?mode=context_menu&%s'
                         % plex_command.replace('CONTEXT_menu?', ''))
                 elif plex_command == 'choose_pms_server':
                     task = backgroundthread.FunctionAsTask(
                         self.choose_pms_server, None)
-                    backgroundthread.BGThreader.addTasksToFront([task])
                 elif plex_command == 'switch_plex_user':
                     task = backgroundthread.FunctionAsTask(
                         self.switch_plex_user, None)
-                    backgroundthread.BGThreader.addTasksToFront([task])
                 elif plex_command == 'enter_new_pms_address':
                     task = backgroundthread.FunctionAsTask(
                         self.enter_new_pms_address, None)
-                    backgroundthread.BGThreader.addTasksToFront([task])
                 elif plex_command == 'toggle_plex_tv_sign_in':
                     task = backgroundthread.FunctionAsTask(
                         self.toggle_plex_tv, None)
-                    backgroundthread.BGThreader.addTasksToFront([task])
                 elif plex_command == 'repair-scan':
                     app.SYNC.run_lib_scan = 'repair'
                 elif plex_command == 'full-scan':
@@ -397,6 +393,8 @@ class Service():
                     app.SYNC.run_lib_scan = 'textures'
                 elif plex_command == 'RESET-PKC':
                     utils.reset()
+                if task:
+                    backgroundthread.BGThreader.addTasksToFront([task])
                 continue
 
             if app.APP.suspend:
@@ -446,7 +444,6 @@ class Service():
                 self.ws.start()
                 self.sync.start()
                 self.plexcompanion.start()
-                self.playback_starter.start()
                 self.playqueue.start()
                 if utils.settings('enable_alexa') == 'true':
                     self.alexa.start()

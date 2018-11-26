@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
-from threading import Thread
 from urlparse import parse_qsl
 
 from .kodi_db import KodiVideoDB
@@ -10,7 +9,7 @@ from . import playback
 from . import context_entry
 from . import json_rpc as js
 from . import pickler
-from . import app
+from . import backgroundthread
 
 ###############################################################################
 
@@ -19,12 +18,17 @@ LOG = getLogger('PLEX.playback_starter')
 ###############################################################################
 
 
-class PlaybackStarter(Thread):
+class PlaybackTask(backgroundthread.Task):
     """
     Processes new plays
     """
-    @staticmethod
-    def _triage(item):
+    def __init__(self, command):
+        self.command = command
+        super(PlaybackTask, self).__init__()
+
+    def run(self):
+        LOG.debug('Starting PlaybackTask with %s', self.command)
+        item = self.command
         try:
             _, params = item.split('?', 1)
         except ValueError:
@@ -59,16 +63,4 @@ class PlaybackStarter(Thread):
         elif mode == 'context_menu':
             context_entry.ContextMenu(kodi_id=params.get('kodi_id'),
                                       kodi_type=params.get('kodi_type'))
-
-    def run(self):
-        queue = app.APP.command_pipeline_queue
-        LOG.info("----===## Starting PlaybackStarter ##===----")
-        while True:
-            item = queue.get()
-            if item is None:
-                # Need to shutdown - initiated by command_pipeline
-                break
-            else:
-                self._triage(item)
-                queue.task_done()
-        LOG.info("----===## PlaybackStarter stopped ##===----")
+        LOG.debug('Finished PlaybackTask')

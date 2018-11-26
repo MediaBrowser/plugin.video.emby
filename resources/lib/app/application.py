@@ -32,8 +32,6 @@ class App(object):
 
             # Plex Companion Queue()
             self.companion_queue = Queue.Queue(maxsize=100)
-            # Command Pipeline Queue()
-            self.command_pipeline_queue = Queue.Queue()
             # Websocket_client queue to communicate with librarysync
             self.websocket_queue = Queue.Queue()
             # xbmc.Monitor() instance from kodimonitor.py
