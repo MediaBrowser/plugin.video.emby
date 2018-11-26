@@ -78,7 +78,7 @@ class TvShowMixin(object):
                     not self.plexdb.show_has_episodes(db_item['show_id'])):
                 # There's no other season or episode left, delete the show
                 self.remove_show(db_item['parent_id'])
-                self.plexdb.remove(db_item['show_id'], v.KODI_TYPE_SHOW)
+                self.plexdb.remove(db_item['show_id'], v.PLEX_TYPE_SHOW)
         # TVSHOW #####
         elif db_item['plex_type'] == v.PLEX_TYPE_SHOW:
             # Remove episodes, seasons and the tvshow itself
