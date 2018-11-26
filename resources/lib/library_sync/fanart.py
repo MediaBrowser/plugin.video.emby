@@ -70,7 +70,7 @@ class FanartThread(backgroundthread.KillableThread):
         self.callback(finished)
 
 
-class FanartTask(backgroundthread.Task, common.libsync_mixin):
+class FanartTask(common.libsync_mixin, backgroundthread.Task):
     """
     This task will also be executed while library sync is suspended!
     """

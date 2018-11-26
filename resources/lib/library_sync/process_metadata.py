@@ -39,7 +39,7 @@ class DeleteItem(object):
         self.plex_id = plex_id
 
 
-class ProcessMetadata(backgroundthread.KillableThread, common.libsync_mixin):
+class ProcessMetadata(common.libsync_mixin, backgroundthread.KillableThread):
     """
     Not yet implemented for more than 1 thread - if ever. Only to be called by
     ONE thread!

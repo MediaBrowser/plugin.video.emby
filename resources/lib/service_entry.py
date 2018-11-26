@@ -152,8 +152,8 @@ class Service():
         i = 0
         while app.SYNC.db_scan:
             i += 1
-            app.APP.monitor.waitForAbort(0.05)
-            if i > 100:
+            app.APP.monitor.waitForAbort(0.1)
+            if i > 150:
                 LOG.error('Could not stop library sync, aborting log-out')
                 # Failed to reset PMS and plex.tv connects. Try to restart Kodi
                 utils.messageDialog(utils.lang(29999), utils.lang(39208))

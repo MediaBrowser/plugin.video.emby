@@ -495,7 +495,7 @@ def reset(ask_user=True):
     from . import app
     # first stop any db sync
     app.APP.suspend_threads = True
-    count = 10
+    count = 15
     while app.SYNC.db_scan:
         LOG.debug("Sync is running, will retry: %s...", count)
         count -= 1
