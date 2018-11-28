@@ -9,16 +9,10 @@ from sqlite3 import connect, OperationalError
 from datetime import datetime
 from unicodedata import normalize
 from threading import Lock
-try:
-    import xml.etree.cElementTree as etree
-    import defusedxml.cElementTree as defused_etree  # etree parse unsafe
-    from xml.etree.ElementTree import ParseError
-    ETREE = 'cElementTree'
-except ImportError:
-    import xml.etree.ElementTree as etree
-    import defusedxml.ElementTree as defused_etree  # etree parse unsafe
-    from xml.etree.ElementTree import ParseError
-    ETREE = 'ElementTree'
+# Originally tried faster cElementTree, but does NOT work reliably with Kodi
+import xml.etree.ElementTree as etree
+import defusedxml.ElementTree as defused_etree  # etree parse unsafe
+from xml.etree.ElementTree import ParseError
 from functools import wraps
 from urllib import quote_plus
 import hashlib
@@ -668,7 +662,7 @@ class XmlKodiSetting(object):
             messageDialog(lang(29999), lang(39716).format(
                 self.filename,
                 'http://kodi.wiki'))
-            self.__exit__(ParseError('Error parsing XML'), None, None)
+            raise ParseError
         self.root = self.tree.getroot()
         return self
 

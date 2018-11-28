@@ -62,7 +62,6 @@ class Service():
                  utils.settings('syncSpecificPlexPlaylistsPrefix') == 'true')
         LOG.info('Play playlist prefix: %s',
                  utils.settings('syncSpecificPlexPlaylistsPrefix'))
-        LOG.info('XML decoding being used: %s', utils.ETREE)
         LOG.info("Db version: %s", utils.settings('dbCreatedWithVersion'))
 
         # Reset window props
