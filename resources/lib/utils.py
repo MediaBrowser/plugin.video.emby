@@ -652,9 +652,8 @@ class XmlKodiSetting(object):
     def __enter__(self):
         try:
             self.tree = defused_etree.parse(self.path)
-        except (IOError, TypeError):
+        except IOError:
             # Document is blank or missing
-            # OR (TypeError): Fuck-up if file is empty
             if self.force_create is False:
                 LOG.debug('%s does not seem to exist; not creating', self.path)
                 # This will abort __enter__
@@ -670,7 +669,6 @@ class XmlKodiSetting(object):
                 self.filename,
                 'http://kodi.wiki'))
             self.__exit__(ParseError('Error parsing XML'), None, None)
-            raise ParseError
         self.root = self.tree.getroot()
         return self
 
