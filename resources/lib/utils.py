@@ -662,7 +662,7 @@ class XmlKodiSetting(object):
             messageDialog(lang(29999), lang(39716).format(
                 self.filename,
                 'http://kodi.wiki'))
-            raise ParseError
+            self.__exit__(ParseError('Error parsing XML'), None, None)
         self.root = self.tree.getroot()
         return self
 
