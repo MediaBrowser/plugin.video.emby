@@ -93,8 +93,8 @@ class PlexDBBase(object):
         """
         Returns an iterator for all items where the last_sync is NOT identical
         """
-        return (x[0] for x in
-                self.cursor.execute('SELECT plex_id FROM %s WHERE last_sync <> ?' % plex_type,
+        return (x for x in
+                self.cursor.execute('SELECT plex_id, last_sync FROM %s WHERE last_sync <> ?' % plex_type,
                                     (last_sync, )))
 
     def checksum(self, plex_id, plex_type):

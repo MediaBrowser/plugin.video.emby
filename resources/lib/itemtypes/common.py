@@ -76,6 +76,7 @@ class ItemBase(object):
         self.plexconn.close()
         self.kodiconn.close()
         self.artconn.close()
+        LOG.debug('Committed and closed DBs')
         return self
 
     def commit(self):

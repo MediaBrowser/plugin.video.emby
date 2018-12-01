@@ -11,7 +11,7 @@ from StringIO import StringIO
 
 from .get_metadata import GetMetadataTask, reset_collections
 from .process_metadata import InitNewSection, UpdateLastSync, ProcessMetadata, \
-    DeleteItem, UpdateUserdata
+    DeleteItem, UpdateUserdata, StopSection
 from . import common, sections
 from .. import utils, timing, backgroundthread, variables as v, app
 from .. import plex_functions as PF, itemtypes
@@ -38,6 +38,7 @@ class FullSync(common.libsync_mixin):
         self.callback = callback
         self.show_dialog = show_dialog
         self.queue = None
+        self.out_queue = None
         self.process_thread = None
         self.current_sync = None
         self.plexdb = None
@@ -71,10 +72,11 @@ class FullSync(common.libsync_mixin):
         Removes all the items that have NOT been updated (last_sync timestamp
         is different)
         """
-        for plex_id in self.plexdb.plex_id_by_last_sync(self.plex_type,
+        for plex_id, last_sync in self.plexdb.plex_id_by_last_sync(self.plex_type,
                                                         self.current_sync):
             if self.isCanceled():
                 return
+            LOG.debug('process_delete %s, %s', plex_id, last_sync)
             self.queue.put(DeleteItem(plex_id))
 
     @utils.log_time
@@ -112,12 +114,6 @@ class FullSync(common.libsync_mixin):
         except RuntimeError:
             LOG.error('Could not entirely process section %s', section)
             return False
-        LOG.debug('Waiting for download threads to finish')
-        while self.threader.threader.working():
-            app.APP.monitor.waitForAbort(0.1)
-        LOG.debug('Waiting for processing thread to finish section')
-        self.queue.join()
-        reset_collections()
         try:
             # Sync playstate of every item
             iterator = section['iterator_2']
@@ -128,9 +124,23 @@ class FullSync(common.libsync_mixin):
                                         section['section_id'],
                                         section['plex_type'])
             self.queue.put(queue_info)
+            # We cannot safely use queue.join(), so use another queue
+            # This will block!
+            LOG.debug('Waiting for processing to finish process_item part')
+            self.out_queue.get()
+            self.out_queue.task_done()
+            LOG.debug('process_item part done')
+            reset_collections()
+            # Delete movies that are not on Plex anymore
+            self.process_delete()
+            self.out_queue.get()
+            self.out_queue.task_done()
             if section['plex_type'] != v.PLEX_TYPE_ARTIST:
                 self.process_playstate(iterator)
-            self.queue.join()
+            self.queue.put(StopSection())
+            # This will block until processing thread has reached StopSection
+            self.out_queue.get()
+            self.out_queue.task_done()
         except RuntimeError:
             LOG.error('Could not process playstate for section %s', section)
             return False
@@ -196,8 +206,6 @@ class FullSync(common.libsync_mixin):
                 # Now do the heavy lifting
                 if self.isCanceled() or not self.process_section(section):
                     return False
-                # Delete movies that are not on Plex anymore
-                self.process_delete()
                 iterator_queue.task_done()
         return True
 
@@ -218,7 +226,9 @@ class FullSync(common.libsync_mixin):
         try:
             # Fire up our single processing thread
             self.queue = backgroundthread.Queue.Queue(maxsize=1000)
+            self.out_queue = backgroundthread.Queue.Queue()
             self.processing_thread = ProcessMetadata(self.queue,
+                                                     self.out_queue,
                                                      self.current_sync,
                                                      self.show_dialog)
             self.processing_thread.start()
