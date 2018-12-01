@@ -45,9 +45,9 @@ class GetMetadataTask(common.libsync_mixin, backgroundthread.Task):
     def _collections(self, item):
         global COLLECTION_MATCH, COLLECTION_XMLS
         api = API(item['xml'][0])
-        if not COLLECTION_MATCH:
+        if COLLECTION_MATCH is None:
             COLLECTION_MATCH = PF.collections(api.library_section_id())
-            if not COLLECTION_MATCH:
+            if COLLECTION_MATCH is None:
                 LOG.error('Could not download collections')
                 return
             # Extract what we need to know
