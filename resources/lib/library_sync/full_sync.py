@@ -105,10 +105,11 @@ class FullSync(common.libsync_mixin):
                                         section['section_id'],
                                         section['plex_type'])
             self.queue.put(queue_info)
-            for xml_item in iterator:
-                if self.isCanceled():
-                    return False
-                self.process_item(xml_item)
+            with PlexDB() as self.plexdb:
+                for xml_item in iterator:
+                    if self.isCanceled():
+                        return False
+                    self.process_item(xml_item)
         except RuntimeError:
             LOG.error('Could not entirely process section %s', section)
             return False
@@ -128,8 +129,12 @@ class FullSync(common.libsync_mixin):
                                         section['section_id'],
                                         section['plex_type'])
             self.queue.put(queue_info)
-            if section['plex_type'] != v.PLEX_TYPE_ARTIST:
-                self.process_playstate(iterator)
+            with PlexDB() as self.plexdb:
+                if section['plex_type'] != v.PLEX_TYPE_ARTIST:
+                    self.process_playstate(iterator)
+                # Delete movies that are not on Plex anymore
+                self.process_delete()
+            # Wait again till the processing thread is done
             self.queue.join()
         except RuntimeError:
             LOG.error('Could not process playstate for section %s', section)
@@ -183,22 +188,19 @@ class FullSync(common.libsync_mixin):
                                                kinds,
                                                iterator_queue)
         backgroundthread.BGThreader.addTask(task)
-        with PlexDB() as self.plexdb:
-            while True:
-                section = iterator_queue.get()
-                if section is None:
-                    break
-                # Setup our variables
-                self.plex_type = section['plex_type']
-                self.section_type = section['section_type']
-                self.context = section['context']
-                self.get_children = section['get_children']
-                # Now do the heavy lifting
-                if self.isCanceled() or not self.process_section(section):
-                    return False
-                # Delete movies that are not on Plex anymore
-                self.process_delete()
-                iterator_queue.task_done()
+        while True:
+            section = iterator_queue.get()
+            if section is None:
+                break
+            # Setup our variables
+            self.plex_type = section['plex_type']
+            self.section_type = section['section_type']
+            self.context = section['context']
+            self.get_children = section['get_children']
+            # Now do the heavy lifting
+            if self.isCanceled() or not self.process_section(section):
+                return False
+            iterator_queue.task_done()
         return True
 
     @utils.log_time
