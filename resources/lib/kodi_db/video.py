@@ -431,6 +431,16 @@ class KodiVideoDB(common.KodiDBBase):
         # Save new people to Kodi DB by iterating over the remaining entries
         self._add_people_kind(kodi_id, kodi_type, kind, people_list)
 
+    def _new_actor_id(self, name, art_url):
+        # Not yet in actor DB, add person
+        self.cursor.execute('SELECT COALESCE(MAX(actor_id), 0) FROM actor')
+        actor_id = self.cursor.fetchone()[0] + 1
+        self.cursor.execute('INSERT INTO actor(actor_id, name) VALUES (?, ?)',
+                            (actor_id, name))
+        if art_url:
+            self.add_art(art_url, actor_id, 'actor', 'thumb')
+        return actor_id
+
     def _get_actor_id(self, name, art_url=None):
         """
         Returns the actor_id [int] for name [unicode] in table actor (without
@@ -444,15 +454,7 @@ class KodiVideoDB(common.KodiDBBase):
         try:
             return self.cursor.fetchone()[0]
         except TypeError:
-            # Not yet in actor DB, add person
-            self.cursor.execute('SELECT COALESCE(MAX(actor_id),0) FROM actor')
-            actor_id = self.cursor.fetchone()[0] + 1
-            self.cursor.execute('INSERT INTO actor(actor_id, name) '
-                                'VALUES (?, ?)',
-                                (actor_id, name))
-            if art_url:
-                self.add_art(art_url, actor_id, 'actor', 'thumb')
-            return actor_id
+            return self._new_actor_id(name, art_url)
 
     def get_art(self, kodi_id, kodi_type):
         """
