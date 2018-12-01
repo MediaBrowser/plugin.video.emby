@@ -44,7 +44,6 @@ class FullSync(common.libsync_mixin):
         self.plex_type = None
         self.section_type = None
         self.processing_thread = None
-        self.section_initiated = False
         self.install_sync_done = utils.settings('SyncInstallRunDone') == 'true'
         self.threader = backgroundthread.ThreaderManager(
             worker=backgroundthread.NonstoppingBackgroundWorker)
@@ -98,7 +97,6 @@ class FullSync(common.libsync_mixin):
             app.SYNC.path_verified = False
         try:
             # Sync new, updated and deleted items
-            self.section_initiated = True
             iterator = section['iterator_1']
             # Tell the processing thread about this new section
             queue_info = InitNewSection(section['context'],
@@ -190,7 +188,6 @@ class FullSync(common.libsync_mixin):
                 section = iterator_queue.get()
                 if section is None:
                     break
-                self.section_initiated = False
                 # Setup our variables
                 self.plex_type = section['plex_type']
                 self.section_type = section['section_type']
@@ -200,14 +197,6 @@ class FullSync(common.libsync_mixin):
                 if self.isCanceled() or not self.process_section(section):
                     return False
                 # Delete movies that are not on Plex anymore
-                if not self.section_initiated:
-                    # Need to make sure that we're telling about this section
-                    queue_info = InitNewSection(self.context,
-                                                0,
-                                                '',
-                                                '',
-                                                self.plex_type)
-                    self.queue.put(queue_info)
                 self.process_delete()
                 iterator_queue.task_done()
         return True
