@@ -592,7 +592,7 @@ class DownloadGen(object):
             backgroundthread.BGThreader.addTask(task)
 
     def on_chunk_downloaded(self, xml):
-        if xml:
+        if xml is not None:
             for child in xml:
                 self.xml.append(child)
         self.pending_counter.pop()
