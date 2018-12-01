@@ -82,9 +82,6 @@ class ItemBase(object):
         self.plexconn.commit()
         self.artconn.commit()
         self.kodiconn.commit()
-        self.plexconn.execute('PRAGMA wal_checkpoint(TRUNCATE);')
-        self.artconn.execute('PRAGMA wal_checkpoint(TRUNCATE);')
-        self.kodiconn.execute('PRAGMA wal_checkpoint(TRUNCATE);')
 
     def set_fanart(self, artworks, kodi_id, kodi_type):
         """

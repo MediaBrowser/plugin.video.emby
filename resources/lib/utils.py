@@ -404,7 +404,9 @@ def kodi_sql(media_type=None):
         db_path = v.DB_VIDEO_PATH
     conn = connect(db_path, timeout=5.0)
     conn.execute('PRAGMA journal_mode=WAL')
-    conn.execute('PRAGMA wal_autocheckpoint=500;')
+    conn.execute('PRAGMA synchronous=NORMAL;')
+    # Use transactions
+    conn.execute('BEGIN;')
     return conn
 
 
