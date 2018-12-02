@@ -60,6 +60,12 @@ def setup_kodi_default_entries():
                     strMusicBrainzArtistID)
                 VALUES (?, ?, ?)
             ''', (1, '[Missing Tag]', 'Artist Tag Missing'))
+            kodidb.cursor.execute('''
+                INSERT OR REPLACE INTO role(
+                    idRole,
+                    strRole)
+                VALUES (?, ?)
+            ''', (1, 'Artist'))
             if v.KODIVERSION >= 18:
                 kodidb.cursor.execute('DELETE FROM versiontagscan')
                 kodidb.cursor.execute('''
