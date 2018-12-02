@@ -90,7 +90,10 @@ def reset_cached_images():
                  'Video', 'plex')
         for path in paths:
             new_path = path_ops.translate_path('special://thumbnails/%s' % path)
-            path_ops.makedirs(path_ops.encode_path(new_path))
+            try:
+                path_ops.makedirs(path_ops.encode_path(new_path))
+            except OSError:
+                pass
     with KodiTextureDB() as kodidb:
         for row in kodidb.cursor.execute('SELECT tbl_name FROM sqlite_master WHERE type=?',
                                          ('table', )):
