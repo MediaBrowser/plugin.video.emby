@@ -289,9 +289,10 @@ class KodiMusicDB(common.KodiDBBase):
                 self.cursor.execute('''
                     INSERT OR REPLACE INTO song_genre(
                         idGenre,
-                        idSong)
-                    VALUES (?, ?)
-                ''', (genreid, kodiid))
+                        idSong,
+                        iOrder)
+                    VALUES (?, ?, ?)
+                ''', (genreid, kodiid, 0))
 
     def add_song_id(self):
         self.cursor.execute('SELECT COALESCE(MAX(idSong),0) FROM song')
