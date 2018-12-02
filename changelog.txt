@@ -1,3 +1,6 @@
+version 2.5.1 (beta only):
+- Fix OSError on resetting the database
+
 version 2.5.0 (beta only):
 - Huge rewrite of the sync mechanism - it should now be faster and more stable
 - Sync huge Plex libraries now: the sync will load all data bit by bit
