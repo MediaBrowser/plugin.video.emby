@@ -74,7 +74,15 @@
     <summary lang="uk_UA">Нативна інтеграція Plex в Kodi</summary>
     <description lang="uk_UA">Підключає Kodi до серверу Plex. Цей плагін передбачає, що ви керуєте всіма своїми відео за допомогою Plex (і ніяк не Kodi). Ви можете втратити дані, які вже зберігаються у відео та музичних БД Kodi (оскільки цей плагін безпосередньо їх змінює). Використовуйте на свій страх і ризик!</description>
     <disclaimer lang="uk_UA">Використовуйте на свій ризик</disclaimer>
-    <news>version 2.4.10 (beta only):
+    <news>version 2.5.0 (beta only):
+- Huge rewrite of the sync mechanism - it should now be faster and more stable
+- Sync huge Plex libraries now: the sync will load all data bit by bit
+- Rewrote code for the main program loop, reducing the need for separate Python threads
+- Rewrote and sped up code to access and change Kodi and Plex databases
+- Fixes to Kodi 18 Leia music library
+- Tons of other small fixes I can't remember
+
+version 2.4.10 (beta only):
 - Use xml.etree.cElementTree whenever possible to avoid memory leaks
 
 version 2.4.9:

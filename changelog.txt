@@ -1,3 +1,11 @@
+version 2.5.0 (beta only):
+- Huge rewrite of the sync mechanism - it should now be faster and more stable
+- Sync huge Plex libraries now: the sync will load all data bit by bit
+- Rewrote code for the main program loop, reducing the need for separate Python threads
+- Rewrote and sped up code to access and change Kodi and Plex databases
+- Fixes to Kodi 18 Leia music library
+- Tons of other small fixes I can't remember
+
 version 2.4.10 (beta only):
 - Use xml.etree.cElementTree whenever possible to avoid memory leaks
 
