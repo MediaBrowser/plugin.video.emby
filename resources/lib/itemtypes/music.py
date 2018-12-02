@@ -550,6 +550,7 @@ class Song(MusicMixin, ItemBase):
                                         userdata['UserRating'],
                                         comment,
                                         mood,
+                                        api.date_created(),
                                         kodi_id)
             else:
                 self.kodidb.update_song_17(parent_id,
@@ -565,6 +566,7 @@ class Song(MusicMixin, ItemBase):
                                            userdata['UserRating'],
                                            comment,
                                            mood,
+                                           api.date_created(),
                                            kodi_id)
         # OR ADD THE SONG #####
         else:
@@ -590,7 +592,8 @@ class Song(MusicMixin, ItemBase):
                                      userdata['UserRating'],
                                      0,
                                      0,
-                                     mood)
+                                     mood,
+                                     api.date_created())
             else:
                 self.kodidb.add_song_17(kodi_id,
                                         parent_id,
@@ -608,7 +611,8 @@ class Song(MusicMixin, ItemBase):
                                         userdata['UserRating'],
                                         0,
                                         0,
-                                        mood)
+                                        mood,
+                                        api.date_created())
         if v.KODIVERSION < 18:
             # Link song to album
             self.kodidb.add_albuminfosong(kodi_id,

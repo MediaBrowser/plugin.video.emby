@@ -316,8 +316,9 @@ class KodiMusicDB(common.KodiDBBase):
                 rating,
                 iStartOffset,
                 iEndOffset,
-                mood)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                mood,
+                dateAdded)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', (args))
 
     def add_song_17(self, *args):
@@ -339,8 +340,9 @@ class KodiMusicDB(common.KodiDBBase):
                 rating,
                 iStartOffset,
                 iEndOffset,
-                mood)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                mood,
+                dateAdded)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', (args))
 
     def update_song(self, *args):
@@ -358,7 +360,8 @@ class KodiMusicDB(common.KodiDBBase):
                 lastplayed = ?,
                 rating = ?,
                 comment = ?,
-                mood = ?
+                mood = ?,
+                dateAdded = ?
             WHERE idSong = ?
         ''', (args))
 
@@ -377,7 +380,8 @@ class KodiMusicDB(common.KodiDBBase):
                 lastplayed = ?,
                 rating = ?,
                 comment = ?,
-                mood = ?
+                mood = ?,
+                dateAdded = ?
             WHERE idSong = ?
         ''', (args))
 
