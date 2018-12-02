@@ -117,6 +117,7 @@ class InitialSetup(object):
 
         Returns True if successful, or False if not
         """
+        LOG.info('Showing plex.tv sign in window')
         user = plex_tv.sign_in_with_pin()
         if user:
             self.plex_login = user.username
@@ -514,6 +515,8 @@ class InitialSetup(object):
                 if reboot is True:
                     utils.reboot_kodi()
                 return
+        else:
+            LOG.info('No PMS set yet')
 
         # If not already retrieved myplex info, optionally let user sign in
         # to plex.tv. This DOES get called on very first install run
