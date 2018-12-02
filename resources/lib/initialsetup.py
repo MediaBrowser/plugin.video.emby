@@ -117,12 +117,6 @@ class InitialSetup(object):
 
         Returns True if successful, or False if not
         """
-        LOG.info('Showing plex.tv sign in window')
-        # Fix for:
-        #   DEBUG: Activating window ID: 13000
-        #   INFO: Activate of window '13000' refused because there are active modal dialogs
-        #   DEBUG: Activating window ID: 13000
-        executebuiltin("Dialog.Close(all, true)")
         user = plex_tv.sign_in_with_pin()
         if user:
             self.plex_login = user.username

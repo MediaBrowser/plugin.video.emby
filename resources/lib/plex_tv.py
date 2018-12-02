@@ -4,6 +4,7 @@ from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
 import time
 import threading
+import xbmc
 
 from .downloadutils import DownloadUtils as DU
 from . import utils, app
@@ -216,6 +217,12 @@ def sign_in_with_pin():
 
     Writes to Kodi settings file and returns the HomeUser or None
     """
+    LOG.info('Showing plex.tv sign in window')
+    # Fix for:
+    #   DEBUG: Activating window ID: 13000
+    #   INFO: Activate of window '13000' refused because there are active modal dialogs
+    #   DEBUG: Activating window ID: 13000
+    xbmc.executebuiltin("Dialog.Close(all, true)")
     from .windows import background
     bkgrd = background.BackgroundWindow.create(function=_sign_in_with_pin)
     bkgrd.modal()
