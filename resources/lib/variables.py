@@ -366,7 +366,8 @@ PLEX_TYPE_FROM_WEBSOCKET = {
     9: PLEX_TYPE_ALBUM,
     10: PLEX_TYPE_SONG,
     12: PLEX_TYPE_CLIP,
-    15: 'playlist'
+    15: 'playlist',
+    18: PLEX_TYPE_SET
 }
 
 PLEX_TYPE_NUMBER_FROM_PLEX_TYPE = {
@@ -378,7 +379,8 @@ PLEX_TYPE_NUMBER_FROM_PLEX_TYPE = {
     PLEX_TYPE_ALBUM: 9,
     PLEX_TYPE_SONG: 10,
     PLEX_TYPE_CLIP: 12,
-    'playlist': 15
+    'playlist': 15,
+    PLEX_TYPE_SET: 18
 }
 
 
