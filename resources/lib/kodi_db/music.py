@@ -75,13 +75,6 @@ class KodiMusicDB(common.KodiDBBase):
         # Delete the entry
         self.cursor.execute('DELETE FROM song_artist WHERE idSong = ?',
                             (song_id, ))
-        # Check whether we need to delete orphaned roles
-        self.cursor.execute('SELECT idRole FROM song_artist WHERE idRole = ? LIMIT 1',
-                            (artist[1], ))
-        if not self.cursor.fetchone():
-            # Delete orphaned role
-            self.cursor.execute('DELETE FROM role WHERE idRole = ?',
-                                (artist[1], ))
 
     def delete_album_from_discography(self, album_id):
         """
