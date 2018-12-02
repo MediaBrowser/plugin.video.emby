@@ -536,10 +536,11 @@ class InitialSetup(object):
 
         # User already answered the installation questions
         if utils.settings('InstallQuestionsAnswered') == 'true':
+            LOG.info('Installation questions already answered')
             if reboot is True:
                 utils.reboot_kodi()
             return
-
+        LOG.info('Showing install questions')
         # Additional settings where the user needs to choose
         # Direct paths (\\NAS\mymovie.mkv) or addon (http)?
         goto_settings = False
