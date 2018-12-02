@@ -458,7 +458,9 @@ class Song(MusicMixin, ItemBase):
                       plexdb=self.plexdb,
                       kodidb=self.kodidb).add_update(album_xml[0],
                                                      section_name,
-                                                     section_id)
+                                                     section_id,
+                                                     children=[xml],
+                                                     scan_children=False)
                 album = self.plexdb.album(album_id)
                 if not album:
                     LOG.error('Still could not find parent album %s for %s',
