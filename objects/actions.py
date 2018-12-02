@@ -429,9 +429,6 @@ class Actions(object):
                 listitem.setProperty('resumetime', '0')
                 listitem.setProperty('StartPercent', '0')
 
-                if obj['Resume']: # TODO Change for fix PR https://github.com/xbmc/xbmc/pull/14649
-                    listitem.setProperty('StartPercent', '0.1')
-
             for track in obj['Streams']['video']:
                 listitem.addStreamInfo('video', {
                     'duration': obj['Runtime'],
