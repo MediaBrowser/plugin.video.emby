@@ -259,7 +259,7 @@ class Album(MusicMixin, ItemBase):
         name = api.title()
         userdata = api.userdata()
         # Not yet implemented by Plex, let's use unique last.fm or gracenote
-        musicBrainzId = api.guid_html_escaped()
+        musicBrainzId = None
         genres = api.genre_list()
         genre = api.list_to_string(genres)
         # Associate artwork
