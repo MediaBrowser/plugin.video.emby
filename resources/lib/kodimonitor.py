@@ -330,6 +330,7 @@ class KodiMonitor(xbmc.Monitor):
         status = app.PLAYSTATE.player_states[playerid]
         try:
             item = playqueue.items[pos]
+            LOG.debug('PKC playqueue item is: %s', item)
         except IndexError:
             # PKC playqueue not yet initialized
             LOG.debug('Position %s not in PKC playqueue yet', pos)
@@ -347,9 +348,24 @@ class KodiMonitor(xbmc.Monitor):
                 # E.g. clips set-up previously with no Kodi DB entry
                 if not path:
                     kodi_id, kodi_type, path = self._json_item(playerid)
+                if path == '':
+                    LOG.debug('Detected empty path: aborting playback report')
+                    return
                 if item.file != path:
+                    # Clips will get a new path
                     LOG.debug('Detected different path')
-                    initialize = True
+                    try:
+                        tmp_plex_id = int(utils.REGEX_PLEX_ID.findall(path)[0])
+                    except IndexError:
+                        LOG.debug('No Plex id in path, need to init playqueue')
+                        initialize = True
+                    else:
+                        if tmp_plex_id == item.plex_id:
+                            LOG.debug('Detected different path for the same id')
+                            initialize = False
+                        else:
+                            LOG.debug('Different Plex id, need to init playqueue')
+                            initialize = True
                 else:
                     initialize = False
         if initialize:
