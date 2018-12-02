@@ -17,8 +17,6 @@ class InitNewSection(object):
     """
     Throw this into the queue used for ProcessMetadata to tell it which
     Plex library section we're looking at
-
-    context: itemtypes.Movie, itemtypes.Episode, etc.
     """
     def __init__(self, context, total_number_of_items, section_name,
                  section_id, plex_type):
@@ -29,14 +27,10 @@ class InitNewSection(object):
         self.plex_type = plex_type
 
 
-class UpdateUserdata(object):
-    def __init__(self, xml_item):
-        self.xml_item = xml_item
-
-
-class UpdateLastSync(object):
-    def __init__(self, plex_id):
+class UpdateLastSyncAndPlaystate(object):
+    def __init__(self, plex_id, xml_item):
         self.plex_id = plex_id
+        self.xml_item = xml_item
 
 
 class DeleteItem(object):
@@ -49,12 +43,6 @@ class ProcessMetadata(common.libsync_mixin, backgroundthread.KillableThread):
     Not yet implemented for more than 1 thread - if ever. Only to be called by
     ONE thread!
     Processes the XML metadata in the queue
-
-    Input:
-        queue:      Queue.Queue() object that you'll need to fill up with
-                    the downloaded XML eTree objects
-        item_class: as used to call functions in itemtypes.py e.g. 'Movies' =>
-                    itemtypes.Movies()
     """
     def __init__(self, queue, last_sync, show_dialog):
         self._canceled = False
@@ -131,15 +119,15 @@ class ProcessMetadata(common.libsync_mixin, backgroundthread.KillableThread):
                                            children=item['children'])
                         self.title = item['xml'][0].get('title')
                         self.processed += 1
-                    elif isinstance(item, UpdateLastSync):
+                    elif isinstance(item, UpdateLastSyncAndPlaystate):
                         context.plexdb.update_last_sync(item.plex_id,
                                                         section.plex_type,
                                                         self.last_sync)
-                    elif isinstance(item, UpdateUserdata):
-                        context.update_userdata(item.xml_item, section.plex_type)
+                        if section.plex_type != v.PLEX_TYPE_ARTIST:
+                            context.update_userdata(item.xml_item,
+                                                    section.plex_type)
                     elif isinstance(item, InitNewSection) or item is None:
                         section = item
-                        self.queue.task_done()
                         break
                     else:
                         context.remove(item.plex_id, plex_type=section.plex_type)
@@ -149,6 +137,7 @@ class ProcessMetadata(common.libsync_mixin, backgroundthread.KillableThread):
                         self.processed = 0
                         context.commit()
                     self.queue.task_done()
+            self.queue.task_done()
             profile.disable()
             string_io = StringIO()
             stats = Stats(profile, stream=string_io).sort_stats('cumulative')

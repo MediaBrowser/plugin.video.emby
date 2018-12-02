@@ -10,8 +10,8 @@ from pstats import Stats
 from StringIO import StringIO
 
 from .get_metadata import GetMetadataTask, reset_collections
-from .process_metadata import InitNewSection, UpdateLastSync, ProcessMetadata, \
-    DeleteItem, UpdateUserdata
+from .process_metadata import InitNewSection, UpdateLastSyncAndPlaystate, \
+    ProcessMetadata, DeleteItem
 from . import common, sections
 from .. import utils, timing, backgroundthread, variables as v, app
 from .. import plex_functions as PF, itemtypes
@@ -60,7 +60,7 @@ class FullSync(common.libsync_mixin):
                                            xml_item.get('addedAt', 1541572987)))):
             # Already got EXACTLY this item in our DB. BUT need to collect all
             # DB updates within the same thread
-            self.queue.put(UpdateLastSync(plex_id))
+            self.queue.put(UpdateLastSyncAndPlaystate(plex_id, xml_item))
             return
         task = GetMetadataTask()
         task.setup(self.queue, plex_id, self.plex_type, self.get_children)
@@ -78,17 +78,6 @@ class FullSync(common.libsync_mixin):
             self.queue.put(DeleteItem(plex_id))
 
     @utils.log_time
-    def process_playstate(self, iterator):
-        """
-        Updates the playstate (resume point, number of views, userrating, last
-        played date, etc.) for all elements in the (xml-)iterator
-        """
-        for xml_item in iterator:
-            if self.isCanceled():
-                return False
-            self.queue.put(UpdateUserdata(xml_item))
-
-    @utils.log_time
     def process_section(self, section):
         LOG.debug('Processing library section %s', section)
         if self.isCanceled():
@@ -97,7 +86,7 @@ class FullSync(common.libsync_mixin):
             app.SYNC.path_verified = False
         try:
             # Sync new, updated and deleted items
-            iterator = section['iterator_1']
+            iterator = section['iterator']
             # Tell the processing thread about this new section
             queue_info = InitNewSection(section['context'],
                                         iterator.total,
@@ -116,12 +105,8 @@ class FullSync(common.libsync_mixin):
         LOG.debug('Waiting for download threads to finish')
         while self.threader.threader.working():
             app.APP.monitor.waitForAbort(0.1)
-        LOG.debug('Waiting for processing thread to finish section')
-        self.queue.join()
         reset_collections()
         try:
-            # Sync playstate of every item
-            iterator = section['iterator_2']
             # Tell the processing thread that we're syncing playstate
             queue_info = InitNewSection(section['context'],
                                         iterator.total,
@@ -129,10 +114,12 @@ class FullSync(common.libsync_mixin):
                                         section['section_id'],
                                         section['plex_type'])
             self.queue.put(queue_info)
+            LOG.debug('Waiting for processing thread to finish section')
+            # Make sure that the processing thread commits all changes
+            self.queue.join()
             with PlexDB() as self.plexdb:
-                if section['plex_type'] != v.PLEX_TYPE_ARTIST:
-                    self.process_playstate(iterator)
                 # Delete movies that are not on Plex anymore
+                LOG.debug('Look for items to delete')
                 self.process_delete()
             # Wait again till the processing thread is done
             self.queue.join()
@@ -158,10 +145,8 @@ class FullSync(common.libsync_mixin):
                     element['element_type'] = kind[1]
                     element['context'] = kind[2]
                     element['get_children'] = kind[3]
-                    element['iterator_1'] = PF.SectionItems(section['section_id'],
-                                                            plex_type=kind[0])
-                    element['iterator_2'] = PF.SectionItems(section['section_id'],
-                                                            plex_type=kind[0])
+                    element['iterator'] = PF.SectionItems(section['section_id'],
+                                                          plex_type=kind[0])
                     queue.put(element)
         finally:
             queue.put(None)
