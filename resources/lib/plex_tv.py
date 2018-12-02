@@ -222,7 +222,7 @@ def sign_in_with_pin():
     xml = bkgrd.result
     del bkgrd
 
-    if not xml:
+    if xml is None:
         return
     user = HomeUser(xml.attrib)
     homeuser_to_settings(user)
