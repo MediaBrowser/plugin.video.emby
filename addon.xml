@@ -4,8 +4,8 @@
     <import addon="xbmc.python" version="2.1.0"/>
     <import addon="script.module.requests" version="2.9.1" />
     <import addon="script.module.defusedxml" version="0.5.0"/>
-    <import addon="plugin.video.plexkodiconnect.movies" version="2.0.6" />
-    <import addon="plugin.video.plexkodiconnect.tvshows" version="2.0.6" />
+    <import addon="plugin.video.plexkodiconnect.movies" version="2.0.7" />
+    <import addon="plugin.video.plexkodiconnect.tvshows" version="2.0.7" />
   </requires>
   <extension point="xbmc.python.pluginsource" library="default.py">
         <provides>video audio image</provides>
