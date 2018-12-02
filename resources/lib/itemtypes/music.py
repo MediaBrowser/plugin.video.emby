@@ -333,8 +333,8 @@ class Album(MusicMixin, ItemBase):
                                          timing.unix_date_to_kodi(self.last_sync),
                                          'album')
         self.kodidb.add_albumartist(artist_id, kodi_id, api.artist_name())
-        self.kodidb.add_discography(artist_id, name, api.year())
         if v.KODIVERSION < 18:
+            self.kodidb.add_discography(artist_id, name, api.year())
             self.kodidb.add_music_genres(kodi_id,
                                          genres,
                                          v.KODI_TYPE_ALBUM)
