@@ -61,8 +61,9 @@ def setup_kodi_default_entries():
                 VALUES (?, ?, ?)
             ''', (1, '[Missing Tag]', 'Artist Tag Missing'))
             if v.KODIVERSION >= 18:
+                kodidb.cursor.execute('DELETE FROM versiontagscan')
                 kodidb.cursor.execute('''
-                    INSERT OR REPLACE INTO versiontagscan(
+                    INSERT INTO versiontagscan(
                         idVersion,
                         iNeedsScan,
                         lastscanned)
