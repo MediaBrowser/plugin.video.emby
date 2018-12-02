@@ -155,7 +155,7 @@ def store_timeline_message(data):
             # movie or episode)
             continue
         typus = v.PLEX_TYPE_FROM_WEBSOCKET[int(message['type'])]
-        if typus == v.PLEX_TYPE_CLIP:
+        if typus in (v.PLEX_TYPE_CLIP, v.PLEX_TYPE_SET):
             # No need to process extras or trailers
             continue
         status = int(message['state'])
