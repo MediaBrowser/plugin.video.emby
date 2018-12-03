@@ -161,7 +161,7 @@ def initialize():
         with PlexDBBase() as plexdb:
             plexdb.cursor.execute('''
                 CREATE TABLE IF NOT EXISTS version(
-                    idVersion TEXT)
+                    idVersion TEXT PRIMARY KEY)
             ''')
             plexdb.cursor.execute('''
                 INSERT OR REPLACE INTO version(idVersion)
