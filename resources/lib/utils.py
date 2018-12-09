@@ -403,10 +403,10 @@ def kodi_sql(media_type=None):
     else:
         db_path = v.DB_VIDEO_PATH
     conn = connect(db_path, timeout=5.0)
-    conn.execute('PRAGMA journal_mode=WAL')
+    conn.execute('PRAGMA journal_mode=WAL;')
     conn.execute('PRAGMA synchronous=NORMAL;')
     # Use transactions
-    conn.execute('BEGIN;')
+    conn.execute('BEGIN')
     return conn
 
 

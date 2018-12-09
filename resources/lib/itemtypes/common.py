@@ -72,7 +72,9 @@ class ItemBase(object):
         if exc_type:
             # re-raise any exception
             return False
-        self.commit()
+        self.plexconn.commit()
+        self.artconn.commit()
+        self.kodiconn.commit()
         self.plexconn.close()
         self.kodiconn.close()
         self.artconn.close()
@@ -80,8 +82,11 @@ class ItemBase(object):
 
     def commit(self):
         self.plexconn.commit()
+        self.plexconn.execute('BEGIN')
         self.artconn.commit()
+        self.artconn.execute('BEGIN')
         self.kodiconn.commit()
+        self.kodiconn.execute('BEGIN')
 
     def set_fanart(self, artworks, kodi_id, kodi_type):
         """
