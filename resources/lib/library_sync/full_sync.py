@@ -352,15 +352,30 @@ class FullSync(common.libsync_mixin):
             # Now do the heavy lifting
             if self.isCanceled() or not self.playstate_per_section(section):
                 return False
+
+        # Delete movies that are not on Plex anymore
+        LOG.info('Looking for items to delete')
+        kinds = [
+            (v.PLEX_TYPE_MOVIE, itemtypes.Movie),
+            (v.PLEX_TYPE_SHOW, itemtypes.Show),
+            (v.PLEX_TYPE_SEASON, itemtypes.Season),
+            (v.PLEX_TYPE_EPISODE, itemtypes.Episode)
+        ]
+        if app.SYNC.enable_music:
+            kinds.extend([
+                (v.PLEX_TYPE_ARTIST, itemtypes.Artist),
+                (v.PLEX_TYPE_ALBUM, itemtypes.Album),
+                (v.PLEX_TYPE_SONG, itemtypes.Song)
+            ])
+        for plex_type, context in kinds:
             # Delete movies that are not on Plex anymore
-            LOG.info('Looking for items to delete')
-            with section['context'](self.current_sync) as context:
-                for plex_id in context.plexdb.plex_id_by_last_sync(self.plex_type,
-                                                                   self.current_sync):
+            with context(self.current_sync) as ctx:
+                for plex_id in ctx.plexdb.plex_id_by_last_sync(plex_type,
+                                                               self.current_sync):
                     if self.isCanceled():
                         return False
-                    context.remove(plex_id, self.plex_type)
-            LOG.debug('Done deleting')
+                    ctx.remove(plex_id, plex_type)
+        LOG.debug('Done deleting')
         return True
 
     @utils.log_time
