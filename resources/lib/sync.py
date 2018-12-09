@@ -213,14 +213,8 @@ class Sync(backgroundthread.KillableThread):
                 else:
                     utils.reset(ask_user=False)
                 return
-        # Ensure that Plex DB is set-up
-        plex_db.initialize()
-        # Hack to speed up look-ups for actors (giant table!)
-        utils.create_kodi_db_indicees()
-        kodi_db.setup_kodi_default_entries()
-        with kodi_db.KodiVideoDB() as kodidb:
-            # Setup the paths for addon-paths (even when using direct paths)
-            kodidb.setup_path_table()
+
+        utils.init_dbs()
 
         while not self.isCanceled():
             # In the event the server goes offline

@@ -482,6 +482,23 @@ def wipe_database():
     settings('SyncInstallRunDone', value="false")
     settings('lastfullsync', value="0")
     LOG.info('Wiping done')
+    init_dbs()
+
+
+def init_dbs():
+    """
+    Call e.g. on startup to ensure that Plex and Kodi DBs look like they should
+    """
+    from . import kodi_db, plex_db
+    # Ensure that Plex DB is set-up
+    plex_db.initialize()
+    # Hack to speed up look-ups for actors (giant table!)
+    create_kodi_db_indicees()
+    kodi_db.setup_kodi_default_entries()
+    with kodi_db.KodiVideoDB() as kodidb:
+        # Setup the paths for addon-paths (even when using direct paths)
+        kodidb.setup_path_table()
+    LOG.info('Init DBs done')
 
 
 def reset(ask_user=True):
