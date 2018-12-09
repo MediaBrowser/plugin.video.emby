@@ -302,10 +302,6 @@ class FullSync(common.libsync_mixin):
         # ADD NEW ITEMS
         # Already start setting up the iterators. We need to enforce
         # syncing e.g. show before season before episode
-        if not self.show_dialog_userdata and self.dialog:
-            # Close the progress indicator dialog
-            self.dialog.close()
-            self.dialog = None
         iterator_queue = Queue.Queue()
         updated_at = int(utils.settings('lastfullsync')) or None
         task = backgroundthread.FunctionAsTask(self.threaded_get_iterators,
@@ -331,6 +327,12 @@ class FullSync(common.libsync_mixin):
         # were set to unwatched). Also mark all items on the PMS to be able
         # to delete the ones still in Kodi
         LOG.info('Start synching playstate and userdata for every item')
+        self.threader.shutdown()
+        self.threader = None
+        if not self.show_dialog_userdata and self.dialog:
+            # Close the progress indicator dialog
+            self.dialog.close()
+            self.dialog = None
         task = backgroundthread.FunctionAsTask(self.threaded_get_iterators,
                                                None,
                                                kinds,
@@ -392,7 +394,8 @@ class FullSync(common.libsync_mixin):
             common.update_kodi_library(video=True, music=True)
             if self.dialog:
                 self.dialog.close()
-            self.threader.shutdown()
+            if self.threader:
+                self.threader.shutdown()
             if successful:
                 utils.settings('lastfullsync', value=str(int(self.current_sync)))
             if self.callback:
