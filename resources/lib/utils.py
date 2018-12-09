@@ -403,7 +403,10 @@ def kodi_sql(media_type=None):
     else:
         db_path = v.DB_VIDEO_PATH
     conn = connect(db_path, timeout=5.0)
-    conn.execute('PRAGMA journal_mode=WAL;')
+    try:
+        conn.execute('PRAGMA journal_mode=WAL;')
+    except IOError:
+        LOG.warn('PKC could NOT activate sqlite WAL mode, sync might be slow')
     conn.execute('PRAGMA synchronous=NORMAL;')
     # Use transactions
     conn.execute('BEGIN')
