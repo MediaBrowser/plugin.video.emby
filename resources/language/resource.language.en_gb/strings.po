@@ -103,7 +103,7 @@ msgctxt "#30018"
 msgid "Checking FanartTV for %s items"
 msgstr ""
 
-# Sync notification displayed when FanartTV lookup is completed
+# PKC settings artwork options: status info
 msgctxt "#30019"
 msgid "FanartTV lookup completed"
 msgstr ""
