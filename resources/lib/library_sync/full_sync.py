@@ -100,7 +100,7 @@ class FullSync(common.libsync_mixin):
         super(FullSync, self).__init__()
 
     def update_progressbar(self):
-        if self.show_dialog:
+        if self.dialog:
             try:
                 progress = int(float(self.current) / float(self.total) * 100.0)
             except ZeroDivisionError:
