@@ -403,7 +403,12 @@ def kodi_sql(media_type=None):
     else:
         db_path = v.DB_VIDEO_PATH
     conn = connect(db_path, timeout=5.0)
-    conn.execute('PRAGMA journal_mode=WAL;')
+    try:
+        conn.execute('PRAGMA journal_mode=WAL;')
+    except OperationalError:
+        LOG.warn('Issue with sqlite WAL mode - force-rebooting Kodi')
+        settings('lastfullsync', value='0')
+        reboot_kodi()
     conn.execute('PRAGMA cache_size = -8000;')
     conn.execute('PRAGMA synchronous=NORMAL;')
     # Use transactions
