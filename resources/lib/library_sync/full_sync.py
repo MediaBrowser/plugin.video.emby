@@ -323,6 +323,7 @@ class FullSync(common.libsync_mixin):
             # Now do the heavy lifting
             if self.isCanceled() or not self.addupdate_section(section):
                 return False
+        common.update_kodi_library(video=True, music=True)
         # SYNC PLAYSTATE of ALL items (otherwise we won't pick up on items that
         # were set to unwatched). Also mark all items on the PMS to be able
         # to delete the ones still in Kodi
