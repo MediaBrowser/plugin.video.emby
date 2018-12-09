@@ -126,22 +126,6 @@ class FullSync(common.libsync_mixin):
                                               self.get_children))
         self.item_count += 1
 
-    def process_playstate(self, xml_item):
-        """
-        Processes the playstate of a single library item
-        """
-        plex_id = int(xml_item.get('ratingKey'))
-        if not self.repair and self.plexdb.checksum(plex_id, self.plex_type) == \
-                int('%s%s' % (plex_id,
-                              xml_item.get('updatedAt',
-                                           xml_item.get('addedAt', 1541572987)))):
-            return
-        self.threader.addTask(GetMetadataTask(self.queue,
-                                              plex_id,
-                                              self.plex_type,
-                                              self.get_children))
-        self.item_count += 1
-
     def update_library(self):
         LOG.debug('Writing changes to Kodi library now')
         i = 0
