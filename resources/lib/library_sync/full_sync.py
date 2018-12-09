@@ -88,7 +88,7 @@ class FullSync(common.libsync_mixin):
         self.show_dialog_userdata = utils.settings('playstate_sync_indicator') == 'true'
         self.dialog = None
         self.total = 0
-        self.current = 1
+        self.current = 0
         self.processed = 0
         self.title = ''
         self.section = None
@@ -154,7 +154,6 @@ class FullSync(common.libsync_mixin):
                 break
             LOG.debug('Start or continue processing section %s (%ss)',
                       section.name, section.plex_type)
-            self.current = 1
             self.processed = 0
             self.total = section.total
             self.section_name = section.name
@@ -189,8 +188,8 @@ class FullSync(common.libsync_mixin):
                     else:
                         raise ValueError('Unknown type %s' % type(item))
                     self.item_count -= 1
-                    self.update_progressbar()
                     self.current += 1
+                    self.update_progressbar()
                     if self.processed == 500:
                         self.processed = 0
                         context.commit()
@@ -215,6 +214,7 @@ class FullSync(common.libsync_mixin):
             last = True
             # To keep track of the item-number in order to kill while loops
             self.item_count = 0
+            self.current = 0
             while True:
                 # Check Plex DB to see what we need to add/update
                 with PlexDB() as self.plexdb:
