@@ -407,6 +407,7 @@ def kodi_sql(media_type=None):
         conn.execute('PRAGMA journal_mode=WAL;')
     except IOError:
         LOG.warn('PKC could NOT activate sqlite WAL mode, sync might be slow')
+    conn.execute('PRAGMA cache_size = -8000;')
     conn.execute('PRAGMA synchronous=NORMAL;')
     # Use transactions
     conn.execute('BEGIN')
