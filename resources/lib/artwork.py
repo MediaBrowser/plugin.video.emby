@@ -60,6 +60,9 @@ class ImageCachingThread(backgroundthread.KillableThread):
                     return
                 app.APP.monitor.waitForAbort(1)
             cache_url(url)
+        else:
+            # Toggles Image caching completed to Yes
+            utils.settings('plex_status_image_caching', value=utils.lang(107))
         LOG.info("---===### Stopped ImageCachingThread ###===---")
 
 

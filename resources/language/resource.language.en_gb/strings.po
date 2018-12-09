@@ -146,6 +146,11 @@ msgctxt "#30027"
 msgid "Prefix in Kodi playlist name to trigger sync"
 msgstr ""
 
+# PKC settings artwork options: status info
+msgctxt "#30028"
+msgid "PKC-only image caching completed"
+msgstr ""
+
 msgctxt "#30030"
 msgid "Port Number"
 msgstr ""

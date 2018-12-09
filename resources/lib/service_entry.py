@@ -67,6 +67,8 @@ class Service():
         # Reset some status in the PKC settings
         # toggled to "No"
         utils.settings('plex_status_fanarttv_lookup', value=utils.lang(106))
+        # toggled to "No"
+        utils.settings('plex_status_image_caching', value=utils.lang(106))
 
         # Reset window props
         for prop in WINDOW_PROPERTIES:
