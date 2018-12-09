@@ -1,3 +1,6 @@
+version 2.5.3 (beta only):
+- Fix Plex sections not showing up or disappearing
+
 version 2.5.2 (beta only):
 - Rewire library sync
 - Optimize sqlite transactions
