@@ -155,8 +155,7 @@ class Sync(backgroundthread.KillableThread):
             utils.settings('plex_status_fanarttv_lookup', value=utils.lang(107))
 
     def start_image_cache_thread(self):
-        if (not utils.settings('enableTextureCache') == "true" or
-                v.KODIVERSION >= 18):
+        if not utils.settings('enableTextureCache') == "true":
             LOG.info('Image caching has been deactivated')
             return
         if self.image_cache_thread and self.image_cache_thread.is_alive():
