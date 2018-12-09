@@ -110,9 +110,7 @@ class KillableThread(threading.Thread):
         """
         Returns True if the thread is suspended
         """
-        if self._suspended:
-            return True
-        return False
+        return self._suspended
 
 
 class Tasks(list):
@@ -350,11 +348,13 @@ class BackgroundThreader:
 
 
 class ThreaderManager:
-    def __init__(self, worker=BackgroundWorker):
+    def __init__(self, worker=BackgroundWorker, worker_count=6):
         self.index = 0
         self.abandoned = []
         self._workerhandler = worker
-        self.threader = BackgroundThreader(name=str(self.index), worker=worker)
+        self.threader = BackgroundThreader(name=str(self.index),
+                                           worker=worker,
+                                           worker_count=worker_count)
 
     def __getattr__(self, name):
         return getattr(self.threader, name)
