@@ -493,7 +493,7 @@ class Song(MusicMixin, ItemBase):
         else:
             track = disc * 2 ** 16 + tracknumber
         year = api.year()
-        if not year and album_xml:
+        if not year and album_xml is not None:
             # Plex did not pass year info - get it from the parent album
             album_api = API(album_xml)
             year = album_api.year()
