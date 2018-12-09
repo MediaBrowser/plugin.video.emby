@@ -64,6 +64,10 @@ class Service():
                  utils.settings('syncSpecificPlexPlaylistsPrefix'))
         LOG.info("Db version: %s", utils.settings('dbCreatedWithVersion'))
 
+        # Reset some status in the PKC settings
+        # toggled to "No"
+        utils.settings('plex_status_fanarttv_lookup', value=utils.lang(106))
+
         # Reset window props
         for prop in WINDOW_PROPERTIES:
             utils.window(prop, clear=True)

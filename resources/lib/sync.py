@@ -150,12 +150,9 @@ class Sync(backgroundthread.KillableThread):
 
     def on_fanart_download_finished(self, successful):
         # FanartTV lookup completed
-        if successful and app.SYNC.sync_dialog:
-            utils.dialog('notification',
-                         heading='{plex}',
-                         message=utils.lang(30019),
-                         icon='{plex}',
-                         sound=False)
+        if successful:
+            # Toggled to "Yes"
+            utils.settings('plex_status_fanarttv_lookup', value=utils.lang(107))
 
     def start_image_cache_thread(self):
         if not utils.settings('enableTextureCache') == "true":
