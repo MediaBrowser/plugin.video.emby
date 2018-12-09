@@ -1,3 +1,16 @@
+version 2.5.2 (beta only):
+- Rewire library sync
+- Optimize sqlite transactions
+- Replace annoying sync message with PKC settings info
+- Add PKC settings status indication for caching
+- Fix KeyError when synching playlists
+- Fix ImportError for Plex Companion gdm issues
+- Increase database connection cache size
+- Force-Reboot Kodi immediately if sqlite PRAGMA WAL causes errors
+- Force a full sync on switching Plex username
+- Fix wierd behavior upon switching to another PMS
+- More bugfixes and code optimizations
+
 version 2.5.1 (beta only):
 - Fix OSError on resetting the database
 
