@@ -477,6 +477,7 @@ def wipe_database():
     kodi_db.reset_cached_images()
     # reset the install run flag
     settings('SyncInstallRunDone', value="false")
+    settings('lastfullsync', value="0")
     LOG.info('Wiping done')
 
 

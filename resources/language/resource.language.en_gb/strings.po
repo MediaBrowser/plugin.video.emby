@@ -513,6 +513,11 @@ msgctxt "#30522"
 msgid "Force transcode h265/HEVC"
 msgstr ""
 
+# PKC Settings - Sync Options
+msgctxt "#30523"
+msgid "Also show sync progress for playstate and user data"
+msgstr ""
+
 # PKC Settings - Playback
 msgctxt "#30527"
 msgid "Ignore specials in next episodes"

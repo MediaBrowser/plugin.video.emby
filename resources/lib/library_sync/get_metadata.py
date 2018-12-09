@@ -36,11 +36,12 @@ class GetMetadataTask(common.libsync_mixin, backgroundthread.Task):
         queue               Queue.Queue() object where this thread will store
                             the downloaded metadata XMLs as etree objects
     """
-    def setup(self, queue, plex_id, plex_type, get_children=False):
+    def __init__(self, queue, plex_id, plex_type, get_children=False):
         self.queue = queue
         self.plex_id = plex_id
         self.plex_type = plex_type
         self.get_children = get_children
+        super(GetMetadataTask, self).__init__()
 
     def _collections(self, item):
         global COLLECTION_MATCH, COLLECTION_XMLS

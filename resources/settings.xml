@@ -57,6 +57,7 @@
         <setting id="fullSyncInterval" type="number" label="39053" default="60" option="int" />
         <setting id="dbSyncScreensaver" type="bool" label="39062" default="false" /><!--Sync when screensaver is deactivated-->
         <setting id="dbSyncIndicator" label="30507" type="bool" default="true" /><!-- show syncing progress -->
+        <setting id="playstate_sync_indicator" label="30523" type="bool" default="false" visible="eq(-1,true)" subsetting="true"/><!-- Also show sync progress for playstate and user data -->
         <setting id="syncThreadNumber" type="slider" label="39003" default="10" option="int" range="1,1,30"/><!-- Number of simultaneous download threads -->
         <setting id="limitindex" type="slider" label="30515" default="200" option="int" range="50,50,1000"/><!-- Maximum items to request from the server at once -->
         <setting type="lsep" label="$LOCALIZE[136]" /><!-- Playlists -->
@@ -82,6 +83,7 @@
         <setting id="themoviedbAPIKey" type="text" default="19c90103adb9e98f2172c6a6a3d85dc4" visible="false"/>
         <setting id="FanArtTVAPIKey" type="text" default="639191cb0774661597f28a47e7e2bad5" visible="false"/>
         <setting id="syncEmptyShows" type="bool" label="30508" default="false" visible="false"/>
+        <setting id="lastfullsync" type="number" label="Time stamp when last successful full sync was conducted" default="0" visible="false" />
 	</category>
 
 	<category label="39057"><!-- Customize Paths -->

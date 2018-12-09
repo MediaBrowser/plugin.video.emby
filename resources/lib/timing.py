@@ -46,6 +46,14 @@ def plex_date_to_kodi(plex_timestamp):
                     localtime(float(plex_timestamp) + KODI_PLEX_TIME_OFFSET))
 
 
+def kodi_date_to_plex(kodi_timestamp):
+    return float(kodi_timestamp) - KODI_PLEX_TIME_OFFSET
+
+
+def plex_now():
+    return kodi_date_to_plex(unix_timestamp())
+
+
 def kodi_timestamp(plex_timestamp):
     return unix_date_to_kodi(plex_timestamp)
 

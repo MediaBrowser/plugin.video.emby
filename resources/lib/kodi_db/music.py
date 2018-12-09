@@ -476,6 +476,8 @@ class KodiMusicDB(common.KodiDBBase):
         elif kodi_type == v.KODI_TYPE_ALBUM:
             column = 'iUserrating'
             identifier = 'idAlbum'
+        else:
+            return
         self.cursor.execute('''UPDATE %s SET %s = ? WHERE ? = ?'''
                             % (kodi_type, column),
                             (userrating, identifier, kodi_id))
