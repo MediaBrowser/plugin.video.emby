@@ -210,6 +210,7 @@ class Service():
         utils.delete_nodes()
         app.ACCOUNT.set_unauthenticated()
         # Force full sync after login
+        utils.settings('lastfullsync', value='0')
         app.SYNC.run_lib_scan = 'full'
         return True
 
