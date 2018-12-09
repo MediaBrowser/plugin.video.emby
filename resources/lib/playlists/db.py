@@ -93,9 +93,9 @@ def m3u_to_plex_ids(playlist):
             if not kodi_id:
                 continue
             with PlexDB() as plexdb:
-                plex_id = plexdb.item_by_kodi_id(kodi_id, kodi_type)
-            if plex_id:
-                plex_ids.append(plex_id[0])
+                item = plexdb.item_by_kodi_id(kodi_id, kodi_type)
+            if item:
+                plex_ids.append(item['plex_id'])
     return plex_ids
 
 
