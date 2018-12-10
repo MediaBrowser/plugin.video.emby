@@ -533,6 +533,10 @@ class InitialSetup(object):
             LOG.info('Installation questions already answered')
             if reboot is True:
                 utils.reboot_kodi()
+            # Reload relevant settings
+            app.CONN.load()
+            app.ACCOUNT.load()
+            app.SYNC.load()
             return
         LOG.info('Showing install questions')
         # Additional settings where the user needs to choose
