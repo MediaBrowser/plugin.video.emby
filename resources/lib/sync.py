@@ -76,10 +76,7 @@ class Sync(backgroundthread.KillableThread):
             self.start_library_sync(show_dialog=True,
                                     repair=app.SYNC.run_lib_scan == 'repair',
                                     block=True)
-            if self.sync_successful:
-                # Full library sync finished
-                self.show_kodi_note(utils.lang(39407))
-            elif not self.isSuspended() and not self.isCanceled():
+            if not self.sync_successful and not self.isSuspended() and not self.isCanceled():
                 # ERROR in library sync
                 self.show_kodi_note(utils.lang(39410), icon='error')
         elif app.SYNC.run_lib_scan == 'fanart':
@@ -112,9 +109,7 @@ class Sync(backgroundthread.KillableThread):
         self.sync_successful = successful
         self.last_full_sync = timing.unix_timestamp()
         set_library_scan_toggle(boolean=False)
-        if successful:
-            self.show_kodi_note(utils.lang(39407))
-        else:
+        if not successful:
             LOG.error('Could not finish scheduled full sync')
             self.force_dialog = True
             self.show_kodi_note(utils.lang(39410), icon='error')

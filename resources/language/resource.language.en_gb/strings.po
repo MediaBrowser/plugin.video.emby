@@ -1222,10 +1222,6 @@ msgctxt "#39406"
 msgid "Plex playlists/nodes refresh failed"
 msgstr ""
 
-msgctxt "#39407"
-msgid "Full library sync finished"
-msgstr ""
-
 msgctxt "#39408"
 msgid "Sync had to skip some items because they could not be processed. Kodi may be instable now!! Please post your Kodi logs to the Plex forum."
 msgstr ""
