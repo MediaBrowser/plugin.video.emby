@@ -334,15 +334,17 @@ class Actions(object):
             'dbid': obj['DbId']
         }
         listitem.setCast(API.get_actors())
-        listitem.setIconImage(obj['Artwork']['Thumb'])
-        listitem.setThumbnailImage(obj['Artwork']['Primary'])
-        self.set_artwork(obj['Artwork'], listitem, obj['Type'])
 
-        if obj['Artwork']['Primary']:
+        if obj['Type'] == 'Video':
+            listitem.setIconImage('DefaultVideo.png')
+            listitem.setThumbnailImage(obj['Artwork']['Primary'] or obj['Artwork']['Thumb'])
+        else:
+            listitem.setIconImage(obj['Artwork']['Thumb'])
             listitem.setThumbnailImage(obj['Artwork']['Primary'])
+            self.set_artwork(obj['Artwork'], listitem, obj['Type'])
 
-        if not obj['Artwork']['Backdrop']:
-            listitem.setArt({'fanart': obj['Artwork']['Primary']})
+            if not obj['Artwork']['Backdrop']:
+                listitem.setArt({'fanart': obj['Artwork']['Primary']})
 
         if obj['Premiere']:
             metadata['premieredate'] = obj['Premiere']
