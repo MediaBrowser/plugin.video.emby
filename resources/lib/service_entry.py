@@ -181,7 +181,7 @@ class Service():
                 LOG.info('We did not connect to a new PMS, aborting')
                 return False
             LOG.info("User chose server %s", server['name'])
-            if server['baseURL'] == app.CONN.server:
+            if server['machineIdentifier'] == app.CONN.machine_identifier:
                 LOG.info('User chose old PMS to connect to')
                 return False
             # Save changes to to file
