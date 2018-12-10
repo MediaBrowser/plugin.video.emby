@@ -1,3 +1,6 @@
+version 2.5.5 (beta only):
+- Fix OperationalError and PKC not starting up
+
 version 2.5.4 (beta only):
 - Fix a couple of issues related to episodes
 - Fix permanent missing library items if PMS failed to send a single response
