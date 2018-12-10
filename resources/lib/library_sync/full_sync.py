@@ -273,11 +273,16 @@ class FullSync(common.libsync_mixin):
                     element['element_type'] = kind[1]
                     element['context'] = kind[2]
                     element['get_children'] = kind[3]
-                    element['iterator'] = PF.SectionItems(section['section_id'],
-                                                          plex_type=kind[0],
-                                                          updated_at=updated_at,
-                                                          last_viewed_at=last_viewed_at)
-                    queue.put(element)
+                    try:
+                        element['iterator'] = PF.SectionItems(section['section_id'],
+                                                              plex_type=kind[0],
+                                                              updated_at=updated_at,
+                                                              last_viewed_at=last_viewed_at)
+                    except RuntimeError:
+                        LOG.warn('Sync at least partially unsuccessful')
+                        self.successful = False
+                    else:
+                        queue.put(element)
         finally:
             queue.put(None)
 
@@ -383,7 +388,7 @@ class FullSync(common.libsync_mixin):
         # Get latest Plex libraries and build playlist and video node files
         if not sections.sync_from_pms():
             return
-        successful = False
+        self.successful = True
         try:
             self.queue = backgroundthread.Queue.Queue()
             if self.show_dialog:
@@ -394,22 +399,24 @@ class FullSync(common.libsync_mixin):
             LOG.info('Running full_library_sync with repair=%s',
                      self.repair)
             if not self.full_library_sync():
+                self.successful = False
                 return
             if self.isCanceled():
+                self.successful = False
                 return
             if PLAYLIST_SYNC_ENABLED and not playlists.full_sync():
+                self.successful = False
                 return
-            successful = True
         finally:
             common.update_kodi_library(video=True, music=True)
             if self.dialog:
                 self.dialog.close()
             if self.threader:
                 self.threader.shutdown()
-            if successful:
+            if self.successful:
                 utils.settings('lastfullsync', value=str(int(self.current_sync)))
             if self.callback:
-                self.callback(successful)
+                self.callback(self.successful)
             LOG.info('Done full_sync')
 
 
