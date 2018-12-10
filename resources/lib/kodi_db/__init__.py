@@ -105,33 +105,32 @@ def wipe_dbs(music=True):
     """
     Completely resets the Kodi databases 'video', 'texture' and 'music' (if
     music sync is enabled)
+
+    DO NOT use context menu as we need to connect without WAL mode - if Kodi
+    is still accessing the DB
     """
+    from sqlite3 import connect
     LOG.warn('Wiping Kodi databases!')
-    kinds = [KodiVideoDB, KodiTextureDB]
+    kinds = [v.DB_VIDEO_PATH, v.DB_TEXTURE_PATH]
     if music:
-        kinds.append(KodiMusicDB)
-    for db in kinds:
-        with db() as kodidb:
-            kodidb.cursor.execute("SELECT name FROM sqlite_master WHERE type = 'table'")
-            tables = kodidb.cursor.fetchall()
-            tables = [i[0] for i in tables]
-            if 'version' in tables:
-                tables.remove('version')
-            if 'versiontagscan' in tables:
-                tables.remove('versiontagscan')
-            for table in tables:
-                kodidb.cursor.execute('DELETE FROM %s' % table)
+        kinds.append(v.DB_TEXTURE_PATH)
+    for path in kinds:
+        conn = connect(path, timeout=5.0)
+        cursor = conn.cursor()
+        cursor.execute("SELECT name FROM sqlite_master WHERE type = 'table'")
+        tables = cursor.fetchall()
+        tables = [i[0] for i in tables]
+        if 'version' in tables:
+            tables.remove('version')
+        if 'versiontagscan' in tables:
+            tables.remove('versiontagscan')
+        for table in tables:
+            cursor.execute('DELETE FROM %s' % table)
+        conn.commit()
+        conn.close()
     setup_kodi_default_entries()
     # Delete SQLITE wal files
     import xbmc
-    db_dir = xbmc.translatePath('special://database').decode('utf-8')
-    for root, _, files in path_ops.walk(db_dir):
-        for file in files:
-            if path_ops.path.splitext(file)[1].lower() in ('.db-shm', '.db-wal'):
-                try:
-                    path_ops.remove(path_ops.path.join(root, file))
-                except OSError:
-                    LOG.info('Could not delete temp DB file %s', file)
     # Make sure Kodi knows we wiped the databases
     xbmc.executebuiltin('UpdateLibrary(video)')
     if utils.settings('enableMusic') == 'true':
