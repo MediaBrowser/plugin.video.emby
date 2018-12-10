@@ -553,8 +553,6 @@ class Actions(object):
         }
         listitem.setProperty('path', obj['Artwork']['Primary'])
         listitem.setThumbnailImage(obj['Artwork']['Primary'])
-        listitem.setIconImage(obj['Artwork']['Primary'] or "special://home/addons/plugin.video.emby/icon.png")
-        listitem.setArt({'fanart': obj['Artwork']['Primary'] or "special://home/addons/plugin.video.emby/fanart.jpg"})
 
         if obj['Type'] == 'Photo':
             metadata.update({
@@ -570,11 +568,10 @@ class Actions(object):
             })
             listitem.setProperty('plot', obj['Overview'])
             listitem.setProperty('IsFolder', 'false')
+            listitem.setIconImage('DefaultPicture.png')
         else:
-            if obj['Artwork']['Backdrop']:
-                listitem.setArt({'fanart': obj['Artwork']['Backdrop'][0]})
-
             listitem.setProperty('IsFolder', 'true')
+            listitem.setIconImage('DefaultFolder.png')
 
         listitem.setProperty('IsPlayable', 'false')
         listitem.setLabel(obj['Title'])
