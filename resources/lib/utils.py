@@ -403,16 +403,11 @@ def kodi_sql(media_type=None):
     else:
         db_path = v.DB_VIDEO_PATH
     conn = connect(db_path, timeout=5.0)
-    try:
-        conn.execute('PRAGMA journal_mode=WAL;')
-    except OperationalError:
-        LOG.warn('Issue with sqlite WAL mode - force-rebooting Kodi')
-        settings('lastfullsync', value='0')
-        reboot_kodi()
+    conn.execute('PRAGMA journal_mode=WAL;')
     conn.execute('PRAGMA cache_size = -8000;')
     conn.execute('PRAGMA synchronous=NORMAL;')
-    # Use transactions
     conn.execute('BEGIN')
+    # Use transactions
     return conn
 
 
@@ -485,7 +480,11 @@ def wipe_database():
     settings('SyncInstallRunDone', value="false")
     settings('lastfullsync', value="0")
     LOG.info('Wiping done')
-    init_dbs()
+    if settings('kodi_db_has_been_wiped_clean') != 'true':
+        # Root cause is sqlite WAL mode - Kodi might still have DB access open
+        LOG.warn('Need to restart Kodi before filling Kodi DB again')
+        settings('kodi_db_has_been_wiped_clean', value='true')
+        reboot_kodi()
 
 
 def init_dbs():
@@ -526,15 +525,15 @@ def reset(ask_user=True):
             return
         xbmc.sleep(1000)
 
-    # Wipe everything
-    wipe_database()
-
     # Reset all PlexKodiConnect Addon settings? (this is usually NOT
     # recommended and unnecessary!)
     if ask_user and yesno_dialog(lang(29999), lang(39603)):
         # Delete the settings
         LOG.info("Deleting: settings.xml")
         path_ops.remove("%ssettings.xml" % v.ADDON_PROFILE)
+
+    # Wipe everything
+    wipe_database()
     reboot_kodi()
 
 

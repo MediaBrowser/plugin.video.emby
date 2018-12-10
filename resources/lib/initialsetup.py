@@ -511,6 +511,10 @@ class InitialSetup(object):
                 LOG.info("Using PMS %s with machineIdentifier %s",
                          app.CONN.server, app.CONN.machine_identifier)
                 self.save_pms_settings(app.CONN.server, self.pms_token)
+                if utils.settings('kodi_db_has_been_wiped_clean') == 'false':
+                    # If the user chose to go to the PKC settings on the first run
+                    # Will trigger a reboot
+                    utils.wipe_database()
                 if reboot is True:
                     utils.reboot_kodi()
                 return
@@ -531,6 +535,10 @@ class InitialSetup(object):
         # User already answered the installation questions
         if utils.settings('InstallQuestionsAnswered') == 'true':
             LOG.info('Installation questions already answered')
+            if utils.settings('kodi_db_has_been_wiped_clean') == 'false':
+                # If the user chose to go to the PKC settings on the first run
+                # Will trigger a reboot
+                utils.wipe_database()
             if reboot is True:
                 utils.reboot_kodi()
             # Reload relevant settings
@@ -594,20 +602,18 @@ class InitialSetup(object):
         # Make sure that we only ask these questions upon first installation
         utils.settings('InstallQuestionsAnswered', value='true')
 
-        # New installation - make sure we start with a clean slate
-        utils.wipe_database()
-
         if goto_settings is False:
             # Open Settings page now? You will need to restart!
             goto_settings = utils.yesno_dialog(utils.lang(29999),
                                                utils.lang(39017))
         if goto_settings:
-            app.APP.suspend = True
+            app.APP.stop_pkc = True
             executebuiltin(
                 'Addon.OpenSettings(plugin.video.plexkodiconnect)')
-        elif reboot is True:
-            utils.reboot_kodi()
-        # Reload relevant settings
+        # New installation - make sure we start with a clean slate
+        # Will trigger a reboot, usually
+        utils.wipe_database()
+        # Reload relevant settings if that is not the case
         app.CONN.load()
         app.ACCOUNT.load()
         app.SYNC.load()

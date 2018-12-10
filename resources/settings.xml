@@ -84,6 +84,7 @@
         <setting id="FanArtTVAPIKey" type="text" default="639191cb0774661597f28a47e7e2bad5" visible="false"/>
         <setting id="syncEmptyShows" type="bool" label="30508" default="false" visible="false"/>
         <setting id="lastfullsync" type="number" label="Time stamp when last successful full sync was conducted" default="0" visible="false" />
+        <setting id="kodi_db_has_been_wiped_clean" type="bool" label="PKC needs to completely clean the Kodi DB at least once, then reboot, to avoid Kodi error messages, e.g. OperationalError" default="false" visible="false" />
 	</category>
 
 	<category label="39057"><!-- Customize Paths -->

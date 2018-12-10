@@ -94,6 +94,9 @@ class Service():
         self.connection_check_running = False
         self.auth_running = False
 
+    def isCanceled(self):
+        return xbmc.abortRequested or app.APP.stop_pkc
+
     def on_connection_check(self, result):
         """
         Call this method after PF.check_connection()
@@ -361,7 +364,7 @@ class Service():
         self.playqueue = playqueue.PlayqueueMonitor()
 
         # Main PKC program loop
-        while not xbmc.abortRequested:
+        while not self.isCanceled():
             # Check for Kodi profile change
             if utils.window('plex_kodiProfile') != v.KODI_PROFILE:
                 # Profile change happened, terminate this thread and others
