@@ -1,3 +1,13 @@
+version 2.5.4 (beta only):
+- Fix a couple of issues related to episodes
+- Fix permanent missing library items if PMS failed to send a single response
+- Fix OperationalError: enforce Kodi restart with clean DB once
+- Fix switching PMS not recognizing when old PMS is selected
+- Fix PKC not automatically connecting to changed PMS IP on startup
+- Remove message "Full library sync finished"
+- Fix PKC not automatically connecting to changed PMS IP on startup
+- Remove cProfile program metrics measurements
+
 version 2.5.3 (beta only):
 - Fix Plex sections not showing up or disappearing
 
