@@ -545,6 +545,17 @@ class Episode(TvShowMixin, ItemBase):
                                userdata['PlayCount'],
                                userdata['LastPlayedDate'],
                                None)  # Do send None, we check here
+        self.plexdb.add_episode(plex_id=plex_id,
+                                checksum=api.checksum(),
+                                section_id=section_id,
+                                show_id=show_id,
+                                grandparent_id=grandparent_id,
+                                season_id=season_id,
+                                parent_id=parent_id,
+                                kodi_id=kodi_id,
+                                kodi_fileid=kodi_fileid,
+                                kodi_pathid=kodi_pathid,
+                                last_sync=self.last_sync)
         if not app.SYNC.direct_paths:
             # need to set a SECOND file entry for a path without plex show id
             filename = api.file_name(force_first_media=True)
@@ -563,14 +574,3 @@ class Episode(TvShowMixin, ItemBase):
                                    userdata['PlayCount'],
                                    userdata['LastPlayedDate'],
                                    None)  # Do send None - 2nd entry
-            self.plexdb.add_episode(plex_id=plex_id,
-                                    checksum=api.checksum(),
-                                    section_id=section_id,
-                                    show_id=show_id,
-                                    grandparent_id=grandparent_id,
-                                    season_id=season_id,
-                                    parent_id=parent_id,
-                                    kodi_id=kodi_id,
-                                    kodi_fileid=kodi_fileid,
-                                    kodi_pathid=kodi_pathid,
-                                    last_sync=self.last_sync)
