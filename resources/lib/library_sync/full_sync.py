@@ -7,10 +7,6 @@ import copy
 
 import xbmcgui
 
-from cProfile import Profile
-from pstats import Stats
-from StringIO import StringIO
-
 from .get_metadata import GetMetadataTask, reset_collections
 from . import common, sections
 from .. import utils, timing, backgroundthread, variables as v, app
@@ -380,8 +376,6 @@ class FullSync(common.libsync_mixin):
 
     @utils.log_time
     def run(self):
-        profile = Profile()
-        profile.enable()
         self.current_sync = timing.plex_now()
         # Delete playlist and video node files from Kodi
         utils.delete_playlists()
@@ -417,12 +411,6 @@ class FullSync(common.libsync_mixin):
             if self.callback:
                 self.callback(successful)
             LOG.info('Done full_sync')
-            profile.disable()
-            string_io = StringIO()
-            stats = Stats(profile, stream=string_io).sort_stats('cumulative')
-            stats.print_stats()
-            LOG.info('cProfile result: ')
-            LOG.info(string_io.getvalue())
 
 
 def start(show_dialog, repair=False, callback=None):
