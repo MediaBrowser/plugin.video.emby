@@ -51,6 +51,9 @@ class Sync(backgroundthread.KillableThread):
         icon:   "plex": shows Plex icon
                 "error": shows Kodi error icon
         """
+        if app.APP.player.isPlaying():
+            LOG.info('Playing media - not showing note: %s', message)
+            return
         if not force and app.SYNC.sync_dialog is not True and self.force_dialog is not True:
             return
         if icon == "plex":
