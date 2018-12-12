@@ -176,9 +176,13 @@ class Actions(object):
         '''
         item = items[0]
         playlist = self.get_playlist(item)
+        player = xbmc.Player()
 
         if clear:
-            playlist.clear()
+            if player.isPlaying():
+                player.stop()
+
+            xbmc.executebuiltin('ActivateWindow(busydialognocancel)')
             index = 0
         else:
             index = max(playlist.getposition(), 0) + 1 # Can return -1
@@ -201,14 +205,16 @@ class Actions(object):
         index += 1
 
         if clear:
-            xbmc.Player().play(playlist)
+            xbmc.executebuiltin('Dialog.Close(busydialognocancel)')
+            player.play(playlist)
 
         for item in items[1:]:
             listitem = xbmcgui.ListItem()
             LOG.info("[ playlist/%s ]", item)
-            path = "plugin://plugin.video.emby/?mode=play&id=%s&playlist=true" % item
 
+            path = "plugin://plugin.video.emby/?mode=play&id=%s&playlist=true" % item
             listitem.setPath(path)
+    
             playlist.add(path, listitem, index)
             index += 1
 
