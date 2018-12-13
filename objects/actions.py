@@ -177,6 +177,7 @@ class Actions(object):
         item = items[0]
         playlist = self.get_playlist(item)
         player = xbmc.Player()
+        window('emby.context.widget.bool', True)
 
         if clear:
             if player.isPlaying():
