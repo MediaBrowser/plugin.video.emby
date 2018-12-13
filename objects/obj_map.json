@@ -77,7 +77,8 @@
 		"Tags": "Tags",
 		"Favorite": "UserData/IsFavorite",
 		"RecursiveCount": "RecursiveItemCount",
-		"EmbyParentId": "ParentId"
+		"EmbyParentId": "ParentId",
+		"Status": "Status"
 	},
 	"Season": {
 		"Id": "Id",
@@ -301,7 +302,8 @@
 		"ChildCount": "ChildCount",
 		"RecursiveCount": "RecursiveItemCount",
 		"MediaType": "MediaType",
-		"CriticRating": "CriticRating"
+		"CriticRating": "CriticRating",
+		"Status": "Status"
 	},
 	"BrowseAudio": {
 		"Id": "Id",

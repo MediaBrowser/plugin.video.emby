@@ -101,6 +101,9 @@ class TVShows(KodiDb):
         obj['Studio'] = " / ".join(obj['Studios'])
         obj['Artwork'] = API.get_all_artwork(self.objects.map(item, 'Artwork'))
 
+        if obj['Status'] != 'Ended':
+            obj['Status'] = None
+
         self.get_path_filename(obj)
 
         if obj['Premiere']:
