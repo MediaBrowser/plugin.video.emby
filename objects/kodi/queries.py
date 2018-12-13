@@ -321,7 +321,7 @@ add_musicvideo_obj =        [   "{MvideoId}","{FileId}","{Title}","{Runtime}","{
                                 "{Plot}","{Album}","{Artists}","{Genre}","{Index}","{Premiere}"
                             ]
 add_tvshow =    		""" INSERT INTO	tvshow(idShow, c00, c01, c02, c04, c05, c08, c09, c12, c13, c14, c15) 
-            				VALUES 		(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) 
+            				VALUES 		(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) 
             			"""
 add_tvshow_obj =            [   "{ShowId}","{Title}","{Plot}","{Status}","{RatingId}","{Premiere}","{Genre}","{Title}",
                                 "{Unique}","{Mpaa}","{Studio}","{SortTitle}"
