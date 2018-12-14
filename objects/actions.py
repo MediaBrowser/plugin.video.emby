@@ -64,10 +64,12 @@ class Actions(object):
 
         self.stack[0][1].setPath(self.stack[0][0])
         try:
+            """
             if not playlist and self.detect_widgets(item):
                 LOG.info(" [ play/widget ]")
 
                 raise IndexError
+            """
 
             xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, self.stack[0][1])
             self.stack.pop(0)
