@@ -1,4 +1,4 @@
-version = "181127234"
+version = "DEV"
 embyversion = "3.1.27"
 
 from movies import Movies
