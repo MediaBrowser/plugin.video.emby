@@ -55,7 +55,8 @@ class TvShowMixin(object):
             # Delete episode, verify season and tvshow
             self.remove_episode(db_item['kodi_id'], db_item['kodi_fileid'])
             # Season verification
-            if not self.plexdb.season_has_episodes(db_item['season_id']):
+            if (db_item['season_id'] and
+                    not self.plexdb.season_has_episodes(db_item['season_id'])):
                 # No episode left for this season - so delete the season
                 self.remove_season(db_item['parent_id'])
                 self.plexdb.remove(db_item['season_id'], v.PLEX_TYPE_SEASON)
@@ -389,7 +390,7 @@ class Episode(TvShowMixin, ItemBase):
 
         # The parent Season
         season = self.plexdb.season(season_id)
-        if not season:
+        if not season and season_id:
             LOG.warn('Parent season %s not found in DB, adding it', season_id)
             season_xml = PF.GetPlexMetadata(season_id)
             try:
@@ -406,7 +407,7 @@ class Episode(TvShowMixin, ItemBase):
             if not season:
                 LOG.error('Still could not find parent season %s', season_id)
                 return
-        parent_id = season['kodi_id']
+        parent_id = season['kodi_id'] if season else None
 
         # GET THE FILE AND PATH #####
         do_indirect = not app.SYNC.direct_paths
