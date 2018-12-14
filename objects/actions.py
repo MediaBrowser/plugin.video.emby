@@ -96,6 +96,7 @@ class Actions(object):
             resume = item['UserData'].get('PlaybackPositionTicks')
 
             if resume:
+                """
                 if get_play_action() == "Resume":
                     seektime = True
 
@@ -106,6 +107,13 @@ class Actions(object):
                         raise Exception("User backed out of resume dialog.")
 
                     seektime = False if not choice else True
+                """
+                choice = self.resume_dialog(api.API(item, self.server).adjust_resume((resume or 0) / 10000000.0))
+                
+                if choice is None:
+                    raise Exception("User backed out of resume dialog.")
+
+                seektime = False if not choice else True
 
         if settings('enableCinema.bool') and not seektime:
             self._set_intros(item)

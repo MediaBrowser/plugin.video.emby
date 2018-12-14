@@ -354,8 +354,12 @@ class Music(KodiDb):
             obj['Path'] = obj['Path'].replace(obj['Filename'], "")
 
         else:
+            """
             obj['Path'] = "%s/emby/Audio/%s/" % (self.server['auth/server-address'], obj['Id'])
             obj['Filename'] = "stream.%s?static=true" % obj['Container']
+            """
+            obj['Path'] = "%s/emby/kodi/music/" % self.server['auth/server-address']
+            obj['Filename'] = "%s/file.strm?%s" % (obj['Id'], urllib.urlencode({'Name': obj['Filename'].encode('utf-8'), 'KodiId': obj['SongId']}))
 
     def song_artist_discography(self, obj):
         

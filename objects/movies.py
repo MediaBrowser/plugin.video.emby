@@ -192,6 +192,7 @@ class Movies(KodiDb):
             obj['Path'] = obj['Path'].replace(obj['Filename'], "")
 
         else:
+            """
             obj['Path'] = "plugin://plugin.video.emby.movies/"
             params = {
                 'filename': obj['Filename'].encode('utf-8'),
@@ -200,6 +201,13 @@ class Movies(KodiDb):
                 'mode': "play"
             }
             obj['Filename'] = "%s?%s" % (obj['Path'], urllib.urlencode(params))
+            """
+            obj['Path'] = "%s/emby/kodi/movies/" % self.server['auth/server-address']
+            params = {
+                'Name': obj['Filename'].encode('utf-8'),
+                'KodiId': obj['MovieId']
+            }
+            obj['Filename'] = "%s/file.strm?%s" % (obj['Id'], urllib.urlencode(params))
 
 
     @stop()

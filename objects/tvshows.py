@@ -217,7 +217,11 @@ class TVShows(KodiDb):
             if not validate(obj['Path']):
                 raise Exception("Failed to validate path. User stopped.")
         else:
+            """
             obj['TopLevel'] = "plugin://plugin.video.emby.tvshows/"
+            obj['Path'] = "%s%s/" % (obj['TopLevel'], obj['Id'])
+            """
+            obj['TopLevel'] = "%s/emby/kodi/tvshows/" % self.server['auth/server-address']
             obj['Path'] = "%s%s/" % (obj['TopLevel'], obj['Id'])
 
 
@@ -421,6 +425,7 @@ class TVShows(KodiDb):
 
             obj['Path'] = obj['Path'].replace(obj['Filename'], "")
         else:
+            """
             obj['Path'] = "plugin://plugin.video.emby.tvshows/%s/" % obj['SeriesId']
             params = {
                 'filename': obj['Filename'].encode('utf-8'),
@@ -429,6 +434,9 @@ class TVShows(KodiDb):
                 'mode': "play"
             }
             obj['Filename'] = "%s?%s" % (obj['Path'], urllib.urlencode(params))
+            """
+            obj['Path'] = "%s/emby/kodi/tvshows/%s/" % (self.server['auth/server-address'], obj['SeriesId'])
+            obj['Filename'] = "%s/file.strm?%s" % (obj['Id'], urllib.urlencode({'Name': obj['Filename'].encode('utf-8'), 'KodiId': obj['EpisodeId']}))
 
     def get_show_id(self, obj):
         obj['ShowId'] = self.emby_db.get_item_by_id(*values(obj, QUEM.get_item_series_obj))

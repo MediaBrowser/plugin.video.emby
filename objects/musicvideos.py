@@ -174,6 +174,7 @@ class MusicVideos(KodiDb):
             obj['Path'] = obj['Path'].replace(obj['Filename'], "")
 
         else:
+            """
             obj['Path'] = "plugin://plugin.video.emby.musicvideos/"
             params = {
                 'filename': obj['Filename'].encode('utf-8'),
@@ -182,6 +183,9 @@ class MusicVideos(KodiDb):
                 'mode': "play"
             }
             obj['Filename'] = "%s?%s" % (obj['Path'], urllib.urlencode(params))
+            """
+            obj['Path'] = "%s/emby/kodi/musicvideos/" % self.server['auth/server-address']
+            obj['Filename'] = "%s/file.strm?%s" % (obj['Id'], urllib.urlencode({'Name': obj['Filename'].encode('utf-8'), 'KodiId': obj['MvideoId']}))
 
 
     @stop()
