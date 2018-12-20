@@ -41,13 +41,15 @@ def plex_date_to_kodi(plex_timestamp):
     propper, human-readable time stamp used by Kodi
 
     Output: Y-m-d h:m:s = 2009-04-05 23:16:04
+
+    Returns None if plex_timestamp is not valid (e.g. -1))
     """
     try:
         return strftime('%Y-%m-%d %H:%M:%S',
                         localtime(float(plex_timestamp) + KODI_PLEX_TIME_OFFSET))
     except ValueError:
         # the PMS can return -1 as plex_timestamp - great!
-        return strftime('%Y-%m-%d %H:%M:%S', localtime(0))
+        return
 
 
 def kodi_date_to_plex(kodi_timestamp):
