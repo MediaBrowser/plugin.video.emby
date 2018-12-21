@@ -638,7 +638,7 @@ class SectionItems(DownloadGen):
     """
     def __init__(self, section_id, plex_type=None, last_viewed_at=None,
                  updated_at=None, args=None):
-        if plex_type == v.PLEX_TYPE_EPISODE:
+        if plex_type in (v.PLEX_TYPE_EPISODE, v.PLEX_TYPE_SONG):
             # Annoying Plex bug. You won't get all episodes otherwise
             url = '{server}/library/sections/%s/allLeaves' % section_id
             plex_type = None
