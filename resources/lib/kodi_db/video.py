@@ -605,8 +605,16 @@ class KodiVideoDB(common.KodiDBBase):
             # .tvshows/<plex show id/!
             self.cursor.execute('SELECT strFilename FROM files WHERE idFile = ? LIMIT 1',
                                 (file_id, ))
-            for new_id in self.cursor.execute('SELECT idFile FROM files WHERE strFilename = ? LIMIT 2',
-                                              (self.cursor.fetchone()[0], )):
+            try:
+                filename = self.cursor.fetchone()[0]
+            except TypeError:
+                LOG.error('Did not get a filename, aborting for file_id %s',
+                          file_id)
+                return
+            self.cursor.execute('SELECT idFile FROM files WHERE strFilename = ? LIMIT 2',
+                                (filename, ))
+            file_ids = self.cursor.fetchall()
+            for new_id in file_ids:
                 self.set_resume(new_id[0], resume_seconds, total_seconds,
                                 playcount, dateplayed, None)
             return
