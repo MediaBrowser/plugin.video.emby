@@ -544,10 +544,11 @@ class DownloadGen(object):
     Special iterator object that will yield all child xmls piece-wise. It also
     saves the original xml.attrib.
 
-    Yields XML etree children or raises RuntimeError
+    Yields XML etree children or raises RuntimeError at the end
     """
     def __init__(self, url, plex_type=None, last_viewed_at=None,
                  updated_at=None, args=None):
+        self.successful = True
         self.args = args or {}
         self.args.update({
             'X-Plex-Container-Size': CONTAINERSIZE,
@@ -597,6 +598,8 @@ class DownloadGen(object):
         if xml is not None:
             for child in xml:
                 self.xml.append(child)
+        else:
+            self.successful = False
         self.pending_counter.pop()
 
     def __iter__(self):
@@ -616,7 +619,10 @@ class DownloadGen(object):
                 return child
             except IndexError:
                 if not self.pending_counter and not len(self.xml):
-                    raise StopIteration()
+                    if not self.successful:
+                        raise RuntimeError('Could not download everything')
+                    else:
+                        raise StopIteration()
             LOG.debug('Waiting for download to finish')
             app.APP.monitor.waitForAbort(0.1)
 
