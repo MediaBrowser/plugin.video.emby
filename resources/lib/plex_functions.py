@@ -615,8 +615,8 @@ class DownloadGen(object):
                         start=self.current + (self.cache_factor - 1) * CONTAINERSIZE)
                 return child
             app.APP.monitor.waitForAbort(0.1)
-            if not len(self.pending_counter) and not len(self.xml):
-                raise StopIteration
+            if not self.pending_counter and not len(self.xml):
+                raise StopIteration()
             LOG.debug('Waiting for download to finish')
 
     next = __next__
