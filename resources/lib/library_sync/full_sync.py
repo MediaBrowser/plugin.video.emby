@@ -196,10 +196,13 @@ class FullSync(common.libsync_mixin):
             # To keep track of the item-number in order to kill while loops
             self.item_count = 0
             self.current = 0
+            # Initialize only once to avoid loosing the last value before
+            # we're breaking the for loop
+            loop = tag_last(iterator)
             while True:
                 # Check Plex DB to see what we need to add/update
                 with PlexDB() as self.plexdb:
-                    for i, (last, xml_item) in enumerate(tag_last(iterator)):
+                    for i, (last, xml_item) in enumerate(loop):
                         if self.isCanceled():
                             return False
                         self.process_item(xml_item)
