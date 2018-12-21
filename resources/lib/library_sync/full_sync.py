@@ -187,7 +187,8 @@ class FullSync(common.libsync_mixin):
             # Tell the processing thread about this new section
             queue_info = InitNewSection(section['context'],
                                         iterator.total,
-                                        iterator.get('librarySectionTitle'),
+                                        iterator.get('librarySectionTitle',
+                                                     iterator.get('title1')),
                                         section['section_id'],
                                         section['plex_type'])
             self.queue.put(queue_info)

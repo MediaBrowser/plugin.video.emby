@@ -522,10 +522,11 @@ class DownloadChunk(backgroundthread.Task):
     """
     This task will also be executed while library sync is suspended!
     """
-    def setup(self, url, args, callback):
+    def __init__(self, url, args, callback):
         self.url = url
         self.args = args
         self.callback = callback
+        super(DownloadChunk, self).__init__()
 
     def run(self):
         xml = DU().downloadUrl(self.url, parameters=self.args)
@@ -587,8 +588,9 @@ class DownloadGen(object):
                 raise RuntimeError('Error while downloading chunks for %s'
                                    % self.url)
         else:
-            task = DownloadChunk()
-            task.setup(self.url, self.args, self.on_chunk_downloaded)
+            task = DownloadChunk(self.url,
+                                 deepcopy(self.args),  # Beware!
+                                 self.on_chunk_downloaded)
             backgroundthread.BGThreader.addTask(task)
 
     def on_chunk_downloaded(self, xml):
@@ -630,7 +632,12 @@ class SectionItems(DownloadGen):
     """
     def __init__(self, section_id, plex_type=None, last_viewed_at=None,
                  updated_at=None, args=None):
-        url = '{server}/library/sections/%s/all' % section_id
+        if plex_type == v.PLEX_TYPE_EPISODE:
+            # Annoying Plex bug. You won't get all episodes otherwise
+            url = '{server}/library/sections/%s/allLeaves' % section_id
+            plex_type = None
+        else:
+            url = '{server}/library/sections/%s/all' % section_id
         super(SectionItems, self).__init__(url, plex_type, last_viewed_at,
                                            updated_at, args)
 
