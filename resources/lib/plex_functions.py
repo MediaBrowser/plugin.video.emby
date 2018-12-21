@@ -604,9 +604,9 @@ class DownloadGen(object):
 
     def __next__(self):
         while True:
-            if len(self.xml):
-                self.current += 1
+            try:
                 child = self.xml[0]
+                self.current += 1
                 self.xml.remove(child)
                 if (self.current % CONTAINERSIZE == 0 and
                         self.current <= self.total - (self.cache_factor - 1) * CONTAINERSIZE):
@@ -614,10 +614,11 @@ class DownloadGen(object):
                     self._download_chunk(
                         start=self.current + (self.cache_factor - 1) * CONTAINERSIZE)
                 return child
-            app.APP.monitor.waitForAbort(0.1)
-            if not self.pending_counter and not len(self.xml):
-                raise StopIteration()
+            except IndexError:
+                if not self.pending_counter and not len(self.xml):
+                    raise StopIteration()
             LOG.debug('Waiting for download to finish')
+            app.APP.monitor.waitForAbort(0.1)
 
     next = __next__
 
