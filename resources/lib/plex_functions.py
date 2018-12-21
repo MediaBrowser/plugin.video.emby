@@ -602,9 +602,6 @@ class DownloadGen(object):
     def __iter__(self):
         return self
 
-    def next(self):
-        return self.__next__()
-
     def __next__(self):
         while True:
             if len(self.xml):
@@ -621,6 +618,8 @@ class DownloadGen(object):
             if not len(self.pending_counter) and not len(self.xml):
                 raise StopIteration
             LOG.debug('Waiting for download to finish')
+
+    next = __next__
 
     def get(self, key, default=None):
         return self.attrib.get(key, default)
