@@ -27,7 +27,7 @@ def reset_collections():
         COLLECTION_XMLS = {}
 
 
-class GetMetadataTask(common.libsync_mixin, backgroundthread.Task):
+class GetMetadataTask(common.fullsync_mixin, backgroundthread.Task):
     """
     Threaded download of Plex XML metadata for a certain library item.
     Fills the queue with the downloaded etree XML objects

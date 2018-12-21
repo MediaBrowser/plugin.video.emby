@@ -12,6 +12,14 @@ class libsync_mixin(object):
                 app.APP.suspend_threads or app.SYNC.suspend_sync)
 
 
+class fullsync_mixin(object):
+    def isCanceled(self):
+        return (self._canceled or
+                app.APP.stop_pkc or
+                app.SYNC.stop_sync or
+                app.APP.suspend_threads)
+
+
 def update_kodi_library(video=True, music=True):
     """
     Updates the Kodi library and thus refreshes the Kodi views and widgets

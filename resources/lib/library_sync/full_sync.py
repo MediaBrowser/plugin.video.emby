@@ -63,7 +63,7 @@ class InitNewSection(object):
         self.plex_type = plex_type
 
 
-class FullSync(common.libsync_mixin):
+class FullSync(common.fullsync_mixin):
     def __init__(self, repair, callback, show_dialog):
         """
         repair=True: force sync EVERY item

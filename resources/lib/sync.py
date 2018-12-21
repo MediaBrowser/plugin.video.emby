@@ -255,9 +255,6 @@ class Sync(backgroundthread.KillableThread):
                 # First sync upon PKC restart. Skipped if very first sync upon
                 # PKC installation has been completed
                 LOG.info('Doing initial sync on Kodi startup')
-                if app.SYNC.suspend_sync:
-                    LOG.warning('Forcing startup sync even if Kodi is playing')
-                    app.SYNC.suspend_sync = False
                 self.start_library_sync(block=True)
                 if self.sync_successful:
                     initial_sync_done = True
@@ -285,7 +282,8 @@ class Sync(backgroundthread.KillableThread):
 
                 # Standard syncs - don't force-show dialogs
                 now = timing.unix_timestamp()
-                if (now - self.last_full_sync > app.SYNC.full_sync_intervall):
+                if (now - self.last_full_sync > app.SYNC.full_sync_intervall and
+                        not app.SYNC.suspend_sync):
                     LOG.info('Doing scheduled full library scan')
                     self.start_library_sync()
                 elif now - last_time_sync > one_day_in_seconds:
