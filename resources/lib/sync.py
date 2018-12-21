@@ -7,7 +7,7 @@ import xbmc
 from .downloadutils import DownloadUtils as DU
 from . import library_sync, timing
 from . import backgroundthread, utils, path_ops, artwork, variables as v, app
-from . import plex_db, kodi_db
+from . import kodi_db
 
 LOG = getLogger('PLEX.sync')
 
