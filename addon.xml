@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon  id="plugin.video.plexkodiconnect" name="PlexKodiConnect" version="2.5.5" provider-name="croneter">
+<addon  id="plugin.video.plexkodiconnect" name="PlexKodiConnect" version="2.5.6" provider-name="croneter">
   <requires>
     <import addon="xbmc.python" version="2.1.0"/>
     <import addon="script.module.requests" version="2.9.1" />
@@ -74,7 +74,21 @@
     <summary lang="uk_UA">Нативна інтеграція Plex в Kodi</summary>
     <description lang="uk_UA">Підключає Kodi до серверу Plex. Цей плагін передбачає, що ви керуєте всіма своїми відео за допомогою Plex (і ніяк не Kodi). Ви можете втратити дані, які вже зберігаються у відео та музичних БД Kodi (оскільки цей плагін безпосередньо їх змінює). Використовуйте на свій страх і ризик!</description>
     <disclaimer lang="uk_UA">Використовуйте на свій ризик</disclaimer>
-    <news>version 2.5.5 (beta only):
+    <news>version 2.5.6 (beta only):
+- Fix many items not getting synced
+- Fix episodes not being synced to due a missing season
+- Fix some very few items not being synced
+- Fix ValueError during sync due to missing Plex timestamp
+- Fix resume for episodes for add-on paths
+- Fix movies not showing up on switching PMS
+- Finish full syncs during playbacks, don't start new ones
+- Fix AttributeError when a playlist disappeared
+- Close sync dialog if video playback starts
+- Don't show sync messages while Kodi is playing something
+- Only marking full sync as successful if that is indeed the case
+- Optimize code
+
+version 2.5.5 (beta only):
 - Fix OperationalError and PKC not starting up
 
 version 2.5.4 (beta only):

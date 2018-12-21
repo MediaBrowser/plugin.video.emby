@@ -1,3 +1,17 @@
+version 2.5.6 (beta only):
+- Fix many items not getting synced
+- Fix episodes not being synced to due a missing season
+- Fix some very few items not being synced
+- Fix ValueError during sync due to missing Plex timestamp
+- Fix resume for episodes for add-on paths
+- Fix movies not showing up on switching PMS
+- Finish full syncs during playbacks, don't start new ones
+- Fix AttributeError when a playlist disappeared
+- Close sync dialog if video playback starts
+- Don't show sync messages while Kodi is playing something
+- Only marking full sync as successful if that is indeed the case
+- Optimize code
+
 version 2.5.5 (beta only):
 - Fix OperationalError and PKC not starting up
 
