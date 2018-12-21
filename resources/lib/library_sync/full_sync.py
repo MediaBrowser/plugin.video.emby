@@ -105,6 +105,9 @@ class FullSync(common.fullsync_mixin):
                                '%s (%s)' % (self.section_name, self.section_type_text),
                                '%s/%s %s'
                                % (self.current, self.total, self.title))
+            if app.APP.player.isPlayingVideo():
+                self.dialog.close()
+                self.dialog = None
 
     def process_item(self, xml_item):
         """
