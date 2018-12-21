@@ -464,7 +464,6 @@ def wipe_database():
         music = settings('enableMusic') == 'true'
     kodi_db.wipe_dbs(music)
     plex_db.wipe()
-    plex_db.initialize()
     # Delete all synced playlists
     for path in playlist_paths:
         try:
@@ -479,6 +478,7 @@ def wipe_database():
     # reset the install run flag
     settings('SyncInstallRunDone', value="false")
     settings('lastfullsync', value="0")
+    init_dbs()
     LOG.info('Wiping done')
     if settings('kodi_db_has_been_wiped_clean') != 'true':
         # Root cause is sqlite WAL mode - Kodi might still have DB access open
