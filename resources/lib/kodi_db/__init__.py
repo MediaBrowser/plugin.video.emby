@@ -115,7 +115,7 @@ def wipe_dbs(music=True):
     if music:
         kinds.append(v.DB_MUSIC_PATH)
     for path in kinds:
-        conn = connect(path, timeout=5.0)
+        conn = connect(path, timeout=30.0)
         cursor = conn.cursor()
         cursor.execute("SELECT name FROM sqlite_master WHERE type = 'table'")
         tables = cursor.fetchall()
