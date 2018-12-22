@@ -113,7 +113,7 @@ def wipe_dbs(music=True):
     LOG.warn('Wiping Kodi databases!')
     kinds = [v.DB_VIDEO_PATH, v.DB_TEXTURE_PATH]
     if music:
-        kinds.append(v.DB_TEXTURE_PATH)
+        kinds.append(v.DB_MUSIC_PATH)
     for path in kinds:
         conn = connect(path, timeout=5.0)
         cursor = conn.cursor()
