@@ -1,3 +1,9 @@
+version 2.5.7 (beta only):
+- WARNING: You will need to reset the Kodi database!
+- Increase timeout for database connections
+- Fix music DB not being wiped on database reset
+- Improve Plex playQueue resiliance
+
 version 2.5.6 (beta only):
 - Fix many items not getting synced
 - Fix episodes not being synced to due a missing season
