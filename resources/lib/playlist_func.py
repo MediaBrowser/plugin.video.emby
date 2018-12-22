@@ -449,9 +449,9 @@ def _get_playListVersion_from_xml(playlist, xml):
 
     Raises PlaylistError if unsuccessful
     """
-    try:
-        playlist.version = int(xml.attrib['%sVersion' % playlist.kind])
-    except (TypeError, AttributeError, KeyError):
+    playlist.version = utils.cast(int,
+                                  xml.get('%sVersion' % playlist.kind))
+    if playlist.version is None:
         raise PlaylistError('Could not get new playlist Version for playlist '
                             '%s' % playlist)
 
@@ -463,13 +463,18 @@ def get_playlist_details_from_xml(playlist, xml):
 
     Raises PlaylistError if something went wrong.
     """
-    playlist.id = xml.get('%sID' % playlist.kind).decode('utf-8')
-    playlist.version = xml.get('%sVersion' % playlist.kind).decode('utf-8')
-    playlist.shuffled = xml.get('%sShuffled' % playlist.kind).decode('utf-8')
-    playlist.selectedItemID = xml.get(
-        '%sSelectedItemID' % playlist.kind).decode('utf-8')
-    playlist.selectedItemOffset = xml.get(
-        '%sSelectedItemOffset' % playlist.kind).decode('utf-8')
+    playlist.id = utils.cast(int,
+                             xml.get('%sID' % playlist.kind))
+    playlist.version = utils.cast(int,
+                                  xml.get('%sVersion' % playlist.kind))
+    playlist.shuffled = utils.cast(int,
+                                   xml.get('%sShuffled' % playlist.kind))
+    playlist.selectedItemID = utils.cast(int,
+                                         xml.get('%sSelectedItemID'
+                                                 % playlist.kind))
+    playlist.selectedItemOffset = utils.cast(int,
+                                             xml.get('%sSelectedItemOffset'
+                                                     % playlist.kind))
     LOG.debug('Updated playlist from xml: %s', playlist)
 
 
