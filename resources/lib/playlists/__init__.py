@@ -96,6 +96,7 @@ def websocket(plex_id, status):
         * 9: 'deleted'
     """
     create = False
+    plex_id = int(plex_id)
     with app.APP.lock_playlists:
         playlist = db.get_playlist(plex_id=plex_id)
         if plex_id in IGNORE_PLEX_PLAYLIST_CHANGE:
