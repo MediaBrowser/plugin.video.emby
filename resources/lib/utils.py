@@ -516,9 +516,10 @@ def reset(ask_user=True):
     app.APP.suspend_threads = True
     count = 15
     while app.SYNC.db_scan:
-        LOG.debug("Sync is running, will retry: %s...", count)
+        LOG.info("Sync is running, will retry: %s...", count)
         count -= 1
         if count == 0:
+            LOG.error('Could not stop PKC syncing process to reset the DB')
             # Could not stop the database from running. Please try again later.
             messageDialog(lang(29999), lang(39601))
             app.APP.suspend_threads = False
