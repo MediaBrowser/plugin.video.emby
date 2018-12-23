@@ -42,6 +42,10 @@ IGNORE_PLEX_PLAYLIST_CHANGE = list()
 ###############################################################################
 
 
+def isCanceled():
+    return app.APP.stop_pkc or app.SYNC.stop_sync or app.APP.suspend_threads
+
+
 def kodi_playlist_monitor():
     """
     Monitor for the Kodi playlist folder special://profile/playlist
@@ -169,6 +173,8 @@ def _full_sync():
     # before. If yes, make sure that hashes are identical. If not, sync it.
     old_plex_ids = db.plex_playlist_ids()
     for xml_playlist in xml:
+        if isCanceled():
+            return False
         api = API(xml_playlist)
         try:
             old_plex_ids.remove(api.plex_id())
@@ -205,6 +211,8 @@ def _full_sync():
                     IGNORE_KODI_PLAYLIST_CHANGE.remove(api.plex_id())
     # Get rid of old Plex playlists that were deleted on the Plex side
     for plex_id in old_plex_ids:
+        if isCanceled():
+            return False
         playlist = db.get_playlist(plex_id=plex_id)
         IGNORE_KODI_PLAYLIST_CHANGE.append(playlist.kodi_path)
         LOG.debug('Removing outdated Plex playlist from Kodi: %s', playlist)
@@ -217,6 +225,8 @@ def _full_sync():
     old_kodi_paths = db.kodi_playlist_paths()
     for root, _, files in path_ops.walk(v.PLAYLIST_PATH):
         for f in files:
+            if isCanceled():
+                return False
             path = path_ops.path.join(root, f)
             try:
                 old_kodi_paths.remove(path)
@@ -247,6 +257,8 @@ def _full_sync():
                 except PlaylistError:
                     LOG.info('Skipping Kodi playlist %s', path)
     for kodi_path in old_kodi_paths:
+        if isCanceled():
+            return False
         playlist = db.get_playlist(path=kodi_path)
         if not playlist:
             continue
