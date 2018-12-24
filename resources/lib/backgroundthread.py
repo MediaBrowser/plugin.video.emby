@@ -9,7 +9,7 @@ import xbmc
 
 from . import utils, app
 
-LOG = getLogger('PLEX.' + __name__)
+LOG = getLogger('PLEX.threads')
 
 
 class KillableThread(threading.Thread):
