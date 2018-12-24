@@ -120,12 +120,6 @@ EXTERNAL_SUBTITLE_TEMP_PATH = try_decode(xbmc.translatePath(
 # Multiply Plex time by this factor to receive Kodi time
 PLEX_TO_KODI_TIMEFACTOR = 1.0 / 1000.0
 
-# We're "failing" playback with a video of 0 length
-NULL_VIDEO = os.path.join(ADDON_FOLDER,
-                          'addons',
-                          ADDON_ID,
-                          'empty_video.mp4')
-
 # Playlist stuff
 PLAYLIST_PATH = os.path.join(KODI_PROFILE, 'playlists')
 PLAYLIST_PATH_MIXED = os.path.join(PLAYLIST_PATH, 'mixed')

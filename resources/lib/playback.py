@@ -204,14 +204,6 @@ def _playback_init(plex_id, plex_type, playqueue, pos):
         else:
             trailers = True
     LOG.debug('Playing trailers: %s', trailers)
-    if RESOLVE:
-        # Sleep a bit to let setResolvedUrl do its thing - bit ugly
-        sleep_timer = 0
-        while not app.PLAYSTATE.pkc_caused_stop_done:
-            app.APP.monitor.waitForAbort(0.05)
-            sleep_timer += 1
-            if sleep_timer > 100:
-                break
     playqueue.clear()
     if plex_type != v.PLEX_TYPE_CLIP:
         # Post to the PMS to create a playqueue - in any case due to Companion
@@ -268,14 +260,8 @@ def _ensure_resolve(abort=False):
     will be destroyed.
     """
     if RESOLVE:
-        LOG.debug('Passing dummy path to Kodi')
-        # if not state.CONTEXT_MENU_PLAY:
-        # Because playback won't start with context menu play
-        app.PLAYSTATE.pkc_caused_stop = True
-        app.PLAYSTATE.pkc_caused_stop_done = False
         if not abort:
             result = pickler.Playback_Successful()
-            result.listitem = PKCListItem(path=v.NULL_VIDEO)
             pickler.pickle_me(result)
         else:
             # Shows PKC error message

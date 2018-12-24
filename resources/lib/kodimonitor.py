@@ -82,16 +82,11 @@ class KodiMonitor(xbmc.Monitor):
                 with app.APP.lock_playqueues:
                     self._hack_addon_paths_replay_video()
             elif data.get('end'):
-                if app.PLAYSTATE.pkc_caused_stop is True:
-                    app.PLAYSTATE.pkc_caused_stop = False
-                    LOG.debug('PKC caused this playback stop - ignoring')
-                else:
-                    with app.APP.lock_playqueues:
-                        _playback_cleanup(ended=True)
+                with app.APP.lock_playqueues:
+                    _playback_cleanup(ended=True)
             else:
                 with app.APP.lock_playqueues:
                     _playback_cleanup()
-            app.PLAYSTATE.pkc_caused_stop_done = True
             app.SYNC.suspend_sync = False
         elif method == 'Playlist.OnAdd':
             with app.APP.lock_playqueues:

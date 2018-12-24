@@ -62,10 +62,3 @@ class PlayState(object):
         self.force_transcode = False
         # Which Kodi player is/has been active? (either int 1, 2 or 3)
         self.active_players = set()
-
-        # Failsafe for throwing an empty video back to Kodi's setResolvedUrl to set
-        # up our own playlist from the very beginning
-        self.pkc_caused_stop = False
-        # Flag if the 0 length PKC video has already failed so we can start resolving
-        # playback (set in player.py)
-        self.pkc_caused_stop_done = True
