@@ -28,14 +28,7 @@ def create(playlist):
     if not plex_ids:
         LOG.warning('No Plex ids found for playlist %s', playlist)
         raise PlaylistError
-    for pos, plex_id in enumerate(plex_ids):
-        try:
-            if pos == 0 or not playlist.plex_id:
-                pms.initialize(playlist, plex_id)
-            else:
-                pms.add_item(playlist, plex_id=plex_id)
-        except PlaylistError:
-            continue
+    pms.add_items(playlist, plex_ids)
     db.update_playlist(playlist)
     LOG.debug('Done creating Plex playlist %s', playlist)
 

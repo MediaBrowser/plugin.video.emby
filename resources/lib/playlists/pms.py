@@ -12,7 +12,7 @@ from .common import PlaylistError
 
 from ..plex_api import API
 from ..downloadutils import DownloadUtils as DU
-from .. import variables as v
+from .. import app, variables as v
 ###############################################################################
 LOG = getLogger('PLEX.playlists.pms')
 
@@ -94,6 +94,34 @@ def add_item(playlist, plex_id):
         raise PlaylistError('Could not item %s to Plex playlist %s',
                             plex_id, playlist)
     api = API(xml[0])
+    playlist.plex_updatedat = api.updated_at()
+
+
+def add_items(playlist, plex_ids):
+    """
+    Adds all plex_ids (a list of ints) to a new Plex playlist.
+    Will set playlist.plex_updatedat
+    Raises PlaylistError if that did not work out.
+    """
+    params = {
+        'type': v.PLEX_PLAYLIST_TYPE_FROM_KODI[playlist.kodi_type],
+        'title': playlist.plex_name,
+        'smart': 0,
+        'uri': ('server://%s/com.plexapp.plugins.library/library/metadata/%s'
+                % (app.CONN.machine_identifier, ','.join(plex_ids)))
+    }
+    xml = DU().downloadUrl(url='{server}/playlists/',
+                           action_type='POST',
+                           parameters=params)
+    try:
+        xml[0].attrib
+    except (TypeError, IndexError, AttributeError):
+        LOG.error('Could not add items to a new playlist %s on Plex side',
+                  playlist)
+        raise PlaylistError('Could not add items to a new Plex playlist %s' %
+                            playlist)
+    api = API(xml[0])
+    playlist.plex_id = api.plex_id()
     playlist.plex_updatedat = api.updated_at()
 
 
