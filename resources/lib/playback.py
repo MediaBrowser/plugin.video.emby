@@ -409,8 +409,9 @@ def _conclude_playback(playqueue, pos):
 
     if app.PLAYSTATE.resume_playback is True:
         app.PLAYSTATE.resume_playback = False
-        if (item.offset is None and
-                item.plex_type not in (v.PLEX_TYPE_SONG, v.PLEX_TYPE_CLIP)):
+        if item.plex_type not in (v.PLEX_TYPE_SONG, v.PLEX_TYPE_CLIP):
+            # Do NOT use item.offset directly but get it from the DB
+            # (user might have initiated same video twice)
             with PlexDB() as plexdb:
                 db_item = plexdb.item_by_id(item.plex_id, item.plex_type)
             file_id = db_item['kodi_fileid'] if db_item else None
