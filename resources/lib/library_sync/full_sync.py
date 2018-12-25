@@ -29,26 +29,6 @@ UPDATED_AT_SAFETY = 60 * 5
 LAST_VIEWED_AT_SAFETY = 60 * 5
 
 
-def tag_last(iterable):
-    """
-    Given some iterable, returns (last, item), where last is only True if you
-    are on the final iteration.
-    """
-    iterator = iter(iterable)
-    gotone = False
-    try:
-        lookback = next(iterator)
-        gotone = True
-        while True:
-            cur = next(iterator)
-            yield False, lookback
-            lookback = cur
-    except StopIteration:
-        if gotone:
-            yield True, lookback
-        raise StopIteration()
-
-
 class InitNewSection(object):
     """
     Throw this into the queue used for ProcessMetadata to tell it which
@@ -201,7 +181,7 @@ class FullSync(common.fullsync_mixin):
             self.current = 0
             # Initialize only once to avoid loosing the last value before
             # we're breaking the for loop
-            loop = tag_last(iterator)
+            loop = common.tag_last(iterator)
             while True:
                 # Check Plex DB to see what we need to add/update
                 with PlexDB() as self.plexdb:

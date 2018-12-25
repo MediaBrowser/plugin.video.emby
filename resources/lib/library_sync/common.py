@@ -28,3 +28,23 @@ def update_kodi_library(video=True, music=True):
         xbmc.executebuiltin('UpdateLibrary(video)')
     if music:
         xbmc.executebuiltin('UpdateLibrary(music)')
+
+
+def tag_last(iterable):
+    """
+    Given some iterable, returns (last, item), where last is only True if you
+    are on the final iteration.
+    """
+    iterator = iter(iterable)
+    gotone = False
+    try:
+        lookback = next(iterator)
+        gotone = True
+        while True:
+            cur = next(iterator)
+            yield False, lookback
+            lookback = cur
+    except StopIteration:
+        if gotone:
+            yield True, lookback
+        raise StopIteration()
