@@ -15,6 +15,7 @@ LOG = getLogger('PLEX.sync.fanart')
 SUPPORTED_TYPES = (v.PLEX_TYPE_MOVIE, v.PLEX_TYPE_SHOW)
 SYNC_FANART = utils.settings('FanartTV') == 'true'
 PREFER_KODI_COLLECTION_ART = utils.settings('PreferKodiCollectionArt') == 'false'
+BATCH_SIZE = 500
 
 
 def suspends():
@@ -45,29 +46,37 @@ class FanartThread(backgroundthread.KillableThread):
     def _run_internal(self):
         LOG.info('Starting FanartThread')
         finished = False
-        while True:
-            with PlexDB() as plexdb:
-                func = plexdb.every_plex_id if self.refresh else plexdb.missing_fanart
-                for typus in SUPPORTED_TYPES:
-                    for plex_id in func(typus):
-                        if self.isCanceled() or self.isSuspended():
-                            break
+        try:
+            for typus in SUPPORTED_TYPES:
+                offset = 0
+                while True:
+                    with PlexDB() as plexdb:
+                        # Keep DB connection open only for a short period of time!
+                        if self.refresh:
+                            batch = list(plexdb.every_plex_id(typus,
+                                                              offset,
+                                                              BATCH_SIZE))
+                        else:
+                            batch = list(plexdb.missing_fanart(typus,
+                                                               offset,
+                                                               BATCH_SIZE))
+                    for plex_id in batch:
+                        # Do the actual, time-consuming processing
+                        if self.isCanceled():
+                            return
+                        if self.isSuspended():
+                            if self.isCanceled():
+                                return
+                            app.APP.monitor.waitForAbort(1)
                         process_fanart(plex_id, typus, self.refresh)
-                    if self.isCanceled() or self.isSuspended():
+                    if len(batch) < BATCH_SIZE:
                         break
-                else:
-                    # Done processing!
-                    finished = True
-                    break
-            # Need to have these outside our DB context to close the connection
-            if self.isCanceled():
-                return
-            if self.isSuspended():
-                if self.isCanceled():
-                    return
-                app.APP.monitor.waitForAbort(1)
-        LOG.info('FanartThread finished')
-        self.callback(finished)
+                    offset += BATCH_SIZE
+            else:
+                finished = True
+        finally:
+            LOG.info('FanartThread finished: %s', finished)
+            self.callback(finished)
 
 
 class FanartTask(common.libsync_mixin, backgroundthread.Task):

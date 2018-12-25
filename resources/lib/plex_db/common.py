@@ -121,20 +121,28 @@ class PlexDBBase(object):
         """
         self.cursor.execute('DELETE FROM %s WHERE plex_id = ?' % plex_type, (plex_id, ))
 
-    def every_plex_id(self, plex_type):
+    def every_plex_id(self, plex_type, offset, limit):
         """
         Returns an iterator for plex_type for every single plex_id
+        Will start with records at DB position offset [int] and return limit
+        [int] number of items
         """
         return (x[0] for x in
-                self.cursor.execute('SELECT plex_id from %s' % plex_type))
+                self.cursor.execute('SELECT plex_id FROM %s LIMIT %s OFFSET %s'
+                                    % (plex_type, limit, offset)))
 
-    def missing_fanart(self, plex_type):
+    def missing_fanart(self, plex_type, offset, limit):
         """
         Returns an iterator for plex_type for all plex_id, where fanart_synced
         has not yet been set to 1
+        Will start with records at DB position offset [int] and return limit
+        [int] number of items
         """
-        return (x[0] for x in
-                self.cursor.execute('SELECT plex_id from %s WHERE fanart_synced = 0' % plex_type))
+        query = '''
+            SELECT plex_id FROM %s WHERE fanart_synced = 0
+            LIMIT %s OFFSET %s
+        ''' % (plex_type, limit, offset)
+        return (x[0] for x in self.cursor.execute(query))
 
     def set_fanart_synced(self, plex_id, plex_type):
         """
