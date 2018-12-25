@@ -1,3 +1,11 @@
+version 2.5.8 (beta only):
+- Hopefully fix Kodi crashing on playback start
+- Fix video resuming from old resume point
+- Fix database is locked
+- Faster way to initialize playlists on the Plex side
+- Fix PKC recreating playlists too often
+- Shutdown playlist sync if necessary
+
 version 2.5.7 (beta only):
 - WARNING: You will need to reset the Kodi database!
 - Increase timeout for database connections
