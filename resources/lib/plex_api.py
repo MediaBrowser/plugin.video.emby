@@ -1743,6 +1743,8 @@ class API(object):
         elif app.SYNC.replace_smb_path is True:
             if path.startswith('\\\\'):
                 path = 'smb:' + path.replace('\\', '/')
+        if app.SYNC.escape_path:
+            path = quote(path)
         if ((app.SYNC.path_verified and force_check is False) or
                 omit_check is True):
             return path

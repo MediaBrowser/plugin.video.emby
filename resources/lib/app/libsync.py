@@ -44,6 +44,8 @@ class Sync(object):
         self.remapSMBmusicNew = utils.settings('remapSMBmusicNew')
         self.remapSMBphotoOrg = utils.settings('remapSMBphotoOrg')
         self.remapSMBphotoNew = utils.settings('remapSMBphotoNew')
+        # Escape path?
+        self.escape_path = utils.settings('escapePath') == 'true'
         # Shall we replace custom user ratings with the number of versions available?
         self.indicate_media_versions = utils.settings('indicate_media_versions') == "true"
         # Will sync movie trailer differently: either play trailer directly or show
