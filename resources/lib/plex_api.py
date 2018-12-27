@@ -1734,23 +1734,22 @@ class API(object):
         if path is None:
             return
         typus = v.REMAP_TYPE_FROM_PLEXTYPE[typus]
-        if app.SYNC.remap_path is True:
+        if app.SYNC.remap_path:
             path = path.replace(getattr(app.SYNC, 'remapSMB%sOrg' % typus),
                                 getattr(app.SYNC, 'remapSMB%sNew' % typus),
                                 1)
             # There might be backslashes left over:
             path = path.replace('\\', '/')
-        elif app.SYNC.replace_smb_path is True:
+        elif app.SYNC.replace_smb_path:
             if path.startswith('\\\\'):
                 path = 'smb:' + path.replace('\\', '/')
         if app.SYNC.escape_path:
             path = quote(path)
-        if ((app.SYNC.path_verified and force_check is False) or
-                omit_check is True):
+        if (app.SYNC.path_verified and not force_check) or omit_check:
             return path
 
         # exist() needs a / or \ at the end to work for directories
-        if folder is False:
+        if not folder:
             # files
             check = path_ops.exists(path)
         else:
@@ -1775,7 +1774,7 @@ class API(object):
                 app.SYNC.path_verified = True
             else:
                 path = None
-        elif force_check is False:
+        elif not force_check:
             # Only set the flag if we were not force-checking the path
             app.SYNC.path_verified = True
         return path
