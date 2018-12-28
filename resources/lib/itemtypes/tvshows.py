@@ -104,9 +104,8 @@ class TvShowMixin(object):
         self.kodidb.modify_tags(kodi_id, v.KODI_TYPE_SHOW)
         self.kodidb.delete_artwork(kodi_id, v.KODI_TYPE_SHOW)
         self.kodidb.remove_show(kodi_id)
-        if v.KODIVERSION >= 17:
-            self.kodidb.remove_uniqueid(kodi_id, v.KODI_TYPE_SHOW)
-            self.kodidb.remove_ratings(kodi_id, v.KODI_TYPE_SHOW)
+        self.kodidb.remove_uniqueid(kodi_id, v.KODI_TYPE_SHOW)
+        self.kodidb.remove_ratings(kodi_id, v.KODI_TYPE_SHOW)
         LOG.debug("Removed tvshow: %s", kodi_id)
 
     def remove_season(self, kodi_id):
@@ -125,9 +124,8 @@ class TvShowMixin(object):
         self.kodidb.remove_file(file_id, plex_type=v.PLEX_TYPE_EPISODE)
         self.kodidb.delete_artwork(kodi_id, v.KODI_TYPE_EPISODE)
         self.kodidb.remove_episode(kodi_id)
-        if v.KODIVERSION >= 17:
-            self.kodidb.remove_uniqueid(kodi_id, v.KODI_TYPE_EPISODE)
-            self.kodidb.remove_ratings(kodi_id, v.KODI_TYPE_EPISODE)
+        self.kodidb.remove_uniqueid(kodi_id, v.KODI_TYPE_EPISODE)
+        self.kodidb.remove_ratings(kodi_id, v.KODI_TYPE_EPISODE)
         LOG.debug("Removed episode: %s", kodi_id)
 
 
