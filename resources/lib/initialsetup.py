@@ -488,8 +488,24 @@ class InitialSetup(object):
 
         # Display a warning if Kodi puts ALL movies into the queue, basically
         # breaking playback reporting for PKC
-        if js.settings_getsettingvalue('videoplayer.autoplaynextitem'):
-            LOG.warn('Kodi setting videoplayer.autoplaynextitem is enabled!')
+        warn = False
+        settings = js.settings_getsettingvalue('videoplayer.autoplaynextitem')
+        if v.KODIVERSION >= 18:
+            # Answer for videoplayer.autoplaynextitem:
+            # [{u'label': u'Music videos', u'value': 0},
+            #  {u'label': u'TV shows', u'value': 1},
+            #  {u'label': u'Episodes', u'value': 2},
+            #  {u'label': u'Movies', u'value': 3},
+            #  {u'label': u'Uncategorized', u'value': 4}]
+            if 1 in settings or 2 in settings or 3 in settings:
+                warn = True
+        else:
+            # Kodi Krypton: answer is boolean
+            if settings:
+                warn = True
+        if warn:
+            LOG.warn('Kodi setting videoplayer.autoplaynextitem is: %s',
+                     settings)
             if utils.settings('warned_setting_videoplayer.autoplaynextitem') == 'false':
                 # Only warn once
                 utils.settings('warned_setting_videoplayer.autoplaynextitem',
@@ -497,8 +513,17 @@ class InitialSetup(object):
                 # Warning: Kodi setting "Play next video automatically" is
                 # enabled. This could break PKC. Deactivate?
                 if utils.yesno_dialog(utils.lang(29999), utils.lang(30003)):
-                    js.settings_setsettingvalue('videoplayer.autoplaynextitem',
-                                                False)
+                    if v.KODIVERSION >= 18:
+                        for i in (1, 2, 3):
+                            try:
+                                settings.remove(i)
+                            except ValueError:
+                                pass
+                        js.settings_setsettingvalue('videoplayer.autoplaynextitem',
+                                                    settings)
+                    else:
+                        js.settings_setsettingvalue('videoplayer.autoplaynextitem',
+                                                    False)
         # Set any video library updates to happen in the background in order to
         # hide "Compressing database"
         js.settings_setsettingvalue('videolibrary.backgroundupdate', True)
