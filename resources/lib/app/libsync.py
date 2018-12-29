@@ -5,6 +5,18 @@ from __future__ import absolute_import, division, unicode_literals
 from .. import utils
 
 
+def remove_trailing_slash(path):
+    """
+    Removes trailing slashes or backslashes from path [unicode], and is NOT
+    dependent on os.path
+    """
+    if '/' in path:
+        path = path[:-1] if path.endswith('/') else path
+    else:
+        path = path[:-1] if path.endswith('\\') else path
+    return path
+
+
 class Sync(object):
     def __init__(self, entrypoint=False):
         if entrypoint:
@@ -36,14 +48,14 @@ class Sync(object):
         self.remap_path = utils.settings('remapSMB') == 'true'
         self.force_transcode_pix = utils.settings('force_transcode_pix') == 'true'
         # Mappings for REMAP_PATH:
-        self.remapSMBmovieOrg = utils.settings('remapSMBmovieOrg')
-        self.remapSMBmovieNew = utils.settings('remapSMBmovieNew')
-        self.remapSMBtvOrg = utils.settings('remapSMBtvOrg')
-        self.remapSMBtvNew = utils.settings('remapSMBtvNew')
-        self.remapSMBmusicOrg = utils.settings('remapSMBmusicOrg')
-        self.remapSMBmusicNew = utils.settings('remapSMBmusicNew')
-        self.remapSMBphotoOrg = utils.settings('remapSMBphotoOrg')
-        self.remapSMBphotoNew = utils.settings('remapSMBphotoNew')
+        self.remapSMBmovieOrg = remove_trailing_slash(utils.settings('remapSMBmovieOrg'))
+        self.remapSMBmovieNew = remove_trailing_slash(utils.settings('remapSMBmovieNew'))
+        self.remapSMBtvOrg = remove_trailing_slash(utils.settings('remapSMBtvOrg'))
+        self.remapSMBtvNew = remove_trailing_slash(utils.settings('remapSMBtvNew'))
+        self.remapSMBmusicOrg = remove_trailing_slash(utils.settings('remapSMBmusicOrg'))
+        self.remapSMBmusicNew = remove_trailing_slash(utils.settings('remapSMBmusicNew'))
+        self.remapSMBphotoOrg = remove_trailing_slash(utils.settings('remapSMBphotoOrg'))
+        self.remapSMBphotoNew = remove_trailing_slash(utils.settings('remapSMBphotoNew'))
         # Escape path?
         self.escape_path = utils.settings('escapePath') == 'true'
         # Shall we replace custom user ratings with the number of versions available?
