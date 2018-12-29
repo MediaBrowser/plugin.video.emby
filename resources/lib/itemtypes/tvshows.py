@@ -281,7 +281,6 @@ class Season(TvShowMixin, ItemBase):
         """
         api = API(xml)
         plex_id = api.plex_id()
-        LOG.info('Adding season with plex_id %s', plex_id)
         if not plex_id:
             LOG.error('Error getting plex_id for season, skipping: %s',
                       xml.attrib)
@@ -312,11 +311,13 @@ class Season(TvShowMixin, ItemBase):
                 return
         parent_id = show['kodi_id']
         if update_item:
+            LOG.info('UPDATE season plex_id %s - %s', plex_id, api.title())
             kodi_id = season['kodi_id']
             self.kodidb.modify_artwork(api.artwork(),
                                        kodi_id,
                                        v.KODI_TYPE_SEASON)
         else:
+            LOG.info('ADD season plex_id %s - %s', plex_id, api.title())
             kodi_id = self.kodidb.add_season(parent_id, api.season_number())
             self.kodidb.add_artwork(api.artwork(),
                                     kodi_id,
