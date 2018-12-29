@@ -310,16 +310,23 @@ class Season(TvShowMixin, ItemBase):
                 LOG.error('Still could not find parent tv show %s', show_id)
                 return
         parent_id = show['kodi_id']
+        parent_artwork = api.artwork(kodi_id=parent_id,
+                                     kodi_type=v.KODI_TYPE_SHOW)
+        artwork = api.artwork()
+        # Remove all artwork that is identical for the season's show
+        for key in parent_artwork:
+            if key in artwork and artwork[key] == parent_artwork[key]:
+                del artwork[key]
         if update_item:
             LOG.info('UPDATE season plex_id %s - %s', plex_id, api.title())
             kodi_id = season['kodi_id']
-            self.kodidb.modify_artwork(api.artwork(),
+            self.kodidb.modify_artwork(artwork,
                                        kodi_id,
                                        v.KODI_TYPE_SEASON)
         else:
             LOG.info('ADD season plex_id %s - %s', plex_id, api.title())
             kodi_id = self.kodidb.add_season(parent_id, api.season_number())
-            self.kodidb.add_artwork(api.artwork(),
+            self.kodidb.add_artwork(artwork,
                                     kodi_id,
                                     v.KODI_TYPE_SEASON)
         self.plexdb.add_season(plex_id=plex_id,
