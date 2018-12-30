@@ -41,10 +41,10 @@ class KodiDBBase(object):
                 self.cursor.execute('SELECT url FROM art WHERE media_id = ? AND media_type = ?',
                                     (kodi_id, kodi_type)))
 
-    def artwork_generator(self, kodi_type):
+    def artwork_generator(self, kodi_type, limit, offset):
+        query = 'SELECT url FROM art WHERE type == ? LIMIT ? OFFSET ?'
         return (x[0] for x in
-                self.cursor.execute('SELECT url FROM art WHERE type == ?',
-                                    (kodi_type, )))
+                self.cursor.execute(query, (kodi_type, limit, offset)))
 
     def add_artwork(self, artworks, kodi_id, kodi_type):
         """

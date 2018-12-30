@@ -16,6 +16,7 @@ requests.packages.urllib3.disable_warnings()
 # Potentially issues with limited number of threads Hence let Kodi wait till
 # download is successful
 TIMEOUT = (35.1, 35.1)
+BATCH_SIZE = 500
 
 IMAGE_CACHING_SUSPENDS = []
 
@@ -32,38 +33,56 @@ class ImageCachingThread(backgroundthread.KillableThread):
     def isSuspended(self):
         return any(IMAGE_CACHING_SUSPENDS)
 
-    @staticmethod
-    def _art_url_generator():
-        for kind in (KodiVideoDB, KodiMusicDB):
-            with kind() as kodidb:
-                for kodi_type in ('poster', 'fanart'):
-                    for url in kodidb.artwork_generator(kodi_type):
-                        yield url
-
-    def missing_art_cache_generator(self):
-        with KodiTextureDB() as kodidb:
-            for url in self._art_url_generator():
-                if kodidb.url_not_yet_cached(url):
-                    yield url
+    def _url_generator(self, kind, kodi_type):
+        """
+        Main goal is to close DB connection between calls
+        """
+        offset = 0
+        i = 0
+        while True:
+            batch = []
+            with kind(texture_db=True) as kodidb:
+                texture_db = KodiTextureDB(cursor=kodidb.artcursor)
+                for i, url in enumerate(kodidb.artwork_generator(kodi_type,
+                                                                 BATCH_SIZE,
+                                                                 offset)):
+                    if texture_db.url_not_yet_cached(url):
+                        batch.append(url)
+                        if len(batch) == BATCH_SIZE:
+                            break
+            offset += i
+            for url in batch:
+                yield url
+            if i + 1 < BATCH_SIZE:
+                break
 
     def run(self):
         LOG.info("---===### Starting ImageCachingThread ###===---")
-        # Cache already synced artwork first
-        for url in self.missing_art_cache_generator():
-            if self.isCanceled():
-                return
-            while self.isSuspended():
-                # Set in service.py
-                if self.isCanceled():
-                    # Abort was requested while waiting. We should exit
-                    LOG.info("---===### Stopped ImageCachingThread ###===---")
-                    return
-                app.APP.monitor.waitForAbort(1)
-            cache_url(url)
-        else:
-            # Toggles Image caching completed to Yes
-            utils.settings('plex_status_image_caching', value=utils.lang(107))
-        LOG.info("---===### Stopped ImageCachingThread ###===---")
+        try:
+            self._run()
+        except:
+            utils.ERROR()
+        finally:
+            LOG.info("---===### Stopped ImageCachingThread ###===---")
+
+    def _run(self):
+        kinds = [KodiVideoDB]
+        if app.SYNC.enable_music:
+            kinds.append(KodiMusicDB)
+        for kind in kinds:
+            for kodi_type in ('poster', 'fanart'):
+                for url in self._url_generator(kind, kodi_type):
+                    if self.isCanceled():
+                        return
+                    while self.isSuspended():
+                        # Set in service.py
+                        if self.isCanceled():
+                            # Abort was requested while waiting. We should exit
+                            return
+                        app.APP.monitor.waitForAbort(1)
+                    cache_url(url)
+        # Toggles Image caching completed to Yes
+        utils.settings('plex_status_image_caching', value=utils.lang(107))
 
 
 def cache_url(url):
