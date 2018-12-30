@@ -402,7 +402,7 @@ def kodi_sql(media_type=None):
         db_path = v.DB_TEXTURE_PATH
     else:
         db_path = v.DB_VIDEO_PATH
-    conn = connect(db_path, timeout=30.0)
+    conn = connect(db_path, timeout=60.0)
     conn.execute('PRAGMA journal_mode=WAL;')
     conn.execute('PRAGMA cache_size = -8000;')
     conn.execute('PRAGMA synchronous=NORMAL;')
