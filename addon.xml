@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon  id="plugin.video.plexkodiconnect" name="PlexKodiConnect" version="2.5.8" provider-name="croneter">
+<addon  id="plugin.video.plexkodiconnect" name="PlexKodiConnect" version="2.5.9" provider-name="croneter">
   <requires>
     <import addon="xbmc.python" version="2.1.0"/>
     <import addon="script.module.requests" version="2.9.1" />
@@ -74,7 +74,17 @@
     <summary lang="uk_UA">Нативна інтеграція Plex в Kodi</summary>
     <description lang="uk_UA">Підключає Kodi до серверу Plex. Цей плагін передбачає, що ви керуєте всіма своїми відео за допомогою Plex (і ніяк не Kodi). Ви можете втратити дані, які вже зберігаються у відео та музичних БД Kodi (оскільки цей плагін безпосередньо їх змінює). Використовуйте на свій страх і ризик!</description>
     <disclaimer lang="uk_UA">Використовуйте на свій ризик</disclaimer>
-    <news>version 2.5.8 (beta only):
+    <news>version 2.5.9 (beta only):
+- Compatibility with Kodi 18 RC 4
+- New setting to escape paths e.g. for HTTP direct paths
+- Ensure path replacement never contains trailing (back)slash
+- Leia: fix resetting of videoplayer autoplay next item 
+- Don't store identical show artwork for seasons
+- Close DB connections while caching images
+- Increase database timeouts
+- Improve logging for seasons
+
+version 2.5.8 (beta only):
 - Hopefully fix Kodi crashing on playback start
 - Fix video resuming from old resume point
 - Fix database is locked

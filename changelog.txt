@@ -1,3 +1,13 @@
+version 2.5.9 (beta only):
+- Compatibility with Kodi 18 RC 4
+- New setting to escape paths e.g. for HTTP direct paths
+- Ensure path replacement never contains trailing (back)slash
+- Leia: fix resetting of videoplayer autoplay next item 
+- Don't store identical show artwork for seasons
+- Close DB connections while caching images
+- Increase database timeouts
+- Improve logging for seasons
+
 version 2.5.8 (beta only):
 - Hopefully fix Kodi crashing on playback start
 - Fix video resuming from old resume point
