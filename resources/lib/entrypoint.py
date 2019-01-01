@@ -664,6 +664,9 @@ def hub(content_type):
             __build_folder(entry)
         elif content_type == 'image' and api.plex_type() == v.PLEX_TYPE_PHOTO:
             __build_folder(entry)
+        else:
+            # Needed for widgets, where no content_type is provided
+            __build_folder(entry)
     xbmcplugin.endOfDirectory(
         handle=int(argv[1]),
         cacheToDisc=utils.settings('enableTextureCache') == 'true')
