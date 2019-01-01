@@ -60,7 +60,7 @@ class ContextMenu(xbmcgui.WindowXMLDialog):
         if action in (ACTION_SELECT_ITEM, ACTION_MOUSE_LEFT_CLICK):
             if self.getFocusId() == LIST:
                 option = self.list_.getSelectedItem()
-                self.selected_option = option.getLabel()
+                self.selected_option = option.getLabel().decode('utf-8')
                 LOG.info('option selected: %s', self.selected_option)
                 self.close()
 
