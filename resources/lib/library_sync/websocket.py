@@ -127,11 +127,27 @@ def process_new_item_message(message):
         LOG.error('Could not download metadata for %s', message['plex_id'])
         return False, False, False
     LOG.debug("Processing new/updated PMS item: %s", message['plex_id'])
-    with itemtypes.ITEMTYPE_FROM_PLEXTYPE[plex_type](timing.unix_timestamp()) as typus:
-        typus.add_update(xml[0],
-                         section_name=xml.get('librarySectionTitle'),
-                         section_id=xml.get('librarySectionID'))
-    cache_artwork(message['plex_id'], plex_type)
+    attempts = 3
+    while True:
+        try:
+            with itemtypes.ITEMTYPE_FROM_PLEXTYPE[plex_type](timing.unix_timestamp()) as typus:
+                typus.add_update(xml[0],
+                                 section_name=xml.get('librarySectionTitle'),
+                                 section_id=xml.get('librarySectionID'))
+            cache_artwork(message['plex_id'], plex_type)
+        except utils.OperationalError:
+            # Since parallel caching of artwork might invalidade the current
+            # WAL snapshot of the db, sqlite immediatly throws
+            # OperationalError, NOT after waiting for a duraton of timeout
+            # See https://github.com/mattn/go-sqlite3/issues/274#issuecomment-211759641
+            LOG.debug('sqlite OperationalError encountered, trying again')
+            attempts -= 1
+            if attempts == 0:
+                LOG.error('Repeatedly could not process message %s', message)
+                return False, False, False
+            continue
+        else:
+            break
     return True, plex_type in v.PLEX_VIDEOTYPES, plex_type in v.PLEX_AUDIOTYPES
 
 
