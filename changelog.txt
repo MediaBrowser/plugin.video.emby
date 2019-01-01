@@ -1,3 +1,9 @@
+version 2.5.10 (beta only):
+- Enable Plex Hub listings to be used for widgets
+- Finally fix deleteting of items from PMS not working
+- Catch sqlite OperationalError for websocket messages
+- Revert "Increase database timeouts"
+
 version 2.5.9 (beta only):
 - Compatibility with Kodi 18 RC 4
 - New setting to escape paths e.g. for HTTP direct paths
