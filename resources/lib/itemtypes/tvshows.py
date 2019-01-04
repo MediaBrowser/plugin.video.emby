@@ -496,7 +496,23 @@ class Episode(TvShowMixin, ItemBase):
                                        parent_id,
                                        userdata['UserRating'],
                                        kodi_id)
-
+            self.kodidb.set_resume(kodi_fileid,
+                                   api.resume_point(),
+                                   api.runtime(),
+                                   userdata['PlayCount'],
+                                   userdata['LastPlayedDate'],
+                                   v.PLEX_TYPE_EPISODE)
+            self.plexdb.add_episode(plex_id=plex_id,
+                                    checksum=api.checksum(),
+                                    section_id=section_id,
+                                    show_id=show_id,
+                                    grandparent_id=grandparent_id,
+                                    season_id=season_id,
+                                    parent_id=parent_id,
+                                    kodi_id=kodi_id,
+                                    kodi_fileid=kodi_fileid,
+                                    kodi_pathid=kodi_pathid,
+                                    last_sync=self.last_sync)
         # OR ADD THE EPISODE #####
         else:
             LOG.info("ADD episode plex_id: %s - %s", plex_id, api.title())
@@ -543,41 +559,41 @@ class Episode(TvShowMixin, ItemBase):
                                     kodi_pathid,
                                     parent_id,
                                     userdata['UserRating'])
-
-        streams = api.mediastreams()
-        self.kodidb.modify_streams(kodi_fileid, streams, api.runtime())
-        self.kodidb.set_resume(kodi_fileid,
-                               api.resume_point(),
-                               api.runtime(),
-                               userdata['PlayCount'],
-                               userdata['LastPlayedDate'],
-                               None)  # Do send None, we check here
-        self.plexdb.add_episode(plex_id=plex_id,
-                                checksum=api.checksum(),
-                                section_id=section_id,
-                                show_id=show_id,
-                                grandparent_id=grandparent_id,
-                                season_id=season_id,
-                                parent_id=parent_id,
-                                kodi_id=kodi_id,
-                                kodi_fileid=kodi_fileid,
-                                kodi_pathid=kodi_pathid,
-                                last_sync=self.last_sync)
-        if not app.SYNC.direct_paths:
-            # need to set a SECOND file entry for a path without plex show id
-            filename = api.file_name(force_first_media=True)
-            path = 'plugin://%s.tvshows/' % v.ADDON_ID
-            # Filename is exactly the same, WITH plex show id!
-            filename = ('%s%s/?plex_id=%s&plex_type=%s&mode=play&filename=%s'
-                        % (path, show_id, plex_id, v.PLEX_TYPE_EPISODE,
-                           filename))
-            kodi_pathid = self.kodidb.add_path(path)
-            kodi_fileid = self.kodidb.add_file(filename,
-                                               kodi_pathid,
-                                               api.date_created())
             self.kodidb.set_resume(kodi_fileid,
                                    api.resume_point(),
                                    api.runtime(),
                                    userdata['PlayCount'],
                                    userdata['LastPlayedDate'],
-                                   None)  # Do send None - 2nd entry
+                                   None)  # Do send None to avoid episode loop
+            self.plexdb.add_episode(plex_id=plex_id,
+                                    checksum=api.checksum(),
+                                    section_id=section_id,
+                                    show_id=show_id,
+                                    grandparent_id=grandparent_id,
+                                    season_id=season_id,
+                                    parent_id=parent_id,
+                                    kodi_id=kodi_id,
+                                    kodi_fileid=kodi_fileid,
+                                    kodi_pathid=kodi_pathid,
+                                    last_sync=self.last_sync)
+            if not app.SYNC.direct_paths:
+                # need to set a SECOND file entry for a path without plex show id
+                filename = api.file_name(force_first_media=True)
+                path = 'plugin://%s.tvshows/' % v.ADDON_ID
+                # Filename is exactly the same, WITH plex show id!
+                filename = ('%s%s/?plex_id=%s&plex_type=%s&mode=play&filename=%s'
+                            % (path, show_id, plex_id, v.PLEX_TYPE_EPISODE,
+                               filename))
+                kodi_pathid = self.kodidb.add_path(path)
+                second_kodi_fileid = self.kodidb.add_file(filename,
+                                                          kodi_pathid,
+                                                          api.date_created())
+                self.kodidb.set_resume(second_kodi_fileid,
+                                       api.resume_point(),
+                                       api.runtime(),
+                                       userdata['PlayCount'],
+                                       userdata['LastPlayedDate'],
+                                       None)  # Do send None - 2nd entry
+        self.kodidb.modify_streams(kodi_fileid,
+                                   api.mediastreams(),
+                                   api.runtime())
