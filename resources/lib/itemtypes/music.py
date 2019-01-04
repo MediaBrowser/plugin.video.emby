@@ -24,8 +24,9 @@ class MusicMixin(object):
         self.plexcursor = self.plexconn.cursor()
         self.kodiconn = utils.kodi_sql('music')
         self.kodicursor = self.kodiconn.cursor()
-        self.artconn = utils.kodi_sql('texture')
-        self.artcursor = self.artconn.cursor()
+        if app.SYNC.artwork:
+            self.artconn = utils.kodi_sql('texture')
+            self.artcursor = self.artconn.cursor()
         self.plexdb = PlexDB(self.plexcursor)
         self.kodidb = KodiMusicDB(texture_db=True,
                                   cursor=self.kodicursor,
@@ -170,16 +171,18 @@ class Artist(MusicMixin, ItemBase):
         # Not yet implemented by Plex
         musicBrainzId = None
 
-        # Associate artwork
-        artworks = api.artwork()
-        if 'poster' in artworks:
-            thumb = "<thumb>%s</thumb>" % artworks['poster']
+        if app.SYNC.artwork:
+            artworks = api.artwork()
+            if 'poster' in artworks:
+                thumb = "<thumb>%s</thumb>" % artworks['poster']
+            else:
+                thumb = None
+            if 'fanart' in artworks:
+                fanart = "<fanart>%s</fanart>" % artworks['fanart']
+            else:
+                fanart = None
         else:
-            thumb = None
-        if 'fanart' in artworks:
-            fanart = "<fanart>%s</fanart>" % artworks['fanart']
-        else:
-            fanart = None
+            thumb, fanart = None, None
 
         # UPDATE THE ARTIST #####
         if update_item:
@@ -198,10 +201,10 @@ class Artist(MusicMixin, ItemBase):
                                   fanart,
                                   timing.unix_date_to_kodi(self.last_sync),
                                   kodi_id)
-        # Update artwork
-        self.kodidb.modify_artwork(artworks,
-                                   kodi_id,
-                                   v.KODI_TYPE_ARTIST)
+        if app.SYNC.artwork:
+            self.kodidb.modify_artwork(artworks,
+                                       kodi_id,
+                                       v.KODI_TYPE_ARTIST)
         self.plexdb.add_artist(plex_id,
                                api.checksum(),
                                section_id,
@@ -265,10 +268,12 @@ class Album(MusicMixin, ItemBase):
         musicBrainzId = None
         genres = api.genre_list()
         genre = api.list_to_string(genres)
-        # Associate artwork
-        artworks = api.artwork()
-        if 'poster' in artworks:
-            thumb = "<thumb>%s</thumb>" % artworks['poster']
+        if app.SYNC.artwork:
+            artworks = api.artwork()
+            if 'poster' in artworks:
+                thumb = "<thumb>%s</thumb>" % artworks['poster']
+            else:
+                thumb = None
         else:
             thumb = None
 
@@ -341,9 +346,10 @@ class Album(MusicMixin, ItemBase):
             self.kodidb.add_music_genres(kodi_id,
                                          genres,
                                          v.KODI_TYPE_ALBUM)
-        self.kodidb.modify_artwork(artworks,
-                                   kodi_id,
-                                   v.KODI_TYPE_ALBUM)
+        if app.SYNC.artwork:
+            self.kodidb.modify_artwork(artworks,
+                                       kodi_id,
+                                       v.KODI_TYPE_ALBUM)
         self.plexdb.add_album(plex_id,
                               api.checksum(),
                               section_id,
@@ -630,15 +636,16 @@ class Song(MusicMixin, ItemBase):
         # Add genres
         if genres:
             self.kodidb.add_music_genres(kodi_id, genres, v.KODI_TYPE_SONG)
-        artworks = api.artwork()
-        self.kodidb.modify_artwork(artworks,
-                                   kodi_id,
-                                   v.KODI_TYPE_SONG)
-        if xml.get('parentKey') is None:
-            # Update album artwork
+        if app.SYNC.artwork:
+            artworks = api.artwork()
             self.kodidb.modify_artwork(artworks,
-                                       parent_id,
-                                       v.KODI_TYPE_ALBUM)
+                                       kodi_id,
+                                       v.KODI_TYPE_SONG)
+            if xml.get('parentKey') is None:
+                # Update album artwork
+                self.kodidb.modify_artwork(artworks,
+                                           parent_id,
+                                           v.KODI_TYPE_ALBUM)
         self.plexdb.add_song(plex_id,
                              api.checksum(),
                              section_id,

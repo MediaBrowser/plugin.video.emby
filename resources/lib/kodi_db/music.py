@@ -4,7 +4,7 @@ from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
 
 from . import common
-from .. import variables as v
+from .. import variables as v, app
 
 LOG = getLogger('PLEX.kodi_db.music')
 
@@ -145,81 +145,159 @@ class KodiMusicDB(common.KodiDBBase):
         """
         strReleaseType: 'album' or 'single'
         """
-        self.cursor.execute('''
-            INSERT INTO album(
-                idAlbum,
-                strAlbum,
-                strMusicBrainzAlbumID,
-                strArtists,
-                strGenres,
-                iYear,
-                bCompilation,
-                strReview,
-                strImage,
-                strLabel,
-                iUserrating,
-                lastScraped,
-                strReleaseType)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ''', (args))
+        if app.SYNC.artwork:
+            self.cursor.execute('''
+                INSERT INTO album(
+                    idAlbum,
+                    strAlbum,
+                    strMusicBrainzAlbumID,
+                    strArtists,
+                    strGenres,
+                    iYear,
+                    bCompilation,
+                    strReview,
+                    strImage,
+                    strLabel,
+                    iUserrating,
+                    lastScraped,
+                    strReleaseType)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (args))
+        else:
+            args = list(args)
+            del args[8]
+            self.cursor.execute('''
+                INSERT INTO album(
+                    idAlbum,
+                    strAlbum,
+                    strMusicBrainzAlbumID,
+                    strArtists,
+                    strGenres,
+                    iYear,
+                    bCompilation,
+                    strReview,
+                    strLabel,
+                    iUserrating,
+                    lastScraped,
+                    strReleaseType)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (args))
 
     def update_album_17(self, *args):
-        self.cursor.execute('''
-            UPDATE album
-            SET strAlbum = ?,
-                strMusicBrainzAlbumID = ?,
-                strArtists = ?,
-                strGenres = ?,
-                iYear = ?,
-                bCompilation = ?,
-                strReview = ?,
-                strImage = ?,
-                strLabel = ?,
-                iUserrating = ?,
-                lastScraped = ?,
-                strReleaseType = ?
-            WHERE idAlbum = ?
-        ''', (args))
+        if app.SYNC.artwork:
+            self.cursor.execute('''
+                UPDATE album
+                SET strAlbum = ?,
+                    strMusicBrainzAlbumID = ?,
+                    strArtists = ?,
+                    strGenres = ?,
+                    iYear = ?,
+                    bCompilation = ?,
+                    strReview = ?,
+                    strImage = ?,
+                    strLabel = ?,
+                    iUserrating = ?,
+                    lastScraped = ?,
+                    strReleaseType = ?
+                WHERE idAlbum = ?
+            ''', (args))
+        else:
+            args = list(args)
+            del args[7]
+            self.cursor.execute('''
+                UPDATE album
+                SET strAlbum = ?,
+                    strMusicBrainzAlbumID = ?,
+                    strArtists = ?,
+                    strGenres = ?,
+                    iYear = ?,
+                    bCompilation = ?,
+                    strReview = ?,
+                    strLabel = ?,
+                    iUserrating = ?,
+                    lastScraped = ?,
+                    strReleaseType = ?
+                WHERE idAlbum = ?
+            ''', (args))
 
     def add_album(self, *args):
         """
         strReleaseType: 'album' or 'single'
         """
-        self.cursor.execute('''
-            INSERT INTO album(
-                idAlbum,
-                strAlbum,
-                strMusicBrainzAlbumID,
-                strArtistDisp,
-                strGenres,
-                iYear,
-                bCompilation,
-                strReview,
-                strImage,
-                strLabel,
-                iUserrating,
-                lastScraped,
-                strReleaseType)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ''', (args))
+        if app.SYNC.artwork:
+            self.cursor.execute('''
+                INSERT INTO album(
+                    idAlbum,
+                    strAlbum,
+                    strMusicBrainzAlbumID,
+                    strArtistDisp,
+                    strGenres,
+                    iYear,
+                    bCompilation,
+                    strReview,
+                    strImage,
+                    strLabel,
+                    iUserrating,
+                    lastScraped,
+                    strReleaseType)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (args))
+        else:
+            args = list(args)
+            del args[8]
+            self.cursor.execute('''
+                INSERT INTO album(
+                    idAlbum,
+                    strAlbum,
+                    strMusicBrainzAlbumID,
+                    strArtistDisp,
+                    strGenres,
+                    iYear,
+                    bCompilation,
+                    strReview,
+                    strLabel,
+                    iUserrating,
+                    lastScraped,
+                    strReleaseType)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (args))
 
     def update_album(self, *args):
-        self.cursor.execute('''
-            UPDATE album
-            SET strAlbum = ?,
-                strMusicBrainzAlbumID = ?,
-                strArtistDisp = ?,
-                strGenres = ?,
-                iYear = ?,
-                bCompilation = ?,
-                strReview = ?,
-                strImage = ?,
-                strLabel = ?,
-                iUserrating = ?,
-                lastScraped = ?,
-                strReleaseType = ?
-            WHERE idAlbum = ?
-        ''', (args))
+        if app.SYNC.artwork:
+            self.cursor.execute('''
+                UPDATE album
+                SET strAlbum = ?,
+                    strMusicBrainzAlbumID = ?,
+                    strArtistDisp = ?,
+                    strGenres = ?,
+                    iYear = ?,
+                    bCompilation = ?,
+                    strReview = ?,
+                    strImage = ?,
+                    strLabel = ?,
+                    iUserrating = ?,
+                    lastScraped = ?,
+                    strReleaseType = ?
+                WHERE idAlbum = ?
+            ''', (args))
+        else:
+            args = list(args)
+            del args[7]
+            self.cursor.execute('''
+                UPDATE album
+                SET strAlbum = ?,
+                    strMusicBrainzAlbumID = ?,
+                    strArtistDisp = ?,
+                    strGenres = ?,
+                    iYear = ?,
+                    bCompilation = ?,
+                    strReview = ?,
+                    strLabel = ?,
+                    iUserrating = ?,
+                    lastScraped = ?,
+                    strReleaseType = ?
+                WHERE idAlbum = ?
+            ''', (args))
 
     def add_albumartist(self, artist_id, kodi_id, artistname):
         self.cursor.execute('''
@@ -424,15 +502,26 @@ class KodiMusicDB(common.KodiDBBase):
         return artistid
 
     def update_artist(self, *args):
-        self.cursor.execute('''
-            UPDATE artist
-            SET strGenres = ?,
-                strBiography = ?,
-                strImage = ?,
-                strFanart = ?,
-                lastScraped = ?
-            WHERE idArtist = ?
-        ''', (args))
+        if app.SYNC.artwork:
+            self.cursor.execute('''
+                UPDATE artist
+                SET strGenres = ?,
+                    strBiography = ?,
+                    strImage = ?,
+                    strFanart = ?,
+                    lastScraped = ?
+                WHERE idArtist = ?
+            ''', (args))
+        else:
+            args = list(args)
+            del args[3], args[2]
+            self.cursor.execute('''
+                UPDATE artist
+                SET strGenres = ?,
+                    strBiography = ?,
+                    lastScraped = ?
+                WHERE idArtist = ?
+            ''', (args))
 
     def remove_song(self, kodi_id):
         self.cursor.execute('DELETE FROM song WHERE idSong = ?', (kodi_id, ))

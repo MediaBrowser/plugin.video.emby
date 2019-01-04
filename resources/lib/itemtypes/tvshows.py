@@ -204,9 +204,10 @@ class Show(TvShowMixin, ItemBase):
             self.kodidb.modify_people(kodi_id,
                                       v.KODI_TYPE_SHOW,
                                       api.people_list())
-            self.kodidb.modify_artwork(api.artwork(),
-                                       kodi_id,
-                                       v.KODI_TYPE_SHOW)
+            if app.SYNC.artwork:
+                self.kodidb.modify_artwork(api.artwork(),
+                                           kodi_id,
+                                           v.KODI_TYPE_SHOW)
             # Update the tvshow entry
             self.kodidb.update_show(api.title(),
                                     api.plot(),
@@ -243,9 +244,10 @@ class Show(TvShowMixin, ItemBase):
             self.kodidb.add_people(kodi_id,
                                    v.KODI_TYPE_SHOW,
                                    api.people_list())
-            self.kodidb.add_artwork(api.artwork(),
-                                    kodi_id,
-                                    v.KODI_TYPE_SHOW)
+            if app.SYNC.artwork:
+                self.kodidb.add_artwork(api.artwork(),
+                                        kodi_id,
+                                        v.KODI_TYPE_SHOW)
             # Create the tvshow entry
             self.kodidb.add_show(kodi_id,
                                  api.title(),
@@ -310,25 +312,28 @@ class Season(TvShowMixin, ItemBase):
                 LOG.error('Still could not find parent tv show %s', show_id)
                 return
         parent_id = show['kodi_id']
-        parent_artwork = api.artwork(kodi_id=parent_id,
-                                     kodi_type=v.KODI_TYPE_SHOW)
-        artwork = api.artwork()
-        # Remove all artwork that is identical for the season's show
-        for key in parent_artwork:
-            if key in artwork and artwork[key] == parent_artwork[key]:
-                del artwork[key]
+        if app.SYNC.artwork:
+            parent_artwork = api.artwork(kodi_id=parent_id,
+                                         kodi_type=v.KODI_TYPE_SHOW)
+            artwork = api.artwork()
+            # Remove all artwork that is identical for the season's show
+            for key in parent_artwork:
+                if key in artwork and artwork[key] == parent_artwork[key]:
+                    del artwork[key]
         if update_item:
             LOG.info('UPDATE season plex_id %s - %s', plex_id, api.title())
             kodi_id = season['kodi_id']
-            self.kodidb.modify_artwork(artwork,
-                                       kodi_id,
-                                       v.KODI_TYPE_SEASON)
+            if app.SYNC.artwork:
+                self.kodidb.modify_artwork(artwork,
+                                           kodi_id,
+                                           v.KODI_TYPE_SEASON)
         else:
             LOG.info('ADD season plex_id %s - %s', plex_id, api.title())
             kodi_id = self.kodidb.add_season(parent_id, api.season_number())
-            self.kodidb.add_artwork(artwork,
-                                    kodi_id,
-                                    v.KODI_TYPE_SEASON)
+            if app.SYNC.artwork:
+                self.kodidb.add_artwork(artwork,
+                                        kodi_id,
+                                        v.KODI_TYPE_SEASON)
         self.plexdb.add_season(plex_id=plex_id,
                                checksum=api.checksum(),
                                section_id=section_id,
@@ -475,9 +480,10 @@ class Episode(TvShowMixin, ItemBase):
             self.kodidb.modify_people(kodi_id,
                                       v.KODI_TYPE_EPISODE,
                                       api.people_list())
-            self.kodidb.modify_artwork(api.artwork(),
-                                       kodi_id,
-                                       v.KODI_TYPE_EPISODE)
+            if app.SYNC.artwork:
+                self.kodidb.modify_artwork(api.artwork(),
+                                           kodi_id,
+                                           v.KODI_TYPE_EPISODE)
             self.kodidb.update_episode(api.title(),
                                        api.plot(),
                                        ratingid,
@@ -537,9 +543,10 @@ class Episode(TvShowMixin, ItemBase):
             self.kodidb.add_people(kodi_id,
                                    v.KODI_TYPE_EPISODE,
                                    api.people_list())
-            self.kodidb.add_artwork(api.artwork(),
-                                    kodi_id,
-                                    v.KODI_TYPE_EPISODE)
+            if app.SYNC.artwork:
+                self.kodidb.add_artwork(api.artwork(),
+                                        kodi_id,
+                                        v.KODI_TYPE_EPISODE)
             self.kodidb.add_episode(kodi_id,
                                     kodi_fileid,
                                     api.title(),

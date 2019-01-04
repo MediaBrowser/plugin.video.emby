@@ -136,6 +136,9 @@ class Sync(backgroundthread.KillableThread):
         if not utils.settings('FanartTV') == 'true':
             LOG.info('Additional fanart download is deactivated')
             return False
+        if not app.SYNC.artwork:
+            LOG.info('Not synching Plex PMS artwork, not getting artwork')
+            return False
         elif self.fanart is None or not self.fanart.is_alive():
             LOG.info('Start downloading additional fanart with refresh %s',
                      refresh)
@@ -155,6 +158,9 @@ class Sync(backgroundthread.KillableThread):
     def start_image_cache_thread(self):
         if not utils.settings('enableTextureCache') == "true":
             LOG.info('Image caching has been deactivated')
+            return
+        if not app.SYNC.artwork:
+            LOG.info('Not synching Plex artwork - not caching')
             return
         if self.image_cache_thread and self.image_cache_thread.is_alive():
             self.image_cache_thread.cancel()

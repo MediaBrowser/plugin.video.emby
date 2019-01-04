@@ -6,7 +6,7 @@ from ntpath import dirname
 
 from ..plex_db import PlexDB, PLEXDB_LOCK
 from ..kodi_db import KodiVideoDB, KODIDB_LOCK
-from .. import utils, timing
+from .. import utils, timing, app
 
 LOG = getLogger('PLEX.itemtypes.common')
 
@@ -61,8 +61,12 @@ class ItemBase(object):
         self.plexcursor = self.plexconn.cursor()
         self.kodiconn = utils.kodi_sql('video')
         self.kodicursor = self.kodiconn.cursor()
-        self.artconn = utils.kodi_sql('texture')
-        self.artcursor = self.artconn.cursor()
+        if app.SYNC.artwork:
+            self.artconn = utils.kodi_sql('texture')
+            self.artcursor = self.artconn.cursor()
+        else:
+            self.artconn = None
+            self.artcursor = None
         self.plexdb = PlexDB(cursor=self.plexcursor)
         self.kodidb = KodiVideoDB(texture_db=True,
                                   cursor=self.kodicursor,
@@ -78,13 +82,15 @@ class ItemBase(object):
                 # re-raise any exception
                 return False
             self.plexconn.commit()
-            self.artconn.commit()
             self.kodiconn.commit()
+            if self.artconn:
+                self.artconn.commit()
             return self
         finally:
             self.plexconn.close()
             self.kodiconn.close()
-            self.artconn.close()
+            if self.artconn:
+                self.artconn.close()
             if self.lock:
                 PLEXDB_LOCK.release()
                 KODIDB_LOCK.release()
@@ -92,10 +98,11 @@ class ItemBase(object):
     def commit(self):
         self.plexconn.commit()
         self.plexconn.execute('BEGIN')
-        self.artconn.commit()
-        self.artconn.execute('BEGIN')
         self.kodiconn.commit()
         self.kodiconn.execute('BEGIN')
+        if self.artconn:
+            self.artconn.commit()
+            self.artconn.execute('BEGIN')
 
     def set_fanart(self, artworks, kodi_id, kodi_type):
         """

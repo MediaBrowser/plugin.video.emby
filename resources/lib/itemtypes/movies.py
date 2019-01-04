@@ -110,9 +110,10 @@ class Movie(ItemBase):
             self.kodidb.modify_people(kodi_id,
                                       v.KODI_TYPE_MOVIE,
                                       api.people_list())
-            self.kodidb.modify_artwork(api.artwork(),
-                                       kodi_id,
-                                       v.KODI_TYPE_MOVIE)
+            if app.SYNC.artwork:
+                self.kodidb.modify_artwork(api.artwork(),
+                                           kodi_id,
+                                           v.KODI_TYPE_MOVIE)
         else:
             LOG.info("ADD movie plex_id: %s - %s", plex_id, title)
             file_id = self.kodidb.add_file(filename,
@@ -137,9 +138,10 @@ class Movie(ItemBase):
             self.kodidb.add_people(kodi_id,
                                    v.KODI_TYPE_MOVIE,
                                    api.people_list())
-            self.kodidb.add_artwork(api.artwork(),
-                                    kodi_id,
-                                    v.KODI_TYPE_MOVIE)
+            if app.SYNC.artwork:
+                self.kodidb.add_artwork(api.artwork(),
+                                        kodi_id,
+                                        v.KODI_TYPE_MOVIE)
 
         # Update Kodi's main entry
         self.kodidb.add_movie(kodi_id,
@@ -179,6 +181,9 @@ class Movie(ItemBase):
                 # Add any sets from Plex collection tags
                 kodi_set_id = self.kodidb.create_collection(set_name)
                 self.kodidb.assign_collection(kodi_set_id, kodi_id)
+                if not app.SYNC.artwork:
+                    # Rest below is to get collection artwork
+                    continue
                 if children is None:
                     # e.g. when added via websocket
                     LOG.debug('Costly looking up Plex collection %s: %s',

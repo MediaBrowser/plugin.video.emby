@@ -13,7 +13,8 @@ from .. import itemtypes, plex_functions as PF, variables as v, app
 LOG = getLogger('PLEX.sync.fanart')
 
 SUPPORTED_TYPES = (v.PLEX_TYPE_MOVIE, v.PLEX_TYPE_SHOW)
-SYNC_FANART = utils.settings('FanartTV') == 'true'
+SYNC_FANART = (utils.settings('FanartTV') == 'true' and
+               utils.settings('usePlexArtwork') == 'true')
 PREFER_KODI_COLLECTION_ART = utils.settings('PreferKodiCollectionArt') == 'false'
 BATCH_SIZE = 500
 

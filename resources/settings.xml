@@ -132,16 +132,17 @@
 	</category>
 
 	<category label="30544"><!-- artwork -->
-		<setting id="enableTextureCache" label="30512"  type="bool" default="true" /> <!-- Cache all artwork for a smooth Kodi experience -->
-        <setting id="FanartTV" label="30539" type="bool" default="false" /><!-- Download additional art from FanArtTV -->
-        <setting id="PreferKodiCollectionArt" label="30543" type="bool" default="true" visible="eq(-1,true)" subsetting="true" /><!-- Prefer Kodi artwork for collections -->
-        <setting label="39222" type="action" action="RunPlugin(plugin://plugin.video.plexkodiconnect/?mode=fanart)" option="close" visible="eq(-2,true)" subsetting="true" /> <!-- Look for missing fanart on FanartTV now -->
-        <setting id="imageSyncNotifications" label="30008" type="bool" default="true" /><!-- Enable notifications for image caching -->
-        <setting id="imageSyncDuringPlayback" label="30009" type="bool" default="true" /><!-- Enable image caching during Kodi playback (restart Kodi!) -->
-		<setting label="39020" type="action" action="RunPlugin(plugin://plugin.video.plexkodiconnect/?mode=texturecache)" option="close" /> <!-- Cache all images to Kodi texture cache now -->
-        <setting type="lsep" label="$LOCALIZE[126]" /><!-- Status -->
-        <setting id="plex_status_fanarttv_lookup" label="30019" type="text" default="" enable="false" /><!-- FanartTV lookup completed -->
-        <setting id="plex_status_image_caching" label="30028" type="text" default="" enable="false" /><!-- Image caching completed -->
+        <setting id="usePlexArtwork" label="30502"  type="bool" default="true" /> <!-- Sync Plex artwork from the PMS -->   
+		<setting id="enableTextureCache" label="30512"  type="bool" default="true" visible="eq(-1,true)"/> <!-- Cache all artwork for a smooth Kodi experience -->
+        <setting id="FanartTV" label="30539" type="bool" default="false" visible="eq(-2,true)"/><!-- Download additional art from FanArtTV -->
+        <setting id="PreferKodiCollectionArt" label="30543" type="bool" default="true" visible="eq(-1,true) + eq(-3,true)" subsetting="true" /><!-- Prefer Kodi artwork for collections -->
+        <setting label="39222" type="action" action="RunPlugin(plugin://plugin.video.plexkodiconnect/?mode=fanart)" option="close" visible="eq(-2,true) + eq(-4,true)" subsetting="true" /> <!-- Look for missing fanart on FanartTV now -->
+        <setting id="imageSyncNotifications" label="30008" type="bool" default="true" visible="eq(-5,true)"/><!-- Enable notifications for image caching -->
+        <setting id="imageSyncDuringPlayback" label="30009" type="bool" default="true" visible="eq(-6,true)"/><!-- Enable image caching during Kodi playback (restart Kodi!) -->
+		<setting label="39020" type="action" action="RunPlugin(plugin://plugin.video.plexkodiconnect/?mode=texturecache)" option="close" visible="eq(-7,true)"/> <!-- Cache all images to Kodi texture cache now -->
+        <setting type="lsep" label="$LOCALIZE[126]" visible="eq(-8,true)"/><!-- Status -->
+        <setting id="plex_status_fanarttv_lookup" label="30019" type="text" default="" enable="false" visible="eq(-9,true)"/><!-- FanartTV lookup completed -->
+        <setting id="plex_status_image_caching" label="30028" type="text" default="" enable="false" visible="eq(-10,true)"/><!-- Image caching completed -->
 	</category>
 	<!--
 	<category label="30235" visible="false">

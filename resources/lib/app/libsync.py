@@ -38,6 +38,8 @@ class Sync(object):
         self.direct_paths = utils.settings('useDirectPaths') == '1'
         # Is synching of Plex music enabled?
         self.enable_music = utils.settings('enableMusic') == 'true'
+        # Do we sync artwork from the PMS to Kodi?
+        self.artwork = utils.settings('usePlexArtwork') == 'true'
         # Path remapping mechanism (e.g. smb paths)
         # Do we replace \\myserver\path to smb://myserver/path?
         self.replace_smb_path = utils.settings('replaceSMB') == 'true'

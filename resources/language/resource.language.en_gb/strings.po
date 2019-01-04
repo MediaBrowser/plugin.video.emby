@@ -429,6 +429,11 @@ msgctxt "#30501"
 msgid "Client SSL certificate"
 msgstr ""
 
+# PKC Settings - Artwork
+msgctxt "#30502"
+msgid "Sync Plex artwork from the PMS (recommended)"
+msgstr ""
+
 # PKC Settings - Connection
 msgctxt "#30505"
 msgid "[COLOR yellow]Reset login attempts[/COLOR]"
