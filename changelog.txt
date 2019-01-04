@@ -1,3 +1,9 @@
+version 2.5.12 (beta only):
+- WARNING: You will need to reset the Kodi database!
+- New option to not use Plex artwork
+- Add-on paths: Fix resume if playback not initiated with PKC
+- Increase database resiliance with sqlite WAL mode
+
 version 2.5.11 (beta only):
 - Direct Paths: Fix AttributeError for widgets
 

@@ -87,7 +87,7 @@ COMPANION_PORT = int(_ADDON.getSetting('companionPort'))
 PKC_MACHINE_IDENTIFIER = None
 
 # Minimal PKC version needed for the Kodi database - otherwise need to recreate
-MIN_DB_VERSION = '2.5.7'
+MIN_DB_VERSION = '2.5.12'
 
 # Database paths
 DB_VIDEO_VERSION = {
