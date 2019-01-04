@@ -127,27 +127,11 @@ def process_new_item_message(message):
         LOG.error('Could not download metadata for %s', message['plex_id'])
         return False, False, False
     LOG.debug("Processing new/updated PMS item: %s", message['plex_id'])
-    attempts = 3
-    while True:
-        try:
-            with itemtypes.ITEMTYPE_FROM_PLEXTYPE[plex_type](timing.unix_timestamp()) as typus:
-                typus.add_update(xml[0],
-                                 section_name=xml.get('librarySectionTitle'),
-                                 section_id=xml.get('librarySectionID'))
-            cache_artwork(message['plex_id'], plex_type)
-        except utils.OperationalError:
-            # Since parallel caching of artwork might invalidade the current
-            # WAL snapshot of the db, sqlite immediatly throws
-            # OperationalError, NOT after waiting for a duraton of timeout
-            # See https://github.com/mattn/go-sqlite3/issues/274#issuecomment-211759641
-            LOG.debug('sqlite OperationalError encountered, trying again')
-            attempts -= 1
-            if attempts == 0:
-                LOG.error('Repeatedly could not process message %s', message)
-                return False, False, False
-            continue
-        else:
-            break
+    with itemtypes.ITEMTYPE_FROM_PLEXTYPE[plex_type](timing.unix_timestamp()) as typus:
+        typus.add_update(xml[0],
+                         section_name=xml.get('librarySectionTitle'),
+                         section_id=xml.get('librarySectionID'))
+    cache_artwork(message['plex_id'], plex_type)
     return True, plex_type in v.PLEX_VIDEOTYPES, plex_type in v.PLEX_AUDIOTYPES
 
 
@@ -349,9 +333,9 @@ def process_playing(data):
         else:
             mark_played = False
         LOG.debug('Update playstate for user %s for %s with plex id %s to '
-                  'viewCount %s, resume %s, mark_played %s',
+                  'viewCount %s, resume %s, mark_played %s for item %s',
                   app.ACCOUNT.plex_username, session['kodi_type'], plex_id,
-                  session['viewCount'], resume, mark_played)
+                  session['viewCount'], resume, mark_played, PLAYSTATE_SESSIONS[session_key])
         func = itemtypes.ITEMTYPE_FROM_KODITYPE[session['kodi_type']]
         with func(None) as fkt:
             fkt.update_playstate(mark_played,

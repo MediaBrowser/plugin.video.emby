@@ -5,8 +5,8 @@ from logging import getLogger
 
 from .common import ItemBase
 from ..plex_api import API
-from ..plex_db import PlexDB
-from ..kodi_db import KodiMusicDB
+from ..plex_db import PlexDB, PLEXDB_LOCK
+from ..kodi_db import KodiMusicDB, KODIDB_LOCK
 from .. import plex_functions as PF, utils, timing, app, variables as v
 
 LOG = getLogger('PLEX.music')
@@ -17,6 +17,9 @@ class MusicMixin(object):
         """
         Overwrite to use the Kodi music DB instead of the video DB
         """
+        if self.lock:
+            PLEXDB_LOCK.acquire()
+            KODIDB_LOCK.acquire()
         self.plexconn = utils.kodi_sql('plex')
         self.plexcursor = self.plexconn.cursor()
         self.kodiconn = utils.kodi_sql('music')

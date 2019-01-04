@@ -929,7 +929,7 @@ class API(object):
                     artworks[kodi_artwork] = art
             if not full_artwork:
                 return artworks
-            with PlexDB() as plexdb:
+            with PlexDB(lock=False) as plexdb:
                 db_item = plexdb.item_by_id(self.plex_id(),
                                             v.PLEX_TYPE_EPISODE)
                 if db_item:
@@ -938,12 +938,12 @@ class API(object):
                 else:
                     return artworks
             # Grab artwork from the season
-            with KodiVideoDB() as kodidb:
+            with KodiVideoDB(lock=False) as kodidb:
                 season_art = kodidb.get_art(season_id, v.KODI_TYPE_SEASON)
             for kodi_art in season_art:
                 artworks['season.%s' % kodi_art] = season_art[kodi_art]
             # Grab more artwork from the show
-            with KodiVideoDB() as kodidb:
+            with KodiVideoDB(lock=False) as kodidb:
                 show_art = kodidb.get_art(show_id, v.KODI_TYPE_SHOW)
             for kodi_art in show_art:
                 artworks['tvshow.%s' % kodi_art] = show_art[kodi_art]
@@ -952,10 +952,10 @@ class API(object):
         if kodi_id:
             # in Kodi database, potentially with additional e.g. clearart
             if self.plex_type() in v.PLEX_VIDEOTYPES:
-                with KodiVideoDB() as kodidb:
+                with KodiVideoDB(lock=False) as kodidb:
                     return kodidb.get_art(kodi_id, kodi_type)
             else:
-                with KodiMusicDB() as kodidb:
+                with KodiMusicDB(lock=False) as kodidb:
                     return kodidb.get_art(kodi_id, kodi_type)
 
         # Grab artwork from Plex

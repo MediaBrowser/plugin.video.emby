@@ -153,15 +153,7 @@ def process_fanart(plex_id, plex_type, refresh=False):
                                                 setid,
                                                 v.KODI_TYPE_SET)
         done = True
-    except utils.OperationalError:
-        # We were not fast enough when a sync started
-        pass
     finally:
         if done is True and not suspends():
-            try:
-                with PlexDB() as plexdb:
-                    plexdb.set_fanart_synced(plex_id,
-                                             plex_type)
-            except utils.OperationalError:
-                # We were not fast enough when a sync started
-                pass
+            with PlexDB() as plexdb:
+                plexdb.set_fanart_synced(plex_id, plex_type)

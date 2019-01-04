@@ -1,8 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, unicode_literals
+from threading import Lock
 
 from .. import utils, variables as v
+
+PLEXDB_LOCK = Lock()
 
 SUPPORTED_KODI_TYPES = (
     v.KODI_TYPE_MOVIE,
@@ -19,21 +22,28 @@ class PlexDBBase(object):
     """
     Plex database methods used for all types of items
     """
-    def __init__(self, cursor=None):
+    def __init__(self, cursor=None, lock=True):
         # Allows us to use this class with a cursor instead of context mgr
         self.cursor = cursor
+        self.lock = lock
 
     def __enter__(self):
+        if self.lock:
+            PLEXDB_LOCK.acquire()
         self.plexconn = utils.kodi_sql('plex')
         self.cursor = self.plexconn.cursor()
         return self
 
     def __exit__(self, e_typ, e_val, trcbak):
-        if e_typ:
-            # re-raise any exception
-            return False
-        self.plexconn.commit()
-        self.plexconn.close()
+        try:
+            if e_typ:
+                # re-raise any exception
+                return False
+            self.plexconn.commit()
+        finally:
+            self.plexconn.close()
+            if self.lock:
+                PLEXDB_LOCK.release()
 
     def is_recorded(self, plex_id, plex_type):
         """

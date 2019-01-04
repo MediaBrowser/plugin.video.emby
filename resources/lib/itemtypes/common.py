@@ -4,8 +4,8 @@ from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
 from ntpath import dirname
 
-from ..plex_db import PlexDB
-from ..kodi_db import KodiVideoDB
+from ..plex_db import PlexDB, PLEXDB_LOCK
+from ..kodi_db import KodiVideoDB, KODIDB_LOCK
 from .. import utils, timing
 
 LOG = getLogger('PLEX.itemtypes.common')
@@ -38,8 +38,9 @@ class ItemBase(object):
     Input:
         kodiType:       optional argument; e.g. 'video' or 'music'
     """
-    def __init__(self, last_sync, plexdb=None, kodidb=None):
+    def __init__(self, last_sync, plexdb=None, kodidb=None, lock=True):
         self.last_sync = last_sync
+        self.lock = lock
         self.plexconn = None
         self.plexcursor = plexdb.cursor if plexdb else None
         self.kodiconn = None
@@ -53,13 +54,16 @@ class ItemBase(object):
         """
         Open DB connections and cursors
         """
+        if self.lock:
+            PLEXDB_LOCK.acquire()
+            KODIDB_LOCK.acquire()
         self.plexconn = utils.kodi_sql('plex')
         self.plexcursor = self.plexconn.cursor()
         self.kodiconn = utils.kodi_sql('video')
         self.kodicursor = self.kodiconn.cursor()
         self.artconn = utils.kodi_sql('texture')
         self.artcursor = self.artconn.cursor()
-        self.plexdb = PlexDB(self.plexcursor)
+        self.plexdb = PlexDB(cursor=self.plexcursor)
         self.kodidb = KodiVideoDB(texture_db=True,
                                   cursor=self.kodicursor,
                                   artcursor=self.artcursor)
@@ -69,16 +73,21 @@ class ItemBase(object):
         """
         Make sure DB changes are committed and connection to DB is closed.
         """
-        if exc_type:
-            # re-raise any exception
-            return False
-        self.plexconn.commit()
-        self.artconn.commit()
-        self.kodiconn.commit()
-        self.plexconn.close()
-        self.kodiconn.close()
-        self.artconn.close()
-        return self
+        try:
+            if exc_type:
+                # re-raise any exception
+                return False
+            self.plexconn.commit()
+            self.artconn.commit()
+            self.kodiconn.commit()
+            return self
+        finally:
+            self.plexconn.close()
+            self.kodiconn.close()
+            self.artconn.close()
+            if self.lock:
+                PLEXDB_LOCK.release()
+                KODIDB_LOCK.release()
 
     def commit(self):
         self.plexconn.commit()

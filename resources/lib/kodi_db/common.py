@@ -1,15 +1,34 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, unicode_literals
+from threading import Lock
+from functools import wraps
 
-from .. import utils, path_ops
+from .. import utils, path_ops, app
+
+KODIDB_LOCK = Lock()
+
+
+def catch_operationalerrors(method):
+    @wraps(method)
+    def wrapped(*args, **kwargs):
+        attempts = 3
+        while True:
+            try:
+                return method(*args, **kwargs)
+            except utils.OperationalError:
+                app.APP.monitor.waitForAbort(0.01)
+                attempts -= 1
+                if attempts == 0:
+                    raise
+    return wrapped
 
 
 class KodiDBBase(object):
     """
     Kodi database methods used for all types of items
     """
-    def __init__(self, texture_db=False, cursor=None, artcursor=None):
+    def __init__(self, texture_db=False, cursor=None, artcursor=None, lock=True):
         """
         Allows direct use with a cursor instead of context mgr
         """
@@ -17,8 +36,11 @@ class KodiDBBase(object):
         self.cursor = cursor
         self.artconn = None
         self.artcursor = artcursor
+        self.lock = lock
 
     def __enter__(self):
+        if self.lock:
+            KODIDB_LOCK.acquire()
         self.kodiconn = utils.kodi_sql(self.db_kind)
         self.cursor = self.kodiconn.cursor()
         if self._texture_db:
@@ -27,14 +49,19 @@ class KodiDBBase(object):
         return self
 
     def __exit__(self, e_typ, e_val, trcbak):
-        if e_typ:
-            # re-raise any exception
-            return False
-        self.kodiconn.commit()
-        self.kodiconn.close()
-        if self.artconn:
-            self.artconn.commit()
-            self.artconn.close()
+        try:
+            if e_typ:
+                # re-raise any exception
+                return False
+            self.kodiconn.commit()
+            if self.artconn:
+                self.artconn.commit()
+        finally:
+            self.kodiconn.close()
+            if self.artconn:
+                self.artconn.close()
+            if self.lock:
+                KODIDB_LOCK.release()
 
     def art_urls(self, kodi_id, kodi_type):
         return (x[0] for x in
@@ -53,6 +80,7 @@ class KodiDBBase(object):
         for kodi_art, url in artworks.iteritems():
             self.add_art(url, kodi_id, kodi_type, kodi_art)
 
+    @catch_operationalerrors
     def add_art(self, url, kodi_id, kodi_type, kodi_art):
         """
         Adds or modifies the artwork of kind kodi_art (e.g. 'poster') in the
@@ -71,6 +99,7 @@ class KodiDBBase(object):
         for kodi_art, url in artworks.iteritems():
             self.modify_art(url, kodi_id, kodi_type, kodi_art)
 
+    @catch_operationalerrors
     def modify_art(self, url, kodi_id, kodi_type, kodi_art):
         """
         Adds or modifies the artwork of kind kodi_art (e.g. 'poster') in the
@@ -102,10 +131,12 @@ class KodiDBBase(object):
             ''', (url, kodi_id, kodi_type, kodi_art))
 
     def delete_artwork(self, kodi_id, kodi_type):
-        for row in self.cursor.execute('SELECT url FROM art WHERE media_id = ? AND media_type = ?',
-                                       (kodi_id, kodi_type, )):
+        self.cursor.execute('SELECT url FROM art WHERE media_id = ? AND media_type = ?',
+                            (kodi_id, kodi_type, ))
+        for row in self.cursor.fetchall():
             self.delete_cached_artwork(row[0])
 
+    @catch_operationalerrors
     def delete_cached_artwork(self, url):
         try:
             self.artcursor.execute("SELECT cachedurl FROM texture WHERE url = ? LIMIT 1",

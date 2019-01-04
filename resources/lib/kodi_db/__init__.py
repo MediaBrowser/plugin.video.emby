@@ -3,6 +3,7 @@
 from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
 
+from .common import KODIDB_LOCK
 from .video import KodiVideoDB
 from .music import KodiMusicDB
 from .texture import KodiTextureDB
