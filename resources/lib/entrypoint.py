@@ -683,6 +683,7 @@ def watchlater():
         LOG.error('No watch later - restricted user')
         return xbmcplugin.endOfDirectory(int(argv[1]), False)
 
+    app.init(entrypoint=True)
     xml = DU().downloadUrl('https://plex.tv/pms/playlists/queue/all',
                            authenticate=False,
                            headerOptions={'X-Plex-Token': utils.window('plex_token')})
@@ -704,6 +705,7 @@ def channels():
     """
     Listing for Plex Channels
     """
+    app.init(entrypoint=True)
     xml = DU().downloadUrl('{server}/channels/all')
     try:
         xml[0].attrib
