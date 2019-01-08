@@ -3,12 +3,11 @@
 from __future__ import absolute_import, division, unicode_literals
 from threading import Lock
 from functools import wraps
-from logging import getLogger
 
 from .. import utils, path_ops, app
 
 KODIDB_LOCK = Lock()
-LOG = getLogger('PLEX.playback')
+
 
 def catch_operationalerrors(method):
     @wraps(method)
@@ -41,9 +40,7 @@ class KodiDBBase(object):
 
     def __enter__(self):
         if self.lock:
-            LOG.info('acquiring lock')
             KODIDB_LOCK.acquire()
-            LOG.info('acquiring lock succeeded')
         self.kodiconn = utils.kodi_sql(self.db_kind)
         self.cursor = self.kodiconn.cursor()
         if self._texture_db:
@@ -64,7 +61,6 @@ class KodiDBBase(object):
             if self.artconn:
                 self.artconn.close()
             if self.lock:
-                LOG.info('releasing lock')
                 KODIDB_LOCK.release()
 
     def art_urls(self, kodi_id, kodi_type):
