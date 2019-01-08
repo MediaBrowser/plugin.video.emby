@@ -509,7 +509,7 @@ def _clean_file_table():
     app.APP.monitor.waitForAbort(2)
     try:
         with kodi_db.KodiVideoDB() as kodidb_1:
-            with kodi_db.KodiVideoDB() as kodidb_2:
+            with kodi_db.KodiVideoDB(lock=False) as kodidb_2:
                 for file_id in kodidb_1.obsolete_file_ids():
                     LOG.debug('Removing obsolete Kodi file_id %s', file_id)
                     kodidb_2.remove_file(file_id, remove_orphans=False)
