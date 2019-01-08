@@ -59,7 +59,10 @@ def translate_path(path):
 
 
 def exists(path):
-    """Returns True if the path [unicode] exists"""
+    """
+    Returns True if the path [unicode] exists. Folders NEED a trailing slash or
+    backslash!!
+    """
     return xbmcvfs.exists(path.encode(KODI_ENCODING, 'strict')) == 1
 
 

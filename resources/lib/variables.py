@@ -179,6 +179,9 @@ PLEX_TYPE_MUSICVIDEO = 'musicvideo'
 
 PLEX_TYPE_PHOTO = 'photo'
 
+PLEX_TYPE_PLAYLIST = 'playlist'
+PLEX_TYPE_CHANNEL = 'channel'
+
 # Used for /:/timeline XML messages
 PLEX_PLAYLIST_TYPE_VIDEO = 'video'
 PLEX_PLAYLIST_TYPE_AUDIO = 'music'
@@ -211,6 +214,8 @@ KODI_TYPE_ARTIST = 'artist'
 KODI_TYPE_MUSICVIDEO = 'musicvideo'
 
 KODI_TYPE_PHOTO = 'photo'
+
+KODI_TYPE_PLAYLIST = 'playlist'
 
 KODI_VIDEOTYPES = (
     KODI_TYPE_VIDEO,
@@ -251,7 +256,12 @@ ADDON_TYPE = {
     PLEX_TYPE_MOVIE: 'plugin.video.plexkodiconnect.movies',
     PLEX_TYPE_CLIP: 'plugin.video.plexkodiconnect.movies',
     PLEX_TYPE_EPISODE: 'plugin.video.plexkodiconnect.tvshows',
-    PLEX_TYPE_SONG: 'plugin.video.plexkodiconnect'
+    PLEX_TYPE_SEASON: 'plugin.video.plexkodiconnect.tvshows',
+    PLEX_TYPE_SHOW: 'plugin.video.plexkodiconnect.tvshows',
+    PLEX_TYPE_SONG: 'plugin.video.plexkodiconnect',
+    PLEX_TYPE_ALBUM: 'plugin.video.plexkodiconnect',
+    PLEX_TYPE_ARTIST: 'plugin.video.plexkodiconnect',
+    PLEX_TYPE_PLAYLIST: 'plugin.video.plexkodiconnect'
 }
 
 ITEMTYPE_FROM_PLEXTYPE = {
@@ -276,6 +286,7 @@ ITEMTYPE_FROM_KODITYPE = {
 
 KODITYPE_FROM_PLEXTYPE = {
     PLEX_TYPE_MOVIE: KODI_TYPE_MOVIE,
+    PLEX_TYPE_CLIP: KODI_TYPE_CLIP,
     PLEX_TYPE_EPISODE: KODI_TYPE_EPISODE,
     PLEX_TYPE_SEASON: KODI_TYPE_SEASON,
     PLEX_TYPE_SHOW: KODI_TYPE_SHOW,
@@ -284,7 +295,8 @@ KODITYPE_FROM_PLEXTYPE = {
     PLEX_TYPE_ALBUM: KODI_TYPE_ALBUM,
     PLEX_TYPE_PHOTO: KODI_TYPE_PHOTO,
     'XXXXXX': 'musicvideo',
-    'XXXXXXX': 'genre'
+    'XXXXXXX': 'genre',
+    PLEX_TYPE_PLAYLIST: KODI_TYPE_PLAYLIST
 }
 
 PLEX_TYPE_FROM_KODI_TYPE = {
@@ -316,7 +328,6 @@ KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE = {
     PLEX_TYPE_PHOTO: KODI_TYPE_PHOTO
 }
 
-
 KODI_PLAYLIST_TYPE_FROM_KODI_TYPE = {
     KODI_TYPE_VIDEO: KODI_TYPE_VIDEO,
     KODI_TYPE_MOVIE: KODI_TYPE_VIDEO,
@@ -343,6 +354,22 @@ REMAP_TYPE_FROM_PLEXTYPE = {
     PLEX_TYPE_PHOTO: 'photo'
 }
 
+
+ICON_FROM_PLEXTYPE = {
+    PLEX_TYPE_VIDEO: 'DefaultAddonAlbumInfo.png',
+    PLEX_TYPE_MOVIE: 'DefaultMovies.png',
+    PLEX_TYPE_EPISODE: 'DefaultTvShows.png',
+    PLEX_TYPE_SEASON: 'DefaultTvShows.png',
+    PLEX_TYPE_SHOW: 'DefaultTvShows.png',
+    PLEX_TYPE_CLIP: 'DefaultAddonAlbumInfo.png',
+    PLEX_TYPE_ARTIST: 'DefaultArtist.png',
+    PLEX_TYPE_ALBUM: 'DefaultAlbumCover.png',
+    PLEX_TYPE_SONG: 'DefaultMusicSongs.png',
+    PLEX_TYPE_AUDIO: 'DefaultAddonAlbumInfo.png',
+    PLEX_TYPE_PHOTO: 'DefaultPicture.png',
+    PLEX_TYPE_PLAYLIST: 'DefaultPlaylist.png',
+    'mixed': 'DefaultAddonAlbumInfo.png'
+}
 
 TRANSLATION_FROM_PLEXTYPE = {
     PLEX_TYPE_MOVIE: 342,
@@ -396,6 +423,21 @@ PLEX_TYPE_NUMBER_FROM_PLEX_TYPE = {
 }
 
 
+# To be used with e.g. Kodi Widgets
+MEDIATYPE_FROM_PLEX_TYPE = {
+    PLEX_TYPE_MOVIE: 'movies',
+    PLEX_TYPE_SHOW: 'tvshows',
+    PLEX_TYPE_SEASON: 'tvshows',
+    PLEX_TYPE_EPISODE: 'episodes',
+    PLEX_TYPE_ARTIST: 'artists',
+    PLEX_TYPE_ALBUM: 'albumbs',
+    PLEX_TYPE_SONG: 'songs',
+    PLEX_TYPE_CLIP: 'videos',
+    PLEX_TYPE_SET: 'movies',
+    PLEX_TYPE_PHOTO: 'photos',
+    'mixed': 'tvshows',
+}
+
 KODI_TO_PLEX_ARTWORK = {
     'poster': 'thumb',
     'banner': 'banner',
@@ -403,10 +445,10 @@ KODI_TO_PLEX_ARTWORK = {
 }
 
 KODI_TO_PLEX_ARTWORK_EPISODE = {
-    'thumb': 'thumb',
-    'poster': 'grandparentThumb',
-    'banner': 'banner',
-    'fanart': 'art'
+    'season.poster': 'parentThumb',
+    'tvshow.poster': 'grandparentThumb',
+    'tvshow.fanart': 'grandparentArt',
+    # 'tvshow.banner': 'banner'  # Not included in PMS episode metadata
 }
 
 # Might be implemented in the future: 'icon', 'landscape' (16:9)

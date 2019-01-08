@@ -86,9 +86,6 @@ class Service(object):
         for prop in WINDOW_PROPERTIES:
             utils.window(prop, clear=True)
 
-        # Load/Reset PKC entirely - important for user/Kodi profile switch
-        # Clear video nodes properties
-        library_sync.VideoNodes().clearProperties()
         clientinfo.getDeviceId()
         # Init time-offset between Kodi and Plex
         timing.KODI_PLEX_TIME_OFFSET = float(utils.settings('kodiplextimeoffset') or 0.0)
@@ -212,10 +209,8 @@ class Service(object):
 
     def switch_plex_user(self):
         self.log_out()
-        # First remove playlists of old user
-        utils.delete_playlists()
-        # Remove video nodes
-        utils.delete_nodes()
+        # First remove playlists and video nodes of old user
+        library_sync.delete_files()
         app.ACCOUNT.set_unauthenticated()
         # Force full sync after login
         library_sync.force_full_sync()
@@ -300,9 +295,7 @@ class Service(object):
         from .library_sync import sections
         try:
             # Get newest sections from the PMS
-            if not sections.sync_from_pms(self):
-                return
-            if not sections.choose_libraries():
+            if not sections.sync_from_pms(self, pick_libraries=True):
                 return
             # Force a full sync
             app.SYNC.run_lib_scan = 'full'
@@ -508,6 +501,9 @@ class Service(object):
         # Tell all threads to terminate (e.g. several lib sync threads)
         LOG.debug('Aborting all threads')
         app.APP.stop_pkc = True
+        # Load/Reset PKC entirely - important for user/Kodi profile switch
+        # Clear video nodes properties
+        library_sync.clear_window_vars()
         # Will block until threads have quit
         app.APP.stop_threads()
         utils.window('plex_service_started', clear=True)
