@@ -1,3 +1,8 @@
+version 2.5.13 (beta only):
+- Fix playback not starting up
+- Fix Plex channels and watch later not working
+- Hopefully fix playstate not being synced to PMS
+
 version 2.5.12 (beta only):
 - WARNING: You will need to reset the Kodi database!
 - New option to not use Plex artwork
