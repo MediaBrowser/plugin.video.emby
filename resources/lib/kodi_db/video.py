@@ -593,6 +593,7 @@ class KodiVideoDB(common.KodiDBBase):
         except TypeError:
             pass
 
+    @common.catch_operationalerrors
     def set_resume(self, file_id, resume_seconds, total_seconds, playcount,
                    dateplayed, plex_type):
         """
