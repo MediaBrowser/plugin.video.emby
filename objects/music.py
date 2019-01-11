@@ -10,7 +10,7 @@ import urllib
 from obj import Objects
 from kodi import Music as KodiDb, queries_music as QU
 from database import emby_db, queries as QUEM
-from helper import api, catch, stop, validate, emby_item, values, library_check, settings
+from helper import api, catch, stop, validate, emby_item, values, library_check, settings, Local
 
 ##################################################################################################
 
@@ -272,10 +272,10 @@ class Music(KodiDb):
         obj['Artwork'] = API.get_all_artwork(self.objects.map(item, 'ArtworkMusic'), True)
 
         if obj['DateAdded']:
-            obj['DateAdded'] = obj['DateAdded'].split('.')[0].replace('T', " ")
+            obj['DateAdded'] = Local(obj['DateAdded']).split('.')[0].replace('T', " ")
 
         if obj['DatePlayed']:
-            obj['DatePlayed'] = obj['DatePlayed'].split('.')[0].replace('T', " ")
+            obj['DatePlayed'] = Local(obj['DatePlayed']).split('.')[0].replace('T', " ")
 
         if obj['Disc'] != 1:
             obj['Index'] = obj['Disc'] * 2 ** 16 + obj['Index']
@@ -445,7 +445,7 @@ class Music(KodiDb):
         if obj['Media'] == 'song':
 
             if obj['DatePlayed']:
-                obj['DatePlayed'] = obj['DatePlayed'].split('.')[0].replace('T', " ")
+                obj['DatePlayed'] = Local(obj['DatePlayed']).split('.')[0].replace('T', " ")
 
             self.rate_song(*values(obj, QU.update_song_rating_obj))
 
