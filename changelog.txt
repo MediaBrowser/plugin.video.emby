@@ -1,3 +1,6 @@
+version 2.5.14 (beta only):
+Fix rare OperationalError: Locked Database
+
 version 2.5.13 (beta only):
 - Fix playback not starting up
 - Fix Plex channels and watch later not working
