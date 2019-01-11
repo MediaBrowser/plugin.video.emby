@@ -64,8 +64,10 @@ class Actions(object):
 
         self.stack[0][1].setPath(self.stack[0][0])
         try:
+            
+            #raise IndexError
             """
-            if not playlist and self.detect_widgets(item):
+            if not playlist and self.detect_widgets(item):#not playlist and self.detect_widgets(item):
                 LOG.info(" [ play/widget ]")
 
                 raise IndexError
@@ -79,11 +81,38 @@ class Actions(object):
         for stack in self.stack:
 
             kodi_playlist.add(url=stack[0], listitem=stack[1], index=index)
+            #self.add_to_playlist(url=stack[0])
             index += 1
+
+        self.verify_playlist()
 
         if force_play:
             if len(sys.argv) > 1: xbmcplugin.setResolvedUrl(int(sys.argv[1]), False, self.stack[0][1])
             xbmc.Player().play(kodi_playlist, windowed=False)
+
+    @classmethod
+    def verify_playlist(cls):
+        LOG.info(JSONRPC('Playlist.GetPlaylists').execute())
+        LOG.info(JSONRPC('Playlist.GetItems').execute({'playlistid': 1}))
+
+    @classmethod
+    def add_to_playlist(cls, db_id=None, media_type=None, url=None):
+
+        params = {
+            'playlistid': 1
+        }
+        params['item'] = {'%sid' % media_type: int(db_id)} if db_id is not None else {'file': url}
+        LOG.info(JSONRPC('Playlist.Add').execute(params))
+
+    @classmethod
+    def insert_to_playlist(cls, position, db_id=None, media_type=None, url=None):
+
+        params = {
+            'playlistid': 1,
+            'position': position
+        }
+        params['item'] = {'%sid' % media_type: int(db_id)} if db_id is not None else {'file': url}
+        LOG.info(JSONRPC('Playlist.Insert').execute(params))
 
     def set_playlist(self, item, listitem, db_id=None, transcode=False):
 
@@ -122,7 +151,7 @@ class Actions(object):
 
         self.set_listitem(item, listitem, db_id, seektime)
         playutils.set_properties(item, item['PlaybackInfo']['Method'], self.server_id)
-        self.stack.append([item['PlaybackInfo']['Path'], listitem])
+        self.stack.append([item['PlaybackInfo']['Path'], listitem, item['Id'], db_id])
 
         if item.get('PartCount'):
             self._set_additional_parts(item['Id'])
@@ -156,7 +185,7 @@ class Actions(object):
                     listitem.setPath(intro['PlaybackInfo']['Path'])
                     playutils.set_properties(intro, intro['PlaybackInfo']['Method'], self.server_id)
 
-                    self.stack.append([intro['PlaybackInfo']['Path'], listitem])
+                    self.stack.append([intro['PlaybackInfo']['Path'], listitem, intro['Id'], None])
 
                 window('emby.skip.%s' % intro['Id'], value="true")
 
@@ -178,7 +207,7 @@ class Actions(object):
             listitem.setPath(part['PlaybackInfo']['Path'])
             playutils.set_properties(part, part['PlaybackInfo']['Method'], self.server_id)
 
-            self.stack.append([part['PlaybackInfo']['Path'], listitem])
+            self.stack.append([part['PlaybackInfo']['Path'], listitem, part['Id'], None])
 
     def play_playlist(self, items, clear=True, seektime=None, audio=None, subtitle=None):
 
