@@ -49,6 +49,7 @@ class Actions(object):
             To get everything to work together, play the first item in the stack with setResolvedUrl,
             add the rest to the regular playlist.
         '''
+        play_action = get_play_action()
         listitem = xbmcgui.ListItem()
         LOG.info("[ play/%s ] %s", item['Id'], item['Name'])
 
@@ -63,25 +64,19 @@ class Actions(object):
         force_play = False
 
         self.stack[0][1].setPath(self.stack[0][0])
-        try:
-            
-            #raise IndexError
-            """
-            if not playlist and self.detect_widgets(item):#not playlist and self.detect_widgets(item):
-                LOG.info(" [ play/widget ]")
 
-                raise IndexError
-            """
+        xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, self.stack[0][1])
 
-            xbmcplugin.setResolvedUrl(int(sys.argv[1]), False, self.stack[0][1])
-            #self.stack.pop(0)
-        except IndexError:
-            force_play = True
+        if self.detect_widgets(item) and play_action == 'Play':
+            xbmc.Player().play(kodi_playlist, startpos=index)
+        else:
+
+            LOG.info(" [ remove duplicate item ]")
+            self.stack.pop(0)
 
         for stack in self.stack:
 
             kodi_playlist.add(url=stack[0], listitem=stack[1], index=index)
-            #self.add_to_playlist(url=stack[0])
             index += 1
 
         self.verify_playlist()
@@ -92,7 +87,6 @@ class Actions(object):
 
     @classmethod
     def verify_playlist(cls):
-        LOG.info(JSONRPC('Playlist.GetPlaylists').execute())
         LOG.info(JSONRPC('Playlist.GetItems').execute({'playlistid': 1}))
 
     @classmethod
@@ -710,10 +704,16 @@ class Actions(object):
         return True
 
     def detect_widgets(self, item):
+        window('emby.context.widget', clear=True)
+        window('emby.playinfo', clear=True)
+        window('emby.context.count', clear=True)
+        if not xbmc.getCondVisibility('Window.IsMedia'):
+            return True
 
+        return False
         kodi_version = settings('platformDetected') == 'CoreElec'
-        skip_widget = window('emby.context.widget.bool')
-        show_dialog = window('emby.playinfo.bool')
+        skip_widget = False #window('emby.context.widget.bool')
+        show_dialog = False #window('emby.playinfo.bool')
 
         window('emby.context.widget', clear=True)
         window('emby.playinfo', clear=True)
