@@ -73,8 +73,8 @@ class Actions(object):
                 raise IndexError
             """
 
-            xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, self.stack[0][1])
-            self.stack.pop(0)
+            xbmcplugin.setResolvedUrl(int(sys.argv[1]), False, self.stack[0][1])
+            #self.stack.pop(0)
         except IndexError:
             force_play = True
 
