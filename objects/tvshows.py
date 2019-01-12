@@ -436,7 +436,12 @@ class TVShows(KodiDb):
             obj['Filename'] = "%s?%s" % (obj['Path'], urllib.urlencode(params))
             """
             obj['Path'] = "%s/emby/kodi/tvshows/%s/" % (self.server['auth/server-address'], obj['SeriesId'])
-            obj['Filename'] = "%s/file.strm?%s" % (obj['Id'], urllib.urlencode({'Name': obj['Filename'].encode('utf-8'), 'KodiId': obj['EpisodeId']}))
+            params = {
+                'Name': obj['Filename'].encode('utf-8'),
+                'KodiId': obj['EpisodeId'],
+                'Id': obj['Id']
+            }
+            obj['Filename'] = "%s/file.strm?%s" % (obj['Id'], urllib.urlencode(params))
 
     def get_show_id(self, obj):
         obj['ShowId'] = self.emby_db.get_item_by_id(*values(obj, QUEM.get_item_series_obj))

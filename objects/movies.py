@@ -205,7 +205,8 @@ class Movies(KodiDb):
             obj['Path'] = "%s/emby/kodi/movies/" % self.server['auth/server-address']
             params = {
                 'Name': obj['Filename'].encode('utf-8'),
-                'KodiId': obj['MovieId']
+                'KodiId': obj['MovieId'],
+                'Id': obj['Id']
             }
             obj['Filename'] = "%s/file.strm?%s" % (obj['Id'], urllib.urlencode(params))
 

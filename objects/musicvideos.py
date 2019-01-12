@@ -185,7 +185,12 @@ class MusicVideos(KodiDb):
             obj['Filename'] = "%s?%s" % (obj['Path'], urllib.urlencode(params))
             """
             obj['Path'] = "%s/emby/kodi/musicvideos/" % self.server['auth/server-address']
-            obj['Filename'] = "%s/file.strm?%s" % (obj['Id'], urllib.urlencode({'Name': obj['Filename'].encode('utf-8'), 'KodiId': obj['MvideoId']}))
+            params = {
+                'Name': obj['Filename'].encode('utf-8'),
+                'KodiId': bj['MvideoId'],
+                'Id': obj['Id']
+            }
+            obj['Filename'] = "%s/file.strm?%s" % (obj['Id'], urllib.urlencode(params))
 
 
     @stop()
