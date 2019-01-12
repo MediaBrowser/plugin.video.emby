@@ -221,7 +221,7 @@ class TVShows(KodiDb):
             obj['TopLevel'] = "plugin://plugin.video.emby.tvshows/"
             obj['Path'] = "%s%s/" % (obj['TopLevel'], obj['Id'])
             """
-            obj['TopLevel'] = "%s/emby/kodi/tvshows/" % self.server['auth/server-address']
+            obj['TopLevel'] = "http://127.0.0.1:57578/emby/kodi/tvshows/"
             obj['Path'] = "%s%s/" % (obj['TopLevel'], obj['Id'])
 
 
