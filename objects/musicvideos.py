@@ -184,7 +184,7 @@ class MusicVideos(KodiDb):
             }
             obj['Filename'] = "%s?%s" % (obj['Path'], urllib.urlencode(params))
             """
-            obj['Path'] = "%s/emby/kodi/musicvideos/" % self.server['auth/server-address']
+            obj['Path'] = "http://127.0.0.1:57578/emby/kodi/musicvideos/"
             params = {
                 'Name': obj['Filename'].encode('utf-8'),
                 'KodiId': bj['MvideoId'],

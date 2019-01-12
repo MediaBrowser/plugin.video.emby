@@ -435,7 +435,7 @@ class TVShows(KodiDb):
             }
             obj['Filename'] = "%s?%s" % (obj['Path'], urllib.urlencode(params))
             """
-            obj['Path'] = "%s/emby/kodi/tvshows/%s/" % (self.server['auth/server-address'], obj['SeriesId'])
+            obj['Path'] = "http://127.0.0.1:57578/emby/kodi/tvshows/%s/" % obj['SeriesId']
             params = {
                 'Name': obj['Filename'].encode('utf-8'),
                 'KodiId': obj['EpisodeId'],
