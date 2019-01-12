@@ -278,10 +278,7 @@ class Actions(object):
             obj['DbId'] = db_id
             obj['Artwork'] = API.get_all_artwork(objects.map(item, 'ArtworkParent'), True)
 
-            if intro:
-                obj['Artwork']['Primary'] += "&KodiCinemaMode=true"
-
-            self.listitem_video(obj, listitem, item, seektime)
+            self.listitem_video(obj, listitem, item, seektime, intro)
 
             if 'PlaybackInfo' in item:
 
@@ -306,7 +303,7 @@ class Actions(object):
 
         listitem.setContentLookup(False)
 
-    def listitem_video(self, obj, listitem, item, seektime=None):
+    def listitem_video(self, obj, listitem, item, seektime=None, intro=False):
 
         ''' Set listitem for video content. That also include streams.
         '''
@@ -333,12 +330,16 @@ class Actions(object):
         obj['Video'] = API.video_streams(obj['Video'] or [], obj['Container'])
         obj['Audio'] = API.audio_streams(obj['Audio'] or [])
         obj['Streams'] = API.media_streams(obj['Video'], obj['Audio'], obj['Subtitles'])
-        obj['Artwork']['Primary'] = obj['Artwork']['Primary'] or "special://home/addons/plugin.video.emby/icon.png"
-        obj['Artwork']['Thumb'] = obj['Artwork']['Thumb'] or "special://home/addons/plugin.video.emby/fanart.jpg"
-        obj['Artwork']['Backdrop'] = obj['Artwork']['Backdrop'] or ["special://home/addons/plugin.video.emby/fanart.jpg"]
         obj['ChildCount'] = obj['ChildCount'] or 0
         obj['RecursiveCount'] = obj['RecursiveCount'] or 0
         obj['Unwatched'] = obj['Unwatched'] or 0
+        obj['Artwork']['Backdrop'] = obj['Artwork']['Backdrop'] or ["special://home/addons/plugin.video.emby/fanart.jpg"]
+
+        if not intro:
+            obj['Artwork']['Primary'] = obj['Artwork']['Primary'] or "special://home/addons/plugin.video.emby/icon.png"
+        else:
+            obj['Artwork']['Primary'] = obj['Artwork']['Primary'] or obj['Artwork']['Thumb'] or obj['Artwork']['Backdrop'] or "special://home/addons/plugin.video.emby/fanart.jpg"
+            obj['Artwork']['Primary'] += "&KodiCinemaMode=true"
 
         if obj['Premiere']:
             obj['Premiere'] = obj['Premiere'].split('T')[0]
@@ -372,20 +373,15 @@ class Actions(object):
         }
         listitem.setCast(API.get_actors())
 
-        if obj['Type'] == 'Video':
-            listitem.setIconImage('DefaultVideo.png')
-            listitem.setThumbnailImage(obj['Artwork']['Primary'] or obj['Artwork']['Thumb'])
-        else:
-            listitem.setIconImage(obj['Artwork']['Thumb'])
-            listitem.setThumbnailImage(obj['Artwork']['Primary'])
-            self.set_artwork(obj['Artwork'], listitem, obj['Type'])
+        listitem.setIconImage('DefaultVideo.png')
+        listitem.setThumbnailImage(obj['Artwork']['Primary'] or obj['Artwork']['Thumb'])
+        self.set_artwork(obj['Artwork'], listitem, obj['Type'])
 
-            if not obj['Artwork']['Backdrop']:
-                listitem.setArt({'fanart': obj['Artwork']['Primary']})
+        if intro:
+            listitem.setArt({'poster': ""}) # Clear the poster value for intros to prevent issues in skins
 
         if obj['Premiere']:
             metadata['date'] = obj['Premiere']
-
 
         if obj['Type'] == 'Episode':
             metadata.update({
