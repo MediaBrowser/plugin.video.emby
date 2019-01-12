@@ -1,8 +1,9 @@
 {
-	"video": "special://database/MyVideos115.db",
-	"video-1": "special://database/MyVideos114.db",
-	"video-2": "special://database/MyVideos113.db",
-	"video-3": "special://database/MyVideos112.db",
+	"video": "special://database/MyVideos116.db",
+	"video-1": "special://database/MyVideos115.db",
+	"video-2": "special://database/MyVideos114.db",
+	"video-3": "special://database/MyVideos113.db",
+	"video-4": "special://database/MyVideos112.db",
 	"music": "special://database/MyMusic72.db",
 	"texture": "special://database/Textures13.db",
 	"emby": "special://database/emby.db",
