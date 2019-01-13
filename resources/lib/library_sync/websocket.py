@@ -154,7 +154,12 @@ def store_timeline_message(data):
             # (DVR ratingKeys are not unique and might correspond to a
             # movie or episode)
             continue
-        typus = v.PLEX_TYPE_FROM_WEBSOCKET[int(message['type'])]
+        try:
+            typus = v.PLEX_TYPE_FROM_WEBSOCKET[int(message['type'])]
+        except KeyError:
+            # E.g. -1 - thanks Plex!
+            LOG.info('Ignoring invalid message %s', data)
+            continue
         if typus in (v.PLEX_TYPE_CLIP, v.PLEX_TYPE_SET):
             # No need to process extras or trailers
             continue
