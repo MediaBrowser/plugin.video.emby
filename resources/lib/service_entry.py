@@ -42,6 +42,19 @@ class Service():
     plexcompanion = None
 
     def __init__(self):
+        self._init_done = False
+        # Kodi Version supported by PKC?
+        try:
+            v.database_paths()
+        except RuntimeError as err:
+
+            # Database does not exists
+            LOG.error('The current Kodi version is incompatible')
+            LOG.error('Error: %s', err)
+            # "The current Kodi version is not supported by PKC. Please consult
+            # the Plex forum."
+            utils.messageDialog(utils.lang(29999), utils.lang(39403))
+            return
         # Initial logging
         LOG.info("======== START %s ========", v.ADDON_NAME)
         LOG.info("Platform: %s", v.PLATFORM)
@@ -63,6 +76,9 @@ class Service():
         LOG.info('Play playlist prefix: %s',
                  utils.settings('syncSpecificPlexPlaylistsPrefix'))
         LOG.info("Db version: %s", utils.settings('dbCreatedWithVersion'))
+        LOG.info('Kodi video database version: %s', v.DB_VIDEO_VERSION)
+        LOG.info('Kodi music database version: %s', v.DB_MUSIC_VERSION)
+        LOG.info('Kodi texture database version: %s', v.DB_TEXTURE_VERSION)
 
         # Reset some status in the PKC settings
         # toggled to "No"
@@ -93,6 +109,7 @@ class Service():
         # Flags for other threads
         self.connection_check_running = False
         self.auth_running = False
+        self._init_done = True
 
     def isCanceled(self):
         return xbmc.abortRequested or app.APP.stop_pkc
@@ -336,6 +353,8 @@ class Service():
             return True
 
     def ServiceEntryPoint(self):
+        if not self._init_done:
+            return
         # Important: Threads depending on abortRequest will not trigger
         # if profile switch happens more than once.
         # Some plumbing

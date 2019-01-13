@@ -1221,7 +1221,7 @@ msgid " may not work correctly until the database is reset."
 msgstr ""
 
 msgctxt "#39403"
-msgid "Cancelling the database syncing process. Current Kodi version is unsupported. Please verify your logs for more info."
+msgid "The current Kodi version is not supported by PKC. Please consult the Plex forum."
 msgstr ""
 
 msgctxt "#39405"

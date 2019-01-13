@@ -75,7 +75,7 @@ def setup_kodi_default_entries():
                         iNeedsScan,
                         lastscanned)
                     VALUES (?, ?, ?)
-                ''', (v.DB_MUSIC_VERSION[v.KODIVERSION],
+                ''', (v.DB_MUSIC_VERSION,
                       0,
                       timing.kodi_now()))
 

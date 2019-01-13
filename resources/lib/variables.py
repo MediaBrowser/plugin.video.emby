@@ -3,8 +3,12 @@
 from __future__ import absolute_import, division, unicode_literals
 import os
 import sys
+import re
+
 import xbmc
 from xbmcaddon import Addon
+
+from . import path_ops
 
 # Paths are in unicode, otherwise Windows will throw fits
 # For any file operations with KODI function, use encoded strings!
@@ -89,28 +93,55 @@ PKC_MACHINE_IDENTIFIER = None
 # Minimal PKC version needed for the Kodi database - otherwise need to recreate
 MIN_DB_VERSION = '2.5.12'
 
-# Database paths
-DB_VIDEO_VERSION = {
-    17: 107,  # Krypton
-    18: 113   # Leia
+# Supported databases
+SUPPORTED_VIDEO_DB = {
+    # Kodi 17 Krypton:
+    17: {
+        107: 107,
+    },
+    # Kodi 18 Leia:
+    18: {
+        113: 113,
+    },
+    # Kodi 19 - EXTREMLY EXPERIMENTAL!
+    19: {
+        113: 113,
+    }
 }
-DB_VIDEO_PATH = try_decode(xbmc.translatePath(
-    "special://database/MyVideos%s.db" % DB_VIDEO_VERSION[KODIVERSION]))
-
-DB_MUSIC_VERSION = {
-    17: 60,   # Krypton
-    18: 72    # Leia
+SUPPORTED_MUSIC_DB = {
+    # Kodi 17 Krypton:
+    17: {
+        60: 60,
+    },
+    # Kodi 18 Leia:
+    18: {
+        72: 72,
+    },
+    # Kodi 19 - EXTREMLY EXPERIMENTAL!
+    19: {
+        72: 72,
+    }
 }
-DB_MUSIC_PATH = try_decode(xbmc.translatePath(
-    "special://database/MyMusic%s.db" % DB_MUSIC_VERSION[KODIVERSION]))
-
-DB_TEXTURE_VERSION = {
-    17: 13,   # Krypton
-    18: 13    # Leia
+SUPPORTED_TEXTURE_DB = {
+    # Kodi 17 Krypton:
+    17: {
+        13: 13,
+    },
+    # Kodi 18 Leia:
+    18: {
+        13: 13,
+    },
+    # Kodi 19 - EXTREMLY EXPERIMENTAL!
+    19: {
+        13: 13,
+    }
 }
-DB_TEXTURE_PATH = try_decode(xbmc.translatePath(
-    "special://database/Textures%s.db" % DB_TEXTURE_VERSION[KODIVERSION]))
-
+DB_VIDEO_VERSION = None
+DB_VIDEO_PATH = None
+DB_MUSIC_VERSION = None
+DB_MUSIC_PATH = None
+DB_TEXTURE_VERSION = None
+DB_TEXTURE_PATH = None
 DB_PLEX_PATH = try_decode(xbmc.translatePath("special://database/plex.db"))
 
 EXTERNAL_SUBTITLE_TEMP_PATH = try_decode(xbmc.translatePath(
@@ -550,6 +581,57 @@ PLEX_STREAM_TYPE_FROM_STREAM_TYPE = {
     'audio': '2',
     'subtitle': '3'
 }
+
+
+def database_paths():
+    '''
+    Set the Kodi database paths. Will raise a RuntimeError if the DBs are
+    not found or of a wrong, unsupported version
+    '''
+    global DB_VIDEO_VERSION, DB_VIDEO_PATH
+    global DB_MUSIC_VERSION, DB_MUSIC_PATH
+    global DB_TEXTURE_VERSION, DB_TEXTURE_PATH
+    database_path = try_decode(xbmc.translatePath('special://database'))
+    video_versions = []
+    music_versions = []
+    texture_versions = []
+    types = (
+        (re.compile(r'''MyVideos(\d+).db'''), video_versions),
+        (re.compile(r'''MyMusic(\d+).db'''), music_versions),
+        (re.compile(r'''Textures(\d+).db'''), texture_versions)
+    )
+    for root, _, files in path_ops.walk(database_path):
+        for file in files:
+            for typus in types:
+                match = typus[0].search(path_ops.path.join(root, file))
+                if not match:
+                    continue
+                typus[1].append(int(match.group(1)))
+    try:
+        DB_VIDEO_VERSION = max(video_versions)
+        SUPPORTED_VIDEO_DB[KODIVERSION][DB_VIDEO_VERSION]
+        DB_VIDEO_PATH = path_ops.path.join(database_path,
+                                           'MyVideos%s.db' % DB_VIDEO_VERSION)
+    except (ValueError, KeyError):
+        raise RuntimeError('Video DB %s not supported'
+                           % DB_VIDEO_VERSION)
+    try:
+        DB_MUSIC_VERSION = max(music_versions)
+        SUPPORTED_MUSIC_DB[KODIVERSION][DB_MUSIC_VERSION]
+        DB_MUSIC_PATH = path_ops.path.join(database_path,
+                                           'MyMusic%s.db' % DB_MUSIC_VERSION)
+    except (ValueError, KeyError):
+        raise RuntimeError('Music DB %s not supported'
+                           % DB_MUSIC_VERSION)
+    try:
+        DB_TEXTURE_VERSION = max(texture_versions)
+        SUPPORTED_TEXTURE_DB[KODIVERSION][DB_TEXTURE_VERSION]
+        DB_TEXTURE_PATH = path_ops.path.join(database_path,
+                                             'Textures%s.db' % DB_TEXTURE_VERSION)
+    except (ValueError, KeyError):
+        raise RuntimeError('Texture DB %s not supported'
+                           % DB_TEXTURE_VERSION)
+
 
 # Encoding to be used for our m3u playlist files
 # m3u files do not have encoding specified by definition, unfortunately.

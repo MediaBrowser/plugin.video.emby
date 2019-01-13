@@ -6,7 +6,7 @@ import xbmc
 
 from .downloadutils import DownloadUtils as DU
 from . import library_sync, timing
-from . import backgroundthread, utils, path_ops, artwork, variables as v, app
+from . import backgroundthread, utils, artwork, variables as v, app
 from . import kodi_db
 
 LOG = getLogger('PLEX.sync')
@@ -188,17 +188,6 @@ class Sync(backgroundthread.KillableThread):
         # Link to Websocket queue
         queue = app.APP.websocket_queue
 
-        # Kodi Version supported by PKC?
-        if (not path_ops.exists(v.DB_VIDEO_PATH) or
-                not path_ops.exists(v.DB_TEXTURE_PATH) or
-                (app.SYNC.enable_music and not path_ops.exists(v.DB_MUSIC_PATH))):
-            # Database does not exists
-            LOG.error('The current Kodi version is incompatible')
-            LOG.error('Current Kodi version: %s', utils.try_decode(
-                xbmc.getInfoLabel('System.BuildVersion')))
-            # "Current Kodi version is unsupported, cancel lib sync"
-            utils.messageDialog(utils.lang(29999), utils.lang(39403))
-            return
         # Check whether we need to reset the Kodi DB
         if install_sync_done:
             current_version = utils.settings('dbCreatedWithVersion')
