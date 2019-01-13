@@ -7,17 +7,20 @@ from functools import wraps
 from .. import utils, path_ops, app
 
 KODIDB_LOCK = Lock()
+DB_WRITE_ATTEMPTS = 10
 
 
 def catch_operationalerrors(method):
     @wraps(method)
     def wrapped(*args, **kwargs):
-        attempts = 3
+        attempts = DB_WRITE_ATTEMPTS
         while True:
             try:
                 return method(*args, **kwargs)
-            except utils.OperationalError:
-                app.APP.monitor.waitForAbort(0.01)
+            except utils.OperationalError as err:
+                if 'database is locked' not in err:
+                    raise
+                app.APP.monitor.waitForAbort(0.05)
                 attempts -= 1
                 if attempts == 0:
                     raise
