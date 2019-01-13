@@ -189,5 +189,12 @@ class Main():
 
 if __name__ == '__main__':
     log.info('%s started' % v.ADDON_ID)
-    Main()
+    try:
+        v.database_paths()
+    except RuntimeError as err:
+        # Database does not exists
+        log.error('The current Kodi version is incompatible')
+        log.error('Error: %s', err)
+    else:
+        Main()
     log.info('%s stopped' % v.ADDON_ID)
