@@ -13,6 +13,7 @@ LOG = getLogger('PLEX.kodi_db.video')
 class KodiVideoDB(common.KodiDBBase):
     db_kind = 'video'
 
+    @common.catch_operationalerrors
     def setup_path_table(self):
         """
         Use with Kodi video DB
@@ -62,6 +63,7 @@ class KodiVideoDB(common.KodiDBBase):
                                         1,
                                         0))
 
+    @common.catch_operationalerrors
     def parent_path_id(self, path):
         """
         Video DB: Adds all subdirectories to path table while setting a "trail"
@@ -82,10 +84,18 @@ class KodiVideoDB(common.KodiDBBase):
             if parentpath != path:
                 # In case we end up having media in the filesystem root, C:\
                 parent_id = self.parent_path_id(parentpath)
-                self.cursor.execute('UPDATE path SET idParentPath = ? WHERE idPath = ?',
-                                    (parent_id, pathid))
+                self.update_parentpath_id(parent_id, pathid)
         return pathid
 
+    @common.catch_operationalerrors
+    def update_parentpath_id(self, parent_id, pathid):
+        """
+        Dedicated method in order to catch OperationalErrors correctly
+        """
+        self.cursor.execute('UPDATE path SET idParentPath = ? WHERE idPath = ?',
+                            (parent_id, pathid))
+
+    @common.catch_operationalerrors
     def add_path(self, path, date_added=None, id_parent_path=None,
                  content=None, scraper=None):
         """
@@ -130,6 +140,7 @@ class KodiVideoDB(common.KodiDBBase):
         except TypeError:
             pass
 
+    @common.catch_operationalerrors
     def add_file(self, filename, path_id, date_added):
         """
         Adds the filename [unicode] to the table files if not already added
@@ -187,6 +198,7 @@ class KodiVideoDB(common.KodiDBBase):
         except TypeError:
             pass
 
+    @common.catch_operationalerrors
     def remove_file(self, file_id, remove_orphans=True, plex_type=None):
         """
         Removes the entry for file_id from the files table. Will also delete
@@ -234,6 +246,7 @@ class KodiVideoDB(common.KodiDBBase):
                 self.cursor.execute('DELETE FROM path WHERE idPath = ?',
                                     (path_id,))
 
+    @common.catch_operationalerrors
     def _modify_link_and_table(self, kodi_id, kodi_type, entries, link_table,
                                table, key, first_id=None):
         first_id = first_id if first_id is not None else 1
@@ -339,6 +352,7 @@ class KodiVideoDB(common.KodiDBBase):
         for kind, people_list in people.iteritems():
             self._add_people_kind(kodi_id, kodi_type, kind, people_list)
 
+    @common.catch_operationalerrors
     def _add_people_kind(self, kodi_id, kodi_type, kind, people_list):
         # Save new people to Kodi DB by iterating over the remaining entries
         if kind == 'actor':
@@ -377,6 +391,7 @@ class KodiVideoDB(common.KodiDBBase):
                                    'writer': []}).iteritems():
             self._modify_people_kind(kodi_id, kodi_type, kind, people_list)
 
+    @common.catch_operationalerrors
     def _modify_people_kind(self, kodi_id, kodi_type, kind, people_list):
         # Get the people already saved in the DB for this specific item
         if kind == 'actor':
@@ -431,6 +446,7 @@ class KodiVideoDB(common.KodiDBBase):
         # Save new people to Kodi DB by iterating over the remaining entries
         self._add_people_kind(kodi_id, kodi_type, kind, people_list)
 
+    @common.catch_operationalerrors
     def _new_actor_id(self, name, art_url):
         # Not yet in actor DB, add person
         self.cursor.execute('SELECT COALESCE(MAX(actor_id), 0) FROM actor')
@@ -475,6 +491,7 @@ class KodiVideoDB(common.KodiDBBase):
                             (kodi_id, kodi_type))
         return dict(self.cursor.fetchall())
 
+    @common.catch_operationalerrors
     def modify_streams(self, fileid, streamdetails=None, runtime=None):
         """
         Leave streamdetails and runtime empty to delete all stream entries for
@@ -487,7 +504,7 @@ class KodiVideoDB(common.KodiDBBase):
             return
         for videotrack in streamdetails['video']:
             self.cursor.execute('''
-                INSERT INTO streamdetails(
+                INSERT OR REPLACE INTO streamdetails(
                     idFile, iStreamType, strVideoCodec, fVideoAspect,
                     iVideoWidth, iVideoHeight, iVideoDuration ,strStereoMode)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
@@ -497,7 +514,7 @@ class KodiVideoDB(common.KodiDBBase):
                       videotrack['video3DFormat']))
         for audiotrack in streamdetails['audio']:
             self.cursor.execute('''
-                INSERT INTO streamdetails(
+                INSERT OR REPLACE INTO streamdetails(
                     idFile, iStreamType, strAudioCodec, iAudioChannels,
                     strAudioLanguage)
                 VALUES (?, ?, ?, ?, ?)
@@ -506,7 +523,7 @@ class KodiVideoDB(common.KodiDBBase):
                   audiotrack['language']))
         for subtitletrack in streamdetails['subtitle']:
             self.cursor.execute('''
-                INSERT INTO streamdetails(idFile, iStreamType,
+                INSERT OR REPLACE INTO streamdetails(idFile, iStreamType,
                     strSubtitleLanguage)
                 VALUES (?, ?, ?)
             ''', (fileid, 2, subtitletrack))
@@ -650,6 +667,7 @@ class KodiVideoDB(common.KodiDBBase):
                   '',
                   1))
 
+    @common.catch_operationalerrors
     def create_tag(self, name):
         """
         Will create a new tag if needed and return the tag_id
@@ -665,6 +683,7 @@ class KodiVideoDB(common.KodiDBBase):
                                 (tag_id, name))
         return tag_id
 
+    @common.catch_operationalerrors
     def update_tag(self, oldtag, newtag, kodiid, mediatype):
         """
         Updates the tag_id by replaying oldtag with newtag
@@ -683,6 +702,7 @@ class KodiVideoDB(common.KodiDBBase):
                 WHERE media_id = ? AND media_type = ? AND tag_id = ?
             ''', (kodiid, mediatype, oldtag,))
 
+    @common.catch_operationalerrors
     def create_collection(self, set_name):
         """
         Returns the collection/set id for set_name [unicode]
@@ -698,6 +718,7 @@ class KodiVideoDB(common.KodiDBBase):
                                 (setid, set_name))
         return setid
 
+    @common.catch_operationalerrors
     def assign_collection(self, setid, movieid):
         """
         Assign the movie to one set/collection
@@ -705,6 +726,7 @@ class KodiVideoDB(common.KodiDBBase):
         self.cursor.execute('UPDATE movie SET idSet = ? WHERE idMovie = ?',
                             (setid, movieid,))
 
+    @common.catch_operationalerrors
     def remove_from_set(self, movieid):
         """
         Remove the movie with movieid [int] from an associated movie set, movie
@@ -724,6 +746,7 @@ class KodiVideoDB(common.KodiDBBase):
         except TypeError:
             pass
 
+    @common.catch_operationalerrors
     def delete_possibly_empty_set(self, set_id):
         """
         Checks whether there are other movies in the set set_id. If not,
@@ -734,6 +757,7 @@ class KodiVideoDB(common.KodiDBBase):
         if self.cursor.fetchone() is None:
             self.cursor.execute('DELETE FROM sets WHERE idSet = ?', (set_id,))
 
+    @common.catch_operationalerrors
     def add_season(self, showid, seasonnumber):
         """
         Adds a TV show season to the Kodi video DB or simply returns the ID,
@@ -747,6 +771,7 @@ class KodiVideoDB(common.KodiDBBase):
         ''', (seasonid, showid, seasonnumber))
         return seasonid
 
+    @common.catch_operationalerrors
     def add_uniqueid(self, *args):
         """
         Feed with:
@@ -781,6 +806,7 @@ class KodiVideoDB(common.KodiDBBase):
         except TypeError:
             return self.add_uniqueid_id()
 
+    @common.catch_operationalerrors
     def update_uniqueid(self, *args):
         """
         Pass in media_id, media_type, value, type, uniqueid_id
@@ -791,6 +817,7 @@ class KodiVideoDB(common.KodiDBBase):
             WHERE uniqueid_id = ?
         ''', (args))
 
+    @common.catch_operationalerrors
     def remove_uniqueid(self, kodi_id, kodi_type):
         """
         Deletes the entry from the uniqueid table for the item
@@ -813,6 +840,7 @@ class KodiVideoDB(common.KodiDBBase):
         except TypeError:
             return self.add_ratingid()
 
+    @common.catch_operationalerrors
     def update_ratings(self, *args):
         """
         Feed with media_id, media_type, rating_type, rating, votes, rating_id
@@ -827,6 +855,7 @@ class KodiVideoDB(common.KodiDBBase):
             WHERE rating_id = ?
         ''', (args))
 
+    @common.catch_operationalerrors
     def add_ratings(self, *args):
         """
         feed with:
@@ -845,6 +874,7 @@ class KodiVideoDB(common.KodiDBBase):
             VALUES (?, ?, ?, ?, ?, ?)
         ''', (args))
 
+    @common.catch_operationalerrors
     def remove_ratings(self, kodi_id, kodi_type):
         """
         Removes all ratings from the rating table for the item
@@ -860,6 +890,7 @@ class KodiVideoDB(common.KodiDBBase):
         self.cursor.execute('SELECT COALESCE(MAX(idEpisode), 0) FROM episode')
         return self.cursor.fetchone()[0] + 1
 
+    @common.catch_operationalerrors
     def add_episode(self, *args):
         self.cursor.execute(
             '''
@@ -887,6 +918,7 @@ class KodiVideoDB(common.KodiDBBase):
                     (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ''', (args))
 
+    @common.catch_operationalerrors
     def update_episode(self, *args):
         self.cursor.execute(
             '''
@@ -911,6 +943,7 @@ class KodiVideoDB(common.KodiDBBase):
                 WHERE idEpisode = ?
             ''', (args))
 
+    @common.catch_operationalerrors
     def add_show(self, *args):
         self.cursor.execute(
             '''
@@ -929,6 +962,7 @@ class KodiVideoDB(common.KodiDBBase):
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ''', (args))
 
+    @common.catch_operationalerrors
     def update_show(self, *args):
         self.cursor.execute(
             '''
@@ -946,17 +980,21 @@ class KodiVideoDB(common.KodiDBBase):
                 WHERE idShow = ?
             ''', (args))
 
+    @common.catch_operationalerrors
     def add_showlinkpath(self, kodi_id, kodi_pathid):
         self.cursor.execute('INSERT INTO tvshowlinkpath(idShow, idPath) VALUES (?, ?)',
                             (kodi_id, kodi_pathid))
 
+    @common.catch_operationalerrors
     def remove_show(self, kodi_id):
         self.cursor.execute('DELETE FROM tvshow WHERE idShow = ?', (kodi_id,))
 
+    @common.catch_operationalerrors
     def remove_season(self, kodi_id):
         self.cursor.execute('DELETE FROM seasons WHERE idSeason = ?',
                             (kodi_id,))
 
+    @common.catch_operationalerrors
     def remove_episode(self, kodi_id):
         self.cursor.execute('DELETE FROM episode WHERE idEpisode = ?',
                             (kodi_id,))
@@ -965,6 +1003,7 @@ class KodiVideoDB(common.KodiDBBase):
         self.cursor.execute('SELECT COALESCE(MAX(idMovie), 0) FROM movie')
         return self.cursor.fetchone()[0] + 1
 
+    @common.catch_operationalerrors
     def add_movie(self, *args):
         self.cursor.execute(
             '''
@@ -998,9 +1037,11 @@ class KodiVideoDB(common.KodiDBBase):
                  ?, ?, ?, ?)
         ''', (args))
 
+    @common.catch_operationalerrors
     def remove_movie(self, kodi_id):
         self.cursor.execute('DELETE FROM movie WHERE idMovie = ?', (kodi_id,))
 
+    @common.catch_operationalerrors
     def update_userrating(self, kodi_id, kodi_type, userrating):
         """
         Updates userrating

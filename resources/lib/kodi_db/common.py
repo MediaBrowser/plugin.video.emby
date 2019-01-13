@@ -23,7 +23,8 @@ def catch_operationalerrors(method):
                 app.APP.monitor.waitForAbort(0.05)
                 attempts -= 1
                 if attempts == 0:
-                    raise
+                    # Reraise in order to NOT catch nested OperationalErrors
+                    raise RuntimeError('Kodi database locked')
     return wrapped
 
 
