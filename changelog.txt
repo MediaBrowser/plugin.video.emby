@@ -1,3 +1,7 @@
+version 2.5.16 (beta only):
+- Fix KeyError due to malformed PMS messages
+- Fix to database parameter must be string
+
 version 2.5.15 (beta only):
 - Make PKC potentially compatible with several database schemas
 - Support for Kodi 18 Leia RC 5.2
