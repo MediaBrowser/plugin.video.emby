@@ -102,10 +102,12 @@ SUPPORTED_VIDEO_DB = {
     # Kodi 18 Leia:
     18: {
         113: 113,
+        116: 116
     },
     # Kodi 19 - EXTREMLY EXPERIMENTAL!
     19: {
         113: 113,
+        116: 116
     }
 }
 SUPPORTED_MUSIC_DB = {
