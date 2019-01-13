@@ -339,7 +339,7 @@ class Actions(object):
         if not intro:
             obj['Artwork']['Primary'] = obj['Artwork']['Primary'] or "special://home/addons/plugin.video.emby/icon.png"
         else:
-            obj['Artwork']['Primary'] = obj['Artwork']['Primary'] or (obj['Artwork']['Backdrop'][0] if len(obj['Artwork']['Backdrop']) else obj['Artwork']['Thumb']) or "special://home/addons/plugin.video.emby/fanart.jpg"
+            obj['Artwork']['Primary'] = obj['Artwork']['Primary'] or obj['Artwork']['Thumb'] or (obj['Artwork']['Backdrop'][0] if len(obj['Artwork']['Backdrop']) else "special://home/addons/plugin.video.emby/fanart.jpg")
             obj['Artwork']['Primary'] += "&KodiCinemaMode=true"
             obj['Artwork']['Backdrop'] = [obj['Artwork']['Primary']]
 
