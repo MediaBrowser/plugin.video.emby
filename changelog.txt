@@ -1,3 +1,9 @@
+version 2.5.15 (beta only):
+- Make PKC potentially compatible with several database schemas
+- Support for Kodi 18 Leia RC 5.2
+- Increase number of attempts to write to Kodi DB
+- Further increase database sync resiliance
+
 version 2.5.14 (beta only):
 Fix rare OperationalError: Locked Database
 
