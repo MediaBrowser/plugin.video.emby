@@ -63,19 +63,13 @@ class Actions(object):
 
         self.set_playlist(item, listitem, db_id, transcode, clear_playlist)
         index = max(kodi_playlist.getposition(), 0) + 1 # Can return -1
-        force_play = False
 
         self.stack[0][1].setPath(self.stack[0][0])
 
-        try:
-            xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, self.stack[0][1])
-        except IndexError:
-            force_play = True
+        xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, self.stack[0][1])
 
         if clear_playlist:
             xbmc.Player().play(kodi_playlist, startpos=index, windowed=False)
-        elif force_play:
-            xbmc.Player().play(kodi_playlist, windowed=False)
         else:
             self.stack.pop(0)
 
@@ -212,7 +206,7 @@ class Actions(object):
         playlist = self.get_playlist(item)
         player = xbmc.Player()
 
-        xbmc.executebuiltin("Playlist.Clear") # Clear playlist to remove the previous item from playlist position no.2
+        #xbmc.executebuiltin("Playlist.Clear") # Clear playlist to remove the previous item from playlist position no.2
 
         if clear:
             if player.isPlaying():
@@ -457,9 +451,9 @@ class Actions(object):
             metadata.update({
                 'mediatype': "video",
                 'lastplayed': obj['DatePlayed'],
+                'year': obj['Year'],
                 'duration': obj['Runtime']
             })
-
 
         if is_video:
 
