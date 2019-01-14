@@ -221,16 +221,24 @@ class FullSync(common.fullsync_mixin):
             self.section_type_text = utils.lang(
                 v.TRANSLATION_FROM_PLEXTYPE[section['plex_type']])
             self.current = 0
-            with section['context'](self.current_sync) as itemtype:
-                for xml_item in iterator:
-                    if self.isCanceled():
-                        return False
-                    itemtype.update_userdata(xml_item, section['plex_type'])
-                    itemtype.plexdb.update_last_sync(int(xml_item.attrib['ratingKey']),
-                                                     section['plex_type'],
-                                                     self.current_sync)
-                    self.current += 1
-                    self.update_progressbar()
+
+            last = True
+            loop = common.tag_last(iterator)
+            while True:
+                with section['context'](self.current_sync) as itemtype:
+                    for i, (last, xml_item) in enumerate(loop):
+                        if self.isCanceled():
+                            return False
+                        itemtype.update_userdata(xml_item, section['plex_type'])
+                        itemtype.plexdb.update_last_sync(int(xml_item.attrib['ratingKey']),
+                                                         section['plex_type'],
+                                                         self.current_sync)
+                        self.current += 1
+                        self.update_progressbar()
+                        if (i + 1) % BATCH_SIZE == 0:
+                            break
+                if last:
+                    break
             return True
         except RuntimeError:
             LOG.error('Could not entirely process section %s', section)
