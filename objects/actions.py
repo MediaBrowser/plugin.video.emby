@@ -67,10 +67,15 @@ class Actions(object):
 
         self.stack[0][1].setPath(self.stack[0][0])
 
-        xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, self.stack[0][1])
+        try:
+            xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, self.stack[0][1])
+        except IndexError:
+            force_play = True
 
         if clear_playlist:
-            xbmc.Player().play(kodi_playlist, startpos=index)
+            xbmc.Player().play(kodi_playlist, startpos=index, windowed=False)
+        elif force_play:
+            xbmc.Player().play(kodi_playlist, windowed=False)
         else:
             self.stack.pop(0)
 
