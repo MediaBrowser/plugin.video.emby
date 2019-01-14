@@ -212,7 +212,7 @@ class Actions(object):
         playlist = self.get_playlist(item)
         player = xbmc.Player()
 
-        #xbmc.executebuiltin("Playlist.Clear") # Clear playlist to remove the previous item from playlist position no.2
+        xbmc.executebuiltin("Playlist.Clear") # Clear playlist to remove the previous item from playlist position no.2
 
         if clear:
             if player.isPlaying():
@@ -341,17 +341,17 @@ class Actions(object):
         obj['Artwork']['Backdrop'] = obj['Artwork']['Backdrop'] or []
         obj['Artwork']['Thumb'] = obj['Artwork']['Thumb'] or ""
 
-        if not intro:
+        if not intro and not obj['Type'] == 'Trailer':
             obj['Artwork']['Primary'] = obj['Artwork']['Primary'] or "special://home/addons/plugin.video.emby/icon.png"
         else:
             obj['Artwork']['Primary'] = obj['Artwork']['Primary'] or obj['Artwork']['Thumb'] or (obj['Artwork']['Backdrop'][0] if len(obj['Artwork']['Backdrop']) else "special://home/addons/plugin.video.emby/fanart.jpg")
-            obj['Artwork']['Primary'] += "&KodiCinemaMode=true"
+            obj['Artwork']['Primary'] += "&KodiTrailer=true" if obj['Type'] == 'Trailer' else "&KodiCinemaMode=true"
             obj['Artwork']['Backdrop'] = [obj['Artwork']['Primary']]
 
         self.set_artwork(obj['Artwork'], listitem, obj['Type'])
 
-        if intro:
-            listitem.setArt({'poster': ""}) # Clear the poster value for intros to prevent issues in skins
+        if intro or obj['Type'] == 'Trailer':
+            listitem.setArt({'poster': ""}) # Clear the poster value for intros / trailers to prevent issues in skins
 
         listitem.setIconImage('DefaultVideo.png')
         listitem.setThumbnailImage(obj['Artwork']['Primary'])
@@ -380,9 +380,9 @@ class Actions(object):
             'tagline': obj['Tagline'],
             'writer': obj['Writers'],
             'premiered': obj['Premiere'],
-            'aired': obj['Premiere'],
             'votes': obj['Votes'],
             'dateadded': obj['DateAdded'],
+            'aired': obj['Year'],
             'date': obj['FileDate'],
             'dbid': obj['DbId']
         }
@@ -400,7 +400,8 @@ class Actions(object):
                 'episode': obj['Index'] or 0,
                 'sortepisode': obj['Index'] or 0,
                 'lastplayed': obj['DatePlayed'],
-                'duration': obj['Runtime']
+                'duration': obj['Runtime'],
+                'aired': obj['Premiere'],
             })
 
         elif obj['Type'] == 'Season':
