@@ -1,3 +1,6 @@
+version 2.5.17 (beta only):
+- Fix playback not starting for really large libraries
+
 version 2.5.16 (beta only):
 - Fix KeyError due to malformed PMS messages
 - Fix to database parameter must be string
