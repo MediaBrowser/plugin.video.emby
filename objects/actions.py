@@ -702,7 +702,7 @@ class Actions(object):
     def detect_playlist(self):
         window('emby.context.widget', clear=True)
         xbmc.sleep(50)
-        if not xbmc.getCondVisibility('Integer.IsGreater(Playlist.Length(video),1)'):
+        if not xbmc.getCondVisibility('Integer.IsGreater(Playlist.Length(video),1)') or not xbmc.getCondVisibility('Integer.IsGreater(Playlist.Length(music),1)'):
             return True
 
         return False
