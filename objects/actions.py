@@ -45,7 +45,7 @@ class Actions(object):
 
     def play(self, item, db_id=None, transcode=False, playlist=False):
 
-        clear_playlist = self.detect_playlist() # Clear playlist of the Kodi core and create a own one to get the cinema mode working
+        clear_playlist = self.detect_playlist(item)
 
         if clear_playlist:
             xbmc.executebuiltin("Playlist.Clear")
@@ -74,7 +74,6 @@ class Actions(object):
             self.stack.pop(0)
 
         for stack in self.stack:
-
             kodi_playlist.add(url=stack[0], listitem=stack[1], index=index)
             index += 1
 
@@ -699,10 +698,10 @@ class Actions(object):
 
         return True
 
-    def detect_playlist(self):
+    def detect_playlist(self, item):
         window('emby.context.widget', clear=True)
         xbmc.sleep(50)
-        if not xbmc.getCondVisibility('Integer.IsGreater(Playlist.Length(video),1)'):
+        if not xbmc.getCondVisibility('Integer.IsGreater(Playlist.Length(video),1)') and not item['Type'] == 'Audio':
             return True
 
         return False
