@@ -61,7 +61,7 @@ class Actions(object):
         source = play.select_source(play.get_sources())
         play.set_external_subs(source, listitem)
 
-        self.set_playlist(item, listitem, db_id, transcode, clear_playlist)
+        self.set_playlist(item, listitem, db_id, transcode)
         index = max(kodi_playlist.getposition(), 0) + 1 # Can return -1
 
         self.stack[0][1].setPath(self.stack[0][0])
@@ -103,7 +103,7 @@ class Actions(object):
         params['item'] = {'%sid' % media_type: int(db_id)} if db_id is not None else {'file': url}
         LOG.info(JSONRPC('Playlist.Insert').execute(params))
 
-    def set_playlist(self, item, listitem, db_id=None, transcode=False, clear_playlist=False):
+    def set_playlist(self, item, listitem, db_id=None, transcode=False):
 
         ''' Verify seektime, set intros, set main item and set additional parts.
             Detect the seektime for video type content.
@@ -135,7 +135,7 @@ class Actions(object):
 
                 seektime = False if not choice else True
 
-        if settings('enableCinema.bool') and not seektime and clear_playlist:
+        if settings('enableCinema.bool') and not seektime:
             self._set_intros(item)
 
         self.set_listitem(item, listitem, db_id, seektime)
