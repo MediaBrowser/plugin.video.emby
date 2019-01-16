@@ -299,7 +299,7 @@ def _prep_playlist_stack(xml):
                 api.plex_type() not in (v.PLEX_TYPE_CLIP, v.PLEX_TYPE_EPISODE)):
             # If user chose to play via PMS or force transcode, do not
             # use the item path stored in the Kodi DB
-            with PlexDB() as plexdb:
+            with PlexDB(lock=False) as plexdb:
                 db_item = plexdb.item_by_id(api.plex_id(), api.plex_type())
             kodi_id = db_item['kodi_id'] if db_item else None
             kodi_type = db_item['kodi_type'] if db_item else None
@@ -412,10 +412,10 @@ def _conclude_playback(playqueue, pos):
         if item.plex_type not in (v.PLEX_TYPE_SONG, v.PLEX_TYPE_CLIP):
             # Do NOT use item.offset directly but get it from the DB
             # (user might have initiated same video twice)
-            with PlexDB() as plexdb:
+            with PlexDB(lock=False) as plexdb:
                 db_item = plexdb.item_by_id(item.plex_id, item.plex_type)
             file_id = db_item['kodi_fileid'] if db_item else None
-            with KodiVideoDB() as kodidb:
+            with KodiVideoDB(lock=False) as kodidb:
                 item.offset = kodidb.get_resume(file_id)
         LOG.info('Resuming playback at %s', item.offset)
         if v.KODIVERSION >= 18 and api:

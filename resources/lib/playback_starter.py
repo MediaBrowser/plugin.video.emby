@@ -51,7 +51,7 @@ class PlaybackTask(backgroundthread.Task):
                                       resolve=resolve)
         elif mode == 'navigation':
             # e.g. when plugin://...tvshows is called for entire season
-            with KodiVideoDB() as kodidb:
+            with KodiVideoDB(lock=False) as kodidb:
                 show_id = kodidb.show_id_from_path(params.get('path'))
             if show_id:
                 js.activate_window('videos',
