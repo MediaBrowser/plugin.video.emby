@@ -238,14 +238,24 @@ class Actions(object):
             player.play(playlist)
 
         for item in items[1:]:
+            item_details = TheVoid('GetItem', {'ServerId': self.server_id, 'Id': item}).get()
             listitem = xbmcgui.ListItem()
-            LOG.info("[ playlist/%s ]", item)
 
+            LOG.info("[ playlist/%s ] %s", item, item_details['Name'])
+
+            self.set_listitem(item_details, listitem, None, False)
             path = "plugin://plugin.video.emby/?mode=play&id=%s&playlist=true" % item
             listitem.setPath(path)
 
             playlist.add(path, listitem, index)
             index += 1
+
+            ''' Stop querying the server and adding additional items to the playlist if the player already stopped the playback and clear the playlist afterwards
+            '''
+            if not player.isPlaying():
+                LOG.info("[ playlist ] Player stopped. Clear")
+                xbmc.executebuiltin("Playlist.Clear")
+                break
 
     def set_listitem(self, item, listitem, db_id=None, seektime=None, intro=False):
 
