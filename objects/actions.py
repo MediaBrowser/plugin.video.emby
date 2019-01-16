@@ -45,7 +45,7 @@ class Actions(object):
 
     def play(self, item, db_id=None, transcode=False, playlist=False):
 
-        clear_playlist = self.detect_playlist() # Clear playlist of the Kodi core and create a own one to get the cinema mode working
+        clear_playlist = self.detect_playlist(item)
 
         if clear_playlist:
             xbmc.executebuiltin("Playlist.Clear")
@@ -74,7 +74,6 @@ class Actions(object):
             self.stack.pop(0)
 
         for stack in self.stack:
-
             kodi_playlist.add(url=stack[0], listitem=stack[1], index=index)
             index += 1
 
@@ -239,14 +238,24 @@ class Actions(object):
             player.play(playlist)
 
         for item in items[1:]:
+            item_details = TheVoid('GetItem', {'ServerId': self.server_id, 'Id': item}).get()
             listitem = xbmcgui.ListItem()
-            LOG.info("[ playlist/%s ]", item)
 
+            LOG.info("[ playlist/%s ] %s", item, item_details['Name'])
+
+            self.set_listitem(item_details, listitem, None, False)
             path = "plugin://plugin.video.emby/?mode=play&id=%s&playlist=true" % item
             listitem.setPath(path)
 
             playlist.add(path, listitem, index)
             index += 1
+
+            ''' Stop querying the server and adding additional items to the playlist if the player already stopped the playback and clear the playlist afterwards
+            '''
+            if not player.isPlaying():
+                LOG.info("[ playlist ] Player stopped. Clear")
+                xbmc.executebuiltin("Playlist.Clear")
+                break
 
     def set_listitem(self, item, listitem, db_id=None, seektime=None, intro=False):
 
@@ -699,10 +708,12 @@ class Actions(object):
 
         return True
 
-    def detect_playlist(self):
+    def detect_playlist(self, item):
         window('emby.context.widget', clear=True)
         xbmc.sleep(50)
-        if not xbmc.getCondVisibility('Integer.IsGreater(Playlist.Length(video),1)') or not xbmc.getCondVisibility('Integer.IsGreater(Playlist.Length(music),1)'):
+
+        if not xbmc.getCondVisibility('Integer.IsGreater(Playlist.Length(video),1)') and not item['Type'] == 'Audio':
+
             return True
 
         return False
