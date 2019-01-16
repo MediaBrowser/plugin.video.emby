@@ -45,7 +45,7 @@ class Actions(object):
 
     def play(self, item, db_id=None, transcode=False, playlist=False):
 
-        clear_playlist = self.detect_playlist() # Clear playlist of the Kodi core and create a own one to get the cinema mode working
+        clear_playlist = self.detect_playlist(item)
 
         if clear_playlist:
             xbmc.executebuiltin("Playlist.Clear")
@@ -74,7 +74,6 @@ class Actions(object):
             self.stack.pop(0)
 
         for stack in self.stack:
-
             kodi_playlist.add(url=stack[0], listitem=stack[1], index=index)
             index += 1
 
@@ -202,7 +201,7 @@ class Actions(object):
 
         ''' Play a list of items. Creates a new playlist. Add additional items as plugin listing.
         '''
-        item = items[0]
+        item = items['Items'][0]
         playlist = self.get_playlist(item)
         player = xbmc.Player()
 
@@ -238,11 +237,12 @@ class Actions(object):
             xbmc.executebuiltin('Dialog.Close(busydialognocancel)')
             player.play(playlist)
 
-        for item in items[1:]:
+        for item in items['Items'][1:]:
             listitem = xbmcgui.ListItem()
-            LOG.info("[ playlist/%s ]", item)
+            LOG.info("[ playlist/%s ] %s", item['Id'], item['Name'])
 
-            path = "plugin://plugin.video.emby/?mode=play&id=%s&playlist=true" % item
+            self.set_listitem(item, listitem, None, False)
+            path = "plugin://plugin.video.emby/?mode=play&id=%s&playlist=true" % item['Id']
             listitem.setPath(path)
 
             playlist.add(path, listitem, index)
@@ -699,10 +699,10 @@ class Actions(object):
 
         return True
 
-    def detect_playlist(self):
+    def detect_playlist(self, item):
         window('emby.context.widget', clear=True)
         xbmc.sleep(50)
-        if not xbmc.getCondVisibility('Integer.IsGreater(Playlist.Length(video),1)'):
+        if not xbmc.getCondVisibility('Integer.IsGreater(Playlist.Length(video),1)') and not item['Type'] == 'Audio':
             return True
 
         return False
