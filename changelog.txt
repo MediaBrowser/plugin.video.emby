@@ -1,3 +1,10 @@
+version 2.5.18 (beta only):
+- Fix playback start: Don't lock databases when starting playback
+- Refresh Kodi view only once on full syncs
+- Ignore playstate updates for full sync time stamps croneter committed
+- Try even longer to write to Kodi database
+- Fix some items rarely not being synced
+
 version 2.5.17 (beta only):
 - Fix playback not starting for really large libraries
 
