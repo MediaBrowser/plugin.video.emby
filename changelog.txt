@@ -1,3 +1,7 @@
+version 2.5.19 (beta only):
+- Fix crash on startup-sync due to missing albums
+- Fix browsing to show from info dialog
+
 version 2.5.18 (beta only):
 - Fix playback start: Don't lock databases when starting playback
 - Refresh Kodi view only once on full syncs
