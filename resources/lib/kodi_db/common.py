@@ -7,10 +7,16 @@ from functools import wraps
 from .. import utils, path_ops, app
 
 KODIDB_LOCK = Lock()
-DB_WRITE_ATTEMPTS = 10
+DB_WRITE_ATTEMPTS = 100
 
 
 def catch_operationalerrors(method):
+    """
+    sqlite.OperationalError is raised immediately if another DB connection
+    is open, reading something that we're trying to change
+
+    So let's catch it and try again
+    """
     @wraps(method)
     def wrapped(*args, **kwargs):
         attempts = DB_WRITE_ATTEMPTS
@@ -20,7 +26,9 @@ def catch_operationalerrors(method):
             except utils.OperationalError as err:
                 if 'database is locked' not in err:
                     raise
-                app.APP.monitor.waitForAbort(0.05)
+                if app.APP.monitor.waitForAbort(0.1):
+                    # PKC needs to quit
+                    return
                 attempts -= 1
                 if attempts == 0:
                     # Reraise in order to NOT catch nested OperationalErrors
