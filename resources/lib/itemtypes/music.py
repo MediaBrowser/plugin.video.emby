@@ -37,13 +37,15 @@ class MusicMixin(object):
         """
         Updates the Kodi watched state of the item from PMS. Also retrieves
         Plex resume points for movies in progress.
+
+        Returns True if successful, False otherwise (e.g. item missing)
         """
         api = API(xml_element)
         # Get key and db entry on the Kodi db side
         db_item = self.plexdb.item_by_id(api.plex_id(), plex_type)
         if not db_item:
-            LOG.error('Item not yet synced: %s', xml_element.attrib)
-            return
+            LOG.info('Item not yet synced: %s', xml_element.attrib)
+            return False
         # Grab the user's viewcount, resume points etc. from PMS' answer
         userdata = api.userdata()
         self.kodidb.update_userrating(db_item['kodi_id'],
@@ -56,6 +58,7 @@ class MusicMixin(object):
                                    userdata['PlayCount'],
                                    userdata['LastPlayedDate'],
                                    plex_type)
+        return True
 
     def remove(self, plex_id, plex_type=None):
         """

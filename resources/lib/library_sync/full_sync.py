@@ -229,7 +229,11 @@ class FullSync(common.fullsync_mixin):
                     for i, (last, xml_item) in enumerate(loop):
                         if self.isCanceled():
                             return False
-                        itemtype.update_userdata(xml_item, section['plex_type'])
+                        if not itemtype.update_userdata(xml_item, section['plex_type']):
+                            # Somehow did not sync this item yet
+                            itemtype.add_update(xml_item,
+                                                section['section_name'],
+                                                section['section_id'])
                         itemtype.plexdb.update_last_sync(int(xml_item.attrib['ratingKey']),
                                                          section['plex_type'],
                                                          self.current_sync)
