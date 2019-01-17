@@ -320,6 +320,9 @@ class FullSync(common.fullsync_mixin):
             if self.isCanceled() or not self.addupdate_section(section):
                 return False
         common.update_kodi_library(video=True, music=True)
+        if self.successful:
+            # Set timestamp for next sync - neglecting playstates!
+            utils.settings('lastfullsync', value=str(int(self.current_sync)))
         # SYNC PLAYSTATE of ALL items (otherwise we won't pick up on items that
         # were set to unwatched). Also mark all items on the PMS to be able
         # to delete the ones still in Kodi
@@ -407,8 +410,6 @@ class FullSync(common.fullsync_mixin):
                 self.dialog.close()
             if self.threader:
                 self.threader.shutdown()
-            if self.successful:
-                utils.settings('lastfullsync', value=str(int(self.current_sync)))
             if self.callback:
                 self.callback(self.successful)
             LOG.info('Done full_sync')
