@@ -261,6 +261,14 @@ class Album(MusicMixin, ItemBase):
         # See if we have a compilation - Plex does NOT feature a compilation
         # flag for albums
         compilation = 0
+        if children is None:
+            LOG.info('No children songs passed, getting them')
+            children = PF.GetAllPlexChildren(plex_id)
+            try:
+                children[0].attrib
+            except (TypeError, IndexError, AttributeError):
+                LOG.error('Could not get children for Plex id %s', plex_id)
+                return
         for song in children:
             if song.get('originalTitle') is not None:
                 compilation = 1
