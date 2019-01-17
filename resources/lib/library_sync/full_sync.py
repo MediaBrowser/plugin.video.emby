@@ -403,7 +403,6 @@ class FullSync(common.fullsync_mixin):
                 self.successful = False
                 return
         finally:
-            common.update_kodi_library(video=True, music=True)
             if self.dialog:
                 self.dialog.close()
             if self.threader:
