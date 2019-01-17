@@ -45,10 +45,13 @@ class Actions(object):
 
     def play(self, item, db_id=None, transcode=False, playlist=False):
 
-        ''' Play item based on if playback started from widget ot not.
-            To get everything to work together, play the first item in the stack with setResolvedUrl,
-            add the rest to the regular playlist.
-        '''
+        clear_playlist = self.detect_playlist(item)
+
+        if clear_playlist:
+            xbmc.executebuiltin("Playlist.Clear")
+            xbmc.sleep(50)
+
+        play_action = get_play_action()
         listitem = xbmcgui.ListItem()
         LOG.info("[ play/%s ] %s", item['Id'], item['Name'])
 
@@ -60,28 +63,44 @@ class Actions(object):
 
         self.set_playlist(item, listitem, db_id, transcode)
         index = max(kodi_playlist.getposition(), 0) + 1 # Can return -1
-        force_play = False
 
         self.stack[0][1].setPath(self.stack[0][0])
-        try:
-            if not playlist and self.detect_widgets(item):
-                LOG.info(" [ play/widget ]")
 
-                raise IndexError
+        xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, self.stack[0][1])
 
-            xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, self.stack[0][1])
+        if clear_playlist:
+            xbmc.Player().play(kodi_playlist, startpos=index, windowed=False)
+        else:
             self.stack.pop(0)
-        except IndexError:
-            force_play = True
 
         for stack in self.stack:
-
             kodi_playlist.add(url=stack[0], listitem=stack[1], index=index)
             index += 1
 
-        if force_play:
-            if len(sys.argv) > 1: xbmcplugin.setResolvedUrl(int(sys.argv[1]), False, self.stack[0][1])
-            xbmc.Player().play(kodi_playlist, windowed=False)
+        self.verify_playlist()
+
+    @classmethod
+    def verify_playlist(cls):
+        LOG.info(JSONRPC('Playlist.GetItems').execute({'playlistid': 1}))
+
+    @classmethod
+    def add_to_playlist(cls, db_id=None, media_type=None, url=None):
+
+        params = {
+            'playlistid': 1
+        }
+        params['item'] = {'%sid' % media_type: int(db_id)} if db_id is not None else {'file': url}
+        LOG.info(JSONRPC('Playlist.Add').execute(params))
+
+    @classmethod
+    def insert_to_playlist(cls, position, db_id=None, media_type=None, url=None):
+
+        params = {
+            'playlistid': 1,
+            'position': position
+        }
+        params['item'] = {'%sid' % media_type: int(db_id)} if db_id is not None else {'file': url}
+        LOG.info(JSONRPC('Playlist.Insert').execute(params))
 
     def set_playlist(self, item, listitem, db_id=None, transcode=False):
 
@@ -96,29 +115,37 @@ class Actions(object):
             resume = item['UserData'].get('PlaybackPositionTicks')
 
             if resume:
+                """
                 if get_play_action() == "Resume":
                     seektime = True
 
                 if transcode and not seektime and not window('emby.context.widget.bool'):
                     choice = self.resume_dialog(api.API(item, self.server).adjust_resume((resume or 0) / 10000000.0))
-                    
+
                     if choice is None:
                         raise Exception("User backed out of resume dialog.")
 
                     seektime = False if not choice else True
+                """
+                choice = self.resume_dialog(api.API(item, self.server).adjust_resume((resume or 0) / 10000000.0))
+
+                if choice is None:
+                    raise Exception("User backed out of resume dialog.")
+
+                seektime = False if not choice else True
 
         if settings('enableCinema.bool') and not seektime:
             self._set_intros(item)
 
         self.set_listitem(item, listitem, db_id, seektime)
         playutils.set_properties(item, item['PlaybackInfo']['Method'], self.server_id)
-        self.stack.append([item['PlaybackInfo']['Path'], listitem])
+        self.stack.append([item['PlaybackInfo']['Path'], listitem, item['Id'], db_id])
 
         if item.get('PartCount'):
             self._set_additional_parts(item['Id'])
 
     def _set_intros(self, item):
-        
+
         ''' if we have any play them when the movie/show is not being resumed.
         '''
         intros = TheVoid('GetIntros', {'ServerId': self.server_id, 'Id': item['Id']}).get()
@@ -146,7 +173,7 @@ class Actions(object):
                     listitem.setPath(intro['PlaybackInfo']['Path'])
                     playutils.set_properties(intro, intro['PlaybackInfo']['Method'], self.server_id)
 
-                    self.stack.append([intro['PlaybackInfo']['Path'], listitem])
+                    self.stack.append([intro['PlaybackInfo']['Path'], listitem, intro['Id'], None])
 
                 window('emby.skip.%s' % intro['Id'], value="true")
 
@@ -168,16 +195,17 @@ class Actions(object):
             listitem.setPath(part['PlaybackInfo']['Path'])
             playutils.set_properties(part, part['PlaybackInfo']['Method'], self.server_id)
 
-            self.stack.append([part['PlaybackInfo']['Path'], listitem])
+            self.stack.append([part['PlaybackInfo']['Path'], listitem, part['Id'], None])
 
     def play_playlist(self, items, clear=True, seektime=None, audio=None, subtitle=None):
 
         ''' Play a list of items. Creates a new playlist. Add additional items as plugin listing.
         '''
-        item = items[0]
+        item = items['Items'][0]
         playlist = self.get_playlist(item)
         player = xbmc.Player()
-        window('emby.context.widget.bool', True)
+
+        #xbmc.executebuiltin("Playlist.Clear") # Clear playlist to remove the previous item from playlist position no.2
 
         if clear:
             if player.isPlaying():
@@ -209,13 +237,14 @@ class Actions(object):
             xbmc.executebuiltin('Dialog.Close(busydialognocancel)')
             player.play(playlist)
 
-        for item in items[1:]:
+        for item in items['Items'][1:]:
             listitem = xbmcgui.ListItem()
-            LOG.info("[ playlist/%s ]", item)
+            LOG.info("[ playlist/%s ] %s", item['Id'], item['Name'])
 
-            path = "plugin://plugin.video.emby/?mode=play&id=%s&playlist=true" % item
+            self.set_listitem(item, listitem, None, False)
+            path = "plugin://plugin.video.emby/?mode=play&id=%s&playlist=true" % item['Id']
             listitem.setPath(path)
-    
+
             playlist.add(path, listitem, index)
             index += 1
 
@@ -247,11 +276,8 @@ class Actions(object):
             obj = objects.map(item, 'BrowseVideo')
             obj['DbId'] = db_id
             obj['Artwork'] = API.get_all_artwork(objects.map(item, 'ArtworkParent'), True)
-            
-            if intro:
-                obj['Artwork']['Primary'] += "&KodiCinemaMode=true"
 
-            self.listitem_video(obj, listitem, item, seektime)
+            self.listitem_video(obj, listitem, item, seektime, intro)
 
             if 'PlaybackInfo' in item:
 
@@ -276,7 +302,7 @@ class Actions(object):
 
         listitem.setContentLookup(False)
 
-    def listitem_video(self, obj, listitem, item, seektime=None):
+    def listitem_video(self, obj, listitem, item, seektime=None, intro=False):
 
         ''' Set listitem for video content. That also include streams.
         '''
@@ -303,12 +329,26 @@ class Actions(object):
         obj['Video'] = API.video_streams(obj['Video'] or [], obj['Container'])
         obj['Audio'] = API.audio_streams(obj['Audio'] or [])
         obj['Streams'] = API.media_streams(obj['Video'], obj['Audio'], obj['Subtitles'])
-        obj['Artwork']['Primary'] = obj['Artwork']['Primary'] or "special://home/addons/plugin.video.emby/icon.png"
-        obj['Artwork']['Thumb'] = obj['Artwork']['Thumb'] or "special://home/addons/plugin.video.emby/fanart.jpg"
-        obj['Artwork']['Backdrop'] = obj['Artwork']['Backdrop'] or ["special://home/addons/plugin.video.emby/fanart.jpg"]
         obj['ChildCount'] = obj['ChildCount'] or 0
         obj['RecursiveCount'] = obj['RecursiveCount'] or 0
         obj['Unwatched'] = obj['Unwatched'] or 0
+        obj['Artwork']['Backdrop'] = obj['Artwork']['Backdrop'] or []
+        obj['Artwork']['Thumb'] = obj['Artwork']['Thumb'] or ""
+
+        if not intro and not obj['Type'] == 'Trailer':
+            obj['Artwork']['Primary'] = obj['Artwork']['Primary'] or "special://home/addons/plugin.video.emby/icon.png"
+        else:
+            obj['Artwork']['Primary'] = obj['Artwork']['Primary'] or obj['Artwork']['Thumb'] or (obj['Artwork']['Backdrop'][0] if len(obj['Artwork']['Backdrop']) else "special://home/addons/plugin.video.emby/fanart.jpg")
+            obj['Artwork']['Primary'] += "&KodiTrailer=true" if obj['Type'] == 'Trailer' else "&KodiCinemaMode=true"
+            obj['Artwork']['Backdrop'] = [obj['Artwork']['Primary']]
+
+        self.set_artwork(obj['Artwork'], listitem, obj['Type'])
+
+        if intro or obj['Type'] == 'Trailer':
+            listitem.setArt({'poster': ""}) # Clear the poster value for intros / trailers to prevent issues in skins
+
+        listitem.setIconImage('DefaultVideo.png')
+        listitem.setThumbnailImage(obj['Artwork']['Primary'])
 
         if obj['Premiere']:
             obj['Premiere'] = obj['Premiere'].split('T')[0]
@@ -334,28 +374,16 @@ class Actions(object):
             'tagline': obj['Tagline'],
             'writer': obj['Writers'],
             'premiered': obj['Premiere'],
-            'aired': obj['Premiere'],
             'votes': obj['Votes'],
             'dateadded': obj['DateAdded'],
+            'aired': obj['Year'],
             'date': obj['FileDate'],
             'dbid': obj['DbId']
         }
         listitem.setCast(API.get_actors())
 
-        if obj['Type'] == 'Video':
-            listitem.setIconImage('DefaultVideo.png')
-            listitem.setThumbnailImage(obj['Artwork']['Primary'] or obj['Artwork']['Thumb'])
-        else:
-            listitem.setIconImage(obj['Artwork']['Thumb'])
-            listitem.setThumbnailImage(obj['Artwork']['Primary'])
-            self.set_artwork(obj['Artwork'], listitem, obj['Type'])
-
-            if not obj['Artwork']['Backdrop']:
-                listitem.setArt({'fanart': obj['Artwork']['Primary']})
-
         if obj['Premiere']:
             metadata['date'] = obj['Premiere']
-
 
         if obj['Type'] == 'Episode':
             metadata.update({
@@ -366,7 +394,8 @@ class Actions(object):
                 'episode': obj['Index'] or 0,
                 'sortepisode': obj['Index'] or 0,
                 'lastplayed': obj['DatePlayed'],
-                'duration': obj['Runtime']
+                'duration': obj['Runtime'],
+                'aired': obj['Premiere'],
             })
 
         elif obj['Type'] == 'Season':
@@ -414,7 +443,7 @@ class Actions(object):
                 'lastplayed': obj['DatePlayed'],
                 'duration': obj['Runtime']
             })
-        
+
         elif obj['Type'] == 'BoxSet':
             metadata['mediatype'] = "set"
             listitem.setProperty('IsFolder', 'true')
@@ -422,9 +451,9 @@ class Actions(object):
             metadata.update({
                 'mediatype': "video",
                 'lastplayed': obj['DatePlayed'],
+                'year': obj['Year'],
                 'duration': obj['Runtime']
             })
-
 
         if is_video:
 
@@ -645,7 +674,7 @@ class Actions(object):
                    'medium_landscape', 'medium_poster', 'small_fanartimage',
                    'medium_fanartimage', 'fanart_noindicators', 'discart',
                    'tvshow.poster'):
-            
+
             listitem.setProperty(art, path)
         else:
             listitem.setArt({art: path})
@@ -670,19 +699,11 @@ class Actions(object):
 
         return True
 
-    def detect_widgets(self, item):
-
-        kodi_version = settings('platformDetected') == 'CoreElec'
-        skip_widget = window('emby.context.widget.bool')
-        show_dialog = window('emby.playinfo.bool')
-
+    def detect_playlist(self, item):
         window('emby.context.widget', clear=True)
-        window('emby.playinfo', clear=True)
-        window('emby.context.count', clear=True)
+        xbmc.sleep(50)
 
-        if (not kodi_version and not xbmc.getCondVisibility('Window.IsMedia') and not skip_widget and not show_dialog and 
-            ((item['Type'] == 'Audio' and not xbmc.getCondVisibility('Integer.IsGreater(Playlist.Length(music),1)')) or 
-            not xbmc.getCondVisibility('Integer.IsGreater(Playlist.Length(video),1)'))):
+        if not xbmc.getCondVisibility('Integer.IsGreater(Playlist.Length(video),1)') and not item['Type'] == 'Audio':
 
             return True
 
@@ -703,7 +724,7 @@ class PlaylistWorker(threading.Thread):
 
 
 def on_update(data, server):
-    
+
     ''' Only for manually marking as watched/unwatched
     '''
     reset_resume = False
@@ -712,7 +733,7 @@ def on_update(data, server):
         kodi_id = data['item']['id']
         media = data['item']['type']
         playcount = int(data.get('playcount', 0))
-        LOG.info(" [ update/%s ] kodi_id: %s media: %s", playcount, kodi_id, media)   
+        LOG.info(" [ update/%s ] kodi_id: %s media: %s", playcount, kodi_id, media)
     except (KeyError, TypeError):
 
         if 'id' in data and 'type' in data and window('emby.context.resetresume.bool'):
@@ -771,7 +792,7 @@ def on_play(data, server):
             kodi_id = item['id']
             media = item['type']
 
-        LOG.info(" [ play ] kodi_id: %s media: %s", kodi_id, media)             
+        LOG.info(" [ play ] kodi_id: %s media: %s", kodi_id, media)
 
     except (KeyError, TypeError):
         LOG.debug("Invalid playstate update")
@@ -801,7 +822,6 @@ def special_listener():
     '''
     player = xbmc.Player()
     isPlaying = player.isPlaying()
-    count = int(window('emby.context.count') or 0)
 
     if not isPlaying and xbmc.getCondVisibility('Window.IsVisible(DialogContextMenu.xml)'):
         control = int(xbmcgui.Window(10106).getFocusId())
@@ -847,19 +867,3 @@ def special_listener():
 
         window('emby.external.bool', player.isExternalPlayer())
         window('emby.external_check.bool', True)
-
-    elif not isPlaying and window('emby.playinfo.bool') and xbmc.getCondVisibility('!Window.IsVisible(DialogVideoInfo.xml) + !Window.IsVisible(busydialog)'):
-        window('emby.context.count', value=str(count + 1))
-
-        if count == 1:
-
-            window('emby.playinfo', clear=True)
-            window('emby.context.count', clear=True)
-
-    elif not isPlaying and window('emby.context.widget.bool') and xbmc.getCondVisibility('!Window.IsVisible(DialogContextMenu.xml) + !Window.IsVisible(busydialog)'):
-        window('emby.context.count', value=str(count + 1))
-
-        if count == 1:
-
-            window('emby.context.widget', clear=True)
-            window('emby.context.count', clear=True)

@@ -105,7 +105,7 @@ class Music(KodiDb):
         self.item_ids.append(obj['Id'])
 
     def artist_add(self, obj):
-        
+
         ''' Add object to kodi.
 
             safety checks: It looks like Emby supports the same artist multiple times.
@@ -172,7 +172,7 @@ class Music(KodiDb):
         self.item_ids.append(obj['Id'])
 
     def album_add(self, obj):
-        
+
         ''' Add object to kodi.
         '''
         obj['AlbumId'] = self.get_album(*values(obj, QU.get_album_obj))
@@ -180,7 +180,7 @@ class Music(KodiDb):
         LOG.info("ADD album [%s] %s: %s", obj['AlbumId'], obj['Title'], obj['Id'])
 
     def album_update(self, obj):
-        
+
         ''' Update object to kodi.
         '''
         self.emby_db.update_reference(*values(obj, QUEM.update_reference_obj))
@@ -304,7 +304,7 @@ class Music(KodiDb):
         return not update
 
     def song_add(self, obj):
-        
+
         ''' Add object to kodi.
 
             Verify if there's an album associated.
@@ -330,7 +330,7 @@ class Music(KodiDb):
         LOG.debug("ADD song [%s/%s/%s] %s: %s", obj['PathId'], obj['AlbumId'], obj['SongId'], obj['Id'], obj['Title'])
 
     def song_update(self, obj):
-        
+
         ''' Update object to kodi.
         '''
         self.update_path(*values(obj, QU.update_path_obj))
@@ -340,7 +340,7 @@ class Music(KodiDb):
         LOG.info("UPDATE song [%s/%s/%s] %s: %s", obj['PathId'], obj['AlbumId'], obj['SongId'], obj['Id'], obj['Title'])
 
     def get_song_path_filename(self, obj, api):
-        
+
         ''' Get the path and filename and build it into protocol://path
         '''
         obj['Path'] = api.get_file_path(obj['Path'])
@@ -356,9 +356,18 @@ class Music(KodiDb):
         else:
             obj['Path'] = "%s/emby/Audio/%s/" % (self.server['auth/server-address'], obj['Id'])
             obj['Filename'] = "stream.%s?static=true" % obj['Container']
+            """
+            obj['Path'] = "http://127.0.0.1:57578/emby/kodi/music/"
+            params = {
+                'Name': obj['Filename'].encode('utf-8'),
+                'KodiId': obj['SongId'],
+                'Id': obj['Id']
+            }
+            obj['Filename'] = "%s/file.strm?%s" % (obj['Id'], urllib.urlencode(params))
+            """
 
     def song_artist_discography(self, obj):
-        
+
         ''' Update the artist's discography.
         '''
         artists = []
@@ -393,7 +402,7 @@ class Music(KodiDb):
         obj['AlbumArtists'] = artists
 
     def song_artist_link(self, obj):
-        
+
         ''' Assign main artists to song.
             Artist does not exist in emby database, create the reference.
         '''
@@ -427,7 +436,7 @@ class Music(KodiDb):
     @stop()
     @emby_item()
     def userdata(self, item, e_item):
-        
+
         ''' This updates: Favorite, LastPlayedDate, Playcount, PlaybackPositionTicks
             Poster with progress bar
         '''
@@ -455,7 +464,7 @@ class Music(KodiDb):
     @stop()
     @emby_item()
     def remove(self, item_id, e_item):
-        
+
         ''' This updates: Favorite, LastPlayedDate, Playcount, PlaybackPositionTicks
             Poster with progress bar
 
@@ -471,7 +480,7 @@ class Music(KodiDb):
             return
 
         if obj['Media'] == 'song':
-            
+
             self.remove_song(obj['KodiId'], obj['Id'])
             self.emby_db.remove_wild_item(obj['id'])
 
@@ -516,19 +525,19 @@ class Music(KodiDb):
         self.emby_db.remove_item(*values(obj, QUEM.delete_item_obj))
 
     def remove_artist(self, kodi_id, item_id):
-        
+
         self.artwork.delete(kodi_id, "artist")
         self.delete(kodi_id)
         LOG.info("DELETE artist [%s] %s", kodi_id, item_id)
 
     def remove_album(self, kodi_id, item_id):
-        
+
         self.artwork.delete(kodi_id, "album")
         self.delete_album(kodi_id)
         LOG.info("DELETE album [%s] %s", kodi_id, item_id)
 
     def remove_song(self, kodi_id, item_id):
-        
+
         self.artwork.delete(kodi_id, "song")
         self.delete_song(kodi_id)
         LOG.info("DELETE song [%s] %s", kodi_id, item_id)
