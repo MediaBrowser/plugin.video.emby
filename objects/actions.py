@@ -43,6 +43,21 @@ class Actions(object):
 
         return xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
 
+
+    def detect_playlist(self, item):
+
+        window('emby.context.widget', clear=True)
+        xbmc.sleep(50)
+        if not xbmc.getCondVisibility('Integer.IsGreater(Playlist.Length(video),1)') and not item['Type'] == 'Audio':
+            return True
+
+        return False
+
+    def playlist_position(self, item):
+
+        kodi_playlist = self.get_playlist(item)
+        return kodi_playlist.getposition()
+
     def play(self, item, db_id=None, transcode=False, playlist=False):
 
         clear_playlist = self.detect_playlist(item)
@@ -127,7 +142,7 @@ class Actions(object):
 
                     seektime = False if not choice else True
                 """
-                choice = self.resume_dialog(api.API(item, self.server).adjust_resume((resume or 0) / 10000000.0))
+                choice = self.resume_dialog(api.API(item, self.server).adjust_resume((resume or 0) / 10000000.0), item)
 
                 if choice is None:
                     raise Exception("User backed out of resume dialog.")
@@ -679,7 +694,14 @@ class Actions(object):
         else:
             listitem.setArt({art: path})
 
-    def resume_dialog(self, seektime):
+    def resume_dialog(self, seektime, item):
+
+        ''' Skip resume of queued playlist items and start them from the beginning
+        '''
+        playlist_pos = self.playlist_position(item)
+        if int(playlist_pos) > 0:
+            LOG.info("[ playlist/position %s ] skip resume dialog" % playlist_pos)
+            return False
 
         ''' Base resume dialog based on Kodi settings.
         '''
@@ -698,16 +720,6 @@ class Actions(object):
             return
 
         return True
-
-    def detect_playlist(self, item):
-        window('emby.context.widget', clear=True)
-        xbmc.sleep(50)
-
-        if not xbmc.getCondVisibility('Integer.IsGreater(Playlist.Length(video),1)') and not item['Type'] == 'Audio':
-
-            return True
-
-        return False
 
 
 class PlaylistWorker(threading.Thread):
