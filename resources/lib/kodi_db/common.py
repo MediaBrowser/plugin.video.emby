@@ -20,22 +20,31 @@ def catch_operationalerrors(method):
     Also see https://github.com/mattn/go-sqlite3/issues/274
     """
     @wraps(method)
-    def wrapped(*args, **kwargs):
+    def wrapper(self, *args, **kwargs):
         attempts = DB_WRITE_ATTEMPTS
         while True:
             try:
-                return method(*args, **kwargs)
+                return method(self, *args, **kwargs)
             except utils.OperationalError as err:
                 if 'database is locked' not in err:
+                    # Not an error we want to catch, so reraise it
                     raise
-                if app.APP.monitor.waitForAbort(0.1):
-                    # PKC needs to quit
-                    return
                 attempts -= 1
                 if attempts == 0:
                     # Reraise in order to NOT catch nested OperationalErrors
                     raise RuntimeError('Kodi database locked')
-    return wrapped
+                # Need to close the transactions and begin new ones
+                self.kodiconn.commit()
+                if self.artconn:
+                    self.artconn.commit()
+                if app.APP.monitor.waitForAbort(0.1):
+                    # PKC needs to quit
+                    return
+                # Start new transactions
+                self.kodiconn.execute('BEGIN')
+                if self.artconn:
+                    self.artconn.execute('BEGIN')
+    return wrapper
 
 
 class KodiDBBase(object):
