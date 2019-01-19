@@ -1,3 +1,8 @@
+version 2.5.20 (beta only):
+- Begin a new transaction when database was locked
+- Fix browsing to show from info dialog
+- Fix rare KeyError if user is playing something somewhere else
+
 version 2.5.19 (beta only):
 - Fix crash on startup-sync due to missing albums
 - Fix browsing to show from info dialog
