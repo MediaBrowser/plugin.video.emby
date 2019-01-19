@@ -28,7 +28,7 @@ def catch_operationalerrors(method):
             except utils.OperationalError as err:
                 if 'database is locked' not in err:
                     raise
-                if app.APP.monitor.waitForAbort(1):
+                if app.APP.monitor.waitForAbort(0.1):
                     # PKC needs to quit
                     return
                 attempts -= 1
