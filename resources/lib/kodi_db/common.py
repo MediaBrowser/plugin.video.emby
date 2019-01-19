@@ -16,6 +16,8 @@ def catch_operationalerrors(method):
     is open, reading something that we're trying to change
 
     So let's catch it and try again
+
+    Also see https://github.com/mattn/go-sqlite3/issues/274
     """
     @wraps(method)
     def wrapped(*args, **kwargs):
