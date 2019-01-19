@@ -89,6 +89,12 @@ class KodiMonitor(xbmc.Monitor):
                     _playback_cleanup()
             app.SYNC.suspend_sync = False
         elif method == 'Playlist.OnAdd':
+            if 'item' in data and data['item'].get('type') == v.KODI_TYPE_SHOW:
+                # Hitting the "browse" button on tv show info dialog
+                # Hence show the tv show directly
+                xbmc.executebuiltin("Dialog.Close(all, true)")
+                js.activate_window('videos',
+                                   'videodb://tvshows/titles/%s/' % data['item']['id'])
             with app.APP.lock_playqueues:
                 self._playlist_onadd(data)
         elif method == 'Playlist.OnRemove':

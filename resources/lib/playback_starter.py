@@ -4,15 +4,11 @@ from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
 from urlparse import parse_qsl
 
-import xbmc
 
-from .kodi_db import KodiVideoDB
 from . import playback
 from . import context_entry
-from . import json_rpc as js
 from . import pickler
 from . import backgroundthread
-from . import variables as v
 
 ###############################################################################
 
@@ -52,22 +48,6 @@ class PlaybackTask(backgroundthread.Task):
             playback.process_indirect(params['key'],
                                       params['offset'],
                                       resolve=resolve)
-        elif mode == 'navigation':
-            # e.g. when plugin://...tvshows is called for entire season
-            with KodiVideoDB(lock=False) as kodidb:
-                show_id = kodidb.show_id_from_path(params.get('path'))
-            if show_id:
-                xbmc.executebuiltin("Dialog.Close(all, true)")
-                if v.KODIVERSION >= 18:
-                    js.activate_window('videos',
-                                       'videodb://tvshows/titles/%s/' % show_id)
-                else:
-                    js.activate_window('videos',
-                                       'videodb://tvshows/titles/%s' % show_id)
-            else:
-                LOG.error('Could not find tv show id for %s', item)
-            if resolve:
-                pickler.pickle_me(pickler.Playback_Successful())
         elif mode == 'context_menu':
             context_entry.ContextMenu(kodi_id=params.get('kodi_id'),
                                       kodi_type=params.get('kodi_type'))

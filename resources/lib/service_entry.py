@@ -403,9 +403,6 @@ class Service():
                     # Add-on path playback!
                     task = playback_starter.PlaybackTask(
                         plex_command.replace('PLAY-', ''))
-                elif plex_command.startswith('NAVIGATE-'):
-                    task = playback_starter.PlaybackTask(
-                        plex_command.replace('NAVIGATE-', ''))
                 elif plex_command.startswith('CONTEXT_menu?'):
                     task = playback_starter.PlaybackTask(
                         'dummy?mode=context_menu&%s'
