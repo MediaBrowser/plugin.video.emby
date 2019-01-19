@@ -149,7 +149,8 @@ class Actions(object):
 
                 seektime = False if not choice else True
 
-        if settings('enableCinema.bool') and not seektime:
+        playlist_pos = self.playlist_position(item)
+        if settings('enableCinema.bool') and not seektime and not int(playlist_pos) > 0:
             self._set_intros(item)
 
         self.set_listitem(item, listitem, db_id, seektime)
