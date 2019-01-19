@@ -46,9 +46,27 @@ class Actions(object):
 
     def detect_playlist(self, item):
 
+        ''' Sometimes it's required to clear the playlist to get everything working together.
+            Otherwise "Play from here" and cinema mode is going to break.
+        '''
         window('emby.context.widget', clear=True)
         xbmc.sleep(50)
-        if not xbmc.getCondVisibility('Integer.IsGreater(Playlist.Length(video),1)') and not item['Type'] == 'Audio':
+
+        ''' Do not clear playlist for audio items at all
+        '''
+        if item['Type'] == 'Audio':
+            return False
+
+        ''' Clear the playlist if the user starts a new playback from the GUI and there is still
+            an existing one set.
+        '''
+        if xbmc.getCondVisibility('Player.HasMedia + !Window.IsVisible(fullscreenvideo) + Integer.IsGreaterOrEqual(Playlist.Length(video),1)'):
+            return True
+
+        ''' Clear the pseudo-playlist that has been created by the library windows for a single
+            video item. This is required to get the cinema mode working.
+        '''
+        if not xbmc.getCondVisibility('Integer.IsGreater(Playlist.Length(video),1)'):
             return True
 
         return False
@@ -149,7 +167,8 @@ class Actions(object):
 
                 seektime = False if not choice else True
 
-        if settings('enableCinema.bool') and not seektime:
+        playlist_pos = self.playlist_position(item)
+        if settings('enableCinema.bool') and not seektime and not int(playlist_pos) > 0:
             self._set_intros(item)
 
         self.set_listitem(item, listitem, db_id, seektime)
