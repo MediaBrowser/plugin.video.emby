@@ -270,13 +270,14 @@ def process_playing(data):
                 PLAYSTATE_SESSIONS[session_key] = {}
             else:
                 # PMS is ours - get all current sessions
-                PLAYSTATE_SESSIONS.update(PF.GetPMSStatus(app.ACCOUNT.plex_token))
-                LOG.debug('Updated current sessions. They are: %s',
-                          PLAYSTATE_SESSIONS)
-                if session_key not in PLAYSTATE_SESSIONS:
+                pms_sessions = PF.GetPMSStatus(app.ACCOUNT.plex_token)
+                if session_key not in pms_sessions:
                     LOG.info('Session key %s still unknown! Skip '
                              'playstate update', session_key)
                     continue
+                PLAYSTATE_SESSIONS[session_key] = pms_sessions[session_key]
+                LOG.debug('Updated current sessions. They are: %s',
+                          PLAYSTATE_SESSIONS)
             # Attach Kodi info to the session
             PLAYSTATE_SESSIONS[session_key]['kodi_id'] = typus['kodi_id']
             PLAYSTATE_SESSIONS[session_key]['file_id'] = typus['kodi_fileid']
