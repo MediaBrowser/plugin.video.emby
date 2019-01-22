@@ -177,6 +177,7 @@ class Movie(ItemBase):
         tags = [section_name]
         if collections:
             for plex_set_id, set_name in collections:
+                set_api = None
                 tags.append(set_name)
                 # Add any sets from Plex collection tags
                 kodi_set_id = self.kodidb.create_collection(set_name)
@@ -203,11 +204,10 @@ class Movie(ItemBase):
                 elif plex_set_id in children:
                     # Provided by get_metadata thread
                     set_api = API(children[plex_set_id][0])
-                else:
-                    continue
-                self.kodidb.modify_artwork(set_api.artwork(),
-                                           kodi_set_id,
-                                           v.KODI_TYPE_SET)
+                if set_api:
+                    self.kodidb.modify_artwork(set_api.artwork(),
+                                               kodi_set_id,
+                                               v.KODI_TYPE_SET)
         self.kodidb.modify_tags(kodi_id, v.KODI_TYPE_MOVIE, tags)
         # Process playstate
         self.kodidb.set_resume(file_id,
