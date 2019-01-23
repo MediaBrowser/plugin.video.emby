@@ -12,6 +12,6 @@ class KodiTextureDB(common.KodiDBBase):
         """
         Returns True if url has not yet been cached to the Kodi texture cache
         """
-        self.cursor.execute('SELECT url FROM texture WHERE url = ? LIMIT 1',
-                            (url, ))
-        return self.cursor.fetchone() is None
+        self.artcursor.execute('SELECT url FROM texture WHERE url = ? LIMIT 1',
+                               (url, ))
+        return self.artcursor.fetchone() is None

@@ -27,10 +27,14 @@ class MusicMixin(object):
         if app.SYNC.artwork:
             self.artconn = utils.kodi_sql('texture')
             self.artcursor = self.artconn.cursor()
-        self.plexdb = PlexDB(self.plexcursor)
-        self.kodidb = KodiMusicDB(texture_db=True,
-                                  cursor=self.kodicursor,
-                                  artcursor=self.artcursor)
+        else:
+            self.artconn = None
+            self.artcursor = None
+        self.plexdb = PlexDB(plexconn=self.plexconn, lock=False)
+        self.kodidb = KodiMusicDB(texture_db=app.SYNC.artwork,
+                                  kodiconn=self.kodiconn,
+                                  artconn=self.artconn,
+                                  lock=False)
         return self
 
     def update_userdata(self, xml_element, plex_type):

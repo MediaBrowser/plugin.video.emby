@@ -42,7 +42,9 @@ class ImageCachingThread(backgroundthread.KillableThread):
         while True:
             batch = []
             with kind(texture_db=True) as kodidb:
-                texture_db = KodiTextureDB(cursor=kodidb.artcursor)
+                texture_db = KodiTextureDB(kodiconn=kodidb.kodiconn,
+                                           artconn=kodidb.artconn,
+                                           lock=False)
                 for i, url in enumerate(kodidb.artwork_generator(kodi_type,
                                                                  BATCH_SIZE,
                                                                  offset)):

@@ -10,6 +10,13 @@ KODIDB_LOCK = Lock()
 DB_WRITE_ATTEMPTS = 100
 
 
+class LockedKodiDatabase(Exception):
+    """
+    Dedicated class to make sure we're not silently catching locked DBs.
+    """
+    pass
+
+
 def catch_operationalerrors(method):
     """
     sqlite.OperationalError is raised immediately if another DB connection
@@ -32,7 +39,7 @@ def catch_operationalerrors(method):
                 attempts -= 1
                 if attempts == 0:
                     # Reraise in order to NOT catch nested OperationalErrors
-                    raise RuntimeError('Kodi database locked')
+                    raise LockedKodiDatabase('Kodi database locked')
                 # Need to close the transactions and begin new ones
                 self.kodiconn.commit()
                 if self.artconn:
@@ -51,24 +58,24 @@ class KodiDBBase(object):
     """
     Kodi database methods used for all types of items
     """
-    def __init__(self, texture_db=False, cursor=None, artcursor=None, lock=True):
+    def __init__(self, texture_db=False, kodiconn=None, artconn=None, lock=True):
         """
         Allows direct use with a cursor instead of context mgr
         """
         self._texture_db = texture_db
-        self.cursor = cursor
-        self.artconn = None
-        self.artcursor = artcursor
         self.lock = lock
+        self.kodiconn = kodiconn
+        self.cursor = self.kodiconn.cursor() if self.kodiconn else None
+        self.artconn = artconn
+        self.artcursor = self.artconn.cursor() if self.artconn else None
 
     def __enter__(self):
         if self.lock:
             KODIDB_LOCK.acquire()
         self.kodiconn = utils.kodi_sql(self.db_kind)
         self.cursor = self.kodiconn.cursor()
-        if self._texture_db:
-            self.artconn = utils.kodi_sql('texture')
-            self.artcursor = self.artconn.cursor()
+        self.artconn = utils.kodi_sql('texture') if self._texture_db else None
+        self.artcursor = self.artconn.cursor() if self._texture_db else None
         return self
 
     def __exit__(self, e_typ, e_val, trcbak):

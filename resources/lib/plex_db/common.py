@@ -22,9 +22,10 @@ class PlexDBBase(object):
     """
     Plex database methods used for all types of items
     """
-    def __init__(self, cursor=None, lock=True):
+    def __init__(self, plexconn=None, lock=True):
         # Allows us to use this class with a cursor instead of context mgr
-        self.cursor = cursor
+        self.plexconn = plexconn
+        self.cursor = self.plexconn.cursor() if self.plexconn else None
         self.lock = lock
 
     def __enter__(self):

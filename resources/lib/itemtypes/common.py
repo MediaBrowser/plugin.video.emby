@@ -41,14 +41,14 @@ class ItemBase(object):
     def __init__(self, last_sync, plexdb=None, kodidb=None, lock=True):
         self.last_sync = last_sync
         self.lock = lock
-        self.plexconn = None
+        self.plexdb = plexdb
+        self.kodidb = kodidb
+        self.plexconn = plexdb.plexconn if plexdb else None
         self.plexcursor = plexdb.cursor if plexdb else None
-        self.kodiconn = None
+        self.kodiconn = kodidb.kodiconn if kodidb else None
         self.kodicursor = kodidb.cursor if kodidb else None
         self.artconn = kodidb.artconn if kodidb else None
         self.artcursor = kodidb.artcursor if kodidb else None
-        self.plexdb = plexdb
-        self.kodidb = kodidb
 
     def __enter__(self):
         """
@@ -67,10 +67,11 @@ class ItemBase(object):
         else:
             self.artconn = None
             self.artcursor = None
-        self.plexdb = PlexDB(cursor=self.plexcursor)
-        self.kodidb = KodiVideoDB(texture_db=True,
-                                  cursor=self.kodicursor,
-                                  artcursor=self.artcursor)
+        self.plexdb = PlexDB(plexconn=self.plexconn, lock=False)
+        self.kodidb = KodiVideoDB(texture_db=app.SYNC.artwork,
+                                  kodiconn=self.kodiconn,
+                                  artconn=self.artconn,
+                                  lock=False)
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
