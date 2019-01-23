@@ -1,3 +1,7 @@
+version 2.5.21 (beta only):
+- Fix KodiVideoDB object has no attribute kodiconn
+- Fix local variable 'set_api' referenced before assignment
+
 version 2.5.20 (beta only):
 - Begin a new transaction when database was locked
 - Fix browsing to show from info dialog
