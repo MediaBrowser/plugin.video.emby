@@ -342,6 +342,12 @@
 		"ExposureTime": "ExposureTime",
 		"FocalLength": "FocalLength"
 	},
+	"BrowseFolder": {
+		"Id": "Id",
+		"Title": "Name",
+		"Type": "Type",
+		"Overview": "Overview"
+	},
 	"BrowseChannel": {
 		"Id": "Id",
 		"Title": "Name",
