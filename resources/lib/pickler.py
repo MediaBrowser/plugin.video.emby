@@ -74,5 +74,4 @@ class Playback_Successful(object):
     """
     Used to communicate with another PKC Python instance
     """
-    def __init__(self):
-        self.listitem = None
+    listitem = None
