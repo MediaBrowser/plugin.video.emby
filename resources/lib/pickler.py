@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, unicode_literals
-from cPickle import dumps, loads
+import cPickle
 from xbmcgui import Window
 from xbmc import log, LOGDEBUG
 
@@ -52,7 +52,8 @@ def pickle_me(obj, window_var='plex_result'):
     functions won't work. See the Pickle documentation
     """
     log('%sStart pickling' % PREFIX, level=LOGDEBUG)
-    pickl_window(window_var, value=dumps(obj))
+    pickl_window(window_var, value=cPickle.dumps(obj,
+                                                 protocol=cPickle.HIGHEST_PROTOCOL))
     log('%sSuccessfully pickled' % PREFIX, level=LOGDEBUG)
 
 
@@ -64,7 +65,7 @@ def unpickle_me(window_var='plex_result'):
     result = pickl_window(window_var)
     pickl_window(window_var, clear=True)
     log('%sStart unpickling' % PREFIX, level=LOGDEBUG)
-    obj = loads(result)
+    obj = cPickle.loads(result)
     log('%sSuccessfully unpickled' % PREFIX, level=LOGDEBUG)
     return obj
 
