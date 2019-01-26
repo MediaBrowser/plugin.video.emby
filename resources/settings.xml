@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <settings>
 	<category label="30014"><!-- Connection -->
-		<setting label="39050" type="action" action="RunPlugin(plugin://plugin.video.plexkodiconnect?mode=chooseServer)" option="close" /><!-- Choose Plex Server from a list -->
-		<setting label="39068" type="action" action="RunPlugin(plugin://plugin.video.plexkodiconnect?mode=enterPMS)" option="close" /><!-- Manually enter Plex Media Server IP -->
+		<setting label="[COLOR yellow]$ADDON[plugin.video.plexkodiconnect 39050][/COLOR]" type="action" action="RunPlugin(plugin://plugin.video.plexkodiconnect?mode=chooseServer)" option="close" /><!-- Choose Plex Server from a list -->
+		<setting label="[COLOR yellow]$ADDON[plugin.video.plexkodiconnect 39068][/COLOR]" type="action" action="RunPlugin(plugin://plugin.video.plexkodiconnect?mode=enterPMS)" option="close" /><!-- Manually enter Plex Media Server IP -->
 		<setting id="plex_servername" label="39067" type="text" default="" enable="false" /><!-- Your current PMS server: -->
 		<setting id="ipaddress" label="39069" type="text" default="" enable="false" /><!-- Current address: -->
 		<setting id="port" label="39070" type="text" default="" enable="false" /><!-- Current port: -->
@@ -15,7 +15,7 @@
 		<setting type="sep" text=""/>
 
 		<setting id="enforceUserLogin" label="30536" type="bool" default="false" />
-		<setting label="30517" type="action" action="RunPlugin(plugin://plugin.video.plexkodiconnect?mode=passwords)" option="close" /><!-- Network credentials -->
+		<setting label="[COLOR yellow]$ADDON[plugin.video.plexkodiconnect 30517][/COLOR]" type="action" action="RunPlugin(plugin://plugin.video.plexkodiconnect?mode=passwords)" option="close" /><!-- Network credentials -->
 		<setting id="accessToken" type="text" visible="false" default="" />
 	</category>
 
@@ -24,7 +24,7 @@
 		<setting id="plex_status" label="39071" type="text" default="Not logged in to plex.tv" enable="false" /><!-- Current plex.tv status: -->
 		<setting id="plexLogin" label="39228" type="text" default="" enable="false" />
 		<setting id="myplexlogin" label="39025" type="bool" default="true" /> <!-- Log into plex.tv on startup -->
-		<setting label="39209" type="action" action="RunPlugin(plugin://plugin.video.plexkodiconnect?mode=togglePlexTV)" option="close" />
+		<setting label="[COLOR yellow]$ADDON[plugin.video.plexkodiconnect 39209][/COLOR]" type="action" action="RunPlugin(plugin://plugin.video.plexkodiconnect?mode=togglePlexTV)" option="close" /><!-- Toggle plex.tv login (sign in or sign out) -->
 		<setting id="plexToken" label="plexToken" type="text" default="" visible="false" />
         <setting type="sep" text=""/>
 		<setting type="lsep" label="39008" />
@@ -136,10 +136,10 @@
 		<setting id="enableTextureCache" label="30512"  type="bool" default="true" visible="eq(-1,true)"/> <!-- Cache all artwork for a smooth Kodi experience -->
         <setting id="FanartTV" label="30539" type="bool" default="false" visible="eq(-2,true)"/><!-- Download additional art from FanArtTV -->
         <setting id="PreferKodiCollectionArt" label="30543" type="bool" default="true" visible="eq(-1,true) + eq(-3,true)" subsetting="true" /><!-- Prefer Kodi artwork for collections -->
-        <setting label="39222" type="action" action="RunPlugin(plugin://plugin.video.plexkodiconnect/?mode=fanart)" option="close" visible="eq(-2,true) + eq(-4,true)" subsetting="true" /> <!-- Look for missing fanart on FanartTV now -->
+        <setting label="[COLOR yellow]$ADDON[plugin.video.plexkodiconnect 39222][/COLOR]" type="action" action="RunPlugin(plugin://plugin.video.plexkodiconnect/?mode=fanart)" option="close" visible="eq(-2,true) + eq(-4,true)" subsetting="true" /> <!-- Look for missing fanart on FanartTV now -->
         <setting id="imageSyncNotifications" label="30008" type="bool" default="true" visible="eq(-5,true)"/><!-- Enable notifications for image caching -->
         <setting id="imageSyncDuringPlayback" label="30009" type="bool" default="true" visible="eq(-6,true)"/><!-- Enable image caching during Kodi playback (restart Kodi!) -->
-		<setting label="39020" type="action" action="RunPlugin(plugin://plugin.video.plexkodiconnect/?mode=texturecache)" option="close" visible="eq(-7,true)"/> <!-- Cache all images to Kodi texture cache now -->
+		<setting label="[COLOR yellow]$ADDON[plugin.video.plexkodiconnect 39020][/COLOR]" type="action" action="RunPlugin(plugin://plugin.video.plexkodiconnect/?mode=texturecache)" option="close" visible="eq(-7,true)"/> <!-- Cache all images to Kodi texture cache now -->
         <setting type="lsep" label="$LOCALIZE[126]" visible="eq(-8,true)"/><!-- Status -->
         <setting id="plex_status_fanarttv_lookup" label="30019" type="text" default="" enable="false" visible="eq(-9,true)"/><!-- FanartTV lookup completed -->
         <setting id="plex_status_image_caching" label="30028" type="text" default="" enable="false" visible="eq(-10,true)"/><!-- Image caching completed -->
