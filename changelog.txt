@@ -1,3 +1,6 @@
+version 2.5.22 (beta only):
+- Fix rare EOFError and PKC starting wrong video as a consequence
+
 version 2.5.21 (beta only):
 - Fix KodiVideoDB object has no attribute kodiconn
 - Fix local variable 'set_api' referenced before assignment
