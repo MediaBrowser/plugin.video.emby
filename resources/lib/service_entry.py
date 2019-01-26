@@ -29,7 +29,7 @@ LOG = logging.getLogger("PLEX.service")
 WINDOW_PROPERTIES = (
     "plex_dbScan", "pms_token", "plex_token", "pms_server",
     "plex_authenticated", "plex_restricteduser", "plex_allows_mediaDeletion",
-    "plex_command", "plex_result")
+    "plexkodiconnect.command", "plex_result")
 
 # "Start from beginning", "Play from beginning"
 STRINGS = (utils.try_encode(utils.lang(12021)),
@@ -393,11 +393,11 @@ class Service():
                 break
 
             # Check for PKC commands from other Python instances
-            plex_command = utils.window('plex_command')
+            plex_command = utils.window('plexkodiconnect.command')
             if plex_command:
                 # Commands/user interaction received from other PKC Python
                 # instances (default.py and context.py instead of service.py)
-                utils.window('plex_command', clear=True)
+                utils.window('plexkodiconnect.command', clear=True)
                 task = None
                 if plex_command.startswith('PLAY-'):
                     # Add-on path playback!

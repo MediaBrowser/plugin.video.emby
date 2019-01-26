@@ -1,9 +1,120 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+"""
+Used to shovel data from separate Kodi Python instances to the main thread
+and vice versa.
+"""
 from __future__ import absolute_import, division, unicode_literals
-from xbmcgui import ListItem
+from logging import getLogger
+import json
 
-from . import utils
+import xbmc
+import xbmcgui
+
+LOG = getLogger('PLEX.transfer')
+MONITOR = xbmc.Monitor()
+WINDOW = xbmcgui.Window(10000)
+WINDOW_RESULT = 'plexkodiconnect.result'.encode('utf-8')
+WINDOW_COMMAND = 'plexkodiconnect.command'.encode('utf-8')
+
+
+def cast(func, value):
+    """
+    Cast the specified value to the specified type (returned by func). Currently this
+    only support int, float, bool. Should be extended if needed.
+    Parameters:
+        func (func): Calback function to used cast to type (int, bool, float).
+        value (any): value to be cast and returned.
+    """
+    if value is not None:
+        if func == bool:
+            return bool(int(value))
+        elif func == unicode:
+            if isinstance(value, (int, long, float)):
+                return unicode(value)
+            else:
+                return value.decode('utf-8')
+        elif func == str:
+            if isinstance(value, (int, long, float)):
+                return str(value)
+            else:
+                return value.encode('utf-8')
+        elif func in (int, float):
+            try:
+                return func(value)
+            except ValueError:
+                return float('nan')
+        return func(value)
+    return value
+
+
+def kodi_window(property, value=None, clear=False):
+    """
+    Get or set window property - thread safe! value must be string
+    """
+    if clear:
+        WINDOW.clearProperty(property)
+    elif value is not None:
+        WINDOW.setProperty(property, value)
+    else:
+        return WINDOW.getProperty(property)
+
+
+def plex_command(value):
+    """
+    Used to funnel states between different Python instances. NOT really thread
+    safe - let's hope the Kodi user can't click fast enough
+    """
+    while kodi_window(WINDOW_COMMAND):
+        if MONITOR.waitForAbort(20):
+            return
+    kodi_window(WINDOW_COMMAND, value=value)
+
+
+def serialize(obj):
+    if isinstance(obj, PKCListItem):
+        return {'type': 'PKCListItem', 'data': obj.data}
+    else:
+        return {'type': 'other', 'data': obj}
+    return
+
+
+def de_serialize(answ):
+    if answ['type'] == 'PKCListItem':
+        result = PKCListItem()
+        result.data = answ['data']
+        return convert_pkc_to_listitem(result)
+    elif answ['type'] == 'other':
+        return answ['data']
+    else:
+        raise NotImplementedError('Not implemented: %s' % answ)
+
+
+def send(pkc_listitem):
+    """
+    Pickles the obj to the window variable. Use to transfer Python
+    objects between different PKC python instances (e.g. if default.py is
+    called and you'd want to use the service.py instance)
+
+    obj can be pretty much any Python object. However, classes and
+    functions won't work. See the Pickle documentation
+    """
+    LOG.debug('Sending: %s', pkc_listitem)
+    kodi_window(WINDOW_RESULT,
+                value=json.dumps(serialize(pkc_listitem)))
+
+
+def wait_for_transfer():
+    result = ''
+    while not result:
+        result = kodi_window(WINDOW_RESULT)
+        if result:
+            kodi_window(WINDOW_RESULT, clear=True)
+            LOG.debug('Received')
+            result = json.loads(result)
+            return de_serialize(result)
+        elif MONITOR.waitForAbort(0.05):
+            return
 
 
 def convert_pkc_to_listitem(pkc_listitem):
@@ -11,9 +122,9 @@ def convert_pkc_to_listitem(pkc_listitem):
     Insert a PKCListItem() and you will receive a valid XBMC listitem
     """
     data = pkc_listitem.data
-    listitem = ListItem(label=data.get('label'),
-                        label2=data.get('label2'),
-                        path=data.get('path'))
+    listitem = xbmcgui.ListItem(label=data.get('label'),
+                                label2=data.get('label2'),
+                                path=data.get('path'))
     if data['info']:
         listitem.setInfo(**data['info'])
     for stream in data['stream_info']:
@@ -23,7 +134,7 @@ def convert_pkc_to_listitem(pkc_listitem):
     if data['art']:
         listitem.setArt(data['art'])
     for key, value in data['property'].iteritems():
-        listitem.setProperty(key, utils.cast(str, value))
+        listitem.setProperty(key, cast(str, value))
     if data['subtitles']:
         listitem.setSubtitles(data['subtitles'])
     return listitem

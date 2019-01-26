@@ -5,18 +5,18 @@ from __future__ import absolute_import, division, unicode_literals
 import logging
 from sys import argv
 from urlparse import parse_qsl
-from xbmc import sleep, executebuiltin
-from xbmcgui import ListItem, getCurrentWindowId
-from xbmcplugin import setResolvedUrl
 
-from resources.lib import entrypoint, utils, pickler, pkc_listitem, \
-    variables as v, loghandler
+import xbmc
+import xbmcgui
+import xbmcplugin
+
+from resources.lib import entrypoint, utils, transfer, variables as v, loghandler
 from resources.lib.tools import unicode_paths
 
 ###############################################################################
 
 loghandler.config()
-log = logging.getLogger('PLEX.default')
+LOG = logging.getLogger('PLEX.default')
 
 ###############################################################################
 
@@ -27,7 +27,7 @@ class Main():
     # MAIN ENTRY POINT
     # @utils.profiling()
     def __init__(self):
-        log.debug('Full sys.argv received: %s', argv)
+        LOG.debug('Full sys.argv received: %s', argv)
         # Parse parameters
         path = unicode_paths.decode(argv[0])
         arguments = unicode_paths.decode(argv[2])
@@ -73,23 +73,23 @@ class Main():
             # Hack so we can store this path in the Kodi DB
             handle = ('plugin://%s?mode=extras&plex_id=%s'
                       % (v.ADDON_ID, params.get('plex_id')))
-            if getCurrentWindowId() == 10025:
+            if xbmcgui.getCurrentWindowId() == 10025:
                 # Video Window
-                executebuiltin('Container.Update(\"%s\")' % handle)
+                xbmc.executebuiltin('Container.Update(\"%s\")' % handle)
             else:
-                executebuiltin('ActivateWindow(videos, \"%s\")' % handle)
+                xbmc.executebuiltin('ActivateWindow(videos, \"%s\")' % handle)
 
         elif mode == 'extras':
             entrypoint.extras(plex_id=params.get('plex_id'))
 
         elif mode == 'settings':
-            executebuiltin('Addon.OpenSettings(%s)' % v.ADDON_ID)
+            xbmc.executebuiltin('Addon.OpenSettings(%s)' % v.ADDON_ID)
 
         elif mode == 'enterPMS':
             entrypoint.create_new_pms()
 
         elif mode == 'reset':
-            utils.plex_command('RESET-PKC')
+            transfer.plex_command('RESET-PKC')
 
         elif mode == 'togglePlexTV':
             entrypoint.toggle_plex_tv_sign_in()
@@ -102,15 +102,15 @@ class Main():
 
         elif mode in ('manualsync', 'repair'):
             if mode == 'repair':
-                log.info('Requesting repair lib sync')
-                utils.plex_command('repair-scan')
+                LOG.info('Requesting repair lib sync')
+                transfer.plex_command('repair-scan')
             elif mode == 'manualsync':
-                log.info('Requesting full library scan')
-                utils.plex_command('full-scan')
+                LOG.info('Requesting full library scan')
+                transfer.plex_command('full-scan')
 
         elif mode == 'texturecache':
-            log.info('Requesting texture caching of all textures')
-            utils.plex_command('textures-scan')
+            LOG.info('Requesting texture caching of all textures')
+            transfer.plex_command('textures-scan')
 
         elif mode == 'chooseServer':
             entrypoint.choose_pms_server()
@@ -119,8 +119,8 @@ class Main():
             self.deviceid()
 
         elif mode == 'fanart':
-            log.info('User requested fanarttv refresh')
-            utils.plex_command('fanart-scan')
+            LOG.info('User requested fanarttv refresh')
+            transfer.plex_command('fanart-scan')
 
         elif '/extrafanart' in path:
             plexpath = arguments[1:]
@@ -150,51 +150,52 @@ class Main():
         """
         request = '%s&handle=%s' % (argv[2], HANDLE)
         # Put the request into the 'queue'
-        utils.plex_command('PLAY-%s' % request)
+        transfer.plex_command('PLAY-%s' % request)
         if HANDLE == -1:
             # Handle -1 received, not waiting for main thread
             return
-        # Wait for the result
-        while not pickler.pickl_window('plex_result'):
-            sleep(50)
-        result = pickler.unpickle_me()
+        # Wait for the result from the main PKC thread
+        result = transfer.wait_for_transfer()
         if result is None:
-            log.error('Error encountered, aborting')
+            LOG.error('Error encountered, aborting')
             utils.dialog('notification',
                          heading='{plex}',
                          message=utils.lang(30128),
                          icon='{error}',
                          time=3000)
-            setResolvedUrl(HANDLE, False, ListItem())
-        elif result.listitem:
-            listitem = pkc_listitem.convert_pkc_to_listitem(result.listitem)
-            setResolvedUrl(HANDLE, True, listitem)
+            xbmcplugin.setResolvedUrl(HANDLE, False, xbmcgui.ListItem())
+        elif result is True:
+            pass
+        else:
+            # Received a xbmcgui.ListItem()
+            xbmcplugin.setResolvedUrl(HANDLE, True, result)
 
     @staticmethod
     def deviceid():
-        deviceId_old = pickler.pickl_window('plex_client_Id')
+        window = xbmcgui.Window(10000)
+        deviceId_old = window.getProperty('plex_client_Id')
         from resources.lib import clientinfo
         try:
             deviceId = clientinfo.getDeviceId(reset=True)
         except Exception as e:
-            log.error('Failed to generate a new device Id: %s' % e)
+            LOG.error('Failed to generate a new device Id: %s' % e)
             utils.messageDialog(utils.lang(29999), utils.lang(33032))
         else:
-            log.info('Successfully removed old device ID: %s New deviceId:'
+            LOG.info('Successfully removed old device ID: %s New deviceId:'
                      '%s' % (deviceId_old, deviceId))
             # 'Kodi will now restart to apply the changes'
             utils.messageDialog(utils.lang(29999), utils.lang(33033))
-            executebuiltin('RestartApp')
+            xbmc.executebuiltin('RestartApp')
 
 
 if __name__ == '__main__':
-    log.info('%s started' % v.ADDON_ID)
+    LOG.info('%s started' % v.ADDON_ID)
     try:
         v.database_paths()
     except RuntimeError as err:
         # Database does not exists
-        log.error('The current Kodi version is incompatible')
-        log.error('Error: %s', err)
+        LOG.error('The current Kodi version is incompatible')
+        LOG.error('Error: %s', err)
     else:
         Main()
-    log.info('%s stopped' % v.ADDON_ID)
+    LOG.info('%s stopped' % v.ADDON_ID)
