@@ -7,7 +7,7 @@ from urlparse import parse_qsl
 
 from . import playback
 from . import context_entry
-from . import pickler
+from . import transfer
 from . import backgroundthread
 
 ###############################################################################
@@ -33,7 +33,7 @@ class PlaybackTask(backgroundthread.Task):
         except ValueError:
             # E.g. other add-ons scanning for Extras folder
             LOG.debug('Detected 3rd party add-on call - ignoring')
-            pickler.pickle_me(pickler.Playback_Successful())
+            transfer.send(True)
             return
         params = dict(parse_qsl(params))
         mode = params.get('mode')

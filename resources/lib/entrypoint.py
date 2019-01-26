@@ -14,6 +14,7 @@ from xbmcgui import ListItem
 
 from . import utils
 from . import path_ops
+from . import transfer
 from .downloadutils import DownloadUtils as DU
 from .plex_api import API
 from . import plex_functions as PF
@@ -33,7 +34,7 @@ def choose_pms_server():
     Lets user choose from list of PMS
     """
     LOG.info("Choosing PMS server requested, starting")
-    utils.plex_command('choose_pms_server')
+    transfer.plex_command('choose_pms_server')
 
 
 def toggle_plex_tv_sign_in():
@@ -42,7 +43,7 @@ def toggle_plex_tv_sign_in():
     Or signs in to plex.tv if the user was not logged in before.
     """
     LOG.info('Toggle of Plex.tv sign-in requested')
-    utils.plex_command('toggle_plex_tv_sign_in')
+    transfer.plex_command('toggle_plex_tv_sign_in')
 
 
 def directory_item(label, path, folder=True):
@@ -128,7 +129,7 @@ def switch_plex_user():
     # position = 0
     # utils.window('EmbyAdditionalUserImage.%s' % position, clear=True)
     LOG.info("Plex home user switch requested")
-    utils.plex_command('switch_plex_user')
+    transfer.plex_command('switch_plex_user')
 
 
 def create_listitem(item, append_show_title=False, append_sxxexx=False):
@@ -905,4 +906,4 @@ def create_new_pms():
     Opens dialogs for the user the plug in the PMS details
     """
     LOG.info('Request to manually enter new PMS address')
-    utils.plex_command('enter_new_pms_address')
+    transfer.plex_command('enter_new_pms_address')

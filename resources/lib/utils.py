@@ -104,16 +104,6 @@ def window(prop, value=None, clear=False, windowid=10000):
         return try_decode(win.getProperty(prop))
 
 
-def plex_command(value):
-    """
-    Used to funnel states between different Python instances. NOT really thread
-    safe - let's hope the Kodi user can't click fast enough
-    """
-    while window('plex_command'):
-        xbmc.sleep(20)
-    window('plex_command', value=value)
-
-
 def settings(setting, value=None):
     """
     Get or add addon setting. Returns unicode

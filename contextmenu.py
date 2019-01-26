@@ -40,9 +40,10 @@ def main():
         'kodi_id': kodi_id,
         'kodi_type': kodi_type
     }
-    while window.getProperty('plex_command'):
+    while window.getProperty('plexkodiconnect.command'):
         sleep(20)
-    window.setProperty('plex_command', 'CONTEXT_menu?%s' % urlencode(args))
+    window.setProperty('plexkodiconnect.command',
+                       'CONTEXT_menu?%s' % urlencode(args))
 
 
 if __name__ == "__main__":

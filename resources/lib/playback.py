@@ -16,9 +16,8 @@ from .kodi_db import KodiVideoDB
 from . import playlist_func as PL
 from . import playqueue as PQ
 from . import json_rpc as js
-from . import pickler
+from . import transfer
 from .playutils import PlayUtils
-from .pkc_listitem import PKCListItem
 from . import variables as v
 from . import app
 
@@ -261,11 +260,11 @@ def _ensure_resolve(abort=False):
     """
     if RESOLVE:
         if not abort:
-            result = pickler.Playback_Successful()
-            pickler.pickle_me(result)
+            # Releases the other Python thread without a ListItem
+            transfer.send(True)
         else:
             # Shows PKC error message
-            pickler.pickle_me(None)
+            transfer.send(None)
     if abort:
         # Reset some playback variables
         app.PLAYSTATE.context_menu_play = False
@@ -383,8 +382,7 @@ def _conclude_playback(playqueue, pos):
             return PKC listitem attached to result
     """
     LOG.info('Concluding playback for playqueue position %s', pos)
-    result = pickler.Playback_Successful()
-    listitem = PKCListItem()
+    listitem = transfer.PKCListItem()
     item = playqueue.items[pos]
     if item.xml is not None:
         # Got a Plex element
@@ -399,7 +397,7 @@ def _conclude_playback(playqueue, pos):
     if not playurl:
         LOG.info('Did not get a playurl, aborting playback silently')
         app.PLAYSTATE.resume_playback = False
-        pickler.pickle_me(result)
+        transfer.send(True)
         return
     listitem.setPath(utils.try_encode(playurl))
     if item.playmethod == 'DirectStream':
@@ -427,8 +425,7 @@ def _conclude_playback(playqueue, pos):
             listitem.setProperty('StartOffset', str(item.offset))
             listitem.setProperty('resumetime', str(item.offset))
     # Reset the resumable flag
-    result.listitem = listitem
-    pickler.pickle_me(result)
+    transfer.send(listitem)
     LOG.info('Done concluding playback')
 
 
@@ -447,7 +444,6 @@ def process_indirect(key, offset, resolve=True):
              key, offset, resolve)
     global RESOLVE
     RESOLVE = resolve
-    result = pickler.Playback_Successful()
     if key.startswith('http') or key.startswith('{server}'):
         xml = DU().downloadUrl(key)
     elif key.startswith('/system/services'):
@@ -464,7 +460,7 @@ def process_indirect(key, offset, resolve=True):
         offset = int(v.PLEX_TO_KODI_TIMEFACTOR * float(offset))
         # Todo: implement offset
     api = API(xml[0])
-    listitem = PKCListItem()
+    listitem = transfer.PKCListItem()
     api.create_listitem(listitem)
     playqueue = PQ.get_playqueue_from_type(
         v.KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[api.plex_type()])
@@ -488,8 +484,7 @@ def process_indirect(key, offset, resolve=True):
     listitem.setPath(utils.try_encode(playurl))
     playqueue.items.append(item)
     if resolve is True:
-        result.listitem = listitem
-        pickler.pickle_me(result)
+        transfer.send(listitem)
     else:
         thread = Thread(target=app.APP.player.play,
                         args={'item': utils.try_encode(playurl),
