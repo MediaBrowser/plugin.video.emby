@@ -24,14 +24,10 @@ class MusicMixin(object):
         self.plexcursor = self.plexconn.cursor()
         self.kodiconn = utils.kodi_sql('music')
         self.kodicursor = self.kodiconn.cursor()
-        if app.SYNC.artwork:
-            self.artconn = utils.kodi_sql('texture')
-            self.artcursor = self.artconn.cursor()
-        else:
-            self.artconn = None
-            self.artcursor = None
+        self.artconn = utils.kodi_sql('texture')
+        self.artcursor = self.artconn.cursor()
         self.plexdb = PlexDB(plexconn=self.plexconn, lock=False)
-        self.kodidb = KodiMusicDB(texture_db=app.SYNC.artwork,
+        self.kodidb = KodiMusicDB(texture_db=True,
                                   kodiconn=self.kodiconn,
                                   artconn=self.artconn,
                                   lock=False)

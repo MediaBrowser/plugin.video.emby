@@ -6,7 +6,7 @@ from ntpath import dirname
 
 from ..plex_db import PlexDB, PLEXDB_LOCK
 from ..kodi_db import KodiVideoDB, KODIDB_LOCK
-from .. import utils, timing, app
+from .. import utils, timing
 
 LOG = getLogger('PLEX.itemtypes.common')
 
@@ -61,14 +61,10 @@ class ItemBase(object):
         self.plexcursor = self.plexconn.cursor()
         self.kodiconn = utils.kodi_sql('video')
         self.kodicursor = self.kodiconn.cursor()
-        if app.SYNC.artwork:
-            self.artconn = utils.kodi_sql('texture')
-            self.artcursor = self.artconn.cursor()
-        else:
-            self.artconn = None
-            self.artcursor = None
+        self.artconn = utils.kodi_sql('texture')
+        self.artcursor = self.artconn.cursor()
         self.plexdb = PlexDB(plexconn=self.plexconn, lock=False)
-        self.kodidb = KodiVideoDB(texture_db=app.SYNC.artwork,
+        self.kodidb = KodiVideoDB(texture_db=True,
                                   kodiconn=self.kodiconn,
                                   artconn=self.artconn,
                                   lock=False)
