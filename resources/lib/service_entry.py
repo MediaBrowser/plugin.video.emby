@@ -62,6 +62,8 @@ class Service():
         LOG.info("%s Version: %s", v.ADDON_NAME, v.ADDON_VERSION)
         LOG.info("PKC Direct Paths: %s",
                  utils.settings('useDirectPaths') == '1')
+        LOG.info("Synching Plex artwork to Kodi: %s",
+                 utils.settings('usePlexArtwork') == 'true')
         LOG.info("Number of sync threads: %s",
                  utils.settings('syncThreadNumber'))
         LOG.info('Playlist m3u encoding: %s', v.M3U_ENCODING)
