@@ -95,7 +95,8 @@ class Main():
             entrypoint.toggle_plex_tv_sign_in()
 
         elif mode == 'passwords':
-            utils.passwords_xml()
+            from resources.lib.windows import direct_path_sources
+            direct_path_sources.start()
 
         elif mode == 'switchuser':
             entrypoint.switch_plex_user()

@@ -602,7 +602,8 @@ class InitialSetup(object):
             # Go to network credentials?
             if utils.yesno_dialog(utils.lang(39029), utils.lang(39030)):
                 LOG.debug("Presenting network credentials dialog.")
-                utils.passwords_xml()
+                from .windows import direct_path_sources
+                direct_path_sources.start()
         # Disable Plex music?
         if utils.yesno_dialog(utils.lang(29999), utils.lang(39016)):
             LOG.debug("User opted to disable Plex music library.")

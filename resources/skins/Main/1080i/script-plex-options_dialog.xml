@@ -15,26 +15,26 @@
         </control>
         <control type="group">
             <visible>!String.IsEmpty(Window.Property(initialized))</visible>
-            <posx>585</posx>
-            <posy>360</posy>
+            <posx>480</posx>
+            <posy>300</posy>
             <control type="image">
                 <posx>-40</posx>
                 <posy>-40</posy>
-                <width>830</width>
+                <width>1040</width>
                 <height>440</height>
                 <texture border="42">plugin.video.plexkodiconnect/drop-shadow.png</texture>
             </control>
             <control type="image">
                 <posx>0</posx>
                 <posy>0</posy>
-                <width>750</width>
-                <height>360</height>
+                <width>960</width>
+                <height>480</height>
                 <texture colordiffuse="EE323232" border="10">plugin.video.plexkodiconnect/white-square-rounded.png</texture>
             </control>
             <control type="image">
                 <posx>0</posx>
                 <posy>0</posy>
-                <width>750</width>
+                <width>960</width>
                 <height>80</height>
                 <texture colordiffuse="99000000" border="10">plugin.video.plexkodiconnect/white-square-top-rounded.png</texture>
             </control>
@@ -50,9 +50,9 @@
             <control type="label">
                 <posx>115</posx>
                 <posy>0</posy>
-                <width>575</width>
+                <width>785</width>
                 <height>80</height>
-                <font>font12</font>
+                <font>font14</font>
                 <align>left</align>
                 <aligny>center</aligny>
                 <textcolor>FFE5A00D</textcolor>
@@ -62,10 +62,11 @@
             <control type="textbox">
                 <posx>115</posx>
                 <posy>105</posy>
-                <width>575</width>
-                <height>125</height>
-                <font>font10</font>
+                <width>785</width>
+                <height>245</height>
+                <font>font14</font>
                 <align>left</align>
+                <aligny>center</aligny>
                 <textcolor>FFFFFFFF</textcolor>
                 <label>$INFO[Window.Property(info)]</label>
             </control>
@@ -73,8 +74,8 @@
             <control type="grouplist" id="100">
                 <defaultcontrol always="true">1001</defaultcontrol>
                 <posx>-10</posx>
-                <posy>220</posy>
-                <width>770</width>
+                <posy>340</posy>
+                <width>980</width>
                 <height>155</height>
                 <align>right</align>
                 <itemgap>-50</itemgap>
@@ -89,7 +90,7 @@
                     <posy>0</posy>
                     <width min="120">auto</width>
                     <height>143</height>
-                    <font>font10</font>
+                    <font>font12</font>
                     <texturefocus colordiffuse="FFE5A00D" border="50">plugin.video.plexkodiconnect/buttons/blank-focus.png</texturefocus>
                     <texturenofocus colordiffuse="99FFFFFF" border="50">plugin.video.plexkodiconnect/buttons/blank.png</texturenofocus>
                     <textoffsetx>70</textoffsetx>
@@ -105,7 +106,7 @@
                     <posy>0</posy>
                     <width min="120">auto</width>
                     <height>143</height>
-                    <font>font10</font>
+                    <font>font12</font>
                     <texturefocus colordiffuse="FFE5A00D" border="50">plugin.video.plexkodiconnect/buttons/blank-focus.png</texturefocus>
                     <texturenofocus colordiffuse="99FFFFFF" border="50">plugin.video.plexkodiconnect/buttons/blank.png</texturenofocus>
                     <textoffsetx>70</textoffsetx>
@@ -121,7 +122,7 @@
                     <posy>0</posy>
                     <width min="120">auto</width>
                     <height>143</height>
-                    <font>font10</font>
+                    <font>font12</font>
                     <texturefocus colordiffuse="FFE5A00D" border="50">plugin.video.plexkodiconnect/buttons/blank-focus.png</texturefocus>
                     <texturenofocus colordiffuse="99FFFFFF" border="50">plugin.video.plexkodiconnect/buttons/blank.png</texturenofocus>
                     <textoffsetx>70</textoffsetx>
