@@ -520,7 +520,7 @@ msgstr ""
 
 # PKC Settings - Connection
 msgctxt "#30517"
-msgid "Enter network credentials"
+msgid "Set network credentials for Direct Paths and direct play"
 msgstr ""
 
 # PKC Settings - Playback
