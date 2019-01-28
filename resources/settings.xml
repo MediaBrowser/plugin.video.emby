@@ -128,7 +128,6 @@
         <setting id="kodi_video_cache" type="number" visible="false" default="20971520" />
         <setting id="warned_setting_videoplayer.autoplaynextitem" type="bool" visible="false" default="false" />
         <setting id="failedCount" type="number" visible="false" default="0" />
-        <setting id="networkCreds" type="text" visible="false" default="" />
 	</category>
 
 	<category label="30544"><!-- artwork -->
