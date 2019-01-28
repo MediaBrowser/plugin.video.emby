@@ -9,6 +9,10 @@ Unfortunatly, working with filenames and paths seems to require an encoding in
 the OS' getfilesystemencoding - it will NOT always work with unicode paths.
 However, sys.getfilesystemencoding might return None.
 Feed unicode to all the functions below and you're fine.
+
+WARNING: os.path won't really work with smb paths (possibly others). For
+xbmcvfs functions to work with smb paths, they need to be both in passwords.xml
+as well as sources.xml
 """
 from __future__ import absolute_import, division, unicode_literals
 import shutil
@@ -56,7 +60,7 @@ def translate_path(path):
 
 def exists(path):
     """Returns True if the path [unicode] exists"""
-    return xbmcvfs.exists(path.encode(KODI_ENCODING, 'strict'))
+    return xbmcvfs.exists(path.encode(KODI_ENCODING, 'strict')) == 1
 
 
 def rmtree(path, *args, **kwargs):
