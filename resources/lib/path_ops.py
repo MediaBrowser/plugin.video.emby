@@ -56,7 +56,7 @@ def translate_path(path):
 
 def exists(path):
     """Returns True if the path [unicode] exists"""
-    return xbmcvfs.exists(path.encode(KODI_ENCODING, 'strict'))
+    return xbmcvfs.exists(path.encode(KODI_ENCODING, 'strict')) == 1
 
 
 def rmtree(path, *args, **kwargs):
