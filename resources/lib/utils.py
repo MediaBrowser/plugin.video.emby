@@ -14,7 +14,6 @@ import xml.etree.ElementTree as etree
 import defusedxml.ElementTree as defused_etree  # etree parse unsafe
 from xml.etree.ElementTree import ParseError
 from functools import wraps
-from urllib import quote_plus
 import hashlib
 import re
 import gc
@@ -822,126 +821,6 @@ class XmlKodiSetting(object):
             for key, attribute in attrib.iteritems():
                 element.set(key, attribute)
         return element
-
-
-def passwords_xml():
-    """
-    To add network credentials to Kodi's password xml
-    """
-    path = path_ops.translate_path('special://userdata/')
-    xmlpath = "%spasswords.xml" % path
-    try:
-        xmlparse = defused_etree.parse(xmlpath)
-    except IOError:
-        # Document is blank or missing
-        root = etree.Element('passwords')
-        skip_find = True
-    except ParseError:
-        LOG.error('Error parsing %s', xmlpath)
-        # "Kodi cannot parse {0}. PKC will not function correctly. Please visit
-        # {1} and correct your file!"
-        messageDialog(lang(29999), lang(39716).format(
-            'passwords.xml', 'http://forum.kodi.tv/'))
-        return
-    else:
-        root = xmlparse.getroot()
-        skip_find = False
-
-    credentials = settings('networkCreds')
-    if credentials:
-        # Present user with options
-        option = dialog('select',
-                        "Modify/Remove network credentials",
-                        ["Modify", "Remove"])
-
-        if option < 0:
-            # User cancelled dialog
-            return
-
-        elif option == 1:
-            # User selected remove
-            success = False
-            for paths in root.getiterator('passwords'):
-                for path in paths:
-                    if path.find('.//from').text == "smb://%s/" % credentials:
-                        paths.remove(path)
-                        LOG.info("Successfully removed credentials for: %s",
-                                 credentials)
-                        etree.ElementTree(root).write(xmlpath,
-                                                      encoding="UTF-8")
-                        success = True
-            if not success:
-                LOG.error("Failed to find saved server: %s in passwords.xml",
-                          credentials)
-                dialog('notification',
-                       heading='{plex}',
-                       message="%s not found" % credentials,
-                       icon='{warning}',
-                       sound=False)
-                return
-            settings('networkCreds', value="")
-            dialog('notification',
-                   heading='{plex}',
-                   message="%s removed from passwords.xml" % credentials,
-                   icon='{plex}',
-                   sound=False)
-            return
-
-        elif option == 0:
-            # User selected to modify
-            server = dialog('input',
-                            "Modify the computer name or ip address",
-                            credentials)
-            if not server:
-                return
-    else:
-        # No credentials added
-        messageDialog("Network credentials",
-               'Input the server name or IP address as indicated in your plex '
-               'library paths. For example, the server name: '
-               '\\\\SERVER-PC\\path\\ or smb://SERVER-PC/path is SERVER-PC')
-        server = dialog('input', "Enter the server name or IP address")
-        if not server:
-            return
-        server = quote_plus(server)
-
-    # Network username
-    user = dialog('input', "Enter the network username")
-    if not user:
-        return
-    user = quote_plus(user)
-    # Network password
-    password = dialog('input',
-                      "Enter the network password",
-                      '',  # Default input
-                      type='{alphanum}',
-                      option='{hide}')
-    # Need to url-encode the password
-    password = quote_plus(password)
-    # Add elements. Annoying etree bug where findall hangs forever
-    if skip_find is False:
-        skip_find = True
-        for path in root.findall('.//path'):
-            if path.find('.//from').text.lower() == "smb://%s/" % server.lower():
-                # Found the server, rewrite credentials
-                path.find('.//to').text = ("smb://%s:%s@%s/"
-                                           % (user, password, server))
-                skip_find = False
-                break
-    if skip_find:
-        # Server not found, add it.
-        path = etree.SubElement(root, 'path')
-        etree.SubElement(path, 'from', {'pathversion': "1"}).text = \
-            "smb://%s/" % server
-        topath = "smb://%s:%s@%s/" % (user, password, server)
-        etree.SubElement(path, 'to', {'pathversion': "1"}).text = topath
-
-    # Add credentials
-    settings('networkCreds', value="%s" % server)
-    LOG.info("Added server: %s to passwords.xml", server)
-    # Prettify and write to file
-    indent(root)
-    etree.ElementTree(root).write(xmlpath, encoding="UTF-8")
 
 
 def playlist_xsp(mediatype, tagname, viewid, viewtype="", delete=False):
