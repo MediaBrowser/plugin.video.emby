@@ -29,7 +29,7 @@ def kodiid_from_filename(path, kodi_type=None, db_type=None):
         filename = path.rsplit('\\', 1)[1]
         path = path.rsplit('\\', 1)[0] + '\\'
     if kodi_type == v.KODI_TYPE_SONG or db_type == 'music':
-        with KodiMusicDB() as kodidb:
+        with KodiMusicDB(lock=False) as kodidb:
             try:
                 kodi_id = kodidb.song_id_from_filename(filename, path)
             except TypeError:
@@ -37,7 +37,7 @@ def kodiid_from_filename(path, kodi_type=None, db_type=None):
             else:
                 kodi_type = v.KODI_TYPE_SONG
     else:
-        with KodiVideoDB() as kodidb:
+        with KodiVideoDB(lock=False) as kodidb:
             try:
                 kodi_id, kodi_type = kodidb.video_id_from_filename(filename,
                                                                    path)
