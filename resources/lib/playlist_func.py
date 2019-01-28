@@ -320,7 +320,7 @@ def playlist_item_from_kodi(kodi_item):
     item.kodi_id = kodi_item.get('id')
     item.kodi_type = kodi_item.get('type')
     if item.kodi_id:
-        with PlexDB() as plexdb:
+        with PlexDB(lock=False) as plexdb:
             db_item = plexdb.item_by_kodi_id(kodi_item['id'], kodi_item['type'])
         if db_item:
             item.plex_id = db_item['plex_id']
@@ -397,7 +397,7 @@ def playlist_item_from_plex(plex_id):
     """
     item = Playlist_Item()
     item.plex_id = plex_id
-    with PlexDB() as plexdb:
+    with PlexDB(lock=False) as plexdb:
         db_item = plexdb.item_by_id(plex_id)
     if db_item:
         item.plex_type = db_item['plex_type']
@@ -429,7 +429,7 @@ def playlist_item_from_xml(xml_video_element, kodi_id=None, kodi_type=None):
         item.kodi_id = kodi_id
         item.kodi_type = kodi_type
     elif item.plex_id is not None and item.plex_type != v.PLEX_TYPE_CLIP:
-        with PlexDB() as plexdb:
+        with PlexDB(lock=False) as plexdb:
             db_element = plexdb.item_by_id(item.plex_id)
         if db_element:
             item.kodi_id = db_element['kodi_id']
