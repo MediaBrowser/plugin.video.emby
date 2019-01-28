@@ -23,7 +23,7 @@ else:
 
 LOG = getLogger('PLEX.sync.full_sync')
 # How many items will be put through the processing chain at once?
-BATCH_SIZE = 2000
+BATCH_SIZE = 200
 # Safety margin to filter PMS items - how many seconds to look into the past?
 UPDATED_AT_SAFETY = 60 * 5
 LAST_VIEWED_AT_SAFETY = 60 * 5
