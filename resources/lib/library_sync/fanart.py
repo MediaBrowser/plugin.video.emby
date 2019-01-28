@@ -154,6 +154,10 @@ def process_fanart(plex_id, plex_type, refresh=False):
                                                 setid,
                                                 v.KODI_TYPE_SET)
         done = True
+    except utils.OperationalError:
+        # Caused if we reset the Plex database and this function has not yet
+        # returned
+        pass
     finally:
         if done is True and not suspends():
             with PlexDB() as plexdb:
