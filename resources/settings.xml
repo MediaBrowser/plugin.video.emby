@@ -75,7 +75,7 @@
         <setting id="showExtrasInsteadOfTrailer" type="bool" label="30514" default="false" /><!-- Show all Plex extras instead of immediately playing trailers -->
         <setting id="indicate_media_versions" type="bool" label="39719" default="false" /><!-- Replace user ratings with number of versions -->
         <setting id="enableMusic" type="bool" label="30509" default="true" />
-        <setting id="useDirectPaths" type="enum" label="30511" values="Addon(Default)|Native(Direct paths)" default="0" visible="true"/> <!-- Playback mode -->
+        <setting id="useDirectPaths" type="enum" label="30511" values="Addon (Default)|Direct Paths" default="0" visible="true"/> <!-- Playback mode -->
         <setting label="[COLOR yellow]$ADDON[plugin.video.plexkodiconnect 30517][/COLOR]" type="action" action="RunPlugin(plugin://plugin.video.plexkodiconnect?mode=passwords)" option="close" /><!-- Set network credentials for Direct Paths and direct play -->
 
         <setting id="streamMusic" type="bool" label="30510" default="false" visible="false" subsetting="true"/> <!-- Direct stream Music library -->
