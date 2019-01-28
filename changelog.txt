@@ -1,3 +1,13 @@
+version 2.5.23 (beta only):
+- Hopefully fix slow playback startup just after Kodi startup
+- Better, safer way to enter network credentials for Direct Paths
+- Fix check whether a direct path is accessible 
+- Fix OperationalError: no such table on database reset 
+- Fix widgets not displaying correct playstate after PKC startup 
+- Fix 'NoneType' object has no attribute 'execute' when Plex artwork is not synced and an item is deleted 
+- Update translations
+- Log whether Plex artwork is synced to Kodi 
+
 version 2.5.22 (beta only):
 - Fix rare EOFError and PKC starting wrong video as a consequence
 
