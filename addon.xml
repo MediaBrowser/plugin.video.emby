@@ -62,6 +62,9 @@
     <summary lang="da_DK">Indbygget Integration af Plex i Kodi</summary>
     <description lang="da_DK">Tilslut Kodi til din Plex Media Server. Dette plugin forudsætter, at du administrere alle dine videoer med Plex (og ikke med Kodi). Du kan miste data som allerede er gemt i Kodi video og musik-databaser (dette plugin ændrer direkte i dem). Brug på eget ansvar!</description>
     <disclaimer lang="da_DK">Brug på eget ansvar</disclaimer>
+    <summary lang="it_IT">Integrazione nativa di Plex su Kodi</summary>
+    <description lang="it_IT">Connetti Kodi al tuo Plex Media Server. Questo plugin assume che tu gestisca tutti i video con Plex (e non con Kodi). Potresti perdere i dati dei film e della musica già memorizzati nel database di Kodi (questo plugin modifica direttamente il database stesso). Usa a tuo rischio e pericolo!</description>
+    <disclaimer lang="it_IT">Usa a tuo rischio e pericolo</disclaimer>
     <summary lang="no_NO">Naturlig integrasjon av Plex til Kodi</summary>
     <description lang="no_NO">Koble Kodi til din Plex Media Server. Denne plugin forventer at du organiserer alle dine videor med Plex (og ingen med Kodi). Du kan miste all data allerede lagret i Kodi video- og musikkdatabasene (da denne plugin umiddelbart forandrer dem). Bruk på egen risiko!</description>
     <disclaimer lang="no_NO">Bruk på eget ansvar</disclaimer>
