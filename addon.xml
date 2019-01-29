@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon  id="plugin.video.plexkodiconnect" name="PlexKodiConnect" version="2.5.23" provider-name="croneter">
+<addon  id="plugin.video.plexkodiconnect" name="PlexKodiConnect" version="2.6.0" provider-name="croneter">
   <requires>
     <import addon="xbmc.python" version="2.1.0"/>
     <import addon="script.module.requests" version="2.9.1" />
@@ -74,7 +74,17 @@
     <summary lang="uk_UA">Нативна інтеграція Plex в Kodi</summary>
     <description lang="uk_UA">Підключає Kodi до серверу Plex. Цей плагін передбачає, що ви керуєте всіма своїми відео за допомогою Plex (і ніяк не Kodi). Ви можете втратити дані, які вже зберігаються у відео та музичних БД Kodi (оскільки цей плагін безпосередньо їх змінює). Використовуйте на свій страх і ризик!</description>
     <disclaimer lang="uk_UA">Використовуйте на свій ризик</disclaimer>
-    <news>version 2.5.23 (beta only):
+    <news>version 2.6.0:
+- Support for Kodi 18 Leia
+- Big overhaul of the synching process, it's now much faster
+- PKC now supports really big Plex and Kodi libraries
+- Too many other improvements to recount. See the changelog for the 2.5.x versions
+Furthermore:
+- Don't lock Plex DB when processing websocket messages
+- Fix KeyError: u'kodi_fileid' for some Plex websocket messages
+- Update translations
+
+version 2.5.23 (beta only):
 - Hopefully fix slow playback startup just after Kodi startup
 - Better, safer way to enter network credentials for Direct Paths
 - Fix check whether a direct path is accessible 

@@ -1,3 +1,13 @@
+version 2.6.0:
+- Support for Kodi 18 Leia
+- Big overhaul of the synching process, it's now much faster
+- PKC now supports really big Plex and Kodi libraries
+- Too many other improvements to recount. See the changelog for the 2.5.x versions
+Furthermore:
+- Don't lock Plex DB when processing websocket messages
+- Fix KeyError: u'kodi_fileid' for some Plex websocket messages
+- Update translations
+
 version 2.5.23 (beta only):
 - Hopefully fix slow playback startup just after Kodi startup
 - Better, safer way to enter network credentials for Direct Paths
