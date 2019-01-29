@@ -1744,7 +1744,13 @@ class API(object):
             if path.startswith('\\\\'):
                 path = 'smb:' + path.replace('\\', '/')
         if app.SYNC.escape_path:
-            path = quote(path)
+            try:
+                protocol, hostname, args = path.split(':', 2)
+            except ValueError:
+                pass
+            else:
+                args = quote(args)
+                path = '%s:%s:%s' % (protocol, hostname, args)
         if (app.SYNC.path_verified and not force_check) or omit_check:
             return path
 
