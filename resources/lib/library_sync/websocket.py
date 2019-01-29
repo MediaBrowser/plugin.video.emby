@@ -279,8 +279,12 @@ def process_playing(data):
                 LOG.debug('Updated current sessions. They are: %s',
                           PLAYSTATE_SESSIONS)
             # Attach Kodi info to the session
+            try:
+                PLAYSTATE_SESSIONS[session_key]['file_id'] = typus['kodi_fileid']
+            except KeyError:
+                # media type without file - no need to do anything
+                continue
             PLAYSTATE_SESSIONS[session_key]['kodi_id'] = typus['kodi_id']
-            PLAYSTATE_SESSIONS[session_key]['file_id'] = typus['kodi_fileid']
             PLAYSTATE_SESSIONS[session_key]['kodi_type'] = typus['kodi_type']
         session = PLAYSTATE_SESSIONS[session_key]
         if utils.settings('plex_serverowned') != 'false':
