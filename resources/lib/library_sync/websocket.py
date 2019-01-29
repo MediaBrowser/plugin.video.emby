@@ -217,7 +217,7 @@ def store_activity_message(data):
             # Likely a Plex id like /library/metadata/3/children
             continue
         # We're only looking at existing elements - have we synced yet?
-        with PlexDB() as plexdb:
+        with PlexDB(lock=False) as plexdb:
             typus = plexdb.item_by_id(plex_id, plex_type=None)
         if not typus:
             LOG.debug('plex_id %s not synced yet - skipping', plex_id)
@@ -259,7 +259,7 @@ def process_playing(data):
         session_key = message['sessionKey']
         # Do we already have a sessionKey stored?
         if session_key not in PLAYSTATE_SESSIONS:
-            with PlexDB() as plexdb:
+            with PlexDB(lock=False) as plexdb:
                 typus = plexdb.item_by_id(plex_id, plex_type=None)
             if not typus:
                 # Item not (yet) in Kodi library
@@ -360,7 +360,7 @@ def cache_artwork(plex_id, plex_type, kodi_id=None, kodi_type=None):
     if not CACHING_ENALBED:
         return
     if not kodi_id:
-        with PlexDB() as plexdb:
+        with PlexDB(lock=False) as plexdb:
             item = plexdb.item_by_id(plex_id, plex_type)
         if not item:
             LOG.error('Could not retrieve Plex db info for %s', plex_id)
