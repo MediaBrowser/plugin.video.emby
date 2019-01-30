@@ -81,7 +81,7 @@ class MusicMixin(object):
             self.remove_song(db_item['kodi_id'], db_item['kodi_pathid'])
             # Album verification
             if not self.plexdb.album_has_songs(db_item['album_id']):
-                # No episode left for this season - so delete the season
+                # No songleft for this album - so delete the album
                 self.remove_album(db_item['parent_id'])
                 self.plexdb.remove(db_item['album_id'], v.PLEX_TYPE_ALBUM)
             # Artist verification
@@ -91,8 +91,9 @@ class MusicMixin(object):
                 self.plexdb.remove(db_item['artist_id'], v.PLEX_TYPE_ARTIST)
         # ALBUM #####
         elif db_item['plex_type'] == v.PLEX_TYPE_ALBUM:
-            # Remove episodes, season, verify tvshow
-            for song in self.plexdb.song_by_album(db_item['plex_id']):
+            # Remove songs, album, verify artist
+            songs = list(self.plexdb.song_by_album(db_item['plex_id']))
+            for song in songs:
                 self.remove_song(song['kodi_id'], song['kodi_pathid'])
                 self.plexdb.remove(song['plex_id'], v.PLEX_TYPE_SONG)
             # Remove the album
@@ -100,16 +101,18 @@ class MusicMixin(object):
             # Show verification
             if (not self.plexdb.artist_has_albums(db_item['kodi_id']) and
                     not self.plexdb.artist_has_songs(db_item['kodi_id'])):
-                # There's no other season or episode left, delete the show
+                # There's no other album or song left, delete the artist
                 self.remove_artist(db_item['parent_id'])
                 self.plexdb.remove(db_item['artist_id'], v.KODI_TYPE_ARTIST)
         # ARTIST #####
         elif db_item['plex_type'] == v.PLEX_TYPE_ARTIST:
             # Remove songs, albums and the artist himself
-            for song in self.plexdb.song_by_artist(db_item['plex_id']):
+            songs = list(self.plexdb.song_by_artist(db_item['plex_id']))
+            for song in songs:
                 self.remove_song(song['kodi_id'], song['kodi_pathid'])
                 self.plexdb.remove(song['plex_id'], v.PLEX_TYPE_SONG)
-            for album in self.plexdb.album_by_artist(db_item['plex_id']):
+            albums = list(self.plexdb.album_by_artist(db_item['plex_id']))
+            for album in albums:
                 self.remove_album(album['kodi_id'])
                 self.plexdb.remove(album['plex_id'], v.PLEX_TYPE_ALBUM)
             self.remove_artist(db_item['kodi_id'])
