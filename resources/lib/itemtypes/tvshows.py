@@ -70,7 +70,8 @@ class TvShowMixin(object):
         # SEASON #####
         elif db_item['plex_type'] == v.PLEX_TYPE_SEASON:
             # Remove episodes, season, verify tvshow
-            for episode in self.plexdb.episode_by_season(db_item['plex_id']):
+            episodes = list(self.plexdb.episode_by_season(db_item['plex_id']))
+            for episode in episodes:
                 self.remove_episode(episode['kodi_id'], episode['kodi_fileid'])
                 self.plexdb.remove(episode['plex_id'], v.PLEX_TYPE_EPISODE)
             # Remove season
@@ -84,13 +85,15 @@ class TvShowMixin(object):
         # TVSHOW #####
         elif db_item['plex_type'] == v.PLEX_TYPE_SHOW:
             # Remove episodes, seasons and the tvshow itself
-            for episode in self.plexdb.episode_by_show(db_item['plex_id']):
+            seasons = list(self.plexdb.season_by_show(db_item['plex_id']))
+            for season in seasons:
+                self.remove_season(season['kodi_id'])
+                self.plexdb.remove(season['plex_id'], v.PLEX_TYPE_SEASON)
+            episodes = list(self.plexdb.episode_by_show(db_item['plex_id']))
+            for episode in episodes:
                 self.remove_episode(episode['kodi_id'],
                                     episode['kodi_fileid'])
                 self.plexdb.remove(episode['plex_id'], v.PLEX_TYPE_EPISODE)
-            for season in self.plexdb.season_by_show(db_item['plex_id']):
-                self.remove_season(season['kodi_id'])
-                self.plexdb.remove(season['plex_id'], v.PLEX_TYPE_SEASON)
             self.remove_show(db_item['kodi_id'])
 
         LOG.debug('Deleted %s %s from all databases',
