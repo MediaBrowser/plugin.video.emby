@@ -1,3 +1,10 @@
+version 2.6.1:
+- WARNING: You will need to reset the Kodi database!
+- Fix TV sections not being deleted e.g. after user switch
+- Don't show a library sync error pop-up when full sync is interrupted
+- Fix to correctly escape paths 
+- Update translations
+
 version 2.6.0:
 - Support for Kodi 18 Leia
 - Big overhaul of the synching process, it's now much faster
