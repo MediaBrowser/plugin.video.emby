@@ -49,8 +49,7 @@ class Actions(object):
         ''' Sometimes it's required to clear the playlist to get everything working together.
             Otherwise "Play from here" and cinema mode is going to break.
         '''
-        window('emby.context.widget', clear=True)
-        xbmc.sleep(50)
+        playlist_items = self.get_playlist(item).size()
 
         ''' Do not clear playlist for audio items at all
         '''
@@ -60,13 +59,13 @@ class Actions(object):
         ''' Clear the playlist if the user starts a new playback from the GUI and there is still
             an existing one set.
         '''
-        if xbmc.getCondVisibility('Player.HasMedia + !Window.IsVisible(fullscreenvideo) + Integer.IsGreaterOrEqual(Playlist.Length(video),1)'):
+        if xbmc.getCondVisibility('Player.HasMedia + !Window.IsVisible(fullscreenvideo)') + int(playlist_items) > 0:
             return True
 
         ''' Clear the pseudo-playlist that has been created by the library windows for a single
             video item. This is required to get the cinema mode working.
         '''
-        if not xbmc.getCondVisibility('Integer.IsGreater(Playlist.Length(video),1)'):
+        if not int(playlist_items) > 1:
             return True
 
         return False
@@ -78,11 +77,11 @@ class Actions(object):
 
     def play(self, item, db_id=None, transcode=False, playlist=False):
 
+        window('emby.context.widget', clear=True)
         clear_playlist = self.detect_playlist(item)
 
         if clear_playlist:
-            xbmc.executebuiltin("Playlist.Clear")
-            xbmc.sleep(50)
+            self.get_playlist(item).clear()
 
         play_action = get_play_action()
         listitem = xbmcgui.ListItem()
@@ -906,16 +905,6 @@ def special_listener():
                 window('emby.context.widget.bool', True)
             else:
                 window('emby.context.widget', clear=True)
-
-    elif not isPlaying and xbmc.getCondVisibility('Window.IsVisible(DialogVideoInfo.xml)'):
-
-        control = int(xbmcgui.Window(12003).getFocusId())
-
-        if control == 8: # Play from show information
-            LOG.info("Show Info dialog: Play selected.")
-            window('emby.playinfo.bool', True)
-        else:
-            window('emby.playinfo', clear=True)
 
     elif isPlaying and not window('emby.external_check'):
 
