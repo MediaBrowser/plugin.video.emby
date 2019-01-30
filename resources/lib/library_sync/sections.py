@@ -13,10 +13,15 @@ from .. import plex_functions as PF, music, utils, variables as v, app
 
 LOG = getLogger('PLEX.sync.sections')
 
+BATCH_SIZE = 200
 VNODES = videonodes.VideoNodes()
 PLAYLISTS = {}
 NODES = {}
 SECTIONS = []
+
+
+def isCanceled():
+    return app.APP.stop_pkc or app.APP.suspend_threads or app.SYNC.stop_sync
 
 
 def sync_from_pms():
@@ -198,56 +203,61 @@ def _process_section(section_xml, kodidb, plexdb, sorted_sections,
     return totalnodes
 
 
+def _delete_kodi_db_items(section_id, section_type):
+    if section_type == v.PLEX_TYPE_MOVIE:
+        kodi_context = kodi_db.KodiVideoDB
+        types = ((v.PLEX_TYPE_MOVIE, itemtypes.Movie), )
+    elif section_type == v.PLEX_TYPE_SHOW:
+        kodi_context = kodi_db.KodiVideoDB
+        types = ((v.PLEX_TYPE_SHOW, itemtypes.Show),
+                 (v.PLEX_TYPE_SEASON, itemtypes.Season),
+                 (v.PLEX_TYPE_EPISODE, itemtypes.Episode))
+    elif section_type == v.PLEX_TYPE_ARTIST:
+        kodi_context = kodi_db.KodiMusicDB
+        types = ((v.PLEX_TYPE_ARTIST, itemtypes.Artist),
+                 (v.PLEX_TYPE_ALBUM, itemtypes.Album),
+                 (v.PLEX_TYPE_SONG, itemtypes.Song))
+    for plex_type, context in types:
+        while True:
+            with PlexDB() as plexdb:
+                plex_ids = list(plexdb.plexid_by_sectionid(section_id,
+                                                           plex_type,
+                                                           BATCH_SIZE))
+                with kodi_context(texture_db=True) as kodidb:
+                    typus = context(None, plexdb=plexdb, kodidb=kodidb)
+                    for plex_id in plex_ids:
+                        if isCanceled():
+                            return False
+                        typus.remove(plex_id)
+            if len(plex_ids) < BATCH_SIZE:
+                break
+    return True
+
+
 def delete_sections(old_sections):
     """
     Deletes all elements for a Plex section that has been deleted. (e.g. all
     TV shows, Seasons and Episodes of a Show section)
     """
-    utils.dialog('notification',
-                 heading='{plex}',
-                 message=utils.lang(30052),
-                 icon='{plex}',
-                 sound=False)
-    video_library_update = False
-    music_library_update = False
-    with PlexDB() as plexdb:
-        old_sections = [plexdb.section(x) for x in old_sections]
+    try:
+        with PlexDB() as plexdb:
+            old_sections = [plexdb.section(x) for x in old_sections]
         LOG.info("Removing entire Plex library sections: %s", old_sections)
-        with kodi_db.KodiVideoDB(texture_db=True) as kodidb:
-            for section in old_sections:
-                if section[2] == v.PLEX_TYPE_PHOTO:
-                    # not synced
-                    plexdb.remove_section(section[0])
-                    continue
-                elif section[2] == v.PLEX_TYPE_MOVIE:
-                    video_library_update = True
-                    context = itemtypes.Movie(None,
-                                              plexdb=plexdb,
-                                              kodidb=kodidb)
-                elif section[2] == v.PLEX_TYPE_SHOW:
-                    video_library_update = True
-                    context = itemtypes.Show(None,
-                                             plexdb=plexdb,
-                                             kodidb=kodidb)
-                else:
-                    continue
-                for plex_id in plexdb.plexid_by_sectionid(section[0], section[2]):
-                    context.remove(plex_id)
-                # Only remove Plex entry if we've removed all items first
+        for section in old_sections:
+            # "Deleting <section_name>"
+            utils.dialog('notification',
+                         heading='{plex}',
+                         message='%s %s' % (utils.lang(30052), section[1]),
+                         icon='{plex}',
+                         sound=False)
+            if section[2] == v.PLEX_TYPE_PHOTO:
+                # not synced - just remove the link in our Plex sections table
+                pass
+            else:
+                if not _delete_kodi_db_items(section[0], section[2]):
+                    return
+            # Only remove Plex entry if we've removed all items first
+            with PlexDB() as plexdb:
                 plexdb.remove_section(section[0])
-
-        with kodi_db.KodiMusicDB(texture_db=True) as kodidb:
-            for section in old_sections:
-                if section[2] == v.PLEX_TYPE_ARTIST:
-                    music_library_update = True
-                    context = itemtypes.Artist(None,
-                                               plexdb=plexdb,
-                                               kodidb=kodidb)
-                else:
-                    continue
-                for plex_id in plexdb.plexid_by_sectionid(section[0], section[2]):
-                    context.remove(plex_id)
-                # Only remove Plex entry if we've removed all items first
-                plexdb.remove_section(section[0])
-    common.update_kodi_library(video=video_library_update,
-                               music=music_library_update)
+    finally:
+        common.update_kodi_library()
