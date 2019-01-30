@@ -10,12 +10,22 @@ LOG = getLogger('PLEX.account')
 
 class Account(object):
     def __init__(self, entrypoint=False):
+        self.plex_login = None
+        self.plex_login_id = None
+        self.plex_username = None
+        self.plex_user_id = None
+        self.plex_token = None
+        self.pms_token = None
+        self.avatar = None
+        self.myplexlogin = None
+        self.restricted_user = None
+        self.force_login = None
+        self._session = None
+        self.authenticated = False
         if entrypoint:
             self.load_entrypoint()
         else:
-            self.authenticated = False
             utils.window('plex_authenticated', clear=True)
-            self._session = None
             self.load()
 
     def set_authenticated(self):

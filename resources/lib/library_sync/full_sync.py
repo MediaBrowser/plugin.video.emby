@@ -44,7 +44,6 @@ class FullSync(common.fullsync_mixin):
         """
         repair=True: force sync EVERY item
         """
-        self._canceled = False
         self.repair = repair
         self.callback = callback
         self.queue = None
@@ -85,7 +84,7 @@ class FullSync(common.fullsync_mixin):
                                '%s (%s)' % (self.section_name, self.section_type_text),
                                '%s %s/%s'
                                % (self.title, self.current, self.total))
-            if app.APP.player.isPlayingVideo():
+            if app.APP.is_playing_video:
                 self.dialog.close()
                 self.dialog = None
 
@@ -394,14 +393,22 @@ class FullSync(common.fullsync_mixin):
         LOG.debug('Done deleting')
         return True
 
-    @utils.log_time
     def run(self):
+        app.APP.register_thread(self)
+        try:
+            self._run()
+        finally:
+            app.APP.deregister_thread(self)
+            LOG.info('Done full_sync')
+
+    @utils.log_time
+    def _run(self):
         self.current_sync = timing.plex_now()
         # Delete playlist and video node files from Kodi
         utils.delete_playlists()
         utils.delete_nodes()
         # Get latest Plex libraries and build playlist and video node files
-        if not sections.sync_from_pms():
+        if not sections.sync_from_pms(self):
             return
         self.successful = True
         try:
@@ -436,7 +443,6 @@ class FullSync(common.fullsync_mixin):
                              icon='{error}')
             if self.callback:
                 self.callback(self.successful)
-            LOG.info('Done full_sync')
 
 
 def start(show_dialog, repair=False, callback=None):

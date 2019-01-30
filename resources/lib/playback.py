@@ -533,7 +533,7 @@ def threaded_playback(kodi_playlist, startpos, offset):
     app.APP.player.play(kodi_playlist, None, False, startpos)
     if offset and offset != '0':
         i = 0
-        while not app.APP.player.isPlaying():
+        while not app.APP.is_playing:
             app.APP.monitor.waitForAbort(0.1)
             i += 1
             if i > 100:

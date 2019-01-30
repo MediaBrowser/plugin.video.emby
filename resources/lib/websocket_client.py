@@ -47,20 +47,20 @@ class WebSocket(backgroundthread.KillableThread):
 
     def run(self):
         LOG.info("----===## Starting %s ##===----", self.__class__.__name__)
+        app.APP.register_thread(self)
         counter = 0
         while not self.isCanceled():
             # In the event the server goes offline
-            while self.isSuspended():
+            if self.isSuspended():
                 # Set in service.py
                 if self.ws is not None:
                     self.ws.close()
                     self.ws = None
-                if self.isCanceled():
+                if self.wait_while_suspended():
                     # Abort was requested while waiting. We should exit
                     LOG.info("##===---- %s Stopped ----===##",
                              self.__class__.__name__)
                     return
-                app.APP.monitor.waitForAbort(1)
             try:
                 self.process(*self.receive(self.ws))
             except websocket.WebSocketTimeoutException:
@@ -136,6 +136,7 @@ class WebSocket(backgroundthread.KillableThread):
         # Close websocket connection on shutdown
         if self.ws is not None:
             self.ws.close()
+        app.APP.deregister_thread(self)
         LOG.info("##===---- %s Stopped ----===##", self.__class__.__name__)
 
 
@@ -147,9 +148,7 @@ class PMS_Websocket(WebSocket):
         """
         Returns True if the thread is suspended
         """
-        return (self._suspended or
-                app.APP.suspend_threads or
-                app.SYNC.background_sync_disabled)
+        return self._suspended or app.SYNC.background_sync_disabled
 
     def getUri(self):
         if self.redirect_uri:
@@ -201,11 +200,6 @@ class PMS_Websocket(WebSocket):
         # Drop everything we're not interested in
         if typus not in ('playing', 'timeline', 'activity'):
             return
-        elif typus == 'activity' and app.SYNC.db_scan is True:
-            # Only add to processing if PKC is NOT doing a lib scan (and thus
-            # possibly causing these reprocessing messages en mass)
-            LOG.debug('%s: Dropping message as PKC is currently synching',
-                      self.__class__.__name__)
         else:
             # Put PMS message on queue and let libsync take care of it
             app.APP.websocket_queue.put(message)

@@ -10,13 +10,25 @@ LOG = getLogger('PLEX.connection')
 
 class Connection(object):
     def __init__(self, entrypoint=False):
+        self.verify_ssl_cert = None
+        self.ssl_cert_path = None
+        self.machine_identifier = None
+        self.server_name = None
+        self.https = None
+        self.host = None
+        self.port = None
+        self.server = None
+        self.online = False
+        self.webserver_host = None
+        self.webserver_port = None
+        self.webserver_username = None
+        self.webserver_password = None
+
         if entrypoint:
             self.load_entrypoint()
         else:
             self.load_webserver()
             self.load()
-            # TODO: Delete
-            self.pms_server = None
             # Token passed along, e.g. if playback initiated by Plex Companion. Might be
             # another user playing something! Token identifies user
             self.plex_transient_token = None
@@ -57,7 +69,6 @@ class Connection(object):
             self.server = 'https://%s:%s' % (self.host, self.port)
         else:
             self.server = 'http://%s:%s' % (self.host, self.port)
-        utils.window('pms_server', value=self.server)
         self.online = False
         LOG.debug('Set server %s (%s) to %s',
                   self.server_name, self.machine_identifier, self.server)
@@ -85,4 +96,3 @@ class Connection(object):
         self.host = None
         self.port = None
         self.server = None
-        utils.window('pms_server', clear=True)

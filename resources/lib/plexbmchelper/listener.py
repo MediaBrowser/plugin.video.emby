@@ -134,7 +134,7 @@ class MyHandler(BaseHTTPRequestHandler):
                 CLIENT_DICT[self.client_address[0]] = []
             tracker = CLIENT_DICT[self.client_address[0]]
             tracker.append(self.client_address[1])
-            while (not app.APP.player.isPlaying() and
+            while (not app.APP.is_playing and
                    not app.APP.monitor.abortRequested() and
                    sub_mgr.stop_sent_to_web and not
                    (len(tracker) >= 4 and
