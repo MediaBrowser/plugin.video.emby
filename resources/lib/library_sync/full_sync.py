@@ -415,6 +415,12 @@ class FullSync(common.fullsync_mixin):
                 self.dialog.close()
             if self.threader:
                 self.threader.shutdown()
+            if not self.successful and not self.isCanceled():
+                # "ERROR in library sync"
+                utils.dialog('notification',
+                             heading='{plex}',
+                             message=utils.lang(39410),
+                             icon='{error}')
             if self.callback:
                 self.callback(self.successful)
             LOG.info('Done full_sync')

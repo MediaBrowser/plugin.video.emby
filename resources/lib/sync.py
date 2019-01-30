@@ -43,31 +43,6 @@ class Sync(backgroundthread.KillableThread):
     def isSuspended(self):
         return self._suspended or app.APP.suspend_threads
 
-    def show_kodi_note(self, message, icon="plex", force=False):
-        """
-        Shows a Kodi popup, if user selected to do so. Pass message in unicode
-        or string
-
-        icon:   "plex": shows Plex icon
-                "error": shows Kodi error icon
-        """
-        if app.APP.player.isPlaying():
-            LOG.info('Playing media - not showing note: %s', message)
-            return
-        if not force and app.SYNC.sync_dialog is not True and self.force_dialog is not True:
-            return
-        if icon == "plex":
-            utils.dialog('notification',
-                         heading='{plex}',
-                         message=message,
-                         icon='{plex}',
-                         sound=False)
-        elif icon == "error":
-            utils.dialog('notification',
-                         heading='{plex}',
-                         message=message,
-                         icon='{error}')
-
     def triage_lib_scans(self):
         """
         Decides what to do if app.SYNC.run_lib_scan has been set. E.g. manually
@@ -81,7 +56,7 @@ class Sync(backgroundthread.KillableThread):
                                     block=True)
             if not self.sync_successful and not self.isSuspended() and not self.isCanceled():
                 # ERROR in library sync
-                self.show_kodi_note(utils.lang(39410), icon='error')
+                LOG.warn('Triggered full/repair sync has not been successful')
         elif app.SYNC.run_lib_scan == 'fanart':
             # Only look for missing fanart (No) or refresh all fanart (Yes)
             from .windows import optionsdialog
@@ -113,10 +88,7 @@ class Sync(backgroundthread.KillableThread):
         self.last_full_sync = timing.unix_timestamp()
         set_library_scan_toggle(boolean=False)
         if not successful:
-            LOG.error('Could not finish scheduled full sync')
-            self.force_dialog = True
-            self.show_kodi_note(utils.lang(39410), icon='error')
-            self.force_dialog = False
+            LOG.warn('Could not finish scheduled full sync')
         # try:
         #     self.lock.release()
         # except backgroundthread.threading.ThreadError:
