@@ -264,7 +264,7 @@ def _sign_in_with_pin():
                         return
                     app.APP.monitor.waitForAbort(0.1)
                 if not pinlogin.expired:
-                    if pinlogin.xml:
+                    if pinlogin.xml is not None:
                         pin_login_window.setLinking()
                     return pinlogin.xml
             finally:
