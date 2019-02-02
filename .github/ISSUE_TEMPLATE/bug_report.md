@@ -5,7 +5,7 @@ title: ''
 labels: ''
 assignees: ''
 
- ---
+---
 
 ## Help yourself
 * I did try to restart Kodi :-)
