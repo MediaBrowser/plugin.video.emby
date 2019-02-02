@@ -256,6 +256,9 @@ def process_playing(data):
                 skip = True
         if skip:
             continue
+        if 'sessionKey' not in message:
+            LOG.warn('Received malformed message from the PMS: %s', message)
+            continue
         session_key = message['sessionKey']
         # Do we already have a sessionKey stored?
         if session_key not in PLAYSTATE_SESSIONS:
