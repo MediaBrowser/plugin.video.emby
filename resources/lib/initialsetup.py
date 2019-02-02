@@ -220,7 +220,7 @@ class InitialSetup(object):
                                   verifySSL=verifySSL)
         return chk
 
-    def pick_pms(self, showDialog=False):
+    def pick_pms(self, showDialog=False, inform_of_search=False):
         """
         Searches for PMS in local Lan and optionally (if self.plex_token set)
         also on plex.tv
@@ -260,10 +260,10 @@ class InitialSetup(object):
         if showDialog is True:
             server = self._user_pick_pms()
         else:
-            server = self._auto_pick_pms()
+            server = self._auto_pick_pms(show_dialog=inform_of_search)
         return server
 
-    def _auto_pick_pms(self):
+    def _auto_pick_pms(self, show_dialog=False):
         """
         Will try to pick PMS based on machineIdentifier saved in file settings
         but only once
@@ -272,35 +272,47 @@ class InitialSetup(object):
         """
         https_updated = False
         server = None
-        while True:
-            if https_updated is False:
-                serverlist = PF.discover_pms(self.plex_token)
-                for item in serverlist:
-                    if item.get('machineIdentifier') == app.CONN.machine_identifier:
-                        server = item
-                if server is None:
-                    name = utils.settings('plex_servername')
-                    LOG.warn('The PMS you have used before with a unique '
-                             'machineIdentifier of %s and name %s is '
-                             'offline', app.CONN.machine_identifier, name)
+        if show_dialog:
+            # Searching for PMS
+            utils.dialog('notification',
+                         heading='{plex}',
+                         message=utils.lang(30001),
+                         icon='{plex}',
+                         time=60000)
+        try:
+            while True:
+                if https_updated is False:
+                    serverlist = PF.discover_pms(self.plex_token)
+                    for item in serverlist:
+                        if item.get('machineIdentifier') == app.CONN.machine_identifier:
+                            server = item
+                    if server is None:
+                        name = utils.settings('plex_servername')
+                        LOG.warn('The PMS you have used before with a unique '
+                                 'machineIdentifier of %s and name %s is '
+                                 'offline', app.CONN.machine_identifier, name)
+                        return
+                chk = self._check_pms_connectivity(server)
+                if chk == 504 and https_updated is False:
+                    # switch HTTPS to HTTP or vice-versa
+                    if server['scheme'] == 'https':
+                        server['scheme'] = 'http'
+                    else:
+                        server['scheme'] = 'https'
+                    https_updated = True
+                    continue
+                # Problems connecting
+                elif chk >= 400 or chk is False:
+                    LOG.warn('Problems connecting to server %s. chk is %s',
+                             server['name'], chk)
                     return
-            chk = self._check_pms_connectivity(server)
-            if chk == 504 and https_updated is False:
-                # switch HTTPS to HTTP or vice-versa
-                if server['scheme'] == 'https':
-                    server['scheme'] = 'http'
-                else:
-                    server['scheme'] = 'https'
-                https_updated = True
-                continue
-            # Problems connecting
-            elif chk >= 400 or chk is False:
-                LOG.warn('Problems connecting to server %s. chk is %s',
-                         server['name'], chk)
-                return
-            LOG.info('We found a server to automatically connect to: %s',
-                     server['name'])
-            return server
+                LOG.info('We found a server to automatically connect to: %s',
+                         server['name'])
+                return server
+        finally:
+            if show_dialog:
+                executebuiltin("Dialog.Close(all, true)")
+
 
     def _user_pick_pms(self):
         """
@@ -553,7 +565,7 @@ class InitialSetup(object):
         if not self.plex_token and app.ACCOUNT.myplexlogin:
             self.plex_tv_sign_in()
 
-        server = self.pick_pms()
+        server = self.pick_pms(inform_of_search=True)
         if server is not None:
             # Write our chosen server to Kodi settings file
             self.save_pms_settings(server['baseURL'], server['token'])
