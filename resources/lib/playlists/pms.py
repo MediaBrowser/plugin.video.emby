@@ -108,7 +108,8 @@ def add_items(playlist, plex_ids):
         'title': playlist.plex_name,
         'smart': 0,
         'uri': ('server://%s/com.plexapp.plugins.library/library/metadata/%s'
-                % (app.CONN.machine_identifier, ','.join(plex_ids)))
+                % (app.CONN.machine_identifier,
+                   ','.join(unicode(x) for x in plex_ids)))
     }
     xml = DU().downloadUrl(url='{server}/playlists/',
                            action_type='POST',
