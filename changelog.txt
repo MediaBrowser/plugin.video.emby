@@ -1,3 +1,11 @@
+version 2.6.2:
+- Fix playlist sync: sequence item 0: expected string or unicode
+- Fix PKC not deleting all the items it should
+- Fix keyError 'sessionKey' for weird PMS messages 
+- Fix artwork caching AttributeError: 'ImageCachingThread' object has no attribute 'cancel'
+- Improve pop-up "Searching for PMS"
+- Fix FutureWarning
+
 version 2.6.1:
 - WARNING: You will need to reset the Kodi database!
 - Fix TV sections not being deleted e.g. after user switch
