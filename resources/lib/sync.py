@@ -9,6 +9,9 @@ from . import library_sync, timing
 from . import backgroundthread, utils, artwork, variables as v, app
 from . import kodi_db
 
+if library_sync.PLAYLIST_SYNC_ENABLED:
+    from . import playlists
+
 LOG = getLogger('PLEX.sync')
 
 
@@ -208,7 +211,6 @@ class Sync(backgroundthread.KillableThread):
                     initial_sync_done = True
                     utils.settings('dbCreatedWithVersion', v.ADDON_VERSION)
                     if library_sync.PLAYLIST_SYNC_ENABLED:
-                        from . import playlists
                         playlist_monitor = playlists.kodi_playlist_monitor()
                     self.start_fanart_download(refresh=False)
                     self.start_image_cache_thread()
@@ -227,7 +229,6 @@ class Sync(backgroundthread.KillableThread):
                     initial_sync_done = True
                     LOG.info('Done initial sync on Kodi startup')
                     if library_sync.PLAYLIST_SYNC_ENABLED:
-                        from . import playlists
                         playlist_monitor = playlists.kodi_playlist_monitor()
                     self.start_fanart_download(refresh=False)
                     self.start_image_cache_thread()
