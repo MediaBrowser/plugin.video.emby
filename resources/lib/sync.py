@@ -135,7 +135,7 @@ class Sync(backgroundthread.KillableThread):
             LOG.info('Not synching Plex artwork - not caching')
             return
         if self.image_cache_thread and self.image_cache_thread.is_alive():
-            self.image_cache_thread.cancel()
+            self.image_cache_thread.abort()
             self.image_cache_thread.join()
         self.image_cache_thread = artwork.ImageCachingThread()
         self.image_cache_thread.start()
