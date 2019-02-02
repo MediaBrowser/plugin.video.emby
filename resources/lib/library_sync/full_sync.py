@@ -13,13 +13,9 @@ from .. import utils, timing, backgroundthread, variables as v, app
 from .. import plex_functions as PF, itemtypes
 from ..plex_db import PlexDB
 
-if (v.PLATFORM != 'Microsoft UWP' and
-        utils.settings('enablePlaylistSync') == 'true'):
-    # Xbox cannot use watchdog, a dependency for PKC playlist features
+if common.PLAYLIST_SYNC_ENABLED:
     from .. import playlists
-    PLAYLIST_SYNC_ENABLED = True
-else:
-    PLAYLIST_SYNC_ENABLED = False
+
 
 LOG = getLogger('PLEX.sync.full_sync')
 # How many items will be put through the processing chain at once?
@@ -411,7 +407,7 @@ class FullSync(common.fullsync_mixin):
             if self.isCanceled():
                 self.successful = False
                 return
-            if PLAYLIST_SYNC_ENABLED and not playlists.full_sync():
+            if common.PLAYLIST_SYNC_ENABLED and not playlists.full_sync():
                 self.successful = False
                 return
         finally:

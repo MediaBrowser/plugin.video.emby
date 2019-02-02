@@ -3,14 +3,16 @@
 from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
 
-from .common import update_kodi_library
-from .full_sync import PLAYLIST_SYNC_ENABLED
+from .common import update_kodi_library, PLAYLIST_SYNC_ENABLED
 from .fanart import SYNC_FANART, FanartTask
 from ..plex_api import API
 from ..plex_db import PlexDB
 from .. import kodi_db
-from .. import backgroundthread, playlists, plex_functions as PF, itemtypes
+from .. import backgroundthread, plex_functions as PF, itemtypes
 from .. import artwork, utils, timing, variables as v, app
+
+if PLAYLIST_SYNC_ENABLED:
+    from .. import playlists
 
 LOG = getLogger('PLEX.sync.websocket')
 
