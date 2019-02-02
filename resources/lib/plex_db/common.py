@@ -100,13 +100,14 @@ class PlexDBBase(object):
         method = getattr(self, 'entry_to_%s' % v.PLEX_TYPE_FROM_KODI_TYPE[kodi_type])
         return method(self.cursor.fetchone())
 
-    def plex_id_by_last_sync(self, plex_type, last_sync):
+    def plex_id_by_last_sync(self, plex_type, last_sync, limit):
         """
         Returns an iterator for all items where the last_sync is NOT identical
         """
-        return (x[0] for x in
-                self.cursor.execute('SELECT plex_id FROM %s WHERE last_sync <> ?' % plex_type,
-                                    (last_sync, )))
+        query = '''
+            SELECT plex_id FROM %s WHERE last_sync <> ? LIMIT %s
+        ''' % (plex_type, limit)
+        return (x[0] for x in self.cursor.execute(query, (last_sync, )))
 
     def checksum(self, plex_id, plex_type):
         """
