@@ -62,7 +62,7 @@ class ImageCachingThread(backgroundthread.KillableThread):
         LOG.info("---===### Starting ImageCachingThread ###===---")
         try:
             self._run()
-        except:
+        except Exception:
             utils.ERROR()
         finally:
             LOG.info("---===### Stopped ImageCachingThread ###===---")

@@ -41,7 +41,7 @@ class FanartThread(backgroundthread.KillableThread):
     def run(self):
         try:
             self._run_internal()
-        except:
+        except Exception:
             utils.ERROR(notify=True)
 
     def _run_internal(self):

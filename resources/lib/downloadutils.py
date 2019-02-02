@@ -84,21 +84,23 @@ class DownloadUtils():
     def stopSession(self):
         try:
             self.s.close()
-        except:
+        except Exception:
             LOG.info("Requests session already closed")
         try:
             del self.s
-        except:
+        except AttributeError:
             pass
         LOG.info('Request session stopped')
 
-    def getHeader(self, options=None):
+    @staticmethod
+    def getHeader(options=None):
         header = clientinfo.getXArgsDeviceInfo()
         if options is not None:
             header.update(options)
         return header
 
-    def _doDownload(self, s, action_type, **kwargs):
+    @staticmethod
+    def _doDownload(s, action_type, **kwargs):
         if action_type == "GET":
             r = s.get(**kwargs)
         elif action_type == "POST":
@@ -201,7 +203,7 @@ class DownloadUtils():
             LOG.info('SystemExit detected, aborting download')
             self.stopSession()
 
-        except:
+        except Exception:
             LOG.warn('Unknown error while downloading. Traceback:')
             import traceback
             LOG.warn(traceback.format_exc())
@@ -255,7 +257,7 @@ class DownloadUtils():
                     # xml response
                     r = utils.defused_etree.fromstring(r.content)
                     return r
-                except:
+                except Exception:
                     r.encoding = 'utf-8'
                     if r.text == '':
                         # Answer does not contain a body
@@ -264,7 +266,7 @@ class DownloadUtils():
                         # UNICODE - JSON object
                         r = r.json()
                         return r
-                    except:
+                    except Exception:
                         if '200 OK' in r.text:
                             # Received fucked up OK from PMS on playstate
                             # update

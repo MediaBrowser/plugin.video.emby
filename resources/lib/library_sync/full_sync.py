@@ -65,6 +65,10 @@ class FullSync(common.fullsync_mixin):
         self.title = ''
         self.section = None
         self.section_name = None
+        self.section_type_text = None
+        self.context = None
+        self.get_children = None
+        self.successful = None
         self.install_sync_done = utils.settings('SyncInstallRunDone') == 'true'
         self.threader = backgroundthread.ThreaderManager(
             worker=backgroundthread.NonstoppingBackgroundWorker,
@@ -181,7 +185,7 @@ class FullSync(common.fullsync_mixin):
             while True:
                 # Check Plex DB to see what we need to add/update
                 with PlexDB() as self.plexdb:
-                    for i, (last, xml_item) in enumerate(loop):
+                    for last, xml_item in loop:
                         if self.isCanceled():
                             return False
                         self.process_item(xml_item)
@@ -428,7 +432,4 @@ class FullSync(common.fullsync_mixin):
 
 
 def start(show_dialog, repair=False, callback=None):
-    """
-    """
-    # FullSync(repair, callback, show_dialog).start()
     FullSync(repair, callback, show_dialog).run()
