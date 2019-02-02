@@ -372,12 +372,17 @@ class FullSync(common.fullsync_mixin):
             ])
         for plex_type, context in kinds:
             # Delete movies that are not on Plex anymore
-            with context(self.current_sync) as ctx:
-                for plex_id in ctx.plexdb.plex_id_by_last_sync(plex_type,
-                                                               self.current_sync):
-                    if self.isCanceled():
-                        return False
-                    ctx.remove(plex_id, plex_type)
+            while True:
+                with context(self.current_sync) as ctx:
+                    plex_ids = list(ctx.plexdb.plex_id_by_last_sync(plex_type,
+                                                                    self.current_sync,
+                                                                    BATCH_SIZE))
+                    for plex_id in plex_ids:
+                        if self.isCanceled():
+                            return False
+                        ctx.remove(plex_id, plex_type)
+                if len(plex_ids) < BATCH_SIZE:
+                    break
         LOG.debug('Done deleting')
         return True
 
