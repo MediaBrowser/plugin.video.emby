@@ -3,7 +3,10 @@
 from __future__ import absolute_import, division, unicode_literals
 import xbmc
 
-from .. import app
+from .. import app, utils, variables as v
+
+PLAYLIST_SYNC_ENABLED = (v.PLATFORM != 'Microsoft UWP' and
+                         utils.settings('enablePlaylistSync') == 'true')
 
 
 class libsync_mixin(object):
