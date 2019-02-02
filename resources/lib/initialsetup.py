@@ -314,7 +314,7 @@ class InitialSetup(object):
                      heading='{plex}',
                      message=utils.lang(30001),
                      icon='{plex}',
-                     time=5000)
+                     time=60000)
         while True:
             if https_updated is False:
                 serverlist = PF.discover_pms(self.plex_token)
@@ -343,6 +343,8 @@ class InitialSetup(object):
                         dialoglist.append('%s (%s)'
                                           % (server['name'], msg))
                 # Let user pick server from a list
+                # Close the PKC info "Searching for PMS"
+                executebuiltin("Dialog.Close(all, true)")
                 resp = utils.dialog('select', utils.lang(39012), dialoglist)
                 if resp == -1:
                     # User cancelled
