@@ -40,16 +40,12 @@ class DownloadUtils():
     def __init__(self):
         self.__dict__ = self._shared_state
 
-    def setSSL(self, verifySSL=None, certificate=None):
+    def setSSL(self):
         """
-        verifySSL must be 'true' to enable certificate validation
-
         certificate must be path to certificate or 'None'
         """
-        if verifySSL is None:
-            verifySSL = app.CONN.verify_ssl_cert
-        if certificate is None:
-            certificate = app.CONN.ssl_cert_path
+        verifySSL = app.CONN.verify_ssl_cert
+        certificate = app.CONN.ssl_cert_path
         # Set the session's parameters
         self.s.verify = verifySSL
         if certificate:
