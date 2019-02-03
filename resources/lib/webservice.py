@@ -121,7 +121,7 @@ class requestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             if not params:
                 raise IndexError("Incomplete URL format")
 
-            if not params.get('Id').isdigit():
+            if "extrafanart" in params.get('Id'):
                 raise IndexError("Incorrect Id format %s" % params.get('Id'))
 
             xbmc.log("[ webservice ] path: %s params: %s" % (str(self.path), str(params)), xbmc.LOGWARNING)
