@@ -52,12 +52,9 @@ class MusicMixin(object):
                                       db_item['kodi_type'],
                                       userdata['UserRating'])
         if plex_type == v.PLEX_TYPE_SONG:
-            self.kodidb.set_resume(db_item['kodi_fileid'],
-                                   userdata['Resume'],
-                                   userdata['Runtime'],
-                                   userdata['PlayCount'],
-                                   userdata['LastPlayedDate'],
-                                   plex_type)
+            self.kodidb.set_playcount(userdata['PlayCount'],
+                                      userdata['LastPlayedDate'],
+                                      db_item['kodi_id'],)
         return True
 
     def remove(self, plex_id, plex_type=None):
