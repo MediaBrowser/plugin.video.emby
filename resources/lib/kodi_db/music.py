@@ -460,6 +460,15 @@ class KodiMusicDB(common.KodiDBBase):
         ''', (args))
 
     @common.catch_operationalerrors
+    def set_playcount(self, *args):
+        self.cursor.execute('''
+            UPDATE song
+            SET iTimesPlayed = ?,
+                lastplayed = ?
+            WHERE idSong = ?
+        ''', (args))
+
+    @common.catch_operationalerrors
     def update_song_17(self, *args):
         self.cursor.execute('''
             UPDATE song

@@ -323,6 +323,11 @@ class FullSync(common.fullsync_mixin):
         if self.successful:
             # Set timestamp for next sync - neglecting playstates!
             utils.settings('lastfullsync', value=str(int(self.current_sync)))
+        # In order to not delete all your songs again
+        if app.SYNC.enable_music:
+            kinds.extend([
+                (v.PLEX_TYPE_SONG, v.PLEX_TYPE_ARTIST, itemtypes.Song, True),
+            ])
         # SYNC PLAYSTATE of ALL items (otherwise we won't pick up on items that
         # were set to unwatched). Also mark all items on the PMS to be able
         # to delete the ones still in Kodi
