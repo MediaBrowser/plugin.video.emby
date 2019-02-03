@@ -481,7 +481,7 @@ class Service():
                         PF.check_connection,
                         self.on_connection_check,
                         server,
-                        verifySSL=True)
+                        verifySSL=app.CONN.verify_ssl_cert)
                     backgroundthread.BGThreader.addTasksToFront([task])
                     continue
             elif not app.ACCOUNT.authenticated:

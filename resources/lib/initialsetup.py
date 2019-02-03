@@ -212,7 +212,8 @@ class InitialSetup(object):
         not set before
         """
         answer = True
-        chk = PF.check_connection(app.CONN.server, verifySSL=False)
+        chk = PF.check_connection(app.CONN.server,
+                                  verifySSL=True if v.KODIVERSION >= 18 else False)
         if chk is False:
             LOG.warn('Could not reach PMS %s', app.CONN.server)
             answer = False
@@ -245,8 +246,8 @@ class InitialSetup(object):
         if server['local']:
             url = ('%s://%s:%s'
                    % (server['scheme'], server['ip'], server['port']))
-            # Deactive SSL verification if the server is local!
-            verifySSL = False
+            # Deactive SSL verification if the server is local for Kodi 17
+            verifySSL = True if v.KODIVERSION >= 18 else False
         else:
             url = server['baseURL']
             verifySSL = True
