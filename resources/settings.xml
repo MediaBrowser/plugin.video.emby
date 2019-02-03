@@ -21,8 +21,10 @@
 	<category label="Plex">
 		<setting type="lsep" label="plex.tv"/>
 		<setting id="plex_status" label="39071" type="text" default="Not logged in to plex.tv" enable="false" /><!-- Current plex.tv status: -->
-		<setting id="plexLogin" label="39228" type="text" default="" enable="false" />
+		<setting id="plexLogin" label="39228" type="text" default="" enable="false" /><!-- Plex admin user -->
+        <setting id="username" label="39230" type="text" default="" enable="false" /><!-- Logged in Plex home user -->
 		<setting id="myplexlogin" label="39025" type="bool" default="true" /> <!-- Log into plex.tv on startup -->
+        <setting label="[COLOR yellow]$ADDON[plugin.video.plexkodiconnect 39231][/COLOR]" type="action" action="RunPlugin(plugin://plugin.video.plexkodiconnect?mode=switchuser)" option="close" /><!-- Change logged in Plex home user -->
 		<setting label="[COLOR yellow]$ADDON[plugin.video.plexkodiconnect 39209][/COLOR]" type="action" action="RunPlugin(plugin://plugin.video.plexkodiconnect?mode=togglePlexTV)" option="close" /><!-- Toggle plex.tv login (sign in or sign out) -->
 		<setting id="plexToken" label="plexToken" type="text" default="" visible="false" />
         <setting type="sep" text=""/>
@@ -47,7 +49,6 @@
         <setting id="dbCreatedWithVersion" type="text" default="" visible="false"/>
         <setting id="plexid" type="text" default="" visible="false"/>
         <setting id="userid" type="text" default="" visible="false"/>
-        <setting id="username" type="text" default="" visible="false"/>
 	</category>
 
 	<category label="30506"><!-- Sync Options -->
