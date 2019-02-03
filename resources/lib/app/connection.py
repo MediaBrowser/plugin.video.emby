@@ -3,7 +3,7 @@
 from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
 
-from .. import utils, json_rpc as js
+from .. import utils, json_rpc as js, variables as v
 
 LOG = getLogger('PLEX.connection')
 
@@ -38,7 +38,9 @@ class Connection(object):
     def load(self):
         LOG.debug('Loading connection settings')
         # Shall we verify SSL certificates? "None" will leave SSL enabled
-        self.verify_ssl_cert = None if utils.settings('sslverify') == 'true' \
+        # Ignore this setting for Kodi >= 18 as Kodi 18 is much stricter
+        # with checking SSL certs
+        self.verify_ssl_cert = None if v.KODIVERSION >= 18 or utils.settings('sslverify') == 'true' \
             else False
         # Do we have an ssl certificate for PKC we need to use?
         self.ssl_cert_path = utils.settings('sslcert') \
@@ -61,7 +63,7 @@ class Connection(object):
                   self.server_name, self.machine_identifier, self.server)
 
     def load_entrypoint(self):
-        self.verify_ssl_cert = None if utils.settings('sslverify') == 'true' \
+        self.verify_ssl_cert = None if v.KODIVERSION >= 18 or utils.settings('sslverify') == 'true' \
             else False
         self.ssl_cert_path = utils.settings('sslcert') \
             if utils.settings('sslcert') != 'None' else None

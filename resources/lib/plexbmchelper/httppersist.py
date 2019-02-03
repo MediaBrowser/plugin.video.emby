@@ -70,7 +70,7 @@ class RequestMgr:
             # Close connection just in case
             try:
                 conn.close()
-            except:
+            except Exception:
                 pass
             return False
 

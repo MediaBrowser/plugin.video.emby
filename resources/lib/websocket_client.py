@@ -237,7 +237,7 @@ class Alexa_Websocket(WebSocket):
                 LOG.error('%s: Unknown Alexa message received',
                           self.__class__.__name__)
                 return
-        except:
+        except Exception:
             LOG.error('%s: Could not parse Alexa message',
                       self.__class__.__name__)
             return

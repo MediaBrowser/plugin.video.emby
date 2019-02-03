@@ -146,7 +146,7 @@ class Sync(backgroundthread.KillableThread):
     def run(self):
         try:
             self._run_internal()
-        except:
+        except Exception:
             app.SYNC.db_scan = False
             utils.window('plex_dbScan', clear=True)
             utils.ERROR(txt='sync.py crashed', notify=True)

@@ -131,7 +131,11 @@ def check_connection(url, token=None, verifySSL=None):
     if token is not None:
         header_options = {'X-Plex-Token': token}
     if verifySSL is True:
-        verifySSL = None if utils.settings('sslverify') == 'true' else False
+        if v.KODIVERSION >= 18:
+            # Always verify with Kodi >= 18
+            verifySSL = True
+        else:
+            verifySSL = True if utils.settings('sslverify') == 'true' else False
     if 'plex.tv' in url:
         url = 'https://plex.tv/api/home/users'
     LOG.debug("Checking connection to server %s with verifySSL=%s",
@@ -424,7 +428,7 @@ def _poke_pms(pms, queue):
     xml = DU().downloadUrl('%s/identity' % url,
                            authenticate=False,
                            headerOptions={'X-Plex-Token': pms['token']},
-                           verifySSL=False,
+                           verifySSL=True if v.KODIVERSION >= 18 else False,
                            timeout=10)
     try:
         xml.attrib['machineIdentifier']
@@ -804,14 +808,14 @@ def _pms_https_enabled(url):
     """
     res = DU().downloadUrl('https://%s/identity' % url,
                            authenticate=False,
-                           verifySSL=False)
+                           verifySSL=True if v.KODIVERSION >= 18 else False)
     try:
         res.attrib
     except AttributeError:
         # Might have SSL deactivated. Try with http
         res = DU().downloadUrl('http://%s/identity' % url,
                                authenticate=False,
-                               verifySSL=False)
+                               verifySSL=True if v.KODIVERSION >= 18 else False)
         try:
             res.attrib
         except AttributeError:
@@ -833,8 +837,9 @@ def GetMachineIdentifier(url):
     """
     xml = DU().downloadUrl('%s/identity' % url,
                            authenticate=False,
-                           verifySSL=False,
-                           timeout=10)
+                           verifySSL=True if v.KODIVERSION >= 18 else False,
+                           timeout=10,
+                           reraise=True)
     try:
         machineIdentifier = xml.attrib['machineIdentifier']
     except (AttributeError, KeyError):
@@ -937,6 +942,17 @@ def delete_item_from_pms(plexid):
     return False
 
 
+def pms_root(url, token):
+    """
+    Retrieve the PMS' most basic settings by retrieving <url>/
+    """
+    return DU().downloadUrl(
+        url,
+        authenticate=False,
+        verifySSL=True if v.KODIVERSION >= 18 else False,
+        headerOptions={'X-Plex-Token': token} if token else None)
+
+
 def get_PMS_settings(url, token):
     """
     Retrieve the PMS' settings via <url>/:/prefs
@@ -946,7 +962,7 @@ def get_PMS_settings(url, token):
     return DU().downloadUrl(
         '%s/:/prefs' % url,
         authenticate=False,
-        verifySSL=False,
+        verifySSL=True if v.KODIVERSION >= 18 else False,
         headerOptions={'X-Plex-Token': token} if token else None)
 
 

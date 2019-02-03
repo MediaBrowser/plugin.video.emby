@@ -495,12 +495,6 @@ class API(object):
         """
         pass
 
-    def votecount(self):
-        """
-        Not yet implemented
-        """
-        pass
-
     def tagline(self):
         """
         Returns a shorter tagline or None
@@ -1517,7 +1511,7 @@ class API(object):
             return
         try:
             date = sub(r'(\d+)-(\d+)-(\d+)', r'\3.\2.\1', date)
-        except:
+        except Exception:
             date = None
         return date
 

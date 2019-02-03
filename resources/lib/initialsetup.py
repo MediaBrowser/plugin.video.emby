@@ -9,7 +9,7 @@ from . import utils
 from .utils import etree
 from . import path_ops
 from . import migration
-from .downloadutils import DownloadUtils as DU
+from .downloadutils import DownloadUtils as DU, exceptions
 from . import plex_functions as PF
 from . import plex_tv
 from . import json_rpc as js
@@ -70,46 +70,81 @@ class InitialSetup(object):
                 utils.window('plex_allows_mediaDeletion', value=value)
 
     def enter_new_pms_address(self):
+        LOG.info('Start getting manual PMS address and port')
         # "Enter your Plex Media Server's IP or URL. Examples are:"
         utils.messageDialog(utils.lang(29999),
                             '%s\n%s\n%s' % (utils.lang(39215),
                                             '192.168.1.2',
                                             'plex.myServer.org'))
-        address = utils.dialog('input', "Enter PMS IP or URL")
-        if address == '':
+        # "Enter PMS IP or URL"
+        address = utils.dialog('input', utils.lang(39083))
+        if not address:
             return False
-        port = utils.dialog('input', "Enter PMS port", '32400', type='{numeric}')
-        if port == '':
+        port = utils.dialog('input', utils.lang(39084), '32400', type='{numeric}')
+        if not port:
             return False
         url = '%s:%s' % (address, port)
-        # "Does your Plex Media Server support SSL connections?
-        # (https instead of http)"
+        # "Use HTTPS (SSL) connections? With Kodi 18 or later, HTTPS will likely
+        # not work!"
         https = utils.yesno_dialog(utils.lang(29999), utils.lang(39217))
         if https:
             url = 'https://%s' % url
         else:
             url = 'http://%s' % url
         https = 'true' if https else 'false'
-        machine_identifier = PF.GetMachineIdentifier(url)
-        if machine_identifier is None:
-            # "Error contacting url
-            # Abort (Yes) or save address anyway (No)"
-            if utils.yesno_dialog(utils.lang(29999),
-                                  '%s %s. %s' % (utils.lang(39218),
-                                                 url,
-                                                 utils.lang(39219))):
-                return False
-            else:
-                utils.settings('plex_machineIdentifier', '')
-        else:
-            utils.settings('plex_machineIdentifier', machine_identifier)
-        LOG.info('Set new PMS to https %s, address %s, port %s, machineId %s',
-                 https, address, port, machine_identifier)
-        utils.settings('https', value=https)
-        utils.settings('ipaddress', value=address)
-        utils.settings('port', value=port)
-        # Chances are this is a local PMS, so disable SSL certificate check
-        utils.settings('sslverify', value='false')
+        # Try to connect first
+        error = False
+        try:
+            machine_identifier = PF.GetMachineIdentifier(url)
+        except exceptions.SSLError:
+            LOG.error('SSL cert error contacting %s', url)
+            # "SSL certificate failed to validate. Please check {0}
+            # for solutions."
+            utils.messageDialog(utils.lang(29999),
+                                utils.lang(30503).format('github.com/croneter/PlexKodiConnect/issues'))
+            return
+        except Exception:
+            error = True
+        if error or machine_identifier is None:
+            LOG.error('Could not even get a machineIdentifier for %s', url)
+            # "Server is unreachable"
+            utils.messageDialog(utils.lang(29999), utils.lang(33002))
+            return
+        # Let's use the main account's token, not managed user token
+        token = utils.settings('plexToken')
+        xml = PF.pms_root(url, token)
+        if xml == 401:
+            LOG.error('Not yet authorized for %s', url)
+            # "User is unauthorized for server {0}",
+            # "Please sign in to plex.tv."
+            utils.messageDialog(utils.lang(29999),
+                                '%s. %s' % (utils.lang(33010).format(address),
+                                            utils.lang(39014)))
+            return
+        try:
+            xml[0].attrib
+        except (IndexError, TypeError, AttributeError):
+            LOG.error('Could not get PMS root directory for %s', url)
+            # "Error contacting PMS"
+            utils.messageDialog(utils.lang(29999), utils.lang(39218))
+            return
+        pms = {
+            'baseURL': url,
+            'ip': address,
+            # Assume PMS is not local so we're not resetting verifyssl
+            'local': False,
+            'machineIdentifier': xml.get('machineIdentifier'),
+            'name': xml.get('friendlyName'),
+            # Assume that we own this PMS - no easy way to check
+            'owned': True,
+            'platform': xml.get('platform'),
+            'port': port,
+            # 'relay': True,
+            'scheme': 'https' if https else 'http',
+            'token': token,
+            'version': xml.get('version')
+        }
+        return pms
 
     def plex_tv_sign_in(self):
         """
@@ -177,7 +212,8 @@ class InitialSetup(object):
         not set before
         """
         answer = True
-        chk = PF.check_connection(app.CONN.server, verifySSL=False)
+        chk = PF.check_connection(app.CONN.server,
+                                  verifySSL=True if v.KODIVERSION >= 18 else False)
         if chk is False:
             LOG.warn('Could not reach PMS %s', app.CONN.server)
             answer = False
@@ -210,8 +246,8 @@ class InitialSetup(object):
         if server['local']:
             url = ('%s://%s:%s'
                    % (server['scheme'], server['ip'], server['port']))
-            # Deactive SSL verification if the server is local!
-            verifySSL = False
+            # Deactive SSL verification if the server is local for Kodi 17
+            verifySSL = True if v.KODIVERSION >= 18 else False
         else:
             url = server['baseURL']
             verifySSL = True

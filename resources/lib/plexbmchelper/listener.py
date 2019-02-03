@@ -93,7 +93,7 @@ class MyHandler(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(body)
             self.wfile.close()
-        except:
+        except Exception:
             pass
 
     def answer_request(self, send_data):

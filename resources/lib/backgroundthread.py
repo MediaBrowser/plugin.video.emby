@@ -131,12 +131,12 @@ class Tasks(list):
 
 class Task(object):
     def __init__(self, priority=None):
-        self._priority = priority
+        self.priority = priority
         self._canceled = False
         self.finished = False
 
     def __cmp__(self, other):
-        return self._priority - other._priority
+        return self.priority - other.priority
 
     def start(self):
         BGThreader.addTask(self)
@@ -182,7 +182,7 @@ class MutablePriorityQueue(Queue.PriorityQueue):
         self.mutex.acquire()
         try:
             lowest = self.queue and min(self.queue) or None
-        except:
+        except Exception:
             lowest = None
             utils.ERROR()
         finally:
@@ -203,7 +203,7 @@ class BackgroundWorker(object):
             return
         try:
             task._run()
-        except:
+        except Exception:
             utils.ERROR()
 
     def abort(self):
@@ -275,12 +275,12 @@ class BackgroundThreader:
         self.name = name
         self._queue = MutablePriorityQueue()
         self._abort = False
-        self._priority = -1
+        self.priority = -1
         self.workers = [worker(self._queue, 'queue.{0}:worker.{1}'.format(self.name, x)) for x in range(worker_count)]
 
     def _nextPriority(self):
-        self._priority += 1
-        return self._priority
+        self.priority += 1
+        return self.priority
 
     def abort(self):
         self._abort = True
@@ -298,13 +298,13 @@ class BackgroundThreader:
             w.shutdown()
 
     def addTask(self, task):
-        task._priority = self._nextPriority()
+        task.priority = self._nextPriority()
         self._queue.put(task)
         self.startWorkers()
 
     def addTasks(self, tasks):
         for t in tasks:
-            t._priority = self._nextPriority()
+            t.priority = self._nextPriority()
             self._queue.put(t)
 
         self.startWorkers()
@@ -316,7 +316,7 @@ class BackgroundThreader:
 
         p = lowest - len(tasks)
         for t in tasks:
-            t._priority = p
+            t.priority = p
             self._queue.put(t)
             p += 1
 
@@ -337,14 +337,14 @@ class BackgroundThreader:
         if not lowest:
             return None
 
-        return lowest._priority
+        return lowest.priority
 
     def moveToFront(self, qitem):
         lowest = self.getLowestPrority()
         if lowest is None:
             return
 
-        qitem._priority = lowest - 1
+        qitem.priority = lowest - 1
 
 
 class ThreaderManager:
