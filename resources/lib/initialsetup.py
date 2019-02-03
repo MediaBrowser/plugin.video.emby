@@ -70,20 +70,22 @@ class InitialSetup(object):
                 utils.window('plex_allows_mediaDeletion', value=value)
 
     def enter_new_pms_address(self):
+        LOG.info('Start getting manual PMS address and port')
         # "Enter your Plex Media Server's IP or URL. Examples are:"
         utils.messageDialog(utils.lang(29999),
                             '%s\n%s\n%s' % (utils.lang(39215),
                                             '192.168.1.2',
                                             'plex.myServer.org'))
-        address = utils.dialog('input', "Enter PMS IP or URL")
-        if address == '':
+        # "Enter PMS IP or URL"
+        address = utils.dialog('input', utils.lang(39083))
+        if not address:
             return False
-        port = utils.dialog('input', "Enter PMS port", '32400', type='{numeric}')
-        if port == '':
+        port = utils.dialog('input', utils.lang(39084), '32400', type='{numeric}')
+        if not port:
             return False
         url = '%s:%s' % (address, port)
-        # "Does your Plex Media Server support SSL connections?
-        # (https instead of http)"
+        # "Use HTTPS (SSL) connections? With Kodi 18 or later, HTTPS will likely
+        # not work!"
         https = utils.yesno_dialog(utils.lang(29999), utils.lang(39217))
         if https:
             url = 'https://%s' % url
@@ -92,6 +94,7 @@ class InitialSetup(object):
         https = 'true' if https else 'false'
         machine_identifier = PF.GetMachineIdentifier(url)
         if machine_identifier is None:
+            LOG.error('Could not get machine identifier')
             # "Error contacting url
             # Abort (Yes) or save address anyway (No)"
             if utils.yesno_dialog(utils.lang(29999),
@@ -100,6 +103,7 @@ class InitialSetup(object):
                                                  utils.lang(39219))):
                 return False
             else:
+                LOG.info('Saving manual address anyway')
                 utils.settings('plex_machineIdentifier', '')
         else:
             utils.settings('plex_machineIdentifier', machine_identifier)

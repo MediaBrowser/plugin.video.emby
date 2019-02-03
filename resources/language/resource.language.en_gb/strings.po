@@ -1081,6 +1081,16 @@ msgctxt "#39082"
 msgid "Direct Paths"
 msgstr ""
 
+# Dialog for manually entering PMS 
+msgctxt "#39083"
+msgid "Enter PMS IP or URL"
+msgstr ""
+
+# Dialog for manually entering PMS 
+msgctxt "#39084"
+msgid "Enter PMS port"
+msgstr ""
+
 msgctxt "#39200"
 msgid "Log-out Plex Home User "
 msgstr ""
@@ -1133,7 +1143,7 @@ msgid "Enter your Plex Media Server's IP or URL, Examples are:"
 msgstr ""
 
 msgctxt "#39217"
-msgid "Does your Plex Media Server support SSL connections? (https instead of http)?"
+msgid "Use HTTPS (SSL) connections? With Kodi 18 or later, HTTPS will likely not work!"
 msgstr ""
 
 msgctxt "#39218"
