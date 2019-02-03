@@ -694,7 +694,7 @@ class KodiVideoDB(common.KodiDBBase):
                 SET tag_id = ?
                 WHERE media_id = ? AND media_type = ? AND tag_id = ?
             ''', (newtag, kodiid, mediatype, oldtag,))
-        except:
+        except Exception:
             # The new tag we are going to apply already exists for this item
             # delete current tag instead
             self.cursor.execute('''

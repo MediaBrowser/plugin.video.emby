@@ -705,7 +705,7 @@ class WebSocket(object):
         """
         try:
             self.sock.shutdown(socket.SHUT_RDWR)
-        except:
+        except Exception:
             pass
         self._closeInternal()
 

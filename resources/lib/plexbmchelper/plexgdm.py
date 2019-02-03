@@ -95,7 +95,7 @@ class plexgdm:
                                     % (self.client_header, self.client_data),
                                     self.client_register_group)
             log.debug('(Re-)registering PKC Plex Companion successful')
-        except:
+        except Exception:
             log.error("Unable to send registration message")
 
     def client_update(self):
@@ -109,14 +109,14 @@ class plexgdm:
             update_sock.setsockopt(socket.SOL_SOCKET,
                                    socket.SO_REUSEADDR,
                                    1)
-        except:
+        except Exception:
             pass
 
         # Attempt to bind to the socket to recieve and send data.  If we cant
         # do this, then we cannot send registration
         try:
             update_sock.bind(('0.0.0.0', self.client_update_port))
-        except:
+        except Exception:
             log.error("Unable to bind to port [%s] - Plex Companion will not "
                       "be registered. Change the Plex Companion update port!"
                       % self.client_update_port)
@@ -165,7 +165,7 @@ class plexgdm:
                         update_sock.sendto("HTTP/1.0 200 OK\n%s"
                                            % self.client_data,
                                            addr)
-                    except:
+                    except Exception:
                         log.error("Unable to send client update message")
 
                     log.debug("Sending registration data HTTP/1.0 200 OK")
@@ -180,7 +180,7 @@ class plexgdm:
             update_sock.sendto("BYE %s\n%s"
                                % (self.client_header, self.client_data),
                                self.client_register_group)
-        except:
+        except Exception:
             log.error("Unable to send client update message")
         self.client_registered = False
 

@@ -15,7 +15,8 @@ LOG = getLogger('PLEX.videonodes')
 
 class VideoNodes(object):
 
-    def commonRoot(self, order, label, tagname, roottype=1):
+    @staticmethod
+    def commonRoot(order, label, tagname, roottype=1):
 
         if roottype == 0:
             # Index
@@ -113,10 +114,7 @@ class VideoNodes(object):
                                        label=tagname,
                                        tagname=tagname,
                                        roottype=0)
-            try:
-                utils.indent(root)
-            except:
-                pass
+            utils.indent(root)
             etree.ElementTree(root).write(nodeXML, encoding="UTF-8")
 
         nodetypes = {
@@ -406,10 +404,7 @@ class VideoNodes(object):
                     rule = etree.SubElement(root,
                                             'rule',
                                             {'field': "inprogress", 'operator':"true"})
-            try:
-                utils.indent(root)
-            except:
-                pass
+            utils.indent(root)
             etree.ElementTree(root).write(path_ops.encode_path(nodeXML),
                                           encoding="UTF-8")
 
@@ -464,13 +459,11 @@ class VideoNodes(object):
 
         etree.SubElement(root, 'content').text = mediatype
 
-        try:
-            utils.indent(root)
-        except:
-            pass
+        utils.indent(root)
         etree.ElementTree(root).write(nodeXML, encoding="UTF-8")
 
-    def clearProperties(self):
+    @staticmethod
+    def clearProperties():
 
         LOG.info("Clearing nodes properties.")
         plexprops = utils.window('Plex.nodes.total')

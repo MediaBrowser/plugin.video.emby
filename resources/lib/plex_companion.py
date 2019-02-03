@@ -282,7 +282,7 @@ class PlexCompanion(backgroundthread.KillableThread):
                         listener.MyHandler)
                     httpd.timeout = 0.95
                     break
-                except:
+                except Exception:
                     LOG.error("Unable to start PlexCompanion. Traceback:")
                     import traceback
                     LOG.error(traceback.print_exc())
@@ -330,7 +330,7 @@ class PlexCompanion(backgroundthread.KillableThread):
                     subscription_manager.notify()
                     if not httpd:
                         message_count = 0
-            except:
+            except Exception:
                 LOG.warn("Error in loop, continuing anyway. Traceback:")
                 import traceback
                 LOG.warn(traceback.format_exc())
