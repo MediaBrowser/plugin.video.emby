@@ -1,3 +1,12 @@
+version 2.6.4:
+- Fix music items getting deleted on startup
+- Never ignore SSL certificate errors for Kodi >= 18 - just like Kodi 
+- Fix playback not starting at the beginning
+- Improve dialog to manually enter PMS IP and port
+- Show logged in Plex home user in the settings and allow changing it
+- Update German strings
+- Implement Codacy suggestions 
+
 version 2.6.3:
 - Fix PKC crashing on Xbox
 
