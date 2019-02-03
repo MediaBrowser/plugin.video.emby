@@ -1179,14 +1179,24 @@ msgctxt "#39227"
 msgid "Logged in to plex.tv"
 msgstr ""
 
-# Message in the PKC settings to display the plex.tv username. Leave the colon :
+# Message in the PKC settings to display the plex.tv username
 msgctxt "#39228"
-msgid "Plex user:"
+msgid "Plex admin user"
 msgstr ""
 
 # Error message if user could not log in; the actual user name will be appended at the end of the string
 msgctxt "#39229"
 msgid "Login failed with plex.tv for user"
+msgstr ""
+
+# Message in the PKC settings to display the plex.tv username
+msgctxt "#39230"
+msgid "Logged in Plex home user"
+msgstr ""
+
+# Message in the PKC settings to change the logged in Plex home user
+msgctxt "#39231"
+msgid "Change logged in Plex home user"
 msgstr ""
 
 msgctxt "#39250"
