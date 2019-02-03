@@ -424,6 +424,8 @@ def _conclude_playback(playqueue, pos):
         else:
             listitem.setProperty('StartOffset', str(item.offset))
             listitem.setProperty('resumetime', str(item.offset))
+    elif v.KODIVERSION >= 18:
+        listitem.setProperty('StartPercent', '0')
     # Reset the resumable flag
     transfer.send(listitem)
     LOG.info('Done concluding playback')
