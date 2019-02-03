@@ -834,7 +834,8 @@ def GetMachineIdentifier(url):
     xml = DU().downloadUrl('%s/identity' % url,
                            authenticate=False,
                            verifySSL=False,
-                           timeout=10)
+                           timeout=10,
+                           reraise=True)
     try:
         machineIdentifier = xml.attrib['machineIdentifier']
     except (AttributeError, KeyError):
@@ -935,6 +936,17 @@ def delete_item_from_pms(plexid):
         return True
     LOG.error('Could not delete Plex id %s from the PMS', plexid)
     return False
+
+
+def pms_root(url, token):
+    """
+    Retrieve the PMS' most basic settings by retrieving <url>/
+    """
+    return DU().downloadUrl(
+        url,
+        authenticate=False,
+        verifySSL=True if v.KODIVERSION >= 18 else False,
+        headerOptions={'X-Plex-Token': token} if token else None)
 
 
 def get_PMS_settings(url, token):

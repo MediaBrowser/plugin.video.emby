@@ -3,6 +3,7 @@
 from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
 import requests
+import requests.exceptions as exceptions
 
 from . import utils, clientinfo, app
 
@@ -116,7 +117,7 @@ class DownloadUtils():
     def downloadUrl(self, url, action_type="GET", postBody=None,
                     parameters=None, authenticate=True, headerOptions=None,
                     verifySSL=True, timeout=None, return_response=False,
-                    headerOverride=None):
+                    headerOverride=None, reraise=False):
         """
         Override SSL check with verifySSL=False
 
@@ -174,39 +175,55 @@ class DownloadUtils():
             r = self._doDownload(s, action_type, **kwargs)
 
         # THE EXCEPTIONS
-        except requests.exceptions.SSLError as e:
+        except exceptions.SSLError as e:
             LOG.warn("Invalid SSL certificate for: %s", url)
             LOG.warn(e)
+            if reraise:
+                raise
 
-        except requests.exceptions.ConnectionError as e:
+        except exceptions.ConnectionError as e:
             # Connection error
             LOG.warn("Server unreachable at: %s", url)
             LOG.warn(e)
+            if reraise:
+                raise
 
-        except requests.exceptions.Timeout as e:
+        except exceptions.Timeout as e:
             LOG.warn("Server timeout at: %s", url)
             LOG.warn(e)
+            if reraise:
+                raise
 
-        except requests.exceptions.HTTPError as e:
+        except exceptions.HTTPError as e:
             LOG.warn('HTTP Error at %s', url)
             LOG.warn(e)
+            if reraise:
+                raise
 
-        except requests.exceptions.TooManyRedirects as e:
+        except exceptions.TooManyRedirects as e:
             LOG.warn("Too many redirects connecting to: %s", url)
             LOG.warn(e)
+            if reraise:
+                raise
 
-        except requests.exceptions.RequestException as e:
+        except exceptions.RequestException as e:
             LOG.warn("Unknown error connecting to: %s", url)
             LOG.warn(e)
+            if reraise:
+                raise
 
         except SystemExit:
             LOG.info('SystemExit detected, aborting download')
             self.stopSession()
+            if reraise:
+                raise
 
         except Exception:
             LOG.warn('Unknown error while downloading. Traceback:')
             import traceback
             LOG.warn(traceback.format_exc())
+            if reraise:
+                raise
 
         # THE RESPONSE #####
         else:

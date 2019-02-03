@@ -269,14 +269,29 @@ class Service():
         self.auth_running = False
 
     def enter_new_pms_address(self):
-        if self.setup.enter_new_pms_address():
-            app.CONN.load()
-            app.ACCOUNT.reset_session()
-            app.ACCOUNT.set_unauthenticated()
-            self.server_has_been_online = False
-            self.welcome_msg = False
-            # Force a full sync
-            app.SYNC.run_lib_scan = 'full'
+        server = self.setup.enter_new_pms_address()
+        if not server:
+            return
+        if not self.log_out():
+            return False
+            # Save changes to to file
+        self.setup.save_pms_settings(server['baseURL'], server['token'])
+        self.setup.write_pms_to_settings(server)
+        if not v.KODIVERSION >= 18:
+            utils.settings('sslverify', value='false')
+        if not self.log_out():
+            return False
+        # Wipe Kodi and Plex database as well as playlists and video nodes
+        utils.wipe_database()
+        app.CONN.load()
+        app.ACCOUNT.reset_session()
+        app.ACCOUNT.set_unauthenticated()
+        self.server_has_been_online = False
+        self.welcome_msg = False
+        # Force a full sync
+        app.SYNC.run_lib_scan = 'full'
+        LOG.info("Choosing new PMS complete")
+        return True
 
     def _do_auth(self):
         LOG.info('Authenticating user')
