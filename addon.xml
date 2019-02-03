@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <addon  id="plugin.video.emby"
         name="Emby" 
-        version="4.0.3"
+        version="4.0.4"
         provider-name="angelblue05">
   <requires>
     <import addon="xbmc.python" version="2.25.0"/>
@@ -39,10 +39,9 @@
     <news>
       New stable release
       The wiki has been updated, PLEASE READ: https://github.com/MediaBrowser/plugin.video.emby/wiki
-      Fix playback for Kodi Leia
-      Fix masterlock
-      Home videos and pictures now show under videos and picture add-ons
-      Dependencies were updated to 0.14!
+      Dependencies were updated to 0.14! Please keep stable updated.
+      Fix broken icon under report activity
+      Fix manual server address being ignored during setup
     </news>
   </extension>
 </addon>
