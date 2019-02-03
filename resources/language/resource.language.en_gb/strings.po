@@ -464,6 +464,11 @@ msgctxt "#30502"
 msgid "Sync Plex artwork from the PMS (recommended)"
 msgstr ""
 
+# Message shown if SSL HTTPS certificate fails
+msgctxt "#30503"
+msgid "SSL certificate failed to validate. Please check {0} for solutions."
+msgstr ""
+
 # PKC Settings, category name
 msgctxt "#30506"
 msgid "Sync Options"
