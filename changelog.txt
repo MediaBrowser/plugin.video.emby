@@ -1,3 +1,9 @@
+version 2.6.5:
+- Fix extras not playing
+- Hide "Verify SSL certificate" setting for Kodi 18 Krypton
+- Improve logging
+- Update translations
+
 version 2.6.4:
 - Fix music items getting deleted on startup
 - Never ignore SSL certificate errors for Kodi >= 18 - just like Kodi 

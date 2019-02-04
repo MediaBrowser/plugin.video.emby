@@ -205,7 +205,8 @@ class FullSync(common.fullsync_mixin):
 
     @utils.log_time
     def playstate_per_section(self, section):
-        LOG.debug('Processing playstate for library section %s', section)
+        LOG.debug('Processing %s playstates for library section %s',
+                  section['iterator'].total, section)
         try:
             # Sync new, updated and deleted items
             iterator = section['iterator']

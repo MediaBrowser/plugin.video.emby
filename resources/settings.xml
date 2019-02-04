@@ -8,8 +8,8 @@
 		<setting id="port" label="39070" type="text" default="" enable="false" /><!-- Current port: -->
 		<setting id="plex_serverowned" label="30031" type="bool" default="true" /><!-- I own this PMS -->
 		<setting id="https" label="30243" type="bool" default="false" />
-		<setting id="sslverify" subsetting="true" label="30500" type="bool" default="false" visible="eq(-1,true)" />
-		<setting id="sslcert" subsetting="true" label="30501" type="file" default="None" visible="eq(-2,true)" />
+        <setting id="sslcert" subsetting="true" label="30501" type="file" default="None" visible="eq(-1,true)" />
+		<setting id="sslverify" label="30500" type="bool" default="false" visible="String.StartsWith(System.BuildVersion,17.)" /><!-- Verify SSL Certificate (more secure) - Only visible for Kodi 17 Krypton eq(-1,true) +  -->
 		<setting id="show_pms_offline" label="30025" type="bool" default="true" /><!-- Display message if PMS goes offline -->
 
 		<setting type="sep" text=""/>
