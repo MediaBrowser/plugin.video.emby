@@ -894,9 +894,14 @@ def extras(plex_id):
         return
     for item in API(xml[0]).extras():
         api = API(item)
-        listitem = api.create_listitem()
+        path = api.path()
+        # For some reason, the combination of metadata used by
+        # api.create_listitem() breaks the listitem
+        listitem = ListItem(api.title())
+        listitem.setPath(path)
+        listitem.setArt(api.artwork())
         xbmcplugin.addDirectoryItem(handle=int(argv[1]),
-                                    url=api.path(),
+                                    url=path,
                                     listitem=listitem)
     xbmcplugin.endOfDirectory(int(argv[1]))
 
