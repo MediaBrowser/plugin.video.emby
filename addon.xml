@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <addon  id="plugin.video.emby"
         name="Emby" 
-        version="4.0.4"
+        version="4.0.5"
         provider-name="angelblue05">
   <requires>
     <import addon="xbmc.python" version="2.25.0"/>
@@ -40,8 +40,7 @@
       New stable release
       The wiki has been updated, PLEASE READ: https://github.com/MediaBrowser/plugin.video.emby/wiki
       Dependencies were updated to 0.14! Please keep stable updated.
-      Fix broken icon under report activity
-      Fix manual server address being ignored during setup
+      Fix playback with Kodi Leia while using server 3.5
     </news>
   </extension>
 </addon>
