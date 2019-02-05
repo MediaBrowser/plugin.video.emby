@@ -199,29 +199,13 @@ class KodiVideoDB(common.KodiDBBase):
             pass
 
     @common.catch_operationalerrors
-    def remove_file(self, file_id, remove_orphans=True, plex_type=None):
+    def remove_file(self, file_id, remove_orphans=True):
         """
         Removes the entry for file_id from the files table. Will also delete
         entries from the associated tables: bookmark, settings, streamdetails.
         If remove_orphans is true, this method will delete any orphaned path
         entries in the Kodi path table
-
-        Passing plex_type = v.PLEX_TYPE_EPISODE deletes any secondary files for
-        add-on paths
         """
-        if not app.SYNC.direct_paths and plex_type == v.PLEX_TYPE_EPISODE:
-            # Hack for the 2 entries for episodes for addon paths
-            self.cursor.execute('SELECT strFilename FROM files WHERE idFile = ? LIMIT 1',
-                                (file_id, ))
-            filename = self.cursor.fetchone()
-            if not filename:
-                LOG.error('Could not find file_id %s', file_id)
-                return
-            for new_id in self.cursor.execute('SELECT idFile FROM files WHERE strFilename = ? LIMIT 2',
-                                              (filename[0], )):
-                self.remove_file(new_id[0], remove_orphans=remove_orphans)
-            return
-
         self.cursor.execute('SELECT idPath FROM files WHERE idFile = ? LIMIT 1',
                             (file_id,))
         try:
@@ -612,31 +596,11 @@ class KodiVideoDB(common.KodiDBBase):
 
     @common.catch_operationalerrors
     def set_resume(self, file_id, resume_seconds, total_seconds, playcount,
-                   dateplayed, plex_type):
+                   dateplayed):
         """
         Adds a resume marker for a video library item. Will even set 2,
         considering add-on path widget hacks.
         """
-        if not app.SYNC.direct_paths and plex_type == v.PLEX_TYPE_EPISODE:
-            # Need to make sure to set a SECOND bookmark entry for another,
-            # second file_id that points to the path .tvshows instead of
-            # .tvshows/<plex show id/!
-            self.cursor.execute('SELECT strFilename FROM files WHERE idFile = ? LIMIT 1',
-                                (file_id, ))
-            try:
-                filename = self.cursor.fetchone()[0]
-            except TypeError:
-                LOG.error('Did not get a filename, aborting for file_id %s',
-                          file_id)
-                return
-            self.cursor.execute('SELECT idFile FROM files WHERE strFilename = ? LIMIT 2',
-                                (filename, ))
-            file_ids = self.cursor.fetchall()
-            for new_id in file_ids:
-                self.set_resume(new_id[0], resume_seconds, total_seconds,
-                                playcount, dateplayed, None)
-            return
-
         # Delete existing resume point
         self.cursor.execute('DELETE FROM bookmark WHERE idFile = ?', (file_id,))
         # Set watched count

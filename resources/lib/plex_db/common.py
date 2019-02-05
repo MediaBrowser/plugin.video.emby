@@ -239,6 +239,7 @@ def initialize():
                     parent_id INTEGER,
                     kodi_id INTEGER,
                     kodi_fileid INTEGER,
+                    kodi_fileid_2 INTEGER,
                     kodi_pathid INTEGER,
                     fanart_synced INTEGER,
                     last_sync INTEGER)

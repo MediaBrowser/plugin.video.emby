@@ -59,7 +59,7 @@ class TVShows(object):
 
     def add_episode(self, plex_id, checksum, section_id, show_id,
                     grandparent_id, season_id, parent_id, kodi_id, kodi_fileid,
-                    kodi_pathid, last_sync):
+                    kodi_fileid_2, kodi_pathid, last_sync):
         """
         Appends or replaces an entry into the plex table
         """
@@ -75,10 +75,11 @@ class TVShows(object):
                 parent_id,
                 kodi_id,
                 kodi_fileid,
+                kodi_fileid_2,
                 kodi_pathid,
                 fanart_synced,
                 last_sync)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ''',
             (plex_id,
              checksum,
@@ -89,6 +90,7 @@ class TVShows(object):
              parent_id,
              kodi_id,
              kodi_fileid,
+             kodi_fileid_2,
              kodi_pathid,
              0,
              last_sync))
@@ -129,21 +131,6 @@ class TVShows(object):
         return self.entry_to_season(self.cursor.fetchone())
 
     def episode(self, plex_id):
-        """
-        Returns the show info as a tuple for the TV show with plex_id:
-            plex_id INTEGER PRIMARY KEY,
-            checksum INTEGER UNIQUE,
-            section_id INTEGER,
-            show_id INTEGER,  # plex_id of the parent show
-            grandparent_id INTEGER,  # kodi_id of the parent show
-            season_id INTEGER,  # plex_id of the parent season
-            parent_id INTEGER,  # kodi_id of the parent season
-            kodi_id INTEGER,
-            kodi_fileid INTEGER,
-            kodi_pathid INTEGER,
-            fanart_synced INTEGER,
-            last_sync INTEGER
-        """
         if plex_id is None:
             return
         self.cursor.execute('SELECT * FROM episode WHERE plex_id = ? LIMIT 1',
@@ -166,9 +153,10 @@ class TVShows(object):
             'parent_id': entry[6],
             'kodi_id': entry[7],
             'kodi_fileid': entry[8],
-            'kodi_pathid': entry[9],
-            'fanart_synced': entry[10],
-            'last_sync': entry[11]
+            'kodi_fileid_2': entry[9],
+            'kodi_pathid': entry[10],
+            'fanart_synced': entry[11],
+            'last_sync': entry[12]
         }
 
     @staticmethod
