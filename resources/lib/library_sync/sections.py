@@ -13,7 +13,7 @@ from .. import plex_functions as PF, music, utils, variables as v, app
 
 LOG = getLogger('PLEX.sync.sections')
 
-BATCH_SIZE = 200
+BATCH_SIZE = 500
 VNODES = videonodes.VideoNodes()
 PLAYLISTS = {}
 NODES = {}

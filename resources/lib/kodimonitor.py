@@ -493,8 +493,14 @@ def _record_playstate(status, ended):
                           time,
                           totaltime,
                           playcount,
-                          last_played,
-                          status['plex_type'])
+                          last_played)
+        if 'kodi_fileid_2' in db_item and db_item['kodi_fileid_2']:
+            # Dirty hack for our episodes
+            kodidb.set_resume(db_item['kodi_fileid_2'],
+                              time,
+                              totaltime,
+                              playcount,
+                              last_played)
     # Hack to force "in progress" widget to appear if it wasn't visible before
     if (app.APP.force_reload_skin and
             xbmc.getCondVisibility('Window.IsVisible(Home.xml)')):

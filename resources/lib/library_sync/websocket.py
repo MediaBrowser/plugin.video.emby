@@ -285,10 +285,14 @@ def process_playing(data):
                           PLAYSTATE_SESSIONS)
             # Attach Kodi info to the session
             try:
-                PLAYSTATE_SESSIONS[session_key]['file_id'] = typus['kodi_fileid']
+                PLAYSTATE_SESSIONS[session_key]['kodi_fileid'] = typus['kodi_fileid']
             except KeyError:
                 # media type without file - no need to do anything
                 continue
+            if typus['plex_type'] == v.PLEX_TYPE_EPISODE:
+                PLAYSTATE_SESSIONS[session_key]['kodi_fileid_2'] = typus['kodi_fileid_2']
+            else:
+                PLAYSTATE_SESSIONS[session_key]['kodi_fileid_2'] = None
             PLAYSTATE_SESSIONS[session_key]['kodi_id'] = typus['kodi_id']
             PLAYSTATE_SESSIONS[session_key]['kodi_type'] = typus['kodi_type']
         session = PLAYSTATE_SESSIONS[session_key]
@@ -357,9 +361,9 @@ def process_playing(data):
                                  session['viewCount'],
                                  resume,
                                  session['duration'],
-                                 session['file_id'],
-                                 timing.unix_timestamp(),
-                                 v.PLEX_TYPE_FROM_KODI_TYPE[session['kodi_type']])
+                                 session['kodi_fileid'],
+                                 session['kodi_fileid_2'],
+                                 timing.unix_timestamp())
 
 
 def cache_artwork(plex_id, plex_type, kodi_id=None, kodi_type=None):

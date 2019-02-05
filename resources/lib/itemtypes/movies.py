@@ -214,8 +214,7 @@ class Movie(ItemBase):
                                resume,
                                runtime,
                                playcount,
-                               dateplayed,
-                               v.PLEX_TYPE_MOVIE)
+                               dateplayed)
         self.plexdb.add_movie(plex_id=plex_id,
                               checksum=api.checksum(),
                               section_id=section_id,
@@ -279,8 +278,7 @@ class Movie(ItemBase):
                                userdata['Resume'],
                                userdata['Runtime'],
                                userdata['PlayCount'],
-                               userdata['LastPlayedDate'],
-                               plex_type)
+                               userdata['LastPlayedDate'])
         self.kodidb.update_userrating(db_item['kodi_id'],
                                       db_item['kodi_type'],
                                       userdata['UserRating'])

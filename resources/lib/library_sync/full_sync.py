@@ -19,7 +19,7 @@ if common.PLAYLIST_SYNC_ENABLED:
 
 LOG = getLogger('PLEX.sync.full_sync')
 # How many items will be put through the processing chain at once?
-BATCH_SIZE = 200
+BATCH_SIZE = 500
 # Safety margin to filter PMS items - how many seconds to look into the past?
 UPDATED_AT_SAFETY = 60 * 5
 LAST_VIEWED_AT_SAFETY = 60 * 5
@@ -240,7 +240,7 @@ class FullSync(common.fullsync_mixin):
                                                          self.current_sync)
                         self.current += 1
                         self.update_progressbar()
-                        if (i + 1) % BATCH_SIZE == 0:
+                        if (i + 1) % (10 * BATCH_SIZE) == 0:
                             break
                 if last:
                     break
