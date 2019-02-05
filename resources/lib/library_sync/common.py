@@ -5,7 +5,7 @@ import xbmc
 
 from .. import app, utils, variables as v
 
-PLAYLIST_SYNC_ENABLED = (v.PLATFORM != 'Microsoft UWP' and
+PLAYLIST_SYNC_ENABLED = (v.DEVICE != 'Microsoft UWP' and
                          utils.settings('enablePlaylistSync') == 'true')
 
 

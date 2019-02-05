@@ -40,7 +40,7 @@ RESOURCES_XML = ('%s<MediaContainer>\n'
     '</MediaContainer>\n') % (v.XML_HEADER,
                               v.ADDON_NAME,
                               v.PLATFORM,
-                              v.ADDON_VERSION)
+                              v.PLATFORM_VERSION)
 
 class MyHandler(BaseHTTPRequestHandler):
     """
