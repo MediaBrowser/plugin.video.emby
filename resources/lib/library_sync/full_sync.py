@@ -83,8 +83,8 @@ class FullSync(common.fullsync_mixin):
                 progress = 0
             self.dialog.update(progress,
                                '%s (%s)' % (self.section_name, self.section_type_text),
-                               '%s/%s %s'
-                               % (self.current, self.total, self.title))
+                               '%s %s/%s'
+                               % (self.title, self.current, self.total))
             if app.APP.player.isPlayingVideo():
                 self.dialog.close()
                 self.dialog = None
