@@ -240,7 +240,7 @@ class FullSync(common.fullsync_mixin):
                                                          self.current_sync)
                         self.current += 1
                         self.update_progressbar()
-                        if (i + 1) % BATCH_SIZE == 0:
+                        if (i + 1) % (10 * BATCH_SIZE) == 0:
                             break
                 if last:
                     break
