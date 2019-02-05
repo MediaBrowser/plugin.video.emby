@@ -18,6 +18,7 @@ class WebSocket(backgroundthread.KillableThread):
 
     def __init__(self):
         self.ws = None
+        self.redirect_uri = None
         super(WebSocket, self).__init__()
 
     def process(self, opcode, message):
@@ -91,6 +92,16 @@ class WebSocket(backgroundthread.KillableThread):
                              self.__class__.__name__)
                     self.ws = None
                     app.APP.monitor.waitForAbort(1)
+                except websocket.WebsocketRedirect as e:
+                    LOG.info('301 redirect detected')
+                    self.redirect_uri = e.headers.get('location', e.headers.get('Location'))
+                    if self.redirect_uri:
+                        self.redirect_uri.decode('utf-8')
+                    counter += 1
+                    if counter >= 10:
+                        LOG.info('%s: Repeated WebsocketRedirect detected. Stopping now',
+                                 self.__class__.__name__)
+                        break
                 except websocket.WebSocketException as e:
                     LOG.info('%s: WebSocketException: %s',
                              self.__class__.__name__, e)
@@ -141,18 +152,22 @@ class PMS_Websocket(WebSocket):
                 app.SYNC.background_sync_disabled)
 
     def getUri(self):
-        server = app.CONN.server
-        # Get the appropriate prefix for the websocket
-        if server.startswith('https'):
-            server = "wss%s" % server[5:]
+        if self.redirect_uri:
+            uri = self.redirect_uri
+            self.redirect_uri = None
         else:
-            server = "ws%s" % server[4:]
-        uri = "%s/:/websockets/notifications" % server
-        # Need to use plex.tv token, if any. NOT user token
-        if app.ACCOUNT.plex_token:
-            uri += '?X-Plex-Token=%s' % app.ACCOUNT.plex_token
+            server = app.CONN.server
+            # Get the appropriate prefix for the websocket
+            if server.startswith('https'):
+                server = "wss%s" % server[5:]
+            else:
+                server = "ws%s" % server[4:]
+            uri = "%s/:/websockets/notifications" % server
+            # Need to use plex.tv token, if any. NOT user token
+            if app.ACCOUNT.plex_token:
+                uri += '?X-Plex-Token=%s' % app.ACCOUNT.plex_token
         sslopt = {}
-        if utils.settings('sslverify') == "false":
+        if v.KODIVERSION == 17 and utils.settings('sslverify') == "false":
             sslopt["cert_reqs"] = CERT_NONE
         LOG.debug("%s: Uri: %s, sslopt: %s",
                   self.__class__.__name__, uri, sslopt)
@@ -209,10 +224,14 @@ class Alexa_Websocket(WebSocket):
                 app.ACCOUNT.restricted_user)
 
     def getUri(self):
-        uri = ('wss://pubsub.plex.tv/sub/websockets/%s/%s?X-Plex-Token=%s'
-               % (app.ACCOUNT.plex_user_id,
-                  v.PKC_MACHINE_IDENTIFIER,
-                  app.ACCOUNT.plex_token))
+        if self.redirect_uri:
+            uri = self.redirect_uri
+            self.redirect_uri = None
+        else:
+            uri = ('wss://pubsub.plex.tv/sub/websockets/%s/%s?X-Plex-Token=%s'
+                   % (app.ACCOUNT.plex_user_id,
+                      v.PKC_MACHINE_IDENTIFIER,
+                      app.ACCOUNT.plex_token))
         sslopt = {}
         LOG.debug("%s: Uri: %s, sslopt: %s",
                   self.__class__.__name__, uri, sslopt)

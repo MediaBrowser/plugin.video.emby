@@ -105,6 +105,19 @@ class WebSocketTimeoutException(WebSocketException):
     pass
 
 
+class WebsocketRedirect(WebSocketException):
+    """
+    WebsocketRedirect will be raised if a status code 301 is returned
+    The Exception will be instantiated with a dict containing all response
+    headers; which should contain the redirect address under the key 'location'
+
+    Access the headers via the attribute headers
+    """
+    def __init__(self, headers):
+        self.headers = headers
+        super(WebsocketRedirect, self).__init__()
+
+
 DEFAULT_TIMEOUT = None
 TRACE_ENABLED = False
 
@@ -162,10 +175,10 @@ def _parse_url(url):
         port = parsed.port
 
     is_secure = False
-    if scheme == "ws":
+    if scheme == "ws" or scheme == 'http':
         if not port:
             port = 80
-    elif scheme == "wss":
+    elif scheme == "wss" or scheme == 'https':
         is_secure = True
         if not port:
             port = 443
@@ -500,6 +513,9 @@ class WebSocket(object):
             LOG.debug("-----------------------")
 
         status, resp_headers = self._read_headers()
+        if status == 301:
+            # Redirect
+            raise WebsocketRedirect(resp_headers)
         if status != 101:
             self.close()
             raise WebSocketException("Handshake Status %d" % status)
