@@ -59,7 +59,7 @@ class Actions(object):
         ''' Clear the playlist if the user starts a new playback from the GUI and there is still
             an existing one set.
         '''
-        if xbmc.getCondVisibility('Player.HasMedia + !Window.IsVisible(fullscreenvideo)') + int(playlist_items) > 0:
+        if xbmc.getCondVisibility('Player.HasMedia + !Window.IsVisible(fullscreenvideo)') and int(playlist_items) > 0:
             return True
 
         ''' Clear the pseudo-playlist that has been created by the library windows for a single
