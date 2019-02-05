@@ -1,3 +1,11 @@
+version 2.6.6 (beta only):
+- WARNING: You will need to reset the Kodi database!
+- Greatly speed up sync for episodes, especially for large libraries
+- Allow websocket redirects. Never allow insecure HTTPs connections for Kodi Leia
+- Optimize headers for communication with PMS to appear like a Plex Media Player
+- Fix PMS log entries 'Unable to find client profile for device'
+- Improve sync dialog
+
 version 2.6.5:
 - Fix extras not playing
 - Hide "Verify SSL certificate" setting for Kodi 18 Krypton
