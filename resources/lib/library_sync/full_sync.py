@@ -83,8 +83,8 @@ class FullSync(common.fullsync_mixin):
                 progress = 0
             self.dialog.update(progress,
                                '%s (%s)' % (self.section_name, self.section_type_text),
-                               '%s/%s %s'
-                               % (self.current, self.total, self.title))
+                               '%s %s/%s'
+                               % (self.title, self.current, self.total))
             if app.APP.player.isPlayingVideo():
                 self.dialog.close()
                 self.dialog = None
@@ -337,6 +337,8 @@ class FullSync(common.fullsync_mixin):
         # were set to unwatched). Also mark all items on the PMS to be able
         # to delete the ones still in Kodi
         LOG.info('Start synching playstate and userdata for every item')
+        # Make sure we're not showing an item's title in the sync dialog
+        self.title = ''
         self.threader.shutdown()
         self.threader = None
         if not self.show_dialog_userdata and self.dialog:
