@@ -9,7 +9,7 @@ from logging import getLogger
 from threading import Thread
 
 from ..downloadutils import DownloadUtils as DU
-from .. import utils, timing
+from .. import timing
 from .. import app
 from .. import variables as v
 from .. import json_rpc as js
@@ -50,7 +50,7 @@ HEADERS_PMS = {
     'Accept': 'text/plain, */*; q=0.01',
     'Accept-Language': 'en',
     'Accept-Encoding': 'gzip, deflate',
-    'User-Agent': '%s %s (%s)' % (v.ADDON_NAME, v.ADDON_VERSION, v.PLATFORM)
+    'User-Agent': '%s %s (%s)' % (v.ADDON_NAME, v.ADDON_VERSION, v.DEVICE)
 }
 
 
@@ -64,14 +64,13 @@ def params_pms():
         #     'audioDecoders=mp3,aac,dts{bitrate:800000&channels:2},'
         #     'ac3{bitrate:800000&channels:2}',
         'X-Plex-Client-Identifier': v.PKC_MACHINE_IDENTIFIER,
-        'X-Plex-Device': v.PLATFORM,
+        'X-Plex-Device': v.DEVICE,
         'X-Plex-Device-Name': v.DEVICENAME,
         # 'X-Plex-Device-Screen-Resolution': '1916x1018,1920x1080',
-        'X-Plex-Model': 'unknown',
+        'X-Plex-Model': v.MODEL,
         'X-Plex-Platform': v.PLATFORM,
-        'X-Plex-Platform-Version': 'unknown',
+        'X-Plex-Platform-Version': v.PLATFORM_VERSION,
         'X-Plex-Product': v.ADDON_NAME,
-        'X-Plex-Provider-Version': v.ADDON_VERSION,
         'X-Plex-Version': v.ADDON_VERSION,
         'hasMDE': '1',
         # 'X-Plex-Session-Identifier': ['vinuvirm6m20iuw9c4cx1dcx'],
@@ -89,7 +88,7 @@ def headers_companion_client():
         'X-Plex-Client-Identifier': v.PKC_MACHINE_IDENTIFIER,
         'X-Plex-Device-Name': v.DEVICENAME,
         'X-Plex-Platform': v.PLATFORM,
-        'X-Plex-Platform-Version': 'unknown',
+        'X-Plex-Platform-Version': v.PLATFORM_VERSION,
         'X-Plex-Product': v.ADDON_NAME,
         'X-Plex-Version': v.ADDON_VERSION,
         'Accept-Encoding': 'gzip, deflate',

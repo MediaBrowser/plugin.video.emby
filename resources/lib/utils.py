@@ -340,14 +340,14 @@ def valid_filename(text):
     text = re.sub(r'(?! )\s', '', text)
     # ASCII characters 0 to 31 (non-printable, just in case)
     text = re.sub(u'[\x00-\x1f]', '', text)
-    if v.PLATFORM == 'Windows':
+    if v.DEVICE == 'Windows':
         # Whitespace at the end of the filename is illegal
         text = text.strip()
         # Dot at the end of a filename is illegal
         text = re.sub(r'\.+$', '', text)
         # Illegal Windows characters
         text = re.sub(r'[/\\:*?"<>|\^]', '', text)
-    elif v.PLATFORM == 'MacOSX':
+    elif v.DEVICE == 'MacOSX':
         # Colon is illegal
         text = re.sub(r':', '', text)
         # Files cannot begin with a dot

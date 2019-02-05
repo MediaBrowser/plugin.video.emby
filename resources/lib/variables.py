@@ -4,6 +4,7 @@ from __future__ import absolute_import, division, unicode_literals
 import os
 import sys
 import re
+import platform
 
 import xbmc
 from xbmcaddon import Addon
@@ -51,23 +52,28 @@ KODILONGVERSION = xbmc.getInfoLabel('System.BuildVersion')
 KODI_PROFILE = try_decode(xbmc.translatePath("special://profile"))
 
 if xbmc.getCondVisibility('system.platform.osx'):
-    PLATFORM = "MacOSX"
+    DEVICE = "MacOSX"
 elif xbmc.getCondVisibility("system.platform.uwp"):
-    PLATFORM = "Microsoft UWP"
+    DEVICE = "Microsoft UWP"
 elif xbmc.getCondVisibility('system.platform.atv2'):
-    PLATFORM = "AppleTV2"
+    DEVICE = "AppleTV2"
 elif xbmc.getCondVisibility('system.platform.ios'):
-    PLATFORM = "iOS"
+    DEVICE = "iOS"
 elif xbmc.getCondVisibility('system.platform.windows'):
-    PLATFORM = "Windows"
+    DEVICE = "Windows"
 elif xbmc.getCondVisibility('system.platform.raspberrypi'):
-    PLATFORM = "RaspberryPi"
+    DEVICE = "RaspberryPi"
 elif xbmc.getCondVisibility('system.platform.linux'):
-    PLATFORM = "Linux"
+    DEVICE = "Linux"
 elif xbmc.getCondVisibility('system.platform.android'):
-    PLATFORM = "Android"
+    DEVICE = "Android"
 else:
-    PLATFORM = "Unknown"
+    DEVICE = "Unknown"
+
+MODEL = platform.release() or 'Unknown'
+# Plex' own platform for e.g. Plex Media Player
+PLATFORM = 'Konvergo'
+PLATFORM_VERSION = '2.26.0.947-1e21fa2b'
 
 DEVICENAME = try_decode(_ADDON.getSetting('deviceName'))
 if not DEVICENAME:
@@ -637,7 +643,7 @@ def database_paths():
 
 # Encoding to be used for our m3u playlist files
 # m3u files do not have encoding specified by definition, unfortunately.
-if PLATFORM == 'Windows':
+if DEVICE == 'Windows':
     M3U_ENCODING = 'mbcs'
 else:
     M3U_ENCODING = sys.getfilesystemencoding()
