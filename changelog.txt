@@ -1,3 +1,7 @@
+version 2.6.7 (beta only):
+- Fix "Unauthorized for PMS" e.g. on switching Plex users
+- Improve error messages when playback failes
+
 version 2.6.6 (beta only):
 - WARNING: You will need to reset the Kodi database!
 - Greatly speed up sync for episodes, especially for large libraries
