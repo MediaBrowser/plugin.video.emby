@@ -1769,7 +1769,7 @@ class API(object):
             if force_check is False:
                 # Validate the path is correct with user intervention
                 if self.ask_to_validate(path):
-                    app.SYNC.stop_sync = True
+                    app.APP.stop_threads(block=False)
                     path = None
                 app.SYNC.path_verified = True
             else:

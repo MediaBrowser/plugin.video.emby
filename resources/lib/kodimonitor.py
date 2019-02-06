@@ -54,7 +54,8 @@ class KodiMonitor(xbmc.Monitor):
         """
         LOG.debug('PKC settings change detected')
         # Assume that the user changed something so we can try to reconnect
-        app.APP.suspend = False
+        # app.APP.suspend = False
+        # app.APP.resume_threads(block=False)
 
     def onNotification(self, sender, method, data):
         """
@@ -69,7 +70,6 @@ class KodiMonitor(xbmc.Monitor):
             self.hack_replay = None
 
         if method == "Player.OnPlay":
-            app.SYNC.suspend_sync = True
             with app.APP.lock_playqueues:
                 self.PlayBackStart(data)
         elif method == "Player.OnStop":
@@ -87,7 +87,6 @@ class KodiMonitor(xbmc.Monitor):
             else:
                 with app.APP.lock_playqueues:
                     _playback_cleanup()
-            app.SYNC.suspend_sync = False
         elif method == 'Playlist.OnAdd':
             if 'item' in data and data['item'].get('type') == v.KODI_TYPE_SHOW:
                 # Hitting the "browse" button on tv show info dialog

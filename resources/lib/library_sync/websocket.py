@@ -23,10 +23,6 @@ WEBSOCKET_MESSAGES = []
 PLAYSTATE_SESSIONS = {}
 
 
-def interrupt_processing():
-    return app.APP.stop_pkc or app.APP.suspend_threads or app.SYNC.stop_sync
-
-
 def multi_delete(input_list, delete_list):
     """
     Deletes the list items of input_list at the positions in delete_list
@@ -81,9 +77,6 @@ def process_websocket_messages():
     update_kodi_video_library, update_kodi_music_library = False, False
     delete_list = []
     for i, message in enumerate(WEBSOCKET_MESSAGES):
-        if interrupt_processing():
-            # Chances are that Kodi gets shut down
-            break
         if message['state'] == 9:
             successful, video, music = process_delete_message(message)
         elif now - message['timestamp'] < app.SYNC.backgroundsync_saftymargin:

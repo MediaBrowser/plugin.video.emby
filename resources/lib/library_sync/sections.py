@@ -18,16 +18,23 @@ VNODES = videonodes.VideoNodes()
 PLAYLISTS = {}
 NODES = {}
 SECTIONS = []
+# Need a way to interrupt
+IS_CANCELED = None
 
 
-def isCanceled():
-    return app.APP.stop_pkc or app.APP.suspend_threads or app.SYNC.stop_sync
-
-
-def sync_from_pms():
+def sync_from_pms(parent_self):
     """
     Sync the Plex library sections
     """
+    global IS_CANCELED
+    IS_CANCELED = parent_self.isCanceled
+    try:
+        return _sync_from_pms()
+    finally:
+        IS_CANCELED = None
+
+
+def _sync_from_pms():
     sections = PF.get_plex_sections()
     try:
         sections.attrib
@@ -226,7 +233,7 @@ def _delete_kodi_db_items(section_id, section_type):
                 with kodi_context(texture_db=True) as kodidb:
                     typus = context(None, plexdb=plexdb, kodidb=kodidb)
                     for plex_id in plex_ids:
-                        if isCanceled():
+                        if IS_CANCELED():
                             return False
                         typus.remove(plex_id)
             if len(plex_ids) < BATCH_SIZE:

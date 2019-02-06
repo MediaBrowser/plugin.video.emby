@@ -2,7 +2,6 @@
 from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
 
-from . import common
 from ..plex_api import API
 from ..plex_db import PlexDB
 from ..kodi_db import KodiVideoDB
@@ -19,13 +18,6 @@ PREFER_KODI_COLLECTION_ART = utils.settings('PreferKodiCollectionArt') == 'false
 BATCH_SIZE = 500
 
 
-def suspends():
-    return (app.APP.suspend_threads or
-            app.SYNC.stop_sync or
-            app.SYNC.db_scan or
-            app.SYNC.suspend_sync)
-
-
 class FanartThread(backgroundthread.KillableThread):
     """
     This will potentially take hours!
@@ -36,16 +28,19 @@ class FanartThread(backgroundthread.KillableThread):
         super(FanartThread, self).__init__()
 
     def isSuspended(self):
-        return suspends()
+        return self._suspended or app.APP.is_playing_video
 
     def run(self):
+        LOG.info('Starting FanartThread')
+        app.APP.register_fanart_thread(self)
         try:
             self._run_internal()
         except Exception:
             utils.ERROR(notify=True)
+        finally:
+            app.APP.deregister_fanart_thread(self)
 
     def _run_internal(self):
-        LOG.info('Starting FanartThread')
         finished = False
         try:
             for typus in SUPPORTED_TYPES:
@@ -63,12 +58,8 @@ class FanartThread(backgroundthread.KillableThread):
                                                                BATCH_SIZE))
                     for plex_id in batch:
                         # Do the actual, time-consuming processing
-                        if self.isCanceled():
+                        if self.wait_while_suspended():
                             return
-                        if self.isSuspended():
-                            if self.isCanceled():
-                                return
-                            app.APP.monitor.waitForAbort(1)
                         process_fanart(plex_id, typus, self.refresh)
                     if len(batch) < BATCH_SIZE:
                         break
@@ -80,7 +71,7 @@ class FanartThread(backgroundthread.KillableThread):
             self.callback(finished)
 
 
-class FanartTask(common.libsync_mixin, backgroundthread.Task):
+class FanartTask(backgroundthread.Task):
     """
     This task will also be executed while library sync is suspended!
     """
@@ -154,11 +145,7 @@ def process_fanart(plex_id, plex_type, refresh=False):
                                                 setid,
                                                 v.KODI_TYPE_SET)
         done = True
-    except utils.OperationalError:
-        # Caused if we reset the Plex database and this function has not yet
-        # returned
-        pass
     finally:
-        if done is True and not suspends():
+        if done is True:
             with PlexDB() as plexdb:
                 plexdb.set_fanart_synced(plex_id, plex_type)
