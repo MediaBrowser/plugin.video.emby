@@ -141,6 +141,10 @@ class Main():
         elif mode == 'hub':
             entrypoint.hub(params.get('type'))
 
+        elif mode == 'select-libraries':
+            LOG.info('User requested to select Plex libraries')
+            transfer.plex_command('select-libraries')
+
         else:
             entrypoint.show_main_menu(content_type=params.get('content_type'))
 
