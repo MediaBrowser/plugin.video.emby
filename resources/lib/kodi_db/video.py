@@ -9,6 +9,9 @@ from .. import path_ops, timing, variables as v, app
 
 LOG = getLogger('PLEX.kodi_db.video')
 
+MOVIE_PATH = 'plugin://%s.movies/' % v.ADDON_ID
+SHOW_PATH = 'plugin://%s.tvshows/' % v.ADDON_ID
+
 
 class KodiVideoDB(common.KodiDBBase):
     db_kind = 'video'
@@ -23,7 +26,7 @@ class KodiVideoDB(common.KodiDBBase):
         For some reason, Kodi ignores this if done via itemtypes while e.g.
         adding or updating items. (addPath method does NOT work)
         """
-        path_id = self.get_path('plugin://%s.movies/' % v.ADDON_ID)
+        path_id = self.get_path(MOVIE_PATH)
         if path_id is None:
             self.cursor.execute("SELECT COALESCE(MAX(idPath),0) FROM path")
             path_id = self.cursor.fetchone()[0] + 1
@@ -37,13 +40,13 @@ class KodiVideoDB(common.KodiDBBase):
                 VALUES (?, ?, ?, ?, ?, ?)
             '''
             self.cursor.execute(query, (path_id,
-                                        'plugin://%s.movies/' % v.ADDON_ID,
+                                        MOVIE_PATH,
                                         'movies',
                                         'metadata.local',
                                         1,
                                         0))
         # And TV shows
-        path_id = self.get_path('plugin://%s.tvshows/' % v.ADDON_ID)
+        path_id = self.get_path(SHOW_PATH)
         if path_id is None:
             self.cursor.execute("SELECT COALESCE(MAX(idPath),0) FROM path")
             path_id = self.cursor.fetchone()[0] + 1
@@ -57,7 +60,7 @@ class KodiVideoDB(common.KodiDBBase):
                 VALUES (?, ?, ?, ?, ?, ?)
             '''
             self.cursor.execute(query, (path_id,
-                                        'plugin://%s.tvshows/' % v.ADDON_ID,
+                                        SHOW_PATH,
                                         'tvshows',
                                         'metadata.local',
                                         1,
@@ -227,8 +230,12 @@ class KodiVideoDB(common.KodiDBBase):
             self.cursor.execute('SELECT idFile FROM files WHERE idPath = ? LIMIT 1',
                                 (path_id,))
             if self.cursor.fetchone() is None:
-                self.cursor.execute('DELETE FROM path WHERE idPath = ?',
-                                    (path_id,))
+                # Make sure we're not deleting our root paths!
+                query = '''
+                    DELETE FROM path
+                    WHERE idPath = ? AND strPath NOT IN (?, ?)
+                '''
+                self.cursor.execute(query, (path_id, MOVIE_PATH, SHOW_PATH))
 
     @common.catch_operationalerrors
     def _modify_link_and_table(self, kodi_id, kodi_type, entries, link_table,
