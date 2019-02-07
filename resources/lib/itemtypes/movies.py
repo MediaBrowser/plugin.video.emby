@@ -189,7 +189,7 @@ class Movie(ItemBase):
                     # e.g. when added via websocket
                     LOG.debug('Costly looking up Plex collection %s: %s',
                               plex_set_id, set_name)
-                    for index, coll_plex_id in api.collections_match():
+                    for index, coll_plex_id in api.collections_match(section_id):
                         # Get Plex artwork for collections - a pain
                         if index == plex_set_id:
                             set_xml = PF.GetPlexMetadata(coll_plex_id)
