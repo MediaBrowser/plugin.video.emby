@@ -1,3 +1,11 @@
+version 2.6.8 (beta only):
+- Choose which Plex libraries get synched to Kodi
+- Fix PKC becoming unresponsive
+- Fix rare case where thousands of identical playlists could be generated
+- Fix movies or shows disappearing in fringe cases
+- Fix processing of collections in special cases
+- Implement Codacy suggestions
+
 version 2.6.7 (beta only):
 - Fix "Unauthorized for PMS" e.g. on switching Plex users
 - Improve error messages when playback failes
