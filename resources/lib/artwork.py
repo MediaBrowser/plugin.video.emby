@@ -37,7 +37,8 @@ class ImageCachingThread(backgroundthread.KillableThread):
     def isSuspended(self):
         return any(self.suspend_points)
 
-    def _url_generator(self, kind, kodi_type):
+    @staticmethod
+    def _url_generator(kind, kodi_type):
         """
         Main goal is to close DB connection between calls
         """

@@ -45,6 +45,9 @@ class plexgdm:
         self.discover_message = 'M-SEARCH * HTTP/1.0'
         self.client_header = '* HTTP/1.0'
         self.client_data = None
+        self.update_sock = None
+        self.discover_t = None
+        self.register_t = None
 
         self._multicast_address = '239.0.0.250'
         self.discover_group = (self._multicast_address, 32414)

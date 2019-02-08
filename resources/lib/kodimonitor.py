@@ -207,7 +207,8 @@ class KodiMonitor(xbmc.Monitor):
         """
         pass
 
-    def _playlist_onclear(self, data):
+    @staticmethod
+    def _playlist_onclear(data):
         """
         Called if a Kodi playlist is cleared. Example data dict:
         {
@@ -221,7 +222,8 @@ class KodiMonitor(xbmc.Monitor):
         else:
             LOG.debug('Detected PKC clear - ignoring')
 
-    def _get_ids(self, kodi_id, kodi_type, path):
+    @staticmethod
+    def _get_ids(kodi_id, kodi_type, path):
         """
         Returns the tuple (plex_id, plex_type) or (None, None)
         """
@@ -315,7 +317,7 @@ class KodiMonitor(xbmc.Monitor):
                     return
                 playerid = js.get_playlist_id(playlist_type)
                 if not playerid:
-                    LOG.error('Coud not get playerid for data', data)
+                    LOG.error('Coud not get playerid for data %s', data)
                     return
         playqueue = PQ.PLAYQUEUES[playerid]
         info = js.get_player_props(playerid)

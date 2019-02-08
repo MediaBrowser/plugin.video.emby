@@ -92,7 +92,7 @@ class Connection(object):
         LOG.debug('Clearing connection settings')
         self.machine_identifier = None
         self.server_name = None
-        self.http = None
+        self.https = None
         self.host = None
         self.port = None
         self.server = None
