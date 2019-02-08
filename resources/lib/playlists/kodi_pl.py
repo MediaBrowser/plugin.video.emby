@@ -17,7 +17,7 @@ LOG = getLogger('PLEX.playlists.kodi_pl')
 
 ###############################################################################
 
-REGEX_FILE_NUMBERING = re.compile(r'''_(\d+)\.\w+$''')
+REGEX_FILE_NUMBERING = re.compile(r'''_(\d\d)\.\w+$''')
 
 
 def create(plex_id):
@@ -53,6 +53,10 @@ def create(plex_id):
                                       '%s_01.m3u' % name[:min(len(name), 248)])
         else:
             number = int(occurance.group(1)) + 1
+            if number > 3:
+                LOG.error('Detected spanning tree issue, abort sync for %s',
+                          playlist)
+                raise PlaylistError('Spanning tree warning')
             basename = re.sub(REGEX_FILE_NUMBERING, '', path)
             path = '%s_%02d.m3u' % (basename, number)
     LOG.debug('Kodi playlist path: %s', path)
