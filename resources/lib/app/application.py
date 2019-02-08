@@ -124,6 +124,9 @@ class App(object):
                 for thread in self.threads:
                     if not thread.suspend_reached:
                         LOG.debug('Waiting for thread to suspend: %s', thread)
+                        # Send suspend signal again in case self.threads
+                        # changed
+                        thread.suspend()
                         if self.monitor.waitForAbort(0.1):
                             return True
                         break

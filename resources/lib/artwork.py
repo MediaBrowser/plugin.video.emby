@@ -30,12 +30,12 @@ def double_urldecode(text):
 class ImageCachingThread(backgroundthread.KillableThread):
     def __init__(self):
         super(ImageCachingThread, self).__init__()
-        self.suspend_points = [self._suspended]
+        self.suspend_points = [(self, '_suspended')]
         if not utils.settings('imageSyncDuringPlayback') == 'true':
-            self.suspend_points.append(app.APP.is_playing_video)
+            self.suspend_points.append((app.APP, 'is_playing_video'))
 
     def isSuspended(self):
-        return any(self.suspend_points)
+        return any(getattr(obj, txt) for obj, txt in self.suspend_points)
 
     def _url_generator(self, kind, kodi_type):
         """
