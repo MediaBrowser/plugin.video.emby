@@ -558,6 +558,12 @@ msgctxt "#30523"
 msgid "Also show sync progress for playstate and user data"
 msgstr ""
 
+# PKC Settings - Sync Options
+msgctxt "#30524"
+msgid "Select Plex libraries to sync"
+msgstr ""
+
+
 # PKC Settings - Playback
 msgctxt "#30527"
 msgid "Ignore specials in next episodes"

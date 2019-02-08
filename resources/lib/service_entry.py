@@ -9,7 +9,7 @@ import xbmcgui
 from . import utils, clientinfo, timing
 from . import initialsetup
 from . import kodimonitor
-from . import sync
+from . import sync, library_sync
 from . import websocket_client
 from . import plex_companion
 from . import plex_functions as PF, playqueue as PQ
@@ -97,8 +97,7 @@ class Service():
 
         # Load/Reset PKC entirely - important for user/Kodi profile switch
         # Clear video nodes properties
-        from .library_sync import videonodes
-        videonodes.VideoNodes().clearProperties()
+        library_sync.VideoNodes().clearProperties()
         clientinfo.getDeviceId()
         # Init time-offset between Kodi and Plex
         timing.KODI_PLEX_TIME_OFFSET = float(utils.settings('kodiplextimeoffset') or 0.0)
@@ -222,7 +221,7 @@ class Service():
         utils.delete_nodes()
         app.ACCOUNT.set_unauthenticated()
         # Force full sync after login
-        utils.settings('lastfullsync', value='0')
+        library_sync.force_full_sync()
         app.SYNC.run_lib_scan = 'full'
         # Enable the main loop to display user selection dialog
         app.APP.suspend = False
@@ -285,6 +284,33 @@ class Service():
         app.APP.suspend = False
         LOG.info("Entering PMS address complete")
         return True
+
+    def choose_plex_libraries(self):
+        if not app.CONN.online:
+            LOG.error('PMS not online to choose libraries')
+            # "{0} offline"
+            utils.dialog('notification',
+                         utils.lang(29999),
+                         utils.lang(39213).format(app.CONN.server_name or ''),
+                         icon='{plex}')
+            return
+        if not app.ACCOUNT.authenticated:
+            LOG.error('Not yet authenticated for PMS to choose libraries')
+            # "Unauthorized for PMS"
+            utils.dialog('notification', utils.lang(29999), utils.lang(30017))
+            return
+        app.APP.suspend_threads()
+        from .library_sync import sections
+        try:
+            # Get newest sections from the PMS
+            if not sections.sync_from_pms(self):
+                return
+            if not sections.choose_libraries():
+                return
+            # Force a full sync
+            app.SYNC.run_lib_scan = 'full'
+        finally:
+            app.APP.resume_threads()
 
     def _do_auth(self):
         LOG.info('Authenticating user')
@@ -435,6 +461,8 @@ class Service():
                     app.SYNC.run_lib_scan = 'fanart'
                 elif plex_command == 'textures-scan':
                     app.SYNC.run_lib_scan = 'textures'
+                elif plex_command == 'select-libraries':
+                    self.choose_plex_libraries()
                 elif plex_command == 'RESET-PKC':
                     utils.reset()
                 if task:
