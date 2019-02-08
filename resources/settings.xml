@@ -49,6 +49,7 @@
         <setting id="dbCreatedWithVersion" type="text" default="" visible="false"/>
         <setting id="plexid" type="text" default="" visible="false"/>
         <setting id="userid" type="text" default="" visible="false"/>
+        <setting id="sections_asked_for_machine_identifier" type="text" default="" visible="false"/>
 	</category>
 
 	<category label="30506"><!-- Sync Options -->

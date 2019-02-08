@@ -84,6 +84,11 @@ def _sync_from_pms():
         SECTIONS = list(plexdb.all_sections())
     utils.window('Plex.nodes.total', str(len(sections)))
     LOG.info("Finished processing %s library sections: %s", len(sections), SECTIONS)
+    if app.CONN.machine_identifier != utils.settings('sections_asked_for_machine_identifier'):
+        LOG.info('First time connecting to this PMS, choosing libraries')
+        if choose_libraries():
+            with PlexDB() as plexdb:
+                SECTIONS = list(plexdb.all_sections())
     return True
 
 
@@ -265,19 +270,24 @@ def choose_libraries():
 
     Returns True if this was successful, False if not
     """
-    # xbmcgui.Dialog().multiselect(heading, options[, autoclose, preselect, useDetails])
-    # "Select Plex libraries to sync"
+    # Re-set value in order to make sure we got the lastest user input
+    app.SYNC.enable_music = utils.settings('enableMusic') == 'true'
     import xbmcgui
     sections = []
     preselect = []
-    for i, section in enumerate(SECTIONS):
-        sections.append(section['section_name'])
-        if section['plex_type'] == v.PLEX_TYPE_ARTIST:
-            if section['sync_to_kodi'] and app.SYNC.enable_music:
-                preselect.append(i)
+    index = 0
+    for section in SECTIONS:
+        if not app.SYNC.enable_music and section['plex_type'] == v.PLEX_TYPE_ARTIST:
+            LOG.info('Ignoring music section: %s', section)
+            continue
+        elif section['plex_type'] == v.PLEX_TYPE_PHOTO:
+            continue
         else:
+            sections.append(section['section_name'])
             if section['sync_to_kodi']:
-                preselect.append(i)
+                preselect.append(index)
+            index += 1
+    # "Select Plex libraries to sync"
     selected = xbmcgui.Dialog().multiselect(utils.lang(30524),
                                             sections,
                                             preselect=preselect,
@@ -285,10 +295,19 @@ def choose_libraries():
     if selected is None:
         # User canceled
         return False
+    index = 0
     with PlexDB() as plexdb:
-        for i, section in enumerate(SECTIONS):
-            sync = True if i in selected else False
-            plexdb.update_section_sync(section['section_id'], sync)
+        for section in SECTIONS:
+            if not app.SYNC.enable_music and section['plex_type'] == v.PLEX_TYPE_ARTIST:
+                continue
+            elif section['plex_type'] == v.PLEX_TYPE_PHOTO:
+                continue
+            else:
+                sync = True if index in selected else False
+                plexdb.update_section_sync(section['section_id'], sync)
+                index += 1
         sections = list(plexdb.all_sections())
     LOG.info('Plex libraries to sync: %s', sections)
+    utils.settings('sections_asked_for_machine_identifier',
+                   value=app.CONN.machine_identifier)
     return True
