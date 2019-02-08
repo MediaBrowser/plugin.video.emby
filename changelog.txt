@@ -1,3 +1,6 @@
+version 2.6.9 (beta only):
+- Fix PKC crashing on resetting the database
+
 version 2.6.8 (beta only):
 - Choose which Plex libraries get synched to Kodi
 - Fix PKC becoming unresponsive
