@@ -147,7 +147,8 @@ class PlayUtils():
             return False
         return True
 
-    def get_max_bitrate(self):
+    @staticmethod
+    def get_max_bitrate():
         # get the addon video quality
         videoQuality = utils.settings('maxVideoQualities')
         bitrate = {
@@ -167,7 +168,8 @@ class PlayUtils():
         # max bit rate supported by server (max signed 32bit integer)
         return bitrate.get(videoQuality, 2147483)
 
-    def getH265(self):
+    @staticmethod
+    def getH265():
         """
         Returns the user settings for transcoding h265: boundary resolutions
         of 480, 720 or 1080 as an int
@@ -182,7 +184,8 @@ class PlayUtils():
         }
         return H265[utils.settings('transcodeH265')]
 
-    def get_bitrate(self):
+    @staticmethod
+    def get_bitrate():
         """
         Get the desired transcoding bitrate from the settings
         """
@@ -203,7 +206,8 @@ class PlayUtils():
         # max bit rate supported by server (max signed 32bit integer)
         return bitrate.get(videoQuality, 2147483)
 
-    def get_resolution(self):
+    @staticmethod
+    def get_resolution():
         """
         Get the desired transcoding resolutions from the settings
         """

@@ -106,12 +106,16 @@ class Service():
         self.server_has_been_online = True
         self.welcome_msg = True
         self.connection_check_counter = 0
+        self.setup = None
+        self.alexa = None
+        self.playqueue = None
         # Flags for other threads
         self.connection_check_running = False
         self.auth_running = False
         self._init_done = True
 
-    def isCanceled(self):
+    @staticmethod
+    def isCanceled():
         return xbmc.abortRequested or app.APP.stop_pkc
 
     def on_connection_check(self, result):
@@ -169,7 +173,8 @@ class Service():
         finally:
             self.connection_check_running = False
 
-    def log_out(self):
+    @staticmethod
+    def log_out():
         """
         Ensures that lib sync threads are suspended; signs out user
         """

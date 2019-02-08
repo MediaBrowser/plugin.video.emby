@@ -69,7 +69,8 @@ class InitialSetup(object):
                 utils.settings('plex_allows_mediaDeletion', value=value)
                 utils.window('plex_allows_mediaDeletion', value=value)
 
-    def enter_new_pms_address(self):
+    @staticmethod
+    def enter_new_pms_address():
         LOG.info('Start getting manual PMS address and port')
         # "Enter your Plex Media Server's IP or URL. Examples are:"
         utils.messageDialog(utils.lang(29999),
@@ -196,12 +197,12 @@ class InitialSetup(object):
                 LOG.error('Failed to update Plex info from plex.tv')
             else:
                 utils.settings('plexLogin', value=self.plex_login)
-                home = 'true' if xml.attrib.get('home') == '1' else 'false'
                 utils.settings('plexAvatar', value=xml.attrib.get('thumb'))
                 LOG.info('Updated Plex info from plex.tv')
         return answer
 
-    def check_existing_pms(self):
+    @staticmethod
+    def check_existing_pms():
         """
         Check the PMS that was set in file settings.
         Will return False if we need to reconnect, because:

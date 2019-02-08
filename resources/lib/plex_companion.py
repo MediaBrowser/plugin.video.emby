@@ -80,7 +80,8 @@ class PlexCompanion(backgroundthread.KillableThread):
         self.subscription_manager = None
         super(PlexCompanion, self).__init__()
 
-    def _process_alexa(self, data):
+    @staticmethod
+    def _process_alexa(data):
         xml = PF.GetPlexMetadata(data['key'])
         try:
             xml[0].attrib
@@ -135,7 +136,8 @@ class PlexCompanion(backgroundthread.KillableThread):
         executebuiltin('RunPlugin(plugin://%s?%s)'
                        % (v.ADDON_ID, urlencode(params)))
 
-    def _process_playlist(self, data):
+    @staticmethod
+    def _process_playlist(data):
         # Get the playqueue ID
         _, container_key, query = PF.ParseContainerKey(data['containerKey'])
         try:
@@ -159,7 +161,8 @@ class PlexCompanion(backgroundthread.KillableThread):
                                   offset=data.get('offset'),
                                   transient_token=data.get('token'))
 
-    def _process_streams(self, data):
+    @staticmethod
+    def _process_streams(data):
         """
         Plex Companion client adjusted audio or subtitle stream
         """
@@ -180,7 +183,8 @@ class PlexCompanion(backgroundthread.KillableThread):
         else:
             LOG.error('Unknown setStreams command: %s', data)
 
-    def _process_refresh(self, data):
+    @staticmethod
+    def _process_refresh(data):
         """
         example data: {'playQueueID': '8475', 'commandID': '11'}
         """

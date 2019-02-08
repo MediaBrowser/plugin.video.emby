@@ -225,7 +225,8 @@ class BackgroundWorker(object):
         self._abort = False
         self._task = None
 
-    def _runTask(self, task):
+    @staticmethod
+    def _runTask(task):
         if task._canceled:
             return
         try:
