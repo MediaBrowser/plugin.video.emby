@@ -126,7 +126,10 @@ class Sync(backgroundthread.KillableThread):
             utils.ERROR(txt='sync.py crashed', notify=True)
             raise
         finally:
-            app.APP.deregister_thread(self)
+            try:
+                app.APP.deregister_thread(self)
+            except ValueError:
+                pass
             LOG.info("###===--- Sync Thread Stopped ---===###")
 
     def _run_internal(self):
@@ -146,6 +149,8 @@ class Sync(backgroundthread.KillableThread):
                                          v.MIN_DB_VERSION):
                 LOG.warn("Db version out of date: %s minimum version "
                          "required: %s", current_version, v.MIN_DB_VERSION)
+                # In order to not wait for this thread to suspend
+                app.APP.deregister_thread(self)
                 # DB out of date. Proceed to recreate?
                 if not utils.yesno_dialog(utils.lang(29999),
                                           utils.lang(39401)):
