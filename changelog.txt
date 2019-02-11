@@ -1,3 +1,8 @@
+version 2.7.0:
+- WARNING: You will need to reset the Kodi database if you're using the stable version of PKC!
+- Version 2.6.6-9 for everyone
+- Choose which Plex libraries get synched to Kodi
+
 version 2.6.9 (beta only):
 - Fix PKC crashing on resetting the database
 
